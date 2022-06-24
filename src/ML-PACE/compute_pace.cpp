@@ -36,6 +36,8 @@ ComputePaceAtom::ComputePaceAtom(class LAMMPS *lmp, int narg, char **arg) :
         Compute(lmp, narg, arg) {
     if (narg < 3) error->all(FLERR, "Illegal compute pace/atom command");
     peratom_flag = 1;
+    size_peratom_cols = 0;
+    scalar_flag = 1; // compute max of gamma
 }
 
 ComputePaceAtom::~ComputePaceAtom() {
@@ -43,7 +45,7 @@ ComputePaceAtom::~ComputePaceAtom() {
 
 void ComputePaceAtom::init() {
     if (force->pair == nullptr)
-        error->all(FLERR, "Compute pace/atom requires a pair style be defined");
+        error->all(FLERR, "Compute pace/atom requires a pair style pace/al be defined");
 
     int count = 0;
     for (int i = 0; i < modify->ncompute; i++)
@@ -53,14 +55,23 @@ void ComputePaceAtom::init() {
     pair_pace_al = force->pair_match("pace/al", 1);
     if (!pair_pace_al)
         error->all(FLERR, "Compute pace/atom requires a `pace/al` pair style");
+}
 
+double ComputePaceAtom::compute_scalar() {
+    invoked_peratom = update->ntimestep;
+    auto pair = (PairPACEActiveLearning *) pair_pace_al;
+    if (invoked_peratom != pair->bevaluator_timestep)
+        error->all(FLERR, "PACE/gamma was not computed on needed timestep.\nIncrease `freq` in pair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] or reset timestep to 0");
+
+    scalar = pair->max_gamma_grade_per_structure;
+    return scalar;
 }
 
 void ComputePaceAtom::compute_peratom() {
     invoked_peratom = update->ntimestep;
     auto pair = (PairPACEActiveLearning *) pair_pace_al;
     if (invoked_peratom != pair->bevaluator_timestep)
-        error->all(FLERR, "PACE/gamma was not computed on needed timestep");
+        error->all(FLERR, "PACE/gamma was not computed on needed timestep.\nIncrease `freq` in pair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] or reset timestep to 0");
     vector_atom = pair->extrapolation_grade_gamma;
-    scalar = pair->max_gamma_grade_per_structure;
+
 }

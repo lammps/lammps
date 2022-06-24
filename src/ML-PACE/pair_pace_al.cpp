@@ -71,6 +71,8 @@ using namespace MathConst;
 #define MAXLINE 1024
 #define DELTA 4
 #define PACE_AL_EXTRAPOLATION_GRADE_FNAME "grade.dat"
+#define EXTRAPOLATIVE_STRUCTURES_FNAME "extrapolative_structures.dat"
+#define SPECIES_TYPE_FNAME "species_types.dat"
 //added YL
 
 
@@ -144,8 +146,12 @@ PairPACEActiveLearning::~PairPACEActiveLearning() {
         memory->destroy(extrapolation_grade_gamma);
     }
 
-    if (dump)
+    if (dump) {
         delete dump;
+        dump = nullptr;
+    }
+
+    //computePaceAtom will be deleted by lmp->modify, as it was registered there
 }
 
 /* ---------------------------------------------------------------------- */
@@ -315,8 +321,9 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
         MPI_Comm_rank(world, &mpi_rank);
 
         if (max_gamma_grade_per_structure > gamma_upper_bound) {
-            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
-            dump->write();
+            if (mpi_rank == 0)
+                dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
+            if (is_dump_extrapolative_structures) dump->write();
             MPI_Barrier(world);
 
             if (mpi_rank == 0) {
@@ -326,8 +333,10 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
             MPI_Abort(world, 1); //abort properly with error code '1' if not using 4 processes
             exit(EXIT_FAILURE);
         } else if (max_gamma_grade_per_structure > gamma_lower_bound) {
-            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
-            dump->write();
+            if (mpi_rank == 0)
+                dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
+            if (is_dump_extrapolative_structures)
+                dump->write();
         }
     }
 
@@ -351,9 +360,10 @@ void PairPACEActiveLearning::allocate() {
 ------------------------------------------------------------------------- */
 
 void PairPACEActiveLearning::settings(int narg, char **arg) {
-    if (narg > 3) {
+    //TODO: make keyword base interface: pair_style pace/al freq 100 gamma_lo 1.5 gamma_hi 10 dump yes
+    if (narg > 4) {
         error->all(FLERR,
-                   "Illegal pair_style command. Correct form:\n\tpair_style pace/al [gamma_lower_bound] [gamma_upper_bound]");
+                   "Illegal pair_style command. Correct form:\n\tpair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] [nodump]");
     }
 
     if (narg > 0) {
@@ -381,12 +391,23 @@ void PairPACEActiveLearning::settings(int narg, char **arg) {
                        "Illegal gamma_grade_eval_freq value: it should be integer number >= 1");
     }
 
+    if (narg > 3) {
+        if (strcmp(arg[3], "nodump") == 0) is_dump_extrapolative_structures = false;
+        if (strcmp(arg[3], "dump") == 0) is_dump_extrapolative_structures = true;
+    }
+
     if (comm->me == 0) {
         if (screen) {
             utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
             utils::logmesg(lmp, "Extrapolation grade thresholds (lower/upper): {}/{}\n", gamma_lower_bound,
                            gamma_upper_bound);
             utils::logmesg(lmp, "Extrapolation grade evaluation frequency: {}\n", gamma_grade_eval_freq);
+            if (is_dump_extrapolative_structures)
+                utils::logmesg(lmp, "Extrapolative structures will be dumped into {}\n",
+                               EXTRAPOLATIVE_STRUCTURES_FNAME);
+            else
+                utils::logmesg(lmp, "No extrapolative structures will be dumped\n");
+
         }
     }
 }
@@ -448,7 +469,10 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
     aceimpl->rec_ace->element_type_mapping.init(atom->ntypes + 1);
     aceimpl->rec_ace->element_type_mapping.fill(-1); //-1 means atom not included into potential
 
-    FILE *species_type_file = fopen("species_types.dat", "w");
+    FILE *species_type_file = nullptr;
+    if (is_dump_extrapolative_structures)
+        species_type_file = fopen(SPECIES_TYPE_FNAME, "w");
+
     const int n = atom->ntypes;
     for (int i = 1; i <= n; i++) {
         char *elemname = elemtypes[i - 1];
@@ -459,9 +483,8 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
             map[i] = -1;
             if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
         } else {
-
             // dump species types for reconstruction of atomic configurations
-            fprintf(species_type_file, "%s ", elemname);
+            if (is_dump_extrapolative_structures) fprintf(species_type_file, "%s ", elemname);
             int atomic_number = AtomicNumberByName_pace_al(elemname);
             if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
             SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
@@ -479,7 +502,7 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
             }
         }
     }
-    fclose(species_type_file);
+    if (is_dump_extrapolative_structures) fclose(species_type_file);
     aceimpl->ace->set_basis(*aceimpl->basis_set);
     aceimpl->rec_ace->set_basis(*aceimpl->ctilde_basis_set);
 
@@ -508,14 +531,14 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
     }
 
     // prepare dump class
-    if (!dump) {
+    if (is_dump_extrapolative_structures && !dump) {
         // dump pace all custom freq extrapolation.dat id type mass x y z
         char **dumpargs = new char *[12];
         dumpargs[0] = (char *) "pace"; // dump id
         dumpargs[1] = (char *) "all";                // group
         dumpargs[2] = (char *) "custom";                // dump style
         dumpargs[3] = (char *) "1";          // dump frequency
-        dumpargs[4] = (char *) "extrapolative_structures.dat";          // fname
+        dumpargs[4] = (char *) EXTRAPOLATIVE_STRUCTURES_FNAME;          // fname
         dumpargs[5] = (char *) "id";
         dumpargs[6] = (char *) "type";
         dumpargs[7] = (char *) "mass";

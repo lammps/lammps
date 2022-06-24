@@ -35,6 +35,7 @@ namespace LAMMPS_NS {
         ComputePaceAtom(class LAMMPS *, int, char **);
         ~ComputePaceAtom() override;
         void init() override;
+        double compute_scalar() override;
         void compute_peratom() override;
     private:
         int nmax;

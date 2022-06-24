@@ -6,6 +6,9 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     "Please remove CMakeCache.txt and CMakeFiles first.")
 endif()
 
+set(LAMMPS_THIRDPARTY_URL "https://download.lammps.org/thirdparty"
+  CACHE STRING "URL for thirdparty package downloads")
+
 # global LAMMPS/plugin build settings
 set(LAMMPS_SOURCE_DIR ""  CACHE PATH "Location of LAMMPS sources folder")
 if(NOT LAMMPS_SOURCE_DIR)

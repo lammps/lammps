@@ -81,6 +81,13 @@ function(get_newest_file path variable)
   set(${variable} ${_bestfile} PARENT_SCOPE)
 endfunction()
 
+# get LAMMPS version date
+function(get_lammps_version version_header variable)
+    file(STRINGS ${version_header} line REGEX LAMMPS_VERSION)
+    string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\1\\2\\3" date "${line}")
+    set(${variable} "${date}" PARENT_SCOPE)
+endfunction()
+
 #################################################################################
 # LAMMPS C++ interface. We only need the header related parts except on windows.
 add_library(lammps INTERFACE)

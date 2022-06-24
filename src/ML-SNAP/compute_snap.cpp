@@ -202,18 +202,18 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   ndims_force = 3;
   ndims_virial = 6;
   yoffset = nperdim;
-  zoffset = 2*nperdim;
+  zoffset = 2 * nperdim;
   natoms = atom->natoms;
   bik_rows = 1;
   if (bikflag) bik_rows = natoms;
   dgrad_rows = ndims_force*natoms;
-  size_array_rows = bik_rows+dgrad_rows+ndims_virial;
-  if (dgradflag) size_array_cols = nperdim+3; // plus 3 for tag[i], tag[j], and cartesian index
-  else size_array_cols = nperdim*atom->ntypes+1;
+  size_array_rows = bik_rows+dgrad_rows + ndims_virial;
+  if (dgradflag) size_array_cols = nperdim + 3;
+  else size_array_cols = nperdim*atom->ntypes + 1;
   lastcol = size_array_cols-1;
 
   ndims_peratom = ndims_force;
-  size_peratom = ndims_peratom*nperdim*atom->ntypes;
+  size_peratom = ndims_peratom * nperdim * atom->ntypes;
 
   nmax = 0;
 }
@@ -266,19 +266,10 @@ void ComputeSnap::init()
 
   // allocate memory for global array
 
-  if (dgradflag){
-    // Initially allocate natoms^2 rows, will prune with neighborlist later
-    memory->create(snap,natoms*natoms,ncoeff+3,
-                   "snap:snap");
-    memory->create(snapall,natoms*natoms,ncoeff+3,
-                   "snap:snapall");
-  }
-  else{
-    memory->create(snap,size_array_rows,size_array_cols,
-                   "snap:snap");
-    memory->create(snapall,size_array_rows,size_array_cols,
-                   "snap:snapall");
-  }
+  memory->create(snap,size_array_rows,size_array_cols,
+		 "snap:snap");
+  memory->create(snapall,size_array_rows,size_array_cols,
+		 "snap:snapall");
   array = snapall;
 
   // find compute for reference energy
@@ -290,6 +281,7 @@ void ComputeSnap::init()
   c_pe = modify->compute[ipe];
 
   // add compute for reference virial tensor
+
   std::string id_virial = std::string("snap_press");
   std::string pcmd = id_virial + " all pressure NULL virial";
   modify->add_compute(pcmd);
@@ -314,9 +306,8 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 void ComputeSnap::compute_array()
 {
 
-  if (dgradflag){
-    get_dgrad_length();
-  }
+  if (dgradflag) get_dgrad_length();
+  //  if (dgradflag) get_dgrad_length2();
 
   int ntotal = atom->nlocal + atom->nghost;
 
@@ -345,6 +336,7 @@ void ComputeSnap::compute_array()
     }
 
   // invoke full neighbor list (will copy or build if necessary)
+
   neighbor->build_one(list);
 
   const int inum = list->inum;
@@ -723,9 +715,7 @@ void ComputeSnap::compute_array()
   // assign virial stress to last column
   // switch to Voigt notation
 
-  c_virial->compute_vector();
   if (!dgradflag) {
-    // no virial terms for dgrad yet
     c_virial->compute_vector();
     int irow = 3*natoms+bik_rows;
     snapall[irow++][lastcol] = c_virial->vector[0];
@@ -844,6 +834,91 @@ void ComputeSnap::get_dgrad_length()
 
   dgrad_rows *= ndims_force;
 
+  neighsum[0] = 0;  
+  for (int ii = 1; ii < inum; ii++) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit)
+      neighsum[i] = neighsum[i-1] + nneighs[i-1];
+  }
+  
+  memory->create(dgrad, dgrad_rows, ncoeff+3, "snap:dgrad");
+  for (int i = 0; i < dgrad_rows; i++)
+    for (int j = 0; j < ncoeff+3; j++)
+      dgrad[i][j] = 0.0;
+  
+  // set size array rows which now depends on dgrad_rows.
+
+  size_array_rows = bik_rows + dgrad_rows + 3*atom->nlocal + 1; // Add 3*N for dBi/dRi. and add 1 for reference energy
+
+  memory->create(snap,size_array_rows,size_array_cols, "snap:snap");
+  memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
+  array = snapall;
+
+}
+
+/* ----------------------------------------------------------------------
+   compute dgrad length
+------------------------------------------------------------------------- */
+
+void ComputeSnap::get_dgrad_length2()
+{
+  memory->destroy(snap);
+  memory->destroy(snapall);
+
+  // invoke full neighbor list
+
+  neighbor->build_one(list);
+  dgrad_rows = 0;
+  const int inum = list->inum;
+  const int* const ilist = list->ilist;
+  const int* const numneigh = list->numneigh;
+  int** const firstneigh = list->firstneigh;
+  int * const type = atom->type;
+  const int* const mask = atom->mask;
+  double** const x = atom->x;
+
+  memory->create(neighsum, natoms, "snap:neighsum");
+  memory->create(nneighs, natoms, "snap:nneighs");
+  memory->create(icounter, natoms, "snap:icounter");
+  memory->create(dbiri, 3*natoms,ncoeff+3, "snap:dbiri");
+  if (atom->nlocal != natoms)
+    error->all(FLERR,"Compute snap dgradflag=1 does not support parallelism yet.");
+
+  for (int ii = 0; ii < 3 * natoms; ii++)
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+      dbiri[ii][icoeff] = 0.0;
+
+  for (int ii = 0; ii < inum; ii++) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit) {
+      icounter[i] = 0;
+      nneighs[i] = 0;
+      const double xtmp = x[i][0];
+      const double ytmp = x[i][1];
+      const double ztmp = x[i][2];
+      const int itype = type[i];
+      const int* const jlist = firstneigh[i];
+      const int jnum = numneigh[i];
+      for (int jj = 0; jj < jnum; jj++) {
+        int j = jlist[jj];
+        j &= NEIGHMASK;
+
+        const double delx = x[j][0] - xtmp;
+        const double dely = x[j][1] - ytmp;
+        const double delz = x[j][2] - ztmp;
+        const double rsq = delx * delx + dely * dely + delz * delz;
+        int jtype = type[j];
+
+        if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
+          dgrad_rows++;
+          nneighs[i]++;
+        }
+      }
+    }
+  }
+
+  dgrad_rows *= ndims_force;
+
   // loop over all atoms again to calculate neighsum
 
   // for (int ii = 0; ii < inum; ii++) {
@@ -877,16 +952,6 @@ void ComputeSnap::get_dgrad_length()
   memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
   array = snapall;
 
-}
-
-/* ----------------------------------------------------------------------
-   compute array length
-------------------------------------------------------------------------- */
-
-double ComputeSnap::compute_scalar()
-{
-  if (dgradflag) get_dgrad_length();
-  return size_array_rows;
 }
 
 /* ----------------------------------------------------------------------

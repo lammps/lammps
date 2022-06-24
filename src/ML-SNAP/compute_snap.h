@@ -31,7 +31,6 @@ class ComputeSnap : public Compute {
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;
-  double compute_scalar() override;
   double memory_usage() override;
 
  private:
@@ -66,6 +65,7 @@ class ComputeSnap : public Compute {
 
   void dbdotr_compute();
   void get_dgrad_length();
+  void get_dgrad_length2();
 };
 
 }    // namespace LAMMPS_NS

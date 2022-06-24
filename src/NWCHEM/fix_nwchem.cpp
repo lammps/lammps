@@ -124,7 +124,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   nw_input = new char[n];
   strcpy(nw_input,arg[4]);
 
-  nw_output = (char *) "";
+  nw_output = nullptr;
   if (strcmp(arg[5],"NULL") != 0) {
     n = strlen(arg[5]) + 1;
     nw_output = new char[n];
@@ -497,6 +497,12 @@ void FixNWChem::pre_force_qmmm(int vflag)
 
   // unit conversion from LAMMPS to NWChem
 
+  printf("PSPW XQM: x1 %g %g %g x2 %g %g %g x3 %g %g %g\n",
+         xqm[0][0],xqm[0][1],xqm[0][2],
+         xqm[1][0],xqm[1][1],xqm[1][2],
+         xqm[2][0],xqm[2][1],xqm[2][2]);
+  printf("PSPW QPOT: qpot %g %g %g\n",qpotential[0],qpotential[1],qpotential[2]);
+
   for (int i = 0; i < nqm; i++) {
     xqm[i][0] *= lmp2qm_distance;
     xqm[i][1] *= lmp2qm_distance;
@@ -512,12 +518,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
   // outputs:
   //   fqm,qqm = forces & charges
   //   qmenergy = QM energy of entire system
-
-  printf("PSPW XQM: x1 %g %g %g x2 %g %g %g x3 %g %g %g\n",
-         xqm[0][0],xqm[0][1],xqm[0][2],
-         xqm[1][0],xqm[1][1],xqm[1][2],
-         xqm[2][0],xqm[2][1],xqm[2][2]);
-  printf("PSPW QPOT: qpot %g %g %g\n",qpotential[0],qpotential[1],qpotential[2]);
 
   if (comm->me == 0) 
     utils::logmesg(lmp, "Calling pspw_qmmm() in NWChem ...\n");
@@ -539,13 +539,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
     utils::logmesg(lmp, "  time = {:.3f} seconds\n",
                    platform::walltime() - tstart);
 
-  printf("PSPW FQM: f1 %g %g %g f2 %g %g %g f3 %g %g %g\n",
-         fqm[0][0],fqm[0][1],fqm[0][2],
-         fqm[1][0],fqm[1][1],fqm[1][2],
-         fqm[2][0],fqm[2][1],fqm[2][2]);
-  printf("PSPW QQM: qpot %g %g %g\n",qqm[0],qqm[1],qqm[2]);
-  printf("PSPW ENG: %g\n",qmenergy);
-
   // unit conversion from NWChem to LAMMPS
 
   qmenergy *= qm2lmp_energy;
@@ -555,6 +548,13 @@ void FixNWChem::pre_force_qmmm(int vflag)
     fqm[i][1] *= qm2lmp_force;
     fqm[i][2] *= qm2lmp_force;
   }
+
+  printf("PSPW FQM: f1 %g %g %g f2 %g %g %g f3 %g %g %g\n",
+         fqm[0][0],fqm[0][1],fqm[0][2],
+         fqm[1][0],fqm[1][1],fqm[1][2],
+         fqm[2][0],fqm[2][1],fqm[2][2]);
+  printf("PSPW QQM: qpot %g %g %g\n",qqm[0],qqm[1],qqm[2]);
+  printf("PSPW ENG: %g\n",qmenergy);
 
   // reset owned charges to QM values
   // communicate changes to ghost atoms
@@ -736,6 +736,10 @@ void FixNWChem::post_force_qmmm(int vflag)
 
   double **f = atom->f;
 
+  for (int i = 0; i < atom->nlocal; i++)
+    printf("PRE POST FORCE: f%d %g %g %g\n",atom->tag[i],
+           f[i][0],f[i][1],f[i][2]);
+
   int ilocal;
 
   for (int i = 0; i < nqm; i++) {
@@ -744,16 +748,12 @@ void FixNWChem::post_force_qmmm(int vflag)
       f[ilocal][0] += fqm[i][0];
       f[ilocal][1] += fqm[i][1];
       f[ilocal][2] += fqm[i][2];
-      printf("NWCHEM QM FORCE %d: %g %g %g\n",
-             atom->tag[ilocal],fqm[i][0],fqm[i][1],fqm[i][2]);
     }
   }
 
-  // DEBUG
-
   for (int i = 0; i < atom->nlocal; i++)
-    printf("FINAL QM-unit FORCE id %d f %g %g %g\n",atom->tag[i],
-           f[i][0]/qm2lmp_force,f[i][1]/qm2lmp_force,f[i][2]/qm2lmp_force);
+    printf("POST POST FORCE: f%d %g %g %g\n",atom->tag[i],
+           f[i][0],f[i][1],f[i][2]);
 
   // trigger per-atom energy computation on next step by pair/kspace
   // NOTE: is this needed ?

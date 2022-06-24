@@ -38,7 +38,7 @@ found together with equivalent examples in C and C++ in the
 
 .. note::
 
-   A contributed (and complete!) Fortran interface that more
+   A contributed (and more complete!) Fortran interface that more
    closely resembles the C-library interface is available
    in the ``examples/COUPLE/fortran2`` folder.  Please see the
    ``README`` file in that folder for more information about it
@@ -65,6 +65,7 @@ the optional logical argument set to ``.true.``. Here is a simple example:
 
    PROGRAM testlib
      USE LIBLAMMPS                 ! include the LAMMPS library interface
+     IMPLICIT NONE
      TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
      CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
          [ CHARACTER(len=12) :: 'liblammps', '-log', 'none' ]
@@ -77,6 +78,56 @@ the optional logical argument set to ``.true.``. Here is a simple example:
      CALL lmp%close(.true.)
 
    END PROGRAM testlib
+
+You also have the option to pass the options on the command line, as you
+would using the C or C++ interfaces. You can use arrays, such as
+
+.. code-block:: fortran
+
+   PROGRAM testlib2
+     USE LIBLAMMPS                 ! include the LAMMPS library interface
+     IMPLICIT NONE
+     TYPE(lammps) :: lmp           ! derived type to hold LAMMPS instance
+     CHARACTER(LEN=128), ALLOCATABLE :: command_args(:) 
+                                   ! array to hold the command line arguments
+     INTEGER :: i
+     ! Create an array containg the number of arguments on the command line
+     ALLOCATE(command_args(0:COMMAND_ARGUMENT_COUNT()))
+     ! Read each argument and store it in "args"
+     DO i=0,COMMAND_ARGUMENT_COUNT()
+       CALL GET_COMMAND_ARGUMENT(i,command_args(i))
+     END DO
+     ! create your LAMMPS instance (and initialize MPI)
+     lmp = lammps(command_args)
+     ! deallocate the argument array (unless you need it)
+     DEALLOCATE(command_args)
+     ! get and print numerical version code
+     PRINT*, 'LAMMPS Version: ', lmp%version()
+     ! delete LAMMPS instance (and shuts down MPI)
+     CALL lmp%close(.TRUE.)
+   END PROGRAM testlib2
+
+which you would then execute with something like `testlib.x -log none`.
+The constructor is overloaded to allow you to use the entire command line
+string directly, such as in the following:
+
+.. code-block:: fortran
+
+   PROGRAM testlib3
+     USE LIBLAMMPS                       ! include the LAMMPS library interface
+     IMPLICIT NONE
+     TYPE(lammps) :: lmp                 ! derived type to hold LAMMPS instance
+     CHARACTER(LEN=1024) :: command_line ! variable to hold the command line
+     ! get the command line from the operating system
+     CALL GET_COMMAND(command_line)
+     lmp = lammps(command_args)
+     ! get and print numerical version code
+     PRINT*, 'LAMMPS Version: ', lmp%version()
+     ! delete LAMMPS instance (and shuts down MPI)
+     CALL lmp%close(.TRUE.)
+   END PROGRAM testlib3
+
+Again, you would then execute this with something like `testlib.x -log none`.
 
 --------------------
 
@@ -123,7 +174,7 @@ Below is a small demonstration of the uses of the different functions:
          'create_box 1 box' // NEW_LINE('A') //               &
          'create_atoms 1 single 1.0 1.0 ${zpos}'
      CALL lmp%commands_string(cmds)
-     CALL lmp%close()
+     CALL lmp%close(.TRUE.)
 
    END PROGRAM testcmd
 
@@ -138,8 +189,8 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 .. f:type:: lammps
 
    Derived type that is the general class of the Fortran interface.
-   It holds a reference to the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class instance
-   that any of the included calls are forwarded to.
+   It holds a reference to the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class
+   instance that any of the included calls are forwarded to.
 
    :f c_ptr handle: reference to the LAMMPS class
    :f close: :f:func:`close`
@@ -149,22 +200,43 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f commands_list: :f:func:`commands_list`
    :f commands_string: :f:func:`commands_string`
 
-.. f:function:: lammps(args[,comm])
+.. f:function:: lammps([args,comm]) OR lammps(str[,comm])
 
-   This is the constructor for the Fortran class and will forward
-   the arguments to a call to either :cpp:func:`lammps_open_fortran`
+   This overloaded function is the constructor for the Fortran class and will
+   forward the arguments to a call to either :cpp:func:`lammps_open_fortran`
    or :cpp:func:`lammps_open_no_mpi`. If the LAMMPS library has been
    compiled with MPI support, it will also initialize MPI, if it has
    not already been initialized before.
 
-   The *args* argument with the list of command line parameters is
-   optional and so it the *comm* argument with the MPI communicator.
-   If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
+   In the first form, the *args* argument, which is the list of command line
+   parameters, is optional, and so is the *comm* argument, which is the MPI
+   communicator. If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
 
    :p character(len=*) args(*) [optional]: arguments as list of strings
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
+
+   In the second form, the *str* argument contains the entire command line,
+   which is divided into a list of parameters and passed back to the first
+   form of the constructor.
+
+   :p character(len=*) str: single string
+   :o integer comm [optional]: MPI communicator
+   :r lammps: an instance of the :f:type:`lammps` derived type
+
+.. admonition:: MPI vs. MPI_F08 modules
+   :class: note
+
+   The Fortran API currently makes limited use of the ``MPI_F08`` module,
+   which the newest implementation of the MPI standard but is also the only
+   MPI implementation in Fortran that conforms to the Fortran standard.
+   The most significant difference from previous MPI interfaces is that
+   communicators have type MPI_comm (a derived type) rather than integer, which
+   is how the FORTRAN 77 API (``include "mpi.h"``) and the Fortran 90/95/2003
+   MPI module (``use MPI``) treat them. As long as your compiler supports both
+   the ``MPI`` and ``MPI_F08`` modules, you should be able to use either one
+   and the interface will figure out which one you meant.
 
 .. f:subroutine:: close([finalize])
 
@@ -202,7 +274,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    This method will call :cpp:func:`lammps_commands_list` to have LAMMPS
    execute a list of input lines.
 
-   :p character(len=*) cmd(*): list of LAMMPS input lines
+   :p character(len=*) cmd(:): list of LAMMPS input lines
 
 .. f:subroutine:: commands_string(str)
 

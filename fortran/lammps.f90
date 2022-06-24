@@ -31,6 +31,7 @@ MODULE LIBLAMMPS
 
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_loc, &
       c_int, c_char, c_null_char, c_double, c_size_t, c_f_pointer
+  USE MPI_F08, only : MPI_Comm
 
   IMPLICIT NONE
   PRIVATE
@@ -49,7 +50,7 @@ MODULE LIBLAMMPS
   END TYPE lammps
 
   INTERFACE lammps
-      MODULE PROCEDURE lmp_open
+      MODULE PROCEDURE lmp_open, lmp_open_str, lmp_open_f08, lmp_open_f08_str
   END INTERFACE lammps
 
   ! interface definitions for calling functions in library.cpp
@@ -57,6 +58,8 @@ MODULE LIBLAMMPS
       FUNCTION lammps_open(argc,argv,comm) &
           BIND(C, name='lammps_open_fortran')
         IMPORT :: c_ptr, c_int
+        ! Technically, comm is of type INTEGER (default kind),
+        ! not INTEGER (C_int) but...this avoids the warning
         INTEGER(c_int), VALUE, INTENT(in)     :: argc, comm
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
         TYPE(c_ptr)                           :: lammps_open
@@ -67,7 +70,8 @@ MODULE LIBLAMMPS
         IMPORT :: c_ptr, c_int
         INTEGER(c_int), VALUE, INTENT(in)     :: argc
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
-        TYPE(c_ptr), INTENT(out)              :: handle
+        ! 06/24/22: bug fix - INTENT(OUT) -> VALUE (used to send C_NULL_PTR)
+        TYPE(c_ptr), VALUE                    :: handle
         TYPE(c_ptr)                           :: lammps_open_no_mpi
       END FUNCTION lammps_open_no_mpi
 
@@ -148,7 +152,7 @@ CONTAINS
     CHARACTER(len=*), INTENT(in), OPTIONAL :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
     TYPE(c_ptr)                  :: dummy=c_null_ptr
-    INTEGER :: i,argc
+    INTEGER (C_int) :: i, argc
 
     IF (PRESENT(args)) THEN
         ! convert argument list to c style
@@ -175,6 +179,87 @@ CONTAINS
     END DO
     DEALLOCATE(argv)
   END FUNCTION lmp_open
+
+  ! Alternative constructor for the LAMMPS class for users of MPI_F08
+  TYPE (lammps) FUNCTION lmp_open_f08(args,comm)
+    CHARACTER(len=*), INTENT(IN), OPTIONAL :: args(:)
+    TYPE (MPI_Comm), INTENT(IN) :: comm
+    IF ( PRESENT(args) ) THEN
+      lmp_open_f08 = lmp_open(args,comm%MPI_VAL)
+    ELSE
+      lmp_open_f08 = lmp_open(comm=comm%MPI_VAL)
+    END IF
+  END FUNCTION lmp_open_f08
+
+  ! Alternative constructor for the LAMMPS class.
+  ! Overloaded version of lmp_open that accepts a string (e.g., the entire
+  ! command line as returned by GET_COMMAND) instead of an array
+  TYPE (lammps) FUNCTION lmp_open_str(str,comm)
+    CHARACTER(LEN=*), INTENT(IN) :: str
+    INTEGER,INTENT(IN), OPTIONAL :: comm
+    CHARACTER(LEN=:), ALLOCATABLE :: args(:)
+    INTEGER :: i, nargs, beginstr, argnum, maxlen
+    CHARACTER(LEN=:), ALLOCATABLE :: tstr
+
+    ALLOCATE ( CHARACTER(LEN=LEN_TRIM(str)) :: tstr )
+    tstr = TRIM(str)
+    ! find number of arguments (non-consecutive, non-escaped spaces)
+    nargs = 1
+    i = 2
+    beginstr = 1
+    IF ( INDEX(tstr, ' ') == 0 ) THEN
+      ! Only one argument
+      maxlen = LEN(tstr)
+    ELSE
+      maxlen = INDEX(tstr, ' ')
+    END IF
+    DO WHILE ( i < LEN(tstr) )
+      IF (tstr(i:i) == ' ' .AND. tstr(i-1:i-1) /= '\') THEN
+        nargs = nargs + 1
+        DO WHILE ( i+1 < LEN(tstr) .AND. tstr(i+1:i+1) == ' ' )
+          i = i + 1
+        END DO
+        IF ( maxlen < (i + 1 - beginstr) ) maxlen = i + 1 - beginstr
+        beginstr = i + 1
+      END IF
+      i = i + 1
+    END DO
+
+    ALLOCATE ( CHARACTER(LEN=maxlen) :: args(nargs) )
+    beginstr = 1
+    i = 1
+    argnum = 1
+    DO WHILE ( i < LEN(tstr) )
+      IF (tstr(i:i) == ' ' .AND. tstr(i-1:i-1) /= '\') THEN
+        ! found a real space => split string and store in args(argnum)
+        args(argnum) = tstr(beginstr:i-1)
+        argnum = argnum + 1
+        ! find next non-space
+        DO WHILE ( i+1 <= LEN(tstr) .AND. tstr(i+1:i+1) == ' ' )
+          i = i + 1
+        END DO
+        beginstr = i + 1
+      END IF
+      i = i + 1
+    END DO
+    ! grab last argument
+    args(argnum) = tstr(beginstr:)
+
+    IF ( PRESENT(comm) ) THEN
+       lmp_open_str = lmp_open (args, comm)
+    ELSE
+       lmp_open_str = lmp_open (args)
+    END IF
+
+    DEALLOCATE (args, tstr)
+  END FUNCTION lmp_open_str
+
+  ! Alternative constructor for users of MPI_F08 that accepts a string
+  TYPE (lammps) FUNCTION lmp_open_f08_str(str,comm)
+    CHARACTER(LEN=*), INTENT(IN) :: str
+    TYPE (MPI_Comm), INTENT(IN) :: comm
+    lmp_open_f08_str = lmp_open_str(str,comm%MPI_VAL)
+  END FUNCTION lmp_open_f08_str
 
   ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
   SUBROUTINE lmp_close(self,finalize)
@@ -267,6 +352,8 @@ CONTAINS
 
   ! ----------------------------------------------------------------------
   ! local helper functions
+  ! ----------------------------------------------------------------------
+
   ! copy fortran string to zero terminated c string
   FUNCTION f2c_string(f_string) RESULT(ptr)
     CHARACTER (len=*), INTENT(in)           :: f_string

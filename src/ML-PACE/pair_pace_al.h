@@ -60,11 +60,12 @@ namespace LAMMPS_NS {
 
         int gamma_grade_eval_freq = 1;
         DumpCustom *dump = nullptr;
+        Compute *computePaceAtom = nullptr;
         int natoms; //total number of atoms
 
         double gamma_lower_bound = 1.5;
         double gamma_upper_bound = 10;
-        double per_structure_gamma_grade = 0;
+        double max_gamma_grade_per_structure = 0;
 
         virtual void allocate();
 
@@ -74,7 +75,7 @@ namespace LAMMPS_NS {
 
         double rcutmax;               // max cutoff for all elements
         int nelements;                // # of unique elements
-
+        int bevaluator_timestep;    // timestep, on which gamma grade were computed
         double *extrapolation_grade_gamma; //per-atom gamma value
 
         double **scale;

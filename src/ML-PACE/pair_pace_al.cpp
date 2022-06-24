@@ -38,6 +38,7 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include "memory.h"
 #include "error.h"
 #include "update.h"
+#include "modify.h"
 
 
 #include "math_const.h"
@@ -46,19 +47,21 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include "ace_b_basis.h"
 #include "ace_recursive.h"
 #include "ace_version.h"
+#include "compute_pace.h"
 
 namespace LAMMPS_NS {
     struct ACEALImpl {
         ACEALImpl() : basis_set(nullptr), ace(nullptr), ctilde_basis_set(nullptr), rec_ace(nullptr) {}
-        ~ACEALImpl()
-        {
+
+        ~ACEALImpl() {
             delete basis_set;
             delete ace;
         }
+
         ACEBBasisSet *basis_set;
-        ACEBEvaluator* ace;
+        ACEBEvaluator *ace;
         ACECTildeBasisSet *ctilde_basis_set;
-        ACERecursiveEvaluator* rec_ace;
+        ACERecursiveEvaluator *rec_ace;
     };
 }    // namespace LAMMPS_NS
 
@@ -152,8 +155,8 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
     double delx, dely, delz, evdwl;
     double fij[3];
     int *ilist, *jlist, *numneigh, **firstneigh;
-    double gamma_grade = 0;
-    per_structure_gamma_grade = 0;
+    double max_gamma_grade = 0;
+    max_gamma_grade_per_structure = 0;
     ev_init(eflag, vflag);
 
     // downwards modified by YL
@@ -188,13 +191,12 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
         error->all(FLERR, str);
     }
 
-
-    if (atom->natoms > natoms) {
+    //grow extrapolation_grade_gamma array, that store per-atom extrapolation grades
+    if (atom->nlocal > natoms) {
         memory->destroy(extrapolation_grade_gamma);
-        natoms = atom->natoms;
+        natoms = atom->nlocal;
         memory->create(extrapolation_grade_gamma, natoms, "pace/atom:gamma");
     }
-
     // Aidan Thompson told RD (26 July 2019) that practically always holds:
     // inum = nlocal
     // i = ilist(ii) < inum
@@ -254,10 +256,10 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
         // 'compute_atom' will update the `ace->e_atom` and `ace->neighbours_forces(jj, alpha)` arrays and max_gamma_grade
 
         if (is_bevaluator) {
-            if (gamma_grade < aceimpl->ace->max_gamma_grade)
-                gamma_grade = aceimpl->ace->max_gamma_grade;
-
-            extrapolation_grade_gamma[i] = gamma_grade;
+            double current_atom_gamma_grade = aceimpl->ace->max_gamma_grade;
+            if (max_gamma_grade < current_atom_gamma_grade) max_gamma_grade = current_atom_gamma_grade;
+            bevaluator_timestep = current_timestep;
+            extrapolation_grade_gamma[i] = current_atom_gamma_grade;
         }
 
         Array2D<DOUBLE_TYPE> &neighbours_forces = (is_bevaluator ? aceimpl->ace->neighbours_forces
@@ -307,13 +309,13 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
     //TODO: check correctness of MPI usage, maybe use comm->me==0 instead ?
     if (is_bevaluator) {
-        //gather together per_structure_gamma_grade
-        MPI_Allreduce(&gamma_grade, &per_structure_gamma_grade, 1, MPI_DOUBLE, MPI_MAX, world);
+        //gather together max_gamma_grade_per_structure
+        MPI_Allreduce(&max_gamma_grade, &max_gamma_grade_per_structure, 1, MPI_DOUBLE, MPI_MAX, world);
         int mpi_rank;
         MPI_Comm_rank(world, &mpi_rank);
 
-        if (per_structure_gamma_grade > gamma_upper_bound) {
-            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, per_structure_gamma_grade);
+        if (max_gamma_grade_per_structure > gamma_upper_bound) {
+            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
             dump->write();
             MPI_Barrier(world);
 
@@ -323,8 +325,8 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
             MPI_Abort(world, 1); //abort properly with error code '1' if not using 4 processes
             exit(EXIT_FAILURE);
-        } else if (per_structure_gamma_grade > gamma_lower_bound) {
-            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, per_structure_gamma_grade);
+        } else if (max_gamma_grade_per_structure > gamma_lower_bound) {
+            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
             dump->write();
         }
     }
@@ -489,12 +491,27 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
         for (int j = i; j <= n; j++)
             scale[i][j] = 1.0;
 
+    // prepare compute gamma
+    if (!computePaceAtom) {
+        // compute pace all pace/atom
+        char **computeargs = new char *[3];
+        computeargs[0] = (char *) "pace_gamma"; //name
+        computeargs[1] = (char *) "all";      // atoms group
+        computeargs[2] = (char *) "pace/atom"; //compute style
+        computePaceAtom = new ComputePaceAtom(lmp, 3, computeargs);
+        computePaceAtom->init();
+        // mimic behaviour from Modify::add_compute
+        modify->compute[modify->ncompute] = computePaceAtom;
+        //TODO: modify->compute_list is protected!!!
+//        modify->compute_list = std::vector<Compute *>(modify->compute, modify->compute + modify->ncompute + 1);
+        modify->ncompute++;
+    }
+
     // prepare dump class
     if (!dump) {
-        // dump WRITE_DUMP all cfg 10 dump.snap.*.cfg mass type xs ys zs
-        // dump WRITE_DUMP all custom freq extrapolation.dat id type mass x y z
-        char **dumpargs = new char *[11];
-        dumpargs[0] = (char *) "WRITE_DUMP"; // dump id
+        // dump pace all custom freq extrapolation.dat id type mass x y z
+        char **dumpargs = new char *[12];
+        dumpargs[0] = (char *) "pace"; // dump id
         dumpargs[1] = (char *) "all";                // group
         dumpargs[2] = (char *) "custom";                // dump style
         dumpargs[3] = (char *) "1";          // dump frequency
@@ -505,7 +522,8 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
         dumpargs[8] = (char *) "x";
         dumpargs[9] = (char *) "y";
         dumpargs[10] = (char *) "z";
-        dump = new DumpCustom(lmp, 11, dumpargs);
+        dumpargs[11] = (char *) "c_pace_gamma";
+        dump = new DumpCustom(lmp, 12, dumpargs);
         dump->init();
 
         // dump_modify WRITE_DUMP element X Y Z

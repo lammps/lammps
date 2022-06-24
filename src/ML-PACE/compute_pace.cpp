@@ -58,7 +58,9 @@ void ComputePaceAtom::init() {
 
 void ComputePaceAtom::compute_peratom() {
     invoked_peratom = update->ntimestep;
-
-    vector_atom = ((PairPACEActiveLearning *) pair_pace_al)->extrapolation_grade_gamma;
-
+    auto pair = (PairPACEActiveLearning *) pair_pace_al;
+    if (invoked_peratom != pair->bevaluator_timestep)
+        error->all(FLERR, "PACE/gamma was not computed on needed timestep");
+    vector_atom = pair->extrapolation_grade_gamma;
+    scalar = pair->max_gamma_grade_per_structure;
 }

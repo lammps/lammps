@@ -77,6 +77,7 @@ namespace LAMMPS_NS {
         double rcutmax;               // max cutoff for all elements
         int nelements;                // # of unique elements
         int bevaluator_timestep;    // timestep, on which gamma grade were computed
+        int bevaluator_timestep_shift = 0; //
         double *extrapolation_grade_gamma; //per-atom gamma value
 
         double **scale;

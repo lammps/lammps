@@ -224,7 +224,7 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
     }
 
     int current_timestep = update->ntimestep;
-    bool is_bevaluator = current_timestep % gamma_grade_eval_freq == 0;
+    bool is_bevaluator = (current_timestep - bevaluator_timestep_shift) % gamma_grade_eval_freq == 0;
 
     if (is_bevaluator)
         aceimpl->ace->resize_neighbours_cache(max_jnum);

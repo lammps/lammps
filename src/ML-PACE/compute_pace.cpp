@@ -58,10 +58,16 @@ void ComputePaceAtom::init() {
 }
 
 double ComputePaceAtom::compute_scalar() {
-    invoked_peratom = update->ntimestep;
+    invoked_scalar = update->ntimestep;
     auto pair = (PairPACEActiveLearning *) pair_pace_al;
-    if (invoked_peratom != pair->bevaluator_timestep)
-        error->all(FLERR, "PACE/gamma was not computed on needed timestep.\nIncrease `freq` in pair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] or reset timestep to 0");
+
+    if (invoked_scalar != pair->bevaluator_timestep) {
+//        error->all(FLERR,
+//                   "PACE/gamma was not computed on needed timestep.\nIncrease `freq` in pair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] or reset timestep to 0");
+        utils::logmesg(lmp,"[ComputePaceAtom::compute_scalar] Reseting timestep shift to {} and recomputing\n",invoked_scalar);
+        pair->bevaluator_timestep_shift = invoked_scalar;
+        pair->compute(1, 1);
+    }
 
     scalar = pair->max_gamma_grade_per_structure;
     return scalar;
@@ -70,8 +76,13 @@ double ComputePaceAtom::compute_scalar() {
 void ComputePaceAtom::compute_peratom() {
     invoked_peratom = update->ntimestep;
     auto pair = (PairPACEActiveLearning *) pair_pace_al;
-    if (invoked_peratom != pair->bevaluator_timestep)
-        error->all(FLERR, "PACE/gamma was not computed on needed timestep.\nIncrease `freq` in pair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] or reset timestep to 0");
+    if (invoked_peratom != pair->bevaluator_timestep) {
+//        error->all(FLERR,
+//                   "PACE/gamma was not computed on needed timestep.\nIncrease `freq` in pair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] or reset timestep to 0");
+        utils::logmesg(lmp,"[ComputePaceAtom::compute_scalar] Reseting timestep shift to {} and recomputing\n",invoked_scalar);
+        pair->bevaluator_timestep_shift = invoked_peratom;
+        pair->compute(1, 1);
+    }
     vector_atom = pair->extrapolation_grade_gamma;
 
 }

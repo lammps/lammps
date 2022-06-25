@@ -91,6 +91,13 @@ FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
   read_grid_data(arg[3]);
   create_splines();
 
+  // border comm of 1st neighbors in special list
+  // so chkttor() can use them when central atom = ghost to check chirality
+  // comm_border = max # of bonds per atom + 1 for count
+
+  comm_border = 7;
+  atom->add_callback(Atom::BORDER);
+
   // perform initial allocation of atom-based arrays
 
   num_bitorsion = nullptr;
@@ -1743,6 +1750,50 @@ void FixAmoebaBiTorsion::copy_arrays(int i, int j, int /*delflag*/)
 void FixAmoebaBiTorsion::set_arrays(int i)
 {
   num_bitorsion[i] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   pack values for border communication at re-neighboring
+------------------------------------------------------------------------- */
+
+int FixAmoebaBiTorsion::pack_border(int n, int *list, double *buf)
+{
+  int i, j, k;
+
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  int m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = ubuf(nspecial[j][0]).d;
+    for (k = 0; k < nspecial[j][0]; k++)
+      buf[m++] = ubuf(special[j][k]).d;
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values for border communication at re-neighboring
+------------------------------------------------------------------------- */
+
+int FixAmoebaBiTorsion::unpack_border(int n, int first, double *buf)
+{
+  int i, k, last;
+
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  int m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    nspecial[i][0] = (int) ubuf(buf[m++]).i;
+    for (k = 0; k < nspecial[i][0]; k++)
+      special[i][k] = (tagint) ubuf(buf[m++]).i;
+  }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------

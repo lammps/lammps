@@ -59,6 +59,8 @@ class FixAmoebaBiTorsion : public Fix {
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
+  int pack_border(int, int *, double *) override;
+  int unpack_border(int, int, double *) override;
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
@@ -69,7 +71,7 @@ class FixAmoebaBiTorsion : public Fix {
   int eflag_caller;
   int ilevel_respa;
   int disable;
-  bigint nbitorsions;
+  bigint nbitorsions;      // total count of all bitorsions in system
   double ebitorsion;
   double onefifth;
 

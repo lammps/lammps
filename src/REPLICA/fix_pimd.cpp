@@ -19,18 +19,33 @@
 
    Updated      Oct-01-2011
    Version      1.0
+
+   Updated      Jun-07-2022
+   Yifan Li @ Princeton University (yifanl0716@gmail.com)
+   Added components:
+   - Multi-processor parallelism for each bead
+   - White-noise Langevin thermostat
+   - Bussi-Zykova-Parrinello barostat (isotropic and anisotropic)
+   - Several quantum estimators
+   Futher plans:
+   - Triclinic barostat
 ------------------------------------------------------------------------- */
 
 #include "fix_pimd.h"
 
 #include "atom.h"
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
 #include "universe.h"
+#include "utils.h"
 #include "update.h"
 
 #include <cmath>
@@ -41,11 +56,19 @@ using namespace FixConst;
 using namespace MathConst;
 
 enum { PIMD, NMPIMD, CMD };
+enum { physical, normal };
+enum { baoab, obabo };
+enum { ISO, ANISO, TRICLINIC };
+enum { PILE_L, NHC };
+enum { MTTK, BZP };
+// char* Barostats[] = {"MTTK", "BZP"};
+std::map<int, std::string> Barostats {{MTTK, "MTTK"}, {BZP, "BZP"}};
+enum { nve, nvt, nph, npt };
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
-{
+FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr) {
+  time_integrate = 1;
   max_nsend = 0;
   tag_send = nullptr;
   buf_send = nullptr;
@@ -70,10 +93,21 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nhc_eta_mass = nullptr;
 
   method = PIMD;
+  ensemble      = nvt;
   fmass = 1.0;
   nhc_temp = 298.15;
   nhc_nchain = 2;
   sp = 1.0;
+  temp          = 298.15;
+  Lan_temp      = 298.15;
+  tau           = 1.0;
+  tau_p         = 1.0;
+  Pext          = 1.0;
+  tstat_flag    = 1;
+  pstat_flag    = 0;
+  mapflag       = 1;
+  removecomflag = 1;
+  pstyle        = ISO;
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
@@ -85,17 +119,113 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         method = CMD;
       else
         error->universe_all(FLERR, "Unknown method parameter for fix pimd");
-    } else if (strcmp(arg[i], "fmass") == 0) {
+    }
+    else if(strcmp(arg[i], "integrator")==0)
+    {
+      if(strcmp(arg[i+1], "obabo")==0) integrator=obabo;
+      else if(strcmp(arg[i+1], "baoab")==0) integrator=baoab;
+      else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only obabo and baoab integrators are supported!");
+    }
+    else if(strcmp(arg[i], "ensemble")==0)
+    {
+      if(strcmp(arg[i+1], "nve")==0) { ensemble = nve; tstat_flag = 0; pstat_flag = 0; }
+      else if(strcmp(arg[i+1], "nvt")==0) { ensemble = nvt; tstat_flag = 1; pstat_flag = 0; }
+      else if(strcmp(arg[i+1], "nph")==0) { ensemble = nph; tstat_flag = 0; pstat_flag = 1; }
+      else if(strcmp(arg[i+1], "npt")==0) { ensemble = npt; tstat_flag = 1; pstat_flag = 1; }
+      else error->universe_all(FLERR, "Unknown ensemble parameter for fix pimd. Only nve and nvt ensembles are supported!");
+    }
+      else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (fmass < 0.0 || fmass > 1.0)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd");
-    } else if (strcmp(arg[i], "sp") == 0) {
+    } 
+    else if(strcmp(arg[i], "fmmode")==0)
+    {
+      if(strcmp(arg[i+1], "physical")==0) fmmode=physical;
+      else if(strcmp(arg[i+1], "normal")==0) fmmode=normal;
+      else error->universe_all(FLERR, "Unknown fictitious mass mode for fix pimd. Only physical mass and normal mode mass are supported!");
+    }
+
+    else if(strcmp(arg[i],"scale")==0)
+    {
+      pilescale = atof(arg[i+1]);
+      if(pilescale<0.0) error->universe_all(FLERR,"Invalid pile scale value for fix pimd");
+    }
+    else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (fmass < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
     } else if (strcmp(arg[i], "temp") == 0) {
       nhc_temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (nhc_temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd");
-    } else if (strcmp(arg[i], "nhc") == 0) {
+    } 
+    else if(strcmp(arg[i], "thermostat")==0)
+    {
+      if(strcmp(arg[i+1],"PILE_L")==0) 
+      {
+        thermostat = PILE_L;
+        seed = atoi(arg[i+2]);
+        i++;
+      }
+      else if(strcmp(arg[i+1],"NHC")==0)
+      {
+        thermostat = NHC;
+      }
+    }
+
+    else if(strcmp(arg[i], "tau")==0)
+    {
+      tau = atof(arg[i+1]);
+    }
+  
+    else if(strcmp(arg[i], "press")==0)
+    {
+      Pext = atof(arg[i+1]);
+      if(Pext<0.0) error->universe_all(FLERR,"Invalid press value for fix pimd");
+    }
+
+    else if(strcmp(arg[i], "barostat")==0)
+    {
+      if(strcmp(arg[i+1],"MTTK")==0) 
+      {
+        barostat = MTTK;
+      }
+      else if(strcmp(arg[i+1],"BZP")==0)
+      {
+        barostat = BZP;
+      }
+      else error->universe_all(FLERR,"Unknown barostat parameter for fix pimd");
+    }
+
+    else if(strcmp(arg[i], "iso")==0)
+    {
+      pstyle = ISO;
+      i--;
+    }
+
+    else if(strcmp(arg[i], "aniso")==0)
+    {
+      pstyle = ANISO;
+      i--;
+    }
+
+    else if(strcmp(arg[i], "taup")==0)
+    {
+      tau_p = atof(arg[i+1]);
+      if(tau_p<=0.0) error->universe_all(FLERR, "Invalid tau_p value for fix pimd");
+    }
+    else if(strcmp(arg[i], "fixcom")==0)
+    {
+      if(strcmp(arg[i+1], "yes")==0) removecomflag = 1;
+      else if(strcmp(arg[i+1], "no")==0) removecomflag = 0;
+    }
+
+    else if(strcmp(arg[i], "map")==0)
+    {
+      if(strcmp(arg[i+1], "yes")==0) mapflag = 1;
+      else if(strcmp(arg[i+1], "no")==0) mapflag = 0;
+    }
+
+    else if (strcmp(arg[i], "nhc") == 0) {
       nhc_nchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
       if (nhc_nchain < 2) error->universe_all(FLERR, "Invalid nhc value for fix pimd");
     } else
@@ -117,7 +247,8 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   global_freq = 1;
   vector_flag = 1;
-  size_vector = 2;
+  if(pstyle==ISO) {size_vector = 15;}
+  else if(pstyle==ANISO) {size_vector = 23;}
   extvector = 1;
   comm_forward = 3;
 
@@ -129,37 +260,72 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // some initilizations
 
   nhc_ready = false;
+
+  id_pe = new char[8];
+  strcpy(id_pe, "pimd_pe");
+  char **newarg = new char*[3];
+  newarg[0] = id_pe;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pe";
+  modify->add_compute(3,newarg);
+  delete [] newarg;
+
+  id_press = new char[12];
+  strcpy(id_press, "pimd_press");
+  newarg = new char*[5];
+  newarg[0] = id_press;
+  newarg[1] = (char*) "all";
+  newarg[2] = (char*) "pressure";
+  newarg[3] = (char*) "thermo_temp";
+  newarg[4] = (char*) "virial";
+  modify->add_compute(5, newarg);
+  delete [] newarg;
+
+  vol0 = domain->xprd * domain->yprd * domain->zprd;
+
+  fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
+  fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
+  fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
+
+  // initialize Marsaglia RNG with processor-unique seed
+
+  if(integrator==baoab || integrator==obabo)
+  {
+    Lan_temp = temp;
+    random = new RanMars(lmp, seed + universe->me);
+  }
+  
 }
 
 /* ---------------------------------------------------------------------- */
+
 FixPIMD::~FixPIMD()
 {
-  delete[] mass;
-  atom->delete_callback(id, Atom::GROW);
-  atom->delete_callback(id, Atom::RESTART);
+  // delete[] mass;
+  // atom->delete_callback(id, Atom::GROW);
+  // atom->delete_callback(id, Atom::RESTART);
 
-  memory->destroy(M_x2xp);
-  memory->destroy(M_xp2x);
-  memory->destroy(M_f2fp);
-  memory->destroy(M_fp2f);
-  memory->sfree(lam);
+  // memory->destroy(M_x2xp);
+  // memory->destroy(M_xp2x);
+  // memory->destroy(M_f2fp);
+  // memory->destroy(M_fp2f);
+  // memory->sfree(lam);
+  // memory->sfree(buf_beads);
 
-  if (buf_beads)
-    for (int i = 0; i < np; i++) memory->sfree(buf_beads[i]);
-  delete[] buf_beads;
-  delete[] plan_send;
-  delete[] plan_recv;
-  delete[] mode_index;
+  // delete[] buf_beads;
+  // delete[] plan_send;
+  // delete[] plan_recv;
+  // delete[] mode_index;
 
-  memory->sfree(tag_send);
-  memory->sfree(buf_send);
-  memory->sfree(buf_recv);
+  // memory->sfree(tag_send);
+  // memory->sfree(buf_send);
+  // memory->sfree(buf_recv);
 
-  memory->destroy(array_atom);
-  memory->destroy(nhc_eta);
-  memory->destroy(nhc_eta_dot);
-  memory->destroy(nhc_eta_dotdot);
-  memory->destroy(nhc_eta_mass);
+  // memory->destroy(array_atom);
+  // memory->destroy(nhc_eta);
+  // memory->destroy(nhc_eta_dot);
+  // memory->destroy(nhc_eta_dotdot);
+  // memory->destroy(nhc_eta_mass);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,6 +335,7 @@ int FixPIMD::setmask()
   mask |= POST_FORCE;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
+  mask |= END_OF_STEP;
   return mask;
 }
 
@@ -184,42 +351,43 @@ void FixPIMD::init()
 
   // prepare the constants
 
+  masstotal = group->mass(igroup);
   np = universe->nworlds;
   inverse_np = 1.0 / np;
 
-  /* The first solution for the force constant, using SI units
-
-  const double Boltzmann = 1.3806488E-23;    // SI unit: J/K
-  const double Plank     = 6.6260755E-34;    // SI unit: m^2 kg / s
-
-  double hbar = Plank / ( 2.0 * MY_PI ) * sp;
-  double beta = 1.0 / ( Boltzmann * input.nh_temp);
-
-  // - P / ( beta^2 * hbar^2)   SI unit: s^-2
-  double _fbond = -1.0 / (beta*beta*hbar*hbar) * input.nbeads;
-
-  // convert the units: s^-2 -> (kcal/mol) / (g/mol) / (A^2)
-  fbond = _fbond * 4.184E+26;
-
-  */
-
-  /* The current solution, using LAMMPS internal real units */
-
   const double Boltzmann = force->boltz;
-  const double Plank = force->hplanck;
+  const double Planck = force->hplanck;
 
-  double hbar = Plank / (2.0 * MY_PI);
-  double beta = 1.0 / (Boltzmann * nhc_temp);
-  double _fbond = 1.0 * np / (beta * beta * hbar * hbar);
+  hbar = Planck / (2.0 * MY_PI);
+  kBT = force->boltz * temp;
+  double beta = 1.0 / (Boltzmann * temp);
+  double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
 
-  omega_np = sqrt(np) / (hbar * beta) * sqrt(force->mvv2e);
+  omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
+  beta_np = 1.0 / force->boltz / temp / np;
   fbond = -_fbond * force->mvv2e;
 
   if (universe->me == 0)
     printf("Fix pimd -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
 
-  dtv = update->dt;
-  dtf = 0.5 * update->dt * force->ftm2v;
+  if(integrator==obabo)
+  {
+    dtf = 0.5 * update->dt * force->ftm2v;
+    dtv = 0.5 * update->dt;
+    dtv2 = dtv * dtv;
+    dtv3 = 1./3 * dtv2 * dtv * force->ftm2v;
+  }
+  else if(integrator==baoab)
+  {
+    dtf = 0.5 * update->dt * force->ftm2v;
+    dtv = 0.5 * update->dt;
+    dtv2 = dtv * dtv;
+    dtv3 = 1./3 * dtv2 * dtv * force->ftm2v;
+  }
+  else
+  {
+    error->universe_all(FLERR,"Unknown integrator parameter for fix pimd");
+  }
 
   comm_init();
 
@@ -230,57 +398,324 @@ void FixPIMD::init()
   else
     for (int i = 1; i <= atom->ntypes; i++) mass[i] = atom->mass[i] / np * fmass;
 
-  if (!nhc_ready) nhc_init();
+  if (!nhc_ready && thermostat == NHC) nhc_init();
+  Langevin_init();
+  if (pstat_flag) baro_init();
+
+  int ipe = modify->find_compute(id_pe);
+  c_pe = modify->compute[ipe];
+
+  int ipress = modify->find_compute(id_press);
+  c_press = modify->compute[ipress];
+
+  t_prim = t_vir = t_cv = p_prim = p_vir = p_cv = p_md = 0.0;
+
+  if(universe->me==0) fprintf(screen, "Fix pimd successfully initialized!\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::setup(int vflag)
 {
-  if (universe->me == 0 && universe->uscreen)
-    fprintf(universe->uscreen, "Setting up Path-Integral ...\n");
-
+  if(universe->me==0) printf("Setting up Path-Integral ...\n");
+  int nlocal = atom->nlocal;
+  tagint *tag = atom->tag;
+  double **x = atom->x;
+  imageint *image = atom->image;
+  if(mapflag){
+    for(int i=0; i<nlocal; i++)
+    {
+      domain->unmap(x[i], image[i]);
+    }
+  }
+  if(method==NMPIMD)
+  {
+    nmpimd_fill(atom->x);
+    comm_exec(atom->x);
+    nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+  }
+  compute_spring_energy();
+  if(method==NMPIMD)
+  {
+    nmpimd_fill(atom->x);
+    comm_exec(atom->x);
+    nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
+  }
+  if(method==NMPIMD)
+  {
+    nmpimd_fill(atom->v);
+    comm_exec(atom->v);
+    nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
+  }
+  update_x_unwrap();
+  compute_xc();
+  if(mapflag)
+  {
+    for(int i=0; i<nlocal; i++)
+    {
+      domain->unmap_inv(x[i], image[i]);
+    }
+  }
   post_force(vflag);
+  compute_totke();
+  compute_pote();
+  if(pstyle==ANISO) compute_stress_tensor();
+  end_of_step();
+  c_pe->addstep(update->ntimestep+1); 
+  c_press->addstep(update->ntimestep+1);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::initial_integrate(int /*vflag*/)
 {
-  nhc_update_v();
-  nhc_update_x();
+  if(ensemble == nvt && thermostat == NHC)
+  {
+    nhc_update_v();
+    nhc_update_x();
+  }
+  else{
+    int nlocal = atom->nlocal;
+    tagint *tag = atom->tag;
+    double **x = atom->x;
+    imageint *image = atom->image;
+    if(mapflag){
+      for(int i=0; i<nlocal; i++)
+      {
+        domain->unmap(x[i], image[i]);
+      }
+    }
+    if(integrator==obabo)
+    {
+      if(tstat_flag)
+      {
+        o_step();
+        if(removecomflag) remove_com_motion();
+        if(pstat_flag) press_o_step();
+      }
+      compute_totke();
+      compute_p_cv();
+      if(pstat_flag) 
+      {
+        press_v_step();
+      }
+      b_step();
+      if(removecomflag) remove_com_motion();
+      if(method==NMPIMD)
+      {
+        nmpimd_fill(atom->x);
+        comm_exec(atom->x);
+        nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+      }
+      qc_step();
+      a_step();
+      qc_step();
+      a_step();
+    }
+    else if(integrator==baoab)
+    {
+      compute_totke();
+      compute_p_cv();
+      if(pstat_flag) 
+      {
+        press_v_step();
+      }
+      b_step();
+      if(removecomflag) remove_com_motion();
+      if(method==NMPIMD)
+      {
+        nmpimd_fill(atom->x);
+        comm_exec(atom->x);
+        nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+      }
+      qc_step();
+      a_step();
+      if(tstat_flag)
+      {
+        o_step();
+        if(removecomflag) remove_com_motion();
+        if(pstat_flag) press_o_step();
+      }
+      qc_step();
+      a_step();      
+    }
+    else
+    {
+      error->universe_all(FLERR,"Unknown integrator parameter for fix pimd");
+    }
+    compute_spring_energy();
+    if(method==NMPIMD)
+    {
+      nmpimd_fill(atom->x);
+      comm_exec(atom->x);
+      nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
+    }
+    if(mapflag){
+      for(int i=0; i<nlocal; i++)
+      {
+        domain->unmap_inv(x[i], image[i]);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::final_integrate()
 {
-  nhc_update_v();
+  if(ensemble == nvt && thermostat == NHC)
+  {
+    nhc_update_v();
+  }
+  else{
+    if(pstat_flag) 
+    {
+      compute_totke();
+      compute_p_cv();
+      press_v_step();
+    }
+    b_step();
+    if(removecomflag) remove_com_motion();
+    if(integrator==obabo)
+    {
+      if(tstat_flag)
+      {
+        o_step();
+        if(removecomflag) remove_com_motion();
+        if(pstat_flag) press_o_step();
+      }
+    }
+    else if(integrator==baoab)
+    {
+    
+    }
+    else
+    {
+      error->universe_all(FLERR,"Unknown integrator parameter for fix pimd");
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::post_force(int /*flag*/)
 {
-  for (int i = 0; i < atom->nlocal; i++)
-    for (int j = 0; j < 3; j++) atom->f[i][j] /= np;
+  if(ensemble == nvt && thermostat == NHC)
+  {
+    for (int i = 0; i < atom->nlocal; i++)
+      for (int j = 0; j < 3; j++) atom->f[i][j] /= np;
 
-  comm_exec(atom->x);
-  spring_force();
+    comm_exec(atom->x);
+    spring_force();
 
-  if (method == CMD || method == NMPIMD) {
-    /* forward comm for the force on ghost atoms */
+    if (method == CMD || method == NMPIMD) {
+      /* forward comm for the force on ghost atoms */
 
-    nmpimd_fill(atom->f);
+      nmpimd_fill(atom->f);
 
-    /* inter-partition comm */
+      /* inter-partition comm */
 
-    comm_exec(atom->f);
+      comm_exec(atom->f);
 
-    /* normal-mode transform */
+      /* normal-mode transform */
 
-    nmpimd_transform(buf_beads, atom->f, M_f2fp[universe->iworld]);
+      nmpimd_transform(buf_beads, atom->f, M_f2fp[universe->iworld]);
+    }
   }
+  else{
+   int nlocal = atom->nlocal;
+   tagint *tag = atom->tag;
+   double **x = atom->x;
+   imageint *image = atom->image;
+   if(mapflag){
+     for(int i=0; i<nlocal; i++)
+     {
+       domain->unmap(x[i], image[i]);
+     }
+   }
+   comm_exec(atom->x);
+   update_x_unwrap();
+   compute_xc();
+   if(mapflag)
+   {
+     for(int i=0; i<nlocal; i++)
+     {
+       domain->unmap_inv(x[i], image[i]);
+     }
+   }
+   compute_vir();
+   compute_vir_();
+   compute_t_prim();
+   compute_t_vir();
+   compute_pote();
+   if(method==NMPIMD)
+   {
+     nmpimd_fill(atom->f);
+     comm_exec(atom->f);
+     nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
+   }
+   c_pe->addstep(update->ntimestep+1); 
+   c_press->addstep(update->ntimestep+1); 
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::end_of_step()
+{
+  compute_totke();
+  inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+  compute_p_prim();
+  compute_p_cv();
+  compute_tote();
+  if(pstat_flag) compute_totenthalpy();
+
+  if(update->ntimestep % 10000 == 0)
+  {
+  if(universe->me==0) printf("This is the end of step %ld.\n", update->ntimestep);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::update_x_unwrap()
+{
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  // delete x_unwrap;
+  // memory->sfree(x_unwrap);
+  x_unwrap = new double[nlocal*3];
+  for(int i=0; i<nlocal; i++)
+  { 
+    for(int j=0; j<3; j++)
+    {
+      x_unwrap[3*i+j] = x[i][j];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_xc()
+{
+  int natoms = atom->natoms;
+  comm_exec(atom->x);
+  int nlocal = atom->nlocal;
+  // if(xc) delete xc;
+  xc = new double[nlocal*3];
+  for(int i=0; i<nlocal; i++)
+  {
+    xc[3*i] = xc[3*i+1] = xc[3*i+2] = 0.0;
+    for(int j=0; j<np; j++)
+    {
+      xc[3*i] += buf_beads[j][3*i+0];
+      xc[3*i+1] += buf_beads[j][3*i+1];
+      xc[3*i+2] += buf_beads[j][3*i+2];
+    }
+    xc[3*i] /= np;
+    xc[3*i+1] /= np;
+    xc[3*i+2] /= np;
+  } 
 }
 
 /* ----------------------------------------------------------------------
@@ -437,62 +872,432 @@ void FixPIMD::nhc_update_v()
   t_sys /= nmax;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::b_step()
+{
+
+  int n = atom->nlocal;
+  int *type = atom->type;
+  double **v = atom->v;
+  double **f = atom->f;
+
+  for(int i=0; i<n; i++)
+  {
+    double dtfm = dtf / mass[type[i]];
+    v[i][0] += dtfm * f[i][0];
+    v[i][1] += dtfm * f[i][1];
+    v[i][2] += dtfm * f[i][2];
+  }
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::qc_step(){
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  double **v = atom->v;
+  tagint *tag = atom->tag;
+  double oldlo, oldhi;
+  if(!pstat_flag) {
+    if(universe->iworld == 0)
+    {
+      for(int i=0; i<nlocal; i++)
+      {
+        x[i][0] += dtv * v[i][0];
+        x[i][1] += dtv * v[i][1];
+        x[i][2] += dtv * v[i][2];
+      }
+    }
+  }
+  else{
+    if(universe->iworld == 0)
+    {
+      double expp[3], expq[3];
+      if(pstyle == ISO) {vw[1] = vw[0]; vw[2] = vw[0];}
+      for(int j=0; j<3; j++)
+      {
+        expq[j] = exp(dtv * vw[j]);
+        expp[j] = exp(-dtv * vw[j]);
+      }
+      if(barostat == BZP)
+      {
+        for(int i=0; i<nlocal; i++)
+        {
+          for(int j=0; j<3; j++)
+          {
+            x[i][j] = expq[j] * x[i][j] + (expq[j] - expp[j]) / 2. / vw[j] * v[i][j];
+            v[i][j] = expp[j] * v[i][j];
+          } 
+        }
+        oldlo = domain->boxlo[0];
+        oldhi = domain->boxhi[0];
+      
+        domain->boxlo[0] = (oldlo-fixedpoint[0])*expq[0] + fixedpoint[0];
+        domain->boxhi[0] = (oldhi-fixedpoint[0])*expq[0] + fixedpoint[0];
+
+        oldlo = domain->boxlo[1];
+        oldhi = domain->boxhi[1];
+        domain->boxlo[1] = (oldlo-fixedpoint[1])*expq[1] + fixedpoint[1];
+        domain->boxhi[1] = (oldhi-fixedpoint[1])*expq[1] + fixedpoint[1];
+  
+        oldlo = domain->boxlo[2];
+        oldhi = domain->boxhi[2];
+        domain->boxlo[2] = (oldlo-fixedpoint[2])*expq[2] + fixedpoint[2];
+        domain->boxhi[2] = (oldhi-fixedpoint[2])*expq[2] + fixedpoint[2];
+      }
+    }    
+    MPI_Barrier(universe->uworld);
+    MPI_Bcast(&domain->boxlo[0], 3, MPI_DOUBLE, 0, universe->uworld);
+    MPI_Bcast(&domain->boxhi[0], 3, MPI_DOUBLE, 0, universe->uworld);
+    domain->set_global_box();
+    domain->set_local_box();
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::a_step(){
+  int n = atom->nlocal;
+  double **x = atom->x;
+  double **v = atom->v;
+  double x0, x1, x2, v0, v1, v2; // three components of x[i] and v[i]
+
+  if(universe->iworld != 0)
+  {
+    for(int i=0; i<n; i++)
+    {
+      x0 = x[i][0]; x1 = x[i][1]; x2 = x[i][2];
+      v0 = v[i][0]; v1 = v[i][1]; v2 = v[i][2];
+      x[i][0] = Lan_c[universe->iworld] * x0 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v0;
+      x[i][1] = Lan_c[universe->iworld] * x1 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v1;
+      x[i][2] = Lan_c[universe->iworld] * x2 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v2;
+      v[i][0] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x0 + Lan_c[universe->iworld] * v0;
+      v[i][1] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x1 + Lan_c[universe->iworld] * v1;
+      v[i][2] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x2 + Lan_c[universe->iworld] * v2;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::remove_com_motion(){
+  if(universe->iworld == 0)
+  {
+  // double **x = atom->x;
+    double **v = atom->v;
+  int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    if (dynamic)  masstotal = group->mass(igroup);
+    double vcm[3];
+    group->vcm(igroup,masstotal,vcm);    
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        v[i][0] -= vcm[0];
+        v[i][1] -= vcm[1];
+        v[i][2] -= vcm[2];
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::baro_init()
+{
+  if(pstyle == ISO) {W = 3 * (atom->natoms) * tau_p * tau_p * np * kBT;} // consistent with the definition in i-Pi
+  // printf("tau_p = %.6e np = %.6e kBT = %.6e W = %.6e\n", tau_p, np, kBT, W);}
+  else if(pstyle == ANISO) {W = atom->natoms * tau_p * tau_p * np * kBT;}
+  Vcoeff = 1.0;
+  std::string out = fmt::format("\nInitializing PIMD {:s} barostat...\n", Barostats[barostat]);
+  out += fmt::format("The barostat mass is W = {:.16e}\n", W);
+  utils::logmesg(lmp, out);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::press_v_step()
+{
+  int nlocal = atom->nlocal;
+  double **f = atom->f;
+  double **v = atom->v;
+  int *type = atom->type; 
+  volume = domain->xprd * domain->yprd * domain->zprd;
+
+  if(pstyle == ISO)
+  {
+    if(barostat == BZP)
+    {
+      vw[0] += dtv * 3 * (volume * np * (p_cv - Pext) / force->nktv2p + Vcoeff / beta_np) / W;
+      if(universe->iworld==0)
+      {
+        double dvw_proc = 0.0, dvw = 0.0;
+        for(int i = 0; i < nlocal; i++)
+        {
+          for(int j = 0; j < 3; j++)
+          {
+            dvw_proc += dtv2 * f[i][j] * v[i][j] / W + dtv3 * f[i][j] * f[i][j] / mass[type[i]] / W;
+          }
+        }
+        MPI_Allreduce(&dvw_proc, &dvw, 1, MPI_DOUBLE, MPI_SUM, world);
+        vw[0] += dvw;
+      }
+      MPI_Barrier(universe->uworld);
+      MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
+    }
+    else if(barostat == MTTK)
+    {
+        mtk_term1 = 2. / atom->natoms * totke / 3;
+        f_omega = (volume * np * (p_md - Pext) + mtk_term1) / W;
+        vw[0] += 0.5 * dtv * f_omega;
+    }
+  }
+  else if(pstyle == ANISO)
+  {
+    compute_stress_tensor();
+    for(int ii=0; ii<3; ii++)
+    {
+      vw[ii] += dtv * (volume * np * (stress_tensor[ii] - Pext) / force->nktv2p + Vcoeff / beta_np) / W;
+      if(universe->iworld==0)
+      {
+        double dvw_proc = 0.0, dvw = 0.0;
+        for(int i = 0; i < nlocal; i++)
+        {
+          dvw_proc += dtv2 * f[i][ii] * v[i][ii] / W + dtv3 * f[i][ii] * f[i][ii] / mass[type[i]] / W;
+        }
+        MPI_Allreduce(&dvw_proc, &dvw, 1, MPI_DOUBLE, MPI_SUM, world);
+        vw[ii] += dvw;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::press_o_step()
+{
+  if(pstyle==ISO)
+  {
+    if(universe->me==0)
+    {
+      r1 = random->gaussian();
+      vw[0] = c1 * vw[0] + c2 * sqrt(1. / W / beta_np) * r1;
+    }
+    MPI_Barrier(universe->uworld);
+    MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
+  }
+  else if(pstyle==ANISO)
+  {
+    if(universe->me==0)
+    {
+      r1 = random->gaussian();
+      r2 = random->gaussian();
+      r3 = random->gaussian();
+      vw[0] = c1 * vw[0] + c2 * sqrt(1. / W / beta_np) * r1;
+      vw[1] = c1 * vw[1] + c2 * sqrt(1. / W / beta_np) * r2;
+      vw[2] = c1 * vw[2] + c2 * sqrt(1. / W / beta_np) * r3;
+    }
+    MPI_Barrier(universe->uworld);
+    MPI_Bcast(&vw, 3, MPI_DOUBLE, 0, universe->uworld);    
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::Langevin_init()
+{
+  double KT = force->boltz * temp;
+  double beta = 1.0 / KT;
+  _omega_np = np / beta / hbar;
+  double _omega_np_dt_half = _omega_np * update->dt * 0.5;
+
+  _omega_k = new double[np];
+  Lan_c = new double[np];
+  Lan_s = new double[np];
+  if(fmmode==physical){
+    for (int i=0; i<np; i++)
+    {
+      _omega_k[i] = _omega_np * sqrt(lam[i]); 
+      Lan_c[i] = cos(sqrt(lam[i])*_omega_np_dt_half);
+      Lan_s[i] = sin(sqrt(lam[i])*_omega_np_dt_half);
+    }
+  }
+  else if(fmmode==normal){
+    for (int i=0; i<np; i++)
+    {
+      _omega_k[i] = _omega_np; 
+      Lan_c[i] = cos(_omega_np_dt_half);
+      Lan_s[i] = sin(_omega_np_dt_half);
+    }
+  }
+  if(tau > 0) gamma = 1.0 / tau;
+  else gamma = np / beta / hbar;
+  
+  if(integrator==obabo) c1 = exp(-gamma * 0.5 * update->dt); // tau is the damping time of the centroid mode.
+  else if(integrator==baoab) c1 = exp(-gamma * update->dt); 
+  else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only obabo and baoab integrators is supported!");
+
+  c2 = sqrt(1.0 - c1 * c1); // note that c1 and c2 here only works for the centroid mode.
+
+  if( thermostat == PILE_L )
+  {
+    std::string out = "\nInitializing PI Langevin equation thermostat...\n";
+    out += "Bead ID    |    omega    |    tau    |    c1    |    c2\n"; 
+    tau_k = new double[np];
+    c1_k = new double[np];
+    c2_k = new double[np];
+    tau_k[0] = tau; c1_k[0] = c1; c2_k[0] = c2;
+    for(int i=1; i<np; i++)
+    {
+      tau_k[i] = 0.5 / pilescale / _omega_k[i];
+      if(integrator==obabo) c1_k[i] = exp(-0.5 * update->dt / tau_k[i]);
+      else if(integrator==baoab) c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
+      else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only obabo and baoab integrators is supported!");
+      c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
+    }
+    for(int i=0; i<np; i++)
+    {
+      out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i], c1_k[i], c2_k[i]);
+    }
+    if(thermostat == PILE_L) out += "PILE_L thermostat successfully initialized!\n";
+    out += "\n";
+    utils::logmesg(lmp, out);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::o_step()
+{
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+  double beta_np = 1.0 / force->boltz / Lan_temp / np * force->mvv2e;
+  if(thermostat == PILE_L)
+  {
+    for(int i=0; i<nlocal; i++)
+    {
+      r1 = random->gaussian();
+      r2 = random->gaussian();
+      r3 = random->gaussian();
+      atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
+      atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
+      atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
+    }
+  }
+}
+
 /* ----------------------------------------------------------------------
    Normal Mode PIMD
 ------------------------------------------------------------------------- */
 
 void FixPIMD::nmpimd_init()
 {
-  memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
-  memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
-  memory->create(M_f2fp, np, np, "fix_feynman:M_f2fp");
-  memory->create(M_fp2f, np, np, "fix_feynman:M_fp2f");
-
-  lam = (double *) memory->smalloc(sizeof(double) * np, "FixPIMD::lam");
-
-  // Set up  eigenvalues
-
-  lam[0] = 0.0;
-  if (np % 2 == 0) lam[np - 1] = 4.0 * np;
-
-  for (int i = 2; i <= np / 2; i++) {
-    lam[2 * i - 3] = lam[2 * i - 2] = 2.0 * np * (1.0 - 1.0 * cos(2.0 * MY_PI * (i - 1) / np));
+  if(ensemble == nvt && thermostat == NHC)
+  {
+    memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
+    memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
+    memory->create(M_f2fp, np, np, "fix_feynman:M_f2fp");
+    memory->create(M_fp2f, np, np, "fix_feynman:M_fp2f");
+  
+    lam = (double *) memory->smalloc(sizeof(double) * np, "FixPIMD::lam");
+  
+    // Set up  eigenvalues
+  
+    lam[0] = 0.0;
+    if (np % 2 == 0) lam[np - 1] = 4.0 * np;
+  
+    for (int i = 2; i <= np / 2; i++) {
+      lam[2 * i - 3] = lam[2 * i - 2] = 2.0 * np * (1.0 - 1.0 * cos(2.0 * MY_PI * (i - 1) / np));
+    }
+  
+    // Set up eigenvectors for non-degenerated modes
+  
+    for (int i = 0; i < np; i++) {
+      M_x2xp[0][i] = 1.0 / np;
+      if (np % 2 == 0) M_x2xp[np - 1][i] = 1.0 / np * pow(-1.0, i);
+    }
+  
+    // Set up eigenvectors for degenerated modes
+  
+    for (int i = 0; i < (np - 1) / 2; i++)
+      for (int j = 0; j < np; j++) {
+        M_x2xp[2 * i + 1][j] = sqrt(2.0) * cos(2.0 * MY_PI * (i + 1) * j / np) / np;
+        M_x2xp[2 * i + 2][j] = -sqrt(2.0) * sin(2.0 * MY_PI * (i + 1) * j / np) / np;
+      }
+  
+    // Set up Ut
+  
+    for (int i = 0; i < np; i++)
+      for (int j = 0; j < np; j++) {
+        M_xp2x[i][j] = M_x2xp[j][i] * np;
+        M_f2fp[i][j] = M_x2xp[i][j] * np;
+        M_fp2f[i][j] = M_xp2x[i][j];
+      }
+  
+    // Set up masses
+  
+    int iworld = universe->iworld;
+  
+    for (int i = 1; i <= atom->ntypes; i++) {
+      mass[i] = atom->mass[i];
+  
+      if (iworld) {
+        mass[i] *= lam[iworld];
+        mass[i] *= fmass;
+      }
+    }
   }
+  else
+  {
+    memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
+    memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
 
-  // Set up eigenvectors for non-degenerated modes
+    lam = (double*) memory->smalloc(sizeof(double)*np, "FixPIMD::lam");
 
-  for (int i = 0; i < np; i++) {
-    M_x2xp[0][i] = 1.0 / np;
-    if (np % 2 == 0) M_x2xp[np - 1][i] = 1.0 / np * pow(-1.0, i);
-  }
-
-  // Set up eigenvectors for degenerated modes
-
-  for (int i = 0; i < (np - 1) / 2; i++)
-    for (int j = 0; j < np; j++) {
-      M_x2xp[2 * i + 1][j] = sqrt(2.0) * cos(2.0 * MY_PI * (i + 1) * j / np) / np;
-      M_x2xp[2 * i + 2][j] = -sqrt(2.0) * sin(2.0 * MY_PI * (i + 1) * j / np) / np;
+    // Set up  eigenvalues
+    for(int i=0; i<np; i++){
+      double sin_tmp = sin(i * MY_PI / np);
+      lam[i] = 4 * sin_tmp * sin_tmp;
     }
 
-  // Set up Ut
-
-  for (int i = 0; i < np; i++)
-    for (int j = 0; j < np; j++) {
-      M_xp2x[i][j] = M_x2xp[j][i] * np;
-      M_f2fp[i][j] = M_x2xp[i][j] * np;
-      M_fp2f[i][j] = M_xp2x[i][j];
+    // Set up eigenvectors for degenerated modes
+    for(int j=0; j<np; j++){
+      for(int i=1; i<int(np/2) + 1; i++) 
+      {
+        M_x2xp[i][j] =   sqrt(2.0) * cos ( 2.0 * MY_PI * double(i) * double(j) / double(np)) / sqrt(np);
+      }
+      for(int i=int(np/2)+1; i<np; i++)
+      {
+        M_x2xp[i][j] =   sqrt(2.0) * sin ( 2.0 * MY_PI * double(i) * double(j) / double(np)) / sqrt(np);
+      }
     }
 
-  // Set up masses
+    // Set up eigenvectors for non-degenerated modes
+    for(int i=0; i<np; i++)
+    {
+      M_x2xp[0][i] = 1.0 / sqrt(np);
+      if(np%2==0) M_x2xp[np/2][i] = 1.0 / sqrt(np) * pow(-1.0, i);
+    }
 
-  int iworld = universe->iworld;
+    // Set up Ut
+    for(int i=0; i<np; i++)
+      for(int j=0; j<np; j++)
+      {
+        M_xp2x[i][j] = M_x2xp[j][i];
+      }
 
-  for (int i = 1; i <= atom->ntypes; i++) {
-    mass[i] = atom->mass[i];
-
-    if (iworld) {
-      mass[i] *= lam[iworld];
-      mass[i] *= fmass;
+    // Set up masses
+    int iworld = universe->iworld;
+    for(int i=1; i<=atom->ntypes; i++)
+    {
+      mass[i] = atom->mass[i];
+      if(iworld)
+      {
+        if(fmmode==physical) { mass[i] *= 1.0; }
+        else if(fmmode==normal) { mass[i] *= lam[iworld]; }
+        mass[i] *= fmass;
+      }
     }
   }
 }
@@ -868,9 +1673,230 @@ int FixPIMD::size_restart(int /*nlocal*/)
 
 /* ---------------------------------------------------------------------- */
 
+void FixPIMD::compute_vir_()
+{
+  int nlocal = atom->nlocal;
+  xf = vir_ = xcf = centroid_vir = 0.0;
+  for(int i=0; i<nlocal; i++)
+  {
+    for(int j=0; j<3; j++)
+    {
+      xf += x_unwrap[3*i+j] * atom->f[i][j];
+      xcf += (x_unwrap[3*i+j] - xc[3*i+j]) * atom->f[i][j];
+    }
+  }
+  MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  if(pstyle == ANISO){
+    for(int i=0; i<6; i++) c_vir_tensor[i] = 0.0;
+    for(int i=0; i<nlocal; i++){
+      c_vir_tensor[0] += (x_unwrap[3*i+0] - xc[3*i+0]) * atom->f[i][0];
+      c_vir_tensor[1] += (x_unwrap[3*i+1] - xc[3*i+1]) * atom->f[i][1];
+      c_vir_tensor[2] += (x_unwrap[3*i+2] - xc[3*i+2]) * atom->f[i][2];
+      c_vir_tensor[3] += (x_unwrap[3*i+0] - xc[3*i+0]) * atom->f[i][1];
+      c_vir_tensor[4] += (x_unwrap[3*i+0] - xc[3*i+0]) * atom->f[i][2];
+      c_vir_tensor[5] += (x_unwrap[3*i+1] - xc[3*i+1]) * atom->f[i][2];
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &c_vir_tensor, 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_vir()
+{
+  volume = domain->xprd * domain->yprd * domain->zprd;
+  c_press->compute_vector();
+  virial[0] = c_press->vector[0]*volume;
+  virial[1] = c_press->vector[1]*volume;
+  virial[2] = c_press->vector[2]*volume;
+  virial[3] = c_press->vector[3]*volume;
+  virial[4] = c_press->vector[4]*volume;
+  virial[5] = c_press->vector[5]*volume;
+  for(int i=0; i<6; i++) virial[i] /= universe->procs_per_world[universe->iworld];
+  vir=(virial[0]+virial[1]+virial[2]);
+  MPI_Allreduce(&vir,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+  MPI_Allreduce(MPI_IN_PLACE, &virial[0], 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_stress_tensor()
+{
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+  if(universe->iworld == 0){
+    inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+    for(int i=0; i<6; i++) ke_tensor[i] = 0.0;
+    for(int i=0; i<nlocal; i++){
+      ke_tensor[0] += 0.5 * mass[type[i]] * atom->v[i][0] * atom->v[i][0] * force->mvv2e;
+      ke_tensor[1] += 0.5 * mass[type[i]] * atom->v[i][1] * atom->v[i][1] * force->mvv2e;
+      ke_tensor[2] += 0.5 * mass[type[i]] * atom->v[i][2] * atom->v[i][2] * force->mvv2e;
+      ke_tensor[3] += 0.5 * mass[type[i]] * atom->v[i][0] * atom->v[i][1] * force->mvv2e;
+      ke_tensor[4] += 0.5 * mass[type[i]] * atom->v[i][0] * atom->v[i][2] * force->mvv2e;
+      ke_tensor[5] += 0.5 * mass[type[i]] * atom->v[i][1] * atom->v[i][2] * force->mvv2e;
+    }
+    // MPI_Allreduce(&ke_tensor, &ke_tensor, 6, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, &ke_tensor, 6, MPI_DOUBLE, MPI_SUM, world);
+    for(int i=0; i<6; i++) 
+    {
+      stress_tensor[i] = inv_volume * ((2*ke_tensor[i] - c_vir_tensor[i]) * force->nktv2p + virial[i]) / np;
+      // printf("i = %d, c_vir = %.6f, virial = %.6f stress = %.6f\n", i, c_vir_tensor[i], virial[i], stress_tensor[i]);
+    }
+  }
+  MPI_Bcast(&stress_tensor, 6, MPI_DOUBLE, 0, universe->uworld);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_totke()
+{
+  kine = 0.0;
+  totke = ke_bead = 0.0;
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+  for(int i=0; i<nlocal; i++)
+  {
+    for(int j=0; j<3; j++)
+    {
+      kine += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j];
+    }
+  }
+  MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
+  ke_bead *= force->mvv2e;
+  MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  totke *= force->mvv2e / np;
+
+  c_press->compute_scalar();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_spring_energy()
+{
+  spring_energy = 0.0;
+  total_spring_energy = se_bead = 0.0;
+
+  double **x = atom->x;
+  double* _mass = atom->mass;
+  int* type = atom->type;
+  int nlocal = atom->nlocal;
+
+  for(int i=0; i<nlocal; i++)
+  {
+    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]); 
+  }
+  MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  total_spring_energy /= np;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_pote()
+{
+  pe_bead = 0.0;
+  pot_energy_partition = 0.0;
+  pote = 0.0;
+  c_pe->compute_scalar();
+  pe_bead = c_pe->scalar;
+  pot_energy_partition = pe_bead / universe->procs_per_world[universe->iworld];
+  MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  pote /= np;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_tote()
+{
+  tote = totke + pote + total_spring_energy;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_t_prim()
+{
+  t_prim = 1.5 * atom->natoms * np * force->boltz * temp - total_spring_energy;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_t_vir()
+{
+  t_vir = -0.5 / np * vir_;
+  t_cv = 1.5 * atom->natoms * force->boltz * temp - 0.5 / np * centroid_vir;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_p_prim()
+{
+  p_prim = atom->natoms * np * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy;
+  p_prim *= force->nktv2p;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_p_cv()
+{
+  inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+  p_md = 2. / 3 * inv_volume * ((totke - total_spring_energy) * force->nktv2p + 0.5 * vir / np) ;
+  if(universe->iworld == 0)
+  {
+    p_cv = 1. / 3.  * inv_volume  * ((2. * ke_bead  - 1. * centroid_vir) * force->nktv2p + 1. * vir) / np; 
+  }
+  MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMD::compute_totenthalpy()
+{
+  volume = domain->xprd * domain->yprd * domain->zprd;
+  if(barostat == BZP)  
+  {
+    if(pstyle == ISO)
+    {
+      totenthalpy = tote + 0.5*W*vw[0]*vw[0]/np + Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume);
+    }
+    else if(pstyle == ANISO)
+    {
+      totenthalpy = tote + 0.5*W*vw[0]*vw[0]/np + 0.5*W*vw[1]*vw[1]/np + 0.5*W*vw[2]*vw[2]/np + Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume);
+    }
+  }
+  else if(barostat == MTTK)  totenthalpy = tote + 1.5*W*vw[0]*vw[0]/np + Pext * (volume - vol0);
+}
+
+/* ---------------------------------------------------------------------- */
+
 double FixPIMD::compute_vector(int n)
 {
-  if (n == 0) { return spring_energy; }
-  if (n == 1) { return t_sys; }
+  if(n==0) { return ke_bead; }
+  if(n==1) { return se_bead; }
+  if(n==2) { return pe_bead; }
+  if(n==3) { return tote; }
+  if(n==4) { return t_prim; }
+  if(n==5) { return t_vir; }
+  if(n==6) { return t_cv; }
+  if(n==7) { return p_prim; }
+  if(n==8) { return p_md; }
+  if(n==9) { return p_cv; }
+  if(n==10) {return totenthalpy;}
+  if(pstyle == ISO){
+    if(n==11) { return vw[0]; }
+    if(n==12) { 
+      if(barostat == BZP) {  return 0.5*W*vw[0]*vw[0]; }
+      else if(barostat == MTTK) {  return 1.5*W*vw[0]*vw[0]; }
+    }
+    if(n==13) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
+    if(n==14) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume); }
+  }
+  else if(pstyle==ANISO){
+    if(n>10 && n<=13) return vw[n-11];
+    if(n==14) return 0.5*W*vw[0]*vw[0]+0.5*W*vw[1]*vw[1]+0.5*W*vw[2]*vw[2];
+    if(n>14 && n<21) return stress_tensor[n-15];
+    if(n==21) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
+    if(n==22) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume); }
+  }
   return 0.0;
 }

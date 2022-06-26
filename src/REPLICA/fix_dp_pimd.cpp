@@ -52,7 +52,7 @@ enum{baoab, obabo};
 enum{ISO, ANISO, TRICLINIC};
 enum{SVR, PILE_L, PILE_G};
 enum{MTTK, BZP};
-char *Barostats[] = {"MTTK", "BZP"};
+char* Barostats[] = {"MTTK", "BZP"};
 enum{nve, nvt, nph, npt};
 enum{MSTI, SCTI};
 

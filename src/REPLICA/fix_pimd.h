@@ -36,6 +36,7 @@ class FixPIMD : public Fix {
   void post_force(int) override;
   void initial_integrate(int) override;
   void final_integrate() override;
+  void end_of_step() override;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -51,10 +52,26 @@ class FixPIMD : public Fix {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
-  int method;
-  int np;
-  double inverse_np;
+  /* System setting variables */
+  int method; // PIMD or NMPIMD or CMD
+  int fmmode; // physical or normal
+  int np; // number of beads
+  double inverse_np; // 1.0/np
+  double temp; // temperature
+  double hbar; // Planck's constant
+  double kBT; // k_B * temp
+  double beta, beta_np; // beta = 1./kBT beta_np = 1./kBT/np
+  int thermostat; // NHC or PILE_L
+  int barostat; // BZP
+  int integrator; // obabo or baoab
+  int ensemble; // nve or nvt or nph or npt
+  int mapflag; // should be 1 if number of beads > 1
+  int removecomflag;
+  double masstotal;
 
+  void remove_com_motion(); 
+
+  double fixedpoint[3];    // location of dilation fixed-point
   /* ring-polymer model */
 
   double omega_np, fbond, spring_energy, sp;
@@ -67,6 +84,8 @@ class FixPIMD : public Fix {
   double fmass, *mass;
 
   /* inter-partition communication */
+
+  double *sorted;
 
   int max_nsend;
   tagint *tag_send;
@@ -97,7 +116,7 @@ class FixPIMD : public Fix {
   int nhc_size_one_1, nhc_size_one_2;
   int nhc_nchain;
   bool nhc_ready;
-  double nhc_temp, dtv, dtf, t_sys;
+  double nhc_temp, t_sys;
 
   double **nhc_eta;        /* coordinates of NH chains for ring-polymer beads */
   double **nhc_eta_dot;    /* velocities of NH chains                         */
@@ -107,6 +126,78 @@ class FixPIMD : public Fix {
   void nhc_init();
   void nhc_update_v();
   void nhc_update_x();
+
+  /* Langevin integration */
+
+  double dtv, dtf, dtv2, dtv3;
+  double gamma, c1, c2, tau;
+  double *tau_k, *c1_k, *c2_k;
+  double pilescale=1.0;
+  double Lan_temp;
+  double r1, r2, r3;
+  double _omega_np, *_omega_k, *Lan_s, *Lan_c; // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
+
+  class RanMars *random;
+  int seed=975481;
+  FILE *frand;
+
+  int tstat_flag; // tstat_flat = 1 if thermostat if used
+  void Langevin_init();
+  void b_step(); // integrate for dt/2 according to B part (v <- v + f * dt/2)
+  void a_step(); // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
+  void qc_step(); // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
+  void o_step(); // integrate for dt according to O part (O-U process, for thermostating)
+  
+  /* Bussi-Zykova-Parrinello barostat */
+
+  double f_omega, mtk_term1;
+  int pstat_flag; // pstat_flag = 1 if barostat is used
+  int pstyle; // pstyle = ISO or ANISO (will support TRICLINIC in the future)
+  double W, tau_p, Pext, totenthalpy = 0.0, Vcoeff;
+  double vw[6]; // barostat velocity
+  double ke_tensor[6]; // kinetic energy tensor
+  double c_vir_tensor[6]; // centroid-virial tensor
+  double stress_tensor[6]; // path integral centroid-virial stress tensor
+
+  void baro_init();
+  void press_v_step();
+  void press_o_step();
+
+  /* centroid-virial estimator computation */
+  double inv_volume = 0.0, vol_ = 0.0, vol0 = 0.0;
+  double volume = 0.0;
+  double *xc, *fc;
+  int n_unwrap;
+  double *x_unwrap;
+  void update_x_unwrap();
+  void compute_xc();
+  // void compute_fc();
+  double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;
+  double vir_, xcf, vir2;
+
+  /* Computes */
+  double kine, pote, tote, totke;
+  double ke_bead, se_bead, pe_bead, pot_energy_partition;
+  double total_spring_energy;
+  double t_prim, p_prim;
+  char *id_pe;
+  char *id_press;
+  class Compute *c_pe;
+  class Compute *c_press;
+
+  void compute_totke(); // 1: kinetic energy 
+  void compute_spring_energy(); // 2: spring elastic energy
+  void compute_pote(); // 3: potential energy
+  void compute_tote(); // 4: total energy: 1+2+3 for all the beads
+  void compute_t_prim();  // 5: primitive kinetic energy estimator
+  void compute_p_prim();  // primitive pressure estimator
+  void compute_stress_tensor();
+  void compute_t_vir();  // centroid-virial kinetic energy estimator
+  void compute_p_cv();  // centroid-virial pressure estimator
+  void compute_p_vir();  // centroid-virial pressure estimator
+  void compute_vir();
+  void compute_vir_();
+  void compute_totenthalpy();
 };
 
 }    // namespace LAMMPS_NS

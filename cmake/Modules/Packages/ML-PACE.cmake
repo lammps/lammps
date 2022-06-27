@@ -1,8 +1,8 @@
 if(NOT DEFINED LOCAL_ML-PACE)
   # standard user scenario: get latest ML-PACE from github
-  set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2021.10.25.fix2.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
+  set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2022.06.27.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
 
-  set(PACELIB_MD5 "32394d799bc282bb57696c78c456e64f" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
+  set(PACELIB_MD5 "400f0a4b44c1ce64ae47796e6de4bba8" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
   mark_as_advanced(PACELIB_URL)
   mark_as_advanced(PACELIB_MD5)
 

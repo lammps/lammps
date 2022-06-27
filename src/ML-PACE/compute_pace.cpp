@@ -62,6 +62,7 @@ double ComputePaceAtom::compute_scalar() {
     auto pair = (PairPACEActiveLearning *) pair_pace_al;
 
     if (invoked_scalar != pair->bevaluator_timestep) {
+        //TODO: somehow control the frequency of extra computation and warn user about adjusting gamma_freq?
 //        utils::logmesg(lmp,"[ComputePaceAtom::compute_scalar] Reseting timestep shift to {} (pace timestep={}) and recomputing\n",invoked_scalar,pair->bevaluator_timestep);
         pair->bevaluator_timestep_shift = invoked_scalar;
         //TODO: is that right calling of pair pace compute?
@@ -76,6 +77,7 @@ void ComputePaceAtom::compute_peratom() {
     invoked_peratom = update->ntimestep;
     auto pair = (PairPACEActiveLearning *) pair_pace_al;
     if (invoked_peratom != pair->bevaluator_timestep) {
+        //TODO: somehow control the frequency of extra computation and warn user about adjusting gamma_freq?
 //        utils::logmesg(lmp,"[ComputePaceAtom::compute_peratom] Reseting timestep shift to {} (pace timestep={}) and recomputing\n",invoked_peratom,pair->bevaluator_timestep);
         pair->bevaluator_timestep_shift = invoked_peratom;
         //TODO: is that right calling of pair pace compute?

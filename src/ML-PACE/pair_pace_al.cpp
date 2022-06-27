@@ -313,27 +313,27 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
     if (vflag_fdotr) virial_fdotr_compute();
 
-    //TODO: check correctness of MPI usage, maybe use comm->me==0 instead ?
+    //TODO: check correctness of MPI usage
     if (is_bevaluator) {
         //gather together max_gamma_grade_per_structure
         MPI_Allreduce(&max_gamma_grade, &max_gamma_grade_per_structure, 1, MPI_DOUBLE, MPI_MAX, world);
-        int mpi_rank;
-        MPI_Comm_rank(world, &mpi_rank);
 
         if (max_gamma_grade_per_structure > gamma_upper_bound) {
-            if (mpi_rank == 0)
+            if (comm->me == 0)
                 dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
             if (is_dump_extrapolative_structures) dump->write();
             MPI_Barrier(world);
 
-            if (mpi_rank == 0) {
-                error->all(FLERR, "Extrapolation grade is too large, stopping...\n");
-            }
+            if (comm->me == 0)
+                error->all(FLERR,
+                           "Extrapolation grade is too large (gamma={:.3f} > gamma_upper_bound={:.3f}, timestep={}), stopping...\n",
+                           max_gamma_grade_per_structure, gamma_upper_bound, current_timestep);
 
-            MPI_Abort(world, 1); //abort properly with error code '1' if not using 4 processes
+            MPI_Barrier(world);
+            MPI_Abort(world, 1); //abort properly with error code '1' if not using many processes
             exit(EXIT_FAILURE);
         } else if (max_gamma_grade_per_structure > gamma_lower_bound) {
-            if (mpi_rank == 0)
+            if (comm->me == 0)
                 dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
             if (is_dump_extrapolative_structures)
                 dump->write();

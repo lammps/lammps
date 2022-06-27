@@ -28,36 +28,9 @@ else()
   endif()
 endif()
 
-##yaml
-# enforce building libyaml-cpp as static library and turn off optional features
-set(YAML_BUILD_SHARED_LIBS OFF)
-set(YAML_CPP_BUILD_CONTRIB OFF)
-set(YAML_CPP_BUILD_TOOLS OFF)
-add_subdirectory(${lib-pace}/yaml-cpp build-yaml-cpp)
-set(YAML_CPP_INCLUDE_DIR ${lib-pace}/yaml-cpp/include)
-
-## cnpy
-set(CNPY_PATH ${lib-pace}/cnpy)
-set(CNPY_INCLUDE_PATH ${CNPY_PATH})
-set(CNPY_SRC ${CNPY_PATH}/cnpy.cpp)
-add_library(cnpy-static STATIC ${CNPY_SRC})
-set_target_properties(cnpy-static PROPERTIES LINKER_LANGUAGE CXX)
-
-## winger-cpp
-# this is header-only library
-set(WIGNER_PATH ${lib-pace}/wigner-cpp)
-set(WIGNER_INCLUDE_PATH ${WIGNER_PATH}/include/wigner)
-
-# ML-PACE sources
-file(GLOB PACE_EVALUATOR_INCLUDE_DIR ${lib-pace}/ML-PACE)
-file(GLOB PACE_EVALUATOR_SOURCES ${lib-pace}/ML-PACE/*.cpp)
-list(FILTER PACE_EVALUATOR_SOURCES EXCLUDE REGEX pair_pace*.cpp)
-
-add_library(pace STATIC ${PACE_EVALUATOR_SOURCES})
+add_subdirectory(${lib-pace} build-pace)
 set_target_properties(pace PROPERTIES CXX_EXTENSIONS ON OUTPUT_NAME lammps_pace${LAMMPS_MACHINE})
-target_include_directories(pace PUBLIC ${PACE_EVALUATOR_INCLUDE_DIR} ${YAML_CPP_INCLUDE_DIR} ${CNPY_INCLUDE_PATH} ${WIGNER_INCLUDE_PATH})
-target_compile_definitions(pace PUBLIC EXTRA_C_PROJECTIONS)
-target_link_libraries(pace PRIVATE yaml-cpp-pace cnpy-static)
+
 if(CMAKE_PROJECT_NAME STREQUAL "lammps")
   target_link_libraries(lammps PRIVATE pace)
 endif()

@@ -67,16 +67,16 @@ equivalent to Newton's equations of motion for shear flow by
 the desired velocity gradient and the correct production of work by
 stresses for all forms of homogeneous flow by :ref:`(Daivis and Todd)
 <Daivis>`.
-The LAMMPS implementation corresponds to the p-SLLOD variant
-of SLLOD. :ref:`(Edwards) <Edwards>`.
-The equations of motion are coupled to a
-Nose/Hoover chain thermostat in a velocity Verlet formulation, closely
-following the implementation used for the :doc:`fix nvt <fix_nh>`
-command.
+
+The LAMMPS implementation corresponds to the standard SLLOD equations
+of motion by :ref:`(Evans and Morriss) <Evans3>`.  The equations of
+motion are coupled to a Nose/Hoover chain thermostat in a velocity
+Verlet formulation, closely following the implementation used for the
+:doc:`fix nvt <fix_nh>` command.
 
 .. note::
 
-   A recent (2017) book by :ref:`(Daivis and Todd) <Daivis-sllod>`
+   A recent (2017) book by :ref:`(Todd and Daivis) <Todd-sllod>`
    discusses use of the SLLOD method and non-equilibrium MD (NEMD)
    thermostatting generally, for both simple and complex fluids,
    e.g. molecular systems.  The latter can be tricky to do correctly.
@@ -183,11 +183,8 @@ Same as :doc:`fix nvt <fix_nh>`, except tchain = 1.
 
 **(Daivis and Todd)** Daivis and Todd, J Chem Phys, 124, 194103 (2006).
 
-.. _Edwards:
+.. _Todd-sllod:
 
-**(Edwards)** Edwards, Baig, and Keffer, J Chem Phys 124, 194104 (2006).
-
-.. _Daivis-sllod:
-
-**(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
-Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).
+**(Todd and Daivis)** Todd and Daivis, Nonequilibrium Molecular
+Dynamics (book), Cambridge University Press,
+https://doi.org/10.1017/9781139017848, (2017).

@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
    mdi command: engine or plugin or connect or exit
    engine is used when LAMMPS is an MDI engine, to start listening for requests
    plugin is used when LAMMPS is an MDI driver to load a plugin library
-   connect and exit are used when LAMMPS is an MDI driver to 
+   connect and exit are used when LAMMPS is an MDI driver to
      (a) connect = setup comm with a stand-alone MDI engine
      (b) exit = terminate comm with a stand-alone MDI engine
 ---------------------------------------------------------------------- */
@@ -51,7 +51,7 @@ void MDICommand::command(int narg, char **arg)
 
     if (mdicomm == MDI_COMM_NULL) {
       MDI_Accept_communicator(&mdicomm);
-      if (mdicomm == MDI_COMM_NULL) 
+      if (mdicomm == MDI_COMM_NULL)
         error->all(FLERR, "MDI unable to connect to stand-alone engine");
     } else error->all(FLERR, "Cannot use mdi connect with plugin engine");
 

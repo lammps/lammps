@@ -101,7 +101,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
     for (int i = 1; i < ntypes; i++)
       for (int j = i+1; j <= ntypes; j++) {
         if (elements[i] == 0 || elements[j] == 0) continue;
-        if (elements[i] == elements[j]) 
+        if (elements[i] == elements[j])
           error->all(FLERR,"MDI engine element cannot map to multiple types");
       }
   }
@@ -1227,7 +1227,7 @@ void MDIEngine::receive_elements()
         break;
       }
     }
-    if (itype > ntypes) 
+    if (itype > ntypes)
       error->all(FLERR,"MDI element not found in element list");
   }
 }

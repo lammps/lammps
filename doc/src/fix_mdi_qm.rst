@@ -141,7 +141,7 @@ directory.  See its README file for more details.
 (1) To run an ab initio MD (AIMD) dynamics simulation, or an energy
 minimization with QM forces, or a multi-replica NEB calculation, use
 *add yes* and *every 1* (the defaults).  This is so that every time
-LAMMPS needs energy and forces, the QM code will be invoked.  
+LAMMPS needs energy and forces, the QM code will be invoked.
 
 Both LAMMPS and the QM code should define the same system (simulation
 box, atoms and their types) in their respective input scripts.  Note

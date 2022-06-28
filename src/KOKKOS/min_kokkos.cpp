@@ -577,6 +577,7 @@ void MinKokkos::force_clear()
 
 double MinKokkos::fnorm_sqr()
 {
+  atomKK->sync(Device,F_MASK);
 
   double local_norm2_sqr = 0.0;
   {
@@ -605,6 +606,7 @@ double MinKokkos::fnorm_sqr()
 
 double MinKokkos::fnorm_inf()
 {
+  atomKK->sync(Device,F_MASK);
 
   double local_norm_inf = 0.0;
   {
@@ -633,6 +635,7 @@ double MinKokkos::fnorm_inf()
 
 double MinKokkos::fnorm_max()
 {
+  atomKK->sync(Device,F_MASK);
 
   double local_norm_max = 0.0;
   {

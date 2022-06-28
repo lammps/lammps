@@ -1756,7 +1756,10 @@ void PairAmoeba::precond_neigh()
   choose(USOLV);
 
   //double off = sqrt(off2);
+  //if (comm->me == 0) printf("PCN off %g off2 %g\n",off,off2);
   //off2 = (off + neighbor->skin) * (off + neighbor->skin);
+  //if (comm->me == 0) 
+  // printf("PCNnew off %g off2 %g skin %g\n",sqrt(off2),off2,neighbor->skin);
 
   // atoms and neighbor list
 
@@ -1769,6 +1772,13 @@ void PairAmoeba::precond_neigh()
 
   // store all induce neighs of owned atoms within shorter cutoff
   // scan longer-cutoff neighbor list of I
+
+
+  // DEBUG
+
+  int *ncount;
+  memory->create(ncount,atom->nlocal,"amoeba:ncount");
+  for (int i = 0; i < atom->nlocal; i++) ncount[i] = 0;
 
   ipage_precond->reset();
 
@@ -1793,14 +1803,37 @@ void PairAmoeba::precond_neigh()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < off2) neighptr[n++] = jlist[jj];
+      if (rsq < off2) {
+        neighptr[n++] = jlist[jj];
+
+        // DEBUG
+
+        int jcount = atom->map(atom->tag[j]);
+        ncount[jcount]++;
+      }
     }
 
     firstneigh_precond[i] = neighptr;
     numneigh_precond[i] = n;
     ipage_precond->vgot(n);
+
+    // DEBUG
+
+    ncount[i] += n;
   }
+
+  // DEBUG
+
+  if (update->ntimestep == 0) {
+    for (int i = 1; i <= atom->nlocal; i++) {
+      int ilocal = atom->map(i);
+      printf("PRECOND id %d ilocal %d numneigh %d\n",i,ilocal,ncount[ilocal]);
+    }
+  }
+
+  memory->destroy(ncount);
 }
+
 
 /* ----------------------------------------------------------------------
    allocate Vdwl arrays

@@ -25,6 +25,10 @@
 #include "memory.h"
 #include "error.h"
 
+// DEBUG
+
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
 
@@ -380,6 +384,10 @@ void PairAmoeba::induce()
         }
       }
     }
+
+    // DEBUG
+
+    printf("CG iteration count = %d\n",iter);
 
     // terminate the calculation if dipoles failed to converge
     // NOTE: could make this an error

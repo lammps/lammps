@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,32 +13,28 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(sna/atom,ComputeSNAAtom);
+ComputeStyle(sna/grid,ComputeSNAGrid);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_SNA_ATOM_H
-#define LMP_COMPUTE_SNA_ATOM_H
+#ifndef LMP_COMPUTE_SNA_GRID_H
+#define LMP_COMPUTE_SNA_GRID_H
 
-#include "compute.h"
+#include "compute_grid.h"
 
 namespace LAMMPS_NS {
 
-class ComputeSNAAtom : public Compute {
+class ComputeSNAGrid : public ComputeGrid {
  public:
-  ComputeSNAAtom(class LAMMPS *, int, char **);
-  ~ComputeSNAAtom() override;
+  ComputeSNAGrid(class LAMMPS *, int, char **);
+  ~ComputeSNAGrid() override;
   void init() override;
-  void init_list(int, class NeighList *) override;
-  void compute_peratom() override;
+  void compute_array() override;
   double memory_usage() override;
 
  private:
-  int nmax;
   int ncoeff;
   double **cutsq;
-  class NeighList *list;
-  double **sna;
   double rcutfac;
   double *radelem;
   double *wjelem;
@@ -50,7 +46,6 @@ class ComputeSNAAtom : public Compute {
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
-  int nvalues;
 };
 
 }    // namespace LAMMPS_NS

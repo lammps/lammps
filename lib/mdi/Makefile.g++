@@ -8,7 +8,7 @@ EXTRAMAKE = Makefile.lammps.empty
 
 lib: 	$(OBJ)
 	mkdir -p build
-	cd build; cmake -Dlibtype=SHARED -Dlanguage=CXX -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ../MDI_Library; make
+	cd build; cmake -Dlibtype=STATIC -Dlanguage=C -D CMAKE_POSITION_INDEPENDENT_CODE=yes -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ../MDI_Library; make
 	@cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ CLEAN ------

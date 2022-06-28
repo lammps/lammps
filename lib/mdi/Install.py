@@ -177,7 +177,7 @@ try:
 except:
   n_cpus = 1
 
-print("Building lib%s.so ..." % lib)
+print("Building lib%s.a ..." % lib)
 cmd = "make -f Makefile.auto clean; make -f Makefile.auto -j%d" % n_cpus
 txt = subprocess.check_output(cmd,shell=True,stderr=subprocess.STDOUT)
 print(txt.decode('UTF-8'))
@@ -201,10 +201,10 @@ makefile_lammps.write(str(rpath_option) + "\n")
 makefile_lammps.close()
 
 
-shared_files = glob.glob( os.path.join( homepath, "liblink", "lib%s.so*" % lib) )
+shared_files = glob.glob( os.path.join( homepath, "liblink", "lib%s.a" % lib) )
 if len(shared_files) > 0:
   print("Build was successful")
 else:
-  error("Build of lib/%s/lib%s.so was NOT successful" % (lib,lib))
+  error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))
 if has_extramake and not os.path.exists("Makefile.lammps"):
   print("lib/%s/Makefile.lammps was NOT created" % lib)

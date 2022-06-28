@@ -49,8 +49,9 @@ Examples
    pair_coeff * * tmd.sw.mod Mo S S
 
    pair_style hybrid sw sw threebody off
-   pair_coeff * * mW_xL.sw mW NULL
-   pair_coeff * 2 mW_xL.sw mW xL
+   pair_coeff * * sw 1 mW_xL.sw mW NULL
+   pair_coeff 1 2 sw 2 mW_xL.sw mW xL
+   pair_coeff 2 2 sw 2 mW_xL.sw mW xL
 
 Description
 """""""""""
@@ -154,7 +155,7 @@ potentials.
 
 .. note::
 
-   When the *threebody on* keyword is used, multiple pair_coeff commands may 
+   When the *threebody off* keyword is used, multiple pair_coeff commands may 
    be used to specific the pairs of atoms which don't require three-body term.
    In these cases, the first 2 arguments are not required to be \* \*.
 

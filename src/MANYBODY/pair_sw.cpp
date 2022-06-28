@@ -240,13 +240,8 @@ void PairSW::settings(int narg, char ** arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"threebody") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
-      if (strcmp(arg[iarg+1], "on") == 0) {
-          threebody_flag = true;
-          one_coeff = 1;
-      } else if (strcmp(arg[iarg+1], "off") == 0) {
-          threebody_flag = false;
-          one_coeff = 0;  // Allow for multiple pair_coeff's
-      } else error->all(FLERR,"Illegal pair_style command");
+      threebody_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      one_coeff = threebody_flag;
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style command");
   }

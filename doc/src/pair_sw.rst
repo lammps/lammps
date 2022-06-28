@@ -24,13 +24,17 @@ Syntax
    pair_style style keyword values
 
 * style = *sw* or *sw/mod*
-* keyword = *maxdelcs*
+* keyword = *maxdelcs* or *threebody*
 
   .. parsed-literal::
 
        *maxdelcs* value = delta1 delta2 (optional)
          delta1 = The minimum thershold for the variation of cosine of three-body angle
          delta2 = The maximum threshold for the variation of cosine of three-body angle
+       *threebody* value = *on* or *off* (optional)
+         on (default) = Compute both the three-body and two-body terms of the potential
+         off = Compute both only the two-body terms of the potential
+         
 
 Examples
 """"""""
@@ -43,6 +47,10 @@ Examples
 
    pair_style sw/mod maxdelcs 0.25 0.35
    pair_coeff * * tmd.sw.mod Mo S S
+
+   pair_style hybrid sw sw threebody off
+   pair_coeff * * mW_xL.sw mW NULL
+   pair_coeff * 2 mW_xL.sw mW xL
 
 Description
 """""""""""
@@ -111,6 +119,9 @@ This value enables the cut-off function to exclude unnecessary angles in the thr
    However, the angle variation is much smaller than the given threshold value for actual simulations,
    so the inconsistency between potential and force can be neglected in actual simulations.
 
+The *threebody* keyword determines whether or not the three-body term of the potential is calculated. Skipping this
+significantly increases the speed of the potential, but is only applicable when :math:`\lambda_{ijk} = 0`
+
 Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
 which specifies a Stillinger-Weber potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
@@ -140,6 +151,12 @@ NULL, the mapping is not performed.  This can be used when a *sw*
 potential is used as part of the *hybrid* pair style.  The NULL values
 are placeholders for atom types that will be used with other
 potentials.
+
+.. note::
+
+   When the *threebody on* keyword is used, multiple pair_coeff commands may 
+   be used to specific the pairs of atoms which don't require three-body term.
+   In these cases, the first 2 arguments are not required to be \* \*.
 
 Stillinger-Weber files in the *potentials* directory of the LAMMPS
 distribution have a ".sw" suffix.  Lines that are not blank or

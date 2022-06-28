@@ -4775,7 +4775,7 @@ double Variable::evaluate_boolean(char *str)
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == EQ) {
           if (flag1 != flag2)
-            error->all(FLERR,"Invalid Boolean syntax in if command");
+            error->all(FLERR,"If command boolean comparing string to number");
           if (flag2 == 0) {
             if (value1 == value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -4845,6 +4845,10 @@ double Variable::evaluate_boolean(char *str)
 
   if (nopstack) error->all(FLERR,"Invalid Boolean syntax in if command");
   if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
+
+  // if flag == 1, Boolean expression was a single string with no operator
+
+  if (argstack[0].flag == 1) return 0.0;
   return argstack[0].value;
 }
 

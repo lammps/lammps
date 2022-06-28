@@ -134,3 +134,31 @@
    fun:GOMP_parallel
    obj:*
 }
+{
+   OpnMP_open_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:openaux
+   ...
+   fun:dl_open_worker_begin
+   ...
+   fun:dl_open_worker
+   ...
+   fun:_dl_open
+}
+{
+   OpnMP_open_part2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:openaux
+   ...
+   fun:dl_open_worker_begin
+   ...
+   fun:dl_open_worker
+   ...
+   fun:_dl_open
+}

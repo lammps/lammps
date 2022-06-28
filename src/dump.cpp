@@ -517,6 +517,8 @@ void Dump::write()
 
   if (refreshflag) modify->compute[irefresh]->refresh();
 
+  if (filewriter && fp != nullptr) write_footer();
+
   // if file per timestep, close file if I am filewriter
 
   if (multifile) {

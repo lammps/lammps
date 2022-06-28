@@ -33,7 +33,7 @@ Syntax
          delta2 = The maximum threshold for the variation of cosine of three-body angle
        *threebody* value = *on* or *off* (optional)
          on (default) = Compute both the three-body and two-body terms of the potential
-         off = Compute both only the two-body terms of the potential
+         off = Compute only the two-body term of the potential
          
 
 Examples

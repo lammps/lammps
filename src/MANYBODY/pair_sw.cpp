@@ -159,7 +159,7 @@ void PairSW::compute(int eflag, int vflag)
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delx,dely,delz);
     }
-    if (threebody_on) {
+    if (threebody_flag) {
       jnumm1 = numshort - 1;
       
       for (jj = 0; jj < jnumm1; jj++) {
@@ -233,7 +233,7 @@ void PairSW::allocate()
 void PairSW::settings(int narg, char ** arg)
 {
   // Default
-  threebody_on = true;
+  threebody_flag = true;
 
   int iarg = 0;
 
@@ -241,10 +241,10 @@ void PairSW::settings(int narg, char ** arg)
     if (strcmp(arg[iarg],"threebody") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
       if (strcmp(arg[iarg+1], "on") == 0) {
-          threebody_on = true;
+          threebody_flag = true;
           one_coeff = 1;
       } else if (strcmp(arg[iarg+1], "off") == 0) {
-          threebody_on = false;
+          threebody_flag = false;
           one_coeff = 0;  // Allow for multiple pair_coeff's
       } else error->all(FLERR,"Illegal pair_style command");
       iarg += 2;

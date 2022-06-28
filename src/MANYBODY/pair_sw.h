@@ -48,11 +48,11 @@ class PairSW : public Pair {
   };
 
  protected:
-  double cutmax;      // max cutoff for all elements
-  Param *params;      // parameter set for an I-J-K interaction
-  int maxshort;       // size of short neighbor list array
-  int *neighshort;    // short neighbor list array
-  bool threebody_on;  // whether to run threebody loop
+  double cutmax;          // max cutoff for all elements
+  Param *params;          // parameter set for an I-J-K interaction
+  int maxshort;           // size of short neighbor list array
+  int *neighshort;        // short neighbor list array
+  bool threebody_flag;    // whether to run threebody loop
 
   void settings(int, char **) override;
   virtual void allocate();

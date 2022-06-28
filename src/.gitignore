@@ -173,6 +173,10 @@
 /pair_tdpd.cpp
 /pair_tdpd.h
 
+/compute_grid.cpp
+/compute_grid.h
+/compute_grid_local.cpp
+/compute_grid_local.h
 /compute_sna_atom.cpp
 /compute_sna_atom.h
 /compute_snad_atom.cpp

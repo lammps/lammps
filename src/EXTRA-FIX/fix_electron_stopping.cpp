@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -39,62 +38,52 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAXLINE 1024
-
 /* ---------------------------------------------------------------------- */
 
 FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), elstop_ranges(nullptr), idregion(nullptr), region(nullptr), list(nullptr)
 {
-  scalar_flag = 1;  // Has compute_scalar
-  global_freq = 1;  // SeLoss computed every step
-  extscalar = 0;    // SeLoss compute_scalar is intensive
-  nevery = 1;       // Run fix every step
-
+  scalar_flag = 1;    // Has compute_scalar
+  global_freq = 1;    // SeLoss computed every step
+  extscalar = 0;      // SeLoss compute_scalar is intensive
+  nevery = 1;         // Run fix every step
 
   // args: 0 = fix ID, 1 = group ID,  2 = "electron/stopping"
   //       3 = Ecut,   4 = file path
   // optional rest: "region" <region name>
   //                "minneigh" <min number of neighbors>
 
-  if (narg < 5) error->all(FLERR,
-      "Illegal fix electron/stopping command: too few arguments");
+  if (narg < 5) error->all(FLERR, "Illegal fix electron/stopping command: too few arguments");
 
-  Ecut = utils::numeric(FLERR, arg[3],false,lmp);
-  if (Ecut <= 0.0) error->all(FLERR,
-      "Illegal fix electron/stopping command: Ecut <= 0");
+  Ecut = utils::numeric(FLERR, arg[3], false, lmp);
+  if (Ecut <= 0.0) error->all(FLERR, "Illegal fix electron/stopping command: Ecut <= 0");
 
   int iarg = 5;
-  iregion = -1;
   minneigh = 1;
   bool minneighflag = false;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iregion >= 0) error->all(FLERR,
-          "Illegal fix electron/stopping command: region given twice");
-      if (iarg+2 > narg) error->all(FLERR,
-          "Illegal fix electron/stopping command: region name missing");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion < 0) error->all(FLERR,
-          "Region ID for fix electron/stopping does not exist");
+      if (region) error->all(FLERR, "Illegal fix electron/stopping command: region given twice");
+      if (iarg + 2 > narg)
+        error->all(FLERR, "Illegal fix electron/stopping command: region name missing");
+      region = domain->get_region_by_id(arg[iarg + 1]);
+      if (!region)
+        error->all(FLERR, "Region {} for fix electron/stopping does not exist", arg[iarg + 1]);
+      idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
-    }
-    else if (strcmp(arg[iarg], "minneigh") == 0) {
-      if (minneighflag) error->all(FLERR,
-          "Illegal fix electron/stopping command: minneigh given twice");
+    } else if (strcmp(arg[iarg], "minneigh") == 0) {
+      if (minneighflag)
+        error->all(FLERR, "Illegal fix electron/stopping command: minneigh given twice");
       minneighflag = true;
-      if (iarg+2 > narg) error->all(FLERR,
-          "Illegal fix electron/stopping command: minneigh number missing");
-      minneigh = utils::inumeric(FLERR, arg[iarg+1],false,lmp);
-      if (minneigh < 0) error->all(FLERR,
-          "Illegal fix electron/stopping command: minneigh < 0");
+      if (iarg + 2 > narg)
+        error->all(FLERR, "Illegal fix electron/stopping command: minneigh number missing");
+      minneigh = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (minneigh < 0) error->all(FLERR, "Illegal fix electron/stopping command: minneigh < 0");
       iarg += 2;
-    }
-    else error->all(FLERR,
-        "Illegal fix electron/stopping command: unknown argument");
+    } else
+      error->all(FLERR, "Illegal fix electron/stopping command: unknown argument");
   }
-
 
   // Read the input file for energy ranges and stopping powers.
   // First proc 0 reads the file, then bcast to others.
@@ -105,19 +94,19 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
     read_table(arg[4]);
   }
 
-  MPI_Bcast(&maxlines, 1 , MPI_INT, 0, world);
-  MPI_Bcast(&table_entries, 1 , MPI_INT, 0, world);
+  MPI_Bcast(&maxlines, 1, MPI_INT, 0, world);
+  MPI_Bcast(&table_entries, 1, MPI_INT, 0, world);
 
-  if (comm->me != 0)
-    memory->create(elstop_ranges, ncol, maxlines, "electron/stopping:table");
+  if (comm->me != 0) memory->create(elstop_ranges, ncol, maxlines, "electron/stopping:table");
 
-  MPI_Bcast(&elstop_ranges[0][0], ncol*maxlines, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&elstop_ranges[0][0], ncol * maxlines, MPI_DOUBLE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixElectronStopping::~FixElectronStopping()
 {
+  delete[] idregion;
   memory->destroy(elstop_ranges);
 }
 
@@ -136,6 +125,10 @@ void FixElectronStopping::init()
 {
   SeLoss_sync_flag = 0;
   SeLoss = 0.0;
+  if (idregion) {
+    region = domain->get_region_by_id(idregion);
+    if (!region) error->all(FLERR, "Region {} for fix electron/stopping does not exist", idregion);
+  }
 
   // need an occasional full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
@@ -176,18 +169,17 @@ void FixElectronStopping::post_force(int /*vflag*/)
 
     int itype = type[i];
     double massone = (atom->rmass) ? atom->rmass[i] : atom->mass[itype];
-    double v2 = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+    double v2 = v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2];
     double energy = 0.5 * force->mvv2e * massone * v2;
 
     if (energy < Ecut) continue;
     if (energy < elstop_ranges[0][0]) continue;
-    if (energy > elstop_ranges[0][table_entries - 1]) error->one(FLERR,
-          "Atom kinetic energy too high for fix electron/stopping");
+    if (energy > elstop_ranges[0][table_entries - 1])
+      error->one(FLERR, "Atom kinetic energy too high for fix electron/stopping");
 
-    if (iregion >= 0) {
+    if (region) {
       // Only apply in the given region
-      if (domain->regions[iregion]->match(x[i][0], x[i][1], x[i][2]) != 1)
-        continue;
+      if (region->match(x[i][0], x[i][1], x[i][2]) != 1) continue;
     }
 
     // Binary search to find correct energy range
@@ -196,8 +188,10 @@ void FixElectronStopping::post_force(int /*vflag*/)
     while (true) {
       int ihalf = idown + (iup - idown) / 2;
       if (ihalf == idown) break;
-      if (elstop_ranges[0][ihalf] < energy) idown = ihalf;
-      else iup = ihalf;
+      if (elstop_ranges[0][ihalf] < energy)
+        idown = ihalf;
+      else
+        iup = ihalf;
     }
 
     double Se_lo = elstop_ranges[itype][idown];
@@ -215,7 +209,7 @@ void FixElectronStopping::post_force(int /*vflag*/)
     f[i][1] += v[i][1] * factor;
     f[i][2] += v[i][2] * factor;
 
-    SeLoss += Se * vabs * dt; // very rough approx
+    SeLoss += Se * vabs * dt;    // very rough approx
   }
 }
 
@@ -254,19 +248,17 @@ void FixElectronStopping::read_table(const char *file)
       ValueTokenizer values(line);
       elstop_ranges[0][nlines] = values.next_double();
       if (elstop_ranges[0][nlines] <= oldvalue)
-        throw TokenizerException("energy values must be positive and in ascending order",line);
+        throw TokenizerException("energy values must be positive and in ascending order", line);
 
       oldvalue = elstop_ranges[0][nlines];
-      for (int i = 1; i < ncol; ++i)
-        elstop_ranges[i][nlines] = values.next_double();
+      for (int i = 1; i < ncol; ++i) elstop_ranges[i][nlines] = values.next_double();
 
       ++nlines;
     }
   } catch (std::exception &e) {
     error->one(FLERR, "Problem parsing electron stopping data: {}", e.what());
   }
-  if (nlines == 0)
-    error->one(FLERR, "Did not find any data in electron/stopping table file");
+  if (nlines == 0) error->one(FLERR, "Did not find any data in electron/stopping table file");
 
   table_entries = nlines;
 }
@@ -281,8 +273,7 @@ void FixElectronStopping::grow_table()
   double **new_array;
   memory->create(new_array, ncol, new_maxlines, "electron/stopping:table");
 
-  for (int i = 0; i < ncol; i++)
-    memcpy(new_array[i], elstop_ranges[i], maxlines*sizeof(double));
+  for (int i = 0; i < ncol; i++) memcpy(new_array[i], elstop_ranges[i], maxlines * sizeof(double));
 
   memory->destroy(elstop_ranges);
   elstop_ranges = new_array;

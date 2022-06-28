@@ -92,7 +92,7 @@ The Coulomb factors are applied to any Coulomb (charge interaction)
 term that the potential calculates.  The LJ factors are applied to the
 remaining terms that the potential calculates, whether they represent
 LJ interactions or not.  The weighting factors are a scaling
-pre-factor on the energy and force between the pair of atoms.  A value
+prefactor on the energy and force between the pair of atoms.  A value
 of 1.0 means include the full interaction; a value of 0.0 means
 exclude it completely.
 

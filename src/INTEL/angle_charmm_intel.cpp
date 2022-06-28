@@ -49,12 +49,6 @@ AngleCharmmIntel::AngleCharmmIntel(LAMMPS *lmp) : AngleCharmm(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-AngleCharmmIntel::~AngleCharmmIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AngleCharmmIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD

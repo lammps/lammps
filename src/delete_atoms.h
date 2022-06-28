@@ -38,7 +38,8 @@ class DeleteAtoms : public Command {
   void delete_group(int, char **);
   void delete_region(int, char **);
   void delete_overlap(int, char **);
-  void delete_porosity(int, char **);
+  void delete_random(int, char **);
+  void delete_variable(int, char **);
 
   void delete_bond();
   void delete_molecule();
@@ -57,66 +58,3 @@ class DeleteAtoms : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Delete_atoms command before simulation box is defined
-
-The delete_atoms command cannot be used before a read_data,
-read_restart, or create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use delete_atoms unless atoms have IDs
-
-Your atoms do not have IDs, so the delete_atoms command cannot be
-used.
-
-W: Attempting to delete atoms in rigid bodies
-
-UNDOCUMENTED
-
-W: Ignoring 'compress yes' for molecular system
-
-UNDOCUMENTED
-
-E: Could not find delete_atoms group ID
-
-Group ID used in the delete_atoms command does not exist.
-
-E: Could not find delete_atoms region ID
-
-Region ID used in the delete_atoms command does not exist.
-
-E: Delete_atoms requires a pair style be defined
-
-This is because atom deletion within a cutoff uses a pairwise
-neighbor list.
-
-E: Delete_atoms cutoff > max neighbor cutoff
-
-Can only delete atoms in atom pairs that will be in neighbor list.
-
-W: Delete_atoms cutoff > minimum neighbor cutoff
-
-This means atom pairs for some atom types may not be in the neighbor
-list and thus an atom in that pair cannot be deleted.
-
-E: Cannot delete_atoms bond yes for non-molecular systems
-
-Self-explanatory.
-
-E: Cannot use delete_atoms bond yes with atom_style template
-
-This is because the bonds for that atom style are hardwired in the
-molecule template.
-
-E: Delete_atoms mol yes requires atom attribute molecule
-
-Cannot use this option with a non-molecular system.
-
-*/

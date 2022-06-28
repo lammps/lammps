@@ -1109,8 +1109,7 @@ void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[
       y_out[k] = y[k] + r4;
    }
 
-   return;
-}
+   }
 
 int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
                      const double hmin, const double hmax,
@@ -1422,8 +1421,6 @@ void FixRX::odeDiagnostics()
   // Reset the counters.
   for (int i = 0; i < numDiagnosticCounters; ++i)
     diagnosticCounter[i] = 0;
-
-  return;
 }
 
 void FixRX::rkf45(int id, double *rwork, void *v_param, int ode_counter[])

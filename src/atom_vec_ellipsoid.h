@@ -82,28 +82,3 @@ class AtomVecEllipsoid : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-E: Invalid density in Atoms section of data file
-
-Density value cannot be <= 0.0.
-
-E: Assigning ellipsoid parameters to non-ellipsoid atom
-
-Self-explanatory.
-
-E: Invalid shape in Ellipsoids section of data file
-
-Self-explanatory.
-
-*/

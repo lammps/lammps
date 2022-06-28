@@ -45,14 +45,3 @@ class ComputeTempUef : public ComputeTemp {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-This class inherits most of the warnings from ComputePressure. The
-only addition is:
-
-E: Can't use compute temp/uef without defining a fix nvt/npt/uef
-
-Self-explanatory.
-
-*/

@@ -43,6 +43,7 @@ if(DOWNLOAD_QUIP)
   file(WRITE ${CMAKE_BINARY_DIR}/quip.config "${temp}")
 
   message(STATUS "QUIP download via git requested - we will build our own")
+  set(CMAKE_EP_GIT_REMOTE_UPDATE_STRATEGY CHECKOUT)
   # QUIP has no releases (except for a tag marking the end of Python 2 support). We use the current "public" branch
   # The LAMMPS interface wrapper has a compatibility constant that is being checked at runtime.
   include(ExternalProject)

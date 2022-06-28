@@ -387,7 +387,7 @@ double LammpsInterface::atom_quantity_conversion(FundamentalAtomQuantity quantit
 
 int LammpsInterface::dimension() const { return lammps_->domain->dimension; }
 
-int LammpsInterface::nregion() const { return lammps_->domain->nregion; }
+int LammpsInterface::nregion() const { return lammps_->domain->get_region_list().size(); }
 
 void LammpsInterface::box_bounds(double & boxxlo, double & boxxhi,
                                  double & boxylo, double & boxyhi,
@@ -519,22 +519,23 @@ double LammpsInterface::domain_yz() const { return lammps_->domain->yz; }
 int LammpsInterface::domain_triclinic() const { return lammps_->domain->triclinic; }
 
 void LammpsInterface::box_periodicity(int & xperiodic,
-                                          int & yperiodic,
-                                          int & zperiodic) const
+                                      int & yperiodic,
+                                      int & zperiodic) const
 {
   xperiodic = lammps_->domain->xperiodic;
   yperiodic = lammps_->domain->yperiodic;
   zperiodic = lammps_->domain->zperiodic;
 }
 
-int LammpsInterface::region_id(const char * regionName) const {
-  int nregion = this->nregion();
-  for (int iregion = 0; iregion < nregion; iregion++) {
-    if (strcmp(regionName, region_name(iregion)) == 0) {
+int LammpsInterface::region_id(const char *regionName) const {
+  auto regions = lammps_->domain->get_region_list();
+  int iregion = 0;
+  for (auto reg : regions) {
+    if (strcmp(regionName, reg->id) == 0) {
       return iregion;
     }
+    ++iregion;
   }
-  throw ATC_Error("Region has not been defined");
   return -1;
 }
 
@@ -545,6 +546,7 @@ bool LammpsInterface::region_bounds(const char * regionName,
   double & xscale, double & yscale, double & zscale) const
 {
   int iRegion = region_id(regionName);
+  if (iRegion < 0) throw ATC_Error("Unknown region " + to_string(regionName));
   xscale = region_xscale(iRegion);
   yscale = region_yscale(iRegion);
   zscale = region_zscale(iRegion);
@@ -1322,61 +1324,73 @@ int**   LammpsInterface::bond_list() const { return lammps_->neighbor->bondlist;
 
 char * LammpsInterface::region_name(int iRegion)  const
 {
-  return lammps_->domain->regions[iRegion]->id;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->id;
 }
 
 char * LammpsInterface::region_style(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->style;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->style;
 }
 
 double LammpsInterface::region_xlo(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->extent_xlo;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->extent_xlo;
 }
 
 double LammpsInterface::region_xhi(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->extent_xhi;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->extent_xhi;
 }
 
 double LammpsInterface::region_ylo(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->extent_ylo;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->extent_ylo;
 }
 
 double LammpsInterface::region_yhi(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->extent_yhi;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->extent_yhi;
 }
 
 double LammpsInterface::region_zlo(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->extent_zlo;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->extent_zlo;
 }
 
 double LammpsInterface::region_zhi(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->extent_zhi;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->extent_zhi;
 }
 
 double LammpsInterface::region_xscale(int iRegion) const
 {
-  return lammps_->domain->regions[iRegion]->xscale;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->xscale;
 }
 
 double LammpsInterface::region_yscale(int iRegion)  const
 {
-  return lammps_->domain->regions[iRegion]->yscale;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->yscale;
 }
 
 double LammpsInterface::region_zscale(int iRegion)  const
 {
-  return lammps_->domain->regions[iRegion]->zscale;
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->zscale;
 }
 
 int LammpsInterface::region_match(int iRegion, double x, double y, double z) const {
-  return lammps_->domain->regions[iRegion]->match(x,y,z);
+  auto regions = lammps_->domain->get_region_list();
+  return regions[iRegion]->match(x,y,z);
 }
 
 // -----------------------------------------------------------------

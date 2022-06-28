@@ -284,18 +284,17 @@ KOKKOS_INLINE_FUNCTION void dyn_rank_view_verify_operator_bounds(
   }
 
   if (!dyn_rank_view_verify_operator_bounds<0>(rank, map, args...)) {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    enum { LEN = 1024 };
-    char buffer[LEN];
-    const std::string label = tracker.template get_label<MemorySpace>();
-    int n = snprintf(buffer, LEN, "DynRankView bounds error of view %s (",
-                     label.c_str());
-    dyn_rank_view_error_operator_bounds<0>(buffer + n, LEN - n, map, args...);
-    Kokkos::Impl::throw_runtime_exception(std::string(buffer));
-#else
-    (void)tracker;
-    Kokkos::abort("DynRankView bounds error");
-#endif
+    KOKKOS_IF_ON_HOST(
+        (enum {LEN = 1024}; char buffer[LEN];
+         const std::string label = tracker.template get_label<MemorySpace>();
+         int n = snprintf(buffer, LEN, "DynRankView bounds error of view %s (",
+                          label.c_str());
+         dyn_rank_view_error_operator_bounds<0>(buffer + n, LEN - n, map,
+                                                args...);
+         Kokkos::Impl::throw_runtime_exception(std::string(buffer));))
+
+    KOKKOS_IF_ON_DEVICE(
+        ((void)tracker; Kokkos::abort("DynRankView bounds error");))
   }
 }
 
@@ -576,18 +575,22 @@ class DynRankView : public ViewTraits<DataType, Properties...> {
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
 
 // rank of the calling operator - included as first argument in ARG
-#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG)                          \
-  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
-                             typename traits::memory_space>::check();  \
-  Kokkos::Impl::dyn_rank_view_verify_operator_bounds<                  \
-      typename traits::memory_space>                                   \
+#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG)                             \
+  Kokkos::Impl::runtime_check_memory_access_violation<                    \
+      typename traits::memory_space>(                                     \
+      "Kokkos::DynRankView ERROR: attempt to access inaccessible memory " \
+      "space");                                                           \
+  Kokkos::Impl::dyn_rank_view_verify_operator_bounds<                     \
+      typename traits::memory_space>                                      \
       ARG;
 
 #else
 
-#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG)                          \
-  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
-                             typename traits::memory_space>::check();
+#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG)                             \
+  Kokkos::Impl::runtime_check_memory_access_violation<                    \
+      typename traits::memory_space>(                                     \
+      "Kokkos::DynRankView ERROR: attempt to access inaccessible memory " \
+      "space");
 
 #endif
 
@@ -1682,10 +1685,46 @@ struct DynRankViewRemap {
 
 namespace Kokkos {
 
+namespace Impl {
+
+/* \brief Returns a View of the requested rank, aliasing the
+   underlying memory, to facilitate implementation of deep_copy() and
+   other routines that are defined on View */
+template <unsigned N, typename T, typename... Args>
+auto as_view_of_rank_n(DynRankView<T, Args...> v) {
+  if (v.rank() != N) {
+    Kokkos::Impl::throw_runtime_exception(
+        "Converting DynRankView of rank " + std::to_string(v.rank()) +
+        " to a View of mis-matched rank " + std::to_string(N));
+  }
+
+  return View<typename RankDataType<T, N>::type, Args...>(v.data(), v.layout());
+}
+
+template <typename Function, typename... Args>
+void apply_to_view_of_static_rank(Function&& f, DynRankView<Args...> a) {
+  switch (rank(a)) {
+    case 0: f(as_view_of_rank_n<0>(a)); break;
+    case 1: f(as_view_of_rank_n<1>(a)); break;
+    case 2: f(as_view_of_rank_n<2>(a)); break;
+    case 3: f(as_view_of_rank_n<3>(a)); break;
+    case 4: f(as_view_of_rank_n<4>(a)); break;
+    case 5: f(as_view_of_rank_n<5>(a)); break;
+    case 6: f(as_view_of_rank_n<6>(a)); break;
+    case 7: f(as_view_of_rank_n<7>(a)); break;
+    default:
+      Kokkos::Impl::throw_runtime_exception(
+          "Trying to apply a function to a view of unexpected rank " +
+          std::to_string(rank(a)));
+  }
+}
+
+}  // namespace Impl
+
 /** \brief  Deep copy a value from Host memory into a view.  */
-template <class DT, class... DP>
+template <class ExecSpace, class DT, class... DP>
 inline void deep_copy(
-    const DynRankView<DT, DP...>& dst,
+    const ExecSpace& e, const DynRankView<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
     typename std::enable_if<std::is_same<
         typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
@@ -1695,39 +1734,100 @@ inline void deep_copy(
                    typename ViewTraits<DT, DP...>::value_type>::value,
       "deep_copy requires non-const type");
 
-  Kokkos::fence(
-      "Kokkos::deep_copy(DynRankView, value_type): fence before filling view");
-  Kokkos::Impl::DynRankViewFill<DynRankView<DT, DP...> >(dst, value);
-  Kokkos::fence(
-      "Kokkos::deep_copy(DynRankView, value_type): fence after filling view");
+  Impl::apply_to_view_of_static_rank(
+      [=](auto view) { deep_copy(e, view, value); }, dst);
+}
+
+template <class DT, class... DP>
+inline void deep_copy(
+    const DynRankView<DT, DP...>& dst,
+    typename ViewTraits<DT, DP...>::const_value_type& value,
+    typename std::enable_if<std::is_same<
+        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
+        nullptr) {
+  Impl::apply_to_view_of_static_rank([=](auto view) { deep_copy(view, value); },
+                                     dst);
 }
 
 /** \brief  Deep copy into a value in Host memory from a view.  */
+template <class ExecSpace, class ST, class... SP>
+inline void deep_copy(
+    const ExecSpace& e,
+    typename ViewTraits<ST, SP...>::non_const_value_type& dst,
+    const DynRankView<ST, SP...>& src,
+    typename std::enable_if<std::is_same<
+        typename ViewTraits<ST, SP...>::specialize, void>::value>::type* = 0) {
+  deep_copy(e, dst, Impl::as_view_of_rank_n<0>(src));
+}
+
 template <class ST, class... SP>
 inline void deep_copy(
     typename ViewTraits<ST, SP...>::non_const_value_type& dst,
     const DynRankView<ST, SP...>& src,
     typename std::enable_if<std::is_same<
         typename ViewTraits<ST, SP...>::specialize, void>::value>::type* = 0) {
-  if (src.rank() != 0) {
-    Kokkos::abort("");
-  }
-
-  using src_traits       = ViewTraits<ST, SP...>;
-  using src_memory_space = typename src_traits::memory_space;
-  Kokkos::fence(
-      "Kokkos::deep_copy(value_type, DynRankView): fence before copying "
-      "value");
-  Kokkos::Impl::DeepCopy<HostSpace, src_memory_space>(&dst, src.data(),
-                                                      sizeof(ST));
-  Kokkos::fence(
-      "Kokkos::deep_copy(value_type, DynRankView): fence after copying value");
+  deep_copy(dst, Impl::as_view_of_rank_n<0>(src));
 }
 
 //----------------------------------------------------------------------------
 /** \brief  A deep copy between views of the default specialization, compatible
  * type, same rank, same contiguous layout.
+ *
+ * A rank mismatch will error out in the attempt to convert to a View
  */
+template <class ExecSpace, class DstType, class SrcType>
+inline void deep_copy(
+    const ExecSpace& exec_space, const DstType& dst, const SrcType& src,
+    typename std::enable_if<
+        (std::is_same<typename DstType::traits::specialize, void>::value &&
+         std::is_same<typename SrcType::traits::specialize, void>::value &&
+         (Kokkos::is_dyn_rank_view<DstType>::value ||
+          Kokkos::is_dyn_rank_view<SrcType>::value))>::type* = nullptr) {
+  static_assert(
+      std::is_same<typename DstType::traits::value_type,
+                   typename DstType::traits::non_const_value_type>::value,
+      "deep_copy requires non-const destination type");
+
+  switch (rank(dst)) {
+    case 0:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<0>(dst),
+                Impl::as_view_of_rank_n<0>(src));
+      break;
+    case 1:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<1>(dst),
+                Impl::as_view_of_rank_n<1>(src));
+      break;
+    case 2:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<2>(dst),
+                Impl::as_view_of_rank_n<2>(src));
+      break;
+    case 3:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<3>(dst),
+                Impl::as_view_of_rank_n<3>(src));
+      break;
+    case 4:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<4>(dst),
+                Impl::as_view_of_rank_n<4>(src));
+      break;
+    case 5:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<5>(dst),
+                Impl::as_view_of_rank_n<5>(src));
+      break;
+    case 6:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<6>(dst),
+                Impl::as_view_of_rank_n<6>(src));
+      break;
+    case 7:
+      deep_copy(exec_space, Impl::as_view_of_rank_n<7>(dst),
+                Impl::as_view_of_rank_n<7>(src));
+      break;
+    default:
+      Kokkos::Impl::throw_runtime_exception(
+          "Calling DynRankView deep_copy with a view of unexpected rank " +
+          std::to_string(rank(dst)));
+  }
+}
+
 template <class DstType, class SrcType>
 inline void deep_copy(
     const DstType& dst, const SrcType& src,
@@ -1741,134 +1841,43 @@ inline void deep_copy(
                    typename DstType::traits::non_const_value_type>::value,
       "deep_copy requires non-const destination type");
 
-  using dst_type = DstType;
-  using src_type = SrcType;
-
-  using dst_execution_space = typename dst_type::execution_space;
-  using src_execution_space = typename src_type::execution_space;
-  using dst_memory_space    = typename dst_type::memory_space;
-  using src_memory_space    = typename src_type::memory_space;
-
-  enum {
-    DstExecCanAccessSrc =
-        Kokkos::SpaceAccessibility<dst_execution_space,
-                                   src_memory_space>::accessible
-  };
-
-  enum {
-    SrcExecCanAccessDst =
-        Kokkos::SpaceAccessibility<src_execution_space,
-                                   dst_memory_space>::accessible
-  };
-
-  if ((void*)dst.data() != (void*)src.data()) {
-    // Concern: If overlapping views then a parallel copy will be erroneous.
-    // ...
-
-    // If same type, equal layout, equal dimensions, equal span, and contiguous
-    // memory then can byte-wise copy
-    if (rank(src) == 0 && rank(dst) == 0) {
-      using value_type = typename dst_type::value_type;
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
-          "copying rank-0 views");
-      Kokkos::Impl::DeepCopy<dst_memory_space, src_memory_space>(
-          dst.data(), src.data(), sizeof(value_type));
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
-          "copying rank-0 views");
-    } else if (std::is_same<
-                   typename DstType::traits::value_type,
-                   typename SrcType::traits::non_const_value_type>::value &&
-               ((std::is_same<typename DstType::traits::array_layout,
-                              typename SrcType::traits::array_layout>::value &&
-                 (std::is_same<typename DstType::traits::array_layout,
-                               typename Kokkos::LayoutLeft>::value ||
-                  std::is_same<typename DstType::traits::array_layout,
-                               typename Kokkos::LayoutRight>::value)) ||
-                (rank(dst) == 1 && rank(src) == 1)) &&
-               dst.span_is_contiguous() && src.span_is_contiguous() &&
-               dst.span() == src.span() && dst.extent(0) == src.extent(0) &&
-
-               dst.extent(1) == src.extent(1) &&
-               dst.extent(2) == src.extent(2) &&
-               dst.extent(3) == src.extent(3) &&
-               dst.extent(4) == src.extent(4) &&
-               dst.extent(5) == src.extent(5) &&
-               dst.extent(6) == src.extent(6) &&
-               dst.extent(7) == src.extent(7)) {
-      const size_t nbytes = sizeof(typename dst_type::value_type) * dst.span();
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
-          "copying rank-1 views");
-      Kokkos::Impl::DeepCopy<dst_memory_space, src_memory_space>(
-          dst.data(), src.data(), nbytes);
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
-          "copying rank-1 views");
-    } else if (std::is_same<
-                   typename DstType::traits::value_type,
-                   typename SrcType::traits::non_const_value_type>::value &&
-               ((std::is_same<typename DstType::traits::array_layout,
-                              typename SrcType::traits::array_layout>::value &&
-                 std::is_same<typename DstType::traits::array_layout,
-                              typename Kokkos::LayoutStride>::value) ||
-                (rank(dst) == 1 && rank(src) == 1)) &&
-               dst.span_is_contiguous() && src.span_is_contiguous() &&
-               dst.span() == src.span() && dst.extent(0) == src.extent(0) &&
-               dst.extent(1) == src.extent(1) &&
-               dst.extent(2) == src.extent(2) &&
-               dst.extent(3) == src.extent(3) &&
-               dst.extent(4) == src.extent(4) &&
-               dst.extent(5) == src.extent(5) &&
-               dst.extent(6) == src.extent(6) &&
-               dst.extent(7) == src.extent(7) &&
-               dst.stride_0() == src.stride_0() &&
-               dst.stride_1() == src.stride_1() &&
-               dst.stride_2() == src.stride_2() &&
-               dst.stride_3() == src.stride_3() &&
-               dst.stride_4() == src.stride_4() &&
-               dst.stride_5() == src.stride_5() &&
-               dst.stride_6() == src.stride_6() &&
-               dst.stride_7() == src.stride_7()) {
-      const size_t nbytes = sizeof(typename dst_type::value_type) * dst.span();
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
-          "copying rank-1 views");
-      Kokkos::Impl::DeepCopy<dst_memory_space, src_memory_space>(
-          dst.data(), src.data(), nbytes);
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
-          "copying rank-1 views");
-    } else if (DstExecCanAccessSrc) {
-      // Copying data between views in accessible memory spaces and either
-      // non-contiguous or incompatible shape.
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
-          "remapping views of incompatible shape");
-      Kokkos::Impl::DynRankViewRemap<dst_type, src_type>(dst, src);
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
-          "remapping views of incompatible shape");
-    } else if (SrcExecCanAccessDst) {
-      // Copying data between views in accessible memory spaces and either
-      // non-contiguous or incompatible shape.
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
-          "remapping views of incompatible shape");
-      Kokkos::Impl::DynRankViewRemap<dst_type, src_type, src_execution_space>(
-          dst, src);
-      Kokkos::fence(
-          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
-          "remapping views of incompatible shape");
-    } else {
+  switch (rank(dst)) {
+    case 0:
+      deep_copy(Impl::as_view_of_rank_n<0>(dst),
+                Impl::as_view_of_rank_n<0>(src));
+      break;
+    case 1:
+      deep_copy(Impl::as_view_of_rank_n<1>(dst),
+                Impl::as_view_of_rank_n<1>(src));
+      break;
+    case 2:
+      deep_copy(Impl::as_view_of_rank_n<2>(dst),
+                Impl::as_view_of_rank_n<2>(src));
+      break;
+    case 3:
+      deep_copy(Impl::as_view_of_rank_n<3>(dst),
+                Impl::as_view_of_rank_n<3>(src));
+      break;
+    case 4:
+      deep_copy(Impl::as_view_of_rank_n<4>(dst),
+                Impl::as_view_of_rank_n<4>(src));
+      break;
+    case 5:
+      deep_copy(Impl::as_view_of_rank_n<5>(dst),
+                Impl::as_view_of_rank_n<5>(src));
+      break;
+    case 6:
+      deep_copy(Impl::as_view_of_rank_n<6>(dst),
+                Impl::as_view_of_rank_n<6>(src));
+      break;
+    case 7:
+      deep_copy(Impl::as_view_of_rank_n<7>(dst),
+                Impl::as_view_of_rank_n<7>(src));
+      break;
+    default:
       Kokkos::Impl::throw_runtime_exception(
-          "deep_copy given views that would require a temporary allocation");
-    }
-  } else {
-    Kokkos::fence(
-        "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence due to same "
-        "src and dst");
+          "Calling DynRankView deep_copy with a view of unexpected rank " +
+          std::to_string(rank(dst)));
   }
 }
 
@@ -2053,6 +2062,24 @@ create_mirror_view_and_copy(
 namespace Kokkos {
 /** \brief  Resize a view with copying old data to new data at the corresponding
  * indices. */
+template <class... I, class T, class... P>
+inline void impl_resize(DynRankView<T, P...>& v, const size_t n0,
+                        const size_t n1, const size_t n2, const size_t n3,
+                        const size_t n4, const size_t n5, const size_t n6,
+                        const size_t n7, const I&... arg_prop) {
+  using drview_type = DynRankView<T, P...>;
+
+  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
+                "Can only resize managed views");
+
+  drview_type v_resized(view_alloc(v.label(), arg_prop...), n0, n1, n2, n3, n4,
+                        n5, n6, n7);
+
+  Kokkos::Impl::DynRankViewRemap<drview_type, drview_type>(v_resized, v);
+
+  v = v_resized;
+}
+
 template <class T, class... P>
 inline void resize(DynRankView<T, P...>& v,
                    const size_t n0 = KOKKOS_INVALID_INDEX,
@@ -2063,20 +2090,42 @@ inline void resize(DynRankView<T, P...>& v,
                    const size_t n5 = KOKKOS_INVALID_INDEX,
                    const size_t n6 = KOKKOS_INVALID_INDEX,
                    const size_t n7 = KOKKOS_INVALID_INDEX) {
-  using drview_type = DynRankView<T, P...>;
+  impl_resize(v, n0, n1, n2, n3, n4, n5, n6, n7);
+}
 
-  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
-                "Can only resize managed views");
-
-  drview_type v_resized(v.label(), n0, n1, n2, n3, n4, n5, n6, n7);
-
-  Kokkos::Impl::DynRankViewRemap<drview_type, drview_type>(v_resized, v);
-
-  v = v_resized;
+template <class I, class T, class... P>
+inline std::enable_if_t<Impl::is_view_ctor_property<I>::value> resize(
+    const I& arg_prop, DynRankView<T, P...>& v,
+    const size_t n0 = KOKKOS_INVALID_INDEX,
+    const size_t n1 = KOKKOS_INVALID_INDEX,
+    const size_t n2 = KOKKOS_INVALID_INDEX,
+    const size_t n3 = KOKKOS_INVALID_INDEX,
+    const size_t n4 = KOKKOS_INVALID_INDEX,
+    const size_t n5 = KOKKOS_INVALID_INDEX,
+    const size_t n6 = KOKKOS_INVALID_INDEX,
+    const size_t n7 = KOKKOS_INVALID_INDEX) {
+  impl_resize(v, n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
 }
 
 /** \brief  Resize a view with copying old data to new data at the corresponding
  * indices. */
+template <class... I, class T, class... P>
+inline void impl_realloc(DynRankView<T, P...>& v, const size_t n0,
+                         const size_t n1, const size_t n2, const size_t n3,
+                         const size_t n4, const size_t n5, const size_t n6,
+                         const size_t n7, const I&... arg_prop) {
+  using drview_type = DynRankView<T, P...>;
+
+  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
+                "Can only realloc managed views");
+
+  const std::string label = v.label();
+
+  v = drview_type();  // Deallocate first, if the only view to allocation
+  v = drview_type(view_alloc(label, arg_prop...), n0, n1, n2, n3, n4, n5, n6,
+                  n7);
+}
+
 template <class T, class... P>
 inline void realloc(DynRankView<T, P...>& v,
                     const size_t n0 = KOKKOS_INVALID_INDEX,
@@ -2087,15 +2136,21 @@ inline void realloc(DynRankView<T, P...>& v,
                     const size_t n5 = KOKKOS_INVALID_INDEX,
                     const size_t n6 = KOKKOS_INVALID_INDEX,
                     const size_t n7 = KOKKOS_INVALID_INDEX) {
-  using drview_type = DynRankView<T, P...>;
+  impl_realloc(v, n0, n1, n2, n3, n4, n5, n6, n7);
+}
 
-  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
-                "Can only realloc managed views");
-
-  const std::string label = v.label();
-
-  v = drview_type();  // Deallocate first, if the only view to allocation
-  v = drview_type(label, n0, n1, n2, n3, n4, n5, n6, n7);
+template <class I, class T, class... P>
+inline std::enable_if_t<Impl::is_view_ctor_property<I>::value> realloc(
+    const I& arg_prop, DynRankView<T, P...>& v,
+    const size_t n0 = KOKKOS_INVALID_INDEX,
+    const size_t n1 = KOKKOS_INVALID_INDEX,
+    const size_t n2 = KOKKOS_INVALID_INDEX,
+    const size_t n3 = KOKKOS_INVALID_INDEX,
+    const size_t n4 = KOKKOS_INVALID_INDEX,
+    const size_t n5 = KOKKOS_INVALID_INDEX,
+    const size_t n6 = KOKKOS_INVALID_INDEX,
+    const size_t n7 = KOKKOS_INVALID_INDEX) {
+  impl_realloc(v, n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
 }
 
 }  // namespace Kokkos

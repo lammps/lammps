@@ -33,7 +33,3 @@ class PairHippo : public PairAmoeba {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

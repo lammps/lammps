@@ -1849,7 +1849,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ, const int
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::cleanup_copy()
 {
-  id = style = NULL;
+  id = style = nullptr;
 }
 
 /* ----------------------------------------------------------------------

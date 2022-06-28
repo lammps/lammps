@@ -26,7 +26,7 @@
 #   -nsteps 5
 #     number of timesteps, default = 5
 
-import sys,math,random
+import sys
 import mdi
 import numpy as np
 from mpi4py import MPI
@@ -42,10 +42,9 @@ def error(txt=None):
 def perform_aimd(world,mm_comm,qm_comm):
 
   me = world.Get_rank()
-  nprocs = world.Get_size()
 
   # receive number of atoms from the MM engine
-  
+
   mdi.MDI_Send_command("<NATOMS",mm_comm)
   natoms = mdi.MDI_Recv(1,mdi.MDI_INT,mm_comm)
   natoms = world.bcast(natoms,root=0)

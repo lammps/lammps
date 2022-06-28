@@ -34,8 +34,6 @@ class PPPMDielectric : public PPPM {
   double *phi;
   int potflag;    // 1/0 if per-atom electrostatic potential phi is needed
 
-  void qsum_qsq();
-
  protected:
   void slabcorr() override;
 
@@ -49,13 +47,3 @@ class PPPMDielectric : public PPPM {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

@@ -315,7 +315,9 @@
 
 // Enable minimal optimizations for more compact code in debug mode.
 FMT_GCC_PRAGMA("GCC push_options")
-#ifndef __OPTIMIZE__
+// LAMMPS CUSTOMIZATION: suppress warning about pragma with KOKKOS
+#if !defined(__OPTIMIZE__) && !defined(LMP_KOKKOS)
+// END LAMMPS CUSTOMIZATION
 FMT_GCC_PRAGMA("GCC optimize(\"Og\")")
 #endif
 
@@ -429,7 +431,9 @@ template <typename T> inline auto convert_for_visit(T) -> monostate {
 template <typename Int>
 FMT_CONSTEXPR auto to_unsigned(Int value) ->
     typename std::make_unsigned<Int>::type {
-  FMT_ASSERT(value >= 0, "negative value");
+  // LAMMPS  CUSTOMIZATION
+  // FMT_ASSERT(value >= 0, "negative value");
+  // END LAMMPS CUSTOMIZATION
   return static_cast<typename std::make_unsigned<Int>::type>(value);
 }
 

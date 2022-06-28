@@ -70,19 +70,3 @@ class Special : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: 1-3 bond count is inconsistent
-
-An inconsistency was detected when computing the number of 1-3
-neighbors for each atom.  This likely means something is wrong with
-the bond topologies you have defined.
-
-E: 1-4 bond count is inconsistent
-
-An inconsistency was detected when computing the number of 1-4
-neighbors for each atom.  This likely means something is wrong with
-the bond topologies you have defined.
-
-*/

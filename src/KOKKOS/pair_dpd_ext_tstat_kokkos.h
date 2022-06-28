@@ -16,7 +16,7 @@
 PairStyle(dpd/ext/tstat/kk,PairDPDExtTstatKokkos<LMPDeviceType>);
 PairStyle(dpd/ext/tstat/kk/device,PairDPDExtTstatKokkos<LMPDeviceType>);
 PairStyle(dpd/ext/tstat/kk/host,PairDPDExtTstatKokkos<LMPHostType>);
-// clang-format on
+// clang-format off
 #else
 
 #ifndef LMP_PAIR_DPD_EXT_TSTAT_KOKKOS_H

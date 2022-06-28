@@ -28,13 +28,14 @@ class DumpYAML : public DumpCustom {
  public:
   DumpYAML(class LAMMPS *, int, char **);
 
-protected:
+ protected:
   bool thermo;
 
   void init_style() override;
   void write() override;
   void write_header(bigint) override;
   void write_data(int, double *) override;
+  void write_footer() override;
 
   int modify_param(int, char **) override;
 };
@@ -43,47 +44,3 @@ protected:
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open dump file %s
-
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
-
-E: Too much per-proc info for dump
-
-Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
-
-E: Dump_modify format line is too short
-
-UNDOCUMENTED
-
-E: Could not find dump custom compute ID
-
-Self-explanatory.
-
-E: Could not find dump custom fix ID
-
-Self-explanatory.
-
-E: Dump custom and fix not computed at compatible times
-
-The fix must produce per-atom quantities on timesteps that dump custom
-needs them.
-
-E: Could not find dump custom variable name
-
-Self-explanatory.
-
-E: Region ID for dump custom does not exist
-
-Self-explanatory.
-
-U: Dump_modify format string is too short
-
-There are more fields to be dumped in a line of output than your
-format string specifies.
-
-*/

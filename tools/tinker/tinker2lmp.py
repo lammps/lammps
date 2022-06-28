@@ -10,6 +10,8 @@
 #   -bitorsion file = LAMMPS fix bitorsion file to output (required if BiTorsions)
 #   -nopbc = non-periodic system (default)
 #   -pbc xhi yhi zhi = periodic system from 0 to hi in each dimension (optional)
+#   -rep Nx Ny Nz outfile = replicate periodic system by Nx by Ny by Nz (optional)
+#      outfile = new xyz file to write out, Null if no file
 
 # Author: Steve Plimpton
 
@@ -43,8 +45,10 @@ def error(txt=""):
 class XYZfile:
   def __init__(self,file):
     lines = open(file,'r').readlines()
+    header = lines[0]
     natoms = int(lines[0].split()[0])
     id = []
+    label = []
     type = []
     x = []
     y = []
@@ -54,6 +58,7 @@ class XYZfile:
     for line in lines[1:natoms+1]:
       words = line.split()
       id.append(int(words[0]))
+      label.append(words[1])
       x.append(words[2])
       y.append(words[3])
       z.append(words[4])
@@ -61,15 +66,171 @@ class XYZfile:
       blist = words[6:]
       blist = [int(one) for one in blist]
       bonds.append(blist)
-      
+
+    self.header = header
     self.natoms = natoms
     self.id = id
+    self.label = label
     self.type = type
     self.x = x
     self.y = y
     self.z = z
     self.bonds = bonds
 
+  # set bond images flags in each dim for each bond of each atom
+  # used for replication of a periodic system
+  # 0 = bond partner is closer then half box in dim
+  # -1 = bond partner is on other side of lower box bound in dim
+  # +1 = bond partner is on other side of upper box bound in dim
+
+  def bond_images(self):
+
+    xhalfsq = 0.25 * boxhi[0]*boxhi[0]
+    yhalfsq = 0.25 * boxhi[1]*boxhi[1]
+    zhalfsq = 0.25 * boxhi[2]*boxhi[2]
+  
+    x = self.x
+    y = self.y
+    z = self.z
+    bonds = self.bonds
+    imageflags = []
+    
+    for i in range(self.natoms):
+      xi = float(x[i])
+      yi = float(y[i])
+      zi = float(z[i])
+      oneflags = []
+      
+      for j in bonds[i]:
+        xj = float(x[j-1])
+        yj = float(y[j-1])
+        zj = float(z[j-1])
+        dx = xi - xj
+        dy = yi - yj
+        dz = zi - zj
+
+        if dx*dx <= xhalfsq: ximage = 0
+        elif xi < xj: ximage = -1
+        elif xi > xj: ximage = 1
+        if dy*dy <= yhalfsq: yimage = 0
+        elif yi < yj: yimage = -1
+        elif yi > yj: yimage = 1
+        if dz*dz <= zhalfsq: zimage = 0
+        elif zi < zj: zimage = -1
+        elif zi > zj: zimage = 1
+        oneflags.append((ximage,yimage,zimage))
+        
+      imageflags.append(oneflags)
+
+    self.imageflags = imageflags
+
+  # replicate system by Nx and Ny and Nz in each dim
+  # rebuild data structs (except imageflags) in this class
+  # also alter global boxhi
+  
+  def replicate(self,nx,ny,nz):
+
+    natoms = self.natoms
+    id = self.id
+    label = self.label
+    type = self.type
+    x = self.x
+    y = self.y
+    z = self.z
+    bonds = self.bonds
+    imageflags = self.imageflags
+    
+    xbox = boxhi[0]
+    ybox = boxhi[1]
+    zbox = boxhi[2]
+    
+    idnew = []
+    labelnew = []
+    typenew = []
+    xnew = []
+    ynew = []
+    znew = []
+    bondsnew = []
+
+    count = 0
+    for k in range(nz):
+      for j in range(ny):
+        for i in range(nx):
+          for m in range(natoms):
+            count += 1
+            idnew.append(count)
+            labelnew.append(label[m])
+            typenew.append(type[m])
+            xnew.append(str(float(x[m]) + i*xbox))
+            ynew.append(str(float(y[m]) + j*ybox))
+            znew.append(str(float(z[m]) + k*zbox))
+
+            oneflags = imageflags[m]
+            onebonds = []
+            
+            for n,mbond in enumerate(bonds[m]):
+
+              # ijk new = which replicated box the mbond atom is in
+              
+              if oneflags[n][0] == 0: inew = i
+              elif oneflags[n][0] == -1: inew = i - 1
+              elif oneflags[n][0] == 1: inew = i + 1
+              if inew < 0: inew = nx-1
+              if inew == nx: inew = 0
+                  
+              if oneflags[n][1] == 0: jnew = j
+              elif oneflags[n][1] == -1: jnew = j - 1
+              elif oneflags[n][1] == 1: jnew = j + 1
+              if jnew < 0: jnew = ny-1
+              if jnew == ny: jnew = 0
+                  
+              if oneflags[n][2] == 0: knew = k
+              elif oneflags[n][2] == -1: knew = k - 1
+              elif oneflags[n][2] == 1: knew = k + 1
+              if knew < 0: knew = nz-1
+              if knew == nz: knew = 0
+
+              # bondnew = replicated atom ID of bond partner
+              # based on replication box (inew,jnew,knew) that owns it
+              
+              bondnew = mbond + natoms*(knew*ny*nx + jnew*nx + inew)
+              onebonds.append(bondnew)
+              
+            bondsnew.append(onebonds)
+            
+    self.natoms = natoms * nx*ny*nz
+    self.id = idnew
+    self.label = labelnew
+    self.type = typenew
+    self.x = xnew
+    self.y = ynew
+    self.z = znew
+    self.bonds = bondsnew
+
+  # write out new xyzfile for replicated system
+  
+  def output(self,outfile):
+    fp = open(outfile,'w')
+    words = self.header.split()
+    print >>fp,self.natoms,"replicated",' '.join(words[1:])
+
+    id = self.id
+    label = self.label
+    type = self.type
+    x = self.x
+    y = self.y
+    z = self.z
+    bonds = self.bonds
+
+    # NOTE: worry about formatting of line
+    
+    for i in range(self.natoms):
+      print >>fp,i+1,label[i],x[i],y[i],z[i],type[i],
+      for j in bonds[i]: print >>fp,j,
+      print >>fp
+    
+    fp.close()
+    
   # triplet of atoms in an angle = atom 1,2,3
   # atom2 is center atom
   # nbonds = number of atoms which atom2 is bonded to
@@ -157,6 +318,26 @@ class PRMfile:
       iline += 1
     return classes,masses
 
+  # replicate per-atom data: classes and masses
+  
+  def replicate_peratom(self,nx,ny,nz):
+    classes = self.classes
+    masses = self.masses
+    natoms = len(self.masses)
+    
+    classes_new = []
+    masses_new = []
+
+    for k in range(nz):
+      for j in range(ny):
+        for i in range(nx):
+          for m in range(natoms):
+            classes_new.append(classes[m])
+            masses_new.append(masses[m])
+
+    self.classes = classes_new
+    self.masses = masses_new
+    
   # polarization groups
   
   def polarize(self):
@@ -476,6 +657,7 @@ prmfile = ""
 datafile = ""
 bitorsionfile = ""
 pbcflag = 0
+repflag = 0
 
 iarg = 0
 while iarg < narg:
@@ -512,6 +694,15 @@ while iarg < narg:
     zhi = float(args[iarg+3])
     boxhi = [xhi,yhi,zhi]
     iarg += 4
+  elif args[iarg] == "-rep":
+    if iarg + 5 > narg: error()
+    repflag = 1
+    nxrep = int(args[iarg+1])
+    nyrep = int(args[iarg+2])
+    nzrep = int(args[iarg+3])
+    outxyz = args[iarg+4]
+    if outxyz == "NULL": outxyz = ""
+    iarg += 5
   else: error()
 
 # error check
@@ -519,12 +710,27 @@ while iarg < narg:
 if not xyzfile: error("xyzfile not specified")
 if not prmfile: error("prmfile not specified")
 if not datafile: error("datafile not specified")
-
+if not pbcflag and repflag: error("cannot replicate non-periodic system")
+if repflag and (nxrep <= 0 or nyrep <= 0 or nzrep <= 0):
+  error("replication factors <= 0 not allowed")
+    
 # read Tinker xyz and prm files
 
 xyz = XYZfile(xyzfile)
 prm = PRMfile(prmfile)
 
+# replicate system if requested
+# both in XYZ and PRM classes
+
+if repflag:
+  xyz.bond_images()
+  xyz.replicate(nxrep,nyrep,nzrep)
+  if outxyz: xyz.output(outxyz)
+  prm.replicate_peratom(nxrep,nyrep,nzrep)
+  boxhi[0] *= nxrep
+  boxhi[1] *= nyrep
+  boxhi[2] *= nzrep
+  
 # create LAMMPS box bounds based on pbcflag
 
 natoms = xyz.natoms

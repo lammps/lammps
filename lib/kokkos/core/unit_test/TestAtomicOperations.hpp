@@ -346,6 +346,84 @@ bool IncAtomicTest(T i0) {
 }
 
 //---------------------------------------------------
+//-------------atomic_wrapping_increment-------------
+//---------------------------------------------------
+
+template <class T, class DEVICE_TYPE>
+struct WrappingIncFunctor {
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
+
+  type data;
+  T i0;
+  T i1;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int) const {
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+    desul::atomic_fetch_inc_mod(&data(), (T)i1, desul::MemoryOrderRelaxed(),
+                                desul::MemoryScopeDevice());
+#endif
+  }
+
+  WrappingIncFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+};
+
+template <class T, class execution_space>
+T WrappingIncAtomic(T i0, T i1) {
+  struct InitFunctor<T, execution_space> f_init(i0);
+  typename InitFunctor<T, execution_space>::type data("Data");
+  typename InitFunctor<T, execution_space>::h_type h_data("HData");
+
+  f_init.data = data;
+  Kokkos::parallel_for(1, f_init);
+  execution_space().fence();
+
+  struct WrappingIncFunctor<T, execution_space> f(i0, i1);
+
+  f.data = data;
+  Kokkos::parallel_for(1, f);
+  execution_space().fence();
+
+  Kokkos::deep_copy(h_data, data);
+  T val = h_data();
+
+  return val;
+}
+
+template <class T>
+T WrappingIncAtomicCheck(T i0, T i1) {
+  T* data = new T[1];
+  data[0] = 0;
+
+  // Wraps to 0 when i0 >= i1
+  *data = ((i0 >= i1) ? (T)0 : i0 + (T)1);
+
+  T val = *data;
+  delete[] data;
+
+  return val;
+}
+
+template <class T, class DeviceType>
+bool WrappingIncAtomicTest(T i0, T i1) {
+  T res       = WrappingIncAtomic<T, DeviceType>(i0, i1);
+  T resSerial = WrappingIncAtomicCheck<T>(i0, i1);
+
+  bool passed = true;
+
+  if (resSerial != res) {
+    passed = false;
+
+    std::cout << "Loop<" << typeid(T).name()
+              << ">( test = WrappingIncAtomicTest"
+              << " FAILED : " << resSerial << " != " << res << std::endl;
+  }
+
+  return passed;
+}
+
+//---------------------------------------------------
 //--------------atomic_decrement---------------------
 //---------------------------------------------------
 
@@ -409,6 +487,85 @@ bool DecAtomicTest(T i0) {
     passed = false;
 
     std::cout << "Loop<" << typeid(T).name() << ">( test = DecAtomicTest"
+              << " FAILED : " << resSerial << " != " << res << std::endl;
+  }
+
+  return passed;
+}
+
+//---------------------------------------------------
+//-------------atomic_wrapping_decrement-------------
+//---------------------------------------------------
+
+template <class T, class DEVICE_TYPE>
+struct WrappingDecFunctor {
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
+
+  type data;
+  T i0;
+  T i1;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int) const {
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+    desul::atomic_fetch_dec_mod(&data(), (T)i1, desul::MemoryOrderRelaxed(),
+                                desul::MemoryScopeDevice());
+#endif
+  }
+
+  WrappingDecFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+};
+
+template <class T, class execution_space>
+T WrappingDecAtomic(T i0, T i1) {
+  struct InitFunctor<T, execution_space> f_init(i0);
+  typename InitFunctor<T, execution_space>::type data("Data");
+  typename InitFunctor<T, execution_space>::h_type h_data("HData");
+
+  f_init.data = data;
+  Kokkos::parallel_for(1, f_init);
+  execution_space().fence();
+
+  struct WrappingDecFunctor<T, execution_space> f(i0, i1);
+
+  f.data = data;
+  Kokkos::parallel_for(1, f);
+  execution_space().fence();
+
+  Kokkos::deep_copy(h_data, data);
+  T val = h_data();
+
+  return val;
+}
+
+template <class T>
+T WrappingDecAtomicCheck(T i0, T i1) {
+  T* data = new T[1];
+  data[0] = 0;
+
+  // Wraps to i1 when i0 <= 0
+  // i0 should never be negative
+  *data = ((i0 <= (T)0) ? i1 : i0 - (T)1);
+
+  T val = *data;
+  delete[] data;
+
+  return val;
+}
+
+template <class T, class DeviceType>
+bool WrappingDecAtomicTest(T i0, T i1) {
+  T res       = WrappingDecAtomic<T, DeviceType>(i0, i1);
+  T resSerial = WrappingDecAtomicCheck<T>(i0, i1);
+
+  bool passed = true;
+
+  if (resSerial != res) {
+    passed = false;
+
+    std::cout << "Loop<" << typeid(T).name()
+              << ">( test = WrappingDecAtomicTest"
               << " FAILED : " << resSerial << " != " << res << std::endl;
   }
 
@@ -1011,6 +1168,16 @@ bool AtomicOperationsTestIntegralType(int i0, int i1, int test) {
     case 11: return IncAtomicTest<T, DeviceType>((T)i0);
     case 12: return DecAtomicTest<T, DeviceType>((T)i0);
     case 13: return LoadStoreAtomicTest<T, DeviceType>((T)i0, (T)i1);
+  }
+
+  return 0;
+}
+
+template <class T, class DeviceType>
+bool AtomicOperationsTestUnsignedIntegralType(int i0, int i1, int test) {
+  switch (test) {
+    case 1: return WrappingIncAtomicTest<T, DeviceType>((T)i0, (T)i1);
+    case 2: return WrappingDecAtomicTest<T, DeviceType>((T)i0, (T)i1);
   }
 
   return 0;

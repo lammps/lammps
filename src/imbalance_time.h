@@ -40,15 +40,3 @@ class ImbalanceTime : public Imbalance {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Balance weight <= 0.0
-
-UNDOCUMENTED
-
-*/

@@ -89,7 +89,7 @@ OPT.
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
-   * :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
+   * :doc:`gaussian <angle_gaussian>`
    * :doc:`harmonic (iko) <angle_harmonic>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`

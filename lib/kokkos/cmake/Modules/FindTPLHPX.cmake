@@ -1,5 +1,5 @@
 
-FIND_PACKAGE(HPX REQUIRED)
+FIND_PACKAGE(HPX REQUIRED 1.7.0)
 #as of right now, HPX doesn't export correctly
 #so let's convert it to an interface target
 KOKKOS_CREATE_IMPORTED_TPL(HPX INTERFACE

@@ -50,11 +50,10 @@
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
 
-#include <HPX/Kokkos_HPX_ChunkedRoundRobinExecutor.hpp>
 #include <Kokkos_HPX.hpp>
 
-#include <hpx/apply.hpp>
-#include <hpx/lcos/local/latch.hpp>
+#include <hpx/local/execution.hpp>
+#include <hpx/local/future.hpp>
 
 #include <type_traits>
 
@@ -89,8 +88,14 @@ class TaskQueueSpecialization<
 
   // Must provide task queue execution function
   void execute_task() const {
-    using hpx::apply;
-    using hpx::lcos::local::latch;
+    // See [note 1] in Kokkos_HPX.hpp for an explanation. The work graph policy
+    // does not store an execution space instance, so we only need to reset the
+    // parallel region count here.
+    Kokkos::Experimental::HPX::reset_count_on_exit_parallel reset_count_on_exit;
+
+    using hpx::for_loop;
+    using hpx::execution::par;
+    using hpx::execution::static_chunk_size;
     using task_base_type = typename scheduler_type::task_base_type;
 
     const int num_worker_threads = Kokkos::Experimental::HPX::concurrency();
@@ -100,51 +105,39 @@ class TaskQueueSpecialization<
 
     auto &queue = scheduler->queue();
 
-    latch num_tasks_remaining(num_worker_threads);
-    ChunkedRoundRobinExecutor exec(num_worker_threads);
+    for_loop(par.with(static_chunk_size(1)), 0, num_worker_threads,
+             [this, &queue, &buffer, num_worker_threads](int) {
+               // NOTE: This implementation has been simplified based on the
+               // assumption that team_size = 1. The HPX backend currently only
+               // supports a team size of 1.
+               std::size_t t =
+                   Kokkos::Experimental::HPX::impl_hardware_thread_id();
 
-    for (int thread = 0; thread < num_worker_threads; ++thread) {
-      apply(exec, [this, &num_tasks_remaining, &queue, &buffer,
-                   num_worker_threads]() {
-        // NOTE: This implementation has been simplified based on the
-        // assumption that team_size = 1. The HPX backend currently only
-        // supports a team size of 1.
-        std::size_t t = Kokkos::Experimental::HPX::impl_hardware_thread_id();
+               buffer.get(t);
+               HPXTeamMember member(
+                   TeamPolicyInternal<Kokkos::Experimental::HPX>(
+                       Kokkos::Experimental::HPX(), num_worker_threads, 1),
+                   0, t, buffer.get(t), 512);
 
-        buffer.get(Kokkos::Experimental::HPX::impl_hardware_thread_id());
-        HPXTeamMember member(
-            TeamPolicyInternal<Kokkos::Experimental::HPX>(
-                Kokkos::Experimental::HPX(), num_worker_threads, 1),
-            0, t, buffer.get(t), 512);
+               member_type single_exec(*scheduler, member);
+               member_type &team_exec = single_exec;
 
-        member_type single_exec(*scheduler, member);
-        member_type &team_exec = single_exec;
+               auto &team_scheduler = team_exec.scheduler();
+               auto current_task    = OptionalRef<task_base_type>(nullptr);
 
-        auto &team_scheduler = team_exec.scheduler();
-        auto current_task    = OptionalRef<task_base_type>(nullptr);
+               while (!queue.is_done()) {
+                 current_task =
+                     queue.pop_ready_task(team_scheduler.team_scheduler_info());
 
-        while (!queue.is_done()) {
-          current_task =
-              queue.pop_ready_task(team_scheduler.team_scheduler_info());
-
-          if (current_task) {
-            KOKKOS_ASSERT(current_task->is_single_runnable() ||
-                          current_task->is_team_runnable());
-            current_task->as_runnable_task().run(single_exec);
-            queue.complete((*std::move(current_task)).as_runnable_task(),
-                           team_scheduler.team_scheduler_info());
-          }
-        }
-
-        num_tasks_remaining.count_down(1);
-      });
-    }
-
-    num_tasks_remaining.wait();
-
-#if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
-    Kokkos::Experimental::HPX::impl_decrement_active_parallel_region_count();
-#endif
+                 if (current_task) {
+                   KOKKOS_ASSERT(current_task->is_single_runnable() ||
+                                 current_task->is_team_runnable());
+                   current_task->as_runnable_task().run(single_exec);
+                   queue.complete((*std::move(current_task)).as_runnable_task(),
+                                  team_scheduler.team_scheduler_info());
+                 }
+               }
+             });
   }
 
   static uint32_t get_max_team_count(execution_space const &espace) {
@@ -216,13 +209,22 @@ class TaskQueueSpecializationConstrained<
     task_queue.scheduler = &scheduler;
     Kokkos::Impl::dispatch_execute_task(&task_queue,
                                         Kokkos::Experimental::HPX());
-    Kokkos::Experimental::HPX().fence()"Kokkos::Impl::TaskQueueSpecializationConstrained::execute: fence after task execution";
+    Kokkos::Experimental::HPX().fence(
+        "Kokkos::Impl::TaskQueueSpecialization<SimpleTask>::execute: fence "
+        "after task execution");
   }
 
   // Must provide task queue execution function
   void execute_task() const {
-    using hpx::apply;
-    using hpx::lcos::local::latch;
+    // See [note 1] in Kokkos_HPX.hpp for an explanation. The work graph policy
+    // does not store an execution space instance, so we only need to reset the
+    // parallel region count here.
+    Kokkos::Experimental::HPX::reset_count_on_exit_parallel reset_count_on_exit;
+
+    using hpx::for_loop;
+    using hpx::execution::par;
+    using hpx::execution::static_chunk_size;
+
     using task_base_type = typename scheduler_type::task_base;
     using queue_type     = typename scheduler_type::queue_type;
 
@@ -236,58 +238,47 @@ class TaskQueueSpecializationConstrained<
     auto &queue = scheduler->queue();
     queue.initialize_team_queues(num_worker_threads);
 
-    latch num_tasks_remaining(num_worker_threads);
-    ChunkedRoundRobinExecutor exec(num_worker_threads);
+    auto exec = Kokkos::Experimental::HPX::impl_get_executor();
 
-    for (int thread = 0; thread < num_worker_threads; ++thread) {
-      apply(exec, [this, &num_tasks_remaining, &buffer, num_worker_threads]() {
-        // NOTE: This implementation has been simplified based on the assumption
-        // that team_size = 1. The HPX backend currently only supports a team
-        // size of 1.
-        std::size_t t = Kokkos::Experimental::HPX::impl_hardware_thread_id();
+    for_loop(
+        par.on(exec).with(static_chunk_size(1)), 0, num_worker_threads,
+        [this, &buffer, num_worker_threads](int t) {
+          // NOTE: This implementation has been simplified based on the
+          // assumption that team_size = 1. The HPX backend currently only
+          // supports a team size of 1.
+          buffer.get(Kokkos::Experimental::HPX::impl_hardware_thread_id());
+          HPXTeamMember member(
+              TeamPolicyInternal<Kokkos::Experimental::HPX>(
+                  Kokkos::Experimental::HPX(), num_worker_threads, 1),
+              0, t, buffer.get(t), 512);
 
-        buffer.get(Kokkos::Experimental::HPX::impl_hardware_thread_id());
-        HPXTeamMember member(
-            TeamPolicyInternal<Kokkos::Experimental::HPX>(
-                Kokkos::Experimental::HPX(), num_worker_threads, 1),
-            0, t, buffer.get(t), 512);
+          member_type single_exec(*scheduler, member);
+          member_type &team_exec = single_exec;
 
-        member_type single_exec(*scheduler, member);
-        member_type &team_exec = single_exec;
+          auto &team_queue     = team_exec.scheduler().queue();
+          task_base_type *task = no_more_tasks_sentinel;
 
-        auto &team_queue     = team_exec.scheduler().queue();
-        task_base_type *task = no_more_tasks_sentinel;
-
-        do {
-          if (task != no_more_tasks_sentinel && task != end) {
-            team_queue.complete(task);
-          }
-
-          if (*((volatile int *)&team_queue.m_ready_count) > 0) {
-            task = end;
-            for (int i = 0; i < queue_type::NumQueue && end == task; ++i) {
-              for (int j = 0; j < 2 && end == task; ++j) {
-                task = queue_type::pop_ready_task(&team_queue.m_ready[i][j]);
-              }
+          do {
+            if (task != no_more_tasks_sentinel && task != end) {
+              team_queue.complete(task);
             }
-          } else {
-            task = team_queue.attempt_to_steal_task();
-          }
 
-          if (task != no_more_tasks_sentinel && task != end) {
-            (*task->m_apply)(task, &single_exec);
-          }
-        } while (task != no_more_tasks_sentinel);
+            if (*((volatile int *)&team_queue.m_ready_count) > 0) {
+              task = end;
+              for (int i = 0; i < queue_type::NumQueue && end == task; ++i) {
+                for (int j = 0; j < 2 && end == task; ++j) {
+                  task = queue_type::pop_ready_task(&team_queue.m_ready[i][j]);
+                }
+              }
+            } else {
+              task = team_queue.attempt_to_steal_task();
+            }
 
-        num_tasks_remaining.count_down(1);
-      });
-    }
-
-    num_tasks_remaining.wait();
-
-#if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
-    Kokkos::Experimental::HPX::impl_decrement_active_parallel_region_count();
-#endif
+            if (task != no_more_tasks_sentinel && task != end) {
+              (*task->m_apply)(task, &single_exec);
+            }
+          } while (task != no_more_tasks_sentinel);
+        });
   }
 
   template <typename TaskType>

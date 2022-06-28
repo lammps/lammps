@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
-#include <cstring>
 #include "amoeba_convolution.h"
+
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -23,9 +22,8 @@
 #include "math_const.h"
 #include "memory.h"
 
-// DEBUG
-
-#include "error.h"
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -41,17 +39,11 @@ enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
 void PairAmoeba::polar()
 {
-  int i,j,ii;
+  int i;
   int ix,iy,iz;
   double felec,term;
   double dix,diy,diz;
   double uix,uiy,uiz;
-  double xd,yd,zd;
-  double xq,yq,zq;
-  double xu,yu,zu;
-  double xup,yup,zup;
-  double xv,yv,zv,vterm;
-  double xufield,yufield,zufield;
   double xix,yix,zix;
   double xiy,yiy,ziy;
   double xiz,yiz,ziz;
@@ -104,6 +96,8 @@ void PairAmoeba::polar()
 
     torque2force(i,tep,fix,fiy,fiz,f);
 
+    if (!vflag_global) continue;
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -117,7 +111,7 @@ void PairAmoeba::polar()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-
+    
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
@@ -128,19 +122,14 @@ void PairAmoeba::polar()
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-
-    virpolar[0] += vxx;
-    virpolar[1] += vyy;
-    virpolar[2] += vzz;
-    virpolar[3] += vxy;
-    virpolar[4] += vxz;
-    virpolar[5] += vyz;
+    
+    virpolar[0] -= vxx;
+    virpolar[1] -= vyy;
+    virpolar[2] -= vzz;
+    virpolar[3] -= vxy;
+    virpolar[4] -= vxz;
+    virpolar[5] -= vyz;
   }
-
-  // clean up
-  // qfac was allocated in induce
-
-  if (use_ewald) memory->destroy(qfac);
 }
 
 /* ----------------------------------------------------------------------
@@ -150,16 +139,11 @@ void PairAmoeba::polar()
 
 void PairAmoeba::polar_energy()
 {
-  int i,j,ii,itype;
-  double e,felec,fi,term;
-  double xd,yd,zd;
-  double xu,yu,zu;
-  double dix,diy,diz;
-  double uix,uiy,uiz;
+  int i,j,itype;
+  double e,felec,fi;
 
   // owned atoms
 
-  double **x = atom->x;
   int nlocal = atom->nlocal;
 
   // set the energy unit conversion factor
@@ -191,7 +175,7 @@ void PairAmoeba::polar_real()
   double alsq2,alsq2n;
   double exp2a,ralpha;
   double damp,expdamp;
-  double pdi,pti,ddi;
+  double pdi,pti;
   double pgamma;
   double temp3,temp5,temp7;
   double sc3,sc5,sc7;
@@ -200,7 +184,7 @@ void PairAmoeba::polar_real()
   double usc3,usc5;
   double psr3,psr5,psr7;
   double dsr3,dsr5,dsr7;
-  double usr3,usr5;
+  double usr5;
   double rr3core,rr5core;
   double rr3i,rr5i;
   double rr7i,rr9i;
@@ -229,7 +213,6 @@ void PairAmoeba::polar_real()
   double vali,valk;
   double alphai,alphak;
   double uirm,ukrm;
-  double uirt,ukrt;
   double tuir,tukr;
   double tixx,tiyy,tizz;
   double tixy,tixz,tiyz;
@@ -350,8 +333,7 @@ void PairAmoeba::polar_real()
     if (amoeba) {
       pdi = pdamp[itype];
       pti = thole[itype];
-      ddi = dirdamp[itype];
-    } else if (hippo) {
+    } else {
       corei = pcore[iclass];
       alphai = palpha[iclass];
       vali = pval[i];
@@ -384,7 +366,7 @@ void PairAmoeba::polar_real()
           factor_dscale = factor_uscale = 1.0;
         }
 
-      } else if (hippo) {
+      } else {
         factor_wscale = special_polar_wscale[sbmask15(jextra)];
         if (igroup == jgroup) {
           factor_dscale = factor_pscale = special_polar_piscale[sbmask15(jextra)];
@@ -505,7 +487,6 @@ void PairAmoeba::polar_real()
           dsr3 = bn[1] - dsc3*rr3;
           dsr5 = bn[2] - dsc5*rr5;
           dsr7 = bn[3] - dsc7*rr7;
-          usr3 = bn[1] - usc3*rr3;
           usr5 = bn[2] - usc5*rr5;
           for (k = 0; k < 3; k++) {
             prc3[k] = rc3[k] * factor_pscale;
@@ -521,7 +502,7 @@ void PairAmoeba::polar_real()
 
       // apply charge penetration damping to scale factors
 
-      } else if (hippo) {
+      } else {
         corek = pcore[jclass];
         alphak = palpha[jclass];
         valk = pval[j];
@@ -551,7 +532,7 @@ void PairAmoeba::polar_real()
         tkz3 = psr3*uiz + dsr3*uizp;
         tuir = -psr5*ukr - dsr5*ukrp;
         tukr = -psr5*uir - dsr5*uirp;
-      } else if (hippo) {
+      } else {
         tix3 = 2.0*rr3i*ukx;
         tiy3 = 2.0*rr3i*uky;
         tiz3 = 2.0*rr3i*ukz;
@@ -580,7 +561,8 @@ void PairAmoeba::polar_real()
         tkz5 = 2.0 * (psr5*uiz+dsr5*uizp);
         tuir = -psr7*ukr - dsr7*ukrp;
         tukr = -psr7*uir - dsr7*uirp;
-      } else if (hippo) {
+
+      } else {
         tix5 = 4.0 * (rr5i*ukx);
         tiy5 = 4.0 * (rr5i*uky);
         tiz5 = 4.0 * (rr5i*ukz);
@@ -733,7 +715,7 @@ void PairAmoeba::polar_real()
 
       // get the field gradient for direct polarization force
 
-      } else if (hippo) {
+      } else {
         term1i = rr3i - rr5i*xr*xr;
         term1core = rr3core - rr5core*xr*xr;
         term2i = 2.0*rr5i*xr ;
@@ -901,7 +883,7 @@ void PairAmoeba::polar_real()
 
       // get the dtau/dr terms used for mutual polarization force
 
-      } else if (poltyp == MUTUAL && hippo) {
+      } else if (poltyp == MUTUAL && !amoeba) {
         term1 = 2.0 * rr5ik;
         term2 = term1*xr;
         term3 = rr5ik - rr7ik*xr*xr;
@@ -985,7 +967,7 @@ void PairAmoeba::polar_real()
 
       // get the dtau/dr terms used for OPT polarization force
 
-      } else if (poltyp == OPT && hippo) {
+      } else if (poltyp == OPT && !amoeba) {
         for (k = 0; k < optorder; k++) {
           uirm = uopt[i][k][0]*xr + uopt[i][k][1]*yr + uopt[i][k][2]*zr;
           for (m = 0; m < optorder-k; m++) {
@@ -1147,25 +1129,20 @@ void PairAmoeba::polar_real()
 
       // increment the virial due to pairwise Cartesian forces
 
-      vxx = xr * frcx;
-      vxy = 0.5 * (yr*frcx+xr*frcy);
-      vxz = 0.5 * (zr*frcx+xr*frcz);
-      vyy = yr * frcy;
-      vyz = 0.5 * (zr*frcy+yr*frcz);
-      vzz = zr * frcz;
+      if (vflag_global) {
+        vxx = xr * frcx;
+        vxy = 0.5 * (yr*frcx+xr*frcy);
+        vxz = 0.5 * (zr*frcx+xr*frcz);
+        vyy = yr * frcy;
+        vyz = 0.5 * (zr*frcy+yr*frcz);
+        vzz = zr * frcz;
 
-      virpolar[0] += vxx;
-      virpolar[1] += vyy;
-      virpolar[2] += vzz;
-      virpolar[3] += vxy;
-      virpolar[4] += vxz;
-      virpolar[5] += vyz;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+        virpolar[0] -= vxx;
+        virpolar[1] -= vyy;
+        virpolar[2] -= vzz;
+        virpolar[3] -= vxy;
+        virpolar[4] -= vxz;
+        virpolar[5] -= vyz;
       }
     }
   }
@@ -1199,6 +1176,8 @@ void PairAmoeba::polar_real()
 
     torque2force(i,tep,fix,fiy,fiz,f);
 
+    if (!vflag_global) continue;
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -1222,13 +1201,13 @@ void PairAmoeba::polar_real()
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-    //if (i < 10) printf("fix = %f %f %f; v %f %f %f %f %f %f\n", fix[0], fix[1], fix[2], vxx, vyy, vzz, vxy, vxz,vyz);
-    virpolar[0] += vxx;
-    virpolar[1] += vyy;
-    virpolar[2] += vzz;
-    virpolar[3] += vxy;
-    virpolar[4] += vxz;
-    virpolar[5] += vyz;
+
+    virpolar[0] -= vxx;
+    virpolar[1] -= vyy;
+    virpolar[2] -= vzz;
+    virpolar[3] -= vxy;
+    virpolar[4] -= vxz;
+    virpolar[5] -= vyz;
   }
 }
 
@@ -1243,7 +1222,6 @@ void PairAmoeba::polar_kspace()
   int nhalf1,nhalf2,nhalf3;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
   int j1,j2,j3;
-  int k1,k2,k3;
   int ix,iy,iz;
   double eterm,felec;
   double r1,r2,r3;
@@ -1262,9 +1240,6 @@ void PairAmoeba::polar_kspace()
   double fix[3],fiy[3],fiz[3];
   double cphid[4],cphip[4];
   double a[3][3];    // indices not flipped vs Fortran
-
-  double **fuind,**fuinp,**fphid,**fphip;
-  double **fphidp,**cphidp;
 
   // indices into the electrostatic field array
   // decremented by 1 versus Fortran
@@ -1290,17 +1265,6 @@ void PairAmoeba::polar_kspace()
   // initialize variables required for the scalar summation
 
   felec = electric / am_dielectric;
-
-  // dynamic allocation of local arrays
-  // NOTE: just do this one time?
-  // NOTE: overlap with induce
-
-  memory->create(fuind,nlocal,3,"polar:fuind");
-  memory->create(fuinp,nlocal,3,"polar:fuinp");
-  memory->create(fphid,nlocal,10,"polar:fphid");
-  memory->create(fphip,nlocal,10,"polar:fphip");
-  memory->create(fphidp,nlocal,20,"polar:fphidp");
-  memory->create(cphidp,nlocal,10,"polar:cphidp");
 
   // remove scalar sum virial from prior multipole FFT
   // can only do this if multipoles were computed with same aeewald = apewald
@@ -1434,8 +1398,6 @@ void PairAmoeba::polar_kspace()
       fuinp[i][j] = a[j][0]*uinp[i][0] + a[j][1]*uinp[i][1] + a[j][2]*uinp[i][2];
     }
   }
-
-  //PRINT fuind
 
   // gridpre2 = my portion of 4d grid in brick decomp w/ ghost values
 
@@ -1879,17 +1841,6 @@ void PairAmoeba::polar_kspace()
 
   double ***gridpre = (double ***) p_kspace->zero();
 
-  // DEBUG
-
-  double psum = 0.0;
-  for (k = p_kspace->nzlo_out; k <= p_kspace->nzhi_out; k++) {
-    for (j = p_kspace->nylo_out; j <= p_kspace->nyhi_out; j++) {
-      for (i = p_kspace->nxlo_out; i <= p_kspace->nxhi_out; i++) {
-        psum += gridpre[k][j][i];
-      }
-    }
-  }
-
   // map atoms to grid
 
   grid_mpole(fmp,gridpre);
@@ -1900,11 +1851,8 @@ void PairAmoeba::polar_kspace()
   gridfft = p_kspace->pre_convolution();
 
   // gridfft1 = copy of first FFT
-  // NOTE: need to allocate this, when is it freed?
 
-  FFT_SCALAR *gridfft1;
   int nfft_owned = p_kspace->nfft_owned;
-  memory->create(gridfft1,2*nfft_owned,"amoeba:gridfft1");
   memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(FFT_SCALAR));
 
   // assign induced dipoles to the PME grid
@@ -1999,7 +1947,6 @@ void PairAmoeba::polar_kspace()
     double *gridfft = p_kspace->pre_convolution();
 
     // gridfft1 = copy of first FFT
-    // NOTE: do this same as above
 
     int nfft_owned = p_kspace->nfft_owned;
     memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(double));
@@ -2124,12 +2071,12 @@ void PairAmoeba::polar_kspace()
             qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;
-          virpolar[0] += h1*h1*vterm - eterm;
-          virpolar[1] += h2*h2*vterm - eterm;
-          virpolar[2] += h3*h3*vterm - eterm;
-          virpolar[3] += h1*h2*vterm;
-          virpolar[4] += h1*h3*vterm;
-          virpolar[5] += h2*h3*vterm;
+          virpolar[0] -= h1*h1*vterm - eterm;
+          virpolar[1] -= h2*h2*vterm - eterm;
+          virpolar[2] -= h3*h3*vterm - eterm;
+          virpolar[3] -= h1*h2*vterm;
+          virpolar[4] -= h1*h3*vterm;
+          virpolar[5] -= h2*h3*vterm;
         }
       }
 
@@ -2188,12 +2135,12 @@ void PairAmoeba::polar_kspace()
             qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;
-          virpolar[0] += h1*h1*vterm - eterm;
-          virpolar[1] += h2*h2*vterm - eterm;
-          virpolar[2] += h3*h3*vterm - eterm;
-          virpolar[3] += h1*h2*vterm;
-          virpolar[4] += h1*h3*vterm;
-          virpolar[5] += h2*h3*vterm;
+          virpolar[0] -= h1*h1*vterm - eterm;
+          virpolar[1] -= h2*h2*vterm - eterm;
+          virpolar[2] -= h3*h3*vterm - eterm;
+          virpolar[3] -= h1*h2*vterm;
+          virpolar[4] -= h1*h3*vterm;
+          virpolar[5] -= h2*h3*vterm;
         }
       }
     }
@@ -2202,24 +2149,12 @@ void PairAmoeba::polar_kspace()
 
   // increment the total internal virial tensor components
 
-  virpolar[0] += vxx;
-  virpolar[1] += vyy;
-  virpolar[2] += vzz;
-  virpolar[3] += vxy;
-  virpolar[4] += vxz;
-  virpolar[5] += vyz;
-
-  // deallocation of local arrays, some from induce
-
-  memory->destroy(gridfft1);
-  memory->destroy(cmp);
-  memory->destroy(fmp);
-  memory->destroy(cphi);
-  memory->destroy(fphi);
-  memory->destroy(fuind);
-  memory->destroy(fuinp);
-  memory->destroy(fphid);
-  memory->destroy(fphip);
-  memory->destroy(fphidp);
-  memory->destroy(cphidp);
+  if (vflag_global) {
+    virpolar[0] -= vxx;
+    virpolar[1] -= vyy;
+    virpolar[2] -= vzz;
+    virpolar[3] -= vxy;
+    virpolar[4] -= vxz;
+    virpolar[5] -= vyz;
+  }
 }

@@ -125,7 +125,7 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
 
     // check for keywords with one value per element
 
-    if ((skeywd == "elems") || (skeywd == "radelems") || (skeywd == "welems"))  {
+    if ((skeywd == "elems") || (skeywd == "radelems") || (skeywd == "welems")) {
 
       if (nelementsflag == 0 || nwords != nelements + 1)
         error->all(FLERR, "Incorrect SO3 parameter file");
@@ -137,7 +137,7 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
         }
 
         elementsflag = 1;
-      } else if (skeywd == "radelems")  {
+      } else if (skeywd == "radelems") {
         for (int ielem = 0; ielem < nelements; ielem++) {
           radelem[ielem] = utils::numeric(FLERR, skeyval, false, lmp);
           if (ielem < nelements - 1) skeyval = p.next();
@@ -256,6 +256,73 @@ void MLIAPDescriptorSO3::compute_forces(class MLIAPData *data)
       // this is optional and has no effect on force calculation
 
       if (data->vflag) data->pairmliap->v_tally(i, j, fij, data->rij[ij]);
+      ij++;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MLIAPDescriptorSO3::compute_force_gradients(class MLIAPData *data)
+{
+  bigint npairs = 0;
+  for (int ii = 0; ii < data->nlistatoms; ii++) npairs += data->numneighs[ii];
+
+  so3ptr->spectrum_dxdr(data->nlistatoms, data->numneighs, data->jelems, wjelem, data->rij, nmax,
+                        lmax, rcutfac, alpha, npairs, data->ndescriptors);
+  int ij = 0;
+
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
+    const int i = data->iatoms[ii];
+
+    // insure rij, inside, wj, and rcutij are of size jnum
+
+    const int jnum = data->numneighs[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = data->jatoms[ij];
+
+      for (int inz = 0; inz < data->gamma_nnz; inz++) {
+        const int l = data->gamma_row_index[ii][inz];
+        const int k = data->gamma_col_index[ii][inz];
+
+        data->gradforce[i][l] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->gradforce[i][l + data->yoffset] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->gradforce[i][l + data->zoffset] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+        data->gradforce[j][l] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->gradforce[j][l + data->yoffset] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->gradforce[j][l + data->zoffset] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+      }
+      ij++;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MLIAPDescriptorSO3::compute_descriptor_gradients(class MLIAPData *data)
+{
+  bigint npairs = 0;
+  for (int ii = 0; ii < data->nlistatoms; ii++) npairs += data->numneighs[ii];
+
+  so3ptr->spectrum_dxdr(data->nlistatoms, data->numneighs, data->jelems, wjelem, data->rij, nmax,
+                        lmax, rcutfac, alpha, npairs, data->ndescriptors);
+  int ij = 0;
+
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
+    const int jnum = data->numneighs[ii];
+    for (int jj = 0; jj < jnum; jj++) {
+      for (int k = 0; k < data->ndescriptors; k++) {
+        data->graddesc[ij][k][0] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->graddesc[ij][k][1] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->graddesc[ij][k][2] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+      }
       ij++;
     }
   }

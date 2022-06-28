@@ -214,6 +214,8 @@ action min_kokkos.h
 action min_linesearch_kokkos.cpp
 action min_linesearch_kokkos.h
 action pack_kokkos.h pack.h
+action pair_adp_kokkos.cpp pair_adp.cpp
+action pair_adp_kokkos.h pair_adp.h
 action pair_buck_coul_cut_kokkos.cpp
 action pair_buck_coul_cut_kokkos.h
 action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp
@@ -289,6 +291,8 @@ action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
 action pair_multi_lucy_rx_kokkos.h pair_multi_lucy_rx.h
+action pair_pace_kokkos.cpp pair_pace.cpp
+action pair_pace_kokkos.h pair_pace.h
 action pair_reaxff_kokkos.cpp pair_reaxff.cpp
 action pair_reaxff_kokkos.h pair_reaxff.h
 action pair_snap_kokkos.cpp pair_snap.cpp

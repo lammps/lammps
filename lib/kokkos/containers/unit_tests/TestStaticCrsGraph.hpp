@@ -105,8 +105,8 @@ void run_test_graph() {
     auto rowView = hx.rowConst(i);
     ASSERT_EQ(rowView.length, graph[i].size());
     for (size_t j = 0; j < rowView.length; ++j) {
-      ASSERT_EQ(rowView.colidx(j), graph[i][j]);
-      ASSERT_EQ(rowView(j), graph[i][j]);
+      ASSERT_EQ(rowView.colidx(j), (size_t)graph[i][j]);
+      ASSERT_EQ(rowView(j), (size_t)graph[i][j]);
     }
   }
 }

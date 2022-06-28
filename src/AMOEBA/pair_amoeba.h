@@ -46,6 +46,7 @@ class PairAmoeba : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+  void finish();
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -58,17 +59,17 @@ class PairAmoeba : public Pair {
   void unpack_reverse_grid(int, void *, int, int *);
 
   void *extract(const char *, int &);
+  double memory_usage();
 
  protected:
-  int me,nprocs;
-  int nmax;        // allocation for owned+ghost
-  int nlocalmax;   // allocation for just owned
-  int cfstyle,crstyle;      // style of forward/reverse comm operations
+  int nmax;                     // allocation for owned+ghost
+  int cfstyle,crstyle;          // style of forward/reverse comm operations
   int nualt;
   double electric;
-  double rotate[3][3];   // rotation matrix
+  double rotate[3][3];          // rotation matrix
 
-  int amoeba,hippo;          // which force field, only one is set
+  bool amoeba;                  // which force field: amoeba == true, hippo == false
+  std::string mystyle;          // text label for style
   int first_flag;            // 1 before first init_style()
   int first_flag_compute;    // 1 before first call to compute()
   int optlevel;
@@ -159,7 +160,7 @@ class PairAmoeba : public Pair {
   // static per-atom properties, must persist as atoms migrate
 
   int index_amtype,index_amgroup,index_redID;
-  int index_xaxis,index_yaxis,index_zaxis,index_polaxe,index_pval;
+  int index_xyzaxis,index_polaxe,index_pval;
 
   int *amtype;                    // AMOEBA type, 1 to N_amtype
   int *amgroup;                   // AMOEBA polarization group, 1 to Ngroup
@@ -267,6 +268,18 @@ class PairAmoeba : public Pair {
   double ***fopt,***foptp;        // computed in induce, used by polar, if OPT
                                   // Nlocal x optorder x 10
 
+  double *poli;
+  double **conj,**conjp;
+  double **vec,**vecp;
+  double **udir,**usum,**usump;
+
+  double **fuind,**fuinp;
+  double **fdip_phi1,**fdip_phi2,**fdip_sum_phi;
+  double **dipfield1,**dipfield2;
+
+  double **fphid,**fphip;
+  double **fphidp,**cphidp;
+
   // derived local neighbor lists
 
   int *numneigh_dipole;          // number of dipole neighs for each atom
@@ -314,8 +327,11 @@ class PairAmoeba : public Pair {
 
   // Kspace data for induce and polar
 
-  double *qfac;                         // convoulution pre-factors
-  double **cmp,**fmp,**cphi,**fphi;     // Cartesian and fractional multipoles
+  double *qfac;                    // convoulution pre-factors
+  double *gridfft1;                // copy of p_kspace FFT grid
+
+  double **cmp,**fmp;              // Cartesian and fractional multipoles
+  double **cphi,**fphi;     
 
   // params for current KSpace solve and FFT being worked on
 
@@ -405,7 +421,7 @@ class PairAmoeba : public Pair {
   // functions in pair_amoeba.cpp
 
   void allocate();
-  void print_settings(FILE *);
+  void print_settings();
 
   void initialize_vdwl();
   void allocate_vdwl();
@@ -482,13 +498,3 @@ class PairAmoeba : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

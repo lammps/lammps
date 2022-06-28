@@ -19,6 +19,6 @@ using namespace LAMMPS_NS;
 
 PairHippo::PairHippo(LAMMPS *lmp) : PairAmoeba(lmp)
 {
-  amoeba = 0;
-  hippo = 1;
+  amoeba = false;
+  mystyle = "hippo";
 }

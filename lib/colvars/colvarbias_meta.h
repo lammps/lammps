@@ -313,6 +313,9 @@ public:
   /// Destructor
   ~hill();
 
+  /// Assignment operator
+  hill & operator = (colvarbias_meta::hill const &h);
+
   /// Get the energy
   inline cvm::real energy()
   {

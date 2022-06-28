@@ -14,6 +14,7 @@
 
 #include "fix_adapt.h"
 
+#include "angle.h"
 #include "atom.h"
 #include "bond.h"
 #include "domain.h"
@@ -38,13 +39,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{PAIR,KSPACE,ATOM,BOND};
+enum{PAIR,KSPACE,ATOM,BOND,ANGLE};
 enum{DIAMETER,CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
-FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
+FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg), nadapt(0), anypair(0), anybond(0), anyangle(0),
+  id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -72,6 +74,10 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       nadapt++;
       iarg += 3;
     } else if (strcmp(arg[iarg],"bond") == 0) {
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix adapt command");
+      nadapt++;
+      iarg += 5;
+    } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 5;
@@ -119,6 +125,20 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       nadapt++;
       iarg += 5;
 
+    } else if (strcmp(arg[iarg],"angle") == 0) {
+      if (iarg+5 > narg) error->all(FLERR, "Illegal fix adapt command");
+      adapt[nadapt].which = ANGLE;
+      adapt[nadapt].angle = nullptr;
+      adapt[nadapt].astyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].aparam = utils::strdup(arg[iarg+2]);
+      utils::bounds(FLERR,arg[iarg+3],1,atom->nangletypes,
+                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
+      } else error->all(FLERR,"Illegal fix adapt command");
+      nadapt++;
+      iarg += 5;
+
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = KSPACE;
@@ -133,12 +153,12 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       adapt[nadapt].which = ATOM;
       if (strcmp(arg[iarg+1],"diameter") == 0 ||
           strcmp(arg[iarg+1],"diameter/disc") == 0) {
-        adapt[nadapt].aparam = DIAMETER;
+        adapt[nadapt].atomparam = DIAMETER;
         diamflag = 1;
         discflag = 0;
         if (strcmp(arg[iarg+1],"diameter/disc") == 0) discflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
-        adapt[nadapt].aparam = CHARGE;
+        adapt[nadapt].atomparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt command");
       if (utils::strmatch(arg[iarg+2],"^v_")) {
@@ -191,6 +211,13 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
   for (int m = 0; m < nadapt; ++m)
     if (adapt[m].which == BOND)
       memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
+
+  // allocate angle style arrays:
+
+  n = atom->nbondtypes;
+  for (int m = 0; m < nadapt; ++m)
+    if (adapt[m].which == ANGLE)
+      memory->create(adapt[m].vector_orig,n+1,"adapt:vector_orig");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -206,6 +233,10 @@ FixAdapt::~FixAdapt()
     } else if (adapt[m].which == BOND) {
       delete [] adapt[m].bstyle;
       delete [] adapt[m].bparam;
+      memory->destroy(adapt[m].vector_orig);
+    } else if (adapt[m].which == ANGLE) {
+      delete [] adapt[m].astyle;
+      delete [] adapt[m].aparam;
       memory->destroy(adapt[m].vector_orig);
     }
   }
@@ -299,6 +330,7 @@ void FixAdapt::init()
 
   anypair = 0;
   anybond = 0;
+  anyangle = 0;
 
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
@@ -357,6 +389,7 @@ void FixAdapt::init()
       }
 
       delete [] pstyle;
+
     } else if (ad->which == BOND) {
       ad->bond = nullptr;
       anybond = 1;
@@ -383,13 +416,39 @@ void FixAdapt::init()
 
       delete [] bstyle;
 
+    } else if (ad->which == ANGLE) {
+      ad->angle = nullptr;
+      anyangle = 1;
+
+      char *astyle = utils::strdup(ad->astyle);
+      if (lmp->suffix_enable)
+        ad->angle = force->angle_match(fmt::format("{}/{}",astyle,lmp->suffix));
+
+      if (ad->angle == nullptr) ad->angle = force->angle_match(astyle);
+      if (ad->angle == nullptr )
+        error->all(FLERR,"Fix adapt angle style does not exist");
+
+      void *ptr = ad->angle->extract(ad->aparam,ad->adim);
+
+      if (ptr == nullptr)
+        error->all(FLERR,"Fix adapt angle style param not supported");
+
+      // for angle styles, use a vector
+
+      if (ad->adim == 1) ad->vector = (double *) ptr;
+
+      if (utils::strmatch(force->angle_style,"^hybrid"))
+        error->all(FLERR,"Fix adapt does not support angle_style hybrid");
+
+      delete [] astyle;
+
     } else if (ad->which == KSPACE) {
       if (force->kspace == nullptr)
         error->all(FLERR,"Fix adapt kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 
     } else if (ad->which == ATOM) {
-      if (ad->aparam == DIAMETER) {
+      if (ad->atomparam == DIAMETER) {
         if (!atom->radius_flag)
           error->all(FLERR,"Fix adapt requires atom attribute diameter");
         if (!atom->rmass_flag)
@@ -398,7 +457,7 @@ void FixAdapt::init()
           error->all(FLERR,"Fix adapt requires 2d simulation");
         if (!restart_reset) previous_diam_scale = 1.0;
       }
-      if (ad->aparam == CHARGE) {
+      if (ad->atomparam == CHARGE) {
         if (!atom->q_flag)
           error->all(FLERR,"Fix adapt requires atom attribute charge");
         if (!restart_reset) previous_chg_scale = 1.0;
@@ -408,7 +467,7 @@ void FixAdapt::init()
 
   if (restart_reset) restart_reset = 0;
 
-  // make copy of original pair/bond array values
+  // make copy of original pair/bond/angle array values
 
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
@@ -420,6 +479,10 @@ void FixAdapt::init()
       ad->scalar_orig = *ad->scalar;
 
     } else if (ad->which == BOND && ad->bdim == 1) {
+      for (i = ad->ilo; i <= ad->ihi; ++i )
+        ad->vector_orig[i] = ad->vector[i];
+
+    } else if (ad->which == ANGLE && ad->adim == 1) {
       for (i = ad->ilo; i <= ad->ihi; ++i )
         ad->vector_orig[i] = ad->vector[i];
     }
@@ -483,7 +546,7 @@ void FixAdapt::post_run()
 }
 
 /* ----------------------------------------------------------------------
-   change pair,kspace,atom parameters based on variable evaluation
+   change pair,bond,angle,kspace,atom parameters based on variable evaluation
 ------------------------------------------------------------------------- */
 
 void FixAdapt::change_settings()
@@ -527,6 +590,18 @@ void FixAdapt::change_settings()
             ad->vector[i] = value;
       }
 
+    // set angle type array values:
+
+    } else if (ad->which == ANGLE) {
+      if (ad->adim == 1) {
+        if (scaleflag)
+          for (i = ad->ilo; i <= ad->ihi; ++i )
+            ad->vector[i] = value*ad->vector_orig[i];
+        else
+          for (i = ad->ilo; i <= ad->ihi; ++i )
+            ad->vector[i] = value;
+      }
+
     // set kspace scale factor
 
     } else if (ad->which == KSPACE) {
@@ -540,7 +615,7 @@ void FixAdapt::change_settings()
       // also reset rmass to new value assuming density remains constant
       // for scaleflag, previous_diam_scale is the scale factor on previous step
 
-      if (ad->aparam == DIAMETER) {
+      if (ad->atomparam == DIAMETER) {
         double scale;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
@@ -567,7 +642,7 @@ void FixAdapt::change_settings()
       // reset charge to new value, for both owned and ghost atoms
       // for scaleflag, previous_chg_scale is the scale factor on previous step
 
-      } else if (ad->aparam == CHARGE) {
+      } else if (ad->atomparam == CHARGE) {
         double scale;
         double *q = atom->q;
         int *mask = atom->mask;
@@ -591,7 +666,7 @@ void FixAdapt::change_settings()
   modify->addstep_compute(update->ntimestep + nevery);
 
   // re-initialize pair styles if any PAIR settings were changed
-  // ditto for bond styles if any BOND settings were changed
+  // ditto for bond/angle styles if any BOND/ANGLE settings were changed
   // this resets other coeffs that may depend on changed values,
   //   and also offset and tail corrections
   // we must call force->pair->reinit() instead of the individual
@@ -601,6 +676,7 @@ void FixAdapt::change_settings()
 
   if (anypair) force->pair->reinit();
   if (anybond) force->bond->reinit();
+  if (anyangle) force->angle->reinit();
 
   // reset KSpace charges if charges have changed
 
@@ -624,7 +700,13 @@ void FixAdapt::restore_settings()
       }
 
     } else if (ad->which == BOND) {
-      if (ad->pdim == 1) {
+      if (ad->bdim == 1) {
+        for (int i = ad->ilo; i <= ad->ihi; i++)
+          ad->vector[i] = ad->vector_orig[i];
+      }
+
+    } else if (ad->which == ANGLE) {
+      if (ad->adim == 1) {
         for (int i = ad->ilo; i <= ad->ihi; i++)
           ad->vector[i] = ad->vector_orig[i];
       }
@@ -668,6 +750,7 @@ void FixAdapt::restore_settings()
 
   if (anypair) force->pair->reinit();
   if (anybond) force->bond->reinit();
+  if (anyangle) force->angle->reinit();
   if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }
 

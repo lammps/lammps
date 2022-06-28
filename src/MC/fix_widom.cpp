@@ -46,7 +46,6 @@
 #include <cmath>
 #include <cstring>
 
-using namespace std;
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -59,8 +58,8 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(nullptr), full_flag(false), local_gas_list(nullptr), molcoords(nullptr),
-  molq(nullptr), molimage(nullptr), random_equal(nullptr)
+  region(nullptr), idregion(nullptr), full_flag(false), local_gas_list(nullptr),
+  molcoords(nullptr),molq(nullptr), molimage(nullptr), random_equal(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 
@@ -75,8 +74,6 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   restart_global = 1;
   time_depend = 1;
-
-  //ave_widom_chemical_potential = 0;
 
   // required args
 
@@ -104,18 +101,18 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   region_xlo = region_xhi = region_ylo = region_yhi =
     region_zlo = region_zhi = 0.0;
-  if (regionflag) {
-    if (domain->regions[iregion]->bboxflag == 0)
+  if (region) {
+    if (region->bboxflag == 0)
       error->all(FLERR,"Fix widom region does not support a bounding box");
-    if (domain->regions[iregion]->dynamic_check())
+    if (region->dynamic_check())
       error->all(FLERR,"Fix widom region cannot be dynamic");
 
-    region_xlo = domain->regions[iregion]->extent_xlo;
-    region_xhi = domain->regions[iregion]->extent_xhi;
-    region_ylo = domain->regions[iregion]->extent_ylo;
-    region_yhi = domain->regions[iregion]->extent_yhi;
-    region_zlo = domain->regions[iregion]->extent_zlo;
-    region_zhi = domain->regions[iregion]->extent_zhi;
+    region_xlo = region->extent_xlo;
+    region_xhi = region->extent_xhi;
+    region_ylo = region->extent_ylo;
+    region_yhi = region->extent_yhi;
+    region_zlo = region->extent_zlo;
+    region_zhi = region->extent_zhi;
 
     if (region_xlo < domain->boxlo[0] || region_xhi > domain->boxhi[0] ||
         region_ylo < domain->boxlo[1] || region_yhi > domain->boxhi[1] ||
@@ -131,15 +128,14 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
       coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
       coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
       coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
-      if (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) != 0)
+      if (region->match(coord[0],coord[1],coord[2]) != 0)
         inside++;
     }
 
-    double max_region_volume = (region_xhi - region_xlo)*
-     (region_yhi - region_ylo)*(region_zhi - region_zlo);
+    double max_region_volume = (region_xhi - region_xlo) *
+      (region_yhi - region_ylo) * (region_zhi - region_zlo);
 
-    region_volume = max_region_volume*static_cast<double> (inside)/
-     static_cast<double> (attempts);
+    region_volume = max_region_volume * static_cast<double>(inside) / static_cast<double>(attempts);
   }
 
   // error check and further setup for exchmode = EXCHMOL
@@ -191,8 +187,6 @@ void FixWidom::options(int narg, char **arg)
   // defaults
 
   exchmode = EXCHATOM;
-  regionflag = 0;
-  iregion = -1;
   region_volume = 0;
   max_region_attempts = 1000;
   molecule_group = 0;
@@ -221,11 +215,10 @@ void FixWidom::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1)
-        error->all(FLERR,"Region ID for fix widom does not exist");
+      region = domain->get_region_by_id(arg[iarg+1]);
+      if (!region)
+        error->all(FLERR,"Region {} for fix widom does not exist",arg[iarg+1]);
       idregion = utils::strdup(arg[iarg+1]);
-      regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
@@ -247,7 +240,7 @@ void FixWidom::options(int narg, char **arg)
 
 FixWidom::~FixWidom()
 {
-  if (regionflag) delete [] idregion;
+  delete[] idregion;
   delete random_equal;
 
   memory->destroy(local_gas_list);
@@ -271,11 +264,18 @@ int FixWidom::setmask()
 void FixWidom::init()
 {
 
+  // set index and check validity of region
+
+  if (idregion) {
+    region = domain->get_region_by_id(idregion);
+    if (!region) error->all(FLERR, "Region {} for fix widom does not exist", idregion);
+  }
+
   triclinic = domain->triclinic;
 
-  ave_widom_chemical_potential = 0;
+  ave_widom_chemical_potential = 0.0;
 
-  if (regionflag) volume = region_volume;
+  if (region) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
 
   // decide whether to switch to the full_energy option
@@ -283,8 +283,8 @@ void FixWidom::init()
     if ((force->kspace) ||
         (force->pair == nullptr) ||
         (force->pair->single_enable == 0) ||
-        (force->pair_match("hybrid",0)) ||
-        (force->pair_match("eam",0)) ||
+        (force->pair_match("^hybrid",0)) ||
+        (force->pair_match("^eam",0)) ||
         (force->pair->tail_flag)) {
       full_flag = true;
       if (comm->me == 0)
@@ -434,7 +434,7 @@ void FixWidom::pre_exchange()
     subhi = domain->subhi;
   }
 
-  if (regionflag) volume = region_volume;
+  if (region) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
 
   if (triclinic) domain->x2lamda(atom->nlocal);
@@ -486,12 +486,12 @@ void FixWidom::attempt_atomic_insertion()
 
     // pick coordinates for insertion point
 
-    if (regionflag) {
+    if (region) {
       int region_attempt = 0;
       coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
       coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
       coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
-      while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+      while (region->match(coord[0],coord[1],coord[2]) == 0) {
         coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
         coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
         coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
@@ -562,7 +562,7 @@ void FixWidom::attempt_molecule_insertion()
 
   for (int imove = 0; imove < ninsertions; imove++) {
 
-    if (regionflag) {
+    if (region) {
       int region_attempt = 0;
       com_coord[0] = region_xlo + random_equal->uniform() *
         (region_xhi-region_xlo);
@@ -570,7 +570,7 @@ void FixWidom::attempt_molecule_insertion()
         (region_yhi-region_ylo);
       com_coord[2] = region_zlo + random_equal->uniform() *
         (region_zhi-region_zlo);
-      while (domain->regions[iregion]->match(com_coord[0],com_coord[1],
+      while (region->match(com_coord[0],com_coord[1],
                com_coord[2]) == 0) {
         com_coord[0] = region_xlo + random_equal->uniform() *
     (region_xhi-region_xlo);
@@ -688,12 +688,12 @@ void FixWidom::attempt_atomic_insertion_full()
 
   for (int imove = 0; imove < ninsertions; imove++) {
 
-    if (regionflag) {
+    if (region) {
       int region_attempt = 0;
       coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
       coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
       coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
-      while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+      while (region->match(coord[0],coord[1],coord[2]) == 0) {
         coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
         coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
         coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
@@ -801,7 +801,7 @@ void FixWidom::attempt_molecule_insertion_full()
 
   for (int imove = 0; imove < ninsertions; imove++) {
     double com_coord[3];
-    if (regionflag) {
+    if (region) {
       int region_attempt = 0;
       com_coord[0] = region_xlo + random_equal->uniform() *
         (region_xhi-region_xlo);
@@ -809,7 +809,7 @@ void FixWidom::attempt_molecule_insertion_full()
         (region_yhi-region_ylo);
       com_coord[2] = region_zlo + random_equal->uniform() *
         (region_zhi-region_zlo);
-      while (domain->regions[iregion]->match(com_coord[0],com_coord[1],
+      while (region->match(com_coord[0],com_coord[1],
                com_coord[2]) == 0) {
         com_coord[0] = region_xlo + random_equal->uniform() *
     (region_xhi-region_xlo);
@@ -1081,7 +1081,7 @@ void FixWidom::update_gas_atoms_list()
 
   ngas_local = 0;
 
-  if (regionflag) {
+  if (region) {
 
     if (exchmode == EXCHMOL) {
 
@@ -1114,7 +1114,7 @@ void FixWidom::update_gas_atoms_list()
 
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
-          if (domain->regions[iregion]->match(comx[molecule[i]],
+          if (region->match(comx[molecule[i]],
              comy[molecule[i]],comz[molecule[i]]) == 1) {
             local_gas_list[ngas_local] = i;
             ngas_local++;
@@ -1127,7 +1127,7 @@ void FixWidom::update_gas_atoms_list()
     } else {
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
-          if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 1) {
+          if (region->match(x[i][0],x[i][1],x[i][2]) == 1) {
             local_gas_list[ngas_local] = i;
             ngas_local++;
           }

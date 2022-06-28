@@ -13,24 +13,8 @@
 
 #include <mpi.h>
 
-// User-settable FFT precision
 
-// FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
-// FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag)
-
-#ifdef FFT_SINGLE
-#define FFT_PRECISION 1
-typedef float FFT_SCALAR;
-#else
-#define FFT_PRECISION 2
-typedef double FFT_SCALAR;
-#endif
-
-// if user set FFTW, it means FFTW3
-
-#ifdef FFT_FFTW
-#define FFT_FFTW3
-#endif
+#include "lmpfftsettings.h"
 
 // -------------------------------------------------------------------------
 
@@ -40,7 +24,7 @@ typedef double FFT_SCALAR;
 
 #if defined(FFT_MKL)
 #include "mkl_dfti.h"
-typedef float _Complex FFT_DATA;
+typedef MKL_Complex8 FFT_DATA;
 #define FFT_MKL_PREC DFTI_SINGLE
 
 #elif defined(FFT_FFTW3)
@@ -73,7 +57,7 @@ typedef struct kiss_fft_state *kiss_fft_cfg;
 
 #if defined(FFT_MKL)
 #include "mkl_dfti.h"
-typedef double _Complex FFT_DATA;
+typedef MKL_Complex16 FFT_DATA;
 #define FFT_MKL_PREC DFTI_DOUBLE
 
 #elif defined(FFT_FFTW3)
@@ -153,7 +137,3 @@ void factor(int, int *, int *);
 void bifactor(int, int *, int *);
 void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
 }
-
-/* ERROR/WARNING messages:
-
-*/

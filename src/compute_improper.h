@@ -41,35 +41,3 @@ class ComputeImproper : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Improper style for compute improper command is not hybrid
-
-UNDOCUMENTED
-
-E: Improper style for compute improper command has changed
-
-UNDOCUMENTED
-
-E: Energy was not tallied on needed timestep
-
-You are using a thermo keyword that requires potentials to
-have tallied energy, but they didn't on this timestep.  See the
-variable doc page for ideas on how to make this work.
-
-U: Compute bond must use group all
-
-Bond styles accumulate energy on all atoms.
-
-U: Unrecognized bond style in compute bond command
-
-Self-explanatory.
-
-*/

@@ -325,6 +325,8 @@ accelerated styles exist.
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
 * :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
+* :doc:`smatb <pair_smatb>` - Second Moment Approximation to the Tight Binding
+* :doc:`smatb/single <pair_smatb>` - Second Moment Approximation to the Tight Binding for single-element systems
 * :doc:`smd/hertz <pair_smd_hertz>` -
 * :doc:`smd/tlsph <pair_smd_tlsph>` -
 * :doc:`smd/tri_surface <pair_smd_triangulated_surface>` -
@@ -348,6 +350,7 @@ accelerated styles exist.
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
+* :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
@@ -358,6 +361,7 @@ accelerated styles exist.
 * :doc:`tersoff/table <pair_tersoff>` -
 * :doc:`tersoff/zbl <pair_tersoff_zbl>` - Tersoff/ZBL 3-body potential
 * :doc:`thole <pair_thole>` - Coulomb interactions with thole damping
+* :doc:`threebody/table <pair_threebody_table>` - generic tabulated three-body potential
 * :doc:`tip4p/cut <pair_coul>` - Coulomb for TIP4P water w/out LJ
 * :doc:`tip4p/long <pair_coul>` - long-range Coulomb for TIP4P water w/out LJ
 * :doc:`tip4p/long/soft <pair_fep_soft>` -

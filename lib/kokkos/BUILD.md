@@ -119,8 +119,8 @@ Device backends can be enabled by specifying `-DKokkos_ENABLE_X`.
 * Kokkos_ENABLE_OPENMP
     * Whether to build OpenMP backend
     * BOOL Default: OFF
-* Kokkos_ENABLE_PTHREAD
-    * Whether to build Pthread backend
+* Kokkos_ENABLE_THREADS
+    * Whether to build C++ thread backend
     * BOOL Default: OFF
 * Kokkos_ENABLE_SERIAL
     * Whether to build serial backend
@@ -178,7 +178,7 @@ Options can be enabled by specifying `-DKokkos_ENABLE_X`.
     * Whether to print information about which profiling tools gotloaded
     * BOOL Default: OFF
 * Kokkos_ENABLE_TESTS
-    * Whether to build serial  backend
+    * Whether to enable test suite
     * BOOL Default: OFF
 
 ## Other Options

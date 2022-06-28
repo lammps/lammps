@@ -112,8 +112,8 @@ double hippo_gpu_bytes();
 
 PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 {
-  amoeba = 0;
-  hippo = 1;
+  amoeba = false;
+  mystyle = "hippo";
 
   respa_enable = 0;
   reinitflag = 0;
@@ -211,6 +211,7 @@ void PairHippoGPU::repulsion()
   }
 
   int eflag=1, vflag=1;
+  double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
@@ -254,10 +255,10 @@ void PairHippoGPU::repulsion()
 
   if (tq_single) {
     float *tq_ptr = (float *)tq_pinned;
-    compute_force_from_torque<float>(tq_ptr, frepulse, virrepulse);
+    compute_force_from_torque<float>(tq_ptr, f, virrepulse); // frepulse
   } else {
     double *tq_ptr = (double *)tq_pinned;
-    compute_force_from_torque<double>(tq_ptr, frepulse, virrepulse);
+    compute_force_from_torque<double>(tq_ptr, f, virrepulse); // frepulse
   }
 }
 
@@ -313,6 +314,7 @@ void PairHippoGPU::multipole_real()
   }
 
   int eflag=1, vflag=1;
+  double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
@@ -340,6 +342,7 @@ void PairHippoGPU::multipole_real()
   // set the energy unit conversion factor for multipolar real-space calculation
 
   double felec = electric / am_dielectric;
+  double *pval = atom->dvector[index_pval];
 
   hippo_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
                                    atom->type, amtype, amgroup, rpole, pval,
@@ -358,10 +361,10 @@ void PairHippoGPU::multipole_real()
 
   if (tq_single) {
     float *tq_ptr = (float *)tq_pinned;
-    compute_force_from_torque<float>(tq_ptr, fmpole, virmpole);
+    compute_force_from_torque<float>(tq_ptr, f, virmpole); // fmpole
   } else {
     double *tq_ptr = (double *)tq_pinned;
-    compute_force_from_torque<double>(tq_ptr, fmpole, virmpole);
+    compute_force_from_torque<double>(tq_ptr, f, virmpole); // fmpole
   }
 }
 
@@ -437,7 +440,7 @@ void PairHippoGPU::induce()
 
   if (!gpu_udirect2b_ready) {
     crstyle = FIELD;
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
   }
 
   // set induced dipoles to polarizability times direct field
@@ -478,13 +481,13 @@ void PairHippoGPU::induce()
       optlevel = m - 1;     // used in umutual1() for fopt,foptp
 
       cfstyle = INDUCE;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
 
       ufield0c(field,fieldp);
 
       if (!gpu_umutual2b_ready) {
         crstyle = FIELD;
-        comm->reverse_comm_pair(this);
+        comm->reverse_comm(this);
       }
 
       for (i = 0; i < nlocal; i++) {
@@ -565,13 +568,13 @@ void PairHippoGPU::induce()
     // get the electrostatic field due to induced dipoles
 
     cfstyle = INDUCE;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     ufield0c(field,fieldp);
 
     if (!gpu_umutual2b_ready) {
       crstyle = FIELD;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
     }
 
     //error->all(FLERR,"STOP GPU");
@@ -597,11 +600,11 @@ void PairHippoGPU::induce()
 
     if (pcgprec) {
       cfstyle = RSD;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
       uscale0b(BUILD,rsd,rsdp,zrsd,zrsdp);
       uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp);
       crstyle = ZRSD;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
    }
 
     for (i = 0; i < nlocal; i++) {
@@ -626,13 +629,13 @@ void PairHippoGPU::induce()
       }
 
       cfstyle = INDUCE;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
 
       ufield0c(field,fieldp);
 
       if (!gpu_umutual2b_ready) {
         crstyle = FIELD;
-        comm->reverse_comm_pair(this);
+        comm->reverse_comm(this);
       }
 
       //error->all(FLERR,"STOP");
@@ -686,10 +689,10 @@ void PairHippoGPU::induce()
 
       if (pcgprec) {
         cfstyle = RSD;
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
         uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp);
         crstyle = ZRSD;
-        comm->reverse_comm_pair(this);
+        comm->reverse_comm(this);
       }
 
       b = 0.0;
@@ -759,14 +762,9 @@ void PairHippoGPU::induce()
     // NOTE: could make this an error
 
     if (iter >= maxiter || eps > epsold)
-      if (me == 0)
+      if (comm->me == 0)
 	      error->warning(FLERR,"hippo induced dipoles did not converge");
   }
-
-  // DEBUG output to dump file
-
-  if (uind_flag)
-    dump6(fp_uind,"id uindx uindy uindz uinpx uinpy uinpz",DEBYE,uind,uinp);
 
   // deallocation of arrays
 
@@ -835,6 +833,8 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
 
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
+
+  double *pval = atom->dvector[index_pval];
 
   hippo_gpu_compute_udirect2b(amtype, amgroup, rpole, uind, uinp, pval,
                               aewald, off2, &fieldp_pinned);
@@ -1050,10 +1050,11 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
 
+  double *pval = atom->dvector[index_pval];
+
   hippo_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp, pval,
                               aewald, off2, &fieldp_pinned);
   
-
   // accumulate the field and fieldp values from the GPU lib
   //   field and fieldp may already have some nonzero values from kspace (umutual1)
 
@@ -1090,6 +1091,7 @@ void PairHippoGPU::polar_real()
   }
 
   int eflag=1, vflag=1;
+  double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
   int inum;
 
@@ -1114,6 +1116,7 @@ void PairHippoGPU::polar_real()
   // set the energy unit conversion factor for polar real-space calculation
 
   double felec = 0.5 * electric / am_dielectric;
+  double *pval = atom->dvector[index_pval];
 
   hippo_gpu_compute_polar_real(amtype, amgroup, rpole, uind, uinp, pval,
                                eflag, vflag, eflag_atom, vflag_atom,
@@ -1123,10 +1126,10 @@ void PairHippoGPU::polar_real()
 
   if (tq_single) {
     float *tep_ptr = (float *)tq_pinned;
-    compute_force_from_torque<float>(tep_ptr, fpolar, virpolar);
+    compute_force_from_torque<float>(tep_ptr, f, virpolar); // fpolar
   } else {
     double *tep_ptr = (double *)tq_pinned;
-    compute_force_from_torque<double>(tep_ptr, fpolar, virpolar);
+    compute_force_from_torque<double>(tep_ptr, f, virpolar); // fpolar
   }
 }
 

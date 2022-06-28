@@ -64,10 +64,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
     // Not yet implemented
     assert(0==1);
 
-  if (pre_cut || gpu_nbor==0)
-    _alloc_packed=true;
-  else
-    _alloc_packed=false;
+  _alloc_packed = pre_cut || gpu_nbor==0;
 
   if (pre_cut)
     _packed_permissions=UCL_READ_WRITE;

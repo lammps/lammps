@@ -399,7 +399,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   double boxlo[3];
 
   void set_grid_global() override;
-  void set_grid_local();
+  void set_grid_local() override;
   void adjust_gewald();
   double newton_raphson_f() override;
   double derivf();
@@ -410,7 +410,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void deallocate() override;
   void deallocate_peratom() override;
   int factorable(int);
-  double compute_df_kspace();
+  double compute_df_kspace() override;
   double estimate_ik_error(double, double, bigint);
   void compute_gf_denom() override;
   void compute_gf_ik() override;
@@ -481,147 +481,4 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot (yet) use PPPM Kokkos with 'kspace_modify diff ad'
-
-UNDOCUMENTED
-
-E: Cannot (yet) use PPPM with triclinic box and slab correction
-
-This feature is not yet supported.
-
-E: Cannot use PPPM with 2d simulation
-
-The kspace style pppm cannot be used in 2d simulations.  You can use
-2d PPPM in a 3d simulation; see the kspace_modify command.
-
-E: PPPM can only currently be used with comm_style brick
-
-This is a current restriction in LAMMPS.
-
-E: Kspace style requires atomKK attribute q
-
-UNDOCUMENTED
-
-E: Cannot use non-periodic boundaries with PPPM
-
-For kspace style pppm, all 3 dimensions must have periodic boundaries
-unless you use the kspace_modify command to define a 2d slab with a
-non-periodic z dimension.
-
-E: Incorrect boundaries with slab PPPM
-
-Must have periodic x,y dimensions and non-periodic z dimension to use
-2d slab option with PPPM.
-
-E: PPPM order cannot be < 2 or > than %d
-
-This is a limitation of the PPPM implementation in LAMMPS.
-
-E: KSpace style is incompatible with Pair style
-
-Setting a kspace style requires that a pair style with matching
-long-range Coulombic or dispersion components be used.
-
-E: Cannot (yet) use PPPM Kokkos TIP4P
-
-UNDOCUMENTED
-
-W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
-
-This may lead to a larger grid than desired.  See the kspace_modify overlap
-command to prevent changing of the PPPM order.
-
-E: PPPM order < minimum allowed order
-
-The default minimum order is 2.  This can be reset by the
-kspace_modify minorder command.
-
-E: PPPM grid stencil extends beyond nearest neighbor processor
-
-This is not allowed if the kspace_modify overlap setting is no.
-
-E: KSpace accuracy must be > 0
-
-The kspace accuracy designated in the input must be greater than zero.
-
-E: Must use 'kspace_modify gewald' for uncharged system
-
-UNDOCUMENTED
-
-E: PPPM grid is too large
-
-The global PPPM grid is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 4096.  You likely need to decrease the
-requested accuracy.
-
-E: Could not compute g_ewald
-
-The Newton-Raphson solver failed to converge to a good value for
-g_ewald.  This error should not occur for typical problems.  Please
-send an email to the developers.
-
-E: Non-numeric box dimensions - simulation unstable
-
-The box size has apparently blown up.
-
-E: Out of range atoms - cannot compute PPPM
-
-One or more atoms are attempting to map their charge to a PPPM grid
-point that is not owned by a processor.  This is likely for one of two
-reasons, both of them bad.  First, it may mean that an atom near the
-boundary of a processor's sub-domain has moved more than 1/2 the
-"neighbor skin distance"_neighbor.html without neighbor lists being
-rebuilt and atoms being migrated to new processors.  This also means
-you may be missing pairwise interactions that need to be computed.
-The solution is to change the re-neighboring criteria via the
-"neigh_modify"_neigh_modify command.  The safest settings are "delay 0
-every 1 check yes".  Second, it may mean that an atom has moved far
-outside a processor's sub-domain or even the entire simulation box.
-This indicates bad physics, e.g. due to highly overlapping atoms, too
-large a timestep, etc.
-
-U: Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad
-
-This feature is not yet supported.
-
-U: Kspace style requires atom attribute q
-
-The atom style defined does not have these attributes.
-
-U: Pair style is incompatible with TIP4P KSpace style
-
-The pair style does not have the requires TIP4P settings.
-
-U: Bond and angle potentials must be defined for TIP4P
-
-Cannot use TIP4P pair potential unless bond and angle potentials
-are defined.
-
-U: Bad TIP4P angle type for PPPM/TIP4P
-
-Specified angle type is not valid.
-
-U: Bad TIP4P bond type for PPPM/TIP4P
-
-Specified bond type is not valid.
-
-U: Cannot (yet) use PPPM with triclinic box and TIP4P
-
-This feature is not yet supported.
-
-U: Could not compute grid size
-
-The code is unable to compute a grid size consistent with the desired
-accuracy.  This error should not occur for typical problems.  Please
-send an email to the developers.
-
-*/
 

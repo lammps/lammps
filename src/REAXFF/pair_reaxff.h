@@ -89,13 +89,3 @@ class PairReaxFF : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Too many ghost atoms
-
-Number of ghost atoms has increased too much during simulation and has exceeded
-the size of reaxff arrays.  Increase safe_zone and min_cap in pair_style reaxff
-command
-
-*/

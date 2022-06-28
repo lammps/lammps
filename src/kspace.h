@@ -51,9 +51,10 @@ class KSpace : protected Pointers {
                             // of neighbor lists
   int mixflag;              // 1 if geometric mixing rules are enforced
                             // for LJ coefficients
-  int slabflag;
+  bool conp_one_step;       // calculate A matrix in one step with pppm
+  int slabflag, wireflag;
   int scalar_pressure_flag;    // 1 if using MSM fast scalar pressure
-  double slab_volfactor;
+  double slab_volfactor, wire_volfactor;
 
   int warn_nonneutral;    // 0 = error if non-neutral system
                           // 1 = warn once if non-neutral system
@@ -219,75 +220,3 @@ class KSpace : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: KSpace style does not yet support triclinic geometries
-
-The specified kspace style does not allow for non-orthogonal
-simulation boxes.
-
-E: KSpace solver requires a pair style
-
-No pair style is defined.
-
-E: KSpace style is incompatible with Pair style
-
-Setting a kspace style requires that a pair style with matching
-long-range Coulombic or dispersion components be used.
-
-W: Using kspace solver on system with no charge
-
-Self-explanatory.
-
-E: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0.
-For some KSpace solvers this is an error.
-
-W: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0.
-For some KSpace solvers this is only a warning.
-
-W: For better accuracy use 'pair_modify table 0'
-
-The user-specified force accuracy cannot be achieved unless the table
-feature is disabled by using 'pair_modify table 0'.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Bad kspace_modify slab parameter
-
-Kspace_modify value for the slab/volume keyword must be >= 2.0.
-
-E: Kspace_modify mesh parameter must be all zero or all positive
-
-Valid kspace mesh parameters are >0. The code will try to auto-detect
-suitable values when all three mesh sizes are set to zero (the default).
-
-E: Kspace_modify mesh/disp parameter must be all zero or all positive
-
-Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
-suitable values when all three mesh sizes are set to zero [and]
-the required accuracy via {force/disp/real} as well as
-{force/disp/kspace} is set.
-
-W: Kspace_modify slab param < 2.0 may cause unphysical behavior
-
-The kspace_modify slab parameter should be larger to insure periodic
-grids padded with empty space do not overlap.
-
-E: Bad kspace_modify kmax/ewald parameter
-
-Kspace_modify values for the kmax/ewald keyword must be integers > 0
-
-E: Kspace_modify eigtol must be smaller than one
-
-Self-explanatory.
-
-*/

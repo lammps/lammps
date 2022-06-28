@@ -137,6 +137,7 @@ PACKAGE = \
 	yaff \
 	atc \
 	dielectric \
+	electrode \
 	ml-iap \
 	phonon
 
@@ -232,11 +233,12 @@ PACKLIB = \
 	ml-quip \
 	scafacos \
 	machdyn \
-	vtk
+	vtk \
+	electrode
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars gpu kokkos mesont poems
+PACKINT = atc awpmd colvars electrode gpu kokkos mesont poems
 
 PACKEXT = \
 	adios \
@@ -281,14 +283,15 @@ help:
 	@echo 'make package                 list available packages and their dependencies'
 	@echo 'make package-status (ps)     status of all packages'
 	@echo 'make package-installed (pi)  list of installed packages'
-	@echo 'make yes-package             install a single pgk in src dir'
+	@echo 'make yes-package             install a single pkg in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
-	@echo 'make yes-all                 install all pgks in src dir'
+	@echo 'make yes-all                 install all pkgs in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
-	@echo 'make yes-basic               install a few commonly used pgks'
+	@echo 'make no-installed (ni)       quick uninstall of installed pkgs'
+	@echo 'make yes-basic               install a few commonly used pkgs'
 	@echo 'make no-basic                remove a few commonly used pkgs'
-	@echo 'make yes-most                install most pgks w/o libs'
-	@echo 'make no-most                 remove most pgks w/o libs'
+	@echo 'make yes-most                install most pkgs w/o libs'
+	@echo 'make no-most                 remove most pkgs w/o libs'
 	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
 	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
 	@echo 'make yes-ext                 install all pkgs with external libs'
@@ -460,7 +463,7 @@ mpi-stubs:
 sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
-	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so
+	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD)
 
 # Create a tarball of src dir and packages
 
@@ -473,6 +476,8 @@ tar:
           --exclude=*/.svn
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
+
+check: check-whitespace check-permissions check-homepage check-errordocs
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -491,6 +496,12 @@ check-homepage:
 
 fix-homepage:
 	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
+
+check-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py ..
+
+fix-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
 
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
@@ -538,6 +549,9 @@ yes-all:
 
 no-all:
 	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
+
+no-installed ni:
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p info && $(MAKE) no-$$p || : ; done
 
 yes-standard yes-std:
 	@echo 'There are no more "standard" or "user" packages in LAMMPS'

@@ -950,6 +950,14 @@ not recognized, the function returns -1.
      - number of dihedral types
    * - nimpropertypes
      - number of improper types
+   * - nellipsoids
+     - number of atoms that have ellipsoid data
+   * - nlines
+     - number of atoms that have line data (see :doc:`pair style line/lj <pair_line_lj>`)
+   * - ntris
+     - number of atoms that have triangle data (see :doc:`pair style tri/lj <pair_tri_lj>`)
+   * - nbodies
+     - number of atoms that have body data (see :doc:`the Body particle HowTo <Howto_body>`)
 
 .. _extract_atom_flags:
 
@@ -1021,6 +1029,10 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"nangletypes") == 0) return lmp->atom->nangletypes;
   if (strcmp(keyword,"ndihedraltypes") == 0) return lmp->atom->ndihedraltypes;
   if (strcmp(keyword,"nimpropertypes") == 0) return lmp->atom->nimpropertypes;
+  if (strcmp(keyword,"nellipsoids") == 0) return lmp->atom->nellipsoids;
+  if (strcmp(keyword,"nlines") == 0) return lmp->atom->nlines;
+  if (strcmp(keyword,"ntris") == 0) return lmp->atom->ntris;
+  if (strcmp(keyword,"nbodies") == 0) return lmp->atom->nbodies;
 
   if (strcmp(keyword,"molecule_flag") == 0) return lmp->atom->molecule_flag;
   if (strcmp(keyword,"q_flag") == 0) return lmp->atom->q_flag;
@@ -1648,13 +1660,17 @@ lists the available options.
      - ``double **``
      - Local data array
    * - LMP_STYLE_LOCAL
+     - LMP_SIZE_VECTOR
+     - ``int *``
+     - Alias for using LMP_SIZE_ROWS
+   * - LMP_STYLE_LOCAL
      - LMP_SIZE_ROWS
      - ``int *``
-     - Number of local data rows
+     - Number of local array rows or length of vector
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_COLS
      - ``int *``
-     - Number of local data columns
+     - Number of local array columns, 0 if vector
 
 .. warning::
 
@@ -1737,6 +1753,7 @@ void *lammps_extract_compute(void *handle, const char *id, int style, int type)
       if (type == LMP_TYPE_SCALAR) return (void *) &compute->size_local_rows;  /* for backward compatibility */
       if (type == LMP_TYPE_VECTOR) return (void *) compute->vector_local;
       if (type == LMP_TYPE_ARRAY) return (void *) compute->array_local;
+      if (type == LMP_SIZE_VECTOR) return (void *) &compute->size_local_rows;  /* alias for LMP_SIZE_ROWS */
       if (type == LMP_SIZE_ROWS) return (void *) &compute->size_local_rows;
       if (type == LMP_SIZE_COLS) return (void *) &compute->size_local_cols;
     }
@@ -4772,10 +4789,8 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
       if (strcmp(name,molecule[i]->id) == 0) return 1;
     }
   } else if (strcmp(category,"region") == 0) {
-    int nregion = lmp->domain->nregion;
-    Region **region = lmp->domain->regions;
-    for (int i=0; i < nregion; ++i) {
-      if (strcmp(name,region[i]->id) == 0) return 1;
+    for (auto &reg : lmp->domain->get_region_list()) {
+      if (strcmp(name,reg->id) == 0) return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
     int nvariable = lmp->input->variable->nvar;
@@ -4818,7 +4833,7 @@ int lammps_id_count(void *handle, const char *category) {
   } else if (strcmp(category,"molecule") == 0) {
     return lmp->atom->nmolecule;
   } else if (strcmp(category,"region") == 0) {
-    return lmp->domain->nregion;
+    return lmp->domain->get_region_list().size();
   } else if (strcmp(category,"variable") == 0) {
     return lmp->input->variable->nvar;
   }
@@ -4848,13 +4863,13 @@ set to an empty string, otherwise 1.
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_id_name(void *handle, const char *category, int idx,
-                      char *buffer, int buf_size) {
+int lammps_id_name(void *handle, const char *category, int idx, char *buffer, int buf_size) {
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(category,"compute") == 0) {
-    if ((idx >=0) && (idx < lmp->modify->ncompute)) {
-      strncpy(buffer, lmp->modify->compute[idx]->id, buf_size);
+    auto icompute = lmp->modify->get_compute_by_index(idx);
+    if (icompute) {
+      strncpy(buffer, icompute->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"dump") == 0) {
@@ -4863,8 +4878,9 @@ int lammps_id_name(void *handle, const char *category, int idx,
       return 1;
     }
   } else if (strcmp(category,"fix") == 0) {
-    if ((idx >=0) && (idx < lmp->modify->nfix)) {
-      strncpy(buffer, lmp->modify->fix[idx]->id, buf_size);
+    auto ifix = lmp->modify->get_fix_by_index(idx);
+    if (ifix) {
+      strncpy(buffer, ifix->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"group") == 0) {
@@ -4878,8 +4894,9 @@ int lammps_id_name(void *handle, const char *category, int idx,
       return 1;
     }
   } else if (strcmp(category,"region") == 0) {
-    if ((idx >=0) && (idx < lmp->domain->nregion)) {
-      strncpy(buffer, lmp->domain->regions[idx]->id, buf_size);
+    auto regions = lmp->domain->get_region_list();
+    if ((idx >=0) && (idx < (int) regions.size())) {
+      strncpy(buffer, regions[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {

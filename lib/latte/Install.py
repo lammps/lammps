@@ -71,7 +71,8 @@ buildflag = args.build
 pathflag = args.path is not None
 version = args.version
 suffixflag = args.machine is not None
-suffix = args.machine
+if suffixflag:
+  suffix = args.machine
 
 if pathflag:
   lattedir = args.path
@@ -132,8 +133,6 @@ os.symlink(os.path.join(lattedir, 'src', 'latte_c_bind.o'), 'filelink.o')
 # copy Makefile.lammps.suffix to Makefile.lammps
 
 if suffixflag or not os.path.exists("Makefile.lammps"):
-  if suffix is None:
-    suffix = 'gfortran'
   print("Creating Makefile.lammps")
   if os.path.exists("Makefile.lammps.%s" % suffix):
     shutil.copyfile("Makefile.lammps.%s" % suffix, 'Makefile.lammps')

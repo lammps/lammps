@@ -487,7 +487,7 @@ void ThirdOrder::update_force()
   neighbor->ago = 0;
   if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
-  int n_post_force = modify->n_post_force;
+  int n_post_force = modify->n_post_force_any;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
 

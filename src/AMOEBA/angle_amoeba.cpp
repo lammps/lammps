@@ -91,12 +91,6 @@ AngleAmoeba::~AngleAmoeba()
 void AngleAmoeba::compute(int eflag, int vflag)
 {
   int i1,i2,i3,n,type,tflag,uflag;
-  double delx1,dely1,delz1,delx2,dely2,delz2;
-  double f1[3],f3[3];
-  double dtheta,dtheta2,dtheta3,dtheta4,dtheta5,dtheta6,de_angle;
-  double dr1,dr2,tk1,tk2,aa1,aa2,aa11,aa12,aa21,aa22;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2;
-  double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
   int **anglelist = neighbor->anglelist;
   int **nspecial = atom->nspecial;
@@ -143,9 +137,8 @@ void AngleAmoeba::tinker_angle(int i1, int i2, int i3, int type, int eflag)
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
   double dtheta,dtheta2,dtheta3,dtheta4,dtheta5,dtheta6,de_angle;
-  double dr1,dr2,tk1,tk2,aa1,aa2,aa11,aa12,aa21,aa22;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2;
-  double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
+  double rsq1,rsq2,r1,r2,c,s,a;
+  double a11,a12,a22;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -248,8 +241,7 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   double rap2,rcp2;
   double dtheta,dtheta2,dtheta3,dtheta4,dtheta5,dtheta6;
   double xm,ym,zm,rm,dot;
-  double cosine,angle;
-  double eangle,deddt;
+  double cosine,eangle,deddt;
   double dedxip,dedyip,dedzip,dpdxia,dpdyia,dpdzia,dpdxic,dpdyic,dpdzic;
   double delta,delta2,ptrt2,term,terma,termc;
   double f1[3],f2[3],f3[3],f4[3];
@@ -315,7 +307,7 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   rap2 = xap*xap + yap*yap + zap*zap;
   rcp2 = xcp*xcp + ycp*ycp + zcp*zcp;
 
-  // NOTE: can these be 0.0 ?  what to do?
+  // Tinker just skips the computation in either is zero
 
   if (rap2 == 0.0 || rcp2 == 0.0) return;
 
@@ -416,7 +408,13 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
     f[i4][2] -= f4[2];
   }
 
-  if (evflag) ev_tally4(i1,i2,i3,14,nlocal,newton_bond,eangle,f1,f2,f3,f4);
+  if (evflag) {
+    f1[0] = -f1[0]; f1[1] = -f1[1]; f1[2] = -f1[2];
+    f2[0] = -f2[0]; f2[1] = -f2[1]; f2[2] = -f2[2];
+    f3[0] = -f3[0]; f3[1] = -f3[1]; f3[2] = -f3[2];
+    f4[0] = -f4[0]; f4[1] = -f4[1]; f4[2] = -f4[2];
+    ev_tally4(i1,i2,i3,i4,nlocal,newton_bond,eangle,f1,f2,f3,f4);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -819,7 +817,10 @@ void AngleAmoeba::write_data(FILE *fp)
     fprintf(fp,"%d %g %g\n",i,ub_k[i],ub_r0[i]);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   only computes tinker_angle() and tinker_bondangle()
+   does not compute tinker_anglep() and tinker_urey_bradley()
+---------------------------------------------------------------------- */
 
 double AngleAmoeba::single(int type, int i1, int i2, int i3)
 {
@@ -859,8 +860,6 @@ double AngleAmoeba::single(int type, int i1, int i2, int i3)
   double dr1 = r1 - ba_r1[type];
   double dr2 = r2 - ba_r2[type];
   energy += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
-
-  // NOTE: add UB term
 
   return energy;
 }

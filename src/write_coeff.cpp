@@ -102,8 +102,8 @@ void WriteCoeff::command(int narg, char **arg)
           coeff_mode = CLASS2_MODE;
       }
 
-      const char * section = (const char *) ""; // NOLINT
-      fputs(str, two);                                     // style
+      const char *section = (const char *) "";                  // NOLINT
+      fputs(str, two);                                          // style
       utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);    // coeff
       int n = strlen(str);
       strncpy(coeff, str, BUF_SIZE);

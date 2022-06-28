@@ -39,7 +39,3 @@ class AtomVecDipole : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

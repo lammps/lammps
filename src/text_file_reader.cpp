@@ -215,5 +215,5 @@ ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separ
 {
   char *ptr = next_line(nparams);
   if (ptr == nullptr) throw EOFException(fmt::format("Missing line in {} file!", filetype));
-  return ValueTokenizer(line, separators);
+  return {line, separators};
 }

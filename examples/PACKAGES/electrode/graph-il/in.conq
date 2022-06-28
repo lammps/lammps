@@ -1,0 +1,18 @@
+# electrodes with constrained total charges 
+# for graphene-ionic liquid supercapacitor
+
+boundary p p f # slab calculation
+include settings.mod # styles, groups, computes and fixes
+kspace_modify slab 3.0
+
+fix conq bot electrode/conq -1.0 1.979 couple top 1.0 etypes 5 # conq doesn't take symm option
+
+# ask fix conq to output electrode potentials to internal variables
+variable vbot internal 0.0
+variable vtop internal 0.0
+fix_modify conq set v bot vbot
+fix_modify conq set v top vtop
+
+thermo 50
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop v_vbot v_vtop
+run 500

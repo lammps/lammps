@@ -35,12 +35,3 @@ class FixWallHarmonic : public FixWall {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Particle on or inside fix wall surface
-
-Particles must be "exterior" to the wall in order for energy/force to
-be calculated.
-
-*/

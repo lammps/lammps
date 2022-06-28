@@ -6,7 +6,6 @@ pair_style amoeba command
 
 pair_style hippo command
 ========================
-
 Syntax
 """"""
 
@@ -63,13 +62,13 @@ these terms:
 
 .. math::
 
-   U_{amoeba} = U_{hal} + U_{multipole} + U_{polar}
+   U_{amoeba} = U_{multipole} + U_{polar} + U_{hal}
 
 while the HIPPO force field contains these terms:
 
 .. math::
 
-   U_{hippo} = U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer}
+   U_{hippo} = U_{multipole} + U_{polar} + U_{qxfer} + U_{repulsion} + U_{dispersion} 
 
 Conceptually, these terms compute the following interactions:
 
@@ -83,6 +82,27 @@ Conceptually, these terms compute the following interactions:
 Note that the AMOEBA versus HIPPO force fields typically compute the
 same term differently using their own formulas.  The references on
 this doc page give full details for both force fields.
+
+The formulas for the AMOEBA energy terms are:
+
+.. math:: 
+
+   U_{hal} = \epsilon_{ij} \left( \frac{1.07}{\rho_{ij} + 0.07} \right)^7 \left( \frac{1.12}{\rho_{ij}^7 + 0.12} - 2 \right)
+   U_{multipole} = \vec{M_i}\bold{T_{ij}}\vec{M_j}
+      \vec{M} = \left( q, \vec{\mu_{perm}}, \bold{\Theta} \right)
+   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
+
+The formulas for the HIPPO energy terms are:
+
+.. math:: 
+
+   U_{multipole} = Z_i \frac{1}{r_{ij}} Z_j + Z_i T_{ij}^{damp} \vec{M_j} + Z_j T_{ji}^{damp} \vec{M_i} + \vec{M_i} T_{ij}^{damp} \vec{M_j}
+      \vec{M} = \left( Q, \vec{\mu_{perm}}, \bold{\Theta} \right)
+   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
+   U_{qxfer} = \epsilon_i e^{-\eta_j r_{ij}} + \epsilon_j e^{-\eta_i r_{ij}}
+   U_{repulsion} = \frac{K_i K_j}{r_{ij}} S^2
+      S^2 = \left( \int{\phi_i \phi_j} dv \right)^2 = \vec{M_i}\bold{T_{ij}^{repulsion}}\vec{M_j}
+   U_{dispersion} = -\frac{C_6^iC_6^j}{r_{ij}^6} \left( f_{damp}^{dispersion} \right)_{ij}^2
 
 .. note::
 
@@ -101,7 +121,11 @@ The implementation of the AMOEBA and HIPPO force fields in LAMMPS was
 done using F90 code provided by the Ponder group from their `Tinker MD
 code <https://dasher.wustl.edu/tinker/>`_.
 
-NOTE: what version of AMOEBA and HIPPO does LAMMPS implement?
+The current implementaion (May 2022) of AMOEBA in LAMMPS matches the
+version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
+<amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise th current
+implementaion of HIPPO in LAMMPS matches the version discussed in
+:ref:`(Rackers) <amoeba-Rackers>`.
 
 ----------
 
@@ -211,6 +235,14 @@ none
 
 ----------
 
+.. _amoeba-Ponder:
+
+**(Ponder)** Ponder, Wu, Ren, Pande, Chodera†, Schnieders, Haque, Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark, Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549–2564 (2010).
+
+.. _amobea-Rackers:
+
+**(Rackers)** Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056–7084 (2021).
+
 .. _amoeba-Ren:
 
 **(Ren)** Ren and Ponder, J Phys Chem B, 107, 5933 (2003).
@@ -219,6 +251,3 @@ none
 
 **(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 
-.. _amoeba-Rackers:
-
-**(Rackers)** Rackers and Ponder, J Chem Phys, 150, 084104 (2010).

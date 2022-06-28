@@ -449,6 +449,8 @@ class PyLammps(object):
   :type  ptr: pointer
   :param comm: MPI communicator (as provided by `mpi4py <mpi4py_docs_>`_). ``None`` means use ``MPI_COMM_WORLD`` implicitly.
   :type  comm: MPI_Comm
+  :param verbose: print all LAMMPS output to stdout
+  :type  verbose: bool
 
   :ivar lmp:  instance of original LAMMPS Python interface
   :vartype lmp: :py:class:`lammps`
@@ -457,8 +459,9 @@ class PyLammps(object):
   :vartype run: list
   """
 
-  def __init__(self, name="", cmdargs=None, ptr=None, comm=None):
+  def __init__(self, name="", cmdargs=None, ptr=None, comm=None, verbose=False):
     self.has_echo = False
+    self.verbose = verbose
 
     if cmdargs:
       if '-echo' in cmdargs:
@@ -869,8 +872,8 @@ class PyLammps(object):
       if comm:
         output = self.lmp.comm.bcast(output, root=0)
 
-      if 'verbose' in kwargs and kwargs['verbose']:
-        print(output)
+      if self.verbose or ('verbose' in kwargs and kwargs['verbose']):
+        print(output, end = '')
 
       lines = output.splitlines()
 

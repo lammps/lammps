@@ -107,15 +107,3 @@ class ImproperClass2Kokkos : public ImproperClass2 {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-W: Improper problem
-
-UNDOCUMENTED
-
-U: Dihedral problem
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-*/

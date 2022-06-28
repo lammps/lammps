@@ -131,7 +131,7 @@ void SYCL::impl_static_fence(const std::string& name) {
           GlobalDeviceSynchronization,
       [&]() {
         // guard accessing all_queues
-        std::lock_guard<std::mutex> lock(Impl::SYCLInternal::mutex);
+        std::scoped_lock lock(Impl::SYCLInternal::mutex);
         for (auto& queue : Impl::SYCLInternal::all_queues) {
           try {
             (*queue)->wait_and_throw();
@@ -268,9 +268,6 @@ std::ostream& SYCL::impl_sycl_info(std::ostream& os,
             << "\nVendor: " << device.get_info<device::vendor>()
             << "\nProfile: " << device.get_info<device::profile>()
             << "\nVersion: " << device.get_info<device::version>()
-            << "\nExtensions: "
-            << Container<std::vector<std::string>>(
-                   device.get_info<device::extensions>())
             << "\nPrintf Buffer Size: "
             << device.get_info<device::printf_buffer_size>()
             << "\nPreferred Interop User Sync: "
@@ -287,7 +284,11 @@ int g_sycl_space_factory_initialized =
     Kokkos::Impl::initialize_space_factory<SYCLSpaceInitializer>("170_SYCL");
 
 void SYCLSpaceInitializer::initialize(const InitArguments& args) {
-  int use_gpu = Kokkos::Impl::get_gpu(args);
+  // If there are no GPUs return whatever else we can run on if no specific GPU
+  // is requested.
+  const auto num_gpus =
+      sycl::device::get_devices(sycl::info::device_type::gpu).size();
+  int use_gpu = num_gpus == 0 ? args.device_id : Kokkos::Impl::get_gpu(args);
 
   if (std::is_same<Kokkos::Experimental::SYCL,
                    Kokkos::DefaultExecutionSpace>::value ||

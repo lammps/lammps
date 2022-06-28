@@ -13,13 +13,7 @@
 
 #include <mpi.h>
 
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-typedef double FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
+#include "lmpfftsettings.h"
 
 // details of how to do a 3d remap
 

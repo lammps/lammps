@@ -69,7 +69,6 @@ void PairAmoeba::moduli()
 
   double x = 0.0;
   bspline(x,bsorder,array);
-  //printf("AAA array %f %f %f %f \n",array[0],array[1],array[2],array[3]);
 
   for (i = 0; i < maxfft; i++) bsarray[i] = 0.0;
   for (i = 0; i < bsorder; i++) bsarray[i+1] = array[i];
@@ -80,8 +79,8 @@ void PairAmoeba::moduli()
 
   // perform deallocation of local arrays
 
-  delete [] array;
-  delete [] bsarray;
+  delete[] array;
+  delete[] bsarray;
 }
 
 /* ----------------------------------------------------------------------
@@ -193,8 +192,7 @@ void PairAmoeba::dftmod(double *bsmod, double *bsarray, int nfft, int order)
 
 void PairAmoeba::bspline_fill()
 {
-  int i,ifr;
-  double xi,yi,zi;
+  int ifr;
   double w,fr,eps;
   double lamda[3];
 
@@ -210,6 +208,7 @@ void PairAmoeba::bspline_fill()
   for (int i = 0; i < nlocal; i++) {
 
     // NOTE: what about offset/shift and w < 0 or w > 1
+    // NOTE: could subtract off nlpts to start with
     // NOTE: this is place to check that stencil size does not
     //       go out of bounds relative to igrid for a proc's sub-domain
     // NOTE: could convert x -> lamda for entire set of Nlocal atoms
@@ -221,7 +220,7 @@ void PairAmoeba::bspline_fill()
     ifr = static_cast<int> (fr-eps);
     w = fr - ifr;
     igrid[i][0] = ifr;
-    //igrid[i][0] = ifr + 1;        // NOTE: could subtract off nlpts to start with
+    //igrid[i][0] = ifr + 1;
     //if (igrid[i][0] == nfft1) igrid[i][0] = 0;
     bsplgen(w,thetai1[i]);
 
@@ -525,7 +524,6 @@ void PairAmoeba::grid_mpole(double **fmp, double ***grid)
   double term0,term1,term2;
 
   int nlpts = (bsorder-1) / 2;
-  int nrpts = bsorder - nlpts - 1;
 
   // spread the permanent multipole moments onto the grid
 
@@ -605,7 +603,6 @@ void PairAmoeba::fphi_mpole(double ***grid, double **fphi)
   double tuv021,tuv102,tuv012,tuv111;
 
   int nlpts = (bsorder-1) / 2;
-  int nrpts = bsorder - nlpts - 1;
 
   // extract the permanent multipole field at each site
 
@@ -744,7 +741,6 @@ void PairAmoeba::grid_uind(double **fuind, double **fuinp, double ****grid)
   double term02,term12;
 
   int nlpts = (bsorder-1) / 2;
-  int nrpts = bsorder - nlpts - 1;
 
   // put the induced dipole moments onto the grid
 
@@ -815,7 +811,6 @@ void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
   double tuv021,tuv102,tuv012,tuv111;
 
   int nlpts = (bsorder-1) / 2;
-  int nrpts = bsorder - nlpts - 1;
 
   // extract the permanent multipole field at each site
 
@@ -1044,7 +1039,6 @@ void PairAmoeba::grid_disp(double ***grid)
   double term;
 
   int nlpts = (bsorder-1) / 2;
-  int nrpts = bsorder - nlpts - 1;
 
   // put the dispersion sites onto the grid
 
@@ -1083,10 +1077,8 @@ void PairAmoeba::grid_disp(double ***grid)
 
 void PairAmoeba::kewald()
 {
-  int i,k,next;
-  int nbig,minfft;
   int nfft1,nfft2,nfft3;
-  double delta,rmax;
+  double delta;
   double edens,ddens;
   double size,slope;
 

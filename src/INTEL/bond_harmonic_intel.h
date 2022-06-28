@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -33,7 +32,6 @@ namespace LAMMPS_NS {
 class BondHarmonicIntel : public BondHarmonic {
  public:
   BondHarmonicIntel(class LAMMPS *);
-  ~BondHarmonicIntel() override;
   void compute(int, int) override;
   void init_style() override;
 
@@ -77,11 +75,3 @@ class BondHarmonicIntel : public BondHarmonic {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

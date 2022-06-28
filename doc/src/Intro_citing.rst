@@ -30,8 +30,8 @@ initial versions of LAMMPS is:
   `S. Plimpton, Fast Parallel Algorithms for Short-Range Molecular Dynamics, J Comp Phys, 117, 1-19 (1995). <http://www.sandia.gov/~sjplimp/papers/jcompphys95.pdf>`_
 
 
-DOI for the LAMMPS code
-^^^^^^^^^^^^^^^^^^^^^^^
+DOI for the LAMMPS source code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS developers use the `Zenodo service at CERN <https://zenodo.org/>`_
 to create digital object identifies (DOI) for stable releases of the

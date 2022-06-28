@@ -141,7 +141,8 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
   if (!utils::strmatch(force->pair_style, "^hybrid/overlay"))
-    error->all(FLERR, "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
+    error->all(FLERR,
+               "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
   if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);

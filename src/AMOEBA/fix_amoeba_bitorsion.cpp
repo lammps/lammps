@@ -61,10 +61,9 @@ static constexpr double WT[16][16] = {
 /* ---------------------------------------------------------------------- */
 
 FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  bitorsion_list(nullptr), num_bitorsion(nullptr), bitorsion_type(nullptr),
-  bitorsion_atom1(nullptr), bitorsion_atom2(nullptr), bitorsion_atom3(nullptr),
-  bitorsion_atom4(nullptr), bitorsion_atom5(nullptr)
+  Fix(lmp, narg, arg), num_bitorsion(nullptr), bitorsion_type(nullptr), bitorsion_atom1(nullptr),
+  bitorsion_atom2(nullptr), bitorsion_atom3(nullptr), bitorsion_atom4(nullptr),
+  bitorsion_atom5(nullptr), bitorsion_list(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix amoeba/bitorsion command");
 
@@ -91,6 +90,13 @@ FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
 
   read_grid_data(arg[3]);
   create_splines();
+
+  // border comm of 1st neighbors in special list
+  // so chkttor() can use them when central atom = ghost to check chirality
+  // comm_border = max # of bonds per atom + 1 for count
+
+  comm_border = 7;
+  atom->add_callback(Atom::BORDER);
 
   // perform initial allocation of atom-based arrays
 
@@ -145,8 +151,8 @@ FixAmoebaBiTorsion::~FixAmoebaBiTorsion()
 
   // BiTorsion grid data
 
-  delete [] nxgrid;
-  delete [] nygrid;
+  delete[] nxgrid;
+  delete[] nygrid;
   for (int itype = 1; itype <= nbitypes; itype++) {
     memory->destroy(ttx[itype]);
     memory->destroy(tty[itype]);
@@ -155,12 +161,12 @@ FixAmoebaBiTorsion::~FixAmoebaBiTorsion()
     memory->destroy(tby[itype]);
     memory->destroy(tbxy[itype]);
   }
-  delete [] ttx;
-  delete [] tty;
-  delete [] tbf;
-  delete [] tbx;
-  delete [] tby;
-  delete [] tbxy;
+  delete[] ttx;
+  delete[] tty;
+  delete[] tbf;
+  delete[] tbx;
+  delete[] tby;
+  delete[] tbxy;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,18 +191,20 @@ void FixAmoebaBiTorsion::init()
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
-  // check if PairAmoeba or PairHippo disabled bitorsion terms
+  // error check that PairAmoeba or PairHiippo exist
 
-  Pair *pair = NULL;
+  pair = nullptr;
   pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
 
-  if (!pair) disable = 0;
-  else {
-    int tmp;
-    int flag = *((int *) pair->extract("bitorsion_flag",tmp));
-    disable = flag ? 0 : 1;
-  }
+  if (!pair)
+    error->all(FLERR,"Cannot use fix amoeba/bitorsion w/out pair amoeba/hippo");
+
+  // check if PairAmoeba or PairHippo disabled bitorsion terms
+
+  int tmp;
+  int flag = *((int *) pair->extract("bitorsion_flag",tmp));
+  disable = flag ? 0 : 1;
 
   // constant
 
@@ -324,7 +332,7 @@ void FixAmoebaBiTorsion::post_force(int vflag)
   int nx,ny,nlo,nhi,nt;
   int xlo,ylo;
   int pos1,pos2;
-  double e,fgrp,sign;
+  double e,sign,dot;
   double angle1,angle2;
   double value1,value2;
   double cosine1,cosine2;
@@ -377,11 +385,17 @@ void FixAmoebaBiTorsion::post_force(int vflag)
   int eflag = eflag_caller;
   ev_init(eflag,vflag);
 
+  // set current ptrs to PairAmoeba amtype and atomic_num
+
+  int tmp;
+  amtype = (int *) pair->extract("amtype",tmp);
+  atomic_num = (int *) pair->extract("atomic_num",tmp);
+
+  // loop over local bitorsions
+
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
-
-  //printf("Nbitorsions %d\n",nbitorsion_list);
 
   for (int n = 0; n < nbitorsion_list; n++) {
 
@@ -391,14 +405,6 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     id = bitorsion_list[n][3];
     ie = bitorsion_list[n][4];
     btype = bitorsion_list[n][5];
-
-    if (n == 0)
-      printf("BITORSION: abcde %d %d %d %d %d\n",
-             atom->tag[ia],
-             atom->tag[ib],
-             atom->tag[ic],
-             atom->tag[id],
-             atom->tag[ie]);
 
     xia = x[ia][0];
     yia = x[ia][1];
@@ -451,30 +457,23 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     cosine1 = (xt*xu + yt*yu + zt*zu) / rtru;
     cosine1 = MIN(1.0,MAX(-1.0,cosine1));
     angle1 = radian2degree * acos(cosine1);
-    sign = xba*xu + yba*yu + zba*zu;
-    if (sign < 0.0) angle1 = -angle1;
+    dot = xba*xu + yba*yu + zba*zu;
+    if (dot < 0.0) angle1 = -angle1;
     value1 = angle1;
 
     rdc = sqrt(xdc*xdc + ydc*ydc + zdc*zdc);
     cosine2 = (xu*xv + yu*yv + zu*zv) / rurv;
     cosine2 = MIN(1.0,MAX(-1.0,cosine2));
     angle2 = radian2degree * acos(cosine2);
-    sign = xcb*xv + ycb*yv + zcb*zv;
-    if (sign < 0.0) angle2 = -angle2;
+    dot = xcb*xv + ycb*yv + zcb*zv;
+    if (dot < 0.0) angle2 = -angle2;
     value2 = angle2;
-
-    if (n == 0)
-      printf("  angle1 %g angle2 %g value1 %g value2 %g\n",
-             angle1,angle2,value1,value2);
 
     // check for inverted chirality at the central atom
     // inputs = ib,ic,id
     // outputs = sign,value1,value2
 
     chkttor(ib,ic,id,sign,value1,value2);
-
-    if (n == 0)
-      printf("  post-chktor: value1 %g value2 %g\n",value1,value2);
 
     // 2 binary searches to find location of angles 1,2 in grid
     // ttx,tty are 0-indexed here, 1-indexed in Tinker
@@ -501,9 +500,6 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       else nlo = nt;
     }
     ylo = nlo;
-
-    if (n == 0)
-      printf("  xlo/ylo: %d %d\n",xlo,ylo);
 
     // fill ftt,ft1,ft2,ft12 vecs with spline coeffs near xlo,ylo grid pt
     // ttx,tty,tbf,tbx,tby,tbxy are 0-indexed here, 1-indexed in Tinker
@@ -537,19 +533,8 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     ft12[2] = tbxy[btype][pos2+1];
     ft12[3] = tbxy[btype][pos2];
 
-    if (n == 0)
-      printf("  pre-bcuint1 x1l %g xlu %g y1l %g y1u %g pos12 %d %d\n",
-             x1l,x1u,y1l,y1u,pos1,pos2);
-
     // bicuint1() uses bicubic interpolation to compute interpolated values
     // outputs = e,dedang1,dedang2
-
-    if (n == 0) {
-      printf("  ftt %g %g %g %g\n",ftt[0],ftt[1],ftt[2],ftt[3]);
-      printf("  ft1 %g %g %g %g\n",ft1[0],ft1[1],ft1[2],ft1[3]);
-      printf("  ft2 %g %g %g %g\n",ft2[0],ft2[1],ft2[2],ft2[3]);
-      printf("  ft12 %g %g %g %g\n",ft12[0],ft12[1],ft12[2],ft12[3]);
-    }
 
     bcuint1(ftt,ft1,ft2,ft12,x1l,x1u,y1l,y1u,value1,value2,
             e,dedang1,dedang2);
@@ -560,9 +545,6 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     // fraction of energy for each atom
 
     engfraction = e * onefifth;
-
-    if (n == 0)
-      printf("  post-bcuint1 dedang12 %g %g eng %g\n",dedang1,dedang2,e);
 
     // chain rule terms for first angle derivative components
 
@@ -625,21 +607,12 @@ void FixAmoebaBiTorsion::post_force(int vflag)
 
     // increment the torsion-torsion energy and gradient
 
-    if (n == 0)
-      printf("  forceA dedia %g %g %g\n",dedxia,dedyia,dedzia);
-
     if (ia < nlocal) {
       ebitorsion += engfraction;
       f[ia][0] -= dedxia;
       f[ia][1] -= dedyia;
       f[ia][2] -= dedzia;
     }
-
-    if (n == 0)
-      printf("  forceB dedib %g %g %g\n",
-             dedxib+dedxib2,
-             dedyib+dedyib2,
-             dedzib+dedzib2);
 
     if (ib < nlocal) {
       ebitorsion += engfraction;
@@ -648,12 +621,6 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       f[ib][2] -= dedzib + dedzib2;
     }
 
-    if (n == 0)
-      printf("  forceC dedic %g %g %g\n",
-             dedxic+dedxic2,
-             dedyic+dedyic2,
-             dedzic+dedzic2);
-
     if (ic < nlocal) {
       ebitorsion += engfraction;
       f[ic][0] -= dedxic + dedxic2;
@@ -661,21 +628,12 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       f[ic][2] -= dedzic + dedzic2;
     }
 
-    if (n == 0)
-      printf("  forceD dedid %g %g %g\n",
-             dedxid+dedxid2,
-             dedyid+dedyid2,
-             dedzid+dedzid2);
-
     if (id < nlocal) {
       ebitorsion += engfraction;
       f[id][0] -= dedxid + dedxid2;
       f[id][1] -= dedyid + dedyid2;
       f[id][2] -= dedzid + dedzid2;
     }
-
-    if (n == 0)
-      printf("  forceE dedie %g %g %g\n",dedxie2,dedyie2,dedzie2);
 
     if (ie < nlocal) {
       ebitorsion += engfraction;
@@ -707,12 +665,12 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       vzy2 = zdc*(dedyid2+dedyie2) - zcb*dedyib2 + zed*dedyie2;
       vzz2 = zdc*(dedzid2+dedzie2) - zcb*dedzib2 + zed*dedzie2;
 
-      v[0] += vxx + vxx2;
-      v[1] += vyy + vyy2;
-      v[2] += vzz + vzz2;
-      v[3] += vyx + vyx2;
-      v[4] += vzx + vzx2;
-      v[5] += vzy + vzy2;
+      v[0] = -vxx - vxx2;
+      v[1] = -vyy - vyy2;
+      v[2] = -vzz - vzz2;
+      v[3] = -vyx - vyx2;
+      v[4] = -vzx - vzx2;
+      v[5] = -vzy - vzy2;
 
       ev_tally(nlist,list,5.0,e,v);
     }
@@ -856,7 +814,7 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 
 void FixAmoebaBiTorsion::create_splines()
 {
-  int i,j,nx,ny;
+  int nx,ny;
 
   // allocate work vectors for cspline() and nspline() methods
   // all are 0-indexed here and in Tinker
@@ -1197,7 +1155,7 @@ void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du,
     if (dm[i] < 0.0) {
       iflag = -1;
       return;
-    } else if (abs(dm[i])*d <= eps) {
+    } else if (fabs(dm[i])*d <= eps) {
       iflag = 0;
       return;
     }
@@ -1275,11 +1233,85 @@ void FixAmoebaBiTorsion::cytsys(int n, double *dm, double *du,
 }
 
 /* ----------------------------------------------------------------------
+   chkttor tests the attached atoms at a torsion-torsion central
+   site and inverts the angle values if the site is chiral
 ------------------------------------------------------------------------- */
 
 void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id,
                                  double &sign, double &value1, double &value2)
 {
+  int i,ia,ilocal,jlocal,klocal,jtype,ktype;
+  tagint j,k,m;
+  double xac,yac,zac;
+  double xbc,ybc,zbc;
+  double xdc,ydc,zdc;
+  double c1,c2,c3,vol;
+
+  // test for chirality at the central torsion-torsion site
+
+  sign = 1.0;
+  if (atom->nspecial[ic][0] != 4) return;
+
+  tagint **special = atom->special;
+  tagint *tag = atom->tag;
+
+  // j,k,m are atom IDs
+
+  j = 0;
+  for (i = 0; i < 4; i++) {
+    m = special[ic][i];
+    if (m != tag[ib] && m != tag[id]) {
+      if (j == 0) j = m;
+      else k = m;
+    }
+  }
+
+  // convert atom IDs j,k to local indices jlocal,klocal closest to atom IC
+
+  jlocal = atom->map(j);
+  jlocal = domain->closest_image(ic,jlocal);
+  jtype = amtype[jlocal];
+
+  klocal = atom->map(k);
+  klocal = domain->closest_image(ic,klocal);
+  ktype = amtype[klocal];
+
+  // atom ilocal = jlocal or klocal (or -1)
+  // set atom IA = ilocal
+
+  ilocal = -1;
+  if (jtype > ktype) ilocal = jlocal;
+  if (ktype > jtype) ilocal = klocal;
+  if (atomic_num[jtype] > atomic_num[ktype]) ilocal = jlocal;
+  if (atomic_num[ktype] > atomic_num[jtype]) ilocal = klocal;
+  if (ilocal < 0) return;
+  ia = ilocal;
+
+  // compute the signed parallelpiped volume at central site
+
+  double **x = atom->x;
+
+  xac = x[ia][0] - x[ic][0];
+  yac = x[ia][1] - x[ic][1];
+  zac = x[ia][2] - x[ic][2];
+  xbc = x[ib][0] - x[ic][0];
+  ybc = x[ib][1] - x[ic][1];
+  zbc = x[ib][2] - x[ic][2];
+  xdc = x[id][0] - x[ic][0];
+  ydc = x[id][1] - x[ic][1];
+  zdc = x[id][2] - x[ic][2];
+  c1 = ybc*zdc - zbc*ydc;
+  c2 = ydc*zac - zdc*yac;
+  c3 = yac*zbc - zac*ybc;
+  vol = xac*c1 + xbc*c2 + xdc*c3;
+
+  // invert the angle values if chirality has an inverted sign
+
+  if (vol < 0.0) {
+    sign = -1.0;
+    value1 = -value1;
+    value2 = -value2;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1718,6 +1750,50 @@ void FixAmoebaBiTorsion::copy_arrays(int i, int j, int /*delflag*/)
 void FixAmoebaBiTorsion::set_arrays(int i)
 {
   num_bitorsion[i] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   pack values for border communication at re-neighboring
+------------------------------------------------------------------------- */
+
+int FixAmoebaBiTorsion::pack_border(int n, int *list, double *buf)
+{
+  int i, j, k;
+
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  int m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = ubuf(nspecial[j][0]).d;
+    for (k = 0; k < nspecial[j][0]; k++)
+      buf[m++] = ubuf(special[j][k]).d;
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values for border communication at re-neighboring
+------------------------------------------------------------------------- */
+
+int FixAmoebaBiTorsion::unpack_border(int n, int first, double *buf)
+{
+  int i, k, last;
+
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  int m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    nspecial[i][0] = (int) ubuf(buf[m++]).i;
+    for (k = 0; k < nspecial[i][0]; k++)
+      special[i][k] = (tagint) ubuf(buf[m++]).i;
+  }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------

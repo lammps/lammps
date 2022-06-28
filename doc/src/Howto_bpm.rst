@@ -3,7 +3,6 @@ Bonded particle models
 
 The BPM package implements bonded particle models which can be used to
 simulate mesoscale solids.  Solids are constructed as a collection of
-
 particles which each represent a coarse-grained region of space much
 larger than the atomistic scale. Particles within a solid region are
 then connected by a network of bonds to provide solid elasticity.
@@ -47,33 +46,29 @@ this, LAMMPS requires :doc:`newton <newton>` bond off such that all
 processors containing an atom know when a bond breaks. Additionally,
 one must do either (A) or (B).
 
-(A)
+A) Use the following special bond settings
 
-Use the following special bond settings
+   .. code-block:: LAMMPS
 
-.. code-block:: LAMMPS
+      special_bonds lj 0 1 1 coul 1 1 1
 
-   special_bonds lj 0 1 1 coul 1 1 1
+   These settings accomplish two goals. First, they turn off 1-3 and 1-4
+   special bond lists, which are not currently supported for BPMs. As
+   BPMs often have dense bond networks, generating 1-3 and 1-4 special
+   bond lists is expensive.  By setting the lj weight for 1-2 bonds to
+   zero, this turns off pairwise interactions.  Even though there are no
+   charges in BPM models, setting a nonzero coul weight for 1-2 bonds
+   ensures all bonded neighbors are still included in the neighbor list
+   in case bonds break between neighbor list builds.
 
-These settings accomplish two goals. First, they turn off 1-3 and 1-4
-special bond lists, which are not currently supported for BPMs. As
-BPMs often have dense bond networks, generating 1-3 and 1-4 special
-bond lists is expensive.  By setting the lj weight for 1-2 bonds to
-zero, this turns off pairwise interactions.  Even though there are no
-charges in BPM models, setting a nonzero coul weight for 1-2 bonds
-ensures all bonded neighbors are still included in the neighbor list
-in case bonds break between neighbor list builds.
+B) Alternatively, one can simply overlay pair interactions such that all
+   bonded particles also feel pair interactions. This can be
+   accomplished by using the *overlay/pair* keyword present in all bpm
+   bond styles and by using the following special bond settings
 
-(B)
+   .. code-block:: LAMMPS
 
-Alternatively, one can simply overlay pair interactions such that all
-bonded particles also feel pair interactions. This can be accomplished
-by using the *overlay/pair* keyword present in all bpm bond styles and
-by using the following special bond settings
-
-.. code-block:: LAMMPS
-
-   special_bonds lj/coul 1 1 1
+      special_bonds lj/coul 1 1 1
 
 See the :doc:`Howto <Howto_broken_bonds>` page on broken bonds for
 more information.

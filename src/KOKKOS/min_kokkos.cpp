@@ -79,6 +79,8 @@ void MinKokkos::setup(int flag)
   }
   update->setupflag = 1;
 
+  lmp->kokkos->auto_sync = 1;
+
   // setup extra global dof due to fixes
   // cannot be done in init() b/c update init() is before modify init()
 
@@ -170,7 +172,7 @@ void MinKokkos::setup(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -242,6 +244,8 @@ void MinKokkos::setup_minimal(int flag)
   // acquire ghosts
   // build neighbor lists
 
+  lmp->kokkos->auto_sync = 1;
+
   if (flag) {
     modify->setup_pre_exchange();
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -277,7 +281,7 @@ void MinKokkos::setup_minimal(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);

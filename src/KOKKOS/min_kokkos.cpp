@@ -499,6 +499,7 @@ double MinKokkos::energy_force(int resetflag)
   if (force->newton) {
     comm->reverse_comm();
     timer->stamp(Timer::COMM);
+    atomKK->sync(Device,F_MASK);
   }
 
   // update per-atom minimization variables stored by pair styles
@@ -571,7 +572,7 @@ void MinKokkos::force_clear()
       }
     });
   }
-  atomKK->modified(Device,F_MASK);
+  atomKK->modified(Device,F_MASK|TORQUE_MASK);
 }
 
 /* ----------------------------------------------------------------------

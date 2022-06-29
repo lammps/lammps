@@ -59,7 +59,7 @@ namespace LAMMPS_NS {
         struct ACEALImpl *aceimpl;
 
         int gamma_grade_eval_freq = 1;
-        bool is_dump_extrapolative_structures = true;
+        bool is_dump_extrapolative_structures = false;
         DumpCustom *dump = nullptr;
         Compute *computePaceAtom = nullptr;
         int natoms; //total number of atoms

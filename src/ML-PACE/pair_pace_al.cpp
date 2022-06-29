@@ -392,6 +392,7 @@ void PairPACEActiveLearning::settings(int narg, char **arg) {
     }
 
     if (narg > 3) {
+        //default value is_dump_extrapolative_structures = false
         if (strcmp(arg[3], "nodump") == 0) is_dump_extrapolative_structures = false;
         if (strcmp(arg[3], "dump") == 0) is_dump_extrapolative_structures = true;
     }

@@ -1,10 +1,14 @@
 .. index:: pair_style pace
 .. index:: pair_style pace/kk
+.. index:: pair_style pace/al
 
 pair_style pace command
 =======================
 
 Accelerator Variants: *pace/kk*
+
+pair_style pace/al command
+=========================
 
 Syntax
 """"""
@@ -22,6 +26,18 @@ Syntax
        *recursive* = use recursive algorithm for basis functions
        *chunksize* value = number of atoms in each pass
 
+.. code-block:: LAMMPS
+
+   pair_style pace/al gamma_lower_bound gamma_upper_bound gamma_freq dump
+
+* one or more arguments may be appended
+
+  .. parsed-literal::
+    *gamma_lower_bound* = minimal value of extrapolation grade considered as moderate extrapolation
+    *gamma_upper_bound* = maximal value of extrapolation grade considered as moderate extrapolation
+    *gamma_freq* value = frequency of computing extrapolation grade (in steps)
+    dump = *dump* or *nodump*  = dump structures with gamma > *gamma_lower_bound* to `extrapolative_structures.dat` file
+
 Examples
 """"""""
 
@@ -30,6 +46,9 @@ Examples
    pair_style pace
    pair_style pace product chunksize 2048
    pair_coeff * * Cu-PBE-core-rep.ace Cu
+
+   pair_style pace/al 1.5 10 20 nodump
+   pair_coeff * * Cu.yaml Cu.asi Cu
 
 Description
 """""""""""
@@ -76,6 +95,43 @@ avoid running out of memory.  For example if there are 8192 atoms in the
 simulation and the *chunksize* is set to 4096, the ACE
 calculation will be broken up into two passes (running on a single GPU).
 
+Extrapolation grade and active learning
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Calculation of extrapolation grade in PACE is implemented in `pair_style pace/al`.
+It is based on the MaxVol algorithm similar to Moment Tensor Potential (MTP) by Shapeev et al.
+and described in :ref:`(Lysogorskiy2) <Lysogorskiy2022>`.
+In order to compute extrapolation grade one needs to provide:
+
+#. ACE potential in B-basis form (`.yaml` format) and
+#. Active Set Inverted (ASI) file for corresponding potential (`.asi` format)
+
+Calculation of extrapolation grades requires matrix-vector multiplication for each atom
+and can be slower than the usual `pair_style pace recursive`,
+therefore it make sense not to do it on every step.
+Extrapolation grade calculation frequency is controlled by *gamma_freq* parameter.
+On all other steps `pair_style pace recursive` is used.
+
+The maximal value of *gamma* for all atoms in a structure determines the extrapolation grade for structure.
+If per-structure extrapolation grade exceeds *gamma_lower_bound* but less than *gamma_upper_bound*,
+the structure is considered as extrapolative and will be stored into
+`extrapolative_structures.dat` if *dump* keyword is provided.
+If extrapolation grade exceeds *gamma_upper_bound*, simulation is aborted.
+
+Both per-atom and per-structure extrapolation grades are accessible via `compute pace/atom`
+that is **always** instantiated for `pair_style pace/al` by name `c_pace_gamma`:
+
+.. code-block:: LAMMPS
+
+   # per-structure extrapolation grade
+   thermo_style custom step etotal temp press c_pace_gamma
+
+   # per-atom extrapolation grade
+   dump 1 all custom 100 my.dump id type mass x y z c_pace_gamma
+
+
+----------
+
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the ACE coefficient file.
 
@@ -119,7 +175,11 @@ Related commands
 Default
 """""""
 
-recursive, chunksize = 4096
+recursive, chunksize = 4096,
+gamma_lower_bound = 1.5,
+gamma_upper_bound = 10,
+gamma_freq = 1,
+nodump
 
 .. _Drautz20191:
 
@@ -127,4 +187,8 @@ recursive, chunksize = 4096
 
 .. _Lysogorskiy20211:
 
-**(Lysogorskiy)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, TBD (2021).
+**(Lysogorskiy)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
+
+.. _Lysogorskiy2022:
+
+**(Lysogorskiy2022)** Lysogorskiy, Bochkarev, Mrovec, Drautz, TBS (2022).

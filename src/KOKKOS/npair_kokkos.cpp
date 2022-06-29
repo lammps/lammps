@@ -153,6 +153,9 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   int nall = nlocal;
   if (GHOST)
     nall += atom->nghost;
+
+  if (nall == 0) return;
+
   list->grow(nall);
 
   NeighborKokkosExecute<DeviceType>

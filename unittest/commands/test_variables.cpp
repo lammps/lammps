@@ -404,9 +404,34 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
+    command("if 0<1 then 'print \"bingo!\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if 2<1 then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
     command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (0<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (0>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (1>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (-1.0e-1<0.0E+0)|^(1<0) then 'print \"bingo!\"'");

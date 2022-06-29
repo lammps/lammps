@@ -6,6 +6,9 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     "Please remove CMakeCache.txt and CMakeFiles first.")
 endif()
 
+set(LAMMPS_THIRDPARTY_URL "https://download.lammps.org/thirdparty"
+  CACHE STRING "URL for thirdparty package downloads")
+
 # global LAMMPS/plugin build settings
 set(LAMMPS_SOURCE_DIR ""  CACHE PATH "Location of LAMMPS sources folder")
 if(NOT LAMMPS_SOURCE_DIR)
@@ -78,6 +81,13 @@ function(get_newest_file path variable)
   set(${variable} ${_bestfile} PARENT_SCOPE)
 endfunction()
 
+# get LAMMPS version date
+function(get_lammps_version version_header variable)
+    file(STRINGS ${version_header} line REGEX LAMMPS_VERSION)
+    string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\1\\2\\3" date "${line}")
+    set(${variable} "${date}" PARENT_SCOPE)
+endfunction()
+
 #################################################################################
 # LAMMPS C++ interface. We only need the header related parts except on windows.
 add_library(lammps INTERFACE)
@@ -89,6 +99,7 @@ endif()
 ################################################################################
 # MPI configuration
 if(NOT CMAKE_CROSSCOMPILING)
+  set(MPI_CXX_SKIP_MPICXX TRUE)
   find_package(MPI QUIET)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 else()

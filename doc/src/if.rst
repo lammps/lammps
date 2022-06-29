@@ -198,8 +198,9 @@ FALSE.
 .. note::
 
    If the Boolean expression is a single numeric value with no Boolean
-   operators, it will be FALSE if the value = 0.0, otherwise TRUE.  If the
-   Boolean expression is a single string, it will always be FALSE.
+   operators, it will be FALSE if the value = 0.0, otherwise TRUE.  If
+   the Boolean expression is a single string, an error message will be
+   issued.
 
 ----------
 

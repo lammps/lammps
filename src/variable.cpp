@@ -4857,8 +4857,11 @@ double Variable::evaluate_boolean(char *str)
   if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
 
   // if flag == 1, Boolean expression was a single string with no operator
+  // error b/c invalid, only single number with no operator is allowed
 
-  if (argstack[0].flag == 1) return 0.0;
+  if (argstack[0].flag == 1) 
+    error->all(FLERR,"If command boolean cannot be single string");
+
   return argstack[0].value;
 }
 

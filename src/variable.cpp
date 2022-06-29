@@ -4770,7 +4770,7 @@ double Variable::evaluate_boolean(char *str)
         }
 
         if (opprevious == NOT) {
-          if (flag2) 
+          if (flag2)
             error->all(FLERR,"If command boolean not cannot operate on string");
           if (value2 == 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
@@ -4801,38 +4801,38 @@ double Variable::evaluate_boolean(char *str)
           }
 
         } else if (opprevious == LT) {
-          if (flag1 || flag2) 
+          if (flag1 || flag2)
             error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 < value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == LE) {
-          if (flag1 || flag2) 
+          if (flag1 || flag2)
             error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 <= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GT) {
-          if (flag1 || flag2) 
+          if (flag1 || flag2)
             error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 > value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GE) {
-          if (flag1 || flag2) 
+          if (flag1 || flag2)
             error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 >= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
 
         } else if (opprevious == AND) {
-          if (flag1 || flag2) 
+          if (flag1 || flag2)
             error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 != 0.0 && value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == OR) {
-          if (flag1 || flag2) 
+          if (flag1 || flag2)
             error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == XOR) {
-          if (flag1 || flag2) 
+          if (flag1 || flag2)
             error->all(FLERR,"If command boolean can only operate on numbers");
           if ((value1 == 0.0 && value2 != 0.0) ||
               (value1 != 0.0 && value2 == 0.0))
@@ -4860,7 +4860,7 @@ double Variable::evaluate_boolean(char *str)
   // if flag == 1, Boolean expression was a single string with no operator
   // error b/c invalid, only single number with no operator is allowed
 
-  if (argstack[0].flag == 1) 
+  if (argstack[0].flag == 1)
     error->all(FLERR,"If command boolean cannot be single string");
 
   return argstack[0].value;

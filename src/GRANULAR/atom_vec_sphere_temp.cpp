@@ -106,6 +106,8 @@ void AtomVecSphereTemp::grow_pointers()
   radius = atom->radius;
   rmass = atom->rmass;
   omega = atom->omega;
+  temperature = atom->temperature;
+  heatflux = atom->heatflux;
 }
 
 /* ----------------------------------------------------------------------

@@ -889,9 +889,9 @@ double PairGranular::init_one(int i, int j)
   }
 
   // Copy global options
-  models[i][j].dt = dt;
-  models[i][j].roll_history_index = roll_history_index;
-  models[i][j].twist_history_index = twist_history_index;
+  models[i][j].dt = models[j][i].dt = dt;
+  models[i][j].roll_history_index = models[j][i].roll_history_index = roll_history_index;
+  models[i][j].twist_history_index = models[j][i].twist_history_index = twist_history_index;
 
   return cutoff;
 }

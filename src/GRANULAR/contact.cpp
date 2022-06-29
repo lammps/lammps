@@ -94,9 +94,9 @@ void ContactModel::prep_contact()
 
   // Standard geometric quantities
   r = sqrt(rsq);
-  rinv = 1.0/r;
+  rinv = 1.0 / r;
   delta = radsum - r;
-  dR = delta*Reff;
+  dR = delta * Reff;
   scale3(rinv, dx, nx);
 
   // relative translational velocity
@@ -281,7 +281,7 @@ bool ContactModel::touch_JKR(int touch)
 double ContactModel::normal_JKR()
 {
   double Escaled, R2, dR2, t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3, a, a2, F_pulloff, Fne;
+  double sqrt1, sqrt2, sqrt3, a2, F_pulloff, Fne;
 
   Escaled = k_norm * THREEQUARTERS;
 

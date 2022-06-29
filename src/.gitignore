@@ -1472,6 +1472,8 @@
 /compute_xrd.cpp
 /compute_xrd.h
 /compute_xrd_consts.h
+/contact.cpp
+/contact.h
 /fix_atom_swap.cpp
 /fix_atom_swap.h
 /fix_ave_spatial_sphere.cpp

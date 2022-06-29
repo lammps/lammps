@@ -1,7 +1,6 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,29 +11,32 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "compute_sna_atom.h"
+#include "compute_sna_grid.h"
 
-#include "sna.h"
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "sna.h"
+#include "update.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), sna(nullptr),
-  radelem(nullptr), wjelem(nullptr), sinnerelem(nullptr), dinnerelem(nullptr)
-
+ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
+    ComputeGrid(lmp, narg, arg), cutsq(nullptr), radelem(nullptr), wjelem(nullptr)
 {
+  // skip over arguments used by base class
+  // so that argument positions are identical to
+  // regular per-atom compute
+
+  arg += nargbase;
+  narg -= nargbase;
+
   // begin code common to all SNAP computes
 
   double rfac0, rmin0;
@@ -59,19 +61,16 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // process required arguments
 
-  memory->create(radelem, ntypes + 1, "sna/atom:radelem"); // offset by 1 to match up with types
+  memory->create(radelem, ntypes + 1, "sna/atom:radelem");    // offset by 1 to match up with types
   memory->create(wjelem, ntypes + 1, "sna/atom:wjelem");
 
   rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
   rfac0 = utils::numeric(FLERR, arg[4], false, lmp);
   twojmax = utils::inumeric(FLERR, arg[5], false, lmp);
 
+  for (int i = 0; i < ntypes; i++) radelem[i + 1] = utils::numeric(FLERR, arg[6 + i], false, lmp);
   for (int i = 0; i < ntypes; i++)
-    radelem[i + 1] =
-        utils::numeric(FLERR, arg[6 + i], false, lmp);
-  for (int i = 0; i < ntypes; i++)
-    wjelem[i + 1] =
-        utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
+    wjelem[i + 1] = utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
 
   // construct cutsq
 
@@ -158,16 +157,14 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
-    error->all(
-        FLERR,
-        "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
-        style);
+    error->all(FLERR,
+               "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
+               style);
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
-    error->all(
-        FLERR,
-        "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
-        style);
+    error->all(FLERR,
+               "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
+               style);
 
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);
@@ -178,177 +175,146 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // end code common to all SNAP computes
 
-  size_peratom_cols = nvalues;
-  peratom_flag = 1;
-
-  nmax = 0;
-  sna = nullptr;
+  size_array_cols = size_array_cols_base + nvalues;
+  array_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSNAAtom::~ComputeSNAAtom()
+ComputeSNAGrid::~ComputeSNAGrid()
 {
-  memory->destroy(sna);
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
 
   if (chemflag) memory->destroy(map);
-
-  if (switchinnerflag) {
-    memory->destroy(sinnerelem);
-    memory->destroy(dinnerelem);
-  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNAAtom::init()
+void ComputeSNAGrid::init()
 {
-  if (force->pair == nullptr)
-    error->all(FLERR,"Compute sna/atom requires a pair style be defined");
-
-  if (cutmax > force->pair->cutforce)
-    error->all(FLERR,"Compute sna/atom cutoff is longer than pairwise cutoff");
-
-  // need an occasional full neighbor list
-
-  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
-
-  if (modify->get_compute_by_style("sna/atom").size() > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute sna/atom");
+  if ((modify->get_compute_by_style("^sna/grid$").size() > 1) && (comm->me == 0))
+    error->warning(FLERR, "More than one instance of compute sna/grid");
   snaptr->init();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSNAAtom::init_list(int /*id*/, NeighList *ptr)
+void ComputeSNAGrid::compute_array()
 {
-  list = ptr;
-}
+  invoked_array = update->ntimestep;
 
-/* ---------------------------------------------------------------------- */
+  // compute sna for each gridpoint
 
-void ComputeSNAAtom::compute_peratom()
-{
-  invoked_peratom = update->ntimestep;
+  double **const x = atom->x;
+  const int *const mask = atom->mask;
+  int *const type = atom->type;
+  const int ntotal = atom->nlocal + atom->nghost;
 
-  // grow sna array if necessary
+  // insure rij, inside, and typej are of size jnum
 
-  if (atom->nmax > nmax) {
-    memory->destroy(sna);
-    nmax = atom->nmax;
-    memory->create(sna,nmax,size_peratom_cols,"sna/atom:sna");
-    array_atom = sna;
-  }
+  snaptr->grow_rij(ntotal);
 
-  // invoke full neighbor list (will copy or build if necessary)
+  for (int iz = nzlo; iz <= nzhi; iz++)
+    for (int iy = nylo; iy <= nyhi; iy++)
+      for (int ix = nxlo; ix <= nxhi; ix++) {
+        double xgrid[3];
+        const int igrid = iz * (nx * ny) + iy * nx + ix;
+        grid2x(igrid, xgrid);
+        const double xtmp = xgrid[0];
+        const double ytmp = xgrid[1];
+        const double ztmp = xgrid[2];
 
-  neighbor->build_one(list);
+        // currently, all grid points are type 1
+        // not clear what a better choice would be
 
-  const int inum = list->inum;
-  const int* const ilist = list->ilist;
-  const int* const numneigh = list->numneigh;
-  int** const firstneigh = list->firstneigh;
-  int * const type = atom->type;
+        const int itype = 1;
+        int ielem = 0;
+        if (chemflag) ielem = map[itype];
 
-  // compute sna for each atom in group
-  // use full neighbor list to count atoms less than cutoff
+        // rij[][3] = displacements between atom I and those neighbors
+        // inside = indices of neighbors of I within cutoff
+        // typej = types of neighbors of I within cutoff
 
-  double** const x = atom->x;
-  const int* const mask = atom->mask;
+        int ninside = 0;
+        for (int j = 0; j < ntotal; j++) {
 
-  for (int ii = 0; ii < inum; ii++) {
-    const int i = ilist[ii];
-    if (mask[i] & groupbit) {
+          // check that j is in compute group
 
-      const double xtmp = x[i][0];
-      const double ytmp = x[i][1];
-      const double ztmp = x[i][2];
-      const int itype = type[i];
-      int ielem = 0;
-      if (chemflag)
-        ielem = map[itype];
-      const double radi = radelem[itype];
-      const int* const jlist = firstneigh[i];
-      const int jnum = numneigh[i];
+          if (!(mask[j] & groupbit)) continue;
 
-      // insure rij, inside, and typej  are of size jnum
+          const double delx = xtmp - x[j][0];
+          const double dely = ytmp - x[j][1];
+          const double delz = ztmp - x[j][2];
+          const double rsq = delx * delx + dely * dely + delz * delz;
+          int jtype = type[j];
+          int jelem = 0;
+          if (chemflag) jelem = map[jtype];
 
-      snaptr->grow_rij(jnum);
-
-      // rij[][3] = displacements between atom I and those neighbors
-      // inside = indices of neighbors of I within cutoff
-      // typej = types of neighbors of I within cutoff
-
-      int ninside = 0;
-      for (int jj = 0; jj < jnum; jj++) {
-        int j = jlist[jj];
-        j &= NEIGHMASK;
-
-        const double delx = xtmp - x[j][0];
-        const double dely = ytmp - x[j][1];
-        const double delz = ztmp - x[j][2];
-        const double rsq = delx*delx + dely*dely + delz*delz;
-        int jtype = type[j];
-        int jelem = 0;
-        if (chemflag)
-          jelem = map[jtype];
-        if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
-          snaptr->rij[ninside][0] = delx;
-          snaptr->rij[ninside][1] = dely;
-          snaptr->rij[ninside][2] = delz;
-          snaptr->inside[ninside] = j;
-          snaptr->wj[ninside] = wjelem[jtype];
-          snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-          if (switchinnerflag) {
-            snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
-            snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
+          if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
+            snaptr->rij[ninside][0] = delx;
+            snaptr->rij[ninside][1] = dely;
+            snaptr->rij[ninside][2] = delz;
+            snaptr->inside[ninside] = j;
+            snaptr->wj[ninside] = wjelem[jtype];
+            snaptr->rcutij[ninside] = 2.0 * radelem[jtype] * rcutfac;
+            if (switchinnerflag) {
+              snaptr->sinnerij[ninside] = sinnerelem[jelem];
+              snaptr->dinnerij[ninside] = dinnerelem[jelem];
+            }
+            if (chemflag) snaptr->element[ninside] = jelem;
+            ninside++;
           }
-          if (chemflag) snaptr->element[ninside] = jelem;
-          ninside++;
+        }
+
+        snaptr->compute_ui(ninside, ielem);
+        snaptr->compute_zi();
+        snaptr->compute_bi(ielem);
+
+        // linear contributions
+
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+          gridlocal[size_array_cols_base + icoeff][iz][iy][ix] = snaptr->blist[icoeff];
+
+        // quadratic contributions
+
+        if (quadraticflag) {
+          int ncount = ncoeff;
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bveci = snaptr->blist[icoeff];
+            gridlocal[size_array_cols_base + ncount++][iz][iy][ix] = 0.5 * bveci * bveci;
+            for (int jcoeff = icoeff + 1; jcoeff < ncoeff; jcoeff++)
+              gridlocal[size_array_cols_base + ncount++][iz][iy][ix] =
+                  bveci * snaptr->blist[jcoeff];
+          }
         }
       }
 
-      snaptr->compute_ui(ninside, ielem);
-      snaptr->compute_zi();
-      snaptr->compute_bi(ielem);
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-        sna[i][icoeff] = snaptr->blist[icoeff];
-      if (quadraticflag) {
-        int ncount = ncoeff;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-          double bi = snaptr->blist[icoeff];
+  memset(&grid[0][0], 0, size_array_rows * size_array_cols * sizeof(double));
 
-          // diagonal element of quadratic matrix
-
-          sna[i][ncount++] = 0.5*bi*bi;
-
-          // upper-triangular elements of quadratic matrix
-
-          for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-            sna[i][ncount++] = bi*snaptr->blist[jcoeff];
-        }
+  for (int iz = nzlo; iz <= nzhi; iz++)
+    for (int iy = nylo; iy <= nyhi; iy++)
+      for (int ix = nxlo; ix <= nxhi; ix++) {
+        const int igrid = iz * (nx * ny) + iy * nx + ix;
+        for (int j = 0; j < nvalues; j++)
+          grid[igrid][size_array_cols_base + j] = gridlocal[size_array_cols_base + j][iz][iy][ix];
       }
-    } else {
-      for (int icoeff = 0; icoeff < size_peratom_cols; icoeff++)
-        sna[i][icoeff] = 0.0;
-    }
-  }
-
+  MPI_Allreduce(&grid[0][0], &gridall[0][0], size_array_rows * size_array_cols, MPI_DOUBLE, MPI_SUM,
+                world);
+  assign_coords_all();
 }
 
 /* ----------------------------------------------------------------------
    memory usage
 ------------------------------------------------------------------------- */
 
-double ComputeSNAAtom::memory_usage()
+double ComputeSNAGrid::memory_usage()
 {
-  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // sna
-  bytes += snaptr->memory_usage();                        // SNA object
+  double nbytes = snaptr->memory_usage();    // SNA object
+  int n = atom->ntypes + 1;
+  nbytes += (double) n * sizeof(int);    // map
 
-  return bytes;
+  return nbytes;
 }
-

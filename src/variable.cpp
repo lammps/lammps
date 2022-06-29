@@ -4803,6 +4803,7 @@ double Variable::evaluate_boolean(char *str)
         } else if (opprevious == LT) {
           if (flag1 || flag2) 
             error->all(FLERR,"If command boolean can only operate on numbers");
+          if (value1 < value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == LE) {
           if (flag1 || flag2) 

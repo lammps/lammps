@@ -363,7 +363,7 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
   // reset to starting point
 
   if (nextra_global) modify->min_step(0.0,hextra);
-  atomKK->k_x.clear_sync_state(); // ignore if host positions modified since 
+  atomKK->k_x.clear_sync_state(); // ignore if host positions modified since
                                   //  device positions will be reset below
   {
     // local variables for lambda capture

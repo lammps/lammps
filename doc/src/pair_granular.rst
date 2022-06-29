@@ -635,7 +635,15 @@ attractive force. This keyword cannot be used with the JKR or DMT models.
 ----------
 
 The optional *heat* keyword enables heat conduction and it must be followed by
-a non-negative numeric value for the conductivity. Note that the *heat* keyword
+a non-negative numeric value for the conductivity :math:`k_{s}.`` The heat :math:`Q`
+conducted across an interface is given by
+
+.. math::
+
+   Q = k_{s} a \Delta T
+
+where :math:`\Delta T` is the difference in the two particles' temperature and :math:`a`
+is the area of the contact and depends on the normal force model. Note that the *heat* keyword
 must be included in either all or none of of the *pair_coeff* calls. See
 :doc:`fix temp/integrate <fix_temp_integrate>` for more information on this option.
 

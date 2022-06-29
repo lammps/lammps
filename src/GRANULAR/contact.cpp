@@ -249,11 +249,7 @@ double ContactModel::calculate_heat()
 {
   double dT = Ti - Tj;
   double Hc;
-
-  //Dan is Emod the youngs modulus for all models? or do I need to scale?
-  Hc = 2 * conductivity * pow(FOURTHIRDS * Fntot * Reff / Emod, ONETHIRD);
-
-  return Hc * dT;
+  return conductivity * a * dT;
 }
 
 /* ---------------------------------------------------------------------- */

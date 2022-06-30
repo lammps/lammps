@@ -159,51 +159,52 @@ void PairSW::compute(int eflag, int vflag)
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delx,dely,delz);
     }
-    if (threebody_flag) {
-      jnumm1 = numshort - 1;
-      
-      for (jj = 0; jj < jnumm1; jj++) {
-        j = neighshort[jj];
-        jtype = map[type[j]];
-        ijparam = elem3param[itype][jtype][jtype];
-        delr1[0] = x[j][0] - xtmp;
-        delr1[1] = x[j][1] - ytmp;
-        delr1[2] = x[j][2] - ztmp;
-        rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-      
-        double fjxtmp,fjytmp,fjztmp;
-        fjxtmp = fjytmp = fjztmp = 0.0;
-      
-        for (kk = jj+1; kk < numshort; kk++) {
-          k = neighshort[kk];
-          ktype = map[type[k]];
-          ikparam = elem3param[itype][ktype][ktype];
-          ijkparam = elem3param[itype][jtype][ktype];
-      
-          delr2[0] = x[k][0] - xtmp;
-          delr2[1] = x[k][1] - ytmp;
-          delr2[2] = x[k][2] - ztmp;
-          rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-      
-          threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-                    rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
-      
-          fxtmp -= fj[0] + fk[0];
-          fytmp -= fj[1] + fk[1];
-          fztmp -= fj[2] + fk[2];
-          fjxtmp += fj[0];
-          fjytmp += fj[1];
-          fjztmp += fj[2];
-          f[k][0] += fk[0];
-          f[k][1] += fk[1];
-          f[k][2] += fk[2];
-      
-          if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
-        }
-        f[j][0] += fjxtmp;
-        f[j][1] += fjytmp;
-        f[j][2] += fjztmp;
+    if (skip_threebody_flag) {
+        jnumm1 = 0;
+    } else {
+        jnumm1 = numshort - 1;
+    }
+    for (jj = 0; jj < jnumm1; jj++) {
+      j = neighshort[jj];
+      jtype = map[type[j]];
+      ijparam = elem3param[itype][jtype][jtype];
+      delr1[0] = x[j][0] - xtmp;
+      delr1[1] = x[j][1] - ytmp;
+      delr1[2] = x[j][2] - ztmp;
+      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+    
+      double fjxtmp,fjytmp,fjztmp;
+      fjxtmp = fjytmp = fjztmp = 0.0;
+    
+      for (kk = jj+1; kk < numshort; kk++) {
+        k = neighshort[kk];
+        ktype = map[type[k]];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
+    
+        delr2[0] = x[k][0] - xtmp;
+        delr2[1] = x[k][1] - ytmp;
+        delr2[2] = x[k][2] - ztmp;
+        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+    
+        threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
+                  rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+    
+        fxtmp -= fj[0] + fk[0];
+        fytmp -= fj[1] + fk[1];
+        fztmp -= fj[2] + fk[2];
+        fjxtmp += fj[0];
+        fjytmp += fj[1];
+        fjztmp += fj[2];
+        f[k][0] += fk[0];
+        f[k][1] += fk[1];
+        f[k][2] += fk[2];
+    
+        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
+      f[j][0] += fjxtmp;
+      f[j][1] += fjytmp;
+      f[j][2] += fjztmp;
     }
     f[i][0] += fxtmp;
     f[i][1] += fytmp;
@@ -233,15 +234,15 @@ void PairSW::allocate()
 void PairSW::settings(int narg, char ** arg)
 {
   // Default
-  threebody_flag = true;
+  skip_threebody_flag = false;
 
   int iarg = 0;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"threebody") == 0) {
+    if (strcmp(arg[iarg],"skip_threebody") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
-      threebody_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      one_coeff = threebody_flag;
+      skip_threebody_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      one_coeff = !skip_threebody_flag;
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style command");
   }
@@ -368,7 +369,7 @@ void PairSW::read_file(char *file)
         params[nparams].epsilon *= conversion_factor;
       }
 
-      if (!threebody_flag) params[nparams].lambda = 0;
+      if (skip_threebody_flag) params[nparams].lambda = 0;
 
       if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||
           params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||

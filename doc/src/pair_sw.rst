@@ -24,16 +24,16 @@ Syntax
    pair_style style keyword values
 
 * style = *sw* or *sw/mod*
-* keyword = *maxdelcs* or *threebody*
+* keyword = *maxdelcs* or *skip_threebody*
 
   .. parsed-literal::
 
        *maxdelcs* value = delta1 delta2 (optional)
          delta1 = The minimum thershold for the variation of cosine of three-body angle
          delta2 = The maximum threshold for the variation of cosine of three-body angle
-       *threebody* value = *on* or *off* (optional)
-         on (default) = Compute both the three-body and two-body terms of the potential
-         off = Compute only the two-body term of the potential
+       *skip_threebody* value = *on* or *off* (optional)
+         off (default) = Compute both the three-body and two-body terms of the potential
+         on = Compute only the two-body term of the potential
          
 
 Examples
@@ -48,7 +48,7 @@ Examples
    pair_style sw/mod maxdelcs 0.25 0.35
    pair_coeff * * tmd.sw.mod Mo S S
 
-   pair_style hybrid sw sw threebody off
+   pair_style hybrid sw sw skip_threebody on
    pair_coeff * * sw 1 mW_xL.sw mW NULL
    pair_coeff 1 2 sw 2 mW_xL.sw mW xL
    pair_coeff 2 2 sw 2 mW_xL.sw mW xL
@@ -120,7 +120,7 @@ This value enables the cut-off function to exclude unnecessary angles in the thr
    However, the angle variation is much smaller than the given threshold value for actual simulations,
    so the inconsistency between potential and force can be neglected in actual simulations.
 
-The *threebody* keyword determines whether or not the three-body term of the potential is calculated. 
+The *skip_threebody* keyword determines whether or not the three-body term of the potential is calculated. 
 Skipping this significantly increases the speed of the calculation, with the tradeoff that :math:\lambda_{ijk} 
 is forcibly set to 0. If the keyword is used with the pair styles, sw/gpu, sw/intel, or sw/kokkos, 
 :math:\lambda_{ijk} will still be forcibly set to 0, but no additional benefits will be gained. This keyword 
@@ -158,7 +158,7 @@ potentials.
 
 .. note::
 
-   When the *threebody off* keyword is used, multiple pair_coeff commands may 
+   When the *skip_threebody on* keyword is used, multiple pair_coeff commands may 
    be used to specific the pairs of atoms which don't require three-body term.
    In these cases, the first 2 arguments are not required to be \* \*.
 

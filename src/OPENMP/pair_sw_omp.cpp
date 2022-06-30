@@ -156,7 +156,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
                                evdwl,0.0,fpair,delx,dely,delz,thr);
     }
-    if (threebody_flag) {
+    if (skip_threebody_flag) {
       jnumm1 = numshort - 1;
     
       for (jj = 0; jj < jnumm1; jj++) {

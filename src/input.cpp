@@ -226,7 +226,7 @@ void Input::file()
 
           // continue if last char read was not a newline
           // can happen if line is very long
-          
+
           m += strlen(&line[m]);
           if (line[m-1] != '\n') continue;
           break;
@@ -436,18 +436,18 @@ void Input::parse()
     }
     if (*ptr == '\'') {
       ptrmatch = strchr(ptr+1,'\'');
-      if (ptrmatch == NULL) 
+      if (ptrmatch == NULL)
         error->all(FLERR,"Unmatched single quote in command");
       ptr = ptrmatch + 1;
     } else if (*ptr == '"') {
       if (strstr(ptr,"\"\"\"") == ptr) {
         ptrmatch = strstr(ptr+3,"\"\"\"");
-        if (ptrmatch == NULL) 
+        if (ptrmatch == NULL)
           error->all(FLERR,"Unmatched triple quote in command");
         ptr = ptrmatch + 3;
       } else {
         ptrmatch = strchr(ptr+1,'"');
-        if (ptrmatch == NULL) 
+        if (ptrmatch == NULL)
           error->all(FLERR,"Unmatched double quote in command");
         ptr = ptrmatch + 1;
       }
@@ -668,7 +668,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
     } else if (*ptr == '\'') {
       ptrmatch = strchr(ptr+1,'\'');
-      if (ptrmatch == NULL) 
+      if (ptrmatch == NULL)
         error->all(FLERR,"Unmatched single quote in command");
       nchars = ptrmatch+1 - ptr;
       strncpy(ptr2,ptr,nchars);
@@ -677,7 +677,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
     } else if (*ptr == '"') {
       if (strstr(ptr,"\"\"\"") == ptr) {
         ptrmatch = strstr(ptr+3,"\"\"\"");
-        if (ptrmatch == NULL) 
+        if (ptrmatch == NULL)
           error->all(FLERR,"Unmatched triple quote in command");
         nchars = ptrmatch+3 - ptr;
         strncpy(ptr2,ptr,nchars);
@@ -685,7 +685,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         ptr2 += nchars;
       } else {
         ptrmatch = strchr(ptr+1,'"');
-        if (ptrmatch == NULL) 
+        if (ptrmatch == NULL)
           error->all(FLERR,"Unmatched double quote in command");
         nchars = ptrmatch+1 - ptr;
         strncpy(ptr2,ptr,nchars);

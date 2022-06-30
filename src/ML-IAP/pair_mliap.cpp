@@ -338,7 +338,7 @@ void PairMLIAP::init_style()
   // need a full neighbor list
 
   if (ghostneigh == 1) {
-    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST | NeighConst::REQ_NEWTON_OFF);
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
   } else {
     neighbor->add_request(this, NeighConst::REQ_FULL);
   }

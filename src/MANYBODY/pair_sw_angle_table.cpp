@@ -751,3 +751,13 @@ void PairSWAngleTable::uf_lookup(ParamTable *pm, double x, double &u, double &f)
       pm->angtable->deltasq6;
   }
 }
+
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairSW::settings(int narg, char **/*arg*/)
+{
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+}

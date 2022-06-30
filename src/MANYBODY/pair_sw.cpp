@@ -368,6 +368,8 @@ void PairSW::read_file(char *file)
         params[nparams].epsilon *= conversion_factor;
       }
 
+      if (!threebody_flag) params[nparams].lambda = 0;
+
       if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||
           params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
           params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 ||

@@ -2,10 +2,11 @@ These are examples that work the MDI package in LAMMPS which uses the
 MolSSI MDI library for coupling codes together and communicating
 between them with MDI messages.
 
-In MDI lingo, one code is the driver and another code is the engine.
-The 2 codes can be written in any language; C++ (LAMMPS) and Python
-are illustrated here.  The 2 codes can each be stand-alone codes, in
-which case they can be run on different numbers of processors.  The 2
+Within the MDI context, one code is the driver and another code is
+the engine.  The 2 codes can be written in any language; C++ (LAMMPS)
+and Python are illustrated here.  The 2 codes can each be stand-alone
+codes, in which case they can be run on different numbers of processors.
+The 2
 codes can communicate either via TCP (sockets) or via MPI.  For the
 TCP case, the driver and engine need to be launched separately,
 e.g. in 2 windows on your desktop machine.  For the MPI case, a single

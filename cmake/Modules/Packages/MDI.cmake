@@ -44,7 +44,7 @@ if(DOWNLOAD_MDI)
   ExternalProject_Add(mdi_build
     URL     ${MDI_URL}
     URL_MD5 ${MDI_MD5}
-    CMAKE_ARGS ${CMAKE_REQUEST_PIC}
+    CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -54,6 +54,7 @@ if(DOWNLOAD_MDI)
     -Dlanguage=C
     -Dlibtype=STATIC
     -Dmpi=${MDI_USE_MPI}
+    -Dplugins=ON
     -Dpython_plugins=${MDI_USE_PYTHON_PLUGINS}
     UPDATE_COMMAND ""
     INSTALL_COMMAND ""

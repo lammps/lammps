@@ -32,9 +32,9 @@ make mode=shlib mpi
 
 -------------------------------------------------
 
-Examples 4 and 5 that use Python scripts as MDI drivers.  For this you
-will need Python 3 with Numpy and mpi4py installed.  Make sure LAMMPS
-and Python/mpi4py are using same the same version of MPI.
+Examples 4 and 5 use Python scripts as MDI drivers.  For this you will
+need Python 3 with Numpy and mpi4py installed.  Make sure LAMMPS and
+Python/mpi4py are using same the same version of MPI.
 
 You will also need MDI installed in your Python. You cannot use the
 LAMMPS build of the MDI library for this, b/c LAMMPS builds MDI as a

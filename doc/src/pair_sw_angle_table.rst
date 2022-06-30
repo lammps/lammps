@@ -23,9 +23,9 @@ Examples
 
 Used in example input script:
 
-  .. parsed-literal::
+.. parsed-literal::
 
-     examples/PACKAGES/manybody_table/in.spce_sw
+   examples/PACKAGES/manybody_table/in.spce_sw
 
 
 Description

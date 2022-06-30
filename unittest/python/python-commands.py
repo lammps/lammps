@@ -1,6 +1,8 @@
 
 import sys,os,unittest,ctypes
-from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, LAMMPS_DOUBLE_2D, LAMMPS_AUTODETECT
+from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL
+from lammps import LMP_TYPE_VECTOR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
+from lammps import LAMMPS_DOUBLE_2D, LAMMPS_AUTODETECT
 
 has_manybody=False
 try:
@@ -310,6 +312,14 @@ create_atoms 1 single &
         self.assertEqual(nskip,0)
         self.assertEqual(minval,1.0)
         self.assertEqual(maxval,2.1)
+
+        ndist1 = self.lmp.extract_compute("dist",LMP_STYLE_LOCAL,LMP_SIZE_VECTOR)
+        ndist2 = self.lmp.extract_compute("dist",LMP_STYLE_LOCAL,LMP_SIZE_ROWS)
+        ndist3 = self.lmp.extract_compute("dist",LMP_STYLE_LOCAL,LMP_SIZE_COLS)
+
+        self.assertEqual(ndist1,21)
+        self.assertEqual(ndist2,21)
+        self.assertEqual(ndist3,0)
 
         self.assertNotEqual(self.lmp.find_pair_neighlist("lj/cut"),-1)
         self.assertNotEqual(self.lmp.find_compute_neighlist("dist"),-1)

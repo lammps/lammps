@@ -57,9 +57,9 @@ explained below.
 
 These are example use cases for this fix, discussed further below:
 
-* perform an ab intitio MD (AIMD) simulation with quantum forces
-* perform an energy minimziation with quantum forces
-* perform a nudged elatic band (NEB) calculation with quantum forces
+* perform an ab initio MD (AIMD) simulation with quantum forces
+* perform an energy minimization with quantum forces
+* perform a nudged elastic band (NEB) calculation with quantum forces
 * perform a QM calculation for a series of independent systems which LAMMPS reads or generates
 
 The code coupling performed by this command is done via the `MDI
@@ -71,7 +71,7 @@ information about how LAMMPS can operate as either an MDI driver or
 engine.
 
 The examples/mdi directory contains input scripts using this fix in
-the various use cases dicussed below.  In each case, two instances of
+the various use cases discussed below.  In each case, two instances of
 LAMMPS are used, once as an MDI driver, once as an MDI engine
 (surrogate for a QM code).  The examples/mdi/README file explains how
 to launch two codes so that they communicate via the MDI library using
@@ -141,7 +141,7 @@ directory.  See its README file for more details.
 (1) To run an ab initio MD (AIMD) dynamics simulation, or an energy
 minimization with QM forces, or a multi-replica NEB calculation, use
 *add yes* and *every 1* (the defaults).  This is so that every time
-LAMMPS needs energy and forces, the QM code will be invoked.  
+LAMMPS needs energy and forces, the QM code will be invoked.
 
 Both LAMMPS and the QM code should define the same system (simulation
 box, atoms and their types) in their respective input scripts.  Note
@@ -157,7 +157,7 @@ atom coordinates.  The engine code computes quantum forces on each
 atom and the total energy of the system and returns them to LAMMPS.
 
 Note that if the AIMD simulation is an NPT or NPH model, or the energy
-minimization includesf :doc:`fix box relax <fix_box_relaxq>` to
+minimization includes :doc:`fix box relax <fix_box_relax>` to
 equilibrate the box size/shape, then LAMMPS computes a pressure.  This
 means the *virial* keyword should be set to *yes* so that the QM
 contribution to the pressure can be included.
@@ -172,7 +172,7 @@ atom coordinates and QM forces to a file.  Likewise the QM energy and
 virial could be output with the :doc:`thermo_style custom
 <thermo_style>` command.
 
-(3) To do a QM evaulation of energy and forces for a series of *N*
+(3) To do a QM evaluation of energy and forces for a series of *N*
 independent systems (simulation box and atoms), use *add no* and
 *every 1*.  Write a LAMMPS input script which loops over the *N*
 systems.  See the :doc:`Howto multiple <Howto_multiple>` doc page for
@@ -180,7 +180,7 @@ details on looping and removing old systems.  The series of systems
 could be initialized by reading them from data files with
 :doc:`read_data <read_data>` commands.  Or, for example, by using the
 :doc:`lattice <lattice>` , :doc:`create_atoms <create_atoms>`,
-:doc:`delete_atoms <deletea_atoms>`, and/or :doc:`displace_atoms
+:doc:`delete_atoms <delete_atoms>`, and/or :doc:`displace_atoms
 random <displace_atoms>` commands to generate a series of different
 systems.  At the end of the loop perform :doc:`run 0 <run>` and
 :doc:`write_dump <write_dump>` commands to invoke the QM code and

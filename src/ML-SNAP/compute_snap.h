@@ -35,7 +35,7 @@ class ComputeSnap : public Compute {
 
  private:
   int natoms, nmax, size_peratom, lastcol;
-  int ncoeff, nperdim, yoffset, zoffset;
+  int ncoeff, nvalues, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
   double **cutsq;
   class NeighList *list;

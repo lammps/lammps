@@ -483,7 +483,7 @@ void PairILPTMD::calc_normal()
       }
     }
     //############################ For the edge atoms of TMD ################################
-    else if (cont > 1 && cont < Nnei) {
+    else if (cont < Nnei) {
       if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||
           strcmp(elements[itype], "S") == 0 || strcmp(elements[itype], "Se") == 0) {
         // derivatives of Ni[l] respect to the cont neighbors

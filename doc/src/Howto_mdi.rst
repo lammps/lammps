@@ -72,7 +72,7 @@ either a stand-alone code or a plugin library.
 
 As explained on the `fix mdi/qm <fix_mdi_qm>` command doc page, it can
 be used to perform *ab initio* MD simulations or energy minimizations,
-or to evalute the quantum energy and forces for a series of
+or to evaluate the quantum energy and forces for a series of
 independent systems.  The examples/mdi directory has example input
 scripts for all of these use cases.
 

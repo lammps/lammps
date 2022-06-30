@@ -326,15 +326,15 @@ able to initiate and terminate the connection to the engine code.
 The only current MDI driver command in LAMMPS is the :doc:`fix mdi/qm
 <fix_mdi_qm>` command.  If it is only used once in an input script
 then it can initiate and terminate the connection.  But if it is being
-issuedd multiple times, e.g. in a loop that issues a :doc:`clear
-<clear>` command, then it cannot initiate/terminate the connection
+issued multiple times, e.g. in a loop that issues a :doc:`clear
+<clear>` command, then it cannot initiate or terminate the connection
 multiple times.  Instead, the *mdi connect* and *mdi exit* commands
-should be used outside the loop to intiate/terminate the connection.
+should be used outside the loop to initiate or terminate the connection.
 
 See the examples/mdi/in.series.driver script for an example of how
 this is done.  The LOOP in that script is reading a series of data
 file configurations and passing them to an MDI engine (e.g. quantum
-code) for enery and force evaluation.  A *clear* command inside the
+code) for energy and force evaluation.  A *clear* command inside the
 loop wipes out the current system so a new one can be defined.  This
 operation also destroys all fixes.  So the :doc:`fix mdi/qm
 <fix_mdi_qm>` command is issued once per loop iteration.  Note that it

@@ -266,7 +266,7 @@ void ComputeStressCartesian::compute_array()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  double xi1, xi2, xj1, xj2;
+  double xi1, xi2;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -305,9 +305,6 @@ void ComputeStressCartesian::compute_array()
           }
         }
       }
-      xj1 = x[j][dir1];
-      xj2 = x[j][dir2];
-
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
       delz = x[j][2] - ztmp;
@@ -318,7 +315,7 @@ void ComputeStressCartesian::compute_array()
       // Check if inside cut-off
       if (rsq >= cutsq[itype][jtype]) continue;
       pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
-      compute_pressure(fpair, xi1, xi2, xj1, xj2, delx, dely, delz);
+      compute_pressure(fpair, xi1, xi2, delx, dely, delz);
     }
   }
 
@@ -356,8 +353,8 @@ void ComputeStressCartesian::compute_array()
   }
 }
 
-void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi, double xj,
-                                              double yj, double delx, double dely, double delz)
+void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi, double delx,
+                                              double dely, double delz)
 {
   int bin1, bin2, next_bin1, next_bin2;
   double la = 0.0, lb = 0.0, l_sum = 0.0;

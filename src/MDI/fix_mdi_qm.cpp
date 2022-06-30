@@ -33,7 +33,7 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   // check requirements for LAMMPS to work with MDI as an engine
 
-  if (atom->tag_enable == 0) 
+  if (atom->tag_enable == 0)
     error->all(FLERR, "Cannot use MDI engine without atom IDs");
   if (atom->natoms && atom->tag_consecutive() == 0)
     error->all(FLERR, "MDI engine requires consecutive atom IDs");
@@ -201,7 +201,7 @@ void FixMDIQM::init()
     // this fix makes one-time connection to engine
 
     if (connectflag) {
-      
+
       // if MDI's mdicomm not set, need to Accept_comm() with stand-alone engine
       // othewise are already connected to plugin engine
 
@@ -210,24 +210,24 @@ void FixMDIQM::init()
       if (mdicomm == MDI_COMM_NULL) {
         plugin = 0;
         MDI_Accept_communicator(&mdicomm);
-        if (mdicomm == MDI_COMM_NULL) 
+        if (mdicomm == MDI_COMM_NULL)
           error->all(FLERR, "MDI unable to connect to stand-alone engine");
 
       } else {
         plugin = 1;
         int method;
         MDI_Get_method(&method, mdicomm);
-        if (method != MDI_PLUGIN) 
+        if (method != MDI_PLUGIN)
           error->all(FLERR, "MDI internal error for plugin engine");
       }
- 
+
     // connection should have been already made by "mdi connect" command
     // only works for stand-alone engines
 
     } else {
       plugin = 0;
 
-      if (lmp->mdicomm == nullptr)  
+      if (lmp->mdicomm == nullptr)
         error->all(FLERR,"Fix mdi/qm is not connected to engine via mdi connect");
 
       int nbytes = sizeof(MDI_Comm);
@@ -424,7 +424,7 @@ void FixMDIQM::reallocate()
     bigint nsize = atom->natoms * 3;
     if (nsize > MAXSMALLINT)
       error->all(FLERR, "Natoms too large to use with fix mdi/qm");
-    
+
     maxbuf = static_cast<int> (atom->natoms);
     memory->destroy(ibuf1);
     memory->destroy(buf3);
@@ -447,10 +447,10 @@ void FixMDIQM::send_types()
 
   // use local atomID to index into ordered ibuf1
 
-  tagint *tag = atom->tag; 
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  
+
   int index;
   for (int i = 0; i < nlocal; i++) {
     index = static_cast<int>(tag[i]) - 1;
@@ -476,10 +476,10 @@ void FixMDIQM::send_elements()
 
   // use local atomID to index into ordered ibuf1
 
-  tagint *tag = atom->tag; 
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  
+
   int index;
   for (int i = 0; i < nlocal; i++) {
     index = static_cast<int>(tag[i]) - 1;

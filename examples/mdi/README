@@ -30,9 +30,29 @@ cd src
 make yes-mdi
 make mode=shlib mpi
 
-To use the serial_driver.py example you will need Python 3 with Numpy
-and mpi4py available in your Python.  Make sure LAMMPS and Python are
-using same the same version of MPI.
+-------------------------------------------------
+
+Examples 4 and 5 that use Python scripts as MDI drivers.  For this you
+will need Python 3 with Numpy and mpi4py installed.  Make sure LAMMPS
+and Python/mpi4py are using same the same version of MPI.
+
+You will also need MDI installed in your Python. You cannot use the
+LAMMPS build of the MDI library for this, b/c LAMMPS builds MDI as a
+static library, not shared, which Python requires.
+
+You can install MDI in your Python via conda:
+
+% conda install -c conda-forge pymdi=1.4.1
+
+or via pip:
+
+% pip install pymdi==1.4.1
+
+It is likely fine to leave off the version number, to get the latest
+MDI version.  But to be safe, 1.4.1 is the version LAMMPS is currently
+using.
+
+-------------------------------------------------
 
 5 example use-cases are explained below.
 
@@ -40,7 +60,6 @@ In the first 3 examples, results running with MDI should be identical
 to running without MDI (alone log files).  Example #4 has no non-MDI
 run.  Example #5 results should match the non-MDI run of example #1.
 
--------------------------------------------------
 -------------------------------------------------
 
 * Example #1 = run ab initio MD (AIMD)

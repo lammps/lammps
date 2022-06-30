@@ -1751,15 +1751,18 @@ void PairAmoeba::precond_neigh()
   int *neighptr;
 
   // set cutoffs and taper coeffs
-  // NOTE: add skin to cutoff, same as for main neighbor list ??
+  // add skin to cutoff, same as for main neighbor list
+  // note that Tinker (and thus LAMMPS) does not apply the
+  //   distance cutoff in the CG iterations in induce.cpp,
+  //   all interactions in this skin-extended neigh list are
+  //   used every step until the neighbor list is rebuilt,
+  //   this means the cut+skin distance is not exactly enforced,
+  //   neighbors outside may contribute, neighbors inside may not
 
   choose(USOLV);
 
-  //double off = sqrt(off2);
-  //if (comm->me == 0) printf("PCN off %g off2 %g\n",off,off2);
-  //off2 = (off + neighbor->skin) * (off + neighbor->skin);
-  //if (comm->me == 0) 
-  // printf("PCNnew off %g off2 %g skin %g\n",sqrt(off2),off2,neighbor->skin);
+  double off = sqrt(off2);
+  off2 = (off + neighbor->skin) * (off + neighbor->skin);
 
   // atoms and neighbor list
 

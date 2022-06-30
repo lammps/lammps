@@ -120,8 +120,11 @@ This value enables the cut-off function to exclude unnecessary angles in the thr
    However, the angle variation is much smaller than the given threshold value for actual simulations,
    so the inconsistency between potential and force can be neglected in actual simulations.
 
-The *threebody* keyword determines whether or not the three-body term of the potential is calculated. Skipping this
-significantly increases the speed of the potential, but is only applicable when :math:`\lambda_{ijk} = 0`
+The *threebody* keyword determines whether or not the three-body term of the potential is calculated. 
+Skipping this significantly increases the speed of the calculation, with the tradeoff that :math:\lambda_{ijk} 
+is forcibly set to 0. If the keyword is used with the pair styles, sw/gpu, sw/intel, or sw/kokkos, 
+:math:\lambda_{ijk} will still be forcibly set to 0, but no additional benefits will be gained. This keyword 
+cannot be used for variants of the sw/mod or sw/angle/table pair styles.
 
 Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
 which specifies a Stillinger-Weber potential file with parameters for all

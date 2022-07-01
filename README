@@ -1,8 +1,24 @@
 # Compile LAMMPS/POD 
-1. go to lammps directories
-2. mkdir build
-3. cd build
-4. cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-POD=on ../cmake
-5. cmake --build .
 
-# Run POD fitting examples
+  1. go to lammps directory
+  2. mkdir build
+  3. cd build
+  4. cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-POD=on ../cmake
+  5. cmake --build .
+
+# Run POD fitting Tantalum example
+
+  1. Go to lammps/examples/pod/Ta directory
+  2.  ../../../build/lmp -in in.podfit
+
+# Run POD fitting InP example
+
+  1. Go to lammps/examples/pod/InP directory
+  2.  ../../../build/lmp -in in.podfit
+
+# Run POD fitting GaN example
+
+  1. Go to lammps/examples/pod/GaN directory
+  2.  ../../../build/lmp -in in.podfit
+
+  

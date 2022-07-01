@@ -104,9 +104,9 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_hal_ready = false;               // true for AMOEBA when ready
   gpu_repulsion_ready = false;         // always false for AMOEBA
   gpu_dispersion_real_ready = false;   // always false for AMOEBA
-  gpu_multipole_real_ready = true;
-  gpu_udirect2b_ready = true;
-  gpu_umutual2b_ready = true;
+  gpu_multipole_real_ready = false;
+  gpu_udirect2b_ready = false;
+  gpu_umutual2b_ready = false;
   gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -262,26 +262,16 @@ void PairAmoebaGPU::induce()
   double sum,sump,term;
   double reduce[4],allreduce[4];
 
-  double *poli;
-  double **conj,**conjp;
-  double **vec,**vecp;
-  double **udir,**usum,**usump;
-
   int debug = 1;
 
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()
 
-  if (use_ewald) {
-    choose(POLAR_LONG);
-    int nmine = p_kspace->nfft_owned;
-    memory->create(qfac,nmine,"ameoba/induce:qfac");
-  } else choose(POLAR);
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
 
   // owned atoms
 
-  double **x = atom->x;
-  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // zero out the induced dipoles at each site
@@ -292,19 +282,6 @@ void PairAmoebaGPU::induce()
       uinp[i][j] = 0.0;
     }
   }
-
-  // allocation of arrays
-  // NOTE: not all are used by all methods
-  // NOTE: could be re-allocated dynamically
-
-  memory->create(poli,nlocal,"ameoba/induce:poli");
-  memory->create(conj,nlocal,3,"ameoba/induce:conj");
-  memory->create(conjp,nlocal,3,"ameoba/induce:conjp");
-  memory->create(vec,nlocal,3,"ameoba/induce:vec");
-  memory->create(vecp,nlocal,3,"ameoba/induce:vecp");
-  memory->create(udir,nlocal,3,"ameoba/induce:udir");
-  memory->create(usum,nlocal,3,"ameoba/induce:usum");
-  memory->create(usump,nlocal,3,"ameoba/induce:usump");
 
   // get the electrostatic field due to permanent multipoles
 
@@ -572,8 +549,6 @@ void PairAmoebaGPU::induce()
         }
       }
 
-      // NOTE: comp of b,bp and allreduce only needed if pcgprec ?
-
       reduce[0] = b;
       reduce[1] = bp;
       MPI_Allreduce(reduce,allreduce,4,MPI_DOUBLE,MPI_SUM,world);
@@ -632,17 +607,6 @@ void PairAmoebaGPU::induce()
       if (comm->me == 0)
 	      error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
-
-  // deallocation of arrays
-
-  memory->destroy(poli);
-  memory->destroy(conj);
-  memory->destroy(conjp);
-  memory->destroy(vec);
-  memory->destroy(vecp);
-  memory->destroy(udir);
-  memory->destroy(usum);
-  memory->destroy(usump);
 
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0
@@ -1047,12 +1011,12 @@ void PairAmoebaGPU::compute_force_from_torque(const numtyp* tq_ptr,
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
-    virial_comp[0] += vxx;
-    virial_comp[1] += vyy;
-    virial_comp[2] += vzz;
-    virial_comp[3] += vxy;
-    virial_comp[4] += vxz;
-    virial_comp[5] += vyz;
+    virial_comp[0] -= vxx;
+    virial_comp[1] -= vyy;
+    virial_comp[2] -= vzz;
+    virial_comp[3] -= vxy;
+    virial_comp[4] -= vxz;
+    virial_comp[5] -= vyz;
   }
 }
 

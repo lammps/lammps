@@ -668,9 +668,9 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
       // increment force-based gradient and torque on first site
 
-      f.x += frcx;
-      f.y += frcy;
-      f.z += frcz;
+      f.x -= frcx;
+      f.y -= frcy;
+      f.z -= frcz;
       tq.x += ttmix;
       tq.y += ttmiy;
       tq.z += ttmiz;
@@ -683,12 +683,12 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
         numtyp vyz = (numtyp)-0.5 * (zr*frcy+yr*frcz);
         numtyp vzz = -zr * frcz;
 
-        virial[0] += vxx;
-        virial[1] += vyy;
-        virial[2] += vzz;
-        virial[3] += vxy;
-        virial[4] += vxz;
-        virial[5] += vyz;
+        virial[0] -= vxx;
+        virial[1] -= vyy;
+        virial[2] -= vzz;
+        virial[3] -= vxy;
+        virial[4] -= vxz;
+        virial[5] -= vyz;
       }
     } // nbor
 
@@ -1597,9 +1597,9 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       frcy = frcy + depy;
       frcz = frcz + depz;
 
-      f.x -= frcx;
-      f.y -= frcy;
-      f.z -= frcz;
+      f.x += frcx;
+      f.y += frcy;
+      f.z += frcz;
 
       if (EVFLAG && vflag) {
         numtyp vxx = xr * frcx;

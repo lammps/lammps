@@ -6,19 +6,17 @@
   4. cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-POD=on ../cmake
   5. cmake --build .
 
-# Run POD fitting Tantalum example
+# Run an example to fit a POD potential for Tantalum element
 
   1. Go to lammps/examples/pod/Ta directory
   2.  ../../../build/lmp -in in.podfit
 
-# Run POD fitting InP example
+# Run an example to fit a POD potential for InP compound 
 
   1. Go to lammps/examples/pod/InP directory
   2.  ../../../build/lmp -in in.podfit
 
-# Run POD fitting GaN example
+# Run an example to fit a POD potential for GaN compound 
 
   1. Go to lammps/examples/pod/GaN directory
   2.  ../../../build/lmp -in in.podfit
-
-  

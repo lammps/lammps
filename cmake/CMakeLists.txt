@@ -245,6 +245,7 @@ set(STANDARD_PACKAGES
   ML-QUIP
   ML-RANN
   ML-SNAP
+  ML-POD  
   MOFFF
   MOLECULE
   MOLFILE
@@ -400,8 +401,8 @@ if(BUILD_OMP)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE)
-  enable_language(C)
+if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_LATTE OR PKG_ELECTRODE)
+  enable_language(C)  
   find_package(LAPACK)
   find_package(BLAS)
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
@@ -416,7 +417,12 @@ if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
     set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
   else()
-    list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
+    #message(PKG_ML-POD)
+    #message(${BLAS_LIBRARIES})    
+    #message(${LAPACK_LIBRARIES})    
+    #set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+    #message(${lapackblas_libraries})    
+    list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})    
   endif()
 endif()
 
@@ -605,6 +611,10 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
 endforeach()
 
 if(PKG_ELECTRODE)
+  target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
+endif()
+
+if(PKG_ML-POD)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 

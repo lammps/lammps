@@ -168,7 +168,7 @@ function(DetectBuildSystemConflict lammps_src_dir)
   if(ARGC GREATER 1)
     list(REMOVE_AT ARGV 0)
     foreach(SRC_FILE ${ARGV})
-        get_filename_component(FILENAME ${SRC_FILE} NAME)
+        get_filename_component(FILENAME ${SRC_FILE} NAME)        
         if(EXISTS ${lammps_src_dir}/${FILENAME})
             message(FATAL_ERROR "\n########################################################################\n"
                                   "Found package(s) installed by the make-based build system\n"

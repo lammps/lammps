@@ -59,6 +59,7 @@ class ComputeSnap : public Compute {
   int *nneighs; // number of neighs inside the snap cutoff.
   int *neighsum;
   int *icounter; // counting atoms i for each j.
+  int rank;
 
   Compute *c_pe;
   Compute *c_virial;

@@ -65,7 +65,7 @@ liquid Ar via the GK formalism:
 
 .. code-block:: LAMMPS
 
-# Sample LAMMPS input script for viscosity of liquid Ar
+   # Sample LAMMPS input script for viscosity of liquid Ar
 
    units       real
    variable    T equal 200.0       # run temperature
@@ -107,7 +107,7 @@ liquid Ar via the GK formalism:
    # viscosity calculation, switch to NVE if desired
 
    velocity     all create $T 102486 mom yes rot yes dist gaussian
-   #fix          NVT all nvt temp $T $T 10 drag 0.2
+   fix          NVT all nvt temp $T $T 10 drag 0.2
    #unfix       NVT
    #fix         NVE all nve
 
@@ -116,17 +116,16 @@ liquid Ar via the GK formalism:
    variable     pxz equal pxz
    variable     pyz equal pyz
    fix          SS all ave/correlate $s $p $d &
-   v_pxy v_pxz v_pyz type auto file S0St.dat ave running
+                v_pxy v_pxz v_pyz type auto file S0St.dat ave running
    variable     scale equal ${convert}/(${kB}*$T)*$V*$s*${dt}
    variable     v11 equal trap(f_SS[3])*${scale}
    variable     v22 equal trap(f_SS[4])*${scale}
    variable     v33 equal trap(f_SS[5])*${scale}
-   compute msd all msd com yes
-   thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33 c_msd[*]
+   thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
    run          100000
    variable     v equal (v_v11+v_v22+v_v33)/3.0
    variable     ndens equal count(all)/vol
-   print        "average viscosity: $v [Pa.s] @ $T K, ${ndens} /A^3"
+   print        "average viscosity: $v [Pa.s] @ $T K, ${ndens} atoms/A^3"
 
 The fifth method is related to the above Green-Kubo method,
 but uses the Einstein formulation, analogous to the Einstein
@@ -135,9 +134,9 @@ time-integrated momentum fluxes play the role of Cartesian
 coordinates, whose mean-square displacement increases linearly
 with time at sufficiently long times.
 
-The sixth is periodic perturbation method. It is also a non-equilibrium MD method.
-However, instead of measure the momentum flux in response of applied velocity gradient,
-it measures the velocity profile in response of applied stress.
+The sixth is the periodic perturbation method, which is also a non-equilibrium MD method.
+However, instead of measuring the momentum flux in response to an applied velocity gradient,
+it measures the velocity profile in response to applied stress.
 A cosine-shaped periodic acceleration is added to the system via the
 :doc:`fix accelerate/cos <fix_accelerate_cos>` command,
 and the :doc:`compute viscosity/cos<compute_viscosity_cos>` command is used to monitor the

@@ -1005,15 +1005,15 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -1026,23 +1026,24 @@ struct ViewOffset<
     return m_dim.N0;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_2() const {
-    return m_dim.N0 * m_dim.N1;
+    return size_type(m_dim.N0) * m_dim.N1;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_3() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_4() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_5() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_6() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_7() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6;
   }
 
   // Stride with [ rank ] value is the total length
@@ -1288,8 +1289,8 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
@@ -1633,15 +1634,15 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -1916,14 +1917,14 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return size() > 0 ? m_dim.N0 * m_stride : 0;
+    return size() > 0 ? size_type(m_dim.N0) * m_stride : 0;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -2066,27 +2067,29 @@ struct ViewOffset<
                 stride(/* 2 <= rank */
                        m_dim.N1 *
                        (dimension_type::rank == 2
-                            ? 1
+                            ? size_t(1)
                             : m_dim.N2 *
                                   (dimension_type::rank == 3
-                                       ? 1
+                                       ? size_t(1)
                                        : m_dim.N3 *
                                              (dimension_type::rank == 4
-                                                  ? 1
+                                                  ? size_t(1)
                                                   : m_dim.N4 *
                                                         (dimension_type::rank ==
                                                                  5
-                                                             ? 1
+                                                             ? size_t(1)
                                                              : m_dim.N5 *
                                                                    (dimension_type::
                                                                                 rank ==
                                                                             6
-                                                                        ? 1
+                                                                        ? size_t(
+                                                                              1)
                                                                         : m_dim.N6 *
                                                                               (dimension_type::
                                                                                            rank ==
                                                                                        7
-                                                                                   ? 1
+                                                                                   ? size_t(
+                                                                                         1)
                                                                                    : m_dim
                                                                                          .N7)))))))) {
   }
@@ -2447,8 +2450,8 @@ struct ViewOffset<Dimension, Kokkos::LayoutStride, void> {
   constexpr size_type size() const {
     return dimension_type::rank == 0
                ? 1
-               : m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
-                     m_dim.N5 * m_dim.N6 * m_dim.N7;
+               : size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 *
+                     m_dim.N4 * m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
  private:

@@ -1,0 +1,8 @@
+#include "dump_atom.h"
+#include "dump_cfg.h"
+#include "dump_custom.h"
+#include "dump_deprecated.h"
+#include "dump_image.h"
+#include "dump_local.h"
+#include "dump_movie.h"
+#include "dump_xyz.h"

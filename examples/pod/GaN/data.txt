@@ -1,0 +1,12 @@
+file_format extxyz
+file_extension extxyz
+
+path_to_training_data_set "training"
+path_to_test_data_set "test"
+
+percentage_training_data_set 0.25
+randomize_training_data_set 0
+
+fitting_weight_energy 100.0
+fitting_weight_force 1.0
+

@@ -1,0 +1,8 @@
+file_format extxyz
+file_extension xyz
+
+path_to_training_data_set "training"
+path_to_test_data_set "test"
+
+fitting_weight_energy 20.0
+fitting_weight_force 1.0

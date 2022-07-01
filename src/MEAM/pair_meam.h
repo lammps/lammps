@@ -52,7 +52,7 @@ class PairMEAM : public Pair {
 
   double **scale;    // scaling factor for adapt
 
-  virtual void allocate();
+  void allocate();
   void read_files(const std::string &, const std::string &);
   void read_global_meam_file(const std::string &);
   void read_user_meam_file(const std::string &);

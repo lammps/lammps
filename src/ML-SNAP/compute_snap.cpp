@@ -57,6 +57,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   switchflag = 1;
   bzeroflag = 1;
   quadraticflag = 0;
+  bikflag = 0;
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
@@ -73,11 +74,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   twojmax = utils::inumeric(FLERR, arg[5], false, lmp);
 
   for (int i = 0; i < ntypes; i++)
-    radelem[i + 1] =
-        utils::numeric(FLERR, arg[6 + i], false, lmp);
+    radelem[i + 1] = utils::numeric(FLERR, arg[6 + i], false, lmp);
   for (int i = 0; i < ntypes; i++)
-    wjelem[i + 1] =
-        utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
+    wjelem[i + 1] = utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
 
   // construct cutsq
 
@@ -138,6 +137,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "wselfallflag") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       wselfallflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "bikflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bikflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "switchinnerflag") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);

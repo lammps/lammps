@@ -33,7 +33,7 @@ class MEAMKokkos : public MEAM
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagMEAMDensInit<NEIGHFLAG>, const int&) const;
-  
+
   KOKKOS_INLINE_FUNCTION
   void operator()(TagMEAMZero, const int&) const;
 
@@ -73,8 +73,8 @@ class MEAMKokkos : public MEAM
                       int, int);
   void meam_dens_final(int, int, int, int, typename ArrayTypes<DeviceType>::t_efloat_1d,
                        int, typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_int_2d, int&, EV_FLOAT&);
-  void meam_force(int, int, int, int, int, typename ArrayTypes<DeviceType>::t_efloat_1d, 
-                  int, typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_x_array, typename AT::t_int_1d, 
+  void meam_force(int, int, int, int, int, typename ArrayTypes<DeviceType>::t_efloat_1d,
+                  int, typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_x_array, typename AT::t_int_1d,
                   typename AT::t_int_1d, typename AT::t_f_array, typename ArrayTypes<DeviceType>::t_virial_array,
                   typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_neighbors_2d, typename AT::t_neighbors_2d,
                   int, int, EV_FLOAT&);
@@ -100,7 +100,7 @@ class MEAMKokkos : public MEAM
   KOKKOS_INLINE_FUNCTION
   double zbl(const double, const int, const int) const;
   KOKKOS_INLINE_FUNCTION
-  double embedding(const double, const double, const double, double&) const; 
+  double embedding(const double, const double, const double, double&) const;
   KOKKOS_INLINE_FUNCTION
   double erose(const double, const double, const double, const double, const double, const double, const int) const;
   KOKKOS_INLINE_FUNCTION

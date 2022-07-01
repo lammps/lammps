@@ -29,9 +29,9 @@ using namespace MathSpecialKokkos;
 //  4 => G = sqrt(1+gamma)
 // -5 => G = +-sqrt(abs(1+gamma))
 //
-template<class DeviceType> 
+template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double MEAMKokkos<DeviceType>::G_gam(const double gamma, const int ibar, int &errorflag) const 
+double MEAMKokkos<DeviceType>::G_gam(const double gamma, const int ibar, int &errorflag) const
 {
   double gsmooth_switchpoint;
 
@@ -74,7 +74,7 @@ double MEAMKokkos<DeviceType>::G_gam(const double gamma, const int ibar, int &er
 //
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double MEAMKokkos<DeviceType>::dG_gam(const double gamma, const int ibar, double& dG) const 
+double MEAMKokkos<DeviceType>::dG_gam(const double gamma, const int ibar, double& dG) const
 {
   double gsmooth_switchpoint;
   double G;

@@ -92,15 +92,15 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
   typename AT::t_x_array x;
   typename AT::t_f_array f;
   typename AT::t_int_1d type;
-  
+
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
   typename AT::t_int_1d d_offset;
-  
-  DAT::tdual_int_1d k_map; 
+
+  DAT::tdual_int_1d k_map;
   typename AT::t_int_1d d_map;
   typename AT::t_int_2d d_scale;
   typename AT::t_int_1d d_ilist_half;
@@ -111,7 +111,7 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
-  int iswap,first;   
+  int iswap,first;
   int neighflag,nlocal,nall,eflag,vflag;
 
   friend void pair_virial_fdotr_compute<PairMEAMKokkos>(PairMEAMKokkos*);

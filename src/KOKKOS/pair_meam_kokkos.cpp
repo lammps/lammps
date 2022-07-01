@@ -135,7 +135,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // loop over my atoms followed by communication
 
   int errorflag = 0;
-  
+
   d_offset = typename AT::t_int_1d("pair:offset",inum_half+1);
   {
     // local variables for lambda capture
@@ -352,7 +352,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const in
   v_buf[m++] = meam_inst_kk->d_tsq_ave(j,0);
   v_buf[m++] = meam_inst_kk->d_tsq_ave(j,1);
   v_buf[m++] = meam_inst_kk->d_tsq_ave(j,2);
-} 
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -402,7 +402,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackForwardComm, const 
     meam_inst_kk->d_tsq_ave(i+first,2) = v_buf[m++];
  }
 
-/* ---------------------------------------------------------------------- */ 
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
@@ -738,7 +738,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMOffsets, const int ii, int &n) const {
   const int i = d_ilist_half[ii];
-  n += d_numneigh_half[i]; 
+  n += d_numneigh_half[i];
 }
 
 /* ---------------------------------------------------------------------- */

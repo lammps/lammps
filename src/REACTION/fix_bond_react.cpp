@@ -1724,17 +1724,7 @@ void FixBondReact::inner_crosscheck_loop()
 
   int num_choices = 0;
   for (int i = 0; i < nfirst_neighs; i++) {
-
-    int already_assigned = 0;
-    for (int j = 0; j < onemol->natoms; j++) {
-      if (glove[j][1] == xspecial[atom->map(glove[pion][1])][i]) {
-        already_assigned = 1;
-        break;
-      }
-    }
-
-    if (already_assigned == 0 &&
-        type[(int)atom->map(xspecial[atom->map(glove[pion][1])][i])] == onemol->type[(int)onemol_xspecial[pion][neigh]-1]) {
+    if (type[(int)atom->map(xspecial[atom->map(glove[pion][1])][i])] == onemol->type[(int)onemol_xspecial[pion][neigh]-1]) {
       if (num_choices > 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
         status = GUESSFAIL;
         return;
@@ -1748,11 +1738,28 @@ void FixBondReact::inner_crosscheck_loop()
   // ...actually, avail_guesses should never be zero here anyway
   if (guess_branch[avail_guesses-1] == 0) guess_branch[avail_guesses-1] = num_choices;
 
-  //std::size_t size = sizeof(tag_choices) / sizeof(tag_choices[0]);
-  std::sort(tag_choices, tag_choices + num_choices); //, std::greater<int>());
-  glove[onemol_xspecial[pion][neigh]-1][0] = onemol_xspecial[pion][neigh];
-  glove[onemol_xspecial[pion][neigh]-1][1] = tag_choices[guess_branch[avail_guesses-1]-1];
-  guess_branch[avail_guesses-1]--;
+  std::sort(tag_choices, tag_choices + num_choices);
+  for (int i = guess_branch[avail_guesses-1]-1; i >= 0; i--) {
+    int already_assigned = 0;
+    for (int j = 0; j < onemol->natoms; j++) {
+      if (glove[j][1] == tag_choices[i]) {
+        already_assigned = 1;
+        break;
+      }
+    }
+    if (already_assigned == 1) {
+      guess_branch[avail_guesses-1]--;
+      if (guess_branch[avail_guesses-1] == 0) {
+        status = REJECT;
+        return;
+      }
+    } else {
+      glove[onemol_xspecial[pion][neigh]-1][0] = onemol_xspecial[pion][neigh];
+      glove[onemol_xspecial[pion][neigh]-1][1] = tag_choices[i];
+      guess_branch[avail_guesses-1]--;
+      break;
+    }
+  }
 
   //another check for ghost atoms. perhaps remove the one in make_a_guess
   if (atom->map(glove[(int)onemol_xspecial[pion][neigh]-1][1]) < 0) {

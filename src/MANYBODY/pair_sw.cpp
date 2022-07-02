@@ -44,6 +44,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
+  skip_threebody_flag = false;
 
   params = nullptr;
 
@@ -172,24 +173,24 @@ void PairSW::compute(int eflag, int vflag)
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-    
+
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
-    
+
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort[kk];
         ktype = map[type[k]];
         ikparam = elem3param[itype][ktype][ktype];
         ijkparam = elem3param[itype][jtype][ktype];
-    
+
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-    
+
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
-    
+
         fxtmp -= fj[0] + fk[0];
         fytmp -= fj[1] + fk[1];
         fztmp -= fj[2] + fk[2];
@@ -199,7 +200,7 @@ void PairSW::compute(int eflag, int vflag)
         f[k][0] += fk[0];
         f[k][1] += fk[1];
         f[k][2] += fk[2];
-    
+
         if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
       f[j][0] += fjxtmp;
@@ -233,18 +234,15 @@ void PairSW::allocate()
 
 void PairSW::settings(int narg, char ** arg)
 {
-  // Default
-  skip_threebody_flag = false;
-
+  // process optional keywords
   int iarg = 0;
-
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"skip_threebody") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
-      skip_threebody_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    if (strcmp(arg[iarg],"threebody") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style sw", error);
+      skip_threebody_flag = !utils::logical(FLERR,arg[iarg+1],false,lmp);
       one_coeff = !skip_threebody_flag;
       iarg += 2;
-    } else error->all(FLERR,"Illegal pair_style command");
+    } else error->all(FLERR, "Illegal pair_style sw keyword: {}", arg[iarg]);
   }
 }
 
@@ -304,6 +302,8 @@ void PairSW::read_file(char *file)
   if (comm->me == 0) {
     PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
     char *line;
+
+    if (skip_threebody_flag) utils::logmesg(lmp, "  disabling sw potential three-body terms\n");
 
     // transparently convert units for supported conversions
 
@@ -369,6 +369,7 @@ void PairSW::read_file(char *file)
         params[nparams].epsilon *= conversion_factor;
       }
 
+      // turn off three-body term
       if (skip_threebody_flag) params[nparams].lambda = 0;
 
       if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||

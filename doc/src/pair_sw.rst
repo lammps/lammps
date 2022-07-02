@@ -24,17 +24,16 @@ Syntax
    pair_style style keyword values
 
 * style = *sw* or *sw/mod*
-* keyword = *maxdelcs* or *skip_threebody*
+* keyword = *maxdelcs* or *threebody*
 
   .. parsed-literal::
 
-       *maxdelcs* value = delta1 delta2 (optional)
+       *maxdelcs* value = delta1 delta2 (optional, sw/mod only)
          delta1 = The minimum thershold for the variation of cosine of three-body angle
          delta2 = The maximum threshold for the variation of cosine of three-body angle
-       *skip_threebody* value = *on* or *off* (optional)
-         off (default) = Compute both the three-body and two-body terms of the potential
-         on = Compute only the two-body term of the potential
-         
+       *threebody* value = *on* or *off* (optional, sw only)
+         on (default) = Compute both the three-body and two-body terms of the potential
+         off = Compute only the two-body term of the potential
 
 Examples
 """"""""
@@ -48,7 +47,7 @@ Examples
    pair_style sw/mod maxdelcs 0.25 0.35
    pair_coeff * * tmd.sw.mod Mo S S
 
-   pair_style hybrid sw sw skip_threebody on
+   pair_style hybrid sw threebody on sw threebody off
    pair_coeff * * sw 1 mW_xL.sw mW NULL
    pair_coeff 1 2 sw 2 mW_xL.sw mW xL
    pair_coeff 2 2 sw 2 mW_xL.sw mW xL
@@ -77,22 +76,25 @@ three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a `\sigma`.
 
 The *sw/mod* style is designed for simulations of materials when
-distinguishing three-body angles are necessary, such as borophene
-and transition metal dichalcogenides, which cannot be described
-by the original code for the Stillinger-Weber potential.
-For instance, there are several types of angles around each Mo atom in `MoS_2`,
-and some unnecessary angle types should be excluded in the three-body interaction.
-Such exclusion may be realized by selecting proper angle types directly.
-The exclusion of unnecessary angles is achieved here by the cut-off function (`f_C(\delta)`),
-which induces only minimum modifications for LAMMPS.
+distinguishing three-body angles are necessary, such as borophene and
+transition metal dichalcogenides, which cannot be described by the
+original code for the Stillinger-Weber potential.  For instance, there
+are several types of angles around each Mo atom in `MoS_2`, and some
+unnecessary angle types should be excluded in the three-body
+interaction.  Such exclusion may be realized by selecting proper angle
+types directly.  The exclusion of unnecessary angles is achieved here by
+the cut-off function (`f_C(\delta)`), which induces only minimum
+modifications for LAMMPS.
 
 Validation, benchmark tests, and applications of the *sw/mod* style
 can be found in :ref:`(Jiang2) <Jiang2>` and :ref:`(Jiang3) <Jiang3>`.
 
-The *sw/mod* style computes the energy E of a system of atoms, whose potential
-function is mostly the same as the Stillinger-Weber potential. The only modification
-is in the three-body term, where the value of :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
-used in the original energy and force expression is scaled by a switching factor :math:`f_C(\delta)`:
+The *sw/mod* style computes the energy E of a system of atoms, whose
+potential function is mostly the same as the Stillinger-Weber
+potential. The only modification is in the three-body term, where the
+value of :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}` used in
+the original energy and force expression is scaled by a switching factor
+:math:`f_C(\delta)`:
 
 .. math::
 
@@ -103,28 +105,38 @@ used in the original energy and force expression is scaled by a switching factor
     0 & \left| \delta \right| > \delta_2
     \end{array} \right. \\
 
-This cut-off function decreases smoothly from 1 to 0 over the range :math:`[\delta_1, \delta_2]`.
-This smoothly turns off the energy and force contributions for :math:`\left| \delta \right| > \delta_2`.
-It is suggested that :math:`\delta 1` and :math:`\delta_2` to be the value around
-:math:`0.5 \left| \cos \theta_1 - \cos \theta_2 \right|`, with
-:math:`\theta_1` and :math:`\theta_2` as the different types of angles around an atom.
-For borophene and transition metal dichalcogenides, :math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.
-This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
+This cut-off function decreases smoothly from 1 to 0 over the range
+:math:`[\delta_1, \delta_2]`.  This smoothly turns off the energy and
+force contributions for :math:`\left| \delta \right| > \delta_2`.  It is
+suggested that :math:`\delta 1` and :math:`\delta_2` to be the value
+around :math:`0.5 \left| \cos \theta_1 - \cos \theta_2 \right|`, with
+:math:`\theta_1` and :math:`\theta_2` as the different types of angles
+around an atom.  For borophene and transition metal dichalcogenides,
+:math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.  This value enables
+the cut-off function to exclude unnecessary angles in the three-body SW
+terms.
 
 .. note::
 
-   The cut-off function is just to be used as a technique to exclude some unnecessary angles,
-   and it has no physical meaning. It should be noted that the force and potential are inconsistent
-   with each other in the decaying range of the cut-off function, as the angle dependence for the
-   cut-off function is not implemented in the force (first derivation of potential).
-   However, the angle variation is much smaller than the given threshold value for actual simulations,
-   so the inconsistency between potential and force can be neglected in actual simulations.
+   The cut-off function is just to be used as a technique to exclude
+   some unnecessary angles, and it has no physical meaning. It should be
+   noted that the force and potential are inconsistent with each other
+   in the decaying range of the cut-off function, as the angle
+   dependence for the cut-off function is not implemented in the force
+   (first derivation of potential).  However, the angle variation is
+   much smaller than the given threshold value for actual simulations,
+   so the inconsistency between potential and force can be neglected in
+   actual simulations.
 
-The *skip_threebody* keyword determines whether or not the three-body term of the potential is calculated. 
-Skipping this significantly increases the speed of the calculation, with the tradeoff that :math:\lambda_{ijk} 
-is forcibly set to 0. If the keyword is used with the pair styles, sw/gpu, sw/intel, or sw/kokkos, 
-:math:\lambda_{ijk} will still be forcibly set to 0, but no additional benefits will be gained. This keyword 
-cannot be used for variants of the sw/mod or sw/angle/table pair styles.
+The *threebody* keyword is optional and determines whether or not the
+three-body term of the potential is calculated.  The default value is
+"on" and it is only available for the plain *sw* pair style variants,
+but not available for the *sw/mod* and :doc:`sw/angle/table
+<pair_sw_angle_table>` pair style variants.  To turn off the threebody
+contributions all :math:`\lambda_{ijk}` parameters from the potential
+file are forcibly set to 0.  In addition the pair style implementations
+may employ code optimizations for the *threebody off* setting that can
+result in significant speedups versus the default.
 
 Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
 which specifies a Stillinger-Weber potential file with parameters for all
@@ -297,8 +309,9 @@ Related commands
 Default
 """""""
 
-The default values for the *maxdelcs* setting of the *sw/mod* pair
-style are *delta1* = 0.25 and *delta2* = 0.35`.
+The default value for the *threebody* setting of the "sw" pair style is
+"on", the default values for the "*maxdelcs* setting of the *sw/mod*
+pair style are *delta1* = 0.25 and *delta2* = 0.35`.
 
 ----------
 

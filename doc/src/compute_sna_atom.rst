@@ -464,15 +464,8 @@ gradient components
 where :math:`a` is the Cartesian direction for the gradient. The rows are
 organized in chunks, where each chunk corresponds to an atom :math:`j` in the
 system of :math:`N` atoms. The rows in an atom :math:`j` chunk correspond to
-atoms :math:`i` that have :math:`j` as a neighbor. The number of rows in the
-atom :math:`j` chunk is therefore equal to the number of neighbors
-:math:`N_{neighs}[j]` within the SNAP potential cutoff radius of atom :math:`j`
-, times 3 for each Cartesian direction. The total number of rows for these
-descriptor gradients is therefore
-
-.. math::
-
-  3 \sum_j^{N} N_{neighs}[j].
+atoms :math:`i` in the system of :math:`N` atoms. The total number of rows for
+these descriptor gradients is therefore :math:`3N^2`.
 
 For *dgradflag=1*, the number of columns is equal to the number of bispectrum components,
 plus 3 additional columns representing the indices :math:`i`, :math:`j`, and :math:`a` which
@@ -483,8 +476,9 @@ For the descriptor gradient rows, the first 3 columns contain the indices
 of different descriptors indexed by :math:`k`.
 The first 3 columns of the first :math:`N` rows belong to the reference
 potential force components. The first column of the last row, after the first
-:math:`N + 3 \sum_j^{N} N_{neighs}[j]` rows, contains the reference potential
-energy. The virial components are not used with this option.
+:math:`N + 3N^2` rows, contains the reference potential
+energy. The virial components are not used with this option. The total number of
+rows is therefore :math:`N + 3N^2 + 1` and the number of columns is :math:`K + 3`.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

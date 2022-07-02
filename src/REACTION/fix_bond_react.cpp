@@ -2904,6 +2904,11 @@ void FixBondReact::update_everything()
   int nmark = nlocal;
   memory->create(mark,nmark,"bond/react:mark");
   for (int i = 0; i < nmark; i++) mark[i] = 0;
+
+  // flag used to delete special interactions
+  int *delflag;
+  memory->create(delflag,atom->maxspecial,"bond/react:delflag");
+
   tagint *tag = atom->tag;
   AtomVec *avec = atom->avec;
 
@@ -3029,62 +3034,68 @@ void FixBondReact::update_everything()
     // very nice and easy to completely overwrite special bond info for landlocked atoms
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
+      onemol = atom->molecules[unreacted_mol[rxnID]];
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+        int ilocal = atom->map(update_mega_glove[jj+1][i]);
+        if (ilocal < nlocal && ilocal >= 0) {
           if (landlocked_atoms[j][rxnID] == 1) {
             for (int k = 0; k < 3; k++) {
-              nspecial[atom->map(update_mega_glove[jj+1][i])][k] = twomol->nspecial[j][k];
+              nspecial[ilocal][k] = twomol->nspecial[j][k];
             }
             for (int p = 0; p < twomol->nspecial[j][2]; p++) {
-              special[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->special[j][p]-1][1][rxnID]][i];
+              special[ilocal][p] = update_mega_glove[equivalences[twomol->special[j][p]-1][1][rxnID]][i];
             }
           }
           // now delete and replace landlocked atoms from non-landlocked atoms' special info
+          // delete 1-2, 1-3, 1-4 specials individually. only delete if special exists in pre-reaction template
           if (landlocked_atoms[j][rxnID] == 0) {
-            for (int k = nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; k > -1; k--) {
-              for (int p = 0; p < twomol->natoms; p++) {
-                int pp = equivalences[p][1][rxnID]-1;
-                if (p!=j && special[atom->map(update_mega_glove[jj+1][i])][k] == update_mega_glove[pp+1][i]
-                    && landlocked_atoms[p][rxnID] == 1) {
-                  for (int n = k; n < nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; n++) {
-                    special[atom->map(update_mega_glove[jj+1][i])][n] = special[atom->map(update_mega_glove[jj+1][i])][n+1];
+            int ispec, fspec, imolspec, fmolspec, nspecdel[3];
+            for (int k = 0; k < 3; k++) nspecdel[k] = 0;
+            for (int k = 0; k < atom->maxspecial; k++) delflag[k] = 0;
+            for (int specn = 0; specn < 3; specn++) {
+              if (specn == 0) {
+                imolspec = 0;
+                ispec = 0;
+              } else {
+                imolspec = onemol->nspecial[jj][specn-1];
+                ispec = nspecial[ilocal][specn-1];
+              }
+              fmolspec = onemol->nspecial[jj][specn];
+              fspec = nspecial[ilocal][specn];
+              for (int k = ispec; k < fspec; k++) {
+                for (int p = imolspec; p < fmolspec; p++) {
+                  if (update_mega_glove[onemol->special[jj][p]][i] == special[ilocal][k]) {
+                    delflag[k] = 1;
+                    for (int m = 2; m >= specn; m--) nspecdel[m]++;
+                    break;
                   }
-                  if (k+1 > nspecial[atom->map(update_mega_glove[jj+1][i])][1]) {
-                    nspecial[atom->map(update_mega_glove[jj+1][i])][2]--;
-                  } else if (k+1 > nspecial[atom->map(update_mega_glove[jj+1][i])][0]) {
-                    nspecial[atom->map(update_mega_glove[jj+1][i])][1]--;
-                    nspecial[atom->map(update_mega_glove[jj+1][i])][2]--;
-                  } else {
-                    nspecial[atom->map(update_mega_glove[jj+1][i])][0]--;
-                    nspecial[atom->map(update_mega_glove[jj+1][i])][1]--;
-                    nspecial[atom->map(update_mega_glove[jj+1][i])][2]--;
-                  }
-                  break;
                 }
               }
             }
+            int incr = 0;
+            for (int k = 0; k < nspecial[ilocal][2]; k++)
+              if (delflag[k] == 0) special[ilocal][incr++] = special[ilocal][k];
+            for (int m = 0; m < 3; m++) nspecial[ilocal][m] -= nspecdel[m];
             // now reassign from reacted template
             for (int k = 0; k < twomol->nspecial[j][2]; k++) {
-              if (landlocked_atoms[twomol->special[j][k]-1][rxnID] == 1) {
-                if (k > twomol->nspecial[j][1] - 1) {
-                  insert_num = nspecial[atom->map(update_mega_glove[jj+1][i])][2]++;
-                } else if (k > twomol->nspecial[j][0] - 1) {
-                  insert_num = nspecial[atom->map(update_mega_glove[jj+1][i])][1]++;
-                  nspecial[atom->map(update_mega_glove[jj+1][i])][2]++;
-                } else {
-                  insert_num = nspecial[atom->map(update_mega_glove[jj+1][i])][0]++;
-                  nspecial[atom->map(update_mega_glove[jj+1][i])][1]++;
-                  nspecial[atom->map(update_mega_glove[jj+1][i])][2]++;
-                }
-                if (nspecial[atom->map(update_mega_glove[jj+1][i])][2] > atom->maxspecial)
-                  error->one(FLERR,"Bond/react special bond generation overflow");
-                for (int n = nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; n > insert_num; n--) {
-                  special[atom->map(update_mega_glove[jj+1][i])][n] = special[atom->map(update_mega_glove[jj+1][i])][n-1];
-                }
-                special[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->special[j][k]-1][1][rxnID]][i];
+              if (k > twomol->nspecial[j][1] - 1) {
+                insert_num = nspecial[ilocal][2]++;
+              } else if (k > twomol->nspecial[j][0] - 1) {
+                insert_num = nspecial[ilocal][1]++;
+                nspecial[ilocal][2]++;
+              } else {
+                insert_num = nspecial[ilocal][0]++;
+                nspecial[ilocal][1]++;
+                nspecial[ilocal][2]++;
               }
+              if (nspecial[ilocal][2] > atom->maxspecial)
+                error->one(FLERR,"Bond/react special bond generation overflow");
+              for (int n = nspecial[ilocal][2]-1; n > insert_num; n--) {
+                special[ilocal][n] = special[ilocal][n-1];
+              }
+              special[ilocal][insert_num] = update_mega_glove[equivalences[twomol->special[j][k]-1][1][rxnID]][i];
             }
           }
         }
@@ -3480,6 +3491,7 @@ void FixBondReact::update_everything()
     }
   }
   memory->destroy(mark);
+  memory->destroy(delflag);
 
   MPI_Allreduce(&ndelone,&ndel,1,MPI_INT,MPI_SUM,world);
 

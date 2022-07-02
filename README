@@ -9,14 +9,14 @@
 # Run an example to fit a POD potential for Tantalum element
 
   1. Go to lammps/examples/pod/Ta directory
-  2.  ../../../build/lmp -in in.podfit
+  2.  ../../../build/lmp -in in.podfit -sc tmp
 
 # Run an example to fit a POD potential for InP compound 
 
   1. Go to lammps/examples/pod/InP directory
-  2.  ../../../build/lmp -in in.podfit
+  2.  ../../../build/lmp -in in.podfit -sc tmp
 
 # Run an example to fit a POD potential for GaN compound 
 
   1. Go to lammps/examples/pod/GaN directory
-  2.  ../../../build/lmp -in in.podfit
+  2.  ../../../build/lmp -in in.podfit -sc tmp

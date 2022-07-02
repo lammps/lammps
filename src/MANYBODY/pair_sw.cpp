@@ -14,6 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL)
+   Optimizations for two-body only: Jackson Elowitt (Univ. of Utah)
 ------------------------------------------------------------------------- */
 
 #include "pair_sw.h"
@@ -138,14 +139,18 @@ void PairSW::compute(int eflag, int vflag)
       }
 
       jtag = tag[j];
-      if (itag > jtag) {
-        if ((itag+jtag) % 2 == 0) continue;
-      } else if (itag < jtag) {
-        if ((itag+jtag) % 2 == 1) continue;
-      } else {
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+
+      // only need to skip if we have a full neighbor list
+      if (!skip_threebody_flag) {
+        if (itag > jtag) {
+          if ((itag+jtag) % 2 == 0) continue;
+        } else if (itag < jtag) {
+          if ((itag+jtag) % 2 == 1) continue;
+        } else {
+          if (x[j][2] < ztmp) continue;
+          if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+          if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        }
       }
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
@@ -273,9 +278,12 @@ void PairSW::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style Stillinger-Weber requires newton pair on");
 
-  // need a full neighbor list
+  // need a full neighbor list for full threebody calculation
 
-  neighbor->add_request(this, NeighConst::REQ_FULL);
+  if (skip_threebody_flag)
+    neighbor->add_request(this);
+  else
+    neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------

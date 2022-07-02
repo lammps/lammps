@@ -134,14 +134,16 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       jtag = tag[j];
-      if (itag > jtag) {
-        if ((itag+jtag) % 2 == 0) continue;
-      } else if (itag < jtag) {
-        if ((itag+jtag) % 2 == 1) continue;
-      } else {
-        if (x[j].z < ztmp) continue;
-        if (x[j].z == ztmp && x[j].y < ytmp) continue;
-        if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
+      if (!skip_threebody_flag) {
+        if (itag > jtag) {
+          if ((itag+jtag) % 2 == 0) continue;
+        } else if (itag < jtag) {
+          if ((itag+jtag) % 2 == 1) continue;
+        } else {
+          if (x[j].z < ztmp) continue;
+          if (x[j].z == ztmp && x[j].y < ytmp) continue;
+          if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
+        }
       }
 
       twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
@@ -169,24 +171,24 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-    
+
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
-    
+
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort_thr[kk];
         ktype = map[type[k]];
         ikparam = elem3param[itype][ktype][ktype];
         ijkparam = elem3param[itype][jtype][ktype];
-    
+
         delr2[0] = x[k].x - xtmp;
         delr2[1] = x[k].y - ytmp;
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-    
+
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);
-    
+
         fxtmp -= fj[0] + fk[0];
         fytmp -= fj[1] + fk[1];
         fztmp -= fj[2] + fk[2];
@@ -196,7 +198,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
         f[k].x += fk[0];
         f[k].y += fk[1];
         f[k].z += fk[2];
-    
+
         if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,fj,fk,delr1,delr2,thr);
       }
       f[j].x += fjxtmp;

@@ -182,6 +182,13 @@ action kokkos_base.h
 action kokkos_base_fft.h fft3d.h
 action kokkos_few.h
 action kokkos_type.h
+action meam_kokkos.h meam.h
+action meam_dens_final_kokkos.h meam_dens_final.cpp
+action meam_dens_init_kokkos.h meam_dens_init.cpp
+action meam_force_kokkos.h meam_force.cpp
+action meam_funcs_kokkos.h meam_funcs.cpp
+action meam_impl_kokkos.h meam_impl.cpp
+action meam_setup_done_kokkos.h meam_setup_done.cpp
 action memory_kokkos.h
 action modify_kokkos.cpp
 action modify_kokkos.h
@@ -287,6 +294,8 @@ action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
 action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_meam_kokkos.cpp pair_meam.cpp
+action pair_meam_kokkos.h pair_meam.h
 action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp

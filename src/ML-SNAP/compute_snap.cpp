@@ -41,13 +41,15 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   extarray = 0;
 
+  // begin code common to all SNAP computes
+
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
 
   int ntypes = atom->ntypes;
-  int nargmin = 6+2*ntypes;
+  int nargmin = 6 + 2 * ntypes;
 
-  if (narg < nargmin) error->all(FLERR,"Illegal compute snap command");
+  if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);
 
   // default values
 
@@ -64,28 +66,30 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   // process required arguments
 
-  memory->create(radelem,ntypes+1,"snap:radelem"); // offset by 1 to match up with types
-  memory->create(wjelem,ntypes+1,"snap:wjelem");
-  rcutfac = atof(arg[3]);
-  rfac0 = atof(arg[4]);
-  twojmax = atoi(arg[5]);
+  memory->create(radelem, ntypes + 1, "sna/atom:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem, ntypes + 1, "sna/atom:wjelem");
+
+  rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
+  rfac0 = utils::numeric(FLERR, arg[4], false, lmp);
+  twojmax = utils::inumeric(FLERR, arg[5], false, lmp);
+
   for (int i = 0; i < ntypes; i++)
-    radelem[i+1] = atof(arg[6+i]);
+    radelem[i + 1] = utils::numeric(FLERR, arg[6 + i], false, lmp);
   for (int i = 0; i < ntypes; i++)
-    wjelem[i+1] = atof(arg[6+ntypes+i]);
+    wjelem[i + 1] = utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
 
   // construct cutsq
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq,ntypes+1,ntypes+1,"snap:cutsq");
+  memory->create(cutsq, ntypes + 1, ntypes + 1, "sna/atom:cutsq");
   for (int i = 1; i <= ntypes; i++) {
-    cut = 2.0*radelem[i]*rcutfac;
+    cut = 2.0 * radelem[i] * rcutfac;
     if (cut > cutmax) cutmax = cut;
-    cutsq[i][i] = cut*cut;
-    for (int j = i+1; j <= ntypes; j++) {
-      cut = (radelem[i]+radelem[j])*rcutfac;
-      cutsq[i][j] = cutsq[j][i] = cut*cut;
+    cutsq[i][i] = cut * cut;
+    for (int j = i + 1; j <= ntypes; j++) {
+      cut = (radelem[i] + radelem[j]) * rcutfac;
+      cutsq[i][j] = cutsq[j][i] = cut * cut;
     }
   }
 
@@ -99,107 +103,103 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   int iarg = nargmin;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"rmin0") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      rmin0 = atof(arg[iarg+1]);
+    if (strcmp(arg[iarg], "rmin0") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      rmin0 = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"bzeroflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      bzeroflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "switchflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      switchflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"switchflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      switchflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "bzeroflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bzeroflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      quadraticflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "quadraticflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      quadraticflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"chem") == 0) {
-      if (iarg+2+ntypes > narg)
-        error->all(FLERR,"Illegal compute snap command");
+    } else if (strcmp(arg[iarg], "chem") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       chemflag = 1;
-      memory->create(map,ntypes+1,"compute_snap:map");
-      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      memory->create(map, ntypes + 1, "compute_sna_grid:map");
+      nelements = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       for (int i = 0; i < ntypes; i++) {
-        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
-        if (jelem < 0 || jelem >= nelements)
-          error->all(FLERR,"Illegal compute snap command");
-        map[i+1] = jelem;
+        int jelem = utils::inumeric(FLERR, arg[iarg + 2 + i], false, lmp);
+        if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute {} command", style);
+        map[i + 1] = jelem;
       }
-      iarg += 2+ntypes;
-    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2 + ntypes;
+    } else if (strcmp(arg[iarg], "bnormflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bnormflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      wselfallflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "wselfallflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      wselfallflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"bikflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      bikflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "bikflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bikflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      switchinnerflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "switchinnerflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      switchinnerflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"sinner") == 0) {
+    } else if (strcmp(arg[iarg], "sinner") == 0) {
       iarg++;
-      if (iarg+ntypes > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      memory->create(sinnerelem,ntypes+1,"snap:sinnerelem");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
+      memory->create(sinnerelem, ntypes + 1, "snap:sinnerelem");
       for (int i = 0; i < ntypes; i++)
-        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        sinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
       sinnerflag = 1;
       iarg += ntypes;
-    } else if (strcmp(arg[iarg],"dinner") == 0) {
+    } else if (strcmp(arg[iarg], "dinner") == 0) {
       iarg++;
-      if (iarg+ntypes > narg)
-        error->all(FLERR,"Illegal compute snap command");
-      memory->create(dinnerelem,ntypes+1,"snap:dinnerelem");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
+      memory->create(dinnerelem, ntypes + 1, "snap:dinnerelem");
       for (int i = 0; i < ntypes; i++)
-        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        dinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
       dinnerflag = 1;
       iarg += ntypes;
-    } else error->all(FLERR,"Illegal compute snap command");
+    } else
+      error->all(FLERR, "Illegal compute {} command", style);
   }
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
-    error->all(FLERR,"Illegal compute snap command: switchinnerflag = 1, missing sinner/dinner keyword");
+    error->all(
+        FLERR,
+        "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
+        style);
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
-    error->all(FLERR,"Illegal compute snap command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+    error->all(
+        FLERR,
+        "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
+        style);
 
-  snaptr = new SNA(lmp, rfac0, twojmax,
-                   rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag,
-                   nelements, switchinnerflag);
+  snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
+                   wselfallflag, nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
-  nperdim = ncoeff;
-  if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
+  nvalues = ncoeff;
+  if (quadraticflag) nvalues += (ncoeff * (ncoeff + 1)) / 2;
+
+  // end code common to all SNAP computes
+
   ndims_force = 3;
   ndims_virial = 6;
-  yoffset = nperdim;
-  zoffset = 2*nperdim;
+  yoffset = nvalues;
+  zoffset = 2*nvalues;
   natoms = atom->natoms;
   bik_rows = 1;
   if (bikflag) bik_rows = natoms;
   size_array_rows = bik_rows+ndims_force*natoms+ndims_virial;
-  size_array_cols = nperdim*atom->ntypes+1;
+  size_array_cols = nvalues*atom->ntypes+1;
   lastcol = size_array_cols-1;
 
   ndims_peratom = ndims_force;
-  size_peratom = ndims_peratom*nperdim*atom->ntypes;
+  size_peratom = ndims_peratom*nvalues*atom->ntypes;
 
   nmax = 0;
 }
@@ -341,8 +341,8 @@ void ComputeSnap::compute_array()
       const double radi = radelem[itype];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
-      const int typeoffset_local = ndims_peratom*nperdim*(itype-1);
-      const int typeoffset_global = nperdim*(itype-1);
+      const int typeoffset_local = ndims_peratom*nvalues*(itype-1);
+      const int typeoffset_global = nvalues*(itype-1);
 
       // insure rij, inside, and typej  are of size jnum
 
@@ -481,9 +481,9 @@ void ComputeSnap::compute_array()
   // accumulate bispectrum force contributions to global array
 
   for (int itype = 0; itype < atom->ntypes; itype++) {
-    const int typeoffset_local = ndims_peratom*nperdim*itype;
-    const int typeoffset_global = nperdim*itype;
-    for (int icoeff = 0; icoeff < nperdim; icoeff++) {
+    const int typeoffset_local = ndims_peratom*nvalues*itype;
+    const int typeoffset_global = nvalues*itype;
+    for (int icoeff = 0; icoeff < nvalues; icoeff++) {
       for (int i = 0; i < ntotal; i++) {
         double *snadi = snap_peratom[i]+typeoffset_local;
         int iglobal = atom->tag[i];
@@ -549,10 +549,10 @@ void ComputeSnap::dbdotr_compute()
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++)
     for (int itype = 0; itype < atom->ntypes; itype++) {
-      const int typeoffset_local = ndims_peratom*nperdim*itype;
-      const int typeoffset_global = nperdim*itype;
+      const int typeoffset_local = ndims_peratom*nvalues*itype;
+      const int typeoffset_global = nvalues*itype;
       double *snadi = snap_peratom[i]+typeoffset_local;
-      for (int icoeff = 0; icoeff < nperdim; icoeff++) {
+      for (int icoeff = 0; icoeff < nvalues; icoeff++) {
         double dbdx = snadi[icoeff];
         double dbdy = snadi[icoeff+yoffset];
         double dbdz = snadi[icoeff+zoffset];

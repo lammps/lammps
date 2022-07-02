@@ -1,0 +1,60 @@
+LAMMPS (2 Jun 2022)
+# 3d Lennard-Jones melt - LAMMPS as surrogate QM engine for aimd_driver.py
+
+variable	x index 5
+variable	y index 5
+variable	z index 5
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region		box block 0 $x 0 $y 0 $z
+region		box block 0 5 0 $y 0 $z
+region		box block 0 5 0 5 0 $z
+region		box block 0 5 0 5 0 5
+create_box	1 box
+Created orthogonal box = (0 0 0) to (8.397981 8.397981 8.397981)
+  1 by 1 by 3 MPI processor grid
+create_atoms	1 box
+Created 500 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8.397981 8.397981 8.397981)
+  create_atoms CPU = 0.001 seconds
+mass		1 1.0
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+mdi             engine
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.124 | 3.13 | 3.133 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -6.7733681      0             -6.7733681     -6.2353173    
+         1   0             -6.7699814      0             -6.7699814     -6.2120481    
+         2   0             -6.7596844      0             -6.7596844     -6.1418368    
+         3   0             -6.7420029      0             -6.7420029     -6.0231905    
+         4   0             -6.7161132      0             -6.7161132     -5.8534999    
+         5   0             -6.6808361      0             -6.6808361     -5.6291449    
+         6   0             -6.6344152      0             -6.6344152     -5.3453369    
+         7   0             -6.5752633      0             -6.5752633     -4.9977496    
+         8   0             -6.502724       0             -6.502724      -4.5844158    
+         9   0             -6.4153971      0             -6.4153971     -4.103842     
+        10   0             -6.3153532      0             -6.3153532     -3.5633405    
+Total wall time: 0:00:02

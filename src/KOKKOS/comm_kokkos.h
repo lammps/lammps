@@ -27,6 +27,7 @@ class CommKokkos : public CommBrick {
   bool exchange_comm_classic;
   bool forward_comm_classic;
   bool forward_pair_comm_classic;
+  bool reverse_pair_comm_classic;
   bool forward_fix_comm_classic;
   bool reverse_comm_classic;
   bool exchange_comm_on_host;
@@ -58,6 +59,7 @@ class CommKokkos : public CommBrick {
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_device(Pair *pair);
+  template<class DeviceType> void reverse_comm_device(Pair *pair);
   template<class DeviceType> void forward_comm_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();

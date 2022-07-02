@@ -470,6 +470,12 @@ This will most likely cause errors in kinetic fluctuations.
 *More than one compute sna/atom*
    Self-explanatory.
 
+*More than one compute sna/grid*
+   Self-explanatory.
+
+*More than one compute sna/grid/local*
+   Self-explanatory.
+
 *More than one compute snad/atom*
    Self-explanatory.
 

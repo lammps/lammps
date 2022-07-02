@@ -284,6 +284,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`smd/vol <compute_smd_vol>` - per-particle volumes and their sum in Smooth Mach Dynamics
 * :doc:`snap <compute_sna_atom>` - gradients of SNAP energy and forces w.r.t. linear coefficients and related quantities for fitting SNAP potentials
 * :doc:`sna/atom <compute_sna_atom>` - bispectrum components for each atom
+* :doc:`sna/grid <compute_sna_atom>` - global array of bispectrum components on a regular grid
+* :doc:`sna/grid/local <compute_sna_atom>` - local array of bispectrum components on a regular grid
 * :doc:`snad/atom <compute_sna_atom>` - derivative of bispectrum components for each atom
 * :doc:`snav/atom <compute_sna_atom>` - virial contribution from bispectrum components for each atom
 * :doc:`sph/e/atom <compute_sph_e_atom>` - per-atom internal energy of Smooth-Particle Hydrodynamics atoms

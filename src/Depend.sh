@@ -127,6 +127,10 @@ if (test $1 = "MANYBODY") then
   depend OPENMP
 fi
 
+if (test $1 = "MEAM") then
+  depend KOKKOS
+fi
+
 if (test $1 = "MOLECULE") then
   depend EXTRA-MOLECULE
   depend GPU

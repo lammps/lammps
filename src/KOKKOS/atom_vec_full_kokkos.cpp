@@ -1186,6 +1186,9 @@ int AtomVecFullKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nr
                                               ExecutionSpace space) {
   const size_t elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
     5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
+
+  while (nlocal + nrecv/elements >= nmax) grow(0);
+
   if (space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecFullKokkos_UnpackExchangeFunctor<LMPHostType>

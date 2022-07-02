@@ -74,17 +74,17 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
 
     if (d_rho0[i] > 0.0) {
       if (ialloy == 1) {
-	d_t_ave(i,0) = fdiv_zero_kk(d_t_ave(i,0), d_tsq_ave(i,0));
-	d_t_ave(i,1) = fdiv_zero_kk(d_t_ave(i,1), d_tsq_ave(i,1));
-	d_t_ave(i,2) = fdiv_zero_kk(d_t_ave(i,2), d_tsq_ave(i,2));
+        d_t_ave(i,0) = fdiv_zero_kk(d_t_ave(i,0), d_tsq_ave(i,0));
+        d_t_ave(i,1) = fdiv_zero_kk(d_t_ave(i,1), d_tsq_ave(i,1));
+        d_t_ave(i,2) = fdiv_zero_kk(d_t_ave(i,2), d_tsq_ave(i,2));
       } else if (ialloy == 2) {
-	d_t_ave(i,0) = t1_meam[elti];
-	d_t_ave(i,1) = t2_meam[elti];
-	d_t_ave(i,2) = t3_meam[elti];
+        d_t_ave(i,0) = t1_meam[elti];
+        d_t_ave(i,1) = t2_meam[elti];
+        d_t_ave(i,2) = t3_meam[elti];
       } else {
-	d_t_ave(i,0) /= d_rho0[i];
-	d_t_ave(i,1) /= d_rho0[i];
-	d_t_ave(i,2) /= d_rho0[i];
+        d_t_ave(i,0) /= d_rho0[i];
+        d_t_ave(i,1) /= d_rho0[i];
+        d_t_ave(i,2) /= d_rho0[i];
       }
     }
 
@@ -105,28 +105,28 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       dGbar = 0.0;
     } else {
       if (mix_ref_t == 1)
-	gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
+        gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
       else
-	gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /
-	      (Z * Z);
+        gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /
+              (Z * Z);
       Gbar = G_gam(gam, ibar_meam[elti], d_errorflag());
     }
     d_rho[i] = d_rho0[i] * G;
 
     if (mix_ref_t == 1) {
       if (ibar_meam[elti] <= 0) {
-	Gbar = 1.0;
-	dGbar = 0.0;
+        Gbar = 1.0;
+        dGbar = 0.0;
       } else {
-	gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
-	Gbar = dG_gam(gam, ibar_meam[elti], dGbar);
+        gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
+        Gbar = dG_gam(gam, ibar_meam[elti], dGbar);
       }
       rho_bkgd = rho0_meam[elti] * Z * Gbar;
     } else {
       if (bkgd_dyn == 1)
-	rho_bkgd = rho0_meam[elti] * Z;
+        rho_bkgd = rho0_meam[elti] * Z;
       else
-	rho_bkgd = rho_ref_meam[elti];
+        rho_bkgd = rho_ref_meam[elti];
     }
     rhob = d_rho[i] / rho_bkgd;
     denom = 1.0 / rho_bkgd;

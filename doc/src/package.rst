@@ -528,7 +528,7 @@ For the *comm/pair/forward* or *comm/fix/forward* or *comm/pair/reverse*
 keywords, if a value of *host* is used it will be automatically
 be changed to *no* since these keywords don't support *host* mode. The
 value of *no* will also always be used when running on the CPU, i.e. setting
-the value to *device* will have no effect if the pair/fix style is 
+the value to *device* will have no effect if the pair/fix style is
 running on the CPU. For the *comm/fix/forward* or *comm/pair/reverse*
 keywords, not all styles support *device* mode and in that case will run
 in *no* mode instead.

@@ -308,7 +308,7 @@ void PairMEAMKokkos<DeviceType>::init_style()
 
 template<class DeviceType>
 int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                                int pbc_flag, int *pbc)
+                                int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;

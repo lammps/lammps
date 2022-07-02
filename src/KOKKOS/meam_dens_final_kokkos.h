@@ -40,7 +40,7 @@ MEAMKokkos<DeviceType>::meam_dens_final(int nlocal, int eflag_either, int eflag_
 
   copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagMEAMDensFinal>(0,nlocal),*this,ev);
-  ev_all.evdwl =+ ev.evdwl;
+  ev_all.evdwl += ev.evdwl;
   copymode = 0;
 
   auto h_errorflag = Kokkos::create_mirror_view_and_copy(LMPHostType(),d_errorflag);

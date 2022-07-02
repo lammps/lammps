@@ -63,11 +63,8 @@ PairSNAP::~PairSNAP()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-
-  if (switchinnerflag) {
-    memory->destroy(sinnerelem);
-    memory->destroy(dinnerelem);
-  }
+  memory->destroy(sinnerelem);
+  memory->destroy(dinnerelem);
 
   memory->destroy(beta);
   memory->destroy(bispectrum);

@@ -156,27 +156,28 @@ and Boolean operators:
 Each A and B is a number or string or a variable reference like $a or
 ${abc}, or A or B can be another Boolean expression.
 
-If a variable is used it can produce a number when evaluated, like an
-:doc:`equal-style variable <variable>`.  Or it can produce a string,
-like an :doc:`index-style variable <variable>`.  For an individual
-Boolean operator, A and B must both be numbers or must both be
-strings.  You cannot compare a number to a string.
+Note that all variables used will be substituted for before the
+Boolean expression in evaluated.  A variable can produce a number,
+like an :doc:`equal-style variable <variable>`.  Or it can produce a
+string, like an :doc:`index-style variable <variable>`.
+
+The Boolean operators "==" and "!=" can operate on a pair or strings
+or numbers.  They cannot compare a number to a string.  All the other
+Boolean operations can only operate on numbers.
 
 Expressions are evaluated left to right and have the usual C-style
 precedence: the unary logical NOT operator "!" has the highest
 precedence, the 4 relational operators "<", "<=", ">", and ">=" are
 next; the two remaining relational operators "==" and "!=" are next;
 then the logical AND operator "&&"; and finally the logical OR
-operator "\|\|" and logical XOR (exclusive or) operator "\|\^" have the
-lowest precedence.  Parenthesis can be used to group one or more
+operator "\|\|" and logical XOR (exclusive or) operator "\|\^" have
+the lowest precedence.  Parenthesis can be used to group one or more
 portions of an expression and/or enforce a different order of
 evaluation than what would occur with the default precedence.
 
 When the 6 relational operators (first 6 in list above) compare 2
 numbers, they return either a 1.0 or 0.0 depending on whether the
-relationship between A and B is TRUE or FALSE.  When the 6 relational
-operators compare 2 strings, they also return a 1.0 or 0.0 for TRUE or
-FALSE, but the comparison is done by the C function strcmp().
+relationship between A and B is TRUE or FALSE.
 
 When the 3 logical operators (last 3 in list above) compare 2 numbers,
 they also return either a 1.0 or 0.0 depending on whether the
@@ -190,8 +191,16 @@ returns 1.0 if its argument is 0.0, else it returns 0.0.  The 3
 logical operators can only be used to operate on numbers, not on
 strings.
 
-The overall Boolean expression produces a TRUE result if the result is
-non-zero.  If the result is zero, the expression result is FALSE.
+The overall Boolean expression produces a TRUE result if the numeric
+result is non-zero.  If the result is zero, the expression result is
+FALSE.
+
+.. note::
+
+   If the Boolean expression is a single numeric value with no Boolean
+   operators, it will be FALSE if the value = 0.0, otherwise TRUE.  If
+   the Boolean expression is a single string, an error message will be
+   issued.
 
 ----------
 

@@ -53,20 +53,13 @@ class ComputeSnap : public Compute {
   double cutmax;
   int quadraticflag;
   int bikflag, bik_rows, dgradflag, dgrad_rows;
-  double **dgrad; // First ncoeff columns are descriptor derivatives.
-                  // Last 3 columns are indices i,j,a
-  double **dbiri; // dBi/dRi = sum(-dBi/dRj) over neighbors j
-  int *nneighs; // number of neighs inside the snap cutoff.
-  int *neighsum;
-  int *icounter; // counting atoms i for each j.
   int rank;
 
   Compute *c_pe;
   Compute *c_virial;
 
   void dbdotr_compute();
-  void get_dgrad_length();
-  void get_dgrad_length2();
+
 };
 
 }    // namespace LAMMPS_NS

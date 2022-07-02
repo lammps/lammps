@@ -208,7 +208,11 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   if (bikflag) bik_rows = natoms;
   dgrad_rows = ndims_force*natoms;
   size_array_rows = bik_rows+dgrad_rows + ndims_virial;
-  if (dgradflag) size_array_cols = nperdim + 3;
+  if (dgradflag){
+    size_array_rows = bik_rows + 3*natoms*natoms + 1;
+    size_array_cols = nperdim + 3;
+    error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
+  }
   else size_array_cols = nperdim*atom->ntypes + 1;
   lastcol = size_array_cols-1;
 
@@ -236,13 +240,7 @@ ComputeSnap::~ComputeSnap()
     memory->destroy(sinnerelem);
     memory->destroy(dinnerelem);
   }
-  if (dgradflag){
-    memory->destroy(dgrad);
-    memory->destroy(nneighs);
-    memory->destroy(neighsum);
-    memory->destroy(icounter);
-    memory->destroy(dbiri);
-  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -305,9 +303,6 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeSnap::compute_array()
 {
-
-  if (dgradflag) get_dgrad_length();
-  //  if (dgradflag) get_dgrad_length2();
 
   int ntotal = atom->nlocal + atom->nghost;
 
@@ -448,195 +443,130 @@ void ComputeSnap::compute_array()
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
 
-        if (dgradflag){
-          dgrad_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ;
-          icounter[atom->tag[j]-1] += 1;
-        }
-
         snaptr->compute_duidrj(jj);
         snaptr->compute_dbidrj();
 
         // accumulate dBi/dRi, -dBi/dRj
 
-	if (!dgradflag) {
+	      if (!dgradflag) {
 
-	  double *snadi = snap_peratom[i]+typeoffset_local;
-	  double *snadj = snap_peratom[j]+typeoffset_local;
+	         double *snadi = snap_peratom[i]+typeoffset_local;
+	         double *snadj = snap_peratom[j]+typeoffset_local;
 
-	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+	         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
 
-	    snadi[icoeff] += snaptr->dblist[icoeff][0];
-	    snadi[icoeff+yoffset] += snaptr->dblist[icoeff][1];
-	    snadi[icoeff+zoffset] += snaptr->dblist[icoeff][2];
+	           snadi[icoeff] += snaptr->dblist[icoeff][0];
+	           snadi[icoeff+yoffset] += snaptr->dblist[icoeff][1];
+	           snadi[icoeff+zoffset] += snaptr->dblist[icoeff][2];
 
-	    snadj[icoeff] -= snaptr->dblist[icoeff][0];
-	    snadj[icoeff+yoffset] -= snaptr->dblist[icoeff][1];
-	    snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
-	  }
+	           snadj[icoeff] -= snaptr->dblist[icoeff][0];
+	           snadj[icoeff+yoffset] -= snaptr->dblist[icoeff][1];
+	           snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
+	         }
 
-	  if (quadraticflag) {
-	    const int quadraticoffset = ncoeff;
-	    snadi += quadraticoffset;
-	    snadj += quadraticoffset;
-	    int ncount = 0;
-	    for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	      double bi = snaptr->blist[icoeff];
-	      double bix = snaptr->dblist[icoeff][0];
-	      double biy = snaptr->dblist[icoeff][1];
-	      double biz = snaptr->dblist[icoeff][2];
+	         if (quadraticflag) {
+	           const int quadraticoffset = ncoeff;
+	           snadi += quadraticoffset;
+	           snadj += quadraticoffset;
+	           int ncount = 0;
+	           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+	             double bi = snaptr->blist[icoeff];
+	             double bix = snaptr->dblist[icoeff][0];
+	             double biy = snaptr->dblist[icoeff][1];
+	             double biz = snaptr->dblist[icoeff][2];
 
-	      // diagonal elements of quadratic matrix
+	             // diagonal elements of quadratic matrix
 
-	      double dbxtmp = bi*bix;
-	      double dbytmp = bi*biy;
-	      double dbztmp = bi*biz;
+	             double dbxtmp = bi*bix;
+	             double dbytmp = bi*biy;
+	             double dbztmp = bi*biz;
 
-	      snadi[ncount] +=         dbxtmp;
-	      snadi[ncount+yoffset] += dbytmp;
-	      snadi[ncount+zoffset] += dbztmp;
-	      snadj[ncount] -=         dbxtmp;
-	      snadj[ncount+yoffset] -= dbytmp;
-	      snadj[ncount+zoffset] -= dbztmp;
+	             snadi[ncount] +=         dbxtmp;
+	             snadi[ncount+yoffset] += dbytmp;
+	             snadi[ncount+zoffset] += dbztmp;
+	             snadj[ncount] -=         dbxtmp;
+	             snadj[ncount+yoffset] -= dbytmp;
+	             snadj[ncount+zoffset] -= dbztmp;
 
-	      ncount++;
+	             ncount++;
 
-	      // upper-triangular elements of quadratic matrix
+	             // upper-triangular elements of quadratic matrix
 
-	      for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-		double dbxtmp = bi*snaptr->dblist[jcoeff][0]
-		  + bix*snaptr->blist[jcoeff];
-		double dbytmp = bi*snaptr->dblist[jcoeff][1]
-		  + biy*snaptr->blist[jcoeff];
-		double dbztmp = bi*snaptr->dblist[jcoeff][2]
-		  + biz*snaptr->blist[jcoeff];
+	             for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+		             double dbxtmp = bi*snaptr->dblist[jcoeff][0]
+		                           + bix*snaptr->blist[jcoeff];
+		             double dbytmp = bi*snaptr->dblist[jcoeff][1]
+		                           + biy*snaptr->blist[jcoeff];
+		             double dbztmp = bi*snaptr->dblist[jcoeff][2]
+		                           + biz*snaptr->blist[jcoeff];
 
-		snadi[ncount] +=         dbxtmp;
-		snadi[ncount+yoffset] += dbytmp;
-		snadi[ncount+zoffset] += dbztmp;
-		snadj[ncount] -=         dbxtmp;
-		snadj[ncount+yoffset] -= dbytmp;
-		snadj[ncount+zoffset] -= dbztmp;
+		             snadi[ncount] +=         dbxtmp;
+		             snadi[ncount+yoffset] += dbytmp;
+		             snadi[ncount+zoffset] += dbztmp;
+		             snadj[ncount] -=         dbxtmp;
+		             snadj[ncount+yoffset] -= dbytmp;
+		             snadj[ncount+zoffset] -= dbztmp;
 
-		ncount++;
-	      }
+		             ncount++;
+	             }
+	           }
+	         }
+	       } else {
 
-	    }
+	         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
 
-	  }
+             // add to snap array for this proc
 
-	} else {
+             // dBi/dRj
 
-	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+             snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] -= snaptr->dblist[icoeff][0];
+             snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] -= snaptr->dblist[icoeff][1];
+             snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] -= snaptr->dblist[icoeff][2];
 
-	    // sign convention same as compute snad
-      /*
-	    dgrad[dgrad_row_indx+0][icoeff] = -snaptr->dblist[icoeff][0];
-	    dgrad[dgrad_row_indx+1][icoeff] = -snaptr->dblist[icoeff][1];
-	    dgrad[dgrad_row_indx+2][icoeff] = -snaptr->dblist[icoeff][2];
+             // dBi/dRi
 
-	    // accumulate dBi/dRi = sum (-dBi/dRj) for neighbors j of if i
+             snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] += snaptr->dblist[icoeff][0];
+             snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] += snaptr->dblist[icoeff][1];
+             snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] += snaptr->dblist[icoeff][2];
+	         }
 
-	    dbiri[3*(atom->tag[i]-1)+0][icoeff] += snaptr->dblist[icoeff][0];
-	    dbiri[3*(atom->tag[i]-1)+1][icoeff] += snaptr->dblist[icoeff][1];
-	    dbiri[3*(atom->tag[i]-1)+2][icoeff] += snaptr->dblist[icoeff][2];
-      */
+	       }
 
-      // add to snap array for this proc
-      // dBi/dRj
-      snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] -= snaptr->dblist[icoeff][0];
-      snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] -= snaptr->dblist[icoeff][1];
-      snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] -= snaptr->dblist[icoeff][2];
-      // dBi/dRi
-      snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] += snaptr->dblist[icoeff][0];
-      snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] += snaptr->dblist[icoeff][1];
-      snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] += snaptr->dblist[icoeff][2];
-	  }
-
-    /*
-	  dgrad[dgrad_row_indx+0][ncoeff] = atom->tag[i]-1;
-	  dgrad[dgrad_row_indx+0][ncoeff+1] = atom->tag[j]-1;
-	  dgrad[dgrad_row_indx+0][ncoeff+2] = 0;
-	  dgrad[dgrad_row_indx+1][ncoeff] = atom->tag[i]-1;
-	  dgrad[dgrad_row_indx+1][ncoeff+1] = atom->tag[j]-1;
-	  dgrad[dgrad_row_indx+1][ncoeff+2] = 1;
-	  dgrad[dgrad_row_indx+2][ncoeff] = atom->tag[i]-1;
-	  dgrad[dgrad_row_indx+2][ncoeff+1] = atom->tag[j]-1;
-	  dgrad[dgrad_row_indx+2][ncoeff+2] = 2;
-
-	  dbiri[3*(atom->tag[i]-1)+0][ncoeff] = atom->tag[i]-1;
-	  dbiri[3*(atom->tag[i]-1)+0][ncoeff+1] = atom->tag[i]-1;
-	  dbiri[3*(atom->tag[i]-1)+0][ncoeff+2] = 0;
-
-	  dbiri[3*(atom->tag[i]-1)+1][ncoeff] = atom->tag[i]-1;
-	  dbiri[3*(atom->tag[i]-1)+1][ncoeff+1] = atom->tag[i]-1;
-	  dbiri[3*(atom->tag[i]-1)+1][ncoeff+2] = 1;
-
-	  dbiri[3*(atom->tag[i]-1)+2][ncoeff] = atom->tag[i]-1;
-	  dbiri[3*(atom->tag[i]-1)+2][ncoeff+1] = atom->tag[i]-1;
-	  dbiri[3*(atom->tag[i]-1)+2][ncoeff+2] = 2;
-    */
-
-    // add to snap array for this proc
-    // dBi/dRj tags
-    /*
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = atom->tag[j]-1;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][2] = 0;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][0] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][1] = atom->tag[j]-1;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][2] = 1;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][0] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][1] = atom->tag[j]-1;
-    snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][2] = 2;
-    */
-
-    // dBi/dRi tags
-    /*
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][2] = 0;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][0] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][1] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][2] = 1;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][0] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][1] = atom->tag[i]-1;
-    snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][2] = 2;
-    */
-
-	}
-} // loop over jj inside
+      } // loop over jj inside
 
       // accumulate Bi
 
       if (!dgradflag) {
 
-	// linear contributions
+	      // linear contributions
 
         int k = typeoffset_global;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++)
           snap[irow][k++] += snaptr->blist[icoeff];
 
-	// quadratic contributions
+	      // quadratic contributions
 
-	if (quadraticflag) {
-	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	    double bveci = snaptr->blist[icoeff];
-	    snap[irow][k++] += 0.5*bveci*bveci;
-	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-	      double bvecj = snaptr->blist[jcoeff];
-	      snap[irow][k++] += bveci*bvecj;
-	    }
-	  }
-	}
+	      if (quadraticflag) {
+  	      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+  	        double bveci = snaptr->blist[icoeff];
+  	        snap[irow][k++] += 0.5*bveci*bveci;
+  	        for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+  	          double bvecj = snaptr->blist[jcoeff];
+  	          snap[irow][k++] += bveci*bvecj;
+  	        }
+  	      }
+	      }
 
       } else {
-        int k = 3;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-          snap[irow][k++] += snaptr->blist[icoeff];
-	numneigh_sum += ninside;
-      }
-    }
-  }
+          int k = 3;
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+            snap[irow][k++] += snaptr->blist[icoeff];
+  	      numneigh_sum += ninside;
+        }
+
+    } // if (mask[i] & groupbit)
+
+  } // for (int ii = 0; ii < inum; ii++) {
 
   // accumulate bispectrum force contributions to global array
 
@@ -656,8 +586,6 @@ void ComputeSnap::compute_array()
         }
       }
     }
-
-  } else {
 
   }
 
@@ -702,9 +630,8 @@ void ComputeSnap::compute_array()
 
   } else {
 
-    // Assign reference energy right after the dgrad rows, first column.
-    // Add 3N for the dBi/dRi rows.
-    //int irow = bik_rows + dgrad_rows + 3*natoms;
+    // assign reference energy right after the dgrad rows, first column
+
     int irow = bik_rows + 3*natoms*natoms;
     double reference_energy = c_pe->compute_scalar();
     snapall[irow][0] = reference_energy;
@@ -764,194 +691,6 @@ void ComputeSnap::dbdotr_compute()
         snap[irow][icoeff+typeoffset_global] += dbdy*x[i][0];
       }
     }
-}
-
-/* ----------------------------------------------------------------------
-   compute dgrad length
-------------------------------------------------------------------------- */
-
-void ComputeSnap::get_dgrad_length()
-{
-
-  rank = universe->me; // for MPI debugging
-
-  memory->destroy(snap);
-  memory->destroy(snapall);
-
-  // invoke full neighbor list
-
-  neighbor->build_one(list);
-  dgrad_rows = 0;
-  const int inum = list->inum;
-  const int* const ilist = list->ilist;
-  const int* const numneigh = list->numneigh;
-  int** const firstneigh = list->firstneigh;
-  int * const type = atom->type;
-  const int* const mask = atom->mask;
-  double** const x = atom->x;
-
-  memory->create(neighsum, natoms, "snap:neighsum");
-  memory->create(nneighs, natoms, "snap:nneighs");
-  memory->create(icounter, natoms, "snap:icounter");
-  memory->create(dbiri, 3*natoms,ncoeff+3, "snap:dbiri");
-  //if (atom->nlocal != natoms)
-  //  error->all(FLERR,"Compute snap dgradflag=1 does not support parallelism yet.");
-
-  for (int ii = 0; ii < 3 * natoms; ii++)
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-      dbiri[ii][icoeff] = 0.0;
-
-  for (int ii = 0; ii < inum; ii++) {
-    const int i = ilist[ii];
-    if (mask[i] & groupbit) {
-      icounter[i] = 0;
-      nneighs[i] = 0;
-      const double xtmp = x[i][0];
-      const double ytmp = x[i][1];
-      const double ztmp = x[i][2];
-      const int itype = type[i];
-      const int* const jlist = firstneigh[i];
-      const int jnum = numneigh[i];
-      for (int jj = 0; jj < jnum; jj++) {
-        int j = jlist[jj];
-        j &= NEIGHMASK;
-
-        const double delx = x[j][0] - xtmp;
-        const double dely = x[j][1] - ytmp;
-        const double delz = x[j][2] - ztmp;
-        const double rsq = delx * delx + dely * dely + delz * delz;
-        int jtype = type[j];
-
-        if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
-          dgrad_rows++;
-          nneighs[i]++;
-        }
-      }
-    }
-  }
-
-  dgrad_rows *= ndims_force;
-
-  neighsum[0] = 0;
-  for (int ii = 1; ii < inum; ii++) {
-    const int i = ilist[ii];
-    if (mask[i] & groupbit)
-      neighsum[i] = neighsum[i-1] + nneighs[i-1];
-  }
-
-  memory->create(dgrad, dgrad_rows, ncoeff+3, "snap:dgrad");
-  for (int i = 0; i < dgrad_rows; i++)
-    for (int j = 0; j < ncoeff+3; j++)
-      dgrad[i][j] = 0.0;
-
-  // set size array rows which now depends on dgrad_rows.
-
-  //size_array_rows = bik_rows + dgrad_rows + 3*atom->nlocal + 1; // Add 3*N for dBi/dRi. and add 1 for reference energy
-  size_array_rows = bik_rows + 3*natoms*natoms + 1;
-  //printf("----- dgrad_rows, 3*natoms*natoms: %d %d\n", dgrad_rows, 3*natoms*natoms);
-
-  memory->create(snap,size_array_rows,size_array_cols, "snap:snap");
-  memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
-  array = snapall;
-
-}
-
-/* ----------------------------------------------------------------------
-   compute dgrad length
-------------------------------------------------------------------------- */
-
-void ComputeSnap::get_dgrad_length2()
-{
-  memory->destroy(snap);
-  memory->destroy(snapall);
-
-  // invoke full neighbor list
-
-  neighbor->build_one(list);
-  dgrad_rows = 0;
-  const int inum = list->inum;
-  const int* const ilist = list->ilist;
-  const int* const numneigh = list->numneigh;
-  int** const firstneigh = list->firstneigh;
-  int * const type = atom->type;
-  const int* const mask = atom->mask;
-  double** const x = atom->x;
-
-  memory->create(neighsum, natoms, "snap:neighsum");
-  memory->create(nneighs, natoms, "snap:nneighs");
-  memory->create(icounter, natoms, "snap:icounter");
-  memory->create(dbiri, 3*natoms,ncoeff+3, "snap:dbiri");
-  if (atom->nlocal != natoms)
-    error->all(FLERR,"Compute snap dgradflag=1 does not support parallelism yet.");
-
-  for (int ii = 0; ii < 3 * natoms; ii++)
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-      dbiri[ii][icoeff] = 0.0;
-
-  for (int ii = 0; ii < inum; ii++) {
-    const int i = ilist[ii];
-    if (mask[i] & groupbit) {
-      icounter[i] = 0;
-      nneighs[i] = 0;
-      const double xtmp = x[i][0];
-      const double ytmp = x[i][1];
-      const double ztmp = x[i][2];
-      const int itype = type[i];
-      const int* const jlist = firstneigh[i];
-      const int jnum = numneigh[i];
-      for (int jj = 0; jj < jnum; jj++) {
-        int j = jlist[jj];
-        j &= NEIGHMASK;
-
-        const double delx = x[j][0] - xtmp;
-        const double dely = x[j][1] - ytmp;
-        const double delz = x[j][2] - ztmp;
-        const double rsq = delx * delx + dely * dely + delz * delz;
-        int jtype = type[j];
-
-        if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
-          dgrad_rows++;
-          nneighs[i]++;
-        }
-      }
-    }
-  }
-
-  dgrad_rows *= ndims_force;
-
-  // loop over all atoms again to calculate neighsum
-
-  // for (int ii = 0; ii < inum; ii++) {
-  //   const int i = ilist[ii];
-  //   if (mask[i] & groupbit) {
-  //     for (int jj = 0; jj < ii; jj++) {
-  // 	const int j = ilist[jj];
-  // 	if (mask[j] & groupbit)
-  // 	  neighsum[i] += nneighs[j];
-  //     }
-  //   }
-  // }
-
-  neighsum[0] = 0;
-  for (int ii = 1; ii < inum; ii++) {
-    const int i = ilist[ii];
-    if (mask[i] & groupbit)
-      neighsum[i] = neighsum[i-1] + nneighs[i-1];
-  }
-
-  memory->create(dgrad, dgrad_rows, ncoeff+3, "snap:dgrad");
-  for (int i = 0; i < dgrad_rows; i++)
-    for (int j = 0; j < ncoeff+3; j++)
-      dgrad[i][j] = 0.0;
-
-  // set size array rows which now depends on dgrad_rows.
-
-  size_array_rows = bik_rows + dgrad_rows + 3*atom->nlocal + 1; // Add 3*N for dBi/dRi. and add 1 for reference energy
-
-  memory->create(snap,size_array_rows,size_array_cols, "snap:snap");
-  memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
-  array = snapall;
-
 }
 
 /* ----------------------------------------------------------------------

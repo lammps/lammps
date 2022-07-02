@@ -6,7 +6,7 @@ Purpose: Demonstrate extraction of descriptor gradient (dB/dR) array from comput
 Serial syntax:
     python compute_snap_dgrad.py
 Parallel syntax:
-    mpirun -np 2 python compute_snap_dgrad.py
+    mpirun -np 4 python compute_snap_dgrad.py
 """
 
 from __future__ import print_function

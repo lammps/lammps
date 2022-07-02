@@ -134,15 +134,17 @@ three-body term of the potential is calculated.  The default value is
 but not available for the *sw/mod* and :doc:`sw/angle/table
 <pair_sw_angle_table>` pair style variants.  To turn off the threebody
 contributions all :math:`\lambda_{ijk}` parameters from the potential
-file are forcibly set to 0.  In addition the pair style implementations
+file are forcibly set to 0.  In addition the pair style implementation
 may employ code optimizations for the *threebody off* setting that can
-result in significant speedups versus the default.
+result in significant speedups versus the default.  These code optimizations
+are currently only available for the MANYBODY and OPENMP packages.
 
-Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
-which specifies a Stillinger-Weber potential file with parameters for all
-needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair_coeff command,
-where N is the number of LAMMPS atom types:
+Only a single pair_coeff command is used with the *sw* and *sw/mod*
+styles which specifies a Stillinger-Weber potential file with parameters
+for all needed elements, except for when the *threebody off* setting is
+used (see note below).  These are mapped to LAMMPS atom types by
+specifying N additional arguments after the filename in the pair_coeff
+command, where N is the number of LAMMPS atom types:
 
 * filename
 * N element names = mapping of SW elements to atom types
@@ -157,20 +159,20 @@ pair_coeff command:
 
 .. code-block:: LAMMPS
 
+   pair_style sw
    pair_coeff * * SiC.sw Si Si Si C
 
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
-The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
-element in the SW file.  The final C argument maps LAMMPS atom type 4
-to the C element in the SW file.  If a mapping value is specified as
-NULL, the mapping is not performed.  This can be used when a *sw*
+The first three Si arguments map LAMMPS atom types 1, 2, and 3 to the Si
+element in the SW file.  The final C argument maps LAMMPS atom type 4 to
+the C element in the SW file.  If an argument value is specified as
+NULL, the mapping is not performed.  This can be used when an *sw*
 potential is used as part of the *hybrid* pair style.  The NULL values
-are placeholders for atom types that will be used with other
-potentials.
+are placeholders for atom types that will be used with other potentials.
 
 .. note::
 
-   When the *skip_threebody on* keyword is used, multiple pair_coeff commands may 
+   When the *threebody off* keyword is used, multiple pair_coeff commands may
    be used to specific the pairs of atoms which don't require three-body term.
    In these cases, the first 2 arguments are not required to be \* \*.
 
@@ -276,30 +278,39 @@ described above from values in the potential file.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart
+files <restart>`, since it is stored in potential files.  Thus, you need
+to re-specify the pair_style and pair_coeff commands in an input script
+that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
+
+The single() function of the *sw* pair style is only enabled and
+supported for the case of the *threebody off* setting.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This pair style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 The Stillinger-Weber potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
-You can use the SW potential with any LAMMPS units, but you would need
-to create your own SW potential file with coefficients listed in the
-appropriate units if your simulation does not use "metal" units.
+You can use the sw or sw/mod pair styles with any LAMMPS units, but you
+would need to create your own SW potential file with coefficients listed
+in the appropriate units if your simulation does not use "metal" units.
+If the potential file contains a 'UNITS:' metadata tag in the first line
+of the potential file, then LAMMPS can convert it transparently between
+"metal" and "real" units.
+
 
 Related commands
 """"""""""""""""

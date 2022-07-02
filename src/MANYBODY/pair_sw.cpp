@@ -245,7 +245,10 @@ void PairSW::settings(int narg, char ** arg)
     if (strcmp(arg[iarg],"threebody") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style sw", error);
       skip_threebody_flag = !utils::logical(FLERR,arg[iarg+1],false,lmp);
-      one_coeff = !skip_threebody_flag;
+      // without the threebody terms we don't need to enforce
+      // pair_coeff * * and can enable the single function.
+      one_coeff = skip_threebody_flag ? 0 : 1;
+      single_enable = skip_threebody_flag ? 1 : 0;
       iarg += 2;
     } else error->all(FLERR, "Illegal pair_style sw keyword: {}", arg[iarg]);
   }
@@ -295,6 +298,19 @@ double PairSW::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   return cutmax;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairSW::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                      double /*factor_coul*/, double /*factor_lj*/, double &fforce)
+{
+  int ijparam = elem3param[map[itype]][map[jtype]][map[jtype]];
+  double phisw = 0.0;
+  fforce = 0.0;
+
+  if (rsq < params[ijparam].cutsq) twobody(&params[ijparam],rsq,fforce,1,phisw);
+  return phisw;
 }
 
 /* ---------------------------------------------------------------------- */

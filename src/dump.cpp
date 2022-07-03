@@ -332,6 +332,7 @@ void Dump::write()
   // if file per timestep, open new file
 
   if (multifile) openfile();
+  if (fp) clearerr(fp);
 
   // simulation box bounds
 
@@ -518,6 +519,8 @@ void Dump::write()
   if (refreshflag) modify->compute[irefresh]->refresh();
 
   if (filewriter && fp != nullptr) write_footer();
+
+  if (fp && ferror(fp)) error->one(FLERR,"Error writing dump {}: {}", id, utils::getsyserror());
 
   // if file per timestep, close file if I am filewriter
 

@@ -1,7 +1,10 @@
 .. index:: pair_style meam
+.. index:: pair_style meam/kk
 
 pair_style meam command
 =========================
+
+Accelerator Variants: *meam/kk*
 
 Syntax
 """"""
@@ -346,6 +349,12 @@ this function is:
 Most published MEAM parameter sets use the default values *attrac* = *repulse* = 0.
 Setting *repuls* = *attrac* = *delta* corresponds to the form used in several
 recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 .. note::
 

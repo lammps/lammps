@@ -248,7 +248,7 @@ accelerated styles exist.
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
-* :doc:`mdi/aimd <fix_mdi_aimd>` - LAMMPS operates as driver for ab initio MD (AIMD) via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as driver for a quantum code via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms

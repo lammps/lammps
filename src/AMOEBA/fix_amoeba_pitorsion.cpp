@@ -152,7 +152,7 @@ void FixAmoebaPiTorsion::init()
 
   // check if PairAmoeba or PairHippo disabled pitorsion terms
 
-  Pair *pair = NULL;
+  Pair *pair = nullptr;
   pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
 

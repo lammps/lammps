@@ -228,12 +228,12 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
     memory->create3d_offset(grid_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                             nxlo_out,nxhi_out,"amoeba:grid_brick");
     grid_brick_start = &grid_brick[nzlo_out][nylo_out][nxlo_out];
-    cgrid_brick = NULL;
+    cgrid_brick = nullptr;
   } else {
     memory->create4d_offset_last(cgrid_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                                  nxlo_out,nxhi_out,2,"amoeba:cgrid_brick");
     grid_brick_start = &cgrid_brick[nzlo_out][nylo_out][nxlo_out][0];
-    grid_brick = NULL;
+    grid_brick = nullptr;
   }
 
   memory->create(grid_fft,ngrid_either,"amoeba:grid_fft");
@@ -283,7 +283,7 @@ void *AmoebaConvolution::zero()
 
 void *AmoebaConvolution::zero_3d()
 {
-  if (!grid_brick) return NULL;
+  if (!grid_brick) return nullptr;
   memset(&(grid_brick[nzlo_out][nylo_out][nxlo_out]),0,
          nbrick_ghosts*sizeof(FFT_SCALAR));
   return (void *) grid_brick;
@@ -293,7 +293,7 @@ void *AmoebaConvolution::zero_3d()
 
 void *AmoebaConvolution::zero_4d()
 {
-  if (!cgrid_brick) return NULL;
+  if (!cgrid_brick) return nullptr;
   memset(&(cgrid_brick[nzlo_out][nylo_out][nxlo_out][0]),0,
          2*nbrick_ghosts*sizeof(FFT_SCALAR));
   return (void *) cgrid_brick;

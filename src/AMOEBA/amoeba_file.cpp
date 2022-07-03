@@ -85,7 +85,7 @@ void PairAmoeba::read_prmfile(char *filename)
 
   if (me == 0) {
     fptr = utils::open_potential(filename,lmp,nullptr);
-    if (fptr == NULL) {
+    if (fptr == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open AMOEBA PRM file %s",filename);
       error->one(FLERR,str);
@@ -102,7 +102,7 @@ void PairAmoeba::read_prmfile(char *filename)
   int atomtype_flag = 0;
   int section;
 
-  while (1) {
+  while (true) {
     if (me == 0) n = read_section_name(fptr,line);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n < 0) break;
@@ -148,7 +148,7 @@ void PairAmoeba::read_prmfile(char *filename)
 
     nextflag = 0;
 
-    while (1) {
+    while (true) {
       if (me == 0) n = read_section_line(fptr,line,nextflag,next);
       MPI_Bcast(&n,1,MPI_INT,0,world);
       if (n < 0) break;
@@ -264,7 +264,7 @@ void PairAmoeba::read_keyfile(char *filename)
   char line[MAXLINE];
   if (me == 0) {
     fptr = utils::open_potential(filename,lmp,nullptr);
-    if (fptr == NULL)
+    if (fptr == nullptr)
       error->one(FLERR,"Cannot open AMOEBA key file {}: {}",filename, utils::getsyserror());
   }
 
@@ -273,7 +273,7 @@ void PairAmoeba::read_keyfile(char *filename)
   int n;
   char *ptr,*keyword;
 
-  while (1) {
+  while (true) {
     if (me == 0) {
       ptr = fgets(line,MAXLINE,fptr);
       if (!ptr) n = -1;
@@ -556,7 +556,7 @@ int PairAmoeba::read_section_name(FILE *fp, char *line)
   char **words;
   int nwords;
 
-  while (1) {
+  while (true) {
     ptr = fgets(line,MAXLINE,fp);
     if (!ptr) return -1;
     if (strspn(line," \t\n\r") == strlen(line)) continue;
@@ -612,10 +612,10 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
   char **words,**words_next;
   int nwords, nwords_next;
 
-  copy = copy_next = NULL;
-  words = words_next = NULL;
+  copy = copy_next = nullptr;
+  words = words_next = nullptr;
 
-  while (1) {
+  while (true) {
     if (nextflag) {
       strcpy(line,next);
       nextflag = 0;
@@ -634,11 +634,11 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
     if (strstr(words[0],"#") || strstr(words[0],"!!") || !isalpha(words[0][0])) {
       delete[] words;
       delete[] copy;
-      words = NULL;
-      copy = NULL;
+      words = nullptr;
+      copy = nullptr;
       continue;
     }
-    while (1) {
+    while (true) {
       ptr = fgets(next,MAXLINE,fp);
       if (!ptr) {
         nextflag = 0;
@@ -1236,48 +1236,48 @@ void PairAmoeba::initialize_type_class()
 
   // per type data
 
-  amtype_defined = NULL;
-  amtype2class = NULL;
-  atomic_num = NULL;
-  valence = NULL;
-  am_mass = NULL;
-  am_q = NULL;
-  am_mu = NULL;
-  npolgroup = NULL;
-  polgroup = NULL;
-  polarity = NULL;
-  pdamp = NULL;
-  thole = NULL;
-  dirdamp = NULL;
-  sizpr = NULL;
-  dmppr = NULL;
-  elepr = NULL;
+  amtype_defined = nullptr;
+  amtype2class = nullptr;
+  atomic_num = nullptr;
+  valence = nullptr;
+  am_mass = nullptr;
+  am_q = nullptr;
+  am_mu = nullptr;
+  npolgroup = nullptr;
+  polgroup = nullptr;
+  polarity = nullptr;
+  pdamp = nullptr;
+  thole = nullptr;
+  dirdamp = nullptr;
+  sizpr = nullptr;
+  dmppr = nullptr;
+  elepr = nullptr;
 
-  nmultiframe = NULL;
-  mpaxis = NULL;
-  xpole = NULL;
-  ypole = NULL;
-  zpole = NULL;
-  fpole = NULL;
+  nmultiframe = nullptr;
+  mpaxis = nullptr;
+  xpole = nullptr;
+  ypole = nullptr;
+  zpole = nullptr;
+  fpole = nullptr;
 
   // per class data
 
-  amclass_defined = NULL;
-  vdwl_eps = NULL;
-  vdwl_sigma = NULL;
-  kred = NULL;
-  csix = NULL;
-  adisp = NULL;
-  chgct = NULL;
-  dmpct = NULL;
-  pcore = NULL;
-  palpha = NULL;
+  amclass_defined = nullptr;
+  vdwl_eps = nullptr;
+  vdwl_sigma = nullptr;
+  kred = nullptr;
+  csix = nullptr;
+  adisp = nullptr;
+  chgct = nullptr;
+  dmpct = nullptr;
+  pcore = nullptr;
+  palpha = nullptr;
 
   // other
 
-  vdwl_class_pair = NULL;
-  vdwl_sigma_pair = NULL;
-  vdwl_eps_pair = NULL;
+  vdwl_class_pair = nullptr;
+  vdwl_sigma_pair = nullptr;
+  vdwl_eps_pair = nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -31,26 +31,26 @@ namespace LAMMPS_NS {
 class PairAmoeba : public Pair {
  public:
   PairAmoeba(class LAMMPS *);
-  ~PairAmoeba();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void finish();
+  ~PairAmoeba() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void finish() override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
-  void pack_forward_grid(int, void *, int, int *);
-  void unpack_forward_grid(int, void *, int, int *);
-  void pack_reverse_grid(int, void *, int, int *);
-  void unpack_reverse_grid(int, void *, int, int *);
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
 
-  void *extract(const char *, int &);
-  double memory_usage();
+  void *extract(const char *, int &) override;
+  double memory_usage() override;
 
  protected:
   int nmax;                // allocation for owned+ghost

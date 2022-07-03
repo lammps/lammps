@@ -80,9 +80,9 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
     nbytes = n2*n3 * sizeof(double);
   }
 
-  vstore = NULL;
-  astore = NULL;
-  tstore = NULL;
+  vstore = nullptr;
+  astore = nullptr;
+  tstore = nullptr;
 
   // allocate data struct and restart buffer rbuf
   // for PERATOM, register with Atom class

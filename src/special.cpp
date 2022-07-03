@@ -35,7 +35,7 @@ Special::Special(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  onetwo = onethree = onefour = onefive = NULL;
+  onetwo = onethree = onefour = onefive = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

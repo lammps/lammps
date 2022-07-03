@@ -68,67 +68,67 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   // force field settings
 
   nmax = 0;
-  xaxis2local = yaxis2local = zaxis2local = NULL;
-  rpole = NULL;
-  tq = NULL;
+  xaxis2local = yaxis2local = zaxis2local = nullptr;
+  rpole = nullptr;
+  tq = nullptr;
 
-  red2local = NULL;
-  xred = NULL;
+  red2local = nullptr;
+  xred = nullptr;
 
-  uind = uinp = udirp = NULL;
-  uopt = uoptp = NULL;
-  fopt = foptp = NULL;
-  field = fieldp = NULL;
-  ufld = dufld = NULL;
-  rsd = rsdp = NULL;
-  zrsd = zrsdp = NULL;
+  uind = uinp = udirp = nullptr;
+  uopt = uoptp = nullptr;
+  fopt = foptp = nullptr;
+  field = fieldp = nullptr;
+  ufld = dufld = nullptr;
+  rsd = rsdp = nullptr;
+  zrsd = zrsdp = nullptr;
 
-  cmp = fmp = NULL;
-  cphi = fphi = NULL;
+  cmp = fmp = nullptr;
+  cphi = fphi = nullptr;
 
-  poli = NULL;
-  conj = conjp = NULL;
-  vec = vecp = NULL;
-  udir = usum = usump = NULL;
+  poli = nullptr;
+  conj = conjp = nullptr;
+  vec = vecp = nullptr;
+  udir = usum = usump = nullptr;
 
-  fuind = fuinp = NULL;
-  fdip_phi1 = fdip_phi2 = fdip_sum_phi = NULL;
-  dipfield1 = dipfield2 = NULL;
+  fuind = fuinp = nullptr;
+  fdip_phi1 = fdip_phi2 = fdip_sum_phi = nullptr;
+  dipfield1 = dipfield2 = nullptr;
 
-  fphid = fphip = NULL;
-  fphidp = cphidp = NULL;
+  fphid = fphip = nullptr;
+  fphidp = cphidp = nullptr;
 
   bsordermax = 0;
-  thetai1 = thetai2 = thetai3 = NULL;
-  bsmod1 = bsmod2 = bsmod3 = NULL;
-  bsbuild = NULL;
-  igrid = NULL;
-  m_kspace = p_kspace = pc_kspace = d_kspace = NULL;
-  i_kspace = ic_kspace = NULL;
+  thetai1 = thetai2 = thetai3 = nullptr;
+  bsmod1 = bsmod2 = bsmod3 = nullptr;
+  bsbuild = nullptr;
+  igrid = nullptr;
+  m_kspace = p_kspace = pc_kspace = d_kspace = nullptr;
+  i_kspace = ic_kspace = nullptr;
 
-  numneigh_dipole = NULL;
-  firstneigh_dipole = NULL;
-  firstneigh_dipdip = NULL;
-  ipage_dipole = NULL;
-  dpage_dipdip = NULL;
+  numneigh_dipole = nullptr;
+  firstneigh_dipole = nullptr;
+  firstneigh_dipdip = nullptr;
+  ipage_dipole = nullptr;
+  dpage_dipdip = nullptr;
 
-  numneigh_precond = NULL;
-  firstneigh_precond = NULL;
-  ipage_precond = NULL;
+  numneigh_precond = nullptr;
+  firstneigh_precond = nullptr;
+  ipage_precond = nullptr;
 
-  firstneigh_pcpc = NULL;
-  dpage_pcpc = NULL;
+  firstneigh_pcpc = nullptr;
+  dpage_pcpc = nullptr;
 
-  qfac = NULL;
-  gridfft1 = NULL;
+  qfac = nullptr;
+  gridfft1 = nullptr;
 
   initialize_type_class();
   initialize_vdwl();
   initialize_smallsize();
 
-  forcefield = NULL;
+  forcefield = nullptr;
 
-  id_pole = id_udalt = id_upalt = NULL;
+  id_pole = id_udalt = id_upalt = nullptr;
 
   nualt = 0;
   first_flag = 1;
@@ -640,7 +640,7 @@ void PairAmoeba::coeff(int narg, char **arg)
 
   set_defaults();
   read_prmfile(arg[2]);
-  if (narg == 3) read_keyfile(NULL);
+  if (narg == 3) read_keyfile(nullptr);
   else read_keyfile(arg[3]);
 
   // compute Vdwl mixing rules, only for AMOEBA
@@ -1574,7 +1574,7 @@ void PairAmoeba::assign_groups()
 
   int nstack = 0;
   int maxstack = 0;
-  int *stack = NULL;
+  int *stack = nullptr;
 
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
@@ -1590,7 +1590,7 @@ void PairAmoeba::assign_groups()
 
   // loop until no ghost atom groupIDs are reset
 
-  while (1) {
+  while (true) {
 
     // loop over all atoms and their group neighborhoods
 
@@ -1819,7 +1819,7 @@ void PairAmoeba::precond_neigh()
 
 void PairAmoeba::initialize_vdwl()
 {
-  radmin = radmin4 = epsilon = epsilon4 = NULL;
+  radmin = radmin4 = epsilon = epsilon4 = nullptr;
 }
 
 void PairAmoeba::allocate_vdwl()
@@ -1844,12 +1844,12 @@ void PairAmoeba::deallocate_vdwl()
 
 void PairAmoeba::initialize_smallsize()
 {
-  copt = copm = NULL;
-  a_ualt = ap_ualt = NULL;
-  b_ualt = bp_ualt = NULL;
-  c_ualt = cp_ualt = NULL;
-  bpred = bpredp = bpreds = bpredps = NULL;
-  gear = aspc = NULL;
+  copt = copm = nullptr;
+  a_ualt = ap_ualt = nullptr;
+  b_ualt = bp_ualt = nullptr;
+  c_ualt = cp_ualt = nullptr;
+  bpred = bpredp = bpreds = bpredps = nullptr;
+  gear = aspc = nullptr;
 }
 
 void PairAmoeba::allocate_smallsize()

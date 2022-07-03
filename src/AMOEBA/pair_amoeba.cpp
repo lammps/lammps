@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -1749,10 +1750,6 @@ void PairAmoeba::precond_neigh()
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
-
-  // DEBUG
-
-  if (comm->me == 0.0) printf("Reneighbor on step %ld\n",update->ntimestep);
 
   // NOTE: no skin added to cutoff for this shorter neighbor list
   // also note that Tinker (and thus LAMMPS) does not apply the

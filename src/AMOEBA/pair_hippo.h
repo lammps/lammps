@@ -28,8 +28,6 @@ class PairHippo : public PairAmoeba {
  public:
   PairHippo(class LAMMPS *);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

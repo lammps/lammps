@@ -480,8 +480,6 @@ class PairAmoeba : public Pair {
 
   inline int sbmask15(int j) const { return j >> SBBITS15 & 7; }
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

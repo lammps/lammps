@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 class FixAmoebaBiTorsion : public Fix {
  public:
   FixAmoebaBiTorsion(class LAMMPS *, int, char **);
-  ~FixAmoebaBiTorsion();
+  ~FixAmoebaBiTorsion() override;
   int setmask() override;
   void init() override;
   void setup(int) override;
@@ -121,8 +121,6 @@ class FixAmoebaBiTorsion : public Fix {
                double, double &, double &, double &);
   void bcucof(double *, double *, double *, double *, double, double, double[][4]);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

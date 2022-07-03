@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -273,11 +274,8 @@ void PairAmoeba::kmpole()
 
   int nmissing_all;
   MPI_Allreduce(&nmissing,&nmissing_all,1,MPI_INT,MPI_SUM,world);
-  if (nmissing_all) {
-    char str[128];
-    sprintf(str,"Pair amoeba multipole settings missing %d\n",nmissing_all);
-    error->all(FLERR,str);
-  }
+  if (nmissing_all)
+    error->all(FLERR, "Pair amoeba: {} multipole settings missing\n", nmissing_all);
 }
 
 /* ----------------------------------------------------------------------
@@ -761,11 +759,8 @@ void PairAmoeba::find_multipole_neighbors()
 
   int nmissing_all;
   MPI_Allreduce(&nmissing,&nmissing_all,1,MPI_INT,MPI_SUM,world);
-  if (nmissing_all) {
-    char str[128];
-    sprintf(str,"Pair amoeba multipole neighbors missing %d\n",nmissing_all);
-    error->all(FLERR,str);
-  }
+  if (nmissing_all)
+    error->all(FLERR, "Pair amoeba: {} multipole neighbors missing\n", nmissing_all);
 }
 
 /* ----------------------------------------------------------------------

@@ -14,17 +14,18 @@
 
 #include "angle_amoeba.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

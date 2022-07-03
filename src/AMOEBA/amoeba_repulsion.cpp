@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -12,11 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "neigh_list.h"
 #include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

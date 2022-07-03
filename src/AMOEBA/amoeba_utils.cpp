@@ -12,13 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "fix_store.h"
+#include "domain.h"
 #include "error.h"
+#include "fix_store.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

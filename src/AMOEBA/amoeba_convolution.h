@@ -81,7 +81,5 @@ class AmoebaConvolution : protected Pointers {
   void debug_scalar(int, const char *);
   void debug_file(int, const char *);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_amoeba.h"
+
 #include "atom.h"
 
 using namespace LAMMPS_NS;

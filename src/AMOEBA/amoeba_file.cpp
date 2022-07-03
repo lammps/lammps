@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel ator
    https://www.lammps.org/ Sandia National Laboratories
@@ -12,16 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <mpi.h>
+
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "utils.h"
+
 #include <cmath>
 #include <cstring>
 #include <cctype>
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 

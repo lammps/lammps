@@ -29,7 +29,7 @@
 using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::utils::trim;
 
-TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(config)
+TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
 {
     consumers["lammps_version"] = &TestConfigReader::lammps_version;
     consumers["tags"]           = &TestConfigReader::tags;

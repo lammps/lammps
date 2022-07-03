@@ -31,8 +31,6 @@
 
 #include <cmath>
 
-#define MIN_SINE 1e-10
-
 namespace ReaxFF {
   double Calculate_Omega(rvec dvec_ij, double r_ij, rvec dvec_jk, double r_jk,
                          rvec dvec_kl, double r_kl, rvec dvec_li, double r_li,

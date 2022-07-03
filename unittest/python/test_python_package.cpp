@@ -52,7 +52,7 @@ class PythonPackageTest : public LAMMPSTest {
 protected:
     void InitSystem() override
     {
-        if (!info->has_package("PYTHON")) GTEST_SKIP();
+        if (!Info::has_package("PYTHON")) GTEST_SKIP();
 
         HIDE_OUTPUT([&] {
             command("units real");
@@ -73,7 +73,7 @@ class FixPythonInvokeTest : public MeltTest {
 protected:
     void InitSystem() override
     {
-        if (!info->has_package("PYTHON")) GTEST_SKIP();
+        if (!Info::has_package("PYTHON")) GTEST_SKIP();
 
         MeltTest::InitSystem();
     }
@@ -309,7 +309,7 @@ TEST_F(FixPythonInvokeTest, end_of_step)
     auto output = CAPTURE_OUTPUT([&] {
         command("run 50");
     });
-    fprintf(stderr,"lines: %s\n",output.c_str());
+    fprintf(stderr, "lines: %s\n", output.c_str());
     auto lines = utils::split_lines(output);
     int count  = 0;
 

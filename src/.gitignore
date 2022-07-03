@@ -997,6 +997,8 @@
 /neb.h
 /netcdf_units.cpp
 /netcdf_units.h
+/pair_threebody_table.cpp
+/pair_threebody_table.h
 /pair_adp.cpp
 /pair_adp.h
 /pair_agni.cpp
@@ -1291,6 +1293,8 @@
 /pair_sph_taitwater_morris.h
 /pair_sw.cpp
 /pair_sw.h
+/pair_sw_angle_table.cpp
+/pair_sw_angle_table.h
 /pair_sw_mod.cpp
 /pair_sw_mod.h
 /pair_tersoff.cpp

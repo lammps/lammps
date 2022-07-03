@@ -381,6 +381,8 @@ void PairAmoeba::induce()
       }
     }
 
+    // if (comm->me == 0) printf("CG iteration count = %d\n",iter);
+
     // terminate the calculation if dipoles failed to converge
     // NOTE: could make this an error
 

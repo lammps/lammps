@@ -65,8 +65,7 @@ enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 /* ---------------------------------------------------------------------- */
 
 PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
-    PPPM(lmp), ElectrodeKSpace(), electrolyte_density_brick(nullptr),
-    electrolyte_density_fft(nullptr)
+    PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr)
 {
   group_group_enable = 0;
   electrolyte_density_brick = nullptr;

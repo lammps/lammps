@@ -1750,13 +1750,19 @@ void PairAmoeba::precond_neigh()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
 
-  // set cutoffs and taper coeffs
-  // add skin to cutoff, same as for main neighbor list
+  // DEBUG
+
+  if (comm->me == 0.0) printf("Reneighbor on step %ld\n",update->ntimestep);
+
+  // NOTE: no skin added to cutoff for this shorter neighbor list
+  // also note that Tinker (and thus LAMMPS) does not apply the
+  //   distance cutoff in the CG iterations in induce.cpp,
+  //   rather all interactions in the precond neigh list are
+  //   used every step until the neighbor list is rebuilt,
+  //   this means the cutoff distance is not exactly enforced,
+  //   on a later step atoms outside may contribute, atoms inside may not
 
   choose(USOLV);
-
-  //double off = sqrt(off2);
-  //off2 = (off + neighbor->skin) * (off + neighbor->skin);
 
   // atoms and neighbor list
 
@@ -1801,6 +1807,7 @@ void PairAmoeba::precond_neigh()
     ipage_precond->vgot(n);
   }
 }
+
 
 /* ----------------------------------------------------------------------
    allocate Vdwl arrays

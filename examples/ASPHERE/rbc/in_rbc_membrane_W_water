@@ -1,0 +1,99 @@
+# LAMMPS input file for RBC simulation, written by Hongyan Yuan & Ralph Kfoury, 2015
+
+
+variable     datafile  string  rbc_D50AA9m12_N21702_W_water_d0_water         # Sets the variable name of the read data file used, change this name if the read data file name is changed
+variable     P_damp  equal  1                                                # Sets the Pressure damping variable used in the following " fix npt" commands
+variable     P  equal  0.05                                                  # Sets the desired pressure of the system used in the following " fix npt" commands
+variable     scale1 equal ramp(2.7,2.5)                                      # Sets the scale performed in the final fix on water scaling down sigma from 2.7- 2.5
+variable     ew  equal 0.2                                                   # Sets the energy well ( epsilon) variable used in the pair coefficient specifications
+variable     ini_T  equal  0.02		                                     # Sets the initial temperature used in the fix commands below
+variable     T  equal  0.23                                                  # Sets the final temperature used in the fix commands below
+variable     LD equal  1.0                                                   # Sets the temperature damping parameter used in fix commands below
+variable     fid    string   ${datafile}                                                                                          
+variable     logfid  string  log.${fid}
+      
+
+units	     lj                                                              # Sets the units used for the simulation, in this case: Lennard-Jones units                                                       
+atom_style   hybrid ellipsoid molecular                                      # Defines the atom style used during the simulation, both ellipsoid and molecular. 
+
+bond_style   harmonic                                                        # Sets the bond style as harmonic spring defined by Hooke's law
+
+boundary     p p p                                                           # Creates the periodic boundaries of the simulation box
+
+read_data    read_data.${datafile}                                           # Specifies which read data file will be used to read in initial coordinates of system
+
+
+# spectrin bonds
+bond_coeff   1      20   1.5                                                 # Defines the bond coefficients and spring constant for the spectrin network bonds 
+
+# membrane-spectrin anchoring
+bond_coeff   2*3    50  2.0                                                  # Defines the bond coefficients and spring constant for the transmembrane protein to spectrin network bonds
+
+mass         *          1.0                                                 
+
+set type     1*2 shape  1 1 1   					     # membrane particle are rigid body, it needs shape parameter to be set
+
+group        bilayer  type 1 2                                               # Creates a group called bilayer which consists of type 1 and 2 particles, 
+									     #(Type 1 Bilayer, Type 2 Transmembrane proteins)
+
+group        network   type 3 4 5                                            # Creates a group called network which consists of type 3 4 5 particles
+group        anchor_bonds   type  2  3  5
+group        water_in  type 6                                                # Creates a group called water_in consisting of type 6 particles ( Type 6 = Water inside Membrane)
+group        water_out type 7                                                # Creates a group called water_out consisting of type 7 particles ( Type 7 = Water Outside Membrane)
+group        water   type 6 7                                                # Creates a group called water consisting of both type 6 and 7 particles ( Water inside + Out)
+
+
+velocity     bilayer create ${T} 87287 loop geom                             # Creates Initial Velocity for bilayer particles ( Type 1 and 2)
+velocity     network create ${ini_T} 87287 loop geom                         # Creates Initial Velocity for network particles ( Type 3 and 4 and 5)
+velocity     water create ${T} 87287 loop geom                               # Creates Initial Velocity for water particles ( Type 6 and 7 )
+
+          
+
+pair_style   hybrid   lj/cut 3.6  fluidmembrane 2.6                          # Sets the pair_style potentials used for the simulation, 
+                                                                             #in the case both lennard-jones/cut and the fluidmembrane potential
+
+pair_coeff   1*2    1*2   fluidmembrane  1.0    1.0    2.6  4  3  0.0        # Sets the pair coefficients and parameters between type 1 and 2 (bilayer) particles
+pair_coeff   1*2    3*5   lj/cut   ${ew} 1.0                                 # Sets the pair coefficients (Epsilon, Sigma) and parameters between type 1,2 (bilayer) and 3,4,5 ( Network Particles) 
+pair_coeff   1*2    6*7   lj/cut   ${ew} 1.0                                 # Sets the pair coefficients (Epsilon, Sigma) for interaction  between type 1,2 (bilayer) and 6,7 (water) particles
+pair_coeff   3*5    3*5   lj/cut   ${ew} 1.0                                 # Sets the pair coefficients (Epsilon, Sigma) for interaction  between type 3,4,5 (network) 
+                                                                             # and type 3,4,5 (network) particles
+
+pair_coeff   3*5    6*7   lj/cut   ${ew} 1.0                                 # Sets the pair coefficients (Epsilon, Sigma) for interaction between type 3,4,5 (network) 
+                                                                             # and type 6,7 (water) particles
+
+pair_coeff   6*7    6*7   lj/cut   ${ew} 2.7                                 # Sets the pair coefficients (Epsilon, Sigma) for interaction between type 6,7 (water)  
+                                                                             # and type 6,7 (water) particles
+
+neighbor    1.0 bin                                                          
+
+
+thermo_style custom step temp press                                          # Printing thermodynamic data to the screen and log file 
+
+thermo	     200                                                             # Sets the number of timesteps to run before printing out thermodynamic data 
+
+timestep     0.01                                                            # Sets the timestep of the simulation
+
+dump	     1 all atom 100  dump.${fid}.lammpstrj                           # Command sets when to dump a snapshot of atom quantities to one or 
+                              						     # more files every N timesteps in one of several styles.
+
+### equilibrium
+
+fix          1 water npt temp ${T} ${T} ${LD} iso ${P} ${P} ${LD}            # Applies an NPT ensemble fix to the water group 
+run 3000
+
+
+fix          2 network npt temp ${ini_T} ${T} ${LD} iso ${P} ${P} ${LD}      # Applies an NPT ensemble fix the network group using same parameters as above
+run 3000
+
+
+fix          3 bilayer nvt/asphere temp ${T} ${T} ${LD}                      # Applies an NVT (not NPT) ensemble fix to the network group using only temperature parameters               
+run 3000
+
+
+### change RBC volume
+
+fix          4 water adapt 1 pair lj/cut sigma  6 6 v_scale1                 # Applies a final "adapt" fix to the water group and this will change the sigma value of LJ potential 
+run 6000
+
+
+

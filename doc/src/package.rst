@@ -71,7 +71,7 @@ Syntax
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* *comm/pair/forward* *comm/fix/forward* or *comm/reverse* or *gpu/aware* or *pair/only*
+         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* *comm/pair/forward* *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *gpu/aware* or *pair/only*
            *neigh* value = *full* or *half*
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
@@ -96,6 +96,7 @@ Syntax
            *comm/pair/forward* value = *no* or *device*
            *comm/fix/forward* value = *no* or *device*
            *comm/reverse* value = *no* or *host* or *device*
+           *comm/pair/reverse* value = *no* or *device*
              no = perform communication pack/unpack in non-KOKKOS mode
              host = perform pack/unpack on host (e.g. with OpenMP threading)
              device = perform pack/unpack on device (e.g. on GPU)
@@ -500,7 +501,7 @@ rule of thumb may give too large a binsize and the default should be
 overridden with a smaller value.
 
 The *comm* and *comm/exchange* and *comm/forward* and *comm/pair/forward*
-and *comm/fix/forward* and comm/reverse*
+and *comm/fix/forward* and *comm/reverse* and *comm/pair/reverse*
 keywords determine whether the host or device performs the packing and
 unpacking of data when communicating per-atom data between processors.
 "Exchange" communication happens only on timesteps that neighbor lists
@@ -521,9 +522,16 @@ packing/unpacking data for the communication. A value of *host* means to
 use the host, typically a multi-core CPU, and perform the
 packing/unpacking in parallel with threads. A value of *device* means to
 use the device, typically a GPU, to perform the packing/unpacking
-operation. If a value of *host* is used for the *comm/pair/forward* or
-*comm/fix/forward* keyword, it will be automatically be changed to *no*
-since these keywords don't support *host* mode.
+operation.
+
+For the *comm/pair/forward* or *comm/fix/forward* or *comm/pair/reverse*
+keywords, if a value of *host* is used it will be automatically
+be changed to *no* since these keywords don't support *host* mode. The
+value of *no* will also always be used when running on the CPU, i.e. setting
+the value to *device* will have no effect if the pair/fix style is
+running on the CPU. For the *comm/fix/forward* or *comm/pair/reverse*
+keywords, not all styles support *device* mode and in that case will run
+in *no* mode instead.
 
 The optimal choice for these keywords depends on the input script and
 the hardware used. The *no* value is useful for verifying that the

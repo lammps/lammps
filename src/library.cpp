@@ -1660,13 +1660,17 @@ lists the available options.
      - ``double **``
      - Local data array
    * - LMP_STYLE_LOCAL
+     - LMP_SIZE_VECTOR
+     - ``int *``
+     - Alias for using LMP_SIZE_ROWS
+   * - LMP_STYLE_LOCAL
      - LMP_SIZE_ROWS
      - ``int *``
-     - Number of local data rows
+     - Number of local array rows or length of vector
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_COLS
      - ``int *``
-     - Number of local data columns
+     - Number of local array columns, 0 if vector
 
 .. warning::
 
@@ -1749,6 +1753,7 @@ void *lammps_extract_compute(void *handle, const char *id, int style, int type)
       if (type == LMP_TYPE_SCALAR) return (void *) &compute->size_local_rows;  /* for backward compatibility */
       if (type == LMP_TYPE_VECTOR) return (void *) compute->vector_local;
       if (type == LMP_TYPE_ARRAY) return (void *) compute->array_local;
+      if (type == LMP_SIZE_VECTOR) return (void *) &compute->size_local_rows;  /* alias for LMP_SIZE_ROWS */
       if (type == LMP_SIZE_ROWS) return (void *) &compute->size_local_rows;
       if (type == LMP_SIZE_COLS) return (void *) &compute->size_local_cols;
     }

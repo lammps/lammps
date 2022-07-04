@@ -73,7 +73,10 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 
 PairMEAM::~PairMEAM()
 {
-  delete meam_inst;
+  if (copymode) return;
+
+  if (meam_inst)
+    delete meam_inst;
 
   if (allocated) {
     memory->destroy(setflag);

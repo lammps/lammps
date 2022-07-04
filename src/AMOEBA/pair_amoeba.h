@@ -448,7 +448,6 @@ class PairAmoeba : public Pair {
   void read_prmfile(char *);
   void read_keyfile(char *);
 
-  int read_section_name(FILE *fp, char *);
   int read_section_line(FILE *fp, char *, int &, char *);
   int tokenize(char *, char **&, char *&);
   int count_words(const char *);

@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 enum{FFIELD,LITERATURE,ATOMTYPE,VDWL,VDWLPAIR,BSTRETCH,SBEND,ABEND,
      PAULI,DISPERSION,UB,OUTPLANE,TORSION,PITORSION,ATOMMULT,
-     QPENETRATION,DIPPOLAR,QTRANSFER,UNKNOWN};
+     QPENETRATION,DIPPOLAR,QTRANSFER,UNKNOWN,END_OF_FILE};
 enum{ALLINGER,BUFFERED_14_7};
 enum{ARITHMETIC,GEOMETRIC,CUBIC_MEAN,R_MIN,SIGMA,DIAMETER,HARMONIC,HHG,W_H};
 enum{MUTUAL,OPT,TCG,DIRECT};
@@ -87,11 +87,8 @@ void PairAmoeba::read_prmfile(char *filename)
 
   if (me == 0) {
     fptr = utils::open_potential(filename,lmp,nullptr);
-    if (fptr == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open AMOEBA PRM file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fptr == nullptr) error->one(FLERR, "Cannot open {} PRM file {}: {}",
+                                    utils::uppercase(mystyle), filename, utils::getsyserror());
   }
 
   // read sections, one at a time
@@ -103,47 +100,65 @@ void PairAmoeba::read_prmfile(char *filename)
   int forcefield_flag = 0;
   int atomtype_flag = 0;
   int section;
+  int nline = 0;
 
   while (true) {
-    if (me == 0) n = read_section_name(fptr,line);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n < 0) break;
-    MPI_Bcast(line,n+1,MPI_CHAR,0,world);
+    if (me == 0) {
+      clearerr(fptr);
+      section = END_OF_FILE;
+      while (fgets(line, MAXLINE, fptr)) {
+        ++nline;
+        if (utils::strmatch(line, "^\\s*##\\s+\\S+.*##\\s*$")) {
+          auto trimmed = utils::trim(line);
+          if (utils::strmatch(trimmed, "^##\\s*Force Field")) section = FFIELD;
+          else if (utils::strmatch(trimmed, "^##\\s*Literature")) section = LITERATURE;
+          else if (utils::strmatch(trimmed, "^##\\s*Atom Type")) section = ATOMTYPE;
+          else if (utils::strmatch(trimmed, "^##\\s*Van der Waals Param")) section = VDWL;
+          else if (utils::strmatch(trimmed, "^##\\s*Van der Waals Pair")) section = VDWLPAIR;
+          else if (utils::strmatch(trimmed, "^##\\s*Bond Stretching")) section = BSTRETCH;
+          else if (utils::strmatch(trimmed, "^##\\s*Stretch-Bend")) section = SBEND;
+          else if (utils::strmatch(trimmed, "^##\\s*Angle Bending")) section = ABEND;
+          else if (utils::strmatch(trimmed, "^##\\s*Pauli Repulsion")) section = PAULI;
+          else if (utils::strmatch(trimmed, "^##\\s*Dispersion Param")) section = DISPERSION;
+          else if (utils::strmatch(trimmed, "^##\\s*Urey-Bradley")) section = UB;
+          else if (utils::strmatch(trimmed, "^##\\s*Out-of-Plane")) section = OUTPLANE;
+          else if (utils::strmatch(trimmed, "^##\\s*Torsional")) section = TORSION;
+          else if (utils::strmatch(trimmed, "^##\\s*Pi-Torsion")) section = PITORSION;
+          else if (utils::strmatch(trimmed, "^##\\s*Atomic Multipole")) section = ATOMMULT;
+          else if (utils::strmatch(trimmed, "^##\\s*Charge Penetration")) section = QPENETRATION;
+          else if (utils::strmatch(trimmed, "^##\\s*Dipole Polarizability")) section = DIPPOLAR;
+          else if (utils::strmatch(trimmed, "^##\\s*Charge Transfer")) section = QTRANSFER;
+          else {
+            section = UNKNOWN;
+            utils::logmesg(lmp, "Skipping section: {}\n", trimmed.substr(2,trimmed.size()-4));
+          }
 
-    if (strstr(line,"Force Field") == line) section = FFIELD;
-    else if (strstr(line,"Literature") == line) section = LITERATURE;
-    else if (strstr(line,"Atom Type") == line) section = ATOMTYPE;
-    else if (strstr(line,"Van der Waals Param") == line) section = VDWL;
-    else if (strstr(line,"Van der Waals Pair") == line) section = VDWLPAIR;
-    else if (strstr(line,"Bond Stretching") == line) section = BSTRETCH;
-    else if (strstr(line,"Stretch-Bend") == line) section = SBEND;
-    else if (strstr(line,"Angle Bending") == line) section = ABEND;
-    else if (strstr(line,"Pauli Repulsion") == line) section = PAULI;
-    else if (strstr(line,"Dispersion Param") == line) section = DISPERSION;
-    else if (strstr(line,"Urey-Bradley") == line) section = UB;
-    else if (strstr(line,"Out-of-Plane") == line) section = OUTPLANE;
-    else if (strstr(line,"Torsional") == line) section = TORSION;
-    else if (strstr(line,"Pi-Torsion") == line) section = PITORSION;
-    else if (strstr(line,"Atomic Multipole") == line) section = ATOMMULT;
-    else if (strstr(line,"Charge Penetration") == line) section = QPENETRATION;
-    else if (strstr(line,"Dipole Polarizability") == line) section = DIPPOLAR;
-    else if (strstr(line,"Charge Transfer") == line) section = QTRANSFER;
-    else {
-      if (me == 0) printf("Skipping section: %s\n",line);
-      section = UNKNOWN;
+          // skip two lines following section head keyword
+          fgets(line, MAXLINE, fptr);
+          fgets(line, MAXLINE, fptr);
+          nline += 2;
+          break;
+        }
+      }
+      if (ferror(fptr))
+        error->one(FLERR, "Problem reading {} PRM file {}:{} {}",
+                   utils::uppercase(mystyle), nline, filename, utils::getsyserror());
+      if (feof(fptr)) section = END_OF_FILE;
     }
+    MPI_Bcast(&section, 1, MPI_INT, 0, world);
+    if (section == END_OF_FILE) break;
 
-    if (forcefield_flag == 0 && section != FFIELD)
-      error->all(FLERR,"Force Field is not first section of "
-                 "pair amoeba potential file");
-    if (section != FFIELD && section != LITERATURE && section != ATOMTYPE &&
-        section != UNKNOWN && atomtype_flag == 0)
-      error->all(FLERR,"Atom Type section of pair amoeba potential file "
-                 "must come before all but Force Field section");
+    // sanity checks
+    if ((forcefield_flag == 0) && (section != FFIELD))
+      error->all(FLERR,"Force Field is not first section of pair {} potential file", mystyle);
+
+    if ((section != FFIELD) && (section != LITERATURE) && (section != ATOMTYPE) &&
+        (section != UNKNOWN) && (atomtype_flag == 0))
+      error->all(FLERR,"Atom Type section of pair {} potential file must "
+                 "come before all but the Force Field section", mystyle);
 
     if (section == FFIELD) forcefield_flag = 1;
     if (section == ATOMTYPE) atomtype_flag = 1;
-
     if (section == ATOMMULT) {
       for (int i = 1; i <= n_amtype; i++) nmultiframe[i] = 0;
     }
@@ -537,60 +552,6 @@ void PairAmoeba::read_keyfile(char *filename)
     error->all(FLERR,"AMOEBA abc prd does not match LAMMPS domain");
   if (cprd > 0.0 && (!domain->zperiodic || domain->zprd != cprd))
     error->all(FLERR,"AMOEBA abc prd does not match LAMMPS domain");
-}
-
-/* ---------------------------------------------------------------------- */
-
-int PairAmoeba::read_section_name(FILE *fp, char *line)
-{
-  char dummy[MAXLINE];
-
-  // loop on read line
-  // return -1 if EOF
-  // skip line if blank
-  // tokenize
-  // if ncount <= 2 skip line
-  // if 1st word and last word != ## then error
-  // pack line with 2nd thru next-to-last words
-  // return length of line
-
-  char *ptr,*copy;
-  char **words;
-  int nwords;
-
-  while (true) {
-    ptr = fgets(line,MAXLINE,fp);
-    if (!ptr) return -1;
-    if (strspn(line," \t\n\r") == strlen(line)) continue;
-    nwords = tokenize(line,words,copy);
-    if (nwords <= 2) {
-      delete[] copy;
-      delete[] words;
-      continue;
-    }
-    break;
-  }
-
-  if ((strstr(words[0],"##") != words[0]) ||
-      (strstr(words[nwords-1],"##") != words[nwords-1]))
-    error->one(FLERR,"Section header of pair amoeba potential file is invalid");
-
-  line[0] = '\0';
-  for (int i = 1; i < nwords-1; i++) {
-    if (i > 1) strcat(line," ");
-    strcat(line,words[i]);
-  }
-  int n = strlen(line);
-
-  delete[] copy;
-  delete[] words;
-
-  // skip next 2 lines of section header
-
-  fgets(dummy,MAXLINE,fp);
-  fgets(dummy,MAXLINE,fp);
-
-  return n;
 }
 
 /* ---------------------------------------------------------------------- */

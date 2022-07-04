@@ -104,9 +104,9 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_hal_ready = false;               // true for AMOEBA when ready
   gpu_repulsion_ready = false;         // always false for AMOEBA
   gpu_dispersion_real_ready = false;   // always false for AMOEBA
-  gpu_multipole_real_ready = false;
-  gpu_udirect2b_ready = false;
-  gpu_umutual2b_ready = false;
+  gpu_multipole_real_ready = true;     // need to be true for precompute()
+  gpu_udirect2b_ready = false;         // NEED work
+  gpu_umutual2b_ready = true;
   gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);

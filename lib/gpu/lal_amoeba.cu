@@ -1609,12 +1609,12 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
         numtyp vyz = (numtyp)0.5 * (zr*frcy+yr*frcz);
         numtyp vzz = zr * frcz;
 
-        virial[0] += vxx;
-        virial[1] += vyy;
-        virial[2] += vzz;
-        virial[3] += vxy;
-        virial[4] += vxz;
-        virial[5] += vyz;
+        virial[0] -= vxx;
+        virial[1] -= vyy;
+        virial[2] -= vzz;
+        virial[3] -= vxy;
+        virial[4] -= vxz;
+        virial[5] -= vyz;
       }
     } // nbor
 

@@ -32,7 +32,7 @@ Examples
 Additional info
 """""""""""""""
 
-* :doc:`Howto amoeba <howto_ameoba>`
+* :doc:`Howto amoeba <Howto_amoeba>`
 * examples/amoeba
 * tools/amoeba
 * potentials/\*.amoeba
@@ -41,10 +41,10 @@ Additional info
 Description
 """""""""""
 
-The *amoeba* style computes the AMOEBA polarizeable field formulated
+The *amoeba* style computes the AMOEBA polarizable field formulated
 by Jay Ponder's group at the U Washington at St Louis :ref:`(Ren)
 <amoeba-Ren>`, :ref:`(Shi) <amoeba-Shi>`.  The *hippo* style computes
-the HIPPO polarizeable force field, an extension to AMOEBA, formulated
+the HIPPO polarizable force field, an extension to AMOEBA, formulated
 by Josh Rackers and collaborators in the Ponder group :ref:`(Rackers)
 <amoeba-Rackers>`.
 
@@ -56,7 +56,7 @@ the LAMMPS potentials directory with a "amoeba" or "hippo" suffix can
 be used.  The Tinker distribution and website have additional force
 field files as well.
 
-As discussed on the :doc:`Howto amoeba <howto_ameoba>` doc page, the
+As discussed on the :doc:`Howto amoeba <Howto_amoeba>` doc page, the
 intermolecular (non-bonded) portion of the AMOEBA force field contains
 these terms:
 
@@ -76,7 +76,7 @@ Conceptually, these terms compute the following interactions:
 * :math:`U_{repulsion}` = Pauli repulsion due to rearrangement of electron density
 * :math:`U_{dispersion}` = dispersion between correlated, instantaneous induced dipole moments
 * :math:`U_{multipole}` = electrostatics between permanent point charges, dipoles, and quadrupoles
-* :math:`U_{polar}` = electronic polarization bewteen induced point dipoles
+* :math:`U_{polar}` = electronic polarization between induced point dipoles
 * :math:`U_{qxfer}` = charge transfer effects
 
 Note that the AMOEBA versus HIPPO force fields typically compute the
@@ -121,10 +121,10 @@ The implementation of the AMOEBA and HIPPO force fields in LAMMPS was
 done using F90 code provided by the Ponder group from their `Tinker MD
 code <https://dasher.wustl.edu/tinker/>`_.
 
-The current implementaion (May 2022) of AMOEBA in LAMMPS matches the
+The current implementation (July 2022) of AMOEBA in LAMMPS matches the
 version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
-<amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise th current
-implementaion of HIPPO in LAMMPS matches the version discussed in
+<amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise the current
+implementation of HIPPO in LAMMPS matches the version discussed in
 :ref:`(Rackers) <amoeba-Rackers>`.
 
 ----------
@@ -146,12 +146,12 @@ lines.  A Tinker KEY file is composed of lines, each of which has a
 keyword followed by zero or more parameters.
 
 The list of PRM sections and KEY keywords which LAMMPS recognizes are
-listed on the :doc:`Howto amoeba <howto_ameoba>` doc page.  If not
+listed on the :doc:`Howto amoeba <Howto_amoeba>` doc page.  If not
 recognized, the section or keyword is skipped.
 
 Note that if the KEY file is specified as NULL, then no file is
 required; default values for various AMOEBA/HIPPO settings are used.
-The :doc:`Howto amoeba <howto_ameoba>` doc page also gives the default
+The :doc:`Howto amoeba <Howto_amoeba>` doc page also gives the default
 settings.
 
 ----------
@@ -181,9 +181,9 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build
 package <Build_package>` doc page for more info.
 
 The AMOEBA and HIPPO potential (PRM) and KEY files provided with
-LAMMPS in the potentials and examples/amoeva directories are Tinker
+LAMMPS in the potentials and examples/amoeba directories are Tinker
 files parameterized for Tinker units.  Their numeric parameters are
-converted by LAMMPS to its real units :doc:`units <units>`.  Thus uou
+converted by LAMMPS to its real units :doc:`units <units>`.  Thus you
 can only use these pair styles with real units.
 
 These potentials do not yet calculate per-atom energy or virial
@@ -237,11 +237,11 @@ none
 
 .. _amoeba-Ponder:
 
-**(Ponder)** Ponder, Wu, Ren, Pande, Chodera†, Schnieders, Haque, Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark, Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549–2564 (2010).
+**(Ponder)** Ponder, Wu, Ren, Pande, Chodera, Schnieders, Haque, Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark, Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549-2564 (2010).
 
-.. _amobea-Rackers:
+.. _amoeba-Rackers:
 
-**(Rackers)** Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056–7084 (2021).
+**(Rackers)** Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056-7084 (2021).
 
 .. _amoeba-Ren:
 
@@ -249,5 +249,5 @@ none
 
 .. _amoeba-Shi:
 
-**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
+**(Shi)** Shi, Xia, Zhang, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 

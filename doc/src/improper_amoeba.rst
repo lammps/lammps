@@ -35,8 +35,8 @@ This formula seems like a simplified version of the formula for the
 :math:`\chi_0` = 0.0.  However the computation of the angle
 :math:`\chi` is done differently to match how the Tinker MD code
 computes its out-of-plane improper for the AMOEBA and HIPPO force
-fields.  See the :doc:`Howto amoeba <howto_ameoba>` doc page for more
-information about the implemention of AMOEBA and HIPPO in LAMMPS.
+fields.  See the :doc:`Howto amoeba <Howto_amoeba>` doc page for more
+information about the implementation of AMOEBA and HIPPO in LAMMPS.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
 by the :doc:`read_data <read_data>` command are ordered I,J,K,L then

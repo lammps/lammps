@@ -6,10 +6,10 @@ Ponder's group at the U Washington at St Louis.  Their implementation
 in LAMMPS was done using F90 code provided by the Ponder group from
 their `Tinker MD code <https://dasher.wustl.edu/tinker/>`_.
 
-The current implementaion (May 2022) of AMOEBA in LAMMPS matches the
+The current implementation (July 2022) of AMOEBA in LAMMPS matches the
 version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
 <amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise the current
-implementaion of HIPPO in LAMMPS matches the version discussed in
+implementation of HIPPO in LAMMPS matches the version discussed in
 :ref:`(Rackers) <amoeba-Rackers>`.
 
 These force fields can be used when polarization effects are desired
@@ -140,7 +140,7 @@ amoeba/bitorsion <fix_amoeba_bitorsion>` command be defined.  In the
 example above, the IDs for these two fixes are *pit* and *bit*.
 
 Of course, if the system being modeled does not have one or more of
-the following -- bond, angle, dihedral, improper, pitorision,
+the following -- bond, angle, dihedral, improper, pitorsion,
 bitorsion interactions -- then the corresponding style and fix
 commands above do not need to be used.  See the example scripts in
 examples/amoeba for water systems as examples; they are simpler than
@@ -157,7 +157,7 @@ namely a PRM and KEY file.  The keyfile can be specified as NULL and
 default values for a various settings will be used.  Note that these 2
 files are meant to allow use of native Tinker files as-is.  However
 LAMMPS does not support all the options which can be included
-in a Tinker PRM or KEY file.  See specifis below.
+in a Tinker PRM or KEY file.  See specifics below.
 
 A :doc:`special_bonds <special_bonds>` command with the *one/five*
 option is required, since the AMOEBA/HIPPO force fields define
@@ -308,11 +308,11 @@ compatible with the LAMMPS data file format.
 
 .. _howto-Ponder:
 
-**(Ponder)** Ponder, Wu, Ren, Pande, Chodera†, Schnieders, Haque,  Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark,  Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549–2564 (2010).
+**(Ponder)** Ponder, Wu, Ren, Pande, Chodera, Schnieders, Haque,  Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark,  Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549-2564 (2010).
 
 .. _howto-Rackers:
 
-**(Rackers)** Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056–7084 (2021).
+**(Rackers)** Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056-7084 (2021).
 
 .. _howto-Ren:
 
@@ -320,5 +320,5 @@ compatible with the LAMMPS data file format.
 
 .. _howto-Shi:
 
-**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
+**(Shi)** Shi, Xia, Zhang, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 

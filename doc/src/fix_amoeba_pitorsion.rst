@@ -30,7 +30,7 @@ This command enables 6-body pitorsion interactions to be added to
 simulations which use the AMOEBA and HIPPO force fields.  It matches
 how the Tinker MD code computes its pitorsion interactions for the
 AMOEBA and HIPPO force fields.  See the :doc:`Howto amoeba
-<howto_ameoba>` doc page for more information about the implemention
+<Howto_amoeba>` doc page for more information about the implementation
 of AMOEBA and HIPPO in LAMMPS.
 
 Pitorsion interactions add additional potential energy contributions

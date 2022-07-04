@@ -107,6 +107,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   pstat_flag    = 0;
   mapflag       = 1;
   removecomflag = 1;
+  fmmode        = physical;
   pstyle        = ISO;
 
   for (int i = 3; i < narg - 1; i += 2) {
@@ -156,6 +157,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
       if (fmass < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
     } else if (strcmp(arg[i], "temp") == 0) {
       nhc_temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
+      temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (nhc_temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd");
     } 
     else if(strcmp(arg[i], "thermostat")==0)
@@ -365,7 +367,8 @@ void FixPIMD::init()
 
   omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
   beta_np = 1.0 / force->boltz / temp / np;
-  fbond = -_fbond * force->mvv2e;
+  fbond = _fbond * force->mvv2e;
+  // printf("_fbond = %.16e\nfbond = %.16e\n", _fbond, fbond);
 
   if (universe->me == 0)
     printf("Fix pimd -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
@@ -966,6 +969,7 @@ void FixPIMD::a_step(){
 
   if(universe->iworld != 0)
   {
+      // printf("iworld = %d c = %.4e s = %.4e w = %.4e\n", universe->iworld, Lan_c[universe->iworld], Lan_s[universe->iworld], _omega_k[universe->iworld]);
     for(int i=0; i<n; i++)
     {
       x0 = x[i][0]; x1 = x[i][1]; x2 = x[i][2];
@@ -1107,10 +1111,11 @@ void FixPIMD::press_o_step()
 
 void FixPIMD::Langevin_init()
 {
-  double KT = force->boltz * temp;
-  double beta = 1.0 / KT;
+  // printf("in Langevin_init\n");
+  double beta = 1.0 / kBT;
   _omega_np = np / beta / hbar;
   double _omega_np_dt_half = _omega_np * update->dt * 0.5;
+  // printf("omega_np = %.4e wdt = %.4e\n", _omega_np, _omega_np_dt_half);
 
   _omega_k = new double[np];
   Lan_c = new double[np];
@@ -1121,6 +1126,7 @@ void FixPIMD::Langevin_init()
       _omega_k[i] = _omega_np * sqrt(lam[i]); 
       Lan_c[i] = cos(sqrt(lam[i])*_omega_np_dt_half);
       Lan_s[i] = sin(sqrt(lam[i])*_omega_np_dt_half);
+      // printf("lam = %.4e s = %.4e c = %.4e w = %.4e\n", lam[i], Lan_s[i], Lan_c[i], _omega_k[i]);
     }
   }
   else if(fmmode==normal){
@@ -1353,7 +1359,7 @@ void FixPIMD::spring_force()
     xnext += 3;
     domain->minimum_image(delx2, dely2, delz2);
 
-    double ff = fbond * _mass[type[i]];
+    double ff = -fbond * _mass[type[i]];
 
     double dx = delx1 + delx2;
     double dy = dely1 + dely2;
@@ -1781,6 +1787,7 @@ void FixPIMD::compute_spring_energy()
   double* _mass = atom->mass;
   int* type = atom->type;
   int nlocal = atom->nlocal;
+  // printf("iworld = %d, fbond = %.4e lam = %.4e\n", universe->iworld, fbond, lam[universe->iworld]);
 
   for(int i=0; i<nlocal; i++)
   {
@@ -1889,7 +1896,9 @@ double FixPIMD::compute_vector(int n)
       else if(barostat == MTTK) {  return 1.5*W*vw[0]*vw[0]; }
     }
     if(n==13) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
-    if(n==14) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume); }
+    if(n==14) { volume = domain->xprd * domain->yprd * domain->zprd; 
+    // printf("Vcoeff = %.6e np = %d kBT = %.6e logV = %.6e\n", Vcoeff, np, kBT, log(volume));
+    return - Vcoeff * np * kBT * log(volume); }
   }
   else if(pstyle==ANISO){
     if(n>10 && n<=13) return vw[n-11];

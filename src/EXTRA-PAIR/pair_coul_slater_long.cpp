@@ -13,8 +13,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
- *     Contributing author:  Evangelos Voyiatzis (Royal DSM)
- * ------------------------------------------------------------------------- */
+   Contributing author:  Evangelos Voyiatzis (Royal DSM)
+   Bug fix on 07/05/2022: YH Wang (ywang268@jhu.edu)
+------------------------------------------------------------------------- */
 
 #include "pair_coul_slater_long.h"
 
@@ -32,19 +33,21 @@
 
 using namespace LAMMPS_NS;
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+#define EWALD_F 1.12837917
+#define EWALD_P 0.3275911
+#define A1 0.254829592
+#define A2 -0.284496736
+#define A3 1.421413741
+#define A4 -1.453152027
+#define A5 1.061405429
+#define EPSILON   1.0e-10
 
 /* ---------------------------------------------------------------------- */
 
 PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  ftable = nullptr;
   qdist = 0.0;
 }
 
@@ -52,30 +55,32 @@ PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulSlaterLong::~PairCoulSlaterLong()
 {
-  if (!copymode) {
-    if (allocated) {
-      memory->destroy(setflag);
-      memory->destroy(cutsq);
+  if (copymode) return;
 
-      memory->destroy(scale);
-    }
+  if (allocated) {
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+
+    memory->destroy(scale);
   }
+  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairCoulSlaterLong::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum,itable,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
+  double fraction,table;
   double r,r2inv,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
-  double slater_term;
+  double brr;
 
-  ev_init(eflag,vflag);
   ecoul = 0.0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -85,6 +90,7 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
+  double beta = 1.0 / lambda;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -113,20 +119,40 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
+      r = sqrt(rsq);
+      brr = beta * r;
 
       if (rsq < cut_coulsq) {
         r2inv = 1.0/rsq;
-          r = sqrt(rsq);
+        if (!ncoultablebits || rsq <= tabinnersq) {
           grij = g_ewald * r;
           expm2 = exp(-grij*grij);
           t = 1.0 / (1.0 + EWALD_P*grij);
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
           prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
-          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          forcecoul -= qqrd2e * scale[itype][jtype] * qtmp*q[j] * exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)) / r;
+          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor * (1-exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)));
+        } else {
+          union_int_float_t rsq_lookup;
+          rsq_lookup.f = rsq;
+          itable = rsq_lookup.i & ncoulmask;
+          itable >>= ncoulshiftbits;
+          fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+          table = ftable[itable] + fraction*dftable[itable];
+          forcecoul = scale[itype][jtype] * qtmp*q[j] * table;
+          forcecoul -= qqrd2e * scale[itype][jtype] * qtmp*q[j] * exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)) / r;
+          if (factor_coul < 1.0) {
+            table = ctable[itable] + fraction*dctable[itable];
+            prefactor = scale[itype][jtype] * qtmp*q[j] * table;
+            forcecoul -= (1.0-factor_coul)*prefactor * (1-exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)));
+          }
+        }
 
-        fpair = forcecoul * r2inv;
+        if (r < EPSILON)     // r can be 0.0 in DPD systems
+          fpair = 0.0;
+        else
+          fpair = forcecoul * r2inv;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -138,8 +164,23 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-            ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
-          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          if (!ncoultablebits || rsq <= tabinnersq){
+            if (r < EPSILON)     // r can be 0.0 in DPD systems
+              ecoul = qqrd2e * scale[itype][jtype] * qtmp*q[j] * (beta - EWALD_F * g_ewald);
+            else {
+              ecoul = prefactor*erfc;
+              ecoul -= qqrd2e * scale[itype][jtype] * qtmp*q[j] * exp(-2.0*brr)*(1.0+brr) / r;
+            }
+          }
+          else {
+            table = etable[itable] + fraction*detable[itable];
+            ecoul = scale[itype][jtype] * qtmp*q[j] * table;
+            ecoul -= qqrd2e * scale[itype][jtype] * qtmp*q[j] * exp(-2.0*brr)*(1.0+brr) / r;
+          }
+          if (factor_coul < 1.0) {
+            if (r < EPSILON) ecoul -= (1.0-factor_coul) * qqrd2e * scale[itype][jtype] * qtmp*q[j] * beta;
+            else ecoul -= (1.0-factor_coul)*prefactor * (1-exp(-2.0*brr)*(1.0+brr));
+          }
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -160,14 +201,13 @@ void PairCoulSlaterLong::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(setflag, n + 1, n + 1, "pair:setflag");
   for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
+    for (int j = i; j <= n; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
 
-  memory->create(scale,n+1,n+1,"pair:scale");
+  memory->create(scale, n + 1, n + 1, "pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -176,10 +216,10 @@ void PairCoulSlaterLong::allocate()
 
 void PairCoulSlaterLong::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 2) error->all(FLERR, "Illegal pair_style command");
 
-  lamda = utils::numeric(FLERR,arg[0],false,lmp);
-  cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
+  lambda = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_coul = utils::numeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -188,23 +228,23 @@ void PairCoulSlaterLong::settings(int narg, char **arg)
 
 void PairCoulSlaterLong::coeff(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 2) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
+    for (int j = MAX(jlo, i); j <= jhi; j++) {
       scale[i][j] = 1.0;
       setflag[i][j] = 1;
       count++;
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -213,22 +253,21 @@ void PairCoulSlaterLong::coeff(int narg, char **arg)
 
 void PairCoulSlaterLong::init_style()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Pair style coul/slater/long requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long requires atom attribute q");
 
   neighbor->add_request(this);
+  //neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 
   // insure use of KSpace long-range solver, set g_ewald
 
- if (force->kspace == nullptr)
-    error->all(FLERR,"Pair style requires a KSpace style");
+  if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
 
-  // if (ncoultablebits) init_tables(cut_coul,nullptr);
+  if (ncoultablebits) init_tables(cut_coul, nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -238,7 +277,7 @@ void PairCoulSlaterLong::init_style()
 double PairCoulSlaterLong::init_one(int i, int j)
 {
   scale[j][i] = scale[i][j];
-  return cut_coul+2.0*qdist;
+  return cut_coul + 2.0 * qdist;
 }
 
 /* ----------------------------------------------------------------------
@@ -251,9 +290,8 @@ void PairCoulSlaterLong::write_restart(FILE *fp)
 
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++) {
-      fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j])
-        fwrite(&scale[i][j],sizeof(double),1,fp);
+      fwrite(&setflag[i][j], sizeof(int), 1, fp);
+      if (setflag[i][j]) fwrite(&scale[i][j], sizeof(double), 1, fp);
     }
 }
 
@@ -267,15 +305,15 @@ void PairCoulSlaterLong::read_restart(FILE *fp)
 
   allocate();
 
-  int i,j;
+  int i, j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR, &setflag[i][j],sizeof(int),1,fp, nullptr, error);
-      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
+      MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
-        if (me == 0) utils::sfread(FLERR, &scale[i][j],sizeof(double),1,fp, nullptr, error);
-        MPI_Bcast(&scale[i][j],1,MPI_DOUBLE,0,world);
+        if (me == 0) utils::sfread(FLERR, &scale[i][j], sizeof(double), 1, fp, nullptr, error);
+        MPI_Bcast(&scale[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
 }
@@ -286,10 +324,12 @@ void PairCoulSlaterLong::read_restart(FILE *fp)
 
 void PairCoulSlaterLong::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_coul,sizeof(double),1,fp);
-  fwrite(&lamda,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
-  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&cut_coul, sizeof(double), 1, fp);
+  fwrite(&lambda,sizeof(double),1,fp);
+  fwrite(&offset_flag, sizeof(int), 1, fp);
+  fwrite(&mix_flag, sizeof(int), 1, fp);
+  fwrite(&ncoultablebits, sizeof(int), 1, fp);
+  fwrite(&tabinner, sizeof(double), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -299,40 +339,80 @@ void PairCoulSlaterLong::write_restart_settings(FILE *fp)
 void PairCoulSlaterLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR, &cut_coul,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &lamda,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &offset_flag,sizeof(int),1,fp,nullptr,error);
-    utils::sfread(FLERR, &mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR, &cut_coul, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &lambda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &ncoultablebits, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &tabinner, sizeof(double), 1, fp, nullptr, error);
   }
-  MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&lamda,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&cut_coul, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&lambda,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&ncoultablebits, 1, MPI_INT, 0, world);
+  MPI_Bcast(&tabinner, 1, MPI_DOUBLE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
 
 double PairCoulSlaterLong::single(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
-                                  double factor_coul, double /*factor_lj*/, double &fforce)
+                            double factor_coul, double /*factor_lj*/, double &fforce)
 {
   double r2inv,r,grij,expm2,t,erfc,prefactor;
-  double slater_term;
-  double forcecoul,phicoul;
+  double fraction,table,forcecoul,phicoul;
+  int itable;
+  r = sqrt(rsq);
+  double beta = 1.0 / lambda;
+  double brr = beta * r;
 
   r2inv = 1.0/rsq;
-  r = sqrt(rsq);
-  grij = g_ewald * r;
-  expm2 = exp(-grij*grij);
-  t = 1.0 / (1.0 + EWALD_P*grij);
-  erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-  slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
-  prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
-  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-  fforce = forcecoul * r2inv;
+  if (!ncoultablebits || rsq <= tabinnersq) {
+    grij = g_ewald * r;
+    expm2 = exp(-grij*grij);
+    t = 1.0 / (1.0 + EWALD_P*grij);
+    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
+    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+    forcecoul -= force->qqrd2e * atom->q[i]*atom->q[j] * exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)) / r;
+    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor * (1-exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)));
+  } else {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    itable = rsq_lookup.i & ncoulmask;
+    itable >>= ncoulshiftbits;
+    fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+    table = ftable[itable] + fraction*dftable[itable];
+    forcecoul = atom->q[i]*atom->q[j] * table;
+    forcecoul -= force->qqrd2e * atom->q[i]*atom->q[j] * exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)) / r;
+    if (factor_coul < 1.0) {
+      table = ctable[itable] + fraction*dctable[itable];
+      prefactor = atom->q[i]*atom->q[j] * table;
+      forcecoul -= (1.0-factor_coul)*prefactor * (1-exp(-2.0*brr)*(1.0+2.0*brr*(1.0+brr)));
+    }
+  }
+  if (r < EPSILON)
+    fforce = 0.0;
+  else
+    fforce = forcecoul * r2inv;
 
-  phicoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
-  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+  if (!ncoultablebits || rsq <= tabinnersq) {
+    if (r < EPSILON)
+      phicoul = force->qqrd2e * atom->q[i]*atom->q[j]*(beta - EWALD_F * g_ewald);
+    else {
+      phicoul = prefactor*erfc;
+      phicoul -= force->qqrd2e * atom->q[i]*atom->q[j] * exp(-2.0*brr)*(1.0+brr) / r;
+    }
+  }
+  else {
+    table = etable[itable] + fraction*detable[itable];
+    phicoul = atom->q[i]*atom->q[j] * table;
+    phicoul -= force->qqrd2e * atom->q[i]*atom->q[j] * exp(-2.0*brr)*(1.0+brr) / r;
+  }
+  if (factor_coul < 1.0) {
+    if (r < EPSILON) phicoul -= (1.0-factor_coul) * force->qqrd2e * atom->q[i]*atom->q[j]*beta;
+    else phicoul -= (1.0-factor_coul)*prefactor * (1-exp(-2.0*brr)*(1.0+brr));
+  }
 
   return phicoul;
 }
@@ -341,15 +421,15 @@ double PairCoulSlaterLong::single(int i, int j, int /*itype*/, int /*jtype*/, do
 
 void *PairCoulSlaterLong::extract(const char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") == 0) {
+  if (strcmp(str, "cut_coul") == 0) {
     dim = 0;
     return (void *) &cut_coul;
   }
-  if (strcmp(str,"lamda") == 0) {
+  if (strcmp(str,"lambda") == 0) {
     dim = 0;
-    return (void *) &lamda;
+    return (void *) &lambda;
   }
-  if (strcmp(str,"scale") == 0) {
+  if (strcmp(str, "scale") == 0) {
     dim = 2;
     return (void *) scale;
   }

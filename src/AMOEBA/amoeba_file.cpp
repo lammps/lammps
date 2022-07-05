@@ -847,7 +847,7 @@ void PairAmoeba::file_ffield(const std::vector<std::string> &words, int nline)
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_literature(const std::vector<std::string> &words, int /*nline*/)
+void PairAmoeba::file_literature(const std::vector<std::string> & /*words*/, int /*nline*/)
 {
   // do nothing, this section is skipped
 }
@@ -1185,7 +1185,7 @@ void PairAmoeba::file_charge_penetration(const std::vector<std::string> &words, 
 
 void PairAmoeba::file_dippolar(const std::vector<std::string> &words, int nline)
 {
-  const int ndipparams = amoeba ? 4 : 3;
+  const std::size_t ndipparams = amoeba ? 4 : 3;
   if (words[0] != "polarize")
     error->all(FLERR, "{} PRM file dipole polariability line {} has invalid format: {}",
                utils::uppercase(mystyle), nline, utils::join_words(words, " "));

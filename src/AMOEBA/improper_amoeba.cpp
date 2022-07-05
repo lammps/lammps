@@ -286,7 +286,9 @@ void ImproperAmoeba::init_style()
 
   Pair *pair = NULL;
   pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("amoeba/gpu",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
+  if (!pair) pair = force->pair_match("hippo/gpu",1,0);
   if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoeba/hippo");
 
   int tmp;

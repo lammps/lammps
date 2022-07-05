@@ -195,7 +195,9 @@ void FixAmoebaBiTorsion::init()
 
   pair = nullptr;
   pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("amoeba/gpu",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
+  if (!pair) pair = force->pair_match("hippo/gpu",1,0);
 
   if (!pair)
     error->all(FLERR,"Cannot use fix amoeba/bitorsion w/out pair amoeba/hippo");

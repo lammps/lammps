@@ -261,31 +261,6 @@ constexpr unsigned integral_power_of_two(const size_t N) {
                                      : ~0u;
 }
 
-//----------------------------------------------------------------------------
-
-template <size_t N>
-struct is_power_of_two {
-  enum type { value = (N > 0) && !(N & (N - 1)) };
-};
-
-template <size_t N, bool OK = is_power_of_two<N>::value>
-struct power_of_two;
-
-template <size_t N>
-struct power_of_two<N, true> {
-  enum type { value = 1 + power_of_two<(N >> 1), true>::value };
-};
-
-template <>
-struct power_of_two<2, true> {
-  enum type { value = 1 };
-};
-
-template <>
-struct power_of_two<1, true> {
-  enum type { value = 0 };
-};
-
 /** \brief  If power of two then return power,
  *          otherwise return ~0u.
  */

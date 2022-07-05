@@ -162,21 +162,6 @@ struct FunctorDeclaresValueType<FunctorType, ArgTag,
                                 void_t<typename FunctorType::value_type>>
     : public std::true_type {};
 
-template <class FunctorType,
-          bool Enable = (FunctorDeclaresValueType<FunctorType, void>::value) ||
-                        (ReduceFunctorHasInit<FunctorType>::value) ||
-                        (ReduceFunctorHasJoin<FunctorType>::value) ||
-                        (ReduceFunctorHasFinal<FunctorType>::value) ||
-                        (ReduceFunctorHasShmemSize<FunctorType>::value)>
-struct IsNonTrivialReduceFunctor {
-  enum : bool { value = false };
-};
-
-template <class FunctorType>
-struct IsNonTrivialReduceFunctor<FunctorType, true> {
-  enum : bool { value = true };
-};
-
 /** \brief  Query Functor and execution policy argument tag for value type.
  *
  *  If C++11 enabled and 'value_type' is not explicitly declared then attempt

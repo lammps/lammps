@@ -90,8 +90,15 @@ class OpenMPExec {
 
   void clear_thread_data();
 
-  static void validate_partition(const int nthreads, int& num_partitions,
-                                 int& partition_size);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  KOKKOS_DEPRECATED static void validate_partition(const int nthreads,
+                                                   int& num_partitions,
+                                                   int& partition_size) {
+    validate_partition_impl(nthreads, num_partitions, partition_size);
+  }
+  static void validate_partition_impl(const int nthreads, int& num_partitions,
+                                      int& partition_size);
+#endif
 
  private:
   OpenMPExec(int arg_pool_size)
@@ -144,11 +151,10 @@ inline int OpenMP::impl_thread_pool_size() noexcept {
 
 KOKKOS_INLINE_FUNCTION
 int OpenMP::impl_thread_pool_rank() noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  return Impl::t_openmp_instance ? 0 : omp_get_thread_num();
-#else
-  return -1;
-#endif
+  KOKKOS_IF_ON_HOST(
+      (return Impl::t_openmp_instance ? 0 : omp_get_thread_num();))
+
+  KOKKOS_IF_ON_DEVICE((return -1;))
 }
 
 inline void OpenMP::impl_static_fence(OpenMP const& /**instance*/,
@@ -164,10 +170,11 @@ inline bool OpenMP::is_asynchronous(OpenMP const& /*instance*/) noexcept {
   return false;
 }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 template <typename F>
-void OpenMP::partition_master(F const& f, int num_partitions,
-                              int partition_size) {
-#if _OPENMP >= 201811
+KOKKOS_DEPRECATED void OpenMP::partition_master(F const& f, int num_partitions,
+                                                int partition_size) {
+#if _OPENMP >= 201511
   if (omp_get_max_active_levels() > 1) {
 #else
   if (omp_get_nested()) {
@@ -176,8 +183,8 @@ void OpenMP::partition_master(F const& f, int num_partitions,
 
     Exec* prev_instance = Impl::t_openmp_instance;
 
-    Exec::validate_partition(prev_instance->m_pool_size, num_partitions,
-                             partition_size);
+    Exec::validate_partition_impl(prev_instance->m_pool_size, num_partitions,
+                                  partition_size);
 
     OpenMP::memory_space space;
 
@@ -217,18 +224,19 @@ void OpenMP::partition_master(F const& f, int num_partitions,
     f(0, 1);
   }
 }
+#endif
 
 namespace Experimental {
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 template <>
-class KOKKOS_DEPRECATED MasterLock<OpenMP> {
+class MasterLock<OpenMP> {
  public:
   void lock() { omp_set_lock(&m_lock); }
   void unlock() { omp_unset_lock(&m_lock); }
   bool try_lock() { return static_cast<bool>(omp_test_lock(&m_lock)); }
 
-  MasterLock() { omp_init_lock(&m_lock); }
+  KOKKOS_DEPRECATED MasterLock() { omp_init_lock(&m_lock); }
   ~MasterLock() { omp_destroy_lock(&m_lock); }
 
   MasterLock(MasterLock const&) = delete;
@@ -270,43 +278,41 @@ class UniqueToken<OpenMP, UniqueTokenScope::Instance> {
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int size() const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    return m_count;
-#else
-    return 0;
-#endif
+    KOKKOS_IF_ON_HOST((return m_count;))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /// \brief acquire value such that 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int acquire() const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    if (m_count >= ::Kokkos::OpenMP::impl_thread_pool_size())
-      return ::Kokkos::OpenMP::impl_thread_pool_rank();
-    const ::Kokkos::pair<int, int> result =
-        ::Kokkos::Impl::concurrent_bitset::acquire_bounded(
-            m_buffer, m_count, ::Kokkos::Impl::clock_tic() % m_count);
+    KOKKOS_IF_ON_HOST(
+        (if (m_count >= ::Kokkos::OpenMP::impl_thread_pool_size()) return ::
+             Kokkos::OpenMP::impl_thread_pool_rank();
+         const ::Kokkos::pair<int, int> result =
+             ::Kokkos::Impl::concurrent_bitset::acquire_bounded(
+                 m_buffer, m_count, ::Kokkos::Impl::clock_tic() % m_count);
 
-    if (result.first < 0) {
-      ::Kokkos::abort(
-          "UniqueToken<OpenMP> failure to acquire tokens, no tokens available");
-    }
+         if (result.first < 0) {
+           ::Kokkos::abort(
+               "UniqueToken<OpenMP> failure to acquire tokens, no tokens "
+               "available");
+         }
 
-    return result.first;
-#else
-    return 0;
-#endif
+         return result.first;))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /// \brief release a value acquired by generate
   KOKKOS_INLINE_FUNCTION
   void release(int i) const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    if (m_count < ::Kokkos::OpenMP::impl_thread_pool_size())
-      ::Kokkos::Impl::concurrent_bitset::release(m_buffer, i);
-#else
-    (void)i;
-#endif
+    KOKKOS_IF_ON_HOST(
+        (if (m_count < ::Kokkos::OpenMP::impl_thread_pool_size()) {
+          ::Kokkos::Impl::concurrent_bitset::release(m_buffer, i);
+        }))
+
+    KOKKOS_IF_ON_DEVICE(((void)i;))
   }
 };
 
@@ -324,21 +330,17 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int size() const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    return Kokkos::Impl::g_openmp_hardware_max_threads;
-#else
-    return 0;
-#endif
+    KOKKOS_IF_ON_HOST((return Kokkos::Impl::g_openmp_hardware_max_threads;))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /// \brief acquire value such that 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int acquire() const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    return Kokkos::Impl::t_openmp_hardware_id;
-#else
-    return 0;
-#endif
+    KOKKOS_IF_ON_HOST((return Kokkos::Impl::t_openmp_hardware_id;))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /// \brief release a value acquired by generate
@@ -354,11 +356,9 @@ inline int OpenMP::impl_thread_pool_size(int depth) {
 
 KOKKOS_INLINE_FUNCTION
 int OpenMP::impl_hardware_thread_id() noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  return Impl::t_openmp_hardware_id;
-#else
-  return -1;
-#endif
+  KOKKOS_IF_ON_HOST((return Impl::t_openmp_hardware_id;))
+
+  KOKKOS_IF_ON_DEVICE((return -1;))
 }
 
 inline int OpenMP::impl_max_hardware_threads() noexcept {

@@ -192,27 +192,27 @@ __device__ bool cuda_inter_block_reduction(
         if (id + 1 < int(gridDim.x)) join(value, tmp);
       }
       unsigned int mask = __activemask();
-      int active        = __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2, 32);
         if (id + 2 < int(gridDim.x)) join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4, 32);
         if (id + 4 < int(gridDim.x)) join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8, 32);
         if (id + 8 < int(gridDim.x)) join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16, 32);
         if (id + 16 < int(gridDim.x)) join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
     }
   }
   // The last block has in its thread=0 the global reduction value through
@@ -369,27 +369,27 @@ __device__ inline
         if (id + 1 < int(gridDim.x)) reducer.join(value, tmp);
       }
       unsigned int mask = __activemask();
-      int active        = __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2, 32);
         if (id + 2 < int(gridDim.x)) reducer.join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4, 32);
         if (id + 4 < int(gridDim.x)) reducer.join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8, 32);
         if (id + 8 < int(gridDim.x)) reducer.join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16, 32);
         if (id + 16 < int(gridDim.x)) reducer.join(value, tmp);
       }
-      active += __ballot_sync(mask, 1);
+      __syncwarp(mask);
     }
   }
 
@@ -895,6 +895,23 @@ inline unsigned cuda_single_inter_block_reduce_scan_shmem(
     const FunctorType& functor, const unsigned BlockSize) {
   return (BlockSize + 2) *
          Impl::FunctorValueTraits<FunctorType, ArgTag>::value_size(functor);
+}
+
+template <typename WorkTag, typename Policy, typename FunctorType>
+inline void check_reduced_view_shmem_size(const Policy& policy,
+                                          const FunctorType& functor) {
+  size_t minBlockSize = CudaTraits::WarpSize * 1;
+  unsigned reqShmemSize =
+      cuda_single_inter_block_reduce_scan_shmem<false, FunctorType, WorkTag>(
+          functor, minBlockSize);
+  size_t maxShmemPerBlock =
+      policy.space().impl_internal_space_instance()->m_maxShmemPerBlock;
+
+  if (reqShmemSize > maxShmemPerBlock) {
+    Kokkos::Impl::throw_runtime_exception(
+        "Kokkos::Impl::ParallelReduce< Cuda > requested too much L0 scratch "
+        "memory");
+  }
 }
 
 }  // namespace Impl

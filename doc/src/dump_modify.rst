@@ -392,9 +392,8 @@ keyword. For *atom* dump styles only the keywords "id", "type", "x",
 "y", "z", "ix", "iy", "iz" can be accessed via string regardless of
 whether scaled or unwrapped coordinates were enabled or disabled, and
 it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only the "auxiliary"
-keywords (6th or later keyword) may be changed and the column indexing
-considers only them (i.e. the 6th keyword is the the 1st column).
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
 
 The *colname* keyword can be used multiple times. If multiple *colname*
 settings refer to the same keyword, the last setting has precedence.  A
@@ -474,8 +473,9 @@ The *fileper* keyword is documented below with the *nfile* keyword.
 
 The *header* keyword toggles whether the dump file will include a
 header.  Excluding a header will reduce the size of the dump file for
-fixes such as :doc:`fix pair/tracker <fix_pair_tracker>` which do not
-require the information typically written to the header.
+data produced by :doc:`pair tracker <pair_tracker>` or
+:doc:`bpm bond styles <Howto_bpm>` which may not require the
+information typically written to the header.
 
 ----------
 

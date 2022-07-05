@@ -96,8 +96,8 @@ void PairEAMOpt::eval()
   int* _noalias type = atom->type;
   int nlocal = atom->nlocal;
 
-  vec3_t* _noalias xx = (vec3_t*)x[0];
-  vec3_t* _noalias ff = (vec3_t*)f[0];
+  auto * _noalias xx = (vec3_t*)x[0];
+  auto * _noalias ff = (vec3_t*)f[0];
 
   double tmp_cutforcesq = cutforcesq;
   double tmp_rdr = rdr;
@@ -112,10 +112,10 @@ void PairEAMOpt::eval()
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
 
-  fast_alpha_t* _noalias fast_alpha =
+  auto * _noalias fast_alpha =
     (fast_alpha_t*) malloc((size_t)ntypes2*(nr+1)*sizeof(fast_alpha_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
-    fast_alpha_t* _noalias tab = &fast_alpha[i*ntypes*nr+j*nr];
+    auto * _noalias tab = &fast_alpha[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {
       for (int m = 1; m <= nr; m++) {
         tab[m].rhor0i =  rhor_spline[type2rhor[i+1][j+1]][m][6];
@@ -133,12 +133,12 @@ void PairEAMOpt::eval()
       }
     }
   }
-  fast_alpha_t* _noalias tabeight = fast_alpha;
+  auto * _noalias tabeight = fast_alpha;
 
-  fast_gamma_t* _noalias fast_gamma =
+  auto * _noalias fast_gamma =
     (fast_gamma_t*) malloc((size_t)ntypes2*(nr+1)*sizeof(fast_gamma_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
-    fast_gamma_t* _noalias tab = &fast_gamma[i*ntypes*nr+j*nr];
+    auto * _noalias tab = &fast_gamma[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {
       for (int m = 1; m <= nr; m++) {
         tab[m].rhor4i =  rhor_spline[type2rhor[i+1][j+1]][m][2];
@@ -166,7 +166,7 @@ void PairEAMOpt::eval()
       }
     }
   }
-  fast_gamma_t* _noalias tabss = fast_gamma;
+  auto * _noalias tabss = fast_gamma;
 
   // zero out density
 
@@ -188,7 +188,7 @@ void PairEAMOpt::eval()
     jnum = numneigh[i];
 
     double tmprho = rho[i];
-    fast_alpha_t* _noalias tabeighti = &tabeight[itype*ntypes*nr];
+    auto * _noalias tabeighti = &tabeight[itype*ntypes*nr];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -271,7 +271,7 @@ void PairEAMOpt::eval()
     double tmpfy = 0.0;
     double tmpfz = 0.0;
 
-    fast_gamma_t* _noalias tabssi = &tabss[itype1*ntypes*nr];
+    auto * _noalias tabssi = &tabss[itype1*ntypes*nr];
     double* _noalias scale_i = scale[itype1+1]+1;
     numforce[i] = 0;
 

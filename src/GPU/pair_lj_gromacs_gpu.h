@@ -43,16 +43,3 @@ class PairLJGromacsGPU : public PairLJGromacs {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with lj/gromacs/gpu pair style
-
-Self-explanatory.
-
-*/

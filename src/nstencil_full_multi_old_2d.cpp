@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -27,8 +26,8 @@ NStencilFullMultiOld2d::NStencilFullMultiOld2d(LAMMPS *lmp) : NStencil(lmp) {}
 
 void NStencilFullMultiOld2d::create()
 {
-  int i,j,n;
-  double rsq,typesq;
+  int i, j, n;
+  double rsq, typesq;
   int *s;
   double *distsq;
 
@@ -40,10 +39,10 @@ void NStencilFullMultiOld2d::create()
     n = 0;
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++) {
-        rsq = bin_distance(i,j,0);
+        rsq = bin_distance(i, j, 0);
         if (rsq < typesq) {
           distsq[n] = rsq;
-          s[n++] = j*mbinx + i;
+          s[n++] = j * mbinx + i;
         }
       }
     nstencil_multi_old[itype] = n;

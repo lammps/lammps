@@ -31,9 +31,11 @@ Angle::Angle(LAMMPS *_lmp) : Pointers(_lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
+  reinitflag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_matrix_enable = 0;
 
   maxeatom = maxvatom = maxcvatom = 0;
   eatom = nullptr;
@@ -71,6 +73,16 @@ void Angle::init()
     if (setflag[i] == 0) error->all(FLERR, "All angle coeffs are not set");
 
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Angle::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal angle_style {} argument: {}", force->angle_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -352,4 +364,15 @@ double Angle::memory_usage()
   bytes += (double) comm->nthreads * maxvatom * 6 * sizeof(double);
   bytes += (double) comm->nthreads * maxcvatom * 9 * sizeof(double);
   return bytes;
+}
+
+/* -----------------------------------------------------------------------
+   reset all type-based angle params via init()
+-------------------------------------------------------------------------- */
+
+void Angle::reinit()
+{
+  if (!reinitflag) error->all(FLERR, "Fix adapt interface to this angle style not supported");
+
+  init();
 }

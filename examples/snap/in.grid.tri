@@ -1,0 +1,114 @@
+# Demonstrate calculation of SNAP bispectrum
+# descriptors on a grid for triclinic cell
+
+# This triclinic cell has 6 times the volume of the single
+# unit cell used by in.grid
+# and contains 12 atoms.  It is a 3x2x1 supercell
+# with each unit cell containing 2 atoms and the
+# reduced lattice vectors are [1 0 0], [1 1 0], and [1 1 1].
+# The grid is listed in x-fastest order
+
+# CORRECTNESS: The atom positions coincide with certain
+# gridpoints, so c_b[1][1-5] should match c_mygrid[1][4-8]
+# and c_b[7][1-5] should match c_mygrid[13][4-8].
+# Local arrays can not be access directly in the script,
+# but they are printed out to file dump.blocal.tri
+
+# Initialize simulation
+
+variable     	nrep index 1
+variable     	a index 3.316
+variable     	ngrid index 2
+
+variable     	nrepx equal 3*${nrep}
+variable     	nrepy equal 2*${nrep}
+variable     	nrepz equal 1*${nrep}
+
+variable     	ngridx equal 3*${ngrid}
+variable     	ngridy equal 2*${ngrid}
+variable     	ngridz equal 1*${ngrid}
+
+units	     	metal
+atom_modify  	map hash sort 0 0
+
+# generate the box and atom positions using a BCC lattice
+
+variable     	nx equal ${nrepx}
+variable     	ny equal ${nrepy}
+variable     	nz equal ${nrepz}
+
+boundary     	p p p
+
+lattice		custom $a &
+		a1 1 0 0 &
+		a2 1 1 0  &
+		a3 1 1 1 &
+		basis 0 0 0 &
+		basis 0.0 0.0 0.5 &
+		spacing 1 1 1
+
+box 		tilt large
+region		box prism 0 ${nx} 0 ${ny} 0 ${nz} ${ny} ${nz} ${nz}
+create_box	1 box
+create_atoms	1 box
+
+mass 		1 180.88
+
+# define atom compute and grid compute
+
+group 		snapgroup type 1
+variable 	twojmax equal 2
+variable 	rcutfac equal 4.67637
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	wj equal 1
+variable 	radelem equal 0.5
+variable 	bzero equal 0
+variable 	quadratic equal 0
+variable 	switch equal 1
+
+variable 	snap_options string &
+		"${rcutfac} ${rfac0} ${twojmax} ${radelem} &
+		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} &
+		bzeroflag ${bzero} switchflag ${switch}"
+
+# build zero potential to satisfy compute sna/atom
+
+pair_style      zero ${rcutfac}
+pair_coeff      * *
+
+# define atom and grid computes
+
+compute       	b all sna/atom ${snap_options}
+compute 	mygrid all sna/grid grid ${ngridx} ${ngridy} ${ngridz} &
+	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid ${ngridx} ${ngridy} ${ngridz} &
+	 	${snap_options}
+
+# define output
+
+variable	B5atom equal c_b[7][5]
+variable	B5grid equal c_mygrid[13][8]
+
+# do not compare x,y,z because assignment of ids
+# to atoms is not unnique for different processor grids
+
+variable	rmse_global equal "sqrt(    &
+	 (c_mygrid[13][4] - c_b[7][1])^2 + &
+	 (c_mygrid[13][5] - c_b[7][2])^2 + &
+	 (c_mygrid[13][6] - c_b[7][3])^2 + &
+	 (c_mygrid[13][7] - c_b[7][4])^2 + &
+	 (c_mygrid[13][8] - c_b[7][5])^2   &
+	 )"
+
+thermo_style	custom step v_B5atom v_B5grid v_rmse_global
+
+# this is the only way to view the local grid
+
+dump 1 all local 1000 dump.blocal.tri c_mygridlocal[*]
+dump 2 all custom 1000 dump.batom.tri id x y z c_b[*]
+
+# run
+
+run		0
+

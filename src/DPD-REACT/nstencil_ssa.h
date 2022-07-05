@@ -30,7 +30,3 @@ class NStencilSSA : public NStencil {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

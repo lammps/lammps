@@ -76,8 +76,8 @@ void PairZBLOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;

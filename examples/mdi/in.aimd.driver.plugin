@@ -23,12 +23,11 @@ fix		1 all nve
 # NPT
 #fix             1 all npt temp 1.0 1.0 0.1 iso 1.0 1.0 1.0
 
-fix             2 all mdi/aimd plugin
-fix_modify      2 energy yes virial yes
+fix             2 all mdi/qm virial yes
 
 thermo_style    custom step temp pe etotal press vol
 thermo          1
 
-mdi             plugin lammps mdi "-role ENGINE -name lammps -method LINK" &
+mdi             plugin lammps mdi "-role ENGINE -name LMP2 -method LINK" &
                 infile in.aimd.engine extra "-log log.aimd.engine.plugin" &
-                command "run 5"
+                command "run 10"

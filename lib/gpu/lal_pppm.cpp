@@ -70,7 +70,7 @@ grdtyp *PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   flag=device->init(*ans,nlocal,nall);
   if (flag!=0)
     return nullptr;
-  if (sizeof(grdtyp)==sizeof(double) && device->double_precision()==false) {
+  if (sizeof(grdtyp)==sizeof(double) && !device->double_precision()) {
     flag=-15;
     return nullptr;
   }
@@ -303,7 +303,7 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
                            double *host_q, double *boxlo,
                            const double delxinv, const double delyinv,
                            const double delzinv) {
-  if (_precompute_done==false) {
+  if (!_precompute_done) {
     atom->acc_timers();
     _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
                 delyinv,delzinv);
@@ -359,7 +359,7 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_interp.stop();
 
   ans->copy_answers(false,false,false,false,0);
-  if (_kspace_split==false)
+  if (!_kspace_split)
     device->add_ans_object(ans);
 }
 
@@ -374,7 +374,7 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
   if (_compiled)
     return;
 
-  if (sizeof(grdtyp)==sizeof(double) && ucl_device->double_precision()==false)
+  if (sizeof(grdtyp)==sizeof(double) && !ucl_device->double_precision())
     return;
 
   std::string flags=device->compile_string();

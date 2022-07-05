@@ -32,6 +32,7 @@ page gives those details.
    * :ref:`AWPMD <PKG-AWPMD>`
    * :ref:`BOCS <PKG-BOCS>`
    * :ref:`BODY <PKG-BODY>`
+   * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
    * :ref:`CG-SDK <PKG-CG-SDK>`
@@ -49,6 +50,7 @@ page gives those details.
    * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
    * :ref:`DRUDE <PKG-DRUDE>`
    * :ref:`EFF <PKG-EFF>`
+   * :ref:`ELECTRODE <PKG-ELECTRODE>`
    * :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
    * :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
    * :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
@@ -280,6 +282,33 @@ overview.
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
 * examples/body
+
+----------
+
+.. _PKG-BPM:
+
+BPM package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for bonded particle
+models for mesoscale simulations of solids and fracture.  See the
+:doc:`Howto bpm <Howto_bpm>` page for an overview.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs)
+
+**Supporting info:**
+
+* src/BPM filenames -> commands
+* :doc:`Howto_bpm <Howto_bpm>`
+* :doc:`atom_style bpm/sphere <atom_style>`
+* :doc:`bond_style bpm/rotational <bond_bpm_rotational>`
+* :doc:`bond_style bpm/spring <bond_bpm_spring>`
+* :doc:`compute nbond/atom <compute_nbond_atom>`
+* :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
+* :doc:`pair_style bpm/spring <pair_bpm_spring>`
+* examples/bpm
 
 ----------
 
@@ -528,8 +557,20 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 **Supporting info:**
 
 * src/DIELECTRIC: filenames -> commands
+* :doc:`atom_style dielectric <atom_style>`
+* :doc:`pair_style coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/debye/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/msm/dielectric <pair_dielectric>`
+* :doc:`pair_style pppm/dielectric <kspace_style>`
+* :doc:`pair_style pppm/disp/dielectric <kspace_style>`
+* :doc:`pair_style msm/dielectric <kspace_style>`
+* :doc:`fix_style polarize/bem/icc <fix_polarize>`
+* :doc:`fix_style polarize/bem/gmres <fix_polarize>`
+* :doc:`fix_style polarize/functional <fix_polarize>`
 * :doc:`compute efield/atom  <compute_efield_atom>`
-* TODO: add all styles
 * examples/PACKAGES/dielectric
 
 ----------
@@ -616,7 +657,7 @@ advection-diffusion-reaction systems. The equations of motion of these
 DPD extensions are integrated through a modified velocity-Verlet (MVV)
 algorithm.
 
-**Author:** Zhen Li (Division of Applied Mathematics, Brown University)
+**Author:** Zhen Li (Department of Mechanical Engineering, Clemson University)
 
 **Supporting info:**
 
@@ -768,6 +809,31 @@ tools/eff; see its README file.
 * https://www.lammps.org/movies.html#eff
 
 -------------------
+
+.. _PKG-ELECTRODE:
+
+ELECTRODE package
+-----------------
+
+**Contents:**
+
+The ELECTRODE package allows the user to enforce a constant potential method for
+groups of atoms that interact with the remaining atoms as electrolyte.
+
+**Authors:** The ELECTRODE library is written and maintained by Ludwig
+Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
+Robert Meissner (TUHH, Hamburg, Germany).
+
+**Install:**
+
+This package has :ref:`specific installation instructions <electrode>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* :doc:`fix electrode/conp <fix_electrode_conp>`
+
+----------
 
 .. _PKG-EXTRA-COMPUTE:
 
@@ -1413,7 +1479,7 @@ the :doc:`Build extras <Build_extras>` page.
 * lib/mdi/README
 * :doc:`Howto MDI <Howto_mdi>`
 * :doc:`mdi <mdi>`
-* :doc:`fix mdi/aimd <fix_mdi_aimd>`
+* :doc:`fix mdi/qm <fix_mdi_qm>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1545,7 +1611,6 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`pair_style list <pair_list>`
 * :doc:`pair_style srp <pair_srp>`
 * :doc:`pair_style tracker <pair_tracker>`
-* :doc:`fix pair/tracker <fix_pair_tracker>`
 
 ----------
 
@@ -1736,6 +1801,8 @@ computes which analyze attributes of the potential.
 * src/ML-SNAP: filenames -> commands
 * :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
+* :doc:`compute sna/grid <compute_sna_atom>`
+* :doc:`compute sna/grid/local <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`
 * :doc:`compute snav/atom <compute_sna_atom>`
 * examples/snap
@@ -2539,18 +2606,20 @@ SMTBQ package
 
 **Contents:**
 
-A pair style which implements a Second Moment Tight Binding model with
-QEq charge equilibration (SMTBQ) potential for the description of
-ionocovalent bonds in oxides.
+Pair styles which implement Second Moment Tight Binding models.
+One with QEq charge equilibration (SMTBQ) for the description of
+ionocovalent bonds in oxides, and two more as plain SMATB models.
 
-**Authors:** Nicolas Salles, Emile Maras, Olivier Politano, and Robert
-Tetot (LAAS-CNRS, France).
+**Authors:** SMTBQ: Nicolas Salles, Emile Maras, Olivier Politano, and Robert
+Tetot (LAAS-CNRS, France);
+SMATB: Daniele Rapetti (Politecnico di Torino)
 
 **Supporting info:**
 
 * src/SMTBQ: filenames -> commands
 * src/SMTBQ/README
 * :doc:`pair_style smtbq <pair_smtbq>`
+* :doc:`pair_style smatb <pair_smatb>`, :doc:`pair_style smatb/single <pair_smatb>`
 * examples/PACKAGES/smtbq
 
 ----------

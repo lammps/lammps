@@ -129,7 +129,7 @@ void ComputeCoordAtom::init()
 {
   if (cstyle == ORIENT) {
     int iorientorder = modify->find_compute(id_orientorder);
-    c_orientorder = (ComputeOrientOrderAtom *) (modify->compute[iorientorder]);
+    c_orientorder = dynamic_cast<ComputeOrientOrderAtom *>(modify->compute[iorientorder]);
     cutsq = c_orientorder->cutsq;
     l = c_orientorder->qlcomp;
     //  communicate real and imaginary 2*l+1 components of the normalized vector
@@ -259,14 +259,16 @@ void ComputeCoordAtom::compute_peratom()
             j = jlist[jj];
             j &= NEIGHMASK;
 
-            jtype = type[j];
-            delx = xtmp - x[j][0];
-            dely = ytmp - x[j][1];
-            delz = ztmp - x[j][2];
-            rsq = delx * delx + dely * dely + delz * delz;
-            if (rsq < cutsq) {
-              for (m = 0; m < ncol; m++)
-                if (jtype >= typelo[m] && jtype <= typehi[m]) count[m] += 1.0;
+            if (mask[j] & jgroupbit) {
+              jtype = type[j];
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx * delx + dely * dely + delz * delz;
+              if (rsq < cutsq) {
+                for (m = 0; m < ncol; m++)
+                  if (jtype >= typelo[m] && jtype <= typehi[m]) count[m] += 1.0;
+              }
             }
           }
         }

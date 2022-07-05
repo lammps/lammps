@@ -252,7 +252,7 @@ void DumpCFGMPIIO::init_style()
   if (multifile == 0 && !multifile_override)
     error->all(FLERR,"Dump cfg requires one snapshot per file");
 
-  DumpCustom::init_style();
+  DumpCFG::init_style();
 
   // setup function ptrs
 

@@ -409,7 +409,7 @@ void PairAIREBOIntel::eval(
   ATOM_T * _noalias const x = buffers->get_x(offload);
   const int * _noalias const numneighhalf = buffers->get_atombin();
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
   tagint * const tag = atom->tag;
 
   const int ntypes = atom->ntypes + 1;
@@ -570,7 +570,7 @@ void PairAIREBOIntel::eval(
   if (EVFLAG)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -919,7 +919,7 @@ inline flt_t frebo_pij(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i, int j,
       if (pass == 0) {
         sum_pij += wik * g * ex_lam;
         sum_dpij_dN += wik * dgdN * ex_lam;
-        flt_t cutN = Sp<flt_t>(Nki, Nmin, Nmax, nullptr);
+        auto  cutN = Sp<flt_t>(Nki, Nmin, Nmax, nullptr);
         *sum_N += (1 - ktype) * wik * cutN;
       } else {
         flt_t tmp = -0.5 * pij * pij * pij;
@@ -1501,17 +1501,17 @@ inline flt_t ref_lennard_jones_bondorder(KernelArgsAIREBOT<flt_t,acc_t> * ka,
   flt_t Nji = ka->nH[j] + ka->nC[j] - wij;
   flt_t NconjtmpI;
   acc_t fijc[3] = {0}, fjic[3] = {0};
-  flt_t pij = frebo_pij<flt_t,acc_t>(ka, i, j, delx * scale, dely * scale,
+  auto  pij = frebo_pij<flt_t,acc_t>(ka, i, j, delx * scale, dely * scale,
     delz * scale, the_r, wij, 0.0, &NconjtmpI, fijc);
   flt_t NconjtmpJ;
-  flt_t pji = frebo_pij<flt_t,acc_t>(ka, j, i, -delx * scale, -dely * scale,
+  auto  pji = frebo_pij<flt_t,acc_t>(ka, j, i, -delx * scale, -dely * scale,
     -delz * scale, the_r, wij, 0.0, &NconjtmpJ, fjic);
   flt_t Nijconj = 1.0 + (NconjtmpI * NconjtmpI) + (NconjtmpJ * NconjtmpJ);
   flt_t dN3_pi_rc[3];
-  flt_t pi_rc = frebo_pi_rc<flt_t,acc_t>(ka, itype, jtype, Nij, Nji, Nijconj,
+  auto  pi_rc = frebo_pi_rc<flt_t,acc_t>(ka, itype, jtype, Nij, Nji, Nijconj,
     dN3_pi_rc);
   flt_t dN3_Tij[3];
-  flt_t Tij = frebo_Tij<flt_t,acc_t>(ka, itype, jtype, Nij, Nji, Nijconj,
+  auto  Tij = frebo_Tij<flt_t,acc_t>(ka, itype, jtype, Nij, Nji, Nijconj,
     dN3_Tij);
   flt_t sum_omega = 0;
   if (fabs(Tij) > TOL) {
@@ -1522,12 +1522,12 @@ inline flt_t ref_lennard_jones_bondorder(KernelArgsAIREBOT<flt_t,acc_t> * ka,
   flt_t pi_dh = Tij * sum_omega;
   flt_t bij = 0.5 * (pij + pji) + pi_rc + pi_dh;
   flt_t dStb;
-  flt_t Stb = Sp2<flt_t>(bij, ka->params.bLJmin[itype][jtype],
+  auto  Stb = Sp2<flt_t>(bij, ka->params.bLJmin[itype][jtype],
     ka->params.bLJmax[itype][jtype], &dStb);
   if (dStb != 0) {
-    flt_t pij_reverse = frebo_pij<flt_t,acc_t>(ka, i, j, delx * scale,
+    auto  pij_reverse = frebo_pij<flt_t,acc_t>(ka, i, j, delx * scale,
       dely * scale, delz * scale, the_r, wij, VA * dStb, &NconjtmpI, fijc);
-    flt_t pji_reverse = frebo_pij<flt_t,acc_t>(ka, j, i, -delx * scale,
+    auto  pji_reverse = frebo_pij<flt_t,acc_t>(ka, j, i, -delx * scale,
       -dely * scale, -delz * scale, the_r, wij, VA * dStb, &NconjtmpJ, fjic);
     fijc[0] -= fjic[0];
     fijc[1] -= fjic[1];
@@ -1537,7 +1537,7 @@ inline flt_t ref_lennard_jones_bondorder(KernelArgsAIREBOT<flt_t,acc_t> * ka,
     frebo_N_spline_force<flt_t,acc_t>(ka, j, i, VA * dStb, dN3_pi_rc[1],
       dN3_pi_rc[2], NconjtmpJ);
     if (fabs(Tij) > TOL) {
-      flt_t sum_omega_reverse = frebo_sum_omega<flt_t,acc_t>(ka, i, j,
+      auto  sum_omega_reverse = frebo_sum_omega<flt_t,acc_t>(ka, i, j,
         delx * scale, dely * scale, delz * scale, the_r, VA * dStb * Tij, fijc);
       frebo_N_spline_force(ka, i, j, VA * dStb * sum_omega, dN3_Tij[0],
         dN3_Tij[2], NconjtmpI);
@@ -4464,10 +4464,8 @@ static void aut_lj_with_bo(
  }
 exceed_limits:
   for (int l = 0; l < fvec::VL; l++) {
-    ref_lennard_jones_single_interaction(ka, ivec::at(i, l), ivec::at(j, l),
-                                         MORSEFLAG);
+    ref_lennard_jones_single_interaction(ka, ivec::at(i, l), ivec::at(j, l), MORSEFLAG);
   }
-  return;
 }
 
 /*

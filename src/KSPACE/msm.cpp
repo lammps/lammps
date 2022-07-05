@@ -150,7 +150,7 @@ void MSM::init()
   pair_check();
 
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -1064,7 +1064,7 @@ void MSM::set_grid_global()
 
     cutoff = pow(k*k*sum/3.0,1.0/(2.0*p));
     int itmp;
-    double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+    auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
     *p_cutoff = cutoff;
 
     if (me == 0)
@@ -2506,7 +2506,7 @@ void MSM::grid_swap_reverse(int n, double*** &gridn)
 
 void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2552,7 +2552,7 @@ void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2598,7 +2598,7 @@ void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2644,7 +2644,7 @@ void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;

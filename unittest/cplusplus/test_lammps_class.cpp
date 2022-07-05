@@ -83,8 +83,8 @@ TEST_F(LAMMPS_plain, InitMembers)
 
     EXPECT_STREQ(lmp->exename, "LAMMPS_test");
     EXPECT_EQ(lmp->num_package, 0);
-    EXPECT_EQ(lmp->clientserver, 0);
 
+    EXPECT_EQ(lmp->mdicomm, nullptr);
     EXPECT_EQ(lmp->kokkos, nullptr);
     EXPECT_EQ(lmp->atomKK, nullptr);
     EXPECT_EQ(lmp->memoryKK, nullptr);
@@ -218,8 +218,8 @@ TEST_F(LAMMPS_omp, InitMembers)
 
     EXPECT_STREQ(lmp->exename, "LAMMPS_test");
     EXPECT_EQ(lmp->num_package, 1);
-    EXPECT_EQ(lmp->clientserver, 0);
 
+    EXPECT_EQ(lmp->mdicomm, nullptr);
     EXPECT_EQ(lmp->kokkos, nullptr);
     EXPECT_EQ(lmp->atomKK, nullptr);
     EXPECT_EQ(lmp->memoryKK, nullptr);
@@ -302,12 +302,12 @@ TEST_F(LAMMPS_kokkos, InitMembers)
 
     EXPECT_STREQ(lmp->exename, "LAMMPS_test");
     EXPECT_EQ(lmp->num_package, 0);
-    EXPECT_EQ(lmp->clientserver, 0);
 
     if (Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
         EXPECT_EQ(lmp->comm->nthreads, 2);
     else
         EXPECT_EQ(lmp->comm->nthreads, 1);
+    EXPECT_EQ(lmp->mdicomm, nullptr);
     EXPECT_NE(lmp->kokkos, nullptr);
     EXPECT_NE(lmp->atomKK, nullptr);
     EXPECT_NE(lmp->memoryKK, nullptr);

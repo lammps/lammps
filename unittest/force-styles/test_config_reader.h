@@ -22,6 +22,8 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
 
 public:
     TestConfigReader(TestConfig &config);
+    TestConfigReader() = delete;
+    const TestConfigReader & operator=(TestConfig &) = delete;
 
     void skip_tests(const yaml_event_t &event);
     void prerequisites(const yaml_event_t &event);

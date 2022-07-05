@@ -47,18 +47,3 @@ class ComputePressureUef : public ComputePressure {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-This class inherits most of the warnings from ComputePressure. The
-only additions are:
-
-E: Can't use compute pressure/uef without defining a fix nvt/npt/uef
-
-Self-explanatory.
-
-W: The temperature used in compute pressure/uef is not of style temp/uef
-
-Self-explanatory.
-
-*/

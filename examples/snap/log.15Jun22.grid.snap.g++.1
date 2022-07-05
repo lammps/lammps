@@ -1,0 +1,159 @@
+LAMMPS (2 Jun 2022)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate calculation of SNAP bispectrum descriptors on a grid
+
+# CORRECTNESS: The two atom positions coincide with two of
+# the gridpoints, so c_b[2][1-5] should match c_mygrid[8][4-8].
+# The same is true for compute grid/local c_mygridlocal[8][4-11].
+# Local arrays can not be access directly in the script,
+# but they are printed out to file dump.blocal
+
+variable 	nrep index 1
+variable 	a index 3.316
+variable 	ngrid index 2
+
+units		metal
+atom_modify	map hash
+
+# generate the box and atom positions using a BCC lattice
+
+variable       	nx equal ${nrep}
+variable       	nx equal 1
+variable 	ny equal ${nrep}
+variable 	ny equal 1
+variable 	nz equal ${nrep}
+variable 	nz equal 1
+
+boundary	p p p
+
+lattice		custom $a 		a1 1 0 0 		a2 0 1 0  		a3 0 0 1 		basis 0 0 0 		basis 0.5 0.5 0.5
+lattice		custom 3.316 		a1 1 0 0 		a2 0 1 0  		a3 0 0 1 		basis 0 0 0 		basis 0.5 0.5 0.5
+Lattice spacing in x,y,z = 3.316 3.316 3.316
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+region		box block 0 1 0 ${ny} 0 ${nz}
+region		box block 0 1 0 1 0 ${nz}
+region		box block 0 1 0 1 0 1
+create_box	1 box
+Created orthogonal box = (0 0 0) to (3.316 3.316 3.316)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 2 atoms
+  using lattice units in orthogonal box = (0 0 0) to (3.316 3.316 3.316)
+  create_atoms CPU = 0.000 seconds
+
+mass 		1 180.88
+
+# define atom compute and grid compute
+
+group 		snapgroup type 1
+2 atoms in group snapgroup
+variable 	twojmax equal 2
+variable 	rcutfac equal 4.67637
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	wj equal 1
+variable 	radelem equal 0.5
+variable 	bzero equal 0
+variable 	quadratic equal 0
+variable 	switch equal 1
+
+variable 	snap_options string 		"${rcutfac} ${rfac0} ${twojmax} ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}"
+4.67637 ${rfac0} ${twojmax} ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 ${twojmax} ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+
+# build zero potential to satisfy compute sna/atom
+
+pair_style      zero ${rcutfac}
+pair_style      zero 4.67637
+pair_coeff      * *
+
+# define atom and grid computes
+
+compute       	b all sna/atom ${snap_options}
+compute       	b all sna/atom 4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+compute 	mygrid all sna/grid grid ${ngrid} ${ngrid} ${ngrid} 	 	${snap_options}
+compute 	mygrid all sna/grid grid 2 ${ngrid} ${ngrid} 	 	${snap_options}
+compute 	mygrid all sna/grid grid 2 2 ${ngrid} 	 	${snap_options}
+compute 	mygrid all sna/grid grid 2 2 2 	 	${snap_options}
+compute 	mygrid all sna/grid grid 2 2 2 	 	4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+compute 	mygridlocal all sna/grid/local grid ${ngrid} ${ngrid} ${ngrid} 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 2 ${ngrid} ${ngrid} 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 2 2 ${ngrid} 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 2 2 2 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 2 2 2 	 	4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+
+# define output
+
+variable	B5atom equal c_b[2][5]
+variable	B5grid equal c_mygrid[8][8]
+
+variable	rmse_global equal "sqrt(   	 (c_mygrid[8][1] - x[2])^2 +      	 (c_mygrid[8][2] - y[2])^2 +      	 (c_mygrid[8][3] - z[2])^2 +      	 (c_mygrid[8][4] - c_b[2][1])^2 + 	 (c_mygrid[8][5] - c_b[2][2])^2 + 	 (c_mygrid[8][6] - c_b[2][3])^2 + 	 (c_mygrid[8][7] - c_b[2][4])^2 + 	 (c_mygrid[8][8] - c_b[2][5])^2   	 )"
+
+thermo_style	custom step v_B5atom v_B5grid v_rmse_global
+
+# this is the only way to view the local grid
+
+dump 1 all local 1000 dump.blocal c_mygridlocal[*]
+dump 2 all custom 1000 dump.batom id x y z c_b[*]
+
+# run
+
+run		0
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.67637
+  ghost atom cutoff = 6.67637
+  binsize = 3.338185, bins = 1 1 1
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute sna/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.127 | 7.127 | 7.127 Mbytes
+   Step        v_B5atom       v_B5grid    v_rmse_global 
+         0   1.0427295      1.0427295      9.1551336e-16
+Loop time of 1.43e-06 on 1 procs for 0 steps with 2 atoms
+
+139.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.43e-06   |            |       |100.00
+
+Nlocal:              2 ave           2 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            339 ave         339 max         339 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             64 ave          64 max          64 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:          128 ave         128 max         128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 128
+Ave neighs/atom = 64
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:00

@@ -287,8 +287,8 @@ Output of JPG, PNG, and movie files
 
 The :doc:`dump image <dump_image>` command has options to output JPEG or
 PNG image files.  Likewise the :doc:`dump movie <dump_image>` command
-outputs movie files in MPEG format.  Using these options requires the
-following settings:
+outputs movie files in a variety of movie formats.  Using these options
+requires the following settings:
 
 .. tabs::
 
@@ -328,11 +328,12 @@ following settings:
          JPG_LIB = -ljpeg -lpng -lz       # library names
 
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
-      if make can find the graphics header and library files.  You must
-      specify ``JPG_LIB`` with a list of graphics libraries to include
-      in the link.  You must insure ffmpeg is in a directory where
-      LAMMPS can find it at runtime, that is a directory in your PATH
-      environment variable.
+      if make can find the graphics header and library files in their
+      default system locations.  You must specify ``JPG_LIB`` with a
+      list of graphics libraries to include in the link.  You must make
+      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+      in a directory where LAMMPS can find it at runtime; that is
+      usually a directory list in your ``PATH`` environment variable.
 
 Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.

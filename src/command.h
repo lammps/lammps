@@ -14,7 +14,7 @@
 #ifndef LMP_COMMAND_H
 #define LMP_COMMAND_H
 
-#include "pointers.h"   // IWYU pragma: keep
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 

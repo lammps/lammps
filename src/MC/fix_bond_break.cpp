@@ -19,10 +19,13 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
+
+#include "fix_bond_history.h"
 
 #include <cstring>
 
@@ -146,7 +149,7 @@ int FixBondBreak::setmask()
 void FixBondBreak::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   // enable angle/dihedral/improper breaking if any defined
 
@@ -258,6 +261,10 @@ void FixBondBreak::post_integrate()
   commflag = 1;
   comm->forward_comm(this,2);
 
+  // find instances of bond history to delete data
+  auto histories = modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
+
   // break bonds
   // if both atoms list each other as winning bond partner
   // and probability constraint is satisfied
@@ -292,7 +299,13 @@ void FixBondBreak::post_integrate()
         for (k = m; k < num_bond[i]-1; k++) {
           bond_atom[i][k] = bond_atom[i][k+1];
           bond_type[i][k] = bond_type[i][k+1];
+          if (n_histories > 0)
+            for (auto &ihistory: histories)
+              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,k,k+1);
         }
+        if (n_histories > 0)
+          for (auto &ihistory: histories)
+            dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,num_bond[i]-1);
         num_bond[i]--;
         break;
       }

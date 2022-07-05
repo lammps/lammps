@@ -209,6 +209,9 @@ accelerated styles exist.
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
+* :doc:`electrode/conp <fix_electrode_conp>` - impose electric potential
+* :doc:`electrode/conq <fix_electrode_conp>` - impose total electric charge
+* :doc:`electrode/thermo <fix_electrode_conp>` - apply thermo-potentiostat
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out z-dimension velocity and force
@@ -243,7 +246,7 @@ accelerated styles exist.
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
-* :doc:`mdi/aimd <fix_mdi_aimd>` - LAMMPS operates as driver for ab initio MD (AIMD) via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as driver for a quantum code via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
@@ -284,6 +287,7 @@ accelerated styles exist.
 * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>` -
 * :doc:`nve/noforce <fix_nve_noforce>` - NVE without forces (v only)
 * :doc:`nve/sphere <fix_nve_sphere>` - NVE for spherical particles
+* :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>` - NVE for spherical particles used in the BPM package
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration
@@ -301,7 +305,6 @@ accelerated styles exist.
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
-* :doc:`pair/tracker <fix_pair_tracker>` - track properties of pairwise interactions
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane

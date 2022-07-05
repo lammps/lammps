@@ -80,7 +80,7 @@ It is assumed that the particles cannot pass through the interface during the si
 so that its local dielectric constant value does not change.
 
 There are some example scripts for using these fixes
-with LAMMPS in the ``examples/PACKAGES/dielectric directory``. The README file
+with LAMMPS in the ``examples/PACKAGES/dielectric`` directory. The README file
 therein contains specific details on the system setup. Note that the example data files
 show the additional fields (columns) needed for :doc:`atom_style dielectric <atom_style>`
 beyond the conventional fields *id*, *mol*, *type*, *q*, *x*, *y*, and *z*.
@@ -91,7 +91,7 @@ For fix *polarize/bem/gmres* and fix *polarize/bem/icc* the induced
 charges of the atoms in the specified group, which are the vertices on
 the interface, are computed using the equation:
 
-..math::
+.. math::
 
   \sigma_b(\mathbf{s}) = \dfrac{1 - \bar{\epsilon}}{\bar{\epsilon}}
      \sigma_f(\mathbf{s}) - \epsilon_0 \dfrac{\Delta \epsilon}{\bar{\epsilon}}
@@ -153,6 +153,9 @@ These fixes are part of the DIELECTRIC package.  It is only enabled
 if LAMMPS was built with that package, which requires that also the
 KSPACE package is installed.  See the :doc:`Build package
 <Build_package>` page for more info.
+
+Note that the *polarize/bem/gmres* and *polarize/bem/icc* fixes only support
+:doc:`units <units>` *lj*, *real*, *metal*, *si* and *nano* at the moment.
 
 
 Related commands

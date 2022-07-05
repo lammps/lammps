@@ -54,6 +54,8 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
+#define MAXELEMENT 103           // used elsewhere in MDI package
+
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine
    either in standalone mode or plugin mode
@@ -63,16 +65,46 @@ enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
    when EXIT command is received, mdi engine command exits
 ---------------------------------------------------------------------- */
 
-MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
+MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
 {
-  if (narg) error->all(FLERR, "Illegal mdi engine command");
-
   // check requirements for LAMMPS to work with MDI as an engine
 
-  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use MDI engine without atom IDs");
+  if (atom->tag_enable == 0) error->all(FLERR, "MDI engine requires atom IDs");
 
   if (atom->natoms && atom->tag_consecutive() == 0)
     error->all(FLERR, "MDI engine requires consecutive atom IDs");
+
+  // optional args
+
+  elements = nullptr;
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"elements") == 0) {
+      int ntypes = atom->ntypes;
+      delete [] elements;
+      elements = new int[ntypes+1];
+      if (iarg+ntypes+1 > narg) error->all(FLERR,"Illegal mdi engine command");
+      for (int i = 1; i <= ntypes; i++) {
+        elements[i] = utils::inumeric(FLERR,arg[iarg+i],false,lmp);
+        if (elements[i] < 0 || elements[i] > MAXELEMENT)
+          error->all(FLERR,"Illegal mdi engine command");
+      }
+      iarg += ntypes+1;
+    } else error->all(FLERR,"Illegal mdi engine command");
+  }
+
+  // error check an MDI element does not map to multiple atom types
+
+  if (elements) {
+    int ntypes = atom->ntypes;
+    for (int i = 1; i < ntypes; i++)
+      for (int j = i+1; j <= ntypes; j++) {
+        if (elements[i] == 0 || elements[j] == 0) continue;
+        if (elements[i] == elements[j])
+          error->all(FLERR,"MDI engine element cannot map to multiple types");
+      }
+  }
 
   // confirm LAMMPS is being run as an engine
 
@@ -135,7 +167,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
   ibuf1 = ibuf1all = nullptr;
 
   maxatom = 0;
-  sys_natoms = atom->natoms;
+  sys_natoms = static_cast<int> (atom->natoms);
   reallocate();
 
   nsteps = 0;
@@ -168,7 +200,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
   node_match = true;
   exit_command = false;
 
-  while (1) {
+  while (true) {
 
     // top-level mdi engine only recognizes three nodes
     // DEFAULT, INIT_MD, INIT_OPTG
@@ -193,6 +225,8 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
   }
 
   // clean up
+
+  delete[] elements;
 
   delete[] mdicmd;
   delete[] node_engine;
@@ -299,6 +333,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, ">COORDS") == 0) {
     receive_coords();
 
+  } else if (strcmp(command, ">ELEMENTS") == 0) {
+    if (!elements)
+      error->all(FLERR,"MDI engine command did not define element list");
+    receive_elements();
+
   } else if (strcmp(command, ">FORCES") == 0) {
     receive_double3(FORCE);
 
@@ -323,7 +362,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     else
       receive_double3(VELOCITY);
 
-    // -----------------------------------------------
+  // -----------------------------------------------
 
   } else if (strcmp(command, "<@") == 0) {
     ierr = MDI_Send(node_engine, MDI_NAME_LENGTH, MDI_CHAR, mdicomm);
@@ -372,9 +411,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "<VELOCITIES") == 0) {
     send_double3(VELOCITY);
 
-    // -----------------------------------------------
+  // -----------------------------------------------
 
-    // MDI action commands at @DEFAULT node
+  // MDI action commands at @DEFAULT node
 
   } else if (strcmp(command, "MD") == 0) {
     md();
@@ -382,9 +421,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "OPTG") == 0) {
     optg();
 
-    // -----------------------------------------------
+  // -----------------------------------------------
 
-    // MDI node commands
+  // MDI node commands
 
   } else if (strcmp(command, "@INIT_MD") == 0) {
     if (mode != DEFAULT) error->all(FLERR, "MDI: MDI engine is already performing a simulation");
@@ -419,14 +458,14 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     strncpy(node_driver, command, MDI_COMMAND_LENGTH);
     node_match = false;
 
-    // exit command
+  // exit command
 
   } else if (strcmp(command, "EXIT") == 0) {
     exit_command = true;
 
-    // -------------------------------------------------------
-    // custom LAMMPS commands
-    // -------------------------------------------------------
+  // -------------------------------------------------------
+  // custom LAMMPS commands
+  // -------------------------------------------------------
 
   } else if (strcmp(command, "NBYTES") == 0) {
     nbytes_command();
@@ -439,9 +478,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "<KE") == 0) {
     send_ke();
 
-    // -------------------------------------------------------
-    // unknown command
-    // -------------------------------------------------------
+  // -------------------------------------------------------
+  // unknown command
+  // -------------------------------------------------------
 
   } else {
     error->all(FLERR, "MDI: Unknown command {} received from driver", command);
@@ -479,6 +518,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", ">CELL_DISPL");
   MDI_Register_command("@DEFAULT", ">CHARGES");
   MDI_Register_command("@DEFAULT", ">COORDS");
+  MDI_Register_command("@DEFAULT", ">ELEMENTS");
   MDI_Register_command("@DEFAULT", ">NATOMS");
   MDI_Register_command("@DEFAULT", ">NSTEPS");
   MDI_Register_command("@DEFAULT", ">TOLERANCE");
@@ -601,7 +641,8 @@ void MDIEngine::mdi_md()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix =
+      dynamic_cast<FixMDIEngine *>(modify->get_fix_by_id("MDI_ENGINE_INTERNAL"));
   mdi_fix->mdi_engine = this;
 
   // initialize LAMMPS and setup() the simulation
@@ -723,7 +764,8 @@ void MDIEngine::mdi_optg()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix =
+      dynamic_cast<FixMDIEngine *>(modify->get_fix_by_id("MDI_ENGINE_INTERNAL"));
   mdi_fix->mdi_engine = this;
 
   // initialize LAMMPS and setup() the simulation
@@ -760,7 +802,7 @@ void MDIEngine::mdi_optg()
   timer->init();
   timer->barrier_start();
 
-  while (1) {
+  while (true) {
     update->minimize->run(1);
 
     if (strcmp(mdicmd, "@COORDS") != 0 && strcmp(mdicmd, "@FORCES") != 0) break;
@@ -912,7 +954,7 @@ void MDIEngine::evaluate()
 
 /* ----------------------------------------------------------------------
    create a new system
-   >CELL, >NATOMS, >TYPES, >COORDS commands are required
+   >CELL, >NATOMS, >TYPES or >ELEMENTS, >COORDS commands are required
    >CELL_DISPL, >CHARGES, >VELOCITIES commands are optional
 ---------------------------------------------------------------------- */
 
@@ -922,8 +964,8 @@ void MDIEngine::create_system()
 
   if (flag_cell == 0 || flag_natoms == 0 || flag_types == 0 || flag_coords == 0)
     error->all(FLERR,
-               "MDI create_system requires >CELL, >NATOMS, >TYPES, >COORDS "
-               "MDI commands");
+               "MDI create_system requires >CELL, >NATOMS, "
+               ">TYPES or >ELEMENTS, >COORDS MDI commands");
 
   // remove all existing atoms via delete_atoms command
 
@@ -953,14 +995,22 @@ void MDIEngine::create_system()
   lammps_reset_box(lmp, boxlo, boxhi, xy, yz, xz);
 
   // invoke lib->create_atoms()
+  // create list of 1 to sys_natoms IDs
   // optionally set charges if specified by ">CHARGES"
 
+  tagint* sys_ids;
+  memory->create(sys_ids, sys_natoms, "mdi:sys_ids");
+  for (int i = 0; i < sys_natoms; i++) sys_ids[i] = i+1;
+
   if (flag_velocities)
-    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, sys_velocities, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, sys_ids, sys_types, sys_coords, sys_velocities, nullptr,
+                        1);
   else
-    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, NULL, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, sys_ids, sys_types, sys_coords, nullptr, nullptr, 1);
 
   if (flag_charges) lammps_scatter_atoms(lmp, (char *) "q", 1, 1, sys_charges);
+
+  memory->destroy(sys_ids);
 
   // new system
 
@@ -1151,6 +1201,38 @@ void MDIEngine::receive_coords()
 }
 
 /* ----------------------------------------------------------------------
+   >ELEMENTS command
+   receive elements for each atom = atomic numbers
+   convert to LAMMPS atom types and store in sys_types
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_elements()
+{
+  actionflag = 0;
+  flag_types = 1;
+  int ierr = MDI_Recv(sys_types, sys_natoms, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >ELEMENTS data");
+  MPI_Bcast(sys_types, sys_natoms, MPI_INT, 0, world);
+
+  // convert from element atomic numbers to LAMMPS atom types
+  // use maping provided by mdi engine command
+
+  int ntypes = atom->ntypes;
+  int itype;
+
+  for (int i = 0; i < sys_natoms; i++) {
+    for (itype = 1; itype <= ntypes; itype++) {
+      if (sys_types[i] == elements[itype]) {
+        sys_types[i] = itype;
+        break;
+      }
+    }
+    if (itype > ntypes)
+      error->all(FLERR,"MDI element not found in element list");
+  }
+}
+
+/* ----------------------------------------------------------------------
    >NATOMS command
    natoms cannot exceed 32-bit int for use with MDI
 ---------------------------------------------------------------------- */
@@ -1236,7 +1318,7 @@ void MDIEngine::receive_velocities()
 
 void MDIEngine::receive_double3(int which)
 {
-  int n = 3 * atom->natoms;
+  int n = 3 * sys_natoms;
   int ierr = MDI_Recv(buf3, n, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <double3 data");
   MPI_Bcast(buf3, n, MPI_DOUBLE, 0, world);
@@ -1349,10 +1431,10 @@ void MDIEngine::send_total_energy()
 
 void MDIEngine::send_labels()
 {
-  char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
-  memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
+  auto labels = new char[sys_natoms * MDI_LABEL_LENGTH];
+  memset(labels, ' ', sys_natoms * MDI_LABEL_LENGTH);
 
-  memset(ibuf1, 0, atom->natoms * sizeof(int));
+  memset(ibuf1, 0, sys_natoms * sizeof(int));
 
   // use atomID to index into ordered ibuf1
 
@@ -1367,17 +1449,17 @@ void MDIEngine::send_labels()
     ibuf1[ilocal] = type[i];
   }
 
-  MPI_Reduce(ibuf1, ibuf1all, atom->natoms, MPI_INT, MPI_SUM, 0, world);
+  MPI_Reduce(ibuf1, ibuf1all, sys_natoms, MPI_INT, MPI_SUM, 0, world);
 
   if (comm->me == 0) {
-    for (int iatom = 0; iatom < atom->natoms; iatom++) {
+    for (int iatom = 0; iatom < sys_natoms; iatom++) {
       std::string label = std::to_string(ibuf1all[iatom]);
       int label_len = std::min(int(label.length()), MDI_LABEL_LENGTH);
       strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
     }
   }
 
-  int ierr = MDI_Send(labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, mdicomm);
+  int ierr = MDI_Send(labels, sys_natoms * MDI_LABEL_LENGTH, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <LABELS data");
 
   delete[] labels;
@@ -1390,8 +1472,7 @@ void MDIEngine::send_labels()
 
 void MDIEngine::send_natoms()
 {
-  int natoms = static_cast<int>(atom->natoms);
-  int ierr = MDI_Send(&natoms, 1, MDI_INT, mdicomm);
+  int ierr = MDI_Send(&sys_natoms, 1, MDI_INT, mdicomm);
   if (ierr != 0) error->all(FLERR, "MDI: <NATOMS data");
 }
 
@@ -1411,16 +1492,21 @@ void MDIEngine::send_pe()
 
 /* ----------------------------------------------------------------------
    <STRESS command
-   send 6-component stress tensor (no kinetic energy term)
+   send 9-component stress tensor (no kinetic energy term)
 ---------------------------------------------------------------------- */
 
 void MDIEngine::send_stress()
 {
-  double vtensor[6];
+  double vtensor_full[9];
   press->compute_vector();
-  for (int i = 0; i < 6; i++) vtensor[i] = press->vector[i] * lmp2mdi_pressure;
+  vtensor_full[0] = press->vector[0] * lmp2mdi_pressure;
+  vtensor_full[4] = press->vector[1] * lmp2mdi_pressure;
+  vtensor_full[8] = press->vector[2] * lmp2mdi_pressure;
+  vtensor_full[1] = vtensor_full[3] = press->vector[3] * lmp2mdi_pressure;
+  vtensor_full[2] = vtensor_full[6] = press->vector[4] * lmp2mdi_pressure;
+  vtensor_full[5] = vtensor_full[7] = press->vector[5] * lmp2mdi_pressure;
 
-  int ierr = MDI_Send(vtensor, 6, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send(vtensor_full, 9, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <STRESS data");
 }
 
@@ -1432,7 +1518,7 @@ void MDIEngine::send_stress()
 
 void MDIEngine::send_double1(int which)
 {
-  memset(buf1, 0, atom->natoms * sizeof(double));
+  memset(buf1, 0, sys_natoms * sizeof(double));
 
   // use atomID to index into ordered buf1
 
@@ -1464,9 +1550,9 @@ void MDIEngine::send_double1(int which)
     }
   }
 
-  MPI_Reduce(buf1, buf1all, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+  MPI_Reduce(buf1, buf1all, sys_natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  int ierr = MDI_Send(buf1all, atom->natoms, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send(buf1all, sys_natoms, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <double1 data");
 }
 
@@ -1478,7 +1564,7 @@ void MDIEngine::send_double1(int which)
 
 void MDIEngine::send_int1(int which)
 {
-  memset(ibuf1, 0, atom->natoms * sizeof(int));
+  memset(ibuf1, 0, sys_natoms * sizeof(int));
 
   // use atomID to index into ordered ibuf1
 
@@ -1495,9 +1581,9 @@ void MDIEngine::send_int1(int which)
     }
   }
 
-  MPI_Reduce(ibuf1, ibuf1all, atom->natoms, MPI_INT, MPI_SUM, 0, world);
+  MPI_Reduce(ibuf1, ibuf1all, sys_natoms, MPI_INT, MPI_SUM, 0, world);
 
-  int ierr = MDI_Send(ibuf1all, atom->natoms, MDI_INT, mdicomm);
+  int ierr = MDI_Send(ibuf1all, sys_natoms, MDI_INT, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <int1 data");
 }
 
@@ -1509,7 +1595,7 @@ void MDIEngine::send_int1(int which)
 
 void MDIEngine::send_double3(int which)
 {
-  memset(buf3, 0, 3 * atom->natoms * sizeof(double));
+  memset(buf3, 0, 3 * sys_natoms * sizeof(double));
 
   // use atomID to index into ordered buf3
 
@@ -1544,9 +1630,9 @@ void MDIEngine::send_double3(int which)
     }
   }
 
-  MPI_Reduce(buf3, buf3all, 3 * atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+  MPI_Reduce(buf3, buf3all, 3 * sys_natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  int ierr = MDI_Send(buf3all, 3 * atom->natoms, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send(buf3all, 3 * sys_natoms, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <double3 data");
 }
 
@@ -1579,7 +1665,7 @@ void MDIEngine::single_command()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMAND nbytes has not been set");
 
-  char *cmd = new char[nbytes + 1];
+  auto cmd = new char[nbytes + 1];
   int ierr = MDI_Recv(cmd, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMAND data");
   MPI_Bcast(cmd, nbytes + 1, MPI_CHAR, 0, world);
@@ -1600,7 +1686,7 @@ void MDIEngine::many_commands()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMANDS nbytes has not been set");
 
-  char *cmds = new char[nbytes + 1];
+  auto cmds = new char[nbytes + 1];
   int ierr = MDI_Recv(cmds, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMANDS data");
   MPI_Bcast(cmds, nbytes + 1, MPI_CHAR, 0, world);
@@ -1621,7 +1707,7 @@ void MDIEngine::infile()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: INFILE nbytes has not been set");
 
-  char *infile = new char[nbytes + 1];
+  auto infile = new char[nbytes + 1];
   int ierr = MDI_Recv(infile, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: INFILE data for {}", infile);
   MPI_Bcast(infile, nbytes + 1, MPI_CHAR, 0, world);
@@ -1660,7 +1746,8 @@ void MDIEngine::reallocate()
 {
   if (sys_natoms <= maxatom) return;
 
-  if (3 * sys_natoms > MAXSMALLINT) error->all(FLERR, "Natoms too large to use with mdi engine");
+  bigint nsize = (bigint) sys_natoms * 3;
+  if (nsize > MAXSMALLINT) error->all(FLERR, "Natoms too large to use with mdi engine");
 
   maxatom = sys_natoms;
 

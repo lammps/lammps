@@ -42,11 +42,3 @@ class AtomVecDPD : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Internal temperature in Atoms section of data file must be > zero
-
-All internal temperatures must be > zero
-
-*/

@@ -56,6 +56,7 @@ Pre-processing tools
    * :ref:`moltemplate <moltemplate>`
    * :ref:`msi2lmp <msi>`
    * :ref:`polybond <polybond>`
+   * :ref:`stl_bin2txt <stlconvert>`
 
 
 Post-processing tools
@@ -87,14 +88,14 @@ Miscellaneous tools
 .. table_from_list::
    :columns: 6
 
-   * :ref:`CMake <cmake>`
+   * :ref:`LAMMPS coding standards <coding_standard>`
    * :ref:`emacs <emacs>`
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
-   * :ref:`singularity <singularity_tool>`
+   * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
 
@@ -189,27 +190,32 @@ for the :doc:`chain benchmark <Speed_bench>`.
 
 ----------
 
-.. _cmake:
+.. _coding_standard:
 
-CMake tools
------------
+LAMMPS coding standard
+----------------------
 
-The ``cmbuild`` script is a wrapper around using ``cmake --build <dir>
---target`` and allows compiling LAMMPS in a :ref:`CMake build folder
-<cmake_build>` with a make-like syntax regardless of the actual build
-tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
-``gmake``) when using ``-D CMAKE_MAKE_PROGRAM=<name>``.
+The ``coding_standard`` folder contains multiple python scripts to
+check for and apply some LAMMPS coding conventions.  The following
+scripts are available:
 
 .. parsed-literal::
 
-  Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]
+   permissions.py   # detects if sources have executable permissions and scripts have not
+   whitespace.py    # detects TAB characters and trailing whitespace
+   homepage.py      # detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
+   errordocs.py     # detects deprecated error docs in header files
 
-  Options:
-    -h                print this message
-    -j <NUM>          allow processing of NUM concurrent tasks
-    -C DIRECTORY      execute build in folder DIRECTORY
-    -v                produce verbose output
+The tools need to be given the main folder of the LAMMPS distribution
+or individual file names as argument and will by default check them
+and report any non-compliance.  With the optional ``-f`` argument the
+corresponding script will try to change the non-compliant file(s) to
+match the conventions.
 
+For convenience this scripts can also be invoked by the make file in
+the ``src`` folder with, `make check-whitespace` or `make fix-whitespace`
+to either detect or edit the files.  Correspondingly for the other python
+scripts. `make check` will run all checks.
 
 ----------
 
@@ -1001,14 +1007,37 @@ Ivanov, at University of Iceland (ali5 at hi.is).
 
 .. _singularity_tool:
 
-singularity tool
-----------------------------------------
+singularity/apptainer tool
+--------------------------
 
-The singularity sub-directory contains container definitions files
-that can be used to build container images for building and testing
-LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
-container software. Contributions for additional variants are welcome.
-For more details please see the README.md file in that folder.
+The singularity sub-directory contains container definitions files that
+can be used to build container images for building and testing LAMMPS on
+specific OS variants using the `Apptainer <https://apptainer.org>`_ or
+`Singularity <https://sylabs.io>`_ container software. Contributions for
+additional variants are welcome.  For more details please see the
+README.md file in that folder.
+
+----------
+
+.. _stlconvert:
+
+stl_bin2txt tool
+----------------
+
+The file stl_bin2txt.cpp converts binary STL files - like they are
+frequently offered for download on the web - into ASCII format STL files
+that LAMMPS can read with the :doc:`create_atoms mesh <create_atoms>` or
+the :doc:`fix smd/wall_surface <fix_smd_wall_surface>` commands.  The syntax
+for running the tool is
+
+.. code-block:: bash
+
+   stl_bin2txt infile.stl outfile.stl
+
+which creates outfile.stl from infile.stl.  This tool must be compiled
+on a platform compatible with the byte-ordering that was used to create
+the binary file.  This usually is a so-called little endian hardware
+(like x86).
 
 ----------
 

@@ -48,27 +48,3 @@ class ComputeEfieldAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Could not find compute stress/atom temperature ID
-
-Self-explanatory.
-
-E: Compute stress/atom temperature ID does not compute temperature
-
-The specified compute must compute temperature.
-
-E: Per-atom virial was not tallied on needed timestep
-
-You are using a thermo keyword that requires potentials to have
-tallied the virial, but they didn't on this timestep.  See the
-variable doc page for ideas on how to make this work.
-
-*/

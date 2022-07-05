@@ -49,13 +49,13 @@ void FixQEQCombOMP::init()
   if (nullptr != force->pair_match("comb3", 0))
     error->all(FLERR, "No support for comb3 currently available in OPENMP");
 
-  comb = (PairComb *) force->pair_match("comb/omp", 1);
-  if (comb == nullptr) comb = (PairComb *) force->pair_match("comb", 1);
+  comb = dynamic_cast<PairComb *>(force->pair_match("comb/omp", 1));
+  if (comb == nullptr) comb = dynamic_cast<PairComb *>(force->pair_match("comb", 1));
   if (comb == nullptr)
     error->all(FLERR, "Must use pair_style comb or comb/omp with fix qeq/comb/omp");
 
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels - 1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
 

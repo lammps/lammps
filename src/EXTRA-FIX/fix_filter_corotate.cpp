@@ -279,7 +279,7 @@ void FixFilterCorotate::init()
   // set ptrs to rRESPA variables
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
 
@@ -656,9 +656,9 @@ void FixFilterCorotate::pre_neighbor()
 
 void FixFilterCorotate::setup(int vflag)
 {
-  ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+  (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
   post_force_respa(vflag,nlevels_respa-1,0);
-  ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
 }
 
 void FixFilterCorotate::setup_pre_force_respa(int vflag,int ilevel) {
@@ -1275,7 +1275,7 @@ void FixFilterCorotate::find_clusters()
 
 void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
 {
-  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  auto ffptr = (FixFilterCorotate *) ptr;
   Atom *atom = ffptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -1284,7 +1284,7 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
   int nlocal = atom->nlocal;
   int nmass = ffptr->nmass;
 
-  tagint *buf = (tagint *) cbuf;
+  auto buf = (tagint *) cbuf;
   int m,n;
   double massone;
 
@@ -1313,13 +1313,13 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
 
 void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf, void *ptr)
 {
-  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  auto ffptr = (FixFilterCorotate *) ptr;
   Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
   int *nshake = ffptr->nshake;
 
-  tagint *buf = (tagint *) cbuf;
+  auto buf = (tagint *) cbuf;
   int m;
 
   for (int i = 0; i < ndatum; i += 3) {
@@ -1335,7 +1335,7 @@ void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf, void *ptr)
 
 void FixFilterCorotate::ring_shake(int ndatum, char *cbuf, void *ptr)
 {
-  FixFilterCorotate *ffptr = (FixFilterCorotate *) ptr;
+  auto ffptr = (FixFilterCorotate *) ptr;
   Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
@@ -1343,7 +1343,7 @@ void FixFilterCorotate::ring_shake(int ndatum, char *cbuf, void *ptr)
   tagint **shake_atom = ffptr->shake_atom;
   int **shake_type = ffptr->shake_type;
 
-  tagint *buf = (tagint *) cbuf;
+  auto buf = (tagint *) cbuf;
   int m;
 
   for (int i = 0; i < ndatum; i += 11) {
@@ -1399,9 +1399,9 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 
   int* list_cluster = new int[N]; // contains local IDs of cluster atoms,
                                   // 0 = center
-  double* m = new double[N];      //contains local mass
-  double *r = new double[N];      //contains r[i] = 1/||del[i]||
-  double** del = new double*[N];  //contains del[i] = x_i-x_0
+  auto  m = new double[N];      //contains local mass
+  auto r = new double[N];      //contains r[i] = 1/||del[i]||
+  auto  del = new double*[N];  //contains del[i] = x_i-x_0
   for (int i = 0; i<N; i++)
     del[i] = new double[3];
 

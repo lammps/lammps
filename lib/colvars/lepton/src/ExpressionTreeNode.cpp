@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009-2015 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -32,6 +32,7 @@
 #include "lepton/ExpressionTreeNode.h"
 #include "lepton/Exception.h"
 #include "lepton/Operation.h"
+#include <utility>
 
 using namespace Lepton;
 using namespace std;
@@ -60,6 +61,11 @@ ExpressionTreeNode::ExpressionTreeNode(Operation* operation) : operation(operati
 }
 
 ExpressionTreeNode::ExpressionTreeNode(const ExpressionTreeNode& node) : operation(node.operation == NULL ? NULL : node.operation->clone()), children(node.getChildren()) {
+}
+
+ExpressionTreeNode::ExpressionTreeNode(ExpressionTreeNode&& node) : operation(node.operation), children(move(node.children)) {
+    node.operation = NULL;
+    node.children.clear();
 }
 
 ExpressionTreeNode::ExpressionTreeNode() : operation(NULL) {
@@ -98,10 +104,50 @@ ExpressionTreeNode& ExpressionTreeNode::operator=(const ExpressionTreeNode& node
     return *this;
 }
 
+ExpressionTreeNode& ExpressionTreeNode::operator=(ExpressionTreeNode&& node) {
+    if (operation != NULL)
+        delete operation;
+    operation = node.operation;
+    children = move(node.children);
+    node.operation = NULL;
+    node.children.clear();
+    return *this;
+}
+
 const Operation& ExpressionTreeNode::getOperation() const {
     return *operation;
 }
 
 const vector<ExpressionTreeNode>& ExpressionTreeNode::getChildren() const {
     return children;
+}
+
+void ExpressionTreeNode::assignTags(vector<const ExpressionTreeNode*>& examples) const {
+    // Assign tag values to all nodes in a tree, such that two nodes have the same
+    // tag if and only if they (and all their children) are equal.  This is used to
+    // optimize other operations.
+
+    int numTags = examples.size();
+    for (const ExpressionTreeNode& child : getChildren())
+        child.assignTags(examples);
+    if (numTags == examples.size()) {
+        // All the children matched existing tags, so possibly this node does too.
+
+        for (int i = 0; i < examples.size(); i++) {
+            const ExpressionTreeNode& example = *examples[i];
+            bool matches = (getChildren().size() == example.getChildren().size() && getOperation() == example.getOperation());
+            for (int j = 0; matches && j < getChildren().size(); j++)
+                if (getChildren()[j].tag != example.getChildren()[j].tag)
+                    matches = false;
+            if (matches) {
+                tag = i;
+                return;
+            }
+        }
+    }
+
+    // This node does not match any previous node, so assign a new tag.
+
+    tag = examples.size();
+    examples.push_back(this);
 }

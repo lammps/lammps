@@ -25,7 +25,7 @@ colvar::cvc::cvc()
   period = 0.0;
   wrap_center = 0.0;
   width = 0.0;
-  init_dependencies();
+  cvc::init_dependencies();
 }
 
 
@@ -39,7 +39,26 @@ colvar::cvc::cvc(std::string const &conf)
   wrap_center = 0.0;
   width = 0.0;
   init_dependencies();
-  init(conf);
+  colvar::cvc::init(conf);
+}
+
+
+int colvar::cvc::set_function_type(std::string const &type)
+{
+  function_type = type;
+  if (function_types.size() == 0) {
+    function_types.push_back(function_type);
+  } else {
+    if (function_types.back() != function_type) {
+      function_types.push_back(function_type);
+    }
+  }
+  for (size_t i = function_types.size()-1; i > 0; i--) {
+    cvm::main()->cite_feature(function_types[i]+" colvar component"+
+                              " (derived from "+function_types[i-1]+")");
+  }
+  cvm::main()->cite_feature(function_types[0]+" colvar component");
+  return COLVARS_OK;
 }
 
 
@@ -63,13 +82,16 @@ int colvar::cvc::init(std::string const &conf)
     if ((name != old_name) && (old_name.size() > 0)) {
       cvm::error("Error: cannot rename component \""+old_name+
                  "\" after initialization (new name = \""+name+"\")",
-                 INPUT_ERROR);
+                 COLVARS_INPUT_ERROR);
       name = old_name;
     }
   }
 
   get_keyval(conf, "componentCoeff", sup_coeff, sup_coeff);
   get_keyval(conf, "componentExp", sup_np, sup_np);
+  if (sup_coeff != 1.0 || sup_np != 1) {
+    cvm::main()->cite_feature("Linear and polynomial combination of colvar components");
+  }
   // TODO these could be condensed into get_keyval()
   register_param("componentCoeff", reinterpret_cast<void *>(&sup_coeff));
   register_param("componentExp", reinterpret_cast<void *>(&sup_np));
@@ -145,8 +167,8 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
       if (is_available(f_cvc_scalable_com)
           && is_enabled(f_cvc_com_based)
           && !is_enabled(f_cvc_debug_gradient)) {
+        disable(f_cvc_explicit_gradient);
         enable(f_cvc_scalable_com);
-        enable(f_cvc_scalable);
         // The CVC makes the feature available;
         // the atom group will enable it unless it needs to compute a rotational fit
         group->provide(f_ag_scalable_com);
@@ -158,7 +180,7 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
     if (group_conf.size() == 0) {
       cvm::error("Error: atom group \""+group->key+
                  "\" is set, but has no definition.\n",
-                 INPUT_ERROR);
+                 COLVARS_INPUT_ERROR);
       return group;
     }
 
@@ -169,7 +191,7 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
     group->check_keywords(group_conf, group_key);
     if (cvm::get_error()) {
       cvm::error("Error parsing definition for atom group \""+
-                 std::string(group_key)+"\".", INPUT_ERROR);
+                 std::string(group_key)+"\".", COLVARS_INPUT_ERROR);
     }
     cvm::decrease_depth();
 
@@ -230,12 +252,18 @@ int colvar::cvc::init_dependencies() {
 
     init_feature(f_cvc_pbc_minimum_image, "use_minimum-image_with_PBCs", f_type_user);
 
-    init_feature(f_cvc_scalable, "scalable_calculation", f_type_static);
-    require_feature_self(f_cvc_scalable, f_cvc_scalable_com);
+    init_feature(f_cvc_scalable, "scalable_calculation", f_type_dynamic);
+    require_feature_self(f_cvc_scalable_com, f_cvc_scalable);
+    // CVC cannot compute atom-level gradients on rank 0 if colvar computation is distributed
+    exclude_feature_self(f_cvc_scalable, f_cvc_explicit_gradient);
 
     init_feature(f_cvc_scalable_com, "scalable_calculation_of_centers_of_mass", f_type_static);
     require_feature_self(f_cvc_scalable_com, f_cvc_com_based);
+    // CVC cannot compute atom-level gradients if computed on atom group COM
+    exclude_feature_self(f_cvc_scalable_com, f_cvc_explicit_gradient);
 
+    init_feature(f_cvc_collect_atom_ids, "collect_atom_ids", f_type_dynamic);
+    require_feature_children(f_cvc_collect_atom_ids, f_ag_collect_atom_ids);
 
     // TODO only enable this when f_ag_scalable can be turned on for a pre-initialized group
     // require_feature_children(f_cvc_scalable, f_ag_scalable);
@@ -262,17 +290,15 @@ int colvar::cvc::init_dependencies() {
   // Each cvc specifies what other features are available
   feature_states[f_cvc_active].available = true;
   feature_states[f_cvc_gradient].available = true;
+  feature_states[f_cvc_collect_atom_ids].available = true;
 
   // CVCs are enabled from the start - get disabled based on flags
   enable(f_cvc_active);
-  // feature_states[f_cvc_active].enabled = true;
 
-  // Explicit gradients are implemented in mosts CVCs. Exceptions must be specified explicitly.
-  // feature_states[f_cvc_explicit_gradient].enabled = true;
+  // Explicit gradients are implemented in most CVCs. Exceptions must be specified explicitly.
   enable(f_cvc_explicit_gradient);
 
   // Use minimum-image distances by default
-  // feature_states[f_cvc_pbc_minimum_image].enabled = true;
   enable(f_cvc_pbc_minimum_image);
 
   // Features that are implemented by default if their requirements are
@@ -316,7 +342,16 @@ void colvar::cvc::init_as_distance()
 void colvar::cvc::init_as_angle()
 {
   x.type(colvarvalue::type_scalar);
-  init_scalar_boundaries(0.0, 180);
+  init_scalar_boundaries(0.0, 180.0);
+}
+
+
+void colvar::cvc::init_as_periodic_angle()
+{
+  x.type(colvarvalue::type_scalar);
+  enable(f_cvc_periodic);
+  period = 360.0;
+  init_scalar_boundaries(-180.0, 180.0);
 }
 
 

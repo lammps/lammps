@@ -35,7 +35,7 @@ class AtomVecDielectric : public AtomVec {
   void create_atom_post(int) override;
   void data_atom_post(int) override;
   void unpack_restart_init(int) override;
-  int property_atom(char *) override;
+  int property_atom(const std::string &) override;
   void pack_property_atom(int, double *, int, int) override;
 
  protected:
@@ -53,16 +53,3 @@ class AtomVecDielectric : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

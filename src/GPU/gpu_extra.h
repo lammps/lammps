@@ -78,10 +78,12 @@ inline void check_flag(int error_flag, LAMMPS_NS::Error *error, MPI_Comm &world)
     else if (all_success == -13)
       error->all(FLERR, "Invalid device configuration.");
     else if (all_success == -15)
-      error->all(FLERR, "PPPM was compiled for double precision floating point "
+      error->all(FLERR,
+                 "PPPM was compiled for double precision floating point "
                  "but GPU device supports single precision only.");
     else if (all_success == -16)
-      error->all(FLERR, "GPU library was compiled for double or mixed precision "
+      error->all(FLERR,
+                 "GPU library was compiled for double or mixed precision "
                  "floating point but GPU device supports single precision only.");
     else
       error->all(FLERR, "Unknown error in GPU library");
@@ -96,78 +98,3 @@ inline void gpu_ready(LAMMPS_NS::Modify *modify, LAMMPS_NS::Error *error)
 }    // namespace GPU_EXTRA
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The package gpu command is required for gpu styles
-
-Self-explanatory.
-
-E: Could not find/initialize a specified accelerator device
-
-Could not initialize at least one of the devices specified for the gpu
-package
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: GPU library not compiled for this accelerator
-
-Self-explanatory.
-
-E: Double precision is not supported on this accelerator
-
-Self-explanatory
-
-E: Unable to initialize accelerator for use
-
-There was a problem initializing an accelerator for the gpu package
-
-E: Accelerator sharing is not currently supported on system
-
-Multiple MPI processes cannot share the accelerator on your
-system. For NVIDIA GPUs, see the nvidia-smi command to change this
-setting.
-
-E: GPU particle split must be set to 1 for this pair style.
-
-For this pair style, you cannot run part of the force calculation on
-the host.  See the package command.
-
-E: CPU neighbor lists must be used for ellipsoid/sphere mix.
-
-When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
-spherical particles, the neighbor list must be built on the CPU
-
-E: Invalid threads_per_atom specified.
-
-For 3-body potentials on the GPU, the threads_per_atom setting cannot be
-greater than 4 for NVIDIA GPUs.
-
-E: Invalid custom OpenCL parameter string.
-
-There are not enough or too many parameters in the custom string for package
-GPU or the parameters do not meet required restrictions.
-
-E: Unknown error in GPU library
-
-Self-explanatory.
-
-E: Invalid device configuration.
-
-The specified GPU or accelerator does not support the specified device
-configuration. Check the output of ocl_get_devices or nvd_get_devices to
-verify the correct device IDs for the GPU package.
-
-E: P3M built for FP64 and GPU device is FP32 only
-
-Either turn off GPU acceleration for PPPM or build LAMMPS with -DFFT_SINGLE
-
-W: Increasing communication cutoff for GPU style
-
-The pair style has increased the communication cutoff to be consistent with
-the communication cutoff requirements for this pair style when run on the GPU.
-
-*/

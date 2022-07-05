@@ -8,8 +8,8 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.3.0.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "8a8da217148bd9b700083b67d795af5e" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.1.tar.gz" CACHE STRING "URL for MDI tarball")
+  set(MDI_MD5 "f9505fccd4c79301a619f6452dad4ad9" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
   enable_language(C)
@@ -44,15 +44,17 @@ if(DOWNLOAD_MDI)
   ExternalProject_Add(mdi_build
     URL     ${MDI_URL}
     URL_MD5 ${MDI_MD5}
-    CMAKE_ARGS ${CMAKE_REQUEST_PIC}
+    CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     -Dlanguage=C
     -Dlibtype=STATIC
     -Dmpi=${MDI_USE_MPI}
+    -Dplugins=ON
     -Dpython_plugins=${MDI_USE_PYTHON_PLUGINS}
     UPDATE_COMMAND ""
     INSTALL_COMMAND ""

@@ -87,7 +87,7 @@ void ComputeTempBody::init()
 {
   // error check
 
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec)
     error->all(FLERR,"Compute temp/body requires atom style body");
 

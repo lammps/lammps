@@ -201,7 +201,7 @@ int FixOrientBCC::setmask()
 void FixOrientBCC::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
@@ -224,9 +224,9 @@ void FixOrientBCC::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -566,8 +566,8 @@ void FixOrientBCC::find_best_ref(double *displs, int which_crystal,
 
 int FixOrientBCC::compare(const void *pi, const void *pj)
 {
-  FixOrientBCC::Sort *ineigh = (FixOrientBCC::Sort *) pi;
-  FixOrientBCC::Sort *jneigh = (FixOrientBCC::Sort *) pj;
+  auto ineigh = (FixOrientBCC::Sort *) pi;
+  auto jneigh = (FixOrientBCC::Sort *) pj;
 
   if (ineigh->rsq < jneigh->rsq) return -1;
   else if (ineigh->rsq > jneigh->rsq) return 1;

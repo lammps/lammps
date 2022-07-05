@@ -42,13 +42,6 @@ FixReaxFFBondsKokkos::FixReaxFFBondsKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixReaxFFBondsKokkos::~FixReaxFFBondsKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixReaxFFBondsKokkos::init()
 {
   Pair *pair_kk = force->pair_match("^reax../kk",0);

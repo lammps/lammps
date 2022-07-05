@@ -93,34 +93,3 @@ class FixWallBodyPolygon : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix wall/body/polygon requires atom style body rounded/polygon
-
-Self-explanatory.
-
-E: Cannot use wall in periodic dimension
-
-Self-explanatory.
-
-E: Cannot wiggle and shear fix wall/body/polygon
-
-Cannot specify both options at the same time.
-
-E: Invalid wiggle direction for fix wall/body/polygon
-
-Self-explanatory.
-
-E: Fix wall/body/polygon is incompatible with Pair style
-
-Must use a body pair style to define the parameters needed for
-this fix.
-
-*/

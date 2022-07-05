@@ -362,7 +362,7 @@ void PairBrownianPoly::init_style()
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with pair brownian");
       flagwall = 1; // Walls exist
-      wallfix = (FixWall *) modify->fix[i];
+      wallfix = dynamic_cast<FixWall *>( modify->fix[i]);
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }

@@ -110,12 +110,3 @@ class PPPMIntel : public PPPM {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: PPPM order greater than supported by INTEL
-
-There is a compile time limit on the maximum order for PPPM
-in the INTEL package that might be different from LAMMPS
-
-*/

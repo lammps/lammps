@@ -54,6 +54,3 @@ class FixMinimizeKokkos : public FixMinimize {
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

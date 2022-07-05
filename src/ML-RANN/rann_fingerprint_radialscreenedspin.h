@@ -43,10 +43,10 @@ namespace RANN {
     void write_values(FILE *) override;
     void init(int *, int) override;
     void allocate() override;
-    void compute_fingerprint(double *, double *, double *, double *, double *, double *,
-                                     double *, double *, double *, double *, double *, double *,
-                                     double *, double *, bool *, int, int, double *, double *,
-                                     double *, int *, int, int *) override;    //spin,screen
+    void compute_fingerprint(double *, double *, double *, double *, double *, double *, double *,
+                             double *, double *, double *, double *, double *, double *, double *,
+                             bool *, int, int, double *, double *, double *, int *, int,
+                             int *) override;    //spin,screen
     int get_length() override;
 
     double *radialtable;

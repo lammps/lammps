@@ -11,13 +11,13 @@ CXXFLAGS += $(SHFLAGS)
 endif
 
 KOKKOS_VERSION_MAJOR = 3
-KOKKOS_VERSION_MINOR = 5
-KOKKOS_VERSION_PATCH = 00
+KOKKOS_VERSION_MINOR = 6
+KOKKOS_VERSION_PATCH = 01
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
-# Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Pthread,Serial
+# Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
 KOKKOS_DEVICES ?= "OpenMP"
-#KOKKOS_DEVICES ?= "Pthread"
+#KOKKOS_DEVICES ?= "Threads"
 # Options:
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKX
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75,Ampere80,Ampere86
@@ -33,8 +33,8 @@ KOKKOS_DEBUG ?= "no"
 KOKKOS_USE_TPLS ?= ""
 # Options: c++14,c++1y,c++17,c++1z,c++2a
 KOKKOS_CXX_STANDARD ?= "c++14"
-# Options: aggressive_vectorization,disable_profiling,enable_large_mem_tests,disable_complex_align,disable_deprecated_code,enable_deprecation_warnings,enable_desul_atomics
-KOKKOS_OPTIONS ?= "enable_desul_atomics"
+# Options: aggressive_vectorization,disable_profiling,enable_large_mem_tests,disable_complex_align,disable_deprecated_code,enable_deprecation_warnings,disable_desul_atomics
+KOKKOS_OPTIONS ?= ""
 KOKKOS_CMAKE ?= "no"
 KOKKOS_TRIBITS ?= "no"
 KOKKOS_STANDALONE_CMAKE ?= "no"
@@ -93,7 +93,9 @@ KOKKOS_INTERNAL_CUDA_USE_RELOC := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS
 KOKKOS_INTERNAL_CUDA_USE_LAMBDA := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),enable_lambda)
 KOKKOS_INTERNAL_CUDA_USE_CONSTEXPR := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),enable_constexpr)
 KOKKOS_INTERNAL_HPX_ENABLE_ASYNC_DISPATCH := $(call kokkos_has_string,$(KOKKOS_HPX_OPTIONS),enable_async_dispatch)
+# deprecated
 KOKKOS_INTERNAL_ENABLE_DESUL_ATOMICS := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_desul_atomics)
+KOKKOS_INTERNAL_DISABLE_DESUL_ATOMICS := $(call kokkos_has_string,$(KOKKOS_OPTIONS),disable_desul_atomics)
 KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE := $(call kokkos_has_string,$(KOKKOS_OPTIONS),disable_deprecated_code)
 KOKKOS_INTERNAL_ENABLE_DEPRECATION_WARNINGS := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_deprecation_warnings)
 
@@ -101,12 +103,18 @@ KOKKOS_INTERNAL_HIP_USE_RELOC := $(call kokkos_has_string,$(KOKKOS_HIP_OPTIONS),
 
 # Check for Kokkos Host Execution Spaces one of which must be on.
 KOKKOS_INTERNAL_USE_OPENMP := $(call kokkos_has_string,$(subst OpenMPTarget,,$(KOKKOS_DEVICES)),OpenMP)
-KOKKOS_INTERNAL_USE_PTHREADS := $(call kokkos_has_string,$(KOKKOS_DEVICES),Pthread)
+KOKKOS_INTERNAL_USE_THREADS := $(call kokkos_has_string,$(KOKKOS_DEVICES),Threads)
+# deprecated
+KOKKOS_INTERNAL_USE_PTHREAD := $(call kokkos_has_string,$(KOKKOS_DEVICES),Pthread)
 KOKKOS_INTERNAL_USE_HPX := $(call kokkos_has_string,$(KOKKOS_DEVICES),HPX)
 KOKKOS_INTERNAL_USE_SERIAL := $(call kokkos_has_string,$(KOKKOS_DEVICES),Serial)
+ifeq ($(KOKKOS_INTERNAL_USE_PTHREAD), 1)
+  KOKKOS_INTERNAL_USE_THREADS := 1
+  $(warning Warning: Pthread is deprecated. Use Threads instead! KOKKOS_DEVICES=$(KOKKOS_DEVICES))
+endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 0)
-  ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 0)
+  ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 0)
     ifeq ($(KOKKOS_INTERNAL_USE_HPX), 0)
       KOKKOS_INTERNAL_USE_SERIAL := 1
     endif
@@ -126,7 +134,7 @@ endif
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
   KOKKOS_DEVICELIST += OpenMP
 endif
-ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
   KOKKOS_DEVICELIST += Threads
 endif
 ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
@@ -472,7 +480,7 @@ ifneq ($(KOKKOS_CMAKE), yes)
   # CXXLDFLAGS is used together with CXXFLAGS in a combined compile/link command
   KOKKOS_CXXLDFLAGS = -L$(shell pwd)
 endif
-KOKKOS_LINK_FLAGS = 
+KOKKOS_LINK_FLAGS =
 KOKKOS_SRC =
 KOKKOS_HEADERS =
 
@@ -504,7 +512,7 @@ tmp := $(call kokkos_append_header,'$H''endif')
 tmp := $(call kokkos_append_header,"")
 tmp := $(call kokkos_append_header,"$H""define KOKKOS_VERSION $(KOKKOS_VERSION)")
 tmp := $(call kokkos_append_header,"")
-	
+
 tmp := $(call kokkos_append_header,"/* Execution Spaces */")
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
@@ -531,7 +539,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
   tmp := $(call kokkos_append_header,'$H''define KOKKOS_ENABLE_OPENMP')
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_THREADS")
 endif
 
@@ -952,18 +960,8 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER8), 1)
   ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
 
   else
-    ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1) 
-        KOKKOS_CXXFLAGS += -mcpu=power8 -mtune=power8
-        KOKKOS_LDFLAGS  += -mcpu=power8 -mtune=power8
-    else
-      ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
-
-      else 
-        # Assume that this is a really a GNU compiler on P8.
-        KOKKOS_CXXFLAGS += -mcpu=power8 -mtune=power8
-        KOKKOS_LDFLAGS  += -mcpu=power8 -mtune=power8
-      endif
-    endif
+    KOKKOS_CXXFLAGS += -mcpu=power8 -mtune=power8
+    KOKKOS_LDFLAGS  += -mcpu=power8 -mtune=power8
   endif
 endif
 
@@ -973,18 +971,8 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_POWER9), 1)
   ifeq ($(KOKKOS_INTERNAL_COMPILER_PGI), 1)
 
   else
-    ifeq ($(KOKKOS_INTERNAL_COMPILER_XL), 1) 
-        KOKKOS_CXXFLAGS += -mcpu=power9 -mtune=power9
-        KOKKOS_LDFLAGS  += -mcpu=power9 -mtune=power9
-    else
-      ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
-
-      else 
-        # Assume that this is a really a GNU compiler on P9
-        KOKKOS_CXXFLAGS += -mcpu=power9 -mtune=power9
-        KOKKOS_LDFLAGS  += -mcpu=power9 -mtune=power9
-      endif
-    endif
+    KOKKOS_CXXFLAGS += -mcpu=power9 -mtune=power9
+    KOKKOS_LDFLAGS  += -mcpu=power9 -mtune=power9
   endif
 endif
 
@@ -1202,32 +1190,32 @@ endif
 ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
   # Lets start with adding architecture defines
   ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA900), 1)
-    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_HIP 900")
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA900")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA")
     KOKKOS_INTERNAL_HIP_ARCH_FLAG := --amdgpu-target=gfx900
   endif
   ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA906), 1)
-    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_HIP 906")
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA906")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA")
     KOKKOS_INTERNAL_HIP_ARCH_FLAG := --amdgpu-target=gfx906
   endif
   ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA908), 1)
-    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_HIP 908")
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA908")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA")
     KOKKOS_INTERNAL_HIP_ARCH_FLAG := --amdgpu-target=gfx908
   endif
   ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA90A), 1)
-    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_HIP 90A")
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA90A")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA")
     KOKKOS_INTERNAL_HIP_ARCH_FLAG := --amdgpu-target=gfx90a
   endif
 
 
   KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/core/src/HIP/*.cpp)
-  ifeq ($(KOKKOS_INTERNAL_ENABLE_DESUL_ATOMICS), 1)
+  KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/HIP/*.hpp)
+  ifeq ($(KOKKOS_INTERNAL_DISABLE_DESUL_ATOMICS), 0)
     KOKKOS_SRC += $(KOKKOS_PATH)/core/src/desul/src/Lock_Array_HIP.cpp
   endif
-  KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/HIP/*.hpp)
 
   KOKKOS_CXXFLAGS+=$(KOKKOS_INTERNAL_HIP_ARCH_FLAG)
   KOKKOS_LDFLAGS+=$(KOKKOS_INTERNAL_HIP_ARCH_FLAG)
@@ -1285,8 +1273,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_SYCL), 1)
   KOKKOS_LDFLAGS+=$(KOKKOS_INTERNAL_SYCL_ARCH_FLAG)
 endif
 
-ifeq ($(KOKKOS_INTERNAL_ENABLE_DESUL_ATOMICS), 1)
+ifeq ($(KOKKOS_INTERNAL_DISABLE_DESUL_ATOMICS), 0)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_IMPL_DESUL_ATOMICS")
+else
+  ifeq ($(KOKKOS_INTERNAL_ENABLE_DESUL_ATOMICS), 1)
+    $(error Contradictory Desul atomics options: KOKKOS_OPTIONS=$(KOKKOS_OPTIONS) )
+  endif
 endif
 
 KOKKOS_INTERNAL_LS_CONFIG := $(shell ls KokkosCore_config.h 2>&1)
@@ -1327,7 +1319,6 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
   ifeq ($(KOKKOS_INTERNAL_USE_SYCL), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_SYCL.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_SYCL.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <setup/Kokkos_Setup_SYCL.hpp>","KokkosCore_Config_SetupBackend.hpp")
   endif
   ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_HIP.hpp>","KokkosCore_Config_FwdBackend.hpp")
@@ -1338,7 +1329,7 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_OPENMP.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_OPENMP.hpp>","KokkosCore_Config_DeclareBackend.hpp")
   endif
-  ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+  ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_THREADS.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_THREADS.hpp>","KokkosCore_Config_DeclareBackend.hpp")
   endif
@@ -1367,7 +1358,7 @@ KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/containers/src/impl/*.cpp)
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.cpp)
-  ifeq ($(KOKKOS_INTERNAL_ENABLE_DESUL_ATOMICS), 1)
+  ifeq ($(KOKKOS_INTERNAL_DISABLE_DESUL_ATOMICS), 0)
     KOKKOS_SRC += $(KOKKOS_PATH)/core/src/desul/src/Lock_Array_CUDA.cpp
   endif
   KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.hpp)
@@ -1419,7 +1410,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
   KOKKOS_LINK_FLAGS += $(KOKKOS_INTERNAL_OPENMP_FLAG)
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
   KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/core/src/Threads/*.cpp)
   KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/Threads/*.hpp)
   KOKKOS_LIBS += -lpthread
@@ -1451,14 +1442,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
     endif
   endif
   KOKKOS_TPL_LIBRARY_NAMES += hpx
-endif
-
-# Explicitly set the GCC Toolchain for Clang.
-ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
-  KOKKOS_INTERNAL_GCC_PATH = $(shell which g++)
-  KOKKOS_INTERNAL_GCC_TOOLCHAIN = $(KOKKOS_INTERNAL_GCC_PATH:/bin/g++=)
-  KOKKOS_CXXFLAGS += --gcc-toolchain=$(KOKKOS_INTERNAL_GCC_TOOLCHAIN)
-  KOKKOS_LDFLAGS += --gcc-toolchain=$(KOKKOS_INTERNAL_GCC_TOOLCHAIN)
 endif
 
 # Don't include Kokkos_HBWSpace.cpp if not using MEMKIND to avoid a link warning.
@@ -1507,7 +1490,7 @@ libkokkos.a: $(KOKKOS_OBJ_LINK) $(KOKKOS_SRC) $(KOKKOS_HEADERS)
 	ar cr libkokkos.a $(KOKKOS_OBJ_LINK)
 	ranlib libkokkos.a
 
-print-cxx-flags: 
+print-cxx-flags:
 	echo "$(KOKKOS_CXXFLAGS)"
 
 KOKKOS_LINK_DEPENDS=libkokkos.a

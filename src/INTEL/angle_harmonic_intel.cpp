@@ -49,12 +49,6 @@ AngleHarmonicIntel::AngleHarmonicIntel(LAMMPS *lmp) : AngleHarmonic(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonicIntel::~AngleHarmonicIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AngleHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD

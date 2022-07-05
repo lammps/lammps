@@ -49,29 +49,3 @@ class BondSpecial : public Bond {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Invalid 1-2 setting for bond style special.
-
-Bond style special must be used with zero factors for 1-2 special bonds.
-
-E: Invalid 1-3 setting for bond style special.
-
-Bond style special must be used with 1.0 factors for 1-3 special bonds or the
-angle keyword set to yes.
-
-E: Invalid 1-4 setting for bond style special.
-
-Bond style special must be used with 1.0 factors for 1-4 special bonds or the
-dihedral keyword set to yes.
-
-E: Bond style special is not compatible with long range Coulombic interactions.
-
-Self-explanatory.
-
-*/

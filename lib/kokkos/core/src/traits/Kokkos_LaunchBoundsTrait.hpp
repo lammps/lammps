@@ -61,6 +61,7 @@ struct LaunchBoundsTrait : TraitSpecificationBase<LaunchBoundsTrait> {
     static constexpr bool launch_bounds_is_defaulted = true;
 
     using launch_bounds = LaunchBounds<>;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class LaunchBoundParam, class AnalyzeNextTrait>
   struct mixin_matching_trait : AnalyzeNextTrait {

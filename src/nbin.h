@@ -99,11 +99,3 @@ class NBin : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Non-numeric positions - simulation unstable
-
-UNDOCUMENTED
-
-*/

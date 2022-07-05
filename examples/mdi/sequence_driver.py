@@ -155,7 +155,7 @@ def perform_tasks(world,mdicomm,dummy):
     # request virial tensor
 
     mdi.MDI_Send_command("<STRESS",mdicomm)
-    virial = mdi.MDI_Recv(6,mdi.MDI_DOUBLE,mdicomm)
+    virial = mdi.MDI_Recv(9,mdi.MDI_DOUBLE,mdicomm)
     virial = world.bcast(virial,root=0)
 
     # request forces
@@ -165,10 +165,10 @@ def perform_tasks(world,mdicomm,dummy):
     world.Bcast(forces,root=0)
 
     # final output from each calculation
-    # pressure = just virial component, no kinetic component
+    # pressure = trace of virial tensor, no kinetic component
   
     aveeng = pe/natoms
-    pressure = (virial[0] + virial[1] + virial[2]) / 3.0
+    pressure = (virial[0] + virial[4] + virial[8]) / 3.0
 
     m = 0
     fx = fy = fz = 0.0
@@ -286,18 +286,15 @@ while iarg < narg:
 
 if not mdiarg: error()
 
+mdi.MDI_Init(mdiarg)
+
 # LAMMPS engine is a stand-alone code
 # world = MPI communicator for just this driver
 # invoke perform_tasks() directly
 
 if not plugin:
-  mdi.MDI_Init(mdiarg)
   world = mdi.MDI_MPI_get_world_comm()
-
-  # connect to engine
-
   mdicomm = mdi.MDI_Accept_Communicator()
-
   perform_tasks(world,mdicomm,None)
 
 # LAMMPS engine is a plugin library
@@ -305,7 +302,6 @@ if not plugin:
 # MDI will call back to perform_tasks()
 
 if plugin:
-  mdi.MDI_Init(mdiarg)
   world = MPI.COMM_WORLD
-  plugin_args += " -mdi \"-role ENGINE -name lammps -method LINK\""
+  plugin_args += " -mdi \"-role ENGINE -name LMP -method LINK\""
   mdi.MDI_Launch_plugin(plugin,plugin_args,world,perform_tasks,None)

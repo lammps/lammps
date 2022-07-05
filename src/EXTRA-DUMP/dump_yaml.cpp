@@ -77,7 +77,7 @@ void DumpYAML::write_header(bigint ndump)
 
   if (comm->me == 0) {
     const std::string boundary(boundstr);
-    fmt::print(fp, "---\ntimestep: {}\n", update->ntimestep);
+    fmt::print(fp, "---\ncreator: LAMMPS\ntimestep: {}\n", update->ntimestep);
     if (unit_flag) fmt::print(fp, "units: {}\n", update->unit_style);
     if (time_flag) fmt::print(fp, "time: {:.16g}\n", compute_time());
 
@@ -124,6 +124,12 @@ void DumpYAML::write_data(int n, double *mybuf)
     }
     fputs("]\n", fp);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpYAML::write_footer()
+{
   fputs("...\n", fp);
 }
 

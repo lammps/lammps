@@ -177,7 +177,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   // makes atom result independent of what proc owns it via random->reset()
 
   if (style == RANDOM) {
-    RanPark *random = new RanPark(lmp,1);
+    auto random = new RanPark(lmp,1);
 
     double dx = xscale*utils::numeric(FLERR,arg[2],false,lmp);
     double dy = yscale*utils::numeric(FLERR,arg[3],false,lmp);
@@ -263,11 +263,10 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     // AtomVec pointers to retrieve per-atom storage of extra quantities
 
-    AtomVecEllipsoid *avec_ellipsoid =
-      (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-    AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-    AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-    AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+    auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+    auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+    auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+    auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
 
     double **x = atom->x;
     int *ellipsoid = atom->ellipsoid;
@@ -345,7 +344,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);

@@ -80,11 +80,11 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
                               size_t N, bool warn)
 {
   int status = GSL_SUCCESS;
-  double * delta = (double *) malloc (N * sizeof (double));
-  double * gamma = (double *) malloc (N * sizeof (double));
-  double * alpha = (double *) malloc (N * sizeof (double));
-  double * c = (double *) malloc (N * sizeof (double));
-  double * z = (double *) malloc (N * sizeof (double));
+  auto  delta = (double *) malloc (N * sizeof (double));
+  auto  gamma = (double *) malloc (N * sizeof (double));
+  auto  alpha = (double *) malloc (N * sizeof (double));
+  auto  c = (double *) malloc (N * sizeof (double));
+  auto  z = (double *) malloc (N * sizeof (double));
 
   if (delta == nullptr || gamma == nullptr || alpha == nullptr || c == nullptr || z == nullptr) {
     if (warn)
@@ -193,9 +193,9 @@ static int cyc_spline(double const *xa, double const *ya, int n,
                       double period, double *y2a, bool warn)
 {
 
-  double *diag    = new double[n];
-  double *offdiag = new double[n];
-  double *rhs     = new double[n];
+  auto diag    = new double[n];
+  auto offdiag = new double[n];
+  auto rhs     = new double[n];
   double xa_im1, xa_ip1;
 
   // In the cyclic case, there are n equations with n unknows.
@@ -812,9 +812,9 @@ void DihedralTable::coeff(int narg, char **arg)
   // We also want the angles to be sorted in increasing order.
   // This messy code fixes these problems with the user's data:
   {
-    double *phifile_tmp = new double[tb->ninput];  //temporary arrays
-    double *ffile_tmp = new double[tb->ninput];  //used for sorting
-    double *efile_tmp = new double[tb->ninput];
+    auto phifile_tmp = new double[tb->ninput];  //temporary arrays
+    auto ffile_tmp = new double[tb->ninput];  //used for sorting
+    auto efile_tmp = new double[tb->ninput];
 
     // After re-imaging, does the range of angles cross the 0 or 2*PI boundary?
     // If so, find the discontinuity:
@@ -1020,23 +1020,24 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
   // read a,e,f table values from file
 
   for (int i = 0; i < tb->ninput; i++) {
+    line = reader.next_line();
     try {
+      ValueTokenizer values(line);
       if (tb->f_unspecified) {
-        ValueTokenizer values = reader.next_values(3);
         values.next_int();
         tb->phifile[i] = values.next_double();
         tb->efile[i] = values.next_double();
       } else {
-        ValueTokenizer values = reader.next_values(4);
         values.next_int();
         tb->phifile[i] = values.next_double();
         tb->efile[i] = values.next_double();
         tb->ffile[i] = values.next_double();
       }
     } catch (TokenizerException &e) {
-      error->one(FLERR, e.what());
+      error->one(FLERR, "Error parsing dihedral table '{}' line {} of {}. {}\nLine was: {}",
+                 keyword, i + 1, tb->ninput, e.what(), line);
     }
-  } //for (int i = 0; (i < tb->ninput) && fp; i++) {
+  }
 }
 
 /* ----------------------------------------------------------------------

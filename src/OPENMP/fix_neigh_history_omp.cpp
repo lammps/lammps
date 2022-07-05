@@ -578,7 +578,7 @@ void FixNeighHistoryOMP::post_neighbor()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        rflag = sbmask(j);
+        rflag = histmask(j);
         j &= NEIGHMASK;
         jlist[jj] = j;
 

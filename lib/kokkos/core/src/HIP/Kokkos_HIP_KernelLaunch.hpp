@@ -56,9 +56,14 @@
 
 // Must use global variable on the device with HIP-Clang
 #ifdef __HIP__
+#ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+__device__ __constant__ extern unsigned long
+    kokkos_impl_hip_constant_memory_buffer[];
+#else
 __device__ __constant__ unsigned long kokkos_impl_hip_constant_memory_buffer
     [Kokkos::Experimental::Impl::HIPTraits::ConstantMemoryUsage /
      sizeof(unsigned long)];
+#endif
 #endif
 
 namespace Kokkos {
@@ -430,8 +435,9 @@ struct HIPParallelLaunchKernelInvoker<DriverType, LaunchBounds,
                             dim3 const &block, int shmem,
                             HIPInternal const *hip_instance) {
     // Wait until the previous kernel that uses the constant buffer is done
+    std::lock_guard<std::mutex> lock(HIPInternal::constantMemMutex);
     KOKKOS_IMPL_HIP_SAFE_CALL(
-        hipEventSynchronize(hip_instance->constantMemReusable));
+        hipEventSynchronize(HIPInternal::constantMemReusable));
 
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long *staging = hip_instance->constantMemHostStaging;
@@ -447,7 +453,7 @@ struct HIPParallelLaunchKernelInvoker<DriverType, LaunchBounds,
          get_kernel_func())<<<grid, block, shmem, hip_instance->m_stream>>>();
 
     // Record an event that says when the constant buffer can be reused
-    KOKKOS_IMPL_HIP_SAFE_CALL(hipEventRecord(hip_instance->constantMemReusable,
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipEventRecord(HIPInternal::constantMemReusable,
                                              hip_instance->m_stream));
   }
 };
@@ -484,6 +490,8 @@ struct HIPParallelLaunch<
 
       KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE();
 
+      std::lock_guard<std::mutex> const lock(hip_instance->m_mutexWorkArray);
+
       // Invoke the driver function on the device
       DriverType *d_driver = reinterpret_cast<DriverType *>(
           hip_instance->get_next_driver(sizeof(DriverType)));
@@ -509,6 +517,10 @@ void hip_parallel_launch(const DriverType &driver, const dim3 &grid,
                          const dim3 &block, const int shmem,
                          const HIPInternal *hip_instance,
                          const bool prefer_shmem) {
+#ifndef KOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
+  HIPParallelLaunch<DriverType, LaunchBounds, LaunchMechanism>(
+      driver, grid, block, shmem, hip_instance, prefer_shmem);
+#else
   // FIXME_HIP - could be if constexpr for c++17
   if (!HIPParallelLaunch<DriverType, LaunchBounds,
                          LaunchMechanism>::default_launchbounds()) {
@@ -532,6 +544,7 @@ void hip_parallel_launch(const DriverType &driver, const dim3 &grid,
                                          hip_instance, prefer_shmem);
     }
   }
+#endif
 }
 }  // namespace Impl
 }  // namespace Experimental

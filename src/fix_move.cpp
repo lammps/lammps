@@ -295,10 +295,10 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // AtomVec pointers to retrieve per-atom storage of extra quantities
 
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
-  avec_body = (AtomVecBody *) atom->style_match("body");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   // xoriginal = initial unwrapped positions of atoms
   // toriginal = initial theta of lines
@@ -495,7 +495,7 @@ void FixMove::init()
     velocity = nullptr;
 
   if (utils::strmatch(update->integrate_style, "^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ----------------------------------------------------------------------
@@ -1218,7 +1218,7 @@ void FixMove::write_restart(FILE *fp)
 void FixMove::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   time_origin = static_cast<int>(list[n++]);
 }

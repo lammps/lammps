@@ -50,7 +50,7 @@ class PairEDIPMulti : public Pair {
     double mu, Q0;            // coefficients for function Q(Z)
     double u1, u2, u3, u4;    // coefficients for function tau(Z)
     double cutsq;
-    int ielement, jelement, kelement, dummy; // dummy added for better alignment
+    int ielement, jelement, kelement, dummy;    // dummy added for better alignment
   };
 
   double *preForceCoord;

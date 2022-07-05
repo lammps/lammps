@@ -275,7 +275,7 @@ void FixGPU::init()
   // also disallow GPU neighbor lists for hybrid styles
 
   if (force->pair_match("^hybrid",0) != nullptr) {
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
+    auto hybrid = dynamic_cast<PairHybrid *>( force->pair);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
@@ -286,7 +286,7 @@ void FixGPU::init()
   // rRESPA support
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    _nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    _nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -300,9 +300,9 @@ void FixGPU::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
   else {
     // In setup only, all forces calculated on GPU are put in the outer level
-    ((Respa *) update->integrate)->copy_flevel_f(_nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);
-    ((Respa *) update->integrate)->copy_f_flevel(_nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(_nlevels_respa-1);
   }
 }
 

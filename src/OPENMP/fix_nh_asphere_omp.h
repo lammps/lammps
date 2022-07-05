@@ -36,16 +36,3 @@ class FixNHAsphereOMP : public FixNHOMP {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Compute nvt/nph/npt asphere requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Fix nvt/nph/npt asphere requires extended particles
-
-The shape setting for a particle in the fix group has shape = 0.0,
-which means it is a point particle.
-
-*/

@@ -109,6 +109,7 @@ class PairBOP : public Pair {
   int npairs;             // number of element pairs
   int ntriples;           // number of all triples
   char **bop_elements;    // names of elements in potential file
+  double *bop_masses;     // masses of elements in potential file
   double bytes;
 
   int otfly;    // = 1 faster, more memory, = 0 slower, less memory
@@ -155,50 +156,3 @@ class PairBOP : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal pair_style command
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory. Check the input script or data file.
-
-E: Pair style BOP requires atom IDs
-
-This is a requirement to use the BOP potential.
-
-E: Pair style BOP requires newton pair on
-
-This is a restriction to use the BOP potential.
-
-E: Pair style bop requires a comm ghost cutoff of at least %lf
-
-Use the comm_modify cutoff to set this. See the pair bop doc page for
-more details.
-
-E: All pair coeffs are not set
-
-Self-explanatory.
-
-E: Cannot open BOP potential file %s
-
-Self-explanatory.
-
-E: Incorrect table format check for element types
-
-Self-explanatory.
-
-E: Unsupported BOP potential file format
-
-Self-explanatory.
-
-E: Pair style bop requires system dimension of at least %g
-
-Self-explanatory.
-
-UNDOCUMENTED
-
-*/

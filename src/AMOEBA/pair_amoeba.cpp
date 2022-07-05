@@ -517,19 +517,19 @@ void PairAmoeba::finish()
 
   if (comm->me == 0) {
     utils::logmesg(lmp,"\n{} timing breakdown:\n", utils::uppercase(mystyle));
-    utils::logmesg(lmp,"  Init    time: {:.6g} {:.3g}%\n", time_init, time_init/time_total);
+    utils::logmesg(lmp,"  Init    time: {:<12.6g} {:6.2f}%\n", time_init, time_init/time_total);
     if (amoeba) {
-      utils::logmesg(lmp,"  Hal     time: {:.6g} {:.3g}%\n", time_hal, time_hal/time_total);
+      utils::logmesg(lmp,"  Hal     time: {:<12.6g} {:6.2f}%\n", time_hal, time_hal/time_total);
     } else { // hippo
-      utils::logmesg(lmp,"  Repulse time: {:.6g} {:.3g}%\n", time_repulse, time_repulse/time_total);
-      utils::logmesg(lmp,"  Disp    time: {:.6g} {:.3g}%\n", time_disp, time_disp/time_total);
+      utils::logmesg(lmp,"  Repulse time: {:<12.6g} {:6.2f}%\n", time_repulse, time_repulse/time_total);
+      utils::logmesg(lmp,"  Disp    time: {:<12.6g} {:6.2f}%\n", time_disp, time_disp/time_total);
     }
-    utils::logmesg(lmp,"  Mpole   time: {:.6g} {:.3g}%\n", time_mpole, time_mpole/time_total);
-    utils::logmesg(lmp,"  Induce  time: {:.6g} {:.3g}%\n", time_induce, time_induce/time_total);
-    utils::logmesg(lmp,"  Polar   time: {:.6g} {:.3g}%\n", time_polar, time_polar/time_total);
+    utils::logmesg(lmp,"  Mpole   time: {:<12.6g} {:6.2f}%\n", time_mpole, time_mpole/time_total);
+    utils::logmesg(lmp,"  Induce  time: {:<12.6g} {:6.2f}%\n", time_induce, time_induce/time_total);
+    utils::logmesg(lmp,"  Polar   time: {:<12.6g} {:6.2f}%\n", time_polar, time_polar/time_total);
     if (!amoeba)
-      utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n", time_qxfer, time_qxfer/time_total);
-    utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total * 100.0);
+      utils::logmesg(lmp,"  Qxfer   time: {:<12.6g} {:6.2f}%\n", time_qxfer, time_qxfer/time_total);
+    utils::logmesg(lmp,"  Total   time: {:<12.6g}\n",time_total * 100.0);
   }
 }
 

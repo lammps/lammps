@@ -42,7 +42,7 @@ class PairCoulSlaterLong : public Pair {
 
  protected:
   double cut_coul, cut_coulsq, qdist;
-  double lamda;
+  double lambda;
   double g_ewald;
   double **scale;
 

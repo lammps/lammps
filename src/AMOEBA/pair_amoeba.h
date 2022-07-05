@@ -448,32 +448,28 @@ class PairAmoeba : public Pair {
   void read_prmfile(char *);
   void read_keyfile(char *);
 
-  int read_section_line(FILE *fp, char *, int &, char *);
-  int tokenize(char *, char **&, char *&);
-  int count_words(const char *);
-
   void initialize_type_class();
   void allocate_type_class(int, int);
   void deallocate_type_class();
 
-  void file_ffield(int, char **);
-  void file_literature(int, char **);
-  void file_atomtype(int, char **);
-  void file_vdwl(int, char **);
-  void file_vdwl_pair(int, char **);
-  void file_bstretch(int, char **);
-  void file_sbend(int, char **);
-  void file_abend(int, char **);
-  void file_pauli(int, char **);
-  void file_dispersion(int, char **);
-  void file_ub(int, char **);
-  void file_outplane(int, char **);
-  void file_torsion(int, char **);
-  void file_pitorsion(int, char **);
-  void file_multipole(int, char **);
-  void file_charge_penetration(int, char **);
-  void file_dippolar(int, char **);
-  void file_charge_transfer(int, char **);
+  void file_ffield(const std::vector<std::string> &, int);
+  void file_literature(const std::vector<std::string> &, int);
+  void file_atomtype(const std::vector<std::string> &, int);
+  void file_vdwl(const std::vector<std::string> &, int);
+  void file_vdwl_pair(const std::vector<std::string> &, int);
+  void file_bstretch(const std::vector<std::string> &, int);
+  void file_sbend(const std::vector<std::string> &, int);
+  void file_abend(const std::vector<std::string> &, int);
+  void file_pauli(const std::vector<std::string> &, int);
+  void file_dispersion(const std::vector<std::string> &, int);
+  void file_ub(const std::vector<std::string> &, int);
+  void file_outplane(const std::vector<std::string> &, int);
+  void file_torsion(const std::vector<std::string> &, int);
+  void file_pitorsion(const std::vector<std::string> &, int);
+  void file_multipole(const std::vector<std::string> &, int);
+  void file_charge_penetration(const std::vector<std::string> &, int);
+  void file_dippolar(const std::vector<std::string> &, int);
+  void file_charge_transfer(const std::vector<std::string> &, int);
 
   // inline function for neighbor list unmasking
 

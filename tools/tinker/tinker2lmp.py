@@ -15,6 +15,7 @@
 
 # Author: Steve Plimpton
 
+from __future__ import print_function
 import sys,os,math
 from data import data
 
@@ -29,20 +30,20 @@ DELTA = 0.001     # delta on LAMMPS shrink-wrap box size, in Angstroms
 
 def error(txt=""):
   if not txt:
-    print "Syntax: tinker2lmp.py -switch args ..."
-    print "  -xyz file"
-    print "  -amoeba file"
-    print "  -hippo file"
-    print "  -data file"
-    print "  -bitorsion file"
-    print "  -nopbc"
-    print "  -pbc xhi yhi zhi"
-  else: print "ERROR:",txt
+    print("Syntax: tinker2lmp.py -switch args ...")
+    print("  -xyz file")
+    print("  -amoeba file")
+    print("  -hippo file")
+    print("  -data file")
+    print("  -bitorsion file")
+    print("  -nopbc")
+    print("  -pbc xhi yhi zhi")
+  else: print("ERROR:",txt)
   #sys.exit()
 
 # read and store values from a Tinker xyz file
 
-class XYZfile:
+class XYZfile(object):
   def __init__(self,file):
     lines = open(file,'r').readlines()
     header = lines[0]
@@ -212,7 +213,7 @@ class XYZfile:
   def output(self,outfile):
     fp = open(outfile,'w')
     words = self.header.split()
-    print >>fp,self.natoms,"replicated",' '.join(words[1:])
+    print(self.natoms,"replicated",' '.join(words[1:]), file=fp)
 
     id = self.id
     label = self.label
@@ -225,9 +226,9 @@ class XYZfile:
     # NOTE: worry about formatting of line
     
     for i in range(self.natoms):
-      print >>fp,i+1,label[i],x[i],y[i],z[i],type[i],
-      for j in bonds[i]: print >>fp,j,
-      print >>fp
+      print(i+1,label[i],x[i],y[i],z[i],type[i], end=' ', file=fp)
+      for j in bonds[i]: print(j, end=' ', file=fp)
+      print(file=fp)
     
     fp.close()
     
@@ -255,7 +256,7 @@ class XYZfile:
 # scalar force field params in Force Field Definition section
 # bond, angle, dihedral coeffs indexed by Tinker classes
 
-class PRMfile:
+class PRMfile(object):
   def __init__(self,file):
     lines = open(file,'r').readlines()
     self.nlines = len(lines)
@@ -519,7 +520,7 @@ class PRMfile:
             error("torsion does not have triplets of params: %d %d %d %d" % \
                   (class1,class2,class3,class4))
 
-          mfourier = (len(words)-5) / 3
+          mfourier = int((len(words)-5)/3)
           oneparams = [class1,class2,class3,class4,mfourier]
 
           for iset in range(mfourier):
@@ -743,7 +744,7 @@ if pbcflag:
 else:
   xlo = ylo = zlo = BIG
   xhi = yhi = zhi = -BIG
-  for i in xrange(natoms):
+  for i in range(natoms):
     xlo = min(xlo,float(x[i]))
     ylo = min(ylo,float(y[i]))
     zlo = min(zlo,float(z[i]))
@@ -1097,11 +1098,11 @@ for i,one in enumerate(alist):
       nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
       
       if nbonds != 3: 
-        print "Center angle atom has wrong bond count"
-        print "  angle atom IDs:",atom1,atom2,atom3
-        print "  angle atom classes:",c1,c2,c3
-        print "  Tinker FF file param options:",len(params[3])
-        print "  Nbonds and hydrogen count:",nbonds,hcount
+        print("Center angle atom has wrong bond count")
+        print("  angle atom IDs:",atom1,atom2,atom3)
+        print("  angle atom classes:",c1,c2,c3)
+        print("  Tinker FF file param options:",len(params[3]))
+        print("  Nbonds and hydrogen count:",nbonds,hcount)
         #sys.exit()      NOTE: allow this for now
 
       if hcount == 0: which = 1
@@ -1109,22 +1110,22 @@ for i,one in enumerate(alist):
         which = 2
         m += 1
 
-      print "3-bond angle"
-      print "  angle atom IDs:",atom1,atom2,atom3
-      print "  angle atom classes:",c1,c2,c3
-      print "  Tinker FF file param options:",len(params[3])
-      print "  Nbonds and hydrogen count:",nbonds,hcount
-      print "  which:",which,m
+      print("3-bond angle")
+      print("  angle atom IDs:",atom1,atom2,atom3)
+      print("  angle atom classes:",c1,c2,c3)
+      print("  Tinker FF file param options:",len(params[3]))
+      print("  Nbonds and hydrogen count:",nbonds,hcount)
+      print("  which:",which,m)
 
     elif len(params[3]) == 3:
       nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
       
       if nbonds != 4: 
-        print "Center angle atom has wrong bond count"
-        print "  angle atom IDs:",atom1,atom2,atom3
-        print "  angle atom classes:",c1,c2,c3
-        print "  Tinker FF file param options:",len(params[3])
-        print "  Nbonds and hydrogen count:",nbonds,hcount
+        print("Center angle atom has wrong bond count")
+        print("  angle atom IDs:",atom1,atom2,atom3)
+        print("  angle atom classes:",c1,c2,c3)
+        print("  Tinker FF file param options:",len(params[3]))
+        print("  Nbonds and hydrogen count:",nbonds,hcount)
         #sys.exit()     NOTE: allow this for now
         
       if hcount == 0: which = 1
@@ -1170,7 +1171,7 @@ for itype in range(len(aparams)):
   elif (c3,c2,c1) in badict:
     n1,n2,r1,r2 = badict[(c3,c2,c1)]
   else:
-    print "Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3)
+    print("Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3))
     n1,n2,r1,r2 = 4*[0.0]
     
   baparams.append((n1,n2,r1,r2))
@@ -1600,17 +1601,17 @@ if nbitorsions:
           nbitorsions)
 
   fp = open(bitorsionfile,'w')
-  print >>fp,"Tinker BiTorsion parameter file for fix bitorsion\n"
-  print >>fp,"%d bitorsion types" % len(bitorsionparams)
+  print("Tinker BiTorsion parameter file for fix bitorsion\n", file=fp)
+  print("%d bitorsion types" % len(bitorsionparams), file=fp)
   itype = 0
   for nx,ny,array in bitorsionparams:
     itype += 1
-    print >>fp
-    print >>fp,itype,nx,ny
+    print(file=fp)
+    print(itype,nx,ny, file=fp)
     for ix in range(nx):
       for iy in range(ny):
         xgrid,ygrid,value = array[ix][iy]
-        print >>fp," ",xgrid,ygrid,value
+        print(" ",xgrid,ygrid,value, file=fp)
   fp.close()
   
   lines = [] 
@@ -1624,21 +1625,21 @@ d.write(datafile)
 
 # print stats to screen
 
-print "Natoms =",natoms
-print "Ntypes =",ntypes
-print "Tinker XYZ types =",len(tink2lmp)
-print "Tinker PRM types =",prm.ntypes
+print("Natoms =",natoms)
+print("Ntypes =",ntypes)
+print("Tinker XYZ types =",len(tink2lmp))
+print("Tinker PRM types =",prm.ntypes)
 #print "Tinker groups =",ngroups
-print "Nmol =",nmol
-print "Nbonds =",nbonds
-print "Nangles =",nangles
-print "Ndihedrals =",ndihedrals
-print "Nimpropers =",nimpropers
-print "Npitorsions =",npitorsions
-print "Nbitorsions =",nbitorsions
-print "Nbondtypes =",len(bparams)
-print "Nangletypes =",len(aparams)
-print "Ndihedraltypes =",len(dparams)
-print "Nimpropertypes =",len(oparams)
-print "Npitorsiontypes =",len(pitorsionparams)
-print "Nbitorsiontypes =",len(bitorsionparams)
+print("Nmol =",nmol)
+print("Nbonds =",nbonds)
+print("Nangles =",nangles)
+print("Ndihedrals =",ndihedrals)
+print("Nimpropers =",nimpropers)
+print("Npitorsions =",npitorsions)
+print("Nbitorsions =",nbitorsions)
+print("Nbondtypes =",len(bparams))
+print("Nangletypes =",len(aparams))
+print("Ndihedraltypes =",len(dparams))
+print("Nimpropertypes =",len(oparams))
+print("Npitorsiontypes =",len(pitorsionparams))
+print("Nbitorsiontypes =",len(bitorsionparams))

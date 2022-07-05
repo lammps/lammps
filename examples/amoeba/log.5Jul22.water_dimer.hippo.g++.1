@@ -47,6 +47,7 @@ Finding 1-2 1-3 1-4 neighbors ...
 
 pair_style      hippo
 pair_coeff      * * hippo_water.prm hippo_water.key
+Reading potential file hippo_water.prm with DATE: 2022-07-05
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 Finding 1-2 1-3 1-4 neighbors ...
@@ -109,31 +110,31 @@ Per MPI rank memory allocation (min/avg/max) = 47.9 | 47.9 | 47.9 Mbytes
          3   18.15288      -4.9496234      0.010334146    0.19125791     0              0              0.20159205    -4.47748        7115.3453     -5853.149       32274.916     -8557.0355     -41.982111     -17374.865     -42.455978    
          4   24.248994     -4.9153331      0.0093063079   0.065238074    0              0              0.074544382   -4.4793805      11356.801      5716.9586      25838.412     -2135.3667     -22.820662     -10495.224     -28.045156    
          5   26.136423     -4.8829114      0.0095061937   0.0039834608   0              0              0.013489654   -4.4798832      9044.3732      10498.874      11345.536      276.34491     -1.1467483     -1185.8556     -8.820154     
-Loop time of 0.000211279 on 1 procs for 5 steps with 6 atoms
+Loop time of 0.000210439 on 1 procs for 5 steps with 6 atoms
 
-Performance: 2044.690 ns/day, 0.012 hours/ns, 23665.390 timesteps/s
+Performance: 2052.851 ns/day, 0.012 hours/ns, 23759.854 timesteps/s
 98.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 HIPPO timing breakdown:
-  Init    time: 4.768e-06      4.20%
-  Repulse time: 1.3408e-05    11.81%
-  Disp    time: 9.476e-06      8.35%
-  Mpole   time: 2.1547e-05    18.98%
-  Induce  time: 3.7631e-05    33.14%
-  Polar   time: 2.4333e-05    21.43%
-  Qxfer   time: 2.244e-06      1.98%
-  Total   time: 0.000113542 
+  Init    time: 5.006e-06      4.58%
+  Repulse time: 1.3587e-05    12.42%
+  Disp    time: 5.471e-06      5.00%
+  Mpole   time: 2.1321e-05    19.49%
+  Induce  time: 3.7665e-05    34.43%
+  Polar   time: 2.3919e-05    21.87%
+  Qxfer   time: 2.295e-06      2.10%
+  Total   time: 0.000109391 
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00011535 | 0.00011535 | 0.00011535 |   0.0 | 54.60
-Bond    | 3.239e-06  | 3.239e-06  | 3.239e-06  |   0.0 |  1.53
+Pair    | 0.00011125 | 0.00011125 | 0.00011125 |   0.0 | 52.86
+Bond    | 3.062e-06  | 3.062e-06  | 3.062e-06  |   0.0 |  1.46
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 6.41e-07   | 6.41e-07   | 6.41e-07   |   0.0 |  0.30
-Output  | 8.5752e-05 | 8.5752e-05 | 8.5752e-05 |   0.0 | 40.59
-Modify  | 1.55e-06   | 1.55e-06   | 1.55e-06   |   0.0 |  0.73
-Other   |            | 4.744e-06  |            |       |  2.25
+Comm    | 6.3e-07    | 6.3e-07    | 6.3e-07    |   0.0 |  0.30
+Output  | 8.8087e-05 | 8.8087e-05 | 8.8087e-05 |   0.0 | 41.86
+Modify  | 1.664e-06  | 1.664e-06  | 1.664e-06  |   0.0 |  0.79
+Other   |            | 5.749e-06  |            |       |  2.73
 
 Nlocal:              6 ave           6 max           6 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

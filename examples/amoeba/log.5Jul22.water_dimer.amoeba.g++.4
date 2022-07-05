@@ -47,6 +47,7 @@ Finding 1-2 1-3 1-4 neighbors ...
 
 pair_style      amoeba
 pair_coeff      * * amoeba_water.prm amoeba_water.key
+Reading potential file amoeba_water.prm with DATE: 2022-07-05
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 Finding 1-2 1-3 1-4 neighbors ...
@@ -107,29 +108,29 @@ Per MPI rank memory allocation (min/avg/max) = 48.35 | 48.48 | 48.62 Mbytes
          3   22.599529     -5.0641035      0.0093422156   0.28736734     0              0              0.29670956    -4.4305695      7832.024      -6436.638       34275.274     -8676.6339     -46.038158     -20245.105     -46.202354    
          4   30.447598     -5.0072832      0.0076827791   0.11282886     0              0              0.12051164    -4.432979       12374.854      6652.5061      24658.364     -25.4576       -23.025707     -13137.295     -27.801932    
          5   33.189086     -4.9523094      0.0086012541   0.015399005    0              0              0.024000259   -4.4336573      10023.674      11810.883      8754.5769      3140.658       0.25267021    -3546.6216     -6.83205      
-Loop time of 0.000582267 on 4 procs for 5 steps with 6 atoms
+Loop time of 0.000598353 on 4 procs for 5 steps with 6 atoms
 
-Performance: 741.928 ns/day, 0.032 hours/ns, 8587.130 timesteps/s
-99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 721.982 ns/day, 0.033 hours/ns, 8356.278 timesteps/s
+98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 AMOEBA timing breakdown:
-  Init    time: 1.3264e-05     3.71%
-  Hal     time: 3.16275e-06    0.88%
-  Mpole   time: 2.35955e-05    6.60%
-  Induce  time: 0.000290896   81.33%
-  Polar   time: 2.62723e-05    7.34%
-  Total   time: 0.000357696 
+  Init    time: 1.3678e-05     3.81%
+  Hal     time: 3.5045e-06     0.97%
+  Mpole   time: 2.3748e-05     6.61%
+  Induce  time: 0.000284514   79.15%
+  Polar   time: 3.3521e-05     9.33%
+  Total   time: 0.000359445 
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00036015 | 0.00038587 | 0.00040555 |   0.0 | 66.27
-Bond    | 1.441e-06  | 3.3365e-06 | 5.265e-06  |   0.0 |  0.57
+Pair    | 0.00035282 | 0.00038565 | 0.00040584 |   0.0 | 64.45
+Bond    | 1.637e-06  | 3.2485e-06 | 4.816e-06  |   0.0 |  0.54
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 2.1512e-05 | 3.3761e-05 | 4.9368e-05 |   0.0 |  5.80
-Output  | 0.00012269 | 0.00014666 | 0.00017989 |   0.0 | 25.19
-Modify  | 1.659e-06  | 2.0448e-06 | 2.275e-06  |   0.0 |  0.35
-Other   |            | 1.059e-05  |            |       |  1.82
+Comm    | 1.4157e-05 | 3.2696e-05 | 5.1431e-05 |   0.0 |  5.46
+Output  | 0.00014589 | 0.0001627  | 0.00018978 |   0.0 | 27.19
+Modify  | 1.649e-06  | 2.0097e-06 | 2.209e-06  |   0.0 |  0.34
+Other   |            | 1.205e-05  |            |       |  2.01
 
 Nlocal:            1.5 ave           3 max           0 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

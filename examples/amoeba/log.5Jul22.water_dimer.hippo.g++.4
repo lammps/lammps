@@ -1,0 +1,150 @@
+LAMMPS (23 Jun 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# water dimer with AMOEBA or HIPPO
+
+units           real
+boundary        s s s
+
+atom_style      amoeba
+bond_style      class2
+angle_style     amoeba
+dihedral_style  none
+
+# per-atom properties required by AMOEBA or HIPPO
+
+fix             amtype all property/atom i_amtype ghost yes
+fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix             extra2 all property/atom i_polaxe d2_xyzaxis 3
+
+# read data file
+
+read_data       data.water_dimer.hippo fix amtype NULL "Tinker Types"
+Reading data file ...
+  orthogonal box = (-1.463996 -0.756549 -0.009705) to (0.933234 0.75612 2.935934)
+  2 by 1 by 2 MPI processor grid
+  reading atoms ...
+  6 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  4 bonds
+  reading angles ...
+  2 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+
+# force field
+
+pair_style      hippo
+pair_coeff      * * hippo_water.prm hippo_water.key
+
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0.5      0.5      0.5     
+  special bond factors coul:  0.5      0.5      0.5     
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of 1-5 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# thermo output
+
+compute         virial all pressure NULL virial
+
+thermo_style    custom step temp epair ebond eangle edihed eimp                 emol etotal press c_virial[*]
+
+#dump            1 all custom 10 dump.water_dimer id type x y z fx fy fz
+#dump_modify     1 sort id
+
+# zero step run
+
+#run             0
+
+# dynamics
+
+fix             1 all nve
+
+thermo          1
+run             5
+HIPPO force field settings
+  repulsion: cut 10 taper 8 rscale 0 0 1 1
+  qxfer: cut 10 taper 8 mscale 0 0 0.4 1
+  dispersion: cut 10 aewald 0 dspscale 0 0 0.4 1
+  multipole: cut 10 aewald 0 mscale 0 0 0.4 1
+  polar: cut 10 aewald 0
+         pscale 0 0 1 1 piscale 0 0 0.5 1 wscale 0.2 1 1 1 d/u scale 0 1
+  precondition: cut 4.5
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair hippo, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (src/domain.cpp:970)
+  HIPPO group count: 2
+Per MPI rank memory allocation (min/avg/max) = 47.91 | 48.04 | 48.18 Mbytes
+   Step          Temp          E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          TotEng         Press       c_virial[1]    c_virial[2]    c_virial[3]    c_virial[4]    c_virial[5]    c_virial[6]  
+         0   0             -5.0101954      0.025695395    0.51472748     0              0              0.54042288    -4.4697726     -11875.159     -38149.178      29162.678     -26638.977     -70.63422      -24614.614     -58.505595    
+         1   2.8239917     -5.0023563      0.021919009    0.46718        0              0              0.48909901    -4.4711684     -8777.4654     -33285.75       30332.24      -23920.463     -67.159404     -23940.605     -56.913519    
+         2   9.9359188     -4.9806071      0.014704278    0.34344685     0              0              0.35815113    -4.4743705     -1094.2989     -20777.766      32507.918     -16918.53      -57.217298     -21702.479     -51.827962    
+         3   18.15288      -4.9496234      0.010334146    0.19125791     0              0              0.20159205    -4.47748        7115.3453     -5853.149       32274.916     -8557.0355     -41.982111     -17374.865     -42.455978    
+         4   24.248994     -4.9153331      0.0093063079   0.065238074    0              0              0.074544382   -4.4793805      11356.801      5716.9586      25838.412     -2135.3667     -22.820662     -10495.224     -28.045156    
+         5   26.136423     -4.8829114      0.0095061937   0.0039834608   0              0              0.013489654   -4.4798832      9044.3732      10498.874      11345.536      276.34491     -1.1467483     -1185.8556     -8.820154     
+Loop time of 0.000515971 on 4 procs for 5 steps with 6 atoms
+
+Performance: 837.257 ns/day, 0.029 hours/ns, 9690.472 timesteps/s
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+HIPPO timing breakdown:
+  Init    time: 1.26765e-05    4.09%
+  Repulse time: 1.99082e-05    6.43%
+  Disp    time: 3.16825e-06    1.02%
+  Mpole   time: 3.4956e-05    11.29%
+  Induce  time: 0.000205268   66.29%
+  Polar   time: 3.1924e-05    10.31%
+  Qxfer   time: 1.5545e-06     0.50%
+  Total   time: 0.000309632 
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0003033  | 0.00032943 | 0.00034747 |   0.0 | 63.85
+Bond    | 1.237e-06  | 2.778e-06  | 4.775e-06  |   0.0 |  0.54
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 1.2356e-05 | 3.1848e-05 | 4.3553e-05 |   0.0 |  6.17
+Output  | 0.00012443 | 0.0001412  | 0.00015698 |   0.0 | 27.37
+Modify  | 1.428e-06  | 2.0447e-06 | 2.545e-06  |   0.0 |  0.40
+Other   |            | 8.678e-06  |            |       |  1.68
+
+Nlocal:            1.5 ave           3 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:            4.5 ave           6 max           3 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:           3.75 ave          12 max           0 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+
+Total # of neighbors = 15
+Ave neighs/atom = 2.5
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

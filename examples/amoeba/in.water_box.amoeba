@@ -32,8 +32,8 @@ compute         virial all pressure NULL virial
 thermo_style    custom step temp epair ebond eangle edihed eimp &
                 emol etotal press c_virial[*]
 
-dump            1 all custom 10 dump.water_box id type x y z fx fy fz
-dump_modify     1 sort id
+#dump            1 all custom 10 dump.water_box id type x y z fx fy fz
+#dump_modify     1 sort id
 
 # zero step run
 

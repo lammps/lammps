@@ -687,9 +687,9 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
 
       // increment force-based gradient and torque on atom I
 
-      f.x += frcx;
-      f.y += frcy;
-      f.z += frcz;
+      f.x -= frcx;
+      f.y -= frcy;
+      f.z -= frcz;
       tq.x += ttmix;
       tq.y += ttmiy;
       tq.z += ttmiz;
@@ -703,12 +703,12 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
         numtyp vyz = (numtyp)-0.5 * (zr*frcy+yr*frcz);
         numtyp vzz = -zr * frcz;
 
-        virial[0] += vxx;
-        virial[1] += vyy;
-        virial[2] += vzz;
-        virial[3] += vxy;
-        virial[4] += vxz;
-        virial[5] += vyz;
+        virial[0] -= vxx;
+        virial[1] -= vyy;
+        virial[2] -= vzz;
+        virial[3] -= vxy;
+        virial[4] -= vxz;
+        virial[5] -= vyz;
       }
     } // nbor
 
@@ -877,9 +877,9 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp dedx = de * xr;
       numtyp dedy = de * yr;
       numtyp dedz = de * zr;
-      f.x += dedx;
-      f.y += dedy;
-      f.z += dedz;
+      f.x -= dedx;
+      f.y -= dedy;
+      f.z -= dedz;
 
       // increment the internal virial tensor components
 
@@ -890,12 +890,12 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp vzy = zr * dedy;
       numtyp vzz = zr * dedz;
 
-      virial[0] += vxx;
-      virial[1] += vyy;
-      virial[2] += vzz;
-      virial[3] += vyx;
-      virial[4] += vzx;
-      virial[5] += vzy;
+      virial[0] -= vxx;
+      virial[1] -= vyy;
+      virial[2] -= vzz;
+      virial[3] -= vyx;
+      virial[4] -= vzx;
+      virial[5] -= vzy;
     } // nbor
 
   } // ii<inum
@@ -1212,9 +1212,9 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
       // increment force-based gradient and torque on first site
 
-      f.x += frcx;
-      f.y += frcy;
-      f.z += frcz;
+      f.x -= frcx;
+      f.y -= frcy;
+      f.z -= frcz;
       tq.x += ttmix;
       tq.y += ttmiy;
       tq.z += ttmiz;
@@ -1227,12 +1227,12 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
         numtyp vyz = (numtyp)-0.5 * (zr*frcy+yr*frcz);
         numtyp vzz = -zr * frcz;
 
-        virial[0] += vxx;
-        virial[1] += vyy;
-        virial[2] += vzz;
-        virial[3] += vxy;
-        virial[4] += vxz;
-        virial[5] += vyz;
+        virial[0] -= vxx;
+        virial[1] -= vyy;
+        virial[2] -= vzz;
+        virial[3] -= vxy;
+        virial[4] -= vxz;
+        virial[5] -= vyz;
       }
     } // nbor
 
@@ -2095,9 +2095,9 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       frcy = frcy - depy;
       frcz = frcz - depz;
 
-      f.x -= frcx;
-      f.y -= frcy;
-      f.z -= frcz;
+      f.x += frcx;
+      f.y += frcy;
+      f.z += frcz;
 
       if (EVFLAG && vflag) {
         numtyp vxx = xr * frcx;
@@ -2107,12 +2107,12 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
         numtyp vyz = (numtyp)0.5 * (zr*frcy+yr*frcz);
         numtyp vzz = zr * frcz;
 
-        virial[0] += vxx;
-        virial[1] += vyy;
-        virial[2] += vzz;
-        virial[3] += vxy;
-        virial[4] += vxz;
-        virial[5] += vyz;
+        virial[0] -= vxx;
+        virial[1] -= vyy;
+        virial[2] -= vzz;
+        virial[3] -= vxy;
+        virial[4] -= vxz;
+        virial[5] -= vyz;
       }
     } // nbor
 
@@ -2159,6 +2159,7 @@ __kernel void k_hippo_special15(__global int * dev_nbor,
       int which = sj >> SBBITS & 3;
       int j = sj & NEIGHMASK;
       tagint jtag = tag[j];
+
       if (!which) {
         int offset=ii;
         for (int k=0; k<n15; k++) {

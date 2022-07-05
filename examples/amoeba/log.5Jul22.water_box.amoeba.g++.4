@@ -41,13 +41,14 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.005 seconds
+  read_data CPU = 0.008 seconds
 
 # force field
 
 pair_style      amoeba
 pair_coeff      * * amoeba_water.prm amoeba_water_box.key
 Reading potential file amoeba_water.prm with DATE: 2022-07-05
+Reading potential file amoeba_water_box.key with DATE: 2022-07-05
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 Finding 1-2 1-3 1-4 neighbors ...
@@ -112,29 +113,29 @@ Per MPI rank memory allocation (min/avg/max) = 56.38 | 56.38 | 56.38 Mbytes
         80   171.83506     -2388.0612      76.465932      49.1299        0              0              125.59583     -1931.067       2210.3658     -318.23867      330.74353     -395.26693     -43.142216      252.53012     -1987.0412    
         90   175.73401     -2423.8154      90.786573      63.719496      0              0              154.50607     -1930.3915     -916.91571     -3942.3954     -2566.5361     -3414.8202      199.82369      2365.9443     -266.38604    
        100   173.72684     -2422.367       99.75941       57.294464      0              0              157.05387     -1930.2663     -3585.8356     -5734.1341     -5882.0146     -6232.4353     -227.79935      959.68225      404.47924    
-Loop time of 3.62992 on 4 procs for 100 steps with 648 atoms
+Loop time of 3.55068 on 4 procs for 100 steps with 648 atoms
 
-Performance: 2.380 ns/day, 10.083 hours/ns, 27.549 timesteps/s
+Performance: 2.433 ns/day, 9.863 hours/ns, 28.164 timesteps/s
 99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 AMOEBA timing breakdown:
-  Init    time: 0.0211291      0.58%
-  Hal     time: 0.114718       3.17%
-  Mpole   time: 0.329891       9.11%
-  Induce  time: 2.5339        69.99%
-  Polar   time: 0.620639      17.14%
-  Total   time: 3.6203      
+  Init    time: 0.0212328      0.60%
+  Hal     time: 0.112487       3.18%
+  Mpole   time: 0.322738       9.11%
+  Induce  time: 2.47321       69.83%
+  Polar   time: 0.611925      17.28%
+  Total   time: 3.54162     
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.6209     | 3.621      | 3.6211     |   0.0 | 99.75
-Bond    | 0.00085544 | 0.00087038 | 0.00090469 |   0.0 |  0.02
-Neigh   | 0.0014354  | 0.0014405  | 0.0014453  |   0.0 |  0.04
-Comm    | 0.004823   | 0.0048746  | 0.0049092  |   0.0 |  0.13
-Output  | 0.00038727 | 0.00043628 | 0.00055233 |   0.0 |  0.01
-Modify  | 0.00033814 | 0.0003491  | 0.00037267 |   0.0 |  0.01
-Other   |            | 0.0009691  |            |       |  0.03
+Pair    | 3.5421     | 3.5423     | 3.5425     |   0.0 | 99.76
+Bond    | 0.00080566 | 0.00088074 | 0.00099188 |   0.0 |  0.02
+Neigh   | 0.0014246  | 0.0014359  | 0.0014469  |   0.0 |  0.04
+Comm    | 0.0043463  | 0.0045083  | 0.0046393  |   0.2 |  0.13
+Output  | 0.00035535 | 0.00039745 | 0.00051597 |   0.0 |  0.01
+Modify  | 0.00034241 | 0.00035548 | 0.00036576 |   0.0 |  0.01
+Other   |            | 0.0008093  |            |       |  0.02
 
 Nlocal:            162 ave         164 max         159 min
 Histogram: 1 0 0 0 0 0 1 0 1 1

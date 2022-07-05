@@ -48,6 +48,7 @@ Finding 1-2 1-3 1-4 neighbors ...
 pair_style      hippo
 pair_coeff      * * hippo_water.prm hippo_water.key
 Reading potential file hippo_water.prm with DATE: 2022-07-05
+Reading potential file hippo_water.key with DATE: 2022-07-05
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 Finding 1-2 1-3 1-4 neighbors ...
@@ -109,31 +110,31 @@ Per MPI rank memory allocation (min/avg/max) = 47.84 | 47.84 | 47.84 Mbytes
          3   19.013509     -45.750445      0.043880608    0.9336078      0              0              0.97748841    -43.809471      18351.549      29896.314      6275.5012      17065.39      -6055.8639      3664.6024      3015.6633    
          4   11.017518     -45.12347       0.24124811     0.58878104     0              0              0.83002915    -43.735142      35358.63       54252.632      19050.919      31719.21      -9822.7607      3160.7845      1520.1368    
          5   12.143149     -44.904245      0.22320916     0.3270434      0              0              0.55025256    -43.738653      35160.919      53395.572      20272.979      30653.482     -9511.0241      1392.4959      35.692826    
-Loop time of 0.000984386 on 1 procs for 5 steps with 18 atoms
+Loop time of 0.000973993 on 1 procs for 5 steps with 18 atoms
 
-Performance: 438.852 ns/day, 0.055 hours/ns, 5079.308 timesteps/s
-99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 443.535 ns/day, 0.054 hours/ns, 5133.507 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 HIPPO timing breakdown:
-  Init    time: 1.2669e-05     1.45%
-  Repulse time: 0.000132325   15.15%
-  Disp    time: 4.2534e-05     4.87%
-  Mpole   time: 0.000177341   20.30%
-  Induce  time: 0.000303723   34.77%
-  Polar   time: 0.000179318   20.53%
-  Qxfer   time: 2.5413e-05     2.91%
-  Total   time: 0.000873466 
+  Init    time: 1.2301e-05     1.42%
+  Repulse time: 0.000131627   15.20%
+  Disp    time: 4.2386e-05     4.89%
+  Mpole   time: 0.000181895   21.00%
+  Induce  time: 0.000295778   34.15%
+  Polar   time: 0.000178781   20.64%
+  Qxfer   time: 2.3214e-05     2.68%
+  Total   time: 0.00086611  
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00087559 | 0.00087559 | 0.00087559 |   0.0 | 88.95
-Bond    | 6.455e-06  | 6.455e-06  | 6.455e-06  |   0.0 |  0.66
+Pair    | 0.0008683  | 0.0008683  | 0.0008683  |   0.0 | 89.15
+Bond    | 5.954e-06  | 5.954e-06  | 5.954e-06  |   0.0 |  0.61
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 7.87e-07   | 7.87e-07   | 7.87e-07   |   0.0 |  0.08
-Output  | 9.3142e-05 | 9.3142e-05 | 9.3142e-05 |   0.0 |  9.46
-Modify  | 2.351e-06  | 2.351e-06  | 2.351e-06  |   0.0 |  0.24
-Other   |            | 6.065e-06  |            |       |  0.62
+Comm    | 6.69e-07   | 6.69e-07   | 6.69e-07   |   0.0 |  0.07
+Output  | 9.1764e-05 | 9.1764e-05 | 9.1764e-05 |   0.0 |  9.42
+Modify  | 2.34e-06   | 2.34e-06   | 2.34e-06   |   0.0 |  0.24
+Other   |            | 4.965e-06  |            |       |  0.51
 
 Nlocal:             18 ave          18 max          18 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

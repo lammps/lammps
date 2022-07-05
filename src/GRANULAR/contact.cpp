@@ -248,7 +248,6 @@ void ContactModel::calculate_forces(double *forces, double *torquesi, double *to
 double ContactModel::calculate_heat()
 {
   double dT = Ti - Tj;
-  double Hc;
   return conductivity * a * dT;
 }
 

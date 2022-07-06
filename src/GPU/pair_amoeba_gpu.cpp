@@ -647,9 +647,6 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
-  bool success = true;
-  int *ilist, *numneigh, **firstneigh;
-
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
@@ -674,6 +671,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
   // rebuild dipole-dipole pair list and store pairwise dipole matrices
   // done one atom at a time in real-space double loop over atoms & neighs
   // NOTE: for the moment the tdipdip values are computed just in time in umutual2b()
+  //   so no need to call ubdirect2b_cpu().
   // udirect2b_cpu();
 
   // accumulate the field and fieldp values from the GPU lib
@@ -881,8 +879,8 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
 
-  amoeba_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp, aewald,
-                               off2, &fieldp_pinned);
+  amoeba_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp,
+                               aewald, off2, &fieldp_pinned);
 
   // accumulate the field and fieldp values from the GPU lib
   //   field and fieldp may already have some nonzero values from kspace (umutual1)

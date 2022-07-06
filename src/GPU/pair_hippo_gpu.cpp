@@ -388,11 +388,6 @@ void PairHippoGPU::induce()
   double sum,sump,term;
   double reduce[4],allreduce[4];
 
-  double *poli;
-  double **conj,**conjp;
-  double **vec,**vecp;
-  double **udir,**usum,**usump;
-
   int debug = 1;
 
   // set cutoffs, taper coeffs, and PME params
@@ -419,24 +414,11 @@ void PairHippoGPU::induce()
     }
   }
 
-  // allocation of arrays
-  // NOTE: not all are used by all methods
-  // NOTE: could be re-allocated dynamically
-
-  memory->create(poli,nlocal,"ameoba/induce:poli");
-  memory->create(conj,nlocal,3,"ameoba/induce:conj");
-  memory->create(conjp,nlocal,3,"ameoba/induce:conjp");
-  memory->create(vec,nlocal,3,"ameoba/induce:vec");
-  memory->create(vecp,nlocal,3,"ameoba/induce:vecp");
-  memory->create(udir,nlocal,3,"ameoba/induce:udir");
-  memory->create(usum,nlocal,3,"ameoba/induce:usum");
-  memory->create(usump,nlocal,3,"ameoba/induce:usump");
-
   // get the electrostatic field due to permanent multipoles
 
   dfield0c(field,fieldp);
 
-  // need reverse_comm_pair if dfield0c (i.e. udirect2b) is CPU-only
+  // need reverse_comm if dfield0c (i.e. udirect2b) is CPU-only
 
   if (!gpu_udirect2b_ready) {
     crstyle = FIELD;
@@ -705,8 +687,6 @@ void PairHippoGPU::induce()
         }
       }
 
-      // NOTE: comp of b,bp and allreduce only needed if pcgprec ?
-
       reduce[0] = b;
       reduce[1] = bp;
       MPI_Allreduce(reduce,allreduce,4,MPI_DOUBLE,MPI_SUM,world);
@@ -763,19 +743,8 @@ void PairHippoGPU::induce()
 
     if (iter >= maxiter || eps > epsold)
       if (comm->me == 0)
-	      error->warning(FLERR,"hippo induced dipoles did not converge");
+	      error->warning(FLERR,"HIPPO induced dipoles did not converge");
   }
-
-  // deallocation of arrays
-
-  memory->destroy(poli);
-  memory->destroy(conj);
-  memory->destroy(conjp);
-  memory->destroy(vec);
-  memory->destroy(vecp);
-  memory->destroy(udir);
-  memory->destroy(usum);
-  memory->destroy(usump);
 
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0
@@ -835,7 +804,6 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
   else choose(POLAR);
 
   double *pval = atom->dvector[index_pval];
-
   hippo_gpu_compute_udirect2b(amtype, amgroup, rpole, uind, uinp, pval,
                               aewald, off2, &fieldp_pinned);
 
@@ -1051,10 +1019,9 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   else choose(POLAR);
 
   double *pval = atom->dvector[index_pval];
-
   hippo_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp, pval,
                               aewald, off2, &fieldp_pinned);
-  
+
   // accumulate the field and fieldp values from the GPU lib
   //   field and fieldp may already have some nonzero values from kspace (umutual1)
 
@@ -1183,12 +1150,12 @@ void PairHippoGPU::compute_force_from_torque(const numtyp* tq_ptr,
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
-    virial_comp[0] += vxx;
-    virial_comp[1] += vyy;
-    virial_comp[2] += vzz;
-    virial_comp[3] += vxy;
-    virial_comp[4] += vxz;
-    virial_comp[5] += vyz;
+    virial_comp[0] -= vxx;
+    virial_comp[1] -= vyy;
+    virial_comp[2] -= vzz;
+    virial_comp[3] -= vxy;
+    virial_comp[4] -= vxz;
+    virial_comp[5] -= vyz;
   }
 }
 

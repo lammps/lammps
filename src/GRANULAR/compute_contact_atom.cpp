@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -34,7 +35,16 @@ ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   contact(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute contact/atom command");
+  if (narg != 3 && narg != 4) error->all(FLERR,"Illegal compute contact/atom command");
+
+  jgroup = group->find("all");
+  jgroupbit = group->bitmask[jgroup];
+  if (narg == 4) {
+    group2 = utils::strdup(arg[3]);
+    jgroup = group->find(group2);
+    if (jgroup == -1) error->all(FLERR, "Compute contact/atom group2 ID does not exist");
+    jgroupbit = group->bitmask[jgroup];
+  }
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -120,28 +130,28 @@ void ComputeContactAtom::compute_peratom()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      radi = radius[i];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    radi = radius[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
-        radsum = radi + radius[j];
-        radsumsq = radsum*radsum;
-        if (rsq <= radsumsq) {
-          contact[i] += 1.0;
-          contact[j] += 1.0;
-        }
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx * delx + dely * dely + delz * delz;
+      radsum = radi + radius[j];
+      radsumsq = radsum * radsum;
+      if (rsq <= radsumsq) {
+        // Only tally for atoms in compute group (groupbit) if neighbor is in group2 (jgroupbit)
+        if ((mask[i] & groupbit) && (mask[j] & jgroupbit)) contact[i] += 1.0;
+        if ((mask[j] & groupbit) && (mask[i] & jgroupbit)) contact[j] += 1.0;
       }
     }
   }

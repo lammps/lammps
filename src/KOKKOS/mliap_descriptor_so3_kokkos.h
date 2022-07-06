@@ -10,19 +10,24 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Contributing author: Matt Bettencourt (NVIDIA)
+ ------------------------------------------------------------------------- */
+#ifndef LMP_MLIAP_DESCRIPTOR_SO3_KOKKOS_H
+#define LMP_MLIAP_DESCRIPTOR_SO3_KOKKOS_H
 
-#ifndef LMP_MLIAP_DESCRIPTOR_SO3_H
-#define LMP_MLIAP_DESCRIPTOR_SO3_H
 
-#include "mliap_descriptor.h"
-
+#include "mliap_descriptor_so3.h"
+#include "mliap_descriptor_kokkos.h"
+#include "mliap_so3_kokkos.h"
 namespace LAMMPS_NS {
 
-  class MLIAPDescriptorSO3 : public MLIAPDescriptor, virtual protected Pointers {
+template<class DeviceType>
+class MLIAPDescriptorSO3Kokkos : public MLIAPDescriptorSO3, virtual public MLIAPDescriptorKokkos<DeviceType> {
 
  public:
-  MLIAPDescriptorSO3(LAMMPS *, char *);
-  ~MLIAPDescriptorSO3() override;
+  MLIAPDescriptorSO3Kokkos(LAMMPS *, char *);
+  ~MLIAPDescriptorSO3Kokkos() override;
 
   void compute_descriptors(class MLIAPData *) override;
   void compute_forces(class MLIAPData *) override;
@@ -31,20 +36,14 @@ namespace LAMMPS_NS {
   void init() override;
   double memory_usage() override;
 
-  double rcutfac;
-
  protected:
-  class MLIAP_SO3 *so3ptr;
-  void read_paramfile(char *);
-  inline int equal(double *x, double *y);
-  inline double dist2(double *x, double *y);
+  template <typename ViewType>
+  KOKKOS_FUNCTION
+  static void v_tally(int vflag_either, int vflag_global, int vflag_atom, int i, int j, int ij,
+      double *fij, ViewType rij, Kokkos::View<double[6],DeviceType> virial, ViewType vatom);
+  class MLIAP_SO3Kokkos<DeviceType> *so3ptr_kokkos;
 
-  int nmax, lmax;
-  double alpha;
-
-  int twojmax, switchflag, bzeroflag;
-  int chemflag, bnormflag, wselfallflag;
-  double rfac0, rmin0;
+// inherited from non-Kokkos class
 };
 }    // namespace LAMMPS_NS
 

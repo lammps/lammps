@@ -26,9 +26,9 @@ class MLIAPData : protected Pointers {
   ~MLIAPData() override;
 
   void init();
-  void generate_neighdata(class NeighList *, int = 0, int = 0);
-  void grow_neigharrays();
-  double memory_usage();
+  virtual void generate_neighdata(class NeighList *, int = 0, int = 0);
+  virtual void grow_neigharrays();
+  virtual double memory_usage();
 
   int size_array_rows, size_array_cols;
   int natoms;
@@ -77,7 +77,7 @@ class MLIAPData : protected Pointers {
   int vflag;                     // indicates if virial is needed
   class PairMLIAP *pairmliap;    // access to pair tally functions
 
- private:
+ protected:
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
 

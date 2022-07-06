@@ -68,13 +68,18 @@ the first line.
 .. warning::
 
    In order to compute averaged data, it is required that there are no
-   neighbor list rebuilds between the *Nfreq* steps. For that reason, fix
-   *reaxff/species* may change your neighbor list settings.  There will
-   be a warning message showing the new settings. Having an *Nfreq*
-   setting that is larger than what is required for correct computation
-   of the ReaxFF force field interactions can thus lead to incorrect
-   results.  For typical ReaxFF calculations a value of 100 is already
-   quite large.
+   neighbor list rebuilds for at least Nrepeat\*Nevery steps preceding
+   each *Nfreq* step.  For that reason, fix *reaxff/species* may
+   change your neighbor list settings.  Reneighboring will occur no
+   more frequently than every Nrepeat\*Nevery timesteps, and will
+   occur less frequently if *Nfreq* is not a multiple of
+   Nrepeat\*Nevery.  There will be a warning message showing the new
+   settings.  Having a *Nfreq* setting that is larger than what is
+   required for correct computation of the ReaxFF force field
+   interactions, in combination with certain *Nrepeat* and *Nevery*
+   settings, can thus lead to incorrect results.  For typical ReaxFF
+   calculations, reneighboring only every 100 steps is already quite a
+   low frequency.
 
 If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text version,

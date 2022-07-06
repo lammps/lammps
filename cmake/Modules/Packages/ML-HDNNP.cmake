@@ -44,7 +44,9 @@ if(DOWNLOAD_N2P2)
   else()
     # get path to MPI include directory
     get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
-    set(N2P2_PROJECT_OPTIONS "-I${N2P2_MPI_INCLUDE}")
+    foreach (_INCL ${N2P2_MPI_INCLUDE})
+      set(N2P2_PROJECT_OPTIONS "${N2P2_PROJECT_OPTIONS} -I${_INCL}")
+    endforeach()
   endif()
 
   # prefer GNU make, if available. N2P2 lib seems to need it.
@@ -75,7 +77,7 @@ if(DOWNLOAD_N2P2)
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     PATCH_COMMAND sed -i -e "s/\\(MPI_\\(P\\|Unp\\)ack(\\)/\\1(void *) /" src/libnnpif/LAMMPS/InterfaceLammps.cpp
-    BUILD_COMMAND ${N2P2_MAKE} -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
+    BUILD_COMMAND ${N2P2_MAKE} -C <SOURCE_DIR>/src -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
     BUILD_ALWAYS YES
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE 1

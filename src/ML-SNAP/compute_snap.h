@@ -58,7 +58,6 @@ class ComputeSnap : public Compute {
   Compute *c_virial;
 
   void dbdotr_compute();
-
 };
 
 }    // namespace LAMMPS_NS

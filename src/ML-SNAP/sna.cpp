@@ -1334,7 +1334,6 @@ double SNA::memory_usage()
 
 void SNA::create_twojmax_arrays()
 {
-
   int jdimpq = twojmax + 2;
   memory->create(rootpqarray, jdimpq, jdimpq,
                  "sna:rootpqarray");

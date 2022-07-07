@@ -522,21 +522,21 @@ void ComputeSnap::compute_array()
 
             for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
 
-            // add to snap array for this proc
+              // add to snap array for this proc
 
-            // dBi/dRj
+              // dBi/dRj
 
-            snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] -= snaptr->dblist[icoeff][0];
-            snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] -= snaptr->dblist[icoeff][1];
-            snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] -= snaptr->dblist[icoeff][2];
+              snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] -= snaptr->dblist[icoeff][0];
+              snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] -= snaptr->dblist[icoeff][1];
+              snap[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] -= snaptr->dblist[icoeff][2];
 
-            // dBi/dRi
+              // dBi/dRi
 
-            snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] += snaptr->dblist[icoeff][0];
-            snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] += snaptr->dblist[icoeff][1];
-            snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] += snaptr->dblist[icoeff][2];
+              snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] += snaptr->dblist[icoeff][0];
+              snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] += snaptr->dblist[icoeff][1];
+              snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] += snaptr->dblist[icoeff][2];
+            }
           }
-        }
 
       } // loop over jj inside
 
@@ -592,7 +592,6 @@ void ComputeSnap::compute_array()
         }
       }
     }
-
   }
 
  // accumulate forces to global array

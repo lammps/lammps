@@ -9,8 +9,7 @@
 ------------------------------------------------------------------------- */
 
 /*
-Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1,
-  Matous Mrovec^1, Ralf Drautz^1
+Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drautz^1
 
 ^1: Ruhr-University Bochum, Bochum, Germany
  */
@@ -22,7 +21,7 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1,
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(pace/al,PairPACEActiveLearning)
+PairStyle(pace/extrapolation,PairPACEExtrapolation)
 // clang-format on
 #else
 
@@ -30,18 +29,22 @@ PairStyle(pace/al,PairPACEActiveLearning)
 #define LMP_PAIR_PACE_AL_H
 
 #include "pair.h"
-#include "dump_custom.h"
-#include "compute_pace.h"
+#include <vector>
 
 namespace LAMMPS_NS {
 
-    class PairPACEActiveLearning : public Pair {
-        friend class ComputePaceAtom;
+    //forward declaration
+    class ComputePACEExtrapolation;
+    class DumpPACEExtrapolation;
+
+    class PairPACEExtrapolation : public Pair {
+        friend class ComputePACEExtrapolation;
+        friend class DumpPACEExtrapolation;
 
     public:
-        PairPACEActiveLearning(class LAMMPS *);
+        PairPACEExtrapolation(class LAMMPS *);
 
-        ~PairPACEActiveLearning() override;
+        ~PairPACEExtrapolation() override;
 
         void compute(int, int) override;
 
@@ -57,23 +60,16 @@ namespace LAMMPS_NS {
 
     protected:
         struct ACEALImpl *aceimpl;
-
         int gamma_grade_eval_freq = 1;
-        bool is_dump_extrapolative_structures = false;
-        DumpCustom *dump = nullptr;
-        Compute *computePaceAtom = nullptr;
+        bool is_set_energies_forces = true; // if set, then update forces and energies
         int natoms; //total number of atoms
 
         double gamma_lower_bound = 1.5;
         double gamma_upper_bound = 10;
         double max_gamma_grade_per_structure = 0;
 
-        virtual void allocate();
-
-        void read_files(char *, char *);
-
-        inline int equal(double *x, double *y);
-
+        void allocate();
+        std::vector<std::string> element_names; // list of elements (used by dump pace/extrapolation)
         double rcutmax;               // max cutoff for all elements
         int nelements;                // # of unique elements
         int bevaluator_timestep;    // timestep, on which gamma grade were computed

@@ -27,7 +27,7 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include <cstdlib>
 #include <cstring>
 #include <mpi.h>
-#include "pair_pace_al.h"
+#include "pair_pace_extrapolation.h"
 #include "atom.h"
 #include "dump_custom.h"
 #include "neighbor.h"
@@ -47,7 +47,7 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include "ace_b_basis.h"
 #include "ace_recursive.h"
 #include "ace_version.h"
-#include "compute_pace.h"
+#include "compute_pace_extrapolation.h"
 
 namespace LAMMPS_NS {
     struct ACEALImpl {
@@ -70,9 +70,7 @@ using namespace MathConst;
 
 #define MAXLINE 1024
 #define DELTA 4
-#define PACE_AL_EXTRAPOLATION_GRADE_FNAME "grade.dat"
-#define EXTRAPOLATIVE_STRUCTURES_FNAME "extrapolative_structures.dat"
-#define SPECIES_TYPE_FNAME "species_types.dat"
+
 //added YL
 
 
@@ -96,27 +94,9 @@ int AtomicNumberByName_pace_al(char *elname) {
     return -1;
 }
 
-/* ----------------------------------------------------------------------
- * Append extrapolation grade to file
- ---------------------------------------------------------------------- */
-void dump_extrapolation_grade_header() {
-    FILE *gamma_file = fopen(PACE_AL_EXTRAPOLATION_GRADE_FNAME, "w");
-    fprintf(gamma_file, "Step\tgamma\n");
-    fclose(gamma_file);
-}
-
-/* ----------------------------------------------------------------------
- * Append extrapolation grade to file
- ---------------------------------------------------------------------- */
-void dump_extrapolation_grade(int timestep, double gamma) {
-    FILE *gamma_file = fopen(PACE_AL_EXTRAPOLATION_GRADE_FNAME, "a");
-    fprintf(gamma_file, "%d\t%f\n", timestep, gamma);
-    fclose(gamma_file);
-}
-
 
 /* ---------------------------------------------------------------------- */
-PairPACEActiveLearning::PairPACEActiveLearning(LAMMPS *lmp) : Pair(lmp) {
+PairPACEExtrapolation::PairPACEExtrapolation(LAMMPS *lmp) : Pair(lmp) {
     single_enable = 0;
     restartinfo = 0;
     one_coeff = 1;
@@ -133,7 +113,7 @@ PairPACEActiveLearning::PairPACEActiveLearning(LAMMPS *lmp) : Pair(lmp) {
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-PairPACEActiveLearning::~PairPACEActiveLearning() {
+PairPACEExtrapolation::~PairPACEExtrapolation() {
     if (copymode) return;
 
     delete aceimpl;
@@ -145,18 +125,11 @@ PairPACEActiveLearning::~PairPACEActiveLearning() {
         memory->destroy(map);
         memory->destroy(extrapolation_grade_gamma);
     }
-
-    if (dump) {
-        delete dump;
-        dump = nullptr;
-    }
-
-    //computePaceAtom will be deleted by lmp->modify, as it was registered there
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairPACEActiveLearning::compute(int eflag, int vflag) {
+void PairPACEExtrapolation::compute(int eflag, int vflag) {
     int i, j, ii, jj, inum, jnum;
     double delx, dely, delz, evdwl;
     double fij[3];
@@ -192,9 +165,7 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
     firstneigh = list->firstneigh;
 
     if (inum != nlocal) {
-        char str[128];
-        snprintf(str, 128, "inum: %d nlocal: %d are different", inum, nlocal);
-        error->all(FLERR, str);
+        error->all(FLERR, "inum: %d nlocal: %d are different", inum, nlocal);
     }
 
     //grow extrapolation_grade_gamma array, that store per-atom extrapolation grades
@@ -270,35 +241,38 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
         Array2D<DOUBLE_TYPE> &neighbours_forces = (is_bevaluator ? aceimpl->ace->neighbours_forces
                                                                  : aceimpl->rec_ace->neighbours_forces);
-        for (jj = 0; jj < jnum; jj++) {
-            j = jlist[jj];
-            const int jtype = type[j];
-            j &= NEIGHMASK;
-            delx = x[j][0] - xtmp;
-            dely = x[j][1] - ytmp;
-            delz = x[j][2] - ztmp;
+        //optionally assign global forces arrays
+        if (is_set_energies_forces) {
+            for (jj = 0; jj < jnum; jj++) {
+                j = jlist[jj];
+                const int jtype = type[j];
+                j &= NEIGHMASK;
+                delx = x[j][0] - xtmp;
+                dely = x[j][1] - ytmp;
+                delz = x[j][2] - ztmp;
 
-            fij[0] = scale[itype][jtype] * neighbours_forces(jj, 0);
-            fij[1] = scale[itype][jtype] * neighbours_forces(jj, 1);
-            fij[2] = scale[itype][jtype] * neighbours_forces(jj, 2);
+                fij[0] = scale[itype][jtype] * neighbours_forces(jj, 0);
+                fij[1] = scale[itype][jtype] * neighbours_forces(jj, 1);
+                fij[2] = scale[itype][jtype] * neighbours_forces(jj, 2);
 
 
-            f[i][0] += fij[0];
-            f[i][1] += fij[1];
-            f[i][2] += fij[2];
-            f[j][0] -= fij[0];
-            f[j][1] -= fij[1];
-            f[j][2] -= fij[2];
+                f[i][0] += fij[0];
+                f[i][1] += fij[1];
+                f[i][2] += fij[2];
+                f[j][0] -= fij[0];
+                f[j][1] -= fij[1];
+                f[j][2] -= fij[2];
 
-            // tally per-atom virial contribution
-            if (vflag)
-                ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0,
-                             fij[0], fij[1], fij[2],
-                             -delx, -dely, -delz);
+                // tally per-atom virial contribution
+                if (vflag)
+                    ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0,
+                                 fij[0], fij[1], fij[2],
+                                 -delx, -dely, -delz);
+            }
         }
 
         // tally energy contribution
-        if (eflag) {
+        if (eflag && is_set_energies_forces) {
             // evdwl = energy of atom I
             DOUBLE_TYPE e_atom;
             if (is_bevaluator)
@@ -313,17 +287,12 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
     if (vflag_fdotr) virial_fdotr_compute();
 
-    //TODO: check correctness of MPI usage
     if (is_bevaluator) {
         //gather together max_gamma_grade_per_structure
         MPI_Allreduce(&max_gamma_grade, &max_gamma_grade_per_structure, 1, MPI_DOUBLE, MPI_MAX, world);
 
+        // check if gamma_upper_bound is exceeded
         if (max_gamma_grade_per_structure > gamma_upper_bound) {
-            if (comm->me == 0)
-                dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
-            if (is_dump_extrapolative_structures) dump->write();
-            MPI_Barrier(world);
-
             if (comm->me == 0)
                 error->all(FLERR,
                            "Extrapolation grade is too large (gamma={:.3f} > gamma_upper_bound={:.3f}, timestep={}), stopping...\n",
@@ -332,11 +301,6 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
             MPI_Barrier(world);
             MPI_Abort(world, 1); //abort properly with error code '1' if not using many processes
             exit(EXIT_FAILURE);
-        } else if (max_gamma_grade_per_structure > gamma_lower_bound) {
-            if (comm->me == 0)
-                dump_extrapolation_grade(update->ntimestep, max_gamma_grade_per_structure);
-            if (is_dump_extrapolative_structures)
-                dump->write();
         }
     }
 
@@ -345,7 +309,7 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
 /* ---------------------------------------------------------------------- */
 
-void PairPACEActiveLearning::allocate() {
+void PairPACEExtrapolation::allocate() {
     allocated = 1;
     int n = atom->ntypes;
 
@@ -359,11 +323,10 @@ void PairPACEActiveLearning::allocate() {
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPACEActiveLearning::settings(int narg, char **arg) {
-    //TODO: make keyword base interface: pair_style pace/al freq 100 gamma_lo 1.5 gamma_hi 10 dump yes
-    if (narg > 4) {
+void PairPACEExtrapolation::settings(int narg, char **arg) {
+    if (narg > 3) {
         error->all(FLERR,
-                   "Illegal pair_style command. Correct form:\n\tpair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq] [nodump]");
+                   "Illegal pair_style command. Correct form:\n\tpair_style pace/al [gamma_lower_bound] [gamma_upper_bound] [freq]");
     }
 
     if (narg > 0) {
@@ -391,25 +354,11 @@ void PairPACEActiveLearning::settings(int narg, char **arg) {
                        "Illegal gamma_grade_eval_freq value: it should be integer number >= 1");
     }
 
-    if (narg > 3) {
-        //default value is_dump_extrapolative_structures = false
-        if (strcmp(arg[3], "nodump") == 0) is_dump_extrapolative_structures = false;
-        if (strcmp(arg[3], "dump") == 0) is_dump_extrapolative_structures = true;
-    }
-
     if (comm->me == 0) {
-        if (screen) {
-            utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
-            utils::logmesg(lmp, "Extrapolation grade thresholds (lower/upper): {}/{}\n", gamma_lower_bound,
-                           gamma_upper_bound);
-            utils::logmesg(lmp, "Extrapolation grade evaluation frequency: {}\n", gamma_grade_eval_freq);
-            if (is_dump_extrapolative_structures)
-                utils::logmesg(lmp, "Extrapolative structures will be dumped into {}\n",
-                               EXTRAPOLATIVE_STRUCTURES_FNAME);
-            else
-                utils::logmesg(lmp, "No extrapolative structures will be dumped\n");
-
-        }
+        utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+        utils::logmesg(lmp, "Extrapolation grade thresholds (lower/upper): {}/{}\n", gamma_lower_bound,
+                       gamma_upper_bound);
+        utils::logmesg(lmp, "Extrapolation grade evaluation frequency: {}\n", gamma_grade_eval_freq);
     }
 }
 
@@ -417,7 +366,7 @@ void PairPACEActiveLearning::settings(int narg, char **arg) {
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairPACEActiveLearning::coeff(int narg, char **arg) {
+void PairPACEExtrapolation::coeff(int narg, char **arg) {
 
     if (narg < 5)
         error->all(FLERR,
@@ -471,12 +420,12 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
     aceimpl->rec_ace->element_type_mapping.fill(-1); //-1 means atom not included into potential
 
     FILE *species_type_file = nullptr;
-    if (is_dump_extrapolative_structures)
-        species_type_file = fopen(SPECIES_TYPE_FNAME, "w");
 
     const int n = atom->ntypes;
+    element_names.resize(n);
     for (int i = 1; i <= n; i++) {
         char *elemname = elemtypes[i - 1];
+        element_names[i - 1] = elemname;
         if (strcmp(elemname, "NULL") == 0) {
             // species_type=-1 value will not reach ACE Evaluator::compute_atom,
             // but if it will ,then error will be thrown there
@@ -485,7 +434,6 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
             if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
         } else {
             // dump species types for reconstruction of atomic configurations
-            if (is_dump_extrapolative_structures) fprintf(species_type_file, "%s ", elemname);
             int atomic_number = AtomicNumberByName_pace_al(elemname);
             if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
             SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
@@ -503,7 +451,7 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
             }
         }
     }
-    if (is_dump_extrapolative_structures) fclose(species_type_file);
+
     aceimpl->ace->set_basis(*aceimpl->basis_set);
     aceimpl->rec_ace->set_basis(*aceimpl->ctilde_basis_set);
 
@@ -515,59 +463,13 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
         for (int j = i; j <= n; j++)
             scale[i][j] = 1.0;
 
-    // prepare compute gamma
-    if (!computePaceAtom) {
-        // compute pace all pace/atom
-        char **computeargs = new char *[3];
-        computeargs[0] = (char *) "pace_gamma"; //name
-        computeargs[1] = (char *) "all";      // atoms group
-        computeargs[2] = (char *) "pace/atom"; //compute style
-        computePaceAtom = new ComputePaceAtom(lmp, 3, computeargs);
-        computePaceAtom->init();
-        // mimic behaviour from Modify::add_compute
-        modify->compute[modify->ncompute] = computePaceAtom;
-        //TODO: modify->compute_list is protected!!!
-//        modify->compute_list = std::vector<Compute *>(modify->compute, modify->compute + modify->ncompute + 1);
-        modify->ncompute++;
-    }
-
-    // prepare dump class
-    if (is_dump_extrapolative_structures && !dump) {
-        // dump pace all custom freq extrapolation.dat id type mass x y z
-        char **dumpargs = new char *[12];
-        dumpargs[0] = (char *) "pace"; // dump id
-        dumpargs[1] = (char *) "all";                // group
-        dumpargs[2] = (char *) "custom";                // dump style
-        dumpargs[3] = (char *) "1";          // dump frequency
-        dumpargs[4] = (char *) EXTRAPOLATIVE_STRUCTURES_FNAME;          // fname
-        dumpargs[5] = (char *) "id";
-        dumpargs[6] = (char *) "type";
-        dumpargs[7] = (char *) "mass";
-        dumpargs[8] = (char *) "x";
-        dumpargs[9] = (char *) "y";
-        dumpargs[10] = (char *) "z";
-        dumpargs[11] = (char *) "c_pace_gamma";
-        dump = new DumpCustom(lmp, 12, dumpargs);
-        dump->init();
-
-        // dump_modify WRITE_DUMP element X Y Z
-        char **dumpargs3 = new char *[atom->ntypes + 1];
-        dumpargs3[0] = (char *) "element";
-        for (int k = 0; k < atom->ntypes; k++)
-            dumpargs3[k + 1] = elemtypes[k];
-        dump->modify_params(atom->ntypes + 1, dumpargs3);
-    }
-
-    // write extrapolation_grade.dat file header
-    if (comm->me == 0)
-        dump_extrapolation_grade_header();
 }
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairPACEActiveLearning::init_style() {
+void PairPACEExtrapolation::init_style() {
     if (atom->tag_enable == 0)
         error->all(FLERR, "Pair style PACE requires atom IDs");
     if (force->newton_pair == 0)
@@ -581,7 +483,7 @@ void PairPACEActiveLearning::init_style() {
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairPACEActiveLearning::init_one(int i, int j) {
+double PairPACEExtrapolation::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
     //cutoff from the basis set's radial functions settings
     scale[j][i] = scale[i][j];
@@ -591,7 +493,7 @@ double PairPACEActiveLearning::init_one(int i, int j) {
 /* ---------------------------------------------------------------------- 
     extract method for extracting value of scale variable
  ---------------------------------------------------------------------- */
-void *PairPACEActiveLearning::extract(const char *str, int &dim) {
+void *PairPACEExtrapolation::extract(const char *str, int &dim) {
     dim = 2;
     if (strcmp(str, "scale") == 0) return (void *) scale;
     return nullptr;

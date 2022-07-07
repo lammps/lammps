@@ -17,7 +17,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pace/atom,ComputePaceAtom);
+ComputeStyle(pace/extrapolation,ComputePACEExtrapolation);
 // clang-format on
 #else
 
@@ -26,20 +26,21 @@ ComputeStyle(pace/atom,ComputePaceAtom);
 
 
 #include "compute.h"
-#include "pair_pace_al.h"
+#include "pair_pace_extrapolation.h"
 
 namespace LAMMPS_NS {
+    class PairPACEExtrapolation;
 
-    class ComputePaceAtom : public Compute {
+    class ComputePACEExtrapolation : public Compute {
     public:
-        ComputePaceAtom(class LAMMPS *, int, char **);
-        ~ComputePaceAtom() override;
+        ComputePACEExtrapolation(class LAMMPS *, int, char **);
+        ~ComputePACEExtrapolation() override;
         void init() override;
         double compute_scalar() override;
         void compute_peratom() override;
     private:
-        int nmax;
-        Pair *pair_pace_al;
+        PairPACEExtrapolation *pair_pace_extrapolation;
+        void invoke_compute_extrapolation_grades();
     };
 
 }    // namespace LAMMPS_NS

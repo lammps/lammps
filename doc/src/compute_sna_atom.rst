@@ -394,7 +394,7 @@ If *bikflag* is set
 to *0* then a single bispectrum row is used, which contains the per-atom bispectrum
 descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
 :math:`B_k`.  If *bikflag* is set
-to *1* this is replaced by a separate bispectrum row equal for each atom.
+to *1* this is replaced by a separate per-atom bispectrum row for each atom.
 In this case, the entries in the final column for these rows
 are set to zero.
 
@@ -410,8 +410,7 @@ index *j*. This also changes
 the number of columns to be equal to the number of bispectrum components, with 3
 additional columns representing the indices :math:`i`, :math:`j`, and :math:`a`,
 as explained more in the Output info section below. The option *dgradflag=1*
-requires that  *bikflag=1*.[APT: This does not make any sense, since dgradflag
-produces its own custom output with no bikflag output]
+requires that *bikflag=1*.
 
 .. note::
 
@@ -533,10 +532,11 @@ The first :math:`N` rows of the snap array
 correspond to :math:`B_{i,k}` instead of a single row summed over atoms :math:`i`.
 In this case, the entries in the final column for these rows
 are set to zero. Also, each row contains only non-zero entries for the
-columns corresponding to the type of that atom.
+columns corresponding to the type of that atom. This is not true in the case
+of *dgradflag* keyword = 1 (see below).
 
 If the *dgradflag* keyword is set to 1, this changes the structure of the
-snap array completely.
+gloabl array completely.
 Here the *snad/atom* quantities are replaced with rows corresponding to
 descriptor gradient components on single atoms:
 
@@ -546,15 +546,19 @@ descriptor gradient components on single atoms:
 
 where :math:`{r}^a_j` is the *a-th* position coordinate of the atom with global
 index *j*. The rows are
-organized in chunks, where each chunk corresponds to an atom :math:`j` in the
-system of :math:`N` atoms. The rows in an atom :math:`j` chunk correspond to
-atoms :math:`i` in the system of :math:`N` atoms. The total number of rows for
+organized in chunks, where each chunk corresponds to an atom with global index
+:math:`j`. The rows in an atom :math:`j` chunk correspond to
+atoms with global index :math:`i`. The total number of rows for
 these descriptor gradients is therefore :math:`3N^2`.
 The number of columns is equal to the number of bispectrum components,
-plus 3 additional columns representing the global atom indices :math:`i`, :math:`j`,
+plus 3 additional left-most columns representing the global atom indices
+:math:`i`, :math:`j`,
 and Cartesian direction :math:`a`  (0, 1, 2, for x, y, z).
 The first 3 columns of the first :math:`N` rows belong to the reference
-potential force components. The first column of the last row, after the first
+potential force components. The remaining K columns contain the
+:math:`B_{i,k}` per-atom descriptors corresponding to the non-zero entries
+obtained when *bikflag* = 1.
+The first column of the last row, after the first
 :math:`N + 3N^2` rows, contains the reference potential
 energy. The virial components are not used with this option. The total number of
 rows is therefore :math:`N + 3N^2 + 1` and the number of columns is :math:`K + 3`.

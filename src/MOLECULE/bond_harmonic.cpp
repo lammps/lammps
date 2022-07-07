@@ -61,9 +61,11 @@ void BondHarmonic::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
+  /*
   for (int i = 0; i < 6; i++)
     printf("PRE BOND FORCE %d: fxyz %g %g %g\n",atom->tag[i],
            f[i][0],f[i][1],f[i][2]);
+  */
 
   double ftmp[6][3];
   for (int i = 0; i < 6; i++)
@@ -114,18 +116,22 @@ void BondHarmonic::compute(int eflag, int vflag)
       ftmp[i2][2] -= delz * fbond;
     }
 
+    /*
     printf("BOND FORCE %d: eng %g: fxyz %g %g %g\n",atom->tag[i1],
            ebond,delx*fbond,dely*fbond,delz*fbond);
     printf("BOND FORCE %d: eng %g: fxyz %g %g %g\n",atom->tag[i2],
            ebond,-delx*fbond,-dely*fbond,-delz*fbond);
+    */
 
     if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
   }
 
+  /*
   printf("POST BOND ENG: %g\n",energy);
   for (int i = 0; i < 6; i++)
     printf("POST BOND FORCE: f%d %g %g %g\n",atom->tag[i],
            ftmp[i][0],ftmp[i][1],ftmp[i][2]);
+  */
 }
 
 /* ---------------------------------------------------------------------- */

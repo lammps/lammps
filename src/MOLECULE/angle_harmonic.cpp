@@ -69,9 +69,11 @@ void AngleHarmonic::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
+  /*
   for (int i = 0; i < 6; i++)
     printf("PRE ANGLE FORCE %d: fxyz %g %g %g\n",atom->tag[i],
            f[i][0],f[i][1],f[i][2]);
+  */
 
   double ftmp[6][3];
   for (int i = 0; i < 6; i++)
@@ -164,22 +166,26 @@ void AngleHarmonic::compute(int eflag, int vflag)
       ftmp[i3][2] += f3[2];
     }
 
+    /*
     printf("ANGLE FORCE %d: eng %g: fxyz %g %g %g\n",atom->tag[i1],
            eangle,f1[0],f1[1],f1[2]);
     printf("ANGLE FORCE %d: eng %g: fxyz %g %g %g\n",atom->tag[i2],
            eangle,-f1[0]-f3[0],-f1[1]-f3[1],-f1[2]-f3[2]);
     printf("ANGLE FORCE %d: eng %g: fxyz %g %g %g\n",atom->tag[i3],
            eangle,f3[0],f3[1],f3[2]);
+    */
 
     if (evflag)
       ev_tally(i1, i2, i3, nlocal, newton_bond, eangle, f1, f3, delx1, dely1, delz1, delx2, dely2,
                delz2);
   }
 
+  /*
   printf("POST ANGLE ENG: %g\n",energy);
   for (int i = 0; i < 6; i++)
     printf("POST ANGLE FORCE: f%d %g %g %g\n",atom->tag[i],
            ftmp[i][0],ftmp[i][1],ftmp[i][2]);
+  */
 }
 
 /* ---------------------------------------------------------------------- */

@@ -52,4 +52,4 @@ thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
 
 thermo          1
 
-run		1
+run		20

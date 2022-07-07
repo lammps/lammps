@@ -77,7 +77,7 @@ Syntax
           *dinnerlist* = *ntypes* values of *Dinner* (distance units)
        *bikflag* value = *0* or *1* (only implemented for compute snap)
           *0* = descriptors are summed over atoms of each type
-          *1* = descriptors are listed separately for each atom 
+          *1* = descriptors are listed separately for each atom
        *dgradflag* value = *0* or *1* (only implemented for compute snap)
           *0* = descriptor gradients are summed over atoms of each type
           *1* = descriptor gradients are listed separately for each atom pair

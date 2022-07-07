@@ -33,7 +33,6 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
 #include "fix_srp.h"
 #include "force.h"
 #include "memory.h"
@@ -84,7 +83,7 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
   //   will be invoked before other fixes that migrate atoms
   //   this is checked for in FixSRP
 
-  f_srp = dynamic_cast<FixSRP *>( modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP",srp_instance)));
+  f_srp = dynamic_cast<FixSRP *>(modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP", srp_instance)));
   ++srp_instance;
 }
 
@@ -439,7 +438,7 @@ void PairSRP::coeff(int narg, char **arg)
 void PairSRP::init_style()
 {
   if (!force->newton_pair)
-    error->all(FLERR,"PairSRP: Pair srp requires newton pair on");
+    error->all(FLERR,"Pair srp requires newton pair on");
 
   // verify that fix SRP is still defined and has not been changed.
 

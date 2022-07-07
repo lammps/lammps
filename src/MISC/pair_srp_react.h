@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class PairSRPREACT : public PairSRP {
  public:
   PairSRPREACT(class LAMMPS *);
+  ~PairSRPREACT() override;
   void settings(int, char **) override;
   void init_style() override;
 
@@ -35,8 +36,6 @@ class PairSRPREACT : public PairSRP {
   char *idcreate;
   bool bond_create, bond_break;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

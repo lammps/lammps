@@ -31,9 +31,7 @@ There is an example script for this package in examples/PACKAGES/srp_react/.
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
-#include "fix.h"
 #include "fix_srp_react.h"
 #include "force.h"
 #include "memory.h"
@@ -64,20 +62,26 @@ static int srp_instance = 0;
  constructor
  ---------------------------------------------------------------------- */
 
-PairSRPREACT::PairSRPREACT(LAMMPS *lmp) : PairSRP(lmp)
+PairSRPREACT::PairSRPREACT(LAMMPS *lmp) :
+  PairSRP(lmp), idbreak(nullptr), idcreate(nullptr), bond_break(false), bond_create(false)
 {
 
   if (lmp->citeme) lmp->citeme->add(cite_srpreact);
 
   // pair srp/react has its own fix, hence delete fix srp instance
   // created in the constructor of pair srp
-  for( int ifix = 0; ifix<modify->nfix; ifix++)
-    if( strcmp(modify->get_fix_by_index(ifix)->style, "SRP") == 0)
-      modify->delete_fix(ifix);
+  for (auto ifix : modify->get_fix_by_style("SRP"))
+    modify->delete_fix(ifix->id);
 
   // similar to fix SRP, create fix SRP REACT instance here with unique fix id
   f_srp = (FixSRPREACT *) modify->add_fix(fmt::format("{:02d}_FIX_SRP_REACT all SRPREACT",srp_instance));
   ++srp_instance;
+}
+
+PairSRPREACT::~PairSRPREACT()
+{
+  delete[] idbreak;
+  delete[] idcreate;
 }
 
 /* ----------------------------------------------------------------------
@@ -90,7 +94,7 @@ void PairSRPREACT::settings(int narg, char **arg)
     error->all(FLERR,"Illegal pair_style command");
 
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair_style srp requires atom IDs");
+    error->all(FLERR,"Pair_style srp/react requires atom IDs");
 
   cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   // wildcard
@@ -118,23 +122,14 @@ void PairSRPREACT::settings(int narg, char **arg)
   idcreate= nullptr;
 
   // find whether id is of bond/break or bond/create
-  const char* reactid = arg[3];
-  if(strcmp(modify->get_fix_by_id(reactid)->style,"bond/break") == 0)
-  {
+  const char *reactid = arg[3];
+  if (utils::strmatch(modify->get_fix_by_id(reactid)->style,"^bond/break")) {
     bond_break = true;
-    int n = strlen(reactid) + 1;
-    idbreak = new char[n];
-    strcpy(idbreak,reactid);
-  }
-  else if(strcmp(modify->get_fix_by_id(reactid)->style,"bond/create") == 0)
-  {
+    idbreak = utils::strdup(reactid);
+  } else if (utils::strmatch(modify->get_fix_by_id(reactid)->style,"^bond/create")) {
     bond_create = true;
-    int n = strlen(reactid) + 1;
-    idcreate = new char[n];
-    strcpy(idcreate,reactid);
-  }
-  else
-    error->all(FLERR,"Illegal pair_style command");
+    idcreate = utils::strdup(reactid);
+  } else error->all(FLERR,"Illegal pair_style command");
 
   int iarg = 4;
   // default exclude 1-2
@@ -175,12 +170,12 @@ void PairSRPREACT::settings(int narg, char **arg)
 void PairSRPREACT::init_style()
 {
   if (!force->newton_pair)
-    error->all(FLERR,"PairSRPREACT: Pair srp requires newton pair on");
+    error->all(FLERR,"Pair srp/react requires newton pair on");
 
   // verify that fix SRP is still defined and has not been changed.
 
   if (strcmp(f_srp->style,"SRPREACT") != 0)
-    error->all(FLERR,"Fix SRP has been changed unexpectedly");
+    error->all(FLERR,"Fix SRPREACT has been changed unexpectedly");
 
   if (comm->me == 0)
     utils::logmesg(lmp,"Using type {} for bond particles\n",bptype);
@@ -205,24 +200,22 @@ void PairSRPREACT::init_style()
 
   // if using fix bond/break, set id of fix bond/break in fix srp
   // idbreak = id of fix bond break
-  if( bond_break )
-  {
+  if (bond_break) {
     sprintf(c0, "%s", idbreak);
     arg0[0] = (char *) "bond/break";
     arg0[1] = c0;
     f_srp->modify_params(2, arg0);
-    delete [] idbreak;
+    delete[] idbreak;
   }
 
   // if using fix bond/create, set id of fix bond/create in fix srp
   // idcreate = id of fix bond break
-  if( bond_create )
-  {
+  if (bond_create) {
     sprintf(c0, "%s", idcreate);
     arg0[0] = (char *) "bond/create";
     arg0[1] = c0;
     f_srp->modify_params(2, arg0);
-    delete [] idcreate;
+    delete[] idcreate;
   }
 
   // bond particles do not contribute to energy or virial
@@ -233,7 +226,7 @@ void PairSRPREACT::init_style()
   arg1[0] = (char *) "norm";
   arg1[1] = (char *) "no";
   output->thermo->modify_params(2, arg1);
-  if (comm->me == 0) error->message(FLERR,"Thermo normalization turned off by pair srp");
+  if (comm->me == 0) error->message(FLERR,"Thermo normalization turned off by pair srp/react");
 
   neighbor->request(this,instance_me);
 }

@@ -125,33 +125,42 @@ void ComputeContactAtom::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+  bool update_i_flag, update_j_flag;
 
   for (i = 0; i < nall; i++) contact[i] = 0.0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
 
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    radi = radius[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+    // Only proceed if i is either part of the compute group or will contribute to contacts
+    if ((mask[i] & groupbit) || (mask[i] & jgroupbit)) {
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      radi = radius[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= NEIGHMASK;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      radsum = radi + radius[j];
-      radsumsq = radsum * radsum;
-      if (rsq <= radsumsq) {
         // Only tally for atoms in compute group (groupbit) if neighbor is in group2 (jgroupbit)
-        if ((mask[i] & groupbit) && (mask[j] & jgroupbit)) contact[i] += 1.0;
-        if ((mask[j] & groupbit) && (mask[i] & jgroupbit)) contact[j] += 1.0;
+        update_i_flag = (mask[i] & groupbit) && (mask[j] & jgroupbit);
+        update_j_flag = (mask[j] & groupbit) && (mask[i] & jgroupbit);
+
+        if (update_i_flag || update_j_flag) {
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx * delx + dely * dely + delz * delz;
+          radsum = radi + radius[j];
+          radsumsq = radsum * radsum;
+          if (rsq <= radsumsq) {
+            if (update_i_flag) contact[i] += 1.0;
+            if (update_j_flag) contact[j] += 1.0;
+          }
+        }
       }
     }
   }

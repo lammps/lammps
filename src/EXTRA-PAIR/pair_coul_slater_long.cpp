@@ -116,14 +116,14 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
 
       if (rsq < cut_coulsq) {
         r2inv = 1.0/rsq;
-          r = sqrt(rsq);
-          grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
-          prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
+        r = sqrt(rsq);
+        grij = g_ewald * r;
+        expm2 = exp(-grij*grij);
+        t = 1.0 / (1.0 + EWALD_P*grij);
+        erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
+        prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
+        forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
 
         fpair = forcecoul * r2inv;
@@ -138,7 +138,7 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-            ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
+          ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
           if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
         }
 

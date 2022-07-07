@@ -31,6 +31,23 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   if(CMAKE_CROSSCOMPILING)
     set_target_properties(paceplugin  PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
   endif()
+
+  get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
+  find_program(MAKENSIS_PATH makensis)
+  if(MAKENSIS_PATH)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/lammps.ico
+      ${CMAKE_SOURCE_DIR}/lammps-text-logo-wide.bmp ${CMAKE_SOURCE_DIR}/paceplugin.nsis ${CMAKE_BINARY_DIR})
+    if(BUILD_MPI)
+      add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION}-MPI paceplugin.nsis
+        DEPENDS paceplugin
+        BYPRODUCTS LAMMPS-ML-PACE-plugin-${LAMMPS_VERSION}-MPI.exe)
+    else()
+      add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION} paceplugin.nsis
+        COMMAND ${CMAKE_COMMAND} -E echo ${PWD}
+        DEPENDS paceplugin lammps.ico lammps-text-logo-wide.bmp paceplugin.nsis
+        BYPRODUCTS LAMMPS-ML-PACE-plugin-${LAMMPS_VERSION}.exe)
+    endif()
+  endif()
 else()
   set_target_properties(paceplugin PROPERTIES LINK_FLAGS "-rdynamic")
 endif()

@@ -126,6 +126,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   datamask_modify = ALL_MASK;
 
   kokkosable = 0;
+  reverse_comm_device = 0;
   copymode = 0;
 }
 

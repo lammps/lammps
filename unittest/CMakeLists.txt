@@ -5,8 +5,8 @@
 ########################################
 # download and build googletest framework
 message(STATUS "Downloading and building googletest framework")
-set(GTEST_URL "https://github.com/google/googletest/archive/8d51dc50eb7e7698427fed81b85edad0e032112e.tar.gz" CACHE STRING "URL of googletest source")
-set(GTEST_MD5 "bc33f94adf48a91051dc195077f7e8dc" CACHE STRING "MD5 sum for googletest source")
+set(GTEST_URL "https://github.com/google/googletest/archive/release-1.12.1.tar.gz" CACHE STRING "URL of googletest source")
+set(GTEST_MD5 "e82199374acdfda3f425331028eb4e2a" CACHE STRING "MD5 sum for googletest source")
 mark_as_advanced(GTEST_URL)
 mark_as_advanced(GTEST_MD5)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

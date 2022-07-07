@@ -27,20 +27,18 @@ namespace LAMMPS_NS {
 class FixSRPREACT : public FixSRP {
  public:
   FixSRPREACT(class LAMMPS *, int, char **);
+  ~FixSRPREACT() override;
   int setmask() override;
   void init() override;
   void post_neighbor() override;
   int modify_param(int, char **) override;
 
  private:
-
-  class FixBondBreak* f_bb;
+  class FixBondBreak *f_bb;
   char *idbreak;
-  class FixBondCreate* f_bc;
+  class FixBondCreate *f_bc;
   char *idcreate;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

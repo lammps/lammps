@@ -30,7 +30,6 @@ class BondClass2 : public Bond {
   ~BondClass2() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
-  void init_style() override;
   double equilibrium_distance(int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
@@ -40,7 +39,6 @@ class BondClass2 : public Bond {
 
  protected:
   double *r0, *k2, *k3, *k4;
-  int disable;
 
   void allocate();
 };

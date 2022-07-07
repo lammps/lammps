@@ -69,8 +69,6 @@ DihedralFourier::~DihedralFourier()
 
 void DihedralFourier::compute(int eflag, int vflag)
 {
-  if (disable) return;
-
   int i1,i2,i3,i4,i,j,m,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral,f1[3],f2[3],f3[3],f4[3];
@@ -326,24 +324,6 @@ void DihedralFourier::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DihedralFourier::init_style()
-{
-  // check if PairAmoeba or PairHippo disabled dihedral terms
-
-  Pair *pair = NULL;
-  pair = force->pair_match("amoeba",1,0);
-  if (!pair) pair = force->pair_match("hippo",1,0);
-
-  if (!pair) disable = 0;
-  else {
-    int tmp;
-    int flag = *((int *) pair->extract("dihedral_flag",tmp));
-    disable = flag ? 0 : 1;
-  }
 }
 
 /* ----------------------------------------------------------------------

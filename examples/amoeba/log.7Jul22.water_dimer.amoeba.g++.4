@@ -1,6 +1,4 @@
 LAMMPS (23 Jun 2022)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
-  using 1 OpenMP thread(s) per MPI task
 # water dimer with AMOEBA or HIPPO
 
 units           real
@@ -41,7 +39,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.004 seconds
+  read_data CPU = 0.009 seconds
 
 # force field
 
@@ -58,7 +56,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of 1-5 neighbors
      2 = max # of special neighbors
-  special bonds CPU = 0.000 seconds
+  special bonds CPU = 0.001 seconds
 
 # thermo output
 
@@ -69,16 +67,12 @@ thermo_style    custom step temp epair ebond eangle edihed eimp                 
 #dump            1 all custom 10 dump.water_dimer id type x y z fx fy fz
 #dump_modify     1 sort id
 
-# zero step run
-
-#run             0
-
 # dynamics
 
 fix             1 all nve
 
-thermo          1
-run             5
+thermo          10
+run             100
 AMOEBA force field settings
   hal: cut 10 taper 8 vscale 0 0 1 1
   multipole: cut 10 aewald 0 mscale 0 0 0.4 1
@@ -98,39 +92,44 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (src/domain.cpp:970)
+WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (../domain.cpp:970)
   AMOEBA group count: 2
 Per MPI rank memory allocation (min/avg/max) = 48.35 | 48.48 | 48.62 Mbytes
    Step          Temp          E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          TotEng         Press       c_virial[1]    c_virial[2]    c_virial[3]    c_virial[4]    c_virial[5]    c_virial[6]  
          0   0             -5.1627563      0.025695395    0.71581114     0              0              0.74150653    -4.4212497     -12260.522     -43226.042      39448.214     -33003.739     -85.160886     -28101.905     -72.971988    
-         1   3.4764991     -5.1500622      0.021865831    0.65347737     0              0              0.67534321    -4.4229051     -8987.9108     -37684.452      39410.243     -29356.236     -80.130511     -27322.706     -69.79235     
-         2   12.286735     -5.1147506      0.014370337    0.49051077     0              0              0.50488111    -4.4267474     -865.99299     -23430.467      38420.372     -19944.197     -66.155435     -24835.896     -60.583907    
-         3   22.599529     -5.0641035      0.0093422156   0.28736734     0              0              0.29670956    -4.4305695      7832.024      -6436.638       34275.274     -8676.6339     -46.038158     -20245.105     -46.202354    
-         4   30.447598     -5.0072832      0.0076827791   0.11282886     0              0              0.12051164    -4.432979       12374.854      6652.5061      24658.364     -25.4576       -23.025707     -13137.295     -27.801932    
-         5   33.189086     -4.9523094      0.0086012541   0.015399005    0              0              0.024000259   -4.4336573      10023.674      11810.883      8754.5769      3140.658       0.25267021    -3546.6216     -6.83205      
-Loop time of 0.000598353 on 4 procs for 5 steps with 6 atoms
+        10   1.1174766     -4.7928792      0.045080327    0.30848527     0              0              0.35356559    -4.4226587     -14728.416      11456.119     -52592.829     -3262.8454      70.868937      29494.268      57.977562    
+        20   3.0821934     -5.1387316      0.013108182    0.65694692     0              0              0.6700551     -4.4227393      3007.4148     -25925.326      49641.41      -15284.933     -79.726771     -29005.234     -68.530079    
+        30   3.461967      -4.8079248      0.013888863    0.31895667     0              0              0.33284554    -4.423482       8616.211       40027.877     -31134.295      16291.126      72.510013      23088.238      51.407946    
+        40   4.2181367     -5.0535921      0.0099009766   0.55796811     0              0              0.56786908    -4.4228557      24239.885     -5761.6967      62095.735      15576.675     -76.240192     -33057.385     -58.850871    
+        50   5.216657      -4.8012751      0.0053003148   0.29489399     0              0              0.30019431    -4.4233315      17728.056      44785.731     -21215.714      28613.715      66.24671       20292.137      51.010856    
+        60   9.45101       -5.0818046      0.0043357361   0.5118733      0              0              0.51620903    -4.4247372      16893.135     -15068.961      50111.11       13824.77      -75.966047     -34809.168     -52.83183     
+        70   10.385926     -4.8250769      0.022572262    0.22235766     0              0              0.24492992    -4.4253547     -1117.3665      19070.918     -36063.612      11648.813      61.067533      25754.59       53.919881    
+        80   12.797691     -5.123735       0.023756795    0.48275385     0              0              0.50651065    -4.4264869     -6491.9826     -28436.037      20681.908     -14176.121     -64.024669     -35737.052     -52.583533    
+        90   12.569481     -4.8303379      0.060369422    0.15670502     0              0              0.21707444    -4.4259273     -16762.536      1720.5855     -47624.986     -6793.7441      59.966729      30024.566      52.339671    
+       100   17.750788     -5.1195235      0.039885925    0.38711474     0              0              0.42700067    -4.4279642     -10817.92      -21833.456      4186.8301     -18211.329     -43.11086      -32664.671     -41.508916    
+Loop time of 0.0160572 on 4 procs for 100 steps with 6 atoms
 
-Performance: 721.982 ns/day, 0.033 hours/ns, 8356.278 timesteps/s
-98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 538.077 ns/day, 0.045 hours/ns, 6227.743 timesteps/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 AMOEBA timing breakdown:
-  Init    time: 1.3678e-05     3.81%
-  Hal     time: 3.5045e-06     0.97%
-  Mpole   time: 2.3748e-05     6.61%
-  Induce  time: 0.000284514   79.15%
-  Polar   time: 3.3521e-05     9.33%
-  Total   time: 0.000359445 
+  Init    time: 0.000593411    4.20%
+  Hal     time: 0.000115521    0.82%
+  Mpole   time: 0.000734892    5.20%
+  Induce  time: 0.0115567     81.83%
+  Polar   time: 0.00110812     7.85%
+  Total   time: 0.0141227   
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00035282 | 0.00038565 | 0.00040584 |   0.0 | 64.45
-Bond    | 1.637e-06  | 3.2485e-06 | 4.816e-06  |   0.0 |  0.54
+Pair    | 0.013932   | 0.014334   | 0.014559   |   0.2 | 89.27
+Bond    | 1.1551e-05 | 4.3997e-05 | 8.2514e-05 |   0.0 |  0.27
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 1.4157e-05 | 3.2696e-05 | 5.1431e-05 |   0.0 |  5.46
-Output  | 0.00014589 | 0.0001627  | 0.00018978 |   0.0 | 27.19
-Modify  | 1.649e-06  | 2.0097e-06 | 2.209e-06  |   0.0 |  0.34
-Other   |            | 1.205e-05  |            |       |  2.01
+Comm    | 0.00064766 | 0.00080925 | 0.0012349  |   0.0 |  5.04
+Output  | 0.00037674 | 0.00043125 | 0.0005388  |   0.0 |  2.69
+Modify  | 2.9613e-05 | 3.9056e-05 | 4.4592e-05 |   0.0 |  0.24
+Other   |            | 0.0003995  |            |       |  2.49
 
 Nlocal:            1.5 ave           3 max           0 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

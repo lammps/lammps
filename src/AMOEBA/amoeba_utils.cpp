@@ -74,7 +74,7 @@ void PairAmoeba::kmpole()
 
     // create a sorted version of bond/angle neighs from special[][]
     // NOTE: this is to try and do it identically to Tinker
-    //   b/c I think in Tinker, atom order matters as to which case is seen fist
+    //   b/c I think in Tinker, which case is seen first can depend on atom order
 
     for (j = 0; j < nspecial[i][0]; j++)
       bondneigh[j] = special[i][j];

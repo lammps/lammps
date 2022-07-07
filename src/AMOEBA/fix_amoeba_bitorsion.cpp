@@ -778,7 +778,7 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
     memory->create(tty[itype],ny,"bitorsion:tty");
     memory->create(tbf[itype],nx*ny,"bitorsion:tbf");
 
-    // NOTE: should read this chunk of lines with utils in single read
+    // NOTE: could read this chunk of lines with utils in single read?
 
     if (me == 0) {
       for (int iy = 0; iy < ny; iy++) {

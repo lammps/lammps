@@ -53,8 +53,6 @@ BondClass2::~BondClass2()
 
 void BondClass2::compute(int eflag, int vflag)
 {
-  if (disable) return;
-
   int i1,i2,n,type;
   double delx,dely,delz,ebond,fbond;
   double rsq,r,dr,dr2,dr3,dr4,de_bond;
@@ -155,24 +153,6 @@ void BondClass2::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void BondClass2::init_style()
-{
-  // check if PairAmoeba or PairHippo disabled bond terms
-
-  Pair *pair = NULL;
-  pair = force->pair_match("amoeba",1,0);
-  if (!pair) pair = force->pair_match("hippo",1,0);
-
-  if (!pair) disable = 0;
-  else {
-    int tmp;
-    int flag = *((int *) pair->extract("bond_flag",tmp));
-    disable = flag ? 0 : 1;
-  }
 }
 
 /* ----------------------------------------------------------------------

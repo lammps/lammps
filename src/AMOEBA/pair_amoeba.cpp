@@ -552,11 +552,14 @@ void PairAmoeba::allocate()
 
 /* ----------------------------------------------------------------------
    global settings
+   NOTE: these undocumented args are only for debugging
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::settings(int narg, char **arg)
 {
   // turn on all FF components by default
+  // first 4 lines are non-bonded terms
+  // last 2 lines are bonded terms
 
   hal_flag = repulse_flag = qxfer_flag = 1;
   disp_rspace_flag = disp_kspace_flag = 1;
@@ -616,6 +619,12 @@ void PairAmoeba::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"bitorsion") == 0) bitorsion_flag = newvalue;
     else error->all(FLERR,"Illegal pair_style command");
   }
+
+  // cannot disable bond and dihedral terms b/c those classes not in AMOEBA pkg
+
+  if ((bond_flag == 0 || dihedral_flag == 0) && comm->me == 0)
+    error->warning(FLERR,"Cannot disable AMOEBA bonds or dihedrals - "
+                   "use bond_style or dihedral_style none instead");
 }
 
 /* ----------------------------------------------------------------------
@@ -1757,7 +1766,7 @@ void PairAmoeba::precond_neigh()
   //   rather all interactions in the precond neigh list are
   //   used every step until the neighbor list is rebuilt,
   //   this means the cutoff distance is not exactly enforced,
-  //   on a later step atoms outside may contribute, atoms inside may not
+  //   on later steps atoms outside may contribute, atoms inside may not
 
   choose(USOLV);
 
@@ -2067,6 +2076,7 @@ void *PairAmoeba::extract(const char *str, int &dim)
   if (strcmp(str,"opbend_quartic") == 0) return (void *) &opbend_quartic;
   if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;
   if (strcmp(str,"opbend_sextic") == 0) return (void *) &opbend_sextic;
+
   return nullptr;
 }
 

@@ -442,8 +442,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // sum of procs in all worlds must equal total # of procs
 
   if (!universe->consistent())
-    error->universe_all(FLERR,"Processor partitions do not match "
-                        "number of allocated processors");
+    error->universe_all(FLERR,"Processor partitions do not match number of allocated processors");
 
   // universe cannot use stdin for input file
 
@@ -512,10 +511,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
         error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
+      if (!helpflag)
+        utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
+      // warn against using I/O redirection in parallel runs
+      if ((inflag == 0) && (universe->nprocs > 1))
+        error->warning(FLERR, "Using I/O redirection is unreliable with parallel runs. "
+                       "Better use -in switch to read input file.");
+      utils::flush_buffers(this);
     }
 
-    if ((universe->me == 0) && !helpflag)
-      utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators

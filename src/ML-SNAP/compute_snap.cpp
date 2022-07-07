@@ -24,7 +24,6 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "universe.h" // For MPI
 
 #include <cstring>
 
@@ -268,9 +267,9 @@ void ComputeSnap::init()
   // allocate memory for global array
 
   memory->create(snap,size_array_rows,size_array_cols,
-		 "snap:snap");
+                 "snap:snap");
   memory->create(snapall,size_array_rows,size_array_cols,
-		 "snap:snapall");
+                 "snap:snapall");
   array = snapall;
 
   // find compute for reference energy
@@ -321,6 +320,7 @@ void ComputeSnap::compute_array()
   }
 
   // clear global array
+
   for (int irow = 0; irow < size_array_rows; irow++){
     for (int icoeff = 0; icoeff < size_array_cols; icoeff++){
       snap[irow][icoeff] = 0.0;
@@ -371,7 +371,9 @@ void ComputeSnap::compute_array()
       const int typeoffset_global = nvalues*(itype-1);
 
       if (dgradflag){
+
         // dBi/dRi tags
+
         snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
         snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = atom->tag[i]-1;
         snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][2] = 0;
@@ -381,7 +383,9 @@ void ComputeSnap::compute_array()
         snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][0] = atom->tag[i]-1;
         snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][1] = atom->tag[i]-1;
         snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][2] = 2;
+
         // dBi/dRj tags
+
         for (int j=0; j<natoms; j++){
           snap[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
           snap[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = j;
@@ -451,72 +455,72 @@ void ComputeSnap::compute_array()
 
         // accumulate dBi/dRi, -dBi/dRj
 
-	      if (!dgradflag) {
+              if (!dgradflag) {
 
-	         double *snadi = snap_peratom[i]+typeoffset_local;
-	         double *snadj = snap_peratom[j]+typeoffset_local;
+                 double *snadi = snap_peratom[i]+typeoffset_local;
+                 double *snadj = snap_peratom[j]+typeoffset_local;
 
-	         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+                 for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
 
-	           snadi[icoeff] += snaptr->dblist[icoeff][0];
-	           snadi[icoeff+yoffset] += snaptr->dblist[icoeff][1];
-	           snadi[icoeff+zoffset] += snaptr->dblist[icoeff][2];
+                   snadi[icoeff] += snaptr->dblist[icoeff][0];
+                   snadi[icoeff+yoffset] += snaptr->dblist[icoeff][1];
+                   snadi[icoeff+zoffset] += snaptr->dblist[icoeff][2];
 
-	           snadj[icoeff] -= snaptr->dblist[icoeff][0];
-	           snadj[icoeff+yoffset] -= snaptr->dblist[icoeff][1];
-	           snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
-	         }
+                   snadj[icoeff] -= snaptr->dblist[icoeff][0];
+                   snadj[icoeff+yoffset] -= snaptr->dblist[icoeff][1];
+                   snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
+                 }
 
-	         if (quadraticflag) {
-	           const int quadraticoffset = ncoeff;
-	           snadi += quadraticoffset;
-	           snadj += quadraticoffset;
-	           int ncount = 0;
-	           for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	             double bi = snaptr->blist[icoeff];
-	             double bix = snaptr->dblist[icoeff][0];
-	             double biy = snaptr->dblist[icoeff][1];
-	             double biz = snaptr->dblist[icoeff][2];
+                 if (quadraticflag) {
+                   const int quadraticoffset = ncoeff;
+                   snadi += quadraticoffset;
+                   snadj += quadraticoffset;
+                   int ncount = 0;
+                   for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+                     double bi = snaptr->blist[icoeff];
+                     double bix = snaptr->dblist[icoeff][0];
+                     double biy = snaptr->dblist[icoeff][1];
+                     double biz = snaptr->dblist[icoeff][2];
 
-	             // diagonal elements of quadratic matrix
+                     // diagonal elements of quadratic matrix
 
-	             double dbxtmp = bi*bix;
-	             double dbytmp = bi*biy;
-	             double dbztmp = bi*biz;
+                     double dbxtmp = bi*bix;
+                     double dbytmp = bi*biy;
+                     double dbztmp = bi*biz;
 
-	             snadi[ncount] +=         dbxtmp;
-	             snadi[ncount+yoffset] += dbytmp;
-	             snadi[ncount+zoffset] += dbztmp;
-	             snadj[ncount] -=         dbxtmp;
-	             snadj[ncount+yoffset] -= dbytmp;
-	             snadj[ncount+zoffset] -= dbztmp;
+                     snadi[ncount] +=         dbxtmp;
+                     snadi[ncount+yoffset] += dbytmp;
+                     snadi[ncount+zoffset] += dbztmp;
+                     snadj[ncount] -=         dbxtmp;
+                     snadj[ncount+yoffset] -= dbytmp;
+                     snadj[ncount+zoffset] -= dbztmp;
 
-	             ncount++;
+                     ncount++;
 
-	             // upper-triangular elements of quadratic matrix
+                     // upper-triangular elements of quadratic matrix
 
-	             for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-		             double dbxtmp = bi*snaptr->dblist[jcoeff][0]
-		                           + bix*snaptr->blist[jcoeff];
-		             double dbytmp = bi*snaptr->dblist[jcoeff][1]
-		                           + biy*snaptr->blist[jcoeff];
-		             double dbztmp = bi*snaptr->dblist[jcoeff][2]
-		                           + biz*snaptr->blist[jcoeff];
+                     for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+                             double dbxtmp = bi*snaptr->dblist[jcoeff][0]
+                                           + bix*snaptr->blist[jcoeff];
+                             double dbytmp = bi*snaptr->dblist[jcoeff][1]
+                                           + biy*snaptr->blist[jcoeff];
+                             double dbztmp = bi*snaptr->dblist[jcoeff][2]
+                                           + biz*snaptr->blist[jcoeff];
 
-		             snadi[ncount] +=         dbxtmp;
-		             snadi[ncount+yoffset] += dbytmp;
-		             snadi[ncount+zoffset] += dbztmp;
-		             snadj[ncount] -=         dbxtmp;
-		             snadj[ncount+yoffset] -= dbytmp;
-		             snadj[ncount+zoffset] -= dbztmp;
+                             snadi[ncount] +=         dbxtmp;
+                             snadi[ncount+yoffset] += dbytmp;
+                             snadi[ncount+zoffset] += dbztmp;
+                             snadj[ncount] -=         dbxtmp;
+                             snadj[ncount+yoffset] -= dbytmp;
+                             snadj[ncount+zoffset] -= dbztmp;
 
-		             ncount++;
-	             }
-	           }
-	         }
-	       } else {
+                             ncount++;
+                     }
+                   }
+                 }
+               } else {
 
-	         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+                 for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
 
              // add to snap array for this proc
 
@@ -531,9 +535,9 @@ void ComputeSnap::compute_array()
              snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][icoeff+3] += snaptr->dblist[icoeff][0];
              snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][icoeff+3] += snaptr->dblist[icoeff][1];
              snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] += snaptr->dblist[icoeff][2];
-	         }
+                 }
 
-	       }
+               }
 
       } // loop over jj inside
 
@@ -541,30 +545,30 @@ void ComputeSnap::compute_array()
 
       if (!dgradflag) {
 
-	      // linear contributions
+              // linear contributions
 
         int k = typeoffset_global;
         for (int icoeff = 0; icoeff < ncoeff; icoeff++)
           snap[irow][k++] += snaptr->blist[icoeff];
 
-	      // quadratic contributions
+              // quadratic contributions
 
-	      if (quadraticflag) {
-  	      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-  	        double bveci = snaptr->blist[icoeff];
-  	        snap[irow][k++] += 0.5*bveci*bveci;
-  	        for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-  	          double bvecj = snaptr->blist[jcoeff];
-  	          snap[irow][k++] += bveci*bvecj;
-  	        }
-  	      }
-	      }
+              if (quadraticflag) {
+              for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+                double bveci = snaptr->blist[icoeff];
+                snap[irow][k++] += 0.5*bveci*bveci;
+                for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+                  double bvecj = snaptr->blist[jcoeff];
+                  snap[irow][k++] += bveci*bvecj;
+                }
+              }
+              }
 
       } else {
           int k = 3;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++)
             snap[irow][k++] += snaptr->blist[icoeff];
-  	      numneigh_sum += ninside;
+              numneigh_sum += ninside;
         }
 
     } // if (mask[i] & groupbit)

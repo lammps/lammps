@@ -53,7 +53,6 @@ class ComputeSnap : public Compute {
   double cutmax;
   int quadraticflag;
   int bikflag, bik_rows, dgradflag, dgrad_rows;
-  int rank;
 
   Compute *c_pe;
   Compute *c_virial;

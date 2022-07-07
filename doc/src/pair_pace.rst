@@ -1,14 +1,14 @@
 .. index:: pair_style pace
 .. index:: pair_style pace/kk
-.. index:: pair_style pace/al
+.. index:: pair_style pace/extrapolation
 
 pair_style pace command
 =======================
 
 Accelerator Variants: *pace/kk*
 
-pair_style pace/al command
-=========================
+pair_style pace/extrapolation command
+=====================================
 
 Syntax
 """"""
@@ -28,7 +28,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style pace/al gamma_lower_bound gamma_upper_bound gamma_freq dump
+   pair_style pace/extrapolation gamma_lower_bound gamma_upper_bound gamma_freq
 
 * one or more arguments may be appended
 
@@ -36,7 +36,6 @@ Syntax
     *gamma_lower_bound* = minimal value of extrapolation grade considered as moderate extrapolation
     *gamma_upper_bound* = maximal value of extrapolation grade considered as moderate extrapolation
     *gamma_freq* value = frequency of computing extrapolation grade (in steps)
-    dump = *dump* or *nodump*  = dump structures with gamma > *gamma_lower_bound* to `extrapolative_structures.dat` file
 
 Examples
 """"""""
@@ -47,7 +46,7 @@ Examples
    pair_style pace product chunksize 2048
    pair_coeff * * Cu-PBE-core-rep.ace Cu
 
-   pair_style pace/al 1.5 10 20 nodump
+   pair_style pace/extrapolation 1.5 10 20
    pair_coeff * * Cu.yaml Cu.asi Cu
 
 Description
@@ -95,12 +94,12 @@ avoid running out of memory.  For example if there are 8192 atoms in the
 simulation and the *chunksize* is set to 4096, the ACE
 calculation will be broken up into two passes (running on a single GPU).
 
-Extrapolation grade and active learning
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Extrapolation grade
+"""""""""""""""""""
 
-Calculation of extrapolation grade in PACE is implemented in `pair_style pace/al`.
+Calculation of extrapolation grade in PACE is implemented in `pair_style pace/extrapolation`.
 It is based on the MaxVol algorithm similar to Moment Tensor Potential (MTP) by Shapeev et al.
-and described in :ref:`(Lysogorskiy2) <Lysogorskiy2022>`.
+and is described in :ref:`(Lysogorskiy2) <Lysogorskiy2022>`.
 In order to compute extrapolation grade one needs to provide:
 
 #. ACE potential in B-basis form (`.yaml` format) and
@@ -108,26 +107,35 @@ In order to compute extrapolation grade one needs to provide:
 
 Calculation of extrapolation grades requires matrix-vector multiplication for each atom
 and can be slower than the usual `pair_style pace recursive`,
-therefore it make sense not to do it on every step.
+therefore it make sense *not* to do it on every step.
 Extrapolation grade calculation frequency is controlled by *gamma_freq* parameter.
 On all other steps `pair_style pace recursive` is used.
 
 The maximal value of *gamma* for all atoms in a structure determines the extrapolation grade for structure.
-If per-structure extrapolation grade exceeds *gamma_lower_bound* but less than *gamma_upper_bound*,
-the structure is considered as extrapolative and will be stored into
-`extrapolative_structures.dat` if *dump* keyword is provided.
-If extrapolation grade exceeds *gamma_upper_bound*, simulation is aborted.
-
-Both per-atom and per-structure extrapolation grades are accessible via `compute pace/atom`
-that is **always** instantiated for `pair_style pace/al` by name `c_pace_gamma`:
+Both per-atom and per-structure extrapolation grades are accessible via `compute pace/extrapolation`:
 
 .. code-block:: LAMMPS
 
-   # per-structure extrapolation grade
+   compute pace_gamma all pace/extrapolation
+
+   # show maximal extrapolation grade per-structure
    thermo_style custom step etotal temp press c_pace_gamma
 
-   # per-atom extrapolation grade
+   # dump structure with per-atom extrapolation grades
    dump 1 all custom 100 my.dump id type mass x y z c_pace_gamma
+
+If maximal extrapolation grade per-structure exceeds *gamma_lower_bound* but less than *gamma_upper_bound*,
+the structure is considered as extrapolative and can be stored with `dump pace/extrapolation`:
+
+.. code-block:: LAMMPS
+
+   compute pace_gamma all pace/extrapolation
+   dump pace all pace/extrapolation 1 extrapolation.dat id type mass x y z c_pace_gamma
+
+Please note, that even if you provide dump frequency equal to one, dump will write structure
+only if extrapolation grades are computed on current timestep *and* maximal extrapolation grade exceeds *gamma_lower_bound*.
+If extrapolation grade exceeds *gamma_upper_bound*, simulation will be aborted.
+
 
 
 ----------
@@ -170,7 +178,9 @@ See the :doc:`Build package <Build_package>` page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_style snap  <pair_snap>`
+:doc:`pair_style snap  <pair_snap>`,
+:doc:`compute pace/extrapolation  <compute_pace_extrapolation>`,
+:doc:`dump pace/extrapolation  <dump_pace_extrapolation>`,
 
 Default
 """""""
@@ -178,8 +188,7 @@ Default
 recursive, chunksize = 4096,
 gamma_lower_bound = 1.5,
 gamma_upper_bound = 10,
-gamma_freq = 1,
-nodump
+gamma_freq = 1
 
 .. _Drautz20191:
 

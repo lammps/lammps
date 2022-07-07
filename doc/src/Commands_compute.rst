@@ -95,6 +95,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
+   * :doc:`pace/extrapolation <compute_pace_extrapolation>`
    * :doc:`pair <compute_pair>`
    * :doc:`pair/local <compute_pair_local>`
    * :doc:`pe <compute_pe>`

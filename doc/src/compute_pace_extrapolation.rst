@@ -1,40 +1,38 @@
-.. index:: compute pace/atom
+.. index:: compute pace/extrapolation
 
-compute pace/atom command
-=======================
+compute pace/extrapolation command
+==================================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   compute ID all pace/atom
+   compute ID all pace/extrapolation
 
 * ID is documented in :doc:`compute <compute>` command
-* pace/atom = style name of this compute command
+* pace/extrapolation = style name of this compute command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute my_gamma all pace/atom
+   compute pace_gamma all pace/extrapolation
 
 Description
 """""""""""
 
 Define a computation that calculates both per-atom and per-structure extrapolation grades for PACE interatomic potential.
-Pair style :doc:`pair_style pace/al <pair_pace>` must be instantiated before.
-Extrapolation grades are computed by `pair_style pace/al` every *gamma_freq* steps (see :doc:`pair_style pace/al <pair_pace>`),
-but `compute pace/atom` will invoke extra calculations with this pair style if necessary.
+Pair style :doc:`pair_style pace/extrapolation <pair_pace>` must be instantiated before.
+Extrapolation grades are computed by `pair_style pace/extrapolation` every *gamma_freq* steps (see :doc:`pair_style pace/extrapolation <pair_pace>`),
+but `compute pace/extrapolation` will invoke extra calculations with this pair style if necessary.
 For better performance, it is recommended to use the same values of *gamma_freq* and
 the frequency of compute style callers, i.e. `dump` or `thermo`.
 
+.. code-block:: LAMMPS
 
-Default compute style with ID="pace_gamma" is always created by `pair_style pace/al` and corresponding
-per-structure and per-atom extrapolation grades could be used as:
-
-.. code-block::
+   compute pace_gamma all pace/extrapolation
 
    # per-structure extrapolation grade c_pace_gamma
    thermo_style custom step etotal temp press c_pace_gamma
@@ -56,18 +54,16 @@ All values are unitless.
 Restrictions
 """"""""""""
 
- Pair style :doc:`pair_style pace/al <pair_pace>` must be instantiated before.
+ Pair style :doc:`pair_style pace/extrapolation <pair_pace>` must be instantiated before.
 
- group-ID always corresponds to the group atoms used by `pair_style pace/al` and by default is `all`.
+ group-ID always corresponds to the group atoms used by `pair_style pace/extrapolation` and by default is `all`.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style pace/al <pair_pace>`
-:doc:`dump custom <dump>`
-:doc:`thermo custom <thermo>`
+:doc:`pair_style pace/extrapolation <pair_pace>`, :doc:`dump custom <dump>`, :doc:`thermo custom <thermo>`
 
 Default
 """""""
 
-`compute pace_gamma all pace/atom`
+`compute pace_gamma all pace/extrapolation`

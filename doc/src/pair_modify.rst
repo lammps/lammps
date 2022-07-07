@@ -13,7 +13,7 @@ Syntax
 * one or more keyword/value pairs may be listed
 * keyword = *pair* or *shift* or *mix* or *table* or *table/disp* or *tabinner*
   or *tabinner/disp* or *tail* or *compute* or *nofdotr* or *special* or
-  *compute/tally*
+  *compute/tally* or *neigh/trim*
 
   .. parsed-literal::
 
@@ -37,6 +37,7 @@ Syntax
           which = *lj/coul* or *lj* or *coul*
           w1,w2,w3 = 1-2, 1-3, 1-4 weights from 0.0 to 1.0 inclusive
        *compute/tally* value = *yes* or *no*
+       *neigh/trim* value = *yes* or *no*
 
 Examples
 """"""""
@@ -283,6 +284,26 @@ the *pair* keyword.  Use *no* to disable, or *yes* to enable.
    The "pair_modify pair compute/tally" command must be issued
    **before** the corresponding compute style is defined.
 
+The *neigh/trim* keyword controls whether an explicit cutoff is set
+for each neighbor list requested by the individual pair sub-styles
+when using :doc:`pair hybrid\*/overlay <pair_hybrid_overlay>`.  When
+this keyword is set to *no*, then the cutoff of the pair sub-style
+neighbor will be set to the master list distance, and if possible the
+neighbor list will be copied directly from another list. When this
+keyword is set to *yes* then the cutoff of the neighbor list will be
+explicitly set to the value requested by the pair sub-style, and if
+possible the list will be created by trimming from another list with a
+longer cutoff, otherwise a new neighbor list will be created with the
+specified cutoff.  The *yes* option can be faster when there are
+multiple pair styles with different cutoffs since the number of
+pair-wise distance checks between neighbors is reduced (but the time
+required to build the neighbor lists is increased).
+
+.. note::
+
+   The "pair_modify neigh/trim" command only applies when there are
+   multiple pair sub-styles, i.e. when using pair hybrid/overlay
+
 ----------
 
 Restrictions
@@ -304,7 +325,7 @@ Default
 """""""
 
 The option defaults are mix = geometric, shift = no, table = 12,
-tabinner = sqrt(2.0), tail = no, and compute = yes.
+tabinner = sqrt(2.0), tail = no, compute = yes, and neigh/trim no.
 
 Note that some pair styles perform mixing, but only a certain style of
 mixing.  See the doc pages for individual pair styles for details.

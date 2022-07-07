@@ -82,6 +82,7 @@ class Pair : protected Pointers {
   int tail_flag;          // pair_modify flag for LJ tail correction
   double etail, ptail;    // energy/pressure tail corrections
   double etail_ij, ptail_ij;
+  int trim_flag;          // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
   int eflag_either, eflag_global, eflag_atom;

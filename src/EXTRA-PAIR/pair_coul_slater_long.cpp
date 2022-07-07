@@ -124,7 +124,7 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
           slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
           prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
-          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
 
         fpair = forcecoul * r2inv;
 
@@ -139,7 +139,7 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
 
         if (eflag) {
             ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
-          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,

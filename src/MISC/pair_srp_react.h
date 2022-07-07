@@ -40,7 +40,3 @@ class PairSRPREACT : public PairSRP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

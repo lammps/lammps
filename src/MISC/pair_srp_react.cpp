@@ -13,13 +13,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Vaibhav Palkar (Kuksenok Lab, Clemson University) 
+   Contributing author: Vaibhav Palkar (Kuksenok Lab, Clemson University)
    based on the pair srp code by Timothy Sirk (ARL)
 
 This pair style interfaces the pair style srp with the stochastic reaction
 fixes bond/break and bond/create by updating pseudo beads corresponding to
 bonds as bond breaking and formation takes place. This is useful in
-simulation of reactions in polymers with soft potentials such as DPD. 
+simulation of reactions in polymers with soft potentials such as DPD.
 
 See the doc page for pair_style srp/react command for usage instructions.
 
@@ -213,7 +213,7 @@ void PairSRPREACT::init_style()
     f_srp->modify_params(2, arg0);
     delete [] idbreak;
   }
-  
+
   // if using fix bond/create, set id of fix bond/create in fix srp
   // idcreate = id of fix bond break
   if( bond_create )

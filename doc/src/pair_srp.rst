@@ -132,14 +132,14 @@ at the cutoff distance :math:`r_c`.
 
 ----------
 
-Pair style *srp/react* interfaces the pair style *srp* with the  
-bond breaking and formation mechanisms provided by fix *bond/break* 
-and fix *bond/create*, respectively. When using this pair style, whenever a 
-bond breaking (or formation) reaction occurs, the corresponding fictitious 
-particle is deleted (or inserted) during the same simulation time step as 
-the reaction. This is useful in the simulation of reactive systems involving 
-large polymeric molecules :ref:`(Palkar) <Palkar>`  where the segmental repulsive 
-potential is necessary to minimize topological violations, and also needs to be 
+Pair style *srp/react* interfaces the pair style *srp* with the
+bond breaking and formation mechanisms provided by fix *bond/break*
+and fix *bond/create*, respectively. When using this pair style, whenever a
+bond breaking (or formation) reaction occurs, the corresponding fictitious
+particle is deleted (or inserted) during the same simulation time step as
+the reaction. This is useful in the simulation of reactive systems involving
+large polymeric molecules :ref:`(Palkar) <Palkar>`  where the segmental repulsive
+potential is necessary to minimize topological violations, and also needs to be
 turned on and off according to the progress of the reaction.
 
 ----------
@@ -204,5 +204,5 @@ Chem Phys, 136 (13) 134903, 2012.
 
 .. _Palkar:
 
-**(Palkar)** Palkar V, Kuksenok O, J. Phys. Chem. B, 126 (1), 336-346, 2022 
+**(Palkar)** Palkar V, Kuksenok O, J. Phys. Chem. B, 126 (1), 336-346, 2022
 

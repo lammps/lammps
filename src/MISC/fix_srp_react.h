@@ -44,7 +44,3 @@ class FixSRPREACT : public FixSRP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

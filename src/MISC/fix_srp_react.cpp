@@ -13,13 +13,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Vaibhav Palkar (Kuksenok Lab, Clemson University) 
+   Contributing author: Vaibhav Palkar (Kuksenok Lab, Clemson University)
    based on the pair srp code by Timothy Sirk (ARL)
 
 This pair style interfaces the pair style srp with the stochastic reaction
 fixes bond/break and bond/create by updating pseudo beads corresponding to
 bonds as bond breaking and formation takes place. This is useful in
-simulation of reactions in polymers with soft potentials such as DPD. 
+simulation of reactions in polymers with soft potentials such as DPD.
 
 See the doc page for pair_style srp/react command for usage instructions.
 
@@ -110,7 +110,7 @@ void FixSRPREACT::init()
   // find fix bond break
   if( idbreak != nullptr )
     f_bb = (FixBondBreak *) modify->get_fix_by_id(idbreak);
-  
+
   // find fix bond create
   if( idcreate != nullptr )
     f_bc = (FixBondCreate *) modify->get_fix_by_id(idcreate);
@@ -136,7 +136,7 @@ void FixSRPREACT::post_neighbor()
       //reset break count before exiting
       // not reseting breakcount would lead to redundant rebuilds
       f_bb->breakcount=0;
-      
+
       // count additional call during setup_pre_force
       neighbor->ncalls = ncalls+1;
     }
@@ -148,7 +148,7 @@ void FixSRPREACT::post_neighbor()
       //reset create count before exiting
       // not reseting createcount would lead to redundant rebuilds
       f_bc->createcount=0;
-      
+
       // count additional call during setup_pre_force
       neighbor->ncalls = ncalls+1;
     }
@@ -156,7 +156,7 @@ void FixSRPREACT::post_neighbor()
 
 /* ----------------------------------------------------------------------
    interface with pair class
-   in addition to bond type and bond particle type, 
+   in addition to bond type and bond particle type,
      pair srp react sets id of either fix bond break or bond create
 ------------------------------------------------------------------------- */
 

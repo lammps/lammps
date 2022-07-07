@@ -68,9 +68,6 @@ Syntax
        *wselfallflag* value = *0* or *1*
           *0* = self-contribution only for element of central atom
           *1* = self-contribution for all elements
-       *bikflag* value = *0* or *1* (only implemented for compute snap)
-          *0* = per-atom bispectrum descriptors are summed over atoms
-          *1* = per-atom bispectrum descriptors are not summed over atoms
        *switchinnerflag* value = *0* or *1*
           *0* = do not use inner switching function
           *1* = use inner switching function
@@ -78,9 +75,12 @@ Syntax
           *sinnerlist* = *ntypes* values of *Sinner* (distance units)
        *dinner* values = *dinnerlist*
           *dinnerlist* = *ntypes* values of *Dinner* (distance units)
-       *dgradflag* value = *0* or *1*
-          *0* = bispectrum descriptor gradients are summed over neighbors
-          *1* = bispectrum descriptor gradients are not summed over neighbors
+       *bikflag* value = *0* or *1* (only implemented for compute snap)
+          *0* = descriptors are summed over atoms of each type
+          *1* = descriptors are listed separately for each atom 
+       *dgradflag* value = *0* or *1* (only implemented for compute snap)
+          *0* = descriptor gradients are summed over atoms of each type
+          *1* = descriptor gradients are listed separately for each atom pair
 
 Examples
 """"""""
@@ -363,15 +363,6 @@ This option is typically used in conjunction with the *chem* keyword,
 and LAMMPS will generate a warning if both *chem* and *bnormflag*
 are not both set or not both unset.
 
-The keyword *bikflag* determines whether or not to expand the bispectrum
-rows of the global array returned by compute snap. If *bikflag* is set
-to *1* then the bispectrum row, which is typically the per-atom bispectrum
-descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
-:math:`B_k`, becomes bispectrum rows equal to the number of atoms. Thus,
-the resulting bispectrum rows are :math:`B_{i,k}` instead of just
-:math:`B_k`. In this case, the entries in the final column for these rows
-are set to zero.
-
 The keyword *switchinnerflag* with value 1
 activates an additional radial switching
 function similar to :math:`f_c(r)` above, but acting to switch off
@@ -396,16 +387,36 @@ When the central atom and the neighbor atom have different types,
 the values of :math:`S_{inner}` and :math:`D_{inner}` are
 the arithmetic means of the values for both types.
 
-The keyword *dgradflag* determines whether or not to sum the bispectrum
-descriptor gradients over neighboring atoms *i'* as explained with *snad/atom*
-above. If *dgradflag* is set to 1 then the descriptor gradient rows of the
-global snap array are not summed over atoms *i'*. Instead, each row corresponds
+The keywords *bikflag* and *dgradflag* are only used by compute *snap*.
+The keyword *bikflag* determines whether or not to list the descriptors
+of each atom separately, or sum them together and list in a single row.
+If *bikflag* is set
+to *0* then a single bispectrum row is used, which contains the per-atom bispectrum
+descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
+:math:`B_k`.  If *bikflag* is set
+to *1* this is replaced by a separate bispectrum row equal for each atom.
+In this case, the entries in the final column for these rows
+are set to zero.
+
+The keyword *dgradflag* determines whether to sum atom gradients or list
+them separately. If *dgradflag* is set to 0, the bispectrum
+descriptor gradients w.r.t. atom *j* are summed over all atoms *i'*
+of type *I* (similar to *snad/atom* above).
+If *dgradflag* is set to 1, gradients are listed separately for each pair of atoms.
+Each row corresponds
 to a single term :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}`
-where :math:`a` is the Cartesian direction for the gradient. This also changes
+where :math:`{r}^a_j` is the *a-th* position coordinate of the atom with global
+index *j*. This also changes
 the number of columns to be equal to the number of bispectrum components, with 3
 additional columns representing the indices :math:`i`, :math:`j`, and :math:`a`,
 as explained more in the Output info section below. The option *dgradflag=1*
-must be used with *bikflag=1*.
+requires that  *bikflag=1*.[APT: This does not make any sense, since dgradflag
+produces its own custom output with no bikflag output]
+
+.. note::
+
+   Using *dgradflag* = 1 produces a global array with :math:`N + 3N^2 + 1` rows
+   which becomes expensive for systems with more than 1000 atoms.
 
 .. note::
 
@@ -517,31 +528,31 @@ components. For the purposes of handling contributions to force, virial,
 and quadratic combinations, these :math:`N_{elem}^3` sub-blocks are
 treated as a single block of :math:`K N_{elem}^3` columns.
 
-If the *bik* keyword is set to 1, then the first :math:`N` rows of the snap array
-correspond to :math:`B_{i,k}` instead of the sum over atoms :math:`i`. In this case, the entries in the final column for these rows
-are set to zero.
+If the *bik* keyword is set to 1, the structure of the snap array is expanded.
+The first :math:`N` rows of the snap array
+correspond to :math:`B_{i,k}` instead of a single row summed over atoms :math:`i`.
+In this case, the entries in the final column for these rows
+are set to zero. Also, each row contains only non-zero entries for the
+columns corresponding to the type of that atom.
 
-If the *dgradflag* keyword is set to 1, this changes the structure of the snap array completely.
-Here the *snad/atom* quantities are replaced with rows corresponding to descriptor
-gradient components
+If the *dgradflag* keyword is set to 1, this changes the structure of the
+snap array completely.
+Here the *snad/atom* quantities are replaced with rows corresponding to
+descriptor gradient components on single atoms:
 
 .. math::
 
   \frac{\partial {B_{i,k}  }}{\partial {r}^a_j}
 
-where :math:`a` is the Cartesian direction for the gradient. The rows are
+where :math:`{r}^a_j` is the *a-th* position coordinate of the atom with global
+index *j*. The rows are
 organized in chunks, where each chunk corresponds to an atom :math:`j` in the
 system of :math:`N` atoms. The rows in an atom :math:`j` chunk correspond to
 atoms :math:`i` in the system of :math:`N` atoms. The total number of rows for
 these descriptor gradients is therefore :math:`3N^2`.
-
-For *dgradflag=1*, the number of columns is equal to the number of bispectrum components,
-plus 3 additional columns representing the indices :math:`i`, :math:`j`, and :math:`a` which
-identify the atoms :math:`i` and :math:`j`, and Cartesian direction :math:`a` for which
-a particular gradient :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}` belongs to.
-For the descriptor gradient rows, the first 3 columns contain the indices
-:math:`i`, :math:`j`, and :math:`a`, and the remaining columns contain gradients
-of different descriptors indexed by :math:`k`.
+The number of columns is equal to the number of bispectrum components,
+plus 3 additional columns representing the global atom indices :math:`i`, :math:`j`,
+and Cartesian direction :math:`a`  (0, 1, 2, for x, y, z).
 The first 3 columns of the first :math:`N` rows belong to the reference
 potential force components. The first column of the last row, after the first
 :math:`N + 3N^2` rows, contains the reference potential

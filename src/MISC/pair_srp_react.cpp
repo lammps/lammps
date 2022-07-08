@@ -205,7 +205,6 @@ void PairSRPREACT::init_style()
     arg0[0] = (char *) "bond/break";
     arg0[1] = c0;
     f_srp->modify_params(2, arg0);
-    delete[] idbreak;
   }
 
   // if using fix bond/create, set id of fix bond/create in fix srp
@@ -215,7 +214,6 @@ void PairSRPREACT::init_style()
     arg0[0] = (char *) "bond/create";
     arg0[1] = c0;
     f_srp->modify_params(2, arg0);
-    delete[] idcreate;
   }
 
   // bond particles do not contribute to energy or virial

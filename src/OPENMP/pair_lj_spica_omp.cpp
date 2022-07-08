@@ -14,8 +14,8 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk_omp.h"
-#include "lj_sdk_common.h"
+#include "pair_lj_spica_omp.h"
+#include "lj_spica_common.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -27,12 +27,12 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKOMP::PairLJSDKOMP(LAMMPS *lmp) :
-  PairLJSDK(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJSPICAOMP::PairLJSPICAOMP(LAMMPS *lmp) :
+  PairLJSPICA(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -40,7 +40,7 @@ PairLJSDKOMP::PairLJSDKOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSDKOMP::compute(int eflag, int vflag)
+void PairLJSPICAOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
@@ -80,7 +80,7 @@ void PairLJSDKOMP::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJSDKOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
+void PairLJSPICAOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -153,6 +153,15 @@ void PairLJSDKOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
           if (EFLAG)
             evdwl = r6inv*(lj3[itype][jtype]*r6inv
                            - lj4[itype][jtype]) - offset[itype][jtype];
+
+        } else if (ljt == LJ12_5) {
+          const double r5inv = r2inv*r2inv*sqrt(r2inv);
+          const double r7inv = r5inv*r2inv;
+          forcelj = r5inv*(lj1[itype][jtype]*r7inv
+                          - lj2[itype][jtype]);
+          if (EFLAG)
+            evdwl = r5inv*(lj3[itype][jtype]*r7inv
+                           - lj4[itype][jtype]) - offset[itype][jtype];
         } else continue;
 
         fpair = factor_lj*forcelj*r2inv;
@@ -179,10 +188,10 @@ void PairLJSDKOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDKOMP::memory_usage()
+double PairLJSPICAOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJSDK::memory_usage();
+  bytes += PairLJSPICA::memory_usage();
 
   return bytes;
 }

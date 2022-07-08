@@ -17,22 +17,23 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk/omp,PairLJSDKOMP);
+PairStyle(lj/spica/coul/long/omp,PairLJSPICACoulLongOMP);
+PairStyle(lj/sdk/coul/long/omp,PairLJSPICACoulLongOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_SDK_OMP_H
-#define LMP_PAIR_LJ_SDK_OMP_H
+#ifndef LMP_PAIR_LJ_SPICA_COUL_LONG_OMP_H
+#define LMP_PAIR_LJ_SPICA_COUL_LONG_OMP_H
 
-#include "pair_lj_sdk.h"
+#include "pair_lj_spica_coul_long.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSDKOMP : public PairLJSDK, public ThrOMP {
+class PairLJSPICACoulLongOMP : public PairLJSPICACoulLong, public ThrOMP {
 
  public:
-  PairLJSDKOMP(class LAMMPS *);
+  PairLJSPICACoulLongOMP(class LAMMPS *);
 
   void compute(int, int) override;
   double memory_usage() override;

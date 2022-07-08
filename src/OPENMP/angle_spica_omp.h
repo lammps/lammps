@@ -17,22 +17,23 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(sdk/omp,AngleSDKOMP);
+AngleStyle(spica/omp,AngleSPICAOMP);
+AngleStyle(sdk/omp,AngleSPICAOMP);
 // clang-format on
 #else
 
-#ifndef LMP_ANGLE_SDK_OMP_H
-#define LMP_ANGLE_SDK_OMP_H
+#ifndef LMP_ANGLE_SPICA_OMP_H
+#define LMP_ANGLE_SPICA_OMP_H
 
-#include "angle_sdk.h"
+#include "angle_spica.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class AngleSDKOMP : public AngleSDK, public ThrOMP {
+class AngleSPICAOMP : public AngleSPICA, public ThrOMP {
 
  public:
-  AngleSDKOMP(class LAMMPS *lmp);
+  AngleSPICAOMP(class LAMMPS *lmp);
   void compute(int, int) override;
 
  private:

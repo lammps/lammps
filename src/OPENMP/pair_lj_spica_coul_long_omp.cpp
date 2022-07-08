@@ -11,17 +11,14 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Axel Kohlmeyer (Temple U)
-   This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk_coul_msm_omp.h"
-#include "lj_sdk_common.h"
+#include "pair_lj_spica_coul_long_omp.h"
+#include "lj_spica_common.h"
 
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
-#include "kspace.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -29,11 +26,11 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKCoulMSMOMP::PairLJSDKCoulMSMOMP(LAMMPS *lmp) :
-  PairLJSDKCoulMSM(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJSPICACoulLongOMP::PairLJSPICACoulLongOMP(LAMMPS *lmp) :
+  PairLJSPICACoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -41,12 +38,8 @@ PairLJSDKCoulMSMOMP::PairLJSDKCoulMSMOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSDKCoulMSMOMP::compute(int eflag, int vflag)
+void PairLJSPICACoulLongOMP::compute(int eflag, int vflag)
 {
-  if (force->kspace->scalar_pressure_flag)
-    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' "
-      "with OMP MSM Pair styles");
-
   ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
@@ -66,15 +59,15 @@ void PairLJSDKCoulMSMOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (force->newton_pair) eval_msm_thr<1,1,1>(ifrom, ito, thr);
-        else eval_msm_thr<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval_thr<1,1,1>(ifrom, ito, thr);
+        else eval_thr<1,1,0>(ifrom, ito, thr);
       } else {
-        if (force->newton_pair) eval_msm_thr<1,0,1>(ifrom, ito, thr);
-        else eval_msm_thr<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair) eval_thr<1,0,1>(ifrom, ito, thr);
+        else eval_thr<1,0,0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval_msm_thr<0,0,1>(ifrom, ito, thr);
-      else eval_msm_thr<0,0,0>(ifrom, ito, thr);
+      if (force->newton_pair) eval_thr<0,0,1>(ifrom, ito, thr);
+      else eval_thr<0,0,0>(ifrom, ito, thr);
     }
 
     thr->timer(Timer::PAIR);
@@ -85,15 +78,15 @@ void PairLJSDKCoulMSMOMP::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJSDKCoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const thr)
+void PairLJSPICACoulLongOMP::eval_thr(int iifrom, int iito, ThrData * const thr)
 {
 
-  const double * const * const x = atom->x;
-  double * const * const f = thr->get_f();
-  const double * const q = atom->q;
-  const int * const type = atom->type;
-  const double * const special_coul = force->special_coul;
-  const double * const special_lj = force->special_lj;
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const double * _noalias const q = atom->q;
+  const int * _noalias const type = atom->type;
+  const double * _noalias const special_coul = force->special_coul;
+  const double * _noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
 
   const int * const ilist = list->ilist;
@@ -108,9 +101,9 @@ void PairLJSDKCoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const thr
     const int i = ilist[ii];
     const int itype = type[i];
     const double qtmp = q[i];
-    const double xtmp = x[i][0];
-    const double ytmp = x[i][1];
-    const double ztmp = x[i][2];
+    const double xtmp = x[i].x;
+    const double ytmp = x[i].y;
+    const double ztmp = x[i].z;
     double fxtmp,fytmp,fztmp;
     fxtmp=fytmp=fztmp=0.0;
 
@@ -118,15 +111,15 @@ void PairLJSDKCoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const thr
     const int jnum = numneigh[i];
 
     for (int jj = 0; jj < jnum; jj++) {
-      double forcecoul, forcelj, evdwl, ecoul, fgamma, egamma;
+      double forcecoul, forcelj, evdwl, ecoul;
       forcecoul = forcelj = evdwl = ecoul = 0.0;
 
       const int sbindex = sbmask(jlist[jj]);
       const int j = jlist[jj] & NEIGHMASK;
 
-      const double delx = xtmp - x[j][0];
-      const double dely = ytmp - x[j][1];
-      const double delz = ztmp - x[j][2];
+      const double delx = xtmp - x[j].x;
+      const double dely = ytmp - x[j].y;
+      const double delz = ztmp - x[j].z;
       const double rsq = delx*delx + dely*dely + delz*delz;
       const int jtype = type[j];
 
@@ -136,14 +129,22 @@ void PairLJSDKCoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const thr
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
+            const double A1 =  0.254829592;
+            const double A2 = -0.284496736;
+            const double A3 =  1.421413741;
+            const double A4 = -1.453152027;
+            const double A5 =  1.061405429;
+            const double EWALD_F = 1.12837917;
+            const double INV_EWALD_P = 1.0/0.3275911;
+
             const double r = sqrt(rsq);
+            const double grij = g_ewald * r;
+            const double expm2 = exp(-grij*grij);
+            const double t = INV_EWALD_P / (INV_EWALD_P + grij);
+            const double erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
             const double prefactor = qqrd2e * qtmp*q[j]/r;
-            fgamma = 1.0 + (rsq/cut_coulsq)*force->kspace->dgamma(r/cut_coul);
-            forcecoul = prefactor * fgamma;
-            if (EFLAG) {
-              egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
-              ecoul = prefactor*egamma;
-            }
+            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            if (EFLAG) ecoul = prefactor*erfc;
             if (sbindex) {
               const double adjust = (1.0-special_coul[sbindex])*prefactor;
               forcecoul -= adjust;
@@ -194,6 +195,15 @@ void PairLJSDKCoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const thr
             if (EFLAG)
               evdwl = r6inv*(lj3[itype][jtype]*r6inv
                              - lj4[itype][jtype]) - offset[itype][jtype];
+
+          } else if (ljt == LJ12_5) {
+            const double r5inv = r2inv*r2inv*sqrt(r2inv);
+            const double r7inv = r5inv*r2inv;
+            forcelj = r5inv*(lj1[itype][jtype]*r7inv
+                             - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl = r5inv*(lj3[itype][jtype]*r7inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
           }
 
           if (sbindex) {
@@ -210,27 +220,27 @@ void PairLJSDKCoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const thr
         fytmp += dely*fpair;
         fztmp += delz*fpair;
         if (NEWTON_PAIR || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[j].x -= delx*fpair;
+          f[j].y -= dely*fpair;
+          f[j].z -= delz*fpair;
         }
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
                                  evdwl,ecoul,fpair,delx,dely,delz,thr);
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
+    f[i].x += fxtmp;
+    f[i].y += fytmp;
+    f[i].z += fztmp;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDKCoulMSMOMP::memory_usage()
+double PairLJSPICACoulLongOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJSDKCoulMSM::memory_usage();
+  bytes += PairLJSPICACoulLong::memory_usage();
 
   return bytes;
 }

@@ -17,32 +17,32 @@
 ------------------------------------------------------------------------- */
 
 #include "omp_compat.h"
-#include "angle_sdk_omp.h"
+#include "angle_spica_omp.h"
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 
 #include "comm.h"
 #include "force.h"
-#include "lj_sdk_common.h"
+#include "lj_spica_common.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 #define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
-AngleSDKOMP::AngleSDKOMP(class LAMMPS *lmp)
-  : AngleSDK(lmp), ThrOMP(lmp,THR_ANGLE)
+AngleSPICAOMP::AngleSPICAOMP(class LAMMPS *lmp)
+  : AngleSPICA(lmp), ThrOMP(lmp,THR_ANGLE)
 {
   suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AngleSDKOMP::compute(int eflag, int vflag)
+void AngleSPICAOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
@@ -81,7 +81,7 @@ void AngleSDKOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
-void AngleSDKOMP::eval(int nfrom, int nto, ThrData * const thr)
+void AngleSPICAOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
   int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
@@ -171,6 +171,13 @@ void AngleSDKOMP::eval(int nfrom, int nto, ThrData * const thr)
 
           f13 = r6inv*(lj1[type1][type3]*r6inv - lj2[type1][type3]);
           if (EFLAG) e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
+
+        } else if (ljt == LJ12_5) {
+          const double r5inv = r2inv*r2inv*sqrt(r2inv);
+          const double r7inv = r5inv*r2inv;
+
+          f13 = r5inv*(lj1[type1][type3]*r7inv - lj2[type1][type3]);
+          if (EFLAG) e13 = r5inv*(lj3[type1][type3]*r7inv - lj4[type1][type3]);
         }
 
         // make sure energy is 0.0 at the cutoff.

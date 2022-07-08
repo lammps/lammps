@@ -5,9 +5,9 @@ dimension       3
 atom_style      full
 processors  * * 1
 
-pair_style hybrid/overlay  lj/sdk 15.0  coul/long 26.5
+pair_style hybrid/overlay  lj/sdk 15.0  coul/long 26.5 # "lj/sdk" is compatible with "lj/spica"
 bond_style      harmonic
-angle_style     sdk
+angle_style     sdk # compatible with "spica"
 special_bonds   lj/coul 0.0 0.0 1.0
 
 read_data       data.sds.gz

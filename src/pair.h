@@ -19,8 +19,8 @@
 namespace LAMMPS_NS {
 
 class Pair : protected Pointers {
-  friend class AngleSDK;
-  friend class AngleSDKOMP;
+  friend class AngleSPICA;
+  friend class AngleSPICAOMP;
   friend class BondQuartic;
   friend class BondQuarticOMP;
   friend class DihedralCharmm;

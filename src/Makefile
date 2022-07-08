@@ -57,7 +57,7 @@ PACKAGE = \
         bpm \
 	brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	colvars \
@@ -152,7 +152,7 @@ PACKMOST = \
 	bpm \
         brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	coreshell \

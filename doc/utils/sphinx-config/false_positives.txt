@@ -421,6 +421,8 @@ CGDNA
 cgs
 cgsdk
 CGSDK
+cgspica
+CGSPICA
 Chaimovich
 Chalopin
 Champaign
@@ -2076,6 +2078,7 @@ Mishin
 Mishra
 mistyped
 mistyrose
+Miyazaki
 Mj
 mK
 mkdir
@@ -2471,6 +2474,7 @@ ohenrich
 ok
 Okabe
 Okamoto
+Okazaki
 O'Keefe
 OKeefe
 oldlace
@@ -2729,6 +2733,7 @@ pscrozi
 pseudodynamics
 pseudopotential
 pSp
+pSPICA
 Pstart
 Pstop
 pstyle
@@ -3087,6 +3092,7 @@ semiaxes
 semimetals
 Semin
 Sensable
+Seo
 Sep
 seqdep
 Serpico
@@ -3197,6 +3203,8 @@ Spellmeyer
 Speybroeck
 sph
 SPH
+spica
+SPICA
 Spickermann
 splined
 spparks

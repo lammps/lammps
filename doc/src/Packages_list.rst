@@ -73,10 +73,10 @@ whether an extra library is needed to build and use the package:
      - src/CG-DNA/README
      - PACKAGES/cgdna
      - no
-   * - :ref:`CG-SDK <PKG-CG-SDK>`
-     - SDK coarse-graining model
-     - :doc:`pair_style lj/sdk <pair_sdk>`
-     - PACKAGES/cgsdk
+   * - :ref:`CG-SPICA <PKG-CG-SPICA>`
+     - SPICA (SDK) coarse-graining model
+     - :doc:`pair_style lj/spica <pair_spica>`
+     - PACKAGES/cgspica
      - no
    * - :ref:`CLASS2 <PKG-CLASS2>`
      - class 2 force fields

@@ -179,9 +179,9 @@ OPT.
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
-   * :doc:`lj/sdk (gko) <pair_sdk>`
-   * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
-   * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`
+   * :doc:`lj/spica (gko) <pair_spica>`
+   * :doc:`lj/spica/coul/long (go) <pair_spica>`
+   * :doc:`lj/spica/coul/msm (o) <pair_spica>`
    * :doc:`lj/sf/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/smooth (go) <pair_lj_smooth>`
    * :doc:`lj/smooth/linear (o) <pair_lj_smooth_linear>`

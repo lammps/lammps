@@ -144,13 +144,11 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       bikflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dgradflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal compute snap command");
       dgradflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal compute snap command");
       switchinnerflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "sinner") == 0) {
@@ -191,10 +189,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   if (dgradflag && quadraticflag)
     error->all(FLERR,"Illegal compute snap command: dgradflag=1 not implemented for quadratic SNAP");
 
-  snaptr = new SNA(lmp, rfac0, twojmax,
-                   rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag,
-                   nelements, switchinnerflag);
+  snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
+                   wselfallflag, nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nvalues = ncoeff;

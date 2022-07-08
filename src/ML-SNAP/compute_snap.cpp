@@ -13,6 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_snap.h"
+
 #include "sna.h"
 #include "atom.h"
 #include "update.h"
@@ -145,12 +146,12 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"dgradflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
-      dgradflag = atoi(arg[iarg+1]);
+      dgradflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
-      switchinnerflag = atoi(arg[iarg+1]);
+      switchinnerflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "sinner") == 0) {
       iarg++;
@@ -228,7 +229,6 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeSnap::~ComputeSnap()
 {
-
   memory->destroy(snap);
   memory->destroy(snapall);
   memory->destroy(snap_peratom);
@@ -252,9 +252,8 @@ void ComputeSnap::init()
   if (force->pair == nullptr)
     error->all(FLERR,"Compute snap requires a pair style be defined");
 
-  if (cutmax > force->pair->cutforce){
+  if (cutmax > force->pair->cutforce)
     error->all(FLERR,"Compute snap cutoff is longer than pairwise cutoff");
-  }
 
   // need an occasional full neighbor list
 
@@ -321,17 +320,15 @@ void ComputeSnap::compute_array()
 
   // clear global array
 
-  for (int irow = 0; irow < size_array_rows; irow++){
-    for (int icoeff = 0; icoeff < size_array_cols; icoeff++){
+  for (int irow = 0; irow < size_array_rows; irow++)
+    for (int icoeff = 0; icoeff < size_array_cols; icoeff++)
       snap[irow][icoeff] = 0.0;
-    }
-  }
 
   // clear local peratom array
+
   for (int i = 0; i < ntotal; i++)
-    for (int icoeff = 0; icoeff < size_peratom; icoeff++) {
+    for (int icoeff = 0; icoeff < size_peratom; icoeff++)
       snap_peratom[i][icoeff] = 0.0;
-    }
 
   // invoke full neighbor list (will copy or build if necessary)
 
@@ -537,7 +534,6 @@ void ComputeSnap::compute_array()
               snap[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][icoeff+3] += snaptr->dblist[icoeff][2];
             }
           }
-
       } // loop over jj inside
 
       // accumulate Bi
@@ -569,9 +565,7 @@ void ComputeSnap::compute_array()
           snap[irow][k++] += snaptr->blist[icoeff];
           numneigh_sum += ninside;
         }
-
-    } // if (mask[i] & groupbit)
-
+    }
   } // for (int ii = 0; ii < inum; ii++) {
 
   // accumulate bispectrum force contributions to global array
@@ -604,7 +598,6 @@ void ComputeSnap::compute_array()
       snap[irow++][lastcol] = atom->f[i][1];
       snap[irow][lastcol] = atom->f[i][2];
     }
-
   } else {
 
     // for dgradflag=1, put forces at first 3 columns of bik rows
@@ -632,7 +625,6 @@ void ComputeSnap::compute_array()
     int irow = 0;
     double reference_energy = c_pe->compute_scalar();
     snapall[irow][lastcol] = reference_energy;
-
   } else {
 
     // assign reference energy right after the dgrad rows, first column

@@ -5,7 +5,7 @@ epsilon: 5e-14
 skip_tests: gpu
 prerequisites: ! |
   atom full
-  pair lj/sdk/coul/long
+  pair lj/spica/coul/long
   kspace ewald
 pre_commands: ! |
   variable write_data_pair index ij
@@ -16,7 +16,7 @@ post_commands: ! |
   kspace_modify cutoff/adjust no
   kspace_modify pressure/scalar no # required for OPENMP with msm
 input_file: in.fourmol
-pair_style: lj/sdk/coul/msm 12.0
+pair_style: lj/spica/coul/msm 12.0
 pair_coeff: ! |
   1 1 lj9_6  0.02 2.5
   1 2 lj9_6  0.01 1.58114

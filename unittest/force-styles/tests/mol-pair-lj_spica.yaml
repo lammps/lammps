@@ -5,12 +5,12 @@ epsilon: 5e-14
 skip_tests:
 prerequisites: ! |
   atom full
-  pair lj/sdk
+  pair lj/spica
 pre_commands: ! |
   variable write_data_pair index ij
 post_commands: ! ""
 input_file: in.fourmol
-pair_style: lj/sdk 8.0
+pair_style: lj/spica 8.0
 pair_coeff: ! |
   1 1 lj9_6  0.02 2.5
   1 2 lj9_6  0.01 1.58114

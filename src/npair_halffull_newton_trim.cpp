@@ -91,7 +91,7 @@ void NPairHalffullNewtonTrim::build(NeighList *list)
       delz = ztmp - x[j][2];
       rsq = delx * delx + dely * dely + delz * delz;
 
-      if (rsq > cutsq_custom) continue;      
+      if (rsq > cutsq_custom) continue;
 
       neighptr[n++] = joriginal;
     }

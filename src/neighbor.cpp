@@ -1162,7 +1162,7 @@ void Neighbor::morph_unique()
       } else {
         irq->cut = 0;
         irq->cutoff = 0.0;
-      } 
+      }
     }
 
     // avoid flagging a neighbor list as both INTEL and OPENMP

@@ -183,6 +183,13 @@ class BaseAmoeba {
                const double off2_polar, double *charge, const int nlocal, double *boxlo,
                double *prd, void **tep_ptr);
 
+  // copy field and fieldp from device to host after umutual2b
+  virtual void update_fieldp(void **fieldp_ptr) {
+    *fieldp_ptr=_fieldp.host.begin();
+     // _fieldp store both arrays, one after another
+    _fieldp.update_host(_max_fieldp_size*8,false);
+  }
+  
   // -------------------------- DEVICE DATA -------------------------
 
   /// Device Properties and Atom and Neighbor storage

@@ -148,6 +148,10 @@ void amoeba_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup, double **
                              aewald, off2, fieldp_ptr);
 }
 
+void amoeba_gpu_update_fieldp(void **fieldp_ptr) {
+  AMOEBAMF.update_fieldp(fieldp_ptr);
+}
+
 void amoeba_gpu_compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
                                     double **host_uind, double **host_uinp,
                                     const bool eflag_in, const bool vflag_in,

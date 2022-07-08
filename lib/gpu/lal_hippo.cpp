@@ -549,8 +549,8 @@ void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **hos
   const int red_blocks=umutual2b(this->_eflag,this->_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
-
-  this->_fieldp.update_host(this->_max_fieldp_size*8,false);
+  // NOTE: move this step to update_fieldp() to delay device-host transfer
+  //this->_fieldp.update_host(this->_max_fieldp_size*8,false);
 }
 
 // ---------------------------------------------------------------------------

@@ -179,6 +179,10 @@ void hippo_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup, double **h
                             aewald, off2, fieldp_ptr);
 }
 
+void hippo_gpu_update_fieldp(void **fieldp_ptr) {
+  HIPPOMF.update_fieldp(fieldp_ptr);
+}
+
 void hippo_gpu_compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
                                   double **host_uind, double **host_uinp, double *host_pval,
                                   const bool eflag_in, const bool vflag_in,

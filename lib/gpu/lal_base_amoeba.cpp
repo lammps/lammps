@@ -528,8 +528,8 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
   const int red_blocks=umutual2b(_eflag,_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
-
-  _fieldp.update_host(_max_fieldp_size*8,false);
+  // NOTE: move this step to update_fieldp() to delay device-host transfer
+  //_fieldp.update_host(_max_fieldp_size*8,false);
 }
 
 // ---------------------------------------------------------------------------

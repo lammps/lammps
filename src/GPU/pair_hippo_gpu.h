@@ -40,6 +40,7 @@ class PairHippoGPU : public PairAmoeba {
   virtual void multipole_real();
   virtual void udirect2b(double **, double **);
   virtual void umutual2b(double **, double **);
+  virtual void ufield0c(double **, double **);
   virtual void polar_real();
 
  private:

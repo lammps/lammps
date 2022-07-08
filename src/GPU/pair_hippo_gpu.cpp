@@ -100,6 +100,8 @@ void hippo_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
               const double aewald, const double off2, void **fieldp_ptr);
 
+void hippo_gpu_update_fieldp(void **fieldp_ptr);
+
 void hippo_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -984,6 +986,72 @@ void PairHippoGPU::udirect2b_cpu()
 }
 
 /* ----------------------------------------------------------------------
+   ufield0c = mutual induction via Ewald sum
+   ufield0c computes the mutual electrostatic field due to
+   induced dipole moments via Ewald summation
+------------------------------------------------------------------------- */
+
+void PairHippoGPU::ufield0c(double **field, double **fieldp)
+{
+  int i,j;
+  double term;
+
+  // zero field,fieldp for owned and ghost atoms
+
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+
+  for (i = 0; i < nall; i++) {
+    for (j = 0; j < 3; j++) {
+      field[i][j] = 0.0;
+      fieldp[i][j] = 0.0;
+    }
+  }
+
+  // get the real space portion of the mutual field first
+
+  if (polar_rspace_flag) umutual2b(field,fieldp);
+
+  // get the reciprocal space part of the mutual field
+
+  if (polar_kspace_flag) umutual1(field,fieldp);
+
+  // add the self-energy portion of the mutual field
+
+  term = (4.0/3.0) * aewald*aewald*aewald / MY_PIS;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      field[i][j] += term*uind[i][j];
+      fieldp[i][j] += term*uinp[i][j];
+    }
+  }
+
+  // accumulate the field and fieldp values from real-space portion from umutual2b() on the GPU
+  //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
+
+  hippo_gpu_update_fieldp(&fieldp_pinned);
+  
+  int inum = atom->nlocal;
+  double *field_ptr = (double *)fieldp_pinned;
+
+  for (int i = 0; i < nlocal; i++) {
+    int idx = 4*i;
+    field[i][0] += field_ptr[idx];
+    field[i][1] += field_ptr[idx+1];
+    field[i][2] += field_ptr[idx+2];
+  }
+
+  double* fieldp_ptr = (double *)fieldp_pinned;
+  fieldp_ptr += 4*inum;
+  for (int i = 0; i < nlocal; i++) {
+    int idx = 4*i;
+    fieldp[i][0] += fieldp_ptr[idx];
+    fieldp[i][1] += fieldp_ptr[idx+1];
+    fieldp[i][2] += fieldp_ptr[idx+2];
+  }
+}
+
+/* ----------------------------------------------------------------------
    umutual2b = Ewald real mutual field via list
    umutual2b computes the real space contribution of the induced
    atomic dipole moments to the field via a neighbor list
@@ -1021,7 +1089,7 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   double *pval = atom->dvector[index_pval];
   hippo_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp, pval,
                               aewald, off2, &fieldp_pinned);
-
+/*
   // accumulate the field and fieldp values from the GPU lib
   //   field and fieldp may already have some nonzero values from kspace (umutual1)
 
@@ -1043,6 +1111,7 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
     fieldp[i][1] += fieldp_ptr[idx+1];
     fieldp[i][2] += fieldp_ptr[idx+2];
   }
+*/
 }
 
 /* ----------------------------------------------------------------------

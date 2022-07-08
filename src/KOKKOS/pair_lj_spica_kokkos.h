@@ -13,31 +13,34 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>);
-PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>);
-PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>);
+PairStyle(lj/spica/kk,PairLJSPICAKokkos<LMPDeviceType>);
+PairStyle(lj/spica/kk/device,PairLJSPICAKokkos<LMPDeviceType>);
+PairStyle(lj/spica/kk/host,PairLJSPICAKokkos<LMPHostType>);
+PairStyle(lj/sdk/kk,PairLJSPICAKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/device,PairLJSPICAKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/host,PairLJSPICAKokkos<LMPHostType>);
 // clang-format on
 #else
 
 // clang-format off
-#ifndef LMP_PAIR_LJ_SDK_KOKKOS_H
-#define LMP_PAIR_LJ_SDK_KOKKOS_H
+#ifndef LMP_PAIR_LJ_SPICA_KOKKOS_H
+#define LMP_PAIR_LJ_SPICA_KOKKOS_H
 
 #include "pair_kokkos.h"
-#include "pair_lj_sdk.h"
+#include "pair_lj_spica.h"
 #include "neigh_list_kokkos.h"
 
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class PairLJSDKKokkos : public PairLJSDK {
+class PairLJSPICAKokkos : public PairLJSPICA {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  PairLJSDKKokkos(class LAMMPS *);
-  ~PairLJSDKKokkos() override;
+  PairLJSPICAKokkos(class LAMMPS *);
+  ~PairLJSPICAKokkos() override;
 
   void compute(int, int) override;
 
@@ -95,17 +98,17 @@ class PairLJSDKKokkos : public PairLJSDK {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairLJSDKKokkos,FULL,true>;
-  friend struct PairComputeFunctor<PairLJSDKKokkos,HALF,true>;
-  friend struct PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairLJSDKKokkos,FULL,false>;
-  friend struct PairComputeFunctor<PairLJSDKKokkos,HALF,false>;
-  friend struct PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,FULL,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALF,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALFTHREAD,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJSDKKokkos,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
-  friend void pair_virial_fdotr_compute<PairLJSDKKokkos>(PairLJSDKKokkos*);
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,HALFTHREAD,false>;
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,FULL,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,HALF,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,HALFTHREAD,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJSPICAKokkos,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend void pair_virial_fdotr_compute<PairLJSPICAKokkos>(PairLJSPICAKokkos*);
 };
 
 }

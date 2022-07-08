@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk_kokkos.h"
+#include "pair_lj_spica_kokkos.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -26,13 +26,13 @@
 #include "respa.h"
 #include "update.h"
 
-#include "lj_sdk_common.h"
+#include "lj_spica_common.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 #define KOKKOS_CUDA_MAX_THREADS 256
 #define KOKKOS_CUDA_MIN_BLOCKS 8
@@ -40,7 +40,7 @@ using namespace LJSDKParms;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairLJSDKKokkos<DeviceType>::PairLJSDKKokkos(LAMMPS *lmp) : PairLJSDK(lmp)
+PairLJSPICAKokkos<DeviceType>::PairLJSPICAKokkos(LAMMPS *lmp) : PairLJSPICA(lmp)
 {
   respa_enable = 0;
 
@@ -54,7 +54,7 @@ PairLJSDKKokkos<DeviceType>::PairLJSDKKokkos(LAMMPS *lmp) : PairLJSDK(lmp)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairLJSDKKokkos<DeviceType>::~PairLJSDKKokkos()
+PairLJSPICAKokkos<DeviceType>::~PairLJSPICAKokkos()
 {
   if (copymode) return;
 
@@ -68,7 +68,7 @@ PairLJSDKKokkos<DeviceType>::~PairLJSDKKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJSDKKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -112,7 +112,7 @@ void PairLJSDKKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
-  EV_FLOAT ev = pair_compute<PairLJSDKKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
+  EV_FLOAT ev = pair_compute<PairLJSPICAKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -141,7 +141,7 @@ void PairLJSDKKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJSDKKokkos<DeviceType>::
+F_FLOAT PairLJSPICAKokkos<DeviceType>::
 compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
   (void) i;
   (void) j;
@@ -167,19 +167,25 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
     const double r6inv = r2inv*r2inv*r2inv;
     return r6inv*(lj_1*r6inv - lj_2) * r2inv;
 
+  } else if (ljt == LJ12_5) {
+
+    const F_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
+    const F_FLOAT r7inv = r5inv*r2inv;
+    return r5inv*(lj_1*r7inv - lj_2) * r2inv;
+
   }
-  if (ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6) return 0.0;*/
+  if (ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6 && ljt!=LJ12_5) return 0.0;*/
   const F_FLOAT r4inv=r2inv*r2inv;
   const F_FLOAT r6inv=r2inv*r4inv;
-  const F_FLOAT a = ljt==LJ12_4?r4inv:r6inv;
-  const F_FLOAT b = ljt==LJ12_4?r4inv:(ljt==LJ9_6?1.0/sqrt(r2inv):r2inv);
+  const F_FLOAT a = ljt==LJ12_4?r4inv:(ljt==LJ12_5?r4inv*sqrt(r2inv):r6inv);
+  const F_FLOAT b = ljt==LJ12_4?r4inv:(ljt==LJ9_6?1.0/sqrt(r2inv):(ljt==LJ12_5?r2inv*sqrt(r2inv):r2inv));
   return a* ( lj_1*r6inv*b - lj_2 * r2inv);
 }
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJSDKKokkos<DeviceType>::
+F_FLOAT PairLJSPICAKokkos<DeviceType>::
 compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
   (void) i;
   (void) j;
@@ -203,6 +209,11 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   } else if (ljt == LJ12_6) {
     const double r6inv = r2inv*r2inv*r2inv;
     return r6inv*(lj_3*r6inv - lj_4) - offset;
+
+  } else if (ljt == LJ12_5) {
+    const F_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
+    const F_FLOAT r7inv = r5inv*r2inv;
+    return r5inv*(lj_3*r7inv - lj_4) - offset;
   } else
     return 0.0;
 }
@@ -212,15 +223,15 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJSDKKokkos<DeviceType>::allocate()
+void PairLJSPICAKokkos<DeviceType>::allocate()
 {
-  PairLJSDK::allocate();
+  PairLJSPICA::allocate();
 
   int n = atom->ntypes;
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-  k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJSDK::params",n+1,n+1);
+  k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJSPICA::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }
 
@@ -229,11 +240,11 @@ void PairLJSDKKokkos<DeviceType>::allocate()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJSDKKokkos<DeviceType>::settings(int narg, char **arg)
+void PairLJSPICAKokkos<DeviceType>::settings(int narg, char **arg)
 {
   if (narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  PairLJSDK::settings(1,arg);
+  PairLJSPICA::settings(1,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -241,9 +252,9 @@ void PairLJSDKKokkos<DeviceType>::settings(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJSDKKokkos<DeviceType>::init_style()
+void PairLJSPICAKokkos<DeviceType>::init_style()
 {
-  PairLJSDK::init_style();
+  PairLJSPICA::init_style();
 
   // error if rRESPA with inner levels
 
@@ -270,9 +281,9 @@ void PairLJSDKKokkos<DeviceType>::init_style()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
+double PairLJSPICAKokkos<DeviceType>::init_one(int i, int j)
 {
-  double cutone = PairLJSDK::init_one(i,j);
+  double cutone = PairLJSPICA::init_one(i,j);
 
   k_params.h_view(i,j).lj1 = lj1[i][j];
   k_params.h_view(i,j).lj2 = lj2[i][j];
@@ -297,9 +308,9 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
 
 
 namespace LAMMPS_NS {
-template class PairLJSDKKokkos<LMPDeviceType>;
+template class PairLJSPICAKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class PairLJSDKKokkos<LMPHostType>;
+template class PairLJSPICAKokkos<LMPHostType>;
 #endif
 }
 

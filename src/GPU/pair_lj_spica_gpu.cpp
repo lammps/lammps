@@ -15,7 +15,7 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk_gpu.h"
+#include "pair_lj_spica_gpu.h"
 
 #include "atom.h"
 #include "domain.h"
@@ -32,29 +32,29 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int sdk_gpu_init(const int ntypes, double **cutsq, int **cg_types, double **host_lj1,
+int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types, double **host_lj1,
                  double **host_lj2, double **host_lj3, double **host_lj4, double **offset,
                  double *special_lj, const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen);
-void sdk_gpu_clear();
-int **sdk_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
+void spica_gpu_clear();
+int **spica_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
                         const bool vatom, int &host_start, int **ilist, int **jnum,
                         const double cpu_time, bool &success);
-void sdk_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
+void spica_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start, const double cpu_time,
                      bool &success);
-double sdk_gpu_bytes();
+double spica_gpu_bytes();
 
-#include "lj_sdk_common.h"
+#include "lj_spica_common.h"
 
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKGPU::PairLJSDKGPU(LAMMPS *lmp) : PairLJSDK(lmp), gpu_mode(GPU_FORCE)
+PairLJSPICAGPU::PairLJSPICAGPU(LAMMPS *lmp) : PairLJSPICA(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
@@ -67,14 +67,14 @@ PairLJSDKGPU::PairLJSDKGPU(LAMMPS *lmp) : PairLJSDK(lmp), gpu_mode(GPU_FORCE)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairLJSDKGPU::~PairLJSDKGPU()
+PairLJSPICAGPU::~PairLJSPICAGPU()
 {
-  sdk_gpu_clear();
+  spica_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSDKGPU::compute(int eflag, int vflag)
+void PairLJSPICAGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -97,7 +97,7 @@ void PairLJSDKGPU::compute(int eflag, int vflag)
     }
     inum = atom->nlocal;
     firstneigh =
-        sdk_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
+        spica_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                           atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
                           host_start, &ilist, &numneigh, cpu_time, success);
   } else {
@@ -105,7 +105,7 @@ void PairLJSDKGPU::compute(int eflag, int vflag)
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    sdk_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
+    spica_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
                     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
@@ -127,7 +127,7 @@ void PairLJSDKGPU::compute(int eflag, int vflag)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJSDKGPU::init_style()
+void PairLJSPICAGPU::init_style()
 {
 
   // Repeat cutsq calculation because done after call to init_style
@@ -149,7 +149,7 @@ void PairLJSDKGPU::init_style()
   int maxspecial = 0;
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
-  int success = sdk_gpu_init(atom->ntypes + 1, cutsq, lj_type, lj1, lj2, lj3, lj4, offset,
+  int success = spica_gpu_init(atom->ntypes + 1, cutsq, lj_type, lj1, lj2, lj3, lj4, offset,
                              force->special_lj, atom->nlocal, atom->nlocal + atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success, error, world);
@@ -159,15 +159,15 @@ void PairLJSDKGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDKGPU::memory_usage()
+double PairLJSPICAGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + sdk_gpu_bytes();
+  return bytes + spica_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */
 template <int EVFLAG, int EFLAG>
-void PairLJSDKGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh, int **firstneigh)
+void PairLJSPICAGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh, int **firstneigh)
 {
   int i, j, ii, jj, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
@@ -228,6 +228,13 @@ void PairLJSDKGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh, i
           forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
           if (EFLAG)
             evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
+
+        } else if (ljt == LJ12_5) {
+          const double r5inv = r2inv * r2inv * sqrt(r2inv);
+          const double r7inv = r5inv * r2inv;
+          forcelj = r5inv * (lj1[itype][jtype] * r7inv - lj2[itype][jtype]);
+          if (EFLAG)
+            evdwl = r5inv * (lj3[itype][jtype] * r7inv - lj4[itype][jtype]) - offset[itype][jtype];
         } else
           continue;
 

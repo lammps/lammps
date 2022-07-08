@@ -13,21 +13,22 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk/gpu,PairLJSDKGPU);
+PairStyle(lj/spica/gpu,PairLJSPICAGPU);
+PairStyle(lj/sdk/gpu,PairLJSPICAGPU);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_SDK_GPU_H
-#define LMP_PAIR_LJ_SDK_GPU_H
+#ifndef LMP_PAIR_LJ_SPICA_GPU_H
+#define LMP_PAIR_LJ_SPICA_GPU_H
 
-#include "pair_lj_sdk.h"
+#include "pair_lj_spica.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSDKGPU : public PairLJSDK {
+class PairLJSPICAGPU : public PairLJSPICA {
  public:
-  PairLJSDKGPU(LAMMPS *lmp);
-  ~PairLJSDKGPU() override;
+  PairLJSPICAGPU(LAMMPS *lmp);
+  ~PairLJSPICAGPU() override;
   template <int, int> void cpu_compute(int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;

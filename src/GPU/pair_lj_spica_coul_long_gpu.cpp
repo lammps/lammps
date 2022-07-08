@@ -15,7 +15,7 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk_coul_long_gpu.h"
+#include "pair_lj_spica_coul_long_gpu.h"
 
 #include "atom.h"
 #include "domain.h"
@@ -41,34 +41,34 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int sdkl_gpu_init(const int ntypes, double **cutsq, int **lj_type, double **host_lj1,
+int spical_gpu_init(const int ntypes, double **cutsq, int **lj_type, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4, double **offset,
                   double *special_lj, const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
                   double **host_cut_ljsq, double host_cut_coulsq, double *host_special_coul,
                   const double qqrd2e, const double g_ewald);
-void sdkl_gpu_clear();
-int **sdkl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
+void spical_gpu_clear();
+int **spical_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
                          const bool vatom, int &host_start, int **ilist, int **jnum,
                          const double cpu_time, bool &success, double *host_q, double *boxlo,
                          double *prd);
-void sdkl_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+void spical_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
                       const double cpu_time, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
-double sdkl_gpu_bytes();
+double spical_gpu_bytes();
 
-#include "lj_sdk_common.h"
+#include "lj_spica_common.h"
 
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKCoulLongGPU::PairLJSDKCoulLongGPU(LAMMPS *lmp) :
-    PairLJSDKCoulLong(lmp), gpu_mode(GPU_FORCE)
+PairLJSPICACoulLongGPU::PairLJSPICACoulLongGPU(LAMMPS *lmp) :
+    PairLJSPICACoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
@@ -81,14 +81,14 @@ PairLJSDKCoulLongGPU::PairLJSDKCoulLongGPU(LAMMPS *lmp) :
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairLJSDKCoulLongGPU::~PairLJSDKCoulLongGPU()
+PairLJSPICACoulLongGPU::~PairLJSPICACoulLongGPU()
 {
-  sdkl_gpu_clear();
+  spical_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
+void PairLJSPICACoulLongGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -110,7 +110,7 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
       domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
     }
     inum = atom->nlocal;
-    firstneigh = sdkl_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
+    firstneigh = spical_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                     atom->tag, atom->nspecial, atom->special, eflag, vflag,
                                     eflag_atom, vflag_atom, host_start, &ilist, &numneigh, cpu_time,
                                     success, atom->q, domain->boxlo, domain->prd);
@@ -119,7 +119,7 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    sdkl_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
+    spical_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
                      eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->q,
                      atom->nlocal, domain->boxlo, domain->prd);
   }
@@ -142,9 +142,9 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLongGPU::init_style()
+void PairLJSPICACoulLongGPU::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/sdk/coul/long/gpu requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Pair style lj/spica/coul/long/gpu requires atom attribute q");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -177,7 +177,7 @@ void PairLJSDKCoulLongGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
-      sdkl_gpu_init(atom->ntypes + 1, cutsq, lj_type, lj1, lj2, lj3, lj4, offset, force->special_lj,
+      spical_gpu_init(atom->ntypes + 1, cutsq, lj_type, lj1, lj2, lj3, lj4, offset, force->special_lj,
                     atom->nlocal, atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode,
                     screen, cut_ljsq, cut_coulsq, force->special_coul, force->qqrd2e, g_ewald);
   GPU_EXTRA::check_flag(success, error, world);
@@ -187,15 +187,15 @@ void PairLJSDKCoulLongGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDKCoulLongGPU::memory_usage()
+double PairLJSPICACoulLongGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + sdkl_gpu_bytes();
+  return bytes + spical_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */
 template <int EVFLAG, int EFLAG>
-void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh,
+void PairLJSPICACoulLongGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh,
                                        int **firstneigh)
 {
   int i, j, ii, jj;
@@ -307,6 +307,14 @@ void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist, int *num
             if (EFLAG)
               evdwl =
                   r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
+
+          } else if (ljt == LJ12_5) {
+            const double r5inv = r2inv * r2inv * sqrt(r2inv);
+            const double r7inv = r5inv * r2inv;
+            forcelj = r5inv * (lj1[itype][jtype] * r7inv - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl =
+                  r5inv * (lj3[itype][jtype] * r7inv - lj4[itype][jtype]) - offset[itype][jtype];
           }
 
           if (EFLAG) evdwl *= factor_lj;

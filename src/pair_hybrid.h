@@ -70,7 +70,6 @@ class PairHybrid : public Pair {
  protected:
   int nstyles;           // # of sub-styles
   Pair **styles;         // list of Pair style classes
-  int style_cutoff_flag; // 1 if build a separate neigh list for each style
   double *cutmax_style;  // max cutoff for each style
   char **keywords;       // style name of each Pair style
   int *multiple;         // 0 if style used once, else Mth instance

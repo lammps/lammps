@@ -11,9 +11,9 @@ parametrization of the SPICA (formerly called SDK) and the pSPICA
 force fields, to simulate biological or soft material systems.
 For details about the force fields using this implementation,
 see the following papers:
-  SDK    - Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).
-  SPICA  - Seo, Shinoda, J Chem Theory Comput, 15, 762 (2019).
-  pSPICA - Miyazaki, Okazaki, Shinoda, J Chem Theory Comput, 16, 782 (2020).
+  SDK    - Shinoda, DeVane, Klein, Mol Sim, 33, 27-36 (2007).
+  SPICA  - Seo, Shinoda, J Chem Theory Comput, 15, 762-774 (2019).
+  pSPICA - Miyazaki, Okazaki, Shinoda, J Chem Theory Comput, 16, 782-793 (2020).
 Summary information on these force fields can be found at this web site:
 https://www.spica-ff.org
 

@@ -1,9 +1,9 @@
 /***************************************************************************
-                                  lj_sdk.h
+                                  lj_spica.h
                              -------------------
                             W. Michael Brown (ORNL)
 
-  Functions for LAMMPS access to lj/sdk pair acceleration routines
+  Functions for LAMMPS access to lj/spica pair acceleration routines
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -17,7 +17,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "lal_lj_sdk.h"
+#include "lal_lj_spica.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,7 +27,7 @@ static CGCMM<PRECISION,ACC_PRECISION> CMMMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int sdk_gpu_init(const int ntypes, double **cutsq, int **cg_types,
+int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types,
                  double **host_lj1, double **host_lj2, double **host_lj3,
                  double **host_lj4, double **offset, double *special_lj,
                  const int inum, const int nall, const int max_nbors,
@@ -42,7 +42,7 @@ int sdk_gpu_init(const int ntypes, double **cutsq, int **cg_types,
   int gpu_rank=CMMMF.device->gpu_rank();
   int procs_per_gpu=CMMMF.device->procs_per_gpu();
 
-  CMMMF.device->init_message(screen,"lj/sdk",first_gpu,last_gpu);
+  CMMMF.device->init_message(screen,"lj/spica",first_gpu,last_gpu);
 
   bool message=false;
   if (CMMMF.device->replica_me()==0 && screen)
@@ -89,11 +89,11 @@ int sdk_gpu_init(const int ntypes, double **cutsq, int **cg_types,
   return init_ok;
 }
 
-void sdk_gpu_clear() {
+void spica_gpu_clear() {
   CMMMF.clear();
 }
 
-int** sdk_gpu_compute_n(const int ago, const int inum_full,
+int** spica_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag,
@@ -105,7 +105,7 @@ int** sdk_gpu_compute_n(const int ago, const int inum_full,
                        vatom, host_start, ilist, jnum, cpu_time, success);
 }
 
-void sdk_gpu_compute(const int ago, const int inum_full, const int nall,
+void spica_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
@@ -114,7 +114,7 @@ void sdk_gpu_compute(const int ago, const int inum_full, const int nall,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
 }
 
-double sdk_gpu_bytes() {
+double spica_gpu_bytes() {
   return CMMMF.host_memory_usage();
 }
 

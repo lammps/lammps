@@ -1,9 +1,9 @@
 // **************************************************************************
-//                                lj_sdk_long.cu
+//                                lj_spica_long.cu
 //                             -------------------
 //                           W. Michael Brown (ORNL)
 //
-//  Device code for acceleration of the lj/sdk/coul/long pair style
+//  Device code for acceleration of the lj/spica/coul/long pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -29,7 +29,7 @@ _texture( q_tex,int2);
 #define q_tex q_
 #endif
 
-__kernel void k_lj_sdk_long(const __global numtyp4 *restrict x_,
+__kernel void k_lj_spica_long(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict lj1,
                             const __global numtyp4 *restrict lj3,
                             const int lj_types,
@@ -107,6 +107,9 @@ __kernel void k_lj_sdk_long(const __global numtyp4 *restrict x_,
           } else if (lj3[mtype].x == (numtyp)1) {
             inv2=r2inv*ucl_rsqrt(rsq);
             inv1=inv2*inv2;
+          } else if (lj3[mtype].x == (numtyp)4) {
+            inv1=r2inv*r2inv*ucl_rsqrt(rsq);
+            inv2=inv1*r2inv;
           } else {
             inv1=r2inv*r2inv*r2inv;
             inv2=inv1;
@@ -157,7 +160,7 @@ __kernel void k_lj_sdk_long(const __global numtyp4 *restrict x_,
                   vflag,ans,engv);
 }
 
-__kernel void k_lj_sdk_long_fast(const __global numtyp4 *restrict x_,
+__kernel void k_lj_spica_long_fast(const __global numtyp4 *restrict x_,
                                  const __global numtyp4 *restrict lj1_in,
                                  const __global numtyp4 *restrict lj3_in,
                                  const __global numtyp *restrict sp_lj_in,
@@ -236,6 +239,9 @@ __kernel void k_lj_sdk_long_fast(const __global numtyp4 *restrict x_,
           } else if (lj3[mtype].x == (numtyp)1) {
             inv2=r2inv*ucl_rsqrt(rsq);
             inv1=inv2*inv2;
+          } else if (lj3[mtype].x == (numtyp)4) {
+            inv1=r2inv*r2inv*ucl_rsqrt(rsq);
+            inv2=inv1*r2inv;
           } else {
             inv1=r2inv*r2inv*r2inv;
             inv2=inv1;

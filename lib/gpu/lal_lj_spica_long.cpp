@@ -1,9 +1,9 @@
 /***************************************************************************
-                               lj_sdk_long.cpp
+                               lj_spica_long.cpp
                              -------------------
                             W. Michael Brown (ORNL)
 
-  Class for acceleration of the lj/sdk/coul/long pair style
+  Class for acceleration of the lj/spica/coul/long pair style
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -14,14 +14,14 @@
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "lj_sdk_long_cl.h"
+#include "lj_spica_long_cl.h"
 #elif defined(USE_CUDART)
-const char *lj_sdk_long=0;
+const char *lj_spica_long=0;
 #else
-#include "lj_sdk_long_cubin.h"
+#include "lj_spica_long_cubin.h"
 #endif
 
-#include "lal_lj_sdk_long.h"
+#include "lal_lj_spica_long.h"
 #include <cassert>
 namespace LAMMPS_AL {
 #define CGCMMLongT CGCMMLong<numtyp, acctyp>
@@ -58,7 +58,7 @@ int CGCMMLongT::init(const int ntypes, double **host_cutsq,
                            const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,lj_sdk_long,"k_lj_sdk_long");
+                            _screen,lj_spica_long,"k_lj_spica_long");
   if (success!=0)
     return success;
 

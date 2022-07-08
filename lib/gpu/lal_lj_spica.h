@@ -1,9 +1,9 @@
 /***************************************************************************
-                                lj_sdk_long.h
+                                  lj_spica.h
                              -------------------
                             W. Michael Brown (ORNL)
 
-  Class for acceleration of the lj/sdk/coul/long pair style
+  Class for acceleration of the lj/spica pair style
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -13,18 +13,18 @@
     email                : brownw@ornl.gov
  ***************************************************************************/
 
-#ifndef LAL_CG_CMM_LONG_H
-#define LAL_CG_CMM_LONG_H
+#ifndef LAL_CG_CMM_H
+#define LAL_CG_CMM_H
 
-#include "lal_base_charge.h"
+#include "lal_base_atomic.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class CGCMMLong : public BaseCharge<numtyp, acctyp> {
+class CGCMM : public BaseAtomic<numtyp, acctyp> {
  public:
-  CGCMMLong();
-  ~CGCMMLong();
+  CGCMM();
+  ~CGCMM();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -37,14 +37,12 @@ class CGCMMLong : public BaseCharge<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, double **host_cutsq, int ** cg_type,
+  int init(const int ntypes, double **host_cutsq, int **host_cg_type,
            double **host_lj1, double **host_lj2, double **host_lj3,
            double **host_lj4, double **host_offset, double *host_special_lj,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *screen, double **host_cut_ljsq,
-           const double host_cut_coulsq, double *host_special_coul,
-           const double qqrd2e, const double g_ewald);
+           const double gpu_split, FILE *screen);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -58,20 +56,18 @@ class CGCMMLong : public BaseCharge<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// lj1.x = cutsq, lj1.y = cutsq_vdw, lj1.z = lj1, lj1.w = lj2,
+  /// lj1.x = cutsq, lj1.y=cg_type, lj1.z = lj1, lj1.w = lj2
   UCL_D_Vec<numtyp4> lj1;
-  /// lj3.x = cg_type, lj3.y = lj3, lj3.z = lj4, lj3.w = offset
+  /// lj3.x = lj3, lj3.y = lj4, lj3.z = offset
   UCL_D_Vec<numtyp4> lj3;
-  /// Special LJ values [0-3] and Special Coul values [4-7]
+  /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj;
 
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
   /// Number of atom types
-  int _lj_types;
-
-  numtyp _cut_coulsq, _qqrd2e, _g_ewald;
+  int _spica_types;
 
  private:
   bool _allocated;

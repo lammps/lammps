@@ -1,9 +1,9 @@
 /***************************************************************************
-                                lj_sdk_long.h
+                                lj_spica_long.h
                              -------------------
                             W. Michael Brown (ORNL)
 
-  Functions for LAMMPS access to lj/sdk/coul/long acceleration functions
+  Functions for LAMMPS access to lj/spica/coul/long acceleration functions
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -17,7 +17,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "lal_lj_sdk_long.h"
+#include "lal_lj_spica_long.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,7 +27,7 @@ static CGCMMLong<PRECISION,ACC_PRECISION> CMMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int sdkl_gpu_init(const int ntypes, double **cutsq, int **cg_type,
+int spical_gpu_init(const int ntypes, double **cutsq, int **cg_type,
                   double **host_lj1, double **host_lj2, double **host_lj3,
                   double **host_lj4, double **offset, double *special_lj,
                   const int inum, const int nall, const int max_nbors,
@@ -44,7 +44,7 @@ int sdkl_gpu_init(const int ntypes, double **cutsq, int **cg_type,
   int gpu_rank=CMMLMF.device->gpu_rank();
   int procs_per_gpu=CMMLMF.device->procs_per_gpu();
 
-  CMMLMF.device->init_message(screen,"lj/sdk/coul/long",first_gpu,last_gpu);
+  CMMLMF.device->init_message(screen,"lj/spica/coul/long",first_gpu,last_gpu);
 
   bool message=false;
   if (CMMLMF.device->replica_me()==0 && screen)
@@ -93,11 +93,11 @@ int sdkl_gpu_init(const int ntypes, double **cutsq, int **cg_type,
   return init_ok;
 }
 
-void sdkl_gpu_clear() {
+void spical_gpu_clear() {
   CMMLMF.clear();
 }
 
-int** sdkl_gpu_compute_n(const int ago, const int inum_full,
+int** spical_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
                          double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
@@ -111,7 +111,7 @@ int** sdkl_gpu_compute_n(const int ago, const int inum_full,
                         host_q,boxlo,prd);
 }
 
-void sdkl_gpu_compute(const int ago, const int inum_full, const int nall,
+void spical_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom, int &host_start,
@@ -122,7 +122,7 @@ void sdkl_gpu_compute(const int ago, const int inum_full, const int nall,
                 host_q,nlocal,boxlo,prd);
 }
 
-double sdkl_gpu_bytes() {
+double spical_gpu_bytes() {
   return CMMLMF.host_memory_usage();
 }
 

@@ -1,9 +1,9 @@
 // **************************************************************************
-//                                  lj_sdk.cu
+//                                  lj_spica.cu
 //                             -------------------
 //                           W. Michael Brown (ORNL)
 //
-//  Device code for acceleration of the lj/sdk pair style
+//  Device code for acceleration of the lj/spica pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -24,7 +24,7 @@ _texture_2d( pos_tex,int4);
 #define pos_tex x_
 #endif
 
-__kernel void k_lj_sdk(const __global numtyp4 *restrict x_,
+__kernel void k_lj_spica(const __global numtyp4 *restrict x_,
                        const __global numtyp4 *restrict lj1,
                        const __global numtyp4 *restrict lj3,
                        const int lj_types,
@@ -91,6 +91,9 @@ __kernel void k_lj_sdk(const __global numtyp4 *restrict x_,
         } else if (lj1[mtype].y == 1) {
           inv2=r2inv*ucl_sqrt(r2inv);
           inv1=inv2*inv2;
+        } else if (lj1[mtype].y == 4) {
+          inv1=r2inv*r2inv*ucl_sqrt(r2inv);
+          inv2=inv1*r2inv;
         } else {
           inv1=r2inv*r2inv*r2inv;
           inv2=inv1;
@@ -119,7 +122,7 @@ __kernel void k_lj_sdk(const __global numtyp4 *restrict x_,
                 ans,engv);
 }
 
-__kernel void k_lj_sdk_fast(const __global numtyp4 *restrict x_,
+__kernel void k_lj_spica_fast(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict lj1_in,
                             const __global numtyp4 *restrict lj3_in,
                             const __global numtyp *restrict sp_lj_in,
@@ -192,6 +195,9 @@ __kernel void k_lj_sdk_fast(const __global numtyp4 *restrict x_,
         } else if (lj1[mtype].y == (numtyp)1) {
           inv2=r2inv*ucl_sqrt(r2inv);
           inv1=inv2*inv2;
+        } else if (lj1[mtype].y == (numtyp)4) {
+          inv1=r2inv*r2inv*ucl_sqrt(r2inv);
+          inv2=inv1*r2inv;
         } else {
           inv1=r2inv*r2inv*r2inv;
           inv2=inv1;

@@ -17,54 +17,27 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk,PairLJSDK);
+PairStyle(lj/spica/coul/msm,PairLJSPICACoulMSM);
+PairStyle(lj/sdk/coul/msm,PairLJSPICACoulMSM);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_SDK_H
-#define LMP_PAIR_LJ_SDK_H
+#ifndef LMP_PAIR_LJ_SPICA_COUL_MSM_H
+#define LMP_PAIR_LJ_SPICA_COUL_MSM_H
 
-#include "pair.h"
+#include "pair_lj_spica_coul_long.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSDK : public Pair {
+class PairLJSPICACoulMSM : public PairLJSPICACoulLong {
  public:
-  PairLJSDK(LAMMPS *);
-  ~PairLJSDK() override;
+  PairLJSPICACoulMSM(class LAMMPS *);
   void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  double init_one(int, int) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  void write_restart_settings(FILE *) override;
-  void read_restart_settings(FILE *) override;
-  void write_data(FILE *) override;
-  void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
   void *extract(const char *, int &) override;
-  double memory_usage() override;
-
- protected:
-  int **lj_type;    // type of lennard jones potential
-
-  double **cut;
-  double **epsilon, **sigma;
-  double **lj1, **lj2, **lj3, **lj4, **offset;
-
-  // cutoff and offset for minimum of LJ potential
-  // to be used in SDK angle potential, which
-  // uses only the repulsive part of the potential
-
-  double **rminsq, **emin;
-
-  double cut_global;
-
-  virtual void allocate();
 
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval_msm();
 };
 
 }    // namespace LAMMPS_NS

@@ -16,10 +16,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 
    Variant of the harmonic angle potential for use with the
-   lj/sdk potential for coarse grained MD simulations.
+   lj/spica potential for coarse grained MD simulations.
 ------------------------------------------------------------------------- */
 
-#include "angle_sdk.h"
+#include "angle_spica.h"
 
 #include <cmath>
 #include "atom.h"
@@ -33,21 +33,21 @@
 #include "error.h"
 
 
-#include "lj_sdk_common.h"
+#include "lj_spica_common.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 #define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
-AngleSDK::AngleSDK(LAMMPS *lmp) : Angle(lmp) { repflag = 0;}
+AngleSPICA::AngleSPICA(LAMMPS *lmp) : Angle(lmp) { repflag = 0;}
 
 /* ---------------------------------------------------------------------- */
 
-AngleSDK::~AngleSDK()
+AngleSPICA::~AngleSPICA()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -61,7 +61,7 @@ AngleSDK::~AngleSDK()
 
 /* ---------------------------------------------------------------------- */
 
-void AngleSDK::compute(int eflag, int vflag)
+void AngleSPICA::compute(int eflag, int vflag)
 {
   int i1,i2,i3,n,type;
   double delx1,dely1,delz1,delx2,dely2,delz2,delx3,dely3,delz3;
@@ -158,6 +158,13 @@ void AngleSDK::compute(int eflag, int vflag)
 
           f13 = r6inv*(lj1[type1][type3]*r6inv - lj2[type1][type3]);
           if (eflag) e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
+
+        } else if (ljt == LJ12_5) {
+          const double r5inv = r2inv*r2inv*sqrt(r2inv);
+          const double r7inv = r5inv*r2inv;
+
+          f13 = r5inv*(lj1[type1][type3]*r7inv - lj2[type1][type3]);
+          if (eflag) e13 = r5inv*(lj3[type1][type3]*r7inv - lj4[type1][type3]);
         }
 
         // make sure energy is 0.0 at the cutoff.
@@ -217,7 +224,7 @@ void AngleSDK::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void AngleSDK::allocate()
+void AngleSPICA::allocate()
 {
   allocated = 1;
   int n = atom->nangletypes;
@@ -234,7 +241,7 @@ void AngleSDK::allocate()
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
-void AngleSDK::coeff(int narg, char **arg)
+void AngleSPICA::coeff(int narg, char **arg)
 {
   if ((narg < 3) || (narg > 6))
     error->all(FLERR,"Incorrect args for angle coefficients");
@@ -278,21 +285,21 @@ void AngleSDK::coeff(int narg, char **arg)
    error check and initialize all values needed for force computation
 ------------------------------------------------------------------------- */
 
-void AngleSDK::init_style()
+void AngleSPICA::init_style()
 {
 
-  // make sure we use an SDK pair_style and that we need the 1-3 repulsion
+  // make sure we use an SPICA pair_style and that we need the 1-3 repulsion
 
   repflag = 0;
   for (int i = 1; i <= atom->nangletypes; i++)
     if (repscale[i] > 0.0) repflag = 1;
 
-  // set up pointers to access SDK LJ parameters for 1-3 interactions
+  // set up pointers to access SPICA LJ parameters for 1-3 interactions
 
   if (repflag) {
     int itmp;
     if (force->pair == nullptr)
-      error->all(FLERR,"Angle style SDK requires use of a compatible with Pair style");
+      error->all(FLERR,"Angle style SPICA requires use of a compatible with Pair style");
 
     lj1 = (double **) force->pair->extract("lj1",itmp);
     lj2 = (double **) force->pair->extract("lj2",itmp);
@@ -303,13 +310,13 @@ void AngleSDK::init_style()
     emin = (double **) force->pair->extract("emin",itmp);
 
     if (!lj1 || !lj2 || !lj3 || !lj4 || !lj_type || !rminsq || !emin)
-      error->all(FLERR,"Angle style SDK is incompatible with Pair style");
+      error->all(FLERR,"Angle style SPICA is incompatible with Pair style");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-double AngleSDK::equilibrium_angle(int i)
+double AngleSPICA::equilibrium_angle(int i)
 {
   return theta0[i];
 }
@@ -318,7 +325,7 @@ double AngleSDK::equilibrium_angle(int i)
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
-void AngleSDK::write_restart(FILE *fp)
+void AngleSPICA::write_restart(FILE *fp)
 {
   fwrite(&k[1],sizeof(double),atom->nangletypes,fp);
   fwrite(&theta0[1],sizeof(double),atom->nangletypes,fp);
@@ -329,7 +336,7 @@ void AngleSDK::write_restart(FILE *fp)
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-void AngleSDK::read_restart(FILE *fp)
+void AngleSPICA::read_restart(FILE *fp)
 {
   allocate();
 
@@ -349,7 +356,7 @@ void AngleSDK::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void AngleSDK::write_data(FILE *fp)
+void AngleSPICA::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
     fprintf(fp,"%d %g %g\n",i,k[i],theta0[i]/MY_PI*180.0);
@@ -357,7 +364,7 @@ void AngleSDK::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void AngleSDK::ev_tally13(int i, int j, int nlocal, int newton_bond,
+void AngleSPICA::ev_tally13(int i, int j, int nlocal, int newton_bond,
                           double evdwl, double fpair,
                           double delx, double dely, double delz)
 {
@@ -439,7 +446,7 @@ void AngleSDK::ev_tally13(int i, int j, int nlocal, int newton_bond,
 
 /* ---------------------------------------------------------------------- */
 
-double AngleSDK::single(int type, int i1, int i2, int i3)
+double AngleSPICA::single(int type, int i1, int i2, int i3)
 {
   double **x = atom->x;
 
@@ -493,6 +500,12 @@ double AngleSDK::single(int type, int i1, int i2, int i3)
         const double r6inv = r2inv*r2inv*r2inv;
 
         e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
+
+      } else if (ljt == LJ12_5) {
+        const double r5inv = r2inv*r2inv*sqrt(r2inv);
+        const double r7inv = r5inv*r2inv;
+
+        e13 = r5inv*(lj3[type1][type3]*r7inv - lj4[type1][type3]);
       }
 
       // make sure energy is 0.0 at the cutoff.

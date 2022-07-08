@@ -16,7 +16,7 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk_coul_long.h"
+#include "pair_lj_spica_coul_long.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -30,11 +30,11 @@
 #include <cmath>
 #include <cstring>
 
-#define LMP_NEED_SDK_FIND_LJ_TYPE 1
-#include "lj_sdk_common.h"
+#define LMP_NEED_SPICA_FIND_LJ_TYPE 1
+#include "lj_spica_common.h"
 
 using namespace LAMMPS_NS;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 #define EWALD_F 1.12837917
 #define EWALD_P 0.3275911
@@ -46,7 +46,7 @@ using namespace LJSDKParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKCoulLong::PairLJSDKCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairLJSPICACoulLong::PairLJSPICACoulLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
   respa_enable = 0;
@@ -56,7 +56,7 @@ PairLJSDKCoulLong::PairLJSDKCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKCoulLong::~PairLJSDKCoulLong()
+PairLJSPICACoulLong::~PairLJSPICACoulLong()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -83,7 +83,7 @@ PairLJSDKCoulLong::~PairLJSDKCoulLong()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::compute(int eflag, int vflag)
+void PairLJSPICACoulLong::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -111,7 +111,7 @@ void PairLJSDKCoulLong::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLJSDKCoulLong::eval()
+template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLJSPICACoulLong::eval()
 {
   int i, ii, j, jj, jtype, itable;
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
@@ -223,6 +223,14 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLJSDKCoulLong::eval()
             if (EFLAG)
               evdwl =
                   r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
+
+          } else if (ljt == LJ12_5) {
+            const double r5inv = r2inv * r2inv * sqrt(r2inv);
+            const double r7inv = r5inv * r2inv;
+            forcelj = r5inv * (lj1[itype][jtype] * r7inv - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl =
+                  r5inv * (lj3[itype][jtype] * r7inv - lj4[itype][jtype]) - offset[itype][jtype];
           }
           forcelj *= factor_lj;
           if (EFLAG) evdwl *= factor_lj;
@@ -252,7 +260,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLJSDKCoulLong::eval()
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::allocate()
+void PairLJSPICACoulLong::allocate()
 {
   allocated = 1;
   int np1 = atom->ntypes + 1;
@@ -288,7 +296,7 @@ void PairLJSDKCoulLong::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::settings(int narg, char **arg)
+void PairLJSPICACoulLong::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
 
@@ -312,7 +320,7 @@ void PairLJSDKCoulLong::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::coeff(int narg, char **arg)
+void PairLJSPICACoulLong::coeff(int narg, char **arg)
 {
   if (narg < 5 || narg > 6) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -349,7 +357,7 @@ void PairLJSDKCoulLong::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::init_style()
+void PairLJSPICACoulLong::init_style()
 {
   if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long requires atom attribute q");
 
@@ -371,11 +379,11 @@ void PairLJSDKCoulLong::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLJSDKCoulLong::init_one(int i, int j)
+double PairLJSPICACoulLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0)
     error->all(FLERR,
-               "No mixing support for lj/sdk/coul/long. "
+               "No mixing support for lj/spica/coul/long. "
                "Coefficients for all pairs need to be set explicitly.");
 
   const int ljt = lj_type[i][j];
@@ -406,7 +414,7 @@ double PairLJSDKCoulLong::init_one(int i, int j)
   offset[j][i] = offset[i][j];
   lj_type[j][i] = lj_type[i][j];
 
-  // compute LJ derived parameters for SDK angle potential (LJ only!)
+  // compute LJ derived parameters for SPICA angle potential (LJ only!)
 
   const double eps = epsilon[i][j];
   const double sig = sigma[i][j];
@@ -422,7 +430,7 @@ double PairLJSDKCoulLong::init_one(int i, int j)
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce
 
-  if (tail_flag) error->all(FLERR, "Tail flag not supported by lj/sdk/coul/long pair style");
+  if (tail_flag) error->all(FLERR, "Tail flag not supported by lj/spica/coul/long pair style");
 
   return cut;
 }
@@ -431,7 +439,7 @@ double PairLJSDKCoulLong::init_one(int i, int j)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::write_restart(FILE *fp)
+void PairLJSPICACoulLong::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -452,7 +460,7 @@ void PairLJSDKCoulLong::write_restart(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::read_restart(FILE *fp)
+void PairLJSPICACoulLong::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -482,7 +490,7 @@ void PairLJSDKCoulLong::read_restart(FILE *fp)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::write_restart_settings(FILE *fp)
+void PairLJSPICACoulLong::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_lj_global, sizeof(double), 1, fp);
   fwrite(&cut_coul, sizeof(double), 1, fp);
@@ -497,7 +505,7 @@ void PairLJSDKCoulLong::write_restart_settings(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::read_restart_settings(FILE *fp)
+void PairLJSPICACoulLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     utils::sfread(FLERR, &cut_lj_global, sizeof(double), 1, fp, nullptr, error);
@@ -518,13 +526,13 @@ void PairLJSDKCoulLong::read_restart_settings(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   lj/sdk does not support per atom type output with mixing
+   lj/spica does not support per atom type output with mixing
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::write_data(FILE *)
+void PairLJSPICACoulLong::write_data(FILE *)
 {
   error->one(FLERR,
-             "Pair style lj/sdk/coul/* requires using "
+             "Pair style lj/spica/coul/* requires using "
              "write_data with the 'pair ij' option");
 }
 
@@ -532,7 +540,7 @@ void PairLJSDKCoulLong::write_data(FILE *)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairLJSDKCoulLong::write_data_all(FILE *fp)
+void PairLJSPICACoulLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
@@ -542,7 +550,7 @@ void PairLJSDKCoulLong::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
+double PairLJSPICACoulLong::single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
                                  double factor_lj, double &fforce)
 {
   double r2inv, r, grij, expm2, t, erfc, prefactor;
@@ -605,6 +613,12 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype, double rsq,
       const double r6inv = r2inv * r2inv * r2inv;
       forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
       philj = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ12_5) {
+      const double r5inv = r2inv * r2inv * sqrt(r2inv);
+      const double r7inv = r5inv * r2inv;
+      forcelj = r5inv * (lj1[itype][jtype] * r7inv - lj2[itype][jtype]);
+      philj = r5inv * (lj3[itype][jtype] * r7inv - lj4[itype][jtype]) - offset[itype][jtype];
     }
     forcelj *= factor_lj;
     philj *= factor_lj;
@@ -617,7 +631,7 @@ double PairLJSDKCoulLong::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJSDKCoulLong::extract(const char *str, int &dim)
+void *PairLJSPICACoulLong::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
@@ -637,7 +651,7 @@ void *PairLJSDKCoulLong::extract(const char *str, int &dim)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDKCoulLong::memory_usage()
+double PairLJSPICACoulLong::memory_usage()
 {
   double bytes = Pair::memory_usage();
   int n = atom->ntypes;

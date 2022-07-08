@@ -17,7 +17,7 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk_coul_msm.h"
+#include "pair_lj_spica_coul_msm.h"
 
 #include "atom.h"
 #include "error.h"
@@ -28,14 +28,14 @@
 #include <cmath>
 #include <cstring>
 
-#include "lj_sdk_common.h"
+#include "lj_spica_common.h"
 
 using namespace LAMMPS_NS;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDKCoulMSM::PairLJSDKCoulMSM(LAMMPS *lmp) : PairLJSDKCoulLong(lmp)
+PairLJSPICACoulMSM::PairLJSPICACoulMSM(LAMMPS *lmp) : PairLJSPICACoulLong(lmp)
 {
   ewaldflag = pppmflag = 0;
   msmflag = 1;
@@ -45,7 +45,7 @@ PairLJSDKCoulMSM::PairLJSDKCoulMSM(LAMMPS *lmp) : PairLJSDKCoulLong(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSDKCoulMSM::compute(int eflag, int vflag)
+void PairLJSPICACoulMSM::compute(int eflag, int vflag)
 {
   if (force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' with Pair style");
@@ -71,7 +71,7 @@ void PairLJSDKCoulMSM::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJSDKCoulMSM::eval_msm()
+void PairLJSPICACoulMSM::eval_msm()
 {
   int i,ii,j,jj,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
@@ -187,6 +187,15 @@ void PairLJSDKCoulMSM::eval_msm()
             if (EFLAG)
               evdwl = r6inv*(lj3[itype][jtype]*r6inv
                              - lj4[itype][jtype]) - offset[itype][jtype];
+
+          } else if (ljt == LJ12_5) {
+            const double r5inv = r2inv*r2inv*sqrt(r2inv);
+            const double r7inv = r5inv*r2inv;
+            forcelj = r5inv*(lj1[itype][jtype]*r7inv
+                             - lj2[itype][jtype]);
+            if (EFLAG)
+              evdwl = r5inv*(lj3[itype][jtype]*r7inv
+                             - lj4[itype][jtype]) - offset[itype][jtype];
           }
           forcelj *= factor_lj;
           if (EFLAG) evdwl *= factor_lj;
@@ -215,7 +224,7 @@ void PairLJSDKCoulMSM::eval_msm()
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDKCoulMSM::single(int i, int j, int itype, int jtype,
+double PairLJSPICACoulMSM::single(int i, int j, int itype, int jtype,
                                  double rsq,
                                  double factor_coul, double factor_lj,
                                  double &fforce)
@@ -283,6 +292,14 @@ double PairLJSDKCoulMSM::single(int i, int j, int itype, int jtype,
                        - lj2[itype][jtype]);
       philj = r6inv*(lj3[itype][jtype]*r6inv
                      - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ12_5) {
+      const double r5inv = r2inv*r2inv*sqrt(r2inv);
+      const double r7inv = r5inv*r2inv;
+      forcelj = r5inv*(lj1[itype][jtype]*r7inv
+                       - lj2[itype][jtype]);
+      philj = r5inv*(lj3[itype][jtype]*r7inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
     }
     forcelj *= factor_lj;
     philj *= factor_lj;
@@ -295,7 +312,7 @@ double PairLJSDKCoulMSM::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJSDKCoulMSM::extract(const char *str, int &dim)
+void *PairLJSPICACoulMSM::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;

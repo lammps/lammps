@@ -28,12 +28,12 @@ action () {
 
 # list of files with optional dependcies
 
-action angle_sdk.cpp
-action angle_sdk.h
-action lj_sdk_common.h
-action pair_lj_sdk.cpp
-action pair_lj_sdk.h
-action pair_lj_sdk_coul_long.cpp pppm.cpp
-action pair_lj_sdk_coul_long.h pppm.cpp
-action pair_lj_sdk_coul_msm.cpp msm.cpp
-action pair_lj_sdk_coul_msm.h msm.cpp
+action angle_spica.cpp
+action angle_spica.h
+action lj_spica_common.h
+action pair_lj_spica.cpp
+action pair_lj_spica.h
+action pair_lj_spica_coul_long.cpp pppm.cpp
+action pair_lj_spica_coul_long.h pppm.cpp
+action pair_lj_spica_coul_msm.cpp msm.cpp
+action pair_lj_spica_coul_msm.h msm.cpp

@@ -17,7 +17,7 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sdk.h"
+#include "pair_lj_spica.h"
 
 #include <cmath>
 #include <cstring>
@@ -29,15 +29,15 @@
 #include "error.h"
 
 
-#define LMP_NEED_SDK_FIND_LJ_TYPE 1
-#include "lj_sdk_common.h"
+#define LMP_NEED_SPICA_FIND_LJ_TYPE 1
+#include "lj_spica_common.h"
 
 using namespace LAMMPS_NS;
-using namespace LJSDKParms;
+using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDK::PairLJSDK(LAMMPS *lmp) : Pair(lmp)
+PairLJSPICA::PairLJSPICA(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 0;
   single_enable = 1;
@@ -46,7 +46,7 @@ PairLJSDK::PairLJSDK(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSDK::~PairLJSDK()
+PairLJSPICA::~PairLJSPICA()
 {
   if (copymode) return;
 
@@ -73,7 +73,7 @@ PairLJSDK::~PairLJSDK()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSDK::compute(int eflag, int vflag)
+void PairLJSPICA::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
@@ -96,7 +96,7 @@ void PairLJSDK::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJSDK::eval()
+void PairLJSPICA::eval()
 {
   int i,j,ii,jj,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -170,6 +170,16 @@ void PairLJSDK::eval()
           if (EFLAG)
             evdwl = r6inv*(lj3[itype][jtype]*r6inv
                            - lj4[itype][jtype]) - offset[itype][jtype];
+
+        } else if (ljt == LJ12_5) {
+          const double r5inv = r2inv*r2inv*sqrt(r2inv);
+          const double r7inv = r5inv*r2inv;
+          forcelj = r5inv*(lj1[itype][jtype]*r7inv
+                                - lj2[itype][jtype]);
+          if (EFLAG)
+            evdwl = r5inv*(lj3[itype][jtype]*r7inv
+                           - lj4[itype][jtype]) - offset[itype][jtype];
+
         } else continue;
 
         fpair = factor_lj*forcelj*r2inv;
@@ -198,7 +208,7 @@ void PairLJSDK::eval()
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::allocate()
+void PairLJSPICA::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -233,7 +243,7 @@ void PairLJSDK::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::settings(int narg, char **arg)
+void PairLJSPICA::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
@@ -253,7 +263,7 @@ void PairLJSDK::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::coeff(int narg, char **arg)
+void PairLJSPICA::coeff(int narg, char **arg)
 {
   if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -291,10 +301,10 @@ void PairLJSDK::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLJSDK::init_one(int i, int j)
+double PairLJSPICA::init_one(int i, int j)
 {
   if (setflag[i][j] == 0)
-    error->all(FLERR,"No mixing support for lj/sdk. "
+    error->all(FLERR,"No mixing support for lj/spica. "
                "Coefficients for all pairs need to be set explicitly.");
 
   const int ljt = lj_type[i][j];
@@ -321,7 +331,7 @@ double PairLJSDK::init_one(int i, int j)
   offset[j][i] = offset[i][j];
   lj_type[j][i] = lj_type[i][j];
 
-  // compute derived parameters for SDK angle potential
+  // compute derived parameters for SPICA angle potential
 
   const double eps = epsilon[i][j];
   const double sig = sigma[i][j];
@@ -338,7 +348,7 @@ double PairLJSDK::init_one(int i, int j)
   // count total # of atoms of type I and J via Allreduce
 
   if (tail_flag)
-    error->all(FLERR,"Tail flag not supported by lj/sdk pair style");
+    error->all(FLERR,"Tail flag not supported by lj/spica pair style");
 
   return cut[i][j];
 }
@@ -347,7 +357,7 @@ double PairLJSDK::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::write_restart(FILE *fp)
+void PairLJSPICA::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -368,7 +378,7 @@ void PairLJSDK::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::read_restart(FILE *fp)
+void PairLJSPICA::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -398,7 +408,7 @@ void PairLJSDK::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::write_restart_settings(FILE *fp)
+void PairLJSPICA::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
@@ -410,7 +420,7 @@ void PairLJSDK::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::read_restart_settings(FILE *fp)
+void PairLJSPICA::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
@@ -426,12 +436,12 @@ void PairLJSDK::read_restart_settings(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   lj/sdk does not support per atom type output with mixing
+   lj/spica does not support per atom type output with mixing
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::write_data(FILE *)
+void PairLJSPICA::write_data(FILE *)
 {
-  error->one(FLERR, "Pair style lj/sdk requires using "
+  error->one(FLERR, "Pair style lj/spica requires using "
              "write_data with the 'pair ij' option");
 }
 
@@ -439,7 +449,7 @@ void PairLJSDK::write_data(FILE *)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairLJSDK::write_data_all(FILE *fp)
+void PairLJSPICA::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
@@ -449,7 +459,7 @@ void PairLJSDK::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDK::single(int, int, int itype, int jtype, double rsq,
+double PairLJSPICA::single(int, int, int itype, int jtype, double rsq,
                          double, double factor_lj, double &fforce)
 {
 
@@ -475,7 +485,7 @@ double PairLJSDK::single(int, int, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJSDK::extract(const char *str, int &dim)
+void *PairLJSPICA::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
@@ -492,7 +502,7 @@ void *PairLJSDK::extract(const char *str, int &dim)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSDK::memory_usage()
+double PairLJSPICA::memory_usage()
 {
   double bytes = Pair::memory_usage();
   int n = atom->ntypes;

@@ -13,21 +13,22 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(sdk,AngleSDK);
+AngleStyle(spica,AngleSPICA);
+AngleStyle(sdk,AngleSPICA);
 // clang-format on
 #else
 
-#ifndef LMP_ANGLE_SDK_H
-#define LMP_ANGLE_SDK_H
+#ifndef LMP_ANGLE_SPICA_H
+#define LMP_ANGLE_SPICA_H
 
 #include "angle.h"
 
 namespace LAMMPS_NS {
 
-class AngleSDK : public Angle {
+class AngleSPICA : public Angle {
  public:
-  AngleSDK(class LAMMPS *);
-  ~AngleSDK() override;
+  AngleSPICA(class LAMMPS *);
+  ~AngleSPICA() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
@@ -42,7 +43,7 @@ class AngleSDK : public Angle {
 
   // scaling factor for repulsive 1-3 interaction
   double *repscale;
-  // parameters from SDK pair style
+  // parameters from SPICA pair style
   int **lj_type;
   double **lj1, **lj2, **lj3, **lj4;
   double **rminsq, **emin;

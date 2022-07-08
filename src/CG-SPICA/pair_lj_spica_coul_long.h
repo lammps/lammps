@@ -17,21 +17,22 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk/coul/long,PairLJSDKCoulLong);
+PairStyle(lj/spica/coul/long,PairLJSPICACoulLong);
+PairStyle(lj/sdk/coul/long,PairLJSPICACoulLong);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_SDK_COUL_LONG_H
-#define LMP_PAIR_LJ_SDK_COUL_LONG_H
+#ifndef LMP_PAIR_LJ_SPICA_COUL_LONG_H
+#define LMP_PAIR_LJ_SPICA_COUL_LONG_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSDKCoulLong : public Pair {
+class PairLJSPICACoulLong : public Pair {
  public:
-  PairLJSDKCoulLong(class LAMMPS *);
-  ~PairLJSDKCoulLong() override;
+  PairLJSPICACoulLong(class LAMMPS *);
+  ~PairLJSPICACoulLong() override;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
@@ -55,7 +56,7 @@ class PairLJSDKCoulLong : public Pair {
   int **lj_type;
 
   // cutoff and offset for minimum of LJ potential
-  // to be used in SDK angle potential, which
+  // to be used in SPICA angle potential, which
   // uses only the repulsive part of the potential
 
   double **rminsq, **emin;

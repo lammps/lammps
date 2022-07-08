@@ -205,7 +205,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   ndims_force = 3;
   ndims_virial = 6;
   yoffset = nvalues;
-  zoffset = 2 * nvalues;
+  zoffset = 2*nvalues;
   natoms = atom->natoms;
   bik_rows = 1;
   if (bikflag) bik_rows = natoms;
@@ -236,13 +236,13 @@ ComputeSnap::~ComputeSnap()
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
+
   if (chemflag) memory->destroy(map);
 
   if (switchinnerflag) {
     memory->destroy(sinnerelem);
     memory->destroy(dinnerelem);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -304,7 +304,6 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeSnap::compute_array()
 {
-
   int ntotal = atom->nlocal + atom->nghost;
 
   invoked_array = update->ntimestep;
@@ -345,9 +344,7 @@ void ComputeSnap::compute_array()
 
   double** const x = atom->x;
   const int* const mask = atom->mask;
-  int ninside;
-  int numneigh_sum = 0;
-  int dgrad_row_indx;
+
   for (int ii = 0; ii < inum; ii++) {
     int irow = 0;
     if (bikflag) irow = atom->tag[ilist[ii] & NEIGHMASK]-1;
@@ -407,7 +404,7 @@ void ComputeSnap::compute_array()
 
       // assign quantities in snaptr
 
-      ninside=0;
+      int ninside=0;
       for (int jj = 0; jj < jnum; jj++) {
         int j = jlist[jj];
         j &= NEIGHMASK;
@@ -563,7 +560,6 @@ void ComputeSnap::compute_array()
           int k = 3;
           for (int icoeff = 0; icoeff < ncoeff; icoeff++)
           snap[irow][k++] += snaptr->blist[icoeff];
-          numneigh_sum += ninside;
         }
     }
   } // for (int ii = 0; ii < inum; ii++) {
@@ -571,7 +567,6 @@ void ComputeSnap::compute_array()
   // accumulate bispectrum force contributions to global array
 
   if (!dgradflag) {
-
     for (int itype = 0; itype < atom->ntypes; itype++) {
       const int typeoffset_local = ndims_peratom*nvalues*itype;
       const int typeoffset_global = nvalues*itype;

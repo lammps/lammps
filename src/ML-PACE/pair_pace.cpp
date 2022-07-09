@@ -123,15 +123,12 @@ void PairPACE::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  // downwards modified by YL
-
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
 
   // number of atoms in cell
   int nlocal = atom->nlocal;
-
   int newton_pair = force->newton_pair;
 
   // inum: length of the neighborlists list
@@ -205,13 +202,13 @@ void PairPACE::compute(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      if (vflag)
+      if (vflag_either)
         ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
                      -delz);
     }
 
     // tally energy contribution
-    if (eflag) {
+    if (eflag_either) {
       // evdwl = energy of atom I
       evdwl = scale[itype][itype] * aceimpl->ace->e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);

@@ -14,17 +14,17 @@
 
 #include "compute_snap.h"
 
-#include "sna.h"
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "sna.h"
+#include "update.h"
 
 #include <cstring>
 
@@ -207,7 +207,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   if (bikflag) bik_rows = natoms;
   dgrad_rows = ndims_force*natoms;
   size_array_rows = bik_rows+dgrad_rows + ndims_virial;
-  if (dgradflag){
+  if (dgradflag) {
     size_array_rows = bik_rows + 3*natoms*natoms + 1;
     size_array_cols = nvalues + 3;
     error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
@@ -360,7 +360,7 @@ void ComputeSnap::compute_array()
       const int typeoffset_local = ndims_peratom*nvalues*(itype-1);
       const int typeoffset_global = nvalues*(itype-1);
 
-      if (dgradflag){
+      if (dgradflag) {
 
         // dBi/dRi tags
 
@@ -376,7 +376,7 @@ void ComputeSnap::compute_array()
 
         // dBi/dRj tags
 
-        for (int j=0; j<natoms; j++){
+        for (int j=0; j<natoms; j++) {
           snap[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
           snap[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = j;
           snap[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][2] = 0;
@@ -593,7 +593,7 @@ void ComputeSnap::compute_array()
 
     // for dgradflag=1, put forces at first 3 columns of bik rows
 
-    for (int i=0; i<atom->nlocal; i++){
+    for (int i=0; i<atom->nlocal; i++) {
       int iglobal = atom->tag[i];
       snap[iglobal-1][0+0] = atom->f[i][0];
       snap[iglobal-1][0+1] = atom->f[i][1];

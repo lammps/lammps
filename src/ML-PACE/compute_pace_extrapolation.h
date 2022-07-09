@@ -24,25 +24,24 @@ ComputeStyle(pace/extrapolation,ComputePACEExtrapolation);
 #ifndef COMPUTE_PACE_H
 #define COMPUTE_PACE_H
 
-
 #include "compute.h"
 #include "pair_pace_extrapolation.h"
 
 namespace LAMMPS_NS {
-    class PairPACEExtrapolation;
+class PairPACEExtrapolation;
 
-    class ComputePACEExtrapolation : public Compute {
-    public:
-        ComputePACEExtrapolation(class LAMMPS *, int, char **);
-        ~ComputePACEExtrapolation() override;
-        void init() override;
-        double compute_scalar() override;
-        void compute_peratom() override;
-    private:
-        PairPACEExtrapolation *pair_pace_extrapolation;
-        void invoke_compute_extrapolation_grades();
-    };
+class ComputePACEExtrapolation : public Compute {
+ public:
+  ComputePACEExtrapolation(class LAMMPS *, int, char **);
+  void init() override;
+  double compute_scalar() override;
+  void compute_peratom() override;
+
+ private:
+  PairPACEExtrapolation *pair_pace_extrapolation;
+  void invoke_compute_extrapolation_grades();
+};
 
 }    // namespace LAMMPS_NS
-#endif //COMPUTE_PACE_H
+#endif    //COMPUTE_PACE_H
 #endif

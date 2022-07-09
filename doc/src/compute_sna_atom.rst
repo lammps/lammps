@@ -536,7 +536,7 @@ columns corresponding to the type of that atom. This is not true in the case
 of *dgradflag* keyword = 1 (see below).
 
 If the *dgradflag* keyword is set to 1, this changes the structure of the
-gloabl array completely.
+global array completely.
 Here the *snad/atom* quantities are replaced with rows corresponding to
 descriptor gradient components on single atoms:
 

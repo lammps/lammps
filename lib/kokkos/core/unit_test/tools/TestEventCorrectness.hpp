@@ -238,13 +238,10 @@ TEST(kokkosp, test_id_gen) {
   using Kokkos::Tools::Experimental::DeviceTypeTraits;
   test_wrapper([&]() {
     Kokkos::DefaultExecutionSpace ex;
-    auto id      = device_id(ex);
-    auto id_ref  = identifier_from_devid(id);
-    auto success = (id_ref.instance_id == ex.impl_instance_id()) &&
-                   (id_ref.device_id ==
-                    static_cast<uint32_t>(
-                        DeviceTypeTraits<Kokkos::DefaultExecutionSpace>::id));
-    ASSERT_TRUE(success);
+    auto id     = device_id(ex);
+    auto id_ref = identifier_from_devid(id);
+    ASSERT_EQ(DeviceTypeTraits<decltype(ex)>::id, id_ref.type);
+    ASSERT_EQ(id_ref.instance_id, ex.impl_instance_id());
   });
 }
 
@@ -253,6 +250,7 @@ TEST(kokkosp, test_id_gen) {
  */
 TEST(kokkosp, test_kernel_sequence) {
   test_wrapper([&]() {
+    Kokkos::DefaultExecutionSpace ex;
     auto root = Kokkos::Tools::Experimental::device_id_root<
         Kokkos::DefaultExecutionSpace>();
     std::vector<FencePayload> expected{
@@ -260,11 +258,10 @@ TEST(kokkosp, test_kernel_sequence) {
         {"named_instance", FencePayload::distinguishable_devices::no,
          root + num_instances},
         {"test_kernel", FencePayload::distinguishable_devices::no,
-         root + num_instances}
+         Kokkos::Tools::Experimental::device_id(ex)}
 
     };
     expect_fence_events(expected, [=]() {
-      Kokkos::DefaultExecutionSpace ex;
       TestFunctor tf;
       ex.fence("named_instance");
       Kokkos::parallel_for(

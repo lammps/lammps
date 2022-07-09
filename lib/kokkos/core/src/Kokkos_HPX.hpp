@@ -500,6 +500,7 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<Kokkos::Experimental::HPX> {
   static constexpr DeviceType id = DeviceType::HPX;
+  static int device_id(const Kokkos::Experimental::HPX &) { return 0; }
 };
 }  // namespace Experimental
 }  // namespace Tools

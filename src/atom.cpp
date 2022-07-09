@@ -2659,9 +2659,17 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"body") == 0) return (void *) body;
   if (strcmp(name,"quat") == 0) return (void *) quat;
 
+  // PERI PACKAGE
+
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;
   if (strcmp(name,"x0") == 0) return (void *) x0;
+
+  // SPIN PACKAGE
+
+  if (strcmp(name,"sp") == 0) return (void *) sp;
+
+  // EFF and AWPMD packages
 
   if (strcmp(name,"spin") == 0) return (void *) spin;
   if (strcmp(name,"eradius") == 0) return (void *) eradius;
@@ -2673,6 +2681,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"vforce") == 0) return (void *) vforce;
   if (strcmp(name,"etag") == 0) return (void *) etag;
 
+  // SPH package
   if (strcmp(name,"rho") == 0) return (void *) rho;
   if (strcmp(name,"drho") == 0) return (void *) drho;
   if (strcmp(name,"esph") == 0) return (void *) esph;

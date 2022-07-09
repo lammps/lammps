@@ -130,6 +130,9 @@ template <>
 struct DeviceTypeTraits<::Kokkos::Experimental::OpenMPTarget> {
   static constexpr DeviceType id =
       ::Kokkos::Profiling::Experimental::DeviceType::OpenMPTarget;
+  static int device_id(const Kokkos::Experimental::OpenMPTarget&) {
+    return omp_get_default_device();
+  }
 };
 }  // namespace Experimental
 }  // namespace Tools

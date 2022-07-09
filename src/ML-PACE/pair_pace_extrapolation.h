@@ -55,7 +55,7 @@ class PairPACEExtrapolation : public Pair {
   struct ACEALImpl *aceimpl;
   bigint gamma_grade_eval_freq = 1;
   bool is_set_energies_forces = true;    // if set, then update forces and energies
-  int natoms;                            //total number of atoms
+  int nmax;
 
   double gamma_lower_bound = 1.5;
   double gamma_upper_bound = 10;

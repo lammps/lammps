@@ -22,6 +22,7 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 //
 
 #include "pair_pace_extrapolation.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "dump_custom.h"
@@ -65,13 +66,7 @@ struct ACEALImpl {
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
-#define DELTA 4
-
-//added YL
-
-int elements_num_pace_al = 104;
-char const *const elements_pace_al[104] = {
+static char const *const elements_pace_al[] = {
     "X",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na", "Mg", "Al", "Si",
     "P",  "S",  "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu",
     "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru",
@@ -79,6 +74,7 @@ char const *const elements_pace_al[104] = {
     "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",
     "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac",
     "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"};
+static constexpr int elements_num_pace_al = sizeof(elements_pace_al) / sizeof(const char *);
 
 int AtomicNumberByName_pace_al(char *elname)
 {
@@ -95,7 +91,7 @@ PairPACEExtrapolation::PairPACEExtrapolation(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
 
-  natoms = 0;
+  nmax = 0;
 
   aceimpl = new ACEALImpl;
   scale = nullptr;
@@ -164,10 +160,10 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
   if (inum != nlocal) { error->all(FLERR, "inum: {} nlocal: {} are different", inum, nlocal); }
 
   //grow extrapolation_grade_gamma array, that store per-atom extrapolation grades
-  if (atom->nlocal > natoms) {
+  if (atom->nlocal > nmax) {
     memory->destroy(extrapolation_grade_gamma);
-    natoms = atom->nlocal;
-    memory->create(extrapolation_grade_gamma, natoms, "pace/atom:gamma");
+    nmax = atom->nlocal;
+    memory->create(extrapolation_grade_gamma, nmax, "pace/atom:gamma");
   }
 
   //determine the maximum number of neighbours
@@ -213,8 +209,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
       else
         aceimpl->rec_ace->compute_atom(i, x, type, jnum, jlist);
     } catch (std::exception &e) {
-      error->all(FLERR, e.what());
-      exit(EXIT_FAILURE);
+      error->one(FLERR, e.what());
     }
     // 'compute_atom' will update the `ace->e_atom` and `ace->neighbours_forces(jj, alpha)` arrays and max_gamma_grade
 

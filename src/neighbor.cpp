@@ -830,10 +830,6 @@ int Neighbor::init_pair()
                    "with ghost info");
   }
 
-  // sort requests by cutoff distance for trimming
-
-  sort_requests();
-
   // morph requests in various ways
   // purpose is to avoid duplicate or inefficient builds
   // may add new requests if a needed request to derive from does not exist
@@ -854,6 +850,13 @@ int Neighbor::init_pair()
   morph_unique();
   morph_skip();
   morph_granular();     // this method can change flags set by requestor
+
+  // sort requests by cutoff distance for trimming, used by
+  //  morph_halffull and morph_copy_trim. Must come after
+  //  morph_skip() which change the number of reqeuests
+
+  sort_requests();
+
   morph_halffull();
   morph_copy_trim();
 

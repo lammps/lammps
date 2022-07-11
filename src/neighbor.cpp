@@ -1354,6 +1354,7 @@ void Neighbor::morph_halffull()
 
   for (i = 0; i < nrequest; i++) {
     irq = requests[i];
+    int trim_flag = irq->trim;
 
     // only processing half lists
 
@@ -1387,7 +1388,7 @@ void Neighbor::morph_halffull()
       else jcut = cutneighmax;
 
       if (icut > jcut) continue;
-      else if (icut != jcut) irq->trim = 1;
+      else if (icut != jcut) trim_flag = 1;
 
       // these flags must be same,
       //   else 2 lists do not store same pairs
@@ -1419,7 +1420,8 @@ void Neighbor::morph_halffull()
     if (jj < nrequest) {
       irq->halffull = 1;
       irq->halffulllist = j;
-    } else irq->trim = 0;
+      irq->trim = trim_flag;
+    }
   }
 }
 
@@ -1436,6 +1438,7 @@ void Neighbor::morph_copy_trim()
 
   for (i = 0; i < nrequest; i++) {
     irq = requests[i];
+    int trim_flag = irq->trim;
 
     // this list is already a copy list due to another morph method
 
@@ -1463,7 +1466,7 @@ void Neighbor::morph_copy_trim()
       else jcut = cutneighmax;
 
       if (icut > jcut) continue;
-      else if (icut != jcut) irq->trim = 1;
+      else if (icut != jcut) trim_flag = 1;
 
       // other list (jrq) to copy from must be perpetual
       // list that becomes a copy list (irq) can be perpetual or occasional
@@ -1529,7 +1532,8 @@ void Neighbor::morph_copy_trim()
       irq->copy = 1;
       if (jrq->copy) irq->copylist = jrq->copylist;
       else irq->copylist = j;
-    } else irq->trim = 0;
+      irq->trim = trim_flag;
+    }
   }
 }
 
@@ -1749,7 +1753,10 @@ void Neighbor::print_pairwise_info()
       else
         out += fmt::format(", copy from ({})",rq->copylist+1);
     } else if (rq->halffull)
-      out += fmt::format(", half/full from ({})",rq->halffulllist+1);
+      if (rq->trim)
+        out += fmt::format(", half/full trim from ({})",rq->halffulllist+1);
+      else
+        out += fmt::format(", half/full from ({})",rq->halffulllist+1);
     else if (rq->skip)
       out += fmt::format(", skip from ({})",rq->skiplist+1);
     out += "\n";

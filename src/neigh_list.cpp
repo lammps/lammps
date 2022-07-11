@@ -289,6 +289,8 @@ void NeighList::print_attributes()
   printf("  %d = skip flag\n",rq->skip);
   printf("  %d = off2on\n",rq->off2on);
   printf("  %d = copy flag\n",rq->copy);
+  printf("  %d = trim flag\n",rq->trim);
+  printf("  %d = kk2cpu flag\n",kk2cpu);
   printf("  %d = half/full\n",rq->halffull);
   printf("\n");
 }

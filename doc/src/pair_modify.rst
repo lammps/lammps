@@ -287,9 +287,10 @@ the *pair* keyword.  Use *no* to disable, or *yes* to enable.
 The *neigh/trim* keyword controls whether an explicit cutoff is set
 for each neighbor list requested by the individual pair sub-styles
 when using :doc:`pair hybrid\*/overlay <pair_hybrid_overlay>`.  When
-this keyword is set to *no*, then the cutoff of the pair sub-style
-neighbor will be set to the master list distance, and if possible the
-neighbor list will be copied directly from another list. When this
+this keyword is set to *no*, then the cutoff of each pair sub-style
+neighbor list will be set equal to the largest cutoff, even if a
+shorter cutoff is specified for a particular sub-style. If possible
+the neighbor list will be copied directly from another list. When this
 keyword is set to *yes* then the cutoff of the neighbor list will be
 explicitly set to the value requested by the pair sub-style, and if
 possible the list will be created by trimming from another list with a
@@ -297,7 +298,9 @@ longer cutoff, otherwise a new neighbor list will be created with the
 specified cutoff.  The *yes* option can be faster when there are
 multiple pair styles with different cutoffs since the number of
 pair-wise distance checks between neighbors is reduced (but the time
-required to build the neighbor lists is increased).
+required to build the neighbor lists is increased). The *no* option
+could be faster when two or more neighbor lists have similar (but not
+exactly the same) cutoffs.
 
 .. note::
 

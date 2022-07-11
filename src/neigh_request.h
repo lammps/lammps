@@ -102,7 +102,7 @@ class NeighRequest : protected Pointers {
   int off2on;      // 1 if this is newton on list, but skips from off list
 
   int copy;        // 1 if this list copied from another list
-  int trim;        // 1 if this list copied from another list and then trimmed
+  int trim;        // 1 if this list trimmed from another list
   int copylist;    // index of list to copy from
 
   int halffull;        // 1 if half list computed from another full list

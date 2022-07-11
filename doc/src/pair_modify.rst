@@ -328,7 +328,7 @@ Default
 """""""
 
 The option defaults are mix = geometric, shift = no, table = 12,
-tabinner = sqrt(2.0), tail = no, compute = yes, and neigh/trim no.
+tabinner = sqrt(2.0), tail = no, compute = yes, and neigh/trim yes.
 
 Note that some pair styles perform mixing, but only a certain style of
 mixing.  See the doc pages for individual pair styles for details.

@@ -853,7 +853,7 @@ int Neighbor::init_pair()
 
   // sort requests by cutoff distance for trimming, used by
   //  morph_halffull and morph_copy_trim. Must come after
-  //  morph_skip() which change the number of reqeuests
+  //  morph_skip() which change the number of requests
 
   sort_requests();
 

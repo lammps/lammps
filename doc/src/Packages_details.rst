@@ -376,7 +376,9 @@ Several pair styles and an angle style which implement the
 coarse-grained SPICA (formerly called SDK) model which enables
 simulation of biological or soft material systems.
 
-**Author:** Axel Kohlmeyer (Temple U).
+**Original Author:** Axel Kohlmeyer (Temple U).
+
+**Maintainers:** Yusuke Miyazaki and Wataru Shinoda (Okayama U).
 
 **Supporting info:**
 
@@ -386,6 +388,7 @@ simulation of biological or soft material systems.
 * :doc:`angle_style spica <angle_spica>`
 * examples/PACKAGES/cgspica
 * https://www.lammps.org/pictures.html#cg
+* https://www.spica-ff.org/
 
 ----------
 

@@ -1122,7 +1122,7 @@ void Neighbor::sort_requests()
   for (i = 0; i < nrequest; i++) {
     double cutoff_min = cutneighmax;
 
-    for (j = i; j < nrequest; j++) {
+    for (j = i; j < nrequest-1; j++) {
       jrq = requests[j_sorted[j]];
       if (jrq->cut) jcut = jrq->cutoff;
       else jcut = cutneighmax;
@@ -1133,7 +1133,7 @@ void Neighbor::sort_requests()
       }
     }
     int tmp = j_sorted[i];
-    j_sorted[i] = jmin;
+    j_sorted[i] = j_sorted[jmin];
     j_sorted[jmin] = tmp;
   }
 }
@@ -1533,9 +1533,11 @@ void Neighbor::morph_copy_trim()
 
     if (jj < nrequest) {
       irq->copy = 1;
-      if (jrq->copy) irq->copylist = jrq->copylist;
-      else irq->copylist = j;
       irq->trim = trim_flag;
+      if (jrq->copy && irq->cutoff == requests[jrq->copylist]->cutoff)
+        irq->copylist = jrq->copylist;
+      else
+        irq->copylist = j;
     }
   }
 }

@@ -56,8 +56,8 @@ BondMorseLattice::~BondMorseLattice()
 void BondMorseLattice::compute(int eflag, int vflag)
 {
   int i1,i2,n,type;
-  double delx,dely,delz,nx,ny,nz,ebond,fbond,kharm;
-  double rsq,db,b_alpha,rb_alpha,b_m,b_dp;
+  double delx,dely,delz,ebond,fbond,kharm;
+  double delsq,nbx,nby,nbz,db,balpha,bsq,bproj,bperpsq,fharmx,fharmy,fharmz;
 
   ebond = 0.0;
   ev_init(eflag,vflag);
@@ -74,51 +74,59 @@ void BondMorseLattice::compute(int eflag, int vflag)
     i2 = bondlist[n][1];
     type = bondlist[n][2];
 
-    delx = x[i1][0] - x[i2][0];
-    dely = x[i1][1] - x[i2][1];
-    delz = x[i1][2] - x[i2][2];
+    // displacement between i2 and i1. Note that the parts below are sign sensitive, so we take x[i2] - x[i1]
+	delx = x[i2][0] - x[i1][0];
+    dely = x[i2][1] - x[i1][1];
+    delz = x[i2][2] - x[i1][2];
+	delsq = delx*delx + dely*dely + delz*delz;
 
+    // scalar project [delx,dely,delz] onto the input vector [bx,by,bz]
+	bsq = bx[type]*bx[type] + by[type]*by[type] + bz[type]*bz[type];
+    bproj = (delx*bx[type] + dely*by[type] + delz*bz[type]) / sqrt(bsq);
+	
+	// normalize the input vector
+	nbx = bx[type]/bsq;
+	nby = by[type]/bsq;
+	nbz = bz[type]/bsq;
+	
+	// displacement of the projected bond from the equilibrium bond
+	db = bproj - b0[type];
 
-    // force and energy
-    b_m = sqrt(bx[type]*bx[type] + by[type]*by[type] + bz[type]*bz[type]);
-    b_dp = (delx*bx[type] + dely*by[type] + delz*bz[type]) / b_m;
-    // if clearly the wrong way round or a liquid....
-    if (b_dp < -0.25*b0[type]) {
-      nx = -bx[type]/b_m;
-      ny = -by[type]/b_m;
-      nz = -bz[type]/b_m;
-      b_dp = -b_dp; // to ensure > 0.0
-    }
-    nx = bx[type]/b_m;
-    ny = by[type]/b_m;
-    nz = bz[type]/b_m;
+	// square of the perpendicular component of the bond obtained from the Pythagoras theorem
+	bperpsq = delsq - bproj*bproj;
 
-    rsq = delx*delx + dely*dely + delz*delz - b_dp*b_dp;
-    db = b_dp - b0[type]; // now positive
-
-    // along bond vector (-dV / d db)
-    kharm = kappa[type] * d0[type] * alpha[type] * alpha[type];
-
-    b_alpha = exp(-alpha[type]*db);
-    rb_alpha = exp(alpha[type]*db);
-    fbond = d0[type]*alpha[type]*( (1-rb_alpha)*rb_alpha - (1-b_alpha)*b_alpha);
-
+    // spring constant for the harmonic potential along the perpendicular
+    kharm = kappa[type]*d0[type]*alpha[type]*alpha[type];
+ 
+	// bond energy
+	balpha = exp(-alpha[type]*db);
     if (eflag) {
-      ebond = 0.5*d0[type]*((1-b_alpha)*(1-b_alpha)+(1-rb_alpha)*(1-rb_alpha));
-      ebond += 0.5 * kharm * rsq;
-    }
+		// along the bond
+		ebond = d0[type]*(1-balpha)*(1-balpha);
+		// perpendicular to the bond
+		ebond += 0.5*kharm*bperpsq;
+	}
+	
+	// force along the bond
+	if (bproj > 0.0) fbond = -2.0*d0[type]*alpha[type]*(1-balpha)*balpha;
+    else fbond = 0.0;
+	
+	// harmonic force
+	fharmx = -kharm*(delx - nbx*bproj);
+	fharmy = -kharm*(dely - nby*bproj);
+	fharmz = -kharm*(delz - nbz*bproj);
 
-    // apply force to each of 2 atoms
-    if (newton_bond || i1 < nlocal) {
-      f[i1][0] += bx[type]/b_m*(fbond+kharm*b_dp) - kharm*delx;
-      f[i1][1] += by[type]/b_m*(fbond+kharm*b_dp) - kharm*dely;
-      f[i1][2] += bz[type]/b_m*(fbond+kharm*b_dp) - kharm*delz;
-    }
-
+    // apply the forces to the atoms. i2 gets positive force 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= bx[type]/b_m*(fbond+kharm*b_dp) - kharm*delx;
-      f[i2][1] -= by[type]/b_m*(fbond+kharm*b_dp) - kharm*dely;
-      f[i2][2] -= bz[type]/b_m*(fbond+kharm*b_dp) - kharm*delz;
+      f[i2][0] += fbond*nbx + fharmx;
+      f[i2][1] += fbond*nby + fharmy;
+      f[i2][2] += fbond*nbz + fharmz;
+    }
+	// i1 gets negative force
+    if (newton_bond || i1 < nlocal) {
+      f[i1][0] -= fbond*nbx + fharmx;
+      f[i1][1] -= fbond*nby + fharmy;
+      f[i1][2] -= fbond*nbz + fharmz;
     }
 
     if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);

@@ -128,8 +128,7 @@ void AngleMesoCNT::compute(int eflag, int vflag)
     // bending buckling
     else {
       if (eflag) eangle = kb[type] * fabs(dtheta) + thetab[type] * (kh[type] * thetab[type] - kb[type]);
-      if (dtheta < 0) a = kb[type] * s;
-      else a = -kb[type] * s;
+      a = kb[type] * s;
 
       buckled[i2] = 1;
     }

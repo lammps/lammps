@@ -56,7 +56,7 @@ void NPairHalffullNewtonTrimIntel::build_t(NeighList *list,
   const int * _noalias const numneigh_full = list->listfull->numneigh;
   const int ** _noalias const firstneigh_full = (const int ** const)list->listfull->firstneigh;  // NOLINT
 
-  const double cutsq_custom = cutoff_custom * cutoff_custom;
+  const flt_t cutsq_custom = cutoff_custom * cutoff_custom;
 
   #if defined(_OPENMP)
   #pragma omp parallel
@@ -156,7 +156,7 @@ void NPairHalffullNewtonTrimIntel::build_t3(NeighList *list, int *numhalf,
   const int * _noalias const numneigh_full = numhalf;
   const int ** _noalias const firstneigh_full = (const int ** const)list->listfull->firstneigh;  // NOLINT
 
-  const double cutsq_custom = cutoff_custom * cutoff_custom;
+  const flt_t cutsq_custom = cutoff_custom * cutoff_custom;
 
   int packthreads = 1;
   if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;

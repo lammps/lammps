@@ -2063,12 +2063,16 @@ int Neighbor::choose_pair(NeighRequest *rq)
     //       pairnames[i],pairmasks[i]);
 
     // if copy request, no further checks needed, just return or continue
-    // Trim and Kokkos device/host flags must also match in order to copy
+    // trim and Kokkos device/host flags must also match in order to copy
+    // intel and omp flags must match to trim
 
     if (rq->copy) {
       if (!(mask & NP_COPY)) continue;
-      if (rq->trim)
+      if (rq->trim) {
         if (!rq->trim != !(mask & NP_TRIM)) continue;
+        if (!rq->omp != !(mask & NP_OMP)) continue;
+        if (!rq->intel != !(mask & NP_INTEL)) continue;
+      }
       if (rq->kokkos_device || rq->kokkos_host) {
         if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
         if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;

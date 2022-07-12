@@ -96,6 +96,8 @@ void NPairHalffullNewtonTrimOmp::build(NeighList *list)
         }
       }
 
+      // trim to shorter cutoff
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];

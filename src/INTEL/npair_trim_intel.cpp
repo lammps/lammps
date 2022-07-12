@@ -52,7 +52,7 @@ void NPairTrimIntel::build_t(NeighList *list,
   const int * _noalias const ilist_copy = list->listcopy->ilist;
   const int * _noalias const numneigh_copy = list->listcopy->numneigh;
   const int ** _noalias const firstneigh_copy = (const int ** const)list->listcopy->firstneigh;  // NOLINT
-  
+
   const double cutsq_custom = cutoff_custom * cutoff_custom;
 
   #if defined(_OPENMP)

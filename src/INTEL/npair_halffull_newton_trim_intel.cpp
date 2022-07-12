@@ -55,7 +55,7 @@ void NPairHalffullNewtonTrimIntel::build_t(NeighList *list,
   const int * _noalias const ilist_full = list->listfull->ilist;
   const int * _noalias const numneigh_full = list->listfull->numneigh;
   const int ** _noalias const firstneigh_full = (const int ** const)list->listfull->firstneigh;  // NOLINT
-  
+
   const double cutsq_custom = cutoff_custom * cutoff_custom;
 
   #if defined(_OPENMP)

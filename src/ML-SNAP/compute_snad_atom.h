@@ -37,7 +37,7 @@ class ComputeSNADAtom : public Compute {
 
  private:
   int nmax;
-  int ncoeff, nperdim, yoffset, zoffset;
+  int ncoeff, nvalues, yoffset, zoffset;
   double **cutsq;
   class NeighList *list;
   double **snad;

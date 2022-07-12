@@ -123,6 +123,7 @@ class Pair : protected Pointers {
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
   int kokkosable;    // 1 if Kokkos pair
+  int reverse_comm_device;    // 1 if reverse comm on Device
 
   Pair(class LAMMPS *);
   ~Pair() override;

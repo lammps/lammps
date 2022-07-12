@@ -28,6 +28,12 @@ Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
   compressed = false;
 }
 
+// avoid resource leak
+Reader::~Reader()
+{
+  if (fp != nullptr) close_file();
+}
+
 /* ----------------------------------------------------------------------
    try to open given file
    generic version for ASCII files with optional compression or for native binary dumps

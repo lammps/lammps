@@ -123,11 +123,14 @@ class ThreadsExec {
   static void global_unlock();
   static void spawn();
 
-  static void execute_resize_scratch(ThreadsExec &, const void *);
+  static void first_touch_allocate_thread_private_scratch(ThreadsExec &,
+                                                          const void *);
   static void execute_sleep(ThreadsExec &, const void *);
 
   ThreadsExec(const ThreadsExec &);
   ThreadsExec &operator=(const ThreadsExec &);
+
+  static void execute_resize_scratch_in_serial();
 
  public:
   KOKKOS_INLINE_FUNCTION int pool_size() const { return m_pool_size; }

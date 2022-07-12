@@ -13,7 +13,7 @@ VENV           = $(BUILDDIR)/docenv
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-MATHJAXTAG     = 3.2.1
+MATHJAXTAG     = 3.2.2
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))

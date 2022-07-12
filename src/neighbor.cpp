@@ -1121,6 +1121,7 @@ void Neighbor::sort_requests()
 
   for (i = 0; i < nrequest; i++) {
     double cutoff_min = cutneighmax;
+    jmin = i;
 
     for (j = i; j < nrequest-1; j++) {
       jrq = requests[j_sorted[j]];

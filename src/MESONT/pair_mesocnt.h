@@ -38,8 +38,8 @@ class PairMesoCNT : public Pair {
  protected:
   int nend_types;
   int uinf_points, gamma_points, phi_points, usemi_points;
-  int *end_types, *reduced_nlist, *numchainlist;
-  int **reduced_neighlist, **nchainlist, **endlist, **modelist;
+  int *end_types, *reduced_nlist, *numchainlist, *selfid;
+  int **reduced_neighlist, **nchainlist, **endlist, **selfpos;
   int ***chainlist;
 
   double ang, ang_inv, eunit, funit;

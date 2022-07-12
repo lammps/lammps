@@ -31,10 +31,13 @@
 #include <cmath>
 #include <cstring>
 
+#include <fstream>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
 
+#define SELF_CUTOFF 3
 #define RHOMIN 10.0
 
 /* ---------------------------------------------------------------------- */
@@ -118,13 +121,27 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         }
       }
 
-      if (buckled || endflag == 3) {
+      if (buckled || j == selfid[i] || endflag == 3) {
 
         zero3(vp1);
         zero3(vp2);
         sumw = 0.0;
 
         for (k = 0; k < clen - 1; k++) {
+          
+          // exclude SELF_CUTOFF neighbors in self-chain
+
+          int min11 = abs(k - selfpos[i][0]);
+          int min12 = abs(k - selfpos[i][1]);
+          int min21 = abs(k + 1 - selfpos[i][0]);
+          int min22 = abs(k + 1 - selfpos[i][1]);
+          int min = min11;
+          if (min12 < min) min = min12;
+          if (min21 < min) min = min21;
+          if (min22 < min) min = min22;
+
+          if (min < SELF_CUTOFF) continue;
+          
           j1 = chain[j][k];
           j2 = chain[j][k + 1];
           j1 &= NEIGHMASK;
@@ -206,6 +223,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             printf("%f %f %f\n", q1[0], q1[1], q1[2]);
             printf("%f %f %f\n", q2[0], q2[1], q2[2]);
             printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+
+            finf(param, evdwl, flocal);
+            printf("finf equivalent energy: %f\n", evdwl);
+            fsemi(param, evdwl, fend, flocal);
           }
 
           if (evdwl == 0.0) continue;
@@ -259,6 +280,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           copy3(q1, rcopy[2]);
           copy3(q2, rcopy[3]);
           
+          /*
           if (flip) {
             printf("flipped param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
             printf("flipped p %f %f %f\n", p[0], p[1], p[2]);
@@ -275,9 +297,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             printf("true basis 2 %f %f %f\n", basis[1][0], basis[1][1], basis[1][2]);
             printf("true basis 3 %f %f %f\n\n", basis[2][0], basis[2][1], basis[2][2]);
           }
+          */
 
           double dx = 1.0e-8;
-          printf("First contribution:\n");
+          printf("First contribution (flip = %d):\n", flip);
           for (int k1 = 0; k1 < 4; k1++) {
             for (int k2 = 0; k2 < 3; k2++) {
               double ehi, elo;
@@ -296,26 +319,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
               printf("fglobal %d: %f %f %f\n", k1, fglobal[k1][0], fglobal[k1][1], fglobal[k1][2]);
             printf("fnum %d: %f %f %f\n", k1, fnum[k1][0], fnum[k1][1], fnum[k1][2]);
           }
+          /*
           if (flip)
             printf("flip: true\n\n");
           else
             printf("flip: false\n\n");
-
-          bool nan0 = fglobal[0][0] == fglobal[0][0];
-          bool nan1 = fglobal[1][0] == fglobal[1][0];
-          bool nan2 = fglobal[2][0] == fglobal[2][0];
-          bool nan3 = fglobal[3][0] == fglobal[3][0];
-          
-          if (!(nan0 || nan1 || nan2 || nan3)) {
-            printf("nan in segment-segment 1\n");
-            printf("segment 1: %d %d\n", atom->tag[i1], atom->tag[i2]);
-            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
-            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
-            printf("segment 2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
-            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
-            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
-            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-          }
+          */
           
           // add energy
 
@@ -336,6 +345,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           param[6] += lp;
           
           fsemi(param, evdwl, fend, flocal);
+          
           if (evdwl > 1.0e1) {
             printf("high energy detected in second contribution (%f eV)\n", evdwl);
             printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
@@ -346,7 +356,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             printf("%f %f %f\n", q2[0], q2[1], q2[2]);
             printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
           }
-        
           
           if (evdwl == 0.0) continue;
 
@@ -435,26 +444,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             printf("fglobal %d: %f %f %f\n", k1, ftemp[k1][0], ftemp[k1][1], ftemp[k1][2]);
             printf("fnum %d: %f %f %f\n", k1, fnum[k1][0], fnum[k1][1], fnum[k1][2]);
           }
+          /*
           if (flip)
             printf("flip: true\n\n");
           else
             printf("flip: false\n\n");
-          
-          nan0 = fglobal[0][0] == fglobal[0][0];
-          nan1 = fglobal[1][0] == fglobal[1][0];
-          nan2 = fglobal[2][0] == fglobal[2][0];
-          nan3 = fglobal[3][0] == fglobal[3][0];
-
-          if (!(nan0 || nan1 || nan2 || nan3)) {
-            printf("nan in segment-segment 2\n");
-            printf("segment 1: %d %d\n", atom->tag[i1], atom->tag[i2]);
-            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
-            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
-            printf("segment 2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
-            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
-            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
-            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-          }
+          */
 
           // add energy
 
@@ -488,11 +483,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           fvisc_tot = b2 / vtot - a2;
           if (fvisc_tot < 0.0) zero3(fvisc);
           else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
-          if (std::isnan(fvisc_tot)) {
-            printf("nan in segment-segment friction\n");
-            printf("fvisc: %f %f %f\n", fvisc[0], fvisc[1], fvisc[2]);
-            printf("vrel: %f %f %f\n", vrel[0], vrel[1], vrel[2]);
-          }
         }
           
         // add friction forces to current segment
@@ -666,6 +656,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         if (evdwl > 1.0e1) {
           printf("high energy detected in segment-chain interaction (%f eV)\n", evdwl);
+          printf("endflag: %d\n", endflag);
           printf("segment: %d %d\n", atom->tag[i1], atom->tag[i2]);
           printf("%f %f %f\n", r1[0], r1[1], r1[2]);
           printf("%f %f %f\n", r2[0], r2[1], r2[2]);
@@ -697,11 +688,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           fvisc_tot = b2 / vtot - a2;
           if (fvisc_tot < 0.0) zero3(fvisc);
           else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
-          if (std::isnan(fvisc_tot)) {
-            printf("nan in segment-chain friction\n");
-            printf("fvisc: %f %f %f\n", fvisc[0], fvisc[1], fvisc[2]);
-            printf("vrel: %f %f %f\n", vrel[0], vrel[1], vrel[2]);
-          }
         }
         
         add3(fvisc, f[i1], f[i1]);
@@ -813,22 +799,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         if (endflag) scaleadd3(0.5 * fend, m, f[endindex], f[endindex]);
 
-        bool nan0 = fglobal[0][0] == fglobal[0][0];
-        bool nan1 = fglobal[1][0] == fglobal[1][0];
-        bool nan2 = fglobal[2][0] == fglobal[2][0];
-        bool nan3 = fglobal[3][0] == fglobal[3][0];
-
-        if (!(nan0 || nan1 || nan2 || nan3)) {
-          printf("nan in segment-chain\n");
-          printf("segment: %d %d\n", atom->tag[i1], atom->tag[i2]);
-          printf("%f %f %f\n", r1[0], r1[1], r1[2]);
-          printf("%f %f %f\n", r2[0], r2[1], r2[2]);
-          printf("chain: \n");
-          for (k = 0; k < clen; k++)
-            printf("%d %f %f %f\n", atom->tag[chain[j][k]], x[chain[j][k]][0], x[chain[j][k]][1], x[chain[j][k]][2]);
-          printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-        }
-
         // compute energy
 
         if (eflag_either) {
@@ -928,6 +898,48 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++) setflag[i][j] = 1;
+
+  // debug output
+  
+  param[0] = 0;
+  param[1] = 0.5 * MY_PI;
+  param[4] = 0.0;
+  param[5] = 100.0;
+  param[6] = 0.0;
+
+  int points = 1001;
+  double xStart = 9.0;
+  double xEnd = 14.0;
+  double xSpacing = (xEnd - xStart) / (points - 1);
+  double dx = 10.0;
+
+  double evdwl, fend;
+
+  std::ofstream finfFile("/Users/phankl/phd/tensile/finf.dat");
+  std::ofstream fsemiFile("/Users/phankl/phd/tensile/fsemi.dat");
+
+  for (int i = 0; i < points; i++) {
+    double xi = xStart + i * xSpacing;
+    param[2] = xi;
+    param[3] = xi + dx;
+
+    finf(param, evdwl, flocal);
+    finfFile << xi << " " << evdwl << " ";
+    for (int j = 0; j < 2; j++)
+      for (int k = 0; k < 3; k++)
+        finfFile << flocal[j][k] << " ";
+    finfFile << std::endl;
+
+    fsemi(param, evdwl, fend, flocal);
+    fsemiFile << xi << " " << 2*evdwl << " ";
+    for (int j = 0; j < 2; j++)
+      for (int k = 0; k < 3; k++)
+        fsemiFile << 2*flocal[j][k] << " ";
+    fsemiFile << std::endl;
+  }
+  
+  finfFile.close();
+  fsemiFile.close();
 }
 
 /* ----------------------------------------------------------------------

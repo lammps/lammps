@@ -305,7 +305,8 @@ exactly the same) cutoffs.
 .. note::
 
    The "pair_modify neigh/trim" command only applies when there are
-   multiple pair sub-styles, i.e. when using pair hybrid/overlay
+   multiple pair sub-styles with different cutoffs, i.e. when using
+   pair hybrid/overlay
 
 ----------
 

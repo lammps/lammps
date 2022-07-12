@@ -1383,21 +1383,16 @@ void Neighbor::morph_halffull()
       if (jrq->occasional) continue;
       if (!jrq->full) continue;
 
-      // trim a list with longer cutoff (not yet supported by OPENMP or INTEL)
+      // trim a list with longer cutoff
 
-      if (irq->omp || irq->intel) {
-        if (irq->cut != jrq->cut) continue;
-        if (irq->cutoff != jrq->cutoff) continue;
-      } else {
-        if (irq->cut) icut = irq->cutoff;
-        else icut = cutneighmax;
+      if (irq->cut) icut = irq->cutoff;
+      else icut = cutneighmax;
 
-        if (jrq->cut) jcut = jrq->cutoff;
-        else jcut = cutneighmax;
+      if (jrq->cut) jcut = jrq->cutoff;
+      else jcut = cutneighmax;
 
-        if (icut > jcut) continue;
-        else if (icut != jcut) trim_flag = 1;
-      }
+      if (icut > jcut) continue;
+      else if (icut != jcut) trim_flag = 1;
 
       // these flags must be same,
       //   else 2 lists do not store same pairs
@@ -1466,21 +1461,16 @@ void Neighbor::morph_copy_trim()
 
       if (jrq->copy && jrq->copylist == i) continue;
 
-      // trim a list with longer cutoff (not yet supported by OPENMP or INTEL)
+      // trim a list with longer cutoff
 
-      if (irq->omp || irq->intel) {
-        if (irq->cut != jrq->cut) continue;
-        if (irq->cutoff != jrq->cutoff) continue;
-      } else {
-        if (irq->cut) icut = irq->cutoff;
-        else icut = cutneighmax;
+      if (irq->cut) icut = irq->cutoff;
+      else icut = cutneighmax;
 
-        if (jrq->cut) jcut = jrq->cutoff;
-        else jcut = cutneighmax;
+      if (jrq->cut) jcut = jrq->cutoff;
+      else jcut = cutneighmax;
 
-        if (icut > jcut) continue;
-        else if (icut != jcut) trim_flag = 1;
-      }
+      if (icut > jcut) continue;
+      else if (icut != jcut) trim_flag = 1;
 
       // other list (jrq) to copy from must be perpetual
       // list that becomes a copy list (irq) can be perpetual or occasional

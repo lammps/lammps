@@ -490,6 +490,8 @@ struct HIPParallelLaunch<
 
       KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE();
 
+      std::lock_guard<std::mutex> const lock(hip_instance->m_mutexWorkArray);
+
       // Invoke the driver function on the device
       DriverType *d_driver = reinterpret_cast<DriverType *>(
           hip_instance->get_next_driver(sizeof(DriverType)));

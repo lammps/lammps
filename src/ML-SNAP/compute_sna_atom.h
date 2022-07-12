@@ -50,6 +50,7 @@ class ComputeSNAAtom : public Compute {
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
+  int nvalues;
 };
 
 }    // namespace LAMMPS_NS

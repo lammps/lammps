@@ -23,9 +23,9 @@ Examples
 
 Used in example input script:
 
-  .. parsed-literal::
+.. parsed-literal::
 
-     examples/PACKAGES/manybody_table/in.spce_sw
+   examples/PACKAGES/manybody_table/in.spce_sw
 
 
 Description
@@ -296,7 +296,8 @@ for pair interactions.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style sw <pair_sw>`, :doc:`pair_style threebody/table <pair_threebody_table>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style sw <pair_sw>`,
+:doc:`pair_style threebody/table <pair_threebody_table>`
 
 
 ----------

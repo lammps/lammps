@@ -284,7 +284,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   int me = ATC::LammpsInterface::instance()->comm_rank();
 
   string groupName(arg[1]);
-  int igroup = group->find(groupName.c_str());
+  int igroup = group->find(groupName);
   int atomCount = group->count(igroup);
 
   try {

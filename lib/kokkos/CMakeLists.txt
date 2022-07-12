@@ -136,7 +136,7 @@ ENDIF()
 
 set(Kokkos_VERSION_MAJOR 3)
 set(Kokkos_VERSION_MINOR 6)
-set(Kokkos_VERSION_PATCH 00)
+set(Kokkos_VERSION_PATCH 01)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
 

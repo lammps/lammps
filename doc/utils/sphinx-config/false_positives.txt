@@ -120,6 +120,7 @@ Antonelli
 api
 Apoorva
 Appl
+apptainer
 Apu
 arallel
 arccos
@@ -372,6 +373,7 @@ Caltech
 Camilloni
 Camiloni
 Campana
+Cangi
 Cao
 Capolungo
 Caro
@@ -2368,7 +2370,11 @@ nopreliminary
 Nord
 norder
 Nordlund
+noremap
 normals
+normx
+normy
+normz
 Noskov
 noslip
 noticable
@@ -2676,6 +2682,7 @@ polyhedra
 Polym
 polymorphism
 popen
+Popoola
 Popov
 popstore
 Poresag
@@ -2819,6 +2826,7 @@ radians
 Rafferty
 rahman
 Rahman
+Rajamanickam
 Ralf
 Raman
 ramped
@@ -3671,13 +3679,19 @@ vx
 Vx
 vxcm
 vxmu
+vxx
+vxy
+vxz
 vy
 Vy
 vycm
+vyy
+vyz
 vz
 Vz
 vzcm
 vzi
+vzz
 Waals
 Wadley
 wallstyle

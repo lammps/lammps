@@ -180,16 +180,18 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
           // exclude SELF_CUTOFF neighbors in self-chain
 
-          int min11 = abs(k - selfpos[i][0]);
-          int min12 = abs(k - selfpos[i][1]);
-          int min21 = abs(k + 1 - selfpos[i][0]);
-          int min22 = abs(k + 1 - selfpos[i][1]);
-          int min = min11;
-          if (min12 < min) min = min12;
-          if (min21 < min) min = min21;
-          if (min22 < min) min = min22;
+          if (j == selfid[i]) {
+            int min11 = abs(k - selfpos[i][0]);
+            int min12 = abs(k - selfpos[i][1]);
+            int min21 = abs(k + 1 - selfpos[i][0]);
+            int min22 = abs(k + 1 - selfpos[i][1]);
+            int min = min11;
+            if (min12 < min) min = min12;
+            if (min21 < min) min = min21;
+            if (min22 < min) min = min22;
 
-          if (min < SELF_CUTOFF) continue;
+            if (min < SELF_CUTOFF) continue;
+          }
 
           j1 = chain[j][k];
           j2 = chain[j][k + 1];

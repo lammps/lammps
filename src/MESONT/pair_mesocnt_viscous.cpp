@@ -131,17 +131,19 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           
           // exclude SELF_CUTOFF neighbors in self-chain
 
-          int min11 = abs(k - selfpos[i][0]);
-          int min12 = abs(k - selfpos[i][1]);
-          int min21 = abs(k + 1 - selfpos[i][0]);
-          int min22 = abs(k + 1 - selfpos[i][1]);
-          int min = min11;
-          if (min12 < min) min = min12;
-          if (min21 < min) min = min21;
-          if (min22 < min) min = min22;
+          if (j == selfid[i]) {
+            int min11 = abs(k - selfpos[i][0]);
+            int min12 = abs(k - selfpos[i][1]);
+            int min21 = abs(k + 1 - selfpos[i][0]);
+            int min22 = abs(k + 1 - selfpos[i][1]);
+            int min = min11;
+            if (min12 < min) min = min12;
+            if (min21 < min) min = min21;
+            if (min22 < min) min = min22;
 
-          if (min < SELF_CUTOFF) continue;
-          
+            if (min < SELF_CUTOFF) continue;
+          }
+
           j1 = chain[j][k];
           j2 = chain[j][k + 1];
           j1 &= NEIGHMASK;
@@ -181,8 +183,9 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (ceta < param[2]) dsq2 += pow(ceta - param[2], 2);
           else if (ceta > param[3]) dsq2 += pow(ceta - param[3], 2);
 
-          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
-
+          bool skip = false;
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) skip = true;// continue;
+          
           int jj1, jj2;
           
           // do flip if necessary
@@ -213,7 +216,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
           // first force contribution
 
-          fsemi(param, evdwl, fend, flocal);      
+          fsemi(param, evdwl, fend, flocal);
+
+          if (skip && fabs(evdwl) > 1.0e-3) printf("Incorrect skip in segment-segment: %f eV\n", evdwl);
+
           if (evdwl > 1.0e1) {
             printf("high energy detected in first contribution (%f eV)\n", evdwl);
             printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
@@ -262,69 +268,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           scaleadd3(0.5, fglobal[2], f[jj1], f[jj1]);
           scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
           scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
-
-          double fnum[4][3];
-          double rnum[4][3], rcopy[4][3];
-          double mtemp[3];
-          
-          q1 = x[jj1];
-          q2 = x[jj2];
-
-          copy3(r1, rnum[0]);
-          copy3(r2, rnum[1]);
-          copy3(q1, rnum[2]);
-          copy3(q2, rnum[3]);
-          
-          copy3(r1, rcopy[0]);
-          copy3(r2, rcopy[1]);
-          copy3(q1, rcopy[2]);
-          copy3(q2, rcopy[3]);
-          
-          /*
-          if (flip) {
-            printf("flipped param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-            printf("flipped p %f %f %f\n", p[0], p[1], p[2]);
-            printf("flipped m %f %f %f\n", m[0], m[1], m[2]);
-            printf("flipped basis 1 %f %f %f\n", basis[0][0], basis[0][1], basis[0][2]);
-            printf("flipped basis 2 %f %f %f\n", basis[1][0], basis[1][1], basis[1][2]);
-            printf("flipped basis 3 %f %f %f\n\n", basis[2][0], basis[2][1], basis[2][2]);
-            
-            geometry(r1, r2, q1, q2, q1, p, m, param, basis);
-            printf("true param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-            printf("true p %f %f %f\n", p[0], p[1], p[2]);
-            printf("true m %f %f %f\n", m[0], m[1], m[2]);
-            printf("true basis 1 %f %f %f\n", basis[0][0], basis[0][1], basis[0][2]);
-            printf("true basis 2 %f %f %f\n", basis[1][0], basis[1][1], basis[1][2]);
-            printf("true basis 3 %f %f %f\n\n", basis[2][0], basis[2][1], basis[2][2]);
-          }
-          */
-
-          double dx = 1.0e-8;
-          printf("First contribution (flip = %d):\n", flip);
-          for (int k1 = 0; k1 < 4; k1++) {
-            for (int k2 = 0; k2 < 3; k2++) {
-              double ehi, elo;
-              rnum[k1][k2] = rcopy[k1][k2] + dx;
-              geometry(rnum[0], rnum[1], rnum[2], rnum[3], rnum[2], p, mtemp, param, basis);
-              fsemi(param, ehi, fend, flocal);
-              rnum[k1][k2] = rcopy[k1][k2] - dx;
-              geometry(rnum[0], rnum[1], rnum[2], rnum[3], rnum[2], p, mtemp, param, basis);
-              fsemi(param, elo, fend, flocal);
-              
-              fnum[k1][k2] = 0.5 * (elo - ehi) / dx;
-            }
-            if (k1 == 2)
-              printf("fglobal %d: %f %f %f\n", k1, fglobal[k1][0]+fend*m[0], fglobal[k1][1]+fend*m[1], fglobal[k1][2]+fend*m[2]);
-            else
-              printf("fglobal %d: %f %f %f\n", k1, fglobal[k1][0], fglobal[k1][1], fglobal[k1][2]);
-            printf("fnum %d: %f %f %f\n", k1, fnum[k1][0], fnum[k1][1], fnum[k1][2]);
-          }
-          /*
-          if (flip)
-            printf("flip: true\n\n");
-          else
-            printf("flip: false\n\n");
-          */
           
           // add energy
 
@@ -392,64 +335,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           scaleadd3(0.5, fglobal[3], f[jj1], f[jj1]);
           sub3(f[jj2], fglobal[3], f[jj2]);
           scaleadd3(-0.5 * fend, m, f[jj2], f[jj2]);
-
-          double pnum1[3], pnum2[3];
-          
-          copy3(r1, rnum[0]);
-          copy3(r2, rnum[1]);
-          copy3(q1, rnum[2]);
-          copy3(q2, rnum[3]);
-          
-          copy3(r1, rcopy[0]);
-          copy3(r2, rcopy[1]);
-          copy3(q1, rcopy[2]);
-          copy3(q2, rcopy[3]);
-          
-          double ftemp[4][3];
-          copy3(fglobal[0], ftemp[0]);
-          copy3(fglobal[1], ftemp[1]);
-          copy3(fglobal[2], ftemp[3]);
-          copy3(fglobal[3], ftemp[2]);
-          negate3(ftemp[2]);
-          scaleadd3(2, fglobal[3], ftemp[3], ftemp[3]);
-          scaleadd3(fend, m, ftemp[3], ftemp[3]);
-
-          printf("Second contribution:\n");
-          for (int k1 = 0; k1 < 4; k1++) {
-            for (int k2 = 0; k2 < 3; k2++) {
-              double ehi, elo;
-              rnum[k1][k2] = rcopy[k1][k2] + dx;
-              
-              pnum1[0] = rnum[3][0];
-              pnum1[1] = rnum[3][1];
-              pnum1[2] = rnum[3][2];
-              pnum2[0] = 2*rnum[3][0] - rnum[2][0];
-              pnum2[1] = 2*rnum[3][1] - rnum[2][1];
-              pnum2[2] = 2*rnum[3][2] - rnum[2][2];
-              geometry(rnum[0], rnum[1], pnum1, pnum2, pnum1, p, mtemp, param, basis);
-              fsemi(param, ehi, fend, flocal);
-
-              rnum[k1][k2] = rcopy[k1][k2] - dx;
-              pnum1[0] = rnum[3][0];
-              pnum1[1] = rnum[3][1];
-              pnum1[2] = rnum[3][2];
-              pnum2[0] = 2*rnum[3][0] - rnum[2][0];
-              pnum2[1] = 2*rnum[3][1] - rnum[2][1];
-              pnum2[2] = 2*rnum[3][2] - rnum[2][2];
-              geometry(rnum[0], rnum[1], pnum1, pnum2, pnum1, p, mtemp, param, basis);
-              fsemi(param, elo, fend, flocal);
-              
-              fnum[k1][k2] = 0.5 * (elo - ehi) / dx;
-            }
-            printf("fglobal %d: %f %f %f\n", k1, ftemp[k1][0], ftemp[k1][1], ftemp[k1][2]);
-            printf("fnum %d: %f %f %f\n", k1, fnum[k1][0], fnum[k1][1], fnum[k1][2]);
-          }
-          /*
-          if (flip)
-            printf("flip: true\n\n");
-          else
-            printf("flip: false\n\n");
-          */
 
           // add energy
 
@@ -614,11 +499,14 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           double sxi1 = salpha * param[2];
           double sxi2 = salpha * param[3];
           double hsq = param[0] * param[0];
+
+          bool skip = false;
           if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
-            continue;
+            skip = true;  // continue;
 
           finf(param, evdwl, flocal);
 
+          if (skip && fabs(evdwl) > 1.0e-3) printf("incorrect skip in finf: %f eV\n", evdwl);
         } else {
           
           // semi-infinite CNT case
@@ -649,9 +537,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           else
             dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
 
-          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
+          bool skip = false;
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) 
+            skip = true; // continue;
 
           fsemi(param, evdwl, fend, flocal);
+          if (skip && fabs(evdwl) > 1.0e-3) printf("incorrect skip in fsemi: %f eV\n", evdwl);
         }
 
         if (evdwl > 1.0e1) {

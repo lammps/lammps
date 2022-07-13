@@ -72,7 +72,7 @@ class SYCLInternal {
                                   bool force_shrink = false);
 
   uint32_t impl_get_instance_id() const;
-  int m_syclDev = -1;
+  int m_syclDev = 0;
 
   size_t m_maxWorkgroupSize   = 0;
   uint32_t m_maxConcurrency   = 0;

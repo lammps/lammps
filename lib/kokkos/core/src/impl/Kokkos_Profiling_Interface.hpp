@@ -118,11 +118,14 @@ template <typename ExecutionSpace>
 constexpr uint32_t device_id_root() {
   constexpr auto device_id =
       static_cast<uint32_t>(DeviceTypeTraits<ExecutionSpace>::id);
-  return (device_id << num_instance_bits);
+  return (device_id << (num_instance_bits + num_device_bits));
 }
 template <typename ExecutionSpace>
 inline uint32_t device_id(ExecutionSpace const& space) noexcept {
-  return device_id_root<ExecutionSpace>() + space.impl_instance_id();
+  return device_id_root<ExecutionSpace>() +
+         (DeviceTypeTraits<ExecutionSpace>::device_id(space)
+          << num_instance_bits) +
+         space.impl_instance_id();
 }
 }  // namespace Experimental
 }  // namespace Tools

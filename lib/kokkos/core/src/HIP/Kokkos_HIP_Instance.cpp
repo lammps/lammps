@@ -132,7 +132,8 @@ void HIPInternal::print_configuration(std::ostream &s) const {
   s << "macro  KOKKOS_ENABLE_HIP : defined" << '\n';
 #if defined(HIP_VERSION)
   s << "macro  HIP_VERSION = " << HIP_VERSION << " = version "
-    << HIP_VERSION / 100 << "." << HIP_VERSION % 100 << '\n';
+    << HIP_VERSION_MAJOR << '.' << HIP_VERSION_MINOR << '.' << HIP_VERSION_PATCH
+    << '\n';
 #endif
 
   for (int i = 0; i < dev_info.m_hipDevCount; ++i) {
@@ -467,7 +468,6 @@ void HIPInternal::finalize() {
 }
 
 char *HIPInternal::get_next_driver(size_t driverTypeSize) const {
-  std::lock_guard<std::mutex> const lock(m_mutexWorkArray);
   if (d_driverWorkArray == nullptr) {
     KOKKOS_IMPL_HIP_SAFE_CALL(
         hipHostMalloc(&d_driverWorkArray,

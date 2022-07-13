@@ -183,8 +183,8 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (ceta < param[2]) dsq2 += pow(ceta - param[2], 2);
           else if (ceta > param[3]) dsq2 += pow(ceta - param[3], 2);
 
-          bool skip = false;
-          if (dsq1 > cutoffsq && dsq2 > cutoffsq) skip = true;// continue;
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) 
+            continue;
           
           int jj1, jj2;
           
@@ -217,8 +217,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           // first force contribution
 
           fsemi(param, evdwl, fend, flocal);
-
-          if (skip && fabs(evdwl) > 1.0e-3) printf("Incorrect skip in segment-segment: %f eV\n", evdwl);
 
           if (evdwl > 1.0e1) {
             printf("high energy detected in first contribution (%f eV)\n", evdwl);
@@ -500,13 +498,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           double sxi2 = salpha * param[3];
           double hsq = param[0] * param[0];
 
-          bool skip = false;
           if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
-            skip = true;  // continue;
+            continue;
 
           finf(param, evdwl, flocal);
 
-          if (skip && fabs(evdwl) > 1.0e-3) printf("incorrect skip in finf: %f eV\n", evdwl);
         } else {
           
           // semi-infinite CNT case
@@ -537,12 +533,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           else
             dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
 
-          bool skip = false;
           if (dsq1 > cutoffsq && dsq2 > cutoffsq) 
-            skip = true; // continue;
+            continue;
 
           fsemi(param, evdwl, fend, flocal);
-          if (skip && fabs(evdwl) > 1.0e-3) printf("incorrect skip in fsemi: %f eV\n", evdwl);
         }
 
         if (evdwl > 1.0e1) {
@@ -789,48 +783,6 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++) setflag[i][j] = 1;
-
-  // debug output
-  
-  param[0] = 0;
-  param[1] = 0.5 * MY_PI;
-  param[4] = 0.0;
-  param[5] = 100.0;
-  param[6] = 0.0;
-
-  int points = 1001;
-  double xStart = 9.0;
-  double xEnd = 14.0;
-  double xSpacing = (xEnd - xStart) / (points - 1);
-  double dx = 10.0;
-
-  double evdwl, fend;
-
-  std::ofstream finfFile("/Users/phankl/phd/tensile/finf.dat");
-  std::ofstream fsemiFile("/Users/phankl/phd/tensile/fsemi.dat");
-
-  for (int i = 0; i < points; i++) {
-    double xi = xStart + i * xSpacing;
-    param[2] = xi;
-    param[3] = xi + dx;
-
-    finf(param, evdwl, flocal);
-    finfFile << xi << " " << evdwl << " ";
-    for (int j = 0; j < 2; j++)
-      for (int k = 0; k < 3; k++)
-        finfFile << flocal[j][k] << " ";
-    finfFile << std::endl;
-
-    fsemi(param, evdwl, fend, flocal);
-    fsemiFile << xi << " " << 2*evdwl << " ";
-    for (int j = 0; j < 2; j++)
-      for (int k = 0; k < 3; k++)
-        fsemiFile << 2*flocal[j][k] << " ";
-    fsemiFile << std::endl;
-  }
-  
-  finfFile.close();
-  fsemiFile.close();
 }
 
 /* ----------------------------------------------------------------------

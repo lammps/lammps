@@ -284,29 +284,30 @@ the *pair* keyword.  Use *no* to disable, or *yes* to enable.
    The "pair_modify pair compute/tally" command must be issued
    **before** the corresponding compute style is defined.
 
-The *neigh/trim* keyword controls whether an explicit cutoff is set
-for each neighbor list requested by the individual pair sub-styles
-when using :doc:`pair hybrid\*/overlay <pair_hybrid_overlay>`.  When
-this keyword is set to *no*, then the cutoff of each pair sub-style
-neighbor list will be set equal to the largest cutoff, even if a
-shorter cutoff is specified for a particular sub-style. If possible
-the neighbor list will be copied directly from another list. When this
-keyword is set to *yes* then the cutoff of the neighbor list will be
-explicitly set to the value requested by the pair sub-style, and if
-possible the list will be created by trimming from another list with a
-longer cutoff, otherwise a new neighbor list will be created with the
-specified cutoff.  The *yes* option can be faster when there are
-multiple pair styles with different cutoffs since the number of
-pair-wise distance checks between neighbors is reduced (but the time
-required to build the neighbor lists is increased). The *no* option
-could be faster when two or more neighbor lists have similar (but not
-exactly the same) cutoffs.
+The *neigh/trim* keyword controls whether an explicit cutoff is set for
+each neighbor list request issued by individual pair sub-styles when
+using :doc:`pair hybrid/overlay <pair_hybrid>`.  When this keyword is
+set to *no*, then the cutoff of each pair sub-style neighbor list will
+be set equal to the largest cutoff, even if a shorter cutoff is
+specified for a particular sub-style.  If possible the neighbor list
+will be copied directly from another list.  When this keyword is set to
+*yes* then the cutoff of the neighbor list will be explicitly set to the
+value requested by the pair sub-style, and if possible the list will be
+created by trimming neighbors from another list with a longer cutoff,
+otherwise a new neighbor list will be created with the specified cutoff.
+The *yes* option can be faster when there are multiple pair styles with
+different cutoffs since the number of pair-wise distance checks between
+neighbors is reduced (but the time required to build the neighbor lists
+is increased). The *no* option could be faster when two or more neighbor
+lists have similar (but not exactly the same) cutoffs.
 
 .. note::
 
-   The "pair_modify neigh/trim" command only applies when there are
-   multiple pair sub-styles with different cutoffs, i.e. when using
-   pair hybrid/overlay
+   The "pair_modify neigh/trim" command *only* applies when there are
+   multiple pair sub-styles for the same atoms with different cutoffs,
+   i.e. when using pair style hybrid/overlay.  If you have different
+   cutoffs for different pairs for atoms type, the :doc:`neighbor style
+   multi <neighbor>` should be used to create optimized neighbor lists.
 
 ----------
 
@@ -323,7 +324,7 @@ Related commands
 
 :doc:`pair_style <pair_style>`, :doc:`pair_style hybrid <pair_hybrid>`,
 :doc:`pair_coeff <pair_coeff>`, :doc:`thermo_style <thermo_style>`,
-:doc:`compute \*/tally <compute_tally>`
+:doc:`compute \*/tally <compute_tally>`, :doc:`neighbor multi <neighbor>`
 
 Default
 """""""

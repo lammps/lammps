@@ -162,6 +162,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   nrequest = maxrequest = 0;
   requests = nullptr;
+  j_sorted = nullptr;
 
   old_nrequest = 0;
   old_requests = nullptr;
@@ -253,6 +254,8 @@ Neighbor::~Neighbor()
   for (int i = 0; i < old_nrequest; i++)
     if (old_requests[i]) delete old_requests[i];
   memory->sfree(old_requests);
+
+  delete[] j_sorted;
 
   delete[] binclass;
   delete[] binnames;
@@ -842,15 +845,22 @@ int Neighbor::init_pair()
   //   (3) after (2), b/c it adjusts lists created by (2)
   //   (4) after (2) and (3),
   //       b/c (2) may create new full lists, (3) may change them
-  //   (5) last, after all lists are finalized, so all possible copies found
+  //   (5) last, after all lists are finalized, so all possible copies/trims found
 
   int nrequest_original = nrequest;
 
   morph_unique();
   morph_skip();
   morph_granular();     // this method can change flags set by requestor
+
+  // sort requests by cutoff distance for trimming, used by
+  //  morph_halffull and morph_copy_trim. Must come after
+  //  morph_skip() which change the number of requests
+
+  sort_requests();
+
   morph_halffull();
-  morph_copy();
+  morph_copy_trim();
 
   // create new lists, one per request including added requests
   // wait to allocate initial pages until copy lists are detected
@@ -1009,8 +1019,8 @@ int Neighbor::init_pair()
   // allocate initial pages for each list, except if copy flag set
 
   for (i = 0; i < nlist; i++) {
-    if (lists[i]->copy && !lists[i]->kk2cpu)
-        continue;
+    if (lists[i]->copy && !lists[i]->trim && !lists[i]->kk2cpu)
+      continue;
     lists[i]->setup_pages(pgsize,oneatom);
   }
 
@@ -1022,7 +1032,7 @@ int Neighbor::init_pair()
 
   int maxatom = atom->nmax;
   for (i = 0; i < nlist; i++) {
-    if (neigh_pair[i] && (!lists[i]->copy || lists[i]->kk2cpu))
+    if (neigh_pair[i] && (!lists[i]->copy || lists[i]->trim || lists[i]->kk2cpu))
       lists[i]->grow(maxatom,maxatom);
   }
 
@@ -1095,6 +1105,43 @@ int Neighbor::init_pair()
 }
 
 /* ----------------------------------------------------------------------
+   sort NeighRequests by cutoff distance
+    to find smallest list for trimming
+------------------------------------------------------------------------- */
+
+void Neighbor::sort_requests()
+{
+  NeighRequest *jrq;
+  int i,j,jmin;
+  double jcut;
+
+  delete[] j_sorted;
+  j_sorted = new int[nrequest];
+
+  for (i = 0; i < nrequest; i++)
+    j_sorted[i] = i;
+
+  for (i = 0; i < nrequest; i++) {
+    double cutoff_min = cutneighmax;
+    jmin = i;
+
+    for (j = i; j < nrequest-1; j++) {
+      jrq = requests[j_sorted[j]];
+      if (jrq->cut) jcut = jrq->cutoff;
+      else jcut = cutneighmax;
+
+      if (jcut <= cutoff_min) {
+        cutoff_min = jcut;
+        jmin = j;
+      }
+    }
+    int tmp = j_sorted[i];
+    j_sorted[i] = j_sorted[jmin];
+    j_sorted[jmin] = tmp;
+  }
+}
+
+/* ----------------------------------------------------------------------
    scan NeighRequests to set additional flags:
    custom cutoff lists and accelerator lists
 ------------------------------------------------------------------------- */
@@ -1106,10 +1153,23 @@ void Neighbor::morph_unique()
   for (int i = 0; i < nrequest; i++) {
     irq = requests[i];
 
-    // if cut flag set by requestor, set unique flag
+    // if cut flag set by requestor and cutoff is different than default,
+    //  set unique flag, otherwise unset cut flag
     // this forces Pair,Stencil,Bin styles to be instantiated separately
+    // also add skin to cutoff of perpetual lists
 
-    if (irq->cut) irq->unique = 1;
+    if (irq->cut) {
+      if (!irq->occasional)
+        irq->cutoff += skin;
+
+      if (irq->cutoff != cutneighmax) {
+        irq->unique = 1;
+
+      } else {
+        irq->cut = 0;
+        irq->cutoff = 0.0;
+      }
+    }
 
     // avoid flagging a neighbor list as both INTEL and OPENMP
 
@@ -1294,11 +1354,13 @@ void Neighbor::morph_granular()
 
 void Neighbor::morph_halffull()
 {
-  int i,j;
+  int i,j,jj,jmin;
   NeighRequest *irq,*jrq;
+  double icut,jcut;
 
   for (i = 0; i < nrequest; i++) {
     irq = requests[i];
+    int trim_flag = irq->trim;
 
     // only processing half lists
 
@@ -1311,8 +1373,10 @@ void Neighbor::morph_halffull()
 
     // check all other lists
 
-    for (j = 0; j < nrequest; j++) {
-      if (i == j) continue;
+    for (jj = 0; jj < nrequest; jj++) {
+      if (irq->cut) j = j_sorted[jj];
+      else j = jj;
+
       jrq = requests[j];
 
       // can only derive from a perpetual full list
@@ -1321,10 +1385,20 @@ void Neighbor::morph_halffull()
       if (jrq->occasional) continue;
       if (!jrq->full) continue;
 
+      // trim a list with longer cutoff
+
+      if (irq->cut) icut = irq->cutoff;
+      else icut = cutneighmax;
+
+      if (jrq->cut) jcut = jrq->cutoff;
+      else jcut = cutneighmax;
+
+      if (icut > jcut) continue;
+      else if (icut != jcut) trim_flag = 1;
+
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // this includes custom cutoff set by requestor
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
@@ -1335,8 +1409,6 @@ void Neighbor::morph_halffull()
       if (irq->kokkos_host != jrq->kokkos_host) continue;
       if (irq->kokkos_device != jrq->kokkos_device) continue;
       if (irq->ssa != jrq->ssa) continue;
-      if (irq->cut != jrq->cut) continue;
-      if (irq->cutoff != jrq->cutoff) continue;
 
       // skip flag must be same
       // if both are skip lists, skip info must match
@@ -1351,25 +1423,28 @@ void Neighbor::morph_halffull()
 
     // if matching list exists, point to it
 
-    if (j < nrequest) {
+    if (jj < nrequest) {
       irq->halffull = 1;
       irq->halffulllist = j;
+      irq->trim = trim_flag;
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   scan NeighRequests for possible copies
-   if 2 requests match, turn one into a copy of the other
+   scan NeighRequests for possible copies or trims
+   if 2 requests match, turn one into a copy or trim of the other
 ------------------------------------------------------------------------- */
 
-void Neighbor::morph_copy()
+void Neighbor::morph_copy_trim()
 {
-  int i,j,inewton,jnewton;
+  int i,j,jj,jmin,inewton,jnewton;
   NeighRequest *irq,*jrq;
+  double icut,jcut;
 
   for (i = 0; i < nrequest; i++) {
     irq = requests[i];
+    int trim_flag = irq->trim;
 
     // this list is already a copy list due to another morph method
 
@@ -1377,7 +1452,10 @@ void Neighbor::morph_copy()
 
     // check all other lists
 
-    for (j = 0; j < nrequest; j++) {
+    for (jj = 0; jj < nrequest; jj++) {
+      if (irq->cut) j = j_sorted[jj];
+      else j = jj;
+
       if (i == j) continue;
       jrq = requests[j];
 
@@ -1385,13 +1463,24 @@ void Neighbor::morph_copy()
 
       if (jrq->copy && jrq->copylist == i) continue;
 
+      // trim a list with longer cutoff
+
+      if (irq->cut) icut = irq->cutoff;
+      else icut = cutneighmax;
+
+      if (jrq->cut) jcut = jrq->cutoff;
+      else jcut = cutneighmax;
+
+      if (icut > jcut) continue;
+      else if (icut != jcut) trim_flag = 1;
+
       // other list (jrq) to copy from must be perpetual
       // list that becomes a copy list (irq) can be perpetual or occasional
       // if both lists are perpetual, require j < i
       //   to prevent circular dependence with 3 or more copies of a list
 
       if (jrq->occasional) continue;
-      if (!irq->occasional && j > i) continue;
+      if (!irq->occasional && !irq->cut && j > i) continue;
 
       // both lists must be half, or both full
 
@@ -1420,7 +1509,6 @@ void Neighbor::morph_copy()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // this includes custom cutoff set by requestor
       // no need to check omp b/c it stores same pairs
       // NOTE: need check for 2 Kokkos flags?
 
@@ -1431,8 +1519,6 @@ void Neighbor::morph_copy()
       if (irq->kokkos_host && !jrq->kokkos_host) continue;
       if (irq->kokkos_device && !jrq->kokkos_device) continue;
       if (irq->ssa != jrq->ssa) continue;
-      if (irq->cut != jrq->cut) continue;
-      if (irq->cutoff != jrq->cutoff) continue;
 
       // skip flag must be same
       // if both are skip lists, skip info must match
@@ -1448,10 +1534,13 @@ void Neighbor::morph_copy()
     // turn list I into a copy of list J
     // do not copy a list from another copy list, but from its parent list
 
-    if (j < nrequest) {
+    if (jj < nrequest) {
       irq->copy = 1;
-      if (jrq->copy) irq->copylist = jrq->copylist;
-      else irq->copylist = j;
+      irq->trim = trim_flag;
+      if (jrq->copy && irq->cutoff == requests[jrq->copylist]->cutoff)
+        irq->copylist = jrq->copylist;
+      else
+        irq->copylist = j;
     }
   }
 }
@@ -1666,10 +1755,16 @@ void Neighbor::print_pairwise_info()
 
     // order these to get single output of most relevant
 
-    if (rq->copy)
-      out += fmt::format(", copy from ({})",rq->copylist+1);
-    else if (rq->halffull)
-      out += fmt::format(", half/full from ({})",rq->halffulllist+1);
+    if (rq->copy) {
+      if (rq->trim)
+        out += fmt::format(", trim from ({})",rq->copylist+1);
+      else
+        out += fmt::format(", copy from ({})",rq->copylist+1);
+    } else if (rq->halffull)
+      if (rq->trim)
+        out += fmt::format(", half/full trim from ({})",rq->halffulllist+1);
+      else
+        out += fmt::format(", half/full from ({})",rq->halffulllist+1);
     else if (rq->skip)
       out += fmt::format(", skip from ({})",rq->skiplist+1);
     out += "\n";
@@ -1970,10 +2065,16 @@ int Neighbor::choose_pair(NeighRequest *rq)
     //       pairnames[i],pairmasks[i]);
 
     // if copy request, no further checks needed, just return or continue
-    // Kokkos device/host flags must also match in order to copy
+    // trim and Kokkos device/host flags must also match in order to copy
+    // intel and omp flags must match to trim
 
     if (rq->copy) {
       if (!(mask & NP_COPY)) continue;
+      if (rq->trim) {
+        if (!rq->trim != !(mask & NP_TRIM)) continue;
+        if (!rq->omp != !(mask & NP_OMP)) continue;
+        if (!rq->intel != !(mask & NP_INTEL)) continue;
+      }
       if (rq->kokkos_device || rq->kokkos_host) {
         if (!rq->kokkos_device != !(mask & NP_KOKKOS_DEVICE)) continue;
         if (!rq->kokkos_host != !(mask & NP_KOKKOS_HOST)) continue;
@@ -2024,6 +2125,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
     if (!rq->ssa != !(mask & NP_SSA)) continue;
 
     if (!rq->skip != !(mask & NP_SKIP)) continue;
+
+    if (!rq->trim != !(mask & NP_TRIM)) continue;
 
     if (!rq->halffull != !(mask & NP_HALF_FULL)) continue;
     if (!rq->off2on != !(mask & NP_OFF2ON)) continue;
@@ -2329,7 +2432,7 @@ void Neighbor::build(int topoflag)
 
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
-    if (!lists[m]->copy || lists[m]->kk2cpu)
+    if (!lists[m]->copy || lists[m]->trim || lists[m]->kk2cpu)
       lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
@@ -2420,7 +2523,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // build the list
 
-  if (!mylist->copy || mylist->kk2cpu)
+  if (!mylist->copy || mylist->trim || mylist->kk2cpu)
     mylist->grow(atom->nlocal,atom->nlocal+atom->nghost);
   np->build_setup();
   np->build(mylist);

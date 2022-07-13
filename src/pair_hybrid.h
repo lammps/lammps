@@ -69,10 +69,11 @@ class PairHybrid : public Pair {
   double radii2cut(double, double) override;
 
  protected:
-  int nstyles;        // # of sub-styles
-  Pair **styles;      // list of Pair style classes
-  char **keywords;    // style name of each Pair style
-  int *multiple;      // 0 if style used once, else Mth instance
+  int nstyles;           // # of sub-styles
+  Pair **styles;         // list of Pair style classes
+  double *cutmax_style;  // max cutoff for each style
+  char **keywords;       // style name of each Pair style
+  int *multiple;         // 0 if style used once, else Mth instance
 
   int outerflag;    // toggle compute() when invoked by outer()
   int respaflag;    // 1 if different substyles are assigned to

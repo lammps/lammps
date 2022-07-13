@@ -388,7 +388,7 @@ void PairAmoeba::induce()
     // NOTE: could make this an error
 
     if (iter >= maxiter || eps > epsold)
-      if (comm->me == 0) 
+      if (comm->me == 0)
         error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
 

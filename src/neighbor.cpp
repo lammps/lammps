@@ -504,8 +504,8 @@ void Neighbor::init()
   // flag = 0 if both LJ/Coulomb special values are 0.0
   // flag = 1 if both LJ/Coulomb special values are 1.0
   // flag = 2 otherwise or if KSpace solver is enabled
-  // pairwise portion of KSpace solver uses all 1-2,1-3,1-4 neighbors
-  // or selected Coulomb-approixmation pair styles require it
+  // b/c pairwise portion of KSpace solver uses all 1-2,1-3,1-4 neighbors
+  // some Coulomb-approximation pair styles also require it (below)
 
   if (force->special_lj[1] == 0.0 && force->special_coul[1] == 0.0)
     special_flag[1] = 0;
@@ -525,10 +525,10 @@ void Neighbor::init()
     special_flag[3] = 1;
   else special_flag[3] = 2;
 
-  // We cannot remove special neighbors with kspace or kspace-like pair styles
-  // as the exclusion needs to remove the full coulomb and not the damped interaction.
-  // Special treatment is required for hybrid pair styles since Force::pair_match()
-  // will only return a non-null pointer if there is only one substyle of the kind.
+  // cannot remove special neighbors with kspace or kspace-like pair styles
+  //   b/c exclusion needs to remove the full coulomb and not the damped interaction
+  // special treatment required for hybrid pair styles since Force::pair_match()
+  //   will only return a non-NULL pointer if there is only one substyle of the kind
 
   if (force->kspace) {
     special_flag[1] = special_flag[2] = special_flag[3] = 2;
@@ -537,7 +537,8 @@ void Neighbor::init()
     if (ph) {
       int flag=0;
       for (int isub=0; isub < ph->nstyles; ++isub) {
-        if (force->pair_match("coul/wolf",0,isub)
+        if (force->pair_match("amoeba",0,isub)
+            || force->pair_match("coul/wolf",0,isub)
             || force->pair_match("coul/dsf",0,isub)
             || force->pair_match("coul/exclude",0)
             || force->pair_match("thole",0,isub))
@@ -546,7 +547,8 @@ void Neighbor::init()
       if (flag)
         special_flag[1] = special_flag[2] = special_flag[3] = 2;
     } else {
-      if (force->pair_match("coul/wolf",0)
+      if (force->pair_match("amoeba",0)
+          || force->pair_match("coul/wolf",0)
           || force->pair_match("coul/dsf",0)
           || force->pair_match("coul/exclude",0)
           || force->pair_match("thole",0))

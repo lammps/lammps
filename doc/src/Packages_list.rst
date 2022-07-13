@@ -33,6 +33,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`dump adios <dump_adios>`
      - PACKAGES/adios
      - ext
+   * - :ref:`AMOEBA <PKG-AMOEBA>`
+     - AMOEBA and HIPPO force fields
+     - :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+     - amoeba
+     - no
    * - :ref:`ASPHERE <PKG-ASPHERE>`
      - aspherical particle models
      - :doc:`Howto spherical <Howto_spherical>`

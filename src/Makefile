@@ -50,6 +50,7 @@ endif
 
 PACKAGE = \
 	adios \
+	amoeba \
 	asphere \
 	awpmd \
 	bocs \
@@ -146,6 +147,7 @@ PACKAGE = \
 PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
+	amoeba \
 	asphere \
 	bocs \
 	body \

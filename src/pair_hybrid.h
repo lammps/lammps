@@ -46,6 +46,7 @@ class PairHybrid : public Pair {
   void init_style() override;
   double init_one(int, int) override;
   void setup() override;
+  void finish() override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;

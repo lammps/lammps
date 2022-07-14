@@ -74,6 +74,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <angle_amoeba>`
    * :doc:`charmm (iko) <angle_charmm>`
    * :doc:`class2 (ko) <angle_class2>`
    * :doc:`class2/p6 <angle_class2>`
@@ -152,6 +153,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <improper_amoeba>`
    * :doc:`class2 (ko) <improper_class2>`
    * :doc:`cossq (o) <improper_cossq>`
    * :doc:`cvff (io) <improper_cvff>`

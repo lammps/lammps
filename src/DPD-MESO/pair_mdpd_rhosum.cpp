@@ -17,7 +17,7 @@
    before the force calculation.
    The code uses 3D Lucy kernel, it can be modified for other kernels.
 
-   Contributing author: Zhen Li (Brown University)
+   Contributing author: Zhen Li (Clemson University)
 ------------------------------------------------------------------------- */
 
 #include "pair_mdpd_rhosum.h"

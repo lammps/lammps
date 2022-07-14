@@ -1,0 +1,42 @@
+LAMMPS (2 Jun 2022)
+# 3d Lennard-Jones melt - MDI engine script
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 1.0
+Lattice spacing in x,y,z = 1.5874011 1.5874011 1.5874011
+region		box block 0 1 0 1 0 1
+create_box	1 box
+Created orthogonal box = (0 0 0) to (1.5874011 1.5874011 1.5874011)
+  1 by 1 by 1 MPI processor grid
+mass		1 1.0
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+mdi             engine
+delete_atoms group all
+Deleted 0 atoms, new total = 0
+  1 by 1 by 1 MPI processor grid
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.134 | 3.134 | 3.134 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -6.4477578      0             -6.4477578     -1.5268553    
+Total wall time: 0:00:00

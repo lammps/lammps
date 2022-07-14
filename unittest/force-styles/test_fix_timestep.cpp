@@ -34,10 +34,10 @@
 #include "lammps.h"
 #include "modify.h"
 #include "pair.h"
+#include "platform.h"
 #include "universe.h"
 #include "utils.h"
 #include "variable.h"
-#include "platform.h"
 
 #include <cctype>
 #include <cstdio>
@@ -92,7 +92,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool use
 
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     command("variable input_dir index " + INPUT_FOLDER);
@@ -143,7 +143,7 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool use_rmass, bool use
 {
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     command("clear");
@@ -184,7 +184,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
 
     const int natoms = lmp->atom->natoms;
-    std::string block("");
+    std::string block;
     YamlWriter writer(outfile);
 
     // write yaml header
@@ -203,8 +203,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // run_stress, if enabled
         if (fix->thermo_virial) {
             auto stress = fix->virial;
-            block       = fmt::format("{:23.16e} {:23.16e} {:23.16e} "
-                                            "{:23.16e} {:23.16e} {:23.16e}",
+            block       = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}",
                                       stress[0], stress[1], stress[2], stress[3], stress[4], stress[5]);
             writer.emit_block("run_stress", block);
         }
@@ -243,7 +242,6 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
     writer.emit_block("run_vel", block);
     cleanup_lammps(lmp, config);
-    return;
 }
 
 TEST(FixTimestep, plain)
@@ -293,7 +291,8 @@ TEST(FixTimestep, plain)
     } else {
         Fix *fix = lmp->modify->fix[ifix];
         if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress, epsilon);
+            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress,
+                          epsilon);
         }
 
         stats.reset();
@@ -342,7 +341,8 @@ TEST(FixTimestep, plain)
     } else {
         Fix *fix = lmp->modify->fix[ifix];
         if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress, epsilon);
+            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress,
+                          epsilon);
         }
 
         stats.reset();
@@ -380,7 +380,8 @@ TEST(FixTimestep, plain)
         } else {
             Fix *fix = lmp->modify->fix[ifix];
             if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress, epsilon);
+                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress,
+                              epsilon);
             }
 
             stats.reset();
@@ -432,7 +433,8 @@ TEST(FixTimestep, plain)
         } else {
             Fix *fix = lmp->modify->fix[ifix];
             if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (normal run, respa)", fix->virial, test_config.run_stress, 1000 * epsilon);
+                EXPECT_STRESS("run_stress (normal run, respa)", fix->virial, test_config.run_stress,
+                              1000 * epsilon);
             }
 
             stats.reset();
@@ -469,7 +471,8 @@ TEST(FixTimestep, plain)
         } else {
             Fix *fix = lmp->modify->fix[ifix];
             if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (restart, respa)", fix->virial, test_config.run_stress, 1000 * epsilon);
+                EXPECT_STRESS("run_stress (restart, respa)", fix->virial, test_config.run_stress,
+                              1000 * epsilon);
             }
 
             stats.reset();
@@ -507,7 +510,8 @@ TEST(FixTimestep, plain)
             } else {
                 Fix *fix = lmp->modify->fix[ifix];
                 if (fix->thermo_virial) {
-                    EXPECT_STRESS("run_stress (rmass, respa)", fix->virial, test_config.run_stress, 1000 * epsilon);
+                    EXPECT_STRESS("run_stress (rmass, respa)", fix->virial, test_config.run_stress,
+                                  1000 * epsilon);
                 }
 
                 stats.reset();
@@ -587,7 +591,8 @@ TEST(FixTimestep, omp)
     } else {
         Fix *fix = lmp->modify->fix[ifix];
         if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress, epsilon);
+            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress,
+                          epsilon);
         }
 
         stats.reset();
@@ -636,7 +641,8 @@ TEST(FixTimestep, omp)
     } else {
         Fix *fix = lmp->modify->fix[ifix];
         if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress, epsilon);
+            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress,
+                          epsilon);
         }
 
         stats.reset();
@@ -674,7 +680,8 @@ TEST(FixTimestep, omp)
         } else {
             Fix *fix = lmp->modify->fix[ifix];
             if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress, epsilon);
+                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress,
+                              epsilon);
             }
 
             stats.reset();
@@ -725,7 +732,8 @@ TEST(FixTimestep, omp)
         } else {
             Fix *fix = lmp->modify->fix[ifix];
             if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (normal run, respa)", fix->virial, test_config.run_stress, 1000 * epsilon);
+                EXPECT_STRESS("run_stress (normal run, respa)", fix->virial, test_config.run_stress,
+                              1000 * epsilon);
             }
 
             stats.reset();
@@ -762,7 +770,8 @@ TEST(FixTimestep, omp)
         } else {
             Fix *fix = lmp->modify->fix[ifix];
             if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (restart, respa)", fix->virial, test_config.run_stress, 1000 * epsilon);
+                EXPECT_STRESS("run_stress (restart, respa)", fix->virial, test_config.run_stress,
+                              1000 * epsilon);
             }
 
             stats.reset();
@@ -800,7 +809,8 @@ TEST(FixTimestep, omp)
             } else {
                 Fix *fix = lmp->modify->fix[ifix];
                 if (fix->thermo_virial) {
-                    EXPECT_STRESS("run_stress (rmass, respa)", fix->virial, test_config.run_stress, 1000 * epsilon);
+                    EXPECT_STRESS("run_stress (rmass, respa)", fix->virial, test_config.run_stress,
+                                  1000 * epsilon);
                 }
 
                 stats.reset();

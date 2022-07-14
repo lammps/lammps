@@ -129,8 +129,8 @@ Examples
 
    kspace_style pppm 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
-   kspace style msm 1.0e-4
-   kspace style scafacos fmm 1.0e-4
+   kspace_style msm 1.0e-4
+   kspace_style scafacos fmm 1.0e-4
    kspace_style none
 
 Used in input scripts:
@@ -475,8 +475,8 @@ that package **and** the KSPACE package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 For MSM, a simulation must be 3d and one can use any combination of
-periodic, non-periodic, or shrink-wrapped boundaries (specified using
-the :doc:`boundary <boundary>` command).
+periodic, non-periodic, but not shrink-wrapped boundaries (specified
+using the :doc:`boundary <boundary>` command).
 
 For Ewald and PPPM, a simulation must be 3d and periodic in all
 dimensions.  The only exception is if the slab option is set with

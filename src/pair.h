@@ -82,6 +82,7 @@ class Pair : protected Pointers {
   int tail_flag;          // pair_modify flag for LJ tail correction
   double etail, ptail;    // energy/pressure tail corrections
   double etail_ij, ptail_ij;
+  int trim_flag;          // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
   int eflag_either, eflag_global, eflag_atom;
@@ -123,6 +124,7 @@ class Pair : protected Pointers {
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
   int kokkosable;    // 1 if Kokkos pair
+  int reverse_comm_device;    // 1 if reverse comm on Device
 
   Pair(class LAMMPS *);
   ~Pair() override;
@@ -176,6 +178,7 @@ class Pair : protected Pointers {
     du = du2 = 0.0;
   }
 
+  virtual void finish() {}
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 
@@ -199,6 +202,12 @@ class Pair : protected Pointers {
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void pack_forward_grid(int, void *, int, int *) {}
+  virtual void unpack_forward_grid(int, void *, int, int *) {}
+  virtual void pack_reverse_grid(int, void *, int, int *) {}
+  virtual void unpack_reverse_grid(int, void *, int, int *) {}
+
   virtual double memory_usage();
 
   void set_copymode(int value) { copymode = value; }

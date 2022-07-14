@@ -73,6 +73,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`zero <angle_zero>` - topology but no interactions
 * :doc:`hybrid <angle_hybrid>` - define multiple styles of angle interactions
 
+* :doc:`amoeba <angle_amoeba>` - AMOEBA angle
 * :doc:`charmm <angle_charmm>` - CHARMM angle
 * :doc:`class2 <angle_class2>` - COMPASS (class 2) angle
 * :doc:`class2/p6 <angle_class2>` - COMPASS (class 2) angle expanded to 6th order

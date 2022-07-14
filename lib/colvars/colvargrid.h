@@ -1275,7 +1275,7 @@ public:
   inline cvm::real log_gradient_finite_diff(const std::vector<int> &ix0,
                                             int n = 0)
   {
-    int A0, A1, A2;
+    cvm::real A0, A1, A2;
     std::vector<int> ix = ix0;
 
     // TODO this can be rewritten more concisely with wrap_edge()
@@ -1288,7 +1288,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (cvm::logn((cvm::real)A1) - cvm::logn((cvm::real)A0))
+        return (cvm::logn(A1) - cvm::logn(A0))
           / (widths[n] * 2.);
       }
     } else if (ix[n] > 0 && ix[n] < nx[n]-1) { // not an edge
@@ -1300,7 +1300,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (cvm::logn((cvm::real)A1) - cvm::logn((cvm::real)A0))
+        return (cvm::logn(A1) - cvm::logn(A0))
           / (widths[n] * 2.);
       }
     } else {
@@ -1313,8 +1313,8 @@ public:
       if (A0 * A1 * A2 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (-1.5 * cvm::logn((cvm::real)A0) + 2. * cvm::logn((cvm::real)A1)
-          - 0.5 * cvm::logn((cvm::real)A2)) * increment / widths[n];
+        return (-1.5 * cvm::logn(A0) + 2. * cvm::logn(A1)
+          - 0.5 * cvm::logn(A2)) * increment / widths[n];
       }
     }
   }
@@ -1324,7 +1324,7 @@ public:
   inline cvm::real gradient_finite_diff(const std::vector<int> &ix0,
                                             int n = 0)
   {
-    int A0, A1, A2;
+    cvm::real A0, A1, A2;
     std::vector<int> ix = ix0;
 
     // FIXME this can be rewritten more concisely with wrap_edge()
@@ -1337,7 +1337,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return cvm::real(A1 - A0) / (widths[n] * 2.);
+        return (A1 - A0) / (widths[n] * 2.);
       }
     } else if (ix[n] > 0 && ix[n] < nx[n]-1) { // not an edge
       ix[n]--;
@@ -1348,7 +1348,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return cvm::real(A1 - A0) / (widths[n] * 2.);
+        return (A1 - A0) / (widths[n] * 2.);
       }
     } else {
       // edge: use 2nd order derivative
@@ -1357,8 +1357,8 @@ public:
       A0 = value(ix);
       ix[n] += increment; A1 = value(ix);
       ix[n] += increment; A2 = value(ix);
-      return (-1.5 * cvm::real(A0) + 2. * cvm::real(A1)
-          - 0.5 * cvm::real(A2)) * increment / widths[n];
+      return (-1.5 * A0 + 2. * A1
+          - 0.5 * A2) * increment / widths[n];
     }
   }
 };

@@ -62,10 +62,13 @@ COLVARS_SRCS = \
         colvar_neuralnetworkcompute.cpp
 
 LEPTON_SRCS = \
-	lepton/src/CompiledExpression.cpp lepton/src/ExpressionTreeNode.cpp \
-	lepton/src/ParsedExpression.cpp lepton/src/ExpressionProgram.cpp    \
-	lepton/src/Operation.cpp lepton/src/Parser.cpp
-
+	lepton/src/CompiledExpression.cpp \
+	lepton/src/CompiledVectorExpression.cpp \
+	lepton/src/ExpressionProgram.cpp \
+	lepton/src/ExpressionTreeNode.cpp \
+	lepton/src/Operation.cpp \
+	lepton/src/ParsedExpression.cpp \
+	lepton/src/Parser.cpp
 
 # Allow to selectively turn off Lepton
 ifeq ($(COLVARS_LEPTON),no)
@@ -93,4 +96,13 @@ Makefile.deps: $(COLVARS_SRCS)
 	  done
 
 include Makefile.deps
-include Makefile.lepton.deps # Hand-generated
+
+Makefile.lepton.deps: $(LEPTON_SRCS)
+	@echo > $@
+	@for src in $^ ; do \
+	  obj=`basename $$src .cpp`.o ; \
+	  $(CXX) $(CXXFLAGS) -MM $(LEPTON_INCFLAGS) \
+	    -MT '$$(COLVARS_OBJ_DIR)'$$obj $$src >> $@ ; \
+	  done
+
+include Makefile.lepton.deps

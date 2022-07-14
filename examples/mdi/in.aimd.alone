@@ -29,4 +29,4 @@ fix		1 all nve
 thermo_style    custom step temp pe etotal press vol
 thermo          1
 
-run             5
+run             10

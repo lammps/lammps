@@ -273,7 +273,7 @@ void FixWidom::init()
 
   triclinic = domain->triclinic;
 
-  ave_widom_chemical_potential = 0;
+  ave_widom_chemical_potential = 0.0;
 
   if (region) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;

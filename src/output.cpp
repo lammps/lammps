@@ -42,6 +42,7 @@ using namespace LAMMPS_NS;
 #define EPSDT 1.0e-6
 
 enum {SETUP, WRITE, RESET_DT};
+enum {PERSTEP, PERTIME, EXTERNAL};     // same as Dump
 
 /* ----------------------------------------------------------------------
    one instance per dump style in style_dump.h
@@ -150,9 +151,9 @@ void Output::init()
   for (int i = 0; i < ndump; i++) dump[i]->init();
   any_time_dumps = 0;
   for (int i = 0; i < ndump; i++) {
-    if (mode_dump[i]) any_time_dumps = 1;
-    if ((mode_dump[i] == 0 && every_dump[i] == 0) ||
-        (mode_dump[i] == 1 && every_time_dump[i] == 0.0)) {
+    if (mode_dump[i] == PERTIME) any_time_dumps = 1;
+    if ((mode_dump[i] == PERSTEP && every_dump[i] == 0) ||
+        (mode_dump[i] == PERTIME && every_time_dump[i] == 0.0)) {
       ivar_dump[i] = input->variable->find(var_dump[i]);
       if (ivar_dump[i] < 0)
         error->all(FLERR,"Variable name for dump every or delta does not exist");
@@ -196,16 +197,25 @@ void Output::setup(int memflag)
 
     for (int idump = 0; idump < ndump; idump++) {
 
+      // skip if mode_dump = EXTERNAL b/c not managed by Output class
+
+      if (mode_dump[idump] == EXTERNAL) {
+        next_dump[idump] = MAXBIGINT;
+        continue;
+      }
+
       // wrap step dumps that invoke computes or do variable eval with clear/add
       // see NOTE in write() about also wrapping time dumps
 
-      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump]))
+      if (mode_dump[idump] == PERSTEP && 
+          (dump[idump]->clearstep || var_dump[idump]))
         modify->clearstep_compute();
 
       // write a snapshot at setup only if any of these 3 conditions hold
       // (1) this is first run since dump was created and its first_flag = 0
-      // (2) mode_dump = 0 and timestep is multiple of every_dump
-      // (3) mode_dump = 1 and time is multiple of every_time_dump (within EPSDT)
+      // (2) mode_dump = PERSTEP and timestep is multiple of every_dump
+      // (3) mode_dump = PERTIME and 
+      //     time is multiple of every_time_dump (within EPSDT)
       // (2) and (3) only apply for non-variable dump intervals
       // finally, do not write if same snapshot written previously,
       //   i.e. on last timestep of previous run
@@ -214,7 +224,7 @@ void Output::setup(int memflag)
 
       if (last_dump[idump] < 0 && dump[idump]->first_flag == 1) writeflag = 1;
 
-      if (mode_dump[idump] == 0) {
+      if (mode_dump[idump] == PERSTEP) {
         if (every_dump[idump] && (ntimestep % every_dump[idump] == 0))
           writeflag = 1;
       } else {
@@ -247,19 +257,23 @@ void Output::setup(int memflag)
       // if dump not written now, use addstep_compute_all()
       // since don't know what computes the dump will invoke
 
-      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump])) {
+      if (mode_dump[idump] == PERSTEP && 
+          (dump[idump]->clearstep || var_dump[idump])) {
         if (writeflag) modify->addstep_compute(next_dump[idump]);
         else modify->addstep_compute_all(next_dump[idump]);
       }
 
-      if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
+      if (mode_dump[idump] == PERTIME && 
+          (dump[idump]->clearstep || var_dump[idump]))
         next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
       next_dump_any = MIN(next_dump_any,next_dump[idump]);
     }
+  }
 
   // if no dumps, set next_dump_any to last+1 so will not influence next
 
-  } else next_dump_any = update->laststep + 1;
+  if (ndump && next_dump_any == MAXBIGINT)
+    next_dump_any = update->laststep + 1;
 
    // do not write restart files at start of run
    // set next_restart values to multiple of every or variable value
@@ -338,7 +352,7 @@ void Output::setup(int memflag)
  {
    // perform dump if its next_dump = current ntimestep
    //   but not if it was already written on this step
-   // set next_dump and also next_time_dump for mode_dump = 1
+   // set next_dump and also next_time_dump for mode_dump = PERTIME
    // set next_dump_any to smallest next_dump
    // wrap step dumps that invoke computes or do variable eval with clear/add
    // NOTE:
@@ -360,7 +374,7 @@ void Output::setup(int memflag)
        if (next_dump[idump] == ntimestep) {
          if (last_dump[idump] == ntimestep) continue;
 
-         if (mode_dump[idump] == 0 &&
+         if (mode_dump[idump] == PERSTEP &&
              (dump[idump]->clearstep || var_dump[idump]))
            modify->clearstep_compute();
 
@@ -371,12 +385,13 @@ void Output::setup(int memflag)
          last_dump[idump] = ntimestep;
          calculate_next_dump(WRITE,idump,ntimestep);
 
-         if (mode_dump[idump] == 0 &&
+         if (mode_dump[idump] == PERSTEP &&
              (dump[idump]->clearstep || var_dump[idump]))
            modify->addstep_compute(next_dump[idump]);
        }
 
-       if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
+       if (mode_dump[idump] == PERTIME && 
+           (dump[idump]->clearstep || var_dump[idump]))
          next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
        next_dump_any = MIN(next_dump_any,next_dump[idump]);
      }
@@ -485,7 +500,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
    // dump mode is by timestep
    // just set next_dump
 
-   if (mode_dump[idump] == 0) {
+   if (mode_dump[idump] == PERSTEP) {
 
      if (every_dump[idump]) {
 
@@ -507,7 +522,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
    // dump mode is by simulation time
    // set next_time_dump and next_dump
 
-   } else {
+   } else if (mode_dump[idump] == PERTIME) {
 
      bigint nextdump;
      double nexttime;
@@ -584,7 +599,7 @@ int Output::check_time_dumps(bigint ntimestep)
 {
   int nowflag = 0;
   for (int i = 0; i < ndump; i++)
-    if (mode_dump[i] && next_dump[i] == ntimestep) nowflag = 1;
+    if (mode_dump[i] == PERTIME && next_dump[i] == ntimestep) nowflag = 1;
 
   return nowflag;
 }
@@ -698,7 +713,7 @@ int Output::check_time_dumps(bigint ntimestep)
 
 /* ----------------------------------------------------------------------
    timestep size is being changed
-   reset next output values for dumps which have mode_dump=1
+   reset next output values for dumps which have mode_dump = PERTIME
    called by fix dt/reset (at end of step)
    or called by timestep command via run every (also at end of step)
 ------------------------------------------------------------------------- */
@@ -710,24 +725,24 @@ void Output::reset_dt()
   next_time_dump_any = MAXBIGINT;
 
   for (int idump = 0; idump < ndump; idump++) {
-    if (mode_dump[idump] == 0) continue;
+    if (mode_dump[idump] == PERTIME) {
 
-    // reset next_dump but do not change next_time_dump, 2 arg for reset_dt()
-    // do not invoke for a dump already scheduled for this step
-    //   since timestep change affects next step
+      // reset next_dump but do not change next_time_dump, 2 arg for reset_dt()
+      // do not invoke for a dump already scheduled for this step
+      //   since timestep change affects next step
 
-    if (next_dump[idump] != ntimestep)
-      calculate_next_dump(RESET_DT,idump,update->ntimestep);
-
-    if (dump[idump]->clearstep || var_dump[idump])
-      next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
+      if (next_dump[idump] != ntimestep)
+        calculate_next_dump(RESET_DT,idump,update->ntimestep);
+      
+      if (dump[idump]->clearstep || var_dump[idump])
+        next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
+    }
   }
 
   next_dump_any = MIN(next_dump_any,next_time_dump_any);
   next = MIN(next_dump_any,next_restart);
   next = MIN(next,next_thermo);
 }
-
 
 /* ----------------------------------------------------------------------
    add a Dump to list of Dumps
@@ -744,8 +759,9 @@ Dump *Output::add_dump(int narg, char **arg)
 
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find dump group ID: {}", arg[1]);
-  if (utils::inumeric(FLERR,arg[3],false,lmp) <= 0)
-    error->all(FLERR,"Invalid dump frequency {}", arg[3]);
+
+  int nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  if (nevery < 0) error->all(FLERR,"Invalid dump frequency {}", arg[3]);
 
   // extend Dump list if necessary
 
@@ -771,10 +787,17 @@ Dump *Output::add_dump(int narg, char **arg)
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
   // initialize per-dump data to suitable default values
+  // mode_dump = EXTERNAL is special case for a dump not managed by Output,
+  //   but by some other means (fix pair, possible write_dump in future)
 
-  mode_dump[idump] = 0;
-  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (every_dump[idump] <= 0) error->all(FLERR,"Illegal dump command");
+  if (nevery) {
+    mode_dump[idump] = PERSTEP;
+    every_dump[idump] = nevery;
+  } else {
+    mode_dump[idump] = EXTERNAL; 
+    every_dump[idump] = 1;
+  }
+
   every_time_dump[idump] = 0.0;
   next_time_dump[idump] = -1.0;
   last_dump[idump] = -1;

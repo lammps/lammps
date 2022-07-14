@@ -40,17 +40,20 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg == 5) error->all(FLERR,"No dump local arguments specified");
 
-  clearstep = 1;
-
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
-
   if (binary)
     error->all(FLERR,"Binary files are not supported with dump local");
 
-  nfield = narg - 5;
+  clearstep = 1;
+
+  // nevery only used to check fix frequencies
+  // if it is 0, the dump is driven externally, use nevery = 1 for fix checks
+
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  if (nevery == 0) nevery = 1;
 
   // expand args if any have wildcard character "*"
+
+  nfield = narg - 5;
 
   int expand = 0;
   char **earg;

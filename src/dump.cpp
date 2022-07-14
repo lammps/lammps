@@ -39,6 +39,7 @@ Dump *Dump::dumpptr;
 #define EPSILON 1.0e-6
 
 enum{ASCEND,DESCEND};
+enum{PERSTEP,PERTIME,EXTERNAL};       // same as Output
 
 /* ---------------------------------------------------------------------- */
 
@@ -1063,6 +1064,9 @@ void Dump::modify_params(int narg, char **arg)
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
+      if (output->mode_dump[idump] == EXTERNAL)
+        error->all(FLERR,"Dump_modify every not allowed for external dumps");
+
       int n;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
         delete[] output->var_dump[idump];
@@ -1072,7 +1076,7 @@ void Dump::modify_params(int narg, char **arg)
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
-      output->mode_dump[idump] = 0;
+      output->mode_dump[idump] = PERSTEP;
       output->every_dump[idump] = n;
       iarg += 2;
 
@@ -1081,6 +1085,9 @@ void Dump::modify_params(int narg, char **arg)
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
+      if (output->mode_dump[idump] == EXTERNAL)
+        error->all(FLERR,"Dump_modify every/time not allowed for external dumps");
+
       double delta;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
         delete[] output->var_dump[idump];
@@ -1090,7 +1097,7 @@ void Dump::modify_params(int narg, char **arg)
         delta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (delta <= 0.0) error->all(FLERR,"Illegal dump_modify command");
       }
-      output->mode_dump[idump] = 1;
+      output->mode_dump[idump] = PERTIME;
       output->every_time_dump[idump] = delta;
       output->next_dump[idump] = update->ntimestep;
       iarg += 2;

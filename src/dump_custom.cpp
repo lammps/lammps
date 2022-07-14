@@ -65,8 +65,11 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   clearstep = 1;
 
+  // nevery only used to check fix frequencies
+  // if it is 0, the dump is driven externally, use nevery = 1 for fix checks
+
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal dump custom command");
+  if (nevery == 0) nevery = 1;
 
   // expand args if any have wildcard character "*"
   // ok to include trailing optional args,

@@ -521,15 +521,14 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();                          
 
-  *fieldp_ptr=_fieldp.host.begin();
-
   _off2_polar = off2_polar;
   _aewald = aewald;
   const int red_blocks=umutual2b(_eflag,_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
   // NOTE: move this step to update_fieldp() to delay device-host transfer
-  //_fieldp.update_host(_max_fieldp_size*8,false);
+  // *fieldp_ptr=_fieldp.host.begin();
+  // _fieldp.update_host(_max_fieldp_size*8,false);
 }
 
 // ---------------------------------------------------------------------------

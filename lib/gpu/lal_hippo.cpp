@@ -542,15 +542,14 @@ void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **hos
   this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, nullptr);
   this->atom->add_extra_data();
 
-  *fieldp_ptr=this->_fieldp.host.begin();
-
   this->_off2_polar = off2_polar;
   this->_aewald = aewald;
   const int red_blocks=umutual2b(this->_eflag,this->_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
   // NOTE: move this step to update_fieldp() to delay device-host transfer
-  //this->_fieldp.update_host(this->_max_fieldp_size*8,false);
+  // *fieldp_ptr=this->_fieldp.host.begin();
+  // this->_fieldp.update_host(this->_max_fieldp_size*8,false);
 }
 
 // ---------------------------------------------------------------------------

@@ -21,6 +21,8 @@
 #include "math_const.h"
 #include "math_extra.h"
 #include "pointers.h"
+#include "comm.h"
+#include "error.h"
 
 #include <cmath>
 
@@ -32,14 +34,115 @@ namespace Contact {
 
 ContactModel::ContactModel()
 {
-  k_norm = cohesion = gamma_norm = 0.0;
-  k_tang = gamma_tang = mu_tang = 0.0;
-  k_roll = gamma_roll = mu_roll = 0.0;
-  k_twist = gamma_twist = mu_twist = 0.0;
-
   limit_damping = 0;
   cutoff_type = 0.0;
+  normal_model = nullptr;
+  tangential_model = nullptr;
+  damping_model = nullptr;
+  rolling_model = nullptr;
+  twisting_model = nullptr;
   reset_contact();
+}
+
+/* ---------------------------------------------------------------------- */
+void ContactModel::init_normal(char *model_name){
+  if (strcmp(model_name, "hooke") == 0) normal_model = new Hooke();
+  else if (strcmp(model_name, "hertz") == 0) normal_model = new Hertz(0);
+  else if (strcmp(model_name, "hertz/material") == 0) normal_model = new Hertz(1);
+  //...
+  else error->all(FLERR, "Normal model name not recognized");
+
+  normal_model->model_name.assign(model_name);
+  normal_model->contact = *this;
+  normal_model->allocate_coeffs();
+}
+
+/* ---------------------------------------------------------------------- */
+void ContactModel::init_damping(char *model_name){
+  if (strcmp(model_name, "velocity") == 0) tangential_model = new Velocity(*this);
+  //...
+  else error->all(FLERR, "Damping model name not recognized");
+  tangential_model->model_name.assign(model_name);
+  tangential_model->contact = *this;
+  tangential_model->allocate_coeffs();
+}
+
+/* ---------------------------------------------------------------------- */
+void ContactModel::init_tangential(char *model_name){
+  if (strcmp(model_name, "linear") == 0) tangential_model = new LinearNohistory(*this);
+  //...
+  else error->all(FLERR, "Tangential model name not recognized");
+  damping_model->model_name.assign(model_name);
+  damping_model->contact = *this;
+  damping_model->allocate_coeffs();
+}
+
+
+/* ---------------------------------------------------------------------- */
+// .... same for rolling, twisting
+
+
+void ContactModel::write_restart(FILE *fp){
+  normal_model->write_restart(fp);
+  tangential_model->write_restart(fp);
+  damping_model->write_restart(fp);
+  if (rolling_model){
+    rolling_model->write_restart(fp);
+  }
+  else{
+    int num_char = -1;
+    fwrite(&num_char, sizeof(int), 1, fp);
+  }
+  if (twisting_model){
+    twisting_model->write_restart(fp);
+  }
+  else{
+    int num_char = -1;
+    fwrite(&num_char, sizeof(int), 1, fp);
+  }
+}
+
+void ContactModel::read_restart(FILE *fp){
+  int num_char;
+  //Normal model
+  if (comm->me == 0){
+    utils::sfread(FLERR,&num_char,sizeof(int),1,fp,nullptr,error);
+  }
+  MPI_BCast(&num_char, 1, MPI_INT, 0, world);
+  std::string model_name(num_char);
+  if (comm->me == 0){
+    utils::sfread(FLERR,const_cast<char*>(model_name.data()),sizeof(char),num_char,fp,nullptr,error);
+  }
+  MPI_BCast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, world);
+  init_normal(const_cast<char*>(model_name.data()));
+  normal_model->read_restart();
+
+  //Tangential model
+  if (comm->me == 0){
+    utils::sfread(FLERR,&num_char,sizeof(int),1,fp,nullptr,error);
+  }
+  MPI_BCast(&num_char, 1, MPI_INT, 0, world);
+  std::string model_name(num_char);
+  if (comm->me == 0){
+    utils::sfread(FLERR,const_cast<char*>(model_name.data()),sizeof(char),num_char,fp,nullptr,error);
+  }
+  init_tangential(const_cast<char*>(model_name.data()));
+  tangential_model->read_restart();
+
+  //Damping
+  if (comm->me == 0){
+    utils::sfread(FLERR,&num_char,sizeof(int),1,fp,nullptr,error);
+  }
+  MPI_BCast(&num_char, 1, MPI_INT, 0, world);
+  std::string model_name(num_char);
+  if (comm->me == 0){
+    utils::sfread(FLERR,const_cast<char*>(model_name.data()),sizeof(char),num_char,fp,nullptr,error);
+  }
+  init_tangential(const_cast<char*>(model_name.data()));
+  damping_model->read_restart();
+
+  //Optional (rolling, twisting) - only if num_char is > 0.
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,7 +168,7 @@ bool ContactModel::check_contact()
   Reff = radi*radj/radsum;
 
   touch = false;
-  if (normal_model == JKR) touch = touch_JKR(touch);
+  if (normal_model->beyond_contact) normal_model->touch(touch);
   else touch = (rsq < radsum*radsum);
 
   return touch;
@@ -76,21 +179,11 @@ bool ContactModel::check_contact()
 void ContactModel::prep_contact()
 {
   prep_flag = 1;
-
   // If it hasn't already been done, test if the contact exists
   if (check_flag != 1) touch = check_contact();
   if (!touch) return;
 
   double temp[3];
-
-  // Set flags
-  mindlin_rescale = mindlin_force = 0;
-  if (tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
-      tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE)
-    mindlin_rescale = 1;
-  if (tangential_model == TANGENTIAL_MINDLIN_FORCE ||
-      tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE)
-    mindlin_force = 1;
 
   // Standard geometric quantities
   r = sqrt(rsq);
@@ -117,10 +210,10 @@ void ContactModel::prep_contact()
   sub3(vt, temp, vtr);
   vrel = len3(vtr);
 
-  if (roll_model != ROLL_NONE || twist_model != TWIST_NONE)
+  if (roll_model || twist_model)
     sub3(omegai, omegaj, relrot);
 
-  if (roll_model != ROLL_NONE) {
+  if (roll_model) {
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // this is different from the Marshall papers, which use the Bagi/Kuhn formulation
     // for rolling velocity (see Wang et al for why the latter is wrong)
@@ -129,16 +222,15 @@ void ContactModel::prep_contact()
     vrl[2] = Reff * (relrot[0] * nx[1] - relrot[1] * nx[0]);
   }
 
-  if (twist_model != TWIST_NONE) {
+  if (twist_model) {
     // omega_T (eq 29 of Marshall)
     magtwist = dot3(relrot, nx);
   }
 }
 
-
 /* ---------------------------------------------------------------------- */
 
-void ContactModel::calculate_forces(double *forces, double *torquesi, double *torquesj, double *history)
+void ContactModel::calculate_forces()
 {
   // If it hasn't already been done, run prep calculations
   if (prep_flag != 1) prep_contact();
@@ -151,66 +243,17 @@ void ContactModel::calculate_forces(double *forces, double *torquesi, double *to
   // normal forces
   //**********************************************
 
-  // Also calculates: a, knfac, Fncrit (for JKR or DMT)
-  double Fne;
-  if (normal_model == JKR) {
-    Fne = normal_JKR();
-  } else if (normal_model == DMT) {
-    Fne = normal_DMT();
-  } else if (normal_model == HERTZ || normal_model == HERTZ_MATERIAL) {
-    Fne = normal_Hertz();
-  } else {
-    Fne = normal_Hooke();
-  }
-
-  // NOTE: consider restricting Hooke to only have
-  // 'velocity' as an option for damping?
-  // Also calculates: damp_normal_prefactor
-  double Fdamp = normal_damping();
+  double Fne, Fdamp;
+  Fne = normal_model->calculate_forces();
+  Fdamp = damping_model->calculate_forces();
 
   Fntot = Fne + Fdamp;
-  if (limit_damping && (Fntot < 0.0)) Fntot = 0.0;
+  if (limit_damping && Fntot < 0.0) Fntot = 0.0;
+  normal_model->set_fncrit();
 
-  if (normal_model != JKR && normal_model != DMT) Fncrit = fabs(Fntot);
-
-  //**********************************************
-  // tangential force, including history effects
-  //**********************************************
-  // For linear, mindlin, mindlin_rescale:
-  // history = cumulative tangential displacement
-  //
-  // For mindlin/force, mindlin_rescale/force:
-  // history = cumulative tangential elastic force
-
-  Fscrit = mu_tang * Fncrit;
-
-  if (tangential_model == TANGENTIAL_MINDLIN ||
-      tangential_model == TANGENTIAL_MINDLIN_FORCE ||
-      tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
-      tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) {
-    tangential_mindlin(history);
-  } else if (tangential_model == TANGENTIAL_HISTORY) {
-    tangential_history(history);
-  } else {
-    tangential_no_history();
-  }
-
-  //**********************************************
-  // rolling force
-  //**********************************************
-
-  if (roll_model != ROLL_NONE)
-    rolling(history);
-
-  //****************************************
-  // twisting torque, including history effects
-  //****************************************
-
-  if (twist_model == TWIST_MARSHALL) {
-    twisting_marshall(history);
-  } else if (twist_model == TWIST_SDS) {
-    twisting_SDS(history);
-  }
+  tangential_model->calculate_forces();
+  if (roll_model) roll_model->calculate_forces();
+  if (twist_model) twist_model->calculate_forces();
 
   //**********************************************
   // sum contributions
@@ -219,6 +262,7 @@ void ContactModel::calculate_forces(double *forces, double *torquesi, double *to
   scale3(Fntot, nx, forces);
   add3(forces, fs, forces);
 
+  //May need to rethink this for use with walls (and eventually tris)..
   cross3(nx, fs, torquesi);
   copy3(torquesi, torquesj);
 
@@ -228,7 +272,7 @@ void ContactModel::calculate_forces(double *forces, double *torquesi, double *to
   scale3(dist_to_contact, torquesj);
 
   double torroll[3];
-  if (roll_model != ROLL_NONE) {
+  if (roll_model) {
     cross3(nx, fr, torroll);
     scale3(Reff, torroll);
     add3(torquesi, torroll, torquesi);
@@ -236,7 +280,7 @@ void ContactModel::calculate_forces(double *forces, double *torquesi, double *to
   }
 
   double tortwist[3];
-  if (twist_model != TWIST_NONE) {
+  if (twist_model) {
     scale3(magtortwist, nx, tortwist);
     add3(torquesi, tortwist, torquesi);
     sub3(torquesj, tortwist, torquesj);
@@ -253,111 +297,7 @@ double ContactModel::calculate_heat()
 
 /* ---------------------------------------------------------------------- */
 
-bool ContactModel::touch_JKR(int touch)
-{
-  double Escaled, R2, delta_pulloff, dist_pulloff;
-  bool touchflag;
 
-  Escaled = k_norm * THREEQUARTERS;
-  if (touch) {
-    R2 = Reff * Reff;
-    a = cbrt(9.0 * MY_PI * cohesion * R2 / (4 * Escaled));
-    delta_pulloff = a * a / Reff - 2 * sqrt(MY_PI * cohesion * a / Escaled);
-    dist_pulloff = radsum - delta_pulloff;
-    touchflag = (rsq < dist_pulloff * dist_pulloff);
-  } else {
-    touchflag = (rsq < radsum * radsum);
-  }
-  return touchflag;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double ContactModel::normal_JKR()
-{
-  double Escaled, R2, dR2, t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3, a2, F_pulloff, Fne;
-
-  Escaled = k_norm * THREEQUARTERS;
-
-  R2 = Reff * Reff;
-  dR2 = dR * dR;
-  t0 = cohesion * cohesion * R2 * R2 * Escaled;
-  t1 = PI27SQ*t0;
-  t2 = 8 * dR * dR2 * Escaled * Escaled * Escaled;
-  t3 = 4 * dR2 * Escaled;
-
-  // in case sqrt(0) < 0 due to precision issues
-  sqrt1 = MAX(0, t0 * (t1 + 2 * t2));
-  t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
-  t5 = t3 / t4 + t4 / Escaled;
-  sqrt2 = MAX(0, 2 * dR + t5);
-  t6 = sqrt(sqrt2);
-  sqrt3 = MAX(0, 4 * dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Escaled * t6));
-  a = INVROOT6 * (t6 + sqrt(sqrt3));
-  a2 = a * a;
-  Fne = Escaled * a * a2 / Reff - MY_2PI * a2 * sqrt(4 * cohesion * Escaled / (MY_PI * a));
-  F_pulloff = 3 * MY_PI * cohesion * Reff;
-
-  knfac = Escaled * a;
-  Fncrit = fabs(Fne + 2 * F_pulloff);
-  return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double ContactModel::normal_DMT()
-{
-  a = sqrt(dR);
-  double Fne = a * k_norm * delta;
-  Fne -= 4 * MY_PI * cohesion * Reff;
-  double F_pulloff = 4 * MY_PI * cohesion * Reff;
-
-  knfac = k_norm * a;
-  Fncrit = fabs(Fne + 2 * F_pulloff);
-  return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double  ContactModel::normal_Hertz()
-{
-  a = sqrt(dR);
-  double Fne = k_norm * delta * a;
-
-  knfac = k_norm * a;
-  return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double  ContactModel::normal_Hooke()
-{
-  a = sqrt(dR);
-  double Fne = k_norm * delta;
-
-  knfac = k_norm;
-  return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double ContactModel::normal_damping()
-{
-  double damp_normal;
-  if (damping_model == VELOCITY) {
-    damp_normal = 1;
-  } else if (damping_model == MASS_VELOCITY) {
-    damp_normal = meff;
-  } else if (damping_model == VISCOELASTIC) {
-    damp_normal = a * meff;
-  } else if (damping_model == TSUJI) {
-    damp_normal = sqrt(meff * knfac);
-  } else damp_normal = 0.0;
-
-  damp_normal_prefactor = gamma_norm * damp_normal;
-  return -damp_normal_prefactor * vnnr;
-}
 
 /* ---------------------------------------------------------------------- */
 

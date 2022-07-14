@@ -81,7 +81,8 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   beyond_contact = 0;
   nondefault_history_transfer = 0;
   tangential_history_index = 0;
-  roll_history_index = twist_history_index = 0;
+  roll_history_index = 0;
+  twist_history_index = 0;
   heat_flag = 0;
 
   // create dummy fix as placeholder for FixNeighHistory
@@ -234,6 +235,7 @@ void PairGranular::compute(int eflag, int vflag)
         models[itype][jtype].omegai = omega[i];
         models[itype][jtype].omegaj = omega[j];
         models[itype][jtype].history_update = historyupdate;
+        models[itype][jtype].history = history;
         models[itype][jtype].prep_contact();
 
         if (heat_flag) {
@@ -250,7 +252,11 @@ void PairGranular::compute(int eflag, int vflag)
           history = &allhistory[size_history*jj];
         }
 
-        models[itype][jtype].calculate_forces(forces, torquesi, torquesj, history);
+        double *forces = models[itype][jtype].forces;
+        double *torquesi = models[itype][jtype].torquesi;
+        double *torquesj = models[itype][jtype].torquesj;
+
+        models[itype][jtype].calculate_forces();
         if (heat_flag) dq = models[itype][jtype].calculate_heat();
 
         // apply forces & torques
@@ -339,7 +345,7 @@ void PairGranular::coeff(int narg, char **arg)
   double conductivity_one;
   double cutoff_one = -1;
 
-  if (narg < 2)
+  if (narg < 3)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   if (!allocated) allocate();
@@ -348,276 +354,66 @@ void PairGranular::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  //Defaults
-  normal_model_one = tangential_model_one = -1;
-  roll_model_one = ROLL_NONE;
-  twist_model_one = TWIST_NONE;
-  damping_model_one = VISCOELASTIC;
-  int ld_flag = 0;
+  //Here's one option for handing off parsing to the SubModel objects:
+  ContactModel model_one;
 
+  //Parse mandatory normal and tangential specifications
   int iarg = 2;
+  model_one.init_normal(arg[iarg]);
+  iarg += 1;
+  if (iarg + model_one.normal_model->num_coeffs >= narg)
+    error->all(FLERR,"Illegal pair_coeff command"
+      "Insufficient arguments provided.");
+  model_one.normal_model->parse_coeffs(arg, iarg);
+  iarg += model_one.normal_model->num_coeffs;
+
+  if (strcmp(arg[iarg], "tangential") == 0) {
+    if (iarg + 1 >= narg)
+      error->all(FLERR,"Illegal pair_coeff command, must specify "
+          "tangential model after tangential keyword");
+    model_one.init_tangential(arg[iarg]);
+    iarg += 1;
+    if (iarg + model_one.tangential_model->num_coeffs >= narg)
+      error->all(FLERR, "Illegal pair_coeff command"
+        "Insufficient arguments provided.");
+    model_one.tangential_model->parse_coeffs(arg, iarg);
+    iarg += model_one.tangential_model->num_coeffs;
+  }
+  else{
+    error->all(FLERR, "Illegal pair_coeff command, 'tangential' keyword expected");
+  }
+  //Parse optional arguments
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "hooke") == 0) {
-      if (iarg + 2 >= narg)
-        error->all(FLERR,"Illegal pair_coeff command, "
-                   "not enough parameters provided for Hooke option");
-      normal_model_one = HOOKE;
-      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // kn
-      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
-      iarg += 3;
-    } else if (strcmp(arg[iarg], "hertz") == 0) {
-      if (iarg + 2 >= narg)
-        error->all(FLERR,"Illegal pair_coeff command, "
-                   "not enough parameters provided for Hertz option");
-      normal_model_one = HERTZ;
-      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // kn
-      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
-      iarg += 3;
-    } else if (strcmp(arg[iarg], "hertz/material") == 0) {
-      if (iarg + 3 >= narg)
-        error->all(FLERR,"Illegal pair_coeff command, "
-                   "not enough parameters provided for Hertz/material option");
-      normal_model_one = HERTZ_MATERIAL;
-      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
-      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
-      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
-      iarg += 4;
-    } else if (strcmp(arg[iarg], "dmt") == 0) {
-      if (iarg + 4 >= narg)
-        error->all(FLERR,"Illegal pair_coeff command, "
-                   "not enough parameters provided for Hertz option");
-      normal_model_one = DMT;
-      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
-      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
-      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
-      normal_coeffs_one[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); // cohesion
-      iarg += 5;
-    } else if (strcmp(arg[iarg], "jkr") == 0) {
-      if (iarg + 4 >= narg)
-        error->all(FLERR,"Illegal pair_coeff command, "
-                   "not enough parameters provided for JKR option");
-      beyond_contact = 1;
-      normal_model_one = JKR;
-      normal_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); // E
-      normal_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // damping
-      normal_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp); // Poisson's ratio
-      normal_coeffs_one[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); // cohesion
-      iarg += 5;
-    } else if (strcmp(arg[iarg], "damping") == 0) {
-      if (iarg+1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, "
-                   "not enough parameters provided for damping model");
-      if (strcmp(arg[iarg+1], "velocity") == 0) {
-        damping_model_one = VELOCITY;
-        iarg += 1;
-      } else if (strcmp(arg[iarg+1], "mass_velocity") == 0) {
-        damping_model_one = MASS_VELOCITY;
-        iarg += 1;
-      } else if (strcmp(arg[iarg+1], "viscoelastic") == 0) {
-        damping_model_one = VISCOELASTIC;
-        iarg += 1;
-      } else if (strcmp(arg[iarg+1], "tsuji") == 0) {
-        damping_model_one = TSUJI;
-        iarg += 1;
-      } else error->all(FLERR, "Illegal pair_coeff command, "
-                        "unrecognized damping model");
+    if (strcmp(arg[iarg], "rolling") == 0) {
+      if (iarg + 1 >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      model_one.init_rolling(arg[iarg+1]);
       iarg += 1;
-    } else if (strcmp(arg[iarg], "tangential") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR,"Illegal pair_coeff command, must specify "
-                   "tangential model after tangential keyword");
-      if (strcmp(arg[iarg+1], "linear_nohistory") == 0) {
-        if (iarg + 3 >= narg)
-          error->all(FLERR,"Illegal pair_coeff command, "
-                     "not enough parameters provided for tangential model");
-        tangential_model_one = TANGENTIAL_NOHISTORY;
-        tangential_coeffs_one[0] = 0;
-        // gammat and friction coeff
-        tangential_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        tangential_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-        iarg += 4;
-      } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
-               (strcmp(arg[iarg+1], "mindlin") == 0) ||
-               (strcmp(arg[iarg+1], "mindlin_rescale") == 0) ||
-               (strcmp(arg[iarg+1], "mindlin/force") == 0) ||
-               (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)) {
-        if (iarg + 4 >= narg)
-          error->all(FLERR,"Illegal pair_coeff command, "
-                     "not enough parameters provided for tangential model");
-        if (strcmp(arg[iarg+1], "linear_history") == 0)
-          tangential_model_one = TANGENTIAL_HISTORY;
-        else if (strcmp(arg[iarg+1], "mindlin") == 0)
-          tangential_model_one = TANGENTIAL_MINDLIN;
-        else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0)
-          tangential_model_one = TANGENTIAL_MINDLIN_RESCALE;
-        else if (strcmp(arg[iarg+1], "mindlin/force") == 0)
-          tangential_model_one = TANGENTIAL_MINDLIN_FORCE;
-        else if (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)
-          tangential_model_one = TANGENTIAL_MINDLIN_RESCALE_FORCE;
-        tangential_history = 1;
-        if ((tangential_model_one == TANGENTIAL_MINDLIN ||
-             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE ||
-             tangential_model_one == TANGENTIAL_MINDLIN_FORCE ||
-             tangential_model_one == TANGENTIAL_MINDLIN_RESCALE_FORCE) &&
-            (strcmp(arg[iarg+2], "NULL") == 0)) {
-          if (normal_model_one == HERTZ || normal_model_one == HOOKE) {
-            error->all(FLERR, "NULL setting for Mindlin tangential "
-                       "stiffness requires a normal contact model that "
-                       "specifies material properties");
-          }
-          tangential_coeffs_one[0] = -1;
-        } else {
-          tangential_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp); // kt
-        }
-        // gammat and friction coeff
-        tangential_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-        tangential_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-        iarg += 5;
-      } else {
-        error->all(FLERR, "Illegal pair_coeff command, "
-                   "tangential model not recognized");
-      }
-    } else if (strcmp(arg[iarg], "rolling") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      if (strcmp(arg[iarg+1], "none") == 0) {
-        roll_model_one = ROLL_NONE;
-        iarg += 2;
-      } else if (strcmp(arg[iarg+1], "sds") == 0) {
-        if (iarg + 4 >= narg)
-          error->all(FLERR,"Illegal pair_coeff command, "
-                     "not enough parameters provided for rolling model");
-        roll_model_one = ROLL_SDS;
-        roll_history = 1;
-        // kR and gammaR and rolling friction coeff
-        roll_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        roll_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-        roll_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-        iarg += 5;
-      } else {
-        error->all(FLERR, "Illegal pair_coeff command, "
-                   "rolling friction model not recognized");
-      }
-    } else if (strcmp(arg[iarg], "twisting") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      if (strcmp(arg[iarg+1], "none") == 0) {
-        twist_model_one = TWIST_NONE;
-        iarg += 2;
-      } else if (strcmp(arg[iarg+1], "marshall") == 0) {
-        twist_model_one = TWIST_MARSHALL;
-        twist_history = 1;
-        iarg += 2;
-      } else if (strcmp(arg[iarg+1], "sds") == 0) {
-        if (iarg + 4 >= narg)
-          error->all(FLERR,"Illegal pair_coeff command, "
-                     "not enough parameters provided for twist model");
-        twist_model_one = TWIST_SDS;
-        twist_history = 1;
-        // kt and gammat and friction coeff
-        twist_coeffs_one[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        twist_coeffs_one[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-        twist_coeffs_one[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-        iarg += 5;
-      } else {
-        error->all(FLERR, "Illegal pair_coeff command, "
-                   "twisting friction model not recognized");
-      }
-    } else if (strcmp(arg[iarg], "cutoff") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      iarg += 2;
+      if (iarg + model_one.rolling_model->num_coeffs >= narg)
+        error->all(FLERR, "Illegal pair_coeff command"
+              "Insufficient arguments provided for rolling model.");
+      iarg += model_one.rolling_model->num_coeffs;
+    }
+    else if (strcmp(arg[iarg], "twisting") == 0) {
+      //...
+    }
+    else if (strcmp(arg[iarg], "cutoff") == 0) {
+      //..
     } else if (strcmp(arg[iarg], "limit_damping") == 0) {
-      ld_flag = 1;
-      iarg += 1;
+      //..
     } else if (strcmp(arg[iarg], "heat") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      conductivity_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (conductivity_one < 0.0)
-        error->all(FLERR, "Illegal pair_coeff command, conductivity must be positive");
-      heat_flag = 1;
-      iarg += 2;
+      //..
     } else error->all(FLERR, "Illegal pair_coeff command");
   }
 
-  // error not to specify normal or tangential model
-  if ((normal_model_one < 0) || (tangential_model_one < 0))
-    error->all(FLERR, "Illegal pair_coeff command, "
-               "must specify normal or tangential contact model");
+  if (model_one.limit_damping && !model_one.normal_model->allow_limit_damping)
+    error->all(FLERR,"Illegal pair_coeff command, "
+        "Cannot limit damping with specified normal contact model");
 
   int count = 0;
-  double damp;
-  if (damping_model_one == TSUJI) {
-    double cor;
-    cor = normal_coeffs_one[1];
-    damp = 1.2728-4.2783*cor+11.087*square(cor)-22.348*cube(cor)+
-        27.467*powint(cor,4)-18.022*powint(cor,5)+4.8218*powint(cor,6);
-  } else damp = normal_coeffs_one[1];
-
-  if (ld_flag && normal_model_one == JKR)
-    error->all(FLERR,"Illegal pair_coeff command, "
-        "Cannot limit damping with JKR model");
-
-  if (ld_flag && normal_model_one == DMT)
-    error->all(FLERR,"Illegal pair_coeff command, "
-        "Cannot limit damping with DMT model");
-
-  double Emod, poisson;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-
-      // Define normal model
-      models[i][j].normal_model = models[j][i].normal_model = normal_model_one;
-      models[i][j].damping_model = models[j][i].damping_model = damping_model_one;
-      models[i][j].gamma_norm = models[j][i].gamma_norm = damp;
-      Emod = normal_coeffs_one[0];
-      poisson = normal_coeffs_one[2];
-      models[i][j].Emod = models[j][i].Emod = Emod;
-      models[i][j].poisson = models[j][i].poisson = poisson;
-
-      if (normal_model_one != HERTZ && normal_model_one != HOOKE) {
-        models[i][j].k_norm = models[j][i].k_norm =
-          FOURTHIRDS*mix_stiffnessE(Emod,Emod,poisson,poisson);
-      } else {
-        models[i][j].k_norm = models[j][i].k_norm = normal_coeffs_one[0];
-      }
-      if ((normal_model_one == JKR) || (normal_model_one == DMT))
-        models[i][j].cohesion = models[j][i].cohesion = normal_coeffs_one[3];
-
-      // Define tangential model
-      models[i][j].tangential_model = models[j][i].tangential_model = tangential_model_one;
-      if (tangential_coeffs_one[0] == -1) {
-        models[i][j].k_tang = models[j][i].k_tang =
-          8*mix_stiffnessG(Emod, Emod, poisson, poisson);
-      } else {
-        models[i][j].k_tang = models[j][i].k_tang = tangential_coeffs_one[0];
-      }
-      models[i][j].gamma_tang = models[j][i].gamma_tang = tangential_coeffs_one[1];
-      models[i][j].mu_tang = models[j][i].mu_tang = tangential_coeffs_one[2];
-
-      // Define rolling model
-      models[i][j].roll_model = models[j][i].roll_model = roll_model_one;
-      if (roll_model_one != ROLL_NONE) {
-        models[i][j].k_roll     = models[j][i].k_roll     = roll_coeffs_one[0];
-        models[i][j].gamma_roll = models[j][i].gamma_roll = roll_coeffs_one[1];
-        models[i][j].mu_roll    = models[j][i].mu_roll    = roll_coeffs_one[2];
-      }
-
-      // Define twisting model
-      models[i][j].twist_model = models[j][i].twist_model = twist_model_one;
-      if (twist_model_one != TWIST_NONE && twist_model_one != TWIST_MARSHALL) {
-        models[i][j].k_twist = models[j][i].k_twist = twist_coeffs_one[0];
-        models[i][j].gamma_twist = models[j][i].gamma_twist = twist_coeffs_one[1];
-        models[i][j].mu_twist = models[j][i].mu_twist = twist_coeffs_one[2];
-      }
-
-      // Define extra options
-      models[i][j].cutoff_type = models[j][i].cutoff_type = cutoff_one;
-      models[i][j].limit_damping = models[j][i].limit_damping = ld_flag;
-      models[i][j].conductivity = models[j][i].conductivity = conductivity_one;
-
+      models[i][j] = model_one; //Not sure if this works to copy? May need to specify a copy operator for ContactModel..
       setflag[i][j] = 1;
       count++;
     }
@@ -641,48 +437,31 @@ void PairGranular::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
-  // determine whether we need a granular neigh list, how large it needs to be
-
-  use_history = normal_history || tangential_history ||
-    roll_history || twist_history;
-
-  // for JKR, will need fix/neigh/history to keep track of touch arrays
-
+  size_normal_history = 0;
+  size_tangential_history = 0;
+  size_rolling_history = 0;
+  size_twisting_history = 0;
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (models[i][j].normal_model == JKR) use_history = 1;
+    for (int j = i; j <= atom->ntypes; j++){
+      if (models[i][j].normal_model->history_flag ||
+          models[i][j].tangential_model->history_flag ||
+          models[i][j].rolling_model->history_flag ||
+          models[i][j].twisting_model->history_flag) use_history = 1;
 
-  size_history = 3*tangential_history + 3*roll_history + twist_history;
+      if (models[i][j].nondefault_history_transfer)
+      if (models[i][j].normal_model->size_history > size_normal_history)
+        size_normal_history = models[i][j].normal_model->size_history;
+      //...
+    }
+
+  size_history = size_normal_history + size_tangential_history +
+      size_roll_history + size_twist_history;
 
   // determine location of tangential/roll/twist histories in array
 
-  if (roll_history) {
-    if (tangential_history) roll_history_index = 3;
-    else roll_history_index = 0;
-  }
-  if (twist_history) {
-    if (tangential_history) {
-      if (roll_history) twist_history_index = 6;
-      else twist_history_index = 3;
-    } else {
-      if (roll_history) twist_history_index = 3;
-      else twist_history_index = 0;
-    }
-  }
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      if (models[i][j].tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
-          models[i][j].tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) {
-        size_history += 1;
-        roll_history_index += 1;
-        twist_history_index += 1;
-        nondefault_history_transfer = 1;
-        history_transfer_factors = new int[size_history];
-        for (int ii = 0; ii < size_history; ++ii)
-          history_transfer_factors[ii] = -1;
-        history_transfer_factors[3] = 1;
-        break;
-      }
+  tangential_history_index = size_normal_history;
+  roll_history_index = size_normal_history + size_tangential_history;
+  twist_history_index = size_normal_history + size_tangential_history + size_roll_history;
 
   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
   else neighbor->add_request(this, NeighConst::REQ_SIZE);
@@ -907,27 +686,9 @@ void PairGranular::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        fwrite(&models[i][j].normal_model,sizeof(int),1,fp);
-        fwrite(&models[i][j].damping_model,sizeof(int),1,fp);
-        fwrite(&models[i][j].tangential_model,sizeof(int),1,fp);
-        fwrite(&models[i][j].roll_model,sizeof(int),1,fp);
-        fwrite(&models[i][j].twist_model,sizeof(int),1,fp);
-        fwrite(&models[i][j].limit_damping,sizeof(int),1,fp);
-        fwrite(&models[i][j].Emod,sizeof(double),1,fp);
-        fwrite(&models[i][j].poisson,sizeof(double),1,fp);
-        fwrite(&models[i][j].k_norm,sizeof(double),1,fp);
-        fwrite(&models[i][j].gamma_norm,sizeof(double),1,fp);
-        fwrite(&models[i][j].cohesion,sizeof(double),1,fp);
-        fwrite(&models[i][j].k_tang,sizeof(double),1,fp);
-        fwrite(&models[i][j].gamma_tang,sizeof(double),1,fp);
-        fwrite(&models[i][j].mu_tang,sizeof(double),1,fp);
-        fwrite(&models[i][j].k_roll,sizeof(double),1,fp);
-        fwrite(&models[i][j].gamma_roll,sizeof(double),1,fp);
-        fwrite(&models[i][j].mu_roll,sizeof(double),1,fp);
-        fwrite(&models[i][j].k_twist,sizeof(double),1,fp);
-        fwrite(&models[i][j].gamma_twist,sizeof(double),1,fp);
-        fwrite(&models[i][j].mu_twist,sizeof(double),1,fp);
-        fwrite(&models[i][j].cutoff_type,sizeof(double),1,fp);
+        if (comm->me == 0){
+          models[i][j].write_restart(fp);
+        }
       }
     }
   }
@@ -948,12 +709,23 @@ void PairGranular::read_restart(FILE *fp)
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&models[i][j].normal_model,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].damping_model,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].tangential_model,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].roll_model,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].twist_model,sizeof(int),1,fp,nullptr,error);
+          std::string name;
+          utils::sfread(FLERR,&name.data(),sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&models[i][j].damping_model_type,sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&models[i][j].tangential_model_type,sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&models[i][j].roll_model_type,sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&models[i][j].twist_model_type,sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,&models[i][j].limit_damping,sizeof(int),1,fp,nullptr,error);
+        }
+        MPI_Bcast(&models[i][j].normal_model_type,1,MPI_INT,0,world);
+        MPI_Bcast(&models[i][j].damping_model_type,1,MPI_INT,0,world);
+        MPI_Bcast(&models[i][j].tangential_model_type,1,MPI_INT,0,world);
+        MPI_Bcast(&models[i][j].roll_model_type,1,MPI_INT,0,world);
+        MPI_Bcast(&models[i][j].twist_model_type,1,MPI_INT,0,world);
+        MPI_Bcast(&models[i][j].limit_damping,1,MPI_INT,0,world);
+        models[i][j].init();
+        models[i][j].read_restart();
+
           utils::sfread(FLERR,&models[i][j].k_norm,sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,&models[i][j].gamma_norm,sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,&models[i][j].cohesion,sizeof(int),1,fp,nullptr,error);
@@ -1087,6 +859,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   }
 
   double forces[3], torquesi[3], torquesj[3];
+
   models[itype][jtype].calculate_forces(forces, torquesi, torquesj, history);
 
   // apply forces & torques
@@ -1185,10 +958,12 @@ double PairGranular::mix_geom(double valii, double valjj)
    only needed if any history entries i-j are not just negative of j-i entries
 ------------------------------------------------------------------------- */
 
-void PairGranular::transfer_history(double* source, double* target)
+void PairGranular::transfer_history(double* source, double* target, int source_type, int target_type)
 {
-  for (int i = 0; i < size_history; i++)
+  models[itype][jtype].transfer_history();
+  for (int i = 0; i < size_history; i++){
     target[i] = history_transfer_factors[i]*source[i];
+  }
 }
 
 /* ----------------------------------------------------------------------

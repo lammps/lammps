@@ -334,13 +334,15 @@ int DumpVTK::count()
 
   // un-choose if not in region
 
-  auto region = domain->get_region_by_id(idregion);
-  if (region) {
-    region->prematch();
-    double **x = atom->x;
-    for (i = 0; i < nlocal; i++)
-      if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)
-        choose[i] = 0;
+  if(idregion != nullptr){
+    auto region = domain->get_region_by_id(idregion);
+    if (region) {
+      region->prematch();
+      double **x = atom->x;
+      for (i = 0; i < nlocal; i++)
+        if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)
+          choose[i] = 0;
+    }
   }
 
   // un-choose if any threshold criterion isn't met

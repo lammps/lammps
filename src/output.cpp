@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 #define EPSDT 1.0e-6
 
 enum {SETUP, WRITE, RESET_DT};
-enum {PERSTEP, PERTIME, EXTERNAL};     // same as Dump
+enum {PERSTEP, PERTIME, EXTERNAL};     // other files as well
 
 /* ----------------------------------------------------------------------
    one instance per dump style in style_dump.h

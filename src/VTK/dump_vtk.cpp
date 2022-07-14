@@ -334,7 +334,7 @@ int DumpVTK::count()
 
   // un-choose if not in region
 
-  if(idregion != nullptr){
+  if (idregion) {
     auto region = domain->get_region_by_id(idregion);
     if (region) {
       region->prematch();

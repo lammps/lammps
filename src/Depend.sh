@@ -106,7 +106,7 @@ if (test $1 = "INTERLAYER") then
 fi
 
 if (test $1 = "KSPACE") then
-  depend CG-SDK
+  depend CG-SPICA
   depend CORESHELL
   depend DIELECTRIC
   depend GPU
@@ -168,7 +168,7 @@ if (test $1 = "ML-SNAP") then
   depend ML-IAP
 fi
 
-if (test $1 = "CG-SDK") then
+if (test $1 = "CG-SPICA") then
   depend GPU
   depend KOKKOS
   depend OPENMP

@@ -294,8 +294,8 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h pair_lj_gromacs_coul_gromacs.h
 action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
-action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
-action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
+action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp
 action pair_meam_kokkos.h pair_meam.h
 action pair_morse_kokkos.cpp

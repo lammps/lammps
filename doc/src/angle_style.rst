@@ -92,7 +92,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`harmonic <angle_harmonic>` - harmonic angle
 * :doc:`mm3 <angle_mm3>` - anharmonic angle
 * :doc:`quartic <angle_quartic>` - angle with cubic and quartic terms
-* :doc:`sdk <angle_sdk>` - harmonic angle with repulsive SDK pair style between 1-3 atoms
+* :doc:`spica <angle_spica>` - harmonic angle with repulsive SPICA pair style between 1-3 atoms
 * :doc:`table <angle_table>` - tabulated by angle
 
 ----------

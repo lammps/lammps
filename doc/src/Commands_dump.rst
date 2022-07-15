@@ -15,7 +15,7 @@
 Dump commands
 =============
 
-An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.  
+An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
 
 .. table_from_list::
    :columns: 5

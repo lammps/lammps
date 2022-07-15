@@ -3638,7 +3638,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
     if (update->whichflag == 0)
       print_var_error(FLERR,"Cannot use swiggle in variable formula between runs",ivar);
-    if (tree) newtree->type = CWIGGLE;
+    if (tree) newtree->type = SWIGGLE;
     else {
       if (values[0] == 0.0)
         print_var_error(FLERR,"Invalid math function in variable formula",ivar);

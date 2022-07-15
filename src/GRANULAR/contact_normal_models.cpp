@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "normal_contact_models.h"
+#include "contact_normal_models.h"
 #include "math_const.h"
 #include "contact.h"
 
@@ -32,14 +32,21 @@ namespace Contact{
 // ************************
 // Default behaviors where needed
 // ************************
-void NormalModel::set_fncrit(){
+void NormalModel::set_fncrit()
+{
   contact->Fncrit = fabs(contact->Fntot);
 }
 
-void NormalModel::mix_coeffs(NormalModel* imodel, NormalModel* jmodel){
-  for (int i = 0; i < num_coeffs; i++){
+void NormalModel::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+{
+  for (int i = 0; i < num_coeffs; i++) {
     coeffs[i] = sqrt(imodel->coeffs[i]*jmodel->coeffs[i]);
   }
+}
+
+void NormalModel::pulloff_distance(double radi, double radj)
+{
+  return radi + radj;
 }
 
 //-----------------------------------------
@@ -47,18 +54,20 @@ void NormalModel::mix_coeffs(NormalModel* imodel, NormalModel* jmodel){
 //******************
 // Hooke
 //******************
-void Hooke::Hooke(ContactModel &c){
-  contact = c;
+void Hooke::Hooke(ContactModel &c)
+{
   num_coeffs = 2;
   allocate_coeffs();
 }
 
-void Hooke::coeffs_to_local(){
+void Hooke::coeffs_to_local()
+{
   k_norm = coeffs[0];
   damp = coeffs[1];
 }
 
-double Hooke::calculate_forces(){
+double Hooke::calculate_forces()
+{
   contact.area = sqrt(contact.dR);
   contact.knfac = k_norm * contact.area;
   return contact.knfac * contact.delta;
@@ -68,8 +77,8 @@ double Hooke::calculate_forces(){
 //******************
 // Hertz
 //******************
-void Hertz::Hertz(ContactModel &c, int mat_flag){
-  contact = c;
+void Hertz::Hertz(ContactModel &c, int mat_flag)
+{
   material_prop_flag = mat_flag;
   if (material_prop_flag){
     num_coeffs = 3;
@@ -77,10 +86,10 @@ void Hertz::Hertz(ContactModel &c, int mat_flag){
   else{
     num_coeffs = 2;
   }
-  allocate_coeffs();
 }
 
-void Hertz::coeffs_to_local(){
+void Hertz::coeffs_to_local()
+{
   if (material_prop_flag){
     Emod = coeffs[0];
     poiss = coeffs[1];
@@ -91,7 +100,8 @@ void Hertz::coeffs_to_local(){
   }
 }
 
-double Hertz::calculate_forces(){
+double Hertz::calculate_forces()
+{
   contact.area = sqrt(contact.dR);
   contact.knfac = contact.k_norm * contact.area;
   return contact.knfac * contact.delta;
@@ -100,14 +110,14 @@ double Hertz::calculate_forces(){
 //******************
 // DMT
 //******************
-void DMT::DMT(ContactModel &c){
-  contact = c;
+void DMT::DMT(ContactModel &c)
+{
   material_prop_flag = 1;
   num_coeffs = 4;
-  allocate_coeffs();
 }
 
-double DMT::calculate_forces(){
+double DMT::calculate_forces()
+{
   contact.area = sqrt(contact.dR);
   contact.knfac = contact.k_norm * contact.area;
   double Fne = contact.knfac * contact.delta;
@@ -116,22 +126,23 @@ double DMT::calculate_forces(){
   return Fne;
 }
 
-void DMT::set_fncrit(){
+void DMT::set_fncrit()
+{
   contact.Fncrit = fabs(contact.Fne + 2* F_pulloff);
 }
 
 //******************
 // JKR
 //******************
-void JKR::JKR(ContactModel &c){
-  contact = c;
+void JKR::JKR(ContactModel &c)
+{
   material_prop_flag = 1;
-  beyond_contact = 1;
+  contact.beyond_contact = beyond_contact = 1;
   num_coeffs = 4;
-  allocate_coeffs();
 }
 
-bool JKR::touch(int touch){
+bool JKR::touch(int touch)
+{
   double Escaled, R2, delta_pulloff, dist_pulloff;
   bool touchflag;
 
@@ -148,38 +159,50 @@ bool JKR::touch(int touch){
   return touchflag;
 }
 
-double JKR::calculate_forces(){
+double JKR::calculate_forces()
+{
   double Escaled, R2, dR2, t0, t1, t2, t3, t4, t5, t6;
-    double sqrt1, sqrt2, sqrt3, a2, F_pulloff, Fne;
+  double sqrt1, sqrt2, sqrt3, a2, F_pulloff, Fne;
 
-    Escaled = k_norm * THREEQUARTERS;
+  Escaled = k_norm * THREEQUARTERS;
 
-    R2 = Reff * Reff;
-    dR2 = dR * dR;
-    t0 = cohesion * cohesion * R2 * R2 * Escaled;
-    t1 = PI27SQ*t0;
-    t2 = 8 * dR * dR2 * Escaled * Escaled * Escaled;
-    t3 = 4 * dR2 * Escaled;
+  R2 = Reff * Reff;
+  dR2 = dR * dR;
+  t0 = cohesion * cohesion * R2 * R2 * Escaled;
+  t1 = PI27SQ*t0;
+  t2 = 8 * dR * dR2 * Escaled * Escaled * Escaled;
+  t3 = 4 * dR2 * Escaled;
 
-    // in case sqrt(0) < 0 due to precision issues
-    sqrt1 = MAX(0, t0 * (t1 + 2 * t2));
-    t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
-    t5 = t3 / t4 + t4 / Escaled;
-    sqrt2 = MAX(0, 2 * dR + t5);
-    t6 = sqrt(sqrt2);
-    sqrt3 = MAX(0, 4 * dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Escaled * t6));
-    a = INVROOT6 * (t6 + sqrt(sqrt3));
-    a2 = a * a;
-    Fne = Escaled * a * a2 / Reff - MY_2PI * a2 * sqrt(4 * cohesion * Escaled / (MY_PI * a));
-    F_pulloff = 3 * MY_PI * cohesion * Reff;
+  // in case sqrt(0) < 0 due to precision issues
+  sqrt1 = MAX(0, t0 * (t1 + 2 * t2));
+  t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
+  t5 = t3 / t4 + t4 / Escaled;
+  sqrt2 = MAX(0, 2 * dR + t5);
+  t6 = sqrt(sqrt2);
+  sqrt3 = MAX(0, 4 * dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Escaled * t6));
+  a = INVROOT6 * (t6 + sqrt(sqrt3));
+  a2 = a * a;
+  Fne = Escaled * a * a2 / Reff - MY_2PI * a2 * sqrt(4 * cohesion * Escaled / (MY_PI * a));
+  F_pulloff = 3 * MY_PI * cohesion * Reff;
 
-    knfac = Escaled * a;
-    return Fne;
+  knfac = Escaled * a;
+  return Fne;
 }
 
-void JKR::set_fncrit(){
+void JKR::set_fncrit()
+{
   contact.Fncrit = fabs(contact.Fne + 2 * F_pulloff);
 }
 
+void JKR::pulloff_distance(double radi, double radj)
+{
+  double Ecaled, a_tmp, Reff_tmp;
 
+  Reff_tmp = radi * radj / (radi + radj);
+  if (Reff_tmp <= 0) return 0;
+
+  Ecaled = k_norm * THREEQUARTERS;
+  a_tmp = cbrt(9 * MY_PI * cohesion * Reff_tmp * Reff_tmp / (4 * Ecaled));
+  return a_tmp * a_tmp / Reff_tmp - 2 * sqrt(MY_PI * cohesion * a_tmp / Ecaled);
+}
 

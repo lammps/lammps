@@ -29,6 +29,7 @@ public:
   virtual double calculate_forces() = 0;
   void read_restart();
   virtual void parse_coeffs(char **, int);
+  void mix_coeff(SubModel*, SubModel*);
   void write_restart(FILE*);
   void read_restart(FILE*);
   void read_restart(FILE*, int);
@@ -38,9 +39,9 @@ public:
 private:
   ContactModel &contact;
   int allocated;
-  int material_prop_flag = 0;
+  int material_prop_flag;
   int size_history;
-
+  int history_index;
 };
 
 }

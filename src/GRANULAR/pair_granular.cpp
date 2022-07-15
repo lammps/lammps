@@ -198,13 +198,13 @@ void PairGranular::compute(int eflag, int vflag)
       jtype = type[j];
 
       // Reset model and copy initial geometric data
-      models[itype][jtype].reset_contact();
-      models[itype][jtype].xi = x[i];
-      models[itype][jtype].xj = x[j];
-      models[itype][jtype].radi = radius[i];
-      models[itype][jtype].radj = radius[j];
+      models[itype][jtype]->reset_contact();
+      models[itype][jtype]->xi = x[i];
+      models[itype][jtype]->xj = x[j];
+      models[itype][jtype]->radi = radius[i];
+      models[itype][jtype]->radj = radius[j];
 
-      touchflag = models[itype][jtype].check_contact();
+      touchflag = models[itype][jtype]->check_contact();
 
       if (!touchflag) {
         // unset non-touching neighbors
@@ -229,22 +229,21 @@ void PairGranular::compute(int eflag, int vflag)
         if (mask[j] & freeze_group_bit) meff = mi;
 
         // Copy additional information and prepare force calculations
-        models[itype][jtype].meff = meff;
-        models[itype][jtype].vi = v[i];
-        models[itype][jtype].vj = v[j];
-        models[itype][jtype].omegai = omega[i];
-        models[itype][jtype].omegaj = omega[j];
-        models[itype][jtype].history_update = historyupdate;
-        models[itype][jtype].history = history;
-        models[itype][jtype].prep_contact();
+        models[itype][jtype]->meff = meff;
+        models[itype][jtype]->vi = v[i];
+        models[itype][jtype]->vj = v[j];
+        models[itype][jtype]->omegai = omega[i];
+        models[itype][jtype]->omegaj = omega[j];
+        models[itype][jtype]->history_update = historyupdate;
+        models[itype][jtype]->history = history;
+        models[itype][jtype]->prep_contact();
 
         if (heat_flag) {
-          models[itype][jtype].Ti = temperature[i];
-          models[itype][jtype].Tj = temperature[j];
+          models[itype][jtype]->Ti = temperature[i];
+          models[itype][jtype]->Tj = temperature[j];
         }
 
-
-        if (models[itype][jtype].normal_model == JKR) touch[jj] = 1;
+        if (models[itype][jtype]->beyond_contact) touch[jj] = 1;
 
         // if any history is needed
         if (use_history) {
@@ -252,12 +251,12 @@ void PairGranular::compute(int eflag, int vflag)
           history = &allhistory[size_history*jj];
         }
 
-        double *forces = models[itype][jtype].forces;
-        double *torquesi = models[itype][jtype].torquesi;
-        double *torquesj = models[itype][jtype].torquesj;
+        models[itype][jtype]->calculate_forces();
+        if (heat_flag) dq = models[itype][jtype]->calculate_heat();
 
-        models[itype][jtype].calculate_forces();
-        if (heat_flag) dq = models[itype][jtype].calculate_heat();
+        forces = models[itype][jtype]->forces;
+        torquesi = models[itype][jtype]->torquesi;
+        torquesj = models[itype][jtype]->torquesj;
 
         // apply forces & torques
         MathExtra::scale3(factor_lj, forces);
@@ -302,9 +301,8 @@ void PairGranular::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
-  for (int i = 0; i < n+1; i++) {
-    models.push_back(std::vector <ContactModel> (n+1));
-  }
+
+  models = (ContactModel **) memory->srealloc(fix, n+1,n+1, "pair:contact_models");
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -334,16 +332,8 @@ void PairGranular::settings(int narg, char **arg)
 
 void PairGranular::coeff(int narg, char **arg)
 {
-  int normal_model_one, damping_model_one;
-  int tangential_model_one, roll_model_one, twist_model_one;
-
-  double normal_coeffs_one[4];
-  double tangential_coeffs_one[4];
-  double roll_coeffs_one[4];
-  double twist_coeffs_one[4];
-
-  double conductivity_one;
   double cutoff_one = -1;
+  int ncoeff;
 
   if (narg < 3)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -354,66 +344,97 @@ void PairGranular::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  //Here's one option for handing off parsing to the SubModel objects:
-  ContactModel model_one;
+  // Create new model stored in vector
+  vec_models.push_back(ContactModel());
 
   //Parse mandatory normal and tangential specifications
   int iarg = 2;
-  model_one.init_normal(arg[iarg]);
+  vec_models.back().init(arg[iarg], Contact::NORMAL);
+  ncoeff = vec_models.back().normal_model.num_coeffs
   iarg += 1;
-  if (iarg + model_one.normal_model->num_coeffs >= narg)
+  if (iarg + ncoeff >= narg)
     error->all(FLERR,"Illegal pair_coeff command"
-      "Insufficient arguments provided.");
-  model_one.normal_model->parse_coeffs(arg, iarg);
-  iarg += model_one.normal_model->num_coeffs;
+      "Insufficient arguments provided for normal model.");
+  vec_models.back().normal_model.parse_coeffs(arg, iarg);
+  iarg += ncoeff;
 
   if (strcmp(arg[iarg], "tangential") == 0) {
     if (iarg + 1 >= narg)
       error->all(FLERR,"Illegal pair_coeff command, must specify "
           "tangential model after tangential keyword");
-    model_one.init_tangential(arg[iarg]);
+    vec_models.back().init(arg[iarg], Contact::TANGENTIAL);
+    ncoeff = vec_models.back().tangential_model.num_coeffs;
     iarg += 1;
-    if (iarg + model_one.tangential_model->num_coeffs >= narg)
+    if (iarg + ncoeff >= narg)
       error->all(FLERR, "Illegal pair_coeff command"
-        "Insufficient arguments provided.");
-    model_one.tangential_model->parse_coeffs(arg, iarg);
-    iarg += model_one.tangential_model->num_coeffs;
-  }
-  else{
+        "Insufficient arguments provided for tangential model.");
+    vec_models.back().tangential_model.parse_coeffs(arg, iarg);
+    iarg += ncoeff;
+  } else{
     error->all(FLERR, "Illegal pair_coeff command, 'tangential' keyword expected");
   }
+
   //Parse optional arguments
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rolling") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      model_one.init_rolling(arg[iarg+1]);
+      vec_models.back().init(arg[iarg], Contact::ROLLING);
+      ncoeff = vec_models.back().rolling_model.num_coeffs;
       iarg += 1;
-      if (iarg + model_one.rolling_model->num_coeffs >= narg)
+      if (iarg + ncoeff >= narg)
         error->all(FLERR, "Illegal pair_coeff command"
               "Insufficient arguments provided for rolling model.");
-      iarg += model_one.rolling_model->num_coeffs;
-    }
-    else if (strcmp(arg[iarg], "twisting") == 0) {
-      //...
-    }
-    else if (strcmp(arg[iarg], "cutoff") == 0) {
-      //..
-    } else if (strcmp(arg[iarg], "limit_damping") == 0) {
-      //..
+      vec_models.back().rolling_model.parse_coeffs(arg, iarg);
+      iarg += ncoeff;
+
+    } else if (strcmp(arg[iarg], "twisting") == 0) {
+      if (iarg + 1 >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      vec_models.back().init(arg[iarg], Contact::TWISTING);
+      ncoeff = vec_models.back().twisting_model.num_coeffs;
+      iarg += 1;
+      if (iarg + ncoeff >= narg)
+        error->all(FLERR, "Illegal pair_coeff command"
+              "Insufficient arguments provided for twisting model.");
+      vec_models.back().twisting_model.parse_coeffs(arg, iarg);
+      iarg += ncoeff;
+
     } else if (strcmp(arg[iarg], "heat") == 0) {
-      //..
+      if (iarg + 1 >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      vec_models.back().init(arg[iarg], Contact::HEAT);
+      ncoeff = vec_models.back().heat_model.num_coeffs;
+      iarg += 1;
+      if (iarg + ncoeff >= narg)
+        error->all(FLERR, "Illegal pair_coeff command"
+              "Insufficient arguments provided for heat model.");
+      ncoeff = vec_models.back().heat_model.num_coeffs;
+      vec_models.back().heat_model.parse_coeffs(arg, iarg);
+      iarg += ncoeff;
+      heat_flag = 1;
+
+    } else if (strcmp(arg[iarg], "cutoff") == 0) {
+      if (iarg + 1 >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      vec_models.back().cutoff_type = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg], "limit_damping") == 0) {
+      vec_models.back().limit_damping = 1;
+      iarg += 1;
+
     } else error->all(FLERR, "Illegal pair_coeff command");
   }
 
-  if (model_one.limit_damping && !model_one.normal_model->allow_limit_damping)
+  if (vec_models.back().limit_damping && !vec_models.back().normal_model->allow_limit_damping)
     error->all(FLERR,"Illegal pair_coeff command, "
         "Cannot limit damping with specified normal contact model");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      models[i][j] = model_one; //Not sure if this works to copy? May need to specify a copy operator for ContactModel..
+      models[i][j] = & vec_models.back();
       setflag[i][j] = 1;
       count++;
     }
@@ -437,31 +458,38 @@ void PairGranular::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
-  size_normal_history = 0;
-  size_tangential_history = 0;
-  size_rolling_history = 0;
-  size_twisting_history = 0;
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++){
-      if (models[i][j].normal_model->history_flag ||
-          models[i][j].tangential_model->history_flag ||
-          models[i][j].rolling_model->history_flag ||
-          models[i][j].twisting_model->history_flag) use_history = 1;
+  // allocate history
 
-      if (models[i][j].nondefault_history_transfer)
-      if (models[i][j].normal_model->size_history > size_normal_history)
-        size_normal_history = models[i][j].normal_model->size_history;
-      //...
+  int size_normal_history = 0;
+  int size_tangential_history = 0;
+  int size_rolling_history = 0;
+  int size_twisting_history = 0;
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      if (models[i][j]->normal_model.history_flag ||
+          models[i][j]->tangential_model.history_flag ||
+          models[i][j]->rolling_model.history_flag ||
+          models[i][j]->twisting_model.history_flag) use_history = 1;
+
+      if (models[i][j]->nondefault_history_transfer) // ???
+
+      if (models[i][j]->normal_model->size_history > size_normal_history)
+        size_normal_history = models[i][j]->normal_model.size_history;
+      if (models[i][j]->tangential_model->size_history > size_tangential_history)
+        size_tangential_history = models[i][j]->tangential_model.size_history;
+      if (models[i][j]->rolling_model->size_history > size_rolling_history)
+        size_rolling_history = models[i][j]->rolling_model.size_history;
+      if (models[i][j]->twisting_model->size_history > size_twisting_history)
+        size_twisting_history = models[i][j]->twisting_model.size_history;
     }
+  }
 
   size_history = size_normal_history + size_tangential_history +
-      size_roll_history + size_twist_history;
-
-  // determine location of tangential/roll/twist histories in array
+      size_rolling_history + size_twisting_history;
 
   tangential_history_index = size_normal_history;
   roll_history_index = size_normal_history + size_tangential_history;
-  twist_history_index = size_normal_history + size_tangential_history + size_roll_history;
+  twist_history_index = size_normal_history + size_tangential_history + size_rolling_history;
 
   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
   else neighbor->add_request(this, NeighConst::REQ_SIZE);
@@ -556,71 +584,25 @@ double PairGranular::init_one(int i, int j)
   double cutoff = 0.0;
 
   if (setflag[i][j] == 0) {
-    if ((models[i][i].normal_model != models[j][j].normal_model) ||
-        (models[i][i].damping_model != models[j][j].damping_model) ||
-        (models[i][i].tangential_model != models[j][j].tangential_model) ||
-        (models[i][i].roll_model != models[j][j].roll_model) ||
-        (models[i][i].twist_model != models[j][j].twist_model)) {
+    if ((models[i][i]->normal_model != models[j][j]->normal_model) ||
+        (models[i][i]->damping_model != models[j][j]->damping_model) ||
+        (models[i][i]->tangential_model != models[j][j]->tangential_model) ||
+        (models[i][i]->roll_model != models[j][j]->roll_model) ||
+        (models[i][i]->twist_model != models[j][j]->twist_model)) {
       error->all(FLERR,"Granular pair style functional forms are different, "
                  "cannot mix coefficients for types {} and {}. \n"
                  "This combination must be set explicitly via a "
                  "pair_coeff command",i,j);
     }
 
-    // Mix normal coefficients
-    if (models[i][j].normal_model == HERTZ || models[i][j].normal_model == HOOKE)
-      models[i][j].k_norm = models[j][i].k_norm =
-        mix_geom(models[i][i].k_norm, models[j][j].k_norm);
-    else
-      models[i][j].k_norm = models[j][i].k_norm =
-        mix_stiffnessE(models[i][i].Emod, models[j][j].Emod,
-                       models[i][i].poisson, models[j][j].poisson);
-
-    models[i][j].gamma_norm = models[j][i].gamma_norm =
-      mix_geom(models[i][i].gamma_norm, models[j][j].gamma_norm);
-    if ((models[i][j].normal_model == JKR) || (models[i][j].normal_model == DMT))
-      models[i][j].cohesion = models[j][i].cohesion =
-        mix_geom(models[i][i].cohesion, models[j][j].cohesion);
-
-    // Mix tangential coefficients
-    models[i][j].k_tang = models[j][i].k_tang =
-        mix_geom(models[i][i].k_tang, models[j][j].k_tang);
-    models[i][j].gamma_tang = models[j][i].gamma_tang =
-        mix_geom(models[i][i].gamma_tang, models[j][j].gamma_tang);
-    models[i][j].mu_tang = models[j][i].mu_tang =
-        mix_geom(models[i][i].mu_tang, models[j][j].mu_tang);
-
-    // Mix rolling coefficients
-    if (models[i][j].roll_model != ROLL_NONE) {
-      models[i][j].k_roll = models[j][i].k_roll =
-        mix_geom(models[i][i].k_roll, models[j][j].k_roll);
-      models[i][j].gamma_roll = models[j][i].gamma_roll =
-          mix_geom(models[i][i].gamma_roll, models[j][j].gamma_roll);
-      models[i][j].mu_roll = models[j][i].mu_roll =
-          mix_geom(models[i][i].mu_roll, models[j][j].mu_roll);
-    }
-
-    // Mix twisting coefficients
-    if (models[i][j].twist_model != TWIST_NONE && models[i][j].twist_model != TWIST_MARSHALL) {
-      models[i][j].k_twist = models[j][i].k_twist =
-        mix_geom(models[i][i].k_twist, models[j][j].k_twist);
-      models[i][j].gamma_twist = models[j][i].gamma_twist =
-        mix_geom(models[i][i].gamma_twist, models[j][j].gamma_twist);
-      models[i][j].mu_twist = models[j][i].mu_twist =
-        mix_geom(models[i][i].mu_twist, models[j][j].mu_twist);
-    }
-
-    models[i][j].limit_damping = models[j][i].limit_damping =
-      MAX(models[i][i].limit_damping, models[j][j].limit_damping);
-    if (heat_flag) {
-      models[i][j].conductivity = models[j][i].conductivity =
-      mix_geom(models[i][i].conductivity, models[j][j].conductivity);
-    }
+    vec_models.push_back(ContactModel());
+    models[i][j] = models[j][i] = & vec_models.back();
+    vec_models.back().mix_coeffs(models[i][i], models[j][j]);
   }
 
-  // Check if conductivity is undefined (negative) for any type combination
-  if (heat_flag && models[i][j].conductivity < 0.0)
-    error->all(FLERR, "To calculate heat, conductivity must be defined for all pair coeff");
+  // Check if heat model is defined for all type combinations
+  if (heat_flag && !models[i][j]->heat_model)
+    error->all(FLERR, "Must specify a heat model for all pair types");
 
   // It is possible that cut[i][j] at this point is still 0.0.
   // This can happen when
@@ -631,21 +613,21 @@ double PairGranular::init_one(int i, int j)
   // we assign cutoff = max(cut[i][j]) for i,j such that cut[i][j] > 0.0.
 
   double pulloff;
-  if (models[i][j].cutoff_type < 0 && cutoff_global < 0) {
+  if (models[i][j]->cutoff_type < 0 && cutoff_global < 0) {
     if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) ||
         ((maxrad_dynamic[i] > 0.0) &&  (maxrad_frozen[j] > 0.0)) ||
         // radius info about both i and j exist
         ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) {
       cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
       pulloff = 0.0;
-      if (models[i][j].normal_model == JKR) {
-        pulloff = models[i][j].pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);
+      if (models[i][j]->beyond_contact) {
+        pulloff = models[i][j]->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);
         cutoff += pulloff;
 
-        pulloff = models[i][j].pulloff_distance(maxrad_frozen[i], maxrad_dynamic[j]);
+        pulloff = models[i][j]->pulloff_distance(maxrad_frozen[i], maxrad_dynamic[j]);
         cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j] + pulloff);
 
-        pulloff = models[i][j].pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
+        pulloff = models[i][j]->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
         cutoff = MAX(cutoff,maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
       }
     } else {
@@ -661,16 +643,18 @@ double PairGranular::init_one(int i, int j)
       }
       cutoff = cutmax;
     }
-  } else if (models[i][j].cutoff_type > 0) {
-    cutoff = models[i][j].cutoff_type;
+  } else if (models[i][j]->cutoff_type > 0) {
+    cutoff = models[i][j]->cutoff_type;
   } else if (cutoff_global > 0) {
     cutoff = cutoff_global;
   }
 
   // Copy global options
-  models[i][j].dt = models[j][i].dt = dt;
-  models[i][j].roll_history_index = models[j][i].roll_history_index = roll_history_index;
-  models[i][j].twist_history_index = models[j][i].twist_history_index = twist_history_index;
+  models[i][j]->dt = models[j][i]->dt = dt;
+  models[i][j]->normal_model.history_index = models[j][i]->normal_model.history_index = normal_history_index;
+  models[i][j]->tangential_model.history_index = models[j][i]->tangential_model.history_index = tangential_history_index;
+  models[i][j]->rolling_model.history_index = models[j][i]->rolling_model.history_index = rolling_history_index;
+  models[i][j]->twisting_model.history_index = models[j][i]->twisting_model.history_index = twisting_history_index;
 
   return cutoff;
 }
@@ -687,7 +671,7 @@ void PairGranular::write_restart(FILE *fp)
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
         if (comm->me == 0){
-          models[i][j].write_restart(fp);
+          models[i][j]->write_restart(fp);
         }
       }
     }
@@ -708,57 +692,9 @@ void PairGranular::read_restart(FILE *fp)
       if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) {
-          std::string name;
-          utils::sfread(FLERR,&name.data(),sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].damping_model_type,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].tangential_model_type,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].roll_model_type,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].twist_model_type,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].limit_damping,sizeof(int),1,fp,nullptr,error);
-        }
-        MPI_Bcast(&models[i][j].normal_model_type,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].damping_model_type,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].tangential_model_type,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].roll_model_type,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].twist_model_type,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].limit_damping,1,MPI_INT,0,world);
-        models[i][j].init();
-        models[i][j].read_restart();
-
-          utils::sfread(FLERR,&models[i][j].k_norm,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].gamma_norm,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].cohesion,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].k_tang,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].gamma_tang,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].mu_tang,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].k_roll,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].gamma_roll,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].mu_roll,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].k_twist,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].gamma_twist,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].mu_twist,sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&models[i][j].cutoff_type,sizeof(double),1,fp,nullptr,error);
-        }
-        MPI_Bcast(&models[i][j].normal_model,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].damping_model,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].tangential_model,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].roll_model,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].twist_model,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].limit_damping,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].k_norm,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].gamma_norm,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].cohesion,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].k_tang,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].gamma_tang,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].mu_tang,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].k_roll,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].gamma_roll,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].mu_roll,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].k_twist,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].gamma_twist,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].mu_twist,1,MPI_INT,0,world);
-        MPI_Bcast(&models[i][j].cutoff_type,1,MPI_DOUBLE,0,world);
+        vec_models.push_back(ContactModel());
+        models[i][j] = & vec_models.back();
+        models[i][j]->read_restart();
       }
     }
   }
@@ -798,14 +734,14 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double *radius = atom->radius;
 
   // Reset model and copy initial geometric data
-  models[itype][jtype].reset_contact();
-  models[itype][jtype].xi = x[i];
-  models[itype][jtype].xj = x[j];
-  models[itype][jtype].radi = radius[i];
-  models[itype][jtype].radj = radius[j];
-  models[i][j].history_update = 0; // Don't update history
+  models[itype][jtype]->reset_contact();
+  models[itype][jtype]->xi = x[i];
+  models[itype][jtype]->xj = x[j];
+  models[itype][jtype]->radi = radius[i];
+  models[itype][jtype]->radj = radius[j];
+  models[i][j]->history_update = 0; // Don't update history
 
-  touchflag = models[itype][jtype].check_contact();
+  touchflag = models[itype][jtype]->check_contact();
 
   if (!touchflag) {
     fforce = 0.0;
@@ -834,12 +770,13 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double **v = atom->v;
   double **omega = atom->omega;
 
-  models[itype][jtype].meff = meff;
-  models[itype][jtype].vi = v[i];
-  models[itype][jtype].vj = v[j];
-  models[itype][jtype].omegai = omega[i];
-  models[itype][jtype].omegaj = omega[j];
-  models[itype][jtype].prep_contact();
+  models[itype][jtype]->meff = meff;
+  models[itype][jtype]->vi = v[i];
+  models[itype][jtype]->vj = v[j];
+  models[itype][jtype]->omegai = omega[i];
+  models[itype][jtype]->omegaj = omega[j];
+  models[itype][jtype]->history = history;
+  models[itype][jtype]->prep_contact();
 
   // if any history is needed
 
@@ -859,8 +796,10 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   }
 
   double forces[3], torquesi[3], torquesj[3];
-
-  models[itype][jtype].calculate_forces(forces, torquesi, torquesj, history);
+  models[itype][jtype]->calculate_forces();
+  forces = models[itype][jtype]->forces;
+  torquesi = models[itype][jtype]->torquesi;
+  torquesj = models[itype][jtype]->torquesj;
 
   // apply forces & torques
   fforce = MathExtra::len3(forces);
@@ -871,15 +810,15 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double dely = x[i][1] - x[j][1];
   double delz = x[i][2] - x[j][2];
 
-  svector[0] = models[itype][jtype].fs[0];
-  svector[1] = models[itype][jtype].fs[1];
-  svector[2] = models[itype][jtype].fs[2];
-  svector[3] = MathExtra::len3(models[itype][jtype].fs);
-  svector[4] = models[itype][jtype].fr[0];
-  svector[5] = models[itype][jtype].fr[1];
-  svector[6] = models[itype][jtype].fr[2];
-  svector[7] = MathExtra::len3(models[itype][jtype].fr);
-  svector[8] = models[itype][jtype].magtortwist;
+  svector[0] = models[itype][jtype]->fs[0];
+  svector[1] = models[itype][jtype]->fs[1];
+  svector[2] = models[itype][jtype]->fs[2];
+  svector[3] = MathExtra::len3(models[itype][jtype]->fs);
+  svector[4] = models[itype][jtype]->fr[0];
+  svector[5] = models[itype][jtype]->fr[1];
+  svector[6] = models[itype][jtype]->fr[2];
+  svector[7] = MathExtra::len3(models[itype][jtype]->fr);
+  svector[8] = models[itype][jtype]->magtortwist;
   svector[9] = delx;
   svector[10] = dely;
   svector[11] = delz;
@@ -960,7 +899,7 @@ double PairGranular::mix_geom(double valii, double valjj)
 
 void PairGranular::transfer_history(double* source, double* target, int source_type, int target_type)
 {
-  models[itype][jtype].transfer_history();
+  models[itype][jtype]->transfer_history();
   for (int i = 0; i < size_history; i++){
     target[i] = history_transfer_factors[i]*source[i];
   }
@@ -977,8 +916,8 @@ double PairGranular::atom2cut(int i)
   cut = atom->radius[i] * 2;
   if (beyond_contact) {
     int itype = atom->type[i];
-    if (models[itype][itype].normal_model == JKR) {
-      cut += models[itype][itype].pulloff_distance(cut, cut);
+    if (models[itype][itype]->beyond_contact) {
+      cut += models[itype][itype]->pulloff_distance(cut, cut);
     }
   }
 
@@ -1000,8 +939,8 @@ double PairGranular::radii2cut(double r1, double r2)
     // Check all combinations of i and j to find theoretical maximum pull off distance
     for (int i = 0; i < n; i++){
       for (int j = 0; j < n; j++){
-        if (models[i][j].normal_model == JKR) {
-          temp = models[i][j].pulloff_distance(r1, r2);
+        if (models[i][j]->beyond_contact) {
+          temp = models[i][j]->pulloff_distance(r1, r2);
           if (temp > cut) cut = temp;
         }
       }

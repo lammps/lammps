@@ -29,6 +29,7 @@ public:
   virtual double calculate_forces() = 0;
   virtual void coeffs_to_local();
   virtual void mix_coeffs(NormalModel*, NormalModel*); //When mixing is needed
+  void pulloff_distance(double, double);
 
 private:
   int size_history = 0;

@@ -48,6 +48,7 @@ void NormalModel::mix_coeffs(NormalModel* imodel, NormalModel* jmodel){
 // Hooke
 //******************
 void Hooke::Hooke(ContactModel &c){
+  contact = c;
   num_coeffs = 2;
   allocate_coeffs();
 }
@@ -68,6 +69,7 @@ double Hooke::calculate_forces(){
 // Hertz
 //******************
 void Hertz::Hertz(ContactModel &c, int mat_flag){
+  contact = c;
   material_prop_flag = mat_flag;
   if (material_prop_flag){
     num_coeffs = 3;
@@ -75,6 +77,7 @@ void Hertz::Hertz(ContactModel &c, int mat_flag){
   else{
     num_coeffs = 2;
   }
+  allocate_coeffs();
 }
 
 void Hertz::coeffs_to_local(){
@@ -98,8 +101,10 @@ double Hertz::calculate_forces(){
 // DMT
 //******************
 void DMT::DMT(ContactModel &c){
+  contact = c;
   material_prop_flag = 1;
   num_coeffs = 4;
+  allocate_coeffs();
 }
 
 double DMT::calculate_forces(){
@@ -119,9 +124,11 @@ void DMT::set_fncrit(){
 // JKR
 //******************
 void JKR::JKR(ContactModel &c){
+  contact = c;
   material_prop_flag = 1;
   beyond_contact = 1;
   num_coeffs = 4;
+  allocate_coeffs();
 }
 
 bool JKR::touch(int touch){
@@ -176,3 +183,34 @@ void JKR::set_fncrit(){
 
 
 
+
+/* ---------------------------------------------------------------------- */
+
+void ContactModel::twisting_marshall(double *history)
+{
+  // Overwrite twist coefficients with derived values
+  k_twist = 0.5 * k_tang * a * a; // eq 32 of Marshall paper
+  gamma_twist = 0.5 * gamma_tang * a * a;
+  mu_twist = TWOTHIRDS * a * mu_tang;
+
+  twisting_SDS(history);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ContactModel::twisting_SDS(double *history)
+{
+  double signtwist, Mtcrit;
+
+  if (history_update) {
+    history[twist_history_index] += magtwist * dt;
+  }
+
+  magtortwist = -k_twist * history[twist_history_index] - gamma_twist*magtwist; // M_t torque (eq 30)
+  signtwist = (magtwist > 0) - (magtwist < 0);
+  Mtcrit = mu_twist * Fncrit; // critical torque (eq 44)
+  if (fabs(magtortwist) > Mtcrit) {
+    history[twist_history_index] = (Mtcrit * signtwist - gamma_twist * magtwist) / k_twist;
+    magtortwist = -Mtcrit * signtwist; // eq 34
+  }
+}

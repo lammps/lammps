@@ -22,7 +22,7 @@ PairStyle(granular,PairGranular);
 
 #include "contact.h"
 #include "pair.h"
-#include <vector>
+#include "vector.h"
 
 namespace LAMMPS_NS {
 
@@ -73,7 +73,8 @@ class PairGranular : public Pair {
   int heat_flag;
 
   // contact models
-  std::vector <std::vector <Contact::ContactModel>> models;
+  std::vector <Contact::ContactModel> vec_models;
+  Contact::ContactModel ***models;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;

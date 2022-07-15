@@ -39,36 +39,35 @@ public:
   double calculate_heat();
   double pulloff_distance(double, double);
 
-  void init_normal(char*);
-  void init_tangential(char*);
-  void init_damping(char*);
-  void init_rolling(char*);
-  void init_twisting(char*);
-  void init_heat(char*);
+  void init_model(char*, int);
+
+  void mix_coeffs(ContactModel*, ContactModel*);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
 
-  NormalModel *normal_model;
-  DampingModel *damping_model; //Classes below need .h and .cpp files analogous to normal_contact_models.h/.cpp
-  TangentialModel *tangential_model;
-  RollingModel *rolling_model;
-  TwistingModel *twisting_model;
-  HeatModel *heat_model;
+  // Sub models
+  NormalModel normal_model;
+  DampingModel damping_model;
+  TangentialModel tangential_model;
+  RollingModel rolling_model;
+  TwistingModel twisting_model;
+  HeatModel heat_model;
+  SubModel *sub_models[6];  // Need to resize if we add more model flavors
 
-  double *forces;
-  double *torquesi;
-  double *torquesj;
+  // Extra options
+  int beyond_contact, limit_damping;
+  double cutoff_type;
+
+  // Contact properties/output
+  double *forces, *torquesi, *torquesj;
   double *history;
 
-  int limit_damping;
-
-  double radi, radj, meff, dt, Ti, Tj;
-  double area;
+  double radi, radj, meff, dt, Ti, Tj, area;
+  double Fntot, Fncrit, magtortwist;
 
   double *xi, *xj, *vi, *vj, *omegai, *omegaj;
-  double Fntot, Fncrit;
-  double fs[3], fr[3], ft[3], magtortwist;
+  double fs[3], fr[3], ft[3];
 
 private:
   double dx[3], nx[3], r, rsq, rinv, Reff, radsum, delta, dR;
@@ -77,7 +76,6 @@ private:
   bool touch;
 
   int prep_flag, check_flag;
-  int mindlin_rescale, mindlin_force;
 };
 
 }    // namespace Contact

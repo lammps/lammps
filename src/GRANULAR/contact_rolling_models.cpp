@@ -183,3 +183,67 @@ void JKR::set_fncrit(){
 
 
 
+
+void ContactModel::rolling(double *history)
+{
+  int rhist0, rhist1, rhist2, frameupdate;
+  double rolldotn, rollmag, prjmag, magfr, hist_temp[3], temp_dbl, temp_array[3];
+
+  rhist0 = roll_history_index;
+  rhist1 = rhist0 + 1;
+  rhist2 = rhist1 + 1;
+
+  Frcrit = mu_roll * Fncrit;
+
+  if (history_update) {
+    hist_temp[0] = history[rhist0];
+    hist_temp[1] = history[rhist1];
+    hist_temp[2] = history[rhist2];
+    rolldotn = dot3(hist_temp, nx);
+
+    frameupdate = fabs(rolldotn)*k_roll > EPSILON*Frcrit;
+    if (frameupdate) { // rotate into tangential plane
+      rollmag = len3(hist_temp);
+      // projection
+      temp_dbl = -rolldotn;
+      scale3(temp_dbl, nx, temp_array);
+      sub3(hist_temp, temp_array, hist_temp);
+
+      // also rescale to preserve magnitude
+      prjmag = len3(hist_temp);
+      if (prjmag > 0) temp_dbl = rollmag / prjmag;
+      else temp_dbl = 0;
+      scale3(temp_dbl, hist_temp);
+    }
+    scale3(dt, vrl, temp_array);
+    add3(hist_temp, temp_array, hist_temp);
+  }
+
+  scaleadd3(k_roll, hist_temp, gamma_roll, vrl, fr);
+  negate3(fr);
+
+  // rescale frictional displacements and forces if needed
+
+  magfr = len3(fr);
+  if (magfr > Frcrit) {
+    rollmag = len3(hist_temp);
+    if (rollmag != 0.0) {
+      temp_dbl = -Frcrit / (magfr * k_roll);
+      scale3(temp_dbl, fr, temp_array);
+      add3(hist_temp, temp_array, hist_temp);
+
+      temp_dbl = -gamma_roll/k_roll;
+      scale3(temp_dbl, vrl, temp_array);
+      add3(hist_temp, temp_array, hist_temp);
+
+      temp_dbl = Frcrit / magfr;
+      scale3(temp_dbl, fr);
+    } else {
+      zero3(fr);
+    }
+  }
+
+  history[rhist0] = hist_temp[0];
+  history[rhist1] = hist_temp[1];
+  history[rhist2] = hist_temp[2];
+}

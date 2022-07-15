@@ -1699,6 +1699,7 @@ kTln
 ktypeN
 Kub
 Kubo
+Kuksenok
 Kumagai
 Kumar
 Kurebayashi

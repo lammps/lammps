@@ -255,6 +255,7 @@ std::string ValueTokenizer::next_string()
 int ValueTokenizer::next_int()
 {
   std::string current = tokens.next();
+  printf("Tokenizer::next_int() current = %s\n", current.c_str());
   if (!utils::is_integer(current)) { throw InvalidIntegerException(current); }
   return atoi(current.c_str());
 }
@@ -285,6 +286,7 @@ tagint ValueTokenizer::next_tagint()
 double ValueTokenizer::next_double()
 {
   std::string current = tokens.next();
+  printf("Tokenizer::next_double() current = %s\n", current.c_str());
   if (!utils::is_double(current)) { throw InvalidFloatException(current); }
   return atof(current.c_str());
 }

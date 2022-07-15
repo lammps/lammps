@@ -37,10 +37,10 @@ class ComputeContactAtom : public Compute {
 
  private:
   int nmax;
-  
+
   char *group2;
-  int jgroup, jgroupbit;  
-  
+  int jgroup, jgroupbit;
+
   class NeighList *list;
   double *contact;
 };

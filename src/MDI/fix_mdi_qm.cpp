@@ -380,9 +380,6 @@ void FixMDIQM::post_force(int vflag)
     if (ierr) error->all(FLERR, "MDI: <STRESS command");
     ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS data");
-    //for (int i = 0; i < 9; i++) {
-    //  qm_virial[i] = 0.0;
-    //}
     MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
 
     qm_virial_symmetric[0] = qm_virial[0] * mdi2lmp_pressure;

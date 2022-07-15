@@ -218,21 +218,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
           fsemi(param, evdwl, fend, flocal);
 
-          if (evdwl > 1.0e1) {
-            printf("high energy detected in first contribution (%f eV)\n", evdwl);
-            printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
-            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
-            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
-            printf("segment2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
-            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
-            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
-            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-
-            finf(param, evdwl, flocal);
-            printf("finf equivalent energy: %f\n", evdwl);
-            fsemi(param, evdwl, fend, flocal);
-          }
-
           if (evdwl == 0.0) continue;
           
           // transform to global coordinate system
@@ -286,17 +271,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           param[6] += lp;
           
           fsemi(param, evdwl, fend, flocal);
-          
-          if (evdwl > 1.0e1) {
-            printf("high energy detected in second contribution (%f eV)\n", evdwl);
-            printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
-            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
-            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
-            printf("segment2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
-            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
-            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
-            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-          }
           
           if (evdwl == 0.0) continue;
 
@@ -537,18 +511,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             continue;
 
           fsemi(param, evdwl, fend, flocal);
-        }
-
-        if (evdwl > 1.0e1) {
-          printf("high energy detected in segment-chain interaction (%f eV)\n", evdwl);
-          printf("endflag: %d\n", endflag);
-          printf("segment: %d %d\n", atom->tag[i1], atom->tag[i2]);
-          printf("%f %f %f\n", r1[0], r1[1], r1[2]);
-          printf("%f %f %f\n", r2[0], r2[1], r2[2]);
-          printf("chain: \n");
-          for (k = 0; k < clen; k++)
-            printf("%d %f %f %f\n", atom->tag[chain[j][k]], x[chain[j][k]][0], x[chain[j][k]][1], x[chain[j][k]][2]);
-          printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
         }
 
         if (evdwl == 0.0) continue;

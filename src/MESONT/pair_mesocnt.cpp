@@ -1976,8 +1976,10 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     double dpsi_phibar2 =
         dyspline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
 
+    // warn if psi outside of interpolation range
     if (psi1 < 0 || psi2 < 0)
-      printf("outside interpolation range!\n");
+      error->warning(FLERR, "Segment - infinite chain interaction outside of interpolation range." 
+          " Use potential file with lower delta1 and delta2 values.");
 
     double dzeta_range = dzetamax - dzetamin;
     double dh_psi1 = -zeta_range_inv * (dzetamin + dzeta_range * psi1);

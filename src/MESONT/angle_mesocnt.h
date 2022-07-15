@@ -27,6 +27,7 @@ class AngleMesoCNT : public Angle {
   AngleMesoCNT(class LAMMPS *);
   ~AngleMesoCNT() override;
   void compute(int, int) override;
+  void settings(int, char **) override;
   void coeff(int, char **) override;
   void init_style() override;
   double equilibrium_angle(int) override;
@@ -36,6 +37,8 @@ class AngleMesoCNT : public Angle {
   double single(int, int, int, int) override;
 
  protected:
+  bool buckling;
+
   double *kh, *kb, *thetab, *theta0;
 
   virtual void allocate();

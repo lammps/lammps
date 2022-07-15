@@ -22,14 +22,15 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "update.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using MathConst::DEG2RAD;
-using MathConst::RAD2DEG;
+using namespace MathConst;
 
 static constexpr double SMALL = 0.001;
+static constexpr double A_CC = 1.421;
 
 /* ---------------------------------------------------------------------- */
 
@@ -118,7 +119,7 @@ void AngleMesoCNT::compute(int eflag, int vflag)
     dtheta = acos(c) - theta0[type];
     
     // harmonic bending
-    if (fabs(dtheta) < thetab[type]) {
+    if (!buckling || fabs(dtheta) < thetab[type]) {
       tk = kh[type] * dtheta;
       if (eflag) eangle = tk * dtheta;
       a = -2.0 * tk * s;
@@ -186,20 +187,90 @@ void AngleMesoCNT::allocate()
 }
 
 /* ----------------------------------------------------------------------
+   set buckling parameter
+------------------------------------------------------------------------- */
+
+void AngleMesoCNT::settings(int narg, char **arg)
+{
+  if (narg != 1) error->all(FLERR, "Illegal angle_style command");
+
+  if (strcmp(arg[0], "buckling") == 0)
+    buckling = true;
+  else if (strcmp(arg[0], "harmonic") == 0)
+    buckling = false;
+  else
+    error->all(FLERR, "Unknown angle style in angle style mesocnt");
+}
+
+
+/* ----------------------------------------------------------------------
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
 void AngleMesoCNT::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for angle coefficients");
+  double kh_one, kb_one, thetab_one;
+  if (strcmp(arg[1], "custom") == 0) {
+    if (buckling) {
+      if (narg != 5) error->all(FLERR, "Incorrect args for custom angle coefficients");
+      kb_one = utils::numeric(FLERR, arg[3], false, lmp);
+      thetab_one = utils::numeric(FLERR, arg[4], false, lmp);
+    }
+    else if (narg != 3) error->all(FLERR, "Incorrect args for custom angle coefficients");
+
+    kh_one = utils::numeric(FLERR, arg[2], false, lmp);
+  }
+  else if (strcmp(arg[1], "C") == 0) {
+    if (narg != 5) error->all(FLERR, "Incorrect args for 'C' preset in angle coefficients");
+    int n = utils::inumeric(FLERR, arg[2], false, lmp);
+    int m = utils::inumeric(FLERR, arg[3], false, lmp);
+    double l = utils::numeric(FLERR, arg[4], false, lmp);
+  
+    double r_ang = sqrt(3.0 * (n*n + n*m + m*m)) * A_CC / MY_2PI;
+    
+    // units, eV to energy unit conversion
+  
+    double ang = force->angstrom;
+    double eunit;
+    if (strcmp(update->unit_style, "lj") == 0)
+      error->all(FLERR, "Angle style mesocnt does not support lj units");
+    else if (strcmp(update->unit_style, "real") == 0)
+      eunit = 23.06054966;
+    else if (strcmp(update->unit_style, "metal") == 0)
+      eunit = 1.0;
+    else if (strcmp(update->unit_style, "si") == 0)
+      eunit = 1.6021765e-19;
+    else if (strcmp(update->unit_style, "cgs") == 0)
+      eunit = 1.6021765e-12;
+    else if (strcmp(update->unit_style, "electron") == 0)
+      eunit = 3.674932248e-2;
+    else if (strcmp(update->unit_style, "micro") == 0)
+      eunit = 1.6021765e-4;
+    else if (strcmp(update->unit_style, "nano") == 0)
+      eunit = 1.6021765e2;
+    else
+      error->all(FLERR, "Angle style mesocnt does not recognize this units style");
+
+    double k = 63.80 * pow(r_ang, 2.93) * eunit * ang;
+    kh_one = 0.5 * k / l;
+
+    if (buckling) {
+      kb_one = 0.7 * k / (275.0 * ang);
+      thetab_one = 180.0 / MY_PI * atan(l / (275.0 * ang));
+    }
+  }
+
+  // set safe default values for buckling parameters if buckling is disabled
+
+  if (!buckling) {
+    kb_one = 0.0;
+    thetab_one = 180.0;
+  }
+  
   if (!allocated) allocate();
 
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
-
-  double kh_one = utils::numeric(FLERR, arg[1], false, lmp);
-  double kb_one = utils::numeric(FLERR, arg[2], false, lmp);
-  double thetab_one = utils::numeric(FLERR, arg[3], false, lmp);
 
   // convert thetab from degrees to radians
 

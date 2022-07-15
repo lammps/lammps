@@ -71,7 +71,7 @@ given by
    E = & \frac{3\sqrt{3}}{2} \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                          \left(\frac{\sigma}{r}\right)^4 \right]
                          \qquad r < r_c \\
-   E = & \frac{12}{7}\left(\frac{12}{5}\right)^{\left(\frac{5}{7}\right)} \epsilon 
+   E = & \frac{12}{7}\left(\frac{12}{5}\right)^{\left(\frac{5}{7}\right)} \epsilon
                          \left[ \left(\frac{\sigma}{r}\right)^{12} -
                          \left(\frac{\sigma}{r}\right)^5 \right]
                          \qquad r < r_c \\
@@ -79,8 +79,8 @@ given by
                          \left(\frac{\sigma}{r}\right)^6 \right]
                          \qquad r < r_c
 
-as required for the SPICA (formerly called SDK) and the pSPICA Coarse-grained MD parameterization discussed in 
-:ref:`(Shinoda) <Shinoda3>`, :ref:`(DeVane) <DeVane>`, :ref:`(Seo) <Seo>`, and :ref:`(Miyazaki) <Miyazaki>`.  
+as required for the SPICA (formerly called SDK) and the pSPICA Coarse-grained MD parameterization discussed in
+:ref:`(Shinoda) <Shinoda3>`, :ref:`(DeVane) <DeVane>`, :ref:`(Seo) <Seo>`, and :ref:`(Miyazaki) <Miyazaki>`.
 Rc is the cutoff.
 Summary information on these force fields can be found at https://www.spica-ff.org
 
@@ -119,8 +119,8 @@ specified since a Coulombic cutoff cannot be specified for an
 individual I,J type pair.  All type pairs use the same global
 Coulombic cutoff specified in the pair_style command.
 
-The original implementation of the above styles are 
-style *lj/sdk*, *lj/sdk/coul/long*, and *lj/sdk/coul/msm*, 
+The original implementation of the above styles are
+style *lj/sdk*, *lj/sdk/coul/long*, and *lj/sdk/coul/msm*,
 and available for backward compatibility.
 
 ----------

@@ -38,9 +38,9 @@ style, since the number of charged atom types is usually small.
 To exploit this property, the use of the kspace_style pppm/cg is
 recommended over regular pppm.
 
-Original Author: Axel Kohlmeyer (akohlmey at gmail.com) at Temple U . 
-Maintainers    : Yusuke Miyazaki (ymiyazaki93 at gmail.com) and 
-                 Wataru Shinoda (shinoda at okayama-u.ac.jp) at Okayama U. 
+Original Author: Axel Kohlmeyer (akohlmey at gmail.com) at Temple U .
+Maintainers    : Yusuke Miyazaki (ymiyazaki93 at gmail.com) and
+                 Wataru Shinoda (shinoda at okayama-u.ac.jp) at Okayama U.
 Contact them if you have questions.
 
 ---------------------------------

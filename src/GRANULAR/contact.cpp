@@ -54,45 +54,53 @@ ContactModel::ContactModel()
 void ContactModel::init_model(char *model_name, int model_type)
 {
   if (model_type == NORMAL) {
-    if (strcmp(model_name, "hooke") == 0) normal_model = new Hooke();
-    else if (strcmp(model_name, "hertz") == 0) normal_model = new Hertz(0);
-    else if (strcmp(model_name, "hertz/material") == 0) normal_model = new Hertz(1);
-    //...
+    if (strcmp(model_name, "hooke") == 0) normal_model = new NormalHooke();
+    else if (strcmp(model_name, "hertz") == 0) normal_model = new NormalHertz();
+    else if (strcmp(model_name, "hertz/material") == 0) normal_model = new NormalHertzMaterial();
+    else if (strcmp(model_name, "dmt") == 0) normal_model = new NormalDMT();
+    else if (strcmp(model_name, "jkr") == 0) normal_model = new NormalJKR();
     else error->all(FLERR, "Normal model name not recognized");
     sub_models[model_type] = &normal_model;
 
   } else if (model_type == TANGENTIAL) {
-    if (strcmp(model_name, "linear") == 0) tangential_model = new LinearNoHistory();
-    //...
+    if (strcmp(model_name, "linear_nohistory") == 0) tangential_model = new TangentialLinearNoHistory();
+    else if (strcmp(model_name, "linear_history") == 0) tangential_model = new TangentialLinearHistory();
+    else if (strcmp(model_name, "mindlin") == 0) tangential_model = new TangentialMindlin();
+    else if (strcmp(model_name, "mindlin/force") == 0) tangential_model = new TangentialMindlinForce();
+    else if (strcmp(model_name, "mindlin_rescale") == 0) tangential_model = new TangentialMindlinRescale();
+    else if (strcmp(model_name, "mindlin_rescale/force") == 0) tangential_model = new TangentialMindlinRescaleForce();
     else error->all(FLERR, "Tangential model name not recognized");
     sub_models[model_type] = &tangential_model;
 
   } else if (model_type == DAMPING) {
-    if (strcmp(model_name, "linear") == 0) damping_model = new LinearNoHistory();
-    //...
+    if (strcmp(model_name, "velocity") == 0) damping_model = new DampingVelocity();
+    else if (strcmp(model_name, "mass_velocity") == 0) damping_model = new DampingMassVelocity();
+    else if (strcmp(model_name, "viscoelastic") == 0) damping_model = new DampingViscoelastic();
+    else if (strcmp(model_name, "tsuji") == 0) damping_model = new DampingTsuji();
     else error->all(FLERR, "Damping model name not recognized");
     sub_models[model_type] = &damping_model;
 
   } else if (model_type == ROLLING) {
-    if (strcmp(model_name, "linear") == 0) rolling_model = new LinearNoHistory();
-    //...
+    if (strcmp(model_name, "none") == 0) delete rolling_model;
+    else if (strcmp(model_name, "sds") == 0) rolling_model = new RollingSDS();
     else error->all(FLERR, "Rolling model name not recognized");
     sub_models[model_type] = &rolling_model;
 
   } else if (model_type == TWISTING) {
-    if (strcmp(model_name, "linear") == 0) twisting_model = new LinearNoHistory();
-    //...
+    if (strcmp(model_name, "none") == 0) delete twisting_model;
+    else if (strcmp(model_name, "sds") == 0) twisting_model = new TwistingSDS();
+    else if (strcmp(model_name, "marshall") == 0) twisting_model = new TwistingMarshall();
     else error->all(FLERR, "Twisting model name not recognized");
     sub_models[model_type] = &twisting_model;
 
   } else if (model_type == HEAT) {
-    if (strcmp(model_name, "linear") == 0) heat_model = new LinearNoHistory();
-    //...
+    if (strcmp(model_name, "none") == 0) delete heat_model;
+    else if (strcmp(model_name, "area") == 0) heat_model = new HeatArea();
     else error->all(FLERR, "Heat model name not recognized");
     sub_models[model_type] = &heat_model;
   }
 
-  sub_models[model_type]->model_name.assign(model_name);
+  sub_models[model_type]->name.assign(model_name);
   sub_models[model_type]->contact = *this;
   sub_models[model_type]->allocate_coeffs();
 }

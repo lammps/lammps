@@ -29,15 +29,20 @@ namespace Contact{
 SubModel::SubModel()
 {
   allocated = 0;
-  material_prop_flag = 0;
   size_history = 0;
   history_index = 0;
+  allow_limit_damping = 1;
+  beyond_contact = 0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 SubModel::~SubModel()
 {
   if (allocated) delete [] coeffs;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void SubModel::allocate_coeffs()
 {
@@ -45,13 +50,19 @@ void SubModel::allocate_coeffs()
   coeffs = new double[num_coeffs];
 }
 
+/* ---------------------------------------------------------------------- */
+
 void SubModel::parse_coeffs(char **arg, int iarg)
 {
   for (int i = 0; i < num_coeffs; i++) {
-    coeffs[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
+    // A few parameters (eg.g kt for tangential mindlin) allow null
+    if (strcmp(arg[iarg+i+1], "NULL") == 0) coeffs[i] = -1;
+    else coeffs[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
   }
   coeffs_to_local();
 }
+
+/* ---------------------------------------------------------------------- */
 
 void SubModel::write_restart(FILE *fp)
 {
@@ -61,27 +72,61 @@ void SubModel::write_restart(FILE *fp)
   fwrite(coeffs,sizeof(int),num_coeffs,fp);
 }
 
+/* ---------------------------------------------------------------------- */
+
 void SubModel::read_restart(FILE *fp, int num_char)
 {
-  if (comm->me == 0){
+  if (comm->me == 0) {
     utils::sfread(FLERR,&num_coeffs,sizeof(int),1,fp,nullptr,error);
   }
   MPI_BCast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, world);
   allocate_coeffs();
 }
 
+/* ---------------------------------------------------------------------- */
+
 void SubModel::read_restart(FILE *fp)
 {
   int num_char;
-  if (me == 0){
+  if (me == 0) {
     utils::sfread(FLERR,&num_char,sizeof(int),1,fp,nullptr,error);
   }
   MPI_BCast(&num_char, 1, MPI_INT, 0, world);
   read_restart(fp, num_char);
 }
 
+/* ----------------------------------------------------------------------
+   mixing of Young's modulus (E)
+------------------------------------------------------------------------- */
 
+double SubModel::mix_stiffnessE(double E1, double E2,
+                                    double pois1, double pois2)
+{
+  double factor1 = (1 - pois1 * pois1) / E1;
+  double factor2 = (1 - pois2 * pois2) / E2;
+  return 1 / (factor1 + factor2);
+}
+
+/* ----------------------------------------------------------------------
+   mixing of shear modulus (G)
+------------------------------------------------------------------------ */
+
+double SubModel::mix_stiffnessG(double E1, double E2,
+                                    double pois1, double pois2)
+{
+  double factor1 = 2 * (2 - pois1) * (1 + pois1) / E1;
+  double factor2 = 2 * (2 - pois2) * (1 + pois2) / E2)
+  return 1 / (factor1 + factor2);
+}
+
+/* ----------------------------------------------------------------------
+   mixing of everything else
+------------------------------------------------------------------------- */
+
+double SubModel::mix_geom(double val1, double val2)
+{
+  return sqrt(val1 * val2);
+}
 
 
 }
-

@@ -64,7 +64,7 @@ public:
   double *history;
 
   double radi, radj, meff, dt, Ti, Tj, area;
-  double Fntot, Fncrit, magtortwist;
+  double Fntot, magtortwist;
 
   double *xi, *xj, *vi, *vj, *omegai, *omegaj;
   double fs[3], fr[3], ft[3];

@@ -88,10 +88,6 @@ class PairGranular : public Pair {
   // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;
   double cutoff_global;
-
-  double mix_stiffnessE(double, double, double, double);
-  double mix_stiffnessG(double, double, double, double);
-  double mix_geom(double, double);
 };
 
 }    // namespace LAMMPS_NS

@@ -19,59 +19,82 @@
 
 namespace Contact {
 
-class TangentialModel:SubModel{
+class TangentialModel:SubModel
+{
 public:
-  TangentialModel(){};
-  virtual ~TangentialModel(){};
+  TangentialModel() {};
+  virtual ~TangentialModel() {};
   virtual double calculate_forces() = 0;
   virtual void coeffs_to_local();
-  virtual void mix_coeffs(TangentialModel*, TangentialModel*); //When mixing is needed
-  int rescale_flag = 0;
+  virtual void mix_coeffs(TangentialModel*, TangentialModel*);
+  int rescale_flag;
 private:
-  int beyond_contact = 0;
-  int allow_limit_damping = 1;
-
+  int beyond_contact;
+  int allow_limit_damping;
 };
 
-class LinearNohistory:TangentialModel{
+/* ---------------------------------------------------------------------- */
+
+class TangentialLinearNoHistory:TangentialModel
+{
 public:
+  TangentialLinearNoHistory()
+  virtual void coeffs_to_local();
+  virtual void mix_coeffs(TangentialModel*, TangentialModel*);
   double calculate_forces();
 private:
-  void allocate_coeffs();
-  double k_t, damp;
+  double xt, damp, mu;
 };
 
-class LinearHistory:TangentialModel{
+/* ---------------------------------------------------------------------- */
+
+class TangentialLinearHistory:TangentialModel
+{
 public:
-  LinearHistory(){}
-  ~LinearHistory(){};
-  void coeffs_to_local();
+  TangentialLinearHistory()
+  virtual void coeffs_to_local();
+  virtual void mix_coeffs(TangentialModel*, TangentialModel*);
   double calculate_forces();
 private:
-  double k_norm, damp, Emod, poiss;
+  double kt, xt, damp, mu;
 };
 
-class Mindlin:TangentialModel{
+/* ---------------------------------------------------------------------- */
+
+class TangentialMindlin:TangentialModel
+{
 public:
-  Mindlin(int);
-  ~Mindlin(){};
+  TangentialMindlin();
   void coeffs_to_local();
   void coeffs_to_local(TangentialModel*, TangentialModel*);
   double calculate_forces();
 private:
-
   double k_norm, damp, Emod, poiss, coh;
+  int mindlin_rescale, mindlin_force;
 };
 
-class MindlinForce:TangentialModel{
-public:
-  JKR(ContactModel &c);
-  ~JKR(){};
-  void coeffs_to_local();
-  double calculate_forces();
-private:
-  double k_norm, damp, Emod, poiss, coh;
+/* ---------------------------------------------------------------------- */
 
+class TangentialMindlinForce:TangentialMindlin
+{
+public:
+  TangentialMindlinForce();
+};
+
+/* ---------------------------------------------------------------------- */
+
+class TangentialMindlinRescale:TangentialMindlin
+{
+public:
+  TangentialMindlinRescale();
+};
+
+/* ---------------------------------------------------------------------- */
+
+class TangentialMindlinRescaleForce:TangentialMindlinRescale
+{
+public:
+  TangentialMindlinForceRescale();
 };
 }
 

@@ -21,7 +21,7 @@ using namespace LAMMPS_NS;
 namespace Contact{
 
 class SubModel : Pointers{
-  SubModel(){};
+  SubModel();
   virtual ~SubModel();
 public:
   int num_coeffs;
@@ -35,13 +35,18 @@ public:
   void read_restart(FILE*, int);
   virtual void coeffs_to_local();
   void allocate_coeffs();
-  std::string model_name;
+  std::string name;
 private:
   ContactModel &contact;
   int allocated;
-  int material_prop_flag;
   int size_history;
   int history_index;
+  int beyond_contact;
+  int allow_limit_damping;
+
+  double mix_stiffnessE(double, double, double, double);
+  double mix_stiffnessG(double, double, double, double);
+  double mix_geom(double, double);
 };
 
 }

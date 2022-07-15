@@ -376,7 +376,19 @@ void PairGranular::coeff(int narg, char **arg)
 
   //Parse optional arguments
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "rolling") == 0) {
+    if (strcmp(arg[iarg], "damping") == 0) {
+      if (iarg + 1 >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
+      vec_models.back().init(arg[iarg], Contact::DAMPING);
+      ncoeff = vec_models.back().damping_model.num_coeffs;
+      iarg += 1;
+      if (iarg + ncoeff >= narg)
+        error->all(FLERR, "Illegal pair_coeff command"
+              "Insufficient arguments provided for damping model.");
+      vec_models.back().damping_model.parse_coeffs(arg, iarg);
+      iarg += ncoeff;
+
+    } else if (strcmp(arg[iarg], "rolling") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       vec_models.back().init(arg[iarg], Contact::ROLLING);
@@ -409,7 +421,6 @@ void PairGranular::coeff(int narg, char **arg)
       if (iarg + ncoeff >= narg)
         error->all(FLERR, "Illegal pair_coeff command"
               "Insufficient arguments provided for heat model.");
-      ncoeff = vec_models.back().heat_model.num_coeffs;
       vec_models.back().heat_model.parse_coeffs(arg, iarg);
       iarg += ncoeff;
       heat_flag = 1;
@@ -425,6 +436,12 @@ void PairGranular::coeff(int narg, char **arg)
       iarg += 1;
 
     } else error->all(FLERR, "Illegal pair_coeff command");
+  }
+
+  // Define default damping model if unspecified, takes no args
+  if (!vec_models.back().damping_model) {
+    vec_models.back().init("viscoelastic", Contact::DAMPING);
+    vec_models.back().damping_model.parse_coeffs(arg, 0);
   }
 
   if (vec_models.back().limit_damping && !vec_models.back().normal_model->allow_limit_damping)
@@ -584,11 +601,11 @@ double PairGranular::init_one(int i, int j)
   double cutoff = 0.0;
 
   if (setflag[i][j] == 0) {
-    if ((models[i][i]->normal_model != models[j][j]->normal_model) ||
-        (models[i][i]->damping_model != models[j][j]->damping_model) ||
-        (models[i][i]->tangential_model != models[j][j]->tangential_model) ||
-        (models[i][i]->roll_model != models[j][j]->roll_model) ||
-        (models[i][i]->twist_model != models[j][j]->twist_model)) {
+    if ((models[i][i]->normal_model.name != models[j][j]->normal_model.name) ||
+        (models[i][i]->damping_model.name != models[j][j]->damping_model.name) ||
+        (models[i][i]->tangential_model.name != models[j][j]->tangential_model.name) ||
+        (models[i][i]->rolling_model.name != models[j][j]->rolling_model.name) ||
+        (models[i][i]->twisting_model.name != models[j][j]->twisting_model.name)) {
       error->all(FLERR,"Granular pair style functional forms are different, "
                  "cannot mix coefficients for types {} and {}. \n"
                  "This combination must be set explicitly via a "
@@ -597,6 +614,13 @@ double PairGranular::init_one(int i, int j)
 
     vec_models.push_back(ContactModel());
     models[i][j] = models[j][i] = & vec_models.back();
+    vec_models.back().init(models[i][i]->normal_model.name, Contact::NORMAL);
+    vec_models.back().init(models[i][i]->tangential_model.name, Contact::TANGENTIAL);
+    vec_models.back().init(models[i][i]->damping_model.name, Contact::DAMPING);
+    vec_models.back().init(models[i][i]->rolling_model.name, Contact::ROLLING);
+    vec_models.back().init(models[i][i]->twisting_model.name, Contact::TWISTING);
+    vec_models.back().init(models[i][i]->heat_model.name, Contact::HEAT);
+
     vec_models.back().mix_coeffs(models[i][i], models[j][j]);
   }
 
@@ -802,6 +826,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   torquesj = models[itype][jtype]->torquesj;
 
   // apply forces & torques
+
   fforce = MathExtra::len3(forces);
 
   // set single_extra quantities
@@ -861,35 +886,6 @@ double PairGranular::memory_usage()
 {
   double bytes = (double)nmax * sizeof(double);
   return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   mixing of Young's modulus (E)
-------------------------------------------------------------------------- */
-
-double PairGranular::mix_stiffnessE(double Eii, double Ejj,
-                                    double poisii, double poisjj)
-{
-  return 1/((1-poisii*poisii)/Eii+(1-poisjj*poisjj)/Ejj);
-}
-
-/* ----------------------------------------------------------------------
-   mixing of shear modulus (G)
------------------------------------------------------------------------- */
-
-double PairGranular::mix_stiffnessG(double Eii, double Ejj,
-                                    double poisii, double poisjj)
-{
-  return 1/((2*(2-poisii)*(1+poisii)/Eii) + (2*(2-poisjj)*(1+poisjj)/Ejj));
-}
-
-/* ----------------------------------------------------------------------
-   mixing of everything else
-------------------------------------------------------------------------- */
-
-double PairGranular::mix_geom(double valii, double valjj)
-{
-  return sqrt(valii*valjj);
 }
 
 /* ----------------------------------------------------------------------

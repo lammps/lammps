@@ -29,124 +29,226 @@ namespace Contact{
 #define ONETHIRD (1.0/3.0)                 // 1/3
 #define THREEQUARTERS 0.75                 // 3/4
 
-// ************************
-// Default behaviors where needed
-// ************************
-void NormalModel::set_fncrit()
+/* ----------------------------------------------------------------------
+   Default normal model
+------------------------------------------------------------------------- */
+
+NormalModel::NormalModel()
 {
-  contact->Fncrit = fabs(contact->Fntot);
+  material_properties = 0;
 }
 
-void NormalModel::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+/* ---------------------------------------------------------------------- */
+
+void NormalModel::set_fncrit()
 {
-  for (int i = 0; i < num_coeffs; i++) {
-    coeffs[i] = sqrt(imodel->coeffs[i]*jmodel->coeffs[i]);
-  }
+  Fncrit = fabs(contact.Fntot);
 }
+
+/* ---------------------------------------------------------------------- */
 
 void NormalModel::pulloff_distance(double radi, double radj)
 {
   return radi + radj;
 }
 
-//-----------------------------------------
+/* ----------------------------------------------------------------------
+   Hookean normal force
+------------------------------------------------------------------------- */
 
-//******************
-// Hooke
-//******************
-void Hooke::Hooke(ContactModel &c)
+void NormalHooke::NormalHooke()
 {
   num_coeffs = 2;
   allocate_coeffs();
 }
 
-void Hooke::coeffs_to_local()
+/* ---------------------------------------------------------------------- */
+
+void NormalHooke::coeffs_to_local()
 {
   k_norm = coeffs[0];
   damp = coeffs[1];
 }
 
-double Hooke::calculate_forces()
+/* ---------------------------------------------------------------------- */
+
+void NormalHooke::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+{
+  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
+  coeffs_to_local();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double NormalHooke::calculate_forces()
 {
   contact.area = sqrt(contact.dR);
-  contact.knfac = k_norm * contact.area;
-  return contact.knfac * contact.delta;
+  knfac = k_norm * contact.area;
+  Fne = knfac * contact.delta;
+  return Fne;
 }
 
+/* ----------------------------------------------------------------------
+   Hertzian normal force
+------------------------------------------------------------------------- */
 
-//******************
-// Hertz
-//******************
-void Hertz::Hertz(ContactModel &c, int mat_flag)
+void NormalHertz::NormalHertz()
 {
-  material_prop_flag = mat_flag;
-  if (material_prop_flag){
-    num_coeffs = 3;
-  }
-  else{
-    num_coeffs = 2;
-  }
+  num_coeffs = 2;
 }
 
-void Hertz::coeffs_to_local()
+/* ---------------------------------------------------------------------- */
+
+void NormalHertz::coeffs_to_local()
 {
-  if (material_prop_flag){
-    Emod = coeffs[0];
-    poiss = coeffs[1];
-    k_norm = 4/3*Emod;
-  }
-  else{
-    k_norm = coeffs[0];
-  }
+  k_norm = coeffs[0];
+  damp = coeffs[1];
 }
 
-double Hertz::calculate_forces()
+/* ---------------------------------------------------------------------- */
+
+void NormalHertz::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+{
+  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
+  coeffs_to_local();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double NormalHertz::calculate_forces()
 {
   contact.area = sqrt(contact.dR);
-  contact.knfac = contact.k_norm * contact.area;
-  return contact.knfac * contact.delta;
+  knfac = contact.k_norm * contact.area;
+  Fne = knfac * contact.delta;
+  return Fne;
 }
 
-//******************
-// DMT
-//******************
-void DMT::DMT(ContactModel &c)
+/* ----------------------------------------------------------------------
+   Hertzian normal force with material properties
+------------------------------------------------------------------------- */
+
+void NormalHertzMaterial::NormalHertzMaterial()
 {
-  material_prop_flag = 1;
+  material_properties = 1;
+  num_coeffs = 3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NormalHertzMaterial::coeffs_to_local()
+{
+  Emod = coeffs[0];
+  damp = coeffs[1];
+  poiss = coeffs[2];
+  k_norm = 4 / 3 * Emod;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NormalHertzMaterial::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+{
+  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
+  coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
+  coeffs_to_local();
+}
+
+/* ----------------------------------------------------------------------
+   DMT normal force
+------------------------------------------------------------------------- */
+
+void NormalDMT::NormalDMT(ContactModel &c)
+{
+  allow_limit_damping = 0;
+  material_properties = 1;
   num_coeffs = 4;
 }
 
-double DMT::calculate_forces()
+/* ---------------------------------------------------------------------- */
+
+void NormalDMT::coeffs_to_local()
+{
+  Emod = coeffs[0];
+  damp = coeffs[1];
+  poiss = coeffs[2];
+  cohesion = coeffs[3];
+  k_norm = 4 / 3 * Emod;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NormalDMT::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+{
+  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
+  coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
+  coeffs[3] = mix_geom(imodel->coeffs[3], jmodel->coeffs[3]);
+  coeffs_to_local();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double NormalDMT::calculate_forces()
 {
   contact.area = sqrt(contact.dR);
-  contact.knfac = contact.k_norm * contact.area;
-  double Fne = contact.knfac * contact.delta;
+  knfac = k_norm * contact.area;
+  Fne = knfac * contact.delta;
   F_pulloff = 4 * MathConst::MY_PI * cohesion * contact.Reff;
   Fne -= F_pulloff;
   return Fne;
 }
 
-void DMT::set_fncrit()
+/* ---------------------------------------------------------------------- */
+
+void NormalDMT::set_fncrit()
 {
-  contact.Fncrit = fabs(contact.Fne + 2* F_pulloff);
+  Fncrit = fabs(Fne + 2* F_pulloff);
 }
 
-//******************
-// JKR
-//******************
-void JKR::JKR(ContactModel &c)
+/* ----------------------------------------------------------------------
+   JKR normal force
+------------------------------------------------------------------------- */
+
+void NormalJKR::NormalJKR(ContactModel &c)
 {
-  material_prop_flag = 1;
+  allow_limit_damping = 0;
+  material_properties = 1;
   contact.beyond_contact = beyond_contact = 1;
   num_coeffs = 4;
 }
 
-bool JKR::touch(int touch)
+/* ---------------------------------------------------------------------- */
+
+void NormalJKR::coeffs_to_local()
 {
-  double Escaled, R2, delta_pulloff, dist_pulloff;
+  Emod = coeffs[0];
+  damp = coeffs[1];
+  poiss = coeffs[2];
+  cohesion = coeffs[3];
+  k_norm = 4/3*Emod;
+  Escaled = k_norm * THREEQUARTERS;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NormalJKR::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+{
+  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
+  coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
+  coeffs[3] = mix_geom(imodel->coeffs[3], jmodel->coeffs[3]);
+  coeffs_to_local();
+}
+
+/* ---------------------------------------------------------------------- */
+
+bool NormalJKR::touch(int touch)
+{
+  double R2, delta_pulloff, dist_pulloff;
   bool touchflag;
 
-  Escaled = k_norm * THREEQUARTERS;
   if (touch) {
     R2 = contact.Reff * contact.Reff;
     a = cbrt(9.0 * MY_PI * cohesion * R2 / (4 * Escaled));
@@ -159,12 +261,12 @@ bool JKR::touch(int touch)
   return touchflag;
 }
 
-double JKR::calculate_forces()
-{
-  double Escaled, R2, dR2, t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3, a2, F_pulloff, Fne;
+/* ---------------------------------------------------------------------- */
 
-  Escaled = k_norm * THREEQUARTERS;
+double NormalJKR::calculate_forces()
+{
+  double R2, dR2, t0, t1, t2, t3, t4, t5, t6;
+  double sqrt1, sqrt2, sqrt3, a2;
 
   R2 = Reff * Reff;
   dR2 = dR * dR;
@@ -180,28 +282,31 @@ double JKR::calculate_forces()
   sqrt2 = MAX(0, 2 * dR + t5);
   t6 = sqrt(sqrt2);
   sqrt3 = MAX(0, 4 * dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Escaled * t6));
-  a = INVROOT6 * (t6 + sqrt(sqrt3));
-  a2 = a * a;
-  Fne = Escaled * a * a2 / Reff - MY_2PI * a2 * sqrt(4 * cohesion * Escaled / (MY_PI * a));
+  contact.area = INVROOT6 * (t6 + sqrt(sqrt3));
+  a2 = contact.area * contact.area;
+  Fne = Escaled * contact.area * a2 / Reff - MY_2PI * a2 * sqrt(4 * cohesion * Escaled / (MY_PI * contact.area));
   F_pulloff = 3 * MY_PI * cohesion * Reff;
 
-  knfac = Escaled * a;
+  knfac = Escaled * contact.area;
   return Fne;
 }
 
-void JKR::set_fncrit()
+/* ---------------------------------------------------------------------- */
+
+void NormalJKR::set_fncrit()
 {
-  contact.Fncrit = fabs(contact.Fne + 2 * F_pulloff);
+  Fncrit = fabs(Fne + 2 * F_pulloff);
 }
 
-void JKR::pulloff_distance(double radi, double radj)
+/* ---------------------------------------------------------------------- */
+
+void NormalJKR::pulloff_distance(double radi, double radj)
 {
-  double Ecaled, a_tmp, Reff_tmp;
+  double a_tmp, Reff_tmp;
 
   Reff_tmp = radi * radj / (radi + radj);
   if (Reff_tmp <= 0) return 0;
 
-  Ecaled = k_norm * THREEQUARTERS;
   a_tmp = cbrt(9 * MY_PI * cohesion * Reff_tmp * Reff_tmp / (4 * Ecaled));
   return a_tmp * a_tmp / Reff_tmp - 2 * sqrt(MY_PI * cohesion * a_tmp / Ecaled);
 }

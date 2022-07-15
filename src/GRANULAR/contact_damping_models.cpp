@@ -23,32 +23,66 @@ using namespace MathSpecial;
 
 namespace Contact{
 
-void DampingModel::allocate_coeffs(){
-  damp = contact.normal_model->coeffs[1];
+
+/* ----------------------------------------------------------------------
+   Default damping model
+------------------------------------------------------------------------- */
+
+void DampingModel::DampingModel()
+{
+  num_coeffs = 0;
 }
 
-//-----------------------------------------
-double Velocity::calculate_forces(){
-  return -damp*contact.vnnr;
+/* ---------------------------------------------------------------------- */
+
+void DampingModel::coeffs_to_local()
+{
+  damp = contact.normal_model.damp;
 }
 
-double MassVelocity::calculate_forces(){
-  return -damp*contact.meff*contact.vnnr;
+/* ----------------------------------------------------------------------
+   Velocity damping
+------------------------------------------------------------------------- */
+
+double DampingVelocity::calculate_forces()
+{
+  return -damp * contact.vnnr;
 }
 
+/* ----------------------------------------------------------------------
+   Mass velocity damping
+------------------------------------------------------------------------- */
 
-double ViscoElastic::calculate_forces(){
-  return -damp*contact.meff*contact.area*contact.vnnr;
+double MassVelocity::calculate_forces()
+{
+  return -damp * contact.meff * contact.vnnr;
 }
 
+/* ----------------------------------------------------------------------
+   Default, viscoelastic damping
+------------------------------------------------------------------------- */
 
-void Tsuji::allocate_coeffs(){
-  double cor = contact.normal_model->coeffs[1];
-  damp = 1.2728-4.2783*cor+11.087*square(cor)-22.348*cube(cor)+
-      27.467*powint(cor,4)-18.022*powint(cor,5)+4.8218*powint(cor,6);
+double ViscoElastic::calculate_forces()
+{
+  return -damp * contact.meff * contact.area * contact.vnnr;
 }
 
-double Tsuji::calculate_forces(){
-  return -damp*sqrt(contact.meff*contact.knfac)*contact.vnnr;
+/* ----------------------------------------------------------------------
+   Tsuji damping
+------------------------------------------------------------------------- */
+
+void Tsuji::coeffs_to_local()
+{
+  double tmp = contact.normal_model.damp;
+  damp = 1.2728 - 4.2783 * tmp + 11.087 * square(tmp);
+  damp += -22.348 * cube(tmp)+ 27.467 * powint(tmp, 4);
+  damp += -18.022 * powint(tmp, 5) + 4.8218 * powint(tmp,6);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double Tsuji::calculate_forces()
+{
+  return -damp_scaled * sqrt(contact.meff * contact.normal_model.knfac) * contact.vnnr;
 }
 

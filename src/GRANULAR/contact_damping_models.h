@@ -19,34 +19,48 @@
 
 namespace Contact {
 
-class DampingModel:SubModel{
-public:
-  DampingModel(){};
-  virtual ~DampingModel(){};
+class DampingModel:SubModel
+{
+ public:
+  DampingModel();
+  virtual ~DampingModel() {};
   virtual double calculate_forces() = 0;
-  virtual void allocate_coeffs();
+  virtual void coeffs_to_local();
+  virtual void mix_coeffs(NormalModel*, NormalModel*);
   double damp;
 };
 
-class Velocity:DampingModel{
-public:
+/* ---------------------------------------------------------------------- */
+
+class DampingVelocity:DampingModel
+{
+ public:
   double calculate_forces();
 };
 
-class MassVelocity:DampingModel{
-public:
+/* ---------------------------------------------------------------------- */
+
+class DampingMassVelocity:DampingModel
+{
+ public:
   double calculate_forces();
 };
 
-class ViscoElastic:DampingModel{
-public:
+/* ---------------------------------------------------------------------- */
+
+class DampingViscoElastic:DampingModel
+{
+ public:
   double calculate_forces();
 };
 
-class Tsuji:DampingModel{
-public:
+/* ---------------------------------------------------------------------- */
+
+class DampingTsuji:DampingModel
+{
+ public:
   double calculate_forces();
-  void allocate_coeffs();
+  void coeffs_to_local();
 };
 
 

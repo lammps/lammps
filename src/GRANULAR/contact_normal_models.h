@@ -20,65 +20,91 @@
 namespace Contact {
 
 class NormalModel:SubModel{
-public:
-  NormalModel(){};
-  virtual ~NormalModel(){};
+ public:
+  NormalModel();
+  virtual ~NormalModel() {};
   virtual bool check_contact();
-  virtual void prep_contact();
   virtual void set_fncrit();
   virtual double calculate_forces() = 0;
   virtual void coeffs_to_local();
-  virtual void mix_coeffs(NormalModel*, NormalModel*); //When mixing is needed
+  virtual void mix_coeffs(NormalModel*, NormalModel*);
   void pulloff_distance(double, double);
-
-private:
-  int size_history = 0;
-  int beyond_contact = 0;
-  int allow_limit_damping = 1;
-
+  double damp;  // Vestigial argument needed by damping
+  double Fncrit, Fne, knfac;
+  int material_properties;
 };
 
-class Hooke:NormalModel{
-public:
-  Hooke();
-  ~Hooke(){};
+/* ---------------------------------------------------------------------- */
+
+class NormalHooke:NormalModel
+{
+ public:
+  NormalHooke();
+  ~NormalHooke() {};
   void coeffs_to_local();
+  void mix_coeffs(NormalModel*, NormalModel*);
   double calculate_forces();
-private:
-  double k_norm, damp;
+  double Emod, poiss;
 };
 
-class Hertz:NormalModel{
-public:
-  Hertz(int);
-  ~Hertz(){};
+/* ---------------------------------------------------------------------- */
+
+class NormalHertz:NormalModel
+{
+ public:
+  NormalHertz();
+  ~NormalHertz() {};
   void coeffs_to_local();
+  void mix_coeffs(NormalModel*, NormalModel*);
   double calculate_forces();
-private:
-  double k_norm, damp, Emod, poiss;
+ private:
+  double k_norm;
 };
 
-class DMT:NormalModel{
-public:
-  DMT();
-  ~DMT(){};
+/* ---------------------------------------------------------------------- */
+
+class NormalHertzMaterial:NormalHertz
+{
+ public:
+  NormalHertzMaterial();
+  ~NormalHertzMaterial() {};
   void coeffs_to_local();
-  void coeffs_to_local(NormalModel*, NormalModel*);
+  void mix_coeffs(NormalModel*, NormalModel*);
+ private:
+  double k_norm;
+};
+
+/* ---------------------------------------------------------------------- */
+
+class NormalDMT:NormalModel
+{
+ public:
+  NormalDMT();
+  ~NormalDMT() {};
+  void coeffs_to_local();
+  void mix_coeffs(NormalModel*, NormalModel*);
+  void set_fncrit();
   double calculate_forces();
-private:
-  double k_norm, damp, Emod, cohesion, poiss;
+ private:
+  double k_norm, cohesion;
   double F_pulloff;
 };
 
-class JKR:NormalModel{
-public:
-  JKR();
-  ~JKR(){};
+/* ---------------------------------------------------------------------- */
+
+class NormalJKR:NormalModel
+{
+ public:
+  NormalJKR();
+  ~NormalJKR() {};
   void coeffs_to_local();
+  void mix_coeffs(NormalModel*, NormalModel*);
+  void set_fncrit();
   double calculate_forces();
-private:
-  double k_norm, damp, Emod, cohesion, poiss;
-  double F_pulloff;
+  void pulloff_distance(double, double);
+ private:
+  double k_norm, cohesion;
+  double Escaled, F_pulloff;
 };
 }
 

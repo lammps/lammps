@@ -29,19 +29,10 @@ namespace LAMMPS_NS {
 class NPairHalfRespaBinNewtonTri : public NPair {
  public:
   NPairHalfRespaBinNewtonTri(class LAMMPS *);
-  ~NPairHalfRespaBinNewtonTri() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Neighbor list overflow, boost neigh_modify one
-
-UNDOCUMENTED
-
-*/

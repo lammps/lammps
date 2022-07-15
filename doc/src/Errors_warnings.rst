@@ -416,7 +416,7 @@ This will most likely cause errors in kinetic fluctuations.
    not defined for the specified atom style.
 
 *Molecule has bond topology but no special bond settings*
-   This means the bonded atoms will not be excluded in pair-wise
+   This means the bonded atoms will not be excluded in pairwise
    interactions.
 
 *Molecule template for create_atoms has multiple molecules*
@@ -468,6 +468,12 @@ This will most likely cause errors in kinetic fluctuations.
    Self-explanatory.
 
 *More than one compute sna/atom*
+   Self-explanatory.
+
+*More than one compute sna/grid*
+   Self-explanatory.
+
+*More than one compute sna/grid/local*
    Self-explanatory.
 
 *More than one compute snad/atom*

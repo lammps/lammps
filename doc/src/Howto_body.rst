@@ -239,7 +239,7 @@ is consistent with the 6 moments of inertia: ixx iyy izz ixy ixz iyz =
 
 .. parsed-literal::
 
-   3 1 27
+   3 1 19
    4
    1 1 4 0 0 0
    -0.7071 -0.7071 0

@@ -27,23 +27,13 @@ namespace LAMMPS_NS {
 class ComputeMomentum : public Compute {
  public:
   ComputeMomentum(class LAMMPS *, int, char **);
-  virtual ~ComputeMomentum();
+  ~ComputeMomentum() override;
 
-  virtual void init();
-  virtual void compute_vector();
+  void init() override;
+  void compute_vector() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

@@ -63,7 +63,6 @@
 
 namespace Kokkos {
 namespace Impl {
-
 class ThreadsExec {
  public:
   // Fan array has log_2(NT) reduction threads plus 2 scan threads
@@ -122,15 +121,16 @@ class ThreadsExec {
 
   static void global_lock();
   static void global_unlock();
-  static bool spawn();
+  static void spawn();
 
-  static void execute_resize_scratch(ThreadsExec &, const void *);
+  static void first_touch_allocate_thread_private_scratch(ThreadsExec &,
+                                                          const void *);
   static void execute_sleep(ThreadsExec &, const void *);
 
   ThreadsExec(const ThreadsExec &);
   ThreadsExec &operator=(const ThreadsExec &);
 
-  static void execute_serial(void (*)(ThreadsExec &, const void *));
+  static void execute_resize_scratch_in_serial();
 
  public:
   KOKKOS_INLINE_FUNCTION int pool_size() const { return m_pool_size; }
@@ -474,6 +474,12 @@ class ThreadsExec {
 
   static int in_parallel();
   static void fence();
+  static void fence(const std::string &);
+  static void internal_fence(
+      Impl::fence_is_static is_static = Impl::fence_is_static::yes);
+  static void internal_fence(
+      const std::string &,
+      Impl::fence_is_static is_static = Impl::fence_is_static::yes);
   static bool sleep();
   static bool wake();
 
@@ -635,7 +641,12 @@ inline void Threads::print_configuration(std::ostream &s, const bool detail) {
   Impl::ThreadsExec::print_configuration(s, detail);
 }
 
-inline void Threads::impl_static_fence() { Impl::ThreadsExec::fence(); }
+inline void Threads::impl_static_fence() {
+  Impl::ThreadsExec::internal_fence(Impl::fence_is_static::yes);
+}
+inline void Threads::impl_static_fence(const std::string &name) {
+  Impl::ThreadsExec::internal_fence(name, Impl::fence_is_static::yes);
+}
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
@@ -683,36 +694,33 @@ class UniqueToken<Threads, UniqueTokenScope::Instance> {
   /// \brief acquire value such that 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int acquire() const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    if (m_buffer == nullptr) {
-      return Threads::impl_thread_pool_rank();
-    } else {
-      const ::Kokkos::pair<int, int> result =
-          ::Kokkos::Impl::concurrent_bitset::acquire_bounded(
-              m_buffer, m_count, ::Kokkos::Impl::clock_tic() % m_count);
+    KOKKOS_IF_ON_HOST((
+        if (m_buffer == nullptr) {
+          return Threads::impl_thread_pool_rank();
+        } else {
+          const ::Kokkos::pair<int, int> result =
+              ::Kokkos::Impl::concurrent_bitset::acquire_bounded(
+                  m_buffer, m_count, ::Kokkos::Impl::clock_tic() % m_count);
 
-      if (result.first < 0) {
-        ::Kokkos::abort(
-            "UniqueToken<Threads> failure to acquire tokens, no tokens "
-            "available");
-      }
-      return result.first;
-    }
-#else
-    return 0;
-#endif
+          if (result.first < 0) {
+            ::Kokkos::abort(
+                "UniqueToken<Threads> failure to acquire tokens, no tokens "
+                "available");
+          }
+          return result.first;
+        }))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /// \brief release a value acquired by generate
   KOKKOS_INLINE_FUNCTION
   void release(int i) const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    if (m_buffer != nullptr) {
+    KOKKOS_IF_ON_HOST((if (m_buffer != nullptr) {
       ::Kokkos::Impl::concurrent_bitset::release(m_buffer, i);
-    }
-#else
-    (void)i;
-#endif
+    }))
+
+    KOKKOS_IF_ON_DEVICE(((void)i;))
   }
 };
 
@@ -730,21 +738,17 @@ class UniqueToken<Threads, UniqueTokenScope::Global> {
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int size() const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    return Threads::impl_thread_pool_size();
-#else
-    return 0;
-#endif
+    KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_size();))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /// \brief acquire value such that 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   int acquire() const noexcept {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    return Threads::impl_thread_pool_rank();
-#else
-    return 0;
-#endif
+    KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_rank();))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /// \brief release a value acquired by generate

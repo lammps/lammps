@@ -28,13 +28,14 @@ class ComputePEMolTally : public Compute {
 
  public:
   ComputePEMolTally(class LAMMPS *, int, char **);
-  virtual ~ComputePEMolTally();
+  ~ComputePEMolTally() override;
 
-  void init();
-  void compute_vector();
+  void init() override;
+  void compute_vector() override;
 
-  void pair_setup_callback(int, int);
-  void pair_tally_callback(int, int, int, int, double, double, double, double, double, double);
+  void pair_setup_callback(int, int) override;
+  void pair_tally_callback(int, int, int, int, double, double, double, double, double,
+                           double) override;
 
  private:
   bigint did_setup;
@@ -46,13 +47,3 @@ class ComputePEMolTally : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

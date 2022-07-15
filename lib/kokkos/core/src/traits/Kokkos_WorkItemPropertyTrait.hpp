@@ -59,6 +59,13 @@ namespace Impl {
 struct WorkItemPropertyTrait : TraitSpecificationBase<WorkItemPropertyTrait> {
   struct base_traits {
     using work_item_property = Kokkos::Experimental::WorkItemProperty::None_t;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
+  };
+  template <class WorkItemProp, class AnalyzeNextTrait>
+  struct mixin_matching_trait : AnalyzeNextTrait {
+    using base_t = AnalyzeNextTrait;
+    using base_t::base_t;
+    using work_item_property = WorkItemProp;
   };
   template <class T>
   using trait_matches_specification =
@@ -66,26 +73,6 @@ struct WorkItemPropertyTrait : TraitSpecificationBase<WorkItemPropertyTrait> {
 };
 
 // </editor-fold> end trait specification }}}1
-//==============================================================================
-
-//==============================================================================
-// <editor-fold desc="AnalyzeExecPolicy specializations"> {{{1
-
-template <class Property, class... Traits>
-struct AnalyzeExecPolicy<
-    std::enable_if_t<
-        Kokkos::Experimental::is_work_item_property<Property>::value>,
-    Property, Traits...> : AnalyzeExecPolicy<void, Traits...> {
-  using base_t = AnalyzeExecPolicy<void, Traits...>;
-  using base_t::base_t;
-  static_assert(
-      std::is_same<typename base_t::work_item_property,
-                   Kokkos::Experimental::WorkItemProperty::None_t>::value,
-      "Kokkos Error: More than one work item property given");
-  using work_item_property = Property;
-};
-
-// </editor-fold> end AnalyzeExecPolicy specializations }}}1
 //==============================================================================
 
 }  // end namespace Impl

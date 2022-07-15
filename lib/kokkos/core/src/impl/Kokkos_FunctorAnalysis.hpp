@@ -48,7 +48,6 @@
 #include <cstddef>
 #include <Kokkos_Core_fwd.hpp>
 #include <impl/Kokkos_Traits.hpp>
-#include <impl/Kokkos_Tags.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -722,14 +721,16 @@ struct FunctorAnalysis {
 
     template <bool IsArray>
     KOKKOS_INLINE_FUNCTION constexpr
-        typename std::enable_if<IsArray, FunctorAnalysis::ValueType*>::type
+        typename std::enable_if<IsArray,
+                                typename FunctorAnalysis::ValueType*>::type
         ref() const noexcept {
       return m_result;
     }
 
     template <bool IsArray>
     KOKKOS_INLINE_FUNCTION constexpr
-        typename std::enable_if<!IsArray, FunctorAnalysis::ValueType&>::type
+        typename std::enable_if<!IsArray,
+                                typename FunctorAnalysis::ValueType&>::type
         ref() const noexcept {
       return *m_result;
     }

@@ -22,11 +22,11 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_bond_history.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "random_mars.h"
@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_bond_swap[] =
-  "neighbor multi command:\n\n"
+  "fix bond/swap command:\n\n"
   "@Article{Auhl03,\n"
   " author = {R. Auhl, R. Everaers, G. S. Grest, K. Kremer, S. J. Plimpton},\n"
   " title = {Equilibration of long chain polymer melts in computer simulations},\n"
@@ -166,10 +166,7 @@ void FixBondSwap::init()
 
   // need a half neighbor list, built every Nevery steps
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   // zero out stats
 
@@ -493,6 +490,10 @@ void FixBondSwap::post_integrate()
   if (!accept) return;
   naccept++;
 
+  // find instances of bond/history to reset history
+  auto histories = modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
+
   // change bond partners of affected atoms
   // on atom i: bond i-inext changes to i-jnext
   // on atom j: bond j-jnext changes to j-inext
@@ -500,13 +501,33 @@ void FixBondSwap::post_integrate()
   // on atom jnext: bond jnext-j changes to jnext-i
 
   for (ibond = 0; ibond < num_bond[i]; ibond++)
-    if (bond_atom[i][ibond] == tag[inext]) bond_atom[i][ibond] = tag[jnext];
+    if (bond_atom[i][ibond] == tag[inext]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,ibond);
+      bond_atom[i][ibond] = tag[jnext];
+    }
   for (jbond = 0; jbond < num_bond[j]; jbond++)
-    if (bond_atom[j][jbond] == tag[jnext]) bond_atom[j][jbond] = tag[inext];
+    if (bond_atom[j][jbond] == tag[jnext]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(j,jbond);
+      bond_atom[j][jbond] = tag[inext];
+    }
   for (ibond = 0; ibond < num_bond[inext]; ibond++)
-    if (bond_atom[inext][ibond] == tag[i]) bond_atom[inext][ibond] = tag[j];
+    if (bond_atom[inext][ibond] == tag[i]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(inext,ibond);
+      bond_atom[inext][ibond] = tag[j];
+    }
   for (jbond = 0; jbond < num_bond[jnext]; jbond++)
-    if (bond_atom[jnext][jbond] == tag[j]) bond_atom[jnext][jbond] = tag[i];
+    if (bond_atom[jnext][jbond] == tag[j]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(jnext,jbond);
+      bond_atom[jnext][jbond] = tag[i];
+    }
 
   // set global tags of 4 atoms in bonds
 

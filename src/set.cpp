@@ -50,7 +50,7 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,IVEC,DVEC,IARRAY,DARRAY};
+     SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
 
 #define BIG INT_MAX
 
@@ -303,7 +303,7 @@ void Set::command(int narg, char **arg)
       else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (utils::strmatch(arg[iarg+4],"^v_")) varparse(arg[iarg+4],4);
       else wvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag)
+      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag && !atom->quat_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(QUAT);
       iarg += 5;
@@ -311,7 +311,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"quat/random") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag)
+      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag && !atom->quat_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       if (ivalue <= 0)
         error->all(FLERR,"Invalid random number seed in set command");
@@ -321,10 +321,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"theta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else {
-        dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-        dvalue *= MY_PI/180.0;
-      }
+      else dvalue = DEG2RAD * utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (!atom->line_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(THETA);
@@ -571,6 +568,19 @@ void Set::command(int narg, char **arg)
       set(DPDTHETA);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"epsilon") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) dvalue = -1.0;
+      else if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else {
+        dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (dvalue < 0.0) error->all(FLERR,"Illegal set command");
+      }
+      if (!atom->dielectric_flag)
+        error->all(FLERR,"Cannot set epsilon for this atom style");
+      set(EPSILON);
+      iarg += 2;
+
     } else {
 
       // set custom per-atom vector or array or error out
@@ -703,13 +713,13 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == REGION_SELECT) {
-    int iregion = domain->find_region(id);
-    if (iregion == -1) error->all(FLERR,"Set region ID does not exist");
-    domain->regions[iregion]->prematch();
+    auto region = domain->get_region_by_id(id);
+    if (!region) error->all(FLERR,"Set region {} does not exist", id);
+    region->prematch();
 
     double **x = atom->x;
     for (int i = 0; i < n; i++)
-      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+      if (region->match(x[i][0],x[i][1],x[i][2]))
         select[i] = 1;
       else select[i] = 0;
   }
@@ -770,11 +780,10 @@ void Set::set(int keyword)
 
   // loop over selected atoms
 
-  AtomVecEllipsoid *avec_ellipsoid =
-    (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-  AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-  AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
@@ -937,31 +946,44 @@ void Set::set(int keyword)
       sp[i][3] = dvalue;
     }
 
-    // set quaternion orientation of ellipsoid or tri or body particle
-    // set quaternion orientation of ellipsoid or tri or body particle
+    // set quaternion orientation of ellipsoid or tri or body particle or sphere/bpm
     // enforce quat rotation vector in z dir for 2d systems
 
     else if (keyword == QUAT) {
       double *quat = nullptr;
+      double **quat2 = nullptr;
       if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
         quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       else if (avec_tri && atom->tri[i] >= 0)
         quat = avec_tri->bonus[atom->tri[i]].quat;
       else if (avec_body && atom->body[i] >= 0)
         quat = avec_body->bonus[atom->body[i]].quat;
+      else if (atom->quat_flag)
+        quat2 = atom->quat;
       else
         error->one(FLERR,"Cannot set quaternion for atom that has none");
       if (domain->dimension == 2 && (xvalue != 0.0 || yvalue != 0.0))
-        error->one(FLERR,"Cannot set quaternion with xy components "
-                   "for 2d system");
+        error->one(FLERR,"Cannot set quaternion with xy components for 2d system");
 
-      double theta2 = MY_PI2 * wvalue/180.0;
-      double sintheta2 = sin(theta2);
-      quat[0] = cos(theta2);
-      quat[1] = xvalue * sintheta2;
-      quat[2] = yvalue * sintheta2;
-      quat[3] = zvalue * sintheta2;
-      MathExtra::qnormalize(quat);
+      const double theta2 = MY_PI2 * wvalue/180.0;
+      const double sintheta2 = sin(theta2);
+      double temp[4];
+      temp[0] = cos(theta2);
+      temp[1] = xvalue * sintheta2;
+      temp[2] = yvalue * sintheta2;
+      temp[3] = zvalue * sintheta2;
+      MathExtra::qnormalize(temp);
+      if (atom->quat_flag) {
+        quat2[i][0] = temp[0];
+        quat2[i][1] = temp[1];
+        quat2[i][2] = temp[2];
+        quat2[i][3] = temp[3];
+      } else {
+        quat[0] = temp[0];
+        quat[1] = temp[1];
+        quat[2] = temp[2];
+        quat[3] = temp[3];
+      }
     }
 
     // set theta of line particle
@@ -1001,6 +1023,22 @@ void Set::set(int keyword)
       atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
         (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+    }
+
+    // set the local dielectric constant
+
+    else if (keyword == EPSILON) {
+      if (dvalue >= 0.0) {
+
+        // compute the unscaled charge value (i.e. atom->q_unscaled)
+        // assign the new local dielectric constant
+        // update both the scaled and unscaled charge values
+
+        double q_unscaled = atom->q[i] * atom->epsilon[i];
+        atom->epsilon[i] = dvalue;
+        atom->q[i] = q_unscaled / dvalue;
+        atom->q_unscaled[i] = q_unscaled;
+      }
     }
 
     // set value for custom property vector or array
@@ -1058,17 +1096,16 @@ void Set::setrandom(int keyword)
 {
   int i;
 
-  AtomVecEllipsoid *avec_ellipsoid =
-    (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-  AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-  AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
 
   double **x = atom->x;
   int seed = ivalue;
 
-  RanPark *ranpark = new RanPark(lmp,1);
-  RanMars *ranmars = new RanMars(lmp,seed + comm->me);
+  auto ranpark = new RanPark(lmp,1);
+  auto ranmars = new RanMars(lmp,seed + comm->me);
 
   // set approx fraction of atom types to newtype
 
@@ -1223,6 +1260,7 @@ void Set::setrandom(int keyword)
   } else if (keyword == QUAT_RANDOM) {
     int nlocal = atom->nlocal;
     double *quat;
+    double **quat2;
 
     if (domain->dimension == 3) {
       double s,t1,t2,theta1,theta2;
@@ -1234,6 +1272,8 @@ void Set::setrandom(int keyword)
             quat = avec_tri->bonus[atom->tri[i]].quat;
           else if (avec_body && atom->body[i] >= 0)
             quat = avec_body->bonus[atom->body[i]].quat;
+          else if (atom->quat_flag)
+            quat2 = atom->quat;
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
@@ -1243,10 +1283,17 @@ void Set::setrandom(int keyword)
           t2 = sqrt(s);
           theta1 = 2.0*MY_PI*ranpark->uniform();
           theta2 = 2.0*MY_PI*ranpark->uniform();
-          quat[0] = cos(theta2)*t2;
-          quat[1] = sin(theta1)*t1;
-          quat[2] = cos(theta1)*t1;
-          quat[3] = sin(theta2)*t2;
+          if (atom->quat_flag) {
+            quat2[i][0] = cos(theta2)*t2;
+            quat2[i][1] = sin(theta1)*t1;
+            quat2[i][2] = cos(theta1)*t1;
+            quat2[i][3] = sin(theta2)*t2;
+          } else {
+            quat[0] = cos(theta2)*t2;
+            quat[1] = sin(theta1)*t1;
+            quat[2] = cos(theta1)*t1;
+            quat[3] = sin(theta2)*t2;
+          }
           count++;
         }
 
@@ -1258,15 +1305,24 @@ void Set::setrandom(int keyword)
             quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
           else if (avec_body && atom->body[i] >= 0)
             quat = avec_body->bonus[atom->body[i]].quat;
+          else if (atom->quat_flag)
+            quat2 = atom->quat;
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
           ranpark->reset(seed,x[i]);
           theta2 = MY_PI*ranpark->uniform();
-          quat[0] = cos(theta2);
-          quat[1] = 0.0;
-          quat[2] = 0.0;
-          quat[3] = sin(theta2);
+          if (atom->quat_flag) {
+            quat2[i][0] = cos(theta2);
+            quat2[i][1] = 0.0;
+            quat2[i][2] = 0.0;
+            quat2[i][3] = sin(theta2);
+          } else {
+            quat[0] = cos(theta2);
+            quat[1] = 0.0;
+            quat[2] = 0.0;
+            quat[3] = sin(theta2);
+          }
           count++;
         }
     }

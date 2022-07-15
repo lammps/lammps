@@ -35,8 +35,8 @@ class TextFileReaderTest : public ::testing::Test {
 protected:
     void TearDown() override
     {
-        unlink("text_reader_one.file");
-        unlink("text_reader_two.file");
+        platform::unlink("text_reader_one.file");
+        platform::unlink("text_reader_two.file");
     }
 
     void test_files()
@@ -65,16 +65,22 @@ TEST_F(TextFileReaderTest, nofile)
                  FileReaderException);
 }
 
+// this test cannot work on windows due to its non unix-like permission system
+
+#if !defined(_WIN32)
 TEST_F(TextFileReaderTest, permissions)
 {
+    platform::unlink("text_reader_noperms.file");
     FILE *fp = fopen("text_reader_noperms.file", "w");
+    ASSERT_NE(fp, nullptr);
     fputs("word\n", fp);
     fclose(fp);
     chmod("text_reader_noperms.file", 0);
     ASSERT_THROW({ TextFileReader reader("text_reader_noperms.file", "test"); },
                  FileReaderException);
-    unlink("text_reader_noperms.file");
+    platform::unlink("text_reader_noperms.file");
 }
+#endif
 
 TEST_F(TextFileReaderTest, nofp)
 {
@@ -105,7 +111,7 @@ TEST_F(TextFileReaderTest, usefp)
     delete reader;
 
     // check that we reached EOF and the destructor didn't close the file.
-    ASSERT_EQ(feof(fp), 1);
+    ASSERT_NE(feof(fp), 0);
     ASSERT_EQ(fclose(fp), 0);
 }
 

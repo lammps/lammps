@@ -70,6 +70,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   restart_global = 1;
   global_freq = nfreq;
+  time_depend = 1;
 
   // parse values until one isn't recognized
 
@@ -187,14 +188,11 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/correlate/long does not exist");
       if (argindex[i] == 0 && modify->compute[icompute]->scalar_flag == 0)
-        error->all(FLERR,
-                   "Fix ave/correlate/long compute does not calculate a scalar");
+        error->all(FLERR,"Fix ave/correlate/long compute does not calculate a scalar");
       if (argindex[i] && modify->compute[icompute]->vector_flag == 0)
-        error->all(FLERR,
-                   "Fix ave/correlate/long compute does not calculate a vector");
+        error->all(FLERR,"Fix ave/correlate/long compute does not calculate a vector");
       if (argindex[i] && argindex[i] > modify->compute[icompute]->size_vector)
-        error->all(FLERR,"Fix ave/correlate/long compute vector "
-                   "is accessed out-of-range");
+        error->all(FLERR,"Fix ave/correlate/long compute vector is accessed out-of-range");
 
     } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
@@ -205,19 +203,16 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
       if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
         error->all(FLERR,"Fix ave/correlate/long fix does not calculate a vector");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_vector)
-        error->all(FLERR,
-                   "Fix ave/correlate/long fix vector is accessed out-of-range");
+        error->all(FLERR,"Fix ave/correlate/long fix vector is accessed out-of-range");
       if (nevery % modify->fix[ifix]->global_freq)
-        error->all(FLERR,"Fix for fix ave/correlate/long "
-                   "not computed at compatible time");
+        error->all(FLERR,"Fix for fix ave/correlate/long not computed at compatible time");
 
     } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate/long does not exist");
       if (input->variable->equalstyle(ivariable) == 0)
-        error->all(FLERR,
-                   "Fix ave/correlate/long variable is not equal-style variable");
+        error->all(FLERR,"Fix ave/correlate/long variable is not equal-style variable");
     }
   }
 
@@ -400,11 +395,8 @@ void FixAveCorrelateLong::end_of_step()
   double scalar;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/correlate/long");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -436,7 +428,7 @@ void FixAveCorrelateLong::end_of_step()
         scalar = compute->vector[argindex[i]-1];
       }
 
-    // access fix fields, guaranteed to be ready
+      // access fix fields, guaranteed to be ready
 
     } else if (which[i] == ArgInfo::FIX) {
       if (argindex[i] == 0)
@@ -444,7 +436,7 @@ void FixAveCorrelateLong::end_of_step()
       else
         scalar = modify->fix[m]->compute_vector(argindex[i]-1);
 
-    // evaluate equal-style variable
+      // evaluate equal-style variable
 
     } else if (which[i] == ArgInfo::VARIABLE)
       scalar = input->variable->compute_equal(m);
@@ -467,13 +459,13 @@ void FixAveCorrelateLong::end_of_step()
 
   if (fp && me == 0) {
     if (overwrite) platform::fseek(fp,filepos);
-    fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
+    fmt::print(fp,"# Timestep: {}\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
       fprintf(fp, "%lg ", t[i]*update->dt*nevery);
       for (int j=0;j<npair;++j) {
         fprintf(fp, "%lg ", f[j][i]);
       }
-    fprintf(fp, "\n");
+      fprintf(fp, "\n");
     }
     fflush(fp);
     if (overwrite) {
@@ -482,9 +474,6 @@ void FixAveCorrelateLong::end_of_step()
         error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
-
-  return;
-
 }
 
 void FixAveCorrelateLong::evaluate() {
@@ -747,7 +736,7 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
 void FixAveCorrelateLong::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int npairin = static_cast<int> (list[n++]);
   int numcorrelatorsin = static_cast<int> (list[n++]);
   int pin = static_cast<int> (list[n++]);

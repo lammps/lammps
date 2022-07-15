@@ -47,6 +47,7 @@
 
 #include <cinttypes>
 #include <cstddef>
+#include <climits>
 
 #include <cstdlib>
 
@@ -56,6 +57,14 @@
 namespace Kokkos {
 namespace Tools {
 namespace Experimental {
+
+constexpr const uint32_t NumReservedDeviceIDs = 1;
+
+enum SpecialSynchronizationCases : int {
+  GlobalDeviceSynchronization     = 1,
+  DeepCopyResourceSynchronization = 2,
+};
+
 enum struct DeviceType {
   Serial,
   OpenMP,
@@ -68,15 +77,55 @@ enum struct DeviceType {
   Unknown
 };
 
+struct ExecutionSpaceIdentifier {
+  DeviceType type;
+  uint32_t device_id;
+  uint32_t instance_id;
+};
+
+constexpr const uint32_t num_type_bits     = 8;
+constexpr const uint32_t num_device_bits   = 7;
+constexpr const uint32_t num_instance_bits = 17;
+constexpr const uint32_t num_avail_bits    = sizeof(uint32_t) * CHAR_BIT;
+
+inline DeviceType devicetype_from_uint32t(const uint32_t in) {
+  switch (in) {
+    case 0: return DeviceType::Serial;
+    case 1: return DeviceType::OpenMP;
+    case 2: return DeviceType::Cuda;
+    case 3: return DeviceType::HIP;
+    case 4: return DeviceType::OpenMPTarget;
+    case 5: return DeviceType::HPX;
+    case 6: return DeviceType::Threads;
+    case 7: return DeviceType::SYCL;
+    default: return DeviceType::Unknown;  // TODO: error out?
+  }
+}
+
+inline ExecutionSpaceIdentifier identifier_from_devid(const uint32_t in) {
+  constexpr const uint32_t shift = num_avail_bits - num_type_bits;
+
+  return {devicetype_from_uint32t(in >> shift), /*First 8 bits*/
+          (~((uint32_t(-1)) << num_device_bits)) &
+              (in >> num_instance_bits),                  /*Next 7 bits */
+          (~((uint32_t(-1)) << num_instance_bits)) & in}; /*Last 17 bits*/
+}
+
 template <typename ExecutionSpace>
 struct DeviceTypeTraits;
 
-constexpr const size_t device_type_bits = 8;
-constexpr const size_t instance_bits    = 24;
+template <typename ExecutionSpace>
+constexpr uint32_t device_id_root() {
+  constexpr auto device_id =
+      static_cast<uint32_t>(DeviceTypeTraits<ExecutionSpace>::id);
+  return (device_id << (num_instance_bits + num_device_bits));
+}
 template <typename ExecutionSpace>
 inline uint32_t device_id(ExecutionSpace const& space) noexcept {
-  auto device_id = static_cast<uint32_t>(DeviceTypeTraits<ExecutionSpace>::id);
-  return (device_id << instance_bits) + space.impl_instance_id();
+  return device_id_root<ExecutionSpace>() +
+         (DeviceTypeTraits<ExecutionSpace>::device_id(space)
+          << num_instance_bits) +
+         space.impl_instance_id();
 }
 }  // namespace Experimental
 }  // namespace Tools

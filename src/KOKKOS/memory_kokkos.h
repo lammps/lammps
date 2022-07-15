@@ -20,6 +20,8 @@
 
 namespace LAMMPS_NS {
 
+typedef MemoryKokkos MemKK;
+
 class MemoryKokkos : public Memory {
  public:
   MemoryKokkos(class LAMMPS *lmp) : Memory(lmp) {}
@@ -172,13 +174,11 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
-  bigint n = 0;
   for (int i = 0; i < n1; i++) {
     if (n2==0)
       array[i] = nullptr;
     else
       array[i] = &data.h_view(i,0);
-    n += n2;
   }
   return data;
 }
@@ -193,13 +193,11 @@ template <typename TYPE, typename HTYPE>
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
-  bigint n = 0;
   for (int i = 0; i < n1; i++) {
     if (n2==0)
       array[i] = nullptr;
     else
       array[i] = &h_data(i,0);
-    n += n2;
   }
   return data;
 }
@@ -275,6 +273,28 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type** &array)
   data = TYPE();
   sfree(array);
   array = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   reallocate Kokkos views without initialization
+   deallocate first to reduce memory use
+------------------------------------------------------------------------- */
+
+template <typename TYPE, typename... Indices>
+static void realloc_kokkos(TYPE &data, const char *name, Indices... ns)
+{
+  data = TYPE();
+  data = TYPE(Kokkos::NoInit(std::string(name)), ns...);
+}
+
+/* ----------------------------------------------------------------------
+   get memory usage of Kokkos view in bytes
+------------------------------------------------------------------------- */
+
+template <typename TYPE>
+static double memory_usage(TYPE &data)
+{
+  return data.span() * sizeof(typename TYPE::value_type);
 }
 
 };

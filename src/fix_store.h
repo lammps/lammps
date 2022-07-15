@@ -26,49 +26,45 @@ namespace LAMMPS_NS {
 
 class FixStore : public Fix {
  public:
-  int nrow, ncol;     // size of global data array
-  int nvalues;        // number of per-atom values
+  int nrow,ncol;      // copy of n1,n2 for GLOBAL array for classes to access
   double *vstore;     // vector storage for GLOBAL or PERATOM
   double **astore;    // array storage for GLOBAL or PERATOM
+  double ***tstore;   // tensor (3d array) storage for PERATOM
   int disable;        // 1 if operations (except grow) are currently disabled
 
   FixStore(class LAMMPS *, int, char **);
-  ~FixStore();
-  int setmask();
+  ~FixStore() override;
+  int setmask() override;
   void reset_global(int, int);
 
-  void write_restart(FILE *);
-  void restart(char *);
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
-  int flavor;     // GLOBAL or PERATOM
-  int vecflag;    // 1 if ncol=1 or nvalues=1
+  int flavor;                   // GLOBAL or PERATOM
+  int vecflag;                  // 1 if ncol=1 or nvalues=1
+  int arrayflag;                // 1 if a 2d array (vector per atom)
+  int tensorflag;               // 1 if a 3d array (array per atom)
 
-  double *rbuf;    // restart buffer for GLOBAL vec/array
+  int n1,n2,n3;                 // size of 3d dims of data struct
+  int nvalues;                  // number of per-atom values
+  int nbytes;                   // number of per-atom bytes
+
+  double *rbuf;                 // restart buffer for GLOBAL vec/array/tensor
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

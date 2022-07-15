@@ -83,6 +83,37 @@ TEST(TEST_CATEGORY, team_reduce) {
 }
 #endif
 
+template <typename ExecutionSpace>
+struct TestTeamReduceLarge {
+  using team_policy_t = Kokkos::TeamPolicy<ExecutionSpace>;
+  using member_t      = typename team_policy_t::member_type;
+
+  int m_range;
+
+  TestTeamReduceLarge(const int range) : m_range(range) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const member_t& t, int& update) const {
+    Kokkos::single(Kokkos::PerTeam(t), [&]() { update++; });
+  }
+
+  void run() {
+    int result = 0;
+    Kokkos::parallel_reduce(team_policy_t(m_range, Kokkos::AUTO), *this,
+                            result);
+    EXPECT_EQ(m_range, result);
+  }
+};
+
+TEST(TEST_CATEGORY, team_reduce_large) {
+  std::vector<int> ranges{(2LU << 23) - 1, 2LU << 23, (2LU << 24),
+                          (2LU << 24) + 1, 1LU << 29};
+  for (const auto range : ranges) {
+    TestTeamReduceLarge<TEST_EXECSPACE> test(range);
+    test.run();
+  }
+}
+
 TEST(TEST_CATEGORY, team_broadcast_long) {
   TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                     long>::test_teambroadcast(0, 1);
@@ -104,6 +135,75 @@ TEST(TEST_CATEGORY, team_broadcast_long) {
   TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
                     long>::test_teambroadcast(1000, 1);
 }
+
+// FIXME_OPENMPTARGET CI fails with
+// Libomptarget error: Copying data from device failed.
+// Possibly, because long_wrapper is not trivially-copyable.
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+struct long_wrapper {
+  long value;
+
+  KOKKOS_FUNCTION
+  long_wrapper() : value(0) {}
+
+  KOKKOS_FUNCTION
+  long_wrapper(long val) : value(val) {}
+
+  KOKKOS_FUNCTION
+  friend void operator+=(long_wrapper& lhs, const long_wrapper& rhs) {
+    lhs.value += rhs.value;
+  }
+
+  KOKKOS_FUNCTION
+  friend void operator+=(volatile long_wrapper& lhs,
+                         const volatile long_wrapper& rhs) {
+    lhs.value += rhs.value;
+  }
+
+  KOKKOS_FUNCTION
+  void operator=(const long_wrapper& other) { value = other.value; }
+
+  KOKKOS_FUNCTION
+  void operator=(const volatile long_wrapper& other) volatile {
+    value = other.value;
+  }
+  KOKKOS_FUNCTION
+  operator long() const { return value; }
+};
+}  // namespace Test
+
+namespace Kokkos {
+template <>
+struct reduction_identity<Test::long_wrapper>
+    : public reduction_identity<long> {};
+}  // namespace Kokkos
+
+namespace Test {
+
+// Test for non-arithmetic type
+TEST(TEST_CATEGORY, team_broadcast_long_wrapper) {
+  static_assert(!std::is_arithmetic<long_wrapper>::value, "");
+
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(0, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(0, 1);
+
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(2, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(2, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(16, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(16, 1);
+
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(1000, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(1000, 1);
+}
+#endif
 
 TEST(TEST_CATEGORY, team_broadcast_char) {
   {

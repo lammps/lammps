@@ -19,7 +19,16 @@
 namespace LAMMPS_NS {
 
 class NeighRequest : protected Pointers {
- public:
+  friend class Neighbor;
+  friend class NBin;
+  friend class NeighList;
+  friend class NPair;
+  friend class NStencil;
+  friend class NeighborKokkos;
+  friend class NPairSkipIntel;
+  friend class FixIntel;
+
+ protected:
   int index;                 // index of which neigh request this is
   void *requestor;           // class that made request
   int requestor_instance;    // instance of that class (only Fix, Compute, Pair)
@@ -93,6 +102,7 @@ class NeighRequest : protected Pointers {
   int off2on;      // 1 if this is newton on list, but skips from off list
 
   int copy;        // 1 if this list copied from another list
+  int trim;        // 1 if this list trimmed from another list
   int copylist;    // index of list to copy from
 
   int halffull;        // 1 if half list computed from another full list
@@ -110,13 +120,29 @@ class NeighRequest : protected Pointers {
   int index_pair;       // index of NPair class assigned to this request
 
   // methods
-
+ public:
   NeighRequest(class LAMMPS *);
-  ~NeighRequest();
+  NeighRequest(class LAMMPS *, int, void *, int);
+  NeighRequest(NeighRequest *);
+  ~NeighRequest() override;
+
   void archive();
   int identical(NeighRequest *);
   int same_skip(NeighRequest *);
   void copy_request(NeighRequest *, int);
+
+  void apply_flags(int);
+  void set_cutoff(double);
+  void set_id(int);
+  void set_kokkos_device(int);
+  void set_kokkos_host(int);
+  void set_skip(int *, int **);
+  void enable_full();
+  void enable_ghost();
+  void enable_intel();
+
+  int get_size() const { return size; }
+  void *get_requestor() const { return requestor; }
 };
 
 }    // namespace LAMMPS_NS

@@ -17,6 +17,7 @@ From: rockylinux/rockylinux:8
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
+               yaml-cpp-devel \
                zstd libzstd-devel
         dnf clean all
 
@@ -42,7 +43,7 @@ From: rockylinux/rockylinux:8
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.7.2
+        version=2.7.3
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}
@@ -73,7 +74,7 @@ EOF
         CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
         cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[centos8:\u@\h] \W> "
+PS1="[rocky8:\u@\h] \W> "
 EOF
         chmod 755 $CUSTOM_PROMPT_ENV
 

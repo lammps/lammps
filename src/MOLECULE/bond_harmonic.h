@@ -27,15 +27,16 @@ namespace LAMMPS_NS {
 class BondHarmonic : public Bond {
  public:
   BondHarmonic(class LAMMPS *);
-  virtual ~BondHarmonic();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
-  virtual void *extract(const char *, int &);
+  ~BondHarmonic() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
+  void born_matrix(int, double, int, int, double &, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k, *r0;
@@ -47,11 +48,3 @@ class BondHarmonic : public Bond {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

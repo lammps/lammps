@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class PairOxrna2Stk : public Pair {
  public:
   PairOxrna2Stk(class LAMMPS *);
-  virtual ~PairOxrna2Stk();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  void *extract(const char *, int &);
+  ~PairOxrna2Stk() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   // stacking interaction
@@ -60,7 +60,7 @@ class PairOxrna2Stk : public Pair {
   double **b_st10, **dtheta_st10_c;
   double **a_st1, **cosphi_st1_ast, **b_st1, **cosphi_st1_c;
   double **a_st2, **cosphi_st2_ast, **b_st2, **cosphi_st2_c;
-
+  double **nx_xtrct, **ny_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
   int seqdepflag;
 
   virtual void allocate();
@@ -71,17 +71,3 @@ class PairOxrna2Stk : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

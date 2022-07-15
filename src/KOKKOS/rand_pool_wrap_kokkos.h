@@ -44,11 +44,10 @@ struct RandWrap {
 class RandPoolWrap : protected Pointers {
  public:
   RandPoolWrap(int, class LAMMPS *);
-  ~RandPoolWrap();
+  ~RandPoolWrap() override;
   void destroy();
   void init(RanMars*, int);
 
-  KOKKOS_INLINE_FUNCTION
   RandWrap get_state() const
   {
 #ifdef LMP_KOKKOS_GPU
@@ -68,11 +67,7 @@ class RandPoolWrap : protected Pointers {
     return rand_wrap;
   }
 
-  KOKKOS_INLINE_FUNCTION
-  void free_state(RandWrap) const
-  {
-
-  }
+  void free_state(RandWrap) const {}
 
  private:
   class RanMars **random_thr;
@@ -83,6 +78,3 @@ class RandPoolWrap : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

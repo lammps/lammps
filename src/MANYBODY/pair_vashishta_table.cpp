@@ -198,7 +198,7 @@ void PairVashishtaTable::twobody_table(const Param &param, double rsq,
   // use analytic form if rsq is inside inner cutoff
 
   if (rsq < tabinnersq) {
-    Param *pparam = const_cast<Param *> (&param);
+    auto pparam = const_cast<Param *> (&param);
     PairVashishta::twobody(pparam,rsq,fforce,eflag,eng);
     return;
   }

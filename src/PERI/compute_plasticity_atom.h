@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputePlasticityAtom : public Compute {
  public:
   ComputePlasticityAtom(class LAMMPS *, int, char **);
-  ~ComputePlasticityAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputePlasticityAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;
@@ -42,25 +42,3 @@ class ComputePlasticityAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute plasticity/atom cannot be used with this pair style
-
-Self-explanatory.
-
-W: More than one compute plasticity/atom
-
-Self-explanatory.
-
-E: Compute plasticity/atom requires Peridynamic pair style
-
-Self-explanatory.
-
-*/

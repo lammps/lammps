@@ -50,5 +50,8 @@
 #include <TestCXX11.hpp>
 
 #include <TestViewCtorPropEmbeddedDim.hpp>
+// with VS 16.11.3 and CUDA 11.4.2 getting cudafe stackoverflow crash
+#if !(defined(_WIN32) && defined(KOKKOS_ENABLE_CUDA))
 #include <TestViewLayoutTiled.hpp>
+#endif
 #endif

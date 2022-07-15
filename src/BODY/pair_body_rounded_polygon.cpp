@@ -411,13 +411,13 @@ void PairBodyRoundedPolygon::coeff(int narg, char **arg)
 
 void PairBodyRoundedPolygon::init_style()
 {
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
     error->all(FLERR,"Pair body/rounded/polygon requires "
                "body style rounded/polygon");
-  bptr = (BodyRoundedPolygon *) avec->bptr;
+  bptr = dynamic_cast<BodyRoundedPolygon *>( avec->bptr);
 
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style body/rounded/polygon requires "
@@ -427,7 +427,7 @@ void PairBodyRoundedPolygon::init_style()
     error->all(FLERR,"Pair body/rounded/polygon requires "
                "ghost atoms store velocity");
 
-  neighbor->request(this);
+  neighbor->add_request(this);
 
   // find the maximum enclosing radius for each atom type
 

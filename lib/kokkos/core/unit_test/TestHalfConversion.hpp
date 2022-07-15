@@ -53,10 +53,8 @@ void test_half_conversion_type() {
   T base                         = static_cast<T>(3.3);
   Kokkos::Experimental::half_t a = Kokkos::Experimental::cast_to_half(base);
   T b                            = Kokkos::Experimental::cast_from_half<T>(a);
-  ASSERT_TRUE((double(b - base) / double(base)) < epsilon);
+  ASSERT_LT((double(b - base) / double(base)), epsilon);
 
-// TODO: Remove ifndef once https://github.com/kokkos/kokkos/pull/3480 merges
-#ifndef KOKKOS_ENABLE_SYCL
 #ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
   Kokkos::View<T> b_v("b_v");
   Kokkos::parallel_for(
@@ -67,9 +65,30 @@ void test_half_conversion_type() {
       });
 
   Kokkos::deep_copy(b, b_v);
-  ASSERT_TRUE((double(b - base) / double(base)) < epsilon);
+  ASSERT_LT((double(b - base) / double(base)), epsilon);
 #endif  // KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
-#endif  // KOKKOS_ENABLE_SYCL
+}
+
+template <class T>
+void test_bhalf_conversion_type() {
+  double epsilon = KOKKOS_BHALF_T_IS_FLOAT ? 0.0000003 : 0.0003;
+  T base         = static_cast<T>(3.3);
+  Kokkos::Experimental::bhalf_t a = Kokkos::Experimental::cast_to_bhalf(base);
+  T b                             = Kokkos::Experimental::cast_from_bhalf<T>(a);
+  ASSERT_LT((double(b - base) / double(base)), epsilon);
+
+#ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
+  Kokkos::View<T> b_v("b_v");
+  Kokkos::parallel_for(
+      "TestHalfConversion", 1, KOKKOS_LAMBDA(int) {
+        Kokkos::Experimental::bhalf_t d_a =
+            Kokkos::Experimental::cast_to_bhalf(base);
+        b_v() = Kokkos::Experimental::cast_from_bhalf<T>(d_a);
+      });
+
+  Kokkos::deep_copy(b, b_v);
+  ASSERT_LT((double(b - base) / double(base)), epsilon);
+#endif  // KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 }
 
 void test_half_conversion() {
@@ -85,7 +104,22 @@ void test_half_conversion() {
   test_half_conversion_type<unsigned long long>();
 }
 
+void test_bhalf_conversion() {
+  test_bhalf_conversion_type<float>();
+  test_bhalf_conversion_type<double>();
+  test_bhalf_conversion_type<short>();
+  test_bhalf_conversion_type<int>();
+  test_bhalf_conversion_type<long>();
+  test_bhalf_conversion_type<long long>();
+  test_bhalf_conversion_type<unsigned short>();
+  test_bhalf_conversion_type<unsigned int>();
+  test_bhalf_conversion_type<unsigned long>();
+  test_bhalf_conversion_type<unsigned long long>();
+}
+
 TEST(TEST_CATEGORY, half_conversion) { test_half_conversion(); }
+
+TEST(TEST_CATEGORY, bhalf_conversion) { test_bhalf_conversion(); }
 
 }  // namespace Test
 #endif

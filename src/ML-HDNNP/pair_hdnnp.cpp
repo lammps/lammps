@@ -26,7 +26,6 @@
 #include "error.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -97,7 +96,7 @@ void PairHDNNP::compute(int eflag, int vflag)
   interface->process();
 
   // Do all stuff related to extrapolation warnings.
-  if (showew == true || showewsum > 0 || maxew >= 0) { handleExtrapolationWarnings(); }
+  if (showew || showewsum > 0 || maxew >= 0) { handleExtrapolationWarnings(); }
 
   // Calculate forces of local and ghost atoms.
   interface->getForces(atom->f);
@@ -226,9 +225,7 @@ void PairHDNNP::coeff(int narg, char **arg)
 
 void PairHDNNP::init_style()
 {
-  int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // Return immediately if HDNNP setup is already completed.
   if (interface->isInitialized()) return;
@@ -322,7 +319,7 @@ void PairHDNNP::handleExtrapolationWarnings()
           MPI_Status ms;
           // Get buffer size.
           MPI_Recv(&bs, 1, MPI_LONG, i, 0, world, &ms);
-          char *buf = new char[bs];
+          auto buf = new char[bs];
           // Receive buffer.
           MPI_Recv(buf, bs, MPI_BYTE, i, 0, world, &ms);
           interface->extractEWBuffer(buf, bs);
@@ -334,7 +331,7 @@ void PairHDNNP::handleExtrapolationWarnings()
       // Get desired buffer length for all extrapolation warning entries.
       long bs = interface->getEWBufferSize();
       // Allocate and fill buffer.
-      char *buf = new char[bs];
+      auto buf = new char[bs];
       interface->fillEWBuffer(buf, bs);
       // Send buffer size and buffer.
       MPI_Send(&bs, 1, MPI_LONG, 0, 0, world);

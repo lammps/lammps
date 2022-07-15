@@ -892,8 +892,8 @@ struct TestViewMirror {
     for (int i = 0; i < 10; i++) {
       a_h(i) = (double)i;
     }
-    auto a_d = Kokkos::create_mirror_view(DeviceType(), a_h,
-                                          Kokkos::WithoutInitializing);
+    auto a_d = Kokkos::create_mirror_view(Kokkos::WithoutInitializing,
+                                          DeviceType(), a_h);
 
     int equal_ptr_h_d = (a_h.data() == a_d.data()) ? 1 : 0;
     constexpr int is_same_memspace =
@@ -1060,12 +1060,12 @@ class TestViewAPI {
     dView4 dx, dy, dz;
     hView4 hx, hy, hz;
 
-    ASSERT_TRUE(dx.data() == nullptr);
-    ASSERT_TRUE(dy.data() == nullptr);
-    ASSERT_TRUE(dz.data() == nullptr);
-    ASSERT_TRUE(hx.data() == nullptr);
-    ASSERT_TRUE(hy.data() == nullptr);
-    ASSERT_TRUE(hz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);
+    ASSERT_EQ(dy.data(), nullptr);
+    ASSERT_EQ(dz.data(), nullptr);
+    ASSERT_EQ(hx.data(), nullptr);
+    ASSERT_EQ(hy.data(), nullptr);
+    ASSERT_EQ(hz.data(), nullptr);
     ASSERT_EQ(dx.extent(0), 0u);
     ASSERT_EQ(dy.extent(0), 0u);
     ASSERT_EQ(dz.extent(0), 0u);
@@ -1082,10 +1082,24 @@ class TestViewAPI {
     dx = dView4("dx", N0);
     dy = dView4("dy", N0);
 
-    ASSERT_EQ(dx.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
 
     dView4_unmanaged unmanaged_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+
+    // Test self assignment
+#if defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+#endif
+    dx = dx;  // copy-assignment operator
+#if defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    ASSERT_EQ(dx.use_count(), 1);
+    dx = reinterpret_cast<typename dView4::uniform_type &>(
+        dx);  // conversion assignment operator
+    ASSERT_EQ(dx.use_count(), 1);
 
     dView4_unmanaged unmanaged_from_ptr_dx = dView4_unmanaged(
         dx.data(), dx.extent(0), dx.extent(1), dx.extent(2), dx.extent(3));
@@ -1097,30 +1111,30 @@ class TestViewAPI {
     }
 
     const_dView4 const_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     {
       const_dView4 const_dx2;
       const_dx2 = const_dx;
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
 
       const_dx2 = dy;
-      ASSERT_EQ(dx.use_count(), size_t(2));
+      ASSERT_EQ(dx.use_count(), 2);
 
       const_dView4 const_dx3(dx);
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
 
       dView4_unmanaged dx4_unmanaged(dx);
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
     }
 
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
-    ASSERT_FALSE(dx.data() == nullptr);
-    ASSERT_FALSE(const_dx.data() == nullptr);
-    ASSERT_FALSE(unmanaged_dx.data() == nullptr);
-    ASSERT_FALSE(unmanaged_from_ptr_dx.data() == nullptr);
-    ASSERT_FALSE(dy.data() == nullptr);
+    ASSERT_NE(dx.data(), nullptr);
+    ASSERT_NE(const_dx.data(), nullptr);
+    ASSERT_NE(unmanaged_dx.data(), nullptr);
+    ASSERT_NE(unmanaged_from_ptr_dx.data(), nullptr);
+    ASSERT_NE(dy.data(), nullptr);
     ASSERT_NE(dx, dy);
 
     ASSERT_EQ(dx.extent(0), unsigned(N0));
@@ -1257,19 +1271,19 @@ class TestViewAPI {
     ASSERT_NE(dx, dz);
 
     dx = dView4();
-    ASSERT_TRUE(dx.data() == nullptr);
-    ASSERT_FALSE(dy.data() == nullptr);
-    ASSERT_FALSE(dz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);
+    ASSERT_NE(dy.data(), nullptr);
+    ASSERT_NE(dz.data(), nullptr);
 
     dy = dView4();
-    ASSERT_TRUE(dx.data() == nullptr);
-    ASSERT_TRUE(dy.data() == nullptr);
-    ASSERT_FALSE(dz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);
+    ASSERT_EQ(dy.data(), nullptr);
+    ASSERT_NE(dz.data(), nullptr);
 
     dz = dView4();
-    ASSERT_TRUE(dx.data() == nullptr);
-    ASSERT_TRUE(dy.data() == nullptr);
-    ASSERT_TRUE(dz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);
+    ASSERT_EQ(dy.data(), nullptr);
+    ASSERT_EQ(dz.data(), nullptr);
   }
 
   static void run_test_deep_copy_empty() {
@@ -1304,7 +1318,7 @@ class TestViewAPI {
   static void check_auto_conversion_to_const(
       const Kokkos::View<const DataType, device> &arg_const,
       const Kokkos::View<DataType, device> &arg) {
-    ASSERT_TRUE(arg_const == arg);
+    ASSERT_EQ(arg_const, arg);
   }
 
   static void run_test_const() {
@@ -1317,8 +1331,8 @@ class TestViewAPI {
     const_typeX xc = x;
     const_typeR xr = x;
 
-    ASSERT_TRUE(xc == x);
-    ASSERT_TRUE(x == xc);
+    ASSERT_EQ(xc, x);
+    ASSERT_EQ(x, xc);
 
     // For CUDA the constant random access View does not return
     // an lvalue reference due to retrieving through texture cache
@@ -1327,7 +1341,7 @@ class TestViewAPI {
     if (!std::is_same<typename device::execution_space, Kokkos::Cuda>::value)
 #endif
     {
-      ASSERT_TRUE(x.data() == xr.data());
+      ASSERT_EQ(x.data(), xr.data());
     }
 
     // typeX xf = xc; // Setting non-const from const must not compile.
@@ -1440,29 +1454,29 @@ class TestViewAPI {
     const_vector_right_type cvr2 = Kokkos::subview(mv, Kokkos::ALL(), 1);
     const_vector_right_type cvr3 = Kokkos::subview(mv, Kokkos::ALL(), 2);
 
-    ASSERT_TRUE(&v1[0] == &v1(0));
-    ASSERT_TRUE(&v1[0] == &mv(0, 0));
-    ASSERT_TRUE(&v2[0] == &mv(0, 1));
-    ASSERT_TRUE(&v3[0] == &mv(0, 2));
+    ASSERT_EQ(&v1[0], &v1(0));
+    ASSERT_EQ(&v1[0], &mv(0, 0));
+    ASSERT_EQ(&v2[0], &mv(0, 1));
+    ASSERT_EQ(&v3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&cv1[0] == &mv(0, 0));
-    ASSERT_TRUE(&cv2[0] == &mv(0, 1));
-    ASSERT_TRUE(&cv3[0] == &mv(0, 2));
+    ASSERT_EQ(&cv1[0], &mv(0, 0));
+    ASSERT_EQ(&cv2[0], &mv(0, 1));
+    ASSERT_EQ(&cv3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&vr1[0] == &mv(0, 0));
-    ASSERT_TRUE(&vr2[0] == &mv(0, 1));
-    ASSERT_TRUE(&vr3[0] == &mv(0, 2));
+    ASSERT_EQ(&vr1[0], &mv(0, 0));
+    ASSERT_EQ(&vr2[0], &mv(0, 1));
+    ASSERT_EQ(&vr3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&cvr1[0] == &mv(0, 0));
-    ASSERT_TRUE(&cvr2[0] == &mv(0, 1));
-    ASSERT_TRUE(&cvr3[0] == &mv(0, 2));
+    ASSERT_EQ(&cvr1[0], &mv(0, 0));
+    ASSERT_EQ(&cvr2[0], &mv(0, 1));
+    ASSERT_EQ(&cvr3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&mv1(0, 0) == &mv(1, 2));
-    ASSERT_TRUE(&mv1(1, 1) == &mv(2, 3));
-    ASSERT_TRUE(&mv1(3, 2) == &mv(4, 4));
-    ASSERT_TRUE(&mvr1(0, 0) == &mv_right(1, 2));
-    ASSERT_TRUE(&mvr1(1, 1) == &mv_right(2, 3));
-    ASSERT_TRUE(&mvr1(3, 2) == &mv_right(4, 4));
+    ASSERT_EQ(&mv1(0, 0), &mv(1, 2));
+    ASSERT_EQ(&mv1(1, 1), &mv(2, 3));
+    ASSERT_EQ(&mv1(3, 2), &mv(4, 4));
+    ASSERT_EQ(&mvr1(0, 0), &mv_right(1, 2));
+    ASSERT_EQ(&mvr1(1, 1), &mv_right(2, 3));
+    ASSERT_EQ(&mvr1(3, 2), &mv_right(4, 4));
 
     const_vector_type c_cv1(v1);
     typename vector_type::const_type c_cv2(v2);
@@ -1477,6 +1491,13 @@ class TestViewAPI {
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
     if (std::is_same<typename dView1::memory_space,
                      Kokkos::Experimental::OpenMPTargetSpace>::value)
+      return;
+#endif
+// FIXME_MSVC_WITH_CUDA
+// This test doesn't behave as expected on Windows with CUDA
+#if defined(_WIN32) && defined(KOKKOS_ENABLE_CUDA)
+    if (std::is_same<typename dView1::memory_space,
+                     Kokkos::CudaUVMSpace>::value)
       return;
 #endif
     auto alloc_size = std::numeric_limits<size_t>::max() - 42;

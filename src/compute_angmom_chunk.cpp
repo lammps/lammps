@@ -69,7 +69,7 @@ ComputeAngmomChunk::~ComputeAngmomChunk()
 
 void ComputeAngmomChunk::init()
 {
-  cchunk = (ComputeChunkAtom *) modify->get_compute_by_id(idchunk);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
   if (!cchunk) error->all(FLERR, "Chunk/atom compute does not exist for compute angmom/chunk");
   if (strcmp(cchunk->style, "chunk/atom") != 0)
     error->all(FLERR, "Compute angmom/chunk does not use chunk/atom compute");
@@ -187,7 +187,7 @@ void ComputeAngmomChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

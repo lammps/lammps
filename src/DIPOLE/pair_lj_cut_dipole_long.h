@@ -30,17 +30,17 @@ class PairLJCutDipoleLong : public Pair {
   double **sigma;
 
   PairLJCutDipoleLong(class LAMMPS *);
-  ~PairLJCutDipoleLong();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void *extract(const char *, int &);
+  ~PairLJCutDipoleLong() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_lj_global;
@@ -58,27 +58,3 @@ class PairLJCutDipoleLong : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_style command
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dipole/long requires atom attributes q, mu, torque
-
-The atom style defined does not have these attributes.
-
-E: Cannot (yet) use 'electron' units with dipoles
-
-This feature is not yet supported.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

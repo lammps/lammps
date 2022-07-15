@@ -41,6 +41,15 @@ elif (test $2 = "installed") then
     echo "Installed YES: package $1"
   fi
 
+# info, exit with true/false status depending on whether a package is installed
+
+elif (test $2 = "info") then
+  if (test $installed = 1) then
+    exit 0
+  else
+    exit 1
+  fi
+
 # update, only if installed
 # perform a re-install, but only if the package is already installed
 

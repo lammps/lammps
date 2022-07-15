@@ -33,6 +33,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`dump adios <dump_adios>`
      - PACKAGES/adios
      - ext
+   * - :ref:`AMOEBA <PKG-AMOEBA>`
+     - AMOEBA and HIPPO force fields
+     - :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+     - amoeba
+     - no
    * - :ref:`ASPHERE <PKG-ASPHERE>`
      - aspherical particle models
      - :doc:`Howto spherical <Howto_spherical>`
@@ -58,6 +63,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Howto body <Howto_body>`
      - body
      - no
+   * - :ref:`BPM <PKG-BPM>`
+     - bonded particle models
+     - :doc:`Howto bpm <Howto_bpm>`
+     - bpm
+     - no
    * - :ref:`BROWNIAN <PKG-BROWNIAN>`
      - Brownian dynamics, self-propelled particles
      - :doc:`fix brownian <fix_brownian>`, :doc:`fix propel/self <fix_propel_self>`
@@ -68,10 +78,10 @@ whether an extra library is needed to build and use the package:
      - src/CG-DNA/README
      - PACKAGES/cgdna
      - no
-   * - :ref:`CG-SDK <PKG-CG-SDK>`
-     - SDK coarse-graining model
-     - :doc:`pair_style lj/sdk <pair_sdk>`
-     - PACKAGES/cgsdk
+   * - :ref:`CG-SPICA <PKG-CG-SPICA>`
+     - SPICA (SDK) coarse-graining model
+     - :doc:`pair_style lj/spica <pair_spica>`
+     - PACKAGES/cgspica
      - no
    * - :ref:`CLASS2 <PKG-CLASS2>`
      - class 2 force fields
@@ -142,6 +152,11 @@ whether an extra library is needed to build and use the package:
      - electron force field
      - :doc:`pair_style eff/cut <pair_eff>`
      - PACKAGES/eff
+     - no
+   * - :ref:`ELECTRODE <PKG-ELECTRODE>`
+     - electrode charges to match potential
+     - :doc:`fix electrode/conp <fix_electrode_conp>`
+     - PACKAGES/electrode
      - no
    * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
      - additional compute styles
@@ -244,7 +259,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`MDI <PKG-MDI>`
-     - client-server coupling
+     - client-server code coupling
      - :doc:`MDI Howto <Howto_mdi>`
      - PACKAGES/mdi
      - ext
@@ -257,11 +272,6 @@ whether an extra library is needed to build and use the package:
      - mesoscopic tubular potential model
      - pair styles :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>`
      - PACKAGES/mesont
-     - int
-   * - :ref:`MESSAGE <PKG-MESSAGE>`
-     - client/server messaging
-     - :doc:`message <message>`
-     - message
      - int
    * - :ref:`MGPT <PKG-MGPT>`
      - fast MGPT multi-ion potentials
@@ -429,8 +439,8 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`SMTBQ <PKG-SMTBQ>`
-     - second moment tight binding potential
-     - :doc:`pair_style smtbq <pair_smtbq>`
+     - second moment tight binding potentials
+     - :doc:`pair_style smtbq <pair_smtbq>` :doc:`pair_style smatb <pair_smatb>`
      - PACKAGES/smtbq
      - no
    * - :ref:`SPH <PKG-SPH>`

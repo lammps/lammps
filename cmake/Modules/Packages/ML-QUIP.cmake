@@ -43,6 +43,7 @@ if(DOWNLOAD_QUIP)
   file(WRITE ${CMAKE_BINARY_DIR}/quip.config "${temp}")
 
   message(STATUS "QUIP download via git requested - we will build our own")
+  set(CMAKE_EP_GIT_REMOTE_UPDATE_STRATEGY CHECKOUT)
   # QUIP has no releases (except for a tag marking the end of Python 2 support). We use the current "public" branch
   # The LAMMPS interface wrapper has a compatibility constant that is being checked at runtime.
   include(ExternalProject)
@@ -51,6 +52,7 @@ if(DOWNLOAD_QUIP)
     GIT_TAG origin/public
     GIT_SHALLOW YES
     GIT_PROGRESS YES
+    GIT_SUBMODULES "src/fox;src/GAP"
     PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/quip.config <SOURCE_DIR>/arch/Makefile.lammps
     CONFIGURE_COMMAND env QUIP_ARCH=lammps make config
     BUILD_COMMAND env QUIP_ARCH=lammps make libquip

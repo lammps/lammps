@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -35,7 +34,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{MANY,SBOND,SANGLE,SDIHEDRAL,SIMPROPER};
+enum { MANY, SBOND, SANGLE, SDIHEDRAL, SIMPROPER };
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,118 +45,121 @@ CreateBonds::CreateBonds(LAMMPS *lmp) : Command(lmp) {}
 void CreateBonds::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Create_bonds command before simulation box is defined");
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use create_bonds unless atoms have IDs");
+    error->all(FLERR, "Create_bonds command before simulation box is defined");
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use create_bonds unless atoms have IDs");
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Cannot use create_bonds with non-molecular system");
+    error->all(FLERR, "Cannot use create_bonds with non-molecular system");
 
-  if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
+  if (narg < 4) error->all(FLERR, "Illegal create_bonds command");
 
   // parse args
 
   int style;
 
   int iarg = 0;
-  if (strcmp(arg[0],"many") == 0) {
+  if (strcmp(arg[0], "many") == 0) {
     style = MANY;
-    if (narg != 6) error->all(FLERR,"Illegal create_bonds command");
+    if (narg != 6) error->all(FLERR, "Illegal create_bonds command");
     igroup = group->find(arg[1]);
-    if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
+    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds group ID");
     group1bit = group->bitmask[igroup];
     igroup = group->find(arg[2]);
-    if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
+    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds group ID");
     group2bit = group->bitmask[igroup];
-    btype = utils::inumeric(FLERR,arg[3],false,lmp);
-    rmin = utils::numeric(FLERR,arg[4],false,lmp);
-    rmax = utils::numeric(FLERR,arg[5],false,lmp);
-    if (rmin > rmax) error->all(FLERR,"Illegal create_bonds command");
+    btype = utils::inumeric(FLERR, arg[3], false, lmp);
+    rmin = utils::numeric(FLERR, arg[4], false, lmp);
+    rmax = utils::numeric(FLERR, arg[5], false, lmp);
+    if (rmin > rmax) error->all(FLERR, "Illegal create_bonds command");
     iarg = 6;
-  } else if (strcmp(arg[0],"single/bond") == 0) {
+  } else if (strcmp(arg[0], "single/bond") == 0) {
     style = SBOND;
-    if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
-    btype = utils::inumeric(FLERR,arg[1],false,lmp);
-    batom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
-    batom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
-    if (batom1 == batom2)
-      error->all(FLERR,"Illegal create_bonds command");
+    btype = utils::inumeric(FLERR, arg[1], false, lmp);
+    batom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
+    batom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
+    if (batom1 == batom2) error->all(FLERR, "Illegal create_bonds command");
     iarg = 4;
-  } else if (strcmp(arg[0],"single/angle") == 0) {
+  } else if (strcmp(arg[0], "single/angle") == 0) {
     style = SANGLE;
-    if (narg < 5) error->all(FLERR,"Illegal create_bonds command");
-    atype = utils::inumeric(FLERR,arg[1],false,lmp);
-    aatom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
-    aatom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
-    aatom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
+    if (narg < 5) error->all(FLERR, "Illegal create_bonds command");
+    atype = utils::inumeric(FLERR, arg[1], false, lmp);
+    aatom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
+    aatom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
+    aatom3 = utils::tnumeric(FLERR, arg[4], false, lmp);
     if ((aatom1 == aatom2) || (aatom1 == aatom3) || (aatom2 == aatom3))
-      error->all(FLERR,"Illegal create_bonds command");
+      error->all(FLERR, "Illegal create_bonds command");
     iarg = 5;
-  } else if (strcmp(arg[0],"single/dihedral") == 0) {
+  } else if (strcmp(arg[0], "single/dihedral") == 0) {
     style = SDIHEDRAL;
-    if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
-    dtype = utils::inumeric(FLERR,arg[1],false,lmp);
-    datom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
-    datom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
-    datom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
-    datom4 = utils::tnumeric(FLERR,arg[5],false,lmp);
-    if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
-        (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
-      error->all(FLERR,"Illegal create_bonds command");
+    if (narg < 6) error->all(FLERR, "Illegal create_bonds command");
+    dtype = utils::inumeric(FLERR, arg[1], false, lmp);
+    datom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
+    datom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
+    datom3 = utils::tnumeric(FLERR, arg[4], false, lmp);
+    datom4 = utils::tnumeric(FLERR, arg[5], false, lmp);
+    if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) || (datom2 == datom3) ||
+        (datom2 == datom4) || (datom3 == datom4))
+      error->all(FLERR, "Illegal create_bonds command");
     iarg = 6;
-  } else if (strcmp(arg[0],"single/improper") == 0) {
+  } else if (strcmp(arg[0], "single/improper") == 0) {
     style = SIMPROPER;
-    if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
-    dtype = utils::inumeric(FLERR,arg[1],false,lmp);
-    datom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
-    datom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
-    datom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
-    datom4 = utils::tnumeric(FLERR,arg[5],false,lmp);
-    if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
-        (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
-      error->all(FLERR,"Illegal create_bonds command");
+    if (narg < 6) error->all(FLERR, "Illegal create_bonds command");
+    dtype = utils::inumeric(FLERR, arg[1], false, lmp);
+    datom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
+    datom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
+    datom3 = utils::tnumeric(FLERR, arg[4], false, lmp);
+    datom4 = utils::tnumeric(FLERR, arg[5], false, lmp);
+    if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) || (datom2 == datom3) ||
+        (datom2 == datom4) || (datom3 == datom4))
+      error->all(FLERR, "Illegal create_bonds command");
     iarg = 6;
-  } else error->all(FLERR,"Illegal create_bonds command");
+  } else
+    error->all(FLERR, "Illegal create_bonds command");
 
   // optional args
 
   int specialflag = 1;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"special") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal create_bonds command");
-      specialflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    if (strcmp(arg[iarg], "special") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_bonds command");
+      specialflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal create_bonds command");
+    } else
+      error->all(FLERR, "Illegal create_bonds command");
   }
 
   // error checks
 
   if (style == MANY) {
     if (btype <= 0 || btype > atom->nbondtypes)
-      error->all(FLERR,"Invalid bond type in create_bonds command");
-    if (specialflag == 0)
-      error->all(FLERR,"Cannot use special no with create_bonds many");
+      error->all(FLERR, "Invalid bond type in create_bonds command");
+    if (specialflag == 0) error->all(FLERR, "Cannot use special no with create_bonds many");
   } else if (style == SBOND) {
     if (btype <= 0 || btype > atom->nbondtypes)
-      error->all(FLERR,"Invalid bond type in create_bonds command");
+      error->all(FLERR, "Invalid bond type in create_bonds command");
   } else if (style == SANGLE) {
     if (atype <= 0 || atype > atom->nangletypes)
-      error->all(FLERR,"Invalid angle type in create_bonds command");
+      error->all(FLERR, "Invalid angle type in create_bonds command");
   } else if (style == SDIHEDRAL) {
     if (dtype <= 0 || dtype > atom->ndihedraltypes)
-      error->all(FLERR,"Invalid dihedral type in create_bonds command");
+      error->all(FLERR, "Invalid dihedral type in create_bonds command");
   } else if (style == SIMPROPER) {
     if (dtype <= 0 || dtype > atom->nimpropertypes)
-      error->all(FLERR,"Invalid improper type in create_bonds command");
+      error->all(FLERR, "Invalid improper type in create_bonds command");
   }
 
   // invoke creation method
 
-  if (style == MANY) many();
-  else if (style == SBOND) single_bond();
-  else if (style == SANGLE) single_angle();
-  else if (style == SDIHEDRAL) single_dihedral();
-  else if (style == SIMPROPER) single_improper();
+  if (style == MANY)
+    many();
+  else if (style == SBOND)
+    single_bond();
+  else if (style == SANGLE)
+    single_angle();
+  else if (style == SDIHEDRAL)
+    single_dihedral();
+  else if (style == SIMPROPER)
+    single_improper();
 
   // trigger special list build
 
@@ -171,8 +173,8 @@ void CreateBonds::command(int narg, char **arg)
 
 void CreateBonds::many()
 {
-  double rminsq = rmin*rmin;
-  double rmaxsq = rmax*rmax;
+  double rminsq = rmin * rmin;
+  double rmaxsq = rmax * rmax;
 
   // store state before bond creation
 
@@ -180,13 +182,7 @@ void CreateBonds::many()
 
   // request a full neighbor list for use by this command
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->command = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  neighbor->requests[irequest]->command_style = "create_bonds";
+  neighbor->add_request(this, "create_bonds", NeighConst::REQ_FULL);
 
   // init entire system since comm->borders and neighbor->build is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -196,12 +192,11 @@ void CreateBonds::many()
   // error check on cutoff
   // if no pair style, neighbor list will be empty
 
-  if (force->pair == nullptr)
-    error->all(FLERR,"Create_bonds requires a pair style be defined");
+  if (force->pair == nullptr) error->all(FLERR, "Create_bonds requires a pair style be defined");
   if (rmax > neighbor->cutneighmax)
-    error->all(FLERR,"Create_bonds max distance > neighbor cutoff");
+    error->all(FLERR, "Create_bonds max distance > neighbor cutoff");
   if (rmax > neighbor->cutneighmin && comm->me == 0)
-    error->warning(FLERR,"Create_bonds max distance > minimum neighbor cutoff");
+    error->warning(FLERR, "Create_bonds max distance > minimum neighbor cutoff");
 
   // require special_bonds 1-2 weights = 0.0 and KSpace = nullptr
   // so that already bonded atom pairs do not appear in neighbor list
@@ -210,11 +205,8 @@ void CreateBonds::many()
   // note that with KSpace, pair with weight = 0 could still be in neigh list
 
   if (force->special_lj[1] != 0.0 || force->special_coul[1] != 0.0)
-    error->all(FLERR,"Create_bonds command requires "
-               "special_bonds 1-2 weights be 0.0");
-  if (force->kspace)
-    error->all(FLERR,"Create_bonds command requires "
-               "no kspace_style be defined");
+    error->all(FLERR, "Create_bonds command requires special_bonds 1-2 weights be 0.0");
+  if (force->kspace) error->all(FLERR, "Create_bonds command requires no kspace_style be defined");
 
   // setup domain, communication and neighboring
   // acquire ghosts and build standard neighbor lists
@@ -226,13 +218,13 @@ void CreateBonds::many()
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
   comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
   neighbor->build(1);
 
   // build neighbor list this command needs based on earlier request
 
-  NeighList *list = neighbor->lists[irequest];
-  neighbor->build_one(list,1);
+  auto list = neighbor->find_list(this);
+  neighbor->build_one(list, 1);
 
   // loop over all neighs of each atom
   // compute distance between two atoms consistently on both procs
@@ -248,9 +240,9 @@ void CreateBonds::many()
   double newton_bond = force->newton_bond;
   int nlocal = atom->nlocal;
 
-  int i,j,ii,jj,inum,jnum,flag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum, flag;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -281,8 +273,9 @@ void CreateBonds::many()
         delx = x[j][0] - xtmp;
         dely = x[j][1] - ytmp;
         delz = x[j][2] - ztmp;
-      } else continue;
-      rsq = delx*delx + dely*dely + delz*delz;
+      } else
+        continue;
+      rsq = delx * delx + dely * dely + delz * delz;
       if (rsq < rminsq || rsq > rmaxsq) continue;
 
       // only consider bond creation if igroup and jgroup match I,J atoms
@@ -297,8 +290,8 @@ void CreateBonds::many()
 
       if (!newton_bond || tag[i] < tag[j]) {
         if (num_bond[i] == atom->bond_per_atom)
-          error->one(FLERR,"New bond exceeded bonds per atom limit "
-                                       " of {} in create_bonds",atom->bond_per_atom);
+          error->one(FLERR, "New bond exceeded bonds per atom limit of {} in create_bonds",
+                     atom->bond_per_atom);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tag[j];
         num_bond[i]++;
@@ -311,7 +304,7 @@ void CreateBonds::many()
   bigint nbonds = 0;
   for (i = 0; i < nlocal; i++) nbonds += num_bond[i];
 
-  MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  MPI_Allreduce(&nbonds, &atom->nbonds, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   if (!force->newton_bond) atom->nbonds /= 2;
 
   // print new bond count
@@ -319,8 +312,7 @@ void CreateBonds::many()
   bigint nadd_bonds = atom->nbonds - nbonds_previous;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"Added {} bonds, new total = {}\n",
-                   nadd_bonds,atom->nbonds);
+    utils::logmesg(lmp, "Added {} bonds, new total = {}\n", nadd_bonds, atom->nbonds);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -340,9 +332,8 @@ void CreateBonds::single_bond()
   if ((idx2 >= 0) && (idx2 < nlocal)) count++;
 
   int allcount;
-  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 2)
-    error->all(FLERR,"Create_bonds single/bond atoms do not exist");
+  MPI_Allreduce(&count, &allcount, 1, MPI_INT, MPI_SUM, world);
+  if (allcount != 2) error->all(FLERR, "Create_bonds single/bond atoms do not exist");
 
   // create bond once or 2x if newton_bond set
 
@@ -352,7 +343,7 @@ void CreateBonds::single_bond()
 
   if ((m = idx1) >= 0) {
     if (num_bond[m] == atom->bond_per_atom)
-      error->one(FLERR,"New bond exceeded bonds per atom in create_bonds");
+      error->one(FLERR, "New bond exceeded bonds per atom in create_bonds");
     bond_type[m][num_bond[m]] = btype;
     bond_atom[m][num_bond[m]] = batom2;
     num_bond[m]++;
@@ -363,7 +354,7 @@ void CreateBonds::single_bond()
 
   if ((m = idx2) >= 0) {
     if (num_bond[m] == atom->bond_per_atom)
-      error->one(FLERR,"New bond exceeded bonds per atom in create_bonds");
+      error->one(FLERR, "New bond exceeded bonds per atom in create_bonds");
     bond_type[m][num_bond[m]] = btype;
     bond_atom[m][num_bond[m]] = batom1;
     num_bond[m]++;
@@ -389,9 +380,8 @@ void CreateBonds::single_angle()
   if ((idx3 >= 0) && (idx3 < nlocal)) count++;
 
   int allcount;
-  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 3)
-    error->all(FLERR,"Create_bonds single/angle atoms do not exist");
+  MPI_Allreduce(&count, &allcount, 1, MPI_INT, MPI_SUM, world);
+  if (allcount != 3) error->all(FLERR, "Create_bonds single/angle atoms do not exist");
 
   // create angle once or 3x if newton_bond set
 
@@ -403,7 +393,7 @@ void CreateBonds::single_angle()
 
   if ((m = idx2) >= 0) {
     if (num_angle[m] == atom->angle_per_atom)
-      error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
+      error->one(FLERR, "New angle exceeded angles per atom in create_bonds");
     angle_type[m][num_angle[m]] = atype;
     angle_atom1[m][num_angle[m]] = aatom1;
     angle_atom2[m][num_angle[m]] = aatom2;
@@ -416,7 +406,7 @@ void CreateBonds::single_angle()
 
   if ((m = idx1) >= 0) {
     if (num_angle[m] == atom->angle_per_atom)
-      error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
+      error->one(FLERR, "New angle exceeded angles per atom in create_bonds");
     angle_type[m][num_angle[m]] = atype;
     angle_atom1[m][num_angle[m]] = aatom1;
     angle_atom2[m][num_angle[m]] = aatom2;
@@ -426,7 +416,7 @@ void CreateBonds::single_angle()
 
   if ((m = idx3) >= 0) {
     if (num_angle[m] == atom->angle_per_atom)
-      error->one(FLERR,"New angle exceeded angles per atom in create_bonds");
+      error->one(FLERR, "New angle exceeded angles per atom in create_bonds");
     angle_type[m][num_angle[m]] = atype;
     angle_atom1[m][num_angle[m]] = aatom1;
     angle_atom2[m][num_angle[m]] = aatom2;
@@ -456,9 +446,8 @@ void CreateBonds::single_dihedral()
   if ((idx4 >= 0) && (idx4 < nlocal)) count++;
 
   int allcount;
-  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 4)
-    error->all(FLERR,"Create_bonds single/dihedral atoms do not exist");
+  MPI_Allreduce(&count, &allcount, 1, MPI_INT, MPI_SUM, world);
+  if (allcount != 4) error->all(FLERR, "Create_bonds single/dihedral atoms do not exist");
 
   // create bond once or 4x if newton_bond set
 
@@ -471,8 +460,7 @@ void CreateBonds::single_dihedral()
 
   if ((m = idx2) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
-      error->one(FLERR,
-                 "New dihedral exceeded dihedrals per atom in create_bonds");
+      error->one(FLERR, "New dihedral exceeded dihedrals per atom in create_bonds");
     dihedral_type[m][num_dihedral[m]] = dtype;
     dihedral_atom1[m][num_dihedral[m]] = datom1;
     dihedral_atom2[m][num_dihedral[m]] = datom2;
@@ -486,8 +474,7 @@ void CreateBonds::single_dihedral()
 
   if ((m = idx1) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
-      error->one(FLERR,
-                 "New dihedral exceeded dihedrals per atom in create_bonds");
+      error->one(FLERR, "New dihedral exceeded dihedrals per atom in create_bonds");
     dihedral_type[m][num_dihedral[m]] = dtype;
     dihedral_atom1[m][num_dihedral[m]] = datom1;
     dihedral_atom2[m][num_dihedral[m]] = datom2;
@@ -498,8 +485,7 @@ void CreateBonds::single_dihedral()
 
   if ((m = idx3) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
-      error->one(FLERR,
-                 "New dihedral exceeded dihedrals per atom in create_bonds");
+      error->one(FLERR, "New dihedral exceeded dihedrals per atom in create_bonds");
     dihedral_type[m][num_dihedral[m]] = dtype;
     dihedral_atom1[m][num_dihedral[m]] = datom1;
     dihedral_atom2[m][num_dihedral[m]] = datom2;
@@ -510,8 +496,7 @@ void CreateBonds::single_dihedral()
 
   if ((m = idx4) >= 0) {
     if (num_dihedral[m] == atom->dihedral_per_atom)
-      error->one(FLERR,
-                 "New dihedral exceeded dihedrals per atom in create_bonds");
+      error->one(FLERR, "New dihedral exceeded dihedrals per atom in create_bonds");
     dihedral_type[m][num_dihedral[m]] = dtype;
     dihedral_atom1[m][num_dihedral[m]] = datom1;
     dihedral_atom2[m][num_dihedral[m]] = datom2;
@@ -542,9 +527,8 @@ void CreateBonds::single_improper()
   if ((idx4 >= 0) && (idx4 < nlocal)) count++;
 
   int allcount;
-  MPI_Allreduce(&count,&allcount,1,MPI_INT,MPI_SUM,world);
-  if (allcount != 4)
-    error->all(FLERR,"Create_bonds single/improper atoms do not exist");
+  MPI_Allreduce(&count, &allcount, 1, MPI_INT, MPI_SUM, world);
+  if (allcount != 4) error->all(FLERR, "Create_bonds single/improper atoms do not exist");
 
   // create bond once or 4x if newton_bond set
 
@@ -557,8 +541,7 @@ void CreateBonds::single_improper()
 
   if ((m = idx2) >= 0) {
     if (num_improper[m] == atom->improper_per_atom)
-      error->one(FLERR,
-                 "New improper exceeded impropers per atom in create_bonds");
+      error->one(FLERR, "New improper exceeded impropers per atom in create_bonds");
     improper_type[m][num_improper[m]] = dtype;
     improper_atom1[m][num_improper[m]] = datom1;
     improper_atom2[m][num_improper[m]] = datom2;
@@ -572,8 +555,7 @@ void CreateBonds::single_improper()
 
   if ((m = idx1) >= 0) {
     if (num_improper[m] == atom->improper_per_atom)
-      error->one(FLERR,
-                 "New improper exceeded impropers per atom in create_bonds");
+      error->one(FLERR, "New improper exceeded impropers per atom in create_bonds");
     improper_type[m][num_improper[m]] = dtype;
     improper_atom1[m][num_improper[m]] = datom1;
     improper_atom2[m][num_improper[m]] = datom2;
@@ -584,8 +566,7 @@ void CreateBonds::single_improper()
 
   if ((m = idx3) >= 0) {
     if (num_improper[m] == atom->improper_per_atom)
-      error->one(FLERR,
-                 "New improper exceeded impropers per atom in create_bonds");
+      error->one(FLERR, "New improper exceeded impropers per atom in create_bonds");
     improper_type[m][num_improper[m]] = dtype;
     improper_atom1[m][num_improper[m]] = datom1;
     improper_atom2[m][num_improper[m]] = datom2;
@@ -596,8 +577,7 @@ void CreateBonds::single_improper()
 
   if ((m = idx4) >= 0) {
     if (num_improper[m] == atom->improper_per_atom)
-      error->one(FLERR,
-                 "New improper exceeded impropers per atom in create_bonds");
+      error->one(FLERR, "New improper exceeded impropers per atom in create_bonds");
     improper_type[m][num_improper[m]] = dtype;
     improper_atom1[m][num_improper[m]] = datom1;
     improper_atom2[m][num_improper[m]] = datom2;

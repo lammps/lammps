@@ -72,6 +72,7 @@ void throw_runtime_exception(const std::string &);
 void traceback_callstack(std::ostream &);
 
 std::string human_memory_size(size_t arg_bytes);
+void throw_runtime_exception(const std::string &msg);
 
 }  // namespace Impl
 
@@ -97,7 +98,8 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
     HIPMalloc,
     HIPHostMalloc,
     SYCLMallocDevice,
-    SYCLMallocShared
+    SYCLMallocShared,
+    SYCLMallocHost
   };
 
  private:
@@ -218,31 +220,41 @@ KOKKOS_IMPL_ABORT_NORETURN KOKKOS_INLINE_FUNCTION void abort(
 
 #if !defined(NDEBUG) || defined(KOKKOS_ENFORCE_CONTRACTS) || \
     defined(KOKKOS_ENABLE_DEBUG)
-#define KOKKOS_EXPECTS(...)                                               \
-  {                                                                       \
-    if (!bool(__VA_ARGS__)) {                                             \
-      ::Kokkos::abort(                                                    \
-          "Kokkos contract violation:\n  "                                \
-          "  Expected precondition `" #__VA_ARGS__ "` evaluated false."); \
-    }                                                                     \
+#define KOKKOS_EXPECTS(...)                                                    \
+  {                                                                            \
+    if (!bool(__VA_ARGS__)) {                                                  \
+      ::Kokkos::abort(                                                         \
+          "Kokkos contract violation:\n  "                                     \
+          "  Expected precondition `" #__VA_ARGS__                             \
+          "` evaluated false.\n"                                               \
+          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
+              __LINE__) " \n");                                                \
+    }                                                                          \
   }
-#define KOKKOS_ENSURES(...)                                               \
-  {                                                                       \
-    if (!bool(__VA_ARGS__)) {                                             \
-      ::Kokkos::abort(                                                    \
-          "Kokkos contract violation:\n  "                                \
-          "  Ensured postcondition `" #__VA_ARGS__ "` evaluated false."); \
-    }                                                                     \
+#define KOKKOS_ENSURES(...)                                                    \
+  {                                                                            \
+    if (!bool(__VA_ARGS__)) {                                                  \
+      ::Kokkos::abort(                                                         \
+          "Kokkos contract violation:\n  "                                     \
+          "  Ensured postcondition `" #__VA_ARGS__                             \
+          "` evaluated false.\n"                                               \
+          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
+              __LINE__) " \n");                                                \
+    }                                                                          \
   }
-// some projects already define this for themselves, so don't mess them up
+// some projects already define this for themselves, so don't mess
+// them up
 #ifndef KOKKOS_ASSERT
-#define KOKKOS_ASSERT(...)                                             \
-  {                                                                    \
-    if (!bool(__VA_ARGS__)) {                                          \
-      ::Kokkos::abort(                                                 \
-          "Kokkos contract violation:\n  "                             \
-          "  Asserted condition `" #__VA_ARGS__ "` evaluated false."); \
-    }                                                                  \
+#define KOKKOS_ASSERT(...)                                                     \
+  {                                                                            \
+    if (!bool(__VA_ARGS__)) {                                                  \
+      ::Kokkos::abort(                                                         \
+          "Kokkos contract violation:\n  "                                     \
+          "  Asserted condition `" #__VA_ARGS__                                \
+          "` evaluated false.\n"                                               \
+          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
+              __LINE__) " \n");                                                \
+    }                                                                          \
   }
 #endif  // ifndef KOKKOS_ASSERT
 #else   // not debug mode

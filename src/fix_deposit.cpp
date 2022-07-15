@@ -569,10 +569,12 @@ void FixDeposit::pre_exchange()
     //   coord is new position of geometric center of mol, not COM
     // FixShake::set_molecule stores shake info for molecule
 
-    if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
-    else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
+    if (mode == MOLECULE) {
+      if (rigidflag)
+        fixrigid->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
+      else if (shakeflag)
+        fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
+    }
 
     success = 1;
     break;
@@ -842,7 +844,7 @@ void FixDeposit::write_restart(FILE *fp)
 void FixDeposit::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int>(list[n++]);
   ninserted = static_cast<int>(list[n++]);

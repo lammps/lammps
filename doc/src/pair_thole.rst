@@ -17,7 +17,7 @@ Syntax
 
    pair_style style args
 
-* style = *thole* or *lj/cut/thole/long* or *lj/cut/thole/long/omp*
+* style = *thole* or *lj/cut/thole/long*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -25,7 +25,7 @@ Syntax
      *thole* args = damp cutoff
        damp = global damping parameter
        cutoff = global cutoff (distance units)
-     *lj/cut/thole/long* or *lj/cut/thole/long/omp* args = damp cutoff (cutoff2)
+     *lj/cut/thole/long* args = damp cutoff (cutoff2)
        damp = global damping parameter
        cutoff = global cutoff for LJ (and Thole if only 1 arg) (distance units)
        cutoff2 = global cutoff for Thole (optional) (distance units)

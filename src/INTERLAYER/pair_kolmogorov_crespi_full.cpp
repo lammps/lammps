@@ -31,7 +31,6 @@
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 
@@ -142,7 +141,8 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
   if (!utils::strmatch(force->pair_style, "^hybrid/overlay"))
-    error->all(FLERR, "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
+    error->all(FLERR,
+               "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
   if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
@@ -313,10 +313,7 @@ void PairKolmogorovCrespiFull::init_style()
 
   // need a full neighbor list, including neighbors of ghosts
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 
   // local KC neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed

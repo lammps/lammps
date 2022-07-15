@@ -21,7 +21,8 @@ Syntax
 * momentum = style name of this fix command
 * N = adjust the momentum every this many timesteps
   one or more keyword/value pairs may be appended
-* keyword = *linear* or *angular* or *rescale*
+
+.. parsed-literal::
 
    fix ID group-ID momentum/chunk N chunkID keyword values ...
 
@@ -30,7 +31,7 @@ Syntax
 * N = adjust the momentum per chunk every this many timesteps
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 
-  one or more keyword/value pairs may be appended
+  one or more keyword/value settings may be appended to each of the fix commands:
 * keyword = *linear* or *angular* or *rescale*
 
   .. parsed-literal::

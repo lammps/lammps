@@ -38,10 +38,10 @@ class PairZBLKokkos : public PairZBL {
   typedef ArrayTypes<DeviceType> AT;
 
   PairZBLKokkos(class LAMMPS *);
-  virtual ~PairZBLKokkos();
-  void compute(int, int);
-  void init_style();
-  F_FLOAT init_one(int, int);
+  ~PairZBLKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  F_FLOAT init_one(int, int) override;
 
  private:
   DAT::tdual_ffloat_1d k_z;
@@ -87,7 +87,7 @@ class PairZBLKokkos : public PairZBL {
   F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALF,true>;
@@ -107,14 +107,3 @@ class PairZBLKokkos : public PairZBL {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-UNDOCUMENTED
-
-E: Cannot use chosen neighbor list style with lj/cut/kk
-
-UNDOCUMENTED
-
-*/

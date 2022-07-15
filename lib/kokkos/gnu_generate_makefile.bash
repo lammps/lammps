@@ -47,6 +47,10 @@ do
       ;;
     --with-pthread)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Pthread"
+      echo "warning: The --with-pthread option is deprecated. Use --with-threads instead!"
+      ;;
+    --with-threads)
+      KOKKOS_DEVICES="${KOKKOS_DEVICES},Threads"
       ;;
     --with-serial)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Serial"
@@ -128,7 +132,7 @@ do
       echo ""
       echo "--with-cuda[=/Path/To/Cuda]:          Enable Cuda and set path to Cuda Toolkit."
       echo "--with-openmp:                        Enable OpenMP backend."
-      echo "--with-pthread:                       Enable Pthreads backend."
+      echo "--with-threads:                       Enable Threads backend."
       echo "--with-serial:                        Enable Serial backend."
       echo "--with-devices:                       Explicitly add a set of backends."
       echo ""

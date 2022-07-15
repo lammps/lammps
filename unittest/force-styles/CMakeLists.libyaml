@@ -1,0 +1,34 @@
+# Custom minimal -*- CMake -*- file for libyaml
+
+cmake_minimum_required(VERSION 3.10)
+project(libyaml VERSION 0.2.5
+  DESCRIPTION "LibYAML a YAML parser and emitter library"
+  LANGUAGES C
+  HOMEPAGE_URL https://pyyaml.org/wiki/LibYAML)
+
+# compilation settings and options
+option(BUILD_SHARED_LIBS "Build libYAML as a shared library" OFF)
+option(CMAKE_POSITION_INDEPENDENT_CODE "Create objects compatible with shared libraries" ON)
+
+include(GNUInstallDirs)
+
+add_library(yaml
+  src/api.c
+  src/dumper.c
+  src/emitter.c
+  src/loader.c
+  src/parser.c
+  src/reader.c
+  src/scanner.c
+  src/writer.c
+  )
+
+set(YAML_VERSION_STRING "${YAML_VERSION_MAJOR}.${YAML_VERSION_MINOR}.${YAML_VERSION_PATCH}")
+set(CONFIG_H_FILE "#ifndef LIBYAML_CONFIG_H\n#define LIBYAML_CONFIG_H\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_MAJOR ${libyaml_VERSION_MAJOR}\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_MINOR ${libyaml_VERSION_MINOR}\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_PATCH ${libyaml_VERSION_PATCH}\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_STRING \"${libyaml_VERSION_MAJOR}.${libyaml_VERSION_MINOR}.${libyaml_VERSION_PATCH}\"\n#endif\n")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h "${CONFIG_H_FILE}")
+target_compile_definitions(yaml PRIVATE YAML_DECLARE_STATIC HAVE_CONFIG_H)
+target_include_directories(yaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})

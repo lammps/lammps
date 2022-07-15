@@ -210,7 +210,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     }
 
     if (evflag) {
-      Pair * const pair = (Pair *)style;
+      auto  const pair = (Pair *)style;
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -1042,7 +1042,7 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
 }
 
 /* ----------------------------------------------------------------------
-   tally energy and virial from 1-3 repulsion of SDK angle into accumulators
+   tally energy and virial from 1-3 repulsion of SPICA angle into accumulators
 ------------------------------------------------------------------------- */
 
 void ThrOMP::ev_tally13_thr(Angle * const angle, const int i1, const int i3,

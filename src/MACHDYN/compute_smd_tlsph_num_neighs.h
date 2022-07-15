@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDTLSPHNumNeighs : public Compute {
  public:
   ComputeSMDTLSPHNumNeighs(class LAMMPS *, int, char **);
-  ~ComputeSMDTLSPHNumNeighs();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDTLSPHNumNeighs() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;
@@ -52,17 +52,3 @@ class ComputeSMDTLSPHNumNeighs : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: More than one compute ke/atom
-
-It is not efficient to use compute ke/atom more than once.
-
-*/

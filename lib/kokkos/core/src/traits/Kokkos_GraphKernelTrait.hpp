@@ -60,6 +60,13 @@ namespace Impl {
 struct GraphKernelTrait : TraitSpecificationBase<GraphKernelTrait> {
   struct base_traits {
     using is_graph_kernel = std::false_type;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
+  };
+  template <class, class AnalyzeNextTrait>
+  struct mixin_matching_trait : AnalyzeNextTrait {
+    using base_t = AnalyzeNextTrait;
+    using base_t::base_t;
+    using is_graph_kernel = std::true_type;
   };
   template <class T>
   using trait_matches_specification = std::is_same<T, IsGraphKernelTag>;
@@ -68,19 +75,6 @@ struct GraphKernelTrait : TraitSpecificationBase<GraphKernelTrait> {
 // </editor-fold> end trait specification }}}1
 //==============================================================================
 
-//==============================================================================
-// <editor-fold desc="AnalyzeExecPolicy specializations"> {{{1
-
-template <class... Traits>
-struct AnalyzeExecPolicy<void, Impl::IsGraphKernelTag, Traits...>
-    : AnalyzeExecPolicy<void, Traits...> {
-  using base_t = AnalyzeExecPolicy<void, Traits...>;
-  using base_t::base_t;
-  using is_graph_kernel = std::true_type;
-};
-
-// </editor-fold> end AnalyzeExecPolicy specializations }}}1
-//==============================================================================
 }  // end namespace Impl
 }  // end namespace Kokkos
 

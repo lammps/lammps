@@ -30,8 +30,8 @@ initial versions of LAMMPS is:
   `S. Plimpton, Fast Parallel Algorithms for Short-Range Molecular Dynamics, J Comp Phys, 117, 1-19 (1995). <http://www.sandia.gov/~sjplimp/papers/jcompphys95.pdf>`_
 
 
-DOI for the LAMMPS code
-^^^^^^^^^^^^^^^^^^^^^^^
+DOI for the LAMMPS source code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS developers use the `Zenodo service at CERN <https://zenodo.org/>`_
 to create digital object identifies (DOI) for stable releases of the
@@ -46,7 +46,7 @@ In addition there are DOIs for individual stable releases. Currently there are:
 
 - 3 March 2020 version: `DOI:10.5281/zenodo.3726417 <https://dx.doi.org/10.5281/zenodo.3726417>`_
 - 29 October 2020 version: `DOI:10.5281/zenodo.4157471 <https://dx.doi.org/10.5281/zenodo.4157471>`_
-
+- 29 September 2021 version: `DOI:10.5281/zenodo.6386596 <https//dx.doi.org/10.5281/zenodo.6386596>`_
 
 Home page
 ^^^^^^^^^

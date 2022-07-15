@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_snav_atom.h"
-#include <cstring>
 
 #include "sna.h"
 #include "atom.h"
@@ -21,122 +20,165 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
+#include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snav(nullptr),
-  radelem(nullptr), wjelem(nullptr)
+  radelem(nullptr), wjelem(nullptr), sinnerelem(nullptr), dinnerelem(nullptr)
 {
+
+  // begin code common to all SNAP computes
+
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = nullptr;
-  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
-  int nargmin = 6+2*ntypes;
+  int nargmin = 6 + 2 * ntypes;
 
-  if (narg < nargmin) error->all(FLERR,"Illegal compute snav/atom command");
+  if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);
 
   // default values
 
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
-  bnormflag = 0;
   quadraticflag = 0;
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 0;
   nelements = 1;
 
   // process required arguments
 
-  memory->create(radelem,ntypes+1,"sna/atom:radelem"); // offset by 1 to match up with types
-  memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
-  rcutfac = atof(arg[3]);
-  rfac0 = atof(arg[4]);
-  twojmax = atoi(arg[5]);
+  memory->create(radelem, ntypes + 1, "sna/atom:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem, ntypes + 1, "sna/atom:wjelem");
+
+  rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
+  rfac0 = utils::numeric(FLERR, arg[4], false, lmp);
+  twojmax = utils::inumeric(FLERR, arg[5], false, lmp);
+
   for (int i = 0; i < ntypes; i++)
-    radelem[i+1] = atof(arg[6+i]);
+    radelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + i], false, lmp);
   for (int i = 0; i < ntypes; i++)
-    wjelem[i+1] = atof(arg[6+ntypes+i]);
+    wjelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
+
   // construct cutsq
+
   double cut;
-  memory->create(cutsq,ntypes+1,ntypes+1,"sna/atom:cutsq");
+  cutmax = 0.0;
+  memory->create(cutsq, ntypes + 1, ntypes + 1, "sna/atom:cutsq");
   for (int i = 1; i <= ntypes; i++) {
-    cut = 2.0*radelem[i]*rcutfac;
-    cutsq[i][i] = cut*cut;
-    for (int j = i+1; j <= ntypes; j++) {
-      cut = (radelem[i]+radelem[j])*rcutfac;
-      cutsq[i][j] = cutsq[j][i] = cut*cut;
+    cut = 2.0 * radelem[i] * rcutfac;
+    if (cut > cutmax) cutmax = cut;
+    cutsq[i][i] = cut * cut;
+    for (int j = i + 1; j <= ntypes; j++) {
+      cut = (radelem[i] + radelem[j]) * rcutfac;
+      cutsq[i][j] = cutsq[j][i] = cut * cut;
     }
   }
+
+  // set local input checks
+
+  int sinnerflag = 0;
+  int dinnerflag = 0;
 
   // process optional args
 
   int iarg = nargmin;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"rmin0") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      rmin0 = atof(arg[iarg+1]);
+    if (strcmp(arg[iarg], "rmin0") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      rmin0 = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"switchflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      switchflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "switchflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      switchflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"bzeroflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      bzeroflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "bzeroflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bzeroflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      quadraticflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "quadraticflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      quadraticflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"chem") == 0) {
-      if (iarg+2+ntypes > narg)
-        error->all(FLERR,"Illegal compute sna/atom command");
+    } else if (strcmp(arg[iarg], "chem") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       chemflag = 1;
-      memory->create(map,ntypes+1,"compute_sna_atom:map");
-      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      memory->create(map, ntypes + 1, "compute_sna_grid:map");
+      nelements = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       for (int i = 0; i < ntypes; i++) {
-        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
-        if (jelem < 0 || jelem >= nelements)
-          error->all(FLERR,"Illegal compute snav/atom command");
-        map[i+1] = jelem;
+        int jelem = utils::inumeric(FLERR, arg[iarg + 2 + i], false, lmp);
+        if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute {} command", style);
+        map[i + 1] = jelem;
       }
-      iarg += 2+ntypes;
-    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2 + ntypes;
+    } else if (strcmp(arg[iarg], "bnormflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bnormflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snav/atom command");
-      wselfallflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "wselfallflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      wselfallflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute snav/atom command");
+    } else if (strcmp(arg[iarg], "switchinnerflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      switchinnerflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "sinner") == 0) {
+      iarg++;
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
+      memory->create(sinnerelem, ntypes + 1, "snap:sinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        sinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
+      sinnerflag = 1;
+      iarg += ntypes;
+    } else if (strcmp(arg[iarg], "dinner") == 0) {
+      iarg++;
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
+      memory->create(dinnerelem, ntypes + 1, "snap:dinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        dinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
+      dinnerflag = 1;
+      iarg += ntypes;
+    } else
+      error->all(FLERR, "Illegal compute {} command", style);
   }
 
-  snaptr = new SNA(lmp, rfac0, twojmax,
-                   rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
+    error->all(
+        FLERR,
+        "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
+        style);
+
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
+    error->all(
+        FLERR,
+        "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
+        style);
+
+  snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
+                   wselfallflag, nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
-  nperdim = ncoeff;
-  if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
-  size_peratom_cols = 6*nperdim*atom->ntypes;
+  nvalues = ncoeff;
+  if (quadraticflag) nvalues += (ncoeff * (ncoeff + 1)) / 2;
+
+  // end code common to all SNAP computes
+
+  size_peratom_cols = 6*nvalues*atom->ntypes;
   comm_reverse = size_peratom_cols;
   peratom_flag = 1;
 
@@ -153,8 +195,14 @@ ComputeSNAVAtom::~ComputeSNAVAtom()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(cutsq);
-
   delete snaptr;
+
+  if (chemflag) memory->destroy(map);
+
+  if (switchinnerflag) {
+    memory->destroy(sinnerelem);
+    memory->destroy(dinnerelem);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,24 +211,15 @@ void ComputeSNAVAtom::init()
 {
   if (force->pair == nullptr)
     error->all(FLERR,"Compute snav/atom requires a pair style be defined");
-   // TODO: Not sure what to do with this error check since cutoff radius is not
-  // a single number
- //if (sqrt(cutsq) > force->pair->cutforce)
-   // error->all(FLERR,"Compute snav/atom cutoff is longer than pairwise cutoff");
+
+  if (cutmax > force->pair->cutforce)
+    error->all(FLERR,"Compute snav/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"snav/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("snav/atom").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute snav/atom");
   snaptr->init();
 }
@@ -248,7 +287,7 @@ void ComputeSNAVAtom::compute_peratom()
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
 
-      const int typeoffset = 6*nperdim*(atom->type[i]-1);
+      const int typeoffset = 6*nvalues*(atom->type[i]-1);
 
       // insure rij, inside, and typej  are of size jnum
 
@@ -279,7 +318,11 @@ void ComputeSNAVAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-          snaptr->element[ninside] = jelem; // element index for multi-element snap
+          if (switchinnerflag) {
+            snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
+            snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
+          }
+          if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }
       }
@@ -293,8 +336,7 @@ void ComputeSNAVAtom::compute_peratom()
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
 
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
+        snaptr->compute_duidrj(jj);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi*Ri, -dBi/dRj*Rj
@@ -304,17 +346,17 @@ void ComputeSNAVAtom::compute_peratom()
 
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
           snavi[icoeff]           += snaptr->dblist[icoeff][0]*xtmp;
-          snavi[icoeff+nperdim]   += snaptr->dblist[icoeff][1]*ytmp;
-          snavi[icoeff+2*nperdim] += snaptr->dblist[icoeff][2]*ztmp;
-          snavi[icoeff+3*nperdim] += snaptr->dblist[icoeff][1]*ztmp;
-          snavi[icoeff+4*nperdim] += snaptr->dblist[icoeff][0]*ztmp;
-          snavi[icoeff+5*nperdim] += snaptr->dblist[icoeff][0]*ytmp;
+          snavi[icoeff+nvalues]   += snaptr->dblist[icoeff][1]*ytmp;
+          snavi[icoeff+2*nvalues] += snaptr->dblist[icoeff][2]*ztmp;
+          snavi[icoeff+3*nvalues] += snaptr->dblist[icoeff][1]*ztmp;
+          snavi[icoeff+4*nvalues] += snaptr->dblist[icoeff][0]*ztmp;
+          snavi[icoeff+5*nvalues] += snaptr->dblist[icoeff][0]*ytmp;
           snavj[icoeff]           -= snaptr->dblist[icoeff][0]*x[j][0];
-          snavj[icoeff+nperdim]   -= snaptr->dblist[icoeff][1]*x[j][1];
-          snavj[icoeff+2*nperdim] -= snaptr->dblist[icoeff][2]*x[j][2];
-          snavj[icoeff+3*nperdim] -= snaptr->dblist[icoeff][1]*x[j][2];
-          snavj[icoeff+4*nperdim] -= snaptr->dblist[icoeff][0]*x[j][2];
-          snavj[icoeff+5*nperdim] -= snaptr->dblist[icoeff][0]*x[j][1];
+          snavj[icoeff+nvalues]   -= snaptr->dblist[icoeff][1]*x[j][1];
+          snavj[icoeff+2*nvalues] -= snaptr->dblist[icoeff][2]*x[j][2];
+          snavj[icoeff+3*nvalues] -= snaptr->dblist[icoeff][1]*x[j][2];
+          snavj[icoeff+4*nvalues] -= snaptr->dblist[icoeff][0]*x[j][2];
+          snavj[icoeff+5*nvalues] -= snaptr->dblist[icoeff][0]*x[j][1];
         }
 
         if (quadraticflag) {
@@ -334,17 +376,17 @@ void ComputeSNAVAtom::compute_peratom()
             double dbytmp = bi*biy;
             double dbztmp = bi*biz;
             snavi[ncount] +=           dbxtmp*xtmp;
-            snavi[ncount+nperdim] +=   dbytmp*ytmp;
-            snavi[ncount+2*nperdim] += dbztmp*ztmp;
-            snavi[ncount+3*nperdim] += dbytmp*ztmp;
-            snavi[ncount+4*nperdim] += dbxtmp*ztmp;
-            snavi[ncount+5*nperdim] += dbxtmp*ytmp;
+            snavi[ncount+nvalues] +=   dbytmp*ytmp;
+            snavi[ncount+2*nvalues] += dbztmp*ztmp;
+            snavi[ncount+3*nvalues] += dbytmp*ztmp;
+            snavi[ncount+4*nvalues] += dbxtmp*ztmp;
+            snavi[ncount+5*nvalues] += dbxtmp*ytmp;
             snavj[ncount] -=            dbxtmp*x[j][0];
-            snavj[ncount+nperdim] -=    dbytmp*x[j][1];
-            snavj[ncount+2*nperdim] -=  dbztmp*x[j][2];
-            snavj[ncount+3*nperdim] -=  dbytmp*x[j][2];
-            snavj[ncount+4*nperdim] -=  dbxtmp*x[j][2];
-            snavj[ncount+5*nperdim] -=  dbxtmp*x[j][1];
+            snavj[ncount+nvalues] -=    dbytmp*x[j][1];
+            snavj[ncount+2*nvalues] -=  dbztmp*x[j][2];
+            snavj[ncount+3*nvalues] -=  dbytmp*x[j][2];
+            snavj[ncount+4*nvalues] -=  dbxtmp*x[j][2];
+            snavj[ncount+5*nvalues] -=  dbxtmp*x[j][1];
             ncount++;
 
             // upper-triangular elements of quadratic matrix
@@ -357,17 +399,17 @@ void ComputeSNAVAtom::compute_peratom()
               double dbztmp = bi*snaptr->dblist[jcoeff][2]
                 + biz*snaptr->blist[jcoeff];
               snavi[ncount] +=           dbxtmp*xtmp;
-              snavi[ncount+nperdim] +=   dbytmp*ytmp;
-              snavi[ncount+2*nperdim] += dbztmp*ztmp;
-              snavi[ncount+3*nperdim] += dbytmp*ztmp;
-              snavi[ncount+4*nperdim] += dbxtmp*ztmp;
-              snavi[ncount+5*nperdim] += dbxtmp*ytmp;
+              snavi[ncount+nvalues] +=   dbytmp*ytmp;
+              snavi[ncount+2*nvalues] += dbztmp*ztmp;
+              snavi[ncount+3*nvalues] += dbytmp*ztmp;
+              snavi[ncount+4*nvalues] += dbxtmp*ztmp;
+              snavi[ncount+5*nvalues] += dbxtmp*ytmp;
               snavj[ncount] -=           dbxtmp*x[j][0];
-              snavj[ncount+nperdim] -=   dbytmp*x[j][1];
-              snavj[ncount+2*nperdim] -= dbztmp*x[j][2];
-              snavj[ncount+3*nperdim] -= dbytmp*x[j][2];
-              snavj[ncount+4*nperdim] -= dbxtmp*x[j][2];
-              snavj[ncount+5*nperdim] -= dbxtmp*x[j][1];
+              snavj[ncount+nvalues] -=   dbytmp*x[j][1];
+              snavj[ncount+2*nvalues] -= dbztmp*x[j][2];
+              snavj[ncount+3*nvalues] -= dbytmp*x[j][2];
+              snavj[ncount+4*nvalues] -= dbxtmp*x[j][2];
+              snavj[ncount+5*nvalues] -= dbxtmp*x[j][1];
               ncount++;
             }
           }
@@ -378,7 +420,7 @@ void ComputeSNAVAtom::compute_peratom()
 
   // communicate snav contributions between neighbor procs
 
-  comm->reverse_comm_compute(this);
+  comm->reverse_comm(this);
 
 }
 

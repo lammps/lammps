@@ -44,7 +44,7 @@ static const double sqrt_2_inv = std::sqrt(0.5);
 /* ---------------------------------------------------------------------- */
 
 PairSDPDTaitwaterIsothermal::PairSDPDTaitwaterIsothermal (LAMMPS *lmp)
-: Pair (lmp) {
+: Pair (lmp), random(nullptr) {
   restartinfo = 0;
   single_enable =0;
 }
@@ -61,6 +61,7 @@ PairSDPDTaitwaterIsothermal::~PairSDPDTaitwaterIsothermal () {
     memory->destroy (soundspeed);
     memory->destroy (B);
   }
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -309,10 +310,9 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
 void PairSDPDTaitwaterIsothermal::init_style()
 {
   if ((!atom->rho_flag) || (atom->drho == nullptr))
-    error->all(FLERR,"Pair style dpd/taitwater/isothermal requires atom "
-               "attributes rho and drho");
+    error->all(FLERR,"Pair style dpd/taitwater/isothermal requires atom attributes rho and drho");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

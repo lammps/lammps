@@ -27,16 +27,20 @@ namespace LAMMPS_NS {
 class ComputeContactAtom : public Compute {
  public:
   ComputeContactAtom(class LAMMPS *, int, char **);
-  ~ComputeContactAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeContactAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int nmax;
+
+  char *group2;
+  int jgroup, jgroupbit;
+
   class NeighList *list;
   double *contact;
 };
@@ -45,25 +49,3 @@ class ComputeContactAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute contact/atom requires atom style sphere
-
-Self-explanatory.
-
-E: Compute contact/atom requires a pair style be defined
-
-Self-explanatory.
-
-W: More than one compute contact/atom
-
-It is not efficient to use compute contact/atom more than once.
-
-*/

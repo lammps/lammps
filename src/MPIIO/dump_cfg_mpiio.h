@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpCFGMPIIO : public DumpCFG {
  public:
   DumpCFGMPIIO(class LAMMPS *, int, char **);
-  virtual ~DumpCFGMPIIO();
+  ~DumpCFGMPIIO() override;
 
  protected:
   bigint
@@ -43,11 +43,11 @@ class DumpCFGMPIIO : public DumpCFG {
   int convert_string_omp(int, double *);    // multithreaded version of convert_string
 #endif
 
-  virtual void openfile();
-  virtual void init_style();
-  virtual void write_header(bigint);
-  virtual void write();
-  virtual void write_data(int, double *);
+  void openfile() override;
+  void init_style() override;
+  void write_header(bigint) override;
+  void write() override;
+  void write_data(int, double *) override;
 
   typedef void (DumpCFGMPIIO::*FnPtrData)(int, double *);
   FnPtrData write_choice;    // ptr to write data functions
@@ -58,21 +58,3 @@ class DumpCFGMPIIO : public DumpCFG {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open dump file %s
-
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
-
-E: Too much per-proc info for dump
-
-Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
-
-E: Dump cfg requires one snapshot per file
-
-Use the wildcard "*" character in the filename.
-
-*/

@@ -1,5 +1,5 @@
 # /* ----------------------------------------------------------------------
-#  Generic Linux Makefile for CUDA
+#  Generic Linux Makefile for CUDA with the Multi-Process Service (MPS)
 #     - change CUDA_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 

@@ -59,8 +59,8 @@ enum class UniqueTokenScope : int { Instance, Global };
 ///
 /// This object should behave like a ref-counted object, so that when the last
 /// instance is destroy resources are free if needed
-template <typename ExecutionSpace,
-          UniqueTokenScope = UniqueTokenScope::Instance>
+template <typename ExecutionSpace = Kokkos::DefaultExecutionSpace,
+          UniqueTokenScope        = UniqueTokenScope::Instance>
 class UniqueToken {
  public:
   using execution_space = ExecutionSpace;

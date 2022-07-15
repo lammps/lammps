@@ -48,6 +48,11 @@
 
 namespace Test {
 
+#ifdef KOKKOS_COMPILER_NVHPC
+// warning: 'long double' is treated as 'double' in device code
+#pragma diag_suppress 20208
+#endif
+
 // Test construction and assignment
 
 template <class ExecSpace>
@@ -348,7 +353,9 @@ struct TestComplexSpecialFunctions {
     r = std::acosh(a);
     ASSERT_FLOAT_EQ(h_results(13).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(13).imag(), r.imag());
-    r = std::atanh(a);
+    // atanh
+    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atanh
+    r = {0.163481616851666003, 1.27679502502111284};
     ASSERT_FLOAT_EQ(h_results(14).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(14).imag(), r.imag());
     r = std::asin(a);
@@ -357,7 +364,9 @@ struct TestComplexSpecialFunctions {
     r = std::acos(a);
     ASSERT_FLOAT_EQ(h_results(16).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(16).imag(), r.imag());
-    r = std::atan(a);
+    // atan
+    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atan
+    r = {1.380543138238714, 0.2925178131625636};
     ASSERT_FLOAT_EQ(h_results(17).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(17).imag(), r.imag());
 #endif
@@ -459,6 +468,7 @@ TEST(TEST_CATEGORY, complex_issue_3865) {
   TestBugPowAndLogComplex<TEST_EXECSPACE>();
 }
 
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
 TEST(TEST_CATEGORY, complex_issue_3867) {
   ASSERT_EQ(Kokkos::pow(Kokkos::complex<double>(2., 1.), 3.),
             Kokkos::pow(Kokkos::complex<double>(2., 1.), 3));
@@ -513,6 +523,47 @@ TEST(TEST_CATEGORY, complex_issue_3867) {
                               Kokkos::complex<double>);
 
 #undef CHECK_POW_COMPLEX_PROMOTION
+}
+#endif
+
+TEST(TEST_CATEGORY, complex_operations_arithmetic_types_overloads) {
+#define STATIC_ASSERT(cond) static_assert(cond, "")
+
+  STATIC_ASSERT(Kokkos::real(1) == 1.);
+  STATIC_ASSERT(Kokkos::real(2.f) == 2.f);
+  STATIC_ASSERT(Kokkos::real(3.) == 3.);
+  STATIC_ASSERT(Kokkos::real(4.l) == 4.l);
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::real(1)), double>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::real(2.f)), float>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::real(3.)), double>::value));
+  STATIC_ASSERT(
+      (std::is_same<decltype(Kokkos::real(4.l)), long double>::value));
+
+  STATIC_ASSERT(Kokkos::imag(1) == 0.);
+  STATIC_ASSERT(Kokkos::imag(2.f) == 0.f);
+  STATIC_ASSERT(Kokkos::imag(3.) == 0.);
+  STATIC_ASSERT(Kokkos::imag(4.l) == 0.l);
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::imag(1)), double>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::imag(2.f)), float>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::imag(3.)), double>::value));
+  STATIC_ASSERT(
+      (std::is_same<decltype(Kokkos::real(4.l)), long double>::value));
+
+  // FIXME in principle could be checked at compile time too
+  ASSERT_EQ(Kokkos::conj(1), Kokkos::complex<double>(1));
+  ASSERT_EQ(Kokkos::conj(2.f), Kokkos::complex<float>(2.f));
+  ASSERT_EQ(Kokkos::conj(3.), Kokkos::complex<double>(3.));
+  ASSERT_EQ(Kokkos::conj(4.l), Kokkos::complex<long double>(4.l));
+  STATIC_ASSERT((
+      std::is_same<decltype(Kokkos::conj(1)), Kokkos::complex<double>>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::conj(2.f)),
+                              Kokkos::complex<float>>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::conj(3.)),
+                              Kokkos::complex<double>>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::conj(4.l)),
+                              Kokkos::complex<long double>>::value));
+
+#undef STATIC_ASSERT
 }
 
 }  // namespace Test

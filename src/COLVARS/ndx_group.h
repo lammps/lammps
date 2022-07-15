@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 class Ndx2Group : public Command {
  public:
   Ndx2Group(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 
  private:
   void create(const std::string &, const std::vector<tagint> &);
@@ -40,22 +40,3 @@ class Ndx2Group : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Must have atom IDs for ndx2group command
-
-There are no atom IDs defined in the system, but they are required
-to identify atoms in a gromacs style index file.
-
-E: Cannot open index file for reading
-
-Self-explanatory. Check your filename, permissions, and disk space or quota.
-
-*/

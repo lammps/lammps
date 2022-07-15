@@ -65,13 +65,6 @@ struct identity {
 template <typename T>
 using identity_t = typename identity<T>::type;
 
-struct not_a_type {
-  not_a_type()                  = delete;
-  ~not_a_type()                 = delete;
-  not_a_type(not_a_type const&) = delete;
-  void operator=(not_a_type const&) = delete;
-};
-
 #if defined(__cpp_lib_void_t)
 // since C++17
 using std::void_t;
@@ -157,6 +150,112 @@ struct destruct_delete {
 // An intentionally uninstantiateable type_list for metaprogramming purposes
 template <class...>
 struct type_list;
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_remove_first"> {{{2
+
+// Currently linear complexity; if we use this a lot, maybe make it better?
+
+template <class Entry, class InList, class OutList>
+struct _type_list_remove_first_impl;
+
+template <class Entry, class T, class... Ts, class... OutTs>
+struct _type_list_remove_first_impl<Entry, type_list<T, Ts...>,
+                                    type_list<OutTs...>>
+    : _type_list_remove_first_impl<Entry, type_list<Ts...>,
+                                   type_list<OutTs..., T>> {};
+
+template <class Entry, class... Ts, class... OutTs>
+struct _type_list_remove_first_impl<Entry, type_list<Entry, Ts...>,
+                                    type_list<OutTs...>>
+    : _type_list_remove_first_impl<Entry, type_list<>,
+                                   type_list<OutTs..., Ts...>> {};
+
+template <class Entry, class... OutTs>
+struct _type_list_remove_first_impl<Entry, type_list<>, type_list<OutTs...>>
+    : identity<type_list<OutTs...>> {};
+
+template <class Entry, class List>
+struct type_list_remove_first
+    : _type_list_remove_first_impl<Entry, List, type_list<>> {};
+
+// </editor-fold> end type_list_remove_first }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_any"> {{{2
+
+template <template <class> class UnaryPred, class List>
+struct type_list_any;
+
+#ifdef KOKKOS_ENABLE_CXX17
+template <template <class> class UnaryPred, class... Ts>
+struct type_list_any<UnaryPred, type_list<Ts...>>
+    : std::bool_constant<(UnaryPred<Ts>::value || ...)> {};
+#else
+template <template <class> class UnaryPred, class T, class... Ts>
+struct type_list_any<UnaryPred, type_list<T, Ts...>> {
+  using type = typename std::conditional_t<
+      UnaryPred<T>::value, std::true_type,
+      type_list_any<UnaryPred, type_list<Ts...>>>::type;
+  static constexpr auto value = type::value;
+};
+
+template <template <class> class UnaryPred>
+struct type_list_any<UnaryPred, type_list<>> : std::false_type {};
+
+#endif
+
+// </editor-fold> end type_list_any }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="concat_type_list"> {{{2
+//  concat_type_list combines types in multiple type_lists
+
+// forward declaration
+template <typename... T>
+struct concat_type_list;
+
+// alias
+template <typename... T>
+using concat_type_list_t = typename concat_type_list<T...>::type;
+
+// final instantiation
+template <typename... T>
+struct concat_type_list<type_list<T...>> {
+  using type = type_list<T...>;
+};
+
+// combine consecutive type_lists
+template <typename... T, typename... U, typename... Tail>
+struct concat_type_list<type_list<T...>, type_list<U...>, Tail...>
+    : concat_type_list<type_list<T..., U...>, Tail...> {};
+// </editor-fold> end concat_type_list }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="filter_type_list"> {{{2
+//  filter_type_list generates type-list of types which satisfy
+//  PredicateT<T>::value == ValueT
+
+template <template <typename> class PredicateT, typename TypeListT,
+          bool ValueT = true>
+struct filter_type_list;
+
+template <template <typename> class PredicateT, typename... T, bool ValueT>
+struct filter_type_list<PredicateT, type_list<T...>, ValueT> {
+  using type =
+      concat_type_list_t<std::conditional_t<PredicateT<T>::value == ValueT,
+                                            type_list<T>, type_list<>>...>;
+};
+
+template <template <typename> class PredicateT, typename T, bool ValueT = true>
+using filter_type_list_t =
+    typename filter_type_list<PredicateT, T, ValueT>::type;
+
+// </editor-fold> end filter_type_list }}}2
+//------------------------------------------------------------------------------
 
 // </editor-fold> end type_list }}}1
 //==============================================================================

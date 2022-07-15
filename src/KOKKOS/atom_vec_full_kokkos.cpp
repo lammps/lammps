@@ -1186,6 +1186,9 @@ int AtomVecFullKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nr
                                               ExecutionSpace space) {
   const size_t elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
     5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
+
+  while (nlocal + nrecv/elements >= nmax) grow(0);
+
   if (space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecFullKokkos_UnpackExchangeFunctor<LMPHostType>
@@ -1488,7 +1491,7 @@ void AtomVecFullKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecFullKokkos::data_atom(double *coord, imageint imagetmp,
-                                       char **values)
+                                  const std::vector<std::string> &values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -1525,10 +1528,11 @@ void AtomVecFullKokkos::data_atom(double *coord, imageint imagetmp,
    initialize other atom quantities for this sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecFullKokkos::data_atom_hybrid(int nlocal, char **values)
+int AtomVecFullKokkos::data_atom_hybrid(int nlocal, const std::vector<std::string> &values,
+                                        int offset)
 {
-  h_molecule(nlocal) = utils::inumeric(FLERR,values[0],true,lmp);
-  h_q(nlocal) = utils::numeric(FLERR,values[1],true,lmp);
+  h_molecule(nlocal) = utils::inumeric(FLERR,values[offset],true,lmp);
+  h_q(nlocal) = utils::numeric(FLERR,values[offset+1],true,lmp);
   h_num_bond(nlocal) = 0;
   h_num_angle(nlocal) = 0;
   h_num_dihedral(nlocal) = 0;

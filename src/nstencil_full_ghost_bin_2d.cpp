@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -29,16 +28,16 @@ NStencilFullGhostBin2d::NStencilFullGhostBin2d(LAMMPS *lmp) : NStencil(lmp)
 
 void NStencilFullGhostBin2d::create()
 {
-  int i,j;
+  int i, j;
 
   nstencil = 0;
 
   for (j = -sy; j <= sy; j++)
     for (i = -sx; i <= sx; i++)
-      if (bin_distance(i,j,0) < cutneighmaxsq) {
+      if (bin_distance(i, j, 0) < cutneighmaxsq) {
         stencilxyz[nstencil][0] = i;
         stencilxyz[nstencil][1] = j;
         stencilxyz[nstencil][2] = 0;
-        stencil[nstencil++] = j*mbinx + i;
+        stencil[nstencil++] = j * mbinx + i;
       }
 }

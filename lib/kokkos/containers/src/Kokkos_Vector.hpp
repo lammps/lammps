@@ -119,12 +119,14 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
     if (DV::template need_sync<typename DV::t_dev::device_type>()) {
       set_functor_host f(DV::h_view, val);
       parallel_for("Kokkos::vector::assign", n, f);
-      typename DV::t_host::execution_space().fence();
+      typename DV::t_host::execution_space().fence(
+          "Kokkos::vector::assign: fence after assigning values");
       DV::template modify<typename DV::t_host::device_type>();
     } else {
       set_functor f(DV::d_view, val);
       parallel_for("Kokkos::vector::assign", n, f);
-      typename DV::t_dev::execution_space().fence();
+      typename DV::t_dev::execution_space().fence(
+          "Kokkos::vector::assign: fence after assigning values");
       DV::template modify<typename DV::t_dev::device_type>();
     }
   }
@@ -160,7 +162,7 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
     }
     DV::sync_host();
     DV::modify_host();
-    if (it < begin() || it > end())
+    if (std::less<>()(it, begin()) || std::less<>()(end(), it))
       Kokkos::abort("Kokkos::vector::insert : invalid insert iterator");
     if (count == 0) return it;
     ptrdiff_t start = std::distance(begin(), it);
@@ -187,27 +189,21 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
                           iterator>::type
   insert(iterator it, InputIterator b, InputIterator e) {
     ptrdiff_t count = std::distance(b, e);
-    if (count == 0) return it;
 
     DV::sync_host();
     DV::modify_host();
-    if (it < begin() || it > end())
+    if (std::less<>()(it, begin()) || std::less<>()(end(), it))
       Kokkos::abort("Kokkos::vector::insert : invalid insert iterator");
 
-    bool resized = false;
-    if ((size() == 0) && (it == begin())) {
-      resize(count);
-      it      = begin();
-      resized = true;
-    }
     ptrdiff_t start = std::distance(begin(), it);
     auto org_size   = size();
-    if (!resized) resize(size() + count);
-    it = begin() + start;
+
+    // Note: resize(...) invalidates it; use begin() + start instead
+    resize(size() + count);
 
     std::copy_backward(begin() + start, begin() + org_size,
                        begin() + org_size + count);
-    std::copy(b, e, it);
+    std::copy(b, e, begin() + start);
 
     return begin() + start;
   }

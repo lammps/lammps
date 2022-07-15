@@ -56,39 +56,43 @@ namespace Impl {
 //==============================================================================
 // <editor-fold desc="trait specification"> {{{1
 
+template <class T>
+struct show_extra_execution_space_erroneously_given_to_execution_policy;
+template <>
+struct show_extra_execution_space_erroneously_given_to_execution_policy<void> {
+};
 struct ExecutionSpaceTrait : TraitSpecificationBase<ExecutionSpaceTrait> {
   struct base_traits {
     static constexpr auto execution_space_is_defaulted = true;
 
     using execution_space = Kokkos::DefaultExecutionSpace;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class T>
-  using trait_matches_specification = is_execution_space<T>;
+  using trait_matches_specification = Kokkos::is_execution_space<T>;
+  template <class ExecSpace, class AnalyzeNextTrait>
+  struct mixin_matching_trait : AnalyzeNextTrait {
+    using base_t = AnalyzeNextTrait;
+    using base_t::base_t;
+
+    static constexpr auto show_execution_space_error_in_compilation_message =
+        show_extra_execution_space_erroneously_given_to_execution_policy<
+            std::conditional_t<base_t::execution_space_is_defaulted, void,
+                               typename base_t::execution_space>>{};
+    static_assert(base_t::execution_space_is_defaulted,
+                  "Kokkos Error: More than one execution space given. Search "
+                  "compiler output for 'show_extra_execution_space' to see the "
+                  "type of the errant tag.");
+
+    static constexpr auto execution_space_is_defaulted = false;
+
+    using execution_space = ExecSpace;
+  };
 };
 
 // </editor-fold> end trait specification }}}1
 //==============================================================================
 
-//==============================================================================
-// <editor-fold desc="AnalyzeExecPolicy specializations"> {{{1
-
-template <class ExecutionSpace, class... Traits>
-struct AnalyzeExecPolicy<
-    std::enable_if_t<Kokkos::is_execution_space<ExecutionSpace>::value>,
-    ExecutionSpace, Traits...> : AnalyzeExecPolicy<void, Traits...> {
-  using base_t = AnalyzeExecPolicy<void, Traits...>;
-  using base_t::base_t;
-
-  static_assert(base_t::execution_space_is_defaulted,
-                "Kokkos Error: More than one execution space given");
-
-  static constexpr bool execution_space_is_defaulted = false;
-
-  using execution_space = ExecutionSpace;
-};
-
-// </editor-fold> end AnalyzeExecPolicy specializations }}}1
-//==============================================================================
 }  // end namespace Impl
 }  // end namespace Kokkos
 

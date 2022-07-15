@@ -39,37 +39,37 @@ namespace LAMMPS_NS {
 class PairTlsph : public Pair {
  public:
   PairTlsph(class LAMMPS *);
-  virtual ~PairTlsph();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void init_list(int, class NeighList *);
-  void write_restart_settings(FILE *) {}
-  void read_restart_settings(FILE *) {}
-  virtual double memory_usage();
+  ~PairTlsph() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  void write_restart_settings(FILE *) override {}
+  void read_restart_settings(FILE *) override {}
+  double memory_usage() override;
   void compute_shape_matrix();
   void material_model();
-  void *extract(const char *, int &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  void *extract(const char *, int &) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   void AssembleStress();
 
   void PreCompute();
   void ComputeForces(int eflag, int vflag);
   void effective_longitudinal_modulus(const int itype, const double dt, const double d_iso,
-                                      const double p_rate, const Eigen::Matrix3d d_dev,
-                                      const Eigen::Matrix3d sigma_dev_rate, const double damage,
+                                      const double p_rate, const Eigen::Matrix3d& d_dev,
+                                      const Eigen::Matrix3d& sigma_dev_rate, const double damage,
                                       double &K_eff, double &mu_eff, double &M_eff);
 
   void ComputePressure(const int i, const double rho, const double mass_specific_energy,
                        const double vol_specific_energy, const double pInitial, const double d_iso,
                        double &pFinal, double &p_rate);
-  void ComputeStressDeviator(const int i, const Eigen::Matrix3d sigmaInitial_dev,
-                             const Eigen::Matrix3d d_dev, Eigen::Matrix3d &sigmaFinal_dev,
+  void ComputeStressDeviator(const int i, const Eigen::Matrix3d& sigmaInitial_dev,
+                             const Eigen::Matrix3d& d_dev, Eigen::Matrix3d &sigmaFinal_dev,
                              Eigen::Matrix3d &sigma_dev_rate, double &plastic_strain_increment);
-  void ComputeDamage(const int i, const Eigen::Matrix3d strain, const Eigen::Matrix3d sigmaFinal,
+  void ComputeDamage(const int i, const Eigen::Matrix3d& strain, const Eigen::Matrix3d& sigmaFinal,
                      Eigen::Matrix3d &sigma_damaged);
 
  protected:

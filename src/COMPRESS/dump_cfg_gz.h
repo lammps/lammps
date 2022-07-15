@@ -28,32 +28,19 @@ namespace LAMMPS_NS {
 class DumpCFGGZ : public DumpCFG {
  public:
   DumpCFGGZ(class LAMMPS *, int, char **);
-  virtual ~DumpCFGGZ() = default;
 
  protected:
   GzFileWriter writer;
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
+  void openfile() override;
+  void write_header(bigint) override;
+  void write_data(int, double *) override;
+  void write() override;
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump cfg/gz only writes compressed files
-
-The dump cfg/gz output file name must have a .gz suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

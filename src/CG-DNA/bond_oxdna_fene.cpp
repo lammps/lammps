@@ -24,8 +24,8 @@
 #include "neighbor.h"
 #include "update.h"
 
-#include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
+#include "pair.h"
 
 #include <cmath>
 
@@ -152,17 +152,13 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   double r, rr0, rr0sq;
   // vectors COM-backbone site in lab frame
   double ra_cs[3], rb_cs[3];
-
-  double *qa, ax[3], ay[3], az[3];
-  double *qb, bx[3], by[3], bz[3];
+  // Cartesian unit vectors in lab frame
+  double ax[3], ay[3], az[3];
+  double bx[3], by[3], bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
   double **torque = atom->torque;
-
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
 
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -172,6 +168,12 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   ebond = 0.0;
   ev_init(eflag, vflag);
 
+  // n(x/y/z)_xtrct = extracted local unit vectors in lab frame from oxdna_excv
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx", dim);
+  ny_xtrct = (double **) force->pair->extract("ny", dim);
+  nz_xtrct = (double **) force->pair->extract("nz", dim);
+
   // loop over FENE bonds
 
   for (in = 0; in < nbondlist; in++) {
@@ -180,10 +182,24 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     b = bondlist[in][0];
     type = bondlist[in][2];
 
-    qa = bonus[ellipsoid[a]].quat;
-    MathExtra::q_to_exyz(qa, ax, ay, az);
-    qb = bonus[ellipsoid[b]].quat;
-    MathExtra::q_to_exyz(qb, bx, by, bz);
+    ax[0] = nx_xtrct[a][0];
+    ax[1] = nx_xtrct[a][1];
+    ax[2] = nx_xtrct[a][2];
+    ay[0] = ny_xtrct[a][0];
+    ay[1] = ny_xtrct[a][1];
+    ay[2] = ny_xtrct[a][2];
+    az[0] = nz_xtrct[a][0];
+    az[1] = nz_xtrct[a][1];
+    az[2] = nz_xtrct[a][2];
+    bx[0] = nx_xtrct[b][0];
+    bx[1] = nx_xtrct[b][1];
+    bx[2] = nx_xtrct[b][2];
+    by[0] = ny_xtrct[b][0];
+    by[1] = ny_xtrct[b][1];
+    by[2] = ny_xtrct[b][2];
+    bz[0] = nz_xtrct[b][0];
+    bz[1] = nz_xtrct[b][1];
+    bz[2] = nz_xtrct[b][2];
 
     // vector COM-backbone site a and b
     compute_interaction_sites(ax, ay, az, ra_cs);

@@ -41,7 +41,7 @@ using namespace ucl_cudart;
 using namespace ucl_hip;
 #endif
 
-int main(int argc, char** argv) {
+int main(int /*argc*/, char** /*argv*/) {
   UCL_Device cop;
   std::cout << "Found " << cop.num_platforms() << " platform(s).\n";
   if (cop.num_platforms()>0)

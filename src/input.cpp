@@ -27,9 +27,11 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "integrate.h"
 #include "kspace.h"
 #include "memory.h"
 #include "min.h"
@@ -48,12 +50,20 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
-#include <sys/stat.h>
 
 using namespace LAMMPS_NS;
 
 #define DELTALINE 256
 #define DELTA 4
+
+/* ----------------------------------------------------------------------
+   one instance per command in style_command.h
+------------------------------------------------------------------------- */
+
+template <typename T> static Command *command_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -158,7 +168,7 @@ Input::~Input()
   memory->sfree(line);
   memory->sfree(copy);
   memory->sfree(work);
-  if (labelstr) delete[] labelstr;
+  delete[] labelstr;
   memory->sfree(arg);
   delete[] infiles;
   delete variable;
@@ -178,17 +188,20 @@ of the file is reached.  The *infile* pointer will usually point to
 
 void Input::file()
 {
-  int m,n;
+  int m,n,mstart,ntriple,endfile;
 
   while (true) {
 
     // read a line from input script
-    // n = length of line including str terminator, 0 if end of file
+    // when done, n = length of line including str terminator, 0 if end of file
     // if line ends in continuation char '&', concatenate next line
+    // if triple quotes are used, read until closing triple quotes
 
     if (me == 0) {
-
+      ntriple = 0;
+      endfile = 0;
       m = 0;
+
       while (true) {
 
         if (infile == nullptr) {
@@ -196,38 +209,58 @@ void Input::file()
           break;
         }
 
-        if (maxline-m < 2) reallocate(line,maxline,0);
+        mstart = m;
 
-        // end of file reached, so break
-        // n == 0 if nothing read, else n = line with str terminator
+        while (1) {
+          if (maxline-m < 2) reallocate(line,maxline,0);
 
-        if (fgets(&line[m],maxline-m,infile) == nullptr) {
-          if (m) n = strlen(line) + 1;
-          else n = 0;
+          // end of file reached, so break
+          // n == 0 if nothing read, else n = line with str terminator
+
+          if (fgets(&line[m],maxline-m,infile) == nullptr) {
+            endfile = 1;
+            if (m) n = strlen(line) + 1;
+            else n = 0;
+            break;
+          }
+
+          // continue if last char read was not a newline
+          // can happen if line is very long
+
+          m += strlen(&line[m]);
+          if (line[m-1] != '\n') continue;
           break;
         }
 
-        // continue if last char read was not a newline
-        // could happen if line is very long
+        if (endfile) break;
 
-        m = strlen(line);
-        if (line[m-1] != '\n') continue;
+        // add # of triple quotes in just-read line to ntriple
 
-        // continue reading if final printable char is & char
-        // or if odd number of triple quotes
-        // else break with n = line with str terminator
+        ntriple += numtriple(&line[mstart]);
+
+        // trim whitespace from end of line
+        // line[m] = last printable char
 
         m--;
         while (m >= 0 && isspace(line[m])) m--;
-        if (m < 0 || line[m] != '&') {
-          if (numtriple(line) % 2) {
-            m += 2;
-            continue;
-          }
-          line[m+1] = '\0';
-          n = m+2;
-          break;
+
+        // continue reading if final printable char is "&"
+
+        if (m >= 0 && line[m] == '&') continue;
+
+        // continue reading if odd number of triple quotes
+
+        if (ntriple % 2) {
+          line[m+1] = '\n';
+          m += 2;
+          continue;
         }
+
+        // done, break with n = length of line with str terminator
+
+        line[m+1] = '\0';
+        n = m+2;
+        break;
       }
     }
 
@@ -361,8 +394,9 @@ char *Input::one(const std::string &single)
 }
 
 /* ----------------------------------------------------------------------
-   Send text to active echo file pointers
+   send text to active echo file pointers
 ------------------------------------------------------------------------- */
+
 void Input::write_echo(const std::string &txt)
 {
   if (me == 0) {
@@ -389,34 +423,35 @@ void Input::parse()
   if (n > maxcopy) reallocate(copy,maxcopy,n);
   strcpy(copy,line);
 
-  // strip any # comment by replacing it with 0
-  // do not strip from a # inside single/double/triple quotes
-  // quoteflag = 1,2,3 when encounter first single/double,triple quote
-  // quoteflag = 0 when encounter matching single/double,triple quote
+  // strip a # comment by replacing it with 0
+  // do not treat a # inside single/double/triple quotes as a comment
 
-  int quoteflag = 0;
+  char *ptrmatch;
   char *ptr = copy;
+
   while (*ptr) {
-    if (*ptr == '#' && !quoteflag) {
+    if (*ptr == '#') {
       *ptr = '\0';
       break;
     }
-    if (quoteflag == 0) {
+    if (*ptr == '\'') {
+      ptrmatch = strchr(ptr+1,'\'');
+      if (ptrmatch == NULL)
+        error->all(FLERR,"Unmatched single quote in command");
+      ptr = ptrmatch + 1;
+    } else if (*ptr == '"') {
       if (strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 3;
-        ptr += 2;
+        ptrmatch = strstr(ptr+3,"\"\"\"");
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched triple quote in command");
+        ptr = ptrmatch + 3;
+      } else {
+        ptrmatch = strchr(ptr+1,'"');
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched double quote in command");
+        ptr = ptrmatch + 1;
       }
-      else if (*ptr == '"') quoteflag = 2;
-      else if (*ptr == '\'') quoteflag = 1;
-    } else {
-      if (quoteflag == 3 && strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 0;
-        ptr += 2;
-      }
-      else if (quoteflag == 2 && *ptr == '"') quoteflag = 0;
-      else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
-    }
-    ptr++;
+    } else ptr++;
   }
 
   if (utils::has_utf8(copy)) {
@@ -524,16 +559,18 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 {
   // use str2 as scratch space to expand str, then copy back to str
   // reallocate str and str2 as necessary
-  // do not replace $ inside single/double/triple quotes
+  // do not replace variables inside single/double/triple quotes
   // var = pts at variable name, ended by null char
   //   if $ is followed by '{', trailing '}' becomes null char
   //   else $x becomes x followed by null char
   // beyond = points to text following variable
 
-  int i,n,paren_count;
+  int i,n,paren_count,nchars;;
   char immediate[256];
   char *var,*value,*beyond;
   int quoteflag = 0;
+  char *ptrmatch;
+
   char *ptr = str;
 
   n = strlen(str) + 1;
@@ -627,34 +664,41 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         if (echo_log && logfile) fprintf(logfile,"%s%s\n",str2,beyond);
       }
 
-      continue;
-    }
+    // check for single/double/triple quotes and skip past them
 
-    // quoteflag = 1,2,3 when encounter first single/double,triple quote
-    // quoteflag = 0 when encounter matching single/double,triple quote
-    // copy 2 extra triple quote chars into str2
-
-    if (quoteflag == 0) {
+    } else if (*ptr == '\'') {
+      ptrmatch = strchr(ptr+1,'\'');
+      if (ptrmatch == NULL)
+        error->all(FLERR,"Unmatched single quote in command");
+      nchars = ptrmatch+1 - ptr;
+      strncpy(ptr2,ptr,nchars);
+      ptr += nchars;
+      ptr2 += nchars;
+    } else if (*ptr == '"') {
       if (strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 3;
-        *ptr2++ = *ptr++;
-        *ptr2++ = *ptr++;
+        ptrmatch = strstr(ptr+3,"\"\"\"");
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched triple quote in command");
+        nchars = ptrmatch+3 - ptr;
+        strncpy(ptr2,ptr,nchars);
+        ptr += nchars;
+        ptr2 += nchars;
+      } else {
+        ptrmatch = strchr(ptr+1,'"');
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched double quote in command");
+        nchars = ptrmatch+1 - ptr;
+        strncpy(ptr2,ptr,nchars);
+        ptr += nchars;
+        ptr2 += nchars;
       }
-      else if (*ptr == '"') quoteflag = 2;
-      else if (*ptr == '\'') quoteflag = 1;
-    } else {
-      if (quoteflag == 3 && strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 0;
-        *ptr2++ = *ptr++;
-        *ptr2++ = *ptr++;
-      }
-      else if (quoteflag == 2 && *ptr == '"') quoteflag = 0;
-      else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
-    }
 
-    // copy current character into str2
+    // else copy current single character into str2
 
-    *ptr2++ = *ptr++;
+    } else *ptr2++ = *ptr++;
+
+    // terminate current str2 so variable sub can perform strlen()
+
     *ptr2 = '\0';
   }
 
@@ -782,9 +826,21 @@ int Input::execute_command()
   if (flag) return 0;
 
   // invoke commands added via style_command.h
+  // try suffixed version first
 
-  if (command_map->find(command) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[command];
+  std::string mycmd = command;
+  if (lmp->suffix_enable) {
+    mycmd = command + std::string("/") + lmp->suffix;
+    if (command_map->find(mycmd) == command_map->end()) {
+      if (lmp->suffix2) {
+        mycmd = command + std::string("/") + lmp->suffix2;
+        if (command_map->find(mycmd) == command_map->end())
+          mycmd = command;
+      } else mycmd = command;
+    }
+  }
+  if (command_map->find(mycmd) != command_map->end()) {
+    CommandCreator &command_creator = (*command_map)[mycmd];
     Command *cmd = command_creator(lmp);
     cmd->command(narg,arg);
     delete cmd;
@@ -794,16 +850,6 @@ int Input::execute_command()
   // unrecognized command
 
   return -1;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per command in style_command.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Command *Input::command_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -879,7 +925,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -932,7 +978,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -964,10 +1010,15 @@ void Input::include()
     if (nfile == maxfile)
       error->one(FLERR,"Too many nested levels of input scripts");
 
-    infile = fopen(arg[0],"r");
+    // expand variables
+    int n = strlen(arg[0]) + 1;
+    if (n > maxline) reallocate(line,maxline,n);
+    strcpy(line,arg[0]);
+    substitute(line,work,maxline,maxwork,0);
+
+    infile = fopen(line,"r");
     if (infile == nullptr)
-      error->one(FLERR,"Cannot open input script {}: {}",
-                                   arg[0], utils::getsyserror());
+      error->one(FLERR,"Cannot open input script {}: {}", line, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -1009,7 +1060,7 @@ void Input::jump()
 
   if (narg == 2) {
     label_active = 1;
-    if (labelstr) delete[] labelstr;
+    delete[] labelstr;
     labelstr = utils::strdup(arg[1]);
   }
 }
@@ -1177,26 +1228,39 @@ void Input::shell()
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
-        if (platform::mkdir(arg[i]) < 0)
-          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'",
-                         arg[i],utils::getsyserror());
+        rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
+        if (rv != 0)
+          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'", arg[i],
+                         utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");
     if (me == 0) {
-      if (rename(arg[1],arg[2]) < 0) {
-        error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
-                       arg[1],arg[2],utils::getsyserror());
+      if (platform::path_is_directory(arg[2])) {
+        if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
+          error->warning(FLERR,"Shell command 'mv {} {}' returned with non-zero status", arg[1], arg[2]);
+      } else {
+        if (rename(arg[1],arg[2]) < 0) {
+          error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
+                         arg[1],arg[2],utils::getsyserror());
+        }
       }
     }
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
     if (me == 0) {
-      for (int i = 1; i < narg; i++) {
+      int i = 1;
+      bool warn = true;
+      if (strcmp(arg[i], "-f") == 0) {
+        warn = false;
+        ++i;
+      }
+      for (;i < narg; i++) {
         if (platform::unlink(arg[i]) < 0)
-          error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
-                         arg[i], utils::getsyserror());
+          if (warn)
+            error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
+                           arg[i], utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"rmdir") == 0) {
@@ -1220,23 +1284,20 @@ void Input::shell()
         error->warning(FLERR, "Shell command 'putenv {}' failed with error '{}'",
                        arg[i], utils::getsyserror());
     }
-  // use work string to concat args back into one string separated by spaces
-  // invoke string in shell via system()
+
+  // concat arguments and invoke string in shell via system()
 
   } else {
-    int n = 0;
-    for (int i = 0; i < narg; i++) n += strlen(arg[i]) + 1;
-    if (n > maxwork) reallocate(work,maxwork,n);
+    if (me == 0) {
+      std::string cmd = arg[0];
+      for (int i = 1; i < narg; i++) {
+        cmd += " ";
+        cmd += arg[i];
+      }
 
-    strcpy(work,arg[0]);
-    for (int i = 1; i < narg; i++) {
-      strcat(work," ");
-      strcat(work,arg[i]);
+      if (system(cmd.c_str()) != 0)
+        error->warning(FLERR,"Shell command {} returned with non-zero status", cmd);
     }
-
-    if (me == 0)
-      if (system(work) != 0)
-        error->warning(FLERR,"Shell command returned with non-zero status");
   }
 }
 
@@ -1754,6 +1815,7 @@ void Input::special_bonds()
   double lj3 = force->special_lj[3];
   double coul2 = force->special_coul[2];
   double coul3 = force->special_coul[3];
+  int onefive = force->special_onefive;
   int angle = force->special_angle;
   int dihedral = force->special_dihedral;
 
@@ -1764,6 +1826,7 @@ void Input::special_bonds()
   if (domain->box_exist && atom->molecular == Atom::MOLECULAR) {
     if (lj2 != force->special_lj[2] || lj3 != force->special_lj[3] ||
         coul2 != force->special_coul[2] || coul3 != force->special_coul[3] ||
+        onefive != force->special_onefive ||
         angle != force->special_angle ||
         dihedral != force->special_dihedral) {
       Special special(lmp);
@@ -1836,8 +1899,25 @@ void Input::timer_command()
 void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
+
+  update->update_time();
   update->dt = utils::numeric(FLERR,arg[0],false,lmp);
   update->dt_default = 0;
+
+  // timestep command can be invoked between runs or by run every
+  // calls to other classes that need to know timestep size changed
+  // similar logic is in FixDtReset::end_of_step()
+  // only need to do this if a run has already occurred
+
+  if (update->first_update == 0) return;
+
+  int respaflag = 0;
+  if (utils::strmatch(update->integrate_style, "^respa")) respaflag = 1;
+  if (respaflag) update->integrate->reset_dt();
+
+  if (force->pair) force->pair->reset_dt();
+  for (auto &ifix : modify->get_fix_list()) ifix->reset_dt();
+  output->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

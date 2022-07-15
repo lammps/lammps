@@ -80,8 +80,8 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
@@ -134,14 +134,16 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       jtag = tag[j];
-      if (itag > jtag) {
-        if ((itag+jtag) % 2 == 0) continue;
-      } else if (itag < jtag) {
-        if ((itag+jtag) % 2 == 1) continue;
-      } else {
-        if (x[j].z < ztmp) continue;
-        if (x[j].z == ztmp && x[j].y < ytmp) continue;
-        if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
+      if (!skip_threebody_flag) {
+        if (itag > jtag) {
+          if ((itag+jtag) % 2 == 0) continue;
+        } else if (itag < jtag) {
+          if ((itag+jtag) % 2 == 1) continue;
+        } else {
+          if (x[j].z < ztmp) continue;
+          if (x[j].z == ztmp && x[j].y < ytmp) continue;
+          if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
+        }
       }
 
       twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
@@ -156,9 +158,11 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
                                evdwl,0.0,fpair,delx,dely,delz,thr);
     }
-
-    jnumm1 = numshort - 1;
-
+    if (skip_threebody_flag) {
+      jnumm1 = 0;
+    } else {
+      jnumm1 = numshort - 1;
+    }
     for (jj = 0; jj < jnumm1; jj++) {
       j = neighshort_thr[jj];
       jtype = map[type[j]];

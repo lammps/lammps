@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairColloidGPU : public PairColloid {
  public:
   PairColloidGPU(LAMMPS *lmp);
-  ~PairColloidGPU();
+  ~PairColloidGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,24 +43,3 @@ class PairColloidGPU : public PairColloid {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with colloid/gpu pair style
-
-Self-explanatory.
-
-E: Overlapping small/large in pair colloid
-
-This potential is infinite when there is an overlap.
-
-E: Overlapping large/large in pair colloid
-
-This potential is infinite when there is an overlap.
-
-*/

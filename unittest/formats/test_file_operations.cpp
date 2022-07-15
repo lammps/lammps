@@ -29,7 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-using testing::MatchesRegex;
 using testing::StrEq;
 
 using utils::read_lines_from_file;
@@ -323,7 +322,7 @@ TEST_F(FileOperationsTest, write_restart)
     command("write_restart multi-%.restart");
     command("write_restart multi2-%.restart fileper 2");
     command("write_restart multi3-%.restart nfile 1");
-    if (info->has_package("MPIIO")) command("write_restart test.restart.mpiio");
+    if (Info::has_package("MPIIO")) command("write_restart test.restart.mpiio");
     END_HIDE_OUTPUT();
 
     ASSERT_FILE_EXISTS("noinit.restart");
@@ -335,9 +334,11 @@ TEST_F(FileOperationsTest, write_restart)
     ASSERT_FILE_EXISTS("multi2-0.restart");
     ASSERT_FILE_EXISTS("multi3-base.restart");
     ASSERT_FILE_EXISTS("multi3-0.restart");
-    if (info->has_package("MPIIO")) ASSERT_FILE_EXISTS("test.restart.mpiio");
+    if (Info::has_package("MPIIO")) {
+        ASSERT_FILE_EXISTS("test.restart.mpiio");
+    }
 
-    if (!info->has_package("MPIIO")) {
+    if (!Info::has_package("MPIIO")) {
         TEST_FAILURE(".*ERROR: Writing to MPI-IO filename when MPIIO package is not inst.*",
                      command("write_restart test.restart.mpiio"););
     } else {
@@ -394,7 +395,7 @@ TEST_F(FileOperationsTest, write_restart)
     delete_file("multi3-base.restart");
     delete_file("multi3-0.restart");
     delete_file("triclinic.restart");
-    if (info->has_package("MPIIO")) delete_file("test.restart.mpiio");
+    if (Info::has_package("MPIIO")) delete_file("test.restart.mpiio");
 }
 
 TEST_F(FileOperationsTest, write_data)
@@ -491,7 +492,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

@@ -17,14 +17,19 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
        *append* arg = *yes* or *no*
        *at* arg = N
          N = index of frame written upon first dump
+       *balance* arg = *yes* or *no*
        *buffer* arg = *yes* or *no*
+       *colname* values =  ID string, or *default*
+         string = new column header name
+         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* a custom dump keyword or reference to compute, fix, property or variable.
        *delay* arg = Dstep
          Dstep = delay output until this timestep
        *element* args = E1 E2 ... EN, where N = # of atom types
@@ -32,13 +37,17 @@ Syntax
        *every* arg = N
          N = dump every this many timesteps
          N can be a variable (see below)
+       *every/time* arg = Delta
+         Delta = dump every this interval in simulation time (time units)
+         Delta can be a variable (see below)
        *fileper* arg = Np
          Np = write one file for every this many processors
        *first* arg = *yes* or *no*
        *flush* arg = *yes* or *no*
-       *format* args = *line* string, *int* string, *float* string, M string, or *none*
+       *format* args = *line* string, *int* string, *float* string, ID string, or *none*
          string = C-style format string
-         M = integer from 1 to N, where N = # of per-atom quantities being output
+         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* a custom dump keyword or reference to compute, fix, property or variable.
        *header* arg = *yes* or *no*
          *yes* to write the header
          *no* to not write the header
@@ -197,11 +206,19 @@ will be accepted.
 
 ----------
 
-The *every* keyword changes the dump frequency originally specified by
-the :doc:`dump <dump>` command to a new value.  The every keyword can be
-specified in one of two ways.  It can be a numeric value in which case
-it must be > 0.  Or it can be an :doc:`equal-style variable <variable>`,
-which should be specified as v_name, where name is the variable name.
+The *every* keyword can be used with any dump style except the *dcd*
+and *xtc* styles.  It does two things.  It specifies that the interval
+between dump snapshots will be set in timesteps, which is the default
+if the *every* or *every/time* keywords are not used.  See the
+*every/time* keyword for how to specify the interval in simulation
+time, i.e. in time units of the :doc:`units <units>` command.  The
+*every* keyword also sets the interval value, which overrides the dump
+frequency originally specified by the :doc:`dump <dump>` command.
+
+The *every* keyword can be specified in one of two ways.  It can be a
+numeric value in which case it must be > 0.  Or it can be an
+:doc:`equal-style variable <variable>`, which should be specified as
+v_name, where name is the variable name.
 
 In this case, the variable is evaluated at the beginning of a run to
 determine the next timestep at which a dump snapshot will be written
@@ -210,11 +227,12 @@ determine the next timestep, etc.  Thus the variable should return
 timestep values.  See the stagger() and logfreq() and stride() math
 functions for :doc:`equal-style variables <variable>`, as examples of
 useful functions to use in this context.  Other similar math functions
-could easily be added as options for :doc:`equal-style variables <variable>`.  Also see the next() function, which allows
-use of a file-style variable which reads successive values from a
-file, each time the variable is evaluated.  Used with the *every*
-keyword, if the file contains a list of ascending timesteps, you can
-output snapshots whenever you wish.
+could easily be added as options for :doc:`equal-style variables
+<variable>`.  Also see the next() function, which allows use of a
+file-style variable which reads successive values from a file, each
+time the variable is evaluated.  Used with the *every* keyword, if the
+file contains a list of ascending timesteps, you can output snapshots
+whenever you wish.
 
 Note that when using the variable option with the *every* keyword, you
 need to use the *first* option if you want an initial snapshot written
@@ -255,13 +273,102 @@ in file tmp.times:
 
 ----------
 
+The *every/time* keyword can be used with any dump style except the
+*dcd* and *xtc* styles.  It does two things.  It specifies that the
+interval between dump snapshots will be set in simulation time,
+i.e. in time units of the :doc:`units <units>` command.  This can be
+useful when the timestep size varies during a simulation run, e.g. by
+use of the :doc:`fix dt/reset <fix_dt_reset>` command.  The default is
+to specify the interval in timesteps; see the *every* keyword.  The
+*every/time* command also sets the interval value.
+
+.. note::
+
+   If you wish dump styles *atom*, *custom*, *local*, or *xyz* to
+   include the simulation time as a field in the header portion of
+   each snapshot, you also need to use the dump_modify *time* keyword
+   with a setting of *yes*.  See its documentation below.
+
+Note that since snapshots are output on simulation steps, each
+snapshot will be written on the first timestep whose associated
+simulation time is >= the exact snapshot time value.
+
+As with the *every* option, the *Delta* value can be specified in one
+of two ways.  It can be a numeric value in which case it must be >
+0.0.  Or it can be an :doc:`equal-style variable <variable>`, which
+should be specified as v_name, where name is the variable name.
+
+In this case, the variable is evaluated at the beginning of a run to
+determine the next simulation time at which a dump snapshot will be
+written out.  On that timestep the variable will be evaluated again to
+determine the next simulation time, etc.  Thus the variable should
+return values in time units.  Note the current timestep or simulation
+time can be used in an :doc:`equal-style variables <variable>` since
+they are both thermodynamic keywords.  Also see the next() function,
+which allows use of a file-style variable which reads successive
+values from a file, each time the variable is evaluated.  Used with
+the *every/time* keyword, if the file contains a list of ascending
+simulation times, you can output snapshots whenever you wish.
+
+Note that when using the variable option with the *every/time*
+keyword, you need to use the *first* option if you want an initial
+snapshot written to the dump file.  The *every/time* keyword cannot be
+used with the dump *dcd* style.
+
+For example, the following commands will write snapshots at successive
+simulation times which grow by a factor of 1.5 with each interval.
+The dt value used in the variable is to avoid a zero result when the
+initial simulation time is 0.0.
+
+.. code-block:: LAMMPS
+
+   variable        increase equal 1.5*(time+dt)
+   dump            1 all atom 100 tmp.dump
+   dump_modify     1 every/time v_increase first yes
+
+The following commands would write snapshots at the times listed in
+file tmp.times:
+
+.. code-block:: LAMMPS
+
+   variable        f file tmp.times
+   variable        s equal next(f)
+   dump            1 all atom 100 tmp.dump
+   dump_modify     1 every/time v_s
+
+.. note::
+
+   When using a file-style variable with the *every/time* keyword, the
+   file of timesteps must list a first time that is beyond the time
+   associated with the current timestep (e.g. it cannot be 0.0).  And
+   it must list one or more times beyond the length of the run you
+   perform.  This is because the dump command will generate an error
+   if the next time it reads from the file is not a value greater than
+   the current time.  Thus if you wanted output at times 0,15,100 of a
+   run of length 100 in simulation time, the file should contain the
+   values 15,100,101 and you should also use the dump_modify first
+   command.  Any final value > 100 could be used in place of 101.
+
+----------
+
 The *first* keyword determines whether a dump snapshot is written on
 the very first timestep after the dump command is invoked.  This will
-always occur if the current timestep is a multiple of N, the frequency
-specified in the :doc:`dump <dump>` command, including timestep 0.  But
-if this is not the case, a dump snapshot will only be written if the
-setting of this keyword is *yes*\ .  If it is *no*, which is the
+always occur if the current timestep is a multiple of $N$, the
+frequency specified in the :doc:`dump <dump>` command or
+:doc:`dump_modify every <dump_modify>` command, including timestep 0.
+It will also always occur if the current simulation time is a multiple
+of *Delta*, the time interval specified in the doc:`dump_modify
+every/time <dump_modify>` command.
+
+But if this is not the case, a dump snapshot will only be written if
+the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
+
+Note that if the argument to the :doc:`dump_modify every
+<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
+a variable and not a numeric value, then specifying *first yes* is the
+only way to write a dump snapshot on the first timestep after the dump
+command is invoked.
 
 ----------
 
@@ -270,6 +377,28 @@ after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style *xtc*\ .
+
+----------
+
+The *colname* keyword can be used to change the default header keyword
+for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
+and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
+represents the column number counting from the left, a negative integer
+when it represents the column number from the right (i.e. -1 is the last
+column/keyword), or a custom dump keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+keyword. For *atom* dump styles only the keywords "id", "type", "x",
+"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
+whether scaled or unwrapped coordinates were enabled or disabled, and
+it always assumes 8 columns for indexing regardless of whether image
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default names.
 
 ----------
 
@@ -342,10 +471,11 @@ The *fileper* keyword is documented below with the *nfile* keyword.
 
 ----------
 
-The *header* keyword toggles whether the dump file will include a header.
-Excluding a header will reduce the size of the dump file for fixes such as
-:doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
-typically written to the header.
+The *header* keyword toggles whether the dump file will include a
+header.  Excluding a header will reduce the size of the dump file for
+data produced by :doc:`pair tracker <pair_tracker>` or
+:doc:`bpm bond styles <Howto_bpm>` which may not require the
+information typically written to the header.
 
 ----------
 
@@ -561,8 +691,18 @@ The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
 as *dcd* and *xtc*, require sorting by atom ID to format the output
 file correctly.  If multiple processors are writing the dump file, via
-the "%" wildcard in the dump filename, then sorting cannot be
+the "%" wildcard in the dump filename and the *nfile* or *fileper*
+keywords are set to non-default values (i.e. the number of dump file
+pieces is not equal to the number of procs), then sorting cannot be
 performed.
+
+In a parallel run, the per-processor dump file pieces can have
+significant imbalance in number of lines of per-atom info. The *balance*
+keyword determines whether the number of lines in each processor
+snapshot are balanced to be nearly the same. A balance value of *no*
+means no balancing will be done, while *yes* means balancing will be
+performed. This balancing preserves dump sorting order. For a serial
+run, this option is ignored since the output is already balanced.
 
 .. note::
 
@@ -572,8 +712,8 @@ performed.
 
 ----------
 
-The *thermo* keyword only applies the dump *netcdf* style.  It
-triggers writing of :doc:`thermo <thermo>` information to the dump file
+The *thermo* keyword only applies the dump styles *netcdf* and *yaml*.
+It triggers writing of :doc:`thermo <thermo>` information to the dump file
 alongside per-atom data.  The values included in the dump file are
 identical to the values specified by :doc:`thermo_style <thermo_style>`.
 
@@ -639,15 +779,19 @@ threshold criterion is met.  Otherwise it is not met.
 
 ----------
 
-The *time* keyword only applies to the dump *atom*, *custom*, and
-*local* styles (and their COMPRESS package versions *atom/gz*,
-*custom/gz* and *local/gz*\ ). If set to *yes*, each frame will will
-contain two extra lines before the "ITEM: TIMESTEP" entry:
+The *time* keyword only applies to the dump *atom*, *custom*, *local*,
+and *xyz* styles (and their COMPRESS package versions *atom/gz*,
+*custom/gz* and *local/gz*\ ).  For the first 3 styles, if set to
+*yes*, each frame will will contain two extra lines before the "ITEM:
+TIMESTEP" entry:
 
 .. parsed-literal::
 
    ITEM: TIME
    \<elapsed time\>
+
+For the *xyz* style, the simulation time is included on the same line
+as the timestep value.
 
 This will output the current elapsed simulation time in current
 time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .
@@ -710,7 +854,9 @@ default and it can be disabled with the :code:`checksum` keyword.
 
 Restrictions
 """"""""""""
- none
+
+Not all *dump_modify* options can be applied to all dump styles.
+Details are in the discussions of the individual options.
 
 Related commands
 """"""""""""""""
@@ -723,6 +869,7 @@ Default
 The option defaults are
 
 * append = no
+* balance = no
 * buffer = yes for dump styles *atom*, *custom*, *loca*, and *xyz*
 * element = "C" for every atom type
 * every = whatever it was set to via the :doc:`dump <dump>` command

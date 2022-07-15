@@ -61,6 +61,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   global_freq = nfreq;
   no_change_box = 1;
+  time_depend = 1;
 
   char * group = arg[1];
 
@@ -308,7 +309,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix ave/chunk does not use chunk/atom compute");
 
@@ -431,7 +432,7 @@ FixAveChunk::~FixAveChunk()
   if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) {
     int icompute = modify->find_compute(idchunk);
     if (icompute >= 0) {
-      cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+      cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
       if (ave == RUNNING || ave == WINDOW) cchunk->unlock(this);
       cchunk->lockcount--;
     }
@@ -477,7 +478,7 @@ void FixAveChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
 
   if (biasflag) {
     int i = modify->find_compute(id_bias);
@@ -541,11 +542,8 @@ void FixAveChunk::end_of_step()
   int i,j,m,n,index;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/chunk");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -943,7 +941,7 @@ void FixAveChunk::end_of_step()
     if (overwrite) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
-    fprintf(fp,BIGINT_FORMAT " %d %g\n",ntimestep,nchunk,count);
+    fmt::print(fp,"{} {} {}\n",ntimestep,nchunk,count);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;

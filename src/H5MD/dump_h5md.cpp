@@ -181,6 +181,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
+  if ((bigint) domain->dimension*n > MAXSMALLINT) error->all(FLERR,"Too many atoms for dump h5md");
   natoms = static_cast<int> (n);
 
   if (every_position>=0)
@@ -333,13 +334,6 @@ void DumpH5MD::openfile()
     delete [] boundary[i];
   }
 
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpH5MD::write_header(bigint /* nbig */)
-{
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

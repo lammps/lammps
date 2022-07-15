@@ -30,6 +30,7 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_classic;
   int forward_comm_classic;
   int forward_pair_comm_classic;
+  int reverse_pair_comm_classic;
   int forward_fix_comm_classic;
   int reverse_comm_classic;
   int exchange_comm_on_host;
@@ -38,6 +39,7 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_changed;
   int forward_comm_changed;
   int forward_pair_comm_changed;
+  int reverse_pair_comm_changed;
   int forward_fix_comm_changed;
   int reverse_comm_changed;
   int nthreads,ngpus;
@@ -46,6 +48,7 @@ class KokkosLMP : protected Pointers {
   int gpu_aware_flag;
   int neigh_thread;
   int neigh_thread_set;
+  int neigh_transpose;
   int newtonflag;
   double binsize;
 
@@ -54,7 +57,7 @@ class KokkosLMP : protected Pointers {
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);
-  ~KokkosLMP();
+
   static void initialize(Kokkos::InitArguments, Error *);
   static void finalize();
   void accelerator(int, char **);
@@ -81,45 +84,3 @@ class KokkosLMP : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Invalid Kokkos command-line args
-
-Self-explanatory.  See Section 2.7 of the manual for details.
-
-E: Could not determine local MPI rank for multiple GPUs with Kokkos
-because MPI library not recognized
-
-The local MPI rank was not found in one of four supported environment variables.
-
-E: Invalid number of threads requested for Kokkos: must be 1 or greater
-
-Self-explanatory.
-
-E: GPUs are requested but Kokkos has not been compiled using GPU-enabled backend
-
-Recompile Kokkos with GPU-enabled backend to use GPUs.
-
-E: Kokkos has been compiled with GPU-enabled backend but no GPUs are requested
-
-One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL/OpenMPTarget.
-
-W: Kokkos package already initalized, cannot reinitialize with different parameters
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Must use Kokkos half/thread or full neighbor list with threads or GPUs
-
-Using Kokkos half-neighbor lists with threading is not allowed.
-
-E: Must use KOKKOS package option 'neigh full' with 'neigh/thread on'
-
-The 'neigh/thread on' option requires a full neighbor list
-
-*/

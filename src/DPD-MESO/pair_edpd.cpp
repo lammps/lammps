@@ -13,8 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Zhen Li (Brown University)
-   Email: zhen_li@brown.edu
+   Contributing author: Zhen Li (Clemson University)
+   Email: zli7@clemson.edu
 ------------------------------------------------------------------------- */
 
 #include "pair_edpd.h"
@@ -375,10 +375,10 @@ void PairEDPD::init_style()
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers
 
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
-      "Pair tdpd needs newton pair on for momentum conservation");
+  if (force->newton_pair == 0 && comm->me == 0)
+    error->warning(FLERR, "Pair tdpd needs newton pair on for momentum conservation");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

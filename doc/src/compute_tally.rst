@@ -31,7 +31,7 @@ Syntax
    compute ID group-ID style group2-ID
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* style = *force/tally* or *heat/flux/tally* or *heat/flux/virial/tally* or * or *pe/tally* or *pe/mol/tally* or *stress/tally*
+* style = *force/tally* or *heat/flux/tally* or *heat/flux/virial/tally* or *pe/tally* or *pe/mol/tally* or *stress/tally*
 * group2-ID = group ID of second (or same) group
 
 Examples
@@ -61,7 +61,7 @@ mechanism. Compute *pe/mol/tally* is one such style, that can
 - through using this mechanism - separately tally intermolecular
 and intramolecular energies. Something that would otherwise be
 impossible without integrating this as a core functionality into
-the based classes of LAMMPS.
+the base classes of LAMMPS.
 
 ----------
 
@@ -148,30 +148,38 @@ pairwise property computations.
 Output info
 """""""""""
 
-Compute *pe/tally* calculates a global scalar (the energy) and a per
-atom scalar (the contributions of the single atom to the global
-scalar). Compute *pe/mol/tally* calculates a global 4-element vector
-containing (in this order): *evdwl* and *ecoul* for intramolecular pairs
-and *evdwl* and *ecoul* for intermolecular pairs. Since molecules are
-identified by their molecule IDs, the partitioning does not have to be
-related to molecules, but the energies are tallied into the respective
-slots depending on whether the molecule IDs of a pair are the same or
-different. Compute *force/tally* calculates a global scalar (the force
-magnitude) and a per atom 3-element vector (force contribution from
-each atom).  Compute *stress/tally* calculates a global scalar
-(average of the diagonal elements of the stress tensor) and a per atom
-vector (the 6 elements of stress tensor contributions from the
-individual atom). As in :doc:`compute heat/flux <compute_heat_flux>`,
-compute *heat/flux/tally* calculates a global vector of length 6,
-where the first 3 components are the :math:`x`, :math:`y`, :math:`z`
-components of the full heat flow vector,
-and the next 3 components are the corresponding components
-of just the convective portion of the flow, i.e. the
-first term in the equation for :math:`\mathbf{Q}`.
-Compute *heat/flux/virial/tally* calculates a global scalar (heat flow)
-and a per atom 3-element vector
-(contribution to the force acting over atoms in the first group
-from individual atoms in both groups).
+- Compute *pe/tally* calculates a global scalar (the energy) and a per
+  atom scalar (the contributions of the single atom to the global
+  scalar).
+
+- Compute *pe/mol/tally* calculates a global 4-element vector containing
+  (in this order): *evdwl* and *ecoul* for intramolecular pairs and
+  *evdwl* and *ecoul* for intermolecular pairs. Since molecules are
+  identified by their molecule IDs, the partitioning does not have to be
+  related to molecules, but the energies are tallied into the respective
+  slots depending on whether the molecule IDs of a pair are the same or
+  different.
+
+- Compute *force/tally* calculates a global scalar (the force magnitude)
+  and a per atom 3-element vector (force contribution from each atom).
+
+- Compute *stress/tally* calculates a global scalar
+  (average of the diagonal elements of the stress tensor) and a per atom
+  vector (the 6 elements of stress tensor contributions from the
+  individual atom).
+
+- As in :doc:`compute heat/flux <compute_heat_flux>`,
+  compute *heat/flux/tally* calculates a global vector of length 6,
+  where the first 3 components are the :math:`x`, :math:`y`, :math:`z`
+  components of the full heat flow vector,
+  and the next 3 components are the corresponding components
+  of just the convective portion of the flow, i.e. the
+  first term in the equation for :math:`\mathbf{Q}`.
+
+- Compute *heat/flux/virial/tally* calculates a global scalar (heat flow)
+  and a per atom 3-element vector
+  (contribution to the force acting over atoms in the first group
+  from individual atoms in both groups).
 
 Both the scalar and vector values calculated by this compute are
 "extensive".
@@ -190,7 +198,9 @@ potentials only include the pair potential portion of the EAM
 interaction when used by this compute, not the embedding term.  Also
 bonded or Kspace interactions do not contribute to this compute.
 
-The computes in this package are not compatible with dynamic groups.
+When used with dynamic groups, a :doc:`run 0 <run>` command needs to
+be inserted in order to initialize the dynamic groups before accessing
+the computes.
 
 Related commands
 """"""""""""""""

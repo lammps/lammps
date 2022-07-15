@@ -73,8 +73,11 @@ void WriteRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = nprocs;
   else multiproc = 0;
-  if (strstr(arg[0],".mpiio")) mpiioflag = 1;
+  if (utils::strmatch(arg[0],"\\.mpiio$")) mpiioflag = 1;
   else mpiioflag = 0;
+
+  if ((comm->me == 0) && mpiioflag)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
 
   // setup output style and process optional args
   // also called by Output class for periodic restart files
@@ -115,8 +118,7 @@ void WriteRestart::command(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
-                                     int narg, char **arg)
+void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller, int narg, char **arg)
 {
   multiproc = multiproc_caller;
   mpiioflag = mpiioflag_caller;
@@ -124,14 +126,12 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
   // error checks
 
   if (multiproc && mpiioflag)
-    error->all(FLERR,
-               "Restart file MPI-IO output not allowed with % in filename");
+    error->all(FLERR,"Restart file MPI-IO output not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);
     if (!mpiio->mpiio_exists)
-      error->all(FLERR,"Writing to MPI-IO filename when "
-                 "MPIIO package is not installed");
+      error->all(FLERR,"Writing to MPI-IO filename when MPIIO package is not installed");
   }
 
   // defaults for multiproc file writing
@@ -155,8 +155,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
     if (strcmp(arg[iarg],"fileper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
       if (!multiproc)
-        error->all(FLERR,"Cannot use write_restart fileper "
-                   "without % in restart file name");
+        error->all(FLERR,"Cannot use write_restart fileper without % in restart file name");
       int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
 
@@ -173,8 +172,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
       if (!multiproc)
-        error->all(FLERR,"Cannot use write_restart nfile "
-                   "without % in restart file name");
+        error->all(FLERR,"Cannot use write_restart nfile without % in restart file name");
       int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
       nfile = MIN(nfile,nprocs);
@@ -506,6 +504,11 @@ void WriteRestart::header()
   write_bigint(NLINES,atom->nlines);
   write_bigint(NTRIS,atom->ntris);
   write_bigint(NBODIES,atom->nbodies);
+
+  // write out current simulation time. added 3 May 2022
+
+  write_bigint(ATIMESTEP,update->atimestep);
+  write_double(ATIME,update->atime);
 
   // -1 flag signals end of header
 

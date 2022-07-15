@@ -51,12 +51,11 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
   loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
   vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
-  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr),
-  list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
-  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
-  a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
-  a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr),
-  onemols(nullptr)
+  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
+  b_count(nullptr), b_count_all(nullptr), b_atom(nullptr), b_atom_all(nullptr), b_ave(nullptr), b_max(nullptr),
+  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+  a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
+  a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -66,6 +65,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   stores_ids = 1;
+  centroidstressflag = CENTROID_AVAIL;
 
   // error check
 
@@ -171,8 +171,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (imol == -1)
         error->all(FLERR,"Molecule template ID for fix shake does not exist");
       if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix shake has multiple molecules");
+        error->warning(FLERR,"Molecule template for fix shake has multiple molecules");
       onemols = &atom->molecules[imol];
       nmol = onemols[0]->nset;
       iarg += 2;
@@ -198,6 +197,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     int nb = atom->nbondtypes + 1;
     b_count = new int[nb];
     b_count_all = new int[nb];
+    b_atom = new int[nb];
+    b_atom_all = new int[nb];
     b_ave = new double[nb];
     b_ave_all = new double[nb];
     b_max = new double[nb];
@@ -227,8 +228,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   find_clusters();
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
-                   platform::walltime()-time1);
+    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",platform::walltime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 
@@ -280,32 +280,34 @@ FixShake::~FixShake()
   memory->destroy(vtmp);
 
 
-  delete [] bond_flag;
-  delete [] angle_flag;
-  delete [] type_flag;
-  delete [] mass_list;
+  delete[] bond_flag;
+  delete[] angle_flag;
+  delete[] type_flag;
+  delete[] mass_list;
 
-  delete [] bond_distance;
-  delete [] angle_distance;
+  delete[] bond_distance;
+  delete[] angle_distance;
 
   if (output_every) {
-    delete [] b_count;
-    delete [] b_count_all;
-    delete [] b_ave;
-    delete [] b_ave_all;
-    delete [] b_max;
-    delete [] b_max_all;
-    delete [] b_min;
-    delete [] b_min_all;
+    delete[] b_count;
+    delete[] b_count_all;
+    delete[] b_atom;
+    delete[] b_atom_all;
+    delete[] b_ave;
+    delete[] b_ave_all;
+    delete[] b_max;
+    delete[] b_max_all;
+    delete[] b_min;
+    delete[] b_min_all;
 
-    delete [] a_count;
-    delete [] a_count_all;
-    delete [] a_ave;
-    delete [] a_ave_all;
-    delete [] a_max;
-    delete [] a_max_all;
-    delete [] a_min;
-    delete [] a_min_all;
+    delete[] a_count;
+    delete[] a_count_all;
+    delete[] a_ave;
+    delete[] a_ave_all;
+    delete[] a_max;
+    delete[] a_max_all;
+    delete[] a_min;
+    delete[] a_min_all;
   }
 
   memory->destroy(list);
@@ -365,10 +367,10 @@ void FixShake::init()
   if (utils::strmatch(update->integrate_style,"^respa")) {
     if (update->whichflag > 0) {
       auto fixes = modify->get_fix_by_style("^RESPA");
-      if (fixes.size() > 0) fix_respa = (FixRespa *) fixes.front();
+      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>( fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
-    Respa *respa_style = (Respa *) update->integrate;
+    auto respa_style = dynamic_cast<Respa *>( update->integrate);
     nlevels_respa = respa_style->nlevels;
     loop_respa = respa_style->loop;
     step_respa = respa_style->step;
@@ -573,7 +575,7 @@ void FixShake::post_force(int vflag)
   // communicate results if necessary
 
   unconstrained_update();
-  if (nprocs > 1) comm->forward_comm_fix(this);
+  if (nprocs > 1) comm->forward_comm(this);
 
   // virial setup
 
@@ -617,7 +619,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   // communicate results if necessary
 
   unconstrained_update_respa(ilevel);
-  if (nprocs > 1) comm->forward_comm_fix(this);
+  if (nprocs > 1) comm->forward_comm(this);
 
   // virial setup only needed on last iteration of innermost level
   //   and if pressure is requested
@@ -1033,8 +1035,7 @@ void FixShake::atom_owners()
 
   int *proclist;
   memory->create(proclist,nlocal,"shake:proclist");
-  IDRvous *idbuf = (IDRvous *)
-    memory->smalloc((bigint) nlocal*sizeof(IDRvous),"shake:idbuf");
+  auto idbuf = (IDRvous *) memory->smalloc((bigint) nlocal*sizeof(IDRvous),"shake:idbuf");
 
   // setup input buf to rendezvous comm
   // input datums = pairs of bonded atoms
@@ -1083,8 +1084,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PartnerInfo *inbuf = (PartnerInfo *)
-    memory->smalloc((bigint) nsend*sizeof(PartnerInfo),"special:inbuf");
+  auto inbuf = (PartnerInfo *) memory->smalloc((bigint) nsend*sizeof(PartnerInfo),"special:inbuf");
 
   // set values in 4 partner arrays for all partner atoms I own
   // also setup input buf to rendezvous comm
@@ -1162,7 +1162,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
                                  rendezvous_partners_info,
                                  0,buf,sizeof(PartnerInfo),
                                  (void *) this);
-  PartnerInfo *outbuf = (PartnerInfo *) buf;
+  auto outbuf = (PartnerInfo *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1212,8 +1212,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  NShakeInfo *inbuf = (NShakeInfo *)
-    memory->smalloc((bigint) nsend*sizeof(NShakeInfo),"special:inbuf");
+  auto inbuf = (NShakeInfo *) memory->smalloc((bigint) nsend*sizeof(NShakeInfo),"special:inbuf");
 
   // set partner_nshake for all partner atoms I own
   // also setup input buf to rendezvous comm
@@ -1250,7 +1249,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
                                  0,proclist,
                                  rendezvous_nshake,0,buf,sizeof(NShakeInfo),
                                  (void *) this);
-  NShakeInfo *outbuf = (NShakeInfo *) buf;
+  auto outbuf = (NShakeInfo *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1291,8 +1290,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  ShakeInfo *inbuf = (ShakeInfo *)
-    memory->smalloc((bigint) nsend*sizeof(ShakeInfo),"special:inbuf");
+  auto inbuf = (ShakeInfo *) memory->smalloc((bigint) nsend*sizeof(ShakeInfo),"special:inbuf");
 
   // set 3 shake arrays for all partner atoms I own
   // also setup input buf to rendezvous comm
@@ -1343,7 +1341,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
                                  0,proclist,
                                  rendezvous_shake,0,buf,sizeof(ShakeInfo),
                                  (void *) this);
-  ShakeInfo *outbuf = (ShakeInfo *) buf;
+  auto outbuf = (ShakeInfo *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1375,7 +1373,7 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
                              int &flag, int *& /*proclist*/, char *& /*outbuf*/,
                              void *ptr)
 {
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Memory *memory = fsptr->memory;
 
   tagint *atomIDs;
@@ -1384,7 +1382,7 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
   memory->create(atomIDs,n,"special:atomIDs");
   memory->create(procowner,n,"special:procowner");
 
-  IDRvous *in = (IDRvous *) inbuf;
+  auto in = (IDRvous *) inbuf;
 
   for (int i = 0; i < n; i++) {
     atomIDs[i] = in[i].atomID;
@@ -1415,7 +1413,7 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
 {
   int i,m;
 
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
 
@@ -1435,7 +1433,7 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID = 4 values
 
-  PartnerInfo *in = (PartnerInfo *) inbuf;
+  auto in = (PartnerInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
 
@@ -1470,7 +1468,7 @@ int FixShake::rendezvous_nshake(int n, char *inbuf,
 {
   int i,m;
 
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
 
@@ -1490,7 +1488,7 @@ int FixShake::rendezvous_nshake(int n, char *inbuf,
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID
 
-  NShakeInfo *in = (NShakeInfo *) inbuf;
+  auto in = (NShakeInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
 
@@ -1524,7 +1522,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
 {
   int i,m;
 
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
 
@@ -1544,7 +1542,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID
 
-  ShakeInfo *in = (ShakeInfo *) inbuf;
+  auto in = (ShakeInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
 
@@ -1764,7 +1762,10 @@ void FixShake::shake(int m)
     v[4] = lamda*r01[0]*r01[2];
     v[5] = lamda*r01[1]*r01[2];
 
-    v_tally(nlist,list,2.0,v);
+    double fpairlist[] = {lamda};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]}};
+    int pairlist[][2] = {{i0,i1}};
+    v_tally(nlist,list,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
   }
 }
 
@@ -1937,7 +1938,11 @@ void FixShake::shake3(int m)
     v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
     v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2189,7 +2194,12 @@ void FixShake::shake4(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    v_tally(nlist,list,4.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda03};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r03[0], r03[1], r03[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i0,i3}};
+    v_tally(nlist,list,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2432,7 +2442,12 @@ void FixShake::shake3angle(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda12};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r12[0], r12[1], r12[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i1,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2455,6 +2470,7 @@ void FixShake::stats()
     b_count[i] = 0;
     b_ave[i] = b_max[i] = 0.0;
     b_min[i] = BIG;
+    b_atom[i] = -1;
   }
   for (i = 0; i < na; i++) {
     a_count[i] = 0;
@@ -2486,6 +2502,7 @@ void FixShake::stats()
 
       m = shake_type[i][j-1];
       b_count[m]++;
+      b_atom[m] = n;
       b_ave[m] += r;
       b_max[m] = MAX(b_max[m],r);
       b_min[m] = MIN(b_min[m],r);
@@ -2529,6 +2546,7 @@ void FixShake::stats()
   // sum across all procs
 
   MPI_Allreduce(b_count,b_count_all,nb,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(b_atom,b_atom_all,nb,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(b_ave,b_ave_all,nb,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(b_max,b_max_all,nb,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(b_min,b_min_all,nb,MPI_DOUBLE,MPI_MIN,world);
@@ -2541,19 +2559,19 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
-    auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
-                            update->ntimestep);
+    const int width = log10((MAX(MAX(1,nb),na)))+2;
+    auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n", update->ntimestep);
     for (i = 1; i < nb; i++) {
-      const auto bcnt = b_count_all[i]/2;
+      const auto bcnt = b_count_all[i];
       if (bcnt)
-        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
+        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt/b_atom_all[i]);
     }
     for (i = 1; i < na; i++) {
-      const auto acnt = a_count_all[i]/3;
+      const auto acnt = a_count_all[i];
       if (acnt)
-        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
+        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
     }
     utils::logmesg(lmp,mesg);
   }
@@ -3008,9 +3026,9 @@ void FixShake::shake_end_of_step(int vflag) {
     // apply correction to all rRESPA levels
 
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
-      ((Respa *) update->integrate)->copy_flevel_f(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel);
       FixShake::post_force_respa(vflag,ilevel,loop_respa[ilevel]-1);
-      ((Respa *) update->integrate)->copy_f_flevel(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel);
     }
     if (!rattle) dtf_inner = step_respa[0] * force->ftm2v;
   }
@@ -3092,7 +3110,7 @@ void FixShake::correct_coordinates(int vflag) {
   double **xtmp = xshake;
   xshake = x;
   if (nprocs > 1) {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
   xshake = xtmp;
 }

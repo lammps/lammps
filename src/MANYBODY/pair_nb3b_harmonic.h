@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairNb3bHarmonic : public Pair {
  public:
   PairNb3bHarmonic(class LAMMPS *);
-  virtual ~PairNb3bHarmonic();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  ~PairNb3bHarmonic() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   static constexpr int NPARAMS_PER_LINE = 6;
 
@@ -58,52 +58,3 @@ class PairNb3bHarmonic : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style nb3b/harmonic requires atom IDs
-
-This is a requirement to use this potential.
-
-E: Pair style nb3b/harmonic requires newton pair on
-
-See the newton command.  This is a restriction to use this potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open nb3b/harmonic potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in nb3b/harmonic potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal nb3b/harmonic parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-E: Potential file has duplicate entry
-
-The potential file has more than one entry for the same element.
-
-E: Potential file is missing an entry
-
-The potential file does not have a needed entry.
-
-*/

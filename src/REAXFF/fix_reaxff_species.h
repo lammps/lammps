@@ -35,29 +35,34 @@ typedef struct {
 class FixReaxFFSpecies : public Fix {
  public:
   FixReaxFFSpecies(class LAMMPS *, int, char **);
-  virtual ~FixReaxFFSpecies();
-  int setmask();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void post_integrate();
-  double compute_vector(int);
+  ~FixReaxFFSpecies() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_integrate() override;
+  double compute_vector(int) override;
 
  protected:
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
-  int nrepeat, nfreq, posfreq, compressed;
+  int nrepeat, nfreq, posfreq, compressed, ndelspec;
   int Nmoltype, vector_nmole, vector_nspec;
-  int *Name, *MolName, *NMol, *nd, *MolType, *molmap;
+  int *Name, *MolName, *NMol, *nd, *MolType, *molmap, *mark;
+  int *Mol2Spec;
   double *clusterID;
   AtomCoord *x0;
 
   double bg_cut;
   double **BOCut;
 
-  FILE *fp, *pos;
+  std::vector<std::string> del_species;
+
+  FILE *fp, *pos, *fdel;
   int eleflag, posflag, multipos, padflag, setupflag;
-  int singlepos_opened, multipos_opened;
-  char *ele, **eletype, *filepos;
+  int delflag, specieslistflag, masslimitflag;
+  double massmin, massmax;
+  int singlepos_opened, multipos_opened, del_opened;
+  char *ele, **eletype, *filepos, *filedel;
 
   void Output_ReaxFF_Bonds(bigint, FILE *);
   AtomCoord chAnchor(AtomCoord, AtomCoord);
@@ -65,14 +70,15 @@ class FixReaxFFSpecies : public Fix {
   void SortMolecule(int &);
   void FindSpecies(int, int &);
   void WriteFormulas(int, int);
+  void DeleteSpecies(int, int);
   int CheckExistence(int, int);
 
   int nint(const double &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   void OpenPos();
   void WritePos(int, int);
-  double memory_usage();
+  double memory_usage() override;
 
   bigint nvalid;
 

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,22 +17,23 @@
 
 #include "fix_numdiff.h"
 
-#include <cstring>
-#include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "respa.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,20 +41,19 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(nullptr), numdiff_forces(nullptr),
-  temp_x(nullptr), temp_f(nullptr)
+    Fix(lmp, narg, arg), id_pe(nullptr), pe(nullptr), numdiff_forces(nullptr), temp_x(nullptr),
+    temp_f(nullptr)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix numdiff command");
+  if (narg < 5) error->all(FLERR, "Illegal fix numdiff command");
 
   peratom_flag = 1;
   peratom_freq = nevery;
   size_peratom_cols = 3;
   respa_level_support = 1;
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  delta = utils::numeric(FLERR,arg[4],false,lmp);
-  if (nevery <= 0 || delta <= 0.0)
-    error->all(FLERR,"Illegal fix numdiff command");
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  delta = utils::numeric(FLERR, arg[4], false, lmp);
+  if (nevery <= 0 || delta <= 0.0) error->all(FLERR, "Illegal fix numdiff command");
 
   std::string cmd = id + std::string("_pe");
   id_pe = utils::strdup(cmd);
@@ -65,7 +64,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
   maxatom = 0;
 
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"Fix numdiff requires an atom map, see atom_modify");
+    error->all(FLERR, "Fix numdiff requires an atom map, see atom_modify");
 
   // perform initial allocation of atom-based arrays
   // zero numdiff_forces since dump may access it on timestep 0
@@ -84,7 +83,7 @@ FixNumDiff::~FixNumDiff()
   memory->destroy(temp_f);
 
   modify->delete_compute(id_pe);
-  delete [] id_pe;
+  delete[] id_pe;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,22 +106,25 @@ void FixNumDiff::init()
   // require consecutive atom IDs
 
   if (!atom->tag_enable || !atom->tag_consecutive())
-    error->all(FLERR,"Fix numdiff requires consecutive atom IDs");
+    error->all(FLERR, "Fix numdiff requires consecutive atom IDs");
 
   // check for PE compute
 
-  int icompute = modify->find_compute(id_pe);
-  if (icompute < 0) error->all(FLERR,"Compute ID for fix numdiff does not exist");
-  pe = modify->compute[icompute];
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe) error->all(FLERR, "PE compute ID for fix numdiff does not exist");
 
-  if (force->pair && force->pair->compute_flag) pair_compute_flag = 1;
-  else pair_compute_flag = 0;
-  if (force->kspace && force->kspace->compute_flag) kspace_compute_flag = 1;
-  else kspace_compute_flag = 0;
+  if (force->pair && force->pair->compute_flag)
+    pair_compute_flag = 1;
+  else
+    pair_compute_flag = 0;
+  if (force->kspace && force->kspace->compute_flag)
+    kspace_compute_flag = 1;
+  else
+    kspace_compute_flag = 0;
 
-  if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
-    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
 }
 
@@ -130,12 +132,12 @@ void FixNumDiff::init()
 
 void FixNumDiff::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
-    post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag, ilevel_respa, 0);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -175,7 +177,7 @@ void FixNumDiff::min_post_force(int vflag)
 
 void FixNumDiff::calculate_forces()
 {
-  int i,j,ilocal;
+  int i, j, ilocal;
   double energy;
 
   // grow arrays if necessary
@@ -202,43 +204,44 @@ void FixNumDiff::calculate_forces()
   // loop over all atoms in system
   // compute a finite difference force in each dimension
 
-  int flag,allflag;
+  int flag, allflag;
   double denominator = 0.5 / delta;
 
   int *mask = atom->mask;
-  int ntotal = static_cast<tagint> (atom->natoms);
+  int ntotal = static_cast<tagint>(atom->natoms);
   int dimension = domain->dimension;
 
   for (tagint m = 1; m <= ntotal; m++) {
     ilocal = atom->map(m);
     flag = 0;
     if ((ilocal >= 0 && ilocal < nlocal) && (mask[ilocal] & groupbit)) flag = 1;
-    MPI_Allreduce(&flag,&allflag,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&flag, &allflag, 1, MPI_INT, MPI_SUM, world);
     if (!allflag) continue;
 
     for (int idim = 0; idim < dimension; idim++) {
-      displace_atoms(ilocal,idim,1);
+      displace_atoms(ilocal, idim, 1);
       energy = update_energy();
-      if (ilocal >= 0 && ilocal < nlocal)
-        numdiff_forces[ilocal][idim] -= energy;
+      if (ilocal >= 0 && ilocal < nlocal) numdiff_forces[ilocal][idim] -= energy;
 
-      displace_atoms(ilocal,idim,-2);
+      displace_atoms(ilocal, idim, -2);
       energy = update_energy();
       if (ilocal >= 0 && ilocal < nlocal) {
         numdiff_forces[ilocal][idim] += energy;
         numdiff_forces[ilocal][idim] *= denominator;
       }
 
-      restore_atoms(ilocal,idim);
+      restore_atoms(ilocal, idim);
     }
   }
+
+  // recompute energy so all contributions are as before
+
+  energy = update_energy();
 
   // restore original forces for owned and ghost atoms
 
   for (i = 0; i < nall; i++)
-    for (j = 0; j < 3; j++) {
-      f[i][j] = temp_f[i][j];
-    }
+    for (j = 0; j < 3; j++) { f[i][j] = temp_f[i][j]; }
 }
 
 /* ----------------------------------------------------------------------
@@ -252,11 +255,11 @@ void FixNumDiff::displace_atoms(int ilocal, int idim, int magnitude)
   double **x = atom->x;
   int *sametag = atom->sametag;
   int j = ilocal;
-  x[ilocal][idim] += delta*magnitude;
+  x[ilocal][idim] += delta * magnitude;
 
   while (sametag[j] >= 0) {
     j = sametag[j];
-    x[j][idim] += delta*magnitude;
+    x[j][idim] += delta * magnitude;
   }
 }
 
@@ -290,16 +293,16 @@ double FixNumDiff::update_energy()
 
   int eflag = 1;
 
-  if (pair_compute_flag) force->pair->compute(eflag,0);
+  if (pair_compute_flag) force->pair->compute(eflag, 0);
 
   if (atom->molecular != Atom::ATOMIC) {
-    if (force->bond) force->bond->compute(eflag,0);
-    if (force->angle) force->angle->compute(eflag,0);
-    if (force->dihedral) force->dihedral->compute(eflag,0);
-    if (force->improper) force->improper->compute(eflag,0);
+    if (force->bond) force->bond->compute(eflag, 0);
+    if (force->angle) force->angle->compute(eflag, 0);
+    if (force->dihedral) force->dihedral->compute(eflag, 0);
+    if (force->improper) force->improper->compute(eflag, 0);
   }
 
-  if (kspace_compute_flag) force->kspace->compute(eflag,0);
+  if (kspace_compute_flag) force->kspace->compute(eflag, 0);
 
   double energy = pe->compute_scalar();
   return energy;
@@ -313,7 +316,7 @@ void FixNumDiff::force_clear(double **forces)
 {
   size_t nbytes = sizeof(double) * atom->nlocal;
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
-  if (nbytes) memset(&forces[0][0],0,3*nbytes);
+  if (nbytes) memset(&forces[0][0], 0, 3 * nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -326,9 +329,9 @@ void FixNumDiff::reallocate()
   memory->destroy(temp_x);
   memory->destroy(temp_f);
   maxatom = atom->nmax;
-  memory->create(numdiff_forces,maxatom,3,"numdiff:numdiff_force");
-  memory->create(temp_x,maxatom,3,"numdiff:temp_x");
-  memory->create(temp_f,maxatom,3,"numdiff:temp_f");
+  memory->create(numdiff_forces, maxatom, 3, "numdiff:numdiff_force");
+  memory->create(temp_x, maxatom, 3, "numdiff:temp_x");
+  memory->create(temp_f, maxatom, 3, "numdiff:temp_f");
   array_atom = numdiff_forces;
 }
 
@@ -339,6 +342,6 @@ void FixNumDiff::reallocate()
 double FixNumDiff::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (double)3 * maxatom*3 * sizeof(double);
+  bytes += (double) 3 * maxatom * 3 * sizeof(double);
   return bytes;
 }

@@ -78,6 +78,25 @@ TEST(Utils, trim_comment)
     ASSERT_THAT(trimmed, StrEq("some text "));
 }
 
+TEST(Utils, star_subst)
+{
+    std::string starred = "beforeafter";
+    std::string subst   = utils::star_subst(starred, 1234, 0);
+    ASSERT_THAT(subst, StrEq("beforeafter"));
+
+    starred = "before*after";
+    subst   = utils::star_subst(starred, 1234, 6);
+    ASSERT_THAT(subst, StrEq("before001234after"));
+
+    starred = "before*";
+    subst   = utils::star_subst(starred, 1234, 0);
+    ASSERT_THAT(subst, StrEq("before1234"));
+
+    starred = "*after";
+    subst   = utils::star_subst(starred, 1234, 2);
+    ASSERT_THAT(subst, StrEq("1234after"));
+}
+
 TEST(Utils, has_utf8)
 {
     const char ascii_string[] = " -2";
@@ -118,6 +137,24 @@ TEST(Utils, trim_and_count_words)
 TEST(Utils, count_words_with_extra_spaces)
 {
     ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
+}
+
+TEST(Utils, join_words)
+{
+    std::vector<std::string> words = {"one", "two", "three" };
+    auto combined = utils::join_words(words, " ");
+    ASSERT_THAT(combined, StrEq("one two three"));
+    combined = utils::join_words(words, "");
+    ASSERT_THAT(combined, StrEq("onetwothree"));
+    words[1] = "two ";
+    combined = utils::join_words(words, "__");
+    ASSERT_THAT(combined, StrEq("one__two __three"));
+    words.resize(1);
+    combined = utils::join_words(words, "/");
+    ASSERT_THAT(combined, StrEq("one"));
+    words.push_back("");
+    combined = utils::join_words(words, "1");
+    ASSERT_THAT(combined, StrEq("one1"));
 }
 
 TEST(Utils, split_words_simple)
@@ -500,6 +537,27 @@ TEST(Utils, strmatch_opt_char)
     ASSERT_FALSE(utils::strmatch("x_name", "^[cfvid]2?_name"));
 }
 
+TEST(Utils, strmatch_yaml_suffix)
+{
+    ASSERT_TRUE(utils::strmatch("test.yaml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("test.yml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("TEST.YAML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("TEST.YML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test.yamlx", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test.ymlx", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TEST.YAMLX", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TEST.YMLX", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("testyaml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("testyml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TESTYAML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TESTYML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("yaml.test", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("yml.test", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("YAML.TEST", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("YML.TEST", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test", "\\.[yY][aA]?[mM][lL]$"));
+}
+
 TEST(Utils, strmatch_dot)
 {
     ASSERT_TRUE(utils::strmatch("rigid", ".igid"));
@@ -727,6 +785,12 @@ TEST(Utils, boundsbig_case3)
     ASSERT_EQ(nhi, -1);
 }
 
+TEST(Utils, errorurl)
+{
+    auto errmesg = utils::errorurl(10);
+    ASSERT_THAT(errmesg, Eq("\nFor more information see https://docs.lammps.org/err0010"));
+}
+
 TEST(Utils, getsyserror)
 {
 #if defined(__linux__)
@@ -838,15 +902,15 @@ TEST(Utils, date2num)
 
 TEST(Utils, current_date)
 {
-    auto vals = ValueTokenizer(utils::current_date(),"-");
-    int year = vals.next_int();
+    auto vals = ValueTokenizer(utils::current_date(), "-");
+    int year  = vals.next_int();
     int month = vals.next_int();
-    int day = vals.next_int();
-    ASSERT_GT(year,2020);
-    ASSERT_GE(month,1);
-    ASSERT_GE(day,1);
-    ASSERT_LE(month,12);
-    ASSERT_LE(day,31);
+    int day   = vals.next_int();
+    ASSERT_GT(year, 2020);
+    ASSERT_GE(month, 1);
+    ASSERT_GE(day, 1);
+    ASSERT_LE(month, 12);
+    ASSERT_LE(day, 31);
 }
 
 TEST(Utils, binary_search)

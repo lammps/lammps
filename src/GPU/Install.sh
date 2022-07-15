@@ -114,17 +114,17 @@ action pair_lj_cut_coul_msm_gpu.h pair_lj_cut_coul_msm.h
 action pair_lj_cut_gpu.cpp
 action pair_lj_cut_gpu.h
 action pair_lj_smooth_gpu.cpp pair_lj_smooth.cpp
-action pair_lj_smooth_gpu.h pair_lj_smooth.h
+action pair_lj_smooth_gpu.h pair_lj_smooth.cpp
 action pair_lj_expand_gpu.cpp
 action pair_lj_expand_gpu.h
 action pair_lj_expand_coul_long_gpu.cpp pair_lj_expand_coul_long.cpp
 action pair_lj_expand_coul_long_gpu.h pair_lj_expand_coul_long.cpp
 action pair_lj_gromacs_gpu.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_gpu.h pair_lj_gromacs.h
-action pair_lj_sdk_coul_long_gpu.cpp pair_lj_sdk_coul_long.cpp
-action pair_lj_sdk_coul_long_gpu.h pair_lj_sdk_coul_long.cpp
-action pair_lj_sdk_gpu.cpp pair_lj_sdk.cpp
-action pair_lj_sdk_gpu.h pair_lj_sdk.cpp
+action pair_lj_spica_coul_long_gpu.cpp pair_lj_spica_coul_long.cpp
+action pair_lj_spica_coul_long_gpu.h pair_lj_spica_coul_long.cpp
+action pair_lj_spica_gpu.cpp pair_lj_spica.cpp
+action pair_lj_spica_gpu.h pair_lj_spica.cpp
 action pair_mie_cut_gpu.cpp pair_mie_cut.cpp
 action pair_mie_cut_gpu.h pair_mie_cut.h
 action pair_morse_gpu.cpp

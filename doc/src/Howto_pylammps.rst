@@ -545,6 +545,6 @@ Feedback and Contributing
 -------------------------
 
 If you find this Python interface useful, please feel free to provide feedback
-and ideas on how to improve it to Richard Berger (richard.berger@temple.edu). We also
+and ideas on how to improve it to Richard Berger (richard.berger@outlook.com). We also
 want to encourage people to write tutorial style IPython notebooks showcasing LAMMPS usage
 and maybe their latest research results.

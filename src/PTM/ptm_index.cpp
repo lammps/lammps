@@ -185,7 +185,7 @@ static void output_data(ptm::result_t *res, double (*points)[3],
         memcpy(q, res->q, 4 * sizeof(double));
 }
 
-extern bool ptm_initialized;
+
 
 int ptm_index(ptm_local_handle_t local_handle, size_t atom_index,
               int(get_neighbours)(void *vdata, size_t central_index, size_t atom_index, int num,

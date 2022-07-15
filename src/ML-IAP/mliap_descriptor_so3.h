@@ -22,14 +22,14 @@ class MLIAPDescriptorSO3 : public MLIAPDescriptor {
 
  public:
   MLIAPDescriptorSO3(LAMMPS *, char *);
-  virtual ~MLIAPDescriptorSO3();
+  ~MLIAPDescriptorSO3() override;
 
-  virtual void compute_descriptors(class MLIAPData *);
-  virtual void compute_forces(class MLIAPData *);
-  virtual void compute_force_gradients(class MLIAPData *){};
-  virtual void compute_descriptor_gradients(class MLIAPData *){};
-  virtual void init();
-  virtual double memory_usage();
+  void compute_descriptors(class MLIAPData *) override;
+  void compute_forces(class MLIAPData *) override;
+  void compute_force_gradients(class MLIAPData *) override;
+  void compute_descriptor_gradients(class MLIAPData *) override;
+  void init() override;
+  double memory_usage() override;
 
   double rcutfac;
 

@@ -27,55 +27,18 @@ namespace LAMMPS_NS {
 class FixBrownianAsphere : public FixBrownianBase {
  public:
   FixBrownianAsphere(class LAMMPS *, int, char **);
-  virtual ~FixBrownianAsphere(){};
-  void initial_integrate(int);
-  void init();
+
+  void initial_integrate(int) override;
+  void init() override;
 
  protected:
   class AtomVecEllipsoid *avec;
 
  private:
-  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D>
+  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D, int Tp_2Drot>
   void initial_integrate_templated();
+  double g4;
 };
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix brownian/asphere command.
-
-Wrong number/type of input arguments.
-
-E: Compute brownian/asphere requires atom style sphere
-
-Self-explanatory.
-
-E: Compute brownian/asphere requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Compute brownian/asphere dipole requires atom attribute mu
-
-Self-explanatory.
-
-E: Fix brownian/asphere translational viscous drag coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere rotational viscous drag coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere translational diffusion coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere rotational diffusion coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere seed must be > 0.
-
-*/

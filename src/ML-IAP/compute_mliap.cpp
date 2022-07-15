@@ -16,27 +16,28 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
+#include "compute_mliap.h"
 
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
+#include "mliap_descriptor_so3.h"
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
 
-#include "compute_mliap.h"
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -88,6 +89,10 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal compute mliap command");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
+        iarg += 3;
+      } else if (strcmp(arg[iarg+1],"so3") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal compute mliap command");
       descriptorflag = 1;
@@ -151,17 +156,9 @@ void ComputeMLIAP::init()
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"mliap") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("mliap").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute mliap");
 
   // initialize model and descriptor

@@ -27,8 +27,8 @@ class DumpCfgTest : public MeltTest {
     std::string dump_style = "cfg";
 
 public:
-    void generate_dump(std::string dump_file, std::string fields, std::string dump_modify_options,
-                       int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &fields,
+                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, fields));
@@ -81,6 +81,7 @@ TEST_F(DumpCfgTest, write_dump)
     auto fields    = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     BEGIN_HIDE_OUTPUT();
+    command("run 0 post no");
     command(std::string("write_dump all cfg dump_cfg.melt.cfg ") + fields);
     command(std::string("write_dump all cfg dump_cfg*.melt.cfg ") + fields);
     END_HIDE_OUTPUT();

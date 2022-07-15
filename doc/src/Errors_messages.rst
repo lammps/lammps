@@ -1291,7 +1291,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use chosen neighbor list style with lj/gromacs/kk*
    Self-explanatory.
 
-*Cannot use chosen neighbor list style with lj/sdk/kk*
+*Cannot use chosen neighbor list style with lj/spica/kk*
    That style is not supported by Kokkos.
 
 *Cannot use chosen neighbor list style with pair eam/kk*
@@ -1659,10 +1659,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use newton pair with lj/gromacs/gpu pair style*
    Self-explanatory.
 
-*Cannot use newton pair with lj/sdk/coul/long/gpu pair style*
+*Cannot use newton pair with lj/spica/coul/long/gpu pair style*
    Self-explanatory.
 
-*Cannot use newton pair with lj/sdk/gpu pair style*
+*Cannot use newton pair with lj/spica/gpu pair style*
    Self-explanatory.
 
 *Cannot use newton pair with lj96/cut/gpu pair style*
@@ -1939,6 +1939,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Compute ID for fix numdiff does not exist*
+   Self-explanatory.
+
+*Compute ID for fix numdiff/virial does not exist*
    Self-explanatory.
 
 *Compute ID for fix store/state does not exist*
@@ -3795,6 +3798,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix numdiff requires consecutive atom IDs*
    Self-explanatory. Efficient loop over all atoms for numerical
    difference requires consecutive atom IDs.
+
+*Fix numdiff/virial must use group all*
+   Virial contributions computed by this fix are
+   computed on all atoms.
 
 *Fix nve/asphere requires extended particles*
    This fix can only be used for particles with a shape setting.
@@ -6775,7 +6782,7 @@ keyword to allow for additional bonds to be formed
    This is because the computation of constraint forces within a water
    molecule adds forces to atoms owned by other processors.
 
-*Pair style lj/sdk/coul/long/gpu requires atom attribute q*
+*Pair style lj/spica/coul/long/gpu requires atom attribute q*
    The atom style defined does not have this attribute.
 
 *Pair style nb3b/harmonic requires atom IDs*
@@ -7771,9 +7778,6 @@ keyword to allow for additional bonds to be formed
 *Too many atoms for dump xtc*
    The system size must fit in a 32-bit integer to use this dump
    style.
-
-*Too many atoms to dump sort*
-   Cannot sort when running with more than 2\^31 atoms.
 
 *Too many elements extracted from MEAM library.*
    Increase 'maxelt' in meam.h and recompile.

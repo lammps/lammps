@@ -29,31 +29,30 @@ namespace LAMMPS_NS {
 class FixPOEMS : public Fix {
  public:
   FixPOEMS(class LAMMPS *, int narg, char **arg);
-  ~FixPOEMS();
-  int setmask();
-  void init();
-  void setup(int);
-  void initial_integrate(int);
-  void post_force(int);
-  void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void post_force_respa(int, int, int);
-  void final_integrate_respa(int, int);
+  ~FixPOEMS() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void post_force_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  double memory_usage();
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
-  void pre_neighbor();
-  int dof(int);
-  void deform(int);
-  int modify_param(int, char **);
-  void reset_dt();
+  void pre_neighbor() override;
+  int dof(int) override;
+  void deform(int) override;
+  int modify_param(int, char **) override;
+  void reset_dt() override;
 
  private:
-  int me;
   double dtv, dtf, dthalf;
   double *step_respa;
   int nlevels_respa;
@@ -101,8 +100,7 @@ class FixPOEMS : public Fix {
   // internal class functions
 
   void compute_forces_and_torques();
-  void readfile(char *);
-  int readline(FILE *, char **, int *);
+  void readfile(const char *);
   void jointbuild();
   void sortlist(int, tagint **);
   int loopcheck(int, int, tagint **);
@@ -115,85 +113,3 @@ class FixPOEMS : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Could not find fix poems group ID
-
-A group ID used in the fix poems command does not exist.
-
-E: Must use a molecular atom style with fix poems molecule
-
-Self-explanatory.
-
-E: Too many molecules for fix poems
-
-The limit is 2^31 = ~2 billion molecules.
-
-E: No rigid bodies defined
-
-The fix specification did not end up defining any rigid bodies.
-
-E: Atom in too many rigid bodies - boost MAXBODY
-
-Fix poems has a parameter MAXBODY (in fix_poems.cpp) which determines
-the maximum number of rigid bodies a single atom can belong to (i.e. a
-multibody joint).  The bodies you have defined exceed this limit.
-
-E: One or zero atoms in rigid body
-
-Any rigid body defined by the fix rigid command must contain 2 or more
-atoms.
-
-W: More than one fix poems
-
-It is not efficient to use fix poems more than once.
-
-E: POEMS fix must come before NPT/NPH fix
-
-NPT/NPH fix must be defined in input script after all poems fixes,
-else the fix contribution to the pressure virial is incorrect.
-
-E: Insufficient Jacobi rotations for POEMS body
-
-Eigensolve for rigid body was not sufficiently accurate.
-
-E: Rigid body has degenerate moment of inertia
-
-Fix poems will only work with bodies (collections of atoms) that have
-non-zero principal moments of inertia.  This means they must be 3 or
-more non-collinear atoms, even with joint atoms removed.
-
-E: Bad principal moments
-
-Fix rigid did not compute the principal moments of inertia of a rigid
-group of atoms correctly.
-
-E: Cannot open fix poems file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-W: No joints between rigid bodies, use fix rigid instead
-
-The bodies defined by fix poems are not connected by joints.  POEMS
-will integrate the body motion, but it would be more efficient to use
-fix rigid.
-
-E: Cyclic loop in joint connections
-
-Fix poems cannot (yet) work with coupled bodies whose joints connect
-the bodies in a ring (or cycle).
-
-E: Tree structure in joint connections
-
-Fix poems cannot (yet) work with coupled bodies whose joints connect
-the bodies in a tree structure.
-
-*/

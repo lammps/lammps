@@ -21,7 +21,7 @@ TEST(Platform, clock)
 
     // spend some time computing pi
     constexpr double known_pi = 3.141592653589793238462643;
-    constexpr int n           = 10000000;
+    constexpr int n           = 100000000;
     constexpr double h        = 1.0 / (double)n;
     double my_pi              = 0.0, x;
     for (int i = 0; i < n; ++i) {
@@ -34,10 +34,11 @@ TEST(Platform, clock)
 
     ASSERT_NEAR(my_pi, known_pi, 1e-12);
     ASSERT_GT(wt_used, 1e-4);
-    ASSERT_GT(ct_used, 1e-4);
+    // windows sometimes incorrectly reports used CPU time as 0.0
+    if (ct_used != 0.0) ASSERT_GT(ct_used, 1e-4);
 }
 
-TEST(Platform, putenv)
+TEST(Platform, putenv_unsetenv)
 {
     const char *var = getenv("UNITTEST_VAR1");
     ASSERT_EQ(var, nullptr);
@@ -65,6 +66,14 @@ TEST(Platform, putenv)
     ASSERT_THAT(var, StrEq("one=two"));
 
     ASSERT_EQ(platform::putenv(""), -1);
+
+    ASSERT_EQ(platform::unsetenv(""), -1);
+    ASSERT_EQ(platform::unsetenv("UNITTEST_VAR3=two"), -1);
+    var = getenv("UNITTEST_VAR1");
+    ASSERT_NE(var, nullptr);
+    ASSERT_EQ(platform::unsetenv("UNITTEST_VAR1"), 0);
+    var = getenv("UNITTEST_VAR1");
+    ASSERT_EQ(var, nullptr);
 }
 
 TEST(Platform, list_pathenv)
@@ -99,7 +108,7 @@ TEST(Platform, sharedload)
     double (*doublefunc)(double, int);
 
     for (const auto &obj : objs) {
-        handle = platform::dlopen(obj.c_str());
+        handle = platform::dlopen(obj);
         EXPECT_NE(handle, nullptr);
         intvar = (int *)platform::dlsym(handle, "some_int_val");
         EXPECT_NE(intvar, nullptr);
@@ -314,6 +323,15 @@ TEST(Platform, path_and_directory)
     ASSERT_EQ(dirs.size(), 3);
     platform::rmdir("path_is_directory");
     ASSERT_FALSE(platform::path_is_directory("path_is_directory"));
+
+#if defined(_WIN32)
+    ASSERT_EQ(platform::mkdir("path_is_directory\\path_is_directory"),0);
+    ASSERT_TRUE(platform::path_is_directory("path_is_directory\\path_is_directory"));
+#else
+    ASSERT_EQ(platform::mkdir("path_is_directory/path_is_directory"),0);
+    ASSERT_TRUE(platform::path_is_directory("path_is_directory/path_is_directory"));
+#endif
+    platform::rmdir("path_is_directory");
 }
 
 TEST(Platform, get_change_directory)

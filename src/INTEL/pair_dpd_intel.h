@@ -41,12 +41,12 @@ class PairDPDIntel : public PairDPD {
 
  public:
   PairDPDIntel(class LAMMPS *);
-  ~PairDPDIntel();
+  ~PairDPDIntel() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void init_style();
-  void read_restart_settings(FILE *);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void init_style() override;
+  void read_restart_settings(FILE *) override;
 
  private:
   FixIntel *fix;
@@ -100,11 +100,3 @@ class PairDPDIntel : public PairDPD {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-*/

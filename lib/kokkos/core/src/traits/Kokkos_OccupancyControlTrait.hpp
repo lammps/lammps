@@ -82,6 +82,9 @@ struct MaximizeOccupancy {
 
 namespace Impl {
 
+template <class Policy, class AnalyzeNextTrait>
+struct OccupancyControlPolicyMixin;
+
 //==============================================================================
 // <editor-fold desc="Occupancy control trait specification"> {{{1
 
@@ -93,7 +96,11 @@ struct OccupancyControlTrait : TraitSpecificationBase<OccupancyControlTrait> {
     static constexpr occupancy_control impl_get_occupancy_control() {
       return occupancy_control{};
     }
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
+  template <class OccControl, class AnalyzeNextTrait>
+  using mixin_matching_trait =
+      OccupancyControlPolicyMixin<OccControl, AnalyzeNextTrait>;
   template <class T>
   using trait_matches_specification = std::integral_constant<
       bool,
@@ -105,39 +112,33 @@ struct OccupancyControlTrait : TraitSpecificationBase<OccupancyControlTrait> {
 //==============================================================================
 
 //==============================================================================
-// <editor-fold desc="AnalyzeExecPolicy specializations"> {{{1
+// <editor-fold desc="OccupancyControlPolicyMixin specializations"> {{{1
 
-// The DesiredOccupancy case has runtime storage, so we need to handle copies
-// and assignments
-template <class... Traits>
-struct AnalyzeExecPolicy<void, Kokkos::Experimental::DesiredOccupancy,
-                         Traits...> : AnalyzeExecPolicy<void, Traits...> {
- public:
-  using base_t            = AnalyzeExecPolicy<void, Traits...>;
+template <class AnalyzeNextTrait>
+struct OccupancyControlPolicyMixin<Kokkos::Experimental::DesiredOccupancy,
+                                   AnalyzeNextTrait> : AnalyzeNextTrait {
+  using base_t            = AnalyzeNextTrait;
   using occupancy_control = Kokkos::Experimental::DesiredOccupancy;
   static constexpr bool experimental_contains_desired_occupancy = true;
-
-  template <class OccControl>
-  using with_occupancy_control = AnalyzeExecPolicy<void, OccControl, Traits...>;
 
   // Treat this as private, but make it public so that MSVC will still treat
   // this as a standard layout class and make it the right size: storage for a
   // stateful desired occupancy
   //   private:
-  occupancy_control m_desired_occupancy;
+  occupancy_control m_desired_occupancy = occupancy_control{};
 
-  AnalyzeExecPolicy() = default;
+  OccupancyControlPolicyMixin() = default;
   // Converting constructor
   // Just rely on the convertibility of occupancy_control to transfer the data
   template <class Other>
-  AnalyzeExecPolicy(ExecPolicyTraitsWithDefaults<Other> const& other)
+  OccupancyControlPolicyMixin(ExecPolicyTraitsWithDefaults<Other> const& other)
       : base_t(other),
         m_desired_occupancy(other.impl_get_occupancy_control()) {}
 
   // Converting assignment operator
   // Just rely on the convertibility of occupancy_control to transfer the data
   template <class Other>
-  AnalyzeExecPolicy& operator=(
+  OccupancyControlPolicyMixin& operator=(
       ExecPolicyTraitsWithDefaults<Other> const& other) {
     *static_cast<base_t*>(this) = other;
     this->impl_set_desired_occupancy(
@@ -160,16 +161,16 @@ struct AnalyzeExecPolicy<void, Kokkos::Experimental::DesiredOccupancy,
   }
 };
 
-template <class... Traits>
-struct AnalyzeExecPolicy<void, Kokkos::Experimental::MaximizeOccupancy,
-                         Traits...> : AnalyzeExecPolicy<void, Traits...> {
-  using base_t = AnalyzeExecPolicy<void, Traits...>;
+template <class AnalyzeNextTrait>
+struct OccupancyControlPolicyMixin<Kokkos::Experimental::MaximizeOccupancy,
+                                   AnalyzeNextTrait> : AnalyzeNextTrait {
+  using base_t = AnalyzeNextTrait;
   using base_t::base_t;
   using occupancy_control = Kokkos::Experimental::MaximizeOccupancy;
   static constexpr bool experimental_contains_desired_occupancy = false;
 };
 
-// </editor-fold> end AnalyzeExecPolicy specializations }}}1
+// </editor-fold> end OccupancyControlPolicyMixin specializations }}}1
 //==============================================================================
 
 }  // end namespace Impl

@@ -64,15 +64,6 @@ FixNHKokkos<DeviceType>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-FixNHKokkos<DeviceType>::~FixNHKokkos()
-{
-
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
 void FixNHKokkos<DeviceType>::init()
 {
   FixNH::init();
@@ -88,6 +79,11 @@ void FixNHKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
 {
+  // tdof needed by compute_temp_target()
+
+  t_current = temperature->compute_scalar();
+  tdof = temperature->dof;
+
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
@@ -737,4 +733,3 @@ template class FixNHKokkos<LMPDeviceType>;
 template class FixNHKokkos<LMPHostType>;
 #endif
 }
-

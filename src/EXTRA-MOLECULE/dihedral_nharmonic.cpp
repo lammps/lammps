@@ -25,6 +25,7 @@
 #include "force.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "domain.h"
 
 #include <cmath>
 
@@ -39,6 +40,7 @@ DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
 {
   writedata = 1;
   a = nullptr;
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -335,4 +337,63 @@ void DihedralNHarmonic::write_data(FILE *fp)
     fprintf(fp, "\n");
   }
 
+}
+
+/* ----------------------------------------------------------------------*/
+
+void DihedralNHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4,
+                             double &dudih, double &du2dih) {
+  int i,type;
+  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
+  double c,ax,ay,az,bx,by,bz,rasq,rbsq,ra2inv,rb2inv,rabinv;
+
+  int **dihedrallist = neighbor->dihedrallist;
+  double **x = atom->x;
+
+  type = dihedrallist[nd][4];
+
+  vb1x = x[i1][0] - x[i2][0];
+  vb1y = x[i1][1] - x[i2][1];
+  vb1z = x[i1][2] - x[i2][2];
+
+  vb2x = x[i3][0] - x[i2][0];
+  vb2y = x[i3][1] - x[i2][1];
+  vb2z = x[i3][2] - x[i2][2];
+
+  vb2xm = -vb2x;
+  vb2ym = -vb2y;
+  vb2zm = -vb2z;
+
+  vb3x = x[i4][0] - x[i3][0];
+  vb3y = x[i4][1] - x[i3][1];
+  vb3z = x[i4][2] - x[i3][2];
+
+  // c,s calculation
+
+  ax = vb1y*vb2zm - vb1z*vb2ym;
+  ay = vb1z*vb2xm - vb1x*vb2zm;
+  az = vb1x*vb2ym - vb1y*vb2xm;
+  bx = vb3y*vb2zm - vb3z*vb2ym;
+  by = vb3z*vb2xm - vb3x*vb2zm;
+  bz = vb3x*vb2ym - vb3y*vb2xm;
+
+  rasq = ax*ax + ay*ay + az*az;
+  rbsq = bx*bx + by*by + bz*bz;
+
+  ra2inv = rb2inv = 0.0;
+  if (rasq > 0) ra2inv = 1.0/rasq;
+  if (rbsq > 0) rb2inv = 1.0/rbsq;
+  rabinv = sqrt(ra2inv*rb2inv);
+
+  c = (ax*bx + ay*by + az*bz)*rabinv;
+
+  dudih = 0.0;
+  du2dih = 0.0;
+  for (i = 1; i < nterms[type]; i++) {
+    dudih += this->a[type][i]*i*pow(c,i-1);
+  }
+
+  for (i = 2; i < nterms[type]; i++) {
+    du2dih += this->a[type][i]*i*(i-1)*pow(c, i-2);
+  }
 }

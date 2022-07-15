@@ -28,6 +28,8 @@ OPT.
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
    * :doc:`addtorque <fix_addtorque>`
+   * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
+   * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
    * :doc:`atc <fix_atc>`
    * :doc:`atom/swap <fix_atom_swap>`
@@ -51,10 +53,10 @@ OPT.
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
    * :doc:`charge/regulation <fix_charge_regulation>`
-   * :doc:`client/md <fix_client_md>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
+   * :doc:`damping/cundall <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
@@ -66,6 +68,9 @@ OPT.
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
+   * :doc:`electrode/conp (i) <fix_electrode_conp>`
+   * :doc:`electrode/conq (i) <fix_electrode_conp>`
+   * :doc:`electrode/thermo (i) <fix_electrode_conp>`
    * :doc:`electron/stopping <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
@@ -97,12 +102,10 @@ OPT.
    * :doc:`latte <fix_latte>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
-   * :doc:`lb/pc <fix_lb_pc>`
-   * :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`mdi/engine <fix_mdi_engine>`
+   * :doc:`mdi/qm <fix_mdi_qm>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
@@ -129,6 +132,7 @@ OPT.
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
    * :doc:`numdiff <fix_numdiff>`
+   * :doc:`numdiff/virial <fix_numdiff_virial>`
    * :doc:`nve (giko) <fix_nve>`
    * :doc:`nve/asphere (gi) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
@@ -142,6 +146,7 @@ OPT.
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
    * :doc:`nve/noforce <fix_nve_noforce>`
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
+   * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`
@@ -159,7 +164,6 @@ OPT.
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
-   * :doc:`pair/tracker <fix_pair_tracker>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
@@ -244,6 +248,7 @@ OPT.
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`

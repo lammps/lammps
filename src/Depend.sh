@@ -73,8 +73,17 @@ fi
 
 if (test $1 = "DPD-BASIC") then
   depend GPU
+  depend KOKKOS
   depend OPENMP
   depend INTEL
+fi
+
+if (test $1 = "ELECTRODE") then
+  depend INTEL
+fi
+
+if (test $1 = "EXTRA-COMPUTE") then
+  depend KOKKOS
 fi
 
 if (test $1 = "EXTRA-MOLECULE") then
@@ -92,8 +101,12 @@ if (test $1 = "GRANULAR") then
   depend OPENMP
 fi
 
+if (test $1 = "INTERLAYER") then
+  depend OPT
+fi
+
 if (test $1 = "KSPACE") then
-  depend CG-SDK
+  depend CG-SPICA
   depend CORESHELL
   depend DIELECTRIC
   depend GPU
@@ -108,10 +121,15 @@ fi
 if (test $1 = "MANYBODY") then
   depend ATC
   depend GPU
+  depend INTEL
   depend KOKKOS
   depend OPT
   depend QEQ
   depend OPENMP
+fi
+
+if (test $1 = "MEAM") then
+  depend KOKKOS
 fi
 
 if (test $1 = "MOLECULE") then
@@ -131,10 +149,18 @@ if (test $1 = "PYTHON") then
   depend ML-IAP
 fi
 
+if (test $1 = "PHONON") then
+  depend KOKKOS
+fi
+
 if (test $1 = "RIGID") then
   depend KOKKOS
   depend OPENMP
   depend DPD-SMOOTH
+fi
+
+if (test $1 = "ML-PACE") then
+  depend KOKKOS
 fi
 
 if (test $1 = "ML-SNAP") then
@@ -142,7 +168,7 @@ if (test $1 = "ML-SNAP") then
   depend ML-IAP
 fi
 
-if (test $1 = "CG-SDK") then
+if (test $1 = "CG-SPICA") then
   depend GPU
   depend KOKKOS
   depend OPENMP

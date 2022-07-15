@@ -62,7 +62,6 @@
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
-#include <impl/Kokkos_Tags.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
@@ -105,9 +104,11 @@ class OpenMP {
   /// \brief Wait until all dispatched functors complete on the given instance
   ///
   ///  This is a no-op on OpenMP
-  static void impl_static_fence(OpenMP const& = OpenMP()) noexcept;
+  static void impl_static_fence(OpenMP const&           = OpenMP(),
+                                const std::string& name = "") noexcept;
 
   void fence() const;
+  void fence(const std::string& name) const;
 
   /// \brief Does the given instance return immediately after launching
   /// a parallel algorithm
@@ -128,14 +129,17 @@ class OpenMP {
   /// This is a no-op on OpenMP since a non default instance cannot be created
   static OpenMP create_instance(...);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   /// \brief Partition the default instance and call 'f' on each new 'master'
   /// thread
   ///
   /// Func is a functor with the following signiture
   ///   void( int partition_id, int num_partitions )
   template <typename F>
-  static void partition_master(F const& f, int requested_num_partitions = 0,
-                               int requested_partition_size = 0);
+  KOKKOS_DEPRECATED static void partition_master(
+      F const& f, int requested_num_partitions = 0,
+      int requested_partition_size = 0);
+#endif
 
   // use UniqueToken
   static int concurrency();
@@ -167,7 +171,7 @@ class OpenMP {
   static int impl_get_current_max_threads() noexcept;
 
   static constexpr const char* name() noexcept { return "OpenMP"; }
-  uint32_t impl_instance_id() const noexcept { return 0; }
+  uint32_t impl_instance_id() const noexcept { return 1; }
 };
 
 namespace Tools {
@@ -175,6 +179,7 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<OpenMP> {
   static constexpr DeviceType id = DeviceType::OpenMP;
+  static int device_id(const OpenMP&) { return 0; }
 };
 }  // namespace Experimental
 }  // namespace Tools
@@ -188,6 +193,7 @@ class OpenMPSpaceInitializer : public ExecSpaceInitializerBase {
   void initialize(const InitArguments& args) final;
   void finalize(const bool) final;
   void fence() final;
+  void fence(const std::string&) final;
   void print_configuration(std::ostream& msg, const bool detail) final;
 };
 

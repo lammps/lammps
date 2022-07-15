@@ -194,19 +194,19 @@ class TestAtomicViewAPI {
 
     dx = dView0("dx");
     dy = dView0("dy");
-    ASSERT_EQ(dx.use_count(), size_t(1));
-    ASSERT_EQ(dy.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+    ASSERT_EQ(dy.use_count(), 1);
 
     ax = dx;
     ay = dy;
-    ASSERT_EQ(dx.use_count(), size_t(2));
-    ASSERT_EQ(dy.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
+    ASSERT_EQ(dy.use_count(), 2);
     ASSERT_EQ(dx.use_count(), ax.use_count());
 
     az = ax;
-    ASSERT_EQ(dx.use_count(), size_t(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
-    ASSERT_EQ(az.use_count(), size_t(3));
+    ASSERT_EQ(dx.use_count(), 3);
+    ASSERT_EQ(ax.use_count(), 3);
+    ASSERT_EQ(az.use_count(), 3);
     ASSERT_EQ(az.use_count(), ax.use_count());
   }
 
@@ -216,40 +216,40 @@ class TestAtomicViewAPI {
 
     dx = dView4("dx", N0);
     dy = dView4("dy", N0);
-    ASSERT_EQ(dx.use_count(), size_t(1));
-    ASSERT_EQ(dy.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+    ASSERT_EQ(dy.use_count(), 1);
 
     ax = dx;
     ay = dy;
-    ASSERT_EQ(dx.use_count(), size_t(2));
-    ASSERT_EQ(dy.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
+    ASSERT_EQ(dy.use_count(), 2);
     ASSERT_EQ(dx.use_count(), ax.use_count());
 
     dView4_unmanaged unmanaged_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     az = ax;
-    ASSERT_EQ(dx.use_count(), size_t(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
-    ASSERT_EQ(az.use_count(), size_t(3));
+    ASSERT_EQ(dx.use_count(), 3);
+    ASSERT_EQ(ax.use_count(), 3);
+    ASSERT_EQ(az.use_count(), 3);
     ASSERT_EQ(az.use_count(), ax.use_count());
 
     aView4_unmanaged unmanaged_ax = ax;
-    ASSERT_EQ(ax.use_count(), size_t(3));
+    ASSERT_EQ(ax.use_count(), 3);
 
     aView4_unmanaged unmanaged_ax_from_ptr_dx = aView4_unmanaged(
         dx.data(), dx.extent(0), dx.extent(1), dx.extent(2), dx.extent(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
+    ASSERT_EQ(ax.use_count(), 3);
 
     const_aView4 const_ax = ax;
-    ASSERT_EQ(ax.use_count(), size_t(4));
+    ASSERT_EQ(ax.use_count(), 4);
     ASSERT_EQ(const_ax.use_count(), ax.use_count());
 
-    ASSERT_FALSE(ax.data() == nullptr);
-    ASSERT_FALSE(const_ax.data() == nullptr);  // referenceable ptr
-    ASSERT_FALSE(unmanaged_ax.data() == nullptr);
-    ASSERT_FALSE(unmanaged_ax_from_ptr_dx.data() == nullptr);
-    ASSERT_FALSE(ay.data() == nullptr);
+    ASSERT_NE(ax.data(), nullptr);
+    ASSERT_NE(const_ax.data(), nullptr);  // referenceable ptr
+    ASSERT_NE(unmanaged_ax.data(), nullptr);
+    ASSERT_NE(unmanaged_ax_from_ptr_dx.data(), nullptr);
+    ASSERT_NE(ay.data(), nullptr);
     //    ASSERT_NE( ax, ay );
     //    Above test results in following runtime error from gtest:
     //    Expected: (ax) != (ay), actual: 32-byte object <30-01 D0-A0 D8-7F
@@ -278,7 +278,7 @@ class TestAtomicViewAPI {
                          Kokkos::MemoryTraits<Kokkos::Atomic> >& arg_const,
       const Kokkos::View<const DataType, device,
                          Kokkos::MemoryTraits<Kokkos::Atomic> >& arg) {
-    ASSERT_TRUE(arg_const == arg);
+    ASSERT_EQ(arg_const, arg);
   }
 
   static void run_test_const() {
@@ -290,8 +290,8 @@ class TestAtomicViewAPI {
     typeX x("X");
     const_typeX xc = x;
 
-    // ASSERT_TRUE( xc == x ); // const xc is referenceable, non-const x is not
-    // ASSERT_TRUE( x == xc );
+    // ASSERT_EQ( xc ,  x ); // const xc is referenceable, non-const x is not
+    // ASSERT_EQ( x ,  xc );
 
     check_auto_conversion_to_const(x, xc);
   }

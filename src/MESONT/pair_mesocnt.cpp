@@ -44,7 +44,7 @@ using namespace MathExtra;
 #define SELF_CUTOFF 3
 #define SMALL 1.0e-6
 #define SWITCH 1.0e-6
-#define QUADRATURE 1000
+#define QUADRATURE 10
 #define RHOMIN 10.0
 
 /* ---------------------------------------------------------------------- */

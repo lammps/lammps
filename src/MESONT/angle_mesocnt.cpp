@@ -269,8 +269,6 @@ void AngleMesoCNT::coeff(int narg, char **arg)
     thetab_one = 180.0;
   }
   
-  printf("parameters: %d %f %f %f\n", buckling_one, kh_one, kb_one, thetab_one);
-
   if (!allocated) allocate();
 
   int ilo, ihi;

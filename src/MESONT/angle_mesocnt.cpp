@@ -47,6 +47,7 @@ AngleMesoCNT::~AngleMesoCNT()
 {
   if (allocated && !copymode) {
     memory->destroy(setflag);
+    memory->destroy(buckling);
     memory->destroy(kh);
     memory->destroy(kb);
     memory->destroy(thetab);
@@ -119,7 +120,7 @@ void AngleMesoCNT::compute(int eflag, int vflag)
     dtheta = acos(c) - theta0[type];
     
     // harmonic bending
-    if (!buckling || fabs(dtheta) < thetab[type]) {
+    if (!buckling[type] || fabs(dtheta) < thetab[type]) {
       tk = kh[type] * dtheta;
       if (eflag) eangle = tk * dtheta;
       a = -2.0 * tk * s;
@@ -177,6 +178,7 @@ void AngleMesoCNT::allocate()
   allocated = 1;
   const int np1 = atom->nangletypes + 1;
 
+  memory->create(buckling, np1, "angle:buckling");
   memory->create(kh, np1, "angle:kh");
   memory->create(kb, np1, "angle:kb");
   memory->create(thetab, np1, "angle:thetab");
@@ -186,22 +188,6 @@ void AngleMesoCNT::allocate()
   for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
-/* ----------------------------------------------------------------------
-   set buckling parameter
-------------------------------------------------------------------------- */
-
-void AngleMesoCNT::settings(int narg, char **arg)
-{
-  if (narg != 1) error->all(FLERR, "Illegal angle_style command");
-
-  if (strcmp(arg[0], "buckling") == 0)
-    buckling = true;
-  else if (strcmp(arg[0], "harmonic") == 0)
-    buckling = false;
-  else
-    error->all(FLERR, "Unknown angle style in angle style mesocnt");
-}
-
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more types
@@ -209,64 +195,82 @@ void AngleMesoCNT::settings(int narg, char **arg)
 
 void AngleMesoCNT::coeff(int narg, char **arg)
 {
-  double kh_one, kb_one, thetab_one;
-  if (strcmp(arg[1], "custom") == 0) {
-    if (buckling) {
-      if (narg != 5) error->all(FLERR, "Incorrect args for custom angle coefficients");
-      kb_one = utils::numeric(FLERR, arg[3], false, lmp);
-      thetab_one = utils::numeric(FLERR, arg[4], false, lmp);
-    }
-    else if (narg != 3) error->all(FLERR, "Incorrect args for custom angle coefficients");
+  if (narg < 1) error->all(FLERR, "Incorrect args for angle coefficients");
+  
+  bool buckling_one;
+  if (strcmp(arg[1], "buckling") == 0)
+    buckling_one = true;
+  else if (strcmp(arg[1], "harmonic") == 0)
+    buckling_one = false;
+  else
+    error->all(FLERR, "Unknown first argument for angle coefficients, must be 'buckling' or 'harmonic'");
 
-    kh_one = utils::numeric(FLERR, arg[2], false, lmp);
+  // units, eV to energy unit conversion
+  
+  double ang = force->angstrom;
+  double eunit;
+  if (strcmp(update->unit_style, "lj") == 0)
+    error->all(FLERR, "Angle style mesocnt does not support lj units");
+  else if (strcmp(update->unit_style, "real") == 0)
+    eunit = 23.06054966;
+  else if (strcmp(update->unit_style, "metal") == 0)
+    eunit = 1.0;
+  else if (strcmp(update->unit_style, "si") == 0)
+    eunit = 1.6021765e-19;
+  else if (strcmp(update->unit_style, "cgs") == 0)
+    eunit = 1.6021765e-12;
+  else if (strcmp(update->unit_style, "electron") == 0)
+    eunit = 3.674932248e-2;
+  else if (strcmp(update->unit_style, "micro") == 0)
+    eunit = 1.6021765e-4;
+  else if (strcmp(update->unit_style, "nano") == 0)
+    eunit = 1.6021765e2;
+  else
+    error->all(FLERR, "Angle style mesocnt does not recognize this units style");
+
+  // set parameters
+
+  double kh_one, kb_one, thetab_one;
+  if (strcmp(arg[2], "custom") == 0) {
+    if (buckling_one) {
+      if (narg != 6) error->all(FLERR, "Incorrect args for custom angle coefficients");
+      kb_one = utils::numeric(FLERR, arg[4], false, lmp);
+      thetab_one = utils::numeric(FLERR, arg[5], false, lmp);
+    }
+    else if (narg != 4) error->all(FLERR, "Incorrect args for custom angle coefficients");
+
+    kh_one = utils::numeric(FLERR, arg[3], false, lmp);
   }
-  else if (strcmp(arg[1], "C") == 0) {
-    if (narg != 5) error->all(FLERR, "Incorrect args for 'C' preset in angle coefficients");
-    int n = utils::inumeric(FLERR, arg[2], false, lmp);
-    int m = utils::inumeric(FLERR, arg[3], false, lmp);
-    double l = utils::numeric(FLERR, arg[4], false, lmp);
+  else if (strcmp(arg[2], "C") == 0) {
+    if (narg != 6) error->all(FLERR, "Incorrect args for 'C' preset in angle coefficients");
+    int n = utils::inumeric(FLERR, arg[3], false, lmp);
+    int m = utils::inumeric(FLERR, arg[4], false, lmp);
+    double l = utils::numeric(FLERR, arg[5], false, lmp);
   
     double r_ang = sqrt(3.0 * (n*n + n*m + m*m)) * A_CC / MY_2PI;
-    
-    // units, eV to energy unit conversion
   
-    double ang = force->angstrom;
-    double eunit;
-    if (strcmp(update->unit_style, "lj") == 0)
-      error->all(FLERR, "Angle style mesocnt does not support lj units");
-    else if (strcmp(update->unit_style, "real") == 0)
-      eunit = 23.06054966;
-    else if (strcmp(update->unit_style, "metal") == 0)
-      eunit = 1.0;
-    else if (strcmp(update->unit_style, "si") == 0)
-      eunit = 1.6021765e-19;
-    else if (strcmp(update->unit_style, "cgs") == 0)
-      eunit = 1.6021765e-12;
-    else if (strcmp(update->unit_style, "electron") == 0)
-      eunit = 3.674932248e-2;
-    else if (strcmp(update->unit_style, "micro") == 0)
-      eunit = 1.6021765e-4;
-    else if (strcmp(update->unit_style, "nano") == 0)
-      eunit = 1.6021765e2;
-    else
-      error->all(FLERR, "Angle style mesocnt does not recognize this units style");
+    // empirical parameters
 
     double k = 63.80 * pow(r_ang, 2.93) * eunit * ang;
     kh_one = 0.5 * k / l;
 
-    if (buckling) {
+    if (buckling_one) {
       kb_one = 0.7 * k / (275.0 * ang);
       thetab_one = 180.0 / MY_PI * atan(l / (275.0 * ang));
     }
   }
+  else
+    error->all(FLERR, "Unknown preset in in angle coefficients");
 
   // set safe default values for buckling parameters if buckling is disabled
 
-  if (!buckling) {
+  if (!buckling_one) {
     kb_one = 0.0;
     thetab_one = 180.0;
   }
   
+  printf("parameters: %d %f %f %f\n", buckling_one, kh_one, kb_one, thetab_one);
+
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -276,6 +280,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
+    buckling[i] = buckling_one;
     kh[i] = kh_one;
     kb[i] = kb_one;
     thetab[i] = DEG2RAD * thetab_one;
@@ -307,6 +312,7 @@ double AngleMesoCNT::equilibrium_angle(int i)
 
 void AngleMesoCNT::write_restart(FILE *fp)
 {
+  fwrite(&buckling[1], sizeof(bool), atom->nangletypes, fp);
   fwrite(&kh[1], sizeof(double), atom->nangletypes, fp);
   fwrite(&kb[1], sizeof(double), atom->nangletypes, fp);
   fwrite(&thetab[1], sizeof(double), atom->nangletypes, fp);
@@ -321,10 +327,12 @@ void AngleMesoCNT::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
+    utils::sfread(FLERR, &buckling[1], sizeof(bool), atom->nangletypes, fp, nullptr, error);
     utils::sfread(FLERR, &kh[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
     utils::sfread(FLERR, &kb[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
     utils::sfread(FLERR, &thetab[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
   }
+  MPI_Bcast(&buckling[1], atom->nangletypes, MPI_CXX_BOOL, 0, world);
   MPI_Bcast(&kh[1], atom->nangletypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&kb[1], atom->nangletypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&thetab[1], atom->nangletypes, MPI_DOUBLE, 0, world);
@@ -342,7 +350,7 @@ void AngleMesoCNT::read_restart(FILE *fp)
 void AngleMesoCNT::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp, "%d %g %g %g\n", i, kh[i], kb[i], RAD2DEG * thetab[i]);
+    fprintf(fp, "%d %d %g %g %g\n", i, buckling[i], kh[i], kb[i], RAD2DEG * thetab[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -371,7 +379,7 @@ double AngleMesoCNT::single(int type, int i1, int i2, int i3)
   double dtheta = acos(c) - theta0[type];
   
   // harmonic bending
-  if (dtheta < thetab[type]) {
+  if (!buckling[type] || dtheta < thetab[type]) {
     double tk = kh[type] * dtheta;
     return tk * dtheta;
   }

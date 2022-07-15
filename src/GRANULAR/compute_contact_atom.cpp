@@ -133,34 +133,33 @@ void ComputeContactAtom::compute_peratom()
     i = ilist[ii];
 
     // Only proceed if i is either part of the compute group or will contribute to contacts
-    if ((mask[i] & groupbit) || (mask[i] & jgroupbit)) {
-      xtmp = x[i][0];
-      ytmp = x[i][1];
-      ztmp = x[i][2];
-      radi = radius[i];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+    if (! (mask[i] & groupbit) && ! (mask[i] & jgroupbit)) continue;
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    radi = radius[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-        // Only tally for atoms in compute group (groupbit) if neighbor is in group2 (jgroupbit)
-        update_i_flag = (mask[i] & groupbit) && (mask[j] & jgroupbit);
-        update_j_flag = (mask[j] & groupbit) && (mask[i] & jgroupbit);
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
 
-        if (update_i_flag || update_j_flag) {
-          delx = xtmp - x[j][0];
-          dely = ytmp - x[j][1];
-          delz = ztmp - x[j][2];
-          rsq = delx * delx + dely * dely + delz * delz;
-          radsum = radi + radius[j];
-          radsumsq = radsum * radsum;
-          if (rsq <= radsumsq) {
-            if (update_i_flag) contact[i] += 1.0;
-            if (update_j_flag) contact[j] += 1.0;
-          }
-        }
+      // Only tally for atoms in compute group (groupbit) if neighbor is in group2 (jgroupbit)
+      update_i_flag = (mask[i] & groupbit) && (mask[j] & jgroupbit);
+      update_j_flag = (mask[j] & groupbit) && (mask[i] & jgroupbit);
+      if (! update_i_flag && ! update_j_flag) continue;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx * delx + dely * dely + delz * delz;
+      radsum = radi + radius[j];
+      radsumsq = radsum * radsum;
+      if (rsq <= radsumsq) {
+        if (update_i_flag) contact[i] += 1.0;
+        if (update_j_flag) contact[j] += 1.0;
       }
     }
   }

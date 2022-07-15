@@ -2561,9 +2561,14 @@ double Variable::collapse_tree(Tree *tree)
     arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    tree->value = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      tree->value = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      tree->value = arg1 + delta*(arg2-arg1);
+    }
     return tree->value;
   }
 
@@ -2935,9 +2940,14 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == RAMP) {
     arg1 = eval_tree(tree->first,i);
     arg2 = eval_tree(tree->second,i);
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    arg = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      arg = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      arg = arg1 + delta*(arg2-arg1);
+    }
     return arg;
   }
 
@@ -3445,14 +3455,17 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"ramp") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use ramp in variable formula between runs",ivar);
     if (tree) newtree->type = RAMP;
     else {
-      double delta = update->ntimestep - update->beginstep;
-      if (delta != 0.0) delta /= update->endstep - update->beginstep;
-      double value = value1 + delta*(value2-value1);
-      argstack[nargstack++] = value;
+      if (update->whichflag == 0) {
+        argstack[nargstack++] = value1;
+      } else {
+        double delta = update->ntimestep - update->beginstep;
+        if ((delta != 0.0) && (update->beginstep != update->endstep))
+          delta /= update->endstep - update->beginstep;
+        double value = value1 + delta*(value2-value1);
+        argstack[nargstack++] = value;
+      }
     }
 
   } else if (strcmp(word,"stagger") == 0) {

@@ -116,6 +116,7 @@ accelerated styles exist.
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
+* :doc:`amoeba <pair_amoeba>` -
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential
 * :doc:`awpmd/cut <pair_awpmd>` - Antisymmetrized Wave Packet MD potential for atoms and electrons
 * :doc:`beck <pair_beck>` - Beck potential
@@ -202,6 +203,7 @@ accelerated styles exist.
 * :doc:`hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
 * :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential
+* :doc:`hippo <pair_amoeba>` -
 * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` - registry-dependent interlayer potential (ILP)
 * :doc:`ilp/tmd <pair_ilp_tmd>` - interlayer potential (ILP) potential for transition metal dichalcogenides (TMD)
 * :doc:`kim <pair_kim>` - interface to potentials provided by KIM project
@@ -258,9 +260,9 @@ accelerated styles exist.
 * :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
 * :doc:`lj/relres <pair_lj_relres>` - LJ using multiscale Relative Resolution (RelRes) methodology :ref:`(Chaimovich) <Chaimovich2>`.
-* :doc:`lj/sdk <pair_sdk>` - LJ for SDK coarse-graining
-* :doc:`lj/sdk/coul/long <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb
-* :doc:`lj/sdk/coul/msm <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb via MSM
+* :doc:`lj/spica <pair_spica>` - LJ for SPICA coarse-graining
+* :doc:`lj/spica/coul/long <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb
+* :doc:`lj/spica/coul/msm <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb via MSM
 * :doc:`lj/sf/dipole/sf <pair_dipole>` - LJ with dipole interaction with shifted forces
 * :doc:`lj/smooth <pair_lj_smooth>` - smoothed Lennard-Jones potential
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential

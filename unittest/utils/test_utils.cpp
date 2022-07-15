@@ -139,6 +139,24 @@ TEST(Utils, count_words_with_extra_spaces)
     ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
 }
 
+TEST(Utils, join_words)
+{
+    std::vector<std::string> words = {"one", "two", "three" };
+    auto combined = utils::join_words(words, " ");
+    ASSERT_THAT(combined, StrEq("one two three"));
+    combined = utils::join_words(words, "");
+    ASSERT_THAT(combined, StrEq("onetwothree"));
+    words[1] = "two ";
+    combined = utils::join_words(words, "__");
+    ASSERT_THAT(combined, StrEq("one__two __three"));
+    words.resize(1);
+    combined = utils::join_words(words, "/");
+    ASSERT_THAT(combined, StrEq("one"));
+    words.push_back("");
+    combined = utils::join_words(words, "1");
+    ASSERT_THAT(combined, StrEq("one1"));
+}
+
 TEST(Utils, split_words_simple)
 {
     auto list = utils::split_words("one two three");

@@ -97,6 +97,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   tabinner_disp = sqrt(2.0);
   ftable = nullptr;
   fdisptable = nullptr;
+  trim_flag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -204,6 +205,10 @@ void Pair::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nofdotr") == 0) {
       no_virial_fdotr_compute = 1;
       ++iarg;
+    } else if (strcmp(arg[iarg],"neigh/trim") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      trim_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal pair_modify command");
   }
 }

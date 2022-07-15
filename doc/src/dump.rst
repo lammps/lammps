@@ -783,6 +783,11 @@ To write gzipped dump files, you must either compile LAMMPS with the
 -DLAMMPS_GZIP option or use the styles from the COMPRESS package.
 See the :doc:`Build settings <Build_settings>` page for details.
 
+While a dump command is active (i.e. has not been stopped by using
+the undump command), no commands may be used that will change the
+timestep (e.g. :doc:`reset_timestep <reset_timestep>`).  LAMMPS
+will terminate with an error otherwise.
+
 The *atom/gz*, *cfg/gz*, *custom/gz*, and *xyz/gz* styles are part of
 the COMPRESS package.  They are only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` page for

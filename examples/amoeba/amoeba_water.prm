@@ -1,0 +1,160 @@
+!! DATE: 2022-07-05  UNITS: real
+
+      ##############################
+      ##                          ##
+      ##  Force Field Definition  ##
+      ##                          ##
+      ##############################
+
+
+forcefield              AMOEBA-WATER-2003
+
+bond-cubic              -2.55
+bond-quartic            3.793125
+angle-cubic             -0.014
+angle-quartic           0.000056
+angle-pentic            -0.0000007
+angle-sextic            0.000000022
+opbendtype              ALLINGER
+opbend-cubic            -0.014
+opbend-quartic          0.000056
+opbend-pentic           -0.0000007
+opbend-sextic           0.000000022
+torsionunit             0.5
+vdwtype                 BUFFERED-14-7
+radiusrule              CUBIC-MEAN
+radiustype              R-MIN
+radiussize              DIAMETER
+epsilonrule             HHG
+dielectric              1.0
+polarization            MUTUAL
+vdw-12-scale            0.0
+vdw-13-scale            0.0
+vdw-14-scale            1.0
+vdw-15-scale            1.0
+mpole-12-scale          0.0
+mpole-13-scale          0.0
+mpole-14-scale          0.4
+#mpole-15-scale          0.8
+polar-12-scale          0.0
+polar-13-scale          0.0
+polar-14-scale          1.0
+polar-15-scale          1.0
+polar-12-intra          0.0
+polar-13-intra          0.0
+polar-14-intra          0.5
+polar-15-intra          1.0
+direct-11-scale         0.0
+direct-12-scale         1.0
+direct-13-scale         1.0
+direct-14-scale         1.0
+mutual-11-scale         1.0
+mutual-12-scale         1.0
+mutual-13-scale         1.0
+mutual-14-scale         1.0
+
+
+      #############################
+      ##                         ##
+      ##  Literature References  ##
+      ##                         ##
+      #############################
+
+
+P. Ren and J. W. Ponder, "A Polarizable Atomic Multipole Water Model
+for Molecular Mechanics Simulation", J. Phys. Chem. B, 107, 5933-5947
+(2003)
+
+Y. Kong, "Multipole Electrostatic Methods for Protein Modeling with
+Reaction Field Treatment", Ph.D. thesis, DBBS Program in Molecular
+Biophysics, Washington University, St. Louis, August, 1997  [available
+online from http://dasher.wustl.edu/ponder/]
+
+alternative valence parameters to match symmetric and antisymmetric
+stretch frequencies by David Semrouni, Ecole Polytechnique, Paris
+
+
+      #############################
+      ##                         ##
+      ##  Atom Type Definitions  ##
+      ##                         ##
+      #############################
+
+
+atom          1    1    O     "AMOEBA Water O"               8    15.995    2
+atom          2    2    H     "AMOEBA Water H"               1     1.008    1
+
+
+      ################################
+      ##                            ##
+      ##  Van der Waals Parameters  ##
+      ##                            ##
+      ################################
+
+
+vdw           1               3.4050     0.1100
+vdw           2               2.6550     0.0135      0.910
+
+
+      ##################################
+      ##                              ##
+      ##  Bond Stretching Parameters  ##
+      ##                              ##
+      ##################################
+
+
+#bond         1    2          529.60     0.9572   !! original AMOEBA water
+bond          1    2          556.85     0.9572
+
+
+      ################################
+      ##                            ##
+      ##  Angle Bending Parameters  ##
+      ##                            ##
+      ################################
+
+
+#angle        2    1    2      34.05     108.50   !! original AMOEBA water
+angle         2    1    2      48.70     108.50
+
+
+      ###############################
+      ##                           ##
+      ##  Urey-Bradley Parameters  ##
+      ##                           ##
+      ###############################
+
+
+#ureybrad     2    1    2      38.25     1.5537   !! original AMOEBA water
+ureybrad      2    1    2      -7.60     1.5537
+
+
+      ###################################
+      ##                               ##
+      ##  Atomic Multipole Parameters  ##
+      ##                               ##
+      ###################################
+
+
+multipole     1   -2   -2              -0.51966
+                                        0.00000    0.00000    0.14279
+                                        0.37928
+                                        0.00000   -0.41809
+                                        0.00000    0.00000    0.03881
+
+multipole     2    1    2               0.25983
+                                       -0.03859    0.00000   -0.05818
+                                       -0.03673
+                                        0.00000   -0.10739
+                                       -0.00203    0.00000    0.14412
+
+
+      ########################################
+      ##                                    ##
+      ##  Dipole Polarizability Parameters  ##
+      ##                                    ##
+      ########################################
+
+
+polarize      1           0.837      0.390       2
+polarize      2           0.496      0.390       1

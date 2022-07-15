@@ -26,10 +26,10 @@ namespace LAMMPS_NS {
 
 class FixStore : public Fix {
  public:
-  int nrow, ncol;     // size of global data array
-  int nvalues;        // number of per-atom values
+  int nrow,ncol;      // copy of n1,n2 for GLOBAL array for classes to access
   double *vstore;     // vector storage for GLOBAL or PERATOM
   double **astore;    // array storage for GLOBAL or PERATOM
+  double ***tstore;   // tensor (3d array) storage for PERATOM
   int disable;        // 1 if operations (except grow) are currently disabled
 
   FixStore(class LAMMPS *, int, char **);
@@ -52,10 +52,16 @@ class FixStore : public Fix {
   double memory_usage() override;
 
  private:
-  int flavor;     // GLOBAL or PERATOM
-  int vecflag;    // 1 if ncol=1 or nvalues=1
+  int flavor;                   // GLOBAL or PERATOM
+  int vecflag;                  // 1 if ncol=1 or nvalues=1
+  int arrayflag;                // 1 if a 2d array (vector per atom)
+  int tensorflag;               // 1 if a 3d array (array per atom)
 
-  double *rbuf;    // restart buffer for GLOBAL vec/array
+  int n1,n2,n3;                 // size of 3d dims of data struct
+  int nvalues;                  // number of per-atom values
+  int nbytes;                   // number of per-atom bytes
+
+  double *rbuf;                 // restart buffer for GLOBAL vec/array/tensor
 };
 
 }    // namespace LAMMPS_NS

@@ -254,8 +254,9 @@ for command_type, entries in index.items():
 
 print("Total number of style index entries:", total_index)
 
+skip_angle = ('sdk')
 skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species')
-skip_pair = ('meam/c','lj/sf','reax/c')
+skip_pair = ('meam/c','lj/sf','reax/c','lj/sdk','lj/sdk/coul/long','lj/sdk/coul/msm')
 skip_compute = ('pressure/cylinder')
 
 counter = 0
@@ -269,8 +270,8 @@ counter += check_style('Commands_pair.rst', doc_dir, ":doc:`(.+) <pair.+>`",pair
 counter += check_style('pair_style.rst', doc_dir, ":doc:`(.+) <pair.+>` -",pair,'Pair',skip=skip_pair,suffix=False)
 counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <bond.+>`",bond,'Bond',suffix=True)
 counter += check_style('bond_style.rst', doc_dir, ":doc:`(.+) <bond.+>` -",bond,'Bond',suffix=False)
-counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <angle.+>`",angle,'Angle',suffix=True)
-counter += check_style('angle_style.rst', doc_dir, ":doc:`(.+) <angle.+>` -",angle,'Angle',suffix=False)
+counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <angle.+>`",angle,'Angle',skip=skip_angle,suffix=True)
+counter += check_style('angle_style.rst', doc_dir, ":doc:`(.+) <angle.+>` -",angle,'Angle',skip=skip_angle,suffix=False)
 counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <dihedral.+>`",dihedral,'Dihedral',suffix=True)
 counter += check_style('dihedral_style.rst', doc_dir, ":doc:`(.+) <dihedral.+>` -",dihedral,'Dihedral',suffix=False)
 counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <improper.+>`",improper,'Improper',suffix=True)
@@ -284,12 +285,12 @@ counter = 0
 
 counter += check_style_index("compute", compute, index["compute"], skip=['pressure/cylinder'])
 counter += check_style_index("fix", fix, index["fix"], skip=['python','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species'])
-counter += check_style_index("angle_style", angle, index["angle_style"])
+counter += check_style_index("angle_style", angle, index["angle_style"], skip=['sdk'])
 counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])
 counter += check_style_index("improper_style", improper, index["improper_style"])
 counter += check_style_index("kspace_style", kspace, index["kspace_style"])
-counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam/c', 'lj/sf','reax/c'])
+counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam/c','lj/sf','reax/c','lj/sdk','lj/sdk/coul/long','lj/sdk/coul/msm'])
 
 if counter:
     print(f"Found {counter} issue(s) with style index")

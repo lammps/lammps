@@ -394,6 +394,8 @@
     <item>edip</item>
     <item>eff/cut</item>
     <item>gauss/cut</item>
+    <item>lj/spica</item>
+    <item>lj/spica/coul/long</item>
     <item>lj/sdk</item>
     <item>lj/sdk/coul/long</item>
     <item>lj/sf</item>
@@ -517,6 +519,10 @@
     <item>lj/gromacs/coul/gromacs/omp</item>
     <item>lj/gromacs/cuda</item>
     <item>lj/gromacs/omp</item>
+    <item>lj/spica/gpu</item>
+    <item>lj/spica/omp</item>
+    <item>lj/spica/coul/long/gpu</item>
+    <item>lj/spica/coul/long/omp</item>
     <item>lj/sdk/gpu</item>
     <item>lj/sdk/omp</item>
     <item>lj/sdk/coul/long/gpu</item>
@@ -596,6 +602,7 @@
     <item>table</item>
   </list>
   <list name="kw_optional_as_potentials">
+    <item>spica</item>
     <item>sdk</item>
     <item>cosine/shift</item>
     <item>cosine/shift/exp</item>

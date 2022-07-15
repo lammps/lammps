@@ -26,8 +26,6 @@ using namespace LAMMPS_NS;
 
 #define SMALL 0.00001
 
-enum { CONST, EQUAL };
-
 //     0        1      2              3    4
 // fix fxupdate group1 electrode/conp pot1 eta couple group2 pot2
 FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
@@ -36,14 +34,15 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
   // copy const-style values across because update_psi will change group_psi
   group_q = group_psi;
 
-  if (symm) { error->all(FLERR, "Keyword symm on not allowed in electrode/conq"); }
+  if (symm) error->all(FLERR, "Keyword symm on not allowed in electrode/conq");
+  if (algo != Algo::MATRIX_INV) error->all(FLERR, "Algorithm not allowed in electrode/conq");
 }
 
 void FixElectrodeConq::update_psi()
 {
   // don't need MPI_Barrier because always preceded by MPI_Allreduce
   for (int g = 0; g < num_of_groups; g++) {
-    if (group_psi_var_styles[g] == CONST) continue;
+    if (group_psi_var_styles[g] == VarStyle::CONST) continue;
     group_q[g] = input->variable->compute_equal(group_psi_var_ids[g]);
   }
 

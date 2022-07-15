@@ -36,6 +36,7 @@ static constexpr double A_CC = 1.421;
 
 AngleMesoCNT::AngleMesoCNT(LAMMPS *_lmp) : Angle(_lmp)
 {
+  buckling = nullptr;
   kh = nullptr;
   kb = nullptr;
   thetab = nullptr;
@@ -260,7 +261,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
     }
   }
   else
-    error->all(FLERR, "Unknown preset in in angle coefficients");
+    error->all(FLERR, "Unknown preset in angle coefficients");
 
   // set safe default values for buckling parameters if buckling is disabled
 

@@ -685,7 +685,9 @@ of a run, according to this formula:
 The run begins on startstep and ends on stopstep.  Startstep and
 stopstep can span multiple runs, using the *start* and *stop* keywords
 of the :doc:`run <run>` command.  See the :doc:`run <run>` command for
-details of how to do this.
+details of how to do this.  If called in between runs or during a
+:doc:`run 0 <run>` command, the ramp(x,y) function will return the
+value of x.
 
 The stagger(x,y) function uses the current timestep to generate a new
 timestep.  X,y > 0 and x > y are required.  The generated timesteps

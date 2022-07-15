@@ -246,11 +246,22 @@ void FixMDIQM::init()
   int ierr = MDI_Check_command_exists("@DEFAULT", ">NATOMS", mdicomm, &natoms_exists);
   if (ierr) error->all(FLERR, "MDI: >NATOMS command check");
   if ( natoms_exists ) {
+
     ierr = MDI_Send_command(">NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS command");
     int n = static_cast<int> (atom->natoms);
     ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS data");
+
+  } else { // confirm that the engine's NATOMS is correct
+
+    ierr = MDI_Send_command("<NATOMS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <NATOMS command");
+    int n;
+    ierr = MDI_Recv(&n, 1, MDI_INT, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <NATOMS data");
+    if ( n != atom->natoms ) error->all(FLERR, "MDI: Engine has the wrong number of atoms, and does not support the >NATOMS command.");
+
   }
 
   int elements_exists;
@@ -369,6 +380,9 @@ void FixMDIQM::post_force(int vflag)
     if (ierr) error->all(FLERR, "MDI: <STRESS command");
     ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS data");
+    //for (int i = 0; i < 9; i++) {
+    //  qm_virial[i] = 0.0;
+    //}
     MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
 
     qm_virial_symmetric[0] = qm_virial[0] * mdi2lmp_pressure;

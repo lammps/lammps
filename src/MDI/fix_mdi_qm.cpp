@@ -242,14 +242,39 @@ void FixMDIQM::init()
 
   reallocate();
 
-  int ierr = MDI_Send_command(">NATOMS", mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >NATOMS command");
-  int n = static_cast<int> (atom->natoms);
-  ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >NATOMS data");
+  int natoms_exists;
+  int ierr = MDI_Check_command_exists("@DEFAULT", ">NATOMS", mdicomm, &natoms_exists);
+  if (ierr) error->all(FLERR, "MDI: >NATOMS command check");
+  if ( natoms_exists ) {
 
-  if (elements) send_elements();
-  else send_types();
+    ierr = MDI_Send_command(">NATOMS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >NATOMS command");
+    int n = static_cast<int> (atom->natoms);
+    ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >NATOMS data");
+
+  } else { // confirm that the engine's NATOMS is correct
+
+    ierr = MDI_Send_command("<NATOMS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <NATOMS command");
+    int n;
+    ierr = MDI_Recv(&n, 1, MDI_INT, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <NATOMS data");
+    if ( n != atom->natoms ) error->all(FLERR, "MDI: Engine has the wrong number of atoms, and does not support the >NATOMS command.");
+
+  }
+
+  int elements_exists;
+  int types_exists;
+  ierr = MDI_Check_command_exists("@DEFAULT", ">ELEMENTS", mdicomm, &elements_exists);
+  if (ierr) error->all(FLERR, "MDI: >ELEMENTS command check");
+  ierr = MDI_Check_command_exists("@DEFAULT", ">TYPES", mdicomm, &types_exists);
+  if (ierr) error->all(FLERR, "MDI: >TYPES command check");
+  if ( elements && elements_exists ) {
+      send_elements();
+  } else if ( types_exists ) {
+      send_types();
+  }
   send_box();
 }
 
@@ -502,13 +527,18 @@ void FixMDIQM::send_box()
 {
   double cell[9];
 
-  int ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
-  cell[0] = domain->boxlo[0] * lmp2mdi_length;
-  cell[1] = domain->boxlo[1] * lmp2mdi_length;
-  cell[2] = domain->boxlo[2] * lmp2mdi_length;
-  ierr = MDI_Send(cell, 3, MDI_DOUBLE, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
+  int celldispl_exists;
+  int ierr = MDI_Check_command_exists("@DEFAULT", ">NATOMS", mdicomm, &celldispl_exists);
+  if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command check");
+  if ( celldispl_exists ) {
+    ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
+    cell[0] = domain->boxlo[0] * lmp2mdi_length;
+    cell[1] = domain->boxlo[1] * lmp2mdi_length;
+    cell[2] = domain->boxlo[2] * lmp2mdi_length;
+    ierr = MDI_Send(cell, 3, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
+  }
 
   ierr = MDI_Send_command(">CELL", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CELL command");
@@ -521,6 +551,10 @@ void FixMDIQM::send_box()
   cell[6] = domain->xz;
   cell[7] = domain->yz;
   cell[8] = domain->boxhi[2] - domain->boxlo[2];
+
+  // convert the cell units to bohr
+  for (int icell = 0; icell < 9; icell++) cell[icell] *= lmp2mdi_length;
+
   ierr = MDI_Send(cell, 9, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CELL data");
 }

@@ -783,10 +783,11 @@ according to this formula:
 where dt = the timestep size.
 
 The run begins on startstep.  Startstep can span multiple runs, using
-the *start* keyword of the :doc:`run <run>` command.  See the
-:doc:`run <run>` command for details of how to do this.  Note that the
+the *start* keyword of the :doc:`run <run>` command.  See the :doc:`run
+<run>` command for details of how to do this.  Note that the
 :doc:`thermo_style <thermo_style>` keyword elaplong =
-timestep-startstep.
+timestep-startstep.  This function may not be used in combination with
+:doc:`fix dt/reset <fix_dt_reset>`.
 
 The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
 x = value0, y = amplitude, z = period.  They use the elapsed time to
@@ -801,10 +802,11 @@ run, according to one of these formulas, where omega = 2 PI / period:
 where dt = the timestep size.
 
 The run begins on startstep.  Startstep can span multiple runs, using
-the *start* keyword of the :doc:`run <run>` command.  See the
-:doc:`run <run>` command for details of how to do this.  Note that the
+the *start* keyword of the :doc:`run <run>` command.  See the :doc:`run
+<run>` command for details of how to do this.  Note that the
 :doc:`thermo_style <thermo_style>` keyword elaplong =
-timestep-startstep.
+timestep-startstep.  These functions may not be used in combination with
+:doc:`fix dt/reset <fix_dt_reset>`.
 
 ----------
 

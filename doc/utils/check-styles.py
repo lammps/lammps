@@ -60,7 +60,7 @@ reader = {}
 region = {}
 total = 0
 
-index_pattern = re.compile(r"^.. index:: (compute|fix|pair_style|angle_style|bond_style|dihedral_style|improper_style|kspace_style)\s+([a-zA-Z0-9/_]+)$")
+index_pattern = re.compile(r"^.. index:: (compute|fix|pair_style|angle_style|bond_style|dihedral_style|improper_style|kspace_style|dump)\s+([a-zA-Z0-9/_]+)$")
 style_pattern = re.compile(r"(.+)Style\((.+),(.+)\)")
 upper = re.compile("[A-Z]+")
 gpu = re.compile("(.+)/gpu$")
@@ -84,7 +84,8 @@ def load_index_entries_in_file(path):
 
 def load_index_entries():
     index = {'compute': set(), 'fix': set(), 'pair_style': set(), 'angle_style': set(),
-             'bond_style': set(), 'dihedral_style': set(), 'improper_style': set(), 'kspace_style': set()}
+             'bond_style': set(), 'dihedral_style': set(), 'improper_style': set(),
+             'kspace_style': set(), 'dump': set()}
     rst_files = glob(os.path.join(doc_dir, '*.rst'))
     for f in rst_files:
         for command_type, style in load_index_entries_in_file(f):
@@ -277,6 +278,7 @@ counter += check_style('dihedral_style.rst', doc_dir, ":doc:`(.+) <dihedral.+>` 
 counter += check_style('Commands_bond.rst', doc_dir, ":doc:`(.+) <improper.+>`",improper,'Improper',suffix=True)
 counter += check_style('improper_style.rst', doc_dir, ":doc:`(.+) <improper.+>` -",improper,'Improper',suffix=False)
 counter += check_style('Commands_kspace.rst', doc_dir, ":doc:`(.+) <kspace_style>`",kspace,'KSpace',suffix=True)
+counter += check_style('Commands_dump.rst', doc_dir, ":doc:`(.+) <dump.*>`",dump,'Dump',suffix=True)
 
 if counter:
     print(f"Found {counter} issue(s) with style lists")
@@ -290,6 +292,7 @@ counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])
 counter += check_style_index("improper_style", improper, index["improper_style"])
 counter += check_style_index("kspace_style", kspace, index["kspace_style"])
+counter += check_style_index("dump", dump, index["dump"])
 counter += check_style_index("pair_style", pair, index["pair_style"], skip=['meam/c','lj/sf','reax/c','lj/sdk','lj/sdk/coul/long','lj/sdk/coul/msm'])
 
 if counter:

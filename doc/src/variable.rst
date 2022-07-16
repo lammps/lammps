@@ -785,8 +785,11 @@ where dt = the timestep size.
 The run begins on startstep.  Startstep can span multiple runs, using
 the *start* keyword of the :doc:`run <run>` command.  See the :doc:`run
 <run>` command for details of how to do this.  Note that the
-:doc:`thermo_style <thermo_style>` keyword elaplong =
-timestep-startstep.  This function may not be used in combination with
+:doc:`thermo_style <thermo_style>` keyword elaplong = timestep-startstep.
+If used between runs this function will return
+the value according to the end of the last run or the value of x if
+used before *any* runs.  This function assumes the length of the time
+step does not change and thus may not be used in combination with
 :doc:`fix dt/reset <fix_dt_reset>`.
 
 The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
@@ -804,8 +807,11 @@ where dt = the timestep size.
 The run begins on startstep.  Startstep can span multiple runs, using
 the *start* keyword of the :doc:`run <run>` command.  See the :doc:`run
 <run>` command for details of how to do this.  Note that the
-:doc:`thermo_style <thermo_style>` keyword elaplong =
-timestep-startstep.  These functions may not be used in combination with
+:doc:`thermo_style <thermo_style>` keyword elaplong = timestep-startstep.
+If used between runs these functions will return
+the value according to the end of the last run or the value of x if
+used before *any* runs.  These functions assume the length of the time
+step does not change and thus may not be used in combination with
 :doc:`fix dt/reset <fix_dt_reset>`.
 
 ----------

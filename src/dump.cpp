@@ -1148,7 +1148,8 @@ void Dump::modify_params(int narg, char **arg)
           }
         }
         if ((icol < 0) || (icol >= (int)keyword_user.size()))
-          error->all(FLERR, "Illegal thermo_modify command");
+          error->all(FLERR, "Incorrect dump_modify arguments: {} {} {}",
+                     arg[iarg], arg[iarg+1], arg[iarg+2]);
         keyword_user[icol] = arg[iarg+2];
         iarg += 3;
       }

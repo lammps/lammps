@@ -37,7 +37,8 @@ class DumpLocal : public Dump {
   int *vtype;        // type of each vector (INT, DOUBLE)
   char **vformat;    // format string for each vector element
 
-  char *columns;    // column labels
+  char *columns;     // column labels
+  char *columns_default;
 
   int nfield;    // # of keywords listed by user
 

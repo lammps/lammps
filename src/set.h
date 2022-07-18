@@ -36,7 +36,7 @@ class Set : public Command {
   int ximage, yimage, zimage, ximageflag, yimageflag, zimageflag;
   int cc_index;
   bigint nsubset;
-  double dvalue, xvalue, yvalue, zvalue, wvalue, fraction;
+  double dvalue, dlovalue, dhivalue, xvalue, yvalue, zvalue, wvalue, fraction;
 
   int varflag, varflag1, varflag2, varflag3, varflag4;
   int ivar1, ivar2, ivar3, ivar4;

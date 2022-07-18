@@ -16,7 +16,7 @@ Syntax
 * keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
   or *mol* or *x* or *y* or *z* or *charge* or *dipole* or
   *dipole/random* or *quat* or *spin* or *spin/random* or
-  *quat* or *quat/random* or *diameter* or *shape* or
+  *quat* or *quat/random* or *diameter* or *diameter/range* or *shape* or
   *length* or *tri* or *theta* or *theta/random* or *angmom* or
   *omega* or *mass* or *density* or *density/disc* or
   *volume* or *image* or *bond* or *angle* or *dihedral* or
@@ -70,6 +70,9 @@ Syntax
          seed = random # seed (positive integer) for quaternion orientations
        *diameter* value = diameter of spherical particle (distance units)
          value can be an atom-style variable (see below)
+       *diameter/range* values = seed Dlo Dhi
+         seed = random # seed (positive integer) for diameters of spherical particles
+         Dlo,Dhi = range of diameters for affected particles (distance units)
        *shape* value = Sx Sy Sz
          Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
        *length* value = len

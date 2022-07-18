@@ -48,7 +48,7 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
-     DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
+     DIAMETER,DIAMETER_RANGE,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
 
@@ -371,6 +371,16 @@ void Set::command(int narg, char **arg)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(DIAMETER);
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"diameter/range") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      dlovalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      dhivalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (!atom->radius_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      setrandom(DIAMETER_RANGE);
+      iarg += 4;
 
     } else if (strcmp(arg[iarg],"density") == 0 ||
                (strcmp(arg[iarg],"density/disc") == 0)) {
@@ -1325,6 +1335,23 @@ void Set::setrandom(int keyword)
           }
           count++;
         }
+    }
+
+  // set the diameters to random values between dlovalue and dhivalue
+
+  } else if (keyword == DIAMETER_RANGE) {
+    if (dlovalue < 0.0) error->one(FLERR,"Invalid diameter range lower bound in set command");
+    if (dhivalue < 0.0) error->one(FLERR,"Invalid diameter range higher bound in set command");
+    if (dlovalue >= dhivalue) error->one(FLERR,"Invalid diameter range in set command");
+
+    int nlocal = atom->nlocal;
+    for (i = 0; i < nlocal; i++) {
+      if (select[i]) {
+        ranpark->reset(seed,x[i]);
+
+        atom->radius[i] = 0.5 * (dlovalue + (dhivalue - dlovalue) * ranpark->uniform());
+        count++;
+      }
     }
 
   // set theta to random orientation in 2d

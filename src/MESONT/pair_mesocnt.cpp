@@ -756,6 +756,8 @@ void PairMesoCNT::init_style()
 {
   if (atom->tag_enable == 0) error->all(FLERR, "Pair style mesocnt requires atom IDs");
   if (force->newton_pair == 0) error->all(FLERR, "Pair style mesocnt requires newton pair on");
+  if (force->special_lj[1] == 0.0 || force->special_lj[2] == 0.0 || force->special_lj[3] == 0.0)
+    error->all(FLERR,"Pair mesocnt requires special_bond lj x y z to have non-zero x, y and z");
 
   // need a full neighbor list
 

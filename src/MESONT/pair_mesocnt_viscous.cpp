@@ -19,6 +19,7 @@
 #include "pair_mesocnt_viscous.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -745,6 +746,24 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++) setflag[i][j] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairMesoCNTViscous::init_style()
+{
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style mesocnt/viscous requires atom IDs");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style mesocnt/viscous requires newton pair on");
+  if (force->special_lj[1] == 0.0 || force->special_lj[2] == 0.0 || force->special_lj[3] == 0.0)
+    error->all(FLERR,"Pair mesocnt/viscous requires special_bond lj x y z to have non-zero x, y and z");
+  if (comm->ghost_velocity == 0)
+    error->all(FLERR,"Pair mesocnt/viscous requires ghost atoms store velocity");
+
+  // need a full neighbor list
+
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------

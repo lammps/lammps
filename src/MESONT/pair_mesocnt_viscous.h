@@ -27,6 +27,7 @@ class PairMesoCNTViscous : public PairMesoCNT {
 
   void compute(int, int) override;
   void coeff(int, char **) override;
+  void init_style() override;
 
  protected:
   double a1, a2, b2, vswitch;

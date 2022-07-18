@@ -265,6 +265,6 @@ void ComputeGridLocal::assign_coords()
 
 double ComputeGridLocal::memory_usage()
 {
-  int nbytes = size_local_rows * size_local_cols * sizeof(double);    // gridlocal
+  double nbytes = (double) size_local_rows * size_local_cols * sizeof(double);    // gridlocal
   return nbytes;
 }

@@ -38,19 +38,7 @@ class FixPIMD : public Fix {
   void final_integrate() override;
   void end_of_step() override;
 
-  double memory_usage() override;
-  void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
-  int pack_restart(int, double *) override;
-  void unpack_restart(int, int) override;
-  int maxsize_restart() override;
-  int size_restart(int) override;
   double compute_vector(int) override;
-
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
 
   /* System setting variables */
   int method; // PIMD or NMPIMD or CMD
@@ -69,15 +57,12 @@ class FixPIMD : public Fix {
   int removecomflag;
   double masstotal;
 
-  void remove_com_motion(); 
+  // void remove_com_motion(); 
 
   double fixedpoint[3];    // location of dilation fixed-point
   /* ring-polymer model */
 
   double omega_np, fbond, spring_energy, sp;
-  int x_last, x_next;
-
-  void spring_force();
 
   /* fictitious mass */
 
@@ -85,47 +70,33 @@ class FixPIMD : public Fix {
 
   /* inter-partition communication */
 
-  double *sorted;
+  MPI_Comm rootworld;
+  int me, nprocs, ireplica, nreplica, nprocs_universe;
+  int ntotal, maxlocal;
 
-  int max_nsend;
-  tagint *tag_send;
-  double *buf_send;
+  int cmode;
+  int sizeplan;
+  int *plansend, *planrecv;
 
-  int max_nlocal;
-  double *buf_recv, **buf_beads;
+  tagint *tagsend, *tagrecv; 
+  double **bufsend, **bufrecv, **bufbeads;
 
-  int size_plan;
-  int *plan_send, *plan_recv;
-  double **comm_ptr;
+  tagint *tagsendall, *tagrecvall;
+  double **bufsendall, **bufrecvall;
+
+  int *counts, *displacements;
 
   void comm_init();
-  void comm_exec(double **);
+  void inter_replica_comm(double **ptr);
 
   /* normal-mode operations */
 
   double *lam, **M_x2xp, **M_xp2x, **M_f2fp, **M_fp2f;
-  int *mode_index;
+  int *modeindex;
 
+  void reallocate();
   void nmpimd_init();
-  void nmpimd_fill(double **);
   void nmpimd_transform(double **, double **, double *);
-
-  /* Nose-hoover chain integration */
-
-  int nhc_offset_one_1, nhc_offset_one_2;
-  int nhc_size_one_1, nhc_size_one_2;
-  int nhc_nchain;
-  bool nhc_ready;
-  double nhc_temp, t_sys;
-
-  double **nhc_eta;        /* coordinates of NH chains for ring-polymer beads */
-  double **nhc_eta_dot;    /* velocities of NH chains                         */
-  double **nhc_eta_dotdot; /* acceleration of NH chains                       */
-  double **nhc_eta_mass;   /* mass of NH chains                               */
-
-  void nhc_init();
-  void nhc_update_v();
-  void nhc_update_x();
 
   /* Langevin integration */
 
@@ -150,38 +121,38 @@ class FixPIMD : public Fix {
   
   /* Bussi-Zykova-Parrinello barostat */
 
-  double f_omega, mtk_term1;
+  // double f_omega, mtk_term1;
   int pstat_flag; // pstat_flag = 1 if barostat is used
   int pstyle; // pstyle = ISO or ANISO (will support TRICLINIC in the future)
   double W, tau_p, Pext, totenthalpy = 0.0, Vcoeff;
-  double vw[6]; // barostat velocity
-  double ke_tensor[6]; // kinetic energy tensor
-  double c_vir_tensor[6]; // centroid-virial tensor
-  double stress_tensor[6]; // path integral centroid-virial stress tensor
+  // double vw[6]; // barostat velocity
+  // double ke_tensor[6]; // kinetic energy tensor
+  // double c_vir_tensor[6]; // centroid-virial tensor
+  // double stress_tensor[6]; // path integral centroid-virial stress tensor
 
-  void baro_init();
-  void press_v_step();
-  void press_o_step();
+  // void baro_init();
+  // void press_v_step();
+  // void press_o_step();
 
   /* centroid-virial estimator computation */
-  double inv_volume = 0.0, vol_ = 0.0, vol0 = 0.0;
-  double volume = 0.0;
-  double *xc, *fc;
-  int n_unwrap;
-  double *x_unwrap;
-  void update_x_unwrap();
-  void compute_xc();
+  // double inv_volume = 0.0, vol_ = 0.0, vol0 = 0.0;
+  // double volume = 0.0;
+  // double *xc, *fc;
+  // int n_unwrap;
+  // double *x_unwrap;
+  // void update_x_unwrap();
+  // void compute_xc();
   // void compute_fc();
-  double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;
-  double vir_, xcf, vir2;
+  // double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;
+  // double vir_, xcf, vir2;
 
   /* Computes */
   double kine, pote, tote, totke;
   double ke_bead, se_bead, pe_bead, pot_energy_partition;
   double total_spring_energy;
-  double t_prim, p_prim;
+  // double t_prim, p_prim;
   char *id_pe;
-  char *id_press;
+  // char *id_press;
   class Compute *c_pe;
   class Compute *c_press;
 
@@ -189,15 +160,15 @@ class FixPIMD : public Fix {
   void compute_spring_energy(); // 2: spring elastic energy
   void compute_pote(); // 3: potential energy
   void compute_tote(); // 4: total energy: 1+2+3 for all the beads
-  void compute_t_prim();  // 5: primitive kinetic energy estimator
-  void compute_p_prim();  // primitive pressure estimator
-  void compute_stress_tensor();
-  void compute_t_vir();  // centroid-virial kinetic energy estimator
-  void compute_p_cv();  // centroid-virial pressure estimator
-  void compute_p_vir();  // centroid-virial pressure estimator
-  void compute_vir();
-  void compute_vir_();
-  void compute_totenthalpy();
+  // void compute_t_prim();  // 5: primitive kinetic energy estimator
+  // void compute_p_prim();  // primitive pressure estimator
+  // void compute_stress_tensor();
+  // void compute_t_vir();  // centroid-virial kinetic energy estimator
+  // void compute_p_cv();  // centroid-virial pressure estimator
+  // void compute_p_vir();  // centroid-virial pressure estimator
+  // void compute_vir();
+  // void compute_vir_();
+  // void compute_totenthalpy();
 };
 
 }    // namespace LAMMPS_NS

@@ -70,7 +70,7 @@ class PPPMDipole : public PPPM {
   FFT_SCALAR *work3, *work4;
   FFT_SCALAR *densityx_fft_dipole, *densityy_fft_dipole, *densityz_fft_dipole;
 
-  class GridComm *gc_dipole;
+  class Grid3d *gc_dipole;
 
   int only_dipole_flag;
   double musum, musqsum, mu2;

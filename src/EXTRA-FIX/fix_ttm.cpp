@@ -227,7 +227,7 @@ void FixTTM::init()
 
   // to allow this, would have to reset grid bounds dynamically
   // for RCB balancing would have to reassign grid pts to procs
-  //   and create a new GridComm, and pass old GC data to new GC
+  //   and create a new Grid3d, and pass old GC data to new GC
 
   if (domain->box_change)
     error->all(FLERR,"Cannot use fix ttm with changing box shape, size, or sub-domains");

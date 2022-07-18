@@ -81,8 +81,8 @@ class MSM : public KSpace {
   int myloc[3];               // which proc I am in each dim
   int ***procneigh_levels;    // my 6 neighboring procs, 0/1 = left/right
 
-  class GridComm *gcall;    // GridComm class for finest level grid
-  class GridComm **gc;      // GridComm classes for each hierarchical level
+  class Grid3d *gcall;        // GridComm class for finest level grid
+  class Grid3d **gc;          // GridComm classes for each hierarchical level
 
   double *gcall_buf1, *gcall_buf2;
   double **gc_buf1, **gc_buf2;

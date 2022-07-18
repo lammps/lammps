@@ -80,7 +80,7 @@ class PPPM : public KSpace {
 
   class FFT3d *fft1, *fft2;
   class Remap *remap;
-  class GridComm *gc;
+  class Grid3d *gc;
 
   FFT_SCALAR *gc_buf1, *gc_buf2;
   int ngc_buf1, ngc_buf2, npergrid;

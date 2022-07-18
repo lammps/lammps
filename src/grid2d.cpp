@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gridcomm.h"
+#include "grid3d.h"
 
 #include "comm.h"
 #include "error.h"
@@ -48,10 +48,10 @@ enum{REGULAR,TILED};
      communication is done across the periodic boundaries
 ------------------------------------------------------------------------- */
 
-GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm,
-                   int gnx, int gny, int gnz,
-                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
+Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
+               int gnx, int gny, int gnz,
+               int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+               int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
   : Pointers(lmp)
 {
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
@@ -87,11 +87,11 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm,
    e xyz lohi for flag = 2: 6 neighbor procs
 ------------------------------------------------------------------------- */
 
-GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int flag,
-                   int gnx, int gny, int gnz,
-                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-                   int exlo, int exhi, int eylo, int eyhi, int ezlo, int ezhi)
+Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
+               int gnx, int gny, int gnz,
+               int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
+               int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
+               int exlo, int exhi, int eylo, int eyhi, int ezlo, int ezhi)
   : Pointers(lmp)
 {
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
@@ -124,14 +124,14 @@ GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int flag,
                  oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
                  exlo,exhi,eylo,eyhi,ezlo,ezhi);
     } else {
-      error->all(FLERR,"GridComm does not support tiled layout with neighbor procs");
+      error->all(FLERR,"Grid3d does not support tiled layout with neighbor procs");
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-GridComm::~GridComm()
+Grid3d::~Grid3d()
 {
   // regular comm data struct
 
@@ -164,16 +164,16 @@ GridComm::~GridComm()
    store constructor args in local variables
 ------------------------------------------------------------------------- */
 
-void GridComm::initialize(MPI_Comm gcomm,
-                          int gnx, int gny, int gnz,
-                          int ixlo, int ixhi, int iylo, int iyhi,
-                          int izlo, int izhi,
-                          int oxlo, int oxhi, int oylo, int oyhi,
-                          int ozlo, int ozhi,
-                          int fxlo, int fxhi, int fylo, int fyhi,
-                          int fzlo, int fzhi,
-                          int pxlo, int pxhi, int pylo, int pyhi,
-                          int pzlo, int pzhi)
+void Grid3d::initialize(MPI_Comm gcomm,
+                        int gnx, int gny, int gnz,
+                        int ixlo, int ixhi, int iylo, int iyhi,
+                        int izlo, int izhi,
+                        int oxlo, int oxhi, int oylo, int oyhi,
+                        int ozlo, int ozhi,
+                        int fxlo, int fxhi, int fylo, int fyhi,
+                        int fzlo, int fzhi,
+                        int pxlo, int pxhi, int pylo, int pyhi,
+                        int pzlo, int pzhi)
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
@@ -229,7 +229,7 @@ void GridComm::initialize(MPI_Comm gcomm,
 
 /* ---------------------------------------------------------------------- */
 
-void GridComm::setup(int &nbuf1, int &nbuf2)
+void Grid3d::setup(int &nbuf1, int &nbuf2)
 {
   if (layout == REGULAR) setup_regular(nbuf1,nbuf2);
   else setup_tiled(nbuf1,nbuf2);
@@ -244,7 +244,7 @@ void GridComm::setup(int &nbuf1, int &nbuf2)
    all procs perform same # of swaps in a direction, even if some don't need it
 ------------------------------------------------------------------------- */
 
-void GridComm::setup_regular(int &nbuf1, int &nbuf2)
+void Grid3d::setup_regular(int &nbuf1, int &nbuf2)
 {
   int nsent,sendfirst,sendlast,recvfirst,recvlast;
   int sendplanes,recvplanes;
@@ -545,7 +545,7 @@ void GridComm::setup_regular(int &nbuf1, int &nbuf2)
      no exchanges by dimension, unlike CommTiled forward/reverse comm of particles
 ------------------------------------------------------------------------- */
 
-void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
+void Grid3d::setup_tiled(int &nbuf1, int &nbuf2)
 {
   int i,m;
   double xlo,xhi,ylo,yhi,zlo,zhi;
@@ -557,7 +557,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // dim is -1 for proc 0, but never accessed
 
   rcbinfo = (RCBinfo *)
-    memory->smalloc(nprocs*sizeof(RCBinfo),"GridComm:rcbinfo");
+    memory->smalloc(nprocs*sizeof(RCBinfo),"grid3d:rcbinfo");
   RCBinfo rcbone;
   rcbone.dim = comm->rcbcutdim;
   if (rcbone.dim <= 0) rcbone.cut = inxlo;
@@ -580,7 +580,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   pbc[0] = pbc[1] = pbc[2] = 0;
 
-  memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
+  memory->create(overlap_procs,nprocs,"grid3d:overlap_procs");
   noverlap = maxoverlap = 0;
   overlap = nullptr;
 
@@ -591,9 +591,9 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // ncopy = # of overlaps with myself, across a periodic boundary
 
   int *proclist;
-  memory->create(proclist,noverlap,"GridComm:proclist");
+  memory->create(proclist,noverlap,"grid3d:proclist");
   srequest = (Request *)
-    memory->smalloc(noverlap*sizeof(Request),"GridComm:srequest");
+    memory->smalloc(noverlap*sizeof(Request),"grid3d:srequest");
 
   int nsend_request = 0;
   ncopy = 0;
@@ -612,17 +612,17 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   auto irregular = new Irregular(lmp);
   int nrecv_request = irregular->create_data(nsend_request,proclist,1);
-  auto rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridComm:rrequest");
+  auto rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"grid3d:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
 
   // compute overlaps between received ghost boxes and my owned box
   // overlap box used to setup my Send data struct and respond to requests
 
-  send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"GridComm:send");
-  sresponse = (Response *) memory->smalloc(nrecv_request*sizeof(Response),"GridComm:sresponse");
+  send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"grid3d:send");
+  sresponse = (Response *) memory->smalloc(nrecv_request*sizeof(Response),"grid3d:sresponse");
   memory->destroy(proclist);
-  memory->create(proclist,nrecv_request,"GridComm:proclist");
+  memory->create(proclist,nrecv_request,"grid3d:proclist");
 
   for (m = 0; m < nrecv_request; m++) {
     send[m].proc = rrequest[m].sender;
@@ -651,7 +651,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   int nsend_response = nrecv_request;
   int nrecv_response = irregular->create_data(nsend_response,proclist,1);
-  auto rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"GridComm:rresponse");
+  auto rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"grid3d:rresponse");
   irregular->exchange_data((char *) sresponse,sizeof(Response),(char *) rresponse);
   irregular->destroy_data();
   delete irregular;
@@ -660,7 +660,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // box used to setup my Recv data struct after unwrapping via PBC
   // adjacent = 0 if any box of ghost cells does not adjoin my owned cells
 
-  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"GridComm:recv");
+  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"grid3d:recv");
   adjacent = 1;
 
   for (i = 0; i < nrecv_response; i++) {
@@ -683,7 +683,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   // create Copy data struct from overlaps with self
 
-  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"GridComm:copy");
+  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"grid3d:copy");
 
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
@@ -770,7 +770,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
      add all the procs it overlaps with to Overlap list
 ------------------------------------------------------------------------- */
 
-void GridComm::ghost_box_drop(int *box, int *pbc)
+void Grid3d::ghost_box_drop(int *box, int *pbc)
 {
   int i,m;
 
@@ -855,7 +855,7 @@ void GridComm::ghost_box_drop(int *box, int *pbc)
    return Np = # of procs, plist = proc IDs
 ------------------------------------------------------------------------- */
 
-void GridComm::box_drop_grid(int *box, int proclower, int procupper,
+void Grid3d::box_drop_grid(int *box, int proclower, int procupper,
                              int &np, int *plist)
 {
   // end recursion when partition is a single proc
@@ -886,7 +886,7 @@ void GridComm::box_drop_grid(int *box, int proclower, int procupper,
    return 1 if yes, 0 if no
 ------------------------------------------------------------------------- */
 
-int GridComm::ghost_adjacent()
+int Grid3d::ghost_adjacent()
 {
   if (layout == REGULAR) return ghost_adjacent_regular();
   return ghost_adjacent_tiled();
@@ -897,7 +897,7 @@ int GridComm::ghost_adjacent()
    return 0 if adjacent=0 for any proc, else 1
 ------------------------------------------------------------------------- */
 
-int GridComm::ghost_adjacent_regular()
+int Grid3d::ghost_adjacent_regular()
 {
   adjacent = 1;
   if (ghostxlo > inxhi-inxlo+1) adjacent = 0;
@@ -918,7 +918,7 @@ int GridComm::ghost_adjacent_regular()
    return 0 if adjacent=0 for any proc, else 1
 ------------------------------------------------------------------------- */
 
-int GridComm::ghost_adjacent_tiled()
+int Grid3d::ghost_adjacent_tiled()
 {
   int adjacent_all;
   MPI_Allreduce(&adjacent,&adjacent_all,1,MPI_INT,MPI_MIN,gridcomm);
@@ -929,7 +929,7 @@ int GridComm::ghost_adjacent_tiled()
    forward comm of my owned cells to other's ghost cells
 ------------------------------------------------------------------------- */
 
-void GridComm::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
+void Grid3d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
                             void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR) {
@@ -960,7 +960,7 @@ void GridComm::forward_comm(int caller, void *ptr, int nper, int nbyte, int whic
 ------------------------------------------------------------------------- */
 
 template < class T >
-void GridComm::
+void Grid3d::
 forward_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
                      void *buf1, void *buf2, MPI_Datatype datatype)
 {
@@ -990,7 +990,7 @@ forward_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
 ------------------------------------------------------------------------- */
 
 template < class T >
-void GridComm::
+void Grid3d::
 forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
                    void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
@@ -1034,7 +1034,7 @@ forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
    reverse comm of my ghost cells to sum to owner cells
 ------------------------------------------------------------------------- */
 
-void GridComm::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
+void Grid3d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
                             void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR) {
@@ -1065,7 +1065,7 @@ void GridComm::reverse_comm(int caller, void *ptr, int nper, int nbyte, int whic
 ------------------------------------------------------------------------- */
 
 template < class T >
-void GridComm::
+void Grid3d::
 reverse_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
                      void *buf1, void *buf2, MPI_Datatype datatype)
 {
@@ -1095,7 +1095,7 @@ reverse_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
 ------------------------------------------------------------------------- */
 
 template < class T >
-void GridComm::
+void Grid3d::
 reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
                    void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
@@ -1142,7 +1142,7 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
    caller can decide whether to store chunks, output them, etc
 ------------------------------------------------------------------------- */
 
-void GridComm::gather(int /*caller*/, void *ptr, int nper, int nbyte,
+void Grid3d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
                       int which, void *buf, MPI_Datatype datatype)
 {
   int me = comm->me;
@@ -1158,8 +1158,8 @@ void GridComm::gather(int /*caller*/, void *ptr, int nper, int nbyte,
   // pack my data via callback to caller
 
   char *mybuf;
-  if (me == 0) memory->create(mybuf,maxsize*nbyte,"GridComm:mybuf");
-  else memory->create(mybuf,mysize*nbyte,"GridComm:mybuf");
+  if (me == 0) memory->create(mybuf,maxsize*nbyte,"grid3d:mybuf");
+  else memory->create(mybuf,mysize*nbyte,"grid3d:mybuf");
   fptr->pack_gather_grid(which,mybuf);
 
   // ping each proc for its data
@@ -1219,10 +1219,10 @@ void GridComm::gather(int /*caller*/, void *ptr, int nper, int nbyte,
    same swap list used by forward and reverse communication
 ------------------------------------------------------------------------- */
 
-void GridComm::grow_swap()
+void Grid3d::grow_swap()
 {
   maxswap += DELTA;
-  swap = (Swap *) memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
+  swap = (Swap *) memory->srealloc(swap,maxswap*sizeof(Swap),"grid3d:swap");
 }
 
 /* ----------------------------------------------------------------------
@@ -1233,11 +1233,11 @@ void GridComm::grow_swap()
    same swap list used by forward and reverse communication
 ------------------------------------------------------------------------- */
 
-void GridComm::grow_overlap()
+void Grid3d::grow_overlap()
 {
   maxoverlap += DELTA;
   overlap = (Overlap *)
-    memory->srealloc(overlap,maxoverlap*sizeof(Overlap),"GridComm:overlap");
+    memory->srealloc(overlap,maxoverlap*sizeof(Overlap),"grid3d:overlap");
 }
 
 /* ----------------------------------------------------------------------
@@ -1246,11 +1246,11 @@ void GridComm::grow_overlap()
      (fullxlo:fullxhi,fullylo:fullyhi,fullzlo:fullzhi)
 ------------------------------------------------------------------------- */
 
-int GridComm::indices(int *&list,
+int Grid3d::indices(int *&list,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
-  memory->create(list,nmax,"GridComm:indices");
+  memory->create(list,nmax,"grid3d:indices");
   if (nmax == 0) return 0;
 
   int nx = (fullxhi-fullxlo+1);

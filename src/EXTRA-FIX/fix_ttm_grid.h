@@ -55,7 +55,7 @@ class FixTTMGrid : public FixTTM {
   double skin_original;
   FILE *FPout;
 
-  class GridComm *gc;
+  class Grid3d *gc;
   int ngc_buf1, ngc_buf2;
   double *gc_buf1, *gc_buf2;
 

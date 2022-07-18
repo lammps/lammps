@@ -11,22 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_GRIDCOMM_H
-#define LMP_GRIDCOMM_H
+#ifndef LMP_GRID3D_H
+#define LMP_GRID3D_H
 
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class GridComm : protected Pointers {
+class Grid3d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
-  GridComm(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
            int, int, int);
-  GridComm(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
            int, int, int, int, int, int, int, int, int, int);
-  ~GridComm() override;
+  ~Grid3d() override;
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);

@@ -23,7 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
@@ -86,7 +86,7 @@ void FixTTMGrid::post_constructor()
 
   if (infile) {
     read_electron_temperatures(infile);
-    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+    gc->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
   }
 }
 
@@ -193,7 +193,7 @@ void FixTTMGrid::end_of_step()
          flangevin[i][2]*v[i][2]);
     }
 
-  gc->reverse_comm(GridComm::FIX,this,1,sizeof(double),0,
+  gc->reverse_comm(Grid3d::FIX,this,1,sizeof(double),0,
                    gc_buf1,gc_buf2,MPI_DOUBLE);
 
   // clang-format off
@@ -246,7 +246,7 @@ void FixTTMGrid::end_of_step()
 
     // communicate new T_electron values to ghost grid points
 
-    gc->forward_comm(GridComm::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+    gc->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
   }
 
   // clang-format on
@@ -363,7 +363,7 @@ void FixTTMGrid::write_electron_temperatures(const std::string &filename)
                style);
   }
 
-  gc->gather(GridComm::FIX, this, 1, sizeof(double), 1, nullptr, MPI_DOUBLE);
+  gc->gather(Grid3d::FIX, this, 1, sizeof(double), 1, nullptr, MPI_DOUBLE);
 
   if (comm->me == 0) fclose(FPout);
 }
@@ -468,8 +468,8 @@ void FixTTMGrid::allocate_grid()
   totalmine = (bigint) (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) * (nzhi_in - nzlo_in + 1);
   ngridmine = totalmine;
 
-  gc = new GridComm(lmp, world, nxgrid, nygrid, nzgrid, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in,
-                    nzhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
+  gc = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in,
+                  nzhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
   gc->setup(ngc_buf1, ngc_buf2);
 
@@ -517,7 +517,7 @@ void FixTTMGrid::write_restart(FILE *fp)
 
   // gather rest of rlist on proc 0 as global grid values
 
-  gc->gather(GridComm::FIX, this, 1, sizeof(double), 0, &rlist[4], MPI_DOUBLE);
+  gc->gather(Grid3d::FIX, this, 1, sizeof(double), 0, &rlist[4], MPI_DOUBLE);
 
   if (comm->me == 0) {
     int size = rsize * sizeof(double);
@@ -568,7 +568,7 @@ void FixTTMGrid::restart(char *buf)
 
   // communicate new T_electron values to ghost grid points
 
-  gc->forward_comm(GridComm::FIX, this, 1, sizeof(double), 0, gc_buf1, gc_buf2, MPI_DOUBLE);
+  gc->forward_comm(Grid3d::FIX, this, 1, sizeof(double), 0, gc_buf1, gc_buf2, MPI_DOUBLE);
 }
 
 /* ----------------------------------------------------------------------

@@ -19,7 +19,7 @@
 #include "msm_cg.h"
 
 #include "atom.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -160,7 +160,7 @@ void MSMCG::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d grid
 
   current_level = 0;
-  gcall->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),
+  gcall->reverse_comm(Grid3d::KSPACE,this,1,sizeof(double),
                       REVERSE_RHO,gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // forward communicate charge density values to fill ghost grid points
@@ -169,7 +169,7 @@ void MSMCG::compute(int eflag, int vflag)
   for (n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
-    gc[n]->forward_comm(GridComm::KSPACE,this,1,sizeof(double),
+    gc[n]->forward_comm(Grid3d::KSPACE,this,1,sizeof(double),
                         FORWARD_RHO,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
     direct(n);
     restriction(n);
@@ -182,15 +182,15 @@ void MSMCG::compute(int eflag, int vflag)
     if (domain->nonperiodic) {
       current_level = levels-1;
       gc[levels-1]->
-        forward_comm(GridComm::KSPACE,this,1,sizeof(double),
+        forward_comm(Grid3d::KSPACE,this,1,sizeof(double),
                      FORWARD_RHO,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       direct_top(levels-1);
       gc[levels-1]->
-        reverse_comm(GridComm::KSPACE,this,1,sizeof(double),
+        reverse_comm(Grid3d::KSPACE,this,1,sizeof(double),
                      REVERSE_AD,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
+          reverse_comm(Grid3d::KSPACE,this,6,sizeof(double),
                        REVERSE_AD_PERATOM,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
 
     } else {
@@ -201,7 +201,7 @@ void MSMCG::compute(int eflag, int vflag)
       current_level = levels-1;
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
+          reverse_comm(Grid3d::KSPACE,this,6,sizeof(double),
                        REVERSE_AD_PERATOM,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
     }
   }
@@ -214,13 +214,13 @@ void MSMCG::compute(int eflag, int vflag)
     prolongation(n);
 
     current_level = n;
-    gc[n]->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),
+    gc[n]->reverse_comm(Grid3d::KSPACE,this,1,sizeof(double),
                         REVERSE_AD,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
 
     // extra per-atom virial communication
 
     if (vflag_atom)
-      gc[n]->reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
+      gc[n]->reverse_comm(Grid3d::KSPACE,this,6,sizeof(double),
                           REVERSE_AD_PERATOM,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
   }
 
@@ -228,13 +228,13 @@ void MSMCG::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   current_level = 0;
-  gcall->forward_comm(GridComm::KSPACE,this,1,sizeof(double),
+  gcall->forward_comm(Grid3d::KSPACE,this,1,sizeof(double),
                       FORWARD_AD,gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
-    gcall->forward_comm(GridComm::KSPACE,this,6,sizeof(double),
+    gcall->forward_comm(Grid3d::KSPACE,this,6,sizeof(double),
                         FORWARD_AD_PERATOM,gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // calculate the force on my particles (interpolation)

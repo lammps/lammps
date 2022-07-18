@@ -23,7 +23,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "memory.h"
 #include "pair.h"
@@ -173,7 +173,7 @@ void PPPMDipoleSpin::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridComm *gctmp = nullptr;
+  Grid3d *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -186,7 +186,7 @@ void PPPMDipoleSpin::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+    gctmp = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                          nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -298,7 +298,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc_dipole->reverse_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+  gc_dipole->reverse_comm(Grid3d::KSPACE,this,3,sizeof(FFT_SCALAR),
                           REVERSE_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
@@ -312,13 +312,13 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc_dipole->forward_comm(GridComm::KSPACE,this,9,sizeof(FFT_SCALAR),
+  gc_dipole->forward_comm(Grid3d::KSPACE,this,9,sizeof(FFT_SCALAR),
                           FORWARD_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
-    gc->forward_comm(GridComm::KSPACE,this,18,sizeof(FFT_SCALAR),
+    gc->forward_comm(Grid3d::KSPACE,this,18,sizeof(FFT_SCALAR),
                      FORWARD_MU_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles

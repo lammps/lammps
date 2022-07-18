@@ -27,7 +27,7 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -413,7 +413,7 @@ void PPPMDisp::init()
   int iteration = 0;
   if (function[0]) {
 
-    GridComm *gctmp = nullptr;
+    Grid3d *gctmp = nullptr;
     while (order >= minorder) {
 
       if (iteration && me == 0)
@@ -441,7 +441,7 @@ void PPPMDisp::init()
 
       if (overlap_allowed) break;
 
-      gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+      gctmp = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                            nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                            nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -493,7 +493,7 @@ void PPPMDisp::init()
   iteration = 0;
   if (function[1] + function[2] + function[3]) {
 
-    GridComm *gctmp = nullptr;
+    Grid3d *gctmp = nullptr;
     while (order_6 >= minorder) {
 
       if (iteration && me == 0)
@@ -519,7 +519,7 @@ void PPPMDisp::init()
 
       if (overlap_allowed) break;
 
-      gctmp = new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+      gctmp = new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
                            nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,
                            nzlo_in_6,nzhi_in_6,
                            nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,
@@ -926,7 +926,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_c();
 
-    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+    gc->reverse_comm(Grid3d::KSPACE,this,1,sizeof(FFT_SCALAR),
                      REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
@@ -941,13 +941,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                  virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+      gc->forward_comm(Grid3d::KSPACE,this,1,sizeof(FFT_SCALAR),
                        FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ad();
 
       if (vflag_atom)
-        gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+        gc->forward_comm(Grid3d::KSPACE,this,6,sizeof(FFT_SCALAR),
                          FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
@@ -960,13 +960,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                  vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+      gc->forward_comm(Grid3d::KSPACE,this,3,sizeof(FFT_SCALAR),
                        FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ik();
 
       if (evflag_atom)
-        gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+        gc->forward_comm(Grid3d::KSPACE,this,7,sizeof(FFT_SCALAR),
                          FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
@@ -984,7 +984,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_g();
 
-    gc6->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+    gc6->reverse_comm(Grid3d::KSPACE,this,1,sizeof(FFT_SCALAR),
                       REVERSE_RHO_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
@@ -1000,13 +1000,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+      gc6->forward_comm(Grid3d::KSPACE,this,1,sizeof(FFT_SCALAR),
                         FORWARD_AD_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ad();
 
       if (vflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+        gc6->forward_comm(Grid3d::KSPACE,this,6,sizeof(FFT_SCALAR),
                           FORWARD_AD_PERATOM_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
@@ -1020,13 +1020,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+      gc6->forward_comm(Grid3d::KSPACE,this,3,sizeof(FFT_SCALAR),
                         FORWARD_IK_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+        gc6->forward_comm(Grid3d::KSPACE,this,7,sizeof(FFT_SCALAR),
                           FORWARD_IK_PERATOM_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
@@ -1044,7 +1044,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_a();
 
-    gc6->reverse_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+    gc6->reverse_comm(Grid3d::KSPACE,this,7,sizeof(FFT_SCALAR),
                       REVERSE_RHO_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_a();
@@ -1074,13 +1074,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+      gc6->forward_comm(Grid3d::KSPACE,this,7,sizeof(FFT_SCALAR),
                         FORWARD_AD_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ad();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,42,sizeof(FFT_SCALAR),
+        gc6->forward_comm(Grid3d::KSPACE,this,42,sizeof(FFT_SCALAR),
                           FORWARD_AD_PERATOM_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     }  else {
@@ -1115,13 +1115,13 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(GridComm::KSPACE,this,21,sizeof(FFT_SCALAR),
+      gc6->forward_comm(Grid3d::KSPACE,this,21,sizeof(FFT_SCALAR),
                         FORWARD_IK_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,49,sizeof(FFT_SCALAR),
+        gc6->forward_comm(Grid3d::KSPACE,this,49,sizeof(FFT_SCALAR),
                           FORWARD_IK_PERATOM_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
@@ -1139,7 +1139,7 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_none();
 
-    gc6->reverse_comm(GridComm::KSPACE,this,nsplit_alloc,sizeof(FFT_SCALAR),
+    gc6->reverse_comm(Grid3d::KSPACE,this,nsplit_alloc,sizeof(FFT_SCALAR),
                       REVERSE_RHO_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_none();
@@ -1154,13 +1154,13 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(GridComm::KSPACE,this,1*nsplit_alloc,sizeof(FFT_SCALAR),
+      gc6->forward_comm(Grid3d::KSPACE,this,1*nsplit_alloc,sizeof(FFT_SCALAR),
                         FORWARD_AD_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ad();
 
       if (vflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,6*nsplit_alloc,sizeof(FFT_SCALAR),
+        gc6->forward_comm(Grid3d::KSPACE,this,6*nsplit_alloc,sizeof(FFT_SCALAR),
                           FORWARD_AD_PERATOM_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
@@ -1174,13 +1174,13 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(GridComm::KSPACE,this,3*nsplit_alloc,sizeof(FFT_SCALAR),
+      gc6->forward_comm(Grid3d::KSPACE,this,3*nsplit_alloc,sizeof(FFT_SCALAR),
                         FORWARD_IK_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,7*nsplit_alloc,sizeof(FFT_SCALAR),
+        gc6->forward_comm(Grid3d::KSPACE,this,7*nsplit_alloc,sizeof(FFT_SCALAR),
                           FORWARD_IK_PERATOM_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
@@ -1748,9 +1748,9 @@ void _noopt PPPMDisp::allocate()
                       1,0,0,FFT_PRECISION,collective_flag);
 
     // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
+    // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
 
-    gc = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+    gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -1831,10 +1831,10 @@ void _noopt PPPMDisp::allocate()
                 1,0,0,FFT_PRECISION,collective_flag);
 
     // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
+    // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
 
     gc6 =
-      new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+      new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
                    nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                    nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
@@ -1994,10 +1994,10 @@ void _noopt PPPMDisp::allocate()
                       1,0,0,FFT_PRECISION,collective_flag);
 
     // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
+    // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
 
     gc6 =
-      new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+      new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
                    nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                    nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
@@ -2081,10 +2081,10 @@ void _noopt PPPMDisp::allocate()
                       1,0,0,FFT_PRECISION,collective_flag);
 
     // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
+    // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
 
     gc6 =
-      new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+      new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
                    nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                    nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
@@ -8310,7 +8310,7 @@ double PPPMDisp::memory_usage()
     bytes += (double)nfft_both_6 * (mixing + 2) * sizeof(FFT_SCALAR);
   }
 
-  // four GridComm bufs
+  // four Grid3d bufs
 
   bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
   bytes += (double)(ngc6_buf1 + ngc6_buf2) * npergrid6 * sizeof(FFT_SCALAR);

@@ -178,7 +178,7 @@ class PPPMDisp : public KSpace {
   class FFT3d *fft1, *fft2;
   class FFT3d *fft1_6, *fft2_6;
   class Remap *remap, *remap_6;
-  class GridComm *gc, *gc6;
+  class Grid3d *gc, *gc6;
 
   FFT_SCALAR *gc_buf1, *gc_buf2, *gc6_buf1, *gc6_buf2;
   int ngc_buf1, ngc_buf2, npergrid;

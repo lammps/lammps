@@ -24,7 +24,7 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -188,7 +188,7 @@ void PPPMDipole::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridComm *gctmp = nullptr;
+  Grid3d *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -201,7 +201,7 @@ void PPPMDipole::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+    gctmp = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                          nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -441,7 +441,7 @@ void PPPMDipole::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc_dipole->reverse_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+  gc_dipole->reverse_comm(Grid3d::KSPACE,this,3,sizeof(FFT_SCALAR),
                           REVERSE_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
@@ -455,13 +455,13 @@ void PPPMDipole::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc_dipole->forward_comm(GridComm::KSPACE,this,9,sizeof(FFT_SCALAR),
+  gc_dipole->forward_comm(Grid3d::KSPACE,this,9,sizeof(FFT_SCALAR),
                           FORWARD_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
-    gc_dipole->forward_comm(GridComm::KSPACE,this,18,sizeof(FFT_SCALAR),
+    gc_dipole->forward_comm(Grid3d::KSPACE,this,18,sizeof(FFT_SCALAR),
                             FORWARD_MU_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
@@ -603,9 +603,9 @@ void PPPMDipole::allocate()
                     1,0,0,FFT_PRECISION,collective_flag);
 
   // create ghost grid object for rho and electric field communication
-  // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
+  // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
 
-  gc_dipole = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+  gc_dipole = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                            nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                            nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -2519,7 +2519,7 @@ double PPPMDipole::memory_usage()
   if (peratom_allocate_flag)
     bytes += (double)21 * nbrick * sizeof(FFT_SCALAR);
 
-  // two GridComm bufs
+  // two Grid3d bufs
 
   bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 

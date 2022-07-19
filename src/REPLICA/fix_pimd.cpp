@@ -79,6 +79,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   maxunwrap = 0;
   bufbeads = nullptr;
   x_unwrap = nullptr;
+  counts = nullptr;
 
   sizeplan = 0;
   plansend = planrecv = nullptr;
@@ -312,8 +313,10 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
     memory->create(displacements,nprocs,"FixPIMD:displacements");
     memory->create(x_unwrapall, ntotal, 3, "FixPIMD:x_unwrapall");
     memory->create(tag_initall, ntotal, "FixPIMD:tag_initall");
+    printf("me = %d, tag_initall[0] = %d\n", universe->me, tag_initall[0]);
   }
 
+    printf("me = %d constructing finished\n", universe->me);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -415,13 +418,17 @@ void FixPIMD::setup(int vflag)
   tagint *tag = atom->tag;
   double **x = atom->x;
   imageint *image = atom->image;
+  printf("me = %d before copying x_unwrap\n", universe->me);
   for(int i=0; i<nlocal; i++)
   {
+  // printf("me = %d i = %d start copying x_unwrap\n", universe->me, i);
     x_unwrap[i][0] = x[i][0];
     x_unwrap[i][1] = x[i][1];
     x_unwrap[i][2] = x[i][2];
     tag_init[i] = tag[i];
+  // printf("me = %d i = %d in copying x_unwrap\n", universe->me, i);
   }
+  printf("me = %d after copying x_unwrap\n", universe->me);
   nlocal_init = nlocal;
   if(mapflag){
     for(int i=0; i<nlocal; i++)
@@ -429,16 +436,17 @@ void FixPIMD::setup(int vflag)
       domain->unmap(x_unwrap[i], image[i]);
     }
   }
+  printf("me = %d after unmapping x_unwrap\n", universe->me);
 
   // printf("setup already here\n");
   if(method==NMPIMD)
   {
     inter_replica_comm(x_unwrap);
-    // printf("inter\n");
+    printf("me = %d after inter\n", universe->me);
     // printf("%.4f %.4f %.4f\n", bufbeads[0][0], bufbeads[0][1], bufbeads[0][2]);
     nmpimd_transform(bufbeads, x_unwrap, M_x2xp[universe->iworld]);
   }
-  // printf("me = %d setup x2xp done\n", universe->me);
+  printf("me = %d setup x2xp done\n", universe->me);
   compute_spring_energy();
   if(method==NMPIMD)
   {
@@ -461,13 +469,14 @@ void FixPIMD::setup(int vflag)
   // printf("setting up, m = %.4e\n", mass[1]);
   post_force(vflag);
   // printf("after post_force, m = %.4e\n", mass[1]);
-  // printf("after post_force\n");
+  printf("me = %d after post_force\n", universe->me);
   compute_totke();
   compute_pote();
   // if(pstyle==ANISO) compute_stress_tensor();
   end_of_step();
   c_pe->addstep(update->ntimestep+1); 
   // c_press->addstep(update->ntimestep+1);
+  printf("me = %d, setup finished\n", universe->me);   
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1161,22 +1170,51 @@ void FixPIMD::init_x_unwrap()
   memory->create(x_unwrapsort, ntotal, 3, "FixPIMD:x_unwrapsort");
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixPIMD::reallocate_x_unwrap()
 {
   int nlocal = atom->nlocal;
   maxunwrap = atom->nmax;
+  int i;
   if(cmode == SINGLE_PROC)
   {
-    for(int i=0; i<nlocal; i++)
+    for(i=0; i<nlocal; i++)
     {
       x_unwrapsort[tag_init[i]-1][0] = x_unwrap[i][0];
       x_unwrapsort[tag_init[i]-1][1] = x_unwrap[i][1];
       x_unwrapsort[tag_init[i]-1][2] = x_unwrap[i][2];
     }
-    // memory->destroy(x_unwrap);
-    // memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");  
-    // memory->create(tag_init, maxunwrap, "FixPIMD:tag_init");
-    for(int i=0; i<nlocal; i++)
+    for(i=0; i<nlocal; i++)
+    {
+      x_unwrap[i][0] = x_unwrapsort[atom->tag[i]-1][0];
+      x_unwrap[i][1] = x_unwrapsort[atom->tag[i]-1][1];
+      x_unwrap[i][2] = x_unwrapsort[atom->tag[i]-1][2];
+      tag_init[i] = atom->tag[i];
+    }
+  }
+  else if(cmode == MULTI_PROC)
+  {
+    MPI_Gather(&nlocal_init, 1, MPI_INT, counts, 1, MPI_INT, 0, world);
+    displacements[0] = 0;
+    for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
+    MPI_Gatherv(tag_init, nlocal_init, MPI_LMP_TAGINT, tag_initall, counts, displacements, MPI_LMP_TAGINT, 0, world);
+    for (i = 0; i < nprocs; i++) { counts[i] *= 3; }
+    for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
+    MPI_Gatherv(x_unwrap[0], 3*nlocal_init, MPI_DOUBLE, x_unwrapall[0], counts, displacements, MPI_DOUBLE, 0, world);
+    MPI_Bcast(tag_initall, ntotal, MPI_LMP_TAGINT, 0, world);
+    MPI_Bcast(x_unwrapall[0], 3*ntotal, MPI_DOUBLE, 0, world);
+    for(i=0; i<ntotal; i++)
+    {
+      x_unwrapsort[tag_initall[i]-1][0] = x_unwrapall[i][0];
+      x_unwrapsort[tag_initall[i]-1][1] = x_unwrapall[i][1];
+      x_unwrapsort[tag_initall[i]-1][2] = x_unwrapall[i][2];
+    }
+    memory->destroy(x_unwrap);
+    memory->destroy(tag_init);
+    memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");  
+    memory->create(tag_init, maxunwrap, "FixPIMD:tag_init");
+    for(i=0; i<nlocal; i++)
     {
       x_unwrap[i][0] = x_unwrapsort[atom->tag[i]-1][0];
       x_unwrap[i][1] = x_unwrapsort[atom->tag[i]-1][1];
@@ -1259,6 +1297,7 @@ void FixPIMD::inter_replica_comm(double **ptr)
   else if(cmode == MULTI_PROC)
   {
     m = 0;
+    // printf("me = %d trying to copy bufsend\n", universe->me);
     for(i=0; i<nlocal; i++)
     {
       tagsend[m] = tag[i];
@@ -1267,14 +1306,23 @@ void FixPIMD::inter_replica_comm(double **ptr)
       bufsend[m][2] = ptr[i][2];
       m++;
     }
+    // printf("me = %d copied bufsend, m = %d\n", universe->me, m);
+    // if(me==0) {for(i=0; i<nprocs; i++) {printf("me = %d after copying bufsend counts[%d] = %d\n", universe->me, i, counts[i]);}}
+    // printf("me = %d")
     MPI_Gather(&m, 1, MPI_INT, counts, 1, MPI_INT, 0, world);
+    // printf("me = %d counts gathered\n", universe->me);
+    // if(me==0) {for(i=0; i<nprocs; i++) {printf("me = %d counts[%d] = %d\n", universe->me, i, counts[i]);}}
     displacements[0] = 0;
+    // printf("me = %d displacements[0] = %d\n", universe->me, displacements[0]);
     for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
+    // printf("me = %d displacements done\n", universe->me);
+    // if(me==0) {for(i=0; i<nprocs; i++) { printf("me = %d i=%d displacements=%d\n", universe->me, i, displacements[i]);}}
     MPI_Gatherv(tagsend, m, MPI_LMP_TAGINT, tagsendall, counts, displacements, MPI_LMP_TAGINT, 0, world);
+    // printf("me = %d tags gathered\n", universe->me);
     for (i = 0; i < nprocs; i++) { counts[i] *= 3; }
     for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
     MPI_Gatherv(bufsend[0], 3*m, MPI_DOUBLE, bufsendall[0], counts, displacements, MPI_DOUBLE, 0, world);
-    // printf("me = %d gathered\n", universe->me);
+    // printf("me = %d bufsend gathered\n", universe->me);
     // printf("me = %d, tagrecvall[0] = %d bufrecvall[0][0] = %.4f\n", universe->me, tagrecvall[0], bufrecvall[0][0]);
 
     // printf("universe->me = %d comm->me = %d sizeplan = %d\n", universe->me, comm->me, sizeplan);

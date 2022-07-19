@@ -76,7 +76,9 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
 
   ntotal = 0;
   maxlocal = 0;
+  maxunwrap = 0;
   bufbeads = nullptr;
+  x_unwrap = nullptr;
 
   sizeplan = 0;
   plansend = planrecv = nullptr;
@@ -293,7 +295,8 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   delete [] iroots;
 
   ntotal = atom->natoms;
-  if (atom->nmax > maxlocal) reallocate();
+  if(atom->nmax > maxlocal) reallocate();
+  if(atom->nmax > maxunwrap) reallocate_x_unwrap();
 
   if ((cmode == MULTI_PROC) && (counts == nullptr)) {
     printf("me = %d, creating bufrecvall\n", universe->me);
@@ -407,26 +410,33 @@ void FixPIMD::setup(int vflag)
   tagint *tag = atom->tag;
   double **x = atom->x;
   imageint *image = atom->image;
+  for(int i=0; i<nlocal; i++)
+  {
+    x_unwrap[i][0] = x[i][0];
+    x_unwrap[i][1] = x[i][1];
+    x_unwrap[i][2] = x[i][2];
+  }
   if(mapflag){
     for(int i=0; i<nlocal; i++)
     {
-      domain->unmap(x[i], image[i]);
+      domain->unmap(x_unwrap[i], image[i]);
     }
   }
+
   // printf("setup already here\n");
   if(method==NMPIMD)
   {
-    inter_replica_comm(atom->x);
+    inter_replica_comm(x_unwrap);
     // printf("inter\n");
     // printf("%.4f %.4f %.4f\n", bufbeads[0][0], bufbeads[0][1], bufbeads[0][2]);
-    nmpimd_transform(bufbeads, atom->x, M_x2xp[universe->iworld]);
+    nmpimd_transform(bufbeads, x_unwrap, M_x2xp[universe->iworld]);
   }
   // printf("me = %d setup x2xp done\n", universe->me);
   compute_spring_energy();
   if(method==NMPIMD)
   {
-    inter_replica_comm(atom->x);
-    nmpimd_transform(bufbeads, atom->x, M_xp2x[universe->iworld]);
+    inter_replica_comm(x_unwrap);
+    nmpimd_transform(bufbeads, x_unwrap, M_xp2x[universe->iworld]);
   }
   // printf("me = %d setup xp2x done\n", universe->me);
 
@@ -438,13 +448,6 @@ void FixPIMD::setup(int vflag)
   // printf("me = %d setup v2vp done\n", universe->me);
   // compute_xc();
   // update_x_unwrap();
-  if(mapflag)
-  {
-    for(int i=0; i<nlocal; i++)
-    {
-      domain->unmap_inv(x[i], image[i]);
-    }
-  }
   // printf("setting up %d\n", vflag);
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
@@ -470,12 +473,12 @@ void FixPIMD::initial_integrate(int /*vflag*/)
   tagint *tag = atom->tag;
   double **x = atom->x;
   imageint *image = atom->image;
-  if(mapflag){
-    for(int i=0; i<nlocal; i++)
-    {
-      domain->unmap(x[i], image[i]);
-    }
-  }
+  // if(mapflag){
+  //   for(int i=0; i<nlocal; i++)
+  //   {
+  //     domain->unmap(x[i], image[i]);
+  //   }
+  // }
   if(integrator==obabo)
   {
   // printf("me = %d, step %d obabo starts!\n", universe->me, update->ntimestep);
@@ -500,8 +503,8 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       // if(removecomflag) remove_com_motion();
           if(method==NMPIMD)
     {
-      inter_replica_comm(atom->x);
-      nmpimd_transform(bufbeads, atom->x, M_x2xp[universe->iworld]);
+      inter_replica_comm(x_unwrap);
+      nmpimd_transform(bufbeads, x_unwrap, M_x2xp[universe->iworld]);
     }
       qc_step();
       a_step();
@@ -521,8 +524,8 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       // if(removecomflag) remove_com_motion();
       if(method==NMPIMD)
       {
-        inter_replica_comm(atom->x);
-        nmpimd_transform(bufbeads, atom->x, M_x2xp[universe->iworld]);
+        inter_replica_comm(x_unwrap);
+        nmpimd_transform(bufbeads, x_unwrap, M_x2xp[universe->iworld]);
       }
       qc_step();
       a_step();
@@ -543,16 +546,23 @@ void FixPIMD::initial_integrate(int /*vflag*/)
  
      if(method==NMPIMD)
     {
-      inter_replica_comm(atom->x);
-      nmpimd_transform(bufbeads, atom->x, M_xp2x[universe->iworld]);
+      inter_replica_comm(x_unwrap);
+      nmpimd_transform(bufbeads, x_unwrap, M_xp2x[universe->iworld]);
     }
 
-    if(mapflag){
-      for(int i=0; i<nlocal; i++)
-      {
-        domain->unmap_inv(x[i], image[i]);
-      }
+    for(int i=0; i<nlocal; i++)
+    {
+      x[i][0] = x_unwrap[i][0];
+      x[i][1] = x_unwrap[i][1];
+      x[i][2] = x_unwrap[i][2];
     }
+    domain->pbc();
+    // if(mapflag){
+    //   for(int i=0; i<nlocal; i++)
+    //   {
+    //     domain->unmap_inv(x[i], image[i]);
+    //   }
+    // }
   // printf("me = %d, step %d initial_integrate ends!\n", universe->me, update->ntimestep);
 }
 
@@ -593,6 +603,7 @@ void FixPIMD::final_integrate()
 
 void FixPIMD::post_force(int /*flag*/)
 {
+  if(atom->nmax > maxunwrap) reallocate_x_unwrap();
   // printf("me = %d, step %d post_force starts!\n", universe->me, update->ntimestep);
     // int nlocal = atom->nlocal;
     // double **x = atom->x;
@@ -727,7 +738,7 @@ void FixPIMD::b_step()
 
 void FixPIMD::qc_step(){
   int nlocal = atom->nlocal;
-  double **x = atom->x;
+  // double **x = atom->x;
   double **v = atom->v;
   tagint *tag = atom->tag;
   double oldlo, oldhi;
@@ -736,9 +747,9 @@ void FixPIMD::qc_step(){
     {
       for(int i=0; i<nlocal; i++)
       {
-        x[i][0] += dtv * v[i][0];
-        x[i][1] += dtv * v[i][1];
-        x[i][2] += dtv * v[i][2];
+        x_unwrap[i][0] += dtv * v[i][0];
+        x_unwrap[i][1] += dtv * v[i][1];
+        x_unwrap[i][2] += dtv * v[i][2];
       }
     }
   // }
@@ -793,7 +804,7 @@ void FixPIMD::qc_step(){
 
 void FixPIMD::a_step(){
   int n = atom->nlocal;
-  double **x = atom->x;
+  // double **x = atom->x;
   double **v = atom->v;
   double x0, x1, x2, v0, v1, v2; // three components of x[i] and v[i]
 
@@ -802,11 +813,13 @@ void FixPIMD::a_step(){
       // printf("iworld = %d c = %.4e s = %.4e w = %.4e\n", universe->iworld, Lan_c[universe->iworld], Lan_s[universe->iworld], _omega_k[universe->iworld]);
     for(int i=0; i<n; i++)
     {
-      x0 = x[i][0]; x1 = x[i][1]; x2 = x[i][2];
+      x0 = x_unwrap[i][0]; 
+      x1 = x_unwrap[i][1]; 
+      x2 = x_unwrap[i][2];
       v0 = v[i][0]; v1 = v[i][1]; v2 = v[i][2];
-      x[i][0] = Lan_c[universe->iworld] * x0 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v0;
-      x[i][1] = Lan_c[universe->iworld] * x1 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v1;
-      x[i][2] = Lan_c[universe->iworld] * x2 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v2;
+      x_unwrap[i][0] = Lan_c[universe->iworld] * x0 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v0;
+      x_unwrap[i][1] = Lan_c[universe->iworld] * x1 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v1;
+      x_unwrap[i][2] = Lan_c[universe->iworld] * x2 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v2;
       v[i][0] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x0 + Lan_c[universe->iworld] * v0;
       v[i][1] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x1 + Lan_c[universe->iworld] * v1;
       v[i][2] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x2 + Lan_c[universe->iworld] * v2;
@@ -1126,6 +1139,15 @@ void FixPIMD::comm_init()
 
 /* ---------------------------------------------------------------------- */
 
+void FixPIMD::reallocate_x_unwrap()
+{
+  maxunwrap = atom->nmax;
+  memory->destroy(x_unwrap);
+  memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPIMD::reallocate()
 {
   maxlocal = atom->nmax;
@@ -1355,7 +1377,7 @@ void FixPIMD::compute_spring_energy()
   spring_energy = 0.0;
   total_spring_energy = se_bead = 0.0;
 
-  double **x = atom->x;
+  // double **x = atom->x;
   double* _mass = atom->mass;
   int* type = atom->type;
   int nlocal = atom->nlocal;
@@ -1363,7 +1385,7 @@ void FixPIMD::compute_spring_energy()
 
   for(int i=0; i<nlocal; i++)
   {
-    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]); 
+    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x_unwrap[i][0]*x_unwrap[i][0] + x_unwrap[i][1]*x_unwrap[i][1] + x_unwrap[i][2]*x_unwrap[i][2]); 
   }
   MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
   MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);

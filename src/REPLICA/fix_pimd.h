@@ -139,8 +139,9 @@ class FixPIMD : public Fix {
   // double volume = 0.0;
   // double *xc, *fc;
   // int n_unwrap;
-  // double *x_unwrap;
-  // void update_x_unwrap();
+  int maxunwrap;
+  double **x_unwrap;
+  void reallocate_x_unwrap();
   // void compute_xc();
   // void compute_fc();
   // double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;

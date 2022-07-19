@@ -99,6 +99,8 @@ class Fix : protected Pointers {
   int size_local_cols;    // 0 = vector, N = columns in local array
   int local_freq;         // frequency local data is available at
 
+  int pergrid_flag;       // 0/1 if per-grid data is stored
+
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
   int *extlist;     // list of 0/1 int/ext for each vec component

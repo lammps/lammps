@@ -22,10 +22,9 @@ class Grid2d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
-  Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
-           int, int, int);
-  Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
-           int, int, int, int, int, int, int, int, int, int);
+  Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int);
+  Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int,
+	 int, int, int, int, int);
   ~Grid2d() override;
   void setup(int &, int &);
   int ghost_adjacent();
@@ -56,13 +55,11 @@ class Grid2d : protected Pointers {
   // internal variables for REGULAR layout
   // -------------------------------------------
 
-  int procxlo, procxhi;    // 6 neighbor procs that adjoin me
+  int procxlo, procxhi;    // 4 neighbor procs that adjoin me
   int procylo, procyhi;    // not used for comm_style = tiled
-  int proczlo, proczhi;
 
   int ghostxlo, ghostxhi;    // # of my owned grid planes needed
   int ghostylo, ghostyhi;    // by neighobr procs in each dir as their ghost planes
-  int ghostzlo, ghostzhi;
 
   // swap = exchange of owned and ghost grid cells between 2 procs, including self
 
@@ -89,7 +86,7 @@ class Grid2d : protected Pointers {
   // each proc contributes one value, except proc 0
 
   struct RCBinfo {
-    int dim;    // 0,1,2 = which dim the cut is in
+    int dim;    // 0,1 = which dim the cut is in
     int cut;    // grid index of lowest cell in upper half of cut
   };
 
@@ -100,9 +97,9 @@ class Grid2d : protected Pointers {
 
   struct Overlap {
     int proc;      // proc whose owned cells overlap my ghost cells
-    int box[6];    // box that overlaps otherproc's owned cells
+    int box[4];    // box that overlaps otherproc's owned cells
                    // this box is wholly contained within global grid
-    int pbc[3];    // PBC offsets to convert box to a portion of my ghost box
+    int pbc[2];    // PBC offsets to convert box to a portion of my ghost box
                    // my ghost box may extend beyond global grid
   };
 
@@ -114,7 +111,7 @@ class Grid2d : protected Pointers {
   struct Request {
     int sender;    // sending proc
     int index;     // index of overlap on sender
-    int box[6];    // box that overlaps receiver's owned cells
+    int box[4];    // box that overlaps receiver's owned cells
                    // wholly contained within global grid
   };
 
@@ -124,7 +121,7 @@ class Grid2d : protected Pointers {
 
   struct Response {
     int index;     // index of my overlap for the initial request
-    int box[6];    // box that overlaps responder's owned cells
+    int box[4];    // box that overlaps responder's owned cells
                    // wholly contained within global grid
                    // has to unwrapped by PBC to map to my ghost cells
   };
@@ -174,8 +171,8 @@ class Grid2d : protected Pointers {
   // internal methods
   // -------------------------------------------
 
-  void initialize(MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int, int,
-                  int, int, int, int, int, int, int, int, int, int, int, int, int);
+  void initialize(MPI_Comm, int, int, int, int, int, int, int, int, int, int,
+                  int, int, int, int, int, int, int, int);
   virtual void setup_regular(int &, int &);
   virtual void setup_tiled(int &, int &);
   void ghost_box_drop(int *, int *);
@@ -192,7 +189,7 @@ class Grid2d : protected Pointers {
   virtual void grow_swap();
   void grow_overlap();
 
-  int indices(int *&, int, int, int, int, int, int);
+  int indices(int *&, int, int, int, int);
 };
 
 }    // namespace LAMMPS_NS

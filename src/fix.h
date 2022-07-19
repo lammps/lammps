@@ -221,6 +221,9 @@ class Fix : protected Pointers {
   virtual double compute_vector(int) { return 0.0; }
   virtual double compute_array(int, int) { return 0.0; }
 
+  virtual void *grid_find_name(char *, int &) { return nullptr; };
+  virtual void *grid_find_field(char *, int &) { return nullptr; };
+
   virtual int dof(int) { return 0; }
   virtual void deform(int) {}
   virtual void reset_target(double) {}

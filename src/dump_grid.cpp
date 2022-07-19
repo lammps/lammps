@@ -657,26 +657,68 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
     // fix value = f_ID
     // if no trailing [], then arg is set to 0, else arg is between []
-
+    
     case ArgInfo::FIX:
       pack_choice[iarg] = &DumpGrid::pack_fix;
       vtype[iarg] = Dump::DOUBLE;
 
-      ifix = modify->get_fix_by_id(name);
-      if (!ifix) error->all(FLERR,"Could not find dump grid fix ID: {}",name);
+      // name = idfix:gname:fname, split into 3 strings
+
+      char *ptr = strchr(name,':');
+      if (!ptr) error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
+      *ptr = '\0';
+      int n = strlen(name) + 1;
+      char *gname = new char[n];
+      strcpy(gname,name);
+      char *ptr2 = strchr(ptr+1,':');
+      if (!ptr) error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
+      int n = strlen(ptr+1) + 1;
+      char *fname = new char[n];
+      strcpy(fname,ptr+1);
+      *ptr = ':';
+      *ptr2 = ':';
+
+      // error check
+
+      ifix = modify->get_fix_by_id(idfix);
+      if (!ifix) error->all(FLERR,"Could not find dump grid fix ID: {}",idfix);
       if (ifix->pergrid_flag == 0)
-        error->all(FLERR,"Dump grid fix {} does not compute per-atom info",name);
+        error->all(FLERR,"Dump grid fix {} does not compute per-atom info",idfix);
       
-      /*
-        if (argi.get_dim() == 0 && ifix->size_pergrid_cols > 0)
-        error->all(FLERR,"Dump grid fix {} does not compute per-atom vector",name);
-        if (argi.get_dim() > 0 && ifix->size_pergrid_cols == 0)
-        error->all(FLERR,"Dump grid fix {} does not compute per-atom array",name);
-        if (argi.get_dim() > 0 && argi.get_index1() > ifix->size_pergrid_cols)
-        error->all(FLERR,"Dump grid fix {} vector is accessed out-of-range",name);
-      */
+      int dim;
+      void *grid = ifix->grid_find_name(gname,dim);
+      if (!grid) error->all(FLERR,"Dump grid fix {} does not recognize grid {}",
+                            idfix,gname);
       
-      field2index[iarg] = add_fix(name);
+      Grid2d *grid2d;
+      Grid3d *grid3d;
+      if (dim == 2) grid2d = (Grid2d *) grid;
+      if (dim == 3) grid2d = (Grid3d *) grid;
+
+      int ncol;
+      void *field = ifix->grid_find_field(fname,ncol);
+      if (!grid) error->all(FLERR,"Dump grid fix {} does not recognize field {}",
+                            idfix,fname);
+
+      if (argi.get_dim() == 0 && ncol)
+        error->all(FLERR,"Dump grid fix {} field {} is not per-grid vector",
+                   idfix,fname);
+      if (argi.get_dim() > 0 && ncol == 0) 
+        error->all(FLERR,"Dump grid fix {} field {} is not per-grid array",
+                   idfix,fname);
+      if (argi.get_dim() > 0 && argi.get_index1() > ncol)
+        error->all(FLERR,"Dump grid fix {} array {} is accessed out-of-range",
+                   idfix,fname);
+
+      if (ncol == 0) {
+        if (dim == 2) vec2d = (double **) field;
+        if (dim == 3) vec3d = (double ***) field;
+      } else if (ncol) {
+        if (dim == 2) array2d = (double ***) field;
+        if (dim == 3) array3d = (double ****) field;
+      }
+      
+      field2index[iarg] = add_fix(idfix);
       break;
 
     // no match

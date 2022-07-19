@@ -296,7 +296,9 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
 
   ntotal = atom->natoms;
   if(atom->nmax > maxlocal) reallocate();
-  if(atom->nmax > maxunwrap) reallocate_x_unwrap();
+  init_x_unwrap();
+  
+  // if(atom->nmax > maxunwrap) reallocate_x_unwrap();
 
   if ((cmode == MULTI_PROC) && (counts == nullptr)) {
     printf("me = %d, creating bufrecvall\n", universe->me);
@@ -308,6 +310,8 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
     printf("me = %d, tagrecvall[0] = %d\n", universe->me, tagrecvall[0]);
     memory->create(counts,nprocs,"FixPIMD:counts");
     memory->create(displacements,nprocs,"FixPIMD:displacements");
+    memory->create(x_unwrapall, ntotal, 3, "FixPIMD:x_unwrapall");
+    memory->create(tag_initall, ntotal, "FixPIMD:tag_initall");
   }
 
 }
@@ -325,6 +329,7 @@ int FixPIMD::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= INITIAL_INTEGRATE;
+  mask |= POST_NEIGHBOR;
   mask |= FINAL_INTEGRATE;
   mask |= END_OF_STEP;
   return mask;
@@ -415,7 +420,9 @@ void FixPIMD::setup(int vflag)
     x_unwrap[i][0] = x[i][0];
     x_unwrap[i][1] = x[i][1];
     x_unwrap[i][2] = x[i][2];
+    tag_init[i] = tag[i];
   }
+  nlocal_init = nlocal;
   if(mapflag){
     for(int i=0; i<nlocal; i++)
     {
@@ -555,8 +562,9 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       x[i][0] = x_unwrap[i][0];
       x[i][1] = x_unwrap[i][1];
       x[i][2] = x_unwrap[i][2];
+      domain->remap(x[i], image[i]);
     }
-    domain->pbc();
+    // domain->pbc();
     // if(mapflag){
     //   for(int i=0; i<nlocal; i++)
     //   {
@@ -601,9 +609,14 @@ void FixPIMD::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
+void FixPIMD::post_neighbor()
+{
+  reallocate_x_unwrap(); 
+}
+
 void FixPIMD::post_force(int /*flag*/)
 {
-  if(atom->nmax > maxunwrap) reallocate_x_unwrap();
+  // if(atom->nmax > maxunwrap) reallocate_x_unwrap();
   // printf("me = %d, step %d post_force starts!\n", universe->me, update->ntimestep);
     // int nlocal = atom->nlocal;
     // double **x = atom->x;
@@ -1139,11 +1152,38 @@ void FixPIMD::comm_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::reallocate_x_unwrap()
+void FixPIMD::init_x_unwrap()
 {
   maxunwrap = atom->nmax;
   memory->destroy(x_unwrap);
-  memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");
+  memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");  
+  memory->create(tag_init, maxunwrap, "FixPIMD:tag_init");
+  memory->create(x_unwrapsort, ntotal, 3, "FixPIMD:x_unwrapsort");
+}
+
+void FixPIMD::reallocate_x_unwrap()
+{
+  int nlocal = atom->nlocal;
+  maxunwrap = atom->nmax;
+  if(cmode == SINGLE_PROC)
+  {
+    for(int i=0; i<nlocal; i++)
+    {
+      x_unwrapsort[tag_init[i]-1][0] = x_unwrap[i][0];
+      x_unwrapsort[tag_init[i]-1][1] = x_unwrap[i][1];
+      x_unwrapsort[tag_init[i]-1][2] = x_unwrap[i][2];
+    }
+    // memory->destroy(x_unwrap);
+    // memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");  
+    // memory->create(tag_init, maxunwrap, "FixPIMD:tag_init");
+    for(int i=0; i<nlocal; i++)
+    {
+      x_unwrap[i][0] = x_unwrapsort[atom->tag[i]-1][0];
+      x_unwrap[i][1] = x_unwrapsort[atom->tag[i]-1][1];
+      x_unwrap[i][2] = x_unwrapsort[atom->tag[i]-1][2];
+      tag_init[i] = atom->tag[i];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

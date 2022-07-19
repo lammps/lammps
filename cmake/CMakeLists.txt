@@ -154,6 +154,19 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
+# set path to python interpreter and thus enforcing python version if
+# when in a virtual environment and PYTHON_EXECUTABLE is not set on command line
+if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
+  else()
+    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
+  endif()
+  set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
+  message(STATUS "Running in virtual environment: $ENV{VIRTUAL_ENV}\n"
+    "   Setting Python interpreter to: ${PYTHON_EXECUTABLE}")
+endif()
+
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary (WON'T enable any features automatically")
 mark_as_advanced(LAMMPS_MACHINE)
 if(LAMMPS_MACHINE)

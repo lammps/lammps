@@ -74,18 +74,22 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
 
   // error checks
 
-  if (!mdi_arg || !infile_arg || !lammps_command)
-    error->all(FLERR, "MDI plugin must specify mdi, infile, command keywords");
+  if (!mdi_arg || !lammps_command)
+    error->all(FLERR, "MDI plugin must specify mdi and command keywords");
 
   // build full plugin_args string for args to plugin library
 
-  int n = strlen(mdi_arg) + strlen(infile_arg) + strlen(extra_arg) + 16;
+  int n = strlen(mdi_arg) + 16;
+  if (infile_arg) n += strlen(infile_arg);
+  if (extra_arg) n += strlen(extra_arg);
   auto plugin_args = new char[n];
   plugin_args[0] = 0;
   strcat(plugin_args, "-mdi \"");
   strcat(plugin_args, mdi_arg);
-  strcat(plugin_args, "\" -in ");
-  strcat(plugin_args, infile_arg);
+  if (infile_arg) {
+    strcat(plugin_args, "\" -in ");
+    strcat(plugin_args, infile_arg);
+  }
   if (extra_arg) {
     strcat(plugin_args, " ");
     strcat(plugin_args, extra_arg);

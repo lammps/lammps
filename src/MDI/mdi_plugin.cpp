@@ -86,14 +86,17 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
   plugin_args[0] = 0;
   strcat(plugin_args, "-mdi \"");
   strcat(plugin_args, mdi_arg);
+  strcat(plugin_args, "\"");
   if (infile_arg) {
-    strcat(plugin_args, "\" -in ");
+    strcat(plugin_args, " -in ");
     strcat(plugin_args, infile_arg);
   }
   if (extra_arg) {
     strcat(plugin_args, " ");
     strcat(plugin_args, extra_arg);
   }
+
+  printf("PLUGIN ARGS %s\n",plugin_args);
 
   // launch the MDI plugin library
   // path for lib was specified in -mdi command-line arg when LAMMPS started

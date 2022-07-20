@@ -358,7 +358,6 @@ void FixMDIQM::post_force(int vflag)
     fqm[i][2] = buf3[3 * index + 2] * mdi2lmp_force;
   }
 
-
   // optionally add forces to owned atoms
   // use atomID of local atoms to index into ordered buf3
 

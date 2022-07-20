@@ -41,7 +41,11 @@ enum{COMPUTE,FIX};
 /* ---------------------------------------------------------------------- */
 
 DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg)
+  Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr), vtype(nullptr), 
+  vformat(nullptr), columns(nullptr), columns_default(nullptr), 
+  choose(nullptr), dchoose(nullptr), clist(nullptr),
+  field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr),
+  id_fix(nullptr), fix(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump grid arguments specified");
 
@@ -239,18 +243,17 @@ void DumpGrid::init_style()
   else write_choice = &DumpGrid::write_lines;
 
   // find current ptr for each compute and fix
-  // check that fix frequency is acceptable
 
   for (i = 0; i < ncompute; i++) {
     compute[i] = modify->get_compute_by_id(id_compute[i]);
-    if (!compute[i]) error->all(FLERR,"Could not find dump grid compute ID {}",id_compute[i]);
+    if (!compute[i]) 
+      error->all(FLERR,"Could not find dump grid compute ID {}",id_compute[i]);
   }
 
   for (i = 0; i < nfix; i++) {
     fix[i] = modify->get_fix_by_id(id_fix[i]);
-    if (!fix[i]) error->all(FLERR,"Could not find dump grid fix ID {}", id_fix[i]);
-    if (nevery % fix[i]->peratom_freq)
-      error->all(FLERR,"Dump grid and fix not computed at compatible times");
+    if (!fix[i]) 
+      error->all(FLERR,"Could not find dump grid fix ID {}", id_fix[i]);
   }
 
   // check validity of region
@@ -641,22 +644,79 @@ int DumpGrid::parse_fields(int narg, char **arg)
         pack_choice[iarg] = &DumpGrid::pack_compute;
         vtype[iarg] = Dump::DOUBLE;
         
-        icompute = modify->get_compute_by_id(name);
+        // name = idcompute:gname:fname, split into 3 strings
+
+        char *ptr1 = strchr((char *) name,':');
+        if (!ptr1) 
+          error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
+        *ptr1 = '\0';
+        char *ptr2 = strchr(ptr1+1,':');
+        if (!ptr2) 
+          error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
+        *ptr2 = '\0';
+
+        int n = strlen(name) + 1;
+        char *idcompute = new char[n];
+        strcpy(idfix,name);
+        n = strlen(ptr1+1) + 1;
+        char *gname = new char[n];
+        strcpy(gname,ptr1+1);
+        n = strlen(ptr2+1) + 1;
+        char *fname = new char[n];
+        strcpy(fname,ptr2+1);
+
+        *ptr1 = ':';
+        *ptr2 = ':';
+
+        icompute = modify->get_compute_by_id(idcompute);
         if (!icompute) 
-          error->all(FLERR,"Could not find dump grid compute ID: {}",name);
+          error->all(FLERR,"Could not find dump grid compute ID: {}",idcompute);
         if (icompute->pergrid_flag == 0)
           error->all(FLERR,"Dump grid compute {} does not compute per-grid info",
-                     name);
-      /*
-        if (argi.get_dim() == 0 && icompute->size_pergrid_cols > 0)
-        error->all(FLERR,"Dump grid compute {} does not calculate per-grid vector",name);
-        if (argi.get_dim() > 0 && icompute->size_pergrid_cols == 0)
-        error->all(FLERR,"Dump grid compute {} does not calculate per-grid array",name);
-        if (argi.get_dim() > 0 && argi.get_index1() > icompute->size_pergrid_cols)
-        error->all(FLERR,"Dump grid compute {} vector is accessed out-of-range",name);
-      */
+                     idcompute);
       
-        field2index[iarg] = add_compute(name);
+        int dim;
+        void *ggrid = icompute->grid_find_name(gname,dim);
+        if (!ggrid) 
+          error->all(FLERR,"Dump grid compute {} does not recognize grid name {}",
+                     idcompute,gname);
+      
+        Grid2d *grid2d;
+        Grid3d *grid3d;
+        if (dim == 2) grid2d = (Grid2d *) ggrid;
+        if (dim == 3) grid3d = (Grid3d *) ggrid;
+
+        int ncol;
+        void *gfield = icompute->grid_find_field(fname,ncol);
+        if (!gfield) 
+          error->all(FLERR,
+                     "Dump grid compute {} does not recognize field name {}",
+                     idcompute,fname);
+
+        if (argi.get_dim() == 0 && ncol)
+          error->all(FLERR,"Dump grid compute {} field {} is not per-grid vector",
+                     idcompute,fname);
+        if (argi.get_dim() > 0 && ncol == 0) 
+          error->all(FLERR,"Dump grid compute {} field {} is not per-grid array",
+                     idcompute,fname);
+        if (argi.get_dim() > 0 && argi.get_index1() > ncol)
+          error->all(FLERR,
+                     "Dump grid compute {} array {} is accessed out-of-range",
+                     idcompute,fname);
+     
+        double **vec2d;
+        double ***vec3d;
+        double ***array2d;
+        double ****array3d;
+        if (ncol == 0) {
+          if (dim == 2) vec2d = (double **) gfield;
+          if (dim == 3) vec3d = (double ***) gfield;
+        } else if (ncol) {
+          if (dim == 2) array2d = (double ***) gfield;
+          if (dim == 3) array3d = (double ****) gfield;
+        }
+      
+        field2index[iarg] = add_compute(idcompute);
       } break;
 
       // fix value = f_ID
@@ -689,8 +749,6 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
         *ptr1 = ':';
         *ptr2 = ':';
-
-        // error check
 
         ifix = modify->get_fix_by_id(idfix);
         if (!ifix) error->all(FLERR,"Could not find dump grid fix ID: {}",idfix);
@@ -909,6 +967,24 @@ void DumpGrid::pack_fix(int n)
   int index = argindex[n];
 
   if (index == 0) {
+    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          buf[n] = vec3d[iz][iy][ix];
+          n += size_one;
+        }
+  } else {
+    index--;
+    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          buf[n] = array3d[iz][iy][ix][index];
+          n += size_one;
+        }
+  }
+
+  /*
+  if (index == 0) {
     for (int i = 0; i < nchoose; i++) {
       buf[n] = vector[clist[i]];
       n += size_one;
@@ -920,5 +996,6 @@ void DumpGrid::pack_fix(int n)
       n += size_one;
     }
   }
+  */
 }
 

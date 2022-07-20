@@ -78,7 +78,8 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   maxlocal = 0;
   maxunwrap = 0;
   bufbeads = nullptr;
-  x_unwrap = nullptr;
+  x_unwrap = x_unwrapsort = x_unwrapall = nullptr;
+  tag_init = tag_initall = nullptr;
   counts = nullptr;
 
   sizeplan = 0;
@@ -302,21 +303,21 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   // if(atom->nmax > maxunwrap) reallocate_x_unwrap();
 
   if ((cmode == MULTI_PROC) && (counts == nullptr)) {
-    printf("me = %d, creating bufrecvall\n", universe->me);
+    // printf("me = %d, creating bufrecvall\n", universe->me);
     memory->create(bufsendall,ntotal,3,"FixPIMD:bufsendall");
     memory->create(bufrecvall,ntotal,3,"FixPIMD:bufrecvall");
-    printf("me = %d, bufrecvall[0][0] = %.4f\n", universe->me, bufrecvall[0][0]);
+    // printf("me = %d, bufrecvall[0][0] = %.4f\n", universe->me, bufrecvall[0][0]);
     memory->create(tagsendall,ntotal,"FixPIMD:tagsendall");
     memory->create(tagrecvall,ntotal,"FixPIMD:tagrecvall");
-    printf("me = %d, tagrecvall[0] = %d\n", universe->me, tagrecvall[0]);
+    // printf("me = %d, tagrecvall[0] = %d\n", universe->me, tagrecvall[0]);
     memory->create(counts,nprocs,"FixPIMD:counts");
     memory->create(displacements,nprocs,"FixPIMD:displacements");
     memory->create(x_unwrapall, ntotal, 3, "FixPIMD:x_unwrapall");
     memory->create(tag_initall, ntotal, "FixPIMD:tag_initall");
-    printf("me = %d, tag_initall[0] = %d\n", universe->me, tag_initall[0]);
+    // printf("me = %d, tag_initall[0] = %d\n", universe->me, tag_initall[0]);
   }
 
-    printf("me = %d constructing finished\n", universe->me);
+    // printf("me = %d constructing finished\n", universe->me);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -418,7 +419,7 @@ void FixPIMD::setup(int vflag)
   tagint *tag = atom->tag;
   double **x = atom->x;
   imageint *image = atom->image;
-  printf("me = %d before copying x_unwrap\n", universe->me);
+  // printf("me = %d before copying x_unwrap\n", universe->me);
   for(int i=0; i<nlocal; i++)
   {
   // printf("me = %d i = %d start copying x_unwrap\n", universe->me, i);
@@ -428,7 +429,7 @@ void FixPIMD::setup(int vflag)
     tag_init[i] = tag[i];
   // printf("me = %d i = %d in copying x_unwrap\n", universe->me, i);
   }
-  printf("me = %d after copying x_unwrap\n", universe->me);
+  // printf("me = %d after copying x_unwrap\n", universe->me);
   nlocal_init = nlocal;
   if(mapflag){
     for(int i=0; i<nlocal; i++)
@@ -436,17 +437,17 @@ void FixPIMD::setup(int vflag)
       domain->unmap(x_unwrap[i], image[i]);
     }
   }
-  printf("me = %d after unmapping x_unwrap\n", universe->me);
+  // printf("me = %d after unmapping x_unwrap\n", universe->me);
 
   // printf("setup already here\n");
   if(method==NMPIMD)
   {
     inter_replica_comm(x_unwrap);
-    printf("me = %d after inter\n", universe->me);
+    // printf("me = %d after inter\n", universe->me);
     // printf("%.4f %.4f %.4f\n", bufbeads[0][0], bufbeads[0][1], bufbeads[0][2]);
     nmpimd_transform(bufbeads, x_unwrap, M_x2xp[universe->iworld]);
   }
-  printf("me = %d setup x2xp done\n", universe->me);
+  // printf("me = %d setup x2xp done\n", universe->me);
   compute_spring_energy();
   if(method==NMPIMD)
   {
@@ -469,14 +470,14 @@ void FixPIMD::setup(int vflag)
   // printf("setting up, m = %.4e\n", mass[1]);
   post_force(vflag);
   // printf("after post_force, m = %.4e\n", mass[1]);
-  printf("me = %d after post_force\n", universe->me);
+  // printf("me = %d after post_force\n", universe->me);
   compute_totke();
   compute_pote();
   // if(pstyle==ANISO) compute_stress_tensor();
   end_of_step();
   c_pe->addstep(update->ntimestep+1); 
   // c_press->addstep(update->ntimestep+1);
-  printf("me = %d, setup finished\n", universe->me);   
+  // printf("me = %d, setup finished\n", universe->me);   
 }
 
 /* ---------------------------------------------------------------------- */
@@ -679,6 +680,7 @@ void FixPIMD::end_of_step()
   if(universe->me==0) printf("This is the end of step %ld.\n", update->ntimestep);
   }
   // if(universe->me==0) printf("me = %d This is the end of step %ld.\n", universe->me, update->ntimestep);
+  // printf("me = %d This is the end of step %ld.\n\n", universe->me, update->ntimestep);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1165,6 +1167,8 @@ void FixPIMD::init_x_unwrap()
 {
   maxunwrap = atom->nmax;
   memory->destroy(x_unwrap);
+  memory->destroy(tag_init);
+  memory->destroy(x_unwrapsort);
   memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");  
   memory->create(tag_init, maxunwrap, "FixPIMD:tag_init");
   memory->create(x_unwrapsort, ntotal, 3, "FixPIMD:x_unwrapsort");
@@ -1196,24 +1200,35 @@ void FixPIMD::reallocate_x_unwrap()
   else if(cmode == MULTI_PROC)
   {
     MPI_Gather(&nlocal_init, 1, MPI_INT, counts, 1, MPI_INT, 0, world);
+    // printf("me = %d nlocal_init = %d counts = %d %d\n", universe->me, nlocal_init, counts[0], counts[1]);
     displacements[0] = 0;
     for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
+    // printf("me = %d step = %d before Gatherv tag_init[%d] = %d\n", universe->me, update->ntimestep, nlocal_init-1, tag_init[nlocal_init-1]);
     MPI_Gatherv(tag_init, nlocal_init, MPI_LMP_TAGINT, tag_initall, counts, displacements, MPI_LMP_TAGINT, 0, world);
+    // if(me == 0) { printf("me = %d step = %d after Gatherv tag_initall[49] = %d\n", universe->me, update->ntimestep, tag_initall[49]); }
     for (i = 0; i < nprocs; i++) { counts[i] *= 3; }
     for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
     MPI_Gatherv(x_unwrap[0], 3*nlocal_init, MPI_DOUBLE, x_unwrapall[0], counts, displacements, MPI_DOUBLE, 0, world);
     MPI_Bcast(tag_initall, ntotal, MPI_LMP_TAGINT, 0, world);
     MPI_Bcast(x_unwrapall[0], 3*ntotal, MPI_DOUBLE, 0, world);
+    // printf("me = %d step = %ld before x_unwrapsort\n", universe->me, update->ntimestep);
+    // printf("me = %d step = %ld x_unwrapsort[0][0] = %.4f, x_unwrapall[0][0] = %.4f tag_initall[0] = %d\n", universe->me, update->ntimestep, x_unwrapsort[0][0], x_unwrapall[0][0], tag_initall[0]);
+    // printf("me = %d step = %ld x_unwrapsort[49][0] = %.4f, x_unwrapall[49][0] = %.4f tag_initall[49] = %d\n", universe->me, update->ntimestep, x_unwrapsort[49][0], x_unwrapall[49][0], tag_initall[49]);
+    // printf("me = %d step = %ld x_unwrapsort[49][2] = %.4f, x_unwrapall[49][2] = %.4f tag_initall[49] = %d\n", universe->me, update->ntimestep, x_unwrapsort[49][2], x_unwrapall[49][2], tag_initall[49]);
+    // printf("me = %d step = %ld ntotal = %d\n", universe->me, update->ntimestep, ntotal);
     for(i=0; i<ntotal; i++)
     {
       x_unwrapsort[tag_initall[i]-1][0] = x_unwrapall[i][0];
       x_unwrapsort[tag_initall[i]-1][1] = x_unwrapall[i][1];
       x_unwrapsort[tag_initall[i]-1][2] = x_unwrapall[i][2];
+      // if(update->ntimestep==2 && i==49) printf("me = %d i = %d sort = %.4f %.4f %.4f unwrapall = %.4f %.4f %.4f\n", universe->me, i, x_unwrapsort[tag_initall[i]-1][0], x_unwrapsort[tag_initall[i]-1][1], x_unwrapsort[tag_initall[i]-1][2], x_unwrapall[i][0], x_unwrapall[i][1], x_unwrapall[i][2]);
     }
+    // printf("me = %d step = %ld before destroying\n", universe->me, update->ntimestep);
     memory->destroy(x_unwrap);
     memory->destroy(tag_init);
     memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");  
     memory->create(tag_init, maxunwrap, "FixPIMD:tag_init");
+    // printf("me = %d step = %ld after creating\n", universe->me, update->ntimestep);
     for(i=0; i<nlocal; i++)
     {
       x_unwrap[i][0] = x_unwrapsort[atom->tag[i]-1][0];
@@ -1221,6 +1236,9 @@ void FixPIMD::reallocate_x_unwrap()
       x_unwrap[i][2] = x_unwrapsort[atom->tag[i]-1][2];
       tag_init[i] = atom->tag[i];
     }
+    nlocal_init = nlocal;
+    // printf("me = %d step = %d end tag_init[%d] = %d\n", universe->me, update->ntimestep, nlocal_init-1, tag_init[nlocal_init-1]);
+    // printf("me = %d step = %ld reallocate_x_unwrap done\n", universe->me, update->ntimestep);
   }
 }
 

@@ -50,6 +50,7 @@ endif
 
 PACKAGE = \
 	adios \
+	amoeba \
 	asphere \
 	awpmd \
 	bocs \
@@ -57,7 +58,7 @@ PACKAGE = \
         bpm \
 	brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	colvars \
@@ -146,13 +147,14 @@ PACKAGE = \
 PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
+	amoeba \
 	asphere \
 	bocs \
 	body \
 	bpm \
         brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	coreshell \

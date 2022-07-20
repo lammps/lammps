@@ -26,8 +26,21 @@ if(DOWNLOAD_MDI)
   # detect if we have python development support and thus can enable python plugins
   set(MDI_USE_PYTHON_PLUGINS OFF)
   if(CMAKE_VERSION VERSION_LESS 3.12)
+    if(NOT PYTHON_VERSION_STRING)
+      set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
+      # search for interpreter first, so we have a consistent library
+      find_package(PythonInterp) # Deprecated since version 3.12
+      if(PYTHONINTERP_FOUND)
+        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+      endif()
+    endif()
+    # search for the library matching the selected interpreter
+    set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
     find_package(PythonLibs QUIET) # Deprecated since version 3.12
     if(PYTHONLIBS_FOUND)
+      if(NOT (PYTHON_VERSION_STRING STREQUAL PYTHONLIBS_VERSION_STRING))
+        message(FATAL_ERROR "Python Library version ${PYTHONLIBS_VERSION_STRING} does not match Interpreter version ${PYTHON_VERSION_STRING}")
+      endif()
       set(MDI_USE_PYTHON_PLUGINS ON)
     endif()
   else()

@@ -240,6 +240,35 @@ struct TestViewOverloadResolution {
 TEST(TEST_CATEGORY, view_overload_resolution) {
   TestViewOverloadResolution<TEST_EXECSPACE>::test_function_overload();
 }
+
+template <typename MemorySpace>
+struct TestViewAllocationLargeRank {
+  using ViewType = Kokkos::View<char********, MemorySpace>;
+
+  KOKKOS_FUNCTION void operator()(int) const {
+    size_t idx = v.extent(0) - 1;
+    auto& lhs  = v(idx, idx, idx, idx, idx, idx, idx, idx);
+    lhs        = 42;  // This is where it segfaulted
+  }
+
+  ViewType v;
+};
+
+TEST(TEST_CATEGORY, view_allocation_large_rank) {
+  using ExecutionSpace = typename TEST_EXECSPACE::execution_space;
+  using MemorySpace    = typename TEST_EXECSPACE::memory_space;
+  constexpr int dim    = 16;
+  using FunctorType    = TestViewAllocationLargeRank<MemorySpace>;
+  typename FunctorType::ViewType v("v", dim, dim, dim, dim, dim, dim, dim, dim);
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<ExecutionSpace>(0, 1),
+                       FunctorType{v});
+  typename FunctorType::ViewType v_single(v.data() + v.size() - 1, 1, 1, 1, 1,
+                                          1, 1, 1, 1);
+  auto result =
+      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, v_single);
+  ASSERT_EQ(result(0, 0, 0, 0, 0, 0, 0, 0), 42);
+}
 }  // namespace Test
 
 #include <TestViewIsAssignable.hpp>

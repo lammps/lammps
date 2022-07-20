@@ -25,6 +25,7 @@ FixStyle(bond/create,FixBondCreate);
 namespace LAMMPS_NS {
 
 class FixBondCreate : public Fix {
+  friend class FixSRPREACT;
  public:
   FixBondCreate(class LAMMPS *, int, char **);
   ~FixBondCreate() override;

@@ -110,6 +110,7 @@ Command Reference
    angles
    dihedrals
    impropers
+   dumps
    fix_modify_atc_commands
    Bibliography
 

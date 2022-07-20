@@ -1,4 +1,5 @@
 .. index:: dump netcdf
+.. index:: dump netcdf/mpiio
 
 dump netcdf command
 ===================

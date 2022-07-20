@@ -2561,9 +2561,14 @@ double Variable::collapse_tree(Tree *tree)
     arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    tree->value = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      tree->value = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      tree->value = arg1 + delta*(arg2-arg1);
+    }
     return tree->value;
   }
 
@@ -2730,7 +2735,7 @@ double Variable::collapse_tree(Tree *tree)
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*sin(omega*delta*update->dt);
@@ -2745,7 +2750,7 @@ double Variable::collapse_tree(Tree *tree)
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
@@ -2935,9 +2940,14 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == RAMP) {
     arg1 = eval_tree(tree->first,i);
     arg2 = eval_tree(tree->second,i);
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    arg = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      arg = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      arg = arg1 + delta*(arg2-arg1);
+    }
     return arg;
   }
 
@@ -3054,7 +3064,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg2 = eval_tree(tree->second,i);
     arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*sin(omega*delta*update->dt);
@@ -3066,7 +3076,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg2 = eval_tree(tree->second,i);
     arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
@@ -3445,14 +3455,17 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"ramp") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use ramp in variable formula between runs",ivar);
     if (tree) newtree->type = RAMP;
     else {
-      double delta = update->ntimestep - update->beginstep;
-      if (delta != 0.0) delta /= update->endstep - update->beginstep;
-      double value = value1 + delta*(value2-value1);
-      argstack[nargstack++] = value;
+      if (update->whichflag == 0) {
+        argstack[nargstack++] = value1;
+      } else {
+        double delta = update->ntimestep - update->beginstep;
+        if ((delta != 0.0) && (update->beginstep != update->endstep))
+          delta /= update->endstep - update->beginstep;
+        double value = value1 + delta*(value2-value1);
+        argstack[nargstack++] = value;
+      }
     }
 
   } else if (strcmp(word,"stagger") == 0) {
@@ -3610,9 +3623,9 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"vdisplace") == 0) {
     if (narg != 2)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use vdisplace in variable formula between runs",ivar);
+      print_var_error(FLERR,"Invalid vdisplace function in variable formula: must have 2 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use vdisplace(x,y) function with fix dt/reset",ivar);
     if (tree) newtree->type = VDISPLACE;
     else {
       double delta = update->ntimestep - update->beginstep;
@@ -3622,13 +3635,13 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"swiggle") == 0) {
     if (narg != 3)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use swiggle in variable formula between runs",ivar);
-    if (tree) newtree->type = CWIGGLE;
+      print_var_error(FLERR,"Invalid swiggle function in variable formula: must have 3 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use swiggle(x,y,z) function with fix dt/reset",ivar);
+    if (tree) newtree->type = SWIGGLE;
     else {
       if (values[0] == 0.0)
-        print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+        print_var_error(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0",ivar);
       double delta = update->ntimestep - update->beginstep;
       double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*sin(omega*delta*update->dt);
@@ -3637,13 +3650,13 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"cwiggle") == 0) {
     if (narg != 3)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use cwiggle in variable formula between runs",ivar);
+      print_var_error(FLERR,"Invalid cwiggle function in variable formula: must have 3 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use cwiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = CWIGGLE;
     else {
       if (values[0] == 0.0)
-        print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+        print_var_error(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0",ivar);
       double delta = update->ntimestep - update->beginstep;
       double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*(1.0-cos(omega*delta*update->dt));

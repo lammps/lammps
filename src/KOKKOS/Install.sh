@@ -204,6 +204,8 @@ action npair_halffull_kokkos.cpp
 action npair_halffull_kokkos.h
 action npair_skip_kokkos.cpp
 action npair_skip_kokkos.h
+action npair_trim_kokkos.cpp
+action npair_trim_kokkos.h
 action npair_kokkos.cpp
 action npair_kokkos.h
 action npair_ssa_kokkos.cpp npair_half_bin_newton_ssa.cpp
@@ -292,8 +294,8 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h pair_lj_gromacs_coul_gromacs.h
 action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
-action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
-action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
+action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp
 action pair_meam_kokkos.h pair_meam.h
 action pair_morse_kokkos.cpp

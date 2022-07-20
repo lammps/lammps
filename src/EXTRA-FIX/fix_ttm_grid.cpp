@@ -46,6 +46,8 @@ static constexpr int OFFSET = 16384;
 FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   FixTTM(lmp, narg, arg)
 {
+  pergrid_flag = 1;
+
   skin_original = neighbor->skin;
 }
 
@@ -623,6 +625,37 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo,
           fprintf(FPout, "%d %d %d %20.16g\n", ix, iy, iz, value);
         }
   }
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to Grid3d instance which matches name
+   set dim = 2/3 for 2d/3d grid
+------------------------------------------------------------------------- */
+
+void *FixTTMGrid::grid_find_name(char *name, int &dim)
+{
+  if (strcmp(name,"grid") == 0) {
+    dim = 3;
+    return gc;
+  }
+
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to data field on a grid which matches name
+   set ncol = 0 for per-grid vector with a single value per grid pt
+   set ncol = M for per-grid array with M values per grid pt
+------------------------------------------------------------------------- */
+
+void *FixTTMGrid::grid_find_field(char *name, int &ncol)
+{
+  if (strcmp(name,"telectron") == 0) {
+    ncol = 0;
+    return T_electron;
+  }
+
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -44,6 +44,10 @@ class FixTTMGrid : public FixTTM {
 
   void write_restart(FILE *) override;
   void restart(char *) override;
+
+  void *grid_find_name(char *, int &) override;
+  void *grid_find_field(char *, int &) override;
+
   double compute_vector(int) override;
   double memory_usage() override;
 

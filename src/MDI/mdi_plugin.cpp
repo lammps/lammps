@@ -96,8 +96,6 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
     strcat(plugin_args, extra_arg);
   }
 
-  printf("PLUGIN ARGS %s\n",plugin_args);
-
   // launch the MDI plugin library
   // path for lib was specified in -mdi command-line arg when LAMMPS started
   // this calls back to plugin_wrapper, which must issue MDI EXIT at end

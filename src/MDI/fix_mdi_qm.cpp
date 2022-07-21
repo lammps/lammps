@@ -348,6 +348,8 @@ void FixMDIQM::post_force(int vflag)
   if (ierr) error->all(FLERR, "MDI: <FORCES data");
   MPI_Bcast(buf3, 3 * n, MPI_DOUBLE, 0, world);
 
+  printf("MDI FORCE: %g %g %g: %g %g %g\n",buf3[0],buf3[1],buf3[2],buf3[3],buf3[4],buf3[5]);
+
   // fqm = fix output for peratom QM forces
   // use atomID of local atoms to index into ordered buf3
 
@@ -357,6 +359,8 @@ void FixMDIQM::post_force(int vflag)
     fqm[i][1] = buf3[3 * index + 1] * mdi2lmp_force;
     fqm[i][2] = buf3[3 * index + 2] * mdi2lmp_force;
   }
+
+  printf("MDI FORCE: %g %g %g: %g %g %g\n",buf3[0],buf3[1],buf3[2],buf3[3],buf3[4],buf3[5]);
 
   // optionally add forces to owned atoms
   // use atomID of local atoms to index into ordered buf3
@@ -370,6 +374,9 @@ void FixMDIQM::post_force(int vflag)
       f[i][2] += buf3[3 * index + 2] * mdi2lmp_force;
     }
   }
+
+  double **f = atom->f;
+  printf("LMP FORCE: %g %g %g: %g %g %g\n",f[0][0],f[0][1],f[0][2],f[1][0],f[1][1],f[1][2]);
 
   // optionally request stress tensor from MDI engine, convert to virial
   // qm_virial = fix output for global QM virial

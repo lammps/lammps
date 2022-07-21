@@ -284,7 +284,7 @@
                LIWMIN = 1
             END IF
             LOPT = MAX( LWMIN, N +
-     $                  N*ILAENV( 1, 'ZHETRD', UPLO, N, -1, -1, -1 ) )
+     $                  ILAENV( 1, 'ZHETRD', UPLO, N, -1, -1, -1 ) )
             LROPT = LRWMIN
             LIOPT = LIWMIN
          END IF

@@ -236,7 +236,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   // if(pstyle==ISO) {size_vector = 15;}
   // else if(pstyle==ANISO) {size_vector = 23;}
   extvector = 1;
-  comm_forward = 3;
+  // comm_forward = 1;
 
   // some initilizations
 
@@ -572,7 +572,7 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       x[i][0] = x_unwrap[i][0];
       x[i][1] = x_unwrap[i][1];
       x[i][2] = x_unwrap[i][2];
-      domain->remap(x[i], image[i]);
+      domain->unmap_inv(x[i], image[i]);
     }
     // domain->pbc();
     // if(mapflag){

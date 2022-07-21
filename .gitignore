@@ -55,3 +55,4 @@ out/RelWithDebInfo
 out/Release
 out/x86
 out/x64
+benchmark/*

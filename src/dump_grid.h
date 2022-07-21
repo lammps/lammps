@@ -65,7 +65,6 @@ class DumpGrid : public Dump {
   int *field2data;            // index of data within compute/fix
   int *argindex;              // index into compute,fix,custom per-atom data
                               // 0 for per-atom vector, 1-N for cols of per-atom array
-  void **dataptr;             // ptr to grid data
 
   int ncompute;               // # of Computes accessed by dump
   char **id_compute;          // their IDs

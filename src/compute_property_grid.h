@@ -43,11 +43,13 @@ class ComputePropertyGrid : public Compute {
   int nvalues;
   int dimension;
 
-  class Grid3d *gc;
-  int ngc_buf1, ngc_buf2;
-  double *gc_buf1, *gc_buf2;
+  class Grid2d *grid2d;
+  class Grid3d *grid3d;
 
-  double ****data;
+  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
+
+  double **vec2d,***vec3d;
+  double ***array2d,****array3d;
 
   typedef void (ComputePropertyGrid::*FnPtrPack)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions

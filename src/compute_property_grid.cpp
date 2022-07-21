@@ -15,6 +15,8 @@
 
 #include "domain.h"
 #include "error.h"
+#include "grid2d.h"
+#include "grid3d.h"
 #include "memory.h"
 #include "update.h"
 
@@ -93,6 +95,10 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR, "Illegal compute property/grid command");
   }
 
+
+
+  // instanttiate the Grid2d/3d class
+
   
 }
 
@@ -109,17 +115,26 @@ void ComputePropertyGrid::compute_pergrid()
 {
   invoked_pergrid = update->ntimestep;
 
-  // fill vector or array with local values
+  // set current size for portion of grid on each proc
+  // may change between compute invocations due to load balancing
+  
+  if (dimension == 2)
+    grid2d->query_in_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+  else
+    grid3d->query_in_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
 
-  /*
+  // reallocate data vector or array if changed
+
+
+
+
+  // fill data vector or array with values for my grid pts
+
   if (nvalues == 1) {
-    buf = vlocal;
     (this->*pack_choice[0])(0);
   } else {
-    if (alocal) buf = &alocal[0][0];
     for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n);
   }
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -131,7 +146,7 @@ void ComputePropertyGrid::compute_pergrid()
 int ComputePropertyGrid::get_grid_by_name(char *name, int &dim)
 {
   if (strcmp(name,"grid") == 0) {
-    dim = 3;
+    dim = dimension;
     return 0;
   }
 
@@ -145,7 +160,10 @@ int ComputePropertyGrid::get_grid_by_name(char *name, int &dim)
 
 void *ComputePropertyGrid::get_grid_by_index(int index)
 {
-  if (index == 0) return gc;
+  if (index == 0) {
+    if (dimension == 2) return grid2d;
+    else return grid3d;
+  }
   return nullptr;
 }
 
@@ -175,7 +193,15 @@ int ComputePropertyGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
 
 void *ComputePropertyGrid::get_griddata_by_index(int index)
 {
-  if (index == 0) return data;
+  if (index == 0) {
+    if (dimension == 2) {
+      if (nvalues == 0) return vec2d;
+      else return array2d;
+    } else {
+      if (nvalues == 0) return vec3d;
+      else return array3d;
+    }
+  }
   return nullptr;
 }
 
@@ -198,15 +224,31 @@ double ComputePropertyGrid::memory_usage()
 
 void ComputePropertyGrid::pack_id(int n)
 {
-  int i;
-
-  /*
-  for (int m = 0; m < ncount; m++) {
-    i = indices[m][0];
-    buf[n] = tag[i];
-    n += nvalues;
+  if (dimension == 2) {
+    if (n == 0) {
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+          vec2d[iy][ix] = iy*nx + ix + 1;
+    } else {
+      n--;
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+          array2d[iy][ix][n] = iy*nx + ix + 1;
+    }
+  } else if (dimension == 3) {
+    if (n == 0) {
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            vec3d[iz][iy][ix] = iz*ny*nx + iy*nx + ix + 1;
+    } else {
+      n--;
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            array3d[iz][iy][ix][n] = iz*ny*nx + iy*nx + ix + 1;
+    }
   }
-  */
 }
 
 /* ---------------------------------------------------------------------- */

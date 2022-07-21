@@ -4,9 +4,6 @@
  Contributing authors: Ngoc-Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
  ***************************************************************************/
 
-#ifndef __POD
-#define __POD
-
 // POD header file 
 #include "pod.h"
 
@@ -28,6 +25,7 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <sys/time.h>
 
 using std::cout;
 using std::endl;
@@ -59,6 +57,235 @@ CPOD::~CPOD()
     pod.freememory(1);
     sna.freememory(1);
 }
+
+/****************************************************************************************************************/
+void CPOD::print_matrix(const char* desc, int m, int n, double **a, int lda ) 
+{
+    int i, j;
+    printf( "\n %s\n", desc );
+
+    for( i = 0; i < m; i++ ) 
+    {
+        for( j = 0; j < n; j++ ) printf( " %6.12f", a[j][i] );
+        printf( "\n" );
+    }
+}
+
+void CPOD::print_matrix(const char* desc, int m, int n, double* a, int lda ) 
+{
+    int i, j;
+    printf( "\n %s\n", desc );
+
+    for( i = 0; i < m; i++ ) 
+    {
+        for( j = 0; j < n; j++ ) printf( " %6.12f", a[i+j*lda] );
+        printf( "\n" );
+    }
+}
+
+void CPOD::print_matrix(const char* desc, int m, int n, int* a, int lda ) 
+{
+    int i, j;
+    printf( "\n %s\n", desc );
+
+    for( i = 0; i < m; i++ ) 
+    {
+        for( j = 0; j < n; j++ ) printf( " %d", a[i+j*lda] );
+        printf( "\n" );
+    }
+}
+
+void CPOD::podMatMul(double *c, double *a, double *b, int r1, int c1, int c2) 
+{
+    int i, j, k;
+
+    for(j = 0; j < c2; j++)        
+        for(i = 0; i < r1; i++)
+            c[i + r1*j] = 0.0;        
+    
+    for(j = 0; j < c2; j++)
+        for(i = 0; i < r1; i++)        
+            for(k = 0; k < c1; k++)            
+                c[i + r1*j] += a[i + r1*k] * b[k + c1*j];            
+}
+
+void CPOD::podArrayFill(int* output, int start, int length) 
+{	
+	for (int j = 0; j < length; ++j)	
+		output[j] = start + j;
+}
+
+double CPOD::podArraySum(double *a, int n)
+{
+    double e = a[0];
+    for (int i=1; i<n; i++)        
+        e += a[i];    
+    return e;
+}
+
+double CPOD::podArrayMin(double *a, int n)
+{
+    double b = a[0];
+    for (int i=1; i<n; i++)
+        if (a[i]<b)
+            b = a[i];    
+    return b;
+}
+
+double CPOD::podArrayMax(double *a, int n)
+{
+    double b = a[0];
+    for (int i=1; i<n; i++)
+        if (a[i]>b)
+            b = a[i];    
+    return b;
+}
+
+int CPOD::podArrayMin(int *a, int n)
+{
+    int b = a[0];
+    for (int i=1; i<n; i++)
+        if (a[i]<b)
+            b = a[i];    
+    return b;
+}
+
+int CPOD::podArrayMax(int *a, int n)
+{
+    int b = a[0];
+    for (int i=1; i<n; i++)
+        if (a[i]>b)
+            b = a[i];    
+    return b;
+}
+
+void CPOD::podKron(double *C, double *A, double *B, double alpha, int M1, int M2)
+{            
+    int M = M1*M2;        
+    for (int idx=0; idx<M; idx++)     
+    {
+        int ib = idx%M2;
+        int ia = (idx-ib)/M2;        
+        C[idx] += alpha*A[ia]*B[ib];        
+    }
+}
+
+void CPOD::podCumsum(int* output, int* input, int length) 
+{
+	output[0] = 0; 
+	for (int j = 1; j < length; ++j)	
+		output[j] = input[j - 1] + output[j - 1];	
+}
+
+double CPOD::podArrayNorm(double *a, int n)
+{
+    double e = a[0]*a[0];
+    for (int i=1; i<n; i++)        
+        e += a[i]*a[i];    
+    return sqrt(e);
+}
+
+double CPOD::podArrayErrorNorm(double *a, double *b, int n)
+{
+    double e = (a[0]-b[0])*(a[0]-b[0]);
+    for (int i=1; i<n; i++)        
+        e += (a[i]-b[i])*(a[i]-b[i]);    
+    return sqrt(e);
+}
+
+void CPOD::podArraySetValue(double *y, double a, int n)
+{    
+    for (int i=0; i<n; i++) 
+        y[i] = a;        
+}
+
+void CPOD::podArrayCopy(double *y, double *x, int n)
+{    
+    for (int i=0; i<n; i++) 
+        y[i] = x[i];        
+}
+
+void CPOD::rotation_matrix(double *Rmat, double alpha, double beta, double gamma)
+{    
+    double ca = cos(alpha);
+    double cb = cos(beta);
+    double cg = cos(gamma);
+    double sa = sin(alpha);
+    double sb = sin(beta);
+    double sg = sin(gamma);
+
+    Rmat[0] = ca*cg*cb - sa*sg;
+    Rmat[3] = -ca*cb*sg - sa*cg;
+    Rmat[6] = ca*sb;
+    
+    Rmat[1] = sa*cg*cb + ca*sg;
+    Rmat[4] = -sa*cb*sg + ca*cg;
+    Rmat[7] = sa*sb;
+    
+    Rmat[2] = -sb*cg;
+    Rmat[5] = sb*sg;
+    Rmat[8] = cb;    
+}
+
+void CPOD::matrix33_multiplication(double *xrot, double *Rmat, double *x, int natom)
+{
+    double x1, x2, x3;
+    for (int i=0; i < natom; i++) {
+        x1 = x[0 + 3*i];
+        x2 = x[1 + 3*i];
+        x3 = x[2 + 3*i];
+        xrot[0 + 3*i] = Rmat[0]*x1 + Rmat[3]*x2 + Rmat[6]*x3;
+        xrot[1 + 3*i] = Rmat[1]*x1 + Rmat[4]*x2 + Rmat[7]*x3;
+        xrot[2 + 3*i] = Rmat[2]*x1 + Rmat[5]*x2 + Rmat[8]*x3;
+    }
+}
+
+void CPOD::matrix33_inverse(double *invA, double *A1, double *A2, double *A3)
+{                 
+    double a11 = A1[0];
+    double a21 = A1[1];
+    double a31 = A1[2];
+    double a12 = A2[0];
+    double a22 = A2[1];
+    double a32 = A2[2];
+    double a13 = A3[0];
+    double a23 = A3[1];
+    double a33 = A3[2];        
+    double detA = (a11*a22*a33 - a11*a23*a32 - a12*a21*a33 + a12*a23*a31 + a13*a21*a32 - a13*a22*a31);
+
+    invA[0] = (a22*a33 - a23*a32)/detA;
+    invA[1] = (a23*a31 - a21*a33)/detA;
+    invA[2] = (a21*a32 - a22*a31)/detA;
+    invA[3] = (a13*a32 - a12*a33)/detA;
+    invA[4] = (a11*a33 - a13*a31)/detA;
+    invA[5] = (a12*a31 - a11*a32)/detA;
+    invA[6] = (a12*a23 - a13*a22)/detA;
+    invA[7] = (a13*a21 - a11*a23)/detA;
+    invA[8] = (a11*a22 - a12*a21)/detA;            
+}
+
+void CPOD::triclinic_lattice_conversion(double *a, double *b, double *c, double *A, double *B, double *C)
+{
+    double Anorm = sqrt(A[0]*A[0] + A[1]*A[1] + A[2]*A[2]);
+    double Bnorm = sqrt(B[0]*B[0] + B[1]*B[1] + B[2]*B[2]);
+    double Cnorm = sqrt(C[0]*C[0] + C[1]*C[1] + C[2]*C[2]);
+    
+    double Ahat[3];
+    Ahat[0] = A[0]/Anorm; Ahat[1] = A[1]/Anorm; Ahat[2] = A[2]/Anorm;
+ 
+    double ax = Anorm;
+    double bx = B[0]*Ahat[0] + B[1]*Ahat[1] + B[2]*Ahat[2]; //dot(B,Ahat);
+    double by = sqrt(Bnorm*Bnorm - bx*bx); //sqrt(Bnorm^2 - bx^2);// #norm(cross(Ahat,B));
+    double cx = C[0]*Ahat[0] + C[1]*Ahat[1] + C[2]*Ahat[2]; // dot(C,Ahat);
+    double cy = (B[0]*C[0] + B[1]*C[1] + B[2]*C[2] - bx*cx)/by; // (dot(B, C) - bx*cx)/by;
+    double cz = sqrt(Cnorm*Cnorm - cx*cx - cy*cy); // sqrt(Cnorm^2 - cx^2 - cy^2);    
+    
+    a[0] = ax; a[1] = 0.0; a[2] = 0.0;
+    b[0] = bx; b[1] = by;  b[2] = 0.0;
+    c[0] = cx; c[1] = cy;  c[2] = cz;
+}
+
+/**************************************************************************************************************/
 
 void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, double rcut, 
         int besseldegree, int inversedegree, int nbesselpars, int N)
@@ -155,6 +382,7 @@ void podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparam
     free(xij); free(S); free(A); free(b); free(Q);
 }
 
+
 void CPOD::read_pod(std::string pod_file)
 {
     pod.nbesselpars = 3;
@@ -162,7 +390,7 @@ void CPOD::read_pod(std::string pod_file)
     pod.pbc = (int *) malloc(3*sizeof(int));
     
     std::ifstream file_in(pod_file);
-    if (!file_in) error->all(FLERR,"Error: POD input file is not found");        
+    if (!file_in) {error->all(FLERR,"Error: POD input file is not found");}
         
     std::string line;        
     while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
@@ -360,8 +588,9 @@ void CPOD::read_pod(std::string pod_file)
     
     // total number of descriptors for all POD potentials
     pod.nd = pod.nd1 + pod.nd2 + pod.nd3 + pod.nd4 + pod.nd22 + pod.nd23 + pod.nd24 + 
-             pod.nd33 + pod.nd34 + pod.nd44 + pod.nd234 + pod.nd333 + pod.nd444; 
-            
+             pod.nd33 + pod.nd34 + pod.nd44 + pod.nd234 + pod.nd333 + pod.nd444;             
+    pod.nd1234 = pod.nd1 + pod.nd2 + pod.nd3 + pod.nd4;
+    
     int nelements = pod.nelements;
     pod.elemindex = (int*) malloc (sizeof (int)*(nelements*nelements));     
         
@@ -424,7 +653,7 @@ void CPOD::read_pod(std::string pod_file)
 void CPOD::read_coeff_file(std::string coeff_file)
 {
     std::ifstream file_in(coeff_file);
-    if (!file_in) error->all(FLERR,"Error: Coefficient input file is not found");            
+    if (!file_in) {error->all(FLERR,"Error: Coefficient input file is not found");}
     
     int ncoeff=0;
     std::string line;        
@@ -461,115 +690,13 @@ void CPOD::read_coeff_file(std::string coeff_file)
     
     file_in.close();
     
-    std::cout<<"**************** Begin of Coefficient File ****************"<<std::endl;    
-    std::cout<<"number of POD coefficients: "<<ncoeff<<std::endl;
-    print_matrix( "POD coefficient vector:", 1, ncoeff, pod.coeff, 1); 
-    std::cout<<"**************** End of Coefficient File ****************"<<std::endl<<std::endl;
+//     std::cout<<"**************** Begin of Coefficient File ****************"<<std::endl;    
+//     std::cout<<"number of POD coefficients: "<<ncoeff<<std::endl;
+//     print_matrix( "POD coefficient vector:", 1, ncoeff, pod.coeff, 1); 
+//     std::cout<<"**************** End of Coefficient File ****************"<<std::endl<<std::endl;
 }
 
-void CPOD::print_matrix(const char* desc, int m, int n, double* a, int lda ) 
-{
-    int i, j;
-    printf( "\n %s\n", desc );
-
-    for( i = 0; i < m; i++ ) 
-    {
-        for( j = 0; j < n; j++ ) printf( " %6.12f", a[i+j*lda] );
-        printf( "\n" );
-    }
-}
-
-void CPOD::print_matrix(const char* desc, int m, int n, int* a, int lda ) 
-{
-    int i, j;
-    printf( "\n %s\n", desc );
-
-    for( i = 0; i < m; i++ ) 
-    {
-        for( j = 0; j < n; j++ ) printf( " %d", a[i+j*lda] );
-        printf( "\n" );
-    }
-}
-
-void CPOD::podArrayFill(int* output, int start, int length) 
-{	
-	for (int j = 0; j < length; ++j)	
-		output[j] = start + j;
-}
-
-double CPOD::podArrayMin(double *a, int n)
-{
-    double b = a[0];
-    for (int i=1; i<n; i++)
-        if (a[i]<b)
-            b = a[i];    
-    return b;
-}
-
-double CPOD::podArrayMax(double *a, int n)
-{
-    double b = a[0];
-    for (int i=1; i<n; i++)
-        if (a[i]>b)
-            b = a[i];    
-    return b;
-}
-
-int CPOD::podArrayMin(int *a, int n)
-{
-    int b = a[0];
-    for (int i=1; i<n; i++)
-        if (a[i]<b)
-            b = a[i];    
-    return b;
-}
-
-int CPOD::podArrayMax(int *a, int n)
-{
-    int b = a[0];
-    for (int i=1; i<n; i++)
-        if (a[i]>b)
-            b = a[i];    
-    return b;
-}
-
-void CPOD::podKron(double *C, double *A, double *B, double alpha, int M1, int M2)
-{            
-    int M = M1*M2;        
-    for (int idx=0; idx<M; idx++)     
-    {
-        int ib = idx%M2;
-        int ia = (idx-ib)/M2;        
-        C[idx] += alpha*A[ia]*B[ib];        
-    }
-}
-
-void CPOD::podCumsum(int* output, int* input, int length) 
-{
-	output[0] = 0; 
-	for (int j = 1; j < length; ++j)	
-		output[j] = input[j - 1] + output[j - 1];	
-}
-
-double CPOD::podArrayNorm(double *a, int n)
-{
-    double e = a[0]*a[0];
-    for (int i=1; i<n; i++)        
-        e += a[i]*a[i];    
-    return sqrt(e);
-}
-
-void CPOD::podArraySetValue(double *y, double a, int n)
-{    
-    for (int i=0; i<n; i++) 
-        y[i] = a;        
-}
-
-void CPOD::podArrayCopy(double *y, double *x, int n)
-{    
-    for (int i=0; i<n; i++) 
-        y[i] = x[i];        
-}
+/*********************************************************************************************************/
 
 void CPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmpmem, int *atomtype, 
             int *alist, int *pairlist, int *pairnum, int *pairnumsum, int *tmpint, int natom, int Nij)
@@ -773,6 +900,95 @@ double CPOD::cubic_coefficients(double *c3, double *d3, double *coeff333, int *c
     return energy;
 }
 
+double CPOD::quadratic_coefficients(double *ce2, double *ce3, double *c2, double *c3, double *d2, double *d3, 
+        double *coeff23, int *quadratic, int nc2, int nc3)
+{        
+    int nd2 = quadratic[0]*nc2;
+    int nd3 = quadratic[1]*nc3;
+        
+    double energy = 0.0;    
+    int m = 0;
+    for (int j=0; j< nd3; j++)
+        for (int k=0; k< nd2; k++) {
+            energy += coeff23[m]*d3[j]*d2[k];  
+            c2[k] += coeff23[m]*d3[j];
+            c3[j] += coeff23[m]*d2[k];
+            ce2[k] += coeff23[m]*d3[j]/2.0;
+            ce3[j] += coeff23[m]*d2[k]/2.0;
+            m += 1;        
+        }
+            
+    return energy;
+}
+
+double CPOD::quadratic_coefficients(double *ce3, double *c3, double *d3, double *coeff33, 
+        int *quadratic, int nc3)
+{        
+    int nd3 = quadratic[0]*nc3;
+        
+    double energy = 0.0;    
+    int m = 0;
+    for (int j=0; j< nd3; j++)
+        for (int k=j; k< nd3; k++) {
+            energy += coeff33[m]*d3[j]*d3[k];  
+            c3[k] += coeff33[m]*d3[j];
+            c3[j] += coeff33[m]*d3[k];
+            ce3[k] += coeff33[m]*d3[j];
+            ce3[j] += coeff33[m]*d3[k];
+            m += 1;        
+        }
+            
+    return energy;
+}
+
+double CPOD::cubic_coefficients(double *ce2, double *ce3, double *ce4, double *c2, double *c3, double *c4, 
+        double *d2, double *d3, double *d4, double *coeff234, int *cubic, int nc2, int nc3, int nc4)
+{        
+    int nd2 = cubic[0]*nc2;
+    int nd3 = cubic[1]*nc3;
+    int nd4 = cubic[2]*nc4;
+    
+    double energy = 0.0;    
+    int m = 0;
+    for (int i=0; i< nd4; i++)
+        for (int j=0; j< nd3; j++)
+            for (int k=0; k< nd2; k++) {
+                energy += coeff234[m]*d4[i]*d3[j]*d2[k];  
+                c2[k] += coeff234[m]*d4[i]*d3[j];
+                c3[j] += coeff234[m]*d4[i]*d2[k];
+                c4[i] += coeff234[m]*d3[j]*d2[k];                
+                ce2[k] += coeff234[m]*d4[i]*d3[j]/3.0;
+                ce3[j] += coeff234[m]*d4[i]*d2[k]/3.0;
+                ce4[i] += coeff234[m]*d3[j]*d2[k]/3.0;                
+                m += 1;        
+            }
+            
+    return energy;
+}
+
+double CPOD::cubic_coefficients(double *ce3, double *c3, double *d3, double *coeff333, int *cubic, int nc3)
+{        
+    int nd3 = cubic[0]*nc3;
+        
+    double energy = 0.0;
+    
+    int m = 0;
+    for (int i=0; i< nd3; i++)
+        for (int j=i; j< nd3; j++)
+            for (int k=j; k< nd3; k++) {
+                energy += coeff333[m]*d3[i]*d3[j]*d3[k];  
+                c3[k] += coeff333[m]*d3[i]*d3[j];
+                c3[j] += coeff333[m]*d3[i]*d3[k];
+                c3[i] += coeff333[m]*d3[j]*d3[k];                
+                ce3[k] += coeff333[m]*d3[i]*d3[j];
+                ce3[j] += coeff333[m]*d3[i]*d3[k];
+                ce3[i] += coeff333[m]*d3[j]*d3[k];                
+                m += 1;        
+            }
+                                
+    return energy;
+}
+
 double CPOD::calculate_energyforce(double *force, double *gd, double *gdd, double *coeff, double *tmp, int natom)
 {        
     int dim = 3;    
@@ -902,20 +1118,6 @@ void CPOD::podNeighPairs(double *xij, double *x, int *ai, int *aj,  int *ti, int
     }    
 };
 
-void CPOD::podMatMul(double *c, double *a, double *b, int r1, int c1, int c2) 
-{
-    int i, j, k;
-
-    for(j = 0; j < c2; j++)        
-        for(i = 0; i < r1; i++)
-            c[i + r1*j] = 0.0;        
-    
-    for(j = 0; j < c2; j++)
-        for(i = 0; i < r1; i++)        
-            for(k = 0; k < c1; k++)            
-                c[i + r1*j] += a[i + r1*k] * b[k + c1*j];            
-}
-
 void CPOD::podradialbasis(double *rbf, double *drbf, double *xij, double *besselparams, double rin, 
         double rmax, int besseldegree, int inversedegree, int nbesselpars, int N)
 {
@@ -1014,7 +1216,7 @@ void CPOD::pod3body(double *eatom, double *fatom, double *yij, double *e2ij, dou
 {   
     int dim = 3, nabf1 = nabf + 1;
     int nelements2 = nelements*(nelements+1)/2;
-    int n, nijk, nijk3;
+    int n, nijk, nijk3, typei, typej, typek, ij, ik, i, j, k;    
     
     double xij1, xij2, xij3, xik1, xik2, xik3;
     double xdot, rijsq, riksq, rij, rik;
@@ -1035,23 +1237,23 @@ void CPOD::pod3body(double *eatom, double *fatom, double *yij, double *e2ij, dou
         int numneigh = pairnumsum[ii+1] - pairnumsum[ii];      // number of pairs (i,j) around i         
         int s = pairnumsum[ii];        
         for (int lj=0; lj<numneigh ; lj++) {   // loop over each atom j around atom i            
-            int ij = lj + s;
-            int i = ai[ij];  // atom i                        
-            int j = aj[ij];  // atom j    
-            int typei = ti[ij] - 1;           
-            int typej = tj[ij] - 1;                   
+            ij = lj + s;
+            i = ai[ij];  // atom i                        
+            j = aj[ij];  // atom j    
+            typei = ti[ij] - 1;           
+            typej = tj[ij] - 1;                   
             xij1 = yij[0+dim*ij];  // xj - xi           
             xij2 = yij[1+dim*ij];  // xj - xi           
             xij3 = yij[2+dim*ij];  // xj - xi           
             rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;    
             rij = pow(rijsq, 0.5);                         
             for (int lk=lj+1; lk<numneigh; lk++) { // loop over each atom k around atom i (k > j)
-                int ik = lk + s;
-                int k = aj[ik];  // atom k                       
-                int typek = tj[ik] - 1;                         
+                ik = lk + s;
+                k = aj[ik];  // atom k                       
+                typek = tj[ik] - 1;                         
                 xik1 = yij[0+dim*ik];  // xk - xi           
                 xik2 = yij[1+dim*ik];  // xk - xi           
-                xik3 = yij[2+dim*ik];  // xk - xi           s
+                xik3 = yij[2+dim*ik];  // xk - xi           
                 riksq = xik1*xik1 + xik2*xik2 + xik3*xik3;                    
                 rik = pow(riksq, 0.5); 
 
@@ -1126,7 +1328,6 @@ void CPOD::pod3body(double *eatom, double *fatom, double *yij, double *e2ij, dou
                         fatom[0 + nijk3] -= fk1;   
                         fatom[1 + nijk3] -= fk2;   
                         fatom[2 + nijk3] -= fk3;                           
-
                     }                    
                 }
             }
@@ -1162,6 +1363,8 @@ void CPOD::poddesc(double *eatom1, double *fatom1, double *eatom2, double *fatom
     this->pod3body(eatom3, fatom3, rij, e2ij, f2ij, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, 
              ai, aj, ti, tj, nrbf3, nabf, nelements, natom, Nij);            
 }
+
+/****************************************************************************************************************/
 
 void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int *idxb_block, int *idxu_block, 
         int *idxcg_block, int twojmax)
@@ -2273,6 +2476,7 @@ void CPOD::snapdesc(double *blist, double *bd, double *rij, double *tmpmem, int 
     snapTallyBispectrumDeriv(bd, dblist, ai, aj, ti, natom, Nij, ncoeff, ntypes);                        
 }
 
+/******************************************************************************/
 
 void CPOD::podNeighPairs(double *rij, double *x, int *idxi, int *ai, int *aj,  int *ti, int *tj, 
         int *pairnumsum, int *atomtype, int *jlist, int *alist, int inum)
@@ -2397,7 +2601,7 @@ void CPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, in
 {   
     int dim = 3, nabf1 = nabf + 1;
     int nelements2 = nelements*(nelements+1)/2;
-    int n, nijk;
+    int n, nijk, typei, typej, typek, ij, ik, i, j, k;
     
     double xij1, xij2, xij3, xik1, xik2, xik3;
     double xdot, rijsq, riksq, rij, rik;
@@ -2406,22 +2610,70 @@ void CPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, in
             
     double *abf = &tmpmem[0];
     
+//     for (int m=0; m<nrbf; m++)
+//         for (int p=0; p <nabf1; p++) 
+//             for (int ii=0; ii<natom; ii++) {
+//                 int numneigh = pairnumsum[ii+1] - pairnumsum[ii];      // number of pairs (i,j) around i         
+//                 int s = pairnumsum[ii];        
+//                 for (int lj=0; lj<numneigh ; lj++) {   // loop over each atom j around atom i            
+//                     ij = lj + s;
+//                     i = idxi[ij];  // atom i                        
+//                     typei = ti[ij] - 1;           
+//                     typej = tj[ij] - 1;                   
+//                     xij1 = yij[0+dim*ij];  // xj - xi           
+//                     xij2 = yij[1+dim*ij];  // xj - xi           
+//                     xij3 = yij[2+dim*ij];  // xj - xi           
+//                     rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;    
+//                     rij = pow(rijsq, 0.5);                         
+//                     for (int lk=lj+1; lk<numneigh; lk++) { // loop over each atom k around atom i (k > j)
+//                         ik = lk + s;
+//                         typek = tj[ik] - 1;                         
+//                         xik1 = yij[0+dim*ik];  // xk - xi           
+//                         xik2 = yij[1+dim*ik];  // xk - xi           
+//                         xik3 = yij[2+dim*ik];  // xk - xi           s
+//                         riksq = xik1*xik1 + xik2*xik2 + xik3*xik3;                    
+//                         rik = pow(riksq, 0.5); 
+// 
+//                         xdot  = xij1*xik1 + xij2*xik2 + xij3*xik3;                
+//                         costhe = xdot/(rij*rik);    
+//                         costhe = costhe > 1.0 ? 1.0 : costhe;
+//                         costhe = costhe < -1.0 ? -1.0 : costhe;
+//                         xdot = costhe*(rij*rik);
+//                         theta = acos(costhe);            
+// 
+//                         uj = e2ij[lj + s + Nij*m];
+//                         uk = e2ij[lk + s + Nij*m];
+//                         rbf = uj*uk;
+// 
+//                         n = p + (nabf1)*m;
+//                         nijk = natom*((elemindex[typej + typek*nelements] - 1) + nelements2*typei + nelements2*nelements*n);
+//                         eatom[i + nijk] += rbf*cos(p*theta);
+//                     }
+//                 }
+//             }
+    
+    double *etm = &tmpmem[nabf1];
+    
     for (int ii=0; ii<natom; ii++) {
         int numneigh = pairnumsum[ii+1] - pairnumsum[ii];      // number of pairs (i,j) around i         
         int s = pairnumsum[ii];        
+        
+        for (int m=0; m<nrbf*nabf1*nelements2*nelements; m++)
+            etm[m] = 0.0;
+        
         for (int lj=0; lj<numneigh ; lj++) {   // loop over each atom j around atom i            
-            int ij = lj + s;
-            int i = idxi[ij];  // atom i                        
-            int typei = ti[ij] - 1;           
-            int typej = tj[ij] - 1;                   
+            ij = lj + s;
+            i = idxi[ij];  // atom i                        
+            typei = ti[ij] - 1;           
+            typej = tj[ij] - 1;                   
             xij1 = yij[0+dim*ij];  // xj - xi           
             xij2 = yij[1+dim*ij];  // xj - xi           
             xij3 = yij[2+dim*ij];  // xj - xi           
             rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;    
             rij = pow(rijsq, 0.5);                         
             for (int lk=lj+1; lk<numneigh; lk++) { // loop over each atom k around atom i (k > j)
-                int ik = lk + s;
-                int typek = tj[ik] - 1;                         
+                ik = lk + s;
+                typek = tj[ik] - 1;                         
                 xik1 = yij[0+dim*ik];  // xk - xi           
                 xik2 = yij[1+dim*ik];  // xk - xi           
                 xik3 = yij[2+dim*ik];  // xk - xi           s
@@ -2444,12 +2696,16 @@ void CPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, in
                     rbf = uj*uk;
                     for (int p=0; p <nabf1; p++) {                        
                         n = p + (nabf1)*m;
-                        nijk = natom*((elemindex[typej + typek*nelements] - 1) + nelements2*typei + nelements2*nelements*n);
-                        eatom[i + nijk] += rbf*abf[p];
+                        nijk = (elemindex[typej + typek*nelements] - 1) + nelements2*typei + nelements2*nelements*n;                        
+                        etm[nijk] += rbf*abf[p];
+                        //nijk = natom*((elemindex[typej + typek*nelements] - 1) + nelements2*typei + nelements2*nelements*n);
+                        //eatom[i + nijk] += rbf*abf[p];
                     }                    
                 }
             }
         }
+        for (int m=0; m<nrbf*nabf1*nelements2*nelements; m++)
+            eatom[ii + natom*m] += etm[m];
     }
 }
 
@@ -2464,19 +2720,34 @@ void CPOD::poddesc_ij(double *eatom1, double *eatom2, double *eatom3, double *ri
     double *e2ij = &tmpmem[0]; // Nij*nrbf
     double *e2ijt = &tmpmem[Nij*nrbf]; // Nij*ns
 
+//     struct timeval tv1, tv2;    
+//     gettimeofday(&tv1, NULL); 
+    
     // orthogonal radial basis functions
     this->podradialbasis(e2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
     this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
-  
-    
+      
     // one-body descriptors
     this->pod1body(eatom1, atomtype, nelements, natom);
 
     this->podtally2b(eatom2, e2ij, idxi, ti, tj, elemindex, nelements, nrbf2, natom, Nij);   
 
+//     gettimeofday(&tv2, NULL);            
+//     printf("\nExecution time (in millisec) for pod2body %g\n", 
+//         (double)(tv2.tv_usec-tv1.tv_usec)/1000 + 
+//         (double)(tv2.tv_sec -tv1.tv_sec )*1000);    
+//     
+//     gettimeofday(&tv1, NULL); 
+    
     // three-body descriptors
     this->pod3body(eatom3, rij, e2ij, &tmpmem[Nij*nrbf], elemindex, pairnumsum, 
              idxi, ti, tj, nrbf3, nabf, nelements, natom, Nij);     
+        
+//     gettimeofday(&tv2, NULL);            
+//     printf("\nExecution time (in millisec) for pod3body %g\n", 
+//         (double)(tv2.tv_usec-tv1.tv_usec)/1000 + 
+//         (double)(tv2.tv_sec -tv1.tv_sec )*1000);    
+    
 }
 
 void CPOD::snapComputeUij(double *Sr, double *Si, double *rootpqarray, double *rij, 
@@ -2689,10 +2960,8 @@ void CPOD::linear_descriptors_ij(double *gd, double *eatom, double *rij, double 
     DGEMV(&cht, &natom, &nd1234, &one, eatom1, &natom, tmpmem, &inc1, &one, gd, &inc1);                        
 }
 
-double CPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff, int natom)
+double CPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff)
 {        
-    //int dim = 3;    
-    //int nforce = dim*natom;
     int nd1 = pod.nd1;
     int nd2 = pod.nd2;
     int nd3 = pod.nd3;
@@ -2773,6 +3042,98 @@ double CPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff,
     return energy;
 }
 
+double CPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *gd, double *coeff)
+{        
+    int nd1 = pod.nd1;
+    int nd2 = pod.nd2;
+    int nd3 = pod.nd3;
+    int nd4 = pod.nd4;
+    int nd1234 = nd1+nd2+nd3+nd4;        
+    int nd22 = pod.nd22;
+    int nd23 = pod.nd23;
+    int nd24 = pod.nd24;
+    int nd33 = pod.nd33;
+    int nd34 = pod.nd34;
+    int nd44 = pod.nd44;
+    int nd234 = pod.nd234;
+    int nd333 = pod.nd333;
+    int nd444 = pod.nd444;    
+    int nc2 = pod.nc2;
+    int nc3 = pod.nc3;
+    int nc4 = pod.nc4;
+        
+    // two-body, three-body, and four-body descriptors
+    double *d2 = &gd[nd1];
+    double *d3 = &gd[nd1+nd2];
+    double *d4 = &gd[nd1+nd2+nd3];
+        
+    // quadratic and cubic POD coefficients
+    double *coeff22 = &coeff[nd1234];
+    double *coeff23 = &coeff[nd1234+nd22];
+    double *coeff24 = &coeff[nd1234+nd22+nd23];
+    double *coeff33 = &coeff[nd1234+nd22+nd23+nd24];
+    double *coeff34 = &coeff[nd1234+nd22+nd23+nd24+nd33];
+    double *coeff44 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34];  
+    double *coeff234 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34+nd44];  
+    double *coeff333 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234];  
+    double *coeff444 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234+nd333];  
+                    
+    // calculate energy for linear potentials
+    double energy = 0.0;
+    for (int i=0; i< nd1234; i++) {
+        energycoeff[i] = 0.0;    
+        forcecoeff[i] = 0.0;    
+        energy += coeff[i]*gd[i];    
+    }
+    
+    // effective POD coefficients for calculating force 
+    //double *c1 = &forcecoeff[0];
+    double *c2 = &forcecoeff[nd1];  
+    double *c3 = &forcecoeff[nd1+nd2];
+    double *c4 = &forcecoeff[nd1+nd2+nd3];
+
+    double *ce2 = &energycoeff[nd1];  
+    double *ce3 = &energycoeff[nd1+nd2];
+    double *ce4 = &energycoeff[nd1+nd2+nd3];
+
+    // calculate energy for quadratic22 potential
+    if (nd22>0) energy += this->quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
+
+    
+    // calculate energy for quadratic23 potential
+    if (nd23>0) energy += this->quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+    
+    // calculate energy for quadratic24 potential
+    if (nd24>0) energy += this->quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+    
+    
+    // calculate energy for quadratic33 potential
+    if (nd33>0) energy += this->quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
+    
+    // calculate energy for quadratic34 potential
+    if (nd34>0) energy += this->quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+    
+    // calculate energy for quadratic44 potential
+    if (nd44>0) energy += this->quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
+    
+    // calculate energy for cubic234 potential
+    if (nd234>0) energy += this->cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+    
+    // calculate energy for cubic333 potential
+    if (nd333>0) energy += this->cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
+
+    // calculate energy for cubic444 potential
+    if (nd444>0) energy += this->cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
+    
+    // calculate effective POD coefficients
+    for (int i=0; i< nd1234; i++) {
+        energycoeff[i] += coeff[i];    
+        forcecoeff[i] += coeff[i];    
+    }
+                
+    return energy;
+}
+
 void CPOD::pod2body_force(double *force, double *fij, double *coeff2, int *ai, int *aj, 
         int *ti, int *tj, int *elemindex, int nelements, int nbf, int natom, int N)
 {
@@ -2804,14 +3165,14 @@ void CPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2ij
 {   
     int dim = 3, nabf1 = nabf + 1;
     int nelements2 = nelements*(nelements+1)/2;
-    int n, c, nijk3;
+    int n, c, nijk3, typei, typej, typek, ij, ik, i, j, k;
     
     double xij1, xij2, xij3, xik1, xik2, xik3;
     double xdot, rijsq, riksq, rij, rik;
     double costhe, sinthe, theta, dtheta; 
     double tm, tm1, tm2, dct1, dct2, dct3, dct4, dct5, dct6;
-    double uj, uk, rbf, drbf1, drbf2, drbf3, drbf4, drbf5, drbf6;
-    double fj1, fj2, fj3, fk1, fk2, fk3;
+    //double uj, uk, rbf, drbf1, drbf2, drbf3, drbf4, drbf5, drbf6;
+    //double fj1, fj2, fj3, fk1, fk2, fk3;
             
     double *abf = &tmpmem[0];
     double *dabf1 = &tmpmem[nabf1];
@@ -2825,20 +3186,25 @@ void CPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2ij
         int numneigh = pairnumsum[ii+1] - pairnumsum[ii];      // number of pairs (i,j) around i         
         int s = pairnumsum[ii];        
         for (int lj=0; lj<numneigh ; lj++) {   // loop over each atom j around atom i            
-            int ij = lj + s;
-            int i = ai[ij];  // atom i                        
-            int j = aj[ij];  // atom j    
-            int typei = ti[ij] - 1;           
-            int typej = tj[ij] - 1;                   
+            ij = lj + s;
+            i = ai[ij];  // atom i                        
+            j = aj[ij];  // atom j    
+            typei = ti[ij] - 1;           
+            typej = tj[ij] - 1;                   
             xij1 = yij[0+dim*ij];  // xj - xi           
             xij2 = yij[1+dim*ij];  // xj - xi           
             xij3 = yij[2+dim*ij];  // xj - xi           
             rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;    
-            rij = pow(rijsq, 0.5);                         
+            rij = pow(rijsq, 0.5);            
+            
+            double fixtmp,fiytmp,fiztmp;
+            fixtmp = fiytmp = fiztmp = 0.0;      
+            double fjxtmp,fjytmp,fjztmp;
+            fjxtmp = fjytmp = fjztmp = 0.0;                  
             for (int lk=lj+1; lk<numneigh; lk++) { // loop over each atom k around atom i (k > j)
-                int ik = lk + s;
-                int k = aj[ik];  // atom k                       
-                int typek = tj[ik] - 1;                         
+                ik = lk + s;
+                k = aj[ik];  // atom k                       
+                typek = tj[ik] - 1;                         
                 xik1 = yij[0+dim*ik];  // xk - xi           
                 xik2 = yij[1+dim*ik];  // xk - xi           
                 xik3 = yij[2+dim*ik];  // xk - xi           s
@@ -2878,47 +3244,75 @@ void CPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2ij
                     dabf6[p] = tm*dct6;        
                 }
 
+                double fjx = 0.0, fjy = 0.0, fjz = 0.0;
+                double fkx = 0.0, fky = 0.0, fkz = 0.0;
+                
                 for (int m=0; m<nrbf; m++) {
-                    uj = e2ij[lj + s + Nij*m];
-                    uk = e2ij[lk + s + Nij*m];
-                    rbf = uj*uk;
-                    drbf1 = f2ij[0 + dim*(lj + s) + dim*Nij*m]*uk;
-                    drbf2 = f2ij[1 + dim*(lj + s) + dim*Nij*m]*uk;
-                    drbf3 = f2ij[2 + dim*(lj + s) + dim*Nij*m]*uk;                                                        
-                    drbf4 = f2ij[0 + dim*(lk + s) + dim*Nij*m]*uj;
-                    drbf5 = f2ij[1 + dim*(lk + s) + dim*Nij*m]*uj;
-                    drbf6 = f2ij[2 + dim*(lk + s) + dim*Nij*m]*uj;     
+                    double uj = e2ij[lj + s + Nij*m];
+                    double uk = e2ij[lk + s + Nij*m];
+                    double rbf = uj*uk;
+                    double drbf1 = f2ij[0 + dim*(lj + s) + dim*Nij*m]*uk;
+                    double drbf2 = f2ij[1 + dim*(lj + s) + dim*Nij*m]*uk;
+                    double drbf3 = f2ij[2 + dim*(lj + s) + dim*Nij*m]*uk;                                                        
+                    double drbf4 = f2ij[0 + dim*(lk + s) + dim*Nij*m]*uj;
+                    double drbf5 = f2ij[1 + dim*(lk + s) + dim*Nij*m]*uj;
+                    double drbf6 = f2ij[2 + dim*(lk + s) + dim*Nij*m]*uj;     
 
                     for (int p=0; p <nabf1; p++) {
                         tm = abf[p];
-                        fj1 = drbf1*tm + rbf*dabf1[p];
-                        fj2 = drbf2*tm + rbf*dabf2[p];
-                        fj3 = drbf3*tm + rbf*dabf3[p];
-                        fk1 = drbf4*tm + rbf*dabf4[p];
-                        fk2 = drbf5*tm + rbf*dabf5[p];
-                        fk3 = drbf6*tm + rbf*dabf6[p];
+                        double fj1 = drbf1*tm + rbf*dabf1[p];
+                        double fj2 = drbf2*tm + rbf*dabf2[p];
+                        double fj3 = drbf3*tm + rbf*dabf3[p];
+                        double fk1 = drbf4*tm + rbf*dabf4[p];
+                        double fk2 = drbf5*tm + rbf*dabf5[p];
+                        double fk3 = drbf6*tm + rbf*dabf6[p];
 
                         n = p + (nabf1)*m;
                         c = (elemindex[typej + typek*nelements] - 1) + nelements2*typei + nelements2*nelements*n;
                         tm = coeff3[c];
                         
-                        nijk3 = 3*i;                        
-                        force[0 + nijk3] += (fj1 + fk1)*tm;
-                        force[1 + nijk3] += (fj2 + fk2)*tm;
-                        force[2 + nijk3] += (fj3 + fk3)*tm;
-
-                        nijk3 = 3*j;    
-                        force[0 + nijk3] -= fj1*tm;
-                        force[1 + nijk3] -= fj2*tm;
-                        force[2 + nijk3] -= fj3*tm;
-
-                        nijk3 = 3*k;    
-                        force[0 + nijk3] -= fk1*tm;   
-                        force[1 + nijk3] -= fk2*tm;   
-                        force[2 + nijk3] -= fk3*tm;                           
+                        fjx += fj1*tm;
+                        fjy += fj2*tm;
+                        fjz += fj3*tm;
+                        fkx += fk1*tm;   
+                        fky += fk2*tm;   
+                        fkz += fk3*tm;                           
+                        
+//                         nijk3 = 3*i;                        
+//                         force[0 + nijk3] += (fj1 + fk1)*tm;
+//                         force[1 + nijk3] += (fj2 + fk2)*tm;
+//                         force[2 + nijk3] += (fj3 + fk3)*tm;
+// 
+//                         nijk3 = 3*j;    
+//                         force[0 + nijk3] -= fj1*tm;
+//                         force[1 + nijk3] -= fj2*tm;
+//                         force[2 + nijk3] -= fj3*tm;
+// 
+//                         nijk3 = 3*k;    
+//                         force[0 + nijk3] -= fk1*tm;   
+//                         force[1 + nijk3] -= fk2*tm;   
+//                         force[2 + nijk3] -= fk3*tm;                           
                     }                    
                 }
+                nijk3 = 3*k;    
+                force[0 + nijk3] -= fkx;   
+                force[1 + nijk3] -= fky;   
+                force[2 + nijk3] -= fkz;                                           
+                fjxtmp += fjx;
+                fjytmp += fjy;
+                fjztmp += fjz;                
+                fixtmp += fjx+fkx;
+                fiytmp += fjy+fky;
+                fiztmp += fjz+fkz;                                
             }
+            nijk3 = 3*j;    
+            force[0 + nijk3] -= fjxtmp;
+            force[1 + nijk3] -= fjytmp;
+            force[2 + nijk3] -= fjztmp;            
+            nijk3 = 3*i;                        
+            force[0 + nijk3] += fixtmp;
+            force[1 + nijk3] += fiytmp;
+            force[2 + nijk3] += fiztmp;                                
         }
     }
 }
@@ -2954,21 +3348,17 @@ void CPOD::pod4body_force(double *force, double *rij, double *coeff4, double *tm
         int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij)            
 {    
     int dim = 3;    
-    //int idxcg_max = sna.idxcg_max;
     int idxu_max = sna.idxu_max;
     int idxb_max = sna.idxb_max;
     int idxz_max = sna.idxz_max;    
     int twojmax = sna.twojmax;
     int ncoeff = sna.ncoeff;
-    //int ncoeffall = sna.ncoeffall;
     int ntypes = sna.ntypes;
     int nelements = sna.nelements;    
     int ndoubles = sna.ndoubles;   
-    //int ntriples = sna.ntriples;   
     int bnormflag = sna.bnormflag;
     int chemflag = sna.chemflag;    
     int switchflag = sna.switchflag;    
-    //int bzeroflag = sna.bzeroflag;
     int wselfallflag = sna.wselfallflag;
     int nelem = (chemflag) ? nelements : 1;
     
@@ -2976,7 +3366,6 @@ void CPOD::pod4body_force(double *force, double *rij, double *coeff4, double *tm
     int *idxz = sna.idxz;
     int *idxz_block = sna.idxz_block;
     int *idxb = sna.idxb;
-    //int *idxb_block = sna.idxb_block;
     int *idxu_block = sna.idxu_block;
     int *idxcg_block = sna.idxcg_block;   
     
@@ -2984,22 +3373,12 @@ void CPOD::pod4body_force(double *force, double *rij, double *coeff4, double *tm
     double rmin0 = sna.rmin0;
     double rfac0 = sna.rfac0;
     double rcutfac = sna.rcutfac;
-    //double rcutmax = sna.rcutmax;        
-    //double *bzero = sna.bzero;
     double *rootpqarray = sna.rootpqarray;
     double *cglist = sna.cglist;
-    //double *rcutsq = sna.rcutsq;    
     double *radelem = sna.radelem;
     double *wjelem = sna.wjelem; 
-        
-//     int *ai = &tmpint[0];     // Nij
-//     int *aj = &tmpint[Nij];   // Nij 
-//     int *ti = &tmpint[2*Nij]; // Nij
-//     int *tj = &tmpint[3*Nij]; // Nij
-    
+            
     int ne = 0;
-    //double *rij = &tmpmem[ne]; // Nij*dim    
-    //ne += Nij*dim; 
     double *Ur = &tmpmem[ne]; 
     double *Zr = &tmpmem[ne]; 
     ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom); 
@@ -3010,8 +3389,6 @@ void CPOD::pod4body_force(double *force, double *rij, double *coeff4, double *tm
     ne += idxu_max*dim*Nij;
     double *dUi = &tmpmem[ne];
     ne += idxu_max*dim*Nij;    
-    //double *blist = &tmpmem[ne]; // idxb_max*ntriples*natom          
-    //ne += idxb_max*ntriples*natom;    
     double *dblist = &tmpmem[ne]; // idxb_max*ntriples*dim*Nij          
     double *Utotr = &tmpmem[ne];
     ne += idxu_max*nelements*natom;
@@ -3037,7 +3414,6 @@ void CPOD::pod4body_force(double *force, double *rij, double *coeff4, double *tm
 void CPOD::calculate_force(double *force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
         int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij)
 {        
-    int dim = 3;    
     int nelements = pod.nelements;
     int nbesselpars = pod.nbesselpars;
     int nrbf2 = pod.nbf2;
@@ -3069,51 +3445,14 @@ void CPOD::calculate_force(double *force, double *effectivecoeff, double *rij, d
     this->podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
     this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
     this->podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
-    
-    podArraySetValue(force, 0.0, dim*natom);    
-    
+       
     this->pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
     
     this->pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj, 
             ti, tj, nrbf3, nabf3, nelements, natom, Nij);
         
     if (pod.snaptwojmax>0) 
-        this->pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);       
-            
-//     double eatom[natom*nd3];
-//     double fatom[3*natom*nd3];    
-//     podArraySetValue(eatom, 0.0, natom*nd3);    
-//     podArraySetValue(fatom, 0.0, dim*natom*nd3);    
-//     this->pod3body(eatom, fatom, rij, e2ij, f2ij,  &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj, 
-//             ti, tj, nrbf3, nabf3, nelements, natom, Nij);
-// 
-//     
-//     // calculate force = gdd * c1
-//     char chn = 'N';
-//     double one = 1.0, zero = 0.0;    
-//     int inc1 = 1;
-//     int nforce = 3*natom;
-//     cout<<nd3<<endl;
-//     DGEMV(&chn, &nforce, &nd3, &one, fatom, &nforce, coeff3, &inc1, &one, force, &inc1);        
-//     
-//     print_matrix( "fatom3", nforce, nd3, fatom, nforce);
-//     
-// //     print_matrix( "coeff2", 1, nd2, coeff2, 1);
-//     print_matrix( "coeff3", 1, nd3, coeff3, 1);
-    
-//     if (pod.snaptwojmax>0) {
-//         this->pod4body_force(force, coeff4, rij, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);       
-//         int nd4 = pod.nd4;
-//         double blist[natom*nd4]; 
-//         double bd[dim*natom*nd4]; 
-//         this->snapdesc_ij(blist, bd, rij, tmpmem, atomtype, ai, aj, ti, tj, natom, Nij);            
-//      
-//         char chn = 'N';
-//         double one = 1.0, zero = 0.0;    
-//         int inc1 = 1;
-//         int nforce = 3*natom;
-//         DGEMV(&chn, &nforce, &nd4, &one, bd, &nforce, coeff4, &inc1, &one, force, &inc1);                
-//    }
+        this->pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);                   
 }
 
 double CPOD::energyforce_calculation(double *force, double *podcoeff, double *effectivecoeff, double *gd, double *rij, 
@@ -3127,11 +3466,14 @@ double CPOD::energyforce_calculation(double *force, double *podcoeff, double *ef
     
     // Need to do MPI_Allreduce on gd for paralell
     
-    double energy = this->calculate_energy(effectivecoeff, gd, podcoeff, natom);    
+    double energy = this->calculate_energy(effectivecoeff, gd, podcoeff);    
         
+    podArraySetValue(force, 0.0, 3*natom);    
+
     this->calculate_force(force, effectivecoeff, rij, tmpmem, pairnumsum, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
     
     return energy;
 }
 
-#endif        
+
+

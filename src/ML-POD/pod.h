@@ -49,6 +49,17 @@ private:
         double *coeff234, int *cubic, int nc2, int nc3, int nc4);
 
     double cubic_coefficients(double *c3, double *d3, double *coeff333, int *cubic, int nc3);   
+    
+    double quadratic_coefficients(double *ce2, double *ce3, double *c2, double *c3, double *d2, double *d3, 
+        double *coeff23, int *quadratic, int nc2, int nc3);
+    
+    double quadratic_coefficients(double *ce3, double *c3, double *d3, double *coeff33, 
+        int *quadratic, int nc3);
+
+    double cubic_coefficients(double *ce2, double *ce3, double *ce4, double *c2, double *c3, double *c4, 
+            double *d2, double *d3, double *d4, double *coeff234, int *cubic, int nc2, int nc3, int nc4);
+
+    double cubic_coefficients(double *ce3, double *c3, double *d3, double *coeff333, int *cubic, int nc3);           
     // ******************************************************************************/
     
     // ***********************  implemented in podsnap.cpp **************************/
@@ -159,7 +170,7 @@ public:
         int nd22, nd23, nd24, nd33, nd34, nd44; // number of descriptors for quadratic POD potentials    
         int nd234, nd333, nd444; // number of descriptors for cubic POD potentials    
         int nrbf3, nabf3, nrbf4, nabf4;    
-        int nd;
+        int nd, nd1234;
 
         int snaptwojmax = 0;
         int snapchemflag = 0;
@@ -288,12 +299,16 @@ public:
 
     void print_matrix(const char* desc, int m, int n, double* a, int lda ); 
     
+    void print_matrix(const char* desc, int m, int n, double **a, int lda ); 
+    
     void podMatMul(double *c, double *a, double *b, int r1, int c1, int c2);    
 
     void podCumsum(int* output, int* input, int length);
     
     double podArrayNorm(double *a, int n);
-
+    
+    double podArrayErrorNorm(double *a, double *b, int n);
+    
     void podArraySetValue(double *y, double a, int n);
 
     void podArrayCopy(double *y, double *x, int n);    
@@ -304,11 +319,18 @@ public:
 
     double podArrayMax(double *a, int n);
     
+    double podArraySum(double *a, int n);
+    
     int podArrayMin(int *a, int n);
 
     int podArrayMax(int *a, int n);
 
     void podKron(double *C, double *A, double *B, double alpha, int M1, int M2);        
+    
+    void rotation_matrix(double *Rmat, double alpha, double beta, double gamma);    
+    void triclinic_lattice_conversion(double *a, double *b, double *c, double *A, double *B, double *C);
+    void matrix33_multiplication(double *xrot, double *Rmat, double *x, int natom);
+    void matrix33_inverse(double *invA, double *A1, double *A2, double *A3);    
     // ******************************************************************************/
     
     // ***********************  implemented in poddescriptors.cpp **************************/
@@ -335,22 +357,26 @@ public:
     // ******************************************************************************/
         
     // ***********************  implemented in podenergyforce.cpp **************************/
-    void podNeighPairs(double *rij, double *x, int *idxi, int *ai, int *aj,  int *ti, int *tj, 
+    void podNeighPairs(double *rij, double *x, int *idxi, int *ai, int *aj, int *ti, int *tj, 
         int *pairnumsum, int *atomtype, int *jlist, int *alist, int inum);
         
+    //podptr->podNeighPairs(rij, nb.y, idxi, ai, aj, ti, tj, nb.pairnum_cumsum, atomtype, nb.pairlist, nb.alist, natom);
+    
     int lammpsNeighPairs(double *rij, double **x, double rcutsq, int *idxi, int *ai, int *aj,  int *ti, int *tj, 
         int *pairnumsum, int *atomtype, int *numneigh, int *ilist, int **jlist, int inum);
         
     void linear_descriptors_ij(double *gd, double *eatom, double *rij, double *tmpmem, int *pairnumsum,
         int *atomtype, int *ai, int *ti, int *tj, int natom, int Nij);
     
-    double calculate_energy(double *effectivecoeff, double *gd, double *coeff, int natom);
+    double calculate_energy(double *effectivecoeff, double *gd, double *coeff);
         
+    double calculate_energy(double *energycoeff, double *forcecoeff, double *gd, double *coeff);
+    
     void calculate_force(double *force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
             int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);    
   
     double energyforce_calculation(double *force, double *podcoeff, double *effectivecoeff, double *gd, double *rij, 
-        double *tmpmem, int *pairnumsum, int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);    
+        double *tmpmem, int *pairnumsum, int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);            
     // ******************************************************************************/
 
 };

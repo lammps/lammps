@@ -86,8 +86,32 @@ PairSNAP::~PairSNAP()
    This version is a straightforward implementation
    ---------------------------------------------------------------------- */
 
-void PairSNAP::compute(int eflag, int vflag)
+void print_matrix(const char* desc, int m, int n, double* a, int lda ) 
 {
+    int i, j;
+    printf( "\n %s\n", desc );
+
+    for( i = 0; i < m; i++ ) 
+    {
+        for( j = 0; j < n; j++ ) printf( " %6.12f", a[i+j*lda] );
+        printf( "\n" );
+    }
+}
+
+void print_matrix(const char* desc, int m, int n, double **a, int lda ) 
+{
+    int i, j;
+    printf( "\n %s\n", desc );
+
+    for( i = 0; i < m; i++ ) 
+    {
+        for( j = 0; j < n; j++ ) printf( " %6.12f", a[j][i] );
+        printf( "\n" );
+    }
+}
+
+void PairSNAP::compute(int eflag, int vflag)
+{  
   int i,j,jnum,ninside;
   double delx,dely,delz,evdwl,rsq;
   double fij[3];
@@ -114,8 +138,8 @@ void PairSNAP::compute(int eflag, int vflag)
   compute_beta();
 
   numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
+  firstneigh = list->firstneigh;  
+    
   for (int ii = 0; ii < list->inum; ii++) {
     i = list->ilist[ii];
 
@@ -238,6 +262,9 @@ void PairSNAP::compute(int eflag, int vflag)
 
   }
 
+//     print_matrix("atom->f", 3, list->inum + atom->nghost, atom->f, 3);
+//     print_matrix("atom->x", 3, list->inum + atom->nghost, atom->x, 3);
+                   
   if (vflag_fdotr) virial_fdotr_compute();
 }
 

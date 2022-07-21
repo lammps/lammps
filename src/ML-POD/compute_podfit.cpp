@@ -195,7 +195,7 @@ void CPODFIT::read_data_file(double *fitting_weights, std::string &file_format, 
         std::string &test_path, std::string &training_path, std::string data_file)
 {
     std::ifstream file_in(data_file);
-    if (!file_in) error->all(FLERR,"Error: Data input file is not found");                
+    if (!file_in) error->all(FLERR,"Error: Data input file is not found");             
     
     std::string line;        
     while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
@@ -477,6 +477,26 @@ void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
     data.num_config_cumsum.resize(nfiles+1);
     podptr->podCumsum(&data.num_config_cumsum[0], &data.num_config[0], nfiles+1); 
     
+    // convert all structures to triclinic system
+    int dim = 3;
+    double Qmat[dim*dim];
+    for (int ci=0; ci<len; ci++) {        
+        int natom = data.num_atom[ci];
+        int natom_cumsum = data.num_atom_cumsum[ci];    
+        double *x = &data.position[dim*natom_cumsum];
+        double *f = &data.force[dim*natom_cumsum]; 
+        double *lattice = &data.lattice[9*ci];
+        double *a1 = &lattice[0];
+        double *a2 = &lattice[3];
+        double *a3 = &lattice[6];
+        
+        podptr->matrix33_inverse(Qmat, a1, a2, a3);     
+        podptr->triclinic_lattice_conversion(a1, a2, a3, a1, a2, a3);                               
+        podptr->matrix33_multiplication(Qmat, lattice, Qmat, dim);                 
+        podptr->matrix33_multiplication(x, Qmat, x, natom);     
+        podptr->matrix33_multiplication(f, Qmat, f, natom);     
+    }
+        
     std::cout << "minimum number of atoms: " <<data.num_atom_min << std::endl;   
     std::cout << "maximum number of atoms: " <<data.num_atom_max << std::endl;   
 }
@@ -679,7 +699,7 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
         if ((int) data.data_path.size() > 1) 
             this->get_data(data, species);
         else 
-            error->all(FLERR,"data set is not found");       
+            error->all(FLERR,"data set is not found");                      
         std::cout<<"**************** End of Training Data Set ****************"<<std::endl<<std::endl;                    
         
         std::cout<<"**************** Begin of Select Training Data Set ****************"<<std::endl;
@@ -1379,6 +1399,9 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
 //             energy = podptr->calculate_energyforce(force, desc.gd, desc.gdd, coeff, &desc.gdd[nforce*nd1234], natom);
                                   
             energy = this->energyforce_calculation(force, coeff, data, ci);
+                        
+            //podptr->print_matrix("force", dim, natom, force, dim);            
+            //pod_error("here");
             
             double DFTenergy = data.energy[ci];   
             int natom_cumsum = data.num_atom_cumsum[ci];    
@@ -1392,6 +1415,8 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
             outarray[5 + m*ci] = podptr->podArrayNorm(force, nforce);
             outarray[6 + m*ci] = podptr->podArrayNorm(DFTforce, nforce);
 
+            //printf("%g %g %g\n", outarray[5 + m*ci], outarray[6 + m*ci], podptr->podArrayErrorNorm(force, DFTforce, nforce));
+            
             double diff, sum = 0.0, ssr = 0.0;
             for (int j=0; j<dim*natom; j++) {
                 diff = DFTforce[j] - force[j]; 

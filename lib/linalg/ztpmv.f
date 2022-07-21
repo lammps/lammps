@@ -120,8 +120,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup complex16_blas_level2
 *
 *> \par Further Details:
@@ -142,10 +140,9 @@
 *  =====================================================================
       SUBROUTINE ZTPMV(UPLO,TRANS,DIAG,N,AP,X,INCX)
 *
-*  -- Reference BLAS level2 routine (version 3.7.0) --
+*  -- Reference BLAS level2 routine --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       INTEGER INCX,N
@@ -383,6 +380,6 @@
 *
       RETURN
 *
-*     End of ZTPMV .
+*     End of ZTPMV
 *
       END

@@ -164,6 +164,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 FixTTM::~FixTTM()
 {
   delete [] infile;
+  delete [] outfile;
 
   delete random;
 

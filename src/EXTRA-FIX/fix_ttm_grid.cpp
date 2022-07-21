@@ -628,33 +628,59 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo,
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to Grid3d instance which matches name
-   set dim = 2/3 for 2d/3d grid
+   return index of grid associated with name
+   this class can store M named grids, indexed 0 to M-1
+   also set dim for 2d vs 3d grid
 ------------------------------------------------------------------------- */
 
-void *FixTTMGrid::grid_find_name(char *name, int &dim)
+int FixTTMGrid::get_grid_by_name(char *name, int &dim)
 {
   if (strcmp(name,"grid") == 0) {
     dim = 3;
-    return gc;
+    return 0;
   }
 
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to Grid data struct for grid with index
+   this class can store M named grids, indexed 0 to M-1
+------------------------------------------------------------------------- */
+
+void *FixTTMGrid::get_grid_by_index(int index)
+{
+  if (index == 0) return gc;
   return nullptr;
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to data field on a grid which matches name
-   set ncol = 0 for per-grid vector with a single value per grid pt
-   set ncol = M for per-grid array with M values per grid pt
+   return index of data associated with name in grid with index igrid
+   this class can store M named grids, indexed 0 to M-1
+   each grid can store G named data sets, indexed 0 to G-1
+   a data set name can be associated with multiple grids
+   also set ncol for data set, 0 = vector, 1-N for array with N columns
+   vector = single value per grid pt, array = N values per grid pt
 ------------------------------------------------------------------------- */
 
-void *FixTTMGrid::grid_find_field(char *name, int &ncol)
+int FixTTMGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
 {
-  if (strcmp(name,"telectron") == 0) {
+  if (igrid == 0 && strcmp(name,"data") == 0) {
     ncol = 0;
-    return T_electron;
+    return 0;
   }
 
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to multidim data array associated with index
+   this class can store G named data sets, indexed 0 to M-1
+------------------------------------------------------------------------- */
+
+void *FixTTMGrid::get_griddata_by_index(int index)
+{
+  if (index == 0) return T_electron;
   return nullptr;
 }
 

@@ -48,18 +48,15 @@ Build using GNU make
 
 The LAMMPS manual is written in `reStructuredText <rst_>`_ format which
 can be translated to different output format using the `Sphinx
-<sphinx_>`_ document generator tool.  It also incorporates programmer
-documentation extracted from the LAMMPS C++ sources through the `Doxygen
-<https://doxygen.nl>`_ program.  Currently the translation to HTML, PDF
-(via LaTeX), ePUB (for many e-book readers) and MOBI (for Amazon Kindle
-readers) are supported.  For that to work a Python 3 interpreter, the
-``doxygen`` tools and internet access to download additional files and
-tools are required.  This download is usually only required once or
-after the documentation folder is returned to a pristine state with
-``make clean-all``.
-
-.. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
-.. _sphinx: https://www.sphinx-doc.org
+<https://sphinx-doc.org>`_ document generator tool.  It also
+incorporates programmer documentation extracted from the LAMMPS C++
+sources through the `Doxygen <https://doxygen.nl>`_ program.  Currently
+the translation to HTML, PDF (via LaTeX), ePUB (for many e-book readers)
+and MOBI (for Amazon Kindle readers) are supported.  For that to work a
+Python 3 interpreter, the ``doxygen`` tools and internet access to
+download additional files and tools are required.  This download is
+usually only required once or after the documentation folder is returned
+to a pristine state with ``make clean-all``.
 
 For the documentation build a python virtual environment is set up in
 the folder ``doc/docenv`` and various python packages are installed into
@@ -252,6 +249,5 @@ manual with ``make spelling``.  This requires `a library called enchant
 positives* (e.g. keywords, names, abbreviations) those can be added to
 the file ``lammps/doc/utils/sphinx-config/false_positives.txt``.
 
-.. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
-
 .. _lws: https://www.lammps.org
+.. _rst: https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html

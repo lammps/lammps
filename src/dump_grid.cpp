@@ -275,7 +275,7 @@ void DumpGrid::init_style()
   int nx,ny,nz,nxtmp,nytmp,nztmp;
   
   for (int i = 1; i < nfield; i++) {
-    if (dimension == 2) {
+     if (dimension == 2) {
       if (field2source[i] == COMPUTE) {
         icompute = compute[field2index[i]];
         grid2d = (Grid2d *) icompute->get_grid_by_index(field2grid[i]);

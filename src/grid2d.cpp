@@ -212,6 +212,24 @@ void Grid2d::initialize(MPI_Comm gcomm,
 
 /* ---------------------------------------------------------------------- */
 
+void Grid2d::query_global_size(int &nxgrid, int &nygrid)
+{
+  nxgrid = nx;
+  nygrid = ny;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Grid2d::query_in_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
+{
+  xlo = inxlo;
+  xhi = inxhi;
+  ylo = inylo;
+  yhi = inyhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Grid2d::setup(int &nbuf1, int &nbuf2)
 {
   if (layout == REGULAR) setup_regular(nbuf1,nbuf2);

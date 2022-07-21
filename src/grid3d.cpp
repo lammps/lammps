@@ -229,6 +229,27 @@ void Grid3d::initialize(MPI_Comm gcomm,
 
 /* ---------------------------------------------------------------------- */
 
+void Grid3d::query_global_size(int &nxgrid, int &nygrid, int &nzgrid)
+{
+  nxgrid = nx;
+  nygrid = ny;
+  nzgrid = nz;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Grid3d::query_in_bounds(int &xlo, int &xhi, int &ylo, int &yhi, int &zlo, int &zhi)
+{
+  xlo = inxlo;
+  xhi = inxhi;
+  ylo = inylo;
+  yhi = inyhi;
+  zlo = inzlo;
+  zhi = inzhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Grid3d::setup(int &nbuf1, int &nbuf2)
 {
   if (layout == REGULAR) setup_regular(nbuf1,nbuf2);

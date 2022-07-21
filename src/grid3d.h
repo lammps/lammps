@@ -27,6 +27,8 @@ class Grid3d : protected Pointers {
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
            int, int, int, int, int, int, int, int, int, int);
   ~Grid3d() override;
+  void query_global_size(int &, int &, int &);
+  void query_in_bounds(int &, int &, int &, int &, int &, int &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);

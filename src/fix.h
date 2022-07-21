@@ -217,12 +217,14 @@ class Fix : protected Pointers {
   virtual void pack_gather_grid(int, void *){};
   virtual void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int){};
 
+  virtual int get_grid_by_name(char *, int &) { return -1; };
+  virtual void *get_grid_by_index(int) { return nullptr; };
+  virtual int get_griddata_by_name(int, char *, int &) { return -1; };
+  virtual void *get_griddata_by_index(int) { return nullptr; };
+
   virtual double compute_scalar() { return 0.0; }
   virtual double compute_vector(int) { return 0.0; }
   virtual double compute_array(int, int) { return 0.0; }
-
-  virtual void *grid_find_name(char *, int &) { return nullptr; };
-  virtual void *grid_find_field(char *, int &) { return nullptr; };
 
   virtual int dof(int) { return 0; }
   virtual void deform(int) {}

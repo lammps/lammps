@@ -47,6 +47,8 @@ class DumpGrid : public Dump {
   char *columns;     // column labels
   char *columns_default;
 
+  int dimension;
+
   int nchoose;        // # of selected atoms
   int maxlocal;       // size of atom selection and variable arrays
   int *choose;        // local indices of selected atoms
@@ -55,10 +57,15 @@ class DumpGrid : public Dump {
 
   int nfield;                 // # of keywords listed by user
   int ioptional;              // index of start of optional args
-                              //
-  int *field2index;           // which compute,fix,variable,custom calcs this field
+
+                              // per field info
+  int *field2index;           // which compute/fix
+  int *field2source;          // COMPUTE or FIX
+  int *field2grid;            // index of grid within compute/fix
+  int *field2data;            // index of data within compute/fix
   int *argindex;              // index into compute,fix,custom per-atom data
                               // 0 for per-atom vector, 1-N for cols of per-atom array
+  void **dataptr;             // ptr to grid data
 
   int ncompute;               // # of Computes accessed by dump
   char **id_compute;          // their IDs
@@ -67,6 +74,10 @@ class DumpGrid : public Dump {
   int nfix;                   // # of Fixes used by dump
   char **id_fix;              // their IDs
   class Fix **fix;            // list of ptrs to the Fixes
+
+  int nxlo_in,nxhi_in;        // bounds of this proc's portion of grids
+  int nylo_in,nyhi_in;
+  int nzlo_in,nzhi_in;
 
   // private methods
 
@@ -109,8 +120,8 @@ class DumpGrid : public Dump {
   typedef void (DumpGrid::*FnPtrPack)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
-  void pack_compute(int);
-  void pack_fix(int);
+  void pack_grid2d(int);
+  void pack_grid3d(int);
 };
 
 }    // namespace LAMMPS_NS

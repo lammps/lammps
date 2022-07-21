@@ -26,11 +26,12 @@ class Grid2d : protected Pointers {
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int,
 	 int, int, int, int, int);
   ~Grid2d() override;
+  void query_global_size(int &, int &);
+  void query_in_bounds(int &, int &, int &, int &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
-  void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
  protected:
   int me, nprocs;

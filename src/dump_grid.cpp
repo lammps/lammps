@@ -44,7 +44,8 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr), vtype(nullptr), 
   vformat(nullptr), columns(nullptr), columns_default(nullptr), 
   choose(nullptr), dchoose(nullptr), clist(nullptr),
-  field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr),
+  field2index(nullptr), field2grid(nullptr), field2data(nullptr),
+  argindex(nullptr), id_compute(nullptr), compute(nullptr),
   id_fix(nullptr), fix(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump grid arguments specified");
@@ -67,11 +68,16 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
 
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
-  memory->create(field2index,nfield,"dump:field2index");
-  memory->create(argindex,nfield,"dump:argindex");
+  field2source = new int[nfield];
+  field2index = new int[nfield];
+  field2grid = new int[nfield];
+  field2data = new int[nfield];
+  argindex = new int[nfield];
 
   buffer_allow = 1;
   buffer_flag = 1;
+
+  dimension = domain->dimension;
 
   // computes and fixes which the dump accesses
 
@@ -144,9 +150,12 @@ DumpGrid::~DumpGrid()
 
   delete[] pack_choice;
   delete[] vtype;
-  memory->destroy(field2index);
-  memory->destroy(argindex);
-
+  delete[] field2source;
+  delete[] field2index;
+  delete[] field2grid;
+  delete[] field2data;
+  delete[] argindex;
+  
   delete[] idregion;
 
   for (int i = 0; i < ncompute; i++) delete[] id_compute[i];
@@ -254,6 +263,48 @@ void DumpGrid::init_style()
     fix[i] = modify->get_fix_by_id(id_fix[i]);
     if (!fix[i]) 
       error->all(FLERR,"Could not find dump grid fix ID {}", id_fix[i]);
+  }
+
+  // check that grid sizes for all fields are the same
+
+  Compute *icompute;
+  Fix *ifix;
+  Grid2d *grid2d;
+  Grid3d *grid3d;
+  
+  int nx,ny,nz,nxtmp,nytmp,nztmp;
+  
+  for (int i = 1; i < nfield; i++) {
+    if (dimension == 2) {
+      if (field2source[i] == COMPUTE) {
+        icompute = compute[field2index[i]];
+        grid2d = (Grid2d *) icompute->get_grid_by_index(field2grid[i]);
+      } else {
+        ifix = fix[field2index[i]];
+        grid2d = (Grid2d *) ifix->get_grid_by_index(field2grid[i]);
+      }
+      if (i == 0) grid2d->query_global_size(nx,ny);
+      else {
+        grid2d->query_global_size(nxtmp,nytmp);
+        if (nxtmp != nx || nytmp != ny) 
+          error->all(FLERR,"Dump grid field grid sizes do not match");
+      }
+
+    } else {
+      if (field2source[0] == COMPUTE) {
+        icompute = compute[field2index[i]];
+        grid3d = (Grid3d *) icompute->get_grid_by_index(field2grid[i]);
+      } else {
+        ifix = fix[field2index[i]];
+        grid3d = (Grid3d *) ifix->get_grid_by_index(field2grid[i]);
+      }
+      if (i == 0) grid3d->query_global_size(nx,ny,nz);
+      else {
+        grid3d->query_global_size(nxtmp,nytmp,nztmp);
+        if (nxtmp != nx || nytmp != ny || nztmp != nz)
+          error->all(FLERR,"Dump grid field grid sizes do not match");
+      }
+    }
   }
 
   // check validity of region
@@ -471,6 +522,30 @@ int DumpGrid::count()
   }
   */
 
+  // set current size for portion of grid on each proc
+  // may change between dump snapshots due to load balancing
+
+  Grid2d *grid2d;
+  Grid3d *grid3d;
+
+  if (dimension == 2) {
+    if (field2source[0] == COMPUTE)
+      grid2d = (Grid2d *) 
+        compute[field2index[0]]->get_grid_by_index(field2grid[0]);
+    else if (field2source[0] == FIX)
+      grid2d = (Grid2d *) 
+        fix[field2index[0]]->get_grid_by_index(field2grid[0]);
+    grid2d->query_in_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+  } else {
+    if (field2source[0] == COMPUTE)
+      grid3d = (Grid3d *) 
+        compute[field2index[0]]->get_grid_by_index(field2grid[0]);
+    else if (field2source[0] == FIX)
+      grid3d = (Grid3d *) 
+        fix[field2index[0]]->get_grid_by_index(field2grid[0]);
+    grid3d->query_in_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+  }
+
   // invoke Computes for per-grid quantities
   // only if within a run or minimize
   // else require that computes are current
@@ -491,6 +566,16 @@ int DumpGrid::count()
     }
   }
 
+  // return count of grid points I own
+  
+  int ngrid;
+  if (dimension == 2) 
+    ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1);
+  else  
+    ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) * (nzhi_in-nzlo_in+1);
+
+  return ngrid;
+
   // choose all local grid pts for output
   // NOTE: this needs to change
 
@@ -499,29 +584,29 @@ int DumpGrid::count()
   // un-choose if not in region
   // NOTE: this needs to change
 
+  /*
   if (idregion) {
     auto region = domain->get_region_by_id(idregion);
     region->prematch();
-    /*
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
       if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)
         choose[i] = 0;
-    */
   }
+  */
 
   // compress choose flags into clist
   // nchoose = # of selected atoms
   // clist[i] = local index of each selected atom
   // NOTE: this neds to change
 
-  nchoose = 0;
   /*
+  nchoose = 0;
   for (i = 0; i < nlocal; i++)
     if (choose[i]) clist[nchoose++] = i;
-  */
 
   return nchoose;
+  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -641,8 +726,10 @@ int DumpGrid::parse_fields(int narg, char **arg)
       // if no trailing [], then arg is set to 0, else arg is int between []
       
       case ArgInfo::COMPUTE: {
-        pack_choice[iarg] = &DumpGrid::pack_compute;
+	if (dimension == 2) pack_choice[iarg] = &DumpGrid::pack_grid2d;
+        else pack_choice[iarg] = &DumpGrid::pack_grid3d;
         vtype[iarg] = Dump::DOUBLE;
+	field2source[iarg] = COMPUTE;
         
         // name = idcompute:gname:fname, split into 3 strings
 
@@ -657,13 +744,13 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
         int n = strlen(name) + 1;
         char *idcompute = new char[n];
-        strcpy(idfix,name);
+        strcpy(idcompute,name);
         n = strlen(ptr1+1) + 1;
         char *gname = new char[n];
         strcpy(gname,ptr1+1);
         n = strlen(ptr2+1) + 1;
-        char *fname = new char[n];
-        strcpy(fname,ptr2+1);
+        char *dname = new char[n];
+        strcpy(dname,ptr2+1);
 
         *ptr1 = ':';
         *ptr2 = ':';
@@ -676,55 +763,48 @@ int DumpGrid::parse_fields(int narg, char **arg)
                      idcompute);
       
         int dim;
-        void *ggrid = icompute->grid_find_name(gname,dim);
-        if (!ggrid) 
+        int igrid = icompute->get_grid_by_name(gname,dim);
+        if (igrid < 0) 
           error->all(FLERR,"Dump grid compute {} does not recognize grid name {}",
                      idcompute,gname);
       
-        Grid2d *grid2d;
-        Grid3d *grid3d;
-        if (dim == 2) grid2d = (Grid2d *) ggrid;
-        if (dim == 3) grid3d = (Grid3d *) ggrid;
-
         int ncol;
-        void *gfield = icompute->grid_find_field(fname,ncol);
-        if (!gfield) 
+        int idata = icompute->get_griddata_by_name(igrid,dname,ncol);
+        if (idata < 0) 
           error->all(FLERR,
-                     "Dump grid compute {} does not recognize field name {}",
-                     idcompute,fname);
+                     "Dump grid compute {} does not recognize data name {}",
+                     idcompute,dname);
 
         if (argi.get_dim() == 0 && ncol)
-          error->all(FLERR,"Dump grid compute {} field {} is not per-grid vector",
-                     idcompute,fname);
+          error->all(FLERR,"Dump grid compute {} data {} is not per-grid vector",
+                     idcompute,dname);
         if (argi.get_dim() > 0 && ncol == 0) 
-          error->all(FLERR,"Dump grid compute {} field {} is not per-grid array",
-                     idcompute,fname);
+          error->all(FLERR,"Dump grid compute {} data {} is not per-grid array",
+                     idcompute,dname);
         if (argi.get_dim() > 0 && argi.get_index1() > ncol)
           error->all(FLERR,
                      "Dump grid compute {} array {} is accessed out-of-range",
-                     idcompute,fname);
+                     idcompute,dname);
      
-        double **vec2d;
-        double ***vec3d;
-        double ***array2d;
-        double ****array3d;
-        if (ncol == 0) {
-          if (dim == 2) vec2d = (double **) gfield;
-          if (dim == 3) vec3d = (double ***) gfield;
-        } else if (ncol) {
-          if (dim == 2) array2d = (double ***) gfield;
-          if (dim == 3) array3d = (double ****) gfield;
-        }
       
         field2index[iarg] = add_compute(idcompute);
+	field2grid[iarg] = igrid;
+	field2data[iarg] = idata;
+
+        delete [] idcompute;
+        delete [] gname;
+        delete [] dname;
+
       } break;
 
       // fix value = f_ID
       // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::FIX: {
-        pack_choice[iarg] = &DumpGrid::pack_fix;
+        if (dimension == 2) pack_choice[iarg] = &DumpGrid::pack_grid2d;
+        else pack_choice[iarg] = &DumpGrid::pack_grid3d;
         vtype[iarg] = Dump::DOUBLE;
+	field2source[iarg] = FIX;
 
         // name = idfix:gname:fname, split into 3 strings
 
@@ -744,8 +824,8 @@ int DumpGrid::parse_fields(int narg, char **arg)
         char *gname = new char[n];
         strcpy(gname,ptr1+1);
         n = strlen(ptr2+1) + 1;
-        char *fname = new char[n];
-        strcpy(fname,ptr2+1);
+        char *dname = new char[n];
+        strcpy(dname,ptr2+1);
 
         *ptr1 = ':';
         *ptr2 = ':';
@@ -757,45 +837,35 @@ int DumpGrid::parse_fields(int narg, char **arg)
                      idfix);
       
         int dim;
-        void *ggrid = ifix->grid_find_name(gname,dim);
-        if (!ggrid) 
+        int igrid = ifix->get_grid_by_name(gname,dim);
+        if (igrid < 0) 
           error->all(FLERR,"Dump grid fix {} does not recognize grid name {}",
                      idfix,gname);
       
-        Grid2d *grid2d;
-        Grid3d *grid3d;
-        if (dim == 2) grid2d = (Grid2d *) ggrid;
-        if (dim == 3) grid3d = (Grid3d *) ggrid;
-
         int ncol;
-        void *gfield = ifix->grid_find_field(fname,ncol);
-        if (!gfield) 
-          error->all(FLERR,"Dump grid fix {} does not recognize field name {}",
-                     idfix,fname);
+        int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
+        if (idata < 0) 
+          error->all(FLERR,"Dump grid fix {} does not recognize data name {}",
+                     idfix,dname);
 
         if (argi.get_dim() == 0 && ncol)
-          error->all(FLERR,"Dump grid fix {} field {} is not per-grid vector",
-                     idfix,fname);
+          error->all(FLERR,"Dump grid fix {} data {} is not per-grid vector",
+                     idfix,dname);
         if (argi.get_dim() > 0 && ncol == 0) 
-          error->all(FLERR,"Dump grid fix {} field {} is not per-grid array",
-                     idfix,fname);
+          error->all(FLERR,"Dump grid fix {} data {} is not per-grid array",
+                     idfix,dname);
         if (argi.get_dim() > 0 && argi.get_index1() > ncol)
           error->all(FLERR,"Dump grid fix {} array {} is accessed out-of-range",
-                     idfix,fname);
+                     idfix,dname);
      
-        double **vec2d;
-        double ***vec3d;
-        double ***array2d;
-        double ****array3d;
-        if (ncol == 0) {
-          if (dim == 2) vec2d = (double **) gfield;
-          if (dim == 3) vec3d = (double ***) gfield;
-        } else if (ncol) {
-          if (dim == 2) array2d = (double ***) gfield;
-          if (dim == 3) array3d = (double ****) gfield;
-        }
-      
         field2index[iarg] = add_fix(idfix);
+	field2grid[iarg] = igrid;
+	field2data[iarg] = idata;
+
+        delete [] idfix;
+        delete [] gname;
+        delete [] dname;
+
       } break;
 
       // no match
@@ -928,74 +998,86 @@ int DumpGrid::modify_param(int narg, char **arg)
 double DumpGrid::memory_usage()
 {
   double bytes = Dump::memory_usage();
-  bytes += memory->usage(choose,maxlocal);
-  bytes += memory->usage(dchoose,maxlocal);
-  bytes += memory->usage(clist,maxlocal);
+  //NOTE: restre if use choose
+  //bytes += memory->usage(choose,maxlocal);
+  //bytes += memory->usage(dchoose,maxlocal);
+  //bytes += memory->usage(clist,maxlocal);
   return bytes;
 }
 
 /* ----------------------------------------------------------------------
-   extraction of Compute and Fix data
+   extraction of 2d and 3d grid data
+   from either compute or fix
 ------------------------------------------------------------------------- */
 
-void DumpGrid::pack_compute(int n)
+void DumpGrid::pack_grid2d(int n)
 {
-  double *vector = compute[field2index[n]]->vector_atom;
-  double **array = compute[field2index[n]]->array_atom;
   int index = argindex[n];
 
   if (index == 0) {
-    for (int i = 0; i < nchoose; i++) {
-      buf[n] = vector[clist[i]];
-      n += size_one;
-    }
+    double **vec2d;
+    if (field2source[n] == COMPUTE)
+      vec2d = (double **) 
+        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else if (field2source[n] == FIX)
+      vec2d = (double **) 
+        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+    for (int iy = nylo_in; iy <= nyhi_in; iy++)
+      for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+	buf[n] = vec2d[iy][ix];
+	n += size_one;
+      }
   } else {
+    double ***array2d;
+    if (field2source[n] == COMPUTE)
+      array2d = (double ***) 
+        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else if (field2source[n] == FIX)
+      array2d = (double ***) 
+        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
     index--;
-    for (int i = 0; i < nchoose; i++) {
-      buf[n] = array[clist[i]][index];
-      n += size_one;
-    }
+    for (int iy = nylo_in; iy <= nyhi_in; iy++)
+      for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+	buf[n] = array2d[iy][ix][index];
+	n += size_one;
+      }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpGrid::pack_fix(int n)
+void DumpGrid::pack_grid3d(int n)
 {
-  double *vector = fix[field2index[n]]->vector_atom;
-  double **array = fix[field2index[n]]->array_atom;
   int index = argindex[n];
 
   if (index == 0) {
+    double ***vec3d;
+    if (field2source[n] == COMPUTE)
+      vec3d = (double ***) 
+        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else if (field2source[n] == FIX)
+      vec3d = (double ***) 
+        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
     for (int iz = nzlo_in; iz <= nzhi_in; iz++)
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-          buf[n] = vec3d[iz][iy][ix];
-          n += size_one;
-        }
+	for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+	  buf[n] = vec3d[iz][iy][ix];
+	  n += size_one;
+	}
   } else {
+    double ****array3d;
+    if (field2source[n] == COMPUTE)
+      array3d = (double ****) 
+        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else if (field2source[n] == FIX)
+      array3d = (double ****) 
+        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
     index--;
     for (int iz = nzlo_in; iz <= nzhi_in; iz++)
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-          buf[n] = array3d[iz][iy][ix][index];
+	for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+	  buf[n] = array3d[iz][iy][ix][index];
           n += size_one;
-        }
+	}
   }
-
-  /*
-  if (index == 0) {
-    for (int i = 0; i < nchoose; i++) {
-      buf[n] = vector[clist[i]];
-      n += size_one;
-    }
-  } else {
-    index--;
-    for (int i = 0; i < nchoose; i++) {
-      buf[n] = array[clist[i]][index];
-      n += size_one;
-    }
-  }
-  */
 }
-

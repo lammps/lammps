@@ -32,6 +32,10 @@ cd latte/git
   produces exe = LATTE_DOUBLE and libfile = liblatte_mdi.so
   the exe is not the non-MDI LATTE main, but a new one that goes into engine mode
 
+for building with fix latte:
+
+cmake -D PKG_MOLECULE=yes -D PKG_LATTE=yes -D USE_INTERNAL_LINALG=on ../cmake
+
 ---------
 
 copy lmp_mpi and LATTE_DOUBLE into this dir
@@ -52,6 +56,10 @@ LAMMPS uses in.mdi.aimd or in.mdi.aimd.plugin
 ++ Run with MPI: 1 proc each
 
 mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
+  -log log.aimd.driver.mpi.1 -in in.mdi.aimd : \
+  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+
+mpirun -np 1 valgrind lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
   -log log.aimd.driver.mpi.1 -in in.mdi.aimd : \
   -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
 

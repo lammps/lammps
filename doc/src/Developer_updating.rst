@@ -1,16 +1,21 @@
 Notes for updating code written for older LAMMPS versions
 ---------------------------------------------------------
 
-This section documents how C++ source files that were written for an
-older version of LAMMPS need to be updated to be compatible with the
-current and future version(s).  Due to the active development of LAMMPS
-it is likely to always be incomplete.  Please contact developer@lammps.org
-in case you run across an issue that is not (yet) listed here.  Please
-also review the latest information about the LAMMPS :doc:`programming style
-conventions <Modify_style>`.
+This section documents how C++ source files that are available *outside
+of the LAMMPS source distribution* (e.g. in external USER packages or as
+source files provided as a supplement to a publication) that are written
+for an older version of LAMMPS and thus need to be updated to be
+compatible with the current version of LAMMPS.  Due to the active
+development of LAMMPS it is likely to always be incomplete.  Please
+contact developer@lammps.org in case you run across an issue that is not
+(yet) listed here.  Please also review the latest information about the
+LAMMPS :doc:`programming style conventions <Modify_style>`, especially
+if you are considering to submit the updated version for inclusion into
+the LAMMPS distribution.
 
-Available topics in chronological order are:
+Available topics in mostly chronological order are:
 
+- `Setting flags in the constructor`_
 - `Rename of pack/unpack_comm() to pack/unpack_forward_comm()`_
 - `Use ev_init() to initialize variables derived from eflag and vflag`_
 - `Use utils::numeric() functions instead of force->numeric()`_
@@ -20,6 +25,21 @@ Available topics in chronological order are:
 - `Simplified and more compact neighbor list requests`_
 
 ----
+
+Setting flags in the constructor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As LAMMPS gains additional functionality, new flags may need to be set
+in the constructor or a class to signal compatibility with such features.
+Most of the time the defaults are chosen conservatively, but sometimes
+the conservative choice is the uncommon choice, and then those settings
+need to be made when updating code.
+
+Pair styles:
+
+  - ``manybody_flag``: set to 1 if your pair style is not pair-wise additive
+  - ``restartinfo``: set to 0 if your pair style does not store data in restart files
+
 
 Rename of pack/unpack_comm() to pack/unpack_forward_comm()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

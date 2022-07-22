@@ -2,15 +2,14 @@ These are examples that work the MDI package in LAMMPS which uses the
 MolSSI MDI library for coupling codes together and communicating
 between them with MDI messages.
 
-Within the MDI context, one code is the driver and another code is
-the engine.  The 2 codes can be written in any language; C++ (LAMMPS)
-and Python are illustrated here.  The 2 codes can each be stand-alone
-codes, in which case they can be run on different numbers of processors.
-The 2
-codes can communicate either via TCP (sockets) or via MPI.  For the
-TCP case, the driver and engine need to be launched separately,
-e.g. in 2 windows on your desktop machine.  For the MPI case, a single
-mpirun command launches both codes.
+Within the MDI context, one code is the driver and another code is the
+engine.  The 2 codes can be written in any language; C++ (LAMMPS) and
+Python are illustrated here.  The 2 codes can each be stand-alone
+codes, in which case they can be run on different numbers of
+processors.  The 2 codes can communicate either via TCP (sockets) or
+via MPI.  For the TCP case, the driver and engine need to be launched
+separately, e.g. in 2 windows on your desktop machine.  For the MPI
+case, a single mpirun command launches both codes.
 
 Alternatively the engine code can be a plugin library which the driver
 code loads, in which case the driver and engine run on the same
@@ -19,13 +18,19 @@ processors.
 LAMMPS supports operating in all these MDI modes.  It can be an engine
 operating either as a stand-alone code or as a plugin.  It can also be
 a driver and couple to an engine that is either a stand-alone code or
-a plugin.  Examples for all these use cases are in this directory.
-The Run.sh file shows how run in all the modes.  Type "sh Run.sh"
-to try them all out.
+a plugin.  
 
-To use LAMMPS as a plugin engine, you must build it as a shared
-library.  Something like this with make, which also builds the normal
-LAMMPS executable lmp_mpi:
+Examples for all these use cases, using LAMMPS as a driver and as an
+engine are in this directory.  The Run.sh file shows how run in all
+the modes.  Type "sh Run.sh" to try them all out.
+
+Examples for using LAMMPS as a driver with the tight-binding code LATTE  
+are in the LATTE sub-directory.  See its README file for more info.
+
+Note that to use LAMMPS as a plugin engine for some the examples in
+this dir, you must build it as a shared library.  Something like this
+with traditional make, which also builds the normal LAMMPS executable
+lmp_mpi:
 
 cd src
 make yes-mdi
@@ -39,9 +44,9 @@ Python/mpi4py are using same the same version of MPI.
 
 You will also need MDI installed in your Python. You cannot use the
 LAMMPS build of the MDI library for this, b/c LAMMPS builds MDI as a
-static library, not shared, which Python requires.
+static library, while Python requires a shared library.
 
-You can install MDI in your Python via conda:
+Instead you can install MDI in your Python via conda:
 
 % conda install -c conda-forge pymdi=1.4.1
 

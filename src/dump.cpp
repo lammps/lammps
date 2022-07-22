@@ -332,6 +332,7 @@ void Dump::write()
   // if file per timestep, open new file
 
   if (multifile) openfile();
+  if (fp) clearerr(fp);
 
   // simulation box bounds
 
@@ -516,6 +517,10 @@ void Dump::write()
   // currently used for incremental dump files
 
   if (refreshflag) modify->compute[irefresh]->refresh();
+
+  if (filewriter && fp != nullptr) write_footer();
+
+  if (fp && ferror(fp)) error->one(FLERR,"Error writing dump {}: {}", id, utils::getsyserror());
 
   // if file per timestep, close file if I am filewriter
 
@@ -1146,7 +1151,8 @@ void Dump::modify_params(int narg, char **arg)
           }
         }
         if ((icol < 0) || (icol >= (int)keyword_user.size()))
-          error->all(FLERR, "Illegal thermo_modify command");
+          error->all(FLERR, "Incorrect dump_modify arguments: {} {} {}",
+                     arg[iarg], arg[iarg+1], arg[iarg+2]);
         keyword_user[icol] = arg[iarg+2];
         iarg += 3;
       }

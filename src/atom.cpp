@@ -204,6 +204,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = esph = desph = cv = nullptr;
   vest = nullptr;
 
+  // AMOEBA package
+
+  maxspecial15 = 1;
+  nspecial15 = nullptr;
+  special15 = nullptr;
+
   // DIELECTRIC package
 
   area = ed = em = epsilon = curvature = q_unscaled = nullptr;
@@ -534,6 +540,11 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
 
+  // AMOEBA package
+
+  add_peratom("nspecial15",&nspecial15,INT,0);
+  add_peratom_vary("special15",&special15,tagintsize,&maxspecial15,&nspecial15,0);
+
   // DIELECTRIC package
 
   add_peratom("area",&area,DOUBLE,0);
@@ -622,6 +633,7 @@ void Atom::set_atomflag_defaults()
   mesont_flag = 0;
   contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
+  nspecial15_flag = 0;
 
   pdscale = 1.0;
 }
@@ -2659,9 +2671,17 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"body") == 0) return (void *) body;
   if (strcmp(name,"quat") == 0) return (void *) quat;
 
+  // PERI PACKAGE
+
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;
   if (strcmp(name,"x0") == 0) return (void *) x0;
+
+  // SPIN PACKAGE
+
+  if (strcmp(name,"sp") == 0) return (void *) sp;
+
+  // EFF and AWPMD packages
 
   if (strcmp(name,"spin") == 0) return (void *) spin;
   if (strcmp(name,"eradius") == 0) return (void *) eradius;
@@ -2673,6 +2693,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"vforce") == 0) return (void *) vforce;
   if (strcmp(name,"etag") == 0) return (void *) etag;
 
+  // SPH package
   if (strcmp(name,"rho") == 0) return (void *) rho;
   if (strcmp(name,"drho") == 0) return (void *) drho;
   if (strcmp(name,"esph") == 0) return (void *) esph;

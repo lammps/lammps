@@ -23,10 +23,9 @@ fix		1 all nve
 # NPT
 #fix             1 all npt temp 1.0 1.0 0.1 iso 1.0 1.0 1.0
 
-fix             2 all mdi/aimd
-fix_modify      2 energy yes virial yes
+fix             2 all mdi/qm virial yes
 
 thermo_style    custom step temp pe etotal press vol
 thermo          1
 
-run             5
+run             10

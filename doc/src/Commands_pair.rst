@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 Pair_style potentials
 ======================
@@ -38,6 +39,7 @@ OPT.
    * :doc:`agni (o) <pair_agni>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/morse (io) <pair_airebo>`
+   * :doc:`amoeba <pair_amoeba>`
    * :doc:`atm <pair_atm>`
    * :doc:`awpmd/cut <pair_awpmd>`
    * :doc:`beck (go) <pair_beck>`
@@ -124,6 +126,7 @@ OPT.
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
+   * :doc:`hippo <pair_amoeba>`
    * :doc:`ilp/graphene/hbn (t) <pair_ilp_graphene_hbn>`
    * :doc:`ilp/tmd (t) <pair_ilp_tmd>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
@@ -179,9 +182,9 @@ OPT.
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
-   * :doc:`lj/sdk (gko) <pair_sdk>`
-   * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
-   * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`
+   * :doc:`lj/spica (gko) <pair_spica>`
+   * :doc:`lj/spica/coul/long (go) <pair_spica>`
+   * :doc:`lj/spica/coul/msm (o) <pair_spica>`
    * :doc:`lj/sf/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/smooth (go) <pair_lj_smooth>`
    * :doc:`lj/smooth/linear (o) <pair_lj_smooth_linear>`
@@ -194,7 +197,7 @@ OPT.
    * :doc:`lubricateU/poly <pair_lubricateU>`
    * :doc:`mdpd <pair_mesodpd>`
    * :doc:`mdpd/rhosum <pair_mesodpd>`
-   * :doc:`meam <pair_meam>`
+   * :doc:`meam (k) <pair_meam>`
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
@@ -268,6 +271,7 @@ OPT.
    * :doc:`spin/magelec <pair_spin_magelec>`
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`
+   * :doc:`srp/react <pair_srp>`
    * :doc:`sw (giko) <pair_sw>`
    * :doc:`sw/angle/table <pair_sw_angle_table>`
    * :doc:`sw/mod (o) <pair_sw>`

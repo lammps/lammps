@@ -1296,45 +1296,45 @@ std::string Info::get_accelerator_info(const std::string &package)
 
 void Info::get_memory_info(double *meminfo)
 {
-    double bytes = 0;
-    bytes += atom->memory_usage();
-    bytes += neighbor->memory_usage();
-    bytes += comm->memory_usage();
-    bytes += update->memory_usage();
-    bytes += force->memory_usage();
-    bytes += modify->memory_usage();
-    for (int i = 0; i < output->ndump; i++)
-      bytes += output->dump[i]->memory_usage();
-    meminfo[0] = bytes/1024.0/1024.0;
-    meminfo[1] = 0;
-    meminfo[2] = 0;
+  double bytes = 0;
+  bytes += atom->memory_usage();
+  bytes += neighbor->memory_usage();
+  bytes += comm->memory_usage();
+  bytes += update->memory_usage();
+  bytes += force->memory_usage();
+  bytes += modify->memory_usage();
+  for (int i = 0; i < output->ndump; i++)
+    bytes += output->dump[i]->memory_usage();
+  meminfo[0] = bytes/1024.0/1024.0;
+  meminfo[1] = 0;
+  meminfo[2] = 0;
 
 #if defined(_WIN32)
-    HANDLE phandle = GetCurrentProcess();
-    PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
-    meminfo[1] = (double)pmc.PrivateUsage/1048576.0;
-    meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
+  HANDLE phandle = GetCurrentProcess();
+  PROCESS_MEMORY_COUNTERS_EX pmc;
+  GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
+  meminfo[1] = (double)pmc.PrivateUsage/1048576.0;
+  meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
 #else
 #if defined(__linux__)
 #if defined(__GLIBC__) && __GLIBC_PREREQ(2, 33)
-    struct mallinfo2 mi;
-    mi = mallinfo2();
+  struct mallinfo2 mi;
+  mi = mallinfo2();
 #else
-    struct mallinfo mi;
-    mi = mallinfo();
+  struct mallinfo mi;
+  mi = mallinfo();
 #endif
-    meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
+  meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
 #endif
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0)
-      meminfo[2] = (double)ru.ru_maxrss/1024.0;
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0)
+    meminfo[2] = (double)ru.ru_maxrss/1024.0;
 #endif
 }
 
 /* ---------------------------------------------------------------------- */
 
 char **Info::get_variable_names(int &num) {
-    num = input->variable->nvar;
-    return input->variable->names;
+  num = input->variable->nvar;
+  return input->variable->names;
 }

@@ -50,6 +50,7 @@ endif
 
 PACKAGE = \
 	adios \
+	amoeba \
 	asphere \
 	awpmd \
 	bocs \
@@ -57,7 +58,7 @@ PACKAGE = \
         bpm \
 	brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	colvars \
@@ -146,13 +147,14 @@ PACKAGE = \
 PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
+	amoeba \
 	asphere \
 	bocs \
 	body \
 	bpm \
         brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	coreshell \
@@ -461,7 +463,7 @@ mpi-stubs:
 sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
-	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so
+	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD)
 
 # Create a tarball of src dir and packages
 

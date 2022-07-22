@@ -20,7 +20,7 @@ Syntax
 * Nfreq = calculate average bond-order every this many timesteps
 * filename = name of output file
 * zero or more keyword/value pairs may be appended
-* keyword = *cutoff* or *element* or *position*
+* keyword = *cutoff* or *element* or *position* or *delete*
 
   .. parsed-literal::
 
@@ -31,6 +31,14 @@ Syntax
        *position* value = posfreq filepos
          posfreq = write position files every this many timestep
          filepos = name of position output file
+       *delete* value = filedel keyword value
+         filedel = name of delete species output file
+         keyword = *specieslist* or *masslimit*
+           *specieslist* value = Nspecies Species1 Species2 ...
+             Nspecies = number of species in list
+           *masslimit* value = massmin massmax
+             massmin = minimum molecular weight of species to delete
+             massmax = maximum molecular weight of species to delete
 
 Examples
 """"""""
@@ -40,6 +48,7 @@ Examples
    fix 1 all reaxff/species 10 10 100 species.out
    fix 1 all reaxff/species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2 0.55
    fix 1 all reaxff/species 1 100 100 species.out element Au O H position 1000 AuOH.pos
+   fix 1 all reaxff/species 1 100 100 species.out delete species.del masslimit 0 50
 
 Description
 """""""""""
@@ -59,13 +68,18 @@ the first line.
 .. warning::
 
    In order to compute averaged data, it is required that there are no
-   neighbor list rebuilds between the *Nfreq* steps. For that reason, fix
-   *reaxff/species* may change your neighbor list settings.  There will
-   be a warning message showing the new settings. Having an *Nfreq*
-   setting that is larger than what is required for correct computation
-   of the ReaxFF force field interactions can thus lead to incorrect
-   results.  For typical ReaxFF calculations a value of 100 is already
-   quite large.
+   neighbor list rebuilds for at least Nrepeat\*Nevery steps preceding
+   each *Nfreq* step.  For that reason, fix *reaxff/species* may
+   change your neighbor list settings.  Reneighboring will occur no
+   more frequently than every Nrepeat\*Nevery timesteps, and will
+   occur less frequently if *Nfreq* is not a multiple of
+   Nrepeat\*Nevery.  There will be a warning message showing the new
+   settings.  Having a *Nfreq* setting that is larger than what is
+   required for correct computation of the ReaxFF force field
+   interactions, in combination with certain *Nrepeat* and *Nevery*
+   settings, can thus lead to incorrect results.  For typical ReaxFF
+   calculations, reneighboring only every 100 steps is already quite a
+   low frequency.
 
 If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text version,
@@ -103,6 +117,30 @@ file.  It can contain the wildcard character "\*".  If the "\*"
 character appears in *filepos*, then one file per snapshot is written
 at *posfreq* and the "\*" character is replaced with the timestep
 value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
+
+The optional keyword *delete* enables the periodic removal of
+molecules from the system.  Criteria for deletion can be either a list
+of specific chemical formulae or a range of molecular weights.
+Molecules are deleted every *Nfreq* timesteps, and bond connectivity
+is determined using the *Nevery* and *Nrepeat* keywords.  The
+*filedel* argument is the name of the output file that records the
+species that are removed from the system.  The *specieslist* keyword
+permits specific chemical species to be deleted.  The *Nspecies*
+argument specifies how many species are eligible for deletion and is
+followed by a list of chemical formulae, whose strings are compared to
+species identified by this fix.  For example, "specieslist 2 CO CO2"
+deletes molecules that are identified as "CO" and "CO2" in the species
+output file.  When using the *specieslist* keyword, the *filedel* file
+has the following format: the first line lists the chemical formulae
+eligible for deletion, and each additional line contains the timestep
+on which a molecule deletion occurs and the number of each species
+deleted on that timestep.  The *masslimit* keyword permits deletion of
+molecules with molecular weights between *massmin* and *massmax*.
+When using the *masslimit* keyword, each line of the *filedel* file
+contains the timestep on which deletions occurs, followed by how many
+of each species are deleted (with quantities preceding chemical
+formulae).  The *specieslist* and *masslimit* keywords cannot both be
+used in the same *reaxff/species* fix.
 
 ----------
 

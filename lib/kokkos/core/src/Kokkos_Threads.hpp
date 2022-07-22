@@ -175,6 +175,7 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<Threads> {
   static constexpr DeviceType id = DeviceType::Threads;
+  static int device_id(const Threads&) { return 0; }
 };
 }  // namespace Experimental
 }  // namespace Tools

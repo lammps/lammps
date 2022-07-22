@@ -1,5 +1,0 @@
-include(CMakeFindDependencyMacro)
-if(ON)
-  find_dependency(MPI REQUIRED CXX)
-endif()
-include("${CMAKE_CURRENT_LIST_DIR}/LAMMPS_Targets.cmake")

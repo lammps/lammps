@@ -29,8 +29,10 @@ class Dump : protected Pointers {
   char *filename;          // user-specified file
   int igroup, groupbit;    // group that Dump is performed on
 
-  int first_flag;    // 0 if no initial dump, 1 if yes initial dump
-  int clearstep;     // 1 if dump can invoke computes, 0 if not
+  int first_flag;          // 0 if no initial dump, 1 if yes initial dump
+  int clearstep;           // 1 if dump can invoke computes, 0 if not
+  bool skip_flag;          // true if dump has skip condition to skip writing frames
+  std::string skipexpr;    // text of skip expression to evaluate
 
   int comm_forward;    // size of forward communication (0 if none)
   int comm_reverse;    // size of reverse communication (0 if none)
@@ -44,10 +46,17 @@ class Dump : protected Pointers {
   ~Dump() override;
   void init();
   virtual void write();
+  bool skip_frame();            // check skip condition
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
+  virtual int pack_forward_comm(int, int *, double *, int, int *)
+  {
+    return 0;
+  }
   virtual void unpack_forward_comm(int, int, double *) {}
-  virtual int pack_reverse_comm(int, int, double *) { return 0; }
+  virtual int pack_reverse_comm(int, int, double *)
+  {
+    return 0;
+  }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
   void modify_params(int, char **);
@@ -147,11 +156,17 @@ class Dump : protected Pointers {
 
   virtual void init_style() = 0;
   virtual void openfile();
-  virtual int modify_param(int, char **) { return 0; }
+  virtual int modify_param(int, char **)
+  {
+    return 0;
+  }
   virtual void write_header(bigint) = 0;
   virtual int count();
   virtual void pack(tagint *) = 0;
-  virtual int convert_string(int, double *) { return 0; }
+  virtual int convert_string(int, double *)
+  {
+    return 0;
+  }
   virtual void write_data(int, double *) = 0;
   virtual void write_footer() {}
 

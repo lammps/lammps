@@ -233,7 +233,7 @@ void Output::setup(int memflag)
       // perform dump
 
       if (writeflag) {
-        dump[idump]->write();
+        if (!dump[idump]->skip_frame()) dump[idump]->write();
         last_dump[idump] = ntimestep;
       }
 
@@ -367,7 +367,7 @@ void Output::setup(int memflag)
          // perform dump
          // reset next_dump and next_time_dump, 1 arg for write()
 
-         dump[idump]->write();
+         if (!dump[idump]->skip_frame()) dump[idump]->write();
          last_dump[idump] = ntimestep;
          calculate_next_dump(WRITE,idump,ntimestep);
 
@@ -464,7 +464,7 @@ void Output::setup(int memflag)
  void Output::write_dump(bigint ntimestep)
  {
    for (int idump = 0; idump < ndump; idump++) {
-     dump[idump]->write();
+     if (!dump[idump]->skip_frame()) dump[idump]->write();
      last_dump[idump] = ntimestep;
    }
  }

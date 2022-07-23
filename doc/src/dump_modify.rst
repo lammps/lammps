@@ -40,6 +40,8 @@ Syntax
        *every/time* arg = Delta
          Delta = dump every this interval in simulation time (time units)
          Delta can be a variable (see below)
+       *skip* arg = expression
+         expression = equal-style variable expression without blanks or in quotes
        *fileper* arg = Np
          Np = write one file for every this many processors
        *first* arg = *yes* or *no*
@@ -115,6 +117,7 @@ Examples
    dump_modify xtcdump precision 10000 sfactor 0.1
    dump_modify 1 every 1000 nfile 20
    dump_modify 1 every v_myVar
+   dump_modify 1 skip "pe < -4.76"
 
 Description
 """""""""""
@@ -348,6 +351,18 @@ file tmp.times:
    run of length 100 in simulation time, the file should contain the
    values 15,100,101 and you should also use the dump_modify first
    command.  Any final value > 100 could be used in place of 101.
+
+----------
+
+The *skip* keyword can be used with any dump style except the *dcd* and
+*xtc* styles.  It takes an equal-style variable expression as argument
+and evaluates it on every step when there would be a dump frame written
+just before the output would be generated.  If the expression evaluates
+to zero, the dump frame is written as normal, otherwise the writing is
+skipped.  This allows defining a dump with a regular output frequency
+but have the dump only written when some global condition is reached
+like some critical threshold value is crossed.  An argument of "off" or
+"none" will restore the normal dump output frequency.
 
 ----------
 

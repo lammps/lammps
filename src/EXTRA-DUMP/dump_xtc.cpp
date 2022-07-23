@@ -309,6 +309,8 @@ int DumpXTC::modify_param(int narg, char **arg)
     if (tfactor <= 0.0)
       error->all(FLERR,"Illegal dump_modify tfactor value (must be > 0.0)");
     return 2;
+  } else if (strcmp(arg[0],"skip") == 0) {
+    error->all(FLERR, "Dump style xtc does not support 'dump_modify skip'");
   }
   return 0;
 }

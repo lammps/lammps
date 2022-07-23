@@ -20,11 +20,13 @@
 #include "error.h"
 #include "fix.h"
 #include "group.h"
+#include "input.h"
 #include "irregular.h"
 #include "memory.h"
 #include "modify.h"
 #include "output.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
@@ -60,6 +62,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
   first_flag = 0;
   flush_flag = 1;
+  skip_flag = false;
 
   format = nullptr;
   format_default = nullptr;
@@ -532,6 +535,15 @@ void Dump::write()
     }
     fp = nullptr;
   }
+}
+
+/* ----------------------------------------------------------------------
+   report if writing of this dump frame should be skipped
+------------------------------------------------------------------------- */
+bool Dump::skip_frame()
+{
+  if ((skip_flag) && (input->variable->compute_equal(skipexpr) != 0.0)) return true;
+  return false;
 }
 
 /* ----------------------------------------------------------------------
@@ -1119,6 +1131,16 @@ void Dump::modify_params(int narg, char **arg)
       *ptr = '\0';
       multiname = utils::strdup(fmt::format("{}{}{}", filename, icluster, ptr+1));
       *ptr = '%';
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"skip") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if ((strcmp(arg[iarg+1], "off") == 0) || (strcmp(arg[iarg+1], "none") == 0)) {
+        skip_flag = false;
+      } else {
+        skip_flag = true;
+        skipexpr = arg[iarg+1];
+      }
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"first") == 0) {

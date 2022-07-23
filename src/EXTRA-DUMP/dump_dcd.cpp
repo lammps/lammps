@@ -264,6 +264,8 @@ int DumpDCD::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     unwrap_flag = utils::logical(FLERR,arg[1],false,lmp);
     return 2;
+  } else if (strcmp(arg[0],"skip") == 0) {
+    error->all(FLERR, "Dump style dcd does not support 'dump_modify skip'");
   }
   return 0;
 }

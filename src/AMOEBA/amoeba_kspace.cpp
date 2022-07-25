@@ -1137,7 +1137,7 @@ void PairAmoeba::kewald()
     // NOTE: also worry about satisfying Tinker minfft ?
 
     while (!factorable(ndfft1)) ndfft1++;
-    while (!factorable(ndfft2)) ndfft3++;
+    while (!factorable(ndfft2)) ndfft2++;
     while (!factorable(ndfft3)) ndfft3++;
   }
 

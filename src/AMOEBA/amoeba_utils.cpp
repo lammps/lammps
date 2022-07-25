@@ -84,9 +84,9 @@ void PairAmoeba::kmpole()
         if (bondneigh[j] < smallest) {
           smallest = bondneigh[j];
           k = j;
+          bondneigh[k] = bondneigh[m];
+          bondneigh[m] = smallest;
         }
-        bondneigh[k] = bondneigh[m];
-        bondneigh[m] = smallest;
       }
     }
 

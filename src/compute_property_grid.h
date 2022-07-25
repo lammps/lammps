@@ -47,6 +47,7 @@ class ComputePropertyGrid : public Compute {
   class Grid3d *grid3d;
 
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
+  int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
 
   double **vec2d,***vec3d;
   double ***array2d,****array3d;
@@ -55,6 +56,10 @@ class ComputePropertyGrid : public Compute {
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
+
+  void pack_ix(int);
+  void pack_iy(int);
+  void pack_iz(int);
 
   void pack_x(int);
   void pack_y(int);

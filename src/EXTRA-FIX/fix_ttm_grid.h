@@ -61,9 +61,9 @@ class FixTTMGrid : public FixTTM {
   double skin_original;
   FILE *FPout;
 
-  class Grid3d *gc;
-  int ngc_buf1, ngc_buf2;
-  double *gc_buf1, *gc_buf2;
+  class Grid3d *grid;
+  int ngrid_buf1, ngrid_buf2;
+  double *grid_buf1, *grid_buf2;
 
   void allocate_grid() override;
   void deallocate_grid() override;

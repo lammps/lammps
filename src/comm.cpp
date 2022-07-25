@@ -806,6 +806,7 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
      this includes sub-domain lo boundary but excludes hi boundary
    nx,ny,nz = extent of global grid
      indices into the global grid range from 0 to N-1 in each dim
+     use nz=1 for 2d grid
    zfactor = 0.0 if the grid exactly covers the simulation box
    zfactor > 1.0 if the grid extends beyond the +z boundary by this factor
      used by 2d slab-mode PPPM
@@ -859,42 +860,6 @@ void Comm::partition_grid(int nx, int ny, int nz, double zfactor,
     nzhi = static_cast<int> (zfrachi * nz/zfactor);
     if (1.0*nzhi == zfrachi*nz) nzhi--;
   }
-
-  // OLD code
-  // could sometimes map grid points slightly outside a proc to the proc
-
-  /*
-  if (layout != LAYOUT_TILED) {
-    nxlo = static_cast<int> (xsplit[myloc[0]] * nx);
-    nxhi = static_cast<int> (xsplit[myloc[0]+1] * nx) - 1;
-
-    nylo = static_cast<int> (ysplit[myloc[1]] * ny);
-    nyhi = static_cast<int> (ysplit[myloc[1]+1] * ny) - 1;
-
-    if (zfactor == 0.0) {
-      nzlo = static_cast<int> (zsplit[myloc[2]] * nz);
-      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz) - 1;
-    } else {
-      nzlo = static_cast<int> (zsplit[myloc[2]] * nz/zfactor);
-      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz/zfactor) - 1;
-    }
-
-  } else {
-    nxlo = static_cast<int> (mysplit[0][0] * nx);
-    nxhi = static_cast<int> (mysplit[0][1] * nx) - 1;
-
-    nylo = static_cast<int> (mysplit[1][0] * ny);
-    nyhi = static_cast<int> (mysplit[1][1] * ny) - 1;
-
-    if (zfactor == 0.0) {
-      nzlo = static_cast<int> (mysplit[2][0] * nz);
-      nzhi = static_cast<int> (mysplit[2][1] * nz) - 1;
-    } else {
-      nzlo = static_cast<int> (mysplit[2][0] * nz/zfactor);
-      nzhi = static_cast<int> (mysplit[2][1] * nz/zfactor) - 1;
-    }
-  }
-  */
 }
 
 /* ----------------------------------------------------------------------

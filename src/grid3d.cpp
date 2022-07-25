@@ -15,6 +15,7 @@
 #include "grid3d.h"
 
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "irregular.h"
 #include "pair.h"
@@ -28,6 +29,8 @@ enum{REGULAR,TILED};
 
 #define DELTA 16
 
+static constexpr int OFFSET = 16384;
+
 /* ----------------------------------------------------------------------
    NOTES
    tiled implementation only currently works for RCB, not general tiled
@@ -38,9 +41,120 @@ enum{REGULAR,TILED};
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   constructor called by all classes except MSM
+   constructor called by all classes except PPPM and MSM
    gcomm = world communicator
-   gn xyz = size of global grid
+   gnx, gny, gnz = size of global grid
+   maxdist = max distance outside of proc domain a particle will be
+   extra = additional ghost grid pts needed in each dim, e.g. for stencil
+   shift = 0.0 for grid pt in lower-left corner of grid cell, 0.5 for center
+   return:
+     i xyz lohi = portion of global grid this proc owns, 0 <= index < N
+     o xyz lohi = owned + ghost grid cells needed in all directions
+   for non-periodic dims, o indices will not be < 0 or >= N,
+     since no grid communication is done across non-periodic boundaries
+------------------------------------------------------------------------- */
+
+Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
+               int gnx, int gny, int gnz, 
+               double maxdist, int extra, double shift,
+               int &ixlo, int &ixhi, int &iylo, int &iyhi, int &izlo, int &izhi,
+               int &oxlo, int &oxhi, int &oylo, int &oyhi, int &ozlo, int &ozhi)
+  : Pointers(lmp)
+{
+  // store commnicator and global grid size
+  // set layout mode
+
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+  MPI_Comm_size(gridcomm,&nprocs);
+
+  nx = gnx;
+  ny = gny;
+  nz = gnz;
+
+  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz; 
+
+  if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
+  else layout = REGULAR;
+
+  // partition global grid across procs
+  // i xyz lo/hi = lower/upper bounds of global grid this proc owns
+  // indices range from 0 to N-1 inclusive in each dim
+
+  comm->partition_grid(nx, ny, nz, 0.0, ixlo, ixhi, iylo, iyhi, izlo, izhi);
+
+  // nlo,nhi = min/max index of global grid pt my owned atoms can be mapped to
+  // finite difference stencil requires extra grid pt around my owned grid pts
+  // max of these 2 quantities is the ghost cells needed in each dim
+  // o xyz lo/hi = owned + ghost cells
+
+  memcpy(boxlo,domain->boxlo,3*sizeof(double));
+  memcpy(prd,domain->prd,3*sizeof(double));
+
+  double *sublo = domain->sublo;
+  double *subhi = domain->subhi;
+  int *periodicity = domain->periodicity;
+
+  double dxinv = nx / prd[0];
+  double dyinv = ny / prd[1];
+  double dzinv = nz / prd[2];;
+  double SHIFT = OFFSET + shift;
+  int nlo, nhi;
+
+  nlo = static_cast<int>((sublo[0]-maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[0]+maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  oxlo = MIN(nlo, ixlo - extra);
+  oxhi = MAX(nhi, ixhi + extra);
+
+  nlo = static_cast<int>((sublo[1]-maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[1]+maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  oylo = MIN(nlo, iylo - extra);
+  oyhi = MAX(nhi, iyhi + extra);
+
+  nlo = static_cast<int>((sublo[2]-maxdist-boxlo[2]) * dzinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[2]+maxdist-boxlo[2]) * dzinv + SHIFT) - OFFSET;
+  ozlo = MIN(nlo, izlo - extra);
+  ozhi = MAX(nhi, izhi + extra);
+
+  // limit o xyz lo/hi indices for non-periodic dimensions
+
+  if (!periodicity[0]) {
+    oxlo = MAX(1,oxlo);
+    oxhi = MIN(gnx-1,oxhi);
+  }
+
+  if (!periodicity[1]) {
+    oylo = MAX(1,oylo);
+    oyhi = MIN(gnx-1,oyhi);
+  }
+
+  if (!periodicity[2]) {
+    ozlo = MAX(1,ozlo);
+    ozhi = MIN(gnx-1,ozhi);
+  }
+
+  // store grid bounds and proc neighs
+
+  if (layout == REGULAR) {
+    int (*procneigh)[2] = comm->procneigh;
+    store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          procneigh[0][0],procneigh[0][1],
+          procneigh[1][0],procneigh[1][1],
+          procneigh[2][0],procneigh[2][1]);
+  } else {
+    store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          0,0,0,0,0,0);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   constructor called by PPPM classes
+   gcomm = world communicator
+   gnx, gny, gnz = size of global grid
    i xyz lohi = portion of global grid this proc owns, 0 <= index < N
    o xyz lohi = owned grid portion + ghost grid cells needed in all directions
    if o indices are < 0 or hi indices are >= N,
@@ -54,24 +168,40 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
                int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
   : Pointers(lmp)
 {
+  // store commnicator and global grid size
+  // set layout mode
+
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+  MPI_Comm_size(gridcomm,&nprocs);
+
+  nx = gnx;
+  ny = gny;
+  nz = gnz;
+
+  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz; 
+
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
 
+  memcpy(boxlo,domain->boxlo,3*sizeof(double));
+  memcpy(prd,domain->prd,3*sizeof(double));
+
+  // store grid bounds and proc neighs
+
   if (layout == REGULAR) {
     int (*procneigh)[2] = comm->procneigh;
-    initialize(gcomm,gnx,gny,gnz,
-               ixlo,ixhi,iylo,iyhi,izlo,izhi,
-               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-               procneigh[0][0],procneigh[0][1],
-               procneigh[1][0],procneigh[1][1],
-               procneigh[2][0],procneigh[2][1]);
+    store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          procneigh[0][0],procneigh[0][1],
+          procneigh[1][0],procneigh[1][1],
+          procneigh[2][0],procneigh[2][1]);
   } else {
-    initialize(gcomm,gnx,gny,gnz,
-               ixlo,ixhi,iylo,iyhi,izlo,izhi,
-               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-               oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-               0,0,0,0,0,0);
+    store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+          0,0,0,0,0,0);
   }
 }
 
@@ -80,7 +210,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
    gcomm = world communicator or sub-communicator for a hierarchical grid
    flag = 1 if e xyz lohi values = larger grid stored by caller in gcomm = world
    flag = 2 if e xyz lohi values = 6 neighbor procs in gcomm
-   gn xyz = size of global grid
+   gnx, gny, gnz = size of global grid
    i xyz lohi = portion of global grid this proc owns, 0 <= index < N
    o xyz lohi = owned grid portion + ghost grid cells needed in all directions
    e xyz lohi for flag = 1: extent of larger grid stored by caller
@@ -94,35 +224,50 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
                int exlo, int exhi, int eylo, int eyhi, int ezlo, int ezhi)
   : Pointers(lmp)
 {
+  // store commnicator and global grid size
+  // set layout mode
+
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+  MPI_Comm_size(gridcomm,&nprocs);
+
+  nx = gnx;
+  ny = gny;
+  nz = gnz;
+
+  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz; 
+
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
+
+  memcpy(boxlo,domain->boxlo,3*sizeof(double));
+  memcpy(prd,domain->prd,3*sizeof(double));
+
+  // store grid bounds and proc neighs
 
   if (flag == 1) {
     if (layout == REGULAR) {
       // this assumes gcomm = world
       int (*procneigh)[2] = comm->procneigh;
-      initialize(gcomm,gnx,gny,gnz,
-                 ixlo,ixhi,iylo,iyhi,izlo,izhi,
-                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-                 exlo,exhi,eylo,eyhi,ezlo,ezhi,
-                 procneigh[0][0],procneigh[0][1],
-                 procneigh[1][0],procneigh[1][1],
-                 procneigh[2][0],procneigh[2][1]);
+      store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
+            oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+            exlo,exhi,eylo,eyhi,ezlo,ezhi,
+            procneigh[0][0],procneigh[0][1],
+            procneigh[1][0],procneigh[1][1],
+            procneigh[2][0],procneigh[2][1]);
     } else {
-      initialize(gcomm,gnx,gny,gnz,
-                 ixlo,ixhi,iylo,iyhi,izlo,izhi,
-                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-                 exlo,exhi,eylo,eyhi,ezlo,ezhi,
-                 0,0,0,0,0,0);
+      store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
+            oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+            exlo,exhi,eylo,eyhi,ezlo,ezhi,
+            0,0,0,0,0,0);
     }
 
   } else if (flag == 2) {
     if (layout == REGULAR) {
-      initialize(gcomm,gnx,gny,gnz,
-                 ixlo,ixhi,iylo,iyhi,izlo,izhi,
-                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-                 oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
-                 exlo,exhi,eylo,eyhi,ezlo,ezhi);
+      store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
+            oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+            oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
+            exlo,exhi,eylo,eyhi,ezlo,ezhi);
     } else {
       error->all(FLERR,"Grid3d does not support tiled layout with neighbor procs");
     }
@@ -161,28 +306,18 @@ Grid3d::~Grid3d()
 }
 
 /* ----------------------------------------------------------------------
-   store constructor args in local variables
+   store grid bounds and proc neighs in local variables
 ------------------------------------------------------------------------- */
 
-void Grid3d::initialize(MPI_Comm gcomm,
-                        int gnx, int gny, int gnz,
-                        int ixlo, int ixhi, int iylo, int iyhi,
-                        int izlo, int izhi,
-                        int oxlo, int oxhi, int oylo, int oyhi,
-                        int ozlo, int ozhi,
-                        int fxlo, int fxhi, int fylo, int fyhi,
-                        int fzlo, int fzhi,
-                        int pxlo, int pxhi, int pylo, int pyhi,
-                        int pzlo, int pzhi)
+void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
+                   int izlo, int izhi,
+                   int oxlo, int oxhi, int oylo, int oyhi,
+                   int ozlo, int ozhi,
+                   int fxlo, int fxhi, int fylo, int fyhi,
+                   int fzlo, int fzhi,
+                   int pxlo, int pxhi, int pylo, int pyhi,
+                   int pzlo, int pzhi)
 {
-  gridcomm = gcomm;
-  MPI_Comm_rank(gridcomm,&me);
-  MPI_Comm_size(gridcomm,&nprocs);
-
-  nx = gnx;
-  ny = gny;
-  nz = gnz;
-
   inxlo = ixlo;
   inxhi = ixhi;
   inylo = iylo;
@@ -229,7 +364,7 @@ void Grid3d::initialize(MPI_Comm gcomm,
 
 /* ---------------------------------------------------------------------- */
 
-void Grid3d::query_global_size(int &nxgrid, int &nygrid, int &nzgrid)
+void Grid3d::query_size(int &nxgrid, int &nygrid, int &nzgrid)
 {
   nxgrid = nx;
   nygrid = ny;
@@ -238,7 +373,8 @@ void Grid3d::query_global_size(int &nxgrid, int &nygrid, int &nzgrid)
 
 /* ---------------------------------------------------------------------- */
 
-void Grid3d::query_in_bounds(int &xlo, int &xhi, int &ylo, int &yhi, int &zlo, int &zhi)
+void Grid3d::query_bounds(int &xlo, int &xhi, int &ylo, int &yhi, 
+                          int &zlo, int &zhi)
 {
   xlo = inxlo;
   xhi = inxhi;
@@ -246,6 +382,14 @@ void Grid3d::query_in_bounds(int &xlo, int &xhi, int &ylo, int &yhi, int &zlo, i
   yhi = inyhi;
   zlo = inzlo;
   zhi = inzhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Grid3d::query_box(int dim, double &lo, double &delta)
+{
+  lo = boxlo[dim];
+  delta = prd[dim] / ngrid[dim];
 }
 
 /* ---------------------------------------------------------------------- */

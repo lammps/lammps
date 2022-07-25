@@ -39,7 +39,15 @@ using namespace FixConst;
 
 static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
+
+// OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
+// SHIFT = 0.0 assigns atoms to lower-left grid pt
+// SHIFT = 0.5 assigns atoms to nearest grid pt
+// use SHIFT = 0.0 for now since it allows fix ave/chunk
+//   to spatially average consistent with the TTM grid
+
 static constexpr int OFFSET = 16384;
+static constexpr double SHIFT = 0.5;
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +56,11 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
 {
   pergrid_flag = 1;
 
+  /*
+  if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
+                          "use dump grid instead");
+  */
+  
   skin_original = neighbor->skin;
 }
 
@@ -88,7 +101,8 @@ void FixTTMGrid::post_constructor()
 
   if (infile) {
     read_electron_temperatures(infile);
-    gc->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+    grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
+                       grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 }
 
@@ -195,8 +209,8 @@ void FixTTMGrid::end_of_step()
          flangevin[i][2]*v[i][2]);
     }
 
-  gc->reverse_comm(Grid3d::FIX,this,1,sizeof(double),0,
-                   gc_buf1,gc_buf2,MPI_DOUBLE);
+  grid->reverse_comm(Grid3d::FIX,this,1,sizeof(double),0,
+                     grid_buf1,grid_buf2,MPI_DOUBLE);
 
   // clang-format off
 
@@ -248,7 +262,8 @@ void FixTTMGrid::end_of_step()
 
     // communicate new T_electron values to ghost grid points
 
-    gc->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,gc_buf1,gc_buf2,MPI_DOUBLE);
+    grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
+                       grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 
   // clang-format on
@@ -365,7 +380,7 @@ void FixTTMGrid::write_electron_temperatures(const std::string &filename)
                style);
   }
 
-  gc->gather(Grid3d::FIX, this, 1, sizeof(double), 1, nullptr, MPI_DOUBLE);
+  grid->gather(Grid3d::FIX, this, 1, sizeof(double), 1, nullptr, MPI_DOUBLE);
 
   if (comm->me == 0) fclose(FPout);
 }
@@ -424,42 +439,13 @@ void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
 
 void FixTTMGrid::allocate_grid()
 {
-  // partition global grid across procs
-  // n xyz lo/hi in = lower/upper bounds of global grid this proc owns
-  // indices range from 0 to N-1 inclusive in each dim
+  double maxdist = 0.5 * neighbor->skin;
 
-  comm->partition_grid(nxgrid, nygrid, nzgrid, 0.0, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in,
-                       nzhi_in);
+  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 1, maxdist, SHIFT,
+                    nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
+                    nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
-  // nlo,nhi = min/max index of global grid pt my owned atoms can be mapped to
-  // finite difference stencil requires extra grid pt around my owned grid pts
-  // max of these 2 quantities is the ghost cells needed in each dim
-  // nlo_out,nhi_out = nlo_in,nhi_in + ghost cells
-
-  double *boxlo = domain->boxlo;
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
-  double dxinv = nxgrid / domain->xprd;
-  double dyinv = nxgrid / domain->yprd;
-  double dzinv = nxgrid / domain->zprd;
-
-  int nlo, nhi;
-  double cuthalf = 0.5 * neighbor->skin;
-
-  nlo = static_cast<int>((sublo[0] - cuthalf - boxlo[0]) * dxinv + shift) - OFFSET;
-  nhi = static_cast<int>((subhi[0] + cuthalf - boxlo[0]) * dxinv + shift) - OFFSET;
-  nxlo_out = MIN(nlo, nxlo_in - 1);
-  nxhi_out = MAX(nhi, nxhi_in + 1);
-
-  nlo = static_cast<int>((sublo[1] - cuthalf - boxlo[1]) * dyinv + shift) - OFFSET;
-  nhi = static_cast<int>((subhi[1] + cuthalf - boxlo[1]) * dyinv + shift) - OFFSET;
-  nylo_out = MIN(nlo, nylo_in - 1);
-  nyhi_out = MAX(nhi, nyhi_in + 1);
-
-  nlo = static_cast<int>((sublo[2] - cuthalf - boxlo[2]) * dzinv + shift) - OFFSET;
-  nhi = static_cast<int>((subhi[2] + cuthalf - boxlo[2]) * dzinv + shift) - OFFSET;
-  nzlo_out = MIN(nlo, nzlo_in - 1);
-  nzhi_out = MAX(nhi, nzhi_in + 1);
+  // set ngridout and ngridmine and error check
 
   bigint totalmine;
   totalmine =
@@ -470,13 +456,12 @@ void FixTTMGrid::allocate_grid()
   totalmine = (bigint) (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) * (nzhi_in - nzlo_in + 1);
   ngridmine = totalmine;
 
-  gc = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in,
-                  nzhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
+  // setup grid communication and allocate grid data structs
 
-  gc->setup(ngc_buf1, ngc_buf2);
+  grid->setup(ngrid_buf1, ngrid_buf2);
 
-  memory->create(gc_buf1, ngc_buf1, "ttm/grid:gc_buf1");
-  memory->create(gc_buf2, ngc_buf2, "ttm/grid:gc_buf2");
+  memory->create(grid_buf1, ngrid_buf1, "ttm/grid:grid_buf1");
+  memory->create(grid_buf2, ngrid_buf2, "ttm/grid:grid_buf2");
 
   memory->create3d_offset(T_electron_old, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
                           nxhi_out, "ttm/grid:T_electron_old");
@@ -492,9 +477,9 @@ void FixTTMGrid::allocate_grid()
 
 void FixTTMGrid::deallocate_grid()
 {
-  delete gc;
-  memory->destroy(gc_buf1);
-  memory->destroy(gc_buf2);
+  delete grid;
+  memory->destroy(grid_buf1);
+  memory->destroy(grid_buf2);
 
   memory->destroy3d_offset(T_electron_old, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(T_electron, nzlo_out, nylo_out, nxlo_out);
@@ -519,7 +504,7 @@ void FixTTMGrid::write_restart(FILE *fp)
 
   // gather rest of rlist on proc 0 as global grid values
 
-  gc->gather(Grid3d::FIX, this, 1, sizeof(double), 0, &rlist[4], MPI_DOUBLE);
+  //grid->gather(Grid3d::FIX, this, 1, sizeof(double), 0, &rlist[4], MPI_DOUBLE);
 
   if (comm->me == 0) {
     int size = rsize * sizeof(double);
@@ -570,7 +555,8 @@ void FixTTMGrid::restart(char *buf)
 
   // communicate new T_electron values to ghost grid points
 
-  gc->forward_comm(Grid3d::FIX, this, 1, sizeof(double), 0, gc_buf1, gc_buf2, MPI_DOUBLE);
+  grid->forward_comm(Grid3d::FIX, this, 1, sizeof(double), 0, 
+                     grid_buf1, grid_buf2, MPI_DOUBLE);
 }
 
 /* ----------------------------------------------------------------------
@@ -650,7 +636,7 @@ int FixTTMGrid::get_grid_by_name(char *name, int &dim)
 
 void *FixTTMGrid::get_grid_by_index(int index)
 {
-  if (index == 0) return gc;
+  if (index == 0) return grid;
   return nullptr;
 }
 

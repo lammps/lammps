@@ -22,16 +22,21 @@ class Grid2d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
+  Grid2d(class LAMMPS *, MPI_Comm, int, int, double, int, double, 
+         int &, int &, int &, int &,
+         int &, int &, int &, int &);
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int);
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int,
 	 int, int, int, int, int);
   ~Grid2d() override;
-  void query_global_size(int &, int &);
-  void query_in_bounds(int &, int &, int &, int &);
+  void query_size(int &, int &);
+  void query_bounds(int &, int &, int &, int &);
+  void query_box(int, double &, double &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
+  void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
  protected:
   int me, nprocs;
@@ -39,18 +44,20 @@ class Grid2d : protected Pointers {
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
 
+  int ngrid[2];         // global grid size
+  double boxlo[2];      // current box that grid is mapped to
+  double prd[2];
+
   // inputs from caller via constructor
 
-  int nx, ny, nz;      // size of global grid in all 3 dims
+  int nx, ny;          // size of global grid in both dims
   int inxlo, inxhi;    // inclusive extent of my grid chunk
   int inylo, inyhi;    //   0 <= in <= N-1
-  int inzlo, inzhi;
   int outxlo, outxhi;      // inclusive extent of my grid chunk plus
-  int outylo, outyhi;      //   ghost cells in all 6 directions
-  int outzlo, outzhi;      //   lo indices can be < 0, hi indices can be >= N
+  int outylo, outyhi;      //   ghost cells in all 4 directions
+                           //   lo indices can be < 0, hi indices can be >= N
   int fullxlo, fullxhi;    // extent of grid chunk that caller stores
   int fullylo, fullyhi;    //   can be same as out indices or larger
-  int fullzlo, fullzhi;
 
   // -------------------------------------------
   // internal variables for REGULAR layout
@@ -172,8 +179,8 @@ class Grid2d : protected Pointers {
   // internal methods
   // -------------------------------------------
 
-  void initialize(MPI_Comm, int, int, int, int, int, int, int, int, int, int,
-                  int, int, int, int, int, int, int, int);
+  void store(int, int, int, int, int, int, int, int,
+             int, int, int, int, int, int, int, int);
   virtual void setup_regular(int &, int &);
   virtual void setup_tiled(int &, int &);
   void ghost_box_drop(int *, int *);

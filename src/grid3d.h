@@ -22,13 +22,18 @@ class Grid3d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
-           int, int, int);
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
-           int, int, int, int, int, int, int, int, int, int);
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, double, int, double, 
+         int &, int &, int &, int &, int &, int &, 
+         int &, int &, int &, int &, int &, int &);
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, 
+         int, int, int, int, int, int);
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, 
+         int, int, int, int, int, int, int, int, int, int, int, int, 
+         int, int, int, int, int, int);
   ~Grid3d() override;
-  void query_global_size(int &, int &, int &);
-  void query_in_bounds(int &, int &, int &, int &, int &, int &);
+  void query_size(int &, int &, int &);
+  void query_bounds(int &, int &, int &, int &, int &, int &);
+  void query_box(int, double &, double &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
@@ -40,6 +45,10 @@ class Grid3d : protected Pointers {
   int layout;           // REGULAR or TILED
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
+
+  int ngrid[3];         // global grid size
+  double boxlo[3];      // current box that grid is mapped to
+  double prd[3];
 
   // inputs from caller via constructor
 
@@ -176,8 +185,8 @@ class Grid3d : protected Pointers {
   // internal methods
   // -------------------------------------------
 
-  void initialize(MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int, int,
-                  int, int, int, int, int, int, int, int, int, int, int, int, int);
+  void store(int, int, int, int, int, int, int, int, int, int, int, int, 
+             int, int, int, int, int, int, int, int, int, int, int, int);
   virtual void setup_regular(int &, int &);
   virtual void setup_tiled(int &, int &);
   void ghost_box_drop(int *, int *);

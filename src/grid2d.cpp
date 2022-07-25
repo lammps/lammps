@@ -15,6 +15,7 @@
 #include "grid2d.h"
 
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "irregular.h"
 #include "pair.h"
@@ -28,6 +29,8 @@ enum{REGULAR,TILED};
 
 #define DELTA 16
 
+static constexpr int OFFSET = 16384;
+
 /* ----------------------------------------------------------------------
    NOTES
    tiled implementation only currently works for RCB, not general tiled
@@ -38,9 +41,108 @@ enum{REGULAR,TILED};
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   constructor called by all classes except MSM
+   constructor called by all classes except PPPM and MSM
    gcomm = world communicator
-   gn xy = size of global grid
+   gnx, gny = size of global grid
+   maxdist = max distance outside of proc domain a particle will be
+   extra = additional ghost grid pts needed in each dim, e.g. for stencil
+   shift = 0.0 for grid pt in lower-left corner of grid cell, 0.5 for center
+   return:
+     i xy lohi = portion of global grid this proc owns, 0 <= index < N
+     o xy lohi = owned + ghost grid cells needed in all directions
+   for non-periodic dims, o indices will not be < 0 or >= N,
+     since no grid communication is done across non-periodic boundaries
+------------------------------------------------------------------------- */
+
+Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
+               int gnx, int gny,
+               double maxdist, int extra, double shift,
+               int &ixlo, int &ixhi, int &iylo, int &iyhi,
+               int &oxlo, int &oxhi, int &oylo, int &oyhi)
+  : Pointers(lmp)
+{
+  // store commnicator and global grid size
+  // set layout mode
+
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+  MPI_Comm_size(gridcomm,&nprocs);
+
+  nx = gnx;
+  ny = gny;
+
+  ngrid[0] = nx; ngrid[1] = ny;
+
+  if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
+  else layout = REGULAR;
+
+  // partition global grid across procs
+  // i xyz lo/hi = lower/upper bounds of global grid this proc owns
+  // indices range from 0 to N-1 inclusive in each dim
+
+  int tmp1,tmp2;
+  comm->partition_grid(nx, ny, 1, 0.0, ixlo, ixhi, iylo, iyhi, tmp1, tmp2);
+
+  // nlo,nhi = min/max index of global grid pt my owned atoms can be mapped to
+  // finite difference stencil requires extra grid pt around my owned grid pts
+  // max of these 2 quantities is the ghost cells needed in each dim
+  // o xyz lo/hi = owned + ghost cells
+
+  memcpy(boxlo,domain->boxlo,2*sizeof(double));
+  memcpy(prd,domain->prd,2*sizeof(double));
+
+  double *sublo = domain->sublo;
+  double *subhi = domain->subhi;
+  int *periodicity = domain->periodicity;
+
+  double dxinv = nx / domain->prd[0];
+  double dyinv = ny / domain->prd[1];
+  double SHIFT = OFFSET + shift;
+  int nlo, nhi;
+
+  nlo = static_cast<int>((sublo[0]-maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[0]+maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  oxlo = MIN(nlo, ixlo - extra);
+  oxhi = MAX(nhi, ixhi + extra);
+
+  nlo = static_cast<int>((sublo[1]-maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[1]+maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  oylo = MIN(nlo, iylo - extra);
+  oyhi = MAX(nhi, iyhi + extra);
+
+  // limit o xyz lo/hi indices for non-periodic dimensions
+
+  if (!periodicity[0]) {
+    oxlo = MAX(1,oxlo);
+    oxhi = MIN(gnx-1,oxhi);
+  }
+
+  if (!periodicity[1]) {
+    oylo = MAX(1,oylo);
+    oyhi = MIN(gnx-1,oyhi);
+  }
+
+  // store grid bounds and proc neighs
+
+  if (layout == REGULAR) {
+    int (*procneigh)[2] = comm->procneigh;
+    store(ixlo,ixhi,iylo,iyhi,
+          oxlo,oxhi,oylo,oyhi,
+          oxlo,oxhi,oylo,oyhi,
+          procneigh[0][0],procneigh[0][1],
+          procneigh[1][0],procneigh[1][1]);
+  } else {
+    store(ixlo,ixhi,iylo,iyhi,
+          oxlo,oxhi,oylo,oyhi,
+          oxlo,oxhi,oylo,oyhi,
+          0,0,0,0);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   constructor called by PPPM classes
+   gcomm = world communicator
+   gnx, gny = size of global grid
    i xy lohi = portion of global grid this proc owns, 0 <= index < N
    o xy lohi = owned grid portion + ghost grid cells needed in all directions
    if o indices are < 0 or hi indices are >= N,
@@ -54,21 +156,38 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
                int oxlo, int oxhi, int oylo, int oyhi)
   : Pointers(lmp)
 {
+  // store commnicator and global grid size
+  // set layout mode
+
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+  MPI_Comm_size(gridcomm,&nprocs);
+
+  nx = gnx;
+  ny = gny;
+
+  ngrid[0] = nx; ngrid[1] = ny;
+
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
 
+  memcpy(boxlo,domain->boxlo,2*sizeof(double));
+  memcpy(prd,domain->prd,2*sizeof(double));
+
+  // store grid bounds and proc neighs
+
   if (layout == REGULAR) {
     int (*procneigh)[2] = comm->procneigh;
-    initialize(gcomm,gnx,gny,
-               ixlo,ixhi,iylo,iyhi,oxlo,oxhi,oylo,oyhi,
-               oxlo,oxhi,oylo,oyhi,
-               procneigh[0][0],procneigh[0][1],
-               procneigh[1][0],procneigh[1][1]);
+    store(ixlo,ixhi,iylo,iyhi,
+          oxlo,oxhi,oylo,oyhi,
+          oxlo,oxhi,oylo,oyhi,
+          procneigh[0][0],procneigh[0][1],
+          procneigh[1][0],procneigh[1][1]);
   } else {
-    initialize(gcomm,gnx,gny,
-               ixlo,ixhi,iylo,iyhi,oxlo,oxhi,oylo,oyhi,
-               oxlo,oxhi,oylo,oyhi,
-               0,0,0,0);
+    store(ixlo,ixhi,iylo,iyhi,
+          oxlo,oxhi,oylo,oyhi,
+          oxlo,oxhi,oylo,oyhi,
+          0,0,0,0);
   }
 }
 
@@ -77,7 +196,7 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
    gcomm = world communicator or sub-communicator for a hierarchical grid
    flag = 1 if e xy lohi values = larger grid stored by caller in gcomm = world
    flag = 2 if e xy lohi values = 6 neighbor procs in gcomm
-   gn xy = size of global grid
+   gnx, gny = size of global grid
    i xy lohi = portion of global grid this proc owns, 0 <= index < N
    o xy lohi = owned grid portion + ghost grid cells needed in all directions
    e xy lohi for flag = 1: extent of larger grid stored by caller
@@ -91,34 +210,48 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
                int exlo, int exhi, int eylo, int eyhi)
   : Pointers(lmp)
 {
+  // store commnicator and global grid size
+  // set layout mode
+
+  gridcomm = gcomm;
+  MPI_Comm_rank(gridcomm,&me);
+  MPI_Comm_size(gridcomm,&nprocs);
+
+  nx = gnx;
+  ny = gny;
+
+  ngrid[0] = nx; ngrid[1] = ny;
+
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
+
+  memcpy(boxlo,domain->boxlo,2*sizeof(double));
+  memcpy(prd,domain->prd,2*sizeof(double));
+
+  // store grid bounds and proc neighs
 
   if (flag == 1) {
     if (layout == REGULAR) {
       // this assumes gcomm = world
       int (*procneigh)[2] = comm->procneigh;
-      initialize(gcomm,gnx,gny,
-                 ixlo,ixhi,iylo,iyhi,
-                 oxlo,oxhi,oylo,oyhi,
-                 exlo,exhi,eylo,eyhi,
-                 procneigh[0][0],procneigh[0][1],
-                 procneigh[1][0],procneigh[1][1]);
+      store(ixlo,ixhi,iylo,iyhi,
+            oxlo,oxhi,oylo,oyhi,
+            exlo,exhi,eylo,eyhi,
+            procneigh[0][0],procneigh[0][1],
+            procneigh[1][0],procneigh[1][1]);
     } else {
-      initialize(gcomm,gnx,gny,
-                 ixlo,ixhi,iylo,iyhi,
-                 oxlo,oxhi,oylo,oyhi,
-                 exlo,exhi,eylo,eyhi,
-                 0,0,0,0);
+      store(ixlo,ixhi,iylo,iyhi,
+            oxlo,oxhi,oylo,oyhi,
+            exlo,exhi,eylo,eyhi,
+            0,0,0,0);
     }
 
   } else if (flag == 2) {
     if (layout == REGULAR) {
-      initialize(gcomm,gnx,gny,
-                 ixlo,ixhi,iylo,iyhi,
-                 oxlo,oxhi,oylo,oyhi,
-                 oxlo,oxhi,oylo,oyhi,
-                 exlo,exhi,eylo,eyhi);
+      store(ixlo,ixhi,iylo,iyhi,
+            oxlo,oxhi,oylo,oyhi,
+            oxlo,oxhi,oylo,oyhi,
+            exlo,exhi,eylo,eyhi);
     } else {
       error->all(FLERR,"Grid2d does not support tiled layout with neighbor procs");
     }
@@ -160,20 +293,11 @@ Grid2d::~Grid2d()
    store constructor args in local variables
 ------------------------------------------------------------------------- */
 
-void Grid2d::initialize(MPI_Comm gcomm,
-                        int gnx, int gny,
-                        int ixlo, int ixhi, int iylo, int iyhi,
-                        int oxlo, int oxhi, int oylo, int oyhi,
-                        int fxlo, int fxhi, int fylo, int fyhi,
-                        int pxlo, int pxhi, int pylo, int pyhi)
+void Grid2d::store(int ixlo, int ixhi, int iylo, int iyhi,
+                   int oxlo, int oxhi, int oylo, int oyhi,
+                   int fxlo, int fxhi, int fylo, int fyhi,
+                   int pxlo, int pxhi, int pylo, int pyhi)
 {
-  gridcomm = gcomm;
-  MPI_Comm_rank(gridcomm,&me);
-  MPI_Comm_size(gridcomm,&nprocs);
-
-  nx = gnx;
-  ny = gny;
-
   inxlo = ixlo;
   inxhi = ixhi;
   inylo = iylo;
@@ -212,7 +336,7 @@ void Grid2d::initialize(MPI_Comm gcomm,
 
 /* ---------------------------------------------------------------------- */
 
-void Grid2d::query_global_size(int &nxgrid, int &nygrid)
+void Grid2d::query_size(int &nxgrid, int &nygrid)
 {
   nxgrid = nx;
   nygrid = ny;
@@ -220,12 +344,20 @@ void Grid2d::query_global_size(int &nxgrid, int &nygrid)
 
 /* ---------------------------------------------------------------------- */
 
-void Grid2d::query_in_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
+void Grid2d::query_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
 {
   xlo = inxlo;
   xhi = inxhi;
   ylo = inylo;
   yhi = inyhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Grid2d::query_box(int dim, double &lo, double &delta)
+{
+  lo = boxlo[dim];
+  delta = prd[dim] / ngrid[dim];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1020,6 +1152,76 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
     ptr->unpack_reverse_grid(which,(void *) &buf2[offset],
                              send[m].npack,send[m].packlist);
   }
+}
+
+/* ----------------------------------------------------------------------
+   gather global grid values to proc 0, one grid chunk at a time
+   proc 0 pings each proc for its grid chunk
+   pack/unpack operations are performed by caller via callbacks
+   caller can decide whether to store chunks, output them, etc
+------------------------------------------------------------------------- */
+
+void Grid2d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
+                      int which, void *buf, MPI_Datatype datatype)
+{
+  int me = comm->me;
+  Fix *fptr = (Fix *) ptr;
+
+  // maxsize = max grid data owned by any proc
+
+  int mysize = (inxhi-inxlo+1) * (inyhi-inylo+1);
+  mysize *= nper;
+  int maxsize;
+  MPI_Allreduce(&mysize,&maxsize,1,MPI_INT,MPI_MAX,world);
+
+  // pack my data via callback to caller
+
+  char *mybuf;
+  if (me == 0) memory->create(mybuf,maxsize*nbyte,"grid2d:mybuf");
+  else memory->create(mybuf,mysize*nbyte,"grid2d:mybuf");
+  fptr->pack_gather_grid(which,mybuf);
+
+  // ping each proc for its data
+  // unpack into full buffer via callback to caller
+
+  int xlo,xhi,ylo,yhi,zlo,zhi,tmp;
+  int bounds[4];
+
+  if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
+
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      if (iproc) {
+        MPI_Irecv(mybuf,maxsize,datatype,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Recv(bounds,4,MPI_INT,iproc,0,world,&status);
+        xlo = bounds[0];
+        xhi = bounds[1];
+        ylo = bounds[2];
+        yhi = bounds[3];
+      } else {
+        xlo = inxlo;
+        xhi = inxhi;
+        ylo = inylo;
+        yhi = inyhi;
+      }
+
+      fptr->unpack_gather_grid(which,mybuf,buf,xlo,xhi,ylo,yhi,0,0);
+    }
+
+  } else {
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
+    MPI_Rsend(mybuf,mysize,datatype,0,0,world);
+    bounds[0] = inxlo;
+    bounds[1] = inxhi;
+    bounds[2] = inylo;
+    bounds[3] = inyhi;
+    MPI_Send(bounds,4,MPI_INT,0,0,world);
+  }
+
+  memory->destroy(mybuf);
 }
 
 /* ----------------------------------------------------------------------

@@ -274,7 +274,7 @@ void DumpGrid::init_style()
   
   int nx,ny,nz,nxtmp,nytmp,nztmp;
   
-  for (int i = 1; i < nfield; i++) {
+  for (int i = 0; i < nfield; i++) {
      if (dimension == 2) {
       if (field2source[i] == COMPUTE) {
         icompute = compute[field2index[i]];
@@ -283,9 +283,9 @@ void DumpGrid::init_style()
         ifix = fix[field2index[i]];
         grid2d = (Grid2d *) ifix->get_grid_by_index(field2grid[i]);
       }
-      if (i == 0) grid2d->query_global_size(nx,ny);
+      if (i == 0) grid2d->query_size(nx,ny);
       else {
-        grid2d->query_global_size(nxtmp,nytmp);
+        grid2d->query_size(nxtmp,nytmp);
         if (nxtmp != nx || nytmp != ny) 
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
@@ -298,9 +298,9 @@ void DumpGrid::init_style()
         ifix = fix[field2index[i]];
         grid3d = (Grid3d *) ifix->get_grid_by_index(field2grid[i]);
       }
-      if (i == 0) grid3d->query_global_size(nx,ny,nz);
+      if (i == 0) grid3d->query_size(nx,ny,nz);
       else {
-        grid3d->query_global_size(nxtmp,nytmp,nztmp);
+        grid3d->query_size(nxtmp,nytmp,nztmp);
         if (nxtmp != nx || nytmp != ny || nztmp != nz)
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
@@ -535,7 +535,7 @@ int DumpGrid::count()
     else if (field2source[0] == FIX)
       grid2d = (Grid2d *) 
         fix[field2index[0]]->get_grid_by_index(field2grid[0]);
-    grid2d->query_in_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+    grid2d->query_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
   } else {
     if (field2source[0] == COMPUTE)
       grid3d = (Grid3d *) 
@@ -543,7 +543,7 @@ int DumpGrid::count()
     else if (field2source[0] == FIX)
       grid3d = (Grid3d *) 
         fix[field2index[0]]->get_grid_by_index(field2grid[0]);
-    grid3d->query_in_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+    grid3d->query_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
   }
 
   // invoke Computes for per-grid quantities

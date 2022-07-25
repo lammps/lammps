@@ -499,6 +499,18 @@ void PairAmoeba::polar_real()
             urc3[k] = rc3[k] * factor_uscale;
             urc5[k] = rc5[k] * factor_uscale;
           }
+        } else {
+          // avoid uninitialized data access when damp == 0.0
+          psc3 = psc5 = psc7 = dsc3 = dsc5 = dsc7 = usc3 = usc5 = 0.0;
+          psr3 = psr5 = psr7 = dsr3 = dsr5 = dsr7 = usr5 = 0.0;
+          prc3[0] = prc3[1] = prc3[2] = 0.0;
+          drc3[0] = drc3[1] = drc3[2] = 0.0;
+          prc5[0] = prc5[1] = prc5[2] = 0.0;
+          drc5[0] = drc5[1] = drc5[2] = 0.0;
+          prc7[0] = prc7[1] = prc7[2] = 0.0;
+          drc7[0] = drc7[1] = drc7[2] = 0.0;
+          urc3[0] = urc3[1] = urc3[2] = 0.0;
+          urc5[0] = urc5[1] = urc5[2] = 0.0;
         }
 
       // apply charge penetration damping to scale factors

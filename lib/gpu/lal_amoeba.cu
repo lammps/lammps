@@ -607,10 +607,13 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      //bn[0] = erfc(ralpha) / r;
       bn[0] = _erfc * rinv;
+      */
+      bn[0] = ucl_erfc(ralpha) * rinv;
+      
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
       numtyp alsq2n = (numtyp)0.0;
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
@@ -800,7 +803,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       //if (r2>off2) continue;
 
       numtyp r = ucl_sqrt(r2);
-      numtyp rinv = ucl_recip(r);
+      numtyp rinv = ucl_rsqrt(r2);
       numtyp r2inv = rinv*rinv;
       numtyp rr1 = rinv;
       numtyp rr3 = rr1 * r2inv;
@@ -850,10 +853,12 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      //bn[0] = erfc(ralpha) / r;
       bn[0] = _erfc * rinv;
+      */
+      bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp aefac = aesq2n;
       for (int m = 1; m <= 3; m++) {
@@ -1005,7 +1010,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       //if (r2>off2) continue;
 
       numtyp r = ucl_sqrt(r2);
-      numtyp rinv = ucl_recip(r);
+      numtyp rinv = ucl_rsqrt(r2);
       numtyp r2inv = rinv*rinv;
       numtyp rr1 = rinv;
       numtyp rr3 = rr1 * r2inv;
@@ -1031,10 +1036,12 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      //bn[0] = erfc(ralpha) / r;
       bn[0] = _erfc * rinv;
+      */
+      bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp aefac = aesq2n;
       for (int m = 1; m <= 3; m++) {
@@ -1298,10 +1305,13 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      //bn[0] = erfc(ralpha) / r;
       bn[0] = _erfc * rinv;
+      */
+      bn[0] = ucl_erfc(ralpha) * rinv;
+
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
       numtyp alsq2n = (numtyp)0.0;
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);

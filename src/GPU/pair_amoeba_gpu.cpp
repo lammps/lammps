@@ -949,29 +949,6 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
 
   amoeba_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp,
                                aewald, off2, &fieldp_pinned);
-/*
-  // accumulate the field and fieldp values from the GPU lib
-  //   field and fieldp may already have some nonzero values from kspace (umutual1)
-
-  int nlocal = atom->nlocal;
-  double *field_ptr = (double *)fieldp_pinned;
-
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    field[i][0] += field_ptr[idx];
-    field[i][1] += field_ptr[idx+1];
-    field[i][2] += field_ptr[idx+2];
-  }
-
-  double* fieldp_ptr = (double *)fieldp_pinned;
-  fieldp_ptr += 4*inum;
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    fieldp[i][0] += fieldp_ptr[idx];
-    fieldp[i][1] += fieldp_ptr[idx+1];
-    fieldp[i][2] += fieldp_ptr[idx+2];
-  }
-*/  
 }
 
 /* ----------------------------------------------------------------------

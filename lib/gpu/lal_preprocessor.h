@@ -166,6 +166,7 @@
 #define ucl_cbrt cbrt
 #define ucl_ceil ceil
 #define ucl_abs fabs
+#define ucl_erfc erfc
 
 #if defined(FAST_MATH) && !defined(_DOUBLE_DOUBLE)
 

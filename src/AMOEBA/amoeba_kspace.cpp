@@ -17,12 +17,15 @@
 #include "atom.h"
 #include "domain.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+using MathSpecial::powint;
 
 #define ANINT(x) ((x)>0 ? floor((x)+0.5) : ceil((x)-0.5))
 
@@ -173,13 +176,13 @@ void PairAmoeba::dftmod(double *bsmod, double *bsarray, int nfft, int order)
       factor = MY_PI * k / nfft;
       for (j = 1; j <= jcut; j++) {
         arg = factor / (factor + MY_PI*j);
-        sum1 += pow(arg,order);
-        sum2 += pow(arg,order2);
+        sum1 += powint(arg,order);
+        sum2 += powint(arg,order2);
       }
       for (j = 1; j <= jcut; j++) {
         arg = factor / (factor - MY_PI*j);
-        sum1 += pow(arg,order);
-        sum2 += pow(arg,order2);
+        sum1 += powint(arg,order);
+        sum2 += powint(arg,order2);
       }
       zeta = sum2 / sum1;
     }

@@ -20,6 +20,7 @@
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -28,6 +29,9 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+using MathSpecial::square;
+using MathSpecial::cube;
 
 enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
 enum{MUTUAL,OPT,TCG,DIRECT};
@@ -82,7 +86,7 @@ void PairAmoeba::polar()
 
   // compute the Ewald self-energy torque and virial terms
 
-  term = (4.0/3.0) * felec * pow(aewald,3.0) / MY_PIS;
+  term = (4.0/3.0) * felec * cube(aewald) / MY_PIS;
 
   for (i = 0; i < nlocal; i++) {
     dix = rpole[i][1];
@@ -454,7 +458,7 @@ void PairAmoeba::polar_real()
         damp = pdi * pdamp[jtype];
         if (damp != 0.0) {
           pgamma = MIN(pti,thole[jtype]);
-          damp = pgamma * pow(r/damp,3.0);
+          damp = pgamma * cube(r/damp);
           if (damp < 50.0) {
             expdamp = exp(-damp);
             sc3 = 1.0 - expdamp;
@@ -1272,7 +1276,7 @@ void PairAmoeba::polar_kspace()
   int nlocal = atom->nlocal;
 
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
-  pterm = pow((MY_PI/aewald),2.0);
+  pterm = square(MY_PI/aewald);
   volterm = MY_PI * volbox;
 
   // initialize variables required for the scalar summation

@@ -25,6 +25,7 @@
 #include "force.h"
 #include "gridcomm.h"
 #include "group.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "my_page.h"
@@ -39,6 +40,8 @@
 #include <cctype>
 
 using namespace LAMMPS_NS;
+
+using MathSpecial::powint;
 
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP,PVAL};  // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                                   // reverse comm
@@ -1956,7 +1959,7 @@ void PairAmoeba::choose(int which)
 
   // taper coeffs
 
-  double denom = pow(off-cut,5.0);
+  double denom = powint(off-cut,5);
   c0 = off*off2 * (off2 - 5.0*off*cut + 10.0*cut2) / denom;
   c1 = -30.0 * off2*cut2 / denom;
   c2 = 30.0 * (off2*cut+off*cut2) / denom;
@@ -2026,7 +2029,7 @@ void PairAmoeba::mix()
       } else if (epsilon_rule == HHG) {
         eij = 4.0 * (ei*ej) / ((sei+sej)*(sei+sej));
       } else if (epsilon_rule == W_H) {
-        eij = 2.0 * (sei*sej) * pow(ri*rj,3.0) / (pow(ri,6.0) + pow(rj,6.0));
+        eij = 2.0 * (sei*sej) * powint(ri*rj,3) / (powint(ri,6) + powint(rj,6));
       } else {
         eij = sei * sej;
       }

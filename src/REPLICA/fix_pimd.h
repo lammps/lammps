@@ -33,7 +33,7 @@ class FixPIMD : public Fix {
 
   void init() override;
   void setup(int) override;
-  void post_neighbor() override;
+//   void post_neighbor() override;
   void post_force(int) override;
   void initial_integrate(int) override;
   void final_integrate() override;
@@ -140,12 +140,13 @@ class FixPIMD : public Fix {
   // double volume = 0.0;
   // double *xc, *fc;
   // int n_unwrap;
-  int maxunwrap, nlocal_init;
-  tagint *tag_init, *tag_initall;
-  double **x_unwrap, **x_unwrapsort;
-  double **x_unwrapall;
-  void init_x_unwrap();
-  void reallocate_x_unwrap();
+//   int maxunwrap, nlocal_init;
+//   tagint *tag_init, *tag_initall;
+//   imageint *image_init, *image_initall;
+//   double **x_unwrap, **x_unwrapsort;
+//   double **x_unwrapall;
+//   void init_x_unwrap();
+//   void reallocate_x_unwrap();
   // void compute_xc();
   // void compute_fc();
   // double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;

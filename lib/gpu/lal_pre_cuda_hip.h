@@ -134,9 +134,12 @@
     int2 qt = tex1Dfetch(q_tex,i);                       \
     ans=__hiloint2double(qt.y, qt.x);                    \
   }
+  #elseif  defined(__HIP_PLATFORM_SPIRV__)
+      #define fetch4(ans,i,pos_tex) tex1Dfetch(&ans, pos_tex, i);
+      #define fetch(ans,i,q_tex) tex1Dfetch(&ans, q_tex,i);
   #else
-  #define fetch4(ans,i,pos_tex) tex1Dfetch(&ans, pos_tex, i);
-  #define fetch(ans,i,q_tex) tex1Dfetch(&ans, q_tex,i);
+    #define fetch4(ans,i,pos_tex) ans=tex1Dfetch(pos_tex, i);
+    #define fetch(ans,i,q_tex) ans=tex1Dfetch(q_tex,i);
   #endif
 #else
   #define fetch4(ans,i,x) ans=x[i]

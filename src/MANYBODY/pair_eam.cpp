@@ -933,5 +933,16 @@ void *PairEAM::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
+
+  // requests from FixPair
+
+  if (strcmp(str,"rho") == 0) {
+    dim = 0;
+    return (void *) rho;
+  } else if (strcmp(str,"fp") == 0) {
+    dim = 0;
+    return (void *) fp;
+  }
+
   return nullptr;
 }

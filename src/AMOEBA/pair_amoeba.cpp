@@ -2077,6 +2077,16 @@ void *PairAmoeba::extract(const char *str, int &dim)
   if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;
   if (strcmp(str,"opbend_sextic") == 0) return (void *) &opbend_sextic;
 
+  // requests from FixPair
+
+  if (strcmp(str,"uind") == 0) {
+    dim = 3;
+    return (void *) uind;
+  } else if (strcmp(str,"uinp") == 0) {
+    dim = 3;
+    return (void *) uinp;
+  }
+
   return nullptr;
 }
 

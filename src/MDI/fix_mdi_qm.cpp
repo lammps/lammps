@@ -237,6 +237,7 @@ void FixMDIQM::init()
   }
 
   // send natoms, atom types or elements, and simulation box to engine
+  // confirm engine count of NATOMS is correct
   // this will trigger setup of a new system
   // subsequent calls in post_force() will be for same system until new init()
 
@@ -245,36 +246,38 @@ void FixMDIQM::init()
   int natoms_exists;
   int ierr = MDI_Check_command_exists("@DEFAULT", ">NATOMS", mdicomm, &natoms_exists);
   if (ierr) error->all(FLERR, "MDI: >NATOMS command check");
-  if ( natoms_exists ) {
+  MPI_Bcast(&natoms_exists, 1, MPI_INT, 0, world);
 
+  if (natoms_exists) {
     ierr = MDI_Send_command(">NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS command");
     int n = static_cast<int> (atom->natoms);
     ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS data");
 
-  } else { // confirm that the engine's NATOMS is correct
-
+  } else { 
     ierr = MDI_Send_command("<NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <NATOMS command");
     int n;
     ierr = MDI_Recv(&n, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: <NATOMS data");
-    if ( n != atom->natoms ) error->all(FLERR, "MDI: Engine has the wrong number of atoms, and does not support the >NATOMS command.");
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
 
+    if (n != atom->natoms) error->all(FLERR, "MDI: Engine has wrong atom count and does not support >NATOMS command");
   }
 
   int elements_exists;
   int types_exists;
   ierr = MDI_Check_command_exists("@DEFAULT", ">ELEMENTS", mdicomm, &elements_exists);
   if (ierr) error->all(FLERR, "MDI: >ELEMENTS command check");
+  MPI_Bcast(&elements_exists, 1, MPI_INT, 0, world);
+
   ierr = MDI_Check_command_exists("@DEFAULT", ">TYPES", mdicomm, &types_exists);
   if (ierr) error->all(FLERR, "MDI: >TYPES command check");
-  if ( elements && elements_exists ) {
-      send_elements();
-  } else if ( types_exists ) {
-      send_types();
-  }
+  MPI_Bcast(&types_exists, 1, MPI_INT, 0, world);
+
+  if (elements && elements_exists) send_elements();
+  else if (types_exists) send_types();
   send_box();
 }
 
@@ -530,7 +533,9 @@ void FixMDIQM::send_box()
   int celldispl_exists;
   int ierr = MDI_Check_command_exists("@DEFAULT", ">NATOMS", mdicomm, &celldispl_exists);
   if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command check");
-  if ( celldispl_exists ) {
+  MPI_Bcast(&celldispl_exists, 1, MPI_INT, 0, world);
+
+  if (celldispl_exists) {
     ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
     cell[0] = domain->boxlo[0] * lmp2mdi_length;

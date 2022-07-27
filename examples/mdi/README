@@ -2,6 +2,9 @@ These are examples that work the MDI package in LAMMPS which uses the
 MolSSI MDI library for coupling codes together and communicating
 between them with MDI messages.
 
+There are more examples of using LAMMPS with quantum codes via MDI in
+the examples/QM directory.
+
 Within the MDI context, one code is the driver and another code is the
 engine.  The 2 codes can be written in any language; C++ (LAMMPS) and
 Python are illustrated here.  The 2 codes can each be stand-alone

@@ -1,3 +1,5 @@
+# YAML 1.2
+---
 cff-version: 1.2.0
 title: "LAMMPS: Large-scale Atomic/Molecular Massively Parallel Simulator"
 type: software
@@ -17,6 +19,11 @@ authors:
     orcid: "https://orcid.org/0000-0002-3044-8266"
 doi: 10.5281/zenodo.3726416
 license: GPL-2.0-only
+url: https://www.lammps.org
+repository-code: https://github.com/lammps/lammps/
+keywords:
+  - "Molecular Dynamics"
+  - "Materials Modeling"
 message: "If you are referencing LAMMPS in a publication, please cite the paper below."
 preferred-citation:
   type: article

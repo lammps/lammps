@@ -1,4 +1,4 @@
-Examples in this directoy use LAMMPS as an MDI driver code and the
+Examples in this directory use LAMMPS as an MDI driver code and the
 LATTE tight-binding code as an MDI engine to perform ab initio MD and
 evaluate the energy/forces/virial for a series of MD snapshots or
 conformations with LATTE.
@@ -7,41 +7,8 @@ Talk about LATTE package and fix latte command
 
 ---------
 
-Build LAMMPS with MDI support via the MDI package:
-
-% cd lammps/lib/mdi
-% python Install.py -m mpi    # creates libmdi.a (not shared)
-% cd lammps/src
-% make yes-mdi
-% make mpi                    # builds LAMMPS with MDI
-
----------
-
-Build LATTE in its own Git repo:
-
-
-cd latte/git
-  cp makefiles/makefile.CHOICES.mdi makefile.CHOICES
-  toggle settings:
-    MAKELIB = OFF
-    SHARED = ON
-    MDI = ON
-  for MDI, also need to set MDI_PATH to mdi/git/build/MDI_Library
-  also commented out some LIB lines for Cuda
-  then just type "make"
-  produces exe = LATTE_DOUBLE and libfile = liblatte_mdi.so
-  the exe is not the non-MDI LATTE main, but a new one that goes into engine mode
-
-for building with fix latte:
-
-cmake -D PKG_MOLECULE=yes -D PKG_LATTE=yes -D USE_INTERNAL_LINALG=on ../cmake
-
----------
-
 copy lmp_mpi and LATTE_DOUBLE into this dir
-set LD_LIB_PATH to ~/latte/git for liblatte_mdi.so file in plugin mode
-LATTE always uses in.latte as input file, contains no element info
-LATTE always uses latte.in
+LATTE always uses latte.in as input file, contains no element info
 
 this version of LATTE does not use MPI, only OpenMP or GPU
 run LATTE with OpenMP: setenv OMP_NUM_THREADS max-core-count
@@ -59,7 +26,9 @@ mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
   -log log.aimd.driver.mpi.1 -in in.mdi.aimd : \
   -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
 
-mpirun -np 1 valgrind lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
+++ Run with MPI: 2 procs for LAMMPS, 1 for LATTE
+
+mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
   -log log.aimd.driver.mpi.1 -in in.mdi.aimd : \
   -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
 
@@ -68,6 +37,14 @@ mpirun -np 1 valgrind lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
 lmp_mpi -mdi \
   "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
   -log log.aimd.driver.plugin.1 -in in.mdi.aimd.plugin
+
+mpirun -np 2 lmp_mpi -mdi \
+  "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
+  -log log.aimd.driver.plugin.1 -in in.mdi.aimd.plugin
+
+++ Run with fix latte: 1 proc
+
+lmp_mpi < in.aimd
 
 ---------
 

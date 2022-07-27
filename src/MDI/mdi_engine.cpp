@@ -1493,6 +1493,9 @@ void MDIEngine::send_pe()
 /* ----------------------------------------------------------------------
    <STRESS command
    send 9-component stress tensor (no kinetic energy term)
+   should be intensive quantity (divided by volume in pressure compute)
+   MDI stress tensor units are energy/volume,
+     so conversion factor includes nktv2p to convert pressure back to virial
 ---------------------------------------------------------------------- */
 
 void MDIEngine::send_stress()
@@ -1837,6 +1840,8 @@ void MDIEngine::unit_conversions()
   }
 
   // pressure or stress units = force/area = energy/volume
+  // MDI energy/volume = Hartree/Bohr^3,
+  //   so need to remove LAMMPS nktv2p from pressure
 
   mdi2lmp_pressure = 1.0;
   lmp2mdi_pressure = 1.0;

@@ -371,7 +371,8 @@ void FixMDIQM::post_force(int vflag)
     }
   }
 
-  // optionally request stress tensor from MDI engine, convert to virial
+  // optionally request stress tensor from MDI engine, convert to 6-value virial
+  // MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
   // qm_virial = fix output for global QM virial
 
   if (virialflag) {
@@ -607,18 +608,18 @@ void FixMDIQM::unit_conversions()
     mdi2lmp_force = angstrom_to_bohr / ev_to_hartree;
   }
 
-  // pressure or stress units = force/area = energy/volume
+  // stress units = force/area = energy/volume
 
   mdi2lmp_pressure = 1.0;
   lmp2mdi_pressure = 1.0;
 
   if (lmpunits == REAL) {
     lmp2mdi_pressure = (kelvin_to_hartree / force->boltz) /
-        (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
+      (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr);
     mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
   } else if (lmpunits == METAL) {
     lmp2mdi_pressure =
-        ev_to_hartree / (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
+      ev_to_hartree / (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr);
     mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
   }
 }

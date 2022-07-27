@@ -53,6 +53,15 @@ Building 3 codes needed to run these examples
 (3) Build LAMMPS with its MDI package
     also with the MOLECULE package for these example scripts
 
+traditional make:
+% cd lammps/lib/mdi
+% python Install.py -m mpi     # creates static libmdi.a
+% cd lammps/src
+% make yes-mdi
+% make mpi            # build LAMMPS as exe and shared lib
+                      # shared lib for use of LAMMPS as MDI plugin
+
+CMake build:
 % cd lammps
 % mkdir build; cd build
 % cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake

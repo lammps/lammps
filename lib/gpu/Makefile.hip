@@ -1,6 +1,9 @@
 # /* ----------------------------------------------------------------------
 #  Generic Linux Makefile for HIP
-#     - export HIP_PLATFORM=amd (or nvcc) before execution
+#     - export HIP_PATH=/path/to/HIP/install path to the HIP implementation
+#       such as hipamd or CHIP-SPV.
+#     - export HIP_PLATFORM=<amd/nvcc/spirv> specify the HIP platform to use.
+#       Optional. If not set, will be determined by ${HIP_PATH}/bin/hipconfig.
 #     - change HIP_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
@@ -20,9 +23,21 @@ HIP_OPTS = -O3
 HIP_HOST_OPTS = -Wno-deprecated-declarations -fopenmp
 HIP_HOST_INCLUDE =
 
+ifndef HIP_PATH
+$(error HIP_PATH is not set)
+endif
+
+ifndef HIP_PLATFORM
+	HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --platform)
+endif
+HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
+
 # use device sort
 # requires linking with hipcc and hipCUB + (rocPRIM or CUB for AMD or Nvidia respectively)
-HIP_HOST_OPTS += -DUSE_HIP_DEVICE_SORT
+ifneq (spirv,$(HIP_PLATFORM))
+	# hipCUB not aviable for CHIP-SPV
+	HIP_HOST_OPTS += -DUSE_HIP_DEVICE_SORT
+endif
 # path to cub
 HIP_HOST_INCLUDE += -I./
 # path to hipcub
@@ -39,10 +54,6 @@ HIP_HOST_OPTS += -DMPI_GERYON -DUCL_NO_EXIT
 MPI_COMP_OPTS = $(shell mpicxx --showme:compile)
 MPI_LINK_OPTS = $(shell mpicxx --showme:link)
 
-HIP_PATH ?= $(wildcard /opt/rocm/hip)
-HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --platform)
-HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
-
 ifeq (hcc,$(HIP_PLATFORM))
 	# possible values: gfx803,gfx900,gfx906
 	HIP_ARCH = gfx906
@@ -55,6 +66,8 @@ else ifeq (nvcc,$(HIP_PLATFORM))
 		    -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] -gencode arch=compute_53,code=[sm_53,compute_53]\
 			-gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] -gencode arch=compute_62,code=[sm_62,compute_62]\
 			-gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_72,code=[sm_72,compute_72] -gencode arch=compute_75,code=[sm_75,compute_75]
+else ifeq (spirv,$(HIP_PLATFORM))
+	HIP_ARCH = spirv
 endif
 
 BIN_DIR = .
@@ -71,7 +84,15 @@ BSH = /bin/sh
 HIP_OPTS += -DUSE_HIP $(HIP_PRECISION)
 HIP_GPU_OPTS += $(HIP_OPTS) -I./
 
-ifeq (clang,$(HIP_COMPILER))
+ifeq (spirv,$(HIP_PLATFORM))
+	HIP_HOST_OPTS += -fPIC
+	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc -c
+	HIP_GPU_OPTS_S = 
+	HIP_GPU_OPTS_E =
+	HIP_KERNEL_SUFFIX = .cpp
+	HIP_LIBS_TARGET = 
+	export HCC_AMDGPU_TARGET := $(HIP_ARCH)
+else ifeq (clang,$(HIP_COMPILER))
 	HIP_HOST_OPTS += -fPIC
 	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --genco
 	HIP_GPU_OPTS_S = --offload-arch=$(HIP_ARCH)

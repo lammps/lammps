@@ -123,6 +123,7 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
+   -D HIP_PATH                  # path to HIP installation. Must be set if GPU_API=HIP
    -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
                                 # value = sm_XX, see below
                                 # default is sm_50
@@ -179,10 +180,17 @@ set appropriate environment variables. Some variables such as
 :code:`HCC_AMDGPU_TARGET` (for ROCm <= 4.0) or :code:`CUDA_PATH` are necessary for :code:`hipcc`
 and the linker to work correctly.
 
+Using CHIP-SPV implementation of HIP is now supported. It allows one to run HIP
+code on Intel GPUs via the OpenCL or Level Zero backends. To use CHIP-SPV, you must 
+set :code:`-DHIP_USE_DEVICE_SORT=OFF` in your CMake command line as CHIP-SPV does not 
+yet support hipCUB. The use of HIP for Intel GPUs is still experimental so you 
+should only use this option in preparations to run on Aurora system at ANL. 
+
 .. code:: bash
 
    # AMDGPU target (ROCm <= 4.0)
    export HIP_PLATFORM=hcc
+   export HIP_PATH=/path/to/HIP/install
    export HCC_AMDGPU_TARGET=gfx906
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
    make -j 4
@@ -191,6 +199,7 @@ and the linker to work correctly.
 
    # AMDGPU target (ROCm >= 4.1)
    export HIP_PLATFORM=amd
+   export HIP_PATH=/path/to/HIP/install
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
    make -j 4
 
@@ -199,8 +208,18 @@ and the linker to work correctly.
    # CUDA target (not recommended, use GPU_ARCH=cuda)
    # !!! DO NOT set CMAKE_CXX_COMPILER !!!
    export HIP_PLATFORM=nvcc
+   export HIP_PATH=/path/to/HIP/install
    export CUDA_PATH=/usr/local/cuda
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70 ..
+   make -j 4
+
+.. code:: bash
+
+   # SPIR-V target (Intel GPUs)
+   export HIP_PLATFORM=spirv
+   export HIP_PATH=/path/to/HIP/install
+   export CMAKE_CXX_COMPILER=<hipcc/clang++>
+   cmake -D PKG_GPU=on -D GPU_API=HIP ..
    make -j 4
 
 Traditional make

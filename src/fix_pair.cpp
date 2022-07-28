@@ -42,9 +42,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 1) error->all(FLERR,"Illegal fix pair command");
 
-  int n = strlen(arg[4]) + 1;
-  pairname = new char[n];
-  strcpy(pairname,arg[4]);
+  pairname = utils::strdup(arg[4]);
   pstyle = force->pair_match(pairname,1,0);
   if (pstyle == nullptr) error->all(FLERR,"Fix pair pair style not found");
 
@@ -57,9 +55,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (iarg+2 > narg) error->all(FLERR,"Illegal fix pair command");
-    n = strlen(arg[iarg]) + 1;
-    fieldname[nfield] = new char[n];
-    strcpy(fieldname[nfield],arg[iarg]);
+    fieldname[nfield] = utils::strdup(arg[iarg]);
     int flag = utils::inumeric(FLERR,arg[iarg+1],true,lmp);
     if (flag == 0) trigger[nfield] = 0;
     else if (flag == 1) trigger[nfield] = 1;
@@ -75,9 +71,8 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   for (int ifield = 0; ifield < nfield; ifield++) {
     if (trigger[ifield] == 0) triggername[ifield] = nullptr;
     else {
-      n = strlen(fieldname[ifield]) + 6;
-      triggername[ifield] = new char[n];
-      sprintf(triggername[ifield],"%s_flag",fieldname[ifield]);
+      auto str = fmt::format("%s_flag", fieldname[ifield]);
+      triggername[nfield] = utils::strdup(str);
     }
   }
 

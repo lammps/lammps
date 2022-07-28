@@ -3,6 +3,7 @@
 .github export-ignore
 .lgtm.yml export-ignore
 SECURITY.md export-ignore
+CITATION.cff export-ignore
 *       text=auto
 *.jpg   -text
 *.pdf   -text

@@ -444,10 +444,11 @@ identical to the FS EAM files (see above).
 
 ----------
 
-The eam, eam/alloy, eam/fs, and eam/he pair styles support extraction
-of two per-atom quantities by the :doc:`fix pair <fix_pair>` command.
-This allows the quantities to be output to files by the :doc:`dump
-<dump>` or otherwise processed by other LAMMPS commamds.
+The *eam*, *eam/alloy*, *eam/fs*, and *eam/he* pair styles support
+extraction of two per-atom quantities by the :doc:`fix pair
+<fix_pair>` command.  This allows the quantities to be output to files
+by the :doc:`dump <dump>` or otherwise processed by other LAMMPS
+commamds.
 
 The names of the two quantites are "rho" and "fp" for the density and
 derivative of the embedding energy for each atom.  Neither quantity

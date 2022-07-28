@@ -52,15 +52,15 @@ per-atom quantity which the pair style must recognize as an extraction
 request.  See the doc pages for individual :doc:`pair_styles
 <pair_style>` to see what fix pair requests (if any) they support.
 
-The *flag* setting determines whether this fix will also request that
-the pair style compute the named quantity to be extracted.  If the
-quantity is always computed by the pair style, no request is needed;
-specify *flag* = 0.  If the quantity is not always computed (e.g. it
-is expensive to calculate), then specify *flag* = 1.  This fix will
-then request the quantity only on timesteps it is needed.  Again, see
-the doc pages for individual :doc:`pair_styles <pair_style>` to
-determine which fix pair requests (if any) need to be triggered with a
-*flag* = 1 setting.
+The *flag* setting determines whether this fix will also trigger the
+pair style to compute the named quantity so it can be extracted.  If
+the quantity is always computed by the pair style, no trigger is
+needed; specify *flag* = 0.  If the quantity is not always computed
+(e.g. it is expensive to calculate), then specify *flag* = 1.  This
+will trigger the quantity to be calculated only on timesteps it is
+needed.  Again, see the doc pages for individual :doc:`pair_styles
+<pair_style>` to determine which fix pair requests (if any) need to be
+triggered with a *flag* = 1 setting.
 
 The per-atom data extracted from the pair style is stored by this fix
 as either a per-atom vector or array.  If there is only one *name*

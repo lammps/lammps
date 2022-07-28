@@ -178,6 +178,28 @@ extra buffering.
 
 ----------
 
+The *colname* keyword can be used to change the default header keyword
+for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
+and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
+represents the column number counting from the left, a negative integer
+when it represents the column number from the right (i.e. -1 is the last
+column/keyword), or a custom dump keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+keyword. For *atom* dump styles only the keywords "id", "type", "x",
+"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
+whether scaled or unwrapped coordinates were enabled or disabled, and
+it always assumes 8 columns for indexing regardless of whether image
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default names.
+
+----------
+
 The *delay* keyword applies to all dump styles.  No snapshots will be
 output until the specified *Dstep* timestep or later.  Specifying
 *Dstep* < 0 is the same as turning off the delay setting.  This is a
@@ -359,7 +381,7 @@ always occur if the current timestep is a multiple of $N$, the
 frequency specified in the :doc:`dump <dump>` command or
 :doc:`dump_modify every <dump_modify>` command, including timestep 0.
 It will also always occur if the current simulation time is a multiple
-of *Delta*, the time interval specified in the doc:`dump_modify
+of *Delta*, the time interval specified in the :doc:`dump_modify
 every/time <dump_modify>` command.
 
 But if this is not the case, a dump snapshot will only be written if
@@ -367,10 +389,10 @@ the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 Note that if the argument to the :doc:`dump_modify every
-<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
-a variable and not a numeric value, then specifying *first yes* is the
-only way to write a dump snapshot on the first timestep after the dump
-command is invoked.
+<dump_modify>` or doc:`dump_modify every/time <dump_modify>` commands
+is a variable and not a numeric value, then specifying *first yes* is
+the only way to write a dump snapshot on the first timestep after the
+dump command is invoked.
 
 ----------
 
@@ -379,28 +401,6 @@ after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style *xtc*\ .
-
-----------
-
-The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
-
-The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.  A
-setting of *default* clears all previous settings, reverting all values
-to their default names.
 
 ----------
 
@@ -747,8 +747,9 @@ are written to the dump file or included in the image.  The possible
 attributes that can be tested for are the same as those that can be
 specified in the :doc:`dump custom <dump>` command, with the exception
 of the *element* attribute, since it is not a numeric value.  Note
-that a different attributes can be used than those output by the :doc:`dump custom <dump>` command.  E.g. you can output the coordinates and
-stress of atoms whose energy is above some threshold.
+that a different attributes can be used than those output by the
+:doc:`dump custom <dump>` command.  E.g. you can output the
+coordinates and stress of atoms whose energy is above some threshold.
 
 If an atom-style variable is used as the attribute, then it can
 produce continuous numeric values or effective Boolean 0/1 values

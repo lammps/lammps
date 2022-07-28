@@ -626,12 +626,13 @@ This list was last updated for version 3.5.0 of the Kokkos library.
          -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
          -D Kokkos_ENABLE_CUDA=yes
          -D Kokkos_ENABLE_OPENMP=yes
+         -D FFT=CUFFT                  # optional
          -D CMAKE_CXX_COMPILER=wrapper # wrapper = full path to Cuda nvcc wrapper
 
-      This will also enable executing FFTs on the GPU, either via the
-      internal KISSFFT library, or - by preference - with the cuFFT
-      library bundled with the CUDA toolkit, depending on whether CMake
-      can identify its location.  The *wrapper* value for
+      Setting ``FFT=CUFFT`` as shown will enable executing FFTs on the GPU
+      using the cuFFT library bundled with the CUDA toolkit.
+      If not specified, FFTs will be executed on the GPU using
+      the internal KISSFFT library.  The *wrapper* value for
       ``CMAKE_CXX_COMPILER`` variable is the path to the CUDA nvcc
       compiler wrapper provided in the Kokkos library:
       ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should include the
@@ -649,11 +650,13 @@ This list was last updated for version 3.5.0 of the Kokkos library.
          -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
          -D Kokkos_ENABLE_HIP=yes
          -D Kokkos_ENABLE_OPENMP=yes
+         -D FFT=HIPFFT                 # optional
 
-      This will enable FFTs on the GPU, either by the internal KISSFFT library
-      or with the hipFFT wrapper library, which will call out to the
+      Setting ``FFT=HIPFFT`` as shown will enable executing FFTs on the GPU
+      using the hipFFT wrapper library, which will call out to the
       platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
-      NVIDIA GPUs.
+      NVIDIA GPUs.  If not specified, FFTs will be executed on the GPU using
+      the internal KISSFFT library.
 
       To simplify compilation, five preset files are included in the
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,

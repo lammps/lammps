@@ -50,7 +50,8 @@ LAMMPS can use them if they are available on your system.
 
       .. code-block:: bash
 
-         -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
+         -D FFT=value              # FFTW3 or MKL or CUFFT or HIPFFT or KISS
+                                   # default is FFTW3 if found, else KISS
          -D FFT_SINGLE=value       # yes or no (default), no = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
 
@@ -85,7 +86,8 @@ LAMMPS can use them if they are available on your system.
 
       .. code-block:: make
 
-         FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
+         FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3 (equivalently, -DFFT_FFTW), -DFFT_MKL,
+                                       # -DFFT_CUFFT, -DFFT_HIPFFT, or -DFFT_KISS
                                        # default is KISS if not specified
          FFT_INC = -DFFT_SINGLE        # do not specify for double precision
          FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries

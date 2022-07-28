@@ -341,7 +341,7 @@ Some common LAMMPS specific variables
    * - ``LAMMPS_EXCEPTIONS``
      - when set to ``on`` errors will throw a C++ exception instead of aborting (default: ``off``)
    * - ``FFT``
-     - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
+     - select which FFT library to use: ``FFTW3``, ``MKL``, ``CUFFT``, ``HIPFFT``, ``KISS`` (default, unless FFTW3 is found)
    * - ``FFT_SINGLE``
      - select whether to use single precision FFTs (default: ``off``)
    * - ``WITH_JPEG``

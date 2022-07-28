@@ -341,10 +341,6 @@ void Dump::write()
   imageint *imagehold;
   double **xhold,**vhold;
 
-  // if timestep < delaystep, just return
-
-  if (delay_flag && update->ntimestep < delaystep) return;
-
   // simulation box bounds
 
   if (domain->triclinic == 0) {
@@ -370,9 +366,12 @@ void Dump::write()
 
   nme = count();
 
+  // if timestep < delaystep, just return
   // if skip condition is defined and met, just return
-  // do this after count() b/c it invokes computes,
-  //   so caller can trigger future invocation of needed computes
+  // must do both these tests after count() b/c it invokes computes,
+  //   this enables caller to trigger future invocation of needed computes
+
+  if (delay_flag && update->ntimestep < delaystep) return;
 
   if (skipflag) {
     double value = input->variable->compute_equal(skipindex);

@@ -391,8 +391,8 @@ int FixStore::size_restart(int /*nlocal*/)
 
 double FixStore::memory_usage()
 {
-  double bytes = (double) n1 * n2;
-  if (flavor == GLOBAL) bytes *= sizeof(double);
-  if (flavor == PERATOM) bytes *= atom->nmax * sizeof(double);
+  double bytes = 0.0;
+  if (flavor == GLOBAL) bytes = (double)n1*n2 * sizeof(double);
+  if (flavor == PERATOM) bytes = (double)atom->nmax*n2*n3 * sizeof(double);
   return bytes;
 }

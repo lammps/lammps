@@ -35,8 +35,8 @@ HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
 # use device sort
 # requires linking with hipcc and hipCUB + (rocPRIM or CUB for AMD or Nvidia respectively)
 ifneq (spirv,$(HIP_PLATFORM))
-	# hipCUB not aviable for CHIP-SPV
-	HIP_HOST_OPTS += -DUSE_HIP_DEVICE_SORT
+# hipCUB not aviable for CHIP-SPV
+HIP_HOST_OPTS += -DUSE_HIP_DEVICE_SORT
 endif
 # path to cub
 HIP_HOST_INCLUDE += -I./
@@ -44,30 +44,41 @@ HIP_HOST_INCLUDE += -I./
 HIP_HOST_INCLUDE += -I$(HIP_PATH)/../include
 
 ifeq (amd,$(HIP_PLATFORM))
-	# newer version of ROCm (5.1+) require c++14 for rocprim
-	HIP_OPTS += -std=c++14
+# newer version of ROCm (5.1+) require c++14 for rocprim
+HIP_OPTS += -std=c++14
 endif
 
 # use mpi
 HIP_HOST_OPTS += -DMPI_GERYON -DUCL_NO_EXIT
 # this settings should match LAMMPS Makefile
-MPI_COMP_OPTS = $(shell mpicxx --showme:compile)
+# automatic flag detection for OpenMPI
+ifeq ($(shell mpicxx --showme:compile >/dev/null 2>&1; echo $$?), 0)
+MPI_COMP_OPTS = $(shell mpicxx --showme:compile) -DOMPI_SKIP_MPICXX=1
 MPI_LINK_OPTS = $(shell mpicxx --showme:link)
+# automatic flag detection for MPICH
+else ifeq ($(shell mpicxx -compile_info >/dev/null 2>&1; echo $$?),0)
+MPI_COMP_OPTS = $(filter -I%,$(shell mpicxx -compile_info)) -DMPICH_IGNORE_CXX_SEEK
+MPI_LINK_OPTS = $(filter -Wl%,$(shell mpicxx -link_info)) $(filter -L%,$(shell mpicxx -link_info)) $(filter -l%,$(shell mpicxx -link_info))
+# for other MPI libs: must set flags manually, if needed
+else
+MPI_COMP_OPTS =
+MPI_LINK_OPTS =
+endif
 
 ifeq (hcc,$(HIP_PLATFORM))
-	# possible values: gfx803,gfx900,gfx906
-	HIP_ARCH = gfx906
+# possible values: gfx803,gfx900,gfx906
+HIP_ARCH = gfx906
 else ifeq (amd,$(HIP_PLATFORM))
-	# possible values: gfx803,gfx900,gfx906
-	HIP_ARCH = gfx906
+# possible values: gfx803,gfx900,gfx906
+HIP_ARCH = gfx906
 else ifeq (nvcc,$(HIP_PLATFORM))
-	HIP_OPTS  += --use_fast_math
-	HIP_ARCH = -gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_32,code=[sm_32,compute_32] -gencode arch=compute_35,code=[sm_35,compute_35] \
+HIP_OPTS  += --use_fast_math
+HIP_ARCH = -gencode arch=compute_30,code=[sm_30,compute_30] -gencode arch=compute_32,code=[sm_32,compute_32] -gencode arch=compute_35,code=[sm_35,compute_35] \
 		    -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] -gencode arch=compute_53,code=[sm_53,compute_53]\
 			-gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] -gencode arch=compute_62,code=[sm_62,compute_62]\
 			-gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_72,code=[sm_72,compute_72] -gencode arch=compute_75,code=[sm_75,compute_75]
 else ifeq (spirv,$(HIP_PLATFORM))
-	HIP_ARCH = spirv
+HIP_ARCH = spirv
 endif
 
 BIN_DIR = .

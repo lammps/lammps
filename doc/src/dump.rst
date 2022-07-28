@@ -1,4 +1,26 @@
 .. index:: dump
+.. index:: dump atom
+.. index:: dump cfg
+.. index:: dump custom
+.. index:: dump dcd
+.. index:: dump local
+.. index:: dump xtc
+.. index:: dump yaml
+.. index:: dump xyz
+.. index:: dump atom/gz
+.. index:: dump cfg/gz
+.. index:: dump custom/gz
+.. index:: dump local/gz
+.. index:: dump xyz/gz
+.. index:: dump atom/mpiio
+.. index:: dump cfg/mpiio
+.. index:: dump custom/mpiio
+.. index:: dump xyz/mpiio
+.. index:: dump atom/zstd
+.. index:: dump cfg/zstd
+.. index:: dump custom/zstd
+.. index:: dump xyz/zstd
+.. index:: dump local/zstd
 
 dump command
 ============

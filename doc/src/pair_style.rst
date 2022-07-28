@@ -349,6 +349,7 @@ accelerated styles exist.
 * :doc:`spin/magelec <pair_spin_magelec>` -
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
+* :doc:`srp/react <pair_srp>` -
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential

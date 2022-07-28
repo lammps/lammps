@@ -291,6 +291,7 @@ blocksize
 blueviolet
 bn
 bni
+bnumeric
 bo
 Bochkarev
 Bochum
@@ -1482,6 +1483,7 @@ intra
 intralayer
 intramolecular
 ints
+inumeric
 inv
 invariants
 inversed
@@ -1699,6 +1701,7 @@ kTln
 ktypeN
 Kub
 Kubo
+Kuksenok
 Kumagai
 Kumar
 Kurebayashi
@@ -2705,6 +2708,7 @@ polydispersity
 polyelectrolyte
 polyhedra
 Polym
+polymorph
 polymorphism
 Ponder
 popen
@@ -3462,6 +3466,7 @@ tmin
 Tmin
 tmp
 tN
+tnumeric
 Tobias
 Toennies
 Tohoku
@@ -3741,6 +3746,7 @@ wallstyle
 walltime
 Waltham
 Waroquier
+Wataru
 wavepacket
 wB
 Wbody

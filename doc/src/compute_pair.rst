@@ -93,7 +93,9 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute pe <compute_pe>`, :doc:`compute bond <compute_bond>`
+:doc:`compute pe <compute_pe>`, :doc:`compute bond <compute_bond>`,
+:doc:`fix pair <fix_pair>`
+
 
 Default
 """""""

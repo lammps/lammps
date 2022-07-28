@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -65,6 +65,8 @@ Syntax
        *refresh* arg = c_ID = compute ID that supports a refresh operation
        *scale* arg = *yes* or *no*
        *sfactor* arg = coordinate scaling factor (> 0.0)
+       *skip* arg = v_name
+         v_name = variable with name which evaluates to non-zero (skip) or 0
        *sort* arg = *off* or *id* or N or -N
           off = no sorting of per-atom lines within a snapshot
           id = sort per-atom lines by atom ID
@@ -678,10 +680,28 @@ most effective when the typical magnitude of position data is between
 
 ----------
 
+The *skip* keyword can be used with all dump styles.  It allows a dump
+snapshot to be skipped (not written to the dump file), if a condition
+is met.  The condition is computed by an :doc:`equal-style variable
+<variable>`, which should be specified as v_name, where name is the
+variable name.  If the variable evaulation returns a non-zero value,
+then the dump snapshot is skipped.  If it returns zero, the dump
+proceeds as usual.  Note that :doc:`equal-style variable <variable>`
+can contain Boolean operators which effectively evaluate as a true
+(non-zero) or false (zero) result.
+
+The *skip* keyword can be useful for debugging purposes, e.g. to dump
+only on a particular timestep.  Or to limit output to conditions of
+interest, e.g. only when the force on some atom exceeds a threshold
+value.
+
+----------
+
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the :doc:`atom_modify sort <atom_modify>` option is turned on, which it is by default, to
+parallel.  This is the case even in serial if the :doc:`atom_modify
+sort <atom_modify>` option is turned on, which it is by default, to
 improve performance.  A sort value of *id* means sort the output by
 atom ID.  A sort value of N or -N means sort the output by the value
 in the Nth column of per-atom info in either ascending or descending

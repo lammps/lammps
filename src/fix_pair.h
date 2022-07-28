@@ -30,6 +30,8 @@ class FixPair : public Fix {
   ~FixPair() override;
   int setmask() override;
   void init() override;
+  void setup(int) override;
+  void setup_pre_force(int) override;
   void pre_force(int) override;
   void post_force(int) override;
 

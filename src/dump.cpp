@@ -345,11 +345,6 @@ void Dump::write()
 
   if (delay_flag && update->ntimestep < delaystep) return;
 
-  // if file per timestep, open new file
-
-  if (multifile) openfile();
-  if (fp) clearerr(fp);
-
   // simulation box bounds
 
   if (domain->triclinic == 0) {
@@ -376,13 +371,19 @@ void Dump::write()
   nme = count();
 
   // if skip condition is defined and met, just return
-  // do it after count() b/c that invoked computes
-  // NOTE: for multifile, will have already opened file
+  // do this after count() b/c it invokes computes,
+  //   so caller can trigger future invocation of needed computes
 
   if (skipflag) {
     double value = input->variable->compute_equal(skipindex);
     if (value != 0.0) return;
   }
+
+  // if file per timestep, open new file
+  // do this after skip check, so no file is opened if skip occurs
+
+  if (multifile) openfile();
+  if (fp) clearerr(fp);
 
   // ntotal = total # of dump lines in snapshot
   // nmax = max # of dump lines on any proc

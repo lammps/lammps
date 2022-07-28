@@ -81,18 +81,19 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // extract all fields just to get number of per-atom values, ptrs may be NULL
+  // extract all fields just to get number of per-atom values
+  //   returned data ptr may be NULL, if pair style has not allocated field yet
+  //   check for recognized field cannot be done until post_force()
   // also check if triggername can be extracted as a scalar value
 
   triggerptr = new int*[nfield];
 
-  int columns,dim;
+  int dim;
   ncols = 0;
 
   for (int ifield = 0; ifield < nfield; ifield++) {
-    void *tmp = pstyle->extract(fieldname[ifield],columns);
-    //if (!tmp) 
-    //  error->all(FLERR,"Fix pair pair style cannot extract {}",fieldname[ifield]);
+    int columns = 0;         // set in case fieldname not recognized by pstyle
+    void *pvoid = pstyle->extract(fieldname[ifield],columns);
     if (columns) ncols += columns;
     else ncols++;
     if (trigger[ifield]) {
@@ -175,10 +176,24 @@ int FixPair::setmask()
 
 void FixPair::init()
 {
-  // make sure pair style still exists
+  // insure pair style still exists
 
   pstyle = force->pair_match(pairname,1,0);
   if (pstyle == nullptr) error->all(FLERR,"Fix pair pair style not found");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPair::setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPair::setup_pre_force(int vflag)
+{
+  pre_force(vflag);
 }
 
 /* ----------------------------------------------------------------------

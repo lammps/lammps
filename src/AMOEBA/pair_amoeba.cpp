@@ -2077,7 +2077,10 @@ void *PairAmoeba::extract(const char *str, int &dim)
   if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;
   if (strcmp(str,"opbend_sextic") == 0) return (void *) &opbend_sextic;
 
-  // requests from FixPair
+  // peratom requests from FixPair
+  // return dim = # of quantites per atom
+  //   0 = per-atom vector
+  //   1 or more = # of columns in per-atom array
 
   if (strcmp(str,"uind") == 0) {
     dim = 3;

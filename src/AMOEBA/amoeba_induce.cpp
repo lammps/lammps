@@ -576,13 +576,13 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
     }
   }
 
-  // get the reciprocal space part of the mutual field
-
-  if (polar_kspace_flag) umutual1(field,fieldp);
-
   // get the real space portion of the mutual field
 
   if (polar_rspace_flag) umutual2b(field,fieldp);
+
+  // get the reciprocal space part of the mutual field
+
+  if (polar_kspace_flag) umutual1(field,fieldp);
 
   // add the self-energy portion of the mutual field
 

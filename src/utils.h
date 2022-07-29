@@ -371,9 +371,9 @@ namespace utils {
   void grid_parse(const char *file, int line, const std::string &name,
                   char *id, char *gridname, char *dataname, Error *error);
 
-  /*! Parse grid reference name into 3 sub-strings
+  /*! Parse grid reference into 3 sub-strings
    *
-   * Format of grid reference name = id:gridname:dataname
+   * Format of grid reference = id:gridname:dataname
    * Return ptrs to the 3 sub-strings
    *
    * \param name = grid reference

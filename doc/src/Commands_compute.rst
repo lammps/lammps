@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 Compute commands
 ================
@@ -138,6 +139,8 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`smd/vol <compute_smd_vol>`
    * :doc:`snap <compute_sna_atom>`
    * :doc:`sna/atom <compute_sna_atom>`
+   * :doc:`sna/grid <compute_sna_atom>`
+   * :doc:`sna/grid/local <compute_sna_atom>`
    * :doc:`snad/atom <compute_sna_atom>`
    * :doc:`snav/atom <compute_sna_atom>`
    * :doc:`sph/e/atom <compute_sph_e_atom>`

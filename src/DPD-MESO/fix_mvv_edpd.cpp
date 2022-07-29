@@ -17,8 +17,8 @@
    v and edpd_T) using the modified velocity-Verlet (MVV) algorithm.
    Setting verlet = 0.5 recovers the standard velocity-Verlet algorithm.
 
-   Contributing author: Zhen Li (Brown University)
-   Email: zhen_li@brown.edu
+   Contributing author: Zhen Li (Clemson University)
+   Email: zli7@clemson.edu
 
    Please cite the related publication:
    Z. Li, Y.-H. Tang, H. Lei, B. Caswell and G.E. Karniadakis. "Energy-

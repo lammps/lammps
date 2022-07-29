@@ -27,6 +27,7 @@ page gives those details.
    :columns: 6
 
    * :ref:`ADIOS <PKG-ADIOS>`
+   * :ref:`AMOEBA <PKG-AMOEBA>`
    * :ref:`ASPHERE <PKG-ASPHERE>`
    * :ref:`ATC <PKG-ATC>`
    * :ref:`AWPMD <PKG-AWPMD>`
@@ -35,7 +36,7 @@ page gives those details.
    * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
-   * :ref:`CG-SDK <PKG-CG-SDK>`
+   * :ref:`CG-SPICA <PKG-CG-SPICA>`
    * :ref:`CLASS2 <PKG-CLASS2>`
    * :ref:`COLLOID <PKG-COLLOID>`
    * :ref:`COLVARS <PKG-COLVARS>`
@@ -146,6 +147,24 @@ This package has :ref:`specific installation instructions <adios>` on the :doc:`
 * :doc:`dump atom/adios <dump_adios>`
 * :doc:`dump custom/adios <dump_adios>`
 * :doc:`read_dump <read_dump>`
+
+----------
+
+.. _PKG-AMOEBA:
+
+AMOEBA package
+---------------
+
+**Contents:**
+
+TODO
+
+**Supporting info:**
+
+* src/AMOEBA: filenames -> commands
+* :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+* examples/amoeba
+* TODO
 
 ----------
 
@@ -365,28 +384,30 @@ The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
 
 ----------
 
-.. _PKG-CG-SDK:
+.. _PKG-CG-SPICA:
 
-CG-SDK package
+CG-SPICA package
 ------------------
 
 **Contents:**
 
 Several pair styles and an angle style which implement the
-coarse-grained SDK model of Shinoda, DeVane, and Klein which enables
-simulation of ionic liquids, electrolytes, lipids and charged amino
-acids.
+coarse-grained SPICA (formerly called SDK) model which enables
+simulation of biological or soft material systems.
 
-**Author:** Axel Kohlmeyer (Temple U).
+**Original Author:** Axel Kohlmeyer (Temple U).
+
+**Maintainers:** Yusuke Miyazaki and Wataru Shinoda (Okayama U).
 
 **Supporting info:**
 
-* src/CG-SDK: filenames -> commands
-* src/CG-SDK/README
-* :doc:`pair_style lj/sdk/\* <pair_sdk>`
-* :doc:`angle_style sdk <angle_sdk>`
-* examples/PACKAGES/cgsdk
+* src/CG-SPICA: filenames -> commands
+* src/CG-SPICA/README
+* :doc:`pair_style lj/spica/\* <pair_spica>`
+* :doc:`angle_style spica <angle_spica>`
+* examples/PACKAGES/cgspica
 * https://www.lammps.org/pictures.html#cg
+* https://www.spica-ff.org/
 
 ----------
 
@@ -657,7 +678,7 @@ advection-diffusion-reaction systems. The equations of motion of these
 DPD extensions are integrated through a modified velocity-Verlet (MVV)
 algorithm.
 
-**Author:** Zhen Li (Division of Applied Mathematics, Brown University)
+**Author:** Zhen Li (Department of Mechanical Engineering, Clemson University)
 
 **Supporting info:**
 
@@ -1479,7 +1500,7 @@ the :doc:`Build extras <Build_extras>` page.
 * lib/mdi/README
 * :doc:`Howto MDI <Howto_mdi>`
 * :doc:`mdi <mdi>`
-* :doc:`fix mdi/aimd <fix_mdi_aimd>`
+* :doc:`fix mdi/qm <fix_mdi_qm>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1801,6 +1822,8 @@ computes which analyze attributes of the potential.
 * src/ML-SNAP: filenames -> commands
 * :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
+* :doc:`compute sna/grid <compute_sna_atom>`
+* :doc:`compute sna/grid/local <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`
 * :doc:`compute snav/atom <compute_sna_atom>`
 * examples/snap

@@ -571,6 +571,9 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<Kokkos::Experimental::HIP> {
   static constexpr DeviceType id = DeviceType::HIP;
+  static int device_id(const Kokkos::Experimental::HIP& exec) {
+    return exec.hip_device();
+  }
 };
 }  // namespace Experimental
 }  // namespace Tools

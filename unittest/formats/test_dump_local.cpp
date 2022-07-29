@@ -39,8 +39,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_dump(std::string dump_file, std::string dump_options,
-                       std::string dump_modify_options, int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &dump_options,
+                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, dump_options));
@@ -89,7 +89,7 @@ TEST_F(DumpLocalTest, run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[6]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1] "));
+    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1]"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 2);
     ASSERT_THAT(lines[9], Eq("1 1.18765 "));
     delete_file(dump_file);
@@ -103,7 +103,7 @@ TEST_F(DumpLocalTest, label_run0)
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_THAT(lines[2], Eq("ITEM: NUMBER OF ELEMENTS"));
-    ASSERT_THAT(lines[8], Eq("ITEM: ELEMENTS index c_comp[1] "));
+    ASSERT_THAT(lines[8], Eq("ITEM: ELEMENTS index c_comp[1]"));
     delete_file(dump_file);
 }
 
@@ -178,7 +178,7 @@ TEST_F(DumpLocalTest, no_buffer_run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[6]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1] "));
+    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1]"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 2);
     ASSERT_THAT(lines[9], Eq("1 1.18765 "));
     delete_file(dump_file);

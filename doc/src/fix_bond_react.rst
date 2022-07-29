@@ -520,22 +520,32 @@ The constraint of type "custom" has the following syntax:
 
    custom *varstring*
 
-where "custom" is the required keyword, and *varstring* is a
-variable expression. The expression must be a valid equal-style
-variable formula that can be read by the :doc:`variable <variable>` command,
+where 'custom' is the required keyword, and *varstring* is a variable
+expression. The expression must be a valid equal-style variable
+formula that can be read by the :doc:`variable <variable>` command,
 after any special reaction functions are evaluated. If the resulting
 expression is zero, the reaction is prevented from occurring;
-otherwise, it is permitted to occur. There are two special reaction
-functions available, "rxnsum" and "rxnave". These functions operate
-over the atoms in a given reaction site, and have one mandatory
-argument and one optional argument. The mandatory argument is the
-identifier for an atom-style variable. The second, optional argument
-is the name of a molecule fragment in the pre-reaction template, and
-can be used to operate over a subset of atoms in the reaction site.
-The "rxnsum" function sums the atom-style variable over the reaction
-site, while the "rxnave" returns the average value. For example, a
-constraint on the total potential energy of atoms involved in the
-reaction can be imposed as follows:
+otherwise, it is permitted to occur. There are three special reaction
+functions available, 'rxnbond', 'rxnsum', and 'rxnave'. The 'rxnbond'
+function allows per-bond values to be included in the variable strings
+of the custom constraint. The 'rxnbond' function has two mandatory
+arguments. The first argument is the ID of a previously defined
+'compute bond/local' command. This 'compute bond/local' must compute
+only one value, e.g. bond force. This value is returned by the
+'rxnbond' function. The second argument is the name of a molecule
+fragment in the pre-reaction template. The fragment must contain
+exactly two atoms, corresponding to the atoms involved in the bond
+whose value should be calculated. An example of a constraint that uses
+the force experienced by a bond in the reaction site is provided
+below. The 'rxnsum' and 'rxnave' functions operate over the atoms in a
+given reaction site, and have one mandatory argument and one optional
+argument. The mandatory argument is the identifier for an atom-style
+variable. The second, optional argument is the name of a molecule
+fragment in the pre-reaction template, and can be used to operate over
+a subset of atoms in the reaction site. The 'rxnsum' function sums the
+atom-style variable over the reaction site, while the 'rxnave' returns
+the average value. For example, a constraint on the total potential
+energy of atoms involved in the reaction can be imposed as follows:
 
 .. code-block:: LAMMPS
 
@@ -547,11 +557,32 @@ reaction can be imposed as follows:
    custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
 
 The above example prevents the reaction from occurring unless the
-total potential energy of the reaction site is above 100. The variable
-expression can be interpreted as the probability of the reaction
-occurring by using an inequality and the :doc:`random(x,y,z) <variable>`
-function available for equal-style variables, similar to the 'arrhenius'
-constraint above.
+total potential energy of the reaction site is above 100. As a second
+example, this time using the 'rxnbond' function, consider a modified
+Arrhenius constraint that depends on the bond force of a specific bond:
+
+.. code-block:: LAMMPS
+
+   # in LAMMPS input script
+
+   compute bondforce all bond/local force
+
+   compute ke_atom all ke/atom
+   variable ke atom c_ke_atom
+
+   variable E_a equal 100.0 # activation energy
+   variable natoms equal 10 # number of atoms in reaction site
+
+
+.. code-block:: LAMMPS
+
+   # in Constraints section of map file
+
+   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag))/(2/3*rxnsum(v_ke)*v_natoms)) < random(0,1,12345)"
+
+By using an inequality and the 'random(x,y,z)' function, the left-hand
+side can be interpreted as the probability of the reaction occurring,
+similar to the 'arrhenius' constraint above.
 
 By default, all constraints must be satisfied for the reaction to
 occur. In other words, constraints are evaluated as a series of

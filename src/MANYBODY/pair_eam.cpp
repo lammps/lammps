@@ -934,16 +934,25 @@ void *PairEAM::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
 
-  // peratom requests from FixPair
-  // return dim = # of quantites per atom
-  //   0 = per-atom vector
-  //   1 or more = # of columns in per-atom array
+  return nullptr;
+}
 
+/* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+
+void *PairEAM::extract_peratom(const char *str, int &ncol)
+{
   if (strcmp(str,"rho") == 0) {
-    dim = 0;
+    ncol = 0;
     return (void *) rho;
   } else if (strcmp(str,"fp") == 0) {
-    dim = 0;
+    ncol = 0;
     return (void *) fp;
   }
 

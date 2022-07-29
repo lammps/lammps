@@ -83,15 +83,15 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   triggerptr = new int*[nfield];
 
-  int dim;
   ncols = 0;
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     int columns = 0;         // set in case fieldname not recognized by pstyle
-    void *pvoid = pstyle->extract(fieldname[ifield],columns);
+    void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
     if (columns) ncols += columns;
     else ncols++;
     if (trigger[ifield]) {
+      int dim;
       triggerptr[ifield] = (int *) pstyle->extract(triggername[ifield],dim);
       if (!triggerptr[ifield]) 
         error->all(FLERR,"Fix pair pair style cannot extract {}",
@@ -222,7 +222,7 @@ void FixPair::post_force(int /*vflag*/)
   int columns;
 
   for (int ifield = 0; ifield < nfield; ifield++) {
-    void *pvoid = pstyle->extract(fieldname[ifield],columns);
+    void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
     if (pvoid == nullptr) 
       error->all(FLERR,"Fix pair pair style cannot extract {}",fieldname[ifield]);
 

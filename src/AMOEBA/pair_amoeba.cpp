@@ -2077,16 +2077,25 @@ void *PairAmoeba::extract(const char *str, int &dim)
   if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;
   if (strcmp(str,"opbend_sextic") == 0) return (void *) &opbend_sextic;
 
-  // peratom requests from FixPair
-  // return dim = # of quantites per atom
-  //   0 = per-atom vector
-  //   1 or more = # of columns in per-atom array
+  return nullptr;
+}
 
+/* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+
+void *PairAmoeba::extract_peratom(const char *str, int &ncol)
+{
   if (strcmp(str,"uind") == 0) {
-    dim = 3;
+    ncol = 3;
     return (void *) uind;
   } else if (strcmp(str,"uinp") == 0) {
-    dim = 3;
+    ncol = 3;
     return (void *) uinp;
   }
 

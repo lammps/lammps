@@ -122,6 +122,12 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
     oyhi = MIN(gnx-1,oyhi);
   }
 
+  // error check on size of grid stored by this proc
+
+  bigint total = (bigint) (oxhi - oxlo + 1) * (oyhi - oylo + 1);
+  if (total > MAXSMALLINT) 
+    error->one(FLERR, "Too many owned+ghost grid2d points");
+
   // store grid bounds and proc neighs
 
   if (layout == REGULAR) {
@@ -336,7 +342,7 @@ void Grid2d::store(int ixlo, int ixhi, int iylo, int iyhi,
 
 /* ---------------------------------------------------------------------- */
 
-void Grid2d::query_size(int &nxgrid, int &nygrid)
+void Grid2d::get_size(int &nxgrid, int &nygrid)
 {
   nxgrid = nx;
   nygrid = ny;
@@ -344,7 +350,7 @@ void Grid2d::query_size(int &nxgrid, int &nygrid)
 
 /* ---------------------------------------------------------------------- */
 
-void Grid2d::query_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
+void Grid2d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
 {
   xlo = inxlo;
   xhi = inxhi;
@@ -354,7 +360,7 @@ void Grid2d::query_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
 
 /* ---------------------------------------------------------------------- */
 
-void Grid2d::query_box(int dim, double &lo, double &delta)
+void Grid2d::get_box(int dim, double &lo, double &delta)
 {
   lo = boxlo[dim];
   delta = prd[dim] / ngrid[dim];

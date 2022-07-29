@@ -132,6 +132,13 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
     ozlo = MAX(1,ozlo);
     ozhi = MIN(gnx-1,ozhi);
   }
+  
+  // error check on size of grid stored by this proc
+
+  bigint total = (bigint) 
+    (oxhi - oxlo + 1) * (oyhi - oylo + 1) * (ozhi - ozlo + 1);
+  if (total > MAXSMALLINT) 
+    error->one(FLERR, "Too many owned+ghost grid3d points");
 
   // store grid bounds and proc neighs
 
@@ -364,7 +371,7 @@ void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
 
 /* ---------------------------------------------------------------------- */
 
-void Grid3d::query_size(int &nxgrid, int &nygrid, int &nzgrid)
+void Grid3d::get_size(int &nxgrid, int &nygrid, int &nzgrid)
 {
   nxgrid = nx;
   nygrid = ny;
@@ -373,8 +380,8 @@ void Grid3d::query_size(int &nxgrid, int &nygrid, int &nzgrid)
 
 /* ---------------------------------------------------------------------- */
 
-void Grid3d::query_bounds(int &xlo, int &xhi, int &ylo, int &yhi, 
-                          int &zlo, int &zhi)
+void Grid3d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi, 
+                        int &zlo, int &zhi)
 {
   xlo = inxlo;
   xhi = inxhi;
@@ -386,7 +393,7 @@ void Grid3d::query_bounds(int &xlo, int &xhi, int &ylo, int &yhi,
 
 /* ---------------------------------------------------------------------- */
 
-void Grid3d::query_box(int dim, double &lo, double &delta)
+void Grid3d::get_box(int dim, double &lo, double &delta)
 {
   lo = boxlo[dim];
   delta = prd[dim] / ngrid[dim];

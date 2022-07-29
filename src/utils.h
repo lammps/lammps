@@ -368,6 +368,19 @@ namespace utils {
    * \param text  string that should be copied
    * \return new buffer with copy of string */
 
+  void grid_parse(const char *file, int line, const std::string &name,
+                  char *id, char *gridname, char *dataname, Error *error);
+
+  /*! Parse grid reference name into 3 sub-strings
+   *
+   * Format of grid reference name = id:gridname:dataname
+   * Return ptrs to the 3 sub-strings
+   *
+   * \param name = grid reference
+   * \param id = ptr to 1st substring
+   * \param gridname = ptr to 2nd substring
+   * \param dataname = ptr to 3rd substring */
+
   char *strdup(const std::string &text);
 
   /*! Convert string to lowercase

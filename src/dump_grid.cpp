@@ -283,9 +283,9 @@ void DumpGrid::init_style()
         ifix = fix[field2index[i]];
         grid2d = (Grid2d *) ifix->get_grid_by_index(field2grid[i]);
       }
-      if (i == 0) grid2d->query_size(nx,ny);
+      if (i == 0) grid2d->get_size(nx,ny);
       else {
-        grid2d->query_size(nxtmp,nytmp);
+        grid2d->get_size(nxtmp,nytmp);
         if (nxtmp != nx || nytmp != ny) 
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
@@ -298,9 +298,9 @@ void DumpGrid::init_style()
         ifix = fix[field2index[i]];
         grid3d = (Grid3d *) ifix->get_grid_by_index(field2grid[i]);
       }
-      if (i == 0) grid3d->query_size(nx,ny,nz);
+      if (i == 0) grid3d->get_size(nx,ny,nz);
       else {
-        grid3d->query_size(nxtmp,nytmp,nztmp);
+        grid3d->get_size(nxtmp,nytmp,nztmp);
         if (nxtmp != nx || nytmp != ny || nztmp != nz)
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
@@ -535,7 +535,7 @@ int DumpGrid::count()
     else if (field2source[0] == FIX)
       grid2d = (Grid2d *) 
         fix[field2index[0]]->get_grid_by_index(field2grid[0]);
-    grid2d->query_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+    grid2d->get_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
   } else {
     if (field2source[0] == COMPUTE)
       grid3d = (Grid3d *) 
@@ -543,7 +543,7 @@ int DumpGrid::count()
     else if (field2source[0] == FIX)
       grid3d = (Grid3d *) 
         fix[field2index[0]]->get_grid_by_index(field2grid[0]);
-    grid3d->query_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+    grid3d->get_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
   }
 
   // invoke Computes for per-grid quantities
@@ -614,6 +614,7 @@ int DumpGrid::count()
 void DumpGrid::pack(tagint *ids)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
+
   // NOTE: this needs to be grid IDs ?
   /*
   if (ids) {
@@ -731,29 +732,10 @@ int DumpGrid::parse_fields(int narg, char **arg)
         vtype[iarg] = Dump::DOUBLE;
 	field2source[iarg] = COMPUTE;
         
-        // name = idcompute:gname:fname, split into 3 strings
+        // split name = idcompute:gname:dname into 3 strings
 
-        char *ptr1 = strchr((char *) name,':');
-        if (!ptr1) 
-          error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
-        *ptr1 = '\0';
-        char *ptr2 = strchr(ptr1+1,':');
-        if (!ptr2) 
-          error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
-        *ptr2 = '\0';
-
-        int n = strlen(name) + 1;
-        char *idcompute = new char[n];
-        strcpy(idcompute,name);
-        n = strlen(ptr1+1) + 1;
-        char *gname = new char[n];
-        strcpy(gname,ptr1+1);
-        n = strlen(ptr2+1) + 1;
-        char *dname = new char[n];
-        strcpy(dname,ptr2+1);
-
-        *ptr1 = ':';
-        *ptr2 = ':';
+        char *idcompute,*gname,*dname;
+        utils::grid_parse(FLERR,name,idcompute,gname,dname,error);
 
         icompute = modify->get_compute_by_id(idcompute);
         if (!icompute) 
@@ -806,29 +788,10 @@ int DumpGrid::parse_fields(int narg, char **arg)
         vtype[iarg] = Dump::DOUBLE;
 	field2source[iarg] = FIX;
 
-        // name = idfix:gname:fname, split into 3 strings
+        // split name = idfix:gname:dname into 3 strings
 
-        char *ptr1 = strchr((char *) name,':');
-        if (!ptr1) 
-          error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
-        *ptr1 = '\0';
-        char *ptr2 = strchr(ptr1+1,':');
-        if (!ptr2) 
-          error->all(FLERR,"Dump grid fix {} does not contain 2 ':' chars");
-        *ptr2 = '\0';
-
-        int n = strlen(name) + 1;
-        char *idfix = new char[n];
-        strcpy(idfix,name);
-        n = strlen(ptr1+1) + 1;
-        char *gname = new char[n];
-        strcpy(gname,ptr1+1);
-        n = strlen(ptr2+1) + 1;
-        char *dname = new char[n];
-        strcpy(dname,ptr2+1);
-
-        *ptr1 = ':';
-        *ptr2 = ':';
+        char *idfix,*gname,*dname;
+        utils::grid_parse(FLERR,name,idfix,gname,dname,error);
 
         ifix = modify->get_fix_by_id(idfix);
         if (!ifix) error->all(FLERR,"Could not find dump grid fix ID: {}",idfix);

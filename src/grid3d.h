@@ -31,9 +31,9 @@ class Grid3d : protected Pointers {
          int, int, int, int, int, int, int, int, int, int, int, int, 
          int, int, int, int, int, int);
   ~Grid3d() override;
-  void query_size(int &, int &, int &);
-  void query_bounds(int &, int &, int &, int &, int &, int &);
-  void query_box(int, double &, double &);
+  void get_size(int &, int &, int &);
+  void get_bounds(int &, int &, int &, int &, int &, int &);
+  void get_box(int, double &, double &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);

@@ -54,7 +54,7 @@ class FixTTMGrid : public FixTTM {
   double memory_usage() override;
 
  private:
-  int ngridmine, ngridout;
+  int ngridown, ngridout;
   int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
   int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
   double delxinv, delyinv, delzinv;

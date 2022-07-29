@@ -767,6 +767,30 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 }
 
 /* ----------------------------------------------------------------------
+   Parse grid reference into id:gridname:dataname
+   return ptrs to 3 substrings
+------------------------------------------------------------------------- */
+
+void utils::grid_parse(const char *file, int line, const std::string &name, 
+                       char *id, char *gridname, char *dataname, Error *error)
+{
+  char *copy = strdup(name);
+
+  char *ptr1 = strchr(copy,':');
+  if (!ptr1) 
+    error->all(FLERR,"Grid reference {} does not contain 2 ':' chars",name);
+  *ptr1 = '\0';
+  char *ptr2 = strchr(ptr1+1,':');
+  if (!ptr2) 
+    error->all(FLERR,"Grid reference {} does not contain 2 ':' chars",name);
+  *ptr2 = '\0';
+
+  id = strdup(copy);
+  gridname = strdup(ptr1+1);
+  dataname = strdup(ptr2+1);
+}
+
+/* ----------------------------------------------------------------------
    Make copy of string in new storage. Works like the (non-portable)
    C-style strdup() but also accepts a C++ string as argument.
 ------------------------------------------------------------------------- */
@@ -1087,6 +1111,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 /* ----------------------------------------------------------------------
    Convert multi-line string into lines
 ------------------------------------------------------------------------- */
+
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
   return Tokenizer(text, "\r\n").as_vector();
@@ -1204,6 +1229,7 @@ std::string utils::get_potential_units(const std::string &path, const std::strin
 /* ----------------------------------------------------------------------
    return bitmask of supported conversions for a given property
 ------------------------------------------------------------------------- */
+
 int utils::get_supported_conversions(const int property)
 {
   if (property == ENERGY)

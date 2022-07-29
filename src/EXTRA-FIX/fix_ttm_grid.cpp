@@ -57,6 +57,7 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   pergrid_flag = 1;
 
   /*
+  NOTE: uncomment this when ready to release
   if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
                           "use dump grid instead");
   */
@@ -285,7 +286,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
   int ***T_initial_set;
   memory->create3d_offset(T_initial_set, nzlo_in, nzhi_in, nylo_in, nyhi_in, nxlo_in, nxhi_in,
                           "ttm/grid:T_initial_set");
-  memset(&T_initial_set[nzlo_in][nylo_in][nxlo_in], 0, ngridmine * sizeof(int));
+  memset(&T_initial_set[nzlo_in][nylo_in][nxlo_in], 0, ngridown * sizeof(int));
 
   // proc 0 opens file
 
@@ -365,6 +366,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 /* ----------------------------------------------------------------------
    write out current electron temperatures to user-specified file
    only written by proc 0
+   NOTE: remove this function when ready to release
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::write_electron_temperatures(const std::string &filename)
@@ -445,16 +447,10 @@ void FixTTMGrid::allocate_grid()
                     nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
                     nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
-  // set ngridout and ngridmine and error check
-
-  bigint totalmine;
-  totalmine =
-      (bigint) (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * (nzhi_out - nzlo_out + 1);
-  if (totalmine > MAXSMALLINT) error->one(FLERR, "Too many owned+ghost grid points in fix ttm");
-  ngridout = totalmine;
-
-  totalmine = (bigint) (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) * (nzhi_in - nzlo_in + 1);
-  ngridmine = totalmine;
+  ngridown = (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) * 
+    (nzhi_in - nzlo_in + 1);
+  ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * 
+    (nzhi_out - nzlo_out + 1);
 
   // setup grid communication and allocate grid data structs
 
@@ -562,6 +558,7 @@ void FixTTMGrid::restart(char *buf)
 /* ----------------------------------------------------------------------
    pack values from local grid into buf
    used by which = 0 and 1
+   NOTE: remove this function when ready to release
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::pack_gather_grid(int /*which*/, void *vbuf)
@@ -579,6 +576,7 @@ void FixTTMGrid::pack_gather_grid(int /*which*/, void *vbuf)
 /* ----------------------------------------------------------------------
    which = 0: unpack values from buf into global gbuf based on their indices
    which = 1: print values from buf to FPout file
+   NOTE: remove this function when ready to release
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo, int xhi, int ylo,
@@ -617,6 +615,7 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo,
    return index of grid associated with name
    this class can store M named grids, indexed 0 to M-1
    also set dim for 2d vs 3d grid
+   return -1 if grid name not found
 ------------------------------------------------------------------------- */
 
 int FixTTMGrid::get_grid_by_name(char *name, int &dim)
@@ -632,6 +631,7 @@ int FixTTMGrid::get_grid_by_name(char *name, int &dim)
 /* ----------------------------------------------------------------------
    return ptr to Grid data struct for grid with index
    this class can store M named grids, indexed 0 to M-1
+   return nullptr if index is invalid
 ------------------------------------------------------------------------- */
 
 void *FixTTMGrid::get_grid_by_index(int index)
@@ -644,9 +644,10 @@ void *FixTTMGrid::get_grid_by_index(int index)
    return index of data associated with name in grid with index igrid
    this class can store M named grids, indexed 0 to M-1
    each grid can store G named data sets, indexed 0 to G-1
-   a data set name can be associated with multiple grids
-   also set ncol for data set, 0 = vector, 1-N for array with N columns
-   vector = single value per grid pt, array = N values per grid pt
+     a data set name can be associated with multiple grids
+   set ncol for data set, 0 = vector, 1-N for array with N columns
+     vector = single value per grid pt, array = N values per grid pt
+   return -1 if data name not found
 ------------------------------------------------------------------------- */
 
 int FixTTMGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
@@ -662,6 +663,7 @@ int FixTTMGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
 /* ----------------------------------------------------------------------
    return ptr to multidim data array associated with index
    this class can store G named data sets, indexed 0 to M-1
+   return nullptr if index is invalid
 ------------------------------------------------------------------------- */
 
 void *FixTTMGrid::get_griddata_by_index(int index)

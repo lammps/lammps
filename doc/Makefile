@@ -242,7 +242,6 @@ $(MATHJAX):
 $(ANCHORCHECK): $(VENV)
 	@( \
 		. $(VENV)/bin/activate; \
-		(cd utils/converters;\
-		python setup.py develop);\
+		pip install -e utils/converters;\
 		deactivate;\
 	)

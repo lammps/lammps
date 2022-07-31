@@ -79,9 +79,9 @@
 *>          = 9: maximum size of the subproblems at the bottom of the
 *>               computation tree in the divide-and-conquer algorithm
 *>               (used by xGELSD and xGESDD)
-*>          =10: ieee NaN arithmetic can be trusted not to trap
+*>          =10: ieee infinity and NaN arithmetic can be trusted not to trap
 *>          =11: infinity arithmetic can be trusted not to trap
-*>          12 <= ISPEC <= 16:
+*>          12 <= ISPEC <= 17:
 *>               xHSEQR or related subroutines,
 *>               see IPARMQ for detailed explanation
 *> \endverbatim
@@ -132,8 +132,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup OTHERauxiliary
 *
 *> \par Further Details:
@@ -162,10 +160,9 @@
 *  =====================================================================
       INTEGER FUNCTION ILAENV( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
 *
-*  -- LAPACK auxiliary routine (version 3.7.0) --
+*  -- LAPACK auxiliary routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       CHARACTER*( * )    NAME, OPTS
@@ -176,8 +173,8 @@
 *
 *     .. Local Scalars ..
       INTEGER            I, IC, IZ, NB, NBMIN, NX
-      LOGICAL            CNAME, SNAME
-      CHARACTER          C1*1, C2*2, C4*2, C3*3, SUBNAM*6
+      LOGICAL            CNAME, SNAME, TWOSTAGE
+      CHARACTER          C1*1, C2*2, C4*2, C3*3, SUBNAM*16
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          CHAR, ICHAR, INT, MIN, REAL
@@ -189,8 +186,7 @@
 *     .. Executable Statements ..
 *
       GO TO ( 10, 10, 10, 80, 90, 100, 110, 120,
-     $        130, 140, 150, 160, 160, 160, 160, 160,
-     $        170, 170, 170, 170, 170 )ISPEC
+     $        130, 140, 150, 160, 160, 160, 160, 160, 160)ISPEC
 *
 *     Invalid value for ISPEC
 *
@@ -257,6 +253,8 @@
       C2 = SUBNAM( 2: 3 )
       C3 = SUBNAM( 4: 6 )
       C4 = C3( 2: 3 )
+      TWOSTAGE = LEN( SUBNAM ).GE.11
+     $           .AND. SUBNAM( 11: 11 ).EQ.'2'
 *
       GO TO ( 50, 60, 70 )ISPEC
 *
@@ -270,7 +268,16 @@
 *
       NB = 1
 *
-      IF( C2.EQ.'GE' ) THEN
+      IF( SUBNAM(2:6).EQ.'LAORH' ) THEN
+*
+*        This is for *LAORHR_GETRFNP routine
+*
+         IF( SNAME ) THEN
+             NB = 32
+         ELSE
+             NB = 32
+         END IF
+      ELSE IF( C2.EQ.'GE' ) THEN
          IF( C3.EQ.'TRF' ) THEN
             IF( SNAME ) THEN
                NB = 64
@@ -360,9 +367,17 @@
       ELSE IF( C2.EQ.'SY' ) THEN
          IF( C3.EQ.'TRF' ) THEN
             IF( SNAME ) THEN
-               NB = 64
+               IF( TWOSTAGE ) THEN
+                  NB = 192
+               ELSE
+                  NB = 64
+               END IF
             ELSE
-               NB = 64
+               IF( TWOSTAGE ) THEN
+                  NB = 192
+               ELSE
+                  NB = 64
+               END IF
             END IF
          ELSE IF( SNAME .AND. C3.EQ.'TRD' ) THEN
             NB = 32
@@ -371,7 +386,11 @@
          END IF
       ELSE IF( CNAME .AND. C2.EQ.'HE' ) THEN
          IF( C3.EQ.'TRF' ) THEN
-            NB = 64
+            IF( TWOSTAGE ) THEN
+               NB = 192
+            ELSE
+               NB = 64
+            END IF
          ELSE IF( C3.EQ.'TRD' ) THEN
             NB = 32
          ELSE IF( C3.EQ.'GST' ) THEN
@@ -664,7 +683,7 @@
 *
   140 CONTINUE
 *
-*     ISPEC = 10: ieee NaN arithmetic can be trusted not to trap
+*     ISPEC = 10: ieee and infinity NaN arithmetic can be trusted not to trap
 *
 *     ILAENV = 0
       ILAENV = 1
@@ -675,7 +694,7 @@
 *
   150 CONTINUE
 *
-*     ISPEC = 11: infinity arithmetic can be trusted not to trap
+*     ISPEC = 11: ieee infinity arithmetic can be trusted not to trap
 *
 *     ILAENV = 0
       ILAENV = 1
@@ -686,16 +705,9 @@
 *
   160 CONTINUE
 *
-*     12 <= ISPEC <= 16: xHSEQR or related subroutines.
+*     12 <= ISPEC <= 17: xHSEQR or related subroutines.
 *
       ILAENV = IPARMQ( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
-      RETURN
-*
-  170 CONTINUE
-*
-*     17 <= ISPEC <= 21: 2stage eigenvalues and SVD or related subroutines.
-*
-      ILAENV = IPARAM2STAGE( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
       RETURN
 *
 *     End of ILAENV

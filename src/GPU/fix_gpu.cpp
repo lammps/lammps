@@ -275,7 +275,7 @@ void FixGPU::init()
   // also disallow GPU neighbor lists for hybrid styles
 
   if (force->pair_match("^hybrid",0) != nullptr) {
-    auto hybrid = dynamic_cast<PairHybrid *>( force->pair);
+    auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;

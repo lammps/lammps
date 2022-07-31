@@ -37,7 +37,7 @@ class ComputeSNAVAtom : public Compute {
 
  private:
   int nmax;
-  int ncoeff, nperdim;
+  int ncoeff, nvalues;
   double **cutsq;
   class NeighList *list;
   double **snav;
@@ -50,6 +50,7 @@ class ComputeSNAVAtom : public Compute {
   double *sinnerelem;
   double *dinnerelem;
   class SNA *snaptr;
+  double cutmax;
   int quadraticflag;
 };
 

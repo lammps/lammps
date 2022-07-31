@@ -806,8 +806,10 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   //   since some fixes access domain settings in their constructor
   // nullptr must be last entry in this list
 
-  const char *exceptions[] = {"GPU",   "OMP", "INTEL",      "property/atom", "cmap",
-                              "cmap3", "rx",  "deprecated", "STORE/KIM",     nullptr};
+  const char *exceptions[] =
+    {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
+     "deprecated", "STORE/KIM", "amoeba/pitorsion", "amoeba/bitorsion",
+     nullptr};
 
   if (domain->box_exist == 0) {
     int m;

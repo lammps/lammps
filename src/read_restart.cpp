@@ -61,9 +61,10 @@ void ReadRestart::command(int narg, char **arg)
 
   // check for remap option
 
-  int remapflag = 0;
+  int remapflag = 1;
   if (narg == 2) {
-    if (strcmp(arg[1],"remap") == 0) remapflag = 1;
+    if (strcmp(arg[1],"noremap") == 0) remapflag = 0;
+    else if (strcmp(arg[1],"remap") == 0) remapflag = 1; // for backward compatibility
     else error->all(FLERR,"Illegal read_restart command");
   }
 
@@ -643,8 +644,7 @@ void ReadRestart::header()
       int dimension = read_int();
       domain->dimension = dimension;
       if (domain->dimension == 2 && domain->zperiodic == 0)
-        error->all(FLERR,
-                   "Cannot run 2d simulation with non-periodic Z dimension");
+        error->all(FLERR, "Cannot run 2d simulation with non-periodic Z dimension");
 
     // read nprocs from restart file, warn if different
 

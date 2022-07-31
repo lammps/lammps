@@ -985,6 +985,19 @@ size_t utils::trim_and_count_words(const std::string &text, const std::string &s
 }
 
 /* ----------------------------------------------------------------------
+   combine words in vector to single string with separator added between words
+------------------------------------------------------------------------- */
+std::string utils::join_words(const std::vector<std::string> &words, const std::string &sep)
+{
+  std::string result;
+
+  if (words.size() > 0) result = words[0];
+  for (std::size_t i = 1; i < words.size(); ++i) result += sep + words[i];
+
+  return result;
+}
+
+/* ----------------------------------------------------------------------
    Convert string into words on whitespace while handling single and
    double quotes.
 ------------------------------------------------------------------------- */

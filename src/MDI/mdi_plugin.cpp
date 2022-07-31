@@ -19,7 +19,6 @@
 #include "mdi_plugin.h"
 
 #include "error.h"
-#include "fix_mdi_aimd.h"
 #include "input.h"
 #include "modify.h"
 

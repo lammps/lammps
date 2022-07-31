@@ -266,7 +266,7 @@ void ComputeStressCartesian::compute_array()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  double xi1, xi2, xj1, xj2;
+  double xi1, xi2;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -305,9 +305,6 @@ void ComputeStressCartesian::compute_array()
           }
         }
       }
-      xj1 = x[j][dir1];
-      xj2 = x[j][dir2];
-
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
       delz = x[j][2] - ztmp;

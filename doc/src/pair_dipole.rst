@@ -235,29 +235,22 @@ point-dipole interactions as discussed in :ref:`(Toukmaji)
 interactions are all supported, along with the standard 12/6
 Lennard-Jones interactions, which are computed with a cutoff.  A
 :doc:`kspace_style <kspace_style>` must be defined to use this pair
-style.  It can be one of these options, all of which compute the
-long-range portion of dipole-dipole interactions:
+style.  If only dipoles (not point charges) are included in the model,
+the kspace style can be one of these 3 options, all of which compute
+the long-range portion of dipole-dipole interactions.  If the model
+includes point charges only the first of these kspace styles can be
+used:
 
+* :doc:`kspace_style ewald/disp <kspace_style>`
 * :doc:`kspace_style ewald/dipole <kspace_style>`
-* :doc:`kspace_style ewald/disp/dipole <kspace_style>`
 * :doc:`kspace_style pppm/dipole <kspace_style>`
 
-Style *lj/long/dipole/long* has options to compute the short-range
-portion of both 12/6 Lennard-Jones (LJ) and point-dipole interactions
-in a long-range context.  The options are selected by the *flag_lj*
-and *flag_coul* setings.  For *flag_coul* is set to *long*,
-point-dipole interactions are computed as as discussed in
-:ref:`(Toukmaji) <Toukmaji2>`.  Dipole-dipole, dipole-charge, and
-charge-charge interactions are all supported.  If *flag_coul* is set
-to *off*, no charge and dipole interactions are computed.
-
-For LJ interactions, the *flag_lj* setting can be *long*, *cut*, or
-*off*.  If *long* is used, the doc:`kspace_style ewald/disp/dipole
-<kspace_style>` command must be used.  If *cut* is used, LJ
-interactions are only short-range and any of the 3 solvers listed
-above for style *lj/cut/dipole/long* can be used.  If *off* is used,
-no LJ interactions are not computed.  Any of the 3 solvers listed
-above can be used for Coulombic long-range interactions.
+Style *lj/long/dipole/long* has the same functionality as style
+*lj/cut/dipole/long*, except it also has an option to compute 12/6
+Lennard-Jones interactions for use with a long-range dispersion kspace
+style.  This is done by setting its *flag_lj* argument to *long*.  For
+long-range LJ interactions, the doc:`kspace_style ewald/disp
+<kspace_style>` command must be used.
 
 ----------
 

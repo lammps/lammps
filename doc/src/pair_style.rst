@@ -260,9 +260,9 @@ accelerated styles exist.
 * :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
 * :doc:`lj/relres <pair_lj_relres>` - LJ using multiscale Relative Resolution (RelRes) methodology :ref:`(Chaimovich) <Chaimovich2>`.
-* :doc:`lj/sdk <pair_sdk>` - LJ for SDK coarse-graining
-* :doc:`lj/sdk/coul/long <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb
-* :doc:`lj/sdk/coul/msm <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb via MSM
+* :doc:`lj/spica <pair_spica>` - LJ for SPICA coarse-graining
+* :doc:`lj/spica/coul/long <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb
+* :doc:`lj/spica/coul/msm <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb via MSM
 * :doc:`lj/sf/dipole/sf <pair_dipole>` - LJ with dipole interaction with shifted forces
 * :doc:`lj/smooth <pair_lj_smooth>` - smoothed Lennard-Jones potential
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential
@@ -349,6 +349,7 @@ accelerated styles exist.
 * :doc:`spin/magelec <pair_spin_magelec>` -
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
+* :doc:`srp/react <pair_srp>` -
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential

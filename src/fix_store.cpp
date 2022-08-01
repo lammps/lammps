@@ -77,7 +77,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
     else if (narg == 6) arrayflag = 1;
     else tensorflag = 1;
     nvalues = n2*n3;
-    nbytes = n2*n3 * sizeof(double);
+    nbytes = nvalues * sizeof(double);
   }
 
   vstore = nullptr;
@@ -194,7 +194,7 @@ void FixStore::write_restart(FILE *fp)
   rbuf[0] = n1;
   rbuf[1] = n2;
   if (vecflag) memcpy(&rbuf[2],vstore,n1*sizeof(double));
-  else if (arrayflag) memcpy(&rbuf[2],&astore[0][0],n1*n2*sizeof(double));
+  else if (arrayflag) memcpy(&rbuf[2],&astore[0][0],sizeof(double)*n1*n2);
 
   int n = n1*n2 + 2;
   if (comm->me == 0) {
@@ -391,8 +391,8 @@ int FixStore::size_restart(int /*nlocal*/)
 
 double FixStore::memory_usage()
 {
-  double bytes = 0.0;
-  if (flavor == GLOBAL) bytes += n1*n2 * sizeof(double);
-  if (flavor == PERATOM) bytes += atom->nmax*n2*n3 * sizeof(double);
+  double bytes = (double) n1 * n2;
+  if (flavor == GLOBAL) bytes *= sizeof(double);
+  if (flavor == PERATOM) bytes *= atom->nmax * sizeof(double);
   return bytes;
 }

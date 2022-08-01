@@ -39,7 +39,7 @@
 *>
 *> \param[in] ZX
 *> \verbatim
-*>          ZX is REAL array, dimension ( 1 + ( N - 1 )*abs( INCX ) )
+*>          ZX is COMPLEX*16 array, dimension ( 1 + ( N - 1 )*abs( INCX ) )
 *> \endverbatim
 *>
 *> \param[in] INCX
@@ -50,7 +50,7 @@
 *>
 *> \param[in] ZY
 *> \verbatim
-*>          ZY is REAL array, dimension ( 1 + ( N - 1 )*abs( INCY ) )
+*>          ZY is COMPLEX*16 array, dimension ( 1 + ( N - 1 )*abs( INCY ) )
 *> \endverbatim
 *>
 *> \param[in] INCY
@@ -67,8 +67,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup complex16_blas_level1
 *
 *> \par Further Details:
@@ -83,10 +81,9 @@
 *  =====================================================================
       COMPLEX*16 FUNCTION ZDOTC(N,ZX,INCX,ZY,INCY)
 *
-*  -- Reference BLAS level1 routine (version 3.7.0) --
+*  -- Reference BLAS level1 routine --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       INTEGER INCX,INCY,N
@@ -131,4 +128,7 @@
       END IF
       ZDOTC = ZTEMP
       RETURN
+*
+*     End of ZDOTC
+*
       END

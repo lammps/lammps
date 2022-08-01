@@ -291,6 +291,7 @@ blocksize
 blueviolet
 bn
 bni
+bnumeric
 bo
 Bochkarev
 Bochum
@@ -423,6 +424,8 @@ CGDNA
 cgs
 cgsdk
 CGSDK
+cgspica
+CGSPICA
 Chaimovich
 Chalopin
 Champaign
@@ -1480,6 +1483,7 @@ intra
 intralayer
 intramolecular
 ints
+inumeric
 inv
 invariants
 inversed
@@ -1697,6 +1701,7 @@ kTln
 ktypeN
 Kub
 Kubo
+Kuksenok
 Kumagai
 Kumar
 Kurebayashi
@@ -2086,6 +2091,7 @@ Mishin
 Mishra
 mistyped
 mistyrose
+Miyazaki
 Mj
 mK
 mkdir
@@ -2486,6 +2492,7 @@ ohenrich
 ok
 Okabe
 Okamoto
+Okazaki
 O'Keefe
 OKeefe
 oldlace
@@ -2701,6 +2708,7 @@ polydispersity
 polyelectrolyte
 polyhedra
 Polym
+polymorph
 polymorphism
 Ponder
 popen
@@ -2753,6 +2761,7 @@ pscrozi
 pseudodynamics
 pseudopotential
 pSp
+pSPICA
 Pstart
 Pstop
 pstyle
@@ -3115,6 +3124,7 @@ semiaxes
 semimetals
 Semin
 Sensable
+Seo
 Sep
 seqdep
 Serpico
@@ -3226,6 +3236,8 @@ Spellmeyer
 Speybroeck
 sph
 SPH
+spica
+SPICA
 Spickermann
 splined
 spparks
@@ -3454,6 +3466,7 @@ tmin
 Tmin
 tmp
 tN
+tnumeric
 Tobias
 Toennies
 Tohoku
@@ -3733,6 +3746,7 @@ wallstyle
 walltime
 Waltham
 Waroquier
+Wataru
 wavepacket
 wB
 Wbody

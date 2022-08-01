@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 .. _bond:
 
@@ -93,7 +94,7 @@ OPT.
    * :doc:`harmonic (iko) <angle_harmonic>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
-   * :doc:`sdk (o) <angle_sdk>`
+   * :doc:`spica (o) <angle_spica>`
    * :doc:`table (o) <angle_table>`
 
 .. _dihedral:

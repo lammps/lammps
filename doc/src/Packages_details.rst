@@ -317,6 +317,8 @@ models for mesoscale simulations of solids and fracture.  See the
 
 **Authors:** Joel T. Clemmer (Sandia National Labs)
 
+.. versionadded:: 4May2022
+
 **Supporting info:**
 
 * src/BPM filenames -> commands
@@ -844,6 +846,8 @@ groups of atoms that interact with the remaining atoms as electrolyte.
 **Authors:** The ELECTRODE library is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
 Robert Meissner (TUHH, Hamburg, Germany).
+
+.. versionadded:: 4May2022
 
 **Install:**
 

@@ -14,12 +14,8 @@ Syntax
 
    pair_style style args
 
-* style = *smatb*
+* style = *smatb* or *smatb/single*
 * args = none
-
-.. parsed-literal::
-
-     *smatb*
 
 Examples
 """"""""
@@ -29,13 +25,18 @@ Examples
    pair_style smatb
    pair_coeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
 
+   pair_style smatb/single
+   pair_coeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
+
 
 Description
 """""""""""
 
-The *smatb* styles compute the Second Moment Approximation to the Tight Binding
-:ref:`(Cyrot) <Cyrot>`, :ref:`(Gupta) <Gupta>`, :ref:`(Rosato) <Rosato>`,
-given by
+.. versionadded:: 4May2022
+
+The *smatb* and *smatb/single* styles compute the Second Moment
+Approximation to the Tight Binding :ref:`(Cyrot) <Cyrot>`,
+:ref:`(Gupta) <Gupta>`, :ref:`(Rosato) <Rosato>`, given by
 
 .. math::
       E_{i}  = \sum_{j,R_{ij}\leq R_{c}} \alpha(R_{ij}) - \sqrt{\sum_{j,R_{ij}\leq R_{c}}\Xi^2(R_{ij})}
@@ -65,6 +66,8 @@ The polynomial coefficients :math:`a_3`, :math:`a_4`, :math:`a_5`,
 exponential terms and their first and second derivatives are smoothly
 reduced to zero, from the inner cutoff :math:`R_{sc}` to the outer
 cutoff :math:`R_{c}`.
+
+The *smatb/single* style is an optimization when using only a single atom type.
 
 Coefficients
 """"""""""""
@@ -100,10 +103,10 @@ For atom type pairs I,J and I != J the coefficients are not automatically mixed.
 Restrictions
 """"""""""""
 
-This pair style is part of the SMTBQ package and is only enabled
+These pair styles are part of the SMTBQ package and are only enabled
 if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-These pair potentials require the :doc:`newton <newton>` setting to be "on" for pair interactions.
+These pair styles require the :doc:`newton <newton>` setting to be "on" for pair interactions.
 
 Related commands
 """"""""""""""""

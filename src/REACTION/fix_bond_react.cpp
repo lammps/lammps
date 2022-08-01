@@ -1725,7 +1725,7 @@ void FixBondReact::inner_crosscheck_loop()
   int num_choices = 0;
   for (int i = 0; i < nfirst_neighs; i++) {
     if (type[(int)atom->map(xspecial[atom->map(glove[pion][1])][i])] == onemol->type[(int)onemol_xspecial[pion][neigh]-1]) {
-      if (num_choices > 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
+      if (num_choices == 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
         status = GUESSFAIL;
         return;
       }

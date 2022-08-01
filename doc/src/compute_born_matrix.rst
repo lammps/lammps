@@ -33,6 +33,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 Define a compute that calculates
 :math:`\frac{\partial{}^2U}{\partial\varepsilon_{i}\partial\varepsilon_{j}}` the
 second derivatives of the potential energy :math:`U` w.r.t. strain

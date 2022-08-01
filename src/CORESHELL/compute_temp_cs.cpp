@@ -70,8 +70,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
+  id_fix = utils::strdup(fixcmd);
 
   fixcmd += fmt::format(" {} STORE peratom 0 1", group->names[igroup]);
   fix = dynamic_cast<FixStore *>(modify->add_fix(fixcmd));

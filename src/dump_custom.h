@@ -127,11 +127,6 @@ class DumpCustom : public Dump {
   void header_item(bigint);
   void header_item_triclinic(bigint);
 
-  typedef int (DumpCustom::*FnPtrConvert)(int, double *);
-  FnPtrConvert convert_choice;    // ptr to convert data functions
-  int convert_image(int, double *);
-  int convert_noimage(int, double *);
-
   typedef void (DumpCustom::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_binary(int, double *);

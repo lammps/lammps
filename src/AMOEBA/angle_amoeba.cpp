@@ -53,6 +53,9 @@ AngleAmoeba::AngleAmoeba(LAMMPS *lmp) : Angle(lmp)
 
   ub_k = nullptr;
   ub_r0 = nullptr;
+
+  setflag_a = setflag_ba = setflag_ub = nullptr;
+  enable_angle = enable_urey = 0;
 }
 
 /* ---------------------------------------------------------------------- */

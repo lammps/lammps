@@ -3,13 +3,19 @@ Download an executable for Linux
 
 Binaries are available for different versions of Linux:
 
-| :ref:`Pre-built Ubuntu Linux executables <ubuntu>`
-| :ref:`Pre-built Fedora Linux executables <fedora>`
-| :ref:`Pre-built EPEL Linux executables (RHEL, CentOS) <epel>`
-| :ref:`Pre-built OpenSuse Linux executables <opensuse>`
-| :ref:`Gentoo Linux executable <gentoo>`
-| :ref:`Arch Linux build-script <arch>`
-|
+- :ref:`Pre-built Ubuntu Linux executables <ubuntu>`
+- :ref:`Pre-built Fedora Linux executables <fedora>`
+- :ref:`Pre-built EPEL Linux executables (RHEL, CentOS) <epel>`
+- :ref:`Pre-built OpenSuse Linux executables <opensuse>`
+- :ref:`Gentoo Linux executable <gentoo>`
+- :ref:`Arch Linux build-script <arch>`
+
+.. note::
+
+   If you have questions about these pre-compiled LAMMPS executables,
+   you need to contact the people preparing those packages.  The LAMMPS
+   developers have no control over their choices of how they configure
+   and build their packages and when they update them.
 
 ----------
 
@@ -18,41 +24,28 @@ Binaries are available for different versions of Linux:
 Pre-built Ubuntu Linux executables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A pre-built LAMMPS executable suitable for running on the latest
-Ubuntu Linux versions, can be downloaded as a Debian package.  This
-allows you to install LAMMPS with a single command, and stay
-up-to-date with the current stable version of LAMMPS by simply updating
-your operating system.  Please note, that the repository below offers
-two LAMMPS packages, ``lammps-daily`` and ``lammps-stable``.  The
-LAMMPS developers recommend to use the ``lammps-stable`` package for
-any production simulations.  The ``lammps-daily`` package is built
-from the LAMMPS development sources, and those versions may have known
-issues and bugs when new features are added and the software has not
-undergone full release testing.
-
-To install the appropriate personal-package archives (PPAs), do the
-following once:
-
-.. code-block:: bash
-
-   $ sudo add-apt-repository ppa:gladky-anton/lammps
-   $ sudo add-apt-repository ppa:openkim/latest
-   $ sudo apt-get update
+A pre-built LAMMPS executable suitable for running on the latest Ubuntu
+Linux versions, can be downloaded as a Debian package.  This allows you
+to install LAMMPS with a single command, and stay (mostly) up-to-date
+with the current stable version of LAMMPS by simply updating your
+operating system.
 
 To install LAMMPS do the following once:
 
 .. code-block:: bash
 
-   $ sudo apt-get install lammps-stable
+   $ sudo apt-get install lammps
 
-This downloads an executable named ``lmp_stable`` to your box, which
-can then be used in the usual way to run input scripts:
+This downloads an executable named ``lmp`` to your box and multiple
+packages with supporting data, examples and libraries as well as any
+missing dependencies.  This executable can then be used in the usual way
+to run input scripts:
 
 .. code-block:: bash
 
-   $ lmp_stable -in in.lj
+   $ lmp -in in.lj
 
-To update LAMMPS to the most current stable version, do the following:
+To update LAMMPS to the latest packaged version, do the following:
 
 .. code-block:: bash
 
@@ -60,44 +53,24 @@ To update LAMMPS to the most current stable version, do the following:
 
 which will also update other packages on your system.
 
-To get a copy of the current documentation and examples:
-
-.. code-block:: bash
-
-   $ sudo apt-get install lammps-stable-doc
-
-which will download the doc files in
-``/usr/share/doc/lammps-stable-doc/doc`` and example problems in
-``/usr/share/doc/lammps-doc/examples``.
-
-To get a copy of the current potentials files:
-
-.. code-block:: bash
-
-   $ sudo apt-get install lammps-stable-data
-
-which will download the potentials files to
-``/usr/share/lammps-stable/potentials``.  The ``lmp_stable`` binary is
-hard-coded to look for potential files in this directory (it does not
-use the ``LAMMPS_POTENTIALS`` environment variable, as described
-in :doc:`pair_coeff <pair_coeff>` command).
-
-The ``lmp_stable`` binary is built with the :ref:`KIM package <kim>` which
-results in the above command also installing the ``kim-api`` binaries when LAMMPS
-is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
-can install the ``openkim-models`` package
+The ``lmp`` binary is built with the :ref:`KIM package <kim>` included,
+which results in the above command also installing the ``kim-api``
+binaries when LAMMPS is installed.  In order to use potentials from
+`openkim.org <openkim_>`_, you can also install the ``openkim-models``
+package
 
 .. code-block:: bash
 
    $ sudo apt-get install openkim-models
 
+Or use the KIM-API commands to download and install individual models.
 To un-install LAMMPS, do the following:
 
 .. code-block:: bash
 
-   $ sudo apt-get remove lammps-stable
+   $ sudo apt-get remove lammps
 
-Please use ``lmp_stable -help`` to see which compilation options, packages,
+Please use ``lmp -help`` to see which compilation options, packages,
 and styles are included in the binary.
 
 Thanks to Anton Gladky (gladky.anton at gmail.com) for setting up this
@@ -110,21 +83,21 @@ Ubuntu package capability.
 Pre-built Fedora Linux executables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Pre-built LAMMPS packages for stable releases are available
-in the Fedora Linux distribution as of version 28. The packages
-can be installed via the dnf package manager. There are 3 basic
-varieties (lammps = no MPI, lammps-mpich = MPICH MPI library,
-lammps-openmpi = OpenMPI MPI library) and for each support for
-linking to the C library interface (lammps-devel, lammps-mpich-devel,
-lammps-openmpi-devel), the header for compiling programs using
-the C library interface (lammps-headers), and the LAMMPS python
-module for Python 3. All packages can be installed at the same
-time and the name of the LAMMPS executable is ``lmp`` and ``lmp_openmpi``
-or ``lmp_mpich`` respectively.  By default, ``lmp`` will refer to the
-serial executable, unless one of the MPI environment modules is loaded
-(``module load mpi/mpich-x86_64`` or ``module load mpi/openmpi-x86_64``).
-Then the corresponding parallel LAMMPS executable can be used.
-The same mechanism applies when loading the LAMMPS python module.
+Pre-built LAMMPS packages for stable releases are available in the
+Fedora Linux distribution as of Fedora version 28. The packages can be
+installed via the dnf package manager. There are 3 basic varieties
+(lammps = no MPI, lammps-mpich = MPICH MPI library, lammps-openmpi =
+OpenMPI MPI library) and for each support for linking to the C library
+interface (lammps-devel, lammps-mpich-devel, lammps-openmpi-devel), the
+header for compiling programs using the C library interface
+(lammps-headers), and the LAMMPS python module for Python 3. All
+packages can be installed at the same time and the name of the LAMMPS
+executable is ``lmp`` and ``lmp_openmpi`` or ``lmp_mpich`` respectively.
+By default, ``lmp`` will refer to the serial executable, unless one of
+the MPI environment modules is loaded (``module load mpi/mpich-x86_64``
+or ``module load mpi/openmpi-x86_64``).  Then the corresponding parallel
+LAMMPS executable can be used.  The same mechanism applies when loading
+the LAMMPS python module.
 
 To install LAMMPS with OpenMPI and run an input ``in.lj`` with 2 CPUs do:
 
@@ -273,3 +246,10 @@ Alternatively, you may use an AUR helper to install these packages.
 
 Note that the AUR provides build-scripts that download the source and
 the build the package on your machine.
+
+.. note::
+
+   It looks like the Arch Linux AUR repository build scripts for LAMMPS
+   have not been updated since the 29 October 2020 version.  You may want
+   to consider installing a more current version of LAMMPS from source
+   directly.

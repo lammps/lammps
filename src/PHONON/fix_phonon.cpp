@@ -215,11 +215,10 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
 
   // default temperature is from thermo
   TempSum = new double[sysdim];
-  id_temp = new char[12];
-  strcpy(id_temp,"thermo_temp");
+  id_temp = utils::strdup("thermo_temp");
   int icompute = modify->find_compute(id_temp);
   temperature = modify->compute[icompute];
-  inv_nTemp = 1./group->count(temperature->igroup);
+  inv_nTemp = 1.0/group->count(temperature->igroup);
 
 } // end of constructor
 

@@ -55,6 +55,7 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   FixTTM(lmp, narg, arg)
 {
   pergrid_flag = 1;
+  pergrid_freq = 1;
 
   /*
   NOTE: uncomment this when ready to release

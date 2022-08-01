@@ -22,7 +22,7 @@ PairStyle(granular,PairGranular);
 
 #include "contact.h"
 #include "pair.h"
-#include "vector.h"
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -65,11 +65,10 @@ class PairGranular : public Pair {
   int nmax;                // allocated size of mass_rigid
 
   void allocate();
-  void transfer_history(double *, double *) override;
+  void transfer_history(double *, double *, int, int) override;
 
  private:
   int size_history;
-  int *history_transfer_factors;
   int heat_flag;
 
   // contact models
@@ -81,6 +80,7 @@ class PairGranular : public Pair {
 
   // indices of history entries
   int normal_history_index;
+  int damping_history_index;
   int tangential_history_index;
   int roll_history_index;
   int twist_history_index;

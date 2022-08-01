@@ -337,6 +337,7 @@ void FixNeighHistory::pre_exchange_newton()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *allflags;
   double *allvalues,*onevalues,*jvalues;
+  int *type = atom->type;
 
   // NOTE: all operations until very end are with
   //   nlocal_neigh  <= current nlocal and nall_neigh
@@ -430,7 +431,7 @@ void FixNeighHistory::pre_exchange_newton()
         partner[j][m] = tag[i];
         jvalues = &valuepartner[j][dnum*m];
         if (pair->nondefault_history_transfer)
-          pair->transfer_history(onevalues,jvalues);
+          pair->transfer_history(onevalues,jvalues,type[i],type[j]);
         else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
       }
     }
@@ -469,6 +470,7 @@ void FixNeighHistory::pre_exchange_no_newton()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *allflags;
   double *allvalues,*onevalues,*jvalues;
+  int *type = atom->type;
 
   // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
   // because previous neigh list was built with nlocal_neigh
@@ -544,7 +546,7 @@ void FixNeighHistory::pre_exchange_no_newton()
           partner[j][m] = tag[i];
           jvalues = &valuepartner[j][dnum*m];
           if (pair->nondefault_history_transfer)
-            pair->transfer_history(onevalues, jvalues);
+            pair->transfer_history(onevalues, jvalues,type[i],type[j]);
           else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
         }
       }

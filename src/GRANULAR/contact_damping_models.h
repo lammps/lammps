@@ -11,60 +11,54 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef DAMPING_CONTACT_MODELS_H_
-#define DAMPING_CONTACT_MODELS_H_
+#ifndef CONTACT_DAMPING_MODELS_H_
+#define CONTACT_DAMPING_MODELS_H_
 
-#include "contact.h";
-#include "sub_model.h"
+#include "contact_sub_models.h"
 
+namespace LAMMPS_NS {
 namespace Contact {
 
-class DampingModel:SubModel
-{
+class DampingModel : public SubModel {
  public:
-  DampingModel();
-  virtual ~DampingModel() {};
-  virtual double calculate_forces() = 0;
+  DampingModel() {};
+  ~DampingModel() {};
   virtual void coeffs_to_local();
-  virtual void mix_coeffs(NormalModel*, NormalModel*);
+  virtual void mix_coeffs(DampingModel*, DampingModel*) {};
+  virtual double calculate_forces() = 0;
   double damp;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingVelocity:DampingModel
-{
+class DampingVelocity: public DampingModel {
  public:
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingMassVelocity:DampingModel
-{
+class DampingMassVelocity: public DampingModel {
  public:
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingViscoElastic:DampingModel
-{
+class DampingViscoelastic: public DampingModel {
  public:
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingTsuji:DampingModel
-{
+class DampingTsuji: public DampingModel {
  public:
-  double calculate_forces();
   void coeffs_to_local();
+  double calculate_forces();
 };
 
+}    // namespace Contact
+}    // namespace LAMMPS_NS
 
-}
-
-#endif /*DAMPING_CONTACT_MODELS_H_ */
-
+#endif /*CONTACT_DAMPING_MODELS_H_ */

@@ -11,15 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "tangential_contact_models.h"
-#include "math_const.h"
+#include "contact_damping_models.h"
+#include "contact_normal_models.h"
+#include "contact_tangential_models.h"
 #include "contact.h"
+#include "error.h"
+#include "math_const.h"
+#include "math_extra.h"
 
-#include <cmath>
-
+using namespace LAMMPS_NS;
+using namespace Contact;
 using namespace MathConst;
-
-namespace Contact{
+using namespace MathExtra;
 
 /* ----------------------------------------------------------------------
    Linear model with no history
@@ -35,14 +38,15 @@ TangentialLinearNoHistory::TangentialLinearNoHistory()
 
 void TangentialLinearNoHistory::coeffs_to_local()
 {
+  k = 0.0; // No tangential stiffness with no history
   xt = coeffs[0];
   mu = coeffs[1];
-  damp = xt * contact.damping_model.damp;
+  damp = xt * contact->damping_model->damp;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void TangentialLinearNoHistory::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+void TangentialLinearNoHistory::mix_coeffs(TangentialModel* imodel, TangentialModel* jmodel)
 {
   coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
   coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
@@ -56,13 +60,13 @@ void TangentialLinearNoHistory::calculate_forces()
   double Fscrit, fsmag, Ft;
 
   // classic pair gran/hooke (no history)
-  Fscrit = mu * contact.normal_model.Fncrit
-  fsmag = damp * contact.vrel;
-  if (contact.vrel != 0.0) Ft = MIN(Fscrit, fsmag) / contact.vrel;
+  Fscrit = mu * contact->normal_model->Fncrit;
+  fsmag = damp * contact->vrel;
+  if (contact->vrel != 0.0) Ft = MIN(Fscrit, fsmag) / contact->vrel;
   else Ft = 0.0;
 
   Ft = -Ft;
-  scale3(Ft, contact.vtr, contact.fs);
+  scale3(Ft, contact->vtr, contact->fs);
 }
 
 /* ----------------------------------------------------------------------
@@ -79,15 +83,15 @@ TangentialLinearHistory::TangentialLinearHistory()
 
 void TangentialLinearHistory::coeffs_to_local()
 {
-  kt = coeffs[0];
+  k = coeffs[0];
   xt = coeffs[1];
   mu = coeffs[2];
-  damp = xt * contact.damping_model.damp;
+  damp = xt * contact->damping_model->damp;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void TangentialLinearHistory::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+void TangentialLinearHistory::mix_coeffs(TangentialModel* imodel, TangentialModel* jmodel)
 {
   coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
   coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
@@ -102,20 +106,20 @@ void TangentialLinearHistory::calculate_forces()
   double Fscrit, magfs, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
   int frame_update = 0;
 
-  Fscrit = contact.normal_model.Fncrit * mu;
+  Fscrit = contact->normal_model->Fncrit * mu;
 
-  double *history = & contact.history[history_index];
+  double *history = & contact->history[history_index];
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
-  if (contact.history_update) {
-    rsht = dot3(history, contact.nx);
-    frame_update = fabs(rsht) * kt > EPSILON * Fscrit;
+  if (contact->history_update) {
+    rsht = dot3(history, contact->nx);
+    frame_update = fabs(rsht) * k > EPSILON * Fscrit;
 
     if (frame_update) {
       shrmag = len3(history);
       // projection
-      scale3(rsht, contact.nx, history);
+      scale3(rsht, contact->nx, history);
       // also rescale to preserve magnitude
       prjmag = len3(history);
       if (prjmag > 0) temp_dbl = shrmag / prjmag;
@@ -126,28 +130,28 @@ void TangentialLinearHistory::calculate_forces()
     // update history
     // tangential force
     // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
-    temp_dbl = kt * contact.dt;
-    scale3(temp_dbl, contact.vtr, temp_array);
+    temp_dbl = k * contact->dt;
+    scale3(temp_dbl, contact->vtr, temp_array);
     sub3(history, temp_array, history);
   }
 
   // tangential forces = history + tangential velocity damping
   temp_dbl = -damp;
-  scale3(temp_dbl, contact.vtr, contact.fs);
+  scale3(temp_dbl, contact->vtr, contact->fs);
 
   // rescale frictional displacements and forces if needed
-  magfs = len3(contact.fs);
+  magfs = len3(contact->fs);
   if (magfs > Fscrit) {
     shrmag = len3(history);
     if (shrmag != 0.0) {
       temp_dbl = Fscrit / magfs;
-      scale3(temp_dbl, contact.fs, history);
-      scale3(damp, contact.vtr, temp_array);
+      scale3(temp_dbl, contact->fs, history);
+      scale3(damp, contact->vtr, temp_array);
       add3(history, temp_array, history);
       temp_dbl = Fscrit / magfs;
-      scale3(temp_dbl, contact.fs);
+      scale3(temp_dbl, contact->fs);
     } else {
-      zero3(contact.fs);
+      zero3(contact->fs);
     }
   }
 }
@@ -168,20 +172,22 @@ TangentialMindlin::TangentialMindlin()
 
 void TangentialMindlin::coeffs_to_local()
 {
-  kt = coeffs[0];
+  k = coeffs[0];
   xt = coeffs[1];
   mu = coeffs[2];
 
-  if (ke == -1)
-    kt = 8.0 * mix_stiffness(contact.normal_model.Emod, contact.normal_model.Emod,
-      contact.normal_model.poiss, contact.normal_model.poiss);
+  if (k == -1) {
+    if (!contact->normal_model->material_properties)
+      error->all(FLERR, "Must either specify tangential stiffness or material properties for normal model for the Mindlin tangential style");
+    k = 8.0 * mix_stiffnessE(contact->normal_model->Emod, contact->normal_model->Emod, contact->normal_model->poiss, contact->normal_model->poiss);
+  }
 
-  damp = xt * contact.damping_model.damp;
+  damp = xt * contact->damping_model->damp;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void TangentialMindlin::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
+void TangentialMindlin::mix_coeffs(TangentialModel* imodel, TangentialModel* jmodel)
 {
   if (imodel->coeffs[0] == -1 || imodel->coeffs[0] == -1) coeffs[0] = -1;
   else coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
@@ -198,22 +204,22 @@ void TangentialMindlin::calculate_forces()
   double temp_array[3];
   int frame_update = 0;
 
-  double *history = & contact.history[history_index];
-  Fscrit = contact.normal_model.Fncrit * mu;
+  double *history = & contact->history[history_index];
+  Fscrit = contact->normal_model->Fncrit * mu;
 
-  k_scaled = k_tang * contact.area;
+  k_scaled = k * contact->area;
   if (mindlin_rescale) {
     // on unloading, rescale the shear displacements/force
-    if (contact.area < history[3]) {
-      temp_dbl = contact.area / history[3];
+    if (contact->area < history[3]) {
+      temp_dbl = contact->area / history[3];
       scale3(temp_dbl, history);
     }
   }
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
-  if (contact.history_update) {
-    rsht = dot3(history, contact.nx);
+  if (contact->history_update) {
+    rsht = dot3(history, contact->nx);
     if (mindlin_force)
       frame_update = fabs(rsht) > EPSILON * Fscrit;
     else
@@ -222,7 +228,7 @@ void TangentialMindlin::calculate_forces()
     if (frame_update) {
       shrmag = len3(history);
       // projection
-      scale3(rsht, contact.nx, history);
+      scale3(rsht, contact->nx, history);
       // also rescale to preserve magnitude
       prjmag = len3(history);
       if (prjmag > 0) temp_dbl = shrmag / prjmag;
@@ -234,42 +240,42 @@ void TangentialMindlin::calculate_forces()
     if (mindlin_force) {
       // tangential force
       // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
-      temp_dbl = -k_scaled * contact.dt;
-      scale3(temp_dbl, contact.vtr, temp_array);
+      temp_dbl = -k_scaled * contact->dt;
+      scale3(temp_dbl, contact->vtr, temp_array);
     } else {
-      scale3(contact.dt, contact.vtr, temp_array);
+      scale3(contact->dt, contact->vtr, temp_array);
     }
     add3(history, temp_array, history);
 
-    if (mindlin_rescale) history[3] = contact.area;
+    if (mindlin_rescale) history[3] = contact->area;
   }
 
   // tangential forces = history + tangential velocity damping
   temp_dbl = -damp;
-  scale3(temp_dbl, contact.vtr, contact.fs);
+  scale3(temp_dbl, contact->vtr, contact->fs);
 
   if (! mindlin_force) {
     scale3(k_scaled, history, temp_array);
-    add3(contact.fs, temp_array, contact.fs);
+    add3(contact->fs, temp_array, contact->fs);
   }
 
   // rescale frictional displacements and forces if needed
-  magfs = len3(contact.fs);
+  magfs = len3(contact->fs);
   if (magfs > Fscrit) {
     shrmag = len3(history);
     if (shrmag != 0.0) {
       temp_dbl = Fscrit / magfs;
-      scale3(temp_dbl, contact.fs, history);
-      scale3(damp, contact.vtr, temp_array);
+      scale3(temp_dbl, contact->fs, history);
+      scale3(damp, contact->vtr, temp_array);
       add3(history, temp_array, history);
       if (! mindlin_force) {
         temp_dbl = -1.0 / k_scaled;
         scale3(temp_dbl, history);
       }
       temp_dbl = Fscrit / magfs;
-      scale3(temp_dbl, contact.fs);
+      scale3(temp_dbl, contact->fs);
     } else {
-      zero3(contact.fs);
+      zero3(contact->fs);
     }
   }
 }
@@ -278,7 +284,7 @@ void TangentialMindlin::calculate_forces()
    Mindlin force model
 ------------------------------------------------------------------------- */
 
-void TangentialMindlinForce::TangentialMindlinForce()
+TangentialMindlinForce::TangentialMindlinForce()
 {
   num_coeffs = 3;
   size_history = 3;
@@ -290,22 +296,32 @@ void TangentialMindlinForce::TangentialMindlinForce()
    Mindlin rescale model
 ------------------------------------------------------------------------- */
 
-void TangentialMindlinRescale::TangentialMindlinForce()
+TangentialMindlinRescale::TangentialMindlinRescale()
 {
   num_coeffs = 3;
   size_history = 4;
   mindlin_force = 0;
   mindlin_rescale = 1;
+
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double(size_history);
+  for (int i = 0; i < size_history; i++) transfer_history_factor[i] = -1.0;
+  transfer_history_factor[3] = +1;
 }
 
 /* ----------------------------------------------------------------------
    Mindlin rescale force model
 ------------------------------------------------------------------------- */
 
-void TangentialMindlinRescaleForce::TangentialMindlinForce()
+TangentialMindlinRescaleForce::TangentialMindlinRescaleForce()
 {
   num_coeffs = 3;
   size_history = 4;
   mindlin_force = 1;
   mindlin_rescale = 1;
+
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double(size_history);
+  for (int i = 0; i < size_history; i++) transfer_history_factor[i] = -1.0;
+  transfer_history_factor[3] = +1;
 }

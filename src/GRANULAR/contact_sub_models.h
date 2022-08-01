@@ -11,44 +11,48 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef GRANULAR_SUB_MODEL_H_
-#define GRANULAR_SUB_MODEL_H_
+#ifndef CONTACT_SUB_MODEL_H_
+#define CONTACT_SUB_MODEL_H_
 
 #include "contact.h"
+#include "pointers.h"
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
+namespace Contact {
 
-namespace Contact{
-
-class SubModel : Pointers{
+class SubModel : protected Pointers {
+ public:
   SubModel();
   virtual ~SubModel();
-public:
+
   int num_coeffs;
   double *coeffs;
-  virtual double calculate_forces() = 0;
   void read_restart();
-  virtual void parse_coeffs(char **, int);
-  void mix_coeff(SubModel*, SubModel*);
-  void write_restart(FILE*);
-  void read_restart(FILE*);
-  void read_restart(FILE*, int);
-  virtual void coeffs_to_local();
+  void parse_coeffs(char **, int);
+  virtual void mix_coeffs(SubModel*, SubModel*) {};
+  virtual void coeffs_to_local() {};
   void allocate_coeffs();
   std::string name;
-private:
-  ContactModel &contact;
-  int allocated;
+
   int size_history;
+  int nondefault_history_transfer;
+  double *transfer_history_factor;
+
   int history_index;
   int beyond_contact;
   int allow_limit_damping;
+
+  ContactModel *contact;
+
+ protected:
+  int allocated;
 
   double mix_stiffnessE(double, double, double, double);
   double mix_stiffnessG(double, double, double, double);
   double mix_geom(double, double);
 };
 
-}
+}    // namespace Contact
+}    // namespace LAMMPS_NS
 
-#endif /* GRANULAR_SUB_MODEL_H_ */
+#endif /* CONTACT_SUB_MODEL_H_ */

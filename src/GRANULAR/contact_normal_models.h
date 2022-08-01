@@ -11,102 +11,108 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef NORMAL_CONTACT_MODELS_H_
-#define NORMAL_CONTACT_MODELS_H_
+#ifndef CONTACT_NORMAL_MODELS_H_
+#define CONTACT_NORMAL_MODELS_H_
 
-#include "contact.h";
-#include "sub_model.h"
+#include "contact_sub_models.h"
 
+namespace LAMMPS_NS {
 namespace Contact {
 
-class NormalModel:SubModel{
+class NormalModel : public SubModel {
  public:
   NormalModel();
-  virtual ~NormalModel() {};
-  virtual bool check_contact();
-  virtual void set_fncrit();
+  ~NormalModel() {};
+  virtual void coeffs_to_local() {};
+  virtual void mix_coeffs(NormalModel*, NormalModel*) {};
+  virtual bool touch();
+  virtual double pulloff_distance(double, double);
+  virtual double calculate_area();
   virtual double calculate_forces() = 0;
-  virtual void coeffs_to_local();
-  virtual void mix_coeffs(NormalModel*, NormalModel*);
-  void pulloff_distance(double, double);
+  virtual void set_knfac() = 0;
+  virtual void set_fncrit();
   double damp;  // Vestigial argument needed by damping
+  double Emod, poiss;
   double Fncrit, Fne, knfac;
   int material_properties;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalHooke:NormalModel
-{
+class NormalHooke: public NormalModel {
  public:
   NormalHooke();
   ~NormalHooke() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
   double calculate_forces();
-  double Emod, poiss;
+  void set_knfac();
+ private:
+  double k;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalHertz:NormalModel
-{
+class NormalHertz: public NormalModel {
  public:
   NormalHertz();
   ~NormalHertz() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
   double calculate_forces();
+  void set_knfac();
  private:
-  double k_norm;
+  double k;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalHertzMaterial:NormalHertz
-{
+class NormalHertzMaterial: public NormalHertz {
  public:
   NormalHertzMaterial();
   ~NormalHertzMaterial() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
  private:
-  double k_norm;
+  double k;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalDMT:NormalModel
-{
+class NormalDMT: public NormalModel {
  public:
   NormalDMT();
   ~NormalDMT() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
-  void set_fncrit();
   double calculate_forces();
+  void set_knfac();
+  void set_fncrit();
  private:
-  double k_norm, cohesion;
+  double k, cohesion;
   double F_pulloff;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalJKR:NormalModel
-{
+class NormalJKR: public NormalModel {
  public:
   NormalJKR();
   ~NormalJKR() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
-  void set_fncrit();
+  bool touch();
+  double pulloff_distance(double, double);
+  double calculate_area();
   double calculate_forces();
-  void pulloff_distance(double, double);
+  void set_knfac();
+  void set_fncrit();
  private:
-  double k_norm, cohesion;
+  double k, cohesion;
   double Escaled, F_pulloff;
 };
-}
 
-#endif /*NORMAL_CONTACT_MODELS_H_ */
+}    // namespace Contact
+}    // namespace LAMMPS_NS
 
+#endif /*CONTACT_NORMAL_MODELS_H_ */

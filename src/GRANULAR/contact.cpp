@@ -18,99 +18,140 @@
 */
 
 #include "contact.h"
+#include "pointers.h"
 #include "math_const.h"
 #include "math_extra.h"
-#include "pointers.h"
+#include "contact_sub_models.h"
+#include "contact_normal_models.h"
+#include "contact_tangential_models.h"
+#include "contact_damping_models.h"
+#include "contact_rolling_models.h"
+#include "contact_twisting_models.h"
+#include "contact_heat_models.h"
 #include "comm.h"
 #include "error.h"
 
 #include <cmath>
 
-using namespace LAMMPS_NS;
 using namespace MathExtra;
-using namespace MathConst;
+using namespace LAMMPS_NS::MathConst;
+using namespace LAMMPS_NS::Contact;
 
-namespace Contact {
-
-enum {NORMAL, TANGENTIAL, DAMPING, ROLLING, TWISTING, HEAT}
-
-ContactModel::ContactModel()
+ContactModel::ContactModel() :
+  Pointers(lmp)
 {
   limit_damping = 0;
   beyond_contact = 0;
+  nondefault_history_transfer = 0;
   cutoff_type = 0.0;
-  normal_model = nullptr;
-  tangential_model = nullptr;
-  damping_model = nullptr;
-  rolling_model = nullptr;
-  twisting_model = nullptr;
+  nmodels = 5;
+
   reset_contact();
 
-  sub_models = {nullptr};
+  for (int i = 0; i < nmodels; i++) sub_models[i] = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ContactModel::init_model(char *model_name, int model_type)
+ContactModel::~ContactModel()
+{
+  delete[] transfer_history_factor;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ContactModel::init_model(std::string model_name, ModelType model_type)
 {
   if (model_type == NORMAL) {
-    if (strcmp(model_name, "hooke") == 0) normal_model = new NormalHooke();
-    else if (strcmp(model_name, "hertz") == 0) normal_model = new NormalHertz();
-    else if (strcmp(model_name, "hertz/material") == 0) normal_model = new NormalHertzMaterial();
-    else if (strcmp(model_name, "dmt") == 0) normal_model = new NormalDMT();
-    else if (strcmp(model_name, "jkr") == 0) normal_model = new NormalJKR();
+    if (model_name == "hooke") normal_model = new NormalHooke();
+    else if (model_name == "hertz") normal_model = new NormalHertz();
+    else if (model_name == "hertz/material") normal_model = new NormalHertzMaterial();
+    else if (model_name == "dmt") normal_model = new NormalDMT();
+    else if (model_name == "jkr") normal_model = new NormalJKR();
     else error->all(FLERR, "Normal model name not recognized");
-    sub_models[model_type] = &normal_model;
+    sub_models[model_type] = normal_model;
 
   } else if (model_type == TANGENTIAL) {
-    if (strcmp(model_name, "linear_nohistory") == 0) tangential_model = new TangentialLinearNoHistory();
-    else if (strcmp(model_name, "linear_history") == 0) tangential_model = new TangentialLinearHistory();
-    else if (strcmp(model_name, "mindlin") == 0) tangential_model = new TangentialMindlin();
-    else if (strcmp(model_name, "mindlin/force") == 0) tangential_model = new TangentialMindlinForce();
-    else if (strcmp(model_name, "mindlin_rescale") == 0) tangential_model = new TangentialMindlinRescale();
-    else if (strcmp(model_name, "mindlin_rescale/force") == 0) tangential_model = new TangentialMindlinRescaleForce();
+    if (model_name =="linear_nohistory") tangential_model = new TangentialLinearNoHistory();
+    else if (model_name =="linear_history") tangential_model = new TangentialLinearHistory();
+    else if (model_name =="mindlin") tangential_model = new TangentialMindlin();
+    else if (model_name =="mindlin/force") tangential_model = new TangentialMindlinForce();
+    else if (model_name =="mindlin_rescale") tangential_model = new TangentialMindlinRescale();
+    else if (model_name =="mindlin_rescale/force") tangential_model = new TangentialMindlinRescaleForce();
     else error->all(FLERR, "Tangential model name not recognized");
-    sub_models[model_type] = &tangential_model;
+    sub_models[model_type] = tangential_model;
 
   } else if (model_type == DAMPING) {
-    if (strcmp(model_name, "velocity") == 0) damping_model = new DampingVelocity();
-    else if (strcmp(model_name, "mass_velocity") == 0) damping_model = new DampingMassVelocity();
-    else if (strcmp(model_name, "viscoelastic") == 0) damping_model = new DampingViscoelastic();
-    else if (strcmp(model_name, "tsuji") == 0) damping_model = new DampingTsuji();
+    if (model_name =="velocity") damping_model = new DampingVelocity();
+    else if (model_name =="mass_velocity") damping_model = new DampingMassVelocity();
+    else if (model_name =="viscoelastic") damping_model = new DampingViscoelastic();
+    else if (model_name =="tsuji") damping_model = new DampingTsuji();
     else error->all(FLERR, "Damping model name not recognized");
-    sub_models[model_type] = &damping_model;
+    sub_models[model_type] = damping_model;
 
   } else if (model_type == ROLLING) {
-    if (strcmp(model_name, "none") == 0) delete rolling_model;
-    else if (strcmp(model_name, "sds") == 0) rolling_model = new RollingSDS();
+    if (model_name =="none") delete rolling_model;
+    else if (model_name =="sds") rolling_model = new RollingSDS();
     else error->all(FLERR, "Rolling model name not recognized");
-    sub_models[model_type] = &rolling_model;
+    sub_models[model_type] = rolling_model;
 
   } else if (model_type == TWISTING) {
-    if (strcmp(model_name, "none") == 0) delete twisting_model;
-    else if (strcmp(model_name, "sds") == 0) twisting_model = new TwistingSDS();
-    else if (strcmp(model_name, "marshall") == 0) twisting_model = new TwistingMarshall();
+    if (model_name =="none") delete twisting_model;
+    else if (model_name =="sds") twisting_model = new TwistingSDS();
+    else if (model_name =="marshall") twisting_model = new TwistingMarshall();
     else error->all(FLERR, "Twisting model name not recognized");
-    sub_models[model_type] = &twisting_model;
+    sub_models[model_type] = twisting_model;
 
   } else if (model_type == HEAT) {
-    if (strcmp(model_name, "none") == 0) delete heat_model;
-    else if (strcmp(model_name, "area") == 0) heat_model = new HeatArea();
+    if (model_name =="none") delete heat_model;
+    else if (model_name =="area") heat_model = new HeatArea();
     else error->all(FLERR, "Heat model name not recognized");
-    sub_models[model_type] = &heat_model;
+    sub_models[model_type] = heat_model;
   }
 
   sub_models[model_type]->name.assign(model_name);
-  sub_models[model_type]->contact = *this;
+  sub_models[model_type]->contact = this;
   sub_models[model_type]->allocate_coeffs();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ContactModel::init()
+{
+  int i, j, size_cumulative;
+  for (i = 0; i < nmodels; i++) {
+    if (sub_models[i]->nondefault_history_transfer)
+      nondefault_history_transfer = 1;
+    if (sub_models[i]->beyond_contact)
+      beyond_contact = 1;
+  }
+
+  transfer_history_factor = new double(size_history);
+  for (i = 0; i < size_history; i++) transfer_history_factor[i] = -1.0;
+
+  if (nondefault_history_transfer) {
+    for (i = 0; i < size_history; i++) {
+      // Find which model controls this history value
+      size_cumulative = 0;
+      for (j = 0; j < nmodels; j++) {
+        if (size_cumulative + sub_models[j]->size_history > i) break;
+        size_cumulative += sub_models[j]->size_history;
+      }
+
+      // Check if model has nondefault transfers, if so copy its array
+      if (sub_models[j]->nondefault_history_transfer) {
+        transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ContactModel::mix_coeffs(ContactModel *c1, ContactModel *c2)
 {
-  for (int i = 0; i < 5; i++)
-    sum_model[i]->mix_coeffs(c1->submodel[i], c2->submodel[i]);
+  for (int i = 0; i < nmodels; i++)
+    sub_models[i]->mix_coeffs(c1->sub_models[i], c2->sub_models[i]);
 
   limit_damping = MAX(c1->limit_damping, c2->limit_damping);
   cutoff_type = MAX(c1->cutoff_type, c2->cutoff_type);
@@ -120,11 +161,17 @@ void ContactModel::mix_coeffs(ContactModel *c1, ContactModel *c2)
 
 void ContactModel::write_restart(FILE *fp)
 {
-  int num_char = -1;
+  int num_char, num_coeffs;
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < nmodels; i++) {
+    num_char = -1;
     if (sub_models[i]) {
-      sub_models[i]->write_restart(fp);
+        num_char = sub_models[i]->name.length();
+        num_coeffs = sub_models[i]->num_coeffs;
+        fwrite(&num_char, sizeof(int), 1, fp);
+        fwrite(sub_models[i]->name.data(), sizeof(char), num_char, fp);
+        fwrite(&num_coeffs, sizeof(int), 1, fp);
+        fwrite(sub_models[i]->coeffs, sizeof(int), num_coeffs, fp);
     } else {
       fwrite(&num_char, sizeof(int), 1, fp);
     }
@@ -135,21 +182,34 @@ void ContactModel::write_restart(FILE *fp)
 
 void ContactModel::read_restart(FILE *fp)
 {
-  int num_char;
+  int num_char, num_coeff;
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < nmodels; i++) {
     if (comm->me == 0)
-      utils::sfread(FLERR,&num_char,sizeof(int),1,fp,nullptr,error);
-    MPI_BCast(&num_char, 1, MPI_INT, 0, world);
+      utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
+    MPI_Bcast(&num_char, 1, MPI_INT, 0, world);
 
     if (num_char != -1) {
-      std::string model_name(num_char);
+      std::string model_name (num_char, ' ');
       if (comm->me == 0)
-        utils::sfread(FLERR,const_cast<char*>(model_name.data()),sizeof(char),num_char,fp,nullptr,  error);
-      MPI_BCast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, world);
+        utils::sfread(FLERR, const_cast<char*>(model_name.data()), sizeof(char),num_char, fp, nullptr, error);
+      MPI_Bcast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, 0, world);
 
-      init_model(const_cast<char*>(model_name.data(), i));
-      sub_models[i]->read_restart();
+      init_model(model_name, (ModelType) i);
+
+      if (comm->me == 0) {
+        utils::sfread(FLERR, &num_coeff, sizeof(int), 1, fp, nullptr, error);
+        if (num_coeff != sub_models[i]->num_coeffs)
+          error->one(FLERR, "Invalid contact model written to restart file");
+      }
+      MPI_Bcast(&num_coeff, 1, MPI_INT, 0, world);
+
+      if (comm->me == 0) {
+        utils::sfread(FLERR, sub_models[i]->coeffs, sizeof(int), num_coeff, fp, nullptr, error);
+      }
+      MPI_Bcast(sub_models[i]->coeffs, num_coeff, MPI_DOUBLE, 0, world);
+
+      sub_models[i]->coeffs_to_local();
     }
   }
 }
@@ -158,7 +218,7 @@ void ContactModel::read_restart(FILE *fp)
 
 void ContactModel::reset_contact()
 {
-  radi = radj = Fntot = Fncrit = magtortwist = 0.0;
+  radi = radj = Fntot = magtortwist = 0.0;
   xi = xj = vi = vj = omegai = omegaj = nullptr;
   forces = torquesi = torquesj = history = nullptr;
 
@@ -177,10 +237,7 @@ bool ContactModel::check_contact()
   radsum = radi + radj;
   Reff = radi * radj / radsum;
 
-  touch = false;
-  if (normal_model.beyond_contact) normal_model.touch(touch);
-  else touch = (rsq < radsum*radsum);
-
+  touch = normal_model->touch();
   return touch;
 }
 
@@ -220,7 +277,7 @@ void ContactModel::prep_contact()
   sub3(vt, temp, vtr);
   vrel = len3(vtr);
 
-  if (roll_model || twist_model)
+  if (rolling_model || twisting_model)
     sub3(omegai, omegaj, relrot);
 
   if (rolling_model) {
@@ -250,20 +307,24 @@ void ContactModel::calculate_forces()
   }
 
   //**********************************************
-  // normal forces
+  // calculate forces
   //**********************************************
 
   double Fne, Fdamp;
-  Fne = normal_model.calculate_forces();
-  Fdamp = damping_model.calculate_forces();
+  area = normal_model->calculate_area();
+  Fne = normal_model->calculate_forces();
+  normal_model->set_knfac(); // Needed for damping
+
+  Fdamp = damping_model->calculate_forces();
+
+  normal_model->set_fncrit(); // Needed for tangential, rolling, twisting
 
   Fntot = Fne + Fdamp;
   if (limit_damping && Fntot < 0.0) Fntot = 0.0;
-  normal_model.set_fncrit();
 
-  tangential_model.calculate_forces();
-  if (rolling_model) rolling_model.calculate_forces();
-  if (twisting_model) twisting_model.calculate_forces();
+  tangential_model->calculate_forces();
+  if (rolling_model) rolling_model->calculate_forces();
+  if (twisting_model) twisting_model->calculate_forces();
 
   //**********************************************
   // sum contributions
@@ -301,7 +362,7 @@ void ContactModel::calculate_forces()
 
 double ContactModel::calculate_heat()
 {
-  return heat_model.calculate_heat();
+  return heat_model->calculate_heat();
 }
 
 /* ----------------------------------------------------------------------
@@ -311,7 +372,5 @@ double ContactModel::calculate_heat()
 
 double ContactModel::pulloff_distance(double radi, double radj)
 {
-  return normal_model.pulloff_distance(radi, radj);
-}
-
+  return normal_model->pulloff_distance(radi, radj);
 }

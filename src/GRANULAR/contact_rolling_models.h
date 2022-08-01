@@ -11,73 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef NORMAL_CONTACT_MODELS_H_
-#define NORMAL_CONTACT_MODELS_H_
+#ifndef CONTACT_ROLLING_MODELS_H_
+#define CONTACT_ROLLING_MODELS_H_
 
-#include "contact.h";
-#include "sub_model.h"
+#include "contact_sub_models.h"
 
+namespace LAMMPS_NS {
 namespace Contact {
 
-class NormalModel:SubModel{
-public:
-  NormalModel(){};
-  virtual ~NormalModel(){};
-  virtual bool check_contact();
-  virtual void prep_contact();
-  virtual void set_fncrit();
+class RollingModel : public SubModel {
+ public:
+  RollingModel() {};
+  ~RollingModel() {};
+  virtual void coeffs_to_local() {};
+  virtual void mix_coeffs(RollingModel*, RollingModel*) {};
   virtual double calculate_forces() = 0;
-  virtual void coeffs_to_local();
-  virtual void mix_coeffs(NormalModel*, NormalModel*); //When mixing is needed
-
-private:
-  int beyond_contact = 0;
-  int allow_limit_damping = 1;
-
 };
 
-class Hooke:NormalModel{
-public:
-  Hooke(ContactModel &c);
-  ~Hooke(){};
+/* ---------------------------------------------------------------------- */
+
+class RollingSDS: public RollingModel {
+ public:
+  RollingSDS();
   void coeffs_to_local();
+  void mix_coeffs(RollingModel*, RollingModel*);
   double calculate_forces();
-private:
-  double k_norm, damp;
+ private:
+  double k, mu, gamma;
 };
 
-class Hertz:NormalModel{
-public:
-  Hertz(ContactModel&, int);
-  ~Hertz(){};
-  void coeffs_to_local();
-  double calculate_forces();
-private:
-  double k_norm, damp, Emod, poiss;
-};
+}    // namespace Contact
+}    // namespace LAMMPS_NS
 
-class DMT:NormalModel{
-public:
-  DMT(ContactModel &c);
-  ~DMT(){};
-  void coeffs_to_local();
-  void coeffs_to_local(NormalModel*, NormalModel*);
-  double calculate_forces();
-private:
-  double k_norm, damp, Emod, poiss, coh;
-};
-
-class JKR:NormalModel{
-public:
-  JKR(ContactModel &c);
-  ~JKR(){};
-  void coeffs_to_local();
-  double calculate_forces();
-private:
-  double k_norm, damp, Emod, poiss, coh;
-
-};
-}
-
-#endif /*NORMAL_CONTACT_MODELS_H_ */
-
+#endif /*CONTACT_ROLLING_MODELS_H_ */

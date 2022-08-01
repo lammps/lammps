@@ -16,23 +16,25 @@
    Multiple models can be defined and used to calculate forces
    and torques based on contact geometry
 */
-#include "contact_sub_model.h"
-#include "pointers.h"
+
+#include "contact_sub_models.h"
 #include "utils.h"
-#include "error.h"
-#include "comm.h"
 
 using namespace LAMMPS_NS;
+using namespace Contact;
 
-namespace Contact{
-
-SubModel::SubModel()
+SubModel::SubModel() :
+  Pointers(lmp)
 {
   allocated = 0;
   size_history = 0;
   history_index = 0;
   allow_limit_damping = 1;
   beyond_contact = 0;
+  num_coeffs = 0;
+
+  nondefault_history_transfer = 0;
+  transfer_history_factor = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -40,6 +42,7 @@ SubModel::SubModel()
 SubModel::~SubModel()
 {
   if (allocated) delete [] coeffs;
+  delete [] transfer_history_factor;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,39 +65,6 @@ void SubModel::parse_coeffs(char **arg, int iarg)
   coeffs_to_local();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void SubModel::write_restart(FILE *fp)
-{
-  fwrite(&model_name.length(),sizeof(int),1,fp);
-  fwrite(model_name.data(),sizeof(char),model_name.length(),fp);
-  fwrite(&num_coeffs,sizeof(int),1,fp);
-  fwrite(coeffs,sizeof(int),num_coeffs,fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void SubModel::read_restart(FILE *fp, int num_char)
-{
-  if (comm->me == 0) {
-    utils::sfread(FLERR,&num_coeffs,sizeof(int),1,fp,nullptr,error);
-  }
-  MPI_BCast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, world);
-  allocate_coeffs();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void SubModel::read_restart(FILE *fp)
-{
-  int num_char;
-  if (me == 0) {
-    utils::sfread(FLERR,&num_char,sizeof(int),1,fp,nullptr,error);
-  }
-  MPI_BCast(&num_char, 1, MPI_INT, 0, world);
-  read_restart(fp, num_char);
-}
-
 /* ----------------------------------------------------------------------
    mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */
@@ -115,7 +85,7 @@ double SubModel::mix_stiffnessG(double E1, double E2,
                                     double pois1, double pois2)
 {
   double factor1 = 2 * (2 - pois1) * (1 + pois1) / E1;
-  double factor2 = 2 * (2 - pois2) * (1 + pois2) / E2)
+  double factor2 = 2 * (2 - pois2) * (1 + pois2) / E2;
   return 1 / (factor1 + factor2);
 }
 
@@ -126,7 +96,4 @@ double SubModel::mix_stiffnessG(double E1, double E2,
 double SubModel::mix_geom(double val1, double val2)
 {
   return sqrt(val1 * val2);
-}
-
-
 }

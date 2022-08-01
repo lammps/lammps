@@ -11,92 +11,84 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef TANGENTIAL_CONTACT_MODELS_H_
-#define TANGENTIAL_CONTACT_MODELS_H_
+#ifndef CONTACT_TANGENTIAL_MODELS_H_
+#define CONTACT_TANGENTIAL_MODELS_H_
 
-#include "contact.h";
-#include "sub_model.h"
+#include "contact_sub_models.h"
 
+namespace LAMMPS_NS {
 namespace Contact {
 
-class TangentialModel:SubModel
-{
-public:
+class TangentialModel : public SubModel {
+ public:
   TangentialModel() {};
   virtual ~TangentialModel() {};
-  virtual double calculate_forces() = 0;
-  virtual void coeffs_to_local();
-  virtual void mix_coeffs(TangentialModel*, TangentialModel*);
+  virtual void coeffs_to_local() {};
+  virtual void mix_coeffs(TangentialModel*, TangentialModel*) {};
+  virtual void calculate_forces() = 0;
   int rescale_flag;
-private:
-  int beyond_contact;
-  int allow_limit_damping;
+  double k, damp, mu; // Used by Marshall twisting model
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialLinearNoHistory:TangentialModel
-{
-public:
-  TangentialLinearNoHistory()
-  virtual void coeffs_to_local();
-  virtual void mix_coeffs(TangentialModel*, TangentialModel*);
-  double calculate_forces();
-private:
-  double xt, damp, mu;
+class TangentialLinearNoHistory: public TangentialModel {
+ public:
+  TangentialLinearNoHistory();
+  void coeffs_to_local();
+  void mix_coeffs(TangentialModel*, TangentialModel*);
+  void calculate_forces();
+ private:
+  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialLinearHistory:TangentialModel
-{
-public:
-  TangentialLinearHistory()
-  virtual void coeffs_to_local();
-  virtual void mix_coeffs(TangentialModel*, TangentialModel*);
-  double calculate_forces();
-private:
-  double kt, xt, damp, mu;
+class TangentialLinearHistory: public TangentialModel {
+ public:
+  TangentialLinearHistory();
+  void coeffs_to_local();
+  void mix_coeffs(TangentialModel*, TangentialModel*);
+  void calculate_forces();
+ private:
+  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlin:TangentialModel
-{
-public:
+class TangentialMindlin: public TangentialModel {
+ public:
   TangentialMindlin();
   void coeffs_to_local();
-  void coeffs_to_local(TangentialModel*, TangentialModel*);
-  double calculate_forces();
-private:
-  double k_norm, damp, Emod, poiss, coh;
+  void mix_coeffs(TangentialModel*, TangentialModel*);
+  void calculate_forces();
+ protected:
   int mindlin_rescale, mindlin_force;
+  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlinForce:TangentialMindlin
-{
-public:
+class TangentialMindlinForce: public TangentialMindlin {
+ public:
   TangentialMindlinForce();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlinRescale:TangentialMindlin
-{
-public:
+class TangentialMindlinRescale: public TangentialMindlin {
+ public:
   TangentialMindlinRescale();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlinRescaleForce:TangentialMindlinRescale
-{
-public:
-  TangentialMindlinForceRescale();
+class TangentialMindlinRescaleForce: public TangentialMindlin {
+ public:
+  TangentialMindlinRescaleForce();
 };
-}
 
-#endif /*TANGENTIAL_CONTACT_MODELS_H_ */
+}    // namespace Contact
+}    // namespace LAMMPS_NS
 
+#endif /*CONTACT_TANGENTIAL_MODELS_H_ */

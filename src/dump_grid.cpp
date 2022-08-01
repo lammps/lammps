@@ -291,7 +291,7 @@ void DumpGrid::init_style()
       }
 
     } else {
-      if (field2source[0] == COMPUTE) {
+      if (field2source[i] == COMPUTE) {
         icompute = compute[field2index[i]];
         grid3d = (Grid3d *) icompute->get_grid_by_index(field2grid[i]);
       } else {
@@ -760,10 +760,10 @@ int DumpGrid::parse_fields(int narg, char **arg)
         if (argi.get_dim() == 0 && ncol)
           error->all(FLERR,"Dump grid compute {} data {} is not per-grid vector",
                      idcompute,dname);
-        if (argi.get_dim() > 0 && ncol == 0) 
+        if (argi.get_dim() && ncol == 0) 
           error->all(FLERR,"Dump grid compute {} data {} is not per-grid array",
                      idcompute,dname);
-        if (argi.get_dim() > 0 && argi.get_index1() > ncol)
+        if (argi.get_dim() && argi.get_index1() > ncol)
           error->all(FLERR,
                      "Dump grid compute {} array {} is accessed out-of-range",
                      idcompute,dname);
@@ -798,7 +798,9 @@ int DumpGrid::parse_fields(int narg, char **arg)
         if (ifix->pergrid_flag == 0)
           error->all(FLERR,"Dump grid fix {} does not compute per-grid info",
                      idfix);
-      
+        if (update->ntimestep % ifix->pergrid_freq)
+          error->all(FLERR,"Fix for dump grid not computed at compatible time");
+
         int dim;
         int igrid = ifix->get_grid_by_name(gname,dim);
         if (igrid < 0) 
@@ -961,7 +963,7 @@ int DumpGrid::modify_param(int narg, char **arg)
 double DumpGrid::memory_usage()
 {
   double bytes = Dump::memory_usage();
-  //NOTE: restre if use choose
+  //NOTE: restore if use choose
   //bytes += memory->usage(choose,maxlocal);
   //bytes += memory->usage(dchoose,maxlocal);
   //bytes += memory->usage(clist,maxlocal);

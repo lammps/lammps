@@ -39,7 +39,7 @@ class FixAveGrid : public Fix {
   double memory_usage() override;
 
  private:
-  int nx,ny,nz;
+  int nxgrid,nygrid,nzgrid;
   int nvalues;
   int nrepeat, irepeat;
   bigint nvalid, nvalid_last;
@@ -57,10 +57,15 @@ class FixAveGrid : public Fix {
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
   int ngridout;
+  double shift;
 
   double **vec2d,***vec3d;
   double ***array2d,****array3d;
 
+  int **bin;
+  int maxatom;
+
+  void zero_grid();
   bigint nextvalid();
 };
 

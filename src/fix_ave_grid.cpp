@@ -31,9 +31,17 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
 enum{SAMPLE,ALL};
 enum{NOSCALE,ATOM};
 enum{ONE,RUNNING,WINDOW};
+
+// OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
+// SHIFT = 0.0 assigns atoms to lower-left grid pt
+// SHIFT = 0.5 assigns atoms to nearest grid pt
+
+static constexpr int OFFSET = 16384;
+static constexpr double SHIFT = 0.5;
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,11 +60,11 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   pergrid_freq = utils::inumeric(FLERR,arg[5],false,lmp);
   time_depend = 1;
 
-  // NOTE: test for Dxyz as well
+  // NOTE: allow Dxyz as well
 
-  nx = utils::inumeric(FLERR,arg[6],false,lmp);
-  ny = utils::inumeric(FLERR,arg[7],false,lmp);
-  nz = utils::inumeric(FLERR,arg[8],false,lmp);
+  nxgrid = utils::inumeric(FLERR,arg[6],false,lmp);
+  nygrid = utils::inumeric(FLERR,arg[7],false,lmp);
+  nzgrid = utils::inumeric(FLERR,arg[8],false,lmp);
 
   // expand args if any have wildcard character "*"
   // this can reset nvalues
@@ -208,9 +216,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   if (pergrid_freq % nevery || nrepeat*nevery > pergrid_freq)
     error->all(FLERR,"Illegal fix ave/grid command");
 
-  if (nx < 1 || ny < 1 || nz < 1)
+  if (nxgrid < 1 || nygrid < 1 || nzgrid < 1)
     error->all(FLERR,"Invalid fix ave/grid grid size");
-  if (dimension == 2 && nz != 1)
+  if (dimension == 2 && nzgrid != 1)
     error->all(FLERR,"Fix ave/grid grid Nz must be 1 for 2d simulation");
 
   // error checks for ATOM mode
@@ -370,8 +378,12 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   // instantiate the Grid class and allocate per-grid memory
   // NOTE: need to extend ghost grid for ATOM mode ?
 
+  if (modeatom) shift = OFFSET + SHIFT;
+  else shift = 0.0;
+
   if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nx, ny, 0, 0.0, 0.0,
+    if (modeatom) 
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, 0, 0.0, shift,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out);
     if (nvalues == 1)
@@ -383,7 +395,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
     
   } else {
-    grid3d = new Grid3d(lmp, world, nx, ny, nz, 0, 0.0, 0.0,
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 0, 0.0, shift,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
                         nxlo_out, nxhi_out, nylo_out, nyhi_out, 
                         nzlo_out, nzhi_out);
@@ -399,15 +411,14 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
       (nzhi_out - nzlo_out + 1);
   }
 
-  // zero the array since dump may access it on timestep 0
-  // zero the array since a variable may access it before first run
+  // zero the grid since dump may access it on timestep 0
 
-  /*
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
-    for (int m = 0; m < nvalues; m++)
-      array[i][m] = 0.0;
-  */
+  zero_grid();
+
+  // bin indices for ATOM mode
+
+  maxatom = 0;
+  bin = nullptr;
 
   // nvalid = next step on which end_of_step does something
   // add nvalid to all computes that store invocation times
@@ -438,6 +449,7 @@ FixAveGrid::~FixAveGrid()
   memory->destroy2d_offset(array2d,nylo_out,nxlo_out);
   memory->destroy3d_offset(vec3d,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset_last(array3d,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy(bin);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -480,8 +492,8 @@ void FixAveGrid::init()
   // check that grid sizes for all fields match grid size for this fix
 
   if (modegrid) {
-    Compute *icompute;
-    Fix *ifix;
+    Compute *compute;
+    Fix *fix;
     Grid2d *grid2d;
     Grid3d *grid3d;
   
@@ -490,26 +502,26 @@ void FixAveGrid::init()
     for (int m = 0; m < nvalues; m++) {
       if (dimension == 2) {
         if (which[m] == ArgInfo::COMPUTE) {
-          icompute = modify->compute[value2index[m]];
-          grid2d = (Grid2d *) icompute->get_grid_by_index(value2grid[m]);
+          compute = modify->compute[value2index[m]];
+          grid2d = (Grid2d *) compute->get_grid_by_index(value2grid[m]);
         } else {
-          ifix = modify->fix[value2index[m]];
-          grid2d = (Grid2d *) ifix->get_grid_by_index(value2grid[m]);
+          fix = modify->fix[value2index[m]];
+          grid2d = (Grid2d *) fix->get_grid_by_index(value2grid[m]);
         }
         grid2d->get_size(nxtmp,nytmp);
-        if (nxtmp != nx || nytmp != ny) 
+        if (nxtmp != nxgrid || nytmp != nygrid) 
           error->all(FLERR,"Fix ave/grid value grid sizes do not match");
 
       } else {
         if (which[m] == ArgInfo::COMPUTE) {
-          icompute = modify->compute[value2index[m]];
-          grid3d = (Grid3d *) icompute->get_grid_by_index(value2grid[m]);
+          compute = modify->compute[value2index[m]];
+          grid3d = (Grid3d *) compute->get_grid_by_index(value2grid[m]);
         } else {
-          ifix = modify->fix[value2index[m]];
-          grid3d = (Grid3d *) ifix->get_grid_by_index(value2grid[m]);
+          fix = modify->fix[value2index[m]];
+          grid3d = (Grid3d *) fix->get_grid_by_index(value2grid[m]);
         }
         grid3d->get_size(nxtmp,nytmp,nztmp);
-        if (nxtmp != nx || nytmp != ny || nztmp != nz)
+        if (nxtmp != nxgrid || nytmp != nygrid || nztmp != nzgrid)
           error->all(FLERR,"Fix ave/grid value grid sizes do not match");
       }
     }
@@ -537,7 +549,7 @@ void FixAveGrid::setup(int /*vflag*/)
 
 void FixAveGrid::end_of_step()
 {
-  int i,j,m,n;
+  int i,j,m,n,ix,iy,iz;
 
   // skip if not step which requires doing something
 
@@ -545,93 +557,332 @@ void FixAveGrid::end_of_step()
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
-  // zero if first step
-
-  /*
-  if (irepeat == 0)
-    for (i = 0; i < nlocal; i++)
-      for (m = 0; m < nvalues; m++)
-        array[i][m] = 0.0;
-  */
+  // zero owned and ghost grid points if first step
+  
+  if (irepeat == 0) zero_grid();
 
   // ATOM mode
   // accumulate per-atom attributes,computes,fixes,variables to local grid
   // compute/fix/variable may invoke computes so wrap with clear/add
-
-  /*
+  
   if (modeatom) {
-  modify->clearstep_compute();
+    modify->clearstep_compute();
 
-  int *mask = atom->mask;
+    // bin[i][dim] = indices of bin each atom is in
+    // not set if group mask does not match
+    // NOTE: error check if atom out of grid bounds?
 
-  for (m = 0; m < nvalues; m++) {
-    n = value2index[m];
-    j = argindex[m];
+    double *boxlo = domain->boxlo;
+    double dxinv = nxgrid/domain->xprd;
+    double dyinv = nygrid/domain->yprd;
+    double dzinv = nzgrid/domain->zprd;
 
-    if (which[m] == ArgInfo::X) {
-      double **x = atom->x;
-      for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) array[i][m] += x[i][j];
+    double **x = atom->x;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
 
-    } else if (which[m] == ArgInfo::V) {
-      double **v = atom->v;
-      for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) array[i][m] += v[i][j];
+    if (nlocal > maxatom) {
+      memory->destroy(bin);
+      maxatom = atom->nmax;
+      memory->create(bin,maxatom,dimension,"fix_ave/grid:bin");
+    }
 
-    } else if (which[m] == ArgInfo::F) {
-      double **f = atom->f;
-      for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) array[i][m] += f[i][j];
-
-    // invoke compute if not previously invoked
-
-    } else if (which[m] == ArgInfo::COMPUTE) {
-      Compute *compute = modify->compute[n];
-      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
-        compute->compute_peratom();
-        compute->invoked_flag |= Compute::INVOKED_PERATOM;
+    if (dimension == 2) {
+      for (i = 0; i < nlocal; i++) {
+	if (!(mask[i] & groupbit)) continue;
+        ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
+        iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+	bin[i][0] = iy;
+	bin[i][1] = ix;
       }
-
-      if (j == 0) {
-        double *compute_vector = compute->vector_atom;
-        for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += compute_vector[i];
-      } else {
-        int jm1 = j - 1;
-        double **compute_array = compute->array_atom;
-        for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += compute_array[i][jm1];
+    } else {
+      for (i = 0; i < nlocal; i++) {
+	if (!(mask[i] & groupbit)) continue;
+        ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
+        iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+        iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
+	bin[i][0] = iz;
+	bin[i][1] = iy;
+	bin[i][2] = ix;
       }
+    }
 
-    // access fix fields, guaranteed to be ready
+    for (m = 0; m < nvalues; m++) {
+      n = value2index[m];
+      j = argindex[m];
+      
+      if (which[m] == ArgInfo::X) {
+	if (dimension == 2) {
+	  if (nvalues == 1) {
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		vec2d[bin[i][0]][bin[i][1]] += x[i][j];
+	    }
+	  } else
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		array2d[bin[i][0]][bin[i][1]][m] += x[i][j];
+	    }
+	} else {
+	  if (nvalues == 1) {
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += x[i][j];
+	    }
+	  } else
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += x[i][j];
+	    }
+	}
+	
+      } else if (which[m] == ArgInfo::V) {
+	double **v = atom->v;
 
-    } else if (which[m] == ArgInfo::FIX) {
-      if (j == 0) {
-        double *fix_vector = modify->fix[n]->vector_atom;
-        for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += fix_vector[i];
-      } else {
-        int jm1 = j - 1;
-        double **fix_array = modify->fix[n]->array_atom;
-        for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) array[i][m] += fix_array[i][jm1];
+	if (dimension == 2) {
+	  if (nvalues == 1) {
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		vec2d[bin[i][0]][bin[i][1]] += v[i][j];
+	    }
+	  } else
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		array2d[bin[i][0]][bin[i][1]][m] += v[i][j];
+	    }
+	} else {
+	  if (nvalues == 1) {
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += v[i][j];
+	    }
+	  } else
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += v[i][j];
+	    }
+	}
+	
+      } else if (which[m] == ArgInfo::F) {
+	double **f = atom->f;
+
+	if (dimension == 2) {
+	  if (nvalues == 1) {
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		vec2d[bin[i][0]][bin[i][1]] += f[i][j];
+	    }
+	  } else
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		array2d[bin[i][0]][bin[i][1]][m] += f[i][j];
+	    }
+	} else {
+	  if (nvalues == 1) {
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += f[i][j];
+	    }
+	  } else
+	    for (i = 0; i < nlocal; i++) {
+	      if (mask[i] & groupbit)
+		array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += f[i][j];
+	    }
+	}
+
+      // per-atom compute or fix
+      // invoke compute if not previously invoked
+
+      } else if (which[m] == ArgInfo::COMPUTE || which[m] == ArgInfo::FIX) {
+	double *ovector,**oarray;
+
+	if (which[m] == ArgInfo::COMPUTE) {
+	  Compute *compute = modify->compute[n];
+	  if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
+	    compute->compute_peratom();
+	    compute->invoked_flag |= Compute::INVOKED_PERATOM;
+	  }
+	  if (j == 0) ovector = compute->vector_atom;
+	  else oarray = compute->array_atom;
+	} else {
+	  Fix *fix = modify->fix[n];
+	  if (j == 0) ovector = fix->vector_atom;
+	  else oarray = fix->array_atom;
+	}
+
+	if (dimension == 2) {
+	  if (nvalues == 1) {
+            if (j == 0) {
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  vec2d[bin[i][0]][bin[i][1]] += ovector[i];
+              }
+            } else {
+              int jm1 = j = 1;
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  vec2d[bin[i][0]][bin[i][1]] += oarray[i][jm1];
+              }
+            }
+          } else {
+            if (j == 0) {
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  array2d[bin[i][0]][bin[i][1]][m] += ovector[i];
+              }
+            } else {
+              int jm1 = j - 1;
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  array2d[bin[i][0]][bin[i][1]][m] += oarray[i][jm1];
+              }
+            }
+          }
+
+	} else {
+	  if (nvalues == 1) {
+            if (j == 0) {
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += ovector[i];
+              }
+            } else { 
+              int jm1 = j - 1;
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += oarray[i][jm1];
+              }
+            }
+          } else {
+            if (j == 0) {
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += ovector[i];
+              }
+            } else {
+              int jm1 = j - 1;
+              for (i = 0; i < nlocal; i++) {
+                if (mask[i] & groupbit)
+                  array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += oarray[i][jm1];
+              }
+	    }
+          }
+	}
+	
+      // evaluate atom-style variable
+      // final argument = 1 sums result to array
+
+      } else if (which[m] == ArgInfo::VARIABLE) {
+      /*
+	if (array) input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
+	else input->variable->compute_atom(n,igroup,nullptr,nvalues,1);
+      */
       }
-
-    // evaluate atom-style variable
-    // final argument = 1 sums result to array
-
-    } else if (which[m] == ArgInfo::VARIABLE) {
-      if (array) input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
-      else input->variable->compute_atom(n,igroup,nullptr,nvalues,1);
     }
   }
-  }
-  */
 
   // GRID mode
   // accumulate results of computes & fixes to local grid
 
   if (modegrid) {
+
+    for (m = 0; m < nvalues; m++) {
+      n = value2index[m];
+      j = argindex[m];
+      int idata = value2data[m];
+      
+      Compute *compute;
+      Fix *fix;
+      
+      if (which[m] == ArgInfo::COMPUTE) {
+	compute = modify->compute[n];
+	if (!(compute->invoked_flag & Compute::INVOKED_PERGRID)) {
+	  compute->compute_pergrid();
+	  compute->invoked_flag |= Compute::INVOKED_PERGRID;
+	}
+      } else if (which[m] == ArgInfo::FIX) fix = modify->fix[n];
+
+      if (dimension == 2) {
+	double **ovec2d,***oarray2d;
+	if (which[m] == ArgInfo::COMPUTE) {
+	  if (j == 0) 
+            ovec2d = (double **) compute->get_griddata_by_index(idata);
+          else
+            oarray2d = (double ***) compute->get_griddata_by_index(idata);
+	} else {
+	  if (j == 0) 
+            ovec2d = (double **) fix->get_griddata_by_index(idata);
+	  else 
+            oarray2d = (double ***) fix->get_griddata_by_index(idata);
+	}
+	
+	if (nvalues == 1) {
+          if (j == 0) {
+            for (iy = nylo_in; iy <= nyhi_in; iy++)
+              for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                vec2d[iy][ix] += ovec2d[iy][ix];
+          } else {
+            int jm1 = j - 1;
+            for (iy = nylo_in; iy <= nyhi_in; iy++)
+              for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                vec2d[iy][ix] += oarray2d[iy][ix][jm1];
+          }
+	} else {
+          if (j == 0) {
+            for (iy = nylo_in; iy <= nyhi_in; iy++)
+              for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                array2d[iy][ix][m] += ovec2d[iy][ix];
+          } else {
+            int jm1 = j - 1;
+            for (iy = nylo_in; iy <= nyhi_in; iy++)
+              for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                array2d[iy][ix][m] += oarray2d[iy][ix][jm1];
+          }
+	}
+	
+      } else {
+	double ***ovec3d,****oarray3d;
+	if (which[m] == ArgInfo::COMPUTE) {
+	  if (j == 0) 
+            ovec3d = (double ***) compute->get_griddata_by_index(idata);
+	  else 
+            oarray3d = (double ****) compute->get_griddata_by_index(idata);
+	} else {
+	  if (j == 0) 
+            ovec3d = (double ***) fix->get_griddata_by_index(idata);
+	  else 
+            oarray3d = (double ****) fix->get_griddata_by_index(idata);
+	}
+
+	if (nvalues == 1) {
+          if (j == 0) {
+            for (iz = nzlo_in; iz <= nzhi_in; iz++)
+              for (iy = nylo_in; iy <= nyhi_in; iy++)
+                for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                  vec3d[iz][iy][ix] += ovec3d[iz][iy][ix];
+          } else {
+            int jm1 = j - 1;
+            for (iz = nzlo_in; iz <= nzhi_in; iz++)
+              for (iy = nylo_in; iy <= nyhi_in; iy++)
+                for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                  vec3d[iz][iy][ix] += oarray3d[iz][iy][ix][jm1];
+          }
+	} else {
+          if (j == 0) {
+            for (iz = nzlo_in; iz <= nzhi_in; iz++)
+              for (iy = nylo_in; iy <= nyhi_in; iy++)
+                for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                  array3d[iz][iy][ix][m] += ovec3d[iz][iy][ix];
+          } else {
+            int jm1 = j - 1;
+            for (iz = nzlo_in; iz <= nzhi_in; iz++)
+              for (iy = nylo_in; iy <= nyhi_in; iy++)
+                for (ix = nxlo_in; ix <= nxhi_in; ix++)
+                  array3d[iz][iy][ix][m] += oarray3d[iz][iy][ix][jm1];
+          }
+	}
+      }
+    }
   }
 
   // done if irepeat < nrepeat
@@ -640,28 +891,74 @@ void FixAveGrid::end_of_step()
   irepeat++;
   if (irepeat < nrepeat) {
     nvalid += nevery;
-    modify->addstep_compute(nvalid);
+    if (modeatom) modify->addstep_compute(nvalid);
     return;
   }
 
   irepeat = 0;
-  nvalid = ntimestep+peratom_freq - ((bigint)nrepeat-1)*nevery;
-  modify->addstep_compute(nvalid);
+  nvalid = ntimestep+peratom_freq - ((bigint) nrepeat-1)*nevery;
+  if (modeatom) modify->addstep_compute(nvalid);
 
-  // if (array == nullptr) return;
+  // just return if this proc owns no grid points
+  
+  if (ngridout == 0) return;
+
+  
+  // NOTE: need to do comm for atom mode ?
 
 
-  //NOTE: need to do comm for atom mode ?
-
-
+  
   // average the final result for the Nfreq timestep
+  // just loop over owned grid points
+  
+  double invrepeat = 1.0/nrepeat;
 
-  /*
-  double repeat = nrepeat;
-  for (i = 0; i < nlocal; i++)
-    for (m = 0; m < nvalues; m++)
-      array[i][m] /= repeat;
-  */
+  if (dimension == 2) {
+    if (nvalues == 1) {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+	for (ix = nxlo_in; ix <= nxhi_in; ix++)
+	  vec2d[iy][ix] *= invrepeat;
+    } else {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+	for (ix = nxlo_in; ix <= nxhi_in; ix++)
+	  for (m = 0; m <= nvalues; m++)
+	    array2d[iy][ix][m] *= invrepeat;
+    }
+  } else {
+    if (nvalues == 1) {
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
+	for (iy = nylo_in; iy <= nyhi_in; iy++)
+	  for (ix = nxlo_in; ix <= nxhi_in; ix++)
+	    vec3d[iz][iy][ix] *= invrepeat;
+    } else {
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
+	for (iy = nylo_in; iy <= nyhi_in; iy++)
+	  for (ix = nxlo_in; ix <= nxhi_in; ix++)
+	    for (m = 0; m <= nvalues; m++)
+	    array3d[iz][iy][ix][m] *= invrepeat;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   zero grid values incluing ghost cells
+------------------------------------------------------------------------- */
+
+void FixAveGrid::zero_grid()
+{
+  if (dimension == 2) {
+    if (nvalues == 1) {
+      if (ngridout) memcpy(&vec2d[0][0],0,ngridout*sizeof(double));
+    } else {
+      if (ngridout) memcpy(&array2d[0][0][0],0,ngridout*nvalues*sizeof(double));
+    }
+  } else {
+    if (nvalues == 1) {
+      if (ngridout) memcpy(&vec3d[0][0][0],0,ngridout*sizeof(double));
+    } else {
+      if (ngridout) memcpy(&array3d[0][0][0][0],0,ngridout*nvalues*sizeof(double));
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

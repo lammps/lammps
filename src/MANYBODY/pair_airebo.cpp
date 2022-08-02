@@ -66,7 +66,6 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp)
   pgsize = oneatom = 0;
 
   nC = nH = nullptr;
-  map = nullptr;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
@@ -98,7 +97,6 @@ PairAIREBO::~PairAIREBO()
     memory->destroy(lj2);
     memory->destroy(lj3);
     memory->destroy(lj4);
-    delete[] map;
   }
 }
 
@@ -3628,16 +3626,12 @@ void PairAIREBO::read_file(char *filename)
         }
       }
     } catch (TokenizerException &e) {
-      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
-                                    "REASON: {}\n",
-                                    current_section, potential_name, e.what());
-      error->one(FLERR, msg);
+      error->one(FLERR, "reading {} section in {} file\nREASON: {}\n",
+                 current_section, potential_name, e.what());
+
     } catch (FileReaderException &fre) {
-      error->one(FLERR, fre.what());
-      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
-                                    "REASON: {}\n",
+      error->one(FLERR, "reading {} section in {} file\nREASON: {}\n",
                                     current_section, potential_name, fre.what());
-      error->one(FLERR, msg);
     }
 
     // store read-in values in arrays
@@ -3847,32 +3841,6 @@ void PairAIREBO::read_file(char *filename)
 // ----------------------------------------------------------------------
 // generic Spline functions
 // ----------------------------------------------------------------------
-
-/* ----------------------------------------------------------------------
-   fifth order spline evaluation
-------------------------------------------------------------------------- */
-
-double PairAIREBO::Sp5th(double x, double coeffs[6], double *df)
-{
-  double f, d;
-  const double x2 = x*x;
-  const double x3 = x2*x;
-
-  f  = coeffs[0];
-  f += coeffs[1]*x;
-  d  = coeffs[1];
-  f += coeffs[2]*x2;
-  d += 2.0*coeffs[2]*x;
-  f += coeffs[3]*x3;
-  d += 3.0*coeffs[3]*x2;
-  f += coeffs[4]*x2*x2;
-  d += 4.0*coeffs[4]*x3;
-  f += coeffs[5]*x2*x3;
-  d += 5.0*coeffs[5]*x2*x2;
-
-  *df = d;
-  return f;
-}
 
 /* ----------------------------------------------------------------------
    bicubic spline evaluation
@@ -4493,6 +4461,6 @@ double PairAIREBO::memory_usage()
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += (double)2*maxlocal * sizeof(double);
+  bytes += 2.0 * maxlocal * sizeof(double);
   return bytes;
 }

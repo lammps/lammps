@@ -342,6 +342,11 @@ void PairAmoeba::compute(int eflag, int vflag)
   if (update->ntimestep <= update->beginstep+1) {
     time_init = time_hal = time_repulse = time_disp = time_mpole = 0.0;
     time_induce = time_polar = time_qxfer = 0.0;
+
+    time_mpole_rspace = time_mpole_kspace = 0.0;
+    time_direct_rspace = time_direct_kspace = 0.0;
+    time_mutual_rspace = time_mutual_kspace = 0.0;
+    time_polar_rspace = time_polar_kspace = 0.0;
   }
 
   double time0,time1,time2,time3,time4,time5,time6,time7,time8;
@@ -511,6 +516,32 @@ void PairAmoeba::finish()
   MPI_Allreduce(&time_qxfer,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_qxfer = ave/comm->nprocs;
 
+  // real-space/kspace breakdown
+
+  MPI_Allreduce(&time_mpole_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mpole_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_mpole_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mpole_kspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_direct_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_direct_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_direct_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_direct_kspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_mutual_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mutual_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_mutual_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mutual_kspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_polar_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_polar_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_polar_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_polar_kspace = ave/comm->nprocs;
+
   double time_total = (time_init + time_hal + time_repulse + time_disp +
                        time_mpole + time_induce + time_polar + time_qxfer) / 100.0;
 
@@ -529,6 +560,17 @@ void PairAmoeba::finish()
     if (!amoeba)
       utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n", time_qxfer, time_qxfer/time_total);
     utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total * 100.0);
+
+    utils::logmesg(lmp,"  Real-space timing breakdown:\n");
+    utils::logmesg(lmp,"    Mpole  time: {:.6g} {:.3g}%\n", time_mpole_rspace, time_mpole_rspace/time_total);
+    utils::logmesg(lmp,"    Direct time: {:.6g} {:.3g}%\n", time_direct_rspace, time_direct_rspace/time_total);
+    utils::logmesg(lmp,"    Mutual time: {:.6g} {:.3g}%\n", time_mutual_rspace, time_mutual_rspace/time_total);
+    utils::logmesg(lmp,"    Polar  time: {:.6g} {:.3g}%\n", time_polar_rspace, time_polar_rspace/time_total); 
+    utils::logmesg(lmp,"  K-space timing breakdown:\n");
+    utils::logmesg(lmp,"    Mpole  time: {:.6g} {:.3g}%\n", time_mpole_kspace, time_mpole_kspace/time_total);
+    utils::logmesg(lmp,"    Direct time: {:.6g} {:.3g}%\n", time_direct_kspace, time_direct_kspace/time_total);
+    utils::logmesg(lmp,"    Mutual time: {:.6g} {:.3g}%\n", time_mutual_kspace, time_mutual_kspace/time_total);
+    utils::logmesg(lmp,"    Polar  time: {:.6g} {:.3g}%\n", time_polar_kspace, time_polar_kspace/time_total);
   }
 }
 

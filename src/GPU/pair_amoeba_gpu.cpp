@@ -857,6 +857,8 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
   int i,j;
   double term;
 
+  double time0,time1,time2;
+
   // zero field,fieldp for owned and ghost atoms
 
   int nlocal = atom->nlocal;
@@ -871,11 +873,16 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
 
   // get the real space portion of the mutual field first
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   if (polar_rspace_flag) umutual2b(field,fieldp);
+  time1 = MPI_Wtime();
 
   // get the reciprocal space part of the mutual field
 
   if (polar_kspace_flag) umutual1(field,fieldp);
+  time2 = MPI_Wtime();
 
   // add the self-energy portion of the mutual field
 
@@ -910,6 +917,11 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
     fieldp[i][1] += fieldp_ptr[idx+1];
     fieldp[i][2] += fieldp_ptr[idx+2];
   }
+
+  // accumulate timing information
+
+  time_mutual_rspace += time1 - time0;
+  time_mutual_kspace += time2 - time1;
 }
 
 /* ----------------------------------------------------------------------

@@ -54,6 +54,8 @@ void PairAmoeba::multipole()
   double qixx,qixy,qixz,qiyy,qiyz,qizz;
   double cii,dii,qii;
 
+  double time0,time1,time2;
+
   // set cutoffs, taper coeffs, and PME params
 
   if (use_ewald) choose(MPOLE_LONG);
@@ -77,13 +79,18 @@ void PairAmoeba::multipole()
 
   felec = electric / am_dielectric;
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   // compute the real space part of the Ewald summation
 
   if (mpole_rspace_flag) multipole_real();
+  time1 = MPI_Wtime();
 
   // compute the reciprocal space part of the Ewald summation
 
   if (mpole_kspace_flag) multipole_kspace();
+  time2 = MPI_Wtime();
 
   // compute the Ewald self-energy term over all the atoms
 
@@ -108,6 +115,11 @@ void PairAmoeba::multipole()
     e = fterm * (cii + term*(dii/3.0+2.0*term*qii/5.0));
     empole += e;
   }
+
+  // accumulate timing information
+
+  time_mpole_rspace += time1 - time0;
+  time_mpole_kspace += time2 - time1;
 }
 
 /* ----------------------------------------------------------------------

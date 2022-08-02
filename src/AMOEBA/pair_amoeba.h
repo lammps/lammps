@@ -88,6 +88,11 @@ class PairAmoeba : public Pair {
   double time_init,time_hal,time_repulse,time_disp;
   double time_mpole,time_induce,time_polar,time_qxfer;
 
+  double time_mpole_rspace,time_mpole_kspace;
+  double time_direct_rspace,time_direct_kspace;
+  double time_mutual_rspace,time_mutual_kspace;
+  double time_polar_rspace,time_polar_kspace;
+
   // energy/virial components
 
   double ehal,erepulse,edisp,epolar,empole,eqxfer;

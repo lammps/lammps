@@ -52,6 +52,8 @@ void PairAmoeba::polar()
   double fix[3],fiy[3],fiz[3];
   double tep[3];
 
+  double time0,time1,time2;
+
   // set cutoffs, taper coeffs, and PME params
 
   if (use_ewald) choose(POLAR_LONG);
@@ -73,11 +75,16 @@ void PairAmoeba::polar()
 
   // compute the real space part of the dipole interactions
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   if (polar_rspace_flag) polar_real();
+  time1 = MPI_Wtime();
 
   // compute the reciprocal space part of dipole interactions
 
   if (polar_kspace_flag) polar_kspace();
+  time2 = MPI_Wtime();
 
   // compute the Ewald self-energy torque and virial terms
 
@@ -130,6 +137,11 @@ void PairAmoeba::polar()
     virpolar[4] -= vxz;
     virpolar[5] -= vyz;
   }
+
+  // accumulate timing information
+
+  time_polar_rspace += time1 - time0;
+  time_polar_kspace += time2 - time1;
 }
 
 /* ----------------------------------------------------------------------

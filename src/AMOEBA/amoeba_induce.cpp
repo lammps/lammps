@@ -564,6 +564,8 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
   int i,j;
   double term;
 
+  double time0,time1,time2;
+
   // zero field,fieldp for owned and ghost atoms
 
   int nlocal = atom->nlocal;
@@ -576,13 +578,18 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
     }
   }
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   // get the real space portion of the mutual field
 
   if (polar_rspace_flag) umutual2b(field,fieldp);
+  time1 = MPI_Wtime();
 
   // get the reciprocal space part of the mutual field
 
   if (polar_kspace_flag) umutual1(field,fieldp);
+  time2 = MPI_Wtime();
 
   // add the self-energy portion of the mutual field
 
@@ -593,6 +600,11 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
       fieldp[i][j] += term*uinp[i][j];
     }
   }
+
+  // accumulate timing information
+
+  time_mutual_rspace += time1 - time0;
+  time_mutual_kspace += time2 - time1;
 }
 
 /* ----------------------------------------------------------------------
@@ -801,6 +813,8 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
   int i,j;
   double term;
 
+  double time0,time1,time2;
+
   // zero out field,fieldp for owned and ghost atoms
 
   int nlocal = atom->nlocal;
@@ -815,7 +829,11 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
 
   // get the reciprocal space part of the permanent field
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   if (polar_kspace_flag) udirect1(field);
+  time1 = MPI_Wtime();
 
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
@@ -826,6 +844,7 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
   // get the real space portion of the permanent field
 
   if (polar_rspace_flag) udirect2b(field,fieldp);
+  time2 = MPI_Wtime();
 
   // get the self-energy portion of the permanent field
 
@@ -836,6 +855,11 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
       fieldp[i][j] += term*rpole[i][j+1];
     }
   }
+
+  // accumulate timing information
+
+  time_direct_kspace += time1 - time0;
+  time_direct_rspace += time2 - time1;
 }
 
 /* ----------------------------------------------------------------------

@@ -621,7 +621,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
       int m;
       for (m = 1; m < 6; m++) {
-        bfac = (numtyp) (m+m-1);
+        numtyp bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
         bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) * r2inv;
       }
@@ -1170,7 +1170,8 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   //numtyp4 xi__;
 
   if (ii<inum) {
-    int k,m,itype,igroup;
+    int itype,igroup;
+    /*
     numtyp bfac;
     numtyp psc3,psc5,psc7;
     numtyp dsc3,dsc5,dsc7;
@@ -1186,6 +1187,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
     numtyp drc3[3],drc5[3],drc7[3];
     numtyp urc3[3],urc5[3];
     numtyp bn[5];
+    */
     numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
 
     int numj, nbor, nbor_end;
@@ -1317,8 +1319,25 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 
       // calculate the real space Ewald error function terms
 
+      int k,m;
+      numtyp psc3,psc5,psc7;
+      numtyp dsc3,dsc5,dsc7;
+      numtyp usc3,usc5;
+      numtyp psr3,psr5,psr7;
+      numtyp dsr3,dsr5,dsr7;
+      numtyp usr5;
+      numtyp term1,term2,term3;
+      numtyp term4,term5;
+      numtyp term6,term7;
+      numtyp rc3[3],rc5[3],rc7[3];
+      numtyp prc3[3],prc5[3],prc7[3];
+      numtyp drc3[3],drc5[3],drc7[3];
+      numtyp urc3[3],urc5[3];
+    
+
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[5];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -1331,7 +1350,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
 
       for (m = 1; m <= 4; m++) {
-        bfac = (numtyp) (m+m-1);
+        numtyp bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
         bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) * r2inv;
       }

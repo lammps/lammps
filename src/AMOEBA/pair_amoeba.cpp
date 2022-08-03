@@ -561,16 +561,16 @@ void PairAmoeba::finish()
       utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n", time_qxfer, time_qxfer/time_total);
     utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total * 100.0);
 
-    utils::logmesg(lmp,"  Real-space timing breakdown:\n");
-    utils::logmesg(lmp,"    Mpole  time: {:.6g} {:.3g}%\n", time_mpole_rspace, time_mpole_rspace/time_total);
-    utils::logmesg(lmp,"    Direct time: {:.6g} {:.3g}%\n", time_direct_rspace, time_direct_rspace/time_total);
-    utils::logmesg(lmp,"    Mutual time: {:.6g} {:.3g}%\n", time_mutual_rspace, time_mutual_rspace/time_total);
-    utils::logmesg(lmp,"    Polar  time: {:.6g} {:.3g}%\n", time_polar_rspace, time_polar_rspace/time_total); 
-    utils::logmesg(lmp,"  K-space timing breakdown:\n");
-    utils::logmesg(lmp,"    Mpole  time: {:.6g} {:.3g}%\n", time_mpole_kspace, time_mpole_kspace/time_total);
-    utils::logmesg(lmp,"    Direct time: {:.6g} {:.3g}%\n", time_direct_kspace, time_direct_kspace/time_total);
-    utils::logmesg(lmp,"    Mutual time: {:.6g} {:.3g}%\n", time_mutual_kspace, time_mutual_kspace/time_total);
-    utils::logmesg(lmp,"    Polar  time: {:.6g} {:.3g}%\n", time_polar_kspace, time_polar_kspace/time_total);
+    utils::logmesg(lmp,"    Real-space timing breakdown:\n");
+    utils::logmesg(lmp,"      Mpole  time: {:.6g} {:.3g}%\n", time_mpole_rspace, time_mpole_rspace/time_total);
+    utils::logmesg(lmp,"      Direct time: {:.6g} {:.3g}%\n", time_direct_rspace, time_direct_rspace/time_total);
+    utils::logmesg(lmp,"      Mutual time: {:.6g} {:.3g}%\n", time_mutual_rspace, time_mutual_rspace/time_total);
+    utils::logmesg(lmp,"      Polar  time: {:.6g} {:.3g}%\n", time_polar_rspace, time_polar_rspace/time_total); 
+    utils::logmesg(lmp,"    K-space timing breakdown:\n");
+    utils::logmesg(lmp,"      Mpole  time: {:.6g} {:.3g}%\n", time_mpole_kspace, time_mpole_kspace/time_total);
+    utils::logmesg(lmp,"      Direct time: {:.6g} {:.3g}%\n", time_direct_kspace, time_direct_kspace/time_total);
+    utils::logmesg(lmp,"      Mutual time: {:.6g} {:.3g}%\n", time_mutual_kspace, time_mutual_kspace/time_total);
+    utils::logmesg(lmp,"      Polar  time: {:.6g} {:.3g}%\n", time_polar_kspace, time_polar_kspace/time_total);
   }
 }
 

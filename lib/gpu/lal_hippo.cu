@@ -955,10 +955,10 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
   if (ii<inum) {
     int m;
     int itype,iclass;
-    numtyp bfac;
-    numtyp term1,term2,term3;
-    numtyp term4,term5,term6;
-    numtyp bn[6];
+    //numtyp bfac;
+    //numtyp term1,term2,term3;
+    //numtyp term4,term5,term6;
+    //numtyp bn[6];
 
     int numj, nbor, nbor_end;
     const __global int* nbor_mem=dev_packed;
@@ -1124,6 +1124,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[6];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -1136,11 +1137,14 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
 
       for (m = 1; m < 6; m++) {
-        bfac = (numtyp) (m+m-1);
+        numtyp bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
         bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) * r2inv;
       }
       for (m = 0; m < 6; m++) bn[m] *= felec;
+
+      numtyp term1,term2,term3;
+      numtyp term4,term5,term6;
 
       term1 = corei*corek;
       numtyp term1i = corek*vali;
@@ -1711,13 +1715,15 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
   //numtyp4 xi__;
 
   if (ii<inum) {
-    int k,m,itype,igroup;
+    int itype,igroup;
+    /*
     numtyp bfac;
     numtyp term1,term2,term3;
     numtyp term4,term5;
     numtyp term6,term7;
     numtyp rc3[3],rc5[3],rc7[3];
     numtyp bn[5];
+    */
     numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
 
     int numj, nbor, nbor_end;
@@ -1849,9 +1855,11 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp rr9 = (numtyp)7.0 * rr7 * r2inv;
 
       // calculate the real space Ewald error function terms
-
+      
+      int k,m;
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[5];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -1864,7 +1872,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
 
       for (m = 1; m <= 4; m++) {
-        bfac = (numtyp) (m+m-1);
+        numtyp bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
         bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) * r2inv;
       }
@@ -1875,6 +1883,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp sc3 = (numtyp)1.0;
       numtyp sc5 = (numtyp)1.0;
       numtyp sc7 = (numtyp)1.0;
+      numtyp rc3[3],rc5[3],rc7[3];
       for (k = 0; k < 3; k++) {
         rc3[k] = (numtyp)0.0;
         rc5[k] = (numtyp)0.0;
@@ -2063,6 +2072,9 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp frcx = (numtyp)-2.0 * depx;
       numtyp frcy = (numtyp)-2.0 * depy;
       numtyp frcz = (numtyp)-2.0 * depz;
+
+      numtyp term1,term2,term3;
+      //numtyp term4,term5,term6,term7;
 
       // get the dEp/dR terms used for direct polarization force
       // poltyp == MUTUAL && hippo

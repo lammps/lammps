@@ -448,11 +448,11 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
 
   if (ii<inum) {
-    int m;
-    numtyp bfac;
-    numtyp term1,term2,term3;
-    numtyp term4,term5,term6;
-    numtyp bn[6];
+    //int m;
+    //numtyp bfac;
+    //numtyp term1,term2,term3;
+    //numtyp term4,term5,term6;
+    //numtyp bn[6];
 
     int numj, nbor, nbor_end;
     const __global int* nbor_mem=dev_packed;
@@ -604,9 +604,10 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp rr11 = (numtyp)9.0 * rr9 * r2inv;
 
       // calculate the real space Ewald error function terms
-
+      
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[6];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -618,12 +619,16 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp alsq2n = (numtyp)0.0;
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
 
+      int m;
       for (m = 1; m < 6; m++) {
         bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
         bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) * r2inv;
       }
       for (m = 0; m < 6; m++) bn[m] *= felec;
+
+      numtyp term1,term2,term3;
+      numtyp term4,term5,term6;
 
       term1 = ci*ck;
       term2 = ck*dir - ci*dkr + dik;
@@ -757,8 +762,8 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       nbor_mem = dev_short_nbor;
     }
 
-    numtyp bn[4],bcn[3];
-    numtyp fid[3],fip[3];
+    //numtyp bn[4],bcn[3];
+    //numtyp fid[3],fip[3];
 
     const numtyp4 pol1i = polar1[i];
     numtyp dix = pol1i.y;    // rpole[i][1];
@@ -853,6 +858,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[4],bcn[3];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -900,6 +906,8 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
       bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
       bcn[2] = bn[3] - ((numtyp)1.0-scalek*scale7)*rr7;
+
+      numtyp fid[3];
       fid[0] = -xr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkx + (numtyp)2.0*bcn[1]*qkx;
       fid[1] = -yr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dky + (numtyp)2.0*bcn[1]*qky;
       fid[2] = -zr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkz + (numtyp)2.0*bcn[1]*qkz;
@@ -908,6 +916,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
       bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
       bcn[2] = bn[3] - ((numtyp)1.0-scalek*scale7)*rr7;
+      numtyp fip[3];
       fip[0] = -xr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkx + (numtyp)2.0*bcn[1]*qkx;
       fip[1] = -yr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dky + (numtyp)2.0*bcn[1]*qky;
       fip[2] = -zr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkz + (numtyp)2.0*bcn[1]*qkz;
@@ -980,8 +989,8 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
     }
 
     int itype,igroup;
-    numtyp bn[4],bcn[3];
-    numtyp fid[3],fip[3];
+    //numtyp bn[4],bcn[3];
+    //numtyp fid[3],fip[3];
 
     itype  = polar3[i].z; // amtype[i];
     igroup = polar3[i].w; // amgroup[i];
@@ -1036,6 +1045,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[4];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -1068,6 +1078,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       }
 
       numtyp scalek = factor_uscale;
+      numtyp bcn[3];
       bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
       bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
 
@@ -1081,10 +1092,13 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       //if (i==0 && j == 10)
       //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
       //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
+
+      numtyp fid[3];
       fid[0] = tdipdip[0]*ukx + tdipdip[1]*uky + tdipdip[2]*ukz;
       fid[1] = tdipdip[1]*ukx + tdipdip[3]*uky + tdipdip[4]*ukz;
       fid[2] = tdipdip[2]*ukx + tdipdip[4]*uky + tdipdip[5]*ukz;
 
+      numtyp fip[3];
       fip[0] = tdipdip[0]*ukxp + tdipdip[1]*ukyp + tdipdip[2]*ukzp;
       fip[1] = tdipdip[1]*ukxp + tdipdip[3]*ukyp + tdipdip[4]*ukzp;
       fip[2] = tdipdip[2]*ukxp + tdipdip[4]*ukyp + tdipdip[5]*ukzp;

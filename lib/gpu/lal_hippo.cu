@@ -1303,8 +1303,8 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       nbor_mem = dev_short_nbor;
     }
 
-    numtyp bn[4],bcn[3];
-    numtyp fid[3],fip[3];
+    //numtyp bn[4],bcn[3];
+    //numtyp fid[3],fip[3];
 
     const numtyp4 pol1i = polar1[i];
     numtyp dix = pol1i.y;    // rpole[i][1];
@@ -1403,6 +1403,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[4],bcn[3];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -1429,6 +1430,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       numtyp rr5k = bn[2] - ((numtyp)1.0-scalek*dmpk[4])*rr5;
       numtyp rr7k = bn[3] - ((numtyp)1.0-scalek*dmpk[6])*rr7;
       rr3 = bn[1] - ((numtyp)1.0-scalek)*rr3;
+      numtyp fid[3];
       fid[0] = -xr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
         rr3k*dkx + (numtyp)2.0*rr5k*qkx;
       fid[1] = -yr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
@@ -1445,6 +1447,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       rr5k = bn[2] - ((numtyp)1.0-scalek*dmpk[4])*rr5;
       rr7k = bn[3] - ((numtyp)1.0-scalek*dmpk[6])*rr7;
       rr3 = bn[1] - ((numtyp)1.0-scalek)*rr3;
+      numtyp fip[3];
       fip[0] = -xr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
         rr3k*dkx + (numtyp)2.0*rr5k*qkx;
       fip[1] = -yr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
@@ -1524,8 +1527,8 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
     }
 
     int itype,igroup;
-    numtyp bn[4],bcn[3];
-    numtyp fid[3],fip[3];
+    //numtyp bn[4],bcn[3];
+    //numtyp fid[3],fip[3];
 
     itype  = polar3[i].z; // amtype[i];
     igroup = polar3[i].w; // amgroup[i];
@@ -1594,6 +1597,7 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp bn[4];
       /*
       numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
       numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
@@ -1627,10 +1631,13 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       //if (i==0 && j == 10)
       //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
       //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
+
+      numtyp fid[3];
       fid[0] = tdipdip[0]*ukx + tdipdip[1]*uky + tdipdip[2]*ukz;
       fid[1] = tdipdip[1]*ukx + tdipdip[3]*uky + tdipdip[4]*ukz;
       fid[2] = tdipdip[2]*ukx + tdipdip[4]*uky + tdipdip[5]*ukz;
 
+      numtyp fip[3];
       fip[0] = tdipdip[0]*ukxp + tdipdip[1]*ukyp + tdipdip[2]*ukzp;
       fip[1] = tdipdip[1]*ukxp + tdipdip[3]*ukyp + tdipdip[4]*ukzp;
       fip[2] = tdipdip[2]*ukxp + tdipdip[4]*ukyp + tdipdip[5]*ukzp;

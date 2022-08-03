@@ -238,8 +238,8 @@ Lennard-Jones interactions, which are computed with a cutoff.  A
 style.  If only dipoles (not point charges) are included in the model,
 the kspace style can be one of these 3 options, all of which compute
 the long-range portion of dipole-dipole interactions.  If the model
-includes point charges only the first of these kspace styles can be
-used:
+includes point charges (in addition to dipoles), then only the first
+of these kspace styles can be used:
 
 * :doc:`kspace_style ewald/disp <kspace_style>`
 * :doc:`kspace_style ewald/dipole <kspace_style>`

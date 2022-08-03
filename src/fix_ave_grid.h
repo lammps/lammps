@@ -53,6 +53,8 @@ class FixAveGrid : public Fix {
 
   class Grid2d *grid2d;
   class Grid3d *grid3d;
+  int ngrid_buf1, ngrid_buf2;
+  double *grid_buf1, *grid_buf2;
 
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
@@ -61,10 +63,16 @@ class FixAveGrid : public Fix {
 
   double **vec2d,***vec3d;
   double ***array2d,****array3d;
+  int **count2d,***count3d;
 
   int **bin;
   int maxatom;
 
+  double *vresult;
+  int maxvar;
+
+  void atom2grid();
+  void grid2grid();
   void zero_grid();
   bigint nextvalid();
 };

@@ -638,6 +638,7 @@ int FixTTMGrid::get_grid_by_name(char *name, int &dim)
 void *FixTTMGrid::get_grid_by_index(int index)
 {
   if (index == 0) return grid;
+
   return nullptr;
 }
 
@@ -670,6 +671,7 @@ int FixTTMGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
 void *FixTTMGrid::get_griddata_by_index(int index)
 {
   if (index == 0) return T_electron;
+
   return nullptr;
 }
 

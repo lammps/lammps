@@ -369,7 +369,7 @@ namespace utils {
    * \return new buffer with copy of string */
 
   void grid_parse(const char *file, int line, const std::string &name,
-                  char *id, char *gridname, char *dataname, Error *error);
+                  char *&id, char *&gridname, char *&dataname, Error *error);
 
   /*! Parse grid reference into 3 sub-strings
    *

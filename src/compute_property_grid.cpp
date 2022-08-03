@@ -211,6 +211,7 @@ void *ComputePropertyGrid::get_grid_by_index(int index)
     if (dimension == 2) return grid2d;
     else return grid3d;
   }
+
   return nullptr;
 }
 
@@ -252,6 +253,7 @@ void *ComputePropertyGrid::get_griddata_by_index(int index)
       else return array3d;
     }
   }
+
   return nullptr;
 }
 

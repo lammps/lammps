@@ -63,7 +63,7 @@ class FixAveGrid : public Fix {
 
   double **vec2d,***vec3d;
   double ***array2d,****array3d;
-  int **count2d,***count3d;
+  double **count2d,***count3d;
 
   int **bin;
   int maxatom;

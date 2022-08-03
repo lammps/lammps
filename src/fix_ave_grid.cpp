@@ -50,6 +50,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   which(nullptr), argindex(nullptr), ids(nullptr),
   value2index(nullptr), value2grid(nullptr), value2data(nullptr),
   grid2d(nullptr), grid3d(nullptr), 
+  grid_buf1(nullptr), grid_buf2(nullptr), 
   vec2d(nullptr), array2d(nullptr), vec3d(nullptr), array3d(nullptr),
   count2d(nullptr), count3d(nullptr)
 {
@@ -154,10 +155,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix ave/grid cannot use variable for grid info");
 
       nvalues++;
-
-    // unrecognized arg (option)
-
-    } else break;
+    }
 
     iarg++;
   }
@@ -286,6 +284,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
         char *idcompute,*gname,*dname;
         utils::grid_parse(FLERR,ids[i],idcompute,gname,dname,error);
+        delete [] ids[i];
+        ids[i] = new char[strlen(idcompute)+1];
+        strcpy(ids[i],idcompute);
 
         Compute *icompute = modify->get_compute_by_id(idcompute);
         if (!icompute) 
@@ -323,8 +324,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                      "Fix ave/grid compute {} array {} is accessed out-of-range",
                      idcompute,dname);
       
-	value2grid[iarg] = igrid;
-	value2data[iarg] = idata;
+	value2grid[i] = igrid;
+	value2data[i] = idata;
 
         delete [] idcompute;
         delete [] gname;
@@ -334,6 +335,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
         char *idfix,*gname,*dname;
         utils::grid_parse(FLERR,ids[i],idfix,gname,dname,error);
+        delete [] ids[i];
+        ids[i] = new char[strlen(idfix)+1];
+        strcpy(ids[i],idfix);
 
         Fix *ifix = modify->get_fix_by_id(idfix);
         if (!ifix) error->all(FLERR,"Could not find fix ave/grid fix ID: {}",
@@ -372,8 +376,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                      "Fix ave/grid compute {} array {} is accessed out-of-range",
                      idfix,dname);
       
-	value2grid[iarg] = igrid;
-	value2data[iarg] = idata;
+	value2grid[i] = igrid;
+	value2data[i] = idata;
 
         delete [] idfix;
         delete [] gname;
@@ -483,6 +487,7 @@ FixAveGrid::~FixAveGrid()
   memory->destroy2d_offset(vec2d,nylo_out,nxlo_out);
   memory->destroy2d_offset(array2d,nylo_out,nxlo_out);
   memory->destroy2d_offset(count2d,nylo_out,nxlo_out);
+
   memory->destroy3d_offset(vec3d,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset_last(array3d,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(count3d,nzlo_out,nylo_out,nxlo_out);
@@ -510,19 +515,19 @@ void FixAveGrid::init()
     if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-        error->all(FLERR,"Compute ID for fix ave/atom does not exist");
+        error->all(FLERR,"Compute ID for fix ave/grid does not exist");
       value2index[m] = icompute;
 
     } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
-        error->all(FLERR,"Fix ID for fix ave/atom does not exist");
+        error->all(FLERR,"Fix ID for fix ave/grid does not exist");
       value2index[m] = ifix;
 
     } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
-        error->all(FLERR,"Variable name for fix ave/atom does not exist");
+        error->all(FLERR,"Variable name for fix ave/grid does not exist");
       value2index[m] = ivariable;
 
     } else value2index[m] = -1;
@@ -598,20 +603,22 @@ void FixAveGrid::end_of_step()
 
   // zero owned and ghost grid points if first step
   // zero atom count per bin for ATOM mode
+  // NOTE: when should counts be zeroed
+  // NOTE: is anything normalized by count ?
+  // NOTE: can count be output ?
 
   if (irepeat == 0) zero_grid();
 
   if (modeatom) {
     if (dimension == 2) {
-      if (ngridout) memcpy(&count2d[0][0],0,ngridout*sizeof(int));
+      if (ngridout) memset(&count2d[nylo_out][nxlo_out],0,
+                           ngridout*sizeof(double));
     } else {
-      if (ngridout) memcpy(&count3d[0][0][0],0,ngridout*sizeof(int));
+      if (ngridout) memset(&count3d[nzlo_out][nylo_out][nxlo_out],0,
+                           ngridout*sizeof(double));
     }
   }
 
-  // ATOM mode
-  // accumulate per-atom attributes,computes,fixes,variables to local grid
-  
   // set local per-grid values for either ATOM or GRID mode
   // per-atom compute/fix/variable may invoke computes so wrap with clear/add
 
@@ -633,7 +640,7 @@ void FixAveGrid::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep+peratom_freq - ((bigint) nrepeat-1)*nevery;
+  nvalid = ntimestep+pergrid_freq - ((bigint) nrepeat-1)*nevery;
   if (modeatom) modify->addstep_compute(nvalid);
 
   // ghost to owned grid communication for atom mode
@@ -720,7 +727,7 @@ void FixAveGrid::atom2grid()
       if (!(mask[i] & groupbit)) continue;
       ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
-      count2d[iy][ix]++;
+      count2d[iy][ix] += 1.0;
       bin[i][0] = iy;
       bin[i][1] = ix;
     }
@@ -730,7 +737,7 @@ void FixAveGrid::atom2grid()
       ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
       iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
-      count3d[iz][iy][ix]++;
+      count3d[iz][iy][ix] += 1.0;
       bin[i][0] = iz;
       bin[i][1] = iy;
       bin[i][2] = ix;
@@ -940,9 +947,9 @@ void FixAveGrid::grid2grid()
         else 
           oarray3d = (double ****) compute->get_griddata_by_index(idata);
       } else {
-        if (j == 0) 
+        if (j == 0) {
           ovec3d = (double ***) fix->get_griddata_by_index(idata);
-        else 
+        } else 
           oarray3d = (double ****) fix->get_griddata_by_index(idata);
       }
 
@@ -985,15 +992,19 @@ void FixAveGrid::zero_grid()
 {
   if (dimension == 2) {
     if (nvalues == 1) {
-      if (ngridout) memcpy(&vec2d[0][0],0,ngridout*sizeof(double));
+      if (ngridout) memset(&vec2d[nylo_out][nxlo_out],0,
+                           ngridout*sizeof(double));
     } else {
-      if (ngridout) memcpy(&array2d[0][0][0],0,ngridout*nvalues*sizeof(double));
+      if (ngridout) memset(&array2d[nylo_out][nxlo_out][0],0,
+                           ngridout*nvalues*sizeof(double));
     }
   } else {
     if (nvalues == 1) {
-      if (ngridout) memcpy(&vec3d[0][0][0],0,ngridout*sizeof(double));
+      if (ngridout) memset(&vec3d[nzlo_out][nylo_out][nxlo_out],0,
+                           ngridout*sizeof(double)); 
     } else {
-      if (ngridout) memcpy(&array3d[0][0][0][0],0,ngridout*nvalues*sizeof(double));
+      if (ngridout) memset(&array3d[nzlo_out][nylo_out][nxlo_out][0],0,
+                           ngridout*nvalues*sizeof(double));
     }
   }
 }
@@ -1027,6 +1038,7 @@ void *FixAveGrid::get_grid_by_index(int index)
     if (dimension == 2) return grid2d;
     else return grid3d;
   }
+
   return nullptr;
 }
 
@@ -1046,6 +1058,10 @@ int FixAveGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
     if (nvalues == 1) ncol = 0;
     else ncol = nvalues;
     return 0;
+  }
+  if (igrid == 0 && strcmp(name,"count") == 0) {
+    ncol = 0;
+    return 1;
   }
 
   return -1;
@@ -1068,6 +1084,11 @@ void *FixAveGrid::get_griddata_by_index(int index)
       else return array3d;
     }
   }
+  if (index == 1) {
+    if (dimension == 2) return count2d;
+    else return count3d;
+  }
+
   return nullptr;
 }
 
@@ -1090,11 +1111,11 @@ double FixAveGrid::memory_usage()
 
 bigint FixAveGrid::nextvalid()
 {
-  bigint nvalid = (update->ntimestep/peratom_freq)*peratom_freq + peratom_freq;
-  if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
+  bigint nvalid = (update->ntimestep/pergrid_freq)*pergrid_freq + pergrid_freq;
+  if (nvalid-pergrid_freq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
     nvalid -= ((bigint)nrepeat-1)*nevery;
-  if (nvalid < update->ntimestep) nvalid += peratom_freq;
+  if (nvalid < update->ntimestep) nvalid += pergrid_freq;
   return nvalid;
 }

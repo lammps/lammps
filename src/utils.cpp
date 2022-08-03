@@ -772,7 +772,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 ------------------------------------------------------------------------- */
 
 void utils::grid_parse(const char *file, int line, const std::string &name, 
-                       char *id, char *gridname, char *dataname, Error *error)
+                       char *&id, char *&gridname, char *&dataname, Error *error)
 {
   char *copy = strdup(name);
 

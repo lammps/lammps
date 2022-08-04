@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fft3d_wrap.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"

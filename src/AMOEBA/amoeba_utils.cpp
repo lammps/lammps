@@ -18,7 +18,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "neigh_list.h"
 
 #include <cmath>

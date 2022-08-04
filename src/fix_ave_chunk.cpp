@@ -632,12 +632,7 @@ void FixAveChunk::end_of_step()
       if (which[m] == ArgInfo::V) attribute = atom->v;
       else attribute = atom->f;
 
-      for (i = 0; i < nlocalThe *temp* value means the temperature is computed for each chunk, by
-the formula KE = DOF/2 k T, where KE = total kinetic energy of the
-chunk of atoms (sum of 1/2 m v\^2), DOF = the total number of degrees
-of freedom for all atoms in the chunk, k = Boltzmann constant, and T =
-temperature.
-; i++)
+      for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && ichunk[i] > 0) {
           index = ichunk[i]-1;
           values_one[index][m] += attribute[i][j];

@@ -107,6 +107,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 2;
 
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      which[nvalues] = ArgInfo::MASS;
+      argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"density/number") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_NUMBER;
@@ -114,9 +117,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"density/mass") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_MASS;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"mass") == 0) {
-      which[nvalues] = ArgInfo::MASS;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       which[nvalues] = ArgInfo::TEMPERATURE;
@@ -632,7 +632,12 @@ void FixAveChunk::end_of_step()
       if (which[m] == ArgInfo::V) attribute = atom->v;
       else attribute = atom->f;
 
-      for (i = 0; i < nlocal; i++)
+      for (i = 0; i < nlocalThe *temp* value means the temperature is computed for each chunk, by
+the formula KE = DOF/2 k T, where KE = total kinetic energy of the
+chunk of atoms (sum of 1/2 m v\^2), DOF = the total number of degrees
+of freedom for all atoms in the chunk, k = Boltzmann constant, and T =
+temperature.
+; i++)
         if (mask[i] & groupbit && ichunk[i] > 0) {
           index = ichunk[i]-1;
           values_one[index][m] += attribute[i][j];

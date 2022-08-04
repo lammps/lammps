@@ -13,22 +13,30 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-NPairStyle(half/multi/old/newton/tri,
-           NPairHalfMultiOldNewtonTri,
-           NP_HALF | NP_MULTI_OLD | NP_NEWTON | NP_TRI);
+typedef NPairBinAtomonly<0, 1, 0> NPairFullBinAtomonly;
+NPairStyle(full/bin/atomonly,
+           NPairFullBinAtomonly,
+           NP_FULL | NP_BIN | NP_ATOMONLY |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairBinAtomonly<1, 1, 0> NPairHalfBinAtomonlyNewton;
+NPairStyle(half/bin/atomonly/newton,
+           NPairHalfBinAtomonlyNewton,
+           NP_HALF | NP_BIN | NP_ATOMONLY | NP_NEWTON | NP_ORTHO);
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_HALF_MULTI_OLD_NEWTON_TRI_H
-#define LMP_NPAIR_HALF_MULTI_OLD_NEWTON_TRI_H
+#ifndef LMP_NPAIR_BIN_ATOMONLY_H
+#define LMP_NPAIR_BIN_ATOMONLY_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalfMultiOldNewtonTri : public NPair {
+template<int HALF, int NEWTON, int TRI>
+class NPairBinAtomonly : public NPair {
  public:
-  NPairHalfMultiOldNewtonTri(class LAMMPS *);
+  NPairBinAtomonly(class LAMMPS *);
   void build(class NeighList *) override;
 };
 

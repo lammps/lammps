@@ -12,31 +12,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_half_bin_newtoff.h"
+#include "npair_bin.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
+#include "neighbor.h"
 #include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfBinNewtoff::NPairHalfBinNewtoff(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI>
+NPairBin<HALF, NEWTON, TRI>::NPairBin(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   binned neighbor list construction with partial Newton's 3rd law
-   each owned atom i checks own bin and other bins in stencil
-   pair stored once if i,j are both owned and i < j
-   pair stored by me if j is ghost (also stored by proc owning j)
+   binned neighbor list construction for all neighbors
+   every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
-void NPairHalfBinNewtoff::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI>
+void NPairBin<HALF, NEWTON, TRI>::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,which,imol,iatom,moltemplate;
+  int i,j,k,n,itype,jtype,ibin,bin_start,which,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
@@ -79,16 +81,59 @@ void NPairHalfBinNewtoff::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    // loop over all atoms in other bins in stencil including self
-    // only store pair if i < j
-    // stores own/own pairs only once
-    // stores own/ghost pairs on both procs
-
     ibin = atom2bin[i];
 
     for (k = 0; k < nstencil; k++) {
-      for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
-        if (j <= i) continue;
+      bin_start = binhead[ibin+stencil[k]];
+      if (stencil[k] == 0) {
+        if (HALF && NEWTON && (!TRI)) {
+          // Half neighbor list, newton on, orthonormal
+          // loop over rest of atoms in i's bin, ghosts are at end of linked list
+          bin_start = bins[i];
+        }
+      }
+
+      for (j = bin_start; j >= 0; j = bins[j]) {
+        if (!HALF) {
+          // Full neighbor list
+          // only skip i = j
+          if (i == j) continue;
+        } else if (!NEWTON) {
+          // Half neighbor list, newton off
+          // only store pair if i < j
+          // stores own/own pairs only once
+          // stores own/ghost pairs on both procs
+          if (j <= i) continue;
+        } else if (TRI) {
+          // Half neighbor list, newton on, triclinic
+          // pairs for atoms j "below" i are excluded
+          // below = lower z or (equal z and lower y) or (equal zy and lower x)
+          //         (equal zyx and j <= i)
+          // latter excludes self-self interaction but allows superposed atoms
+          if (x[j][2] < ztmp) continue;
+          if (x[j][2] == ztmp) {
+            if (x[j][1] < ytmp) continue;
+            if (x[j][1] == ytmp) {
+              if (x[j][0] < xtmp) continue;
+              if (x[j][0] == xtmp && j <= i) continue;
+            }
+          }
+        } else {
+          // Half neighbor list, newton on, orthonormal
+          // store every pair for every bin in stencil,except for i's bin
+
+          if (stencil[k] == 0) {
+            // if j is owned atom, store it, since j is beyond i in linked list
+            // if j is ghost, only store if j coords are "above and to the "right" of i
+            if (j >= nlocal) {
+              if (x[j][2] < ztmp) continue;
+              if (x[j][2] == ztmp) {
+                if (x[j][1] < ytmp) continue;
+                if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+              }
+            }
+          }
+        }
 
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
@@ -111,7 +156,6 @@ void NPairHalfBinNewtoff::build(NeighList *list)
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;
             else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-            // OLD: if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
         }
       }
@@ -126,4 +170,12 @@ void NPairHalfBinNewtoff::build(NeighList *list)
   }
 
   list->inum = inum;
+  if (!HALF) list->gnum = 0;
+}
+
+namespace LAMMPS_NS {
+template class NPairBin<0,1,0>;
+template class NPairBin<1,0,0>;
+template class NPairBin<1,1,0>;
+template class NPairBin<1,1,1>;
 }

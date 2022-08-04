@@ -12,27 +12,55 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_full_bin_3d.h"
+#include "nstencil_bin.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilFullBin3d::NStencilFullBin3d(LAMMPS *lmp) : NStencil(lmp) {}
+template<int HALF, int DIM_3D, int TRI>
+NStencilBin<HALF, DIM_3D, TRI>::NStencilBin(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
-void NStencilFullBin3d::create()
+template<int HALF, int DIM_3D, int TRI>
+void NStencilBin<HALF, DIM_3D, TRI>::create()
 {
   int i,j,k;
+  bool bin_include;
+
+  // For half stencils, only the upper plane is needed
+  int sy_min = sy;
+  int sz_min = sz;
+  if (HALF && (!DIM_3D)) sy_min = 0;
+  if (HALF && DIM_3D) sz_min = 0;
 
   nstencil = 0;
 
-  for (k = -sz; k <= sz; k++)
-    for (j = -sy; j <= sy; j++)
-      for (i = -sx; i <= sx; i++)
+  for (k = -sz_min; k <= sz; k++) {
+    for (j = -sy_min; j <= sy; j++) {
+      for (i = -sx; i <= sx; i++) {
+
+        // Half and ortho stencils only include own and "upper right" bins
+        if (HALF && (!DIM_3D) && (!TRI))
+          if (! (j > 0 || (j == 0 && i >= 0))) continue;
+        if (HALF && DIM_3D && (!TRI))
+          if (! (k > 0 || j > 0 || (j == 0 && i >= 0))) continue;
+
         if (bin_distance(i,j,k) < cutneighmaxsq)
           stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+      }
+    }
+  }
+}
+
+namespace LAMMPS_NS {
+template class NStencilBin<0,0,0>;
+template class NStencilBin<0,1,0>;
+template class NStencilBin<1,0,0>;
+template class NStencilBin<1,0,1>;
+template class NStencilBin<1,1,0>;
+template class NStencilBin<1,1,1>;
 }

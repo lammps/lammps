@@ -13,22 +13,40 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-NPairStyle(full/multi/old,
-           NPairFullMultiOld,
-           NP_FULL | NP_MULTI_OLD | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+typedef NPairBin<0, 1, 0> NPairFullBin;
+NPairStyle(full/bin,
+           NPairFullBin,
+           NP_FULL | NP_BIN | NP_MOLONLY |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairBin<1, 0, 0> NPairHalfBinNewtoff;
+NPairStyle(half/bin/newtoff,
+           NPairHalfBinNewtoff,
+           NP_HALF | NP_BIN | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairBin<1, 1, 0> NPairHalfBinNewton;
+NPairStyle(half/bin/newton,
+           NPairHalfBinNewton,
+           NP_HALF | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
+
+typedef NPairBin<1, 1, 1> NPairHalfBinNewtonTri;
+NPairStyle(half/bin/newton/tri,
+           NPairHalfBinNewtonTri,
+           NP_HALF | NP_BIN | NP_NEWTON | NP_TRI);
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_FULL_MULTI_OLD_H
-#define LMP_NPAIR_FULL_MULTI_OLD_H
+#ifndef LMP_NPAIR_BIN_H
+#define LMP_NPAIR_BIN_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairFullMultiOld : public NPair {
+template<int HALF, int NEWTON, int TRI>
+class NPairBin : public NPair {
  public:
-  NPairFullMultiOld(class LAMMPS *);
+  NPairBin(class LAMMPS *);
   void build(class NeighList *) override;
 };
 

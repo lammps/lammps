@@ -122,43 +122,52 @@ class FixPIMD : public Fix {
   
   /* Bussi-Zykova-Parrinello barostat */
 
-  // double f_omega, mtk_term1;
+  double f_omega, mtk_term1;
   int pstat_flag; // pstat_flag = 1 if barostat is used
   int pstyle; // pstyle = ISO or ANISO (will support TRICLINIC in the future)
   double W, tau_p, Pext, totenthalpy = 0.0, Vcoeff;
-  // double vw[6]; // barostat velocity
-  // double ke_tensor[6]; // kinetic energy tensor
-  // double c_vir_tensor[6]; // centroid-virial tensor
-  // double stress_tensor[6]; // path integral centroid-virial stress tensor
+  double vw[6]; // barostat velocity
+  double ke_tensor[6]; // kinetic energy tensor
+  double c_vir_tensor[6]; // centroid-virial tensor
+  double stress_tensor[6]; // path integral centroid-virial stress tensor
 
-  // void baro_init();
-  // void press_v_step();
-  // void press_o_step();
+  void baro_init();
+  void press_v_step();
+  void press_o_step();
 
   /* centroid-virial estimator computation */
+  double vol0 = 0.0;
+  double inv_volume = 0.0;
   // double inv_volume = 0.0, vol_ = 0.0, vol0 = 0.0;
-  // double volume = 0.0;
-  // double *xc, *fc;
+  double volume = 0.0;
+  double **xc, *xcall;
+  int maxxc;
   // int n_unwrap;
-//   int maxunwrap, nlocal_init;
+  int maxunwrap;
+  // int maxunwrap, nlocal_init;
 //   tagint *tag_init, *tag_initall;
 //   imageint *image_init, *image_initall;
+  double **x_unwrap;
 //   double **x_unwrap, **x_unwrapsort;
 //   double **x_unwrapall;
 //   void init_x_unwrap();
-//   void reallocate_x_unwrap();
+  void reallocate_x_unwrap();
+  void reallocate_xc();
+  void collect_xc();
   // void compute_xc();
   // void compute_fc();
-  // double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;
+  double xf, vir, vir_, xcf, centroid_vir;
+  double t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;
   // double vir_, xcf, vir2;
 
   /* Computes */
   double kine, pote, tote, totke;
   double ke_bead, se_bead, pe_bead, pot_energy_partition;
   double total_spring_energy;
-  // double t_prim, p_prim;
+  double t_prim;
+  // double p_prim;
   char *id_pe;
-  // char *id_press;
+  char *id_press;
   class Compute *c_pe;
   class Compute *c_press;
 
@@ -168,13 +177,13 @@ class FixPIMD : public Fix {
   void compute_tote(); // 4: total energy: 1+2+3 for all the beads
   // void compute_t_prim();  // 5: primitive kinetic energy estimator
   // void compute_p_prim();  // primitive pressure estimator
-  // void compute_stress_tensor();
+  void compute_stress_tensor();
   // void compute_t_vir();  // centroid-virial kinetic energy estimator
-  // void compute_p_cv();  // centroid-virial pressure estimator
+  void compute_p_cv();  // centroid-virial pressure estimator
   // void compute_p_vir();  // centroid-virial pressure estimator
-  // void compute_vir();
-  // void compute_vir_();
-  // void compute_totenthalpy();
+  void compute_vir();
+  void compute_vir_();
+  void compute_totenthalpy();
 };
 
 }    // namespace LAMMPS_NS

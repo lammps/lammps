@@ -75,9 +75,10 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   bufsendall = bufrecvall = nullptr;
 
   ntotal = 0;
-  maxlocal = 0;
-  // maxunwrap = 0;
+  maxlocal = maxunwrap = maxxc = 0;
   bufbeads = nullptr;
+  x_unwrap = xc = nullptr;
+  xcall = nullptr;
   // x_unwrap = x_unwrapsort = x_unwrapall = nullptr;
   // tag_init = tag_initall = nullptr;
   counts = nullptr;
@@ -232,7 +233,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
 
   global_freq = 1;
   vector_flag = 1;
-  size_vector = 4;
+  size_vector = 11;
   // if(pstyle==ISO) {size_vector = 15;}
   // else if(pstyle==ANISO) {size_vector = 23;}
   extvector = 1;
@@ -249,7 +250,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   modify->add_compute(3,newarg);
   delete [] newarg;
 
-/*
+
   id_press = new char[12];
   strcpy(id_press, "pimd_press");
   newarg = new char*[5];
@@ -260,14 +261,13 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   newarg[4] = (char*) "virial";
   modify->add_compute(5, newarg);
   delete [] newarg;
-*/
-/*
+
   vol0 = domain->xprd * domain->yprd * domain->zprd;
 
   fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
   fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
   fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
-*/
+
   // initialize Marsaglia RNG with processor-unique seed
 
   if(integrator==baoab || integrator==obabo)
@@ -298,9 +298,10 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
 
   ntotal = atom->natoms;
   if(atom->nmax > maxlocal) reallocate();
+  if(atom->nmax > maxunwrap) reallocate_x_unwrap();
+  if(atom->nmax > maxxc) reallocate_xc();
+  memory->create(xcall, ntotal*3, "FixPIMD:xcall");
   // init_x_unwrap();
-  
-  // if(atom->nmax > maxunwrap) reallocate_x_unwrap();
 
   if ((cmode == MULTI_PROC) && (counts == nullptr)) {
     // printf("me = %d, creating bufrecvall\n", universe->me);
@@ -358,7 +359,8 @@ void FixPIMD::init()
   const double Boltzmann = force->boltz;
   const double Planck = force->hplanck;
 
-  hbar = Planck / (2.0 * MY_PI);
+  // hbar = Planck / (2.0 * MY_PI);
+  hbar = Planck;
   kBT = force->boltz * temp;
   double beta = 1.0 / (Boltzmann * temp);
   double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
@@ -397,13 +399,13 @@ void FixPIMD::init()
   nmpimd_init();
 
   Langevin_init();
-  // if (pstat_flag) baro_init();
+  if (pstat_flag) baro_init();
 
   int ipe = modify->find_compute(id_pe);
   c_pe = modify->compute[ipe];
 
-  // int ipress = modify->find_compute(id_press);
-  // c_press = modify->compute[ipress];
+  int ipress = modify->find_compute(id_press);
+  c_press = modify->compute[ipress];
 
   // t_prim = t_vir = t_cv = p_prim = p_vir = p_cv = p_md = 0.0;
 
@@ -436,6 +438,7 @@ void FixPIMD::setup(int vflag)
     // printf("%.4f %.4f %.4f\n", bufbeads[0][0], bufbeads[0][1], bufbeads[0][2]);
     nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
   }
+  collect_xc();
   // printf("me = %d setup x2xp done\n", universe->me);
   compute_spring_energy();
   if(method==NMPIMD)
@@ -464,6 +467,8 @@ void FixPIMD::setup(int vflag)
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
   // printf("setting up, m = %.4e\n", mass[1]);
   post_force(vflag);
+  // int idx = atom->map(1);
+  // printf("irplica = %d, x[1] = %.6f %.6f %.6f xu[1] = %.6f %.6f %.6f xc[1] = %.6f %.6f %.6f\n", ireplica, x[idx][0], x[idx][1], x[idx][2], x_unwrap[idx][0], x_unwrap[idx][1], x_unwrap[idx][2], xc[idx][0], xc[idx][1], xc[idx][2]);
   // printf("after post_force, m = %.4e\n", mass[1]);
   // printf("me = %d after post_force\n", universe->me);
   compute_totke();
@@ -471,7 +476,7 @@ void FixPIMD::setup(int vflag)
   // if(pstyle==ANISO) compute_stress_tensor();
   end_of_step();
   c_pe->addstep(update->ntimestep+1); 
-  // c_press->addstep(update->ntimestep+1);
+  c_press->addstep(update->ntimestep+1);
   // printf("me = %d, setup finished\n", universe->me);   
 }
 
@@ -494,19 +499,22 @@ void FixPIMD::initial_integrate(int /*vflag*/)
   if(integrator==obabo)
   {
   // printf("me = %d, step %d obabo starts!\n", universe->me, update->ntimestep);
-      if(tstat_flag)
-      {
-        o_step();
-        // if(removecomflag) remove_com_motion();
-        // if(pstat_flag) press_o_step();
-      }
-      // compute_totke();
+    if(tstat_flag)
+    {
+      o_step();
+      // if(removecomflag) remove_com_motion();
+      if(pstat_flag) press_o_step();
+    }
+    if(pstat_flag)
+    {
+      compute_totke();
   // printf("me = %d, step %d after totke!\n", universe->me, update->ntimestep);
-      // compute_p_cv();
+      compute_p_cv();
+      press_v_step();
+    }
       /*
       if(pstat_flag) 
       {
-        press_v_step();
       }
       */
   // printf("me = %d, step %d before b_step 1!\n", universe->me, update->ntimestep);
@@ -526,12 +534,12 @@ void FixPIMD::initial_integrate(int /*vflag*/)
     }
     else if(integrator==baoab)
     {
-      // compute_totke();
-      // compute_p_cv();
-      // if(pstat_flag) 
-      // {
-        // press_v_step();
-      // }
+      if(pstat_flag) 
+      {
+        compute_totke();
+        compute_p_cv();
+        press_v_step();
+      }
       b_step();
       // if(removecomflag) remove_com_motion();
       if(method==NMPIMD)
@@ -545,7 +553,7 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       {
         o_step();
         // if(removecomflag) remove_com_motion();
-        // if(pstat_flag) press_o_step();
+        if(pstat_flag) press_o_step();
       }
       qc_step();
       a_step();      
@@ -554,6 +562,7 @@ void FixPIMD::initial_integrate(int /*vflag*/)
     {
       error->universe_all(FLERR,"Unknown integrator parameter for fix pimd");
     }
+    collect_xc();
     compute_spring_energy();
  
      if(method==NMPIMD)
@@ -561,6 +570,7 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       inter_replica_comm(x);
       nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
     }
+
 
     if(mapflag){
       for(int i=0; i<nlocal; i++)
@@ -575,14 +585,12 @@ void FixPIMD::initial_integrate(int /*vflag*/)
 
 void FixPIMD::final_integrate()
 {
-  /*
     if(pstat_flag) 
     {
       compute_totke();
-      // compute_p_cv();
-      // press_v_step();
+      compute_p_cv();
+      press_v_step();
     }
-    */
    b_step();
     // if(removecomflag) remove_com_motion();
     if(integrator==obabo)
@@ -591,7 +599,7 @@ void FixPIMD::final_integrate()
       {
         o_step();
         // if(removecomflag) remove_com_motion();
-        // if(pstat_flag) press_o_step();
+        if(pstat_flag) press_o_step();
       }
     }
     else if(integrator==baoab)
@@ -608,18 +616,34 @@ void FixPIMD::final_integrate()
 
 void FixPIMD::post_force(int /*flag*/)
 {
-  // if(atom->nmax > maxunwrap) reallocate_x_unwrap();
+  if(atom->nmax > maxunwrap) reallocate_x_unwrap();
+  if(atom->nmax > maxxc) reallocate_xc();
   // printf("me = %d, step %d post_force starts!\n", universe->me, update->ntimestep);
-    // int nlocal = atom->nlocal;
-    // double **x = atom->x;
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
   double **f = atom->f;
-    // imageint *image = atom->image;
-  // if(mapflag){
-    // for(int i=0; i<nlocal; i++)
-    // {
-      // domain->unmap(x[i], image[i]);
-    // }
-  // }
+  imageint *image = atom->image;
+  tagint *tag = atom->tag;
+  for(int i=0; i<nlocal; i++)
+  {
+    x_unwrap[i][0] = x[i][0];
+    x_unwrap[i][1] = x[i][1];
+    x_unwrap[i][2] = x[i][2];
+  }
+  if(mapflag){
+    for(int i=0; i<nlocal; i++)
+    {
+      domain->unmap(x_unwrap[i], image[i]);
+    }
+  }
+  for(int i=0; i<nlocal; i++)
+  {
+    xc[i][0] = xcall[3*(tag[i]-1)+0];
+    xc[i][1] = xcall[3*(tag[i]-1)+1];
+    xc[i][2] = xcall[3*(tag[i]-1)+2];
+  }
+      int idx = atom->map(1);
+      // printf("in post_force, x_unwrap: %.6f %.6f %.6f xcall: %.6f %.6f %.6f xc: %.6f %.6f %.6f\n", x_unwrap[idx][0], x_unwrap[idx][1], x_unwrap[idx][2], xcall[0], xcall[1], xcall[2], xc[idx][0], xc[idx][1], xc[idx][2]);
   // MPI_Barrier(universe->uworld);
   // update_x_unwrap();
   // MPI_Barrier(universe->uworld);
@@ -632,18 +656,18 @@ void FixPIMD::post_force(int /*flag*/)
       // domain->unmap_inv(x[i], image[i]);
     // }
   // }
-  //  compute_vir();
-  //  compute_vir_();
+  compute_vir();
+  compute_vir_();
   //  compute_t_prim();
   //  compute_t_vir();
-   compute_pote();
+  compute_pote();
    if(method==NMPIMD)
   {
     inter_replica_comm(f);
     nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
   }
    c_pe->addstep(update->ntimestep+1); 
-  //  c_press->addstep(update->ntimestep+1); 
+   c_press->addstep(update->ntimestep+1); 
   // printf("me = %d, step %d post_force ends!\n", universe->me, update->ntimestep);
 }
 
@@ -654,9 +678,9 @@ void FixPIMD::end_of_step()
   compute_totke();
   // inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
   // compute_p_prim();
-  // compute_p_cv();
+  compute_p_cv();
   compute_tote();
-  // if(pstat_flag) compute_totenthalpy();
+  if(pstat_flag) compute_totenthalpy();
 
   if(update->ntimestep % 10000 == 0)
   {
@@ -664,6 +688,48 @@ void FixPIMD::end_of_step()
   }
   // if(universe->me==0) printf("me = %d This is the end of step %ld.\n", universe->me, update->ntimestep);
   // printf("me = %d This is the end of step %ld.\n\n", universe->me, update->ntimestep);
+}
+
+void FixPIMD::collect_xc()
+{
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  if(ireplica == 0)
+  {
+    if(cmode == SINGLE_PROC)
+    {
+      for(int i=0; i<nlocal; i++)
+      {
+        xcall[3*i+0] = xcall[3*i+1] = xcall[3*i+2] = 0.0;
+      }
+    }
+    else if(cmode == MULTI_PROC)
+    {
+      for(int i=0; i<ntotal; i++)
+      {
+        xcall[3*i+0] = xcall[3*i+1] = xcall[3*i+2] = 0.0;
+      }
+    }
+
+    for(int i=0;i<nlocal; i++)
+    {
+      xcall[3*(tag[i]-1)+0] = x[i][0] / sqrt(np);
+      xcall[3*(tag[i]-1)+1] = x[i][1] / sqrt(np);
+      xcall[3*(tag[i]-1)+2] = x[i][2] / sqrt(np);
+    }
+    int idx = atom->map(1);
+    // printf("in init_int, x: %.6f %.6f %.6f xcall: %.6f %.6f %.6f\n", x[idx][0], x[idx][1], x[idx][2], xcall[0], xcall[1], xcall[2]);
+
+    if(cmode == MULTI_PROC)
+    {
+      // printf("trying to add\n");
+      // MPI_Reduce(MPI_IN_PLACE, xcall, ntotal*3, MPI_DOUBLE, MPI_SUM, 0, world);
+      MPI_Allreduce(MPI_IN_PLACE, xcall, ntotal*3, MPI_DOUBLE, MPI_SUM, world);
+      // printf("added\n");
+    }
+  }
+  MPI_Bcast(xcall, ntotal*3, MPI_DOUBLE, 0, universe->uworld);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -749,7 +815,7 @@ void FixPIMD::qc_step(){
   double **v = atom->v;
   tagint *tag = atom->tag;
   double oldlo, oldhi;
-  // if(!pstat_flag) {
+  if(!pstat_flag) {
     if(universe->iworld == 0)
     {
       for(int i=0; i<nlocal; i++)
@@ -759,8 +825,7 @@ void FixPIMD::qc_step(){
         x[i][2] += dtv * v[i][2];
       }
     }
-  // }
-  /*
+  }
   else{
     if(universe->iworld == 0)
     {
@@ -804,7 +869,7 @@ void FixPIMD::qc_step(){
     domain->set_global_box();
     domain->set_local_box();
   }
-  */
+  volume = domain->xprd * domain->yprd * domain->zprd;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -857,7 +922,7 @@ void FixPIMD::remove_com_motion(){
 }
 */
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::baro_init()
 {
   if(pstyle == ISO) {W = 3 * (atom->natoms) * tau_p * tau_p * np * kBT;} // consistent with the definition in i-Pi
@@ -868,9 +933,9 @@ void FixPIMD::baro_init()
   out += fmt::format("The barostat mass is W = {:.16e}\n", W);
   utils::logmesg(lmp, out);
 }
-*/
+
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::press_v_step()
 {
   int nlocal = atom->nlocal;
@@ -883,7 +948,9 @@ void FixPIMD::press_v_step()
   {
     if(barostat == BZP)
     {
+      // printf("me = %d step = %d start press_v_step, baro.p = %.30e p_cv = %.30e\n", universe->me, update->ntimestep, W*vw[0], np*p_cv);
       vw[0] += dtv * 3 * (volume * np * (p_cv - Pext) / force->nktv2p + Vcoeff / beta_np) / W;
+      // printf("me = %d step = %d add p-Pext, baro.p = %.30e\n", universe->me, update->ntimestep, W*vw[0]);
       if(universe->iworld==0)
       {
         double dvw_proc = 0.0, dvw = 0.0;
@@ -899,6 +966,7 @@ void FixPIMD::press_v_step()
       }
       MPI_Barrier(universe->uworld);
       MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
+      // printf("me = %d step = %d end press_v_step, baro.p = %.30e\n\n", universe->me, update->ntimestep, W*vw[0]);
     }
     else if(barostat == MTTK)
     {
@@ -926,9 +994,9 @@ void FixPIMD::press_v_step()
     }
   }
 }
-*/
+
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::press_o_step()
 {
   if(pstyle==ISO)
@@ -956,7 +1024,7 @@ void FixPIMD::press_o_step()
     MPI_Bcast(&vw, 3, MPI_DOUBLE, 0, universe->uworld);    
   }
 }
-*/
+
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::Langevin_init()
@@ -1160,79 +1228,23 @@ void FixPIMD::init_x_unwrap()
 }
 */
 /* ---------------------------------------------------------------------- */
-/*
+
+void FixPIMD::reallocate_xc()
+{
+  maxxc = atom->nmax;
+  memory->destroy(xc);
+  memory->create(xc, maxxc, 3, "FixPIMD:xc");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPIMD::reallocate_x_unwrap()
 {
-  int nlocal = atom->nlocal;
   maxunwrap = atom->nmax;
-  int i;
-  if(cmode == SINGLE_PROC)
-  {
-    for(i=0; i<nlocal; i++)
-    {
-      x_unwrapsort[tag_init[i]-1][0] = x_unwrap[i][0];
-      x_unwrapsort[tag_init[i]-1][1] = x_unwrap[i][1];
-      x_unwrapsort[tag_init[i]-1][2] = x_unwrap[i][2];
-    }
-    for(i=0; i<nlocal; i++)
-    {
-      x_unwrap[i][0] = x_unwrapsort[atom->tag[i]-1][0];
-      x_unwrap[i][1] = x_unwrapsort[atom->tag[i]-1][1];
-      x_unwrap[i][2] = x_unwrapsort[atom->tag[i]-1][2];
-      tag_init[i] = atom->tag[i];
-      image_init[i] = atom->image[i];
-    }
-  }
-  else if(cmode == MULTI_PROC)
-  {
-    MPI_Gather(&nlocal_init, 1, MPI_INT, counts, 1, MPI_INT, 0, world);
-    // printf("me = %d nlocal_init = %d counts = %d %d\n", universe->me, nlocal_init, counts[0], counts[1]);
-    displacements[0] = 0;
-    for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
-    // printf("me = %d step = %d before Gatherv tag_init[%d] = %d\n", universe->me, update->ntimestep, nlocal_init-1, tag_init[nlocal_init-1]);
-    MPI_Gatherv(tag_init, nlocal_init, MPI_LMP_TAGINT, tag_initall, counts, displacements, MPI_LMP_TAGINT, 0, world);
-    MPI_Gatherv(image_init, nlocal_init, MPI_LMP_TAGINT, image_initall, counts, displacements, MPI_LMP_TAGINT, 0, world);
-    // if(me == 0) { printf("me = %d step = %d after Gatherv tag_initall[49] = %d\n", universe->me, update->ntimestep, tag_initall[49]); }
-    for (i = 0; i < nprocs; i++) { counts[i] *= 3; }
-    for (i = 0; i < nprocs-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
-    MPI_Gatherv(x_unwrap[0], 3*nlocal_init, MPI_DOUBLE, x_unwrapall[0], counts, displacements, MPI_DOUBLE, 0, world);
-    MPI_Bcast(tag_initall, ntotal, MPI_LMP_TAGINT, 0, world);
-    MPI_Bcast(image_initall, ntotal, MPI_LMP_TAGINT, 0, world);
-    MPI_Bcast(x_unwrapall[0], 3*ntotal, MPI_DOUBLE, 0, world);
-    // printf("me = %d step = %ld before x_unwrapsort\n", universe->me, update->ntimestep);
-    // printf("me = %d step = %ld x_unwrapsort[0][0] = %.4f, x_unwrapall[0][0] = %.4f tag_initall[0] = %d\n", universe->me, update->ntimestep, x_unwrapsort[0][0], x_unwrapall[0][0], tag_initall[0]);
-    // printf("me = %d step = %ld x_unwrapsort[49][0] = %.4f, x_unwrapall[49][0] = %.4f tag_initall[49] = %d\n", universe->me, update->ntimestep, x_unwrapsort[49][0], x_unwrapall[49][0], tag_initall[49]);
-    // printf("me = %d step = %ld x_unwrapsort[49][2] = %.4f, x_unwrapall[49][2] = %.4f tag_initall[49] = %d\n", universe->me, update->ntimestep, x_unwrapsort[49][2], x_unwrapall[49][2], tag_initall[49]);
-    // printf("me = %d step = %ld ntotal = %d\n", universe->me, update->ntimestep, ntotal);
-    for(i=0; i<ntotal; i++)
-    {
-      x_unwrapsort[tag_initall[i]-1][0] = x_unwrapall[i][0];
-      x_unwrapsort[tag_initall[i]-1][1] = x_unwrapall[i][1];
-      x_unwrapsort[tag_initall[i]-1][2] = x_unwrapall[i][2];
-      // if(update->ntimestep==2 && i==49) printf("me = %d i = %d sort = %.4f %.4f %.4f unwrapall = %.4f %.4f %.4f\n", universe->me, i, x_unwrapsort[tag_initall[i]-1][0], x_unwrapsort[tag_initall[i]-1][1], x_unwrapsort[tag_initall[i]-1][2], x_unwrapall[i][0], x_unwrapall[i][1], x_unwrapall[i][2]);
-    }
-    // printf("me = %d step = %ld before destroying\n", universe->me, update->ntimestep);
-    memory->destroy(x_unwrap);
-    memory->destroy(tag_init);
-    memory->destroy(image_init);
-    memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");  
-    memory->create(tag_init, maxunwrap, "FixPIMD:tag_init");
-    memory->create(image_init, maxunwrap, "FixPIMD:image_init");
-    // printf("me = %d step = %ld after creating\n", universe->me, update->ntimestep);
-    for(i=0; i<nlocal; i++)
-    {
-      x_unwrap[i][0] = x_unwrapsort[atom->tag[i]-1][0];
-      x_unwrap[i][1] = x_unwrapsort[atom->tag[i]-1][1];
-      x_unwrap[i][2] = x_unwrapsort[atom->tag[i]-1][2];
-      tag_init[i] = atom->tag[i];
-      image_init[i] = atom->image[i];
-    }
-    nlocal_init = nlocal;
-    // printf("me = %d step = %d end tag_init[%d] = %d\n", universe->me, update->ntimestep, nlocal_init-1, tag_init[nlocal_init-1]);
-    // printf("me = %d step = %ld reallocate_x_unwrap done\n", universe->me, update->ntimestep);
-  }
+  memory->destroy(x_unwrap);
+  memory->create(x_unwrap, maxunwrap, 3, "FixPIMD:x_unwrap");
 }
-*/
+
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::reallocate()
@@ -1368,37 +1380,42 @@ void FixPIMD::inter_replica_comm(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::compute_vir_()
 {
   int nlocal = atom->nlocal;
   xf = vir_ = xcf = centroid_vir = 0.0;
+      int idx = atom->map(1);
+      // printf("in post_force, x_unwrap: %.6f %.6f %.6f xcall: %.6f %.6f %.6f\n", x_unwrap[idx][0], x_unwrap[idx][1], x_unwrap[idx][2], xcall[0], xcall[1], xcall[2]);
+  // printf("in compute_vir, xu = %.6f %.6f %.6f xc = %.6f %.6f %.6f\n", x_unwrap[idx][0], x_unwrap[idx][1], x_unwrap[idx][2], xc[idx][0], xc[idx][1], xc[idx][2]);
   for(int i=0; i<nlocal; i++)
   {
     for(int j=0; j<3; j++)
     {
-      xf += x_unwrap[3*i+j] * atom->f[i][j];
-      xcf += (x_unwrap[3*i+j] - xc[3*i+j]) * atom->f[i][j];
+      xf += x_unwrap[i][j] * atom->f[i][j];
+      xcf += (x_unwrap[i][j] - xc[i][j]) * atom->f[i][j];
     }
+    // int idx = atom->map(i+1);
+    // printf("me = %d step = %d tag = %d idx = %d xu = %.6f %.6f %.6f xc = %.6f %.6f %.6f f = %.6f %.6f %.6f\n", universe->me, update->ntimestep, i+1, idx, x_unwrap[idx][0], x_unwrap[idx][1], x_unwrap[idx][2], xc[idx][0], xc[idx][1], xc[idx][2], atom->f[idx][0], atom->f[idx][1], atom->f[idx][2]);
   }
   MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   if(pstyle == ANISO){
     for(int i=0; i<6; i++) c_vir_tensor[i] = 0.0;
     for(int i=0; i<nlocal; i++){
-      c_vir_tensor[0] += (x_unwrap[3*i+0] - xc[3*i+0]) * atom->f[i][0];
-      c_vir_tensor[1] += (x_unwrap[3*i+1] - xc[3*i+1]) * atom->f[i][1];
-      c_vir_tensor[2] += (x_unwrap[3*i+2] - xc[3*i+2]) * atom->f[i][2];
-      c_vir_tensor[3] += (x_unwrap[3*i+0] - xc[3*i+0]) * atom->f[i][1];
-      c_vir_tensor[4] += (x_unwrap[3*i+0] - xc[3*i+0]) * atom->f[i][2];
-      c_vir_tensor[5] += (x_unwrap[3*i+1] - xc[3*i+1]) * atom->f[i][2];
+      c_vir_tensor[0] += (x_unwrap[i][0] - xc[i][0]) * atom->f[i][0];
+      c_vir_tensor[1] += (x_unwrap[i][1] - xc[i][1]) * atom->f[i][1];
+      c_vir_tensor[2] += (x_unwrap[i][2] - xc[i][2]) * atom->f[i][2];
+      c_vir_tensor[3] += (x_unwrap[i][0] - xc[i][0]) * atom->f[i][1];
+      c_vir_tensor[4] += (x_unwrap[i][0] - xc[i][0]) * atom->f[i][2];
+      c_vir_tensor[5] += (x_unwrap[i][1] - xc[i][1]) * atom->f[i][2];
     }
     MPI_Allreduce(MPI_IN_PLACE, &c_vir_tensor, 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
   }
 }
-*/
+
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::compute_vir()
 {
   volume = domain->xprd * domain->yprd * domain->zprd;
@@ -1411,12 +1428,13 @@ void FixPIMD::compute_vir()
   virial[5] = c_press->vector[5]*volume;
   for(int i=0; i<6; i++) virial[i] /= universe->procs_per_world[universe->iworld];
   vir=(virial[0]+virial[1]+virial[2]);
-  MPI_Allreduce(&vir,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+  MPI_Allreduce(MPI_IN_PLACE, &vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   MPI_Allreduce(MPI_IN_PLACE, &virial[0], 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  // printf("me = %d step = %d vir = %.30e\n", universe->me, update->ntimestep, vir);
 }
-*/
+
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::compute_stress_tensor()
 {
   int nlocal = atom->nlocal;
@@ -1442,7 +1460,7 @@ void FixPIMD::compute_stress_tensor()
   }
   MPI_Bcast(&stress_tensor, 6, MPI_DOUBLE, 0, universe->uworld);
 }
-*/
+
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::compute_totke()
@@ -1534,20 +1552,21 @@ void FixPIMD::compute_p_prim()
 }
 */
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::compute_p_cv()
 {
   inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  p_md = 2. / 3 * inv_volume * ((totke - total_spring_energy) * force->nktv2p + 0.5 * vir / np) ;
+  // p_md = 2. / 3 * inv_volume * ((totke - total_spring_energy) * force->nktv2p + 0.5 * vir / np) ;
+  // printf("inv_V = %.30e ke = %.30e cv = %.30e vir = %.30e\n", inv_volume, ke_bead, centroid_vir, vir);
   if(universe->iworld == 0)
   {
     p_cv = 1. / 3.  * inv_volume  * ((2. * ke_bead  - 1. * centroid_vir) * force->nktv2p + 1. * vir) / np; 
   }
   MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
 }
-*/
+
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMD::compute_totenthalpy()
 {
   volume = domain->xprd * domain->yprd * domain->zprd;
@@ -1564,7 +1583,7 @@ void FixPIMD::compute_totenthalpy()
   }
   else if(barostat == MTTK)  totenthalpy = tote + 1.5*W*vw[0]*vw[0]/np + Pext * (volume - vol0);
 }
-*/
+
 /* ---------------------------------------------------------------------- */
 
 double FixPIMD::compute_vector(int n)
@@ -1572,15 +1591,43 @@ double FixPIMD::compute_vector(int n)
   if(n==0) { return ke_bead; }
   if(n==1) { return se_bead; }
   if(n==2) { return pe_bead; }
-  if(n==3) { return tote; }
+  // if(n==3) { return tote; }
+  if(n==3) { return W*vw[0]; }
+  if(!pstat_flag)
+  {
+    if(n==4) { return t_prim; }
+    if(n==5) { return t_vir; }
+    if(n==6) { return t_cv; }
+  }
+  else if(pstat_flag)
+  {
+    if(pstyle == ISO)
+    {
+      if(barostat == BZP)
+      {
+        if(n==4) { return 0.5*W*vw[0]*vw[0]; }
+      }
+      else if(barostat == MTTK)
+      {
+        if(n==4) { return 1.5*W*vw[0]*vw[0]; }
+      }
+      if(n==5) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
+      if(n==6) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume); }
+      if(n==7) { return totenthalpy; }
+      if(n==8) { return p_cv; }
+      if(n==9) { return total_spring_energy; }
+    }
+    else if(pstyle == ANISO)
+    {
+      
+    }
+  }
   /*
-  if(n==4) { return t_prim; }
-  if(n==5) { return t_vir; }
-  if(n==6) { return t_cv; }
+  
   if(n==7) { return p_prim; }
   if(n==8) { return p_md; }
   if(n==9) { return p_cv; }
-  if(n==10) {return totenthalpy;}
+  if(n==10) {return totenthalpy;
   if(pstyle == ISO){
     if(n==11) { return vw[0]; }
     if(n==12) { 

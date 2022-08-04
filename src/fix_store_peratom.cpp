@@ -28,7 +28,8 @@ using namespace FixConst;
 FixStorePeratom::FixStorePeratom(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), vstore(nullptr), astore(nullptr)
 {
-  if (narg != 5 && narg != 6) error->all(FLERR, "Illegal fix store command");
+  if (narg != 5 && narg != 6)
+    error->all(FLERR, "Illegal fix STORE/PERATOM command: number of args");
 
   // syntax: id group style 0/1 n1 n2 (n3), last arg optional
   //   0/1 flag = not-store or store peratom values in restart file
@@ -38,14 +39,16 @@ FixStorePeratom::FixStorePeratom(LAMMPS *lmp, int narg, char **arg) :
   disable = 0;
   vecflag = arrayflag = tensorflag = 0;
 
-  restart_peratom = utils::inumeric(FLERR, arg[4], false, lmp);
-  n2 = utils::inumeric(FLERR, arg[5], false, lmp);
+  restart_peratom = utils::inumeric(FLERR, arg[3], false, lmp);
+  n2 = utils::inumeric(FLERR, arg[4], false, lmp);
   if (narg == 6)
-    n3 = utils::inumeric(FLERR, arg[6], false, lmp);
+    n3 = utils::inumeric(FLERR, arg[5], false, lmp);
   else
     n3 = 1;
-  if (restart_peratom < 0 || restart_peratom > 1) error->all(FLERR, "Illegal fix store command");
-  if (n2 <= 0 || n3 <= 0) error->all(FLERR, "Illegal fix store command");
+  if (restart_peratom < 0 || restart_peratom > 1)
+    error->all(FLERR, "Illegal fix STORE/PERATOM restart flag: {}", restart_peratom);
+  if (n2 <= 0 || n3 <= 0)
+    error->all(FLERR, "Illegal fix STORE/PERATOM dimension args: must be >0: {} {}", n2, n3);
   if (n2 == 1 && narg == 5)
     vecflag = 1;
   else if (narg == 5)

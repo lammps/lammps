@@ -28,7 +28,7 @@ using namespace FixConst;
 FixStoreGlobal::FixStoreGlobal(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), vstore(nullptr), astore(nullptr), rbuf(nullptr)
 {
-  if (narg != 6 && narg != 7) error->all(FLERR, "Illegal fix store command");
+  if (narg != 5) error->all(FLERR, "Illegal fix STORE/GLOBAL command: incorrect number of args");
 
   // syntax: id group style n1 n2
   //   N2 = 1 is vector, N2 > 1 is array, no tensor allowed (yet)
@@ -36,10 +36,10 @@ FixStoreGlobal::FixStoreGlobal(LAMMPS *lmp, int narg, char **arg) :
   vecflag = arrayflag = 0;
 
   restart_global = 1;
-  n1 = utils::inumeric(FLERR, arg[4], false, lmp);
-  n2 = utils::inumeric(FLERR, arg[5], false, lmp);
-  if (narg == 6) error->all(FLERR, "Illegal fix store command");
-  if (n1 <= 0 || n2 <= 0) error->all(FLERR, "Illegal fix store command");
+  n1 = utils::inumeric(FLERR, arg[3], false, lmp);
+  n2 = utils::inumeric(FLERR, arg[4], false, lmp);
+  if (n1 <= 0 || n2 <= 0)
+    error->all(FLERR, "Illegal fix STORE/GLOBAL dimension args: must be >0: {} {}", n1, n2);
   if (n2 == 1)
     vecflag = 1;
   else

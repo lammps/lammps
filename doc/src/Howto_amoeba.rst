@@ -3,8 +3,8 @@ AMOEBA and HIPPO force fields
 
 The AMOEBA and HIPPO polarizable force fields were developed by Jay
 Ponder's group at the U Washington at St Louis.  The LAMMPS
-implementation was done using F90 code provided by the Ponder group
-from their `Tinker MD code <https://dasher.wustl.edu/tinker/>`_.
+implementation is based on Fortran 90 code provided by the Ponder
+group in their `Tinker MD software <https://dasher.wustl.edu/tinker/>`_.
 
 The current implementation (July 2022) of AMOEBA in LAMMPS matches the
 version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)

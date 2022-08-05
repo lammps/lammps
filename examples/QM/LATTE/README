@@ -58,7 +58,7 @@ Build with regular make:
 % cd lammps/lib/mdi
 % python Install.py -m mpi
 % cd lammps/src
-% make yes-mdi
+% make yes-mdi yes-molecule
 % make mpi                     # creates lmp_mpi
 
 Build with CMake:
@@ -73,11 +73,10 @@ Copy the LAMMPS executable into this dir as lmp_mpi.
 Copy the LATTE executable LATTE_DOUBLE into this dir.
 The run commands below assume you have done this.
 
-
-LD_LIBRARY_PATH must include dir where MDI was built in (1) and put
-its libmdi.so file, e.g. mdi/build/MDI_Library.  Else when
-LATTE_DOUBLE runs it won't be able to find it.
-
+(5) Insure LD_LIBRARY_PATH includes the dir where MDI was built in (1)
+with its libmdi.so file, e.g. mdi/build/MDI_Library.  This is needed
+so when LATTE_DOUBLE runs as an executable it will able to find
+libmdi.so.
 
 ------------------
 Notes on LATTE usage

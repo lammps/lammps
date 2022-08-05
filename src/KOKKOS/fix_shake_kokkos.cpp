@@ -181,6 +181,16 @@ void FixShakeKokkos<DeviceType>::init()
 
 
 /* ----------------------------------------------------------------------
+   run setup for minimization.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::min_setup(int /*vflag*/)
+{
+  error->all(FLERR, "Cannot yet use fix {} during minimization with Kokkos", style);
+}
+
+/* ----------------------------------------------------------------------
    build list of SHAKE clusters to constrain
    if one or more atoms in cluster are on this proc,
      this proc lists the cluster exactly once

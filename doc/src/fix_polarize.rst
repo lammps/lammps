@@ -16,11 +16,11 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID style nevery tolerance ...
+   fix ID group-ID style nevery tolerance 
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *polarize/bem/gmres* or *polarize/bem/icc* or *polarize/functional*
-* Nevery = this fixed is invoked every this many timesteps
+* nevery = this fixed is invoked every this many timesteps
 * tolerance = the relative tolerance for the iterative solver to stop
 
 
@@ -56,7 +56,7 @@ These fixes also require the use of :doc:`pair_style <pair_style>` and
 At every time step, given a configuration of the physical charges in the system
 (such as atoms and charged particles) these fixes compute and update
 the charge of the interface particles. The interfaces are allowed to move
-during the simulation with appropriate time integrators (for example,
+during the simulation if the appropriate time integrators are also set (for example,
 with :doc:`fix_rigid <fix_rigid>`).
 
 Consider an interface between two media: one with dielectric constant
@@ -65,19 +65,25 @@ into 2000 boundary elements, each represented by an interface particle. Suppose 
 each interface particle has a normal unit vector pointing from the silica medium to water.
 The dielectric difference along the normal vector is then 78 - 4 = 74,
 the mean dielectric value is (78 + 4) / 2 = 41. Each boundary element
-also has its area and the local mean curvature (which is used by these fixes
-for computing a correction term in the local electric field).
+also has its area and the local mean curvature, which is used by these fixes
+for computing a correction term in the local electric field.
 To model charged interfaces, the interface particle will have a non-zero charge value,
 coming from its area and surface charge density.
 
 For non-interface particles such as atoms and charged particles,
 the interface normal vectors, element area, and dielectric mismatch are
-irrelevant. Their local dielectric value is used to rescale their actual charge
-when computing the Coulombic interactions. For instance, for a cation carrying
-a charge of +2 (in charge unit) in an implicit solvent with dielectric constant of 40
-would have actual charge of +2, and a local dielectric constant value of 40.
-It is assumed that the particles cannot pass through the interface during the simulation
-so that its local dielectric constant value does not change.
+irrelevant. Their local dielectric value is used to rescale their given charge
+when computing the Coulombic interactions. For instance, to simulate a cation 
+carrying a charge of +2 (in simulation charge units) in an implicit solvent with 
+a dielectric constant of 40, the cation's charge should be set to +2/40 = +0.05 and 
+its local dielectric constant property (defined in the 
+:doc:`atom_style dielectric <atom_style>`) should be set to 40. This will produce 
+the proper force for any :doc:`pair_style <pair_style>` with the dielectric suffix. 
+As noted in :doc:`pair_style <pair_dielectric>`, the charge (+0.05) will be scaled by the 
+local dielectric constant (40) to produce the appropriate charge (+2) during 
+force computation. It is assumed that the particles cannot pass through the interface 
+during the simulation because the value of the local dielectric constant property 
+does not change.
 
 There are some example scripts for using these fixes
 with LAMMPS in the ``examples/PACKAGES/dielectric`` directory. The README file
@@ -127,18 +133,40 @@ Restart, fix_modify, output, run start/stop, minimize info
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` command provides certain options to
-control the induced charge solver and the initial values of the interface elements:
+The :doc:`fix_modify <fix_modify>` command provides the ability to modify certain 
+settings:
 
   .. parsed-literal::
       *itr_max* arg
          arg = maximum number of iterations for convergence
       *dielectrics* ediff emean epsilon area charge
-         ediff = dielectric difference
-         emean = dielectric mean
-         epsilon = local dielectric value
-         aree = element area
-         charge = real interface charge
+         ediff = dielectric difference or NULL
+         emean = dielectric mean or NULL
+         epsilon = local dielectric value or NULL
+         area = element area or NULL
+         charge = real interface charge or NULL
+      *kspace* arg = yes or no
+      *rand* max seed
+         max = range of random induced charges to be generated
+         seed = random number seed to use when generating random charge
+      *mr* arg
+         arg = maximum number of q-vectors to use when solving (GMRES only) 
+      *omega* arg
+         arg = relaxation parameter to use when iterating (ICC only)
+
+The *itr_max* keyword sets the max number of iterations to be used for solving each step.
+
+The *dielectrics* keyword allows properties of the atoms in group *group-ID* to be modified. Values passed to any of the arguments (*ediff*, *emean*, *epsilon*, *area*, *charge*) will override existing values for all atoms in the group *group-ID*. Passing NULL to any of these arguments will preserve the existing value.
+
+The *kspace* keyword turns on long range interactions.
+
+If the argumnts of the *rand* keyword are set, then the atoms subject to this fix will be assigned a random initial charge in a uniform distribution from -*max*/2 to *max*/2, using random number seed *seed*.
+
+The *mr* keyword only applies to *style* = *polarize/bem/gmres*. It is the maximum number of q-vectors to use when solving for the surface charge, see :ref:`(Barros) <Barros>`.
+
+The *omega* keyword only applies when using *style* = *polarize/bem/icc*. It is a relaxation parameter defined in :ref:`(Tyagi) <Tyagi>` that should generally be set between 0 and 2.
+
+----------
 
 *polarize/bem/gmres* or *polarize/bem/icc* compute a global 2-element vector
 which can be accessed by various :doc:`output commands <Howto_output>`.
@@ -170,6 +198,15 @@ Default
 """""""
 
 *iter_max* = 20
+
+*kspace* = yes
+
+*omega* = 0.7 (ICC only)
+
+*mr* = \# atoms in group *group-ID* minus 1 (GMRES only)
+
+No random charge initialization happens by default.
+
 
 ----------
 

@@ -76,12 +76,16 @@ Description
 """""""""""
 
 All these pair styles are derived from the corresponding pair styles
-without the *dielectric*\ suffix. In addition to computing atom forces
+without the *dielectric* suffix. In addition to computing atom forces
 and energies, these pair styles compute the electrical field vector
-at each atom, which are to be used in the :doc:`fix polarize <fix_polarize>` commands.
+at each atom, which are intended to be used by the :doc:`fix polarize <fix_polarize>` commands
+to compute induced charges at interfaces between two regions of different
+dielectric constant.
 
 These pair styles should be used with :doc:`atom_style dielectric <atom_style>`,
-which uses atom charges rescaled by their local dielectric constant.
+which uses atom charges rescaled by their local dielectric constant. See the note in 
+:doc:`fix polarize <fix_polarize>` about properly setting ion charge given a 
+local dielectric constant.
 
 The styles lj/cut/coul/long/dielectric, lj/cut/coul/msm/dielectric, and
 lj/long/coul/long/dielectric should be used with their kspace style counterparts,

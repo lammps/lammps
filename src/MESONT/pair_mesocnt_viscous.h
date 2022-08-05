@@ -30,7 +30,7 @@ class PairMesoCNTViscous : public PairMesoCNT {
   void init_style() override;
 
  protected:
-  double a1, a2, b2, vswitch;
+  double fvisc_max, kvisc, vvisc, fvisc_shift;
 
   inline double weight(const double *, const double *, const double *, const double*);
   inline void weight(const double *, const double *, const double *, const double *, double &,

@@ -332,16 +332,17 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         add3(vp1, vp2, vp);
         scale3(0.5*sumw_inv, vp);
         sub3(vp, vr, vrel);
+        vtot = len3(vrel);
 
         // friction forces
 
-        vtot = len3(vrel);
-        if (vtot < vswitch) scale3(0.25 * (1 - s(sumw)) * a1, vrel, fvisc);
+        if (vtot == 0.0)
+          fvisc_tot = 0.0;
         else {
-          fvisc_tot = b2 / vtot - a2;
-          if (fvisc_tot < 0.0) zero3(fvisc);
-          else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
+          fvisc_tot = fvisc_max / (1.0 + exp(-kvisc * (vtot - vvisc))) - fvisc_shift;
+          fvisc_tot *= 0.25 * (1 - s(sumw)) * (param[3] - param[2]) / vtot;
         }
+        scale3(fvisc_tot, vrel, fvisc);
           
         // add friction forces to current segment
 
@@ -527,16 +528,17 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         add3(vp1, vp2, vp);
         scale3(0.5*sumw_inv, vp);
         sub3(vp, vr, vrel);
+        vtot = len3(vrel);
 
         // friction forces
 
-        vtot = len3(vrel);
-        if (vtot < vswitch) scale3(0.25 * (1 - s(sumw)) * a1, vrel, fvisc);
+        if (vtot == 0.0)
+          fvisc_tot = 0.0;
         else {
-          fvisc_tot = b2 / vtot - a2;
-          if (fvisc_tot < 0.0) zero3(fvisc);
-          else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
+          fvisc_tot = fvisc_max / (1.0 + exp(-kvisc * (vtot - vvisc))) - fvisc_shift;
+          fvisc_tot *= 0.25 * (1 - s(sumw)) * (param[3] - param[2]) / vtot;
         }
+        scale3(fvisc_tot, vrel, fvisc);
         
         add3(fvisc, f[i1], f[i1]);
         add3(fvisc, f[i2], f[i2]);
@@ -682,11 +684,10 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   if (narg < 6) error->all(FLERR, "Incorrect args for pair coefficients");
   read_file(arg[2]);
 
-  a1 = utils::numeric(FLERR, arg[3], false, lmp);
-  a2 = utils::numeric(FLERR, arg[4], false, lmp);
-  vswitch = utils::numeric(FLERR, arg[5], false, lmp);
-  
-  b2 = (a1 + a2) * vswitch;
+  fvisc_max = utils::numeric(FLERR, arg[3], false, lmp);
+  kvisc = utils::numeric(FLERR, arg[4], false, lmp);
+  vvisc = utils::numeric(FLERR, arg[5], false, lmp);
+  fvisc_shift = fvisc_max / (1.0 + exp(kvisc * vvisc));
 
   nend_types = narg - 6;
 

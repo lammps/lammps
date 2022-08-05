@@ -184,10 +184,10 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
 
   mdi_commands();
 
-  // register the execute_command function with MDI
-  // only used when engine runs in plugin mode
+  // register a callback function with MDI used when engine runs in plugin mode
+  // execute_command_plugin_wrapper() must be a static method
 
-  MDI_Set_execute_command_func(lammps_execute_mdi_command, this);
+  MDI_Set_execute_command_func(execute_command_plugin_wrapper, this);
 
   // one-time operation to establish a connection with the driver
 
@@ -292,10 +292,22 @@ void MDIEngine::engine_node(const char *node)
 }
 
 /* ----------------------------------------------------------------------
+   wrapper function on execute_command()
+   invoked as callback by MDI when engine operates in plugin mode
+   this is a static method in mdi_engine.h
+---------------------------------------------------------------------- */
+
+int MDIEngine::execute_command_plugin_wrapper(const char *command, 
+                                              MDI_Comm comm, void *class_obj)
+{
+  auto mdi_engine = (MDIEngine *) class_obj;
+  return mdi_engine->execute_command(command, comm);
+}
+
+/* ----------------------------------------------------------------------
    process a single driver command
-   called by engine_node() in loop
-   also called by MDI itself via lib::lammps_execute_mdi_command()
-     when LAMMPS is running as a plugin
+   called by engine_node() in loop when engine runs as stand-alone code
+   called by execute_command_plugin_wrapper() when engine runs as plugin lib
 ---------------------------------------------------------------------- */
 
 int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)

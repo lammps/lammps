@@ -23,11 +23,7 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 
-#include "mdi_engine.h"
-
 #include <cstring>
-
-using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,6 +54,7 @@ int MDI_Plugin_init_lammps()
 
   int mdi_argc;
   char **mdi_argv;
+
   if (MDI_Plugin_get_argc(&mdi_argc)) MPI_Abort(MPI_COMM_WORLD, 1);
   if (MDI_Plugin_get_argv(&mdi_argv)) MPI_Abort(MPI_COMM_WORLD, 1);
   if (MDI_Init(&mdi_argc, &mdi_argv)) MPI_Abort(MPI_COMM_WORLD, 1);
@@ -90,14 +87,24 @@ int MDI_Plugin_init_lammps()
   if (!found_filename) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // create and run a LAMMPS instance
-  // lammps_open() expects a first arg (not used) which is executable name
-  // same as if called from main.cpp
+  // need to add an initial pseudo arg to mdi_argc & mdi_argv
+  // b/c lammps_open() expects first arg to be an executable name
+  // same as if it were called from main.cpp
+
+  int mdi_argc_extra = mdi_argc + 1;
+  char **mdi_argv_extra = new char*[mdi_argc_extra];
+
+  mdi_argv_extra[0] = (char *) "MDI_plugin_engine";
+  for (int i = 0; i < mdi_argc; i++)
+    mdi_argv_extra[i+1] = mdi_argv[i];
 
   void *lmp = nullptr;
   if (lammps_config_has_mpi_support() > 0)
-    lmp = lammps_open(mdi_argc + 1, &mdi_argv[-1], mpi_world_comm, nullptr);
+    lmp = lammps_open(mdi_argc_extra, mdi_argv_extra, mpi_world_comm, nullptr);
   else
-    lmp = lammps_open_no_mpi(mdi_argc + 1, &mdi_argv[-1], nullptr);
+    lmp = lammps_open_no_mpi(mdi_argc_extra, mdi_argv_extra, nullptr);
+
+  delete [] mdi_argv_extra;
 
   // process the specified input script
   // must contain "mdi engine" command
@@ -109,26 +116,4 @@ int MDI_Plugin_init_lammps()
   lammps_close(lmp);
 
   return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-/** Execute an MDI command
- *
-\verbatim embed:rst
-
-This function is called by the MolSSI Driver Interface Library (MDI)
-when LAMMPS is run as a plugin, and should not otherwise be used.
-The function executes a single command from an external MDI driver.
-
-\endverbatim
- * \param  command   string buffer corresponding to the command to be executed
- * \param  comm      MDI communicator that can be used to communicated with the driver.
- * \param  class_obj pointer to an instance of an mdi/engine fix cast to ``void *``.
- * \return 0 on no error, 1 on error. */
-
-int lammps_execute_mdi_command(const char *command, MDI_Comm comm, void *class_obj)
-{
-  auto mdi_engine = (MDIEngine *) class_obj;
-  return mdi_engine->execute_command(command, comm);
 }

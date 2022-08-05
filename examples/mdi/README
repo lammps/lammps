@@ -27,17 +27,33 @@ Examples for all these use cases, using LAMMPS as a driver and as an
 engine are in this directory.  The Run.sh file shows how run in all
 the modes.  Type "sh Run.sh" to try them all out.
 
-Examples for using LAMMPS as a driver with the tight-binding code LATTE  
-are in the LATTE sub-directory.  See its README file for more info.
+Examples for using LAMMPS as a driver with the tight-binding code
+LATTE are in the examples/QM/LATTE sub-directory.  See its README file
+for more info.
 
-Note that to use LAMMPS as a plugin engine for some the examples in
-this dir, you must build it as a shared library.  Something like this
-with traditional make, which also builds the normal LAMMPS executable
-lmp_mpi:
+-------------------------------------------------
 
-cd src
-make yes-mdi
-make mode=shlib mpi
+Here is how to build LAMMPS with MDI support.  Both as an executable
+and a shared library.  The former is needed to use LAMMPS as an MDI
+driver or as an MDI engine in stand-alone mode.  The latter is needed
+to use LAMMPS as an MDI engine in plugin mode.
+
+Build via regular make:
+
+% cd lammps/src
+% make lib-mdi args="-m mpi"    # download, install MDI in lib/mdi w/ MPI support
+% make yes-mdi                  # include MDI package in LAMMPS build
+% make mode=shlib mpi           # creates lmp_mpi and liblammps.so
+
+Build via CMake:
+
+cd lammps
+mkdir build; cd build
+cmake -D PKG_MDI=yes -D BUILD_SHARED_LIBS=yes ../cmake
+make                            # creates lmp and liblammps.so
+
+Both of these build procedures build LAMMPS both as an executable
+(lmp_mpi) and as a shared library (liblammps.so).
 
 -------------------------------------------------
 

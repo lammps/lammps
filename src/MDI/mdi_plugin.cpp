@@ -98,16 +98,19 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
 
   // launch the MDI plugin library
   // path for lib was specified in -mdi command-line arg when LAMMPS started
-  // this calls back to plugin_wrapper, which must issue MDI EXIT at end
+  // this calls back to plugin_wrapper(), which issues MDI EXIT at end & returns
+  // plugin_wrapper() must be a static method
 
-  MDI_Launch_plugin(plugin_name, plugin_args, &world, plugin_wrapper, (void *) this);
+  MDI_Launch_plugin(plugin_name, plugin_args, &world, plugin_wrapper, 
+                    (void *) this);
 
   delete[] plugin_args;
 }
 
 /* ----------------------------------------------------------------------
-   callback function from MDI_Launch_plugin()
-   this function wraps entire interaction of LAMMPS driver with the plugin
+   wrapper on entire interaction of LAMMPS as a driver with the plugin engine
+   invoked as a callback by MDI once plugin library engine is launched
+   this is a static method in mdi_plugin.h
 ---------------------------------------------------------------------- */
 
 int MDIPlugin::plugin_wrapper(void * /*pmpicomm*/, MDI_Comm mdicomm, void *vptr)

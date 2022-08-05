@@ -157,14 +157,28 @@ AMOEBA package
 
 **Contents:**
 
-TODO
+Implementation of the AMOEBA and HIPPO polarized force fields
+orginally developed by Jay Ponder's group at the U Washington at St
+Louis.  The LAMMPS implementation is based on Fortran 90 code
+provided by the Ponder group in their
+`Tinker MD software <https://dasher.wustl.edu/tinker/>`_.
+
+**Authors:** Josh Rackers and Steve Plimpton (Sandia), Trung Nguyen (U
+ Chicago)
 
 **Supporting info:**
 
 * src/AMOEBA: filenames -> commands
 * :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+* :doc:`pair_style amoeba <pair_amoeba>`
+* :doc:`pair_style hippo <pair_amoeba>`
+* :doc:`atom_style amoeba <atom_style>`
+* :doc:`angle_style amoeba <angle_amoeba>`
+* :doc:`improper_style amoeba <improper_amoeba>`
+* :doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`
+* :doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`
+* tools/tinker/tinker2lmp.py
 * examples/amoeba
-* TODO
 
 ----------
 
@@ -200,9 +214,10 @@ ATC package
 
 **Contents:**
 
-ATC stands for atoms-to-continuum.  This package implements a :doc:`fix atc <fix_atc>` command to either couple molecular dynamics with
-continuum finite element equations or perform on-the-fly conversion of
-atomic information to continuum fields.
+ATC stands for atoms-to-continuum.  This package implements a
+:doc:`fix atc <fix_atc>` command to either couple molecular dynamics
+with continuum finite element equations or perform on-the-fly
+conversion of atomic information to continuum fields.
 
 **Authors:** Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
 
@@ -316,6 +331,8 @@ models for mesoscale simulations of solids and fracture.  See the
 :doc:`Howto bpm <Howto_bpm>` page for an overview.
 
 **Authors:** Joel T. Clemmer (Sandia National Labs)
+
+.. versionadded:: 4May2022
 
 **Supporting info:**
 
@@ -844,6 +861,8 @@ groups of atoms that interact with the remaining atoms as electrolyte.
 **Authors:** The ELECTRODE library is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
 Robert Meissner (TUHH, Hamburg, Germany).
+
+.. versionadded:: 4May2022
 
 **Install:**
 

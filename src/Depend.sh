@@ -128,6 +128,10 @@ if (test $1 = "MANYBODY") then
   depend OPENMP
 fi
 
+if (test $1 = "MC") then
+  depend MISC
+fi
+
 if (test $1 = "MEAM") then
   depend KOKKOS
 fi

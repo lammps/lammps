@@ -495,8 +495,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;
-    lmp->suffix = new char[7];
-    strcpy(lmp->suffix,"kk/host");
+    lmp->suffix = utils::strdup("kk/host");
   } else {
     // restore settings to regular suffix use, if previously, pair/only was used
     if (lmp->suffixp) {

@@ -417,9 +417,11 @@ endif()
 
 if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE)
   enable_language(C)
-  find_package(LAPACK)
-  find_package(BLAS)
-  if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
+  if (NOT USE_INTERNAL_LINALG)
+    find_package(LAPACK)
+    find_package(BLAS)
+  endif()
+  if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
     include(CheckGeneratorSupport)
     if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
       status(FATAL_ERROR "Cannot build internal linear algebra library as CMake build tool lacks Fortran support")
@@ -648,7 +650,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()

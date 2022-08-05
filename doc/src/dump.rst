@@ -414,6 +414,8 @@ from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
 
+.. versionadded:: 4May2022
+
 Dump style *yaml* has the same command syntax as style *custom* and
 writes YAML format files that can be easily parsed by a variety of data
 processing tools and programming languages.  Each timestep will be

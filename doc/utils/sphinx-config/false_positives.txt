@@ -291,6 +291,7 @@ blocksize
 blueviolet
 bn
 bni
+bnumeric
 bo
 Bochkarev
 Bochum
@@ -1345,6 +1346,7 @@ hiID
 Hijazi
 Hilger
 Hinestrosa
+hipCUB
 hipFFT
 histo
 histogrammed
@@ -1482,6 +1484,7 @@ intra
 intralayer
 intramolecular
 ints
+inumeric
 inv
 invariants
 inversed
@@ -2706,6 +2709,7 @@ polydispersity
 polyelectrolyte
 polyhedra
 Polym
+polymorph
 polymorphism
 Ponder
 popen
@@ -3463,6 +3467,7 @@ tmin
 Tmin
 tmp
 tN
+tnumeric
 Tobias
 Toennies
 Tohoku

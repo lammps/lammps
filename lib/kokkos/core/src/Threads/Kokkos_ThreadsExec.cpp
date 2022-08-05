@@ -399,27 +399,68 @@ bool ThreadsExec::wake() {
 
 //----------------------------------------------------------------------------
 
+void ThreadsExec::execute_resize_scratch_in_serial() {
+  const unsigned begin = s_threads_process.m_pool_base ? 1 : 0;
+
+  auto deallocate_scratch_memory = [](ThreadsExec &exec) {
+    if (exec.m_scratch) {
+      using Record =
+          Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void>;
+      Record *const r = Record::get_record(exec.m_scratch);
+      exec.m_scratch  = nullptr;
+      Record::decrement(r);
+    }
+  };
+  if (s_threads_process.m_pool_base) {
+    for (unsigned i = s_thread_pool_size[0]; begin < i;) {
+      deallocate_scratch_memory(*s_threads_exec[--i]);
+    }
+  }
+
+  s_current_function     = &first_touch_allocate_thread_private_scratch;
+  s_current_function_arg = &s_threads_process;
+
+  // Make sure function and arguments are written before activating threads.
+  memory_fence();
+
+  for (unsigned i = s_thread_pool_size[0]; begin < i;) {
+    ThreadsExec &th = *s_threads_exec[--i];
+
+    th.m_pool_state = ThreadsExec::Active;
+
+    wait_yield(th.m_pool_state, ThreadsExec::Active);
+  }
+
+  if (s_threads_process.m_pool_base) {
+    deallocate_scratch_memory(s_threads_process);
+    s_threads_process.m_pool_state = ThreadsExec::Active;
+    first_touch_allocate_thread_private_scratch(s_threads_process, nullptr);
+    s_threads_process.m_pool_state = ThreadsExec::Inactive;
+  }
+
+  s_current_function_arg = nullptr;
+  s_current_function     = nullptr;
+
+  // Make sure function and arguments are cleared before proceeding.
+  memory_fence();
+}
+
+//----------------------------------------------------------------------------
+
 void *ThreadsExec::root_reduce_scratch() {
   return s_threads_process.reduce_memory();
 }
 
-void ThreadsExec::execute_resize_scratch(ThreadsExec &exec, const void *) {
-  using Record = Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void>;
-
-  if (exec.m_scratch) {
-    Record *const r = Record::get_record(exec.m_scratch);
-
-    exec.m_scratch = nullptr;
-
-    Record::decrement(r);
-  }
-
+void ThreadsExec::first_touch_allocate_thread_private_scratch(ThreadsExec &exec,
+                                                              const void *) {
   exec.m_scratch_reduce_end = s_threads_process.m_scratch_reduce_end;
   exec.m_scratch_thread_end = s_threads_process.m_scratch_thread_end;
 
   if (s_threads_process.m_scratch_thread_end) {
     // Allocate tracked memory:
     {
+      using Record =
+          Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void>;
       Record *const r =
           Record::allocate(Kokkos::HostSpace(), "Kokkos::thread_scratch",
                            s_threads_process.m_scratch_thread_end);
@@ -461,7 +502,7 @@ void *ThreadsExec::resize_scratch(size_t reduce_size, size_t thread_size) {
     s_threads_process.m_scratch_reduce_end = reduce_size;
     s_threads_process.m_scratch_thread_end = reduce_size + thread_size;
 
-    execute_resize_scratch(s_threads_process, nullptr);
+    execute_resize_scratch_in_serial();
 
     s_threads_process.m_scratch = s_threads_exec[0]->m_scratch;
   }
@@ -845,6 +886,15 @@ void ThreadsSpaceInitializer::print_configuration(std::ostream &msg,
 }
 
 }  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_CXX14
+namespace Tools {
+namespace Experimental {
+constexpr DeviceType DeviceTypeTraits<Threads>::id;
+}
+}  // namespace Tools
+#endif
+
 } /* namespace Kokkos */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

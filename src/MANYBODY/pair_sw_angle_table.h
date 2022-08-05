@@ -69,6 +69,7 @@ class PairSWAngleTable : public PairSW {
   void spline(double *, double *, int, double, double, double *);
   double splint(double *, double *, double *, int, double);
   void uf_lookup(ParamTable *, double, double &, double &);
+  void settings(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

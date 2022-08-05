@@ -59,6 +59,7 @@ sub-directories:
 
 accelerate: use of all the various accelerator packages
 airebo:   polyethylene with AIREBO potential
+amoeba:   small water and bio models with AMOEBA and HIPPO potentials
 atm:      Axilrod-Teller-Muto potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system

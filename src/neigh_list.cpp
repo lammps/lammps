@@ -48,6 +48,7 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   respamiddle = 0;
   respainner = 0;
   copy = 0;
+  trim = 0;
   copymode = 0;
 
   // ptrs
@@ -97,7 +98,8 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
 NeighList::~NeighList()
 {
   if (copymode) return;
-  if (!copy) {
+
+  if (!copy || trim || kk2cpu) {
     memory->destroy(ilist);
     memory->destroy(numneigh);
     memory->sfree(firstneigh);
@@ -144,6 +146,7 @@ void NeighList::post_constructor(NeighRequest *nq)
   respamiddle = nq->respamiddle;
   respainner = nq->respainner;
   copy = nq->copy;
+  trim = nq->trim;
   id = nq->id;
 
   if (nq->copy) {
@@ -286,6 +289,8 @@ void NeighList::print_attributes()
   printf("  %d = skip flag\n",rq->skip);
   printf("  %d = off2on\n",rq->off2on);
   printf("  %d = copy flag\n",rq->copy);
+  printf("  %d = trim flag\n",rq->trim);
+  printf("  %d = kk2cpu flag\n",kk2cpu);
   printf("  %d = half/full\n",rq->halffull);
   printf("\n");
 }

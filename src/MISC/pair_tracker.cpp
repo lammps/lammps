@@ -300,7 +300,7 @@ void PairTracker::settings(int narg, char **arg)
   fix_store_local = dynamic_cast<FixStoreLocal *>(modify->get_fix_by_id(id_fix_store_local));
   if (!fix_store_local)
     fix_store_local = dynamic_cast<FixStoreLocal *>(modify->add_fix(
-        fmt::format("{} all STORE_LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues)));
+        fmt::format("{} all STORE/LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues)));
 }
 
 /* ----------------------------------------------------------------------

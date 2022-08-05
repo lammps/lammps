@@ -380,6 +380,8 @@ performed with dump style *xtc*\ .
 
 ----------
 
+.. versionadded:: 4May2022
+
 The *colname* keyword can be used to change the default header keyword
 for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
 and MPIIO variants.  The setting for *ID string* replaces the default

@@ -1101,7 +1101,11 @@ void PairSWIntel::allocate()
 
 void PairSWIntel::init_style()
 {
+  // there is no support for skipping threebody loops (yet)
+  bool tmp_threebody = skip_threebody_flag;
+  skip_threebody_flag = false;
   PairSW::init_style();
+  skip_threebody_flag = tmp_threebody;
 
   map[0] = map[1];
 

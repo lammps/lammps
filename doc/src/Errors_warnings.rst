@@ -68,14 +68,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    length, multiplying by the number of bonds in the interaction (e.g. 3
    for a dihedral) and adding a small amount of stretch.
 
-*Bond/react: Atom affected by reaction too close to template edge*
-   This means an atom which changes type or connectivity during the
-   reaction is too close to an 'edge' atom defined in the superimpose
-   file. This could cause incorrect assignment of bonds, angle, etc.
-   Generally, this means you must include more atoms in your templates,
-   such that there are at least two atoms between each atom involved in
-   the reaction and an edge atom.
-
 *Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero*
    Self-explanatory.
 
@@ -206,11 +198,19 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Fix SRD walls overlap but fix srd overlap not set*
    You likely want to set this in your input script.
 
-* Fix bond/create is used multiple times or with fix bond/break - may not work as expected*
+*Fix bond/create is used multiple times or with fix bond/break - may not work as expected*
    When using fix bond/create multiple times or in combination with
    fix bond/break, the individual fix instances do not share information
    about changes they made at the same time step and thus it may result
    in unexpected behavior.
+
+*Fix bond/react: Atom affected by reaction too close to template edge*
+   This means an atom which changes type or connectivity during the
+   reaction is too close to an 'edge' atom defined in the superimpose
+   file. This could cause incorrect assignment of bonds, angle, etc.
+   Generally, this means you must include more atoms in your templates,
+   such that there are at least two atoms between each atom involved in
+   the reaction and an edge atom.
 
 *Fix bond/swap will ignore defined angles*
    See the page for fix bond/swap for more info on this
@@ -468,6 +468,12 @@ This will most likely cause errors in kinetic fluctuations.
    Self-explanatory.
 
 *More than one compute sna/atom*
+   Self-explanatory.
+
+*More than one compute sna/grid*
+   Self-explanatory.
+
+*More than one compute sna/grid/local*
    Self-explanatory.
 
 *More than one compute snad/atom*
@@ -804,4 +810,3 @@ This will most likely cause errors in kinetic fluctuations.
 
 *Using pair tail corrections with pair_modify compute no*
    The tail corrections will thus not be computed.
-

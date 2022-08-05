@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "info.h"
 #include "input.h"
@@ -2561,9 +2561,14 @@ double Variable::collapse_tree(Tree *tree)
     arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    tree->value = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      tree->value = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      tree->value = arg1 + delta*(arg2-arg1);
+    }
     return tree->value;
   }
 
@@ -2730,7 +2735,7 @@ double Variable::collapse_tree(Tree *tree)
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*sin(omega*delta*update->dt);
@@ -2745,7 +2750,7 @@ double Variable::collapse_tree(Tree *tree)
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
@@ -2935,9 +2940,14 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == RAMP) {
     arg1 = eval_tree(tree->first,i);
     arg2 = eval_tree(tree->second,i);
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    arg = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      arg = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      arg = arg1 + delta*(arg2-arg1);
+    }
     return arg;
   }
 
@@ -3054,7 +3064,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg2 = eval_tree(tree->second,i);
     arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*sin(omega*delta*update->dt);
@@ -3066,7 +3076,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg2 = eval_tree(tree->second,i);
     arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
@@ -3445,14 +3455,17 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"ramp") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use ramp in variable formula between runs",ivar);
     if (tree) newtree->type = RAMP;
     else {
-      double delta = update->ntimestep - update->beginstep;
-      if (delta != 0.0) delta /= update->endstep - update->beginstep;
-      double value = value1 + delta*(value2-value1);
-      argstack[nargstack++] = value;
+      if (update->whichflag == 0) {
+        argstack[nargstack++] = value1;
+      } else {
+        double delta = update->ntimestep - update->beginstep;
+        if ((delta != 0.0) && (update->beginstep != update->endstep))
+          delta /= update->endstep - update->beginstep;
+        double value = value1 + delta*(value2-value1);
+        argstack[nargstack++] = value;
+      }
     }
 
   } else if (strcmp(word,"stagger") == 0) {
@@ -3610,9 +3623,9 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"vdisplace") == 0) {
     if (narg != 2)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use vdisplace in variable formula between runs",ivar);
+      print_var_error(FLERR,"Invalid vdisplace function in variable formula: must have 2 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use vdisplace(x,y) function with fix dt/reset",ivar);
     if (tree) newtree->type = VDISPLACE;
     else {
       double delta = update->ntimestep - update->beginstep;
@@ -3622,13 +3635,13 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"swiggle") == 0) {
     if (narg != 3)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use swiggle in variable formula between runs",ivar);
-    if (tree) newtree->type = CWIGGLE;
+      print_var_error(FLERR,"Invalid swiggle function in variable formula: must have 3 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use swiggle(x,y,z) function with fix dt/reset",ivar);
+    if (tree) newtree->type = SWIGGLE;
     else {
       if (values[0] == 0.0)
-        print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+        print_var_error(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0",ivar);
       double delta = update->ntimestep - update->beginstep;
       double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*sin(omega*delta*update->dt);
@@ -3637,13 +3650,13 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"cwiggle") == 0) {
     if (narg != 3)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use cwiggle in variable formula between runs",ivar);
+      print_var_error(FLERR,"Invalid cwiggle function in variable formula: must have 3 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use cwiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = CWIGGLE;
     else {
       if (values[0] == 0.0)
-        print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+        print_var_error(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0",ivar);
       double delta = update->ntimestep - update->beginstep;
       double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*(1.0-cos(omega*delta*update->dt));
@@ -4770,12 +4783,14 @@ double Variable::evaluate_boolean(char *str)
         }
 
         if (opprevious == NOT) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag2)
+            error->all(FLERR,"If command boolean not cannot operate on string");
           if (value2 == 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
+
         } else if (opprevious == EQ) {
           if (flag1 != flag2)
-            error->all(FLERR,"Invalid Boolean syntax in if command");
+            error->all(FLERR,"If command boolean is comparing string to number");
           if (flag2 == 0) {
             if (value1 == value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -4787,7 +4802,7 @@ double Variable::evaluate_boolean(char *str)
           }
         } else if (opprevious == NE) {
           if (flag1 != flag2)
-            error->all(FLERR,"Invalid Boolean syntax in if command");
+            error->all(FLERR,"If command boolean is comparing string to number");
           if (flag2 == 0) {
             if (value1 != value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -4797,32 +4812,41 @@ double Variable::evaluate_boolean(char *str)
             delete[] str1;
             delete[] str2;
           }
+
         } else if (opprevious == LT) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 < value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == LE) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 <= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GT) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 > value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GE) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 >= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
+
         } else if (opprevious == AND) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 != 0.0 && value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == OR) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == XOR) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if ((value1 == 0.0 && value2 != 0.0) ||
               (value1 != 0.0 && value2 == 0.0))
             argstack[nargstack].value = 1.0;
@@ -4845,6 +4869,13 @@ double Variable::evaluate_boolean(char *str)
 
   if (nopstack) error->all(FLERR,"Invalid Boolean syntax in if command");
   if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
+
+  // if flag == 1, Boolean expression was a single string with no operator
+  // error b/c invalid, only single number with no operator is allowed
+
+  if (argstack[0].flag == 1)
+    error->all(FLERR,"If command boolean cannot be single string");
+
   return argstack[0].value;
 }
 
@@ -4880,7 +4911,8 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       error->all(FLERR,"Cannot use atomfile-style variable unless an atom map exists");
 
     id_fix = utils::strdup(std::string(name) + "_VARIABLE_STORE");
-    fixstore = dynamic_cast<FixStore *>( modify->add_fix(std::string(id_fix) + " all STORE peratom 0 1"));
+    fixstore = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(std::string(id_fix) + " all STORE/PERATOM 0 1"));
     buffer = new char[CHUNK*MAXLINE];
   }
 }

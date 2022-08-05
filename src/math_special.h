@@ -138,6 +138,7 @@ namespace MathSpecial {
   {
     double yy, ww;
 
+    if (n == 0) return 1.0;
     if (x == 0.0) return 0.0;
     int nn = (n > 0) ? n : -n;
     ww = x;

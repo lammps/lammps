@@ -2069,8 +2069,8 @@ void FixBondReact::get_IDcoords(int mode, int myID, double *center)
         nfragatoms++;
       }
     }
-    for (int i = 0; i < 3; i++)
-      center[i] /= nfragatoms;
+    if (nfragatoms > 0)
+      for (int i = 0; i < 3; i++) center[i] /= nfragatoms;
   }
 }
 

@@ -256,7 +256,7 @@ void PairAmoeba::kmpole()
       ztype = zpole[itype][iframe];
       if (ztype == 0 && !flag) {
         flag = 1;
-        xyzaxis[i][2] = xyzaxis[i][0] = xyzaxis[i][2] = 0.0;
+        xyzaxis[i][2] = xyzaxis[i][1] = xyzaxis[i][0] = 0.0;
         polaxe[i] = mpaxis[itype][iframe];
         for (j = 0; j < 13; j++)
           pole[i][j] = fpole[itype][iframe][j];

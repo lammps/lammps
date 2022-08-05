@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class Balance : public Command {
  public:
   class RCB *rcb;
-  class FixStore *fixstore;    // per-atom weights stored in FixStore
-  int wtflag;                  // 1 if particle weighting is used
-  int varflag;                 // 1 if weight style var(iable) is used
-  int outflag;                 // 1 for output of balance results to file
+  class FixStorePeratom *fixstore;    // per-atom weights stored in FixStorePeratom
+  int wtflag;                         // 1 if particle weighting is used
+  int varflag;                        // 1 if weight style var(iable) is used
+  int outflag;                        // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
   ~Balance() override;
@@ -90,8 +90,6 @@ class Balance : public Command {
   void debug_shift_output(int, int, int, double *);
 #endif
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

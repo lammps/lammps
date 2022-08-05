@@ -11,49 +11,44 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 // clang-format off
-ComputeStyle(msd/chunk,ComputeMSDChunk);
+FixStyle(STORE/GLOBAL,FixStoreGlobal);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_MSD_CHUNK_H
-#define LMP_COMPUTE_MSD_CHUNK_H
+#ifndef LMP_FIX_STORE_GLOBAL_H
+#define LMP_FIX_STORE_GLOBAL_H
 
-#include "compute.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeMSDChunk : public Compute {
+class FixStoreGlobal : public Fix {
  public:
-  ComputeMSDChunk(class LAMMPS *, int, char **);
-  ~ComputeMSDChunk() override;
-  void init() override;
-  void setup() override;
-  void compute_array() override;
+  int nrow, ncol;     // copy of n1,n2 for array for classes to access
+  double *vstore;     // vector storage
+  double **astore;    // array storage
 
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
+  FixStoreGlobal(class LAMMPS *, int, char **);
+  ~FixStoreGlobal() override;
+  int setmask() override;
+  void reset_global(int, int);
+
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
   double memory_usage() override;
 
  private:
-  int nchunk;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
-  char *id_fix;
-  class FixStoreGlobal *fix;
-  int firstflag;
+  int vecflag;      // 1 if ncol=1 or nvalues=1
+  int arrayflag;    // 1 if ncol > 1
 
-  double *massproc, *masstotal;
-  double **com, **comall;
-  double **msd;
-
-  void allocate();
+  int n1, n2;      // size of 3d dims of data struct
+  double *rbuf;    // restart buffer for GLOBAL vec/array/tensor
 };
+
 }    // namespace LAMMPS_NS
+
 #endif
 #endif

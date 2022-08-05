@@ -1,5 +1,21 @@
 # Change Log
 
+## [3.6.01](https://github.com/kokkos/kokkos/tree/3.6.01) (2022-05-23)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.6.00...3.6.01)
+
+### Bug Fixes:
+- Fix Threads: Fix serial resizing scratch space (3.6.01 cherry-pick) [\#5109](https://github.com/kokkos/kokkos/pull/5109)
+- Fix ScatterMin/ScatterMax to use proper atomics (3.6.01 cherry-pick) [\#5046](https://github.com/kokkos/kokkos/pull/5046)
+- Fix allocating large Views [\#4907](https://github.com/kokkos/kokkos/pull/4907)
+- Fix bounds errors with Kokkos::sort [\#4980](https://github.com/kokkos/kokkos/pull/4980)
+- Fix HIP version when printing the configuration [\#4872](https://github.com/kokkos/kokkos/pull/4872)
+- Fixed `_CUDA_ARCH__` to `__CUDA_ARCH__` for CUDA LDG [\#4893](https://github.com/kokkos/kokkos/pull/4893)
+- Fixed an incorrect struct initialization [\#5028](https://github.com/kokkos/kokkos/pull/5028)
+- Fix racing condition in `HIPParallelLaunch` [\#5008](https://github.com/kokkos/kokkos/pull/5008)
+- Avoid deprecation warnings with `OpenMPExec::validate_partition` [\#4982](https://github.com/kokkos/kokkos/pull/4982)
+- Make View self-assignment not produce double-free [\#5024](https://github.com/kokkos/kokkos/pull/5024)
+
+
 ## [3.6.00](https://github.com/kokkos/kokkos/tree/3.6.00) (2022-02-18)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.5.00...3.6.00)
 

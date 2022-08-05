@@ -210,9 +210,9 @@ void FixAdaptFEP::post_constructor()
   id_fix_chg = nullptr;
 
   if (diamflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_DIAM {} STORE peratom 1 1", group->names[igroup]);
-    fix_diam = dynamic_cast<FixStore *>( modify->add_fix(cmd));
-
+    id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
+    fix_diam = dynamic_cast<FixStore *>(
+      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",id_fix_diam,group->names[igroup])));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -228,9 +228,9 @@ void FixAdaptFEP::post_constructor()
   }
 
   if (chgflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_CHG {} STORE peratom 1 1", group->names[igroup]);
-    fix_chg = dynamic_cast<FixStore *>( modify->add_fix(cmd));
-
+    id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
+    fix_chg = dynamic_cast<FixStore *>(
+      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",id_fix_chg,group->names[igroup])));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;
@@ -333,14 +333,12 @@ void FixAdaptFEP::init()
   // fixes that store initial per-atom values
 
   if (id_fix_diam) {
-    int ifix = modify->find_fix(id_fix_diam);
-    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_diam = dynamic_cast<FixStore *>( modify->fix[ifix]);
+    fix_diam = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix_diam));
+    if (!fix_diam) error->all(FLERR,"Could not find fix adapt/fep storage fix ID {}", id_fix_diam);
   }
   if (id_fix_chg) {
-    int ifix = modify->find_fix(id_fix_chg);
-    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_chg = dynamic_cast<FixStore *>( modify->fix[ifix]);
+    fix_chg = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix_chg));
+    if (!fix_chg) error->all(FLERR,"Could not find fix adapt/fep storage fix ID {}", id_fix_chg);
   }
 
   if (utils::strmatch(update->integrate_style,"^respa"))

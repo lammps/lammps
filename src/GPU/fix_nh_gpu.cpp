@@ -77,7 +77,7 @@ void FixNHGPU::remap()
   double oldlo,oldhi;
   double expfac;
 
-  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
@@ -414,7 +414,7 @@ void FixNHGPU::nh_v_press()
     return;
   }
 
-  auto * _noalias const v = (dbl3_t *)atom->v[0];
+  dbl3_t * _noalias const v = (dbl3_t *)atom->v[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

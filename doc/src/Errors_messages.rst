@@ -476,65 +476,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bonds defined but no bond types*
    The data file header lists bonds but no bond types.
 
-*Bond/react: Cannot use fix bond/react with non-molecular systems*
-   Only systems with bonds that can be changed can be used. Atom_style
-   template does not qualify.
-
-*Bond/react: Invalid template atom ID in map file*
-   Atom IDs in molecule templates range from 1 to the number of atoms in the template.
-
-*Bond/react: Rmax cutoff is longer than pairwise cutoff*
-   This is not allowed because bond creation is done using the pairwise
-   neighbor list.
-
-*Bond/react: Molecule template ID for fix bond/react does not exist*
-   A valid molecule template must have been created with the molecule
-   command.
-
-*Bond/react: Reaction templates must contain the same number of atoms*
-   There should be a one-to-one correspondence between atoms in the
-   pre-reacted and post-reacted templates, as specified by the map file.
-
-*Bond/react: Unknown section in map file*
-   Please ensure reaction map files are properly formatted.
-
-*Bond/react: Atom/Bond type affected by reaction too close to template edge*
-   This means an atom which changes type or connectivity during the
-   reaction is too close to an 'edge' atom defined in the map
-   file.  This could cause incorrect assignment of bonds, angle, etc.
-   Generally, this means you must include more atoms in your templates,
-   such that there are at least two atoms between each atom involved in
-   the reaction and an edge atom.
-
-*Bond/react: Fix bond/react needs ghost atoms from farther away*
-   This is because a processor needs to map the entire unreacted
-   molecule template onto simulation atoms it knows about. The
-   comm_modify cutoff command can be used to extend the communication
-   range.
-
-*Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted*
-   Self-explanatory.
-
-*Bond/react: First neighbors of chiral atoms must be of mutually different types*
-   Self-explanatory.
-
-*Bond/react: Chiral atoms must have exactly four first neighbors*
-   Self-explanatory.
-
-*Bond/react: Molecule template 'Coords' section required for chiralIDs keyword*
-   The coordinates of atoms in the pre-reacted template are used to determine
-   chirality.
-
-*Bond/react special bond generation overflow*
-   The number of special bonds per-atom created by a reaction exceeds the
-   system setting. See the read_data or create_box command for how to
-   specify this value.
-
-*Bond/react topology/atom exceed system topology/atom*
-   The number of bonds, angles etc per-atom created by a reaction exceeds
-   the system setting. See the read_data or create_box command for how to
-   specify this value.
-
 *Both restart files must use % or neither*
    Self-explanatory.
 
@@ -3520,6 +3461,65 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This is because the fix needs to walk bonds to a certain distance to
    acquire needed info, The comm_modify cutoff command can be used to
    extend the communication range.
+
+*Fix bond/react: Cannot use fix bond/react with non-molecular systems*
+   Only systems with bonds that can be changed can be used. Atom_style
+   template does not qualify.
+
+*Fix bond/react: Invalid template atom ID in map file*
+   Atom IDs in molecule templates range from 1 to the number of atoms in the template.
+
+*Fix bond/react: Rmax cutoff is longer than pairwise cutoff*
+   This is not allowed because bond creation is done using the pairwise
+   neighbor list.
+
+*Fix bond/react: Molecule template ID for fix bond/react does not exist*
+   A valid molecule template must have been created with the molecule
+   command.
+
+*Fix bond/react: Reaction templates must contain the same number of atoms*
+   There should be a one-to-one correspondence between atoms in the
+   pre-reacted and post-reacted templates, as specified by the map file.
+
+*Fix bond/react: Unknown section in map file*
+   Please ensure reaction map files are properly formatted.
+
+*Fix bond/react: Atom/Bond type affected by reaction too close to template edge*
+   This means an atom which changes type or connectivity during the
+   reaction is too close to an 'edge' atom defined in the map
+   file.  This could cause incorrect assignment of bonds, angle, etc.
+   Generally, this means you must include more atoms in your templates,
+   such that there are at least two atoms between each atom involved in
+   the reaction and an edge atom.
+
+*Fix bond/react: Fix bond/react needs ghost atoms from farther away*
+   This is because a processor needs to map the entire unreacted
+   molecule template onto simulation atoms it knows about. The
+   comm_modify cutoff command can be used to extend the communication
+   range.
+
+*Fix bond/react: A deleted atom cannot remain bonded to an atom that is not deleted*
+   Self-explanatory.
+
+*Fix bond/react: First neighbors of chiral atoms must be of mutually different types*
+   Self-explanatory.
+
+*Fix bond/react: Chiral atoms must have exactly four first neighbors*
+   Self-explanatory.
+
+*Fix bond/react: Molecule template 'Coords' section required for chiralIDs keyword*
+   The coordinates of atoms in the pre-reacted template are used to determine
+   chirality.
+
+*Fix bond/react special bond generation overflow*
+   The number of special bonds per-atom created by a reaction exceeds the
+   system setting. See the read_data or create_box command for how to
+   specify this value.
+
+*Fix bond/react topology/atom exceed system topology/atom*
+   The number of bonds, angles etc per-atom created by a reaction exceeds
+   the system setting. See the read_data or create_box command for how to
+   specify this value.
 
 *Fix bond/swap cannot use dihedral or improper styles*
    These styles cannot be defined when using this fix.

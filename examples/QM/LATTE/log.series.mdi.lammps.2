@@ -1,6 +1,4 @@
 LAMMPS (23 Jun 2022)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
-  using 1 OpenMP thread(s) per MPI task
 # Series of single-point calcs of 2,3,4 UO2 molecules
 # with LATTE in MDI stand-alone mode
 
@@ -42,7 +40,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   thermo          1
 
   run             0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -50,13 +48,13 @@ Neighbor list info ...
   ghost atom cutoff = 0
   binsize = 10.8, bins = 1 1 1
   0 neighbor lists, perpetual/occasional/extra = 0 0 0
-WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:210)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
 Per MPI rank memory allocation (min/avg/max) = 5.234 | 5.236 | 5.238 Mbytes
    Step          Temp          PotEng         TotEng         Press     
          0   0             -50.539035     -50.539035     -120855.2     
-Loop time of 1.987e-06 on 2 procs for 0 steps with 6 atoms
+Loop time of 1.957e-06 on 2 procs for 0 steps with 6 atoms
 
-100.7% CPU use with 2 MPI tasks x 1 OpenMP threads
+127.7% CPU use with 2 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -67,7 +65,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.987e-06  |            |       |100.00
+Other   |            | 1.957e-06  |            |       |100.00
 
 Nlocal:              3 ave           6 max           0 min
 Histogram: 1 0 0 0 0 0 0 0 0 1
@@ -86,8 +84,6 @@ Dangerous builds = 0
   write_dump      all custom dump.series.2uo2                   id type x y z fx fy fz modify sort id
 
   clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
-  using 1 OpenMP thread(s) per MPI task
 
 next            files
 
@@ -112,7 +108,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      0 = max # of 1-4 neighbors
      1 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.001 seconds
+  read_data CPU = 0.002 seconds
 
   neighbor        0.3 bin
   neigh_modify    every 1 delay 0 check yes
@@ -125,7 +121,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   thermo          1
 
   run             0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -133,13 +129,13 @@ Neighbor list info ...
   ghost atom cutoff = 0
   binsize = 16.2, bins = 1 1 1
   0 neighbor lists, perpetual/occasional/extra = 0 0 0
-WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:210)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
 Per MPI rank memory allocation (min/avg/max) = 5.234 | 5.236 | 5.238 Mbytes
    Step          Temp          PotEng         TotEng         Press     
          0   0             -78.155679     -78.155679     -99931.431    
-Loop time of 1.9115e-06 on 2 procs for 0 steps with 9 atoms
+Loop time of 1.8705e-06 on 2 procs for 0 steps with 9 atoms
 
-130.8% CPU use with 2 MPI tasks x 1 OpenMP threads
+133.7% CPU use with 2 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -150,7 +146,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.912e-06  |            |       |100.00
+Other   |            | 1.87e-06   |            |       |100.00
 
 Nlocal:            4.5 ave           9 max           0 min
 Histogram: 1 0 0 0 0 0 0 0 0 1

@@ -54,8 +54,6 @@ class FixStorePeratom : public Fix {
   int n2, n3;     // size of 3d dims of per-atom data struct
   int nvalues;    // number of per-atom values
   int nbytes;     // number of per-atom bytes
-
-  double *rbuf;    // restart buffer for GLOBAL vec/array/tensor
 };
 
 }    // namespace LAMMPS_NS

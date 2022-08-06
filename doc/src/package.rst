@@ -18,16 +18,16 @@ Syntax
        *gpu* args = Ngpu keyword value ...
          Ngpu = # of GPUs per node
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *platform* or *device_type* or *ocl_args*
+         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args*
            *neigh* value = *yes* or *no*
-             yes = neighbor list build on GPU (default)
-             no = neighbor list build on CPU
+             *yes* = neighbor list build on GPU (default)
+             *no* = neighbor list build on CPU
            *newton* = *off* or *on*
-             off = set Newton pairwise flag off (default and required)
-             on = set Newton pairwise flag on (currently not allowed)
+             *off* = set Newton pairwise flag off (default and required)
+             *on* = set Newton pairwise flag on (currently not allowed)
            *pair/only* = *off* or *on*
-             off = apply "gpu" suffix to all available styles in the GPU package (default)
-             on  = apply "gpu" suffix only pair styles
+             *off* = apply "gpu" suffix to all available styles in the GPU package (default)
+             *on* = apply "gpu" suffix only pair styles
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *split* = fraction
@@ -42,7 +42,7 @@ Syntax
              id = For OpenCL, platform ID for the GPU or accelerator
            *gpuID* values = id
              id = ID of first GPU to be used on each node
-           *device_type* value = *intelgpu* or *nvidiagpu* or *amdgpu* or *applegpu* or *generic* or *custom,val1,val2,...*
+           *device_type* value = *intelgpu* or *nvidiagpu* or *amdgpu* or *applegpu* or *generic* or *custom*,val1,val2,...
              val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
            *ocl_args* value = args
              args = List of additional OpenCL compiler arguments delimited by colons
@@ -57,13 +57,13 @@ Syntax
            *omp* value = Nthreads
              Nthreads = number of OpenMP threads to use on CPU (default = 0)
            *lrt* value = *yes* or *no*
-             yes = use additional thread dedicated for some PPPM calculations
-             no = do not dedicate an extra thread for some PPPM calculations
+             *yes* = use additional thread dedicated for some PPPM calculations
+             *no* = do not dedicate an extra thread for some PPPM calculations
            *balance* value = split
              split = fraction of work to offload to co-processor, -1 for dynamic
            *ghost* value = *yes* or *no*
-             yes = include ghost atoms for offload
-             no = do not include ghost atoms for offload
+             *yes* = include ghost atoms for offload
+             *no* = do not include ghost atoms for offload
            *tpc* value = Ntpc
              Ntpc = max number of co-processor threads per co-processor core (default = 4)
            *tptask* value = Ntptask
@@ -71,7 +71,7 @@ Syntax
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* *comm/pair/forward* *comm/fix/forward* or *comm/reverse* or *gpu/aware* or *pair/only*
+         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* *comm/pair/forward* *comm/fix/forward* or *comm/reverse* or *gpu/aware* or *pair/only*
            *neigh* value = *full* or *half*
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
@@ -79,14 +79,14 @@ Syntax
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
            *neigh/thread* value = *off* or *on*
-             off = thread only over atoms
-             on = thread over both atoms and neighbors
+             *off* = thread only over atoms
+             *on* = thread over both atoms and neighbors
            *neigh/transpose* value = *off* or *on*
-             off = use same memory layout for GPU neigh list build as pair style
-             on = use transposed memory layout for GPU neigh list build
+             *off* = use same memory layout for GPU neigh list build as pair style
+             *on* = use transposed memory layout for GPU neigh list build
            *newton* = *off* or *on*
-             off = set Newton pairwise and bonded flags off
-             on = set Newton pairwise and bonded flags on
+             *off* = set Newton pairwise and bonded flags off
+             *on* = set Newton pairwise and bonded flags on
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *comm* value = *no* or *host* or *device*
@@ -96,22 +96,22 @@ Syntax
            *comm/pair/forward* value = *no* or *device*
            *comm/fix/forward* value = *no* or *device*
            *comm/reverse* value = *no* or *host* or *device*
-             no = perform communication pack/unpack in non-KOKKOS mode
-             host = perform pack/unpack on host (e.g. with OpenMP threading)
-             device = perform pack/unpack on device (e.g. on GPU)
+             *no* = perform communication pack/unpack in non-KOKKOS mode
+             *host* = perform pack/unpack on host (e.g. with OpenMP threading)
+             *device* = perform pack/unpack on device (e.g. on GPU)
            *gpu/aware* = *off* or *on*
-             off = do not use GPU-aware MPI
-             on = use GPU-aware MPI (default)
+             *off* = do not use GPU-aware MPI
+             *on* = use GPU-aware MPI (default)
            *pair/only* = *off* or *on*
-             off = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
-             on  = use device acceleration only for pair styles (and host acceleration for others)
+             *off* = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
+             *on*  = use device acceleration only for pair styles (and host acceleration for others)
        *omp* args = Nthreads keyword value ...
          Nthreads = # of OpenMP threads to associate with each MPI process
          zero or more keyword/value pairs may be appended
          keywords = *neigh*
            *neigh* value = *yes* or *no*
-             yes = threaded neighbor list build (default)
-             no = non-threaded neighbor list build
+             *yes* = threaded neighbor list build (default)
+             *no* = non-threaded neighbor list build
 
 Examples
 """"""""

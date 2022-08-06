@@ -25,7 +25,7 @@ Examples
 
    if "${steps} > 1000" then quit
    if "${myString} == a10" then quit
-   if "$x <= $y" then "print X is smaller = $x" else "print Y is smaller = $y"
+   if "$x <= $y" then "print 'X is smaller = $x'" else "print 'Y is smaller = $y'"
    if "(${eng} > 0.0) || ($n < 1000)" then &
      "timestep 0.005" &
    elif $n<10000 &

@@ -332,17 +332,18 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         add3(vp1, vp2, vp);
         scale3(0.5*sumw_inv, vp);
         sub3(vp, vr, vrel);
-        vtot = len3(vrel);
+        vtot = dot3(vrel, basis[2]);
 
         // friction forces
 
         if (vtot == 0.0)
           fvisc_tot = 0.0;
         else {
-          fvisc_tot = fvisc_max / (1.0 + exp(-kvisc * (vtot - vvisc))) - fvisc_shift;
-          fvisc_tot *= 0.25 * (1 - s(sumw)) * (param[3] - param[2]) / vtot;
+          fvisc_tot = fvisc_max / (1.0 + exp(-kvisc * (fabs(vtot) - vvisc))) - fvisc_shift;
+          fvisc_tot *= 0.25 * (1 - s(sumw)) * (param[3] - param[2]);
+          if (vtot < 0) fvisc_tot = -fvisc_tot;
         }
-        scale3(fvisc_tot, vrel, fvisc);
+        scale3(fvisc_tot, basis[2], fvisc);
           
         // add friction forces to current segment
 
@@ -528,17 +529,20 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         add3(vp1, vp2, vp);
         scale3(0.5*sumw_inv, vp);
         sub3(vp, vr, vrel);
-        vtot = len3(vrel);
+        vtot = dot3(vrel, basis[2]);
 
         // friction forces
 
         if (vtot == 0.0)
           fvisc_tot = 0.0;
         else {
-          fvisc_tot = fvisc_max / (1.0 + exp(-kvisc * (vtot - vvisc))) - fvisc_shift;
-          fvisc_tot *= 0.25 * (1 - s(sumw)) * (param[3] - param[2]) / vtot;
+          fvisc_tot = fvisc_max / (1.0 + exp(-kvisc * (fabs(vtot) - vvisc))) - fvisc_shift;
+          fvisc_tot *= 0.25 * (1 - s(sumw)) * (param[3] - param[2]);
+          if (vtot < 0) fvisc_tot = -fvisc_tot;
         }
-        scale3(fvisc_tot, vrel, fvisc);
+        scale3(fvisc_tot, basis[2], fvisc);
+
+        // add friction forces to current segment
         
         add3(fvisc, f[i1], f[i1]);
         add3(fvisc, f[i2], f[i2]);

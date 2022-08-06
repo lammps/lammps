@@ -73,9 +73,9 @@ namespace utils {
    *  \param format format string of message to be printed
    *  \param args   arguments to format string */
 
-  template <typename S, typename... Args> void logmesg(LAMMPS *lmp, const S &format, Args &&...args)
+  template <typename... Args> void logmesg(LAMMPS *lmp, const std::string &format, Args &&...args)
   {
-    fmtargs_logmesg(lmp, format, fmt::make_args_checked<Args...>(format, args...));
+    fmtargs_logmesg(lmp, format, fmt::make_format_args(args...));
   }
 
   /*! \overload
@@ -485,6 +485,17 @@ namespace utils {
    * \return number of words found */
 
   size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
+
+  /*! Take list of words and join them with a given separator text.
+   *
+   * This is the inverse operation of what the split_words() function
+   * Tokenizer classes do.
+   *
+   * \param words  STL vector with strings
+   * \param sep    separator string (may be empty)
+   * \return  string with the concatenated words and separators */
+
+  std::string join_words(const std::vector<std::string> &words, const std::string &sep);
 
   /*! Take text and split into non-whitespace words.
    *

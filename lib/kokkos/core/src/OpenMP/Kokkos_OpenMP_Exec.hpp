@@ -93,7 +93,11 @@ class OpenMPExec {
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   KOKKOS_DEPRECATED static void validate_partition(const int nthreads,
                                                    int& num_partitions,
-                                                   int& partition_size);
+                                                   int& partition_size) {
+    validate_partition_impl(nthreads, num_partitions, partition_size);
+  }
+  static void validate_partition_impl(const int nthreads, int& num_partitions,
+                                      int& partition_size);
 #endif
 
  private:
@@ -179,8 +183,8 @@ KOKKOS_DEPRECATED void OpenMP::partition_master(F const& f, int num_partitions,
 
     Exec* prev_instance = Impl::t_openmp_instance;
 
-    Exec::validate_partition(prev_instance->m_pool_size, num_partitions,
-                             partition_size);
+    Exec::validate_partition_impl(prev_instance->m_pool_size, num_partitions,
+                                  partition_size);
 
     OpenMP::memory_space space;
 

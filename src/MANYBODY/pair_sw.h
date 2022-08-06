@@ -32,6 +32,7 @@ class PairSW : public Pair {
   void coeff(int, char **) override;
   double init_one(int, int) override;
   void init_style() override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
   static constexpr int NPARAMS_PER_LINE = 14;
 
@@ -48,10 +49,11 @@ class PairSW : public Pair {
   };
 
  protected:
-  double cutmax;      // max cutoff for all elements
-  Param *params;      // parameter set for an I-J-K interaction
-  int maxshort;       // size of short neighbor list array
-  int *neighshort;    // short neighbor list array
+  double cutmax;              // max cutoff for all elements
+  Param *params;              // parameter set for an I-J-K interaction
+  int maxshort;               // size of short neighbor list array
+  int *neighshort;            // short neighbor list array
+  int skip_threebody_flag;    // whether to run threebody loop
 
   void settings(int, char **) override;
   virtual void allocate();

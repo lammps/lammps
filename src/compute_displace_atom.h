@@ -38,7 +38,7 @@ class ComputeDisplaceAtom : public Compute {
   int nmax;
   double **displace;
   char *id_fix;
-  class FixStore *fix;
+  class FixStorePeratom *fix;
 
   int refreshflag, ivar, nvmax;    // refresh option is enabled
   char *rvar;                      // for incremental dumps

@@ -203,7 +203,7 @@ void ComputeSNAGridLocal::init()
 
 void ComputeSNAGridLocal::compute_local()
 {
-  invoked_array = update->ntimestep;
+  invoked_local = update->ntimestep;
 
   // compute sna for each gridpoint
 

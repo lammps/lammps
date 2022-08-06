@@ -14,11 +14,13 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
                          Oleg Sergeev (VNIIA, sergeev@vniia.ru)
+                         Jacob Gissinger (NASA, jacob.r.gissinger@gmail.com), 'delete' keyword
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxff_species.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -45,7 +47,8 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
 {
   if (narg < 7) error->all(FLERR, "Illegal fix reaxff/species command");
 
-  force_reneighbor = 0;
+  force_reneighbor = 1;
+  next_reneighbor = -1;
 
   vector_flag = 1;
   size_vector = 2;
@@ -125,8 +128,10 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   MolName = nullptr;
   MolType = nullptr;
   NMol = nullptr;
+  Mol2Spec = nullptr;
   nd = nullptr;
   molmap = nullptr;
+  mark = nullptr;
 
   nmax = 0;
   setupflag = 0;
@@ -142,10 +147,11 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
 
   // optional args
   eletype = nullptr;
-  ele = filepos = nullptr;
+  ele = filepos = filedel = nullptr;
   eleflag = posflag = padflag = 0;
+  delflag = specieslistflag = masslimitflag = 0;
 
-  singlepos_opened = multipos_opened = 0;
+  singlepos_opened = multipos_opened = del_opened = 0;
   multipos = 0;
   posfreq = 0;
 
@@ -180,6 +186,45 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       eleflag = 1;
       iarg += ntypes + 1;
 
+      // delete species
+    } else if (strcmp(arg[iarg],"delete") == 0) {
+      delflag = 1;
+      delete[] filedel;
+      filedel = utils::strdup(arg[iarg+1]);
+      if (me == 0) {
+        fdel = fopen(filedel, "w");
+        if (!fdel) error->one(FLERR,"Cannot open fix reaxff/species delete file {}: {}",
+                              filedel, utils::getsyserror());
+      }
+
+      del_opened = 1;
+
+      if (strcmp(arg[iarg+2],"masslimit") == 0) {
+        if (iarg+5 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
+        masslimitflag = 1;
+        massmin = atof(arg[iarg+3]);
+        massmax = atof(arg[iarg+4]);
+        iarg += 5;
+      } else if (strcmp(arg[iarg+2],"specieslist") == 0) {
+        specieslistflag = 1;
+        ndelspec = atoi(arg[iarg+3]);
+        if (iarg+ndelspec+4 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
+
+        del_species.resize(ndelspec);
+        for (int i = 0; i < ndelspec; i ++)
+          del_species[i] = arg[iarg+4+i];
+
+        if (me == 0) {
+          fprintf(fdel,"Timestep");
+          for (i = 0; i < ndelspec; i++)
+            fprintf(fdel,"\t%s",del_species[i].c_str());
+          fprintf(fdel,"\n");
+          fflush(fdel);
+        }
+
+        iarg += ndelspec + 4;
+      } else error->all(FLERR, "Illegal fix reaxff/species command");
+
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
       if (iarg + 3 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
@@ -213,6 +258,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
     if (ntypes > 3) ele[3] = 'N';
   }
 
+  if (delflag && specieslistflag && masslimitflag)
+    error->all(FLERR, "Illegal fix reaxff/species command");
+
   vector_nmole = 0;
   vector_nspec = 0;
 }
@@ -229,10 +277,12 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(nd);
   memory->destroy(Name);
   memory->destroy(NMol);
+  memory->destroy(Mol2Spec);
   memory->destroy(MolType);
   memory->destroy(MolName);
 
   delete[] filepos;
+  delete[] filedel;
 
   if (me == 0) {
     if (compressed)
@@ -240,6 +290,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     else
       fclose(fp);
     if (posflag && multipos_opened) fclose(pos);
+    if (fdel) fclose(fdel);
   }
 
   try {
@@ -357,6 +408,8 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
     WritePos(Nmole, Nspec);
     if (me == 0) fflush(pos);
   }
+
+  if (delflag) DeleteSpecies(Nmole, Nspec);
 
   nvalid += nfreq;
 }
@@ -540,6 +593,11 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
   memory->create(Nameall, ntypes, "reaxff/species:Nameall");
   memory->create(NMolall, Nmole, "reaxff/species:NMolall");
 
+  memory->destroy(Mol2Spec);
+  Mol2Spec = nullptr;
+  memory->create(Mol2Spec, Nmole, "reaxff/species:Mol2Spec");
+  for (m = 0; m < Nmole; m++) Mol2Spec[m] = -1;
+
   for (m = 1, Nspec = 0; m <= Nmole; m++) {
     for (n = 0; n < ntypes; n++) Name[n] = 0;
     for (n = 0, flag_mol = 0; n < nlocal; n++) {
@@ -563,11 +621,15 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
         flag_spec = 0;
         for (l = 0; l < ntypes; l++)
           if (MolName[ntypes * k + l] != Name[l]) flag_spec = 1;
-        if (flag_spec == 0) NMol[k]++;
+        if (flag_spec == 0) {
+          NMol[k]++;
+          Mol2Spec[m-1] = k;
+        }
         flag_identity *= flag_spec;
       }
       if (Nspec == 0 || flag_identity == 1) {
         for (l = 0; l < ntypes; l++) MolName[ntypes * Nspec + l] = Name[l];
+        Mol2Spec[m-1] = Nspec;
         Nspec++;
       }
     }
@@ -754,6 +816,169 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   }
   if (me == 0 && !multipos) fprintf(pos, "#\n");
   memory->destroy(Nameall);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
+{
+  int i, j, m, n, k, itype, cid;
+  int ndel, ndelone, count, count_tmp;
+  int *Nameall;
+  int *mask = atom->mask;
+  double localmass, totalmass;
+  double **spec_atom = f_SPECBOND->array_atom;
+  std::string species_str;
+
+  AtomVec *avec = atom->avec;
+
+  mark = nullptr;
+  memory->create(mark, nlocal, "reaxff/species:mark");
+  for (i = 0; i < nlocal; i++) mark[i] = 0;
+
+  Nameall = nullptr;
+  memory->create(Nameall, ntypes, "reaxff/species:Nameall");
+
+  int ndelcomm;
+  if (masslimitflag) ndelcomm = Nspec;
+  else ndelcomm = ndelspec;
+
+  double *deletecount;
+  memory->create(deletecount, ndelcomm, "reaxff/species:deletecount");
+  for (i = 0; i < ndelcomm; i++) deletecount[i] = 0;
+
+  int nmarklist;
+  int *marklist;
+  memory->create(marklist, nlocal, "reaxff/species:marklist");
+
+  for (m = 1; m <= Nmole; m++) {
+    localmass = totalmass = count = nmarklist = 0;
+    for (n = 0; n < ntypes; n++) Name[n] = 0;
+
+    for (i = 0; i < nlocal; i++) {
+      if (!(mask[i] & groupbit)) continue;
+      cid = nint(clusterID[i]);
+      if (cid == m) {
+        itype = atom->type[i]-1;
+        Name[itype]++;
+        count++;
+        marklist[nmarklist++] = i;
+        localmass += atom->mass[atom->type[i]];
+      }
+    }
+
+    MPI_Allreduce(&count, &count_tmp, 1, MPI_INT, MPI_SUM, world);
+    count = count_tmp;
+
+    MPI_Allreduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, world);
+    for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
+
+    MPI_Allreduce(&localmass, &totalmass, 1 , MPI_DOUBLE, MPI_SUM, world);
+
+    species_str = "";
+    for (j = 0; j < ntypes; j++) {
+      if (Name[j] != 0) {
+        if (eletype) species_str += eletype[j];
+        else species_str += ele[j];
+        if (Name[j] != 1) species_str += fmt::format("{}",Name[j]);
+      }
+    }
+
+    if (masslimitflag) {
+
+      // find corresponding moltype
+
+      if (totalmass > massmin && totalmass < massmax) {
+        for (j = 0; j < nmarklist; j++) {
+          mark[marklist[j]] = 1;
+          deletecount[Mol2Spec[m-1]] += 1.0 / (double) count;
+        }
+      }
+    } else {
+      if (count > 0) {
+        for (i = 0; i < ndelspec; i++) {
+          if (del_species[i] == species_str) {
+            for (j = 0; j < nmarklist; j++) {
+              mark[marklist[j]] = 1;
+              deletecount[i] += 1.0 / (double) count;
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // delete atoms. loop in reverse order to avoid copying marked atoms
+
+  ndel = ndelone = 0;
+  for (i = atom->nlocal-1; i >= 0; i--) {
+    if (mark[i] == 1) {
+      avec->copy(atom->nlocal-1,i,1);
+      atom->nlocal--;
+      ndelone++;
+    }
+  }
+
+  MPI_Allreduce(&ndelone, &ndel, 1, MPI_INT, MPI_SUM, world);
+
+  atom->natoms -= ndel;
+
+  if (me == 0) MPI_Reduce(MPI_IN_PLACE, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
+  else MPI_Reduce(deletecount, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
+
+  if (me == 0) {
+    if (masslimitflag) {
+      int printflag = 0;
+      for (int m = 0; m < Nspec; m++) {
+        if (deletecount[m] > 0) {
+          if (printflag == 0) {
+            fmt::print(fdel, "Timestep {}", update->ntimestep);
+            printflag = 1;
+          }
+          fprintf(fdel, " %g ", deletecount[m]);
+          for (j = 0; j < ntypes; j ++) {
+            int itemp = MolName[ntypes * m + j];
+            if (itemp != 0) {
+              if (eletype) fprintf(fdel, "%s", eletype[j]);
+              else fprintf(fdel, "%c", ele[j]);
+              if (itemp != 1) fprintf(fdel, "%d", itemp);
+            }
+          }
+        }
+      }
+      if (printflag) {
+        fprintf(fdel, "\n");
+        fflush(fdel);
+      }
+    } else {
+      int writeflag = 0;
+      for (i = 0; i < ndelspec; i++)
+        if (deletecount[i]) writeflag = 1;
+
+      if (writeflag) {
+        fmt::print(fdel, "{}", update->ntimestep);
+        for (i = 0; i < ndelspec; i++) {
+          fprintf(fdel, "\t%g", deletecount[i]);
+        }
+        fprintf(fdel, "\n");
+        fflush(fdel);
+      }
+    }
+  }
+
+  if (ndel && (atom->map_style != Atom::MAP_NONE)) {
+    atom->nghost = 0;
+    atom->map_init();
+    atom->map_set();
+  }
+
+  next_reneighbor = update->ntimestep;
+
+  memory->destroy(Nameall);
+  memory->destroy(marklist);
+  memory->destroy(mark);
+  memory->destroy(deletecount);
 }
 
 /* ---------------------------------------------------------------------- */

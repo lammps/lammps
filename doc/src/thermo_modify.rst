@@ -153,6 +153,8 @@ containing the timestep and CPU time ("multi"), or in a YAML format
 block ("yaml").  This modify option overrides the *one*, *multi*, or
 *yaml* thermo_style settings.
 
+.. versionadded:: 4May2022
+
 The *colname* keyword can be used to change the default header keyword
 for a column or field of thermodynamic output.  The setting for *ID
 string* replaces the default text with the provided string.  *ID* can be

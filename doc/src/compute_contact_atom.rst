@@ -8,10 +8,11 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID contact/atom
+   compute ID group-ID contact/atom group2-ID
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * contact/atom = style name of this compute command
+* group2-ID = optional argument to restrict which atoms to consider for contacts (see below)
 
 Examples
 """"""""
@@ -19,6 +20,7 @@ Examples
 .. code-block:: LAMMPS
 
    compute 1 all contact/atom
+   compute 1 all contact/atom mygroup
 
 Description
 """""""""""
@@ -45,6 +47,9 @@ overview of LAMMPS output options.
 The per-atom vector values will be a number >= 0.0, as explained
 above.
 
+The optional *group2-ID* argument allows to specify from which group atoms
+contribute to the coordination number. Default setting is group 'all'.
+
 Restrictions
 """"""""""""
 
@@ -62,5 +67,8 @@ Related commands
 
 Default
 """""""
+
+*group2-ID* = all
+
 
 none

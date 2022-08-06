@@ -27,6 +27,7 @@ page gives those details.
    :columns: 6
 
    * :ref:`ADIOS <PKG-ADIOS>`
+   * :ref:`AMOEBA <PKG-AMOEBA>`
    * :ref:`ASPHERE <PKG-ASPHERE>`
    * :ref:`ATC <PKG-ATC>`
    * :ref:`AWPMD <PKG-AWPMD>`
@@ -35,7 +36,7 @@ page gives those details.
    * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
-   * :ref:`CG-SDK <PKG-CG-SDK>`
+   * :ref:`CG-SPICA <PKG-CG-SPICA>`
    * :ref:`CLASS2 <PKG-CLASS2>`
    * :ref:`COLLOID <PKG-COLLOID>`
    * :ref:`COLVARS <PKG-COLVARS>`
@@ -149,6 +150,38 @@ This package has :ref:`specific installation instructions <adios>` on the :doc:`
 
 ----------
 
+.. _PKG-AMOEBA:
+
+AMOEBA package
+---------------
+
+**Contents:**
+
+Implementation of the AMOEBA and HIPPO polarized force fields
+orginally developed by Jay Ponder's group at the U Washington at St
+Louis.  The LAMMPS implementation is based on Fortran 90 code
+provided by the Ponder group in their
+`Tinker MD software <https://dasher.wustl.edu/tinker/>`_.
+
+**Authors:** Josh Rackers and Steve Plimpton (Sandia), Trung Nguyen (U
+ Chicago)
+
+**Supporting info:**
+
+* src/AMOEBA: filenames -> commands
+* :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+* :doc:`pair_style amoeba <pair_amoeba>`
+* :doc:`pair_style hippo <pair_amoeba>`
+* :doc:`atom_style amoeba <atom_style>`
+* :doc:`angle_style amoeba <angle_amoeba>`
+* :doc:`improper_style amoeba <improper_amoeba>`
+* :doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`
+* :doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`
+* tools/tinker/tinker2lmp.py
+* examples/amoeba
+
+----------
+
 .. _PKG-ASPHERE:
 
 ASPHERE package
@@ -181,9 +214,10 @@ ATC package
 
 **Contents:**
 
-ATC stands for atoms-to-continuum.  This package implements a :doc:`fix atc <fix_atc>` command to either couple molecular dynamics with
-continuum finite element equations or perform on-the-fly conversion of
-atomic information to continuum fields.
+ATC stands for atoms-to-continuum.  This package implements a
+:doc:`fix atc <fix_atc>` command to either couple molecular dynamics
+with continuum finite element equations or perform on-the-fly
+conversion of atomic information to continuum fields.
 
 **Authors:** Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
 
@@ -298,6 +332,8 @@ models for mesoscale simulations of solids and fracture.  See the
 
 **Authors:** Joel T. Clemmer (Sandia National Labs)
 
+.. versionadded:: 4May2022
+
 **Supporting info:**
 
 * src/BPM filenames -> commands
@@ -365,28 +401,30 @@ The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
 
 ----------
 
-.. _PKG-CG-SDK:
+.. _PKG-CG-SPICA:
 
-CG-SDK package
+CG-SPICA package
 ------------------
 
 **Contents:**
 
 Several pair styles and an angle style which implement the
-coarse-grained SDK model of Shinoda, DeVane, and Klein which enables
-simulation of ionic liquids, electrolytes, lipids and charged amino
-acids.
+coarse-grained SPICA (formerly called SDK) model which enables
+simulation of biological or soft material systems.
 
-**Author:** Axel Kohlmeyer (Temple U).
+**Original Author:** Axel Kohlmeyer (Temple U).
+
+**Maintainers:** Yusuke Miyazaki and Wataru Shinoda (Okayama U).
 
 **Supporting info:**
 
-* src/CG-SDK: filenames -> commands
-* src/CG-SDK/README
-* :doc:`pair_style lj/sdk/\* <pair_sdk>`
-* :doc:`angle_style sdk <angle_sdk>`
-* examples/PACKAGES/cgsdk
+* src/CG-SPICA: filenames -> commands
+* src/CG-SPICA/README
+* :doc:`pair_style lj/spica/\* <pair_spica>`
+* :doc:`angle_style spica <angle_spica>`
+* examples/PACKAGES/cgspica
 * https://www.lammps.org/pictures.html#cg
+* https://www.spica-ff.org/
 
 ----------
 
@@ -823,6 +861,8 @@ groups of atoms that interact with the remaining atoms as electrolyte.
 **Authors:** The ELECTRODE library is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
 Robert Meissner (TUHH, Hamburg, Germany).
+
+.. versionadded:: 4May2022
 
 **Install:**
 
@@ -1479,7 +1519,7 @@ the :doc:`Build extras <Build_extras>` page.
 * lib/mdi/README
 * :doc:`Howto MDI <Howto_mdi>`
 * :doc:`mdi <mdi>`
-* :doc:`fix mdi/aimd <fix_mdi_aimd>`
+* :doc:`fix mdi/qm <fix_mdi_qm>`
 * examples/PACKAGES/mdi
 
 ----------

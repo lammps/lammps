@@ -1,4 +1,5 @@
 .. index:: dump image
+.. index:: dump movie
 
 dump image command
 ==================

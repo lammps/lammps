@@ -65,7 +65,7 @@ MODULE LIBLAMMPS
         IMPORT :: c_ptr, c_int
         INTEGER(c_int), VALUE, INTENT(in)     :: argc
         TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
-        TYPE(c_ptr), VALUE                    :: handle
+        TYPE(c_ptr), VALUE, INTENT(in)        :: handle
         TYPE(c_ptr)                           :: lammps_open_no_mpi
       END FUNCTION lammps_open_no_mpi
 
@@ -142,7 +142,6 @@ CONTAINS
     INTEGER, INTENT(in), OPTIONAL :: comm
     CHARACTER(len=*), INTENT(in), OPTIONAL :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
-    TYPE(c_ptr)                  :: dummy=c_null_ptr
     INTEGER(c_int)               :: i, c_comm, argc
 
     IF (PRESENT(args)) THEN
@@ -162,7 +161,7 @@ CONTAINS
         c_comm = comm
         lmp_open%handle = lammps_open(argc, argv, c_comm)
     ELSE
-        lmp_open%handle = lammps_open_no_mpi(argc, argv, dummy)
+        lmp_open%handle = lammps_open_no_mpi(argc, argv, c_null_ptr)
     END IF
 
     ! Clean up allocated memory

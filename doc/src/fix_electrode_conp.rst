@@ -55,8 +55,7 @@ Syntax
         group-ID = group of atoms treated as additional electrode
         val = electric potential or charge on this electrode
     *etypes* values = type
-        type = atom type (can be a range) exclusive to the electrode for
-        optimized neighbor lists
+        type = atom type (can be a range) exclusive to the electrode for optimized neighbor lists
     *ffield* value = *on* or *off*
         turn on/off finite-field implementation
     *write_mat* value = filename

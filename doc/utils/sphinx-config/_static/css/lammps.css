@@ -39,6 +39,18 @@ hr {
      display: none;
 }
 
+#userdoc.toctree-wrapper.compound p {
+     display: none;
+}
+
+#progdoc.toctree-wrapper.compound p {
+     display: none;
+}
+
+#reference.toctree-wrapper.compound p {
+     display: none;
+}
+
 .ui.tabular.menu .item {
     padding-right: 1em;
     padding-left: 1em;

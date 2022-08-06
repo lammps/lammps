@@ -1,3 +1,5 @@
+include 'lammps.f90'
+
 MODULE keepcreate
   USE liblammps
   TYPE(LAMMPS) :: lmp

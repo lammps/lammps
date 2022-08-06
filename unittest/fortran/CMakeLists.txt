@@ -29,7 +29,8 @@ if(CMAKE_Fortran_COMPILER)
   add_library(flammps STATIC ${LAMMPS_FORTRAN_MODULE})
 
   add_executable(test_fortran_create wrap_create.cpp test_fortran_create.f90)
-  target_link_libraries(test_fortran_create PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  target_link_libraries(test_fortran_create PRIVATE lammps MPI::MPI_Fortran GTest::GTestMain)
+  target_include_directories(test_fortran_create PRIVATE "${LAMMPS_SOURCE_DIR}/../fortran")
   add_test(NAME FortranOpen COMMAND test_fortran_create)
 
   add_executable(test_fortran_commands wrap_commands.cpp test_fortran_commands.f90)

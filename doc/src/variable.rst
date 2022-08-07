@@ -949,7 +949,7 @@ function. This allows to adapt LAMMPS inputs to the OS it runs on:
 .. code-block:: LAMMPS
 
    if $(is_os(^Windows)) then &
-     "shell copy ${input_dir}/some_file.txt ." &
+     "shell copy ${input_dir}\some_file.txt ." &
    else &
      "shell cp ${input_dir}/some_file.txt ."
 
@@ -1016,7 +1016,7 @@ step
 
 .. code-block:: LAMMPS
 
-   timestep $(2.0*(1.0+2.0*is_active(pair,respa))
+   timestep $(2.0*(1.0+2.0*is_active(pair,respa)))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
 The *is_available(category,name)* function allows to query whether

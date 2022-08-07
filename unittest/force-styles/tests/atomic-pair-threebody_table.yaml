@@ -10,9 +10,8 @@ pre_commands: ! |
   variable units index real
   variable newton_pair delete
   variable newton_pair index on
-  if $(is_os(^Windows)) then "variable copycmd string copy" else "variable copycmd string cp"
-  shell ${copycmd} ${input_dir}/1-1-1.table .
-  shell ${copycmd} ${input_dir}/1-1-2.table .
+  if $(is_os(^Windows)) then "shell copy ${input_dir}\1-1-1.table ." else "shell cp ${input_dir}/1-1-1.table ."
+  if $(is_os(^Windows)) then "shell copy ${input_dir}\1-1-2.table ." else "shell cp ${input_dir}/1-1-2.table ."
 post_commands: ! ""
 input_file: in.metal
 pair_style: hybrid/overlay table linear 1200 threebody/table

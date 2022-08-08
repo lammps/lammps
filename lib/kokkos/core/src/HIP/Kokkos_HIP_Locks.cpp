@@ -56,8 +56,7 @@ namespace Kokkos {
 
 #ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
 namespace Impl {
-__device__ __constant__ HIPLockArrays g_device_hip_lock_arrays = {nullptr,
-                                                                  nullptr, 0};
+__device__ __constant__ HIPLockArrays g_device_hip_lock_arrays = {nullptr, 0};
 }
 #endif
 
@@ -70,18 +69,11 @@ __global__ void init_lock_array_kernel_atomic() {
   }
 }
 
-__global__ void init_lock_array_kernel_threadid(int N) {
-  unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < static_cast<unsigned>(N)) {
-    Kokkos::Impl::g_device_hip_lock_arrays.scratch[i] = 0;
-  }
-}
-
 }  // namespace
 
 namespace Impl {
 
-HIPLockArrays g_host_hip_lock_arrays = {nullptr, nullptr, 0};
+HIPLockArrays g_host_hip_lock_arrays = {nullptr, 0};
 
 void initialize_host_hip_lock_arrays() {
 #ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
@@ -94,18 +86,12 @@ void initialize_host_hip_lock_arrays() {
   KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(
       &g_host_hip_lock_arrays.atomic,
       sizeof(std::int32_t) * (KOKKOS_IMPL_HIP_SPACE_ATOMIC_MASK + 1)));
-  KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(
-      &g_host_hip_lock_arrays.scratch,
-      sizeof(std::int32_t) * (::Kokkos::Experimental::HIP::concurrency())));
 
   g_host_hip_lock_arrays.n = ::Kokkos::Experimental::HIP::concurrency();
 
   KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE();
   init_lock_array_kernel_atomic<<<
       (KOKKOS_IMPL_HIP_SPACE_ATOMIC_MASK + 1 + 255) / 256, 256, 0, nullptr>>>();
-  init_lock_array_kernel_threadid<<<
-      (::Kokkos::Experimental::HIP::concurrency() + 255) / 256, 256, 0,
-      nullptr>>>(::Kokkos::Experimental::HIP::concurrency());
 }
 
 void finalize_host_hip_lock_arrays() {
@@ -116,9 +102,7 @@ void finalize_host_hip_lock_arrays() {
   if (g_host_hip_lock_arrays.atomic == nullptr) return;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(g_host_hip_lock_arrays.atomic));
   g_host_hip_lock_arrays.atomic = nullptr;
-  KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(g_host_hip_lock_arrays.scratch));
-  g_host_hip_lock_arrays.scratch = nullptr;
-  g_host_hip_lock_arrays.n       = 0;
+  g_host_hip_lock_arrays.n      = 0;
 #ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
   KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE();
 #endif

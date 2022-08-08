@@ -76,7 +76,7 @@ void Ndx2Group::command(int narg, char **arg)
   int len;
   bigint num;
   FILE *fp;
-  std::string name = "", next;
+  std::string name, next;
 
   if (narg < 1) error->all(FLERR,"Illegal ndx2group command");
   if (atom->tag_enable == 0)
@@ -121,7 +121,7 @@ void Ndx2Group::command(int narg, char **arg)
 
     } else {
 
-      while (1) {
+      while (true) {
         MPI_Bcast(&len,1,MPI_INT,0,world);
         if (len < 0) break;
         if (len > 1) {

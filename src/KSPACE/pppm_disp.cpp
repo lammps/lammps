@@ -366,7 +366,7 @@ void PPPMDisp::init()
 
   if (tip4pflag) {
     int itmp;
-    double *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
@@ -456,8 +456,7 @@ void PPPMDisp::init()
     if (order < minorder)
       error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
     if (!overlap_allowed && !gctmp->ghost_adjacent())
-      error->all(FLERR,"PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
     if (gctmp) delete gctmp;
 
     // adjust g_ewald
@@ -538,8 +537,7 @@ void PPPMDisp::init()
       error->all(FLERR,"Dispersion PPPMDisp order has been "
                  "reduced below minorder");
     if (!overlap_allowed && !gctmp->ghost_adjacent())
-      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
     if (gctmp) delete gctmp;
 
     // adjust g_ewald_6
@@ -837,13 +835,11 @@ void PPPMDisp::setup_grid()
 
   if (function[0]) {
     if (!overlap_allowed && !gc->ghost_adjacent())
-      error->all(FLERR,"PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
   }
   if (function[1] + function[2] + function[3]) {
     if (!overlap_allowed && !gc6->ghost_adjacent())
-      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
   }
 
   // pre-compute Green's function denomiator expansion
@@ -1301,7 +1297,7 @@ void PPPMDisp::init_coeffs()
     double **Q=nullptr;
     if (n > 1) {
       // get dispersion coefficients
-      double **b = (double **) force->pair->extract("B",tmp);
+      auto b = (double **) force->pair->extract("B",tmp);
       memory->create(A,n,n,"pppm/disp:A");
       memory->create(Q,n,n,"pppm/disp:Q");
       // fill coefficients to matrix a
@@ -1379,7 +1375,7 @@ void PPPMDisp::init_coeffs()
     // check if the function should preferably be [1] or [2] or [3]
 
     if (nsplit == 1) {
-      if (B) delete [] B;
+      delete[] B;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1392,12 +1388,12 @@ void PPPMDisp::init_coeffs()
         utils::logmesg(lmp,"  Using {} instead of 7 structure factors\n",nsplit);
       //function[3] = 1;
       //function[2] = 0;
-      if (B) delete [] B;   // remove this when un-comment previous 2 lines
+      delete[] B;   // remove this when un-comment previous 2 lines
    }
 
     if (function[2] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
-      if (B) delete [] B;
+      delete[] B;
     }
 
     if (function[3]) {
@@ -1413,15 +1409,15 @@ void PPPMDisp::init_coeffs()
   }
 
   if (function[1]) {                                    // geometric 1/r^6
-    double **b = (double **) force->pair->extract("B",tmp);
+    auto b = (double **) force->pair->extract("B",tmp);
     B = new double[n+1];
     B[0] = 0.0;
     for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
 
   if (function[2]) {                                    // arithmetic 1/r^6
-    double **epsilon = (double **) force->pair->extract("epsilon",tmp);
-    double **sigma = (double **) force->pair->extract("sigma",tmp);
+    auto epsilon = (double **) force->pair->extract("epsilon",tmp);
+    auto sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
       error->all(FLERR,"Epsilon or sigma reference not set by pair style for PPPMDisp");
     double eps_i,sigma_i,sigma_n;
@@ -2961,8 +2957,6 @@ void PPPMDisp::final_accuracy_6(double& acc, double& acc_real, double& acc_kspac
   double qopt = compute_qopt_6();
   acc_kspace = sqrt(qopt/natoms)*csum/(xprd*yprd*zprd_slab);
   acc = sqrt(acc_real*acc_real + acc_kspace*acc_kspace);
-
-  return;
 }
 
 /* ----------------------------------------------------------------------
@@ -6820,7 +6814,7 @@ void PPPMDisp::fieldforce_none_peratom()
 
 void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7333,7 +7327,7 @@ void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7846,7 +7840,7 @@ void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7901,7 +7895,7 @@ void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 

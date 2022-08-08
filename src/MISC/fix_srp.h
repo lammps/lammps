@@ -54,16 +54,13 @@ class FixSRP : public Fix {
 
   double **array;
 
- private:
+ protected:
   int btype;
   int bptype;
+  std::string pair_name;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

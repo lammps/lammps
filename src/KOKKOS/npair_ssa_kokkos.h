@@ -292,7 +292,7 @@ class NPairSSAKokkosExecute
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
   KOKKOS_FUNCTION
-  void build_locals_onePhase(const bool firstTry, int me, int workPhase) const;
+  void build_locals_onePhase(const bool firstTry, int workPhase) const;
 
   KOKKOS_FUNCTION
   void build_ghosts_onePhase(int workPhase) const;
@@ -354,6 +354,3 @@ class NPairSSAKokkosExecute
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

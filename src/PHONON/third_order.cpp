@@ -164,8 +164,8 @@ void ThirdOrder::command(int narg, char **arg)
   folded = 0;
 
   // set Neigborlist attributes to NULL
-  ijnum = NULL;
-  neighbortags = NULL;
+  ijnum = nullptr;
+  neighbortags = nullptr;
 
   // read options from end of input line
   if (style == REGULAR) options(narg-3,&arg[3]);
@@ -287,8 +287,8 @@ void ThirdOrder::calculateMatrix()
   bigint j;
   bigint *firstneigh;
 
-  double *dynmat = new double[dynlenb];
-  double *fdynmat = new double[dynlenb];
+  auto dynmat = new double[dynlenb];
+  auto fdynmat = new double[dynlenb];
   memset(&dynmat[0],0,dynlenb*sizeof(double));
   memset(&fdynmat[0],0,dynlenb*sizeof(double));
 
@@ -485,10 +485,9 @@ void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 void ThirdOrder::update_force()
 {
   neighbor->ago = 0;
-  if ((modify->get_fix_by_id("package_intel")) ? true : false)
-    neighbor->decide();
+  if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
-  int n_post_force = modify->n_post_force;
+  int n_post_force = modify->n_post_force_any;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
 
@@ -620,7 +619,7 @@ void ThirdOrder::create_groupmap()
   bigint natoms = atom->natoms;
   int *recv = new int[comm->nprocs];
   int *displs = new int[comm->nprocs];
-  bigint *temp_groupmap = new bigint[natoms];
+  auto temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
   for (bigint i=1; i<=natoms; i++) {
@@ -629,7 +628,7 @@ void ThirdOrder::create_groupmap()
       gid += 1; // gid at the end of loop is final_Gid
   }
   //create an array of length final_gid
-  bigint *sub_groupmap = new bigint[gid];
+  auto sub_groupmap = new bigint[gid];
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc
@@ -717,8 +716,8 @@ void ThirdOrder::getNeighbortags() {
   }
 
   bigint nbytes = ((bigint) sizeof(bigint)) * sum;
-  bigint *data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
-  bigint *datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  auto data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
+  auto datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
   nbytes = ((bigint) sizeof(bigint *)) * natoms;
   firsttags = (bigint **) memory->smalloc(nbytes, "thirdorder:firsttags");
   neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");

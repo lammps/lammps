@@ -58,6 +58,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  born_matrix_enable = 0;
   single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
@@ -96,6 +97,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   tabinner_disp = sqrt(2.0);
   ftable = nullptr;
   fdisptable = nullptr;
+  trim_flag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -125,6 +127,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   datamask_modify = ALL_MASK;
 
   kokkosable = 0;
+  reverse_comm_device = 0;
   copymode = 0;
 }
 
@@ -202,6 +205,10 @@ void Pair::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nofdotr") == 0) {
       no_virial_fdotr_compute = 1;
       ++iarg;
+    } else if (strcmp(arg[iarg],"neigh/trim") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      trim_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal pair_modify command");
   }
 }
@@ -283,7 +290,7 @@ void Pair::init()
 
   if (!manybody_flag && (comm->me == 0)) {
     const int num_mixed_pairs = atom->ntypes * (atom->ntypes - 1) / 2;
-    utils::logmesg(lmp,"  generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
+    utils::logmesg(lmp,"Generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
                    mixed_count, num_mixed_pairs, mixing_rule_names[mix_flag]);
   }
 }

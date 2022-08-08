@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -17,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_dpd.h"
+
 #include "atom.h"
 #include "error.h"
 
@@ -37,18 +37,17 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "rho dpdTheta uCond uMech uChem uCG uCGnew duChem";
-  fields_copy = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
-  fields_comm = (char *) "dpdTheta uCond uMech uChem";
-  fields_comm_vel = (char *) "dpdTheta uCond uMech uChem";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
-  fields_border_vel = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
-  fields_exchange = (char *) "dpdTheta uCond uMech uChem uCG uCGnew";
-  fields_restart = (char *) "dpdTheta uCond uMech uChem";
-  fields_create = (char *) "rho dpdTheta uCond uMech uChem uCG uCGnew duChem";
-  fields_data_atom = (char *) "id type dpdTheta x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"rho", "dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew", "duChem"};
+  fields_copy = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};
+  fields_comm = {"dpdTheta", "uCond", "uMech", "uChem"};
+  fields_comm_vel = {"dpdTheta", "uCond", "uMech", "uChem"};
+  fields_border = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};
+  fields_border_vel = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};
+  fields_exchange = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};
+  fields_restart = {"dpdTheta", "uCond", "uMech", "uChem"};
+  fields_create = {"rho", "dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew", "duChem"};
+  fields_data_atom = {"id", "type", "dpdTheta", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }
@@ -93,7 +92,6 @@ void AtomVecDPD::data_atom_post(int ilocal)
   uCG[ilocal] = 0.0;
   uCGnew[ilocal] = 0.0;
 
-  if (dpdTheta[ilocal] <= 0)
-    error->one(FLERR,"Internal temperature in Atoms section of date file "
-               "must be > zero");
+  if (dpdTheta[ilocal] <= 0.0)
+    error->one(FLERR, "Internal temperature theta in Atoms section of data file must be > 0.0");
 }

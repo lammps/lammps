@@ -121,7 +121,7 @@ void ReadDump::command(int narg, char **arg)
 
   // reset timestep to nstep
 
-  update->reset_timestep(nstep, true);
+  if (timestepflag) update->reset_timestep(nstep, true);
 
   // counters
 
@@ -233,7 +233,7 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (false) {
+  if (false) {     // NOLINT
     return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS
@@ -286,7 +286,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       if (multiproc) {
         std::string multiname = files[ifile];
         multiname.replace(multiname.find('%'),1,"0");
-        readers[0]->open_file(multiname.c_str());
+        readers[0]->open_file(multiname);
       } else readers[0]->open_file(files[ifile]);
 
       while (true) {
@@ -330,7 +330,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       if (me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
       std::string multiname = files[currentfile];
       multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
-      readers[i]->open_file(multiname.c_str());
+      readers[i]->open_file(multiname);
 
       bigint step;
       while (true) {
@@ -378,7 +378,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
         if (multiproc) {
           std::string multiname = files[ifile];
           multiname.replace(multiname.find('%'),1,"0");
-          readers[0]->open_file(multiname.c_str());
+          readers[0]->open_file(multiname);
         } else readers[0]->open_file(files[ifile]);
       }
 
@@ -432,7 +432,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       if (me == 0 && i == 0) continue;
       std::string multiname = files[currentfile];
       multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
-      readers[i]->open_file(multiname.c_str());
+      readers[i]->open_file(multiname);
 
       bigint step;
       while (true) {
@@ -1078,7 +1078,7 @@ void ReadDump::migrate_old_atoms()
   for (int i = 0; i < nlocal; i++)
     procassign[i] = tag[i] % nprocs;
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1,1,procassign);
   delete irregular;
 
@@ -1101,7 +1101,7 @@ void ReadDump::migrate_new_atoms()
     procassign[i] = mtag % nprocs;
   }
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   int nrecv = irregular->create_data(nnew,procassign,1);
   int newmaxnew = MAX(nrecv,maxnew);
   newmaxnew = MAX(newmaxnew,1);    // avoid null pointer
@@ -1138,7 +1138,7 @@ void ReadDump::migrate_atoms_by_coords()
 
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (triclinic) domain->lamda2x(atom->nlocal);
@@ -1202,6 +1202,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   multiproc_nfile = 0;
   boxflag = 1;
+  timestepflag = 1;
   replaceflag = 1;
   purgeflag = 0;
   trimflag = 0;
@@ -1218,6 +1219,10 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
       boxflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"timestep") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      timestepflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"replace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

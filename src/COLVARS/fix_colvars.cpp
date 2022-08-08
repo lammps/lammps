@@ -38,23 +38,14 @@
 #include "universe.h"
 #include "update.h"
 
-#include "colvarproxy_lammps.h"
-#include "colvarmodule.h"
-
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <vector>
 
-static const char colvars_pub[] =
-  "fix colvars command:\n\n"
-  "@Article{fiorin13,\n"
-  " author =  {G.~Fiorin and M.{\\,}L.~Klein and J.~H{\\'e}nin},\n"
-  " title =   {Using collective variables to drive molecular"
-  " dynamics simulations},\n"
-  " journal = {Mol.~Phys.},\n"
-  " year =    2013,\n"
-  " note =    {doi: 10.1080/00268976.2013.813594}\n"
-  "}\n\n";
+#include "colvarproxy_lammps.h"
+#include "colvarmodule.h"
+
 
 /* struct for packed data communication of coordinates and forces. */
 struct LAMMPS_NS::commdata {
@@ -144,8 +135,6 @@ static void rebuild_table_int(inthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -175,8 +164,6 @@ void inthash_init(inthash_t *tptr, int buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(inthash_node_t **) calloc(tptr->size, sizeof(inthash_node_t *));
-
-  return;
 }
 
 /*
@@ -349,8 +336,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
-
-  if (lmp->citeme) lmp->citeme->add(colvars_pub);
 }
 
 /*********************************
@@ -858,7 +843,6 @@ void FixColvars::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process colvar forces on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -950,7 +934,7 @@ void FixColvars::end_of_step()
 void FixColvars::write_restart(FILE *fp)
 {
   if (me == 0) {
-    std::string rest_text("");
+    std::string rest_text;
     proxy->serialize_status(rest_text);
     // TODO call write_output_files()
     const char *cvm_state = rest_text.c_str();
@@ -978,6 +962,9 @@ void FixColvars::post_run()
 {
   if (me == 0) {
     proxy->post_run();
+    if (lmp->citeme) {
+      lmp->citeme->add(proxy->colvars->feature_report(1));
+    }
   }
 }
 

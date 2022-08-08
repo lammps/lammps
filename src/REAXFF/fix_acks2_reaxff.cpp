@@ -94,8 +94,8 @@ FixACKS2ReaxFF::~FixACKS2ReaxFF()
   memory->destroy(s_hist_X);
   memory->destroy(s_hist_last);
 
-  deallocate_storage();
-  deallocate_matrix();
+  FixACKS2ReaxFF::deallocate_storage();
+  FixACKS2ReaxFF::deallocate_matrix();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,7 +134,7 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     bcut_acks2 = (double *) pair->extract("bcut_acks2",tmp);
-    double* bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
+    auto  bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
 
     if (chi == nullptr || eta == nullptr || gamma == nullptr ||
         bcut_acks2 == nullptr || bond_softness_ptr == nullptr)
@@ -203,7 +203,8 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
 void FixACKS2ReaxFF::allocate_storage()
 {
   nmax = atom->nmax;
-  int size = nmax*2 + 2;
+  NN = atom->nlocal + atom->nghost;
+  const int size = nmax*2 + 2;
 
   // 0 to nn-1: owned atoms related to H matrix
   // nn to NN-1: ghost atoms related to H matrix
@@ -329,17 +330,15 @@ void FixACKS2ReaxFF::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
-  int n = atom->nlocal;
+  NN = atom->nlocal + atom->nghost;
 
   if (reaxff) {
     nn = reaxff->list->inum;
-    NN = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    NN = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -349,7 +348,7 @@ void FixACKS2ReaxFF::pre_force(int /*vflag*/)
   // need to be atom->nmax in length
 
   if (atom->nmax > nmax) reallocate_storage();
-  if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
+  if (atom->nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   if (efield) get_chi_field();
@@ -626,8 +625,7 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
     }
   }
 
-  for (ii = nn; ii < NN; ++ii) {
-    i = ilist[ii];
+  for (i = atom->nlocal; i < NN; ++i) {
     if (atom->mask[i] & groupbit) {
       b[i] = 0;
       b[NN + i] = 0;
@@ -674,37 +672,33 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
 
 void FixACKS2ReaxFF::calculate_Q()
 {
-  int i, k;
+  pack_flag = 2;
+  comm->forward_comm(this); //Dist_vector(s);
 
-  for (int ii = 0; ii < nn; ++ii) {
-    i = ilist[ii];
+  for (int i = 0; i < NN; ++i) {
     if (atom->mask[i] & groupbit) {
 
-      /* backup s */
-      for (k = nprev-1; k > 0; --k) {
-        s_hist[i][k] = s_hist[i][k-1];
-        s_hist_X[i][k] = s_hist_X[i][k-1];
+      atom->q[i] = s[i];
+
+      if (i < atom->nlocal) {
+
+        /* backup s */
+        for (int k = nprev-1; k > 0; --k) {
+          s_hist[i][k] = s_hist[i][k-1];
+          s_hist_X[i][k] = s_hist_X[i][k-1];
+        }
+        s_hist[i][0] = s[i];
+        s_hist_X[i][0] = s[NN+i];
       }
-      s_hist[i][0] = s[i];
-      s_hist_X[i][0] = s[NN+i];
     }
   }
   // last two rows
   if (last_rows_flag) {
     for (int i = 0; i < 2; ++i) {
-      for (k = nprev-1; k > 0; --k)
+      for (int k = nprev-1; k > 0; --k)
         s_hist_last[i][k] = s_hist_last[i][k-1];
       s_hist_last[i][0] = s[2*NN+i];
     }
-  }
-
-  pack_flag = 2;
-  comm->forward_comm(this); //Dist_vector(s);
-
-  for (int ii = 0; ii < NN; ++ii) {
-    i = ilist[ii];
-    if (atom->mask[i] & groupbit)
-      atom->q[i] = s[i];
   }
 }
 

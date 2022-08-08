@@ -35,6 +35,7 @@ class AngleHarmonic : public Angle {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, int, int, int) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k, *theta0;
@@ -46,11 +47,3 @@ class AngleHarmonic : public Angle {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for angle coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -89,7 +89,7 @@ void PairList::compute(int eflag, int vflag)
   const int nlocal = atom->nlocal;
   const int newton_pair = force->newton_pair;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];       // NOLINT
 
   double fpair,epair;
   int i,j;

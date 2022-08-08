@@ -25,7 +25,7 @@ Syntax
        f_ID = global scalar or vector calculated by a fix with ID
        f_ID[I] = Ith component of global vector or Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
        v_name = value(s) calculated by an equal-style or vector-style variable with name
-       v_name[I] = value calculated by a vector-style variable with name
+       v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *mode* or *file* or *ave* or *start* or *off* or *overwrite* or *title1* or *title2* or *title3*
@@ -113,26 +113,37 @@ with a bracketed term appended, indicating the Ith column of the array
 is used.  All vectors must be the same length, which is the length of
 the vector or number of rows in the array.
 
-Note that for values from a compute or fix, the bracketed index I can
-be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*" or
-"m\*n".  If N = the size of the vector (for *mode* = scalar) or the
-number of columns in the array (for *mode* = vector), then an asterisk
-with no numeric values means all indices from 1 to N.  A leading
-asterisk means all indices from 1 to n (inclusive).  A trailing
-asterisk means all indices from n to N (inclusive).  A middle asterisk
-means all indices from m to n (inclusive).
+----------
+
+For input values from a compute or fix or variable, the bracketed
+index I can be specified using a wildcard asterisk with the index to
+effectively specify multiple values.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If N = the size of the vector (for *mode* =
+scalar) or the number of columns in the array (for *mode* = vector),
+then an asterisk with no numeric values means all indices from 1 to N.
+A leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from n to N (inclusive).  A middle
+asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual elements of the
 vector or columns of the array had been listed one by one.  E.g. these
-2 fix ave/time commands are equivalent, since the :doc:`compute rdf <compute_rdf>` command creates, in this case, a global array
-with 3 columns, each of length 50:
+2 fix ave/time commands are equivalent, since the :doc:`compute rdf
+<compute_rdf>` command creates, in this case, a global array with 3
+columns, each of length 50:
 
 .. code-block:: LAMMPS
 
    compute myRDF all rdf 50 1 2
    fix 1 all ave/time 100 1 100 c_myRDF[*] file tmp1.rdf mode vector
    fix 2 all ave/time 100 1 100 c_myRDF[1] c_myRDF[2] c_myRDF[3] file tmp2.rdf mode vector
+
+.. note::
+
+   For a vector-style variable, only the wildcard forms "\*n" or
+   "m\*n" are allowed.  You must specify the upper bound, because
+   vector-style variable lengths are not determined until the variable
+   is evaluated.  If n is specified larger than the vector length
+   turns out to be, zeroes are output for missing vector values.
 
 ----------
 
@@ -169,9 +180,12 @@ asterisk to effectively specify multiple values.
 Note that there is a :doc:`compute reduce <compute_reduce>` command
 which can sum per-atom quantities into a global scalar or vector which
 can thus be accessed by fix ave/time.  Or it can be a compute defined
-not in your input script, but by :doc:`thermodynamic output <thermo_style>` or other fixes such as :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale <fix_temp_rescale>`.  See
-the doc pages for these commands which give the IDs of these computes.
-Users can also write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
+not in your input script, but by :doc:`thermodynamic output
+<thermo_style>` or other fixes such as :doc:`fix nvt <fix_nh>` or
+:doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
+these commands which give the IDs of these computes.  Users can also
+write code for their own compute styles and :doc:`add them to LAMMPS
+<Modify>`.
 
 If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
@@ -258,10 +272,20 @@ each input value specified in the fix ave/time command.  For *mode* =
 scalar, this means a single line is written each time output is
 performed.  Thus the file ends up to be a series of lines, i.e. one
 column of numbers for each input value.  For *mode* = vector, an array
-of numbers is written each time output is performed.  The number of
-rows is the length of the input vectors, and the number of columns is
-the number of values.  Thus the file ends up to be a series of these
-array sections.
+of numbers is written each time output is performed.  The number of rows
+is the length of the input vectors, and the number of columns is the
+number of values.  Thus the file ends up to be a series of these array
+sections.
+
+.. versionadded:: 4May2022
+
+If the filename ends in '.yaml' or '.yml' then the output format
+conforms to the `YAML standard <https://yaml.org/>`_ which allows
+easy import that data into tools and scripts that support reading YAML
+files. The :doc:`structured data Howto <Howto_structured_data>` contains
+examples for parsing and plotting such data with very little programming
+effort in Python using the *pyyaml*, *pandas*, and *matplotlib*
+packages.
 
 The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
@@ -307,8 +331,12 @@ appropriate fields from the fix ave/time command.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+.. versionadded:: 4May2022
+
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  The :doc:`fix_modify colname <fix_modify>` option can be
+used to change the name of the column in the output file.  When writing
+a YAML format file this name will be in the list of keywords.
 
 This fix produces a global scalar or global vector or global array
 which can be accessed by various :doc:`output commands <Howto_output>`.

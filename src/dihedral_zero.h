@@ -50,15 +50,3 @@ class DihedralZero : public Dihedral {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Incorrect args for dihedral coefficients
-
-UNDOCUMENTED
-
-*/

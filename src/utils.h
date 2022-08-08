@@ -21,7 +21,7 @@
 
 #include <mpi.h>
 
-#include <vector> // IWYU pragma: export
+#include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -47,6 +47,17 @@ namespace utils {
 
   std::string strfind(const std::string &text, const std::string &pattern);
 
+  /*! Print error message about missing arguments for command
+   *
+   * This function simplifies the repetitive reporting missing arguments to a command.
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param cmd      name of the failing command
+   *  \param error    pointer to Error class instance (for abort) or nullptr */
+
+  void missing_cmd_args(const std::string &file, int line, const std::string &cmd, Error *error);
+
   /* Internal function handling the argument list for logmesg(). */
 
   void fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_args args);
@@ -62,9 +73,9 @@ namespace utils {
    *  \param format format string of message to be printed
    *  \param args   arguments to format string */
 
-  template <typename S, typename... Args> void logmesg(LAMMPS *lmp, const S &format, Args &&...args)
+  template <typename... Args> void logmesg(LAMMPS *lmp, const std::string &format, Args &&...args)
   {
-    fmtargs_logmesg(lmp, format, fmt::make_args_checked<Args...>(format, args...));
+    fmtargs_logmesg(lmp, format, fmt::make_format_args(args...));
   }
 
   /*! \overload
@@ -73,6 +84,18 @@ namespace utils {
    *  \param mesg   string with message to be printed */
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
+
+  /*! Return text redirecting the user to a specific paragraph in the manual
+   *
+   * The LAMMPS manual contains detailed detailed explanations for errors and
+   * warnings where a simple error message may not be sufficient.  These can
+   * be reached through URLs with a numeric code.  This function creates the
+   * corresponding text to be included into the error message that redirects
+   * the user to that URL.
+   *
+   *  \param errorcode   number pointing to a paragraph in the manual */
+
+  std::string errorurl(int errorcode);
 
   /*! Flush output buffers
    *
@@ -368,12 +391,26 @@ namespace utils {
 
   std::string trim(const std::string &line);
 
-  /*! Return string with anything from '#' onward removed
+  /*! Return string with anything from the first '#' character onward removed
    *
    * \param line  string that should be trimmed
    * \return new string without comment (string) */
 
   std::string trim_comment(const std::string &line);
+
+  /*! Replace first '*' character in a string with a number, optionally zero-padded
+   *
+   * If there is no '*' character in the string, return the original string.
+   * If the number requires more characters than the value of the *pad*
+   * argument, do not add zeros; otherwise add as many zeroes as needed to
+   * the left to make the the number representation *pad* characters wide.
+   *
+   * \param name  string with file containing a '*' (or not)
+   * \param step  step number to replace the (first) '*'
+   * \param pad   zero-padding (may be zero)
+   * \return  processed string */
+
+  std::string star_subst(const std::string &name, bigint step, int pad);
 
   /*! Check if a string will likely have UTF-8 encoded characters
    *
@@ -448,6 +485,17 @@ namespace utils {
    * \return number of words found */
 
   size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
+
+  /*! Take list of words and join them with a given separator text.
+   *
+   * This is the inverse operation of what the split_words() function
+   * Tokenizer classes do.
+   *
+   * \param words  STL vector with strings
+   * \param sep    separator string (may be empty)
+   * \return  string with the concatenated words and separators */
+
+  std::string join_words(const std::vector<std::string> &words, const std::string &sep);
 
   /*! Take text and split into non-whitespace words.
    *
@@ -633,7 +681,3 @@ namespace utils {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

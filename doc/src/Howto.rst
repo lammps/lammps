@@ -22,8 +22,9 @@ General howto
    Howto_replica
    Howto_library
    Howto_couple
-   Howto_client_server
    Howto_mdi
+   Howto_bpm
+   Howto_broken_bonds
 
 Settings howto
 ==============
@@ -65,6 +66,7 @@ Force fields howto
    :maxdepth: 1
 
    Howto_bioFF
+   Howto_amoeba
    Howto_tip3p
    Howto_tip4p
    Howto_spc

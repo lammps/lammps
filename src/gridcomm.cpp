@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "irregular.h"
+#include "pair.h"
 #include "kspace.h"
 #include "fix.h"
 #include "memory.h"
@@ -609,10 +610,9 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
     }
   }
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   int nrecv_request = irregular->create_data(nsend_request,proclist,1);
-  Request *rrequest =
-    (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridComm:rrequest");
+  auto rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridComm:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
 
@@ -620,8 +620,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
   // overlap box used to setup my Send data struct and respond to requests
 
   send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"GridComm:send");
-  sresponse = (Response *)
-    memory->smalloc(nrecv_request*sizeof(Response),"GridComm:sresponse");
+  sresponse = (Response *) memory->smalloc(nrecv_request*sizeof(Response),"GridComm:sresponse");
   memory->destroy(proclist);
   memory->create(proclist,nrecv_request,"GridComm:proclist");
 
@@ -652,8 +651,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   int nsend_response = nrecv_request;
   int nrecv_response = irregular->create_data(nsend_response,proclist,1);
-  Response *rresponse =
-    (Response *) memory->smalloc(nrecv_response*sizeof(Response),"GridComm:rresponse");
+  auto rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"GridComm:rresponse");
   irregular->exchange_data((char *) sresponse,sizeof(Response),(char *) rresponse);
   irregular->destroy_data();
   delete irregular;
@@ -938,12 +936,18 @@ void GridComm::forward_comm(int caller, void *ptr, int nper, int nbyte, int whic
     if (caller == KSPACE)
       forward_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
                                    buf1,buf2,datatype);
+    else if (caller == PAIR)
+      forward_comm_regular<Pair>((Pair *) ptr,nper,nbyte,which,
+                                   buf1,buf2,datatype);
     else if (caller == FIX)
       forward_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
                                 buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       forward_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                 buf1,buf2,datatype);
+    else if (caller == PAIR)
+      forward_comm_tiled<Pair>((Pair *) ptr,nper,nbyte,which,
                                  buf1,buf2,datatype);
     else if (caller == FIX)
       forward_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,
@@ -992,7 +996,7 @@ forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
 {
   int i,m,offset;
 
-  char *buf2 = (char *) vbuf2;
+  auto buf2 = (char *) vbuf2;
 
   // post all receives
 
@@ -1037,12 +1041,18 @@ void GridComm::reverse_comm(int caller, void *ptr, int nper, int nbyte, int whic
     if (caller == KSPACE)
       reverse_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
                                    buf1,buf2,datatype);
+    else if (caller == PAIR)
+      reverse_comm_regular<Pair>((Pair *) ptr,nper,nbyte,which,
+                                   buf1,buf2,datatype);
     else if (caller == FIX)
       reverse_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
                                 buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       reverse_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                 buf1,buf2,datatype);
+    else if (caller == PAIR)
+      reverse_comm_tiled<Pair>((Pair *) ptr,nper,nbyte,which,
                                  buf1,buf2,datatype);
     else if (caller == FIX)
       reverse_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,which,
@@ -1091,7 +1101,7 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 {
   int i,m,offset;
 
-  char *buf2 = (char *) vbuf2;
+  auto buf2 = (char *) vbuf2;
 
   // post all receives
 

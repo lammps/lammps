@@ -36,7 +36,7 @@ class DumpAtom : public Dump {
   int scale_flag;    // 1 if atom coords are scaled, 0 if no
   int image_flag;    // 1 if append box count to atom coords, 0 if no
 
-  char *columns;    // column labels
+  std::string columns;    // column labels
 
   void init_style() override;
   int modify_param(int, char **) override;
@@ -86,13 +86,3 @@ class DumpAtom : public Dump {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

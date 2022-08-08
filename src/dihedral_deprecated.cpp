@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,7 +22,6 @@
 #include "error.h"
 #include "force.h"
 
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -36,15 +34,15 @@ void DihedralDeprecated::settings(int, char **)
   // so when this is called, our style was just added at the end
   // of the list of substyles
 
-  if (utils::strmatch(my_style,"^hybrid")) {
-    DihedralHybrid *hybrid = (DihedralHybrid *)force->dihedral;
+  if (utils::strmatch(my_style, "^hybrid")) {
+    auto hybrid = dynamic_cast<DihedralHybrid *>(force->dihedral);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
   if (my_style == "DEPRECATED") {
     if (lmp->comm->me == 0)
-      utils::logmesg(lmp,"\nDihedral style 'DEPRECATED' is a dummy style\n\n");
+      utils::logmesg(lmp, "\nDihedral style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR,"This dihedral style is no longer available");
+  error->all(FLERR, "This dihedral style is no longer available");
 }

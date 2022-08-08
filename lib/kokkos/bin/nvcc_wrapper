@@ -149,11 +149,16 @@ do
   *.cpp|*.cxx|*.cc|*.C|*.c++|*.cu)
     cpp_files="$cpp_files $1"
     ;;
-   # Ensure we only have one optimization flag because NVCC doesn't allow muliple
+   # Ensure we only have one optimization flag because NVCC doesn't allow multiple
   -O*)
     if [ -n "$optimization_flag" ]; then
-       echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-O*), only the last is used because nvcc can only accept a single optimization setting."
-       shared_args=${shared_args/ $optimization_flag/}
+        if [ "$1" = "$optimization_flag" ]; then
+            # Silently consume duplicates of the same argument
+            shift
+            continue
+        fi
+        echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-O*), only the last is used because nvcc can only accept a single optimization setting."
+        shared_args=${shared_args/ $optimization_flag/}
     fi
     if [ "$1" = "-O" ]; then
       optimization_flag="-O2"
@@ -222,7 +227,7 @@ do
     fi
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|--verbose|--keep|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
@@ -230,10 +235,10 @@ do
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
-  -maxrregcount=*|--maxrregcount=*|-time=*)
+  -maxrregcount=*|--maxrregcount=*|-time=*|-Xptxas=*)
     cuda_args="$cuda_args $1"
     ;;
-  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include|-time)
+  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include|-time|-Xptxas)
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
@@ -301,13 +306,13 @@ do
   -A)
     ;;
 
-  #strip of -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
+  #strip off -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
   -std=c++98|--std=c++98)
     ;;
-  #strip of pedantic because it produces endless warnings about #LINE added by the preprocessor
-  -pedantic|-Wpedantic|-ansi)
+  #strip off pedantic because it produces endless warnings about #LINE added by the preprocessor
+  -pedantic|-pedantic-errors|-Wpedantic|-ansi)
     ;;
-  #strip of -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
+  #strip off -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
   -Woverloaded-virtual)
     ;;
   #strip -Xcompiler because we add it

@@ -69,9 +69,6 @@ class UCL_Texture {
 
   /// Make a texture reference available to kernel
   inline void allow(UCL_Kernel &kernel) {
-    #if CUDA_VERSION < 4000
-    CU_SAFE_CALL(cuParamSetTexRef(kernel._kernel, CU_PARAM_TR_DEFAULT, _tex));
-    #endif
   }
 
  private:

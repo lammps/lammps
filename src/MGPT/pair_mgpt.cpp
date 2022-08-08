@@ -256,7 +256,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
   t_make_b += t1-t0;
 
   t0 = gettime();
-  if (bij != nullptr && bij != nullptr) {
+  if (bij != nullptr && bik != nullptr) {
     tptr = twork;
     make_triplet(bij,bik,tptr);
     *dvir_ij_p = bij->fl_deriv_sum;

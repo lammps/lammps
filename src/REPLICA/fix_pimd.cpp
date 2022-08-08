@@ -614,8 +614,7 @@ void FixPIMD::comm_init()
   }
 
   if (buf_beads) {
-    for (int i = 0; i < np; i++)
-      if (buf_beads[i]) delete[] buf_beads[i];
+    for (int i = 0; i < np; i++) delete[] buf_beads[i];
     delete[] buf_beads;
   }
 
@@ -678,8 +677,8 @@ void FixPIMD::comm_exec(double **ptr)
       if (index < 0) {
         auto mesg = fmt::format("Atom {} is missing at world [{}] rank [{}] "
                                 "required by rank [{}] ({}, {}, {}).\n",
-                                tag_send[i], universe->iworld, comm->me,
-                                plan_recv[iplan], atom->tag[0], atom->tag[1], atom->tag[2]);
+                                tag_send[i], universe->iworld, comm->me, plan_recv[iplan],
+                                atom->tag[0], atom->tag[1], atom->tag[2]);
         error->universe_one(FLERR, mesg);
       }
 

@@ -27,6 +27,7 @@ class CommKokkos : public CommBrick {
   bool exchange_comm_classic;
   bool forward_comm_classic;
   bool forward_pair_comm_classic;
+  bool reverse_pair_comm_classic;
   bool forward_fix_comm_classic;
   bool reverse_comm_classic;
   bool exchange_comm_on_host;
@@ -37,6 +38,8 @@ class CommKokkos : public CommBrick {
   ~CommKokkos() override;
   void init() override;
 
+  using CommBrick::forward_comm;
+  using CommBrick::reverse_comm;
   void forward_comm(int dummy = 0) override;    // forward comm of atom coords
   void reverse_comm() override;                 // reverse comm of atom coords
   void exchange() override;                     // move atoms to new procs
@@ -56,6 +59,7 @@ class CommKokkos : public CommBrick {
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_device(Pair *pair);
+  template<class DeviceType> void reverse_comm_device(Pair *pair);
   template<class DeviceType> void forward_comm_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
@@ -98,24 +102,3 @@ class CommKokkos : public CommBrick {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Ghost velocity forward comm not yet implemented with Kokkos
-
-This is a current restriction.
-
-W: Fixes cannot yet send data in Kokkos communication, switching to classic communication
-
-This is a current restriction with Kokkos.
-
-W: Required border comm not yet implemented in Kokkos communication, switching to classic communication
-
-There are various limitations in the communication options supported
-by Kokkos.
-
-E: Required border comm not yet implemented with Kokkos
-
-There are various limitations in the communication options supported
-by Kokkos.
-
-*/

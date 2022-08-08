@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
@@ -28,20 +29,13 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
-
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
+using namespace EwaldConst;
+using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *lmp) :
-    PairLJCutCoulLongDielectric(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *_lmp) :
+    PairLJCutCoulLongDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
 }
 
@@ -112,11 +106,11 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
 
   evdwl = ecoul = 0.0;
 
-  const dbl3_t *_noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t *_noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto *_noalias const x = (dbl3_t *) atom->x[0];
+  auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
   const double *_noalias const q = atom->q;
   const double *_noalias const eps = atom->epsilon;
-  const dbl3_t *_noalias const norm = (dbl3_t *) atom->mu[0];
+  const auto *_noalias const norm = (dbl3_t *) atom->mu[0];
   const double *_noalias const curvature = atom->curvature;
   const double *_noalias const area = atom->area;
   const int *_noalias const type = atom->type;
@@ -184,7 +178,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
             forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
-            prefactorE = q[j] / r;
+            prefactorE = qqrd2e * q[j] / r;
             efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
             if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
             epot_i = efield_i;
@@ -203,7 +197,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
               prefactor = qtmp * q[j] * table;
               forcecoul -= (1.0 - factor_coul) * prefactor;
 
-              prefactorE = q[j] * table / qqrd2e;
+              prefactorE = q[j] * table;
               efield_i -= (1.0 - factor_coul) * prefactorE;
             }
             epot_i = efield_i;

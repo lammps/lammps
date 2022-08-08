@@ -38,7 +38,3 @@ class FixHyper : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

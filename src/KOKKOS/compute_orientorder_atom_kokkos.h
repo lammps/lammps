@@ -71,6 +71,7 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   void init() override;
   void compute_peratom() override;
   t_sna_1i d_qlist;
+  t_sna_1d d_qnormfac,d_qnormfac2;
 
   template<class TagStyle>
   void check_team_size_for(int, int&, int);
@@ -127,8 +128,8 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   KOKKOS_INLINE_FUNCTION
   double associated_legendre(int, int, double) const;
 
-  void init_clebsch_gordan() override;
-  t_sna_1d d_cglist;                     // Clebsch-Gordan coeffs
+  void init_wigner3j() override;
+  t_sna_1d d_w3jlist;                     // Wigner coeffs
 };
 
 }
@@ -136,6 +137,3 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

@@ -37,6 +37,7 @@ namespace user_manifold {
     int nparams() override { return NPARAMS; }
 
     void post_param_init() override;
+
    private:
     void init_domains();
 

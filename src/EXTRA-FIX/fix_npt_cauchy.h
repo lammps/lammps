@@ -149,24 +149,23 @@ class FixNPTCauchy : public Fix {
   void nh_omega_dot();
 
   // Implementation of CauchyStat
-  char *id_store;                // fix id of the STORE fix for retaining data
-  class FixStore *init_store;    // fix pointer to STORE fix
-  double H0[3][3];               // shape matrix for the undeformed cell
-  double h_old[6];               // previous time step shape matrix for
-                                 // the undeformed cell
-  double invH0[3][3];            // inverse of H0;
-  double CSvol0;                 // volume of undeformed cell
-  double setPK[3][3];            // current set values of the PK stress
-                                 // (this is modified until the cauchy
-                                 // stress converges)
-  double alpha;                  // integration parameter for the cauchystat
-  int initPK;                    // 1 if setPK needs to be initialized either
-                                 // from cauchy or restart, else 0
-  int restartPK;                 // Read PK stress from the previous run
-  int restart_stored;            // values of PK stress from the previous step stored
-  int initRUN;                   // 0 if run not initialized
-                                 // (pressure->vector not computed yet),
-                                 // else 1 (pressure->vector available)
+  char *id_store;                      // fix id of the STORE fix for retaining data
+  class FixStoreGlobal *init_store;    // fix pointer to STORE fix
+  double H0[3][3];                     // shape matrix for the undeformed cell
+  double h_old[6];                     // previous time step shape matrix for
+                                       // the undeformed cell
+  double invH0[3][3];                  // inverse of H0;
+  double CSvol0;                       // volume of undeformed cell
+  double setPK[3][3];                  // current set values of the PK stress
+                                       // (this is modified until the cauchy
+                                       // stress converges)
+  double alpha;                        // integration parameter for the cauchystat
+  int initPK;                          // 1 if setPK needs to be initialized either
+                                       // from cauchy or restart, else 0
+  int restartPK;                       // Read PK stress from the previous run
+  int initRUN;                         // 0 if run not initialized
+                                       // (pressure->vector not computed yet),
+                                       // else 1 (pressure->vector available)
 
   void CauchyStat_init();
   void CauchyStat_cleanup();
@@ -180,136 +179,3 @@ class FixNPTCauchy : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Target temperature for fix npt/cauchy cannot be 0.0
-
-Self-explanatory.
-
-E: Invalid fix npt/cauchy command for a 2d simulation
-
-Cannot control z dimension in a 2d model.
-
-E: Fix npt/cauchy dilate group ID does not exist
-
-Self-explanatory.
-
-E: Invalid fix npt/cauchy command pressure settings
-
-If multiple dimensions are coupled, those dimensions must be
-specified.
-
-E: Cannot use fix npt/cauchy on a non-periodic dimension
-
-When specifying a diagonal pressure component, the dimension must be
-periodic.
-
-E: Cannot use fix npt/cauchy on a 2nd non-periodic dimension
-
-When specifying an off-diagonal pressure component, the 2nd of the two
-dimensions must be periodic.  E.g. if the xy component is specified,
-then the y dimension must be periodic.
-
-E: Cannot use fix npt/cauchy with yz scaling when z is non-periodic dimension
-
-The 2nd dimension in the barostatted tilt factor must be periodic.
-
-E: Cannot use fix npt/cauchy with xz scaling when z is non-periodic dimension
-
-The 2nd dimension in the barostatted tilt factor must be periodic.
-
-E: Cannot use fix npt/cauchy with xy scaling when y is non-periodic dimension
-
-The 2nd dimension in the barostatted tilt factor must be periodic.
-
-E: Cannot use fix npt/cauchy with both yz dynamics and yz scaling
-
-Self-explanatory.
-
-E: Cannot use fix npt/cauchy with both xz dynamics and xz scaling
-
-Self-explanatory.
-
-E: Cannot use fix npt/cauchy with both xy dynamics and xy scaling
-
-Self-explanatory.
-
-E: Can not specify Pxy/Pxz/Pyz in fix npt/cauchy with non-triclinic box
-
-Only triclinic boxes can be used with off-diagonal pressure components.
-See the region prism command for details.
-
-E: Invalid fix npt/cauchy pressure settings
-
-Settings for coupled dimensions must be the same.
-
-E: Using update dipole flag requires atom style sphere
-
-Self-explanatory.
-
-E: Using update dipole flag requires atom attribute mu
-
-Self-explanatory.
-
-E: Fix npt/cauchy damping parameters must be > 0.0
-
-Self-explanatory.
-
-E: Cannot use fix npt/cauchy and fix deform on same component of stress tensor
-
-This would be changing the same box dimension twice.
-
-E: Temperature ID for fix npt/cauchy does not exist
-
-Self-explanatory.
-
-E: Pressure ID for fix npt/cauchy does not exist
-
-Self-explanatory.
-
-E: Non-numeric pressure - simulation unstable
-
-UNDOCUMENTED
-
-E: Fix npt/cauchy has tilted box too far in one step - periodic cell is too far from equilibrium state
-
-Self-explanatory.  The change in the box tilt is too extreme
-on a short timescale.
-
-E: Could not find fix_modify temperature ID
-
-The compute ID for computing temperature does not exist.
-
-E: Fix_modify temperature ID does not compute temperature
-
-The compute ID assigned to the fix must compute temperature.
-
-W: Temperature for fix modify is not for group all
-
-The temperature compute is being used with a pressure calculation
-which does operate on group all, so this may be inconsistent.
-
-E: Pressure ID for fix modify does not exist
-
-Self-explanatory.
-
-E: Could not find fix_modify pressure ID
-
-The compute ID for computing pressure does not exist.
-
-E: Fix_modify pressure ID does not compute pressure
-
-The compute ID assigned to the fix must compute pressure.
-
-U: The dlm flag must be used with update dipole
-
-Self-explanatory.
-
-*/

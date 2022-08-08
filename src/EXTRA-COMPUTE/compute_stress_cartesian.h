@@ -41,30 +41,10 @@ class ComputeStressCartesian : public Compute {
   double *dens, *pkxx, *pkyy, *pkzz, *pcxx, *pcyy, *pczz;
   double *tdens, *tpkxx, *tpkyy, *tpkzz, *tpcxx, *tpcyy, *tpczz;
   class NeighList *list;
-  void compute_pressure_1d(double, double, double, double, double, double);
-  void compute_pressure_2d(double, double, double, double, double, double, double, double);
+  void compute_pressure(double, double, double, double, double, double);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: No pair style is defined for compute stress/cartesian
-
-Self-explanatory.
-
-E: Pair style does not support compute stress/cartesian
-
-The pair style does not have a single() function, so it can
-not be invoked by compute stress/cartesian.
-
-*/

@@ -642,25 +642,21 @@ struct SubviewExtents {
     error(buf + n, buf_len - n, domain_rank + 1, range_rank + 1, dim, args...);
   }
 
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
   template <size_t... DimArgs, class... Args>
   KOKKOS_FORCEINLINE_FUNCTION void error(const ViewDimension<DimArgs...>& dim,
                                          Args... args) const {
-    enum { LEN = 1024 };
-    char buffer[LEN];
+    KOKKOS_IF_ON_HOST(
+        (enum {LEN = 1024}; char buffer[LEN];
 
-    const int n = snprintf(buffer, LEN, "Kokkos::subview bounds error (");
-    error(buffer + n, LEN - n, 0, 0, dim, args...);
+         const int n = snprintf(buffer, LEN, "Kokkos::subview bounds error (");
+         error(buffer + n, LEN - n, 0, 0, dim, args...);
 
-    Kokkos::Impl::throw_runtime_exception(std::string(buffer));
+         Kokkos::Impl::throw_runtime_exception(std::string(buffer));))
+
+    KOKKOS_IF_ON_DEVICE(((void)dim;
+                         Kokkos::abort("Kokkos::subview bounds error");
+                         [](Args...) {}(args...);))
   }
-#else
-  template <size_t... DimArgs, class... Args>
-  KOKKOS_FORCEINLINE_FUNCTION void error(const ViewDimension<DimArgs...>&,
-                                         Args...) const {
-    Kokkos::abort("Kokkos::subview bounds error");
-  }
-#endif
 
 #else
 
@@ -1009,15 +1005,15 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -1030,23 +1026,24 @@ struct ViewOffset<
     return m_dim.N0;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_2() const {
-    return m_dim.N0 * m_dim.N1;
+    return size_type(m_dim.N0) * m_dim.N1;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_3() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_4() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_5() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_6() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5;
   }
   KOKKOS_INLINE_FUNCTION constexpr size_type stride_7() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6;
   }
 
   // Stride with [ rank ] value is the total length
@@ -1292,8 +1289,8 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
@@ -1637,15 +1634,15 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -1920,14 +1917,14 @@ struct ViewOffset<
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 *
+           m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
   /* Span of the range space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return size() > 0 ? m_dim.N0 * m_stride : 0;
+    return size() > 0 ? size_type(m_dim.N0) * m_stride : 0;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -2070,27 +2067,29 @@ struct ViewOffset<
                 stride(/* 2 <= rank */
                        m_dim.N1 *
                        (dimension_type::rank == 2
-                            ? 1
+                            ? size_t(1)
                             : m_dim.N2 *
                                   (dimension_type::rank == 3
-                                       ? 1
+                                       ? size_t(1)
                                        : m_dim.N3 *
                                              (dimension_type::rank == 4
-                                                  ? 1
+                                                  ? size_t(1)
                                                   : m_dim.N4 *
                                                         (dimension_type::rank ==
                                                                  5
-                                                             ? 1
+                                                             ? size_t(1)
                                                              : m_dim.N5 *
                                                                    (dimension_type::
                                                                                 rank ==
                                                                             6
-                                                                        ? 1
+                                                                        ? size_t(
+                                                                              1)
                                                                         : m_dim.N6 *
                                                                               (dimension_type::
                                                                                            rank ==
                                                                                        7
-                                                                                   ? 1
+                                                                                   ? size_t(
+                                                                                         1)
                                                                                    : m_dim
                                                                                          .N7)))))))) {
   }
@@ -2449,8 +2448,10 @@ struct ViewOffset<Dimension, Kokkos::LayoutStride, void> {
   /* Cardinality of the domain index space */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type size() const {
-    return m_dim.N0 * m_dim.N1 * m_dim.N2 * m_dim.N3 * m_dim.N4 * m_dim.N5 *
-           m_dim.N6 * m_dim.N7;
+    return dimension_type::rank == 0
+               ? 1
+               : size_type(m_dim.N0) * m_dim.N1 * m_dim.N2 * m_dim.N3 *
+                     m_dim.N4 * m_dim.N5 * m_dim.N6 * m_dim.N7;
   }
 
  private:
@@ -2463,16 +2464,19 @@ struct ViewOffset<Dimension, Kokkos::LayoutStride, void> {
   /* Span of the range space, largest stride * dimension */
   KOKKOS_INLINE_FUNCTION
   constexpr size_type span() const {
-    return size() == size_type(0)
-               ? size_type(0)
-               : Max(m_dim.N0 * m_stride.S0,
-                     Max(m_dim.N1 * m_stride.S1,
-                         Max(m_dim.N2 * m_stride.S2,
-                             Max(m_dim.N3 * m_stride.S3,
-                                 Max(m_dim.N4 * m_stride.S4,
-                                     Max(m_dim.N5 * m_stride.S5,
-                                         Max(m_dim.N6 * m_stride.S6,
-                                             m_dim.N7 * m_stride.S7)))))));
+    return dimension_type::rank == 0
+               ? 1
+               : (size() == size_type(0)
+                      ? size_type(0)
+                      : Max(m_dim.N0 * m_stride.S0,
+                            Max(m_dim.N1 * m_stride.S1,
+                                Max(m_dim.N2 * m_stride.S2,
+                                    Max(m_dim.N3 * m_stride.S3,
+                                        Max(m_dim.N4 * m_stride.S4,
+                                            Max(m_dim.N5 * m_stride.S5,
+                                                Max(m_dim.N6 * m_stride.S6,
+                                                    m_dim.N7 *
+                                                        m_stride.S7))))))));
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool span_is_contiguous() const {
@@ -2930,10 +2934,11 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
       uint64_t kpID = 0;
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         functor_name =
-            (destroy ? "Kokkos::View::destruction [" + name + "]"
-                     : "Kokkos::View::initialization [" + name + "]");
-        Kokkos::Tools::Impl::begin_parallel_for(policy, *this, functor_name,
-                                                kpID);
+            (destroy ? "Kokkos::View::destruction [" + functor_name + "]"
+                     : "Kokkos::View::initialization [" + functor_name + "]");
+        Kokkos::Profiling::beginParallelFor(
+            "Kokkos::View::initialization [" + functor_name + "]",
+            Kokkos::Profiling::Experimental::device_id(space), &kpID);
       }
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -2947,8 +2952,7 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
       closure.execute();
       space.fence("Kokkos::Impl::ViewValueFunctor: View init/destroy fence");
       if (Kokkos::Profiling::profileLibraryLoaded()) {
-        Kokkos::Tools::Impl::end_parallel_for(policy, *this, functor_name,
-                                              kpID);
+        Kokkos::Profiling::endParallelFor(kpID);
       }
     } else {
       for (size_t i = 0; i < n; ++i) operator()(i);
@@ -3027,8 +3031,9 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
       std::string functor_name = "Kokkos::View::initialization [" + name + "]";
       uint64_t kpID            = 0;
       if (Kokkos::Profiling::profileLibraryLoaded()) {
-        Kokkos::Tools::Impl::begin_parallel_for(policy, *this, functor_name,
-                                                kpID);
+        Kokkos::Profiling::beginParallelFor(
+            "Kokkos::View::initialization [" + name + "]",
+            Kokkos::Profiling::Experimental::device_id(space), &kpID);
       }
 #ifdef KOKKOS_ENABLE_CUDA
       if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
@@ -3042,8 +3047,7 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
       space.fence(
           "Kokkos::Impl::ViewValueFunctor: Fence after setting values in view");
       if (Kokkos::Profiling::profileLibraryLoaded()) {
-        Kokkos::Tools::Impl::end_parallel_for(policy, *this, functor_name,
-                                              kpID);
+        Kokkos::Profiling::endParallelFor(kpID);
       }
     } else {
       for (size_t i = 0; i < n; ++i) operator()(i);
@@ -3901,8 +3905,6 @@ inline void view_error_operator_bounds(char* buf, int len, const MapType& map,
   view_error_operator_bounds<R + 1>(buf + n, len - n, map, args...);
 }
 
-#if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-
 /* Check #3: is the View managed as determined by the MemoryTraits? */
 template <class MapType, bool is_managed = (MapType::is_managed != 0)>
 struct OperatorBoundsErrorOnDevice;
@@ -3958,34 +3960,29 @@ KOKKOS_FUNCTION
   OperatorBoundsErrorOnDevice<Map>::run(map);
 }
 
-#endif  // ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-
 template <class MemorySpace, class ViewType, class MapType, class... Args>
 KOKKOS_INLINE_FUNCTION void view_verify_operator_bounds(
     Kokkos::Impl::ViewTracker<ViewType> const& tracker, const MapType& map,
     Args... args) {
   if (!view_verify_operator_bounds<0>(map, args...)) {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    enum { LEN = 1024 };
-    char buffer[LEN];
-    const std::string label =
-        tracker.m_tracker.template get_label<MemorySpace>();
-    int n =
-        snprintf(buffer, LEN, "View bounds error of view %s (", label.c_str());
-    view_error_operator_bounds<0>(buffer + n, LEN - n, map, args...);
-    Kokkos::Impl::throw_runtime_exception(std::string(buffer));
-#else
-    /* Check #1: is there a SharedAllocationRecord?
-       (we won't use it, but if its not there then there isn't
-        a corresponding SharedAllocationHeader containing a label).
-       This check should cover the case of Views that don't
-       have the Unmanaged trait but were initialized by pointer. */
-    if (tracker.m_tracker.has_record()) {
-      operator_bounds_error_on_device(map);
-    } else {
-      Kokkos::abort("View bounds error");
-    }
-#endif
+    KOKKOS_IF_ON_HOST(
+        (enum {LEN = 1024}; char buffer[LEN];
+         const std::string label =
+             tracker.m_tracker.template get_label<MemorySpace>();
+         int n = snprintf(buffer, LEN, "View bounds error of view %s (",
+                          label.c_str());
+         view_error_operator_bounds<0>(buffer + n, LEN - n, map, args...);
+         Kokkos::Impl::throw_runtime_exception(std::string(buffer));))
+
+    KOKKOS_IF_ON_DEVICE((
+        /* Check #1: is there a SharedAllocationRecord?
+           (we won't use it, but if its not there then there isn't
+            a corresponding SharedAllocationHeader containing a label).
+           This check should cover the case of Views that don't
+           have the Unmanaged trait but were initialized by pointer. */
+        if (tracker.m_tracker.has_record()) {
+          operator_bounds_error_on_device(map);
+        } else { Kokkos::abort("View bounds error"); }))
   }
 }
 

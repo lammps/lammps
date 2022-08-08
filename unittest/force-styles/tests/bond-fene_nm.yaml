@@ -18,7 +18,7 @@ bond_coeff: ! |
   5 450 2   0.018 1   12 6
 equilibrium: 5 1.455 1.067 1.261 1.164 0.97
 extract: ! |
-  kappa 1
+  k 1
   r0 1
 natoms: 29
 init_energy: 7104.538647187164

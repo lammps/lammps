@@ -62,30 +62,3 @@ class PairMM3Switch3CoulGaussLong : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style mm3/switch3/coulgauss/long requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-E: Pair cutoff < Respa interior cutoff
-
-One or more pairwise cutoffs are too short to use with the specified
-rRESPA cutoffs.
-
-*/

@@ -477,7 +477,7 @@ void Molecule::read(int flag)
         itensor[5] *= scale5;
       } else if (values.contains("body")) {
         bodyflag = 1;
-        avec_body = (AtomVecBody *) atom->style_match("body");
+        avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
         if (!avec_body)
           error->all(FLERR,"Molecule file requires atom style body");
         nibody = values.next_int();

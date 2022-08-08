@@ -338,8 +338,8 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
   if (atom->nlocal == 0) return;
 
   const int * _noalias const type = atom->type;
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const p2g = (int3_t *) part2grid[0];
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
@@ -417,8 +417,8 @@ void PPPMDispTIP4POMP::particle_map(double dxinv, double dyinv,
   // no local atoms => nothing to do
   if (atom->nlocal == 0) return;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const p2g = (int3_t *) part2grid[0];
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
@@ -496,8 +496,8 @@ void PPPMDispTIP4POMP::make_rho_c()
 #endif
   {
     const double * _noalias const q = atom->q;
-    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-    const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+    const auto * _noalias const x = (dbl3_t *) atom->x[0];
+    const auto * _noalias const p2g = (int3_t *) part2grid[0];
     const int * _noalias const type = atom->type;
     dbl3_t xM;
 
@@ -590,8 +590,8 @@ void PPPMDispTIP4POMP::make_rho_g()
 #pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
-    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-    const int3_t * _noalias const p2g = (int3_t *) part2grid_6[0];
+    const auto * _noalias const x = (dbl3_t *) atom->x[0];
+    const auto * _noalias const p2g = (int3_t *) part2grid_6[0];
 
     const double boxlox = boxlo[0];
     const double boxloy = boxlo[1];
@@ -692,8 +692,8 @@ void PPPMDispTIP4POMP::make_rho_a()
 #pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
-    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-    const int3_t * _noalias const p2g = (int3_t *) part2grid_6[0];
+    const auto * _noalias const x = (dbl3_t *) atom->x[0];
+    const auto * _noalias const p2g = (int3_t *) part2grid_6[0];
 
     const double boxlox = boxlo[0];
     const double boxloy = boxlo[1];
@@ -789,9 +789,9 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
-  const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+  const auto * _noalias const p2g = (int3_t *) part2grid[0];
   const int * _noalias const type = atom->type;
 
   const double qqrd2e = force->qqrd2e;
@@ -811,7 +811,7 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
-    dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+    auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     for (i = ifrom; i < ito; ++i) {
@@ -897,9 +897,9 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
-  const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+  const auto * _noalias const p2g = (int3_t *) part2grid[0];
   const int * _noalias const type = atom->type;
 
   const double qqrd2e = force->qqrd2e;
@@ -920,7 +920,7 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
-    dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+    auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
     FFT_SCALAR * const * const d1d = static_cast<FFT_SCALAR **>(thr->get_drho1d());
 
@@ -1856,7 +1856,7 @@ void PPPMDispTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
   iH1 = domain->closest_image(i,iH1);
   iH2 = domain->closest_image(i,iH2);
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
 
   double delx1 = x[iH1].x - x[i].x;
   double dely1 = x[iH1].y - x[i].y;

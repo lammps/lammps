@@ -86,6 +86,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
   skiplist = -1;
   off2on = 0;
   copy = 0;
+  trim = 0;
   copylist = -1;
   halffull = 0;
   halffulllist = -1;
@@ -316,4 +317,10 @@ void NeighRequest::enable_full()
 void NeighRequest::enable_ghost()
 {
   ghost = 1;
+}
+
+void NeighRequest::enable_intel()
+{
+  intel = 1;
+  omp = 0;
 }

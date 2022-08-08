@@ -4,6 +4,7 @@
 .. index:: kspace_style ewald/disp
 .. index:: kspace_style ewald/disp/dipole
 .. index:: kspace_style ewald/omp
+.. index:: kspace_style ewald/electrode
 .. index:: kspace_style pppm
 .. index:: kspace_style pppm/kk
 .. index:: kspace_style pppm/omp
@@ -23,6 +24,8 @@
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
 .. index:: kspace_style pppm/tip4p/omp
+.. index:: kspace_style pppm/electrode
+.. index:: kspace_style pppm/electrode/intel
 .. index:: kspace_style msm
 .. index:: kspace_style msm/omp
 .. index:: kspace_style msm/cg
@@ -40,7 +43,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
 
   .. parsed-literal::
 
@@ -56,6 +59,8 @@ Syntax
        *ewald/disp/dipole* value = accuracy
          accuracy = desired relative error in forces
        *ewald/omp* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/electrode* value = accuracy
          accuracy = desired relative error in forces
        *pppm* value = accuracy
          accuracy = desired relative error in forces
@@ -97,6 +102,10 @@ Syntax
          accuracy = desired relative error in forces
        *pppm/disp/dielectric* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/electrode* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/electrode/intel* value = accuracy
+         accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
        *msm/cg* value = accuracy (smallq)
@@ -120,8 +129,8 @@ Examples
 
    kspace_style pppm 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
-   kspace style msm 1.0e-4
-   kspace style scafacos fmm 1.0e-4
+   kspace_style msm 1.0e-4
+   kspace_style scafacos fmm 1.0e-4
    kspace_style none
 
 Used in input scripts:
@@ -270,6 +279,13 @@ parameters and how to choose them is described in
    can speed-up long-range calculations, particularly in parallel or on
    GPUs.  The use of the -DFFT_SINGLE flag is discussed on the :doc:`Build settings <Build_settings>` doc page. MSM does not currently support
    the -DFFT_SINGLE compiler switch.
+
+----------
+
+The *electrode* styles add methods that are required for the constant potential
+method implemented in :doc:`fix electrode/* <fix_electrode_conp>`.  The styles
+*ewald/electrode*, *pppm/electrode* and *pppm/electrode/intel* are available.
+These styles do not support the `kspace_modify slab nozforce` command.
 
 ----------
 
@@ -459,8 +475,8 @@ that package **and** the KSPACE package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 For MSM, a simulation must be 3d and one can use any combination of
-periodic, non-periodic, or shrink-wrapped boundaries (specified using
-the :doc:`boundary <boundary>` command).
+periodic, non-periodic, but not shrink-wrapped boundaries (specified
+using the :doc:`boundary <boundary>` command).
 
 For Ewald and PPPM, a simulation must be 3d and periodic in all
 dimensions.  The only exception is if the slab option is set with

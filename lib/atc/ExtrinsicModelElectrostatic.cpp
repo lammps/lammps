@@ -483,7 +483,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_scalar : added energy = - f.x
   //--------------------------------------------------------
-  double ExtrinsicModelElectrostatic::compute_scalar(void)
+  double ExtrinsicModelElectrostatic::compute_scalar()
   {
     //((atc_->interscale_manager()).fundamental_atom_quantity(LammpsInterface::ATOM_POSITION))->force_reset();
     const DENS_MAT & atomPosition = ((atc_->interscale_manager()).fundamental_atom_quantity(LammpsInterface::ATOM_POSITION))->quantity();
@@ -787,8 +787,7 @@ namespace ATC {
       xtArgs[3] = 1.; xtArgs[4] = 1.; xtArgs[5] = 1.;
       xtArgs[6] = coulombConstant*chargeDensity;
       xtArgs[7] = -1.;
-      string radialPower = "radial_power";
-      f = XT_Function_Mgr::instance()->function(radialPower,8,xtArgs);
+      f = XT_Function_Mgr::instance()->function("radial_power",8,xtArgs);
 
 
       for (iset = faceset->begin(); iset != faceset->end(); iset++) {

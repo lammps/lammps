@@ -5,6 +5,8 @@ on:
   push:
     branches: [develop]
 
+  workflow_dispatch:
+
 jobs:
   build:
     name: Windows Compilation Test
@@ -13,12 +15,12 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 2
 
     - name: Select Python version
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.10'
 
@@ -26,6 +28,7 @@ jobs:
       shell: bash
       run: |
         python3 -m pip install numpy
+        python3 -m pip install pyyaml
         cmake -C cmake/presets/windows.cmake \
               -D PKG_PYTHON=on \
               -S cmake -B build \

@@ -44,15 +44,3 @@ class DumpCustomGZ : public DumpCustom {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump custom/gz only writes compressed files
-
-The dump custom/gz output file name must have a .gz suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

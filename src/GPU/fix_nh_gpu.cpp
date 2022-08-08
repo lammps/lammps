@@ -47,15 +47,9 @@ typedef struct { double x,y,z; } dbl3_t;
 FixNHGPU::FixNHGPU(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  _dtfm = 0;
+  _dtfm = nullptr;
   _nlocal3 = 0;
   _nlocal_max = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixNHGPU::~FixNHGPU()
-{
 }
 
 /* ---------------------------------------------------------------------- */

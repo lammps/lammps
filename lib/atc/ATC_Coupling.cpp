@@ -775,7 +775,7 @@ namespace ATC {
 
   //--------------------------------------------------
   /** allow FE_Engine to construct data manager after mesh is constructed */
-  void ATC_Coupling::construct_prescribed_data_manager (void) {
+  void ATC_Coupling::construct_prescribed_data_manager () {
     prescribedDataMgr_ = new PrescribedDataManager(feEngine_,fieldSizes_);
   }
 
@@ -1704,7 +1704,7 @@ namespace ATC {
   //--------------------------------------------------------------
   /** method to trigger construction of mesh data after mesh construction */
   //--------------------------------------------------------------
-  void ATC_Coupling::initialize_mesh_data(void)
+  void ATC_Coupling::initialize_mesh_data()
   {
     int nelts = feEngine_->fe_mesh()->num_elements();
     elementToMaterialMap_.reset(nelts);
@@ -1715,7 +1715,7 @@ namespace ATC {
   }
   //--------------------------------------------------------
 
-  void ATC_Coupling::reset_flux_mask(void)
+  void ATC_Coupling::reset_flux_mask()
   {
     int i;
     // this is exact only for uniform meshes and certain types of atomic weights

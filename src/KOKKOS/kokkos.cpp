@@ -91,6 +91,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   exchange_comm_changed = 0;
   forward_comm_changed = 0;
   forward_pair_comm_changed = 0;
+  reverse_pair_comm_changed = 0;
   forward_fix_comm_changed = 0;
   reverse_comm_changed = 0;
 
@@ -232,13 +233,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #endif
   neigh_thread = 0;
   neigh_thread_set = 0;
+  neigh_transpose = 0;
   if (ngpus > 0) {
     neighflag = FULL;
     neighflag_qeq = FULL;
     newtonflag = 0;
 
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-    forward_pair_comm_classic = forward_fix_comm_classic = 0;
+    forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 0;
 
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   } else {
@@ -252,7 +254,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     newtonflag = 1;
 
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
-    forward_pair_comm_classic = forward_fix_comm_classic = 1;
+    forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 1;
 
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   }
@@ -332,13 +334,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-KokkosLMP::~KokkosLMP()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void KokkosLMP::initialize(Kokkos::InitArguments args, Error *error)
 {
   if (!Kokkos::is_initialized()) {
@@ -400,17 +395,17 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
-        forward_pair_comm_classic = forward_fix_comm_classic = 1;
+        forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 1;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else if (strcmp(arg[iarg+1],"host") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-        forward_pair_comm_classic = forward_fix_comm_classic = 1;
+        forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 1;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 1;
       } else if (strcmp(arg[iarg+1],"device") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-        forward_pair_comm_classic = forward_fix_comm_classic = 0;
+        forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 0;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
@@ -447,6 +442,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else error->all(FLERR,"Illegal package kokkos command");
       forward_pair_comm_changed = 0;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"comm/pair/reverse") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) reverse_pair_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) reverse_pair_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"device") == 0) reverse_pair_comm_classic = 0;
+      else error->all(FLERR,"Illegal package kokkos command");
+      reverse_pair_comm_changed = 0;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"comm/fix/forward") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) forward_fix_comm_classic = 1;
@@ -481,6 +484,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       neigh_thread = utils::logical(FLERR,arg[iarg+1],false,lmp);
       neigh_thread_set = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/transpose") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_transpose = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
@@ -488,8 +495,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;
-    lmp->suffix = new char[7];
-    strcpy(lmp->suffix,"kk/host");
+    lmp->suffix = utils::strdup("kk/host");
   } else {
     // restore settings to regular suffix use, if previously, pair/only was used
     if (lmp->suffixp) {
@@ -517,6 +523,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       forward_pair_comm_classic = 1;
       forward_pair_comm_changed = 1;
     }
+    if (reverse_pair_comm_classic == 0) {
+      reverse_pair_comm_classic = 1;
+      reverse_pair_comm_changed = 1;
+    }
     if (forward_fix_comm_classic == 0) {
       forward_fix_comm_classic = 1;
       forward_fix_comm_changed = 1;
@@ -541,6 +551,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
     if (forward_pair_comm_changed) {
       forward_pair_comm_classic = 0;
       forward_pair_comm_changed = 0;
+    }
+    if (reverse_pair_comm_changed) {
+      reverse_pair_comm_classic = 0;
+      reverse_pair_comm_changed = 0;
     }
     if (forward_fix_comm_changed) {
       forward_fix_comm_classic = 0;

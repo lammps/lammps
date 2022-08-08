@@ -58,10 +58,7 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   lambda = utils::numeric(FLERR,arg[3],false,lmp);
   eta = utils::numeric(FLERR,arg[4],false,lmp);
   h0 = utils::numeric(FLERR,arg[5],false,lmp);
-
-  int n = strlen(arg[6])+1;
-  id_nh = new char[n];
-  strcpy(id_nh,arg[6]);
+  id_nh = utils::strdup(arg[6]);
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -166,8 +163,8 @@ void FixGrem::init()
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");
   Fix *nh = modify->fix[ifix];
 
-  double *t_start = (double *)nh->extract("t_start",ifix);
-  double *t_stop = (double *)nh->extract("t_stop",ifix);
+  auto t_start = (double *)nh->extract("t_start",ifix);
+  auto t_stop = (double *)nh->extract("t_stop",ifix);
   if ((t_start != nullptr) && (t_stop != nullptr) && (ifix == 0)) {
     tbath = *t_start;
     if (*t_start != *t_stop)
@@ -178,8 +175,8 @@ void FixGrem::init()
   pressref = 0.0;
   if (pressflag) {
     int *p_flag = (int *)nh->extract("p_flag",ifix);
-    double *p_start = (double *) nh->extract("p_start",ifix);
-    double *p_stop = (double *) nh->extract("p_stop",ifix);
+    auto p_start = (double *) nh->extract("p_start",ifix);
+    auto p_stop = (double *) nh->extract("p_stop",ifix);
     if ((p_flag != nullptr) && (p_start != nullptr) && (p_stop != nullptr)
         && (ifix == 1)) {
       ifix = 0;

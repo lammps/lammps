@@ -33,15 +33,3 @@ class FixNPTBody : public FixNHBody {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt/body
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt/body
-
-Self-explanatory.
-
-*/

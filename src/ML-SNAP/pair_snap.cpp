@@ -45,8 +45,8 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   radelem = nullptr;
   wjelem = nullptr;
   coeffelem = nullptr;
-  rinnerelem = nullptr;
-  drinnerelem = nullptr;
+  sinnerelem = nullptr;
+  dinnerelem = nullptr;
 
   beta_max = 0;
   beta = nullptr;
@@ -63,11 +63,8 @@ PairSNAP::~PairSNAP()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-
-  if (switchinnerflag) {
-    memory->destroy(rinnerelem);
-    memory->destroy(drinnerelem);
-  }
+  memory->destroy(sinnerelem);
+  memory->destroy(dinnerelem);
 
   memory->destroy(beta);
   memory->destroy(bispectrum);
@@ -158,8 +155,8 @@ void PairSNAP::compute(int eflag, int vflag)
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
         if (switchinnerflag) {
-          snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
-          snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+          snaptr->sinnerij[ninside] = 0.5*(sinnerelem[ielem]+sinnerelem[jelem]);
+          snaptr->dinnerij[ninside] = 0.5*(dinnerelem[ielem]+dinnerelem[jelem]);
         }
         if (chemflag) snaptr->element[ninside] = jelem;
         ninside++;
@@ -331,8 +328,8 @@ void PairSNAP::compute_bispectrum()
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
         if (switchinnerflag) {
-          snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
-          snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+          snaptr->sinnerij[ninside] = 0.5*(sinnerelem[ielem]+sinnerelem[jelem]);
+          snaptr->dinnerij[ninside] = 0.5*(dinnerelem[ielem]+dinnerelem[jelem]);
         }
         if (chemflag) snaptr->element[ninside] = jelem;
         ninside++;
@@ -516,13 +513,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-  memory->destroy(rinnerelem);
-  memory->destroy(drinnerelem);
+  memory->destroy(sinnerelem);
+  memory->destroy(dinnerelem);
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
-  memory->create(rinnerelem,nelements,"pair:rinnerelem");
-  memory->create(drinnerelem,nelements,"pair:drinnerelem");
+  memory->create(sinnerelem,nelements,"pair:sinnerelem");
+  memory->create(dinnerelem,nelements,"pair:dinnerelem");
 
   // initialize checklist for all required nelements
 
@@ -644,8 +641,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   // set local input checks
 
-  int rinnerflag = 0;
-  int drinnerflag = 0;
+  int sinnerflag = 0;
+  int dinnerflag = 0;
 
   // open SNAP parameter file on proc 0
 
@@ -688,34 +685,39 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     auto keywd = words[0];
     auto keyval = words[1];
 
-    // check for keywords with one value per element
+    // check for keywords with more than one value per element
 
-    if (keywd == "rinner" || keywd == "drinner") {
+    if (keywd == "sinner" || keywd == "dinner") {
 
-      if (nwords != nelements+1)
+      if ((int)words.size() != nelements+1)
         error->all(FLERR,"Incorrect SNAP parameter file");
 
-      if (comm->me == 0)
-        utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, keyval);
+      // innerlogstr collects all values of sinner or dinner for log output below
+
+      std::string innerlogstr;
 
       int iword = 1;
 
-      if (keywd == "rinner") {
-        keyval = words[iword];
+      if (keywd == "sinner") {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          printf("rinnerelem = %p ielem = %d nelements = %d iword = %d nwords = %d\n",rinnerelem, ielem, nelements, iword, nwords);
-          rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+          keyval = words[iword];
+          sinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           iword++;
+          innerlogstr += keyval + " ";
         }
-        rinnerflag = 1;
-      } else if (keywd == "drinner") {
-        keyval = words[iword];
+        sinnerflag = 1;
+      } else if (keywd == "dinner") {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+          keyval = words[iword];
+          dinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           iword++;
+          innerlogstr += keyval + " ";
         }
-        drinnerflag = 1;
+        dinnerflag = 1;
       }
+
+      if (comm->me == 0)
+        utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, innerlogstr);
 
     } else {
 
@@ -766,10 +768,10 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   if (chemflag && nelemtmp != nelements)
     error->all(FLERR,"Incorrect SNAP parameter file");
 
-  if (switchinnerflag && !(rinnerflag && drinnerflag))
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
     error->all(FLERR,"Incorrect SNAP parameter file");
 
-  if (!switchinnerflag && (rinnerflag || drinnerflag))
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(FLERR,"Incorrect SNAP parameter file");
 }
 

@@ -41,7 +41,6 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
 
@@ -314,14 +313,14 @@ void PairILPGrapheneHBN::read_file(char *filename)
       for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
           if (n >= 0)
-            error->all(FLERR, "{} potential file {} has a duplicate entry", variant_map[variant],
-                       filename);
+            error->all(FLERR, "{} potential file {} has a duplicate entry for: {} {}",
+                       variant_map[variant], filename, elements[i], elements[j]);
           n = m;
         }
       }
       if (n < 0)
-        error->all(FLERR, "{} potential file {} is missing an entry", variant_map[variant],
-                   filename);
+        error->all(FLERR, "{} potential file {} is missing an entry for: {} {}",
+                   variant_map[variant], filename, elements[i], elements[j]);
       elem2param[i][j] = n;
       cutILPsq[i][j] = params[n].rcut * params[n].rcut;
     }

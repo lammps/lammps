@@ -35,12 +35,3 @@ class RanPark : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid seed for Park random # generator
-
-The initial seed for this random number generator must be a positive
-integer.
-
-*/

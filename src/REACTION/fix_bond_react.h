@@ -149,13 +149,16 @@ class FixBondReact : public Fix {
   // for all mega_gloves and global_mega_glove: first row is the ID of bond/react
   tagint **local_mega_glove;      // consolidation local of reaction instances
   tagint **ghostly_mega_glove;    // consolidation nonlocal of reaction instances
-  tagint **global_mega_glove;    // consolidation (inter-processor) of gloves containing nonlocal atoms
-  int *localsendlist;        // indicates ghosts of other procs
-  int local_num_mega;        // num of local reaction instances
-  int ghostly_num_mega;      // num of ghostly reaction instances
-  int global_megasize;       // num of reaction instances in global_mega_glove
-  int *pioneers;    // during Superimpose Algorithm, atoms which have been assigned, but whose first neighbors haven't
-  int glove_counter;    // used to determine when to terminate Superimpose Algorithm
+  tagint **global_mega_glove;     // consolidation (inter-processor) of gloves
+                                  // containing nonlocal atoms
+
+  int *localsendlist;      // indicates ghosts of other procs
+  int local_num_mega;      // num of local reaction instances
+  int ghostly_num_mega;    // num of ghostly reaction instances
+  int global_megasize;     // num of reaction instances in global_mega_glove
+  int *pioneers;           // during Superimpose Algorithm, atoms which have been assigned,
+                           // but whose first neighbors haven't
+  int glove_counter;       // used to determine when to terminate Superimpose Algorithm
 
   void read(int);
   void EdgeIDs(char *, int);
@@ -176,11 +179,12 @@ class FixBondReact : public Fix {
   int check_constraints();
   void get_IDcoords(int, int, double *);
   double get_temperature(tagint **, int, int);
-  void customvarnames();   // get per-atom variables names used by custom constraint
-  void get_customvars();   // evaluate local values for variables names used by custom constraint
-  double custom_constraint(std::string);   // evaulate expression for custom constraint
-  double rxnfunction(std::string, std::string, std::string);   // eval rxn_sum and rxn_ave
-  int get_chirality(double[12]);    // get handedness given an ordered set of coordinates
+  void customvarnames();    // get per-atom variables names used by custom constraint
+  void get_customvars();    // evaluate local values for variables names used by custom constraint
+  double custom_constraint(const std::string &);    // evaulate expression for custom constraint
+  double rxnfunction(const std::string &, const std::string &,
+                     const std::string &);    // eval rxn_sum and rxn_ave
+  int get_chirality(double[12]);              // get handedness given an ordered set of coordinates
 
   void open(char *);
   void readline(char *);
@@ -229,98 +233,3 @@ class FixBondReact : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Bond/react: Cannot use fix bond/react with non-molecular systems
-
-Only systems with bonds that can be changed can be used. Atom_style
-template does not qualify.
-
-E: Bond/react: Rmax cutoff is longer than pairwise cutoff
-
-This is not allowed because bond creation is done using the pairwise
-neighbor list.
-
-E: Bond/react: Molecule template ID for fix bond/react does not exist
-
-A valid molecule template must have been created with the molecule
-command.
-
-E: Bond/react: Reaction templates must contain the same number of atoms
-
-There should be a one-to-one correspondence between atoms in the
-pre-reacted and post-reacted templates, as specified by the map file.
-
-E: Bond/react: Unknown section in map file
-
-Please ensure reaction map files are properly formatted.
-
-E: Bond/react: Invalid template atom ID in map file
-
-Atom IDs in molecule templates range from 1 to the number of atoms in the template.
-
-E or W: Bond/react: Atom affected by reaction %s too close to template edge
-        Bond/react: Atom type affected by reaction %s too close to template edge
-        Bond/react: Bond type affected by reaction %s too close to template edge
-
-This means an atom (or bond) that changes type or connectivity during the
-reaction is too close to an 'edge' atom defined in the map file. This
-could cause incorrect assignment of bonds, angle, etc. Generally, this
-means you must include more atoms in your templates, such that there
-are at least two atoms between each atom involved in the reaction and
-an edge atom.
-
-E: Bond/react: Fix bond/react needs ghost atoms from farther away
-
-This is because a processor needs to map the entire unreacted molecule
-template onto simulation atoms it knows about. The comm_modify cutoff
-command can be used to extend the communication range.
-
-E: Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted
-
-Self-explanatory.
-
-E: Bond/react: First neighbors of chiral atoms must be of mutually different types
-
-Self-explanatory.
-
-E: Bond/react: Chiral atoms must have exactly four first neighbors
-
-Self-explanatory.
-
-E: Bond/react: Molecule template 'Coords' section required for chiralIDs keyword
-
-The coordinates of atoms in the pre-reacted template are used to determine chirality.
-
-E: Bond/react special bond generation overflow
-
-The number of special bonds per-atom created by a reaction exceeds the
-system setting. See the read_data or create_box command for how to
-specify this value.
-
-E: Bond/react topology/atom exceed system topology/atom
-
-The number of bonds, angles etc per-atom created by a reaction exceeds
-the system setting. See the read_data or create_box command for how to
-specify this value.
-
-E: Bond/react: Variable name does not exist
-
-Self-explanatory.
-
-E: Bond/react: Variable is not equal-style
-
-Self-explanatory.
-
-E: Bond/react: Molecule fragment does not exist
-
-Self-explanatory.
-
-*/

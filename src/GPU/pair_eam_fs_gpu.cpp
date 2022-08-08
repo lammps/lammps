@@ -179,10 +179,7 @@ void PairEAMFSGPU::init_style()
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
-  if (fp_size == sizeof(double))
-    fp_single = false;
-  else
-    fp_single = true;
+  fp_single = fp_size != sizeof(double);
 
   embedstep = -1;
 }
@@ -212,7 +209,7 @@ double PairEAMFSGPU::single(int i, int j, int itype, int jtype, double rsq,
   z2 = ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
 
   double fp_i, fp_j;
-  if (fp_single == false) {
+  if (!fp_single) {
     fp_i = ((double *) fp_pinned)[i];
     fp_j = ((double *) fp_pinned)[j];
   } else {
@@ -239,13 +236,13 @@ int PairEAMFSGPU::pack_forward_comm(int n, int *list, double *buf, int /* pbc_fl
   m = 0;
 
   if (fp_single) {
-    float *fp_ptr = (float *) fp_pinned;
+    auto fp_ptr = (float *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = static_cast<double>(fp_ptr[j]);
     }
   } else {
-    double *fp_ptr = (double *) fp_pinned;
+    auto fp_ptr = (double *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = fp_ptr[j];
@@ -264,10 +261,10 @@ void PairEAMFSGPU::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   if (fp_single) {
-    float *fp_ptr = (float *) fp_pinned;
+    auto fp_ptr = (float *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   } else {
-    double *fp_ptr = (double *) fp_pinned;
+    auto fp_ptr = (double *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   }
 }

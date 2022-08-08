@@ -31,7 +31,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -96,8 +96,8 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 #define ONEFIELD 32
 #define DELTA 1048576
 
-#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 8)
-#error This code has only been tested with VTK 5, 6, 7, and 8
+#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 9)
+#error This code has only been tested with VTK 5, 6, 7, 8, and 9
 #elif VTK_MAJOR_VERSION > 6
 #define InsertNextTupleValue InsertNextTypedTuple
 #endif
@@ -246,12 +246,11 @@ void DumpVTK::init_style()
     else if (flag && cols) custom_flag[i] = DARRAY;
   }
 
-  // set index and check validity of region
+  // check validity of region
 
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1)
-      error->all(FLERR,"Region ID for dump vtk does not exist");
+  if (idregion) {
+    if (!domain->get_region_by_id(idregion))
+      error->all(FLERR,"Region {} for dump vtk does not exist",idregion);
   }
 }
 
@@ -335,13 +334,15 @@ int DumpVTK::count()
 
   // un-choose if not in region
 
-  if (iregion >= 0) {
-    Region *region = domain->regions[iregion];
-    region->prematch();
-    double **x = atom->x;
-    for (i = 0; i < nlocal; i++)
-      if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)
-        choose[i] = 0;
+  if (idregion) {
+    auto region = domain->get_region_by_id(idregion);
+    if (region) {
+      region->prematch();
+      double **x = atom->x;
+      for (i = 0; i < nlocal; i++)
+        if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)
+          choose[i] = 0;
+    }
   }
 
   // un-choose if any threshold criterion isn't met
@@ -1009,13 +1010,13 @@ void DumpVTK::write_data(int n, double *mybuf)
 /* ---------------------------------------------------------------------- */
 
 void DumpVTK::setFileCurrent() {
-  delete [] filecurrent;
+  delete[] filecurrent;
   filecurrent = nullptr;
 
   char *filestar = filename;
   if (multiproc) {
     if (multiproc > 1) { // if dump_modify fileper or nfile was used
-      delete [] multiname_ex;
+      delete[] multiname_ex;
       multiname_ex = nullptr;
       char *ptr = strchr(filename,'%');
       if (ptr) {
@@ -1034,26 +1035,13 @@ void DumpVTK::setFileCurrent() {
   }
 
   if (multifile == 0) {
-    filecurrent = new char[strlen(filestar) + 1];
-    strcpy(filecurrent, filestar);
+    filecurrent = utils::strdup(filestar);
   } else {
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0) {
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
-    } else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
   }
 
   // filename of domain box data file
-  delete [] domainfilecurrent;
+  delete[] domainfilecurrent;
   domainfilecurrent = nullptr;
   if (multiproc) {
     // remove '%' character
@@ -1074,21 +1062,9 @@ void DumpVTK::setFileCurrent() {
       domainfilecurrent = new char[strlen(filestar) + 1];
       strcpy(domainfilecurrent, filestar);
     } else {
-      domainfilecurrent = new char[strlen(filestar) + 16];
-      char *ptr = strchr(filestar,'*');
-      *ptr = '\0';
-      if (padflag == 0) {
-        sprintf(domainfilecurrent,"%s" BIGINT_FORMAT "%s",
-                filestar,update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(domainfilecurrent,pad,filestar,update->ntimestep,ptr+1);
-      }
-      *ptr = '*';
+      domainfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
     }
-    delete [] filestar;
+    delete[] filestar;
     filestar = nullptr;
   } else {
     domainfilecurrent = new char[strlen(filecurrent) + 16];
@@ -1100,7 +1076,7 @@ void DumpVTK::setFileCurrent() {
 
   // filename of parallel file
   if (multiproc && me == 0) {
-    delete [] parallelfilecurrent;
+    delete[] parallelfilecurrent;
     parallelfilecurrent = nullptr;
 
     // remove '%' character and add 'p' to file extension
@@ -1119,24 +1095,11 @@ void DumpVTK::setFileCurrent() {
     *ptr++= 0;
 
     if (multifile == 0) {
-      parallelfilecurrent = new char[strlen(filestar) + 1];
-      strcpy(parallelfilecurrent, filestar);
+      parallelfilecurrent = utils::strdup(filestar);
     } else {
-      parallelfilecurrent = new char[strlen(filestar) + 16];
-      char *ptr = strchr(filestar,'*');
-      *ptr = '\0';
-      if (padflag == 0) {
-        sprintf(parallelfilecurrent,"%s" BIGINT_FORMAT "%s",
-                filestar,update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(parallelfilecurrent,pad,filestar,update->ntimestep,ptr+1);
-      }
-      *ptr = '*';
+      parallelfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
     }
-    delete [] filestar;
+    delete[] filestar;
     filestar = nullptr;
   }
 }
@@ -1954,7 +1917,12 @@ void DumpVTK::identify_vectors()
        name.count(vector3_starts[v3s]+2) )
     {
       std::string vectorName = name[vector3_starts[v3s]];
-      vectorName.erase(vectorName.find_first_of('x'));
+      std::string::size_type erase_start = vectorName.find_first_of('x');
+      if (erase_start == 0) {
+        vectorName.erase(0,1);
+      } else {
+        vectorName.erase(erase_start);
+      }
       name[vector3_starts[v3s]] = vectorName;
       vector_set.insert(vector3_starts[v3s]);
     }
@@ -2087,11 +2055,12 @@ int DumpVTK::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"region") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"none") == 0) iregion = -1;
-    else {
-      iregion = domain->find_region(arg[1]);
-      if (iregion == -1)
-        error->all(FLERR,"Dump_modify region ID {} does not exist",arg[1]);
+    if (strcmp(arg[1],"none") == 0) {
+      delete[] idregion;
+      idregion = nullptr;
+    } else {
+      if (!domain->get_region_by_id(arg[1]))
+        error->all(FLERR,"Dump_modify region {} does not exist",arg[1]);
       delete[] idregion;
       idregion = utils::strdup(arg[1]);
     }
@@ -2388,16 +2357,16 @@ int DumpVTK::modify_param(int narg, char **arg)
       thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
       thresh_last[nthresh] = -1;
     } else {
-      thresh_fix = (FixStore **)
-        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),"dump:thresh_fix");
+      thresh_fix = (FixStorePeratom **)
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStorePeratom *),"dump:thresh_fix");
       thresh_fixID = (char **)
         memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
-      threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
-      thresh_fix[nthreshlast] = (FixStore *) modify->add_fix(threshid);
+      threshid += fmt::format(" {} STORE/PERATOM 1 1", group->names[igroup]);
+      thresh_fix[nthreshlast] = dynamic_cast<FixStorePeratom *>(modify->add_fix(threshid));
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

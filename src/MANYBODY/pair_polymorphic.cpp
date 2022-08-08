@@ -635,7 +635,7 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(pairParameters, npair*sizeof(PairParameters), MPI_BYTE, 0, world);
 
   // start reading tabular functions
-  double * singletable = new double[nr];
+  auto  singletable = new double[nr];
   for (int i = 0; i < npair; i++) { // U
     PairParameters &p = pairParameters[i];
     if (comm->me == 0) reader->next_dvector(singletable, nr);

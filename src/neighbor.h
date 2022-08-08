@@ -94,6 +94,7 @@ class Neighbor : protected Pointers {
   NeighList **lists;
   NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
   NeighRequest **old_requests;    // copy of requests to compare to
+  int* j_sorted;                  // index of requests sorted by cutoff distance
 
   // data from topology neighbor lists
 
@@ -153,14 +154,18 @@ class Neighbor : protected Pointers {
 
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
-  NeighList *find_list(void *) const;             // find a neighbor list based on requestor
-  NeighRequest *find_request(void *) const;       // find a neighbor request based on requestor
+
+  // find a neighbor list based on requestor
+  NeighList *find_list(void *, const int id = 0) const;
+  // find a neighbor request based on requestor
+  NeighRequest *find_request(void *, const int id = 0) const;
+
   const std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // Check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 
-  bigint get_nneigh_full();     // return number of neighbors in a regular full neighbor list
-  bigint get_nneigh_half();     // return number of neighbors in a regular half neighbor list
+  bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
+  bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call
@@ -241,11 +246,13 @@ class Neighbor : protected Pointers {
   int init_pair();
   virtual void init_topology();
 
+  void sort_requests();
+
   void morph_unique();
   void morph_skip();
   void morph_granular();
   void morph_halffull();
-  void morph_copy();
+  void morph_copy_trim();
 
   void print_pairwise_info();
   void requests_new2old();
@@ -319,7 +326,8 @@ namespace NeighConst {
     NP_SKIP = 1 << 22,
     NP_HALF_FULL = 1 << 23,
     NP_OFF2ON = 1 << 24,
-    NP_MULTI_OLD = 1 << 25
+    NP_MULTI_OLD = 1 << 25,
+    NP_TRIM = 1 << 26
   };
 
   enum {
@@ -340,128 +348,3 @@ namespace NeighConst {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Neighbor delay must be 0 or multiple of every setting
-
-The delay and every parameters set via the neigh_modify command are
-inconsistent.  If the delay setting is non-zero, then it must be a
-multiple of the every setting.
-
-E: Neighbor page size must be >= 10x the one atom setting
-
-This is required to prevent wasting too much memory.
-
-E: Invalid atom type in neighbor exclusion list
-
-Atom types must range from 1 to Ntypes inclusive.
-
-W: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies
-
-This is because excluding specific pair interactions also excludes
-them from long-range interactions which may not be the desired effect.
-The special_bonds command handles this consistently by insuring
-excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
-consistently by both the short-range pair style and the long-range
-solver.  This is not done for exclusions of charged atom pairs via the
-neigh_modify exclude command.
-
-E: Cannot request an occasional binned neighbor list with ghost info
-
-UNDOCUMENTED
-
-E: Requested neighbor bin option does not exist
-
-UNDOCUMENTED
-
-E: Requested neighbor stencil method does not exist
-
-UNDOCUMENTED
-
-E: Requested neighbor pair method does not exist
-
-UNDOCUMENTED
-
-E: Could not assign bin method to neighbor stencil
-
-UNDOCUMENTED
-
-E: Could not assign bin method to neighbor pair
-
-UNDOCUMENTED
-
-E: Could not assign stencil method to neighbor pair
-
-UNDOCUMENTED
-
-E: Neighbor include group not allowed with ghost neighbors
-
-This is a current restriction within LAMMPS.
-
-E: Too many local+ghost atoms for neighbor list
-
-The number of nlocal + nghost atoms on a processor
-is limited by the size of a 32-bit integer with 2 bits
-removed for masking 1-2, 1-3, 1-4 neighbors.
-
-E: Trying to build an occasional neighbor list before initialization completed
-
-This is not allowed.  Source code caller needs to be modified.
-
-E: Neighbor build one invoked on perpetual list
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid group ID in neigh_modify command
-
-A group ID used in the neigh_modify command does not exist.
-
-E: Neigh_modify include group != atom_modify first group
-
-Self-explanatory.
-
-E: Neigh_modify exclude molecule requires atom attribute molecule
-
-Self-explanatory.
-
-E: Unable to find group-group exclusion
-
-UNDOCUMENTED
-
-U: Neighbor multi not yet enabled for ghost neighbors
-
-This is a current restriction within LAMMPS.
-
-U: Neighbor multi not yet enabled for granular
-
-Self-explanatory.
-
-U: Neighbor multi not yet enabled for rRESPA
-
-Self-explanatory.
-
-U: Domain too large for neighbor bins
-
-The domain has become extremely large so that neighbor bins cannot be
-used.  Most likely, one or more atoms have been blown out of the
-simulation box to a great distance.
-
-U: Cannot use neighbor bins - box size << cutoff
-
-Too many neighbor bins will be created.  This typically happens when
-the simulation box is very small in some dimension, compared to the
-neighbor cutoff.  Use the "nsq" style instead of "bin" style.
-
-U: Too many neighbor bins
-
-This is likely due to an immense simulation box that has blown up
-to a large size.
-
-*/

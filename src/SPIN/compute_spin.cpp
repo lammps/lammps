@@ -84,7 +84,7 @@ void ComputeSpin::init()
 
   // loop 1: obtain # of Pairs, and # of Pair/Spin styles
 
-  PairHybrid *hybrid = (PairHybrid *)force->pair_match("^hybrid",0);
+  PairHybrid *hybrid = dynamic_cast<PairHybrid *>(force->pair_match("^hybrid",0));
   if (force->pair_match("^spin",0,0)) {        // only one Pair/Spin style
     pair = force->pair_match("^spin",0,0);
     if (hybrid == nullptr) npairs = 1;
@@ -112,11 +112,11 @@ void ComputeSpin::init()
   int count = 0;
   if (npairspin == 1) {
     count = 1;
-    spin_pairs[0] = (PairSpin *) force->pair_match("^spin",0,0);
+    spin_pairs[0] = dynamic_cast<PairSpin *>( force->pair_match("^spin",0,0));
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
       if (force->pair_match("^spin",0,i)) {
-        spin_pairs[count] = (PairSpin *) force->pair_match("^spin",0,i);
+        spin_pairs[count] = dynamic_cast<PairSpin *>( force->pair_match("^spin",0,i));
         count++;
       }
     }
@@ -141,7 +141,7 @@ void ComputeSpin::init()
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
       precession_spin_flag = 1;
-      lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce];
+      lockprecessionspin = dynamic_cast<FixPrecessionSpin *>( modify->fix[iforce]);
     }
   }
 }

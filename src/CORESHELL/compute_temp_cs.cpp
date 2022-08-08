@@ -24,7 +24,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
@@ -69,12 +69,9 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
-
-  fixcmd += fmt::format(" {} STORE peratom 0 1", group->names[igroup]);
-  fix = (FixStore *)modify->add_fix(fixcmd);
+  id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+  fix = dynamic_cast<FixStorePeratom *>(
+    modify->add_fix(fmt::format("{} {} STORE/PERATOM 0 1", id_fix, group->names[igroup])));
 
   // set fix store values = 0 for now
   // fill them in via setup() once Comm::borders() has been called
@@ -109,8 +106,8 @@ ComputeTempCS::~ComputeTempCS()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] vector;
+  delete[] id_fix;
+  delete[] vector;
   memory->destroy(vint);
 }
 

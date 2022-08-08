@@ -107,6 +107,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 2;
 
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      which[nvalues] = ArgInfo::MASS;
+      argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"density/number") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_NUMBER;
@@ -114,9 +117,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"density/mass") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_MASS;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"mass") == 0) {
-      which[nvalues] = ArgInfo::MASS;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       which[nvalues] = ArgInfo::TEMPERATURE;
@@ -309,7 +309,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix ave/chunk does not use chunk/atom compute");
 
@@ -432,7 +432,7 @@ FixAveChunk::~FixAveChunk()
   if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) {
     int icompute = modify->find_compute(idchunk);
     if (icompute >= 0) {
-      cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+      cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
       if (ave == RUNNING || ave == WINDOW) cchunk->unlock(this);
       cchunk->lockcount--;
     }
@@ -478,7 +478,7 @@ void FixAveChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
 
   if (biasflag) {
     int i = modify->find_compute(id_bias);
@@ -941,7 +941,7 @@ void FixAveChunk::end_of_step()
     if (overwrite) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
-    fprintf(fp,BIGINT_FORMAT " %d %g\n",ntimestep,nchunk,count);
+    fmt::print(fp,"{} {} {}\n",ntimestep,nchunk,count);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;

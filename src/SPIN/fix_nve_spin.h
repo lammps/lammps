@@ -100,22 +100,3 @@ class FixNVESpin : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix NVE/spin command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Pair spin requires atom attribute spin
-
-An atom/spin style with this attribute is needed.
-
-E: Illegal sectoring operation
-
-The number of processes does not match the size of the system.
-See the documentation of the sectoring method.
-
-*/

@@ -422,29 +422,34 @@ class BinSort {
 
 template <class KeyViewType>
 struct BinOp1D {
-  int max_bins_;
-  double mul_;
-  typename KeyViewType::const_value_type range_;
-  typename KeyViewType::const_value_type min_;
+  int max_bins_ = {};
+  double mul_   = {};
+  double min_   = {};
 
-  BinOp1D()
-      : max_bins_(0),
-        mul_(0.0),
-        range_(typename KeyViewType::const_value_type()),
-        min_(typename KeyViewType::const_value_type()) {}
+  BinOp1D() = default;
 
   // Construct BinOp with number of bins, minimum value and maxuimum value
   BinOp1D(int max_bins__, typename KeyViewType::const_value_type min,
           typename KeyViewType::const_value_type max)
       : max_bins_(max_bins__ + 1),
-        mul_(1.0 * max_bins__ / (max - min)),
-        range_(max - min),
-        min_(min) {}
+        // Cast to double to avoid possible overflow when using integer
+        mul_(static_cast<double>(max_bins__) /
+             (static_cast<double>(max) - static_cast<double>(min))),
+        min_(static_cast<double>(min)) {
+    // For integral types the number of bins may be larger than the range
+    // in which case we can exactly have one unique value per bin
+    // and then don't need to sort bins.
+    if (std::is_integral<typename KeyViewType::const_value_type>::value &&
+        (static_cast<double>(max) - static_cast<double>(min)) <=
+            static_cast<double>(max_bins__)) {
+      mul_ = 1.;
+    }
+  }
 
   // Determine bin index from key value
   template <class ViewType>
   KOKKOS_INLINE_FUNCTION int bin(ViewType& keys, const int& i) const {
-    return int(mul_ * (keys(i) - min_));
+    return static_cast<int>(mul_ * (static_cast<double>(keys(i)) - min_));
   }
 
   // Return maximum bin index + 1
@@ -461,10 +466,9 @@ struct BinOp1D {
 
 template <class KeyViewType>
 struct BinOp3D {
-  int max_bins_[3];
-  double mul_[3];
-  typename KeyViewType::non_const_value_type range_[3];
-  typename KeyViewType::non_const_value_type min_[3];
+  int max_bins_[3] = {};
+  double mul_[3]   = {};
+  double min_[3]   = {};
 
   BinOp3D() = default;
 
@@ -473,15 +477,15 @@ struct BinOp3D {
     max_bins_[0] = max_bins__[0];
     max_bins_[1] = max_bins__[1];
     max_bins_[2] = max_bins__[2];
-    mul_[0]      = 1.0 * max_bins__[0] / (max[0] - min[0]);
-    mul_[1]      = 1.0 * max_bins__[1] / (max[1] - min[1]);
-    mul_[2]      = 1.0 * max_bins__[2] / (max[2] - min[2]);
-    range_[0]    = max[0] - min[0];
-    range_[1]    = max[1] - min[1];
-    range_[2]    = max[2] - min[2];
-    min_[0]      = min[0];
-    min_[1]      = min[1];
-    min_[2]      = min[2];
+    mul_[0]      = static_cast<double>(max_bins__[0]) /
+              (static_cast<double>(max[0]) - static_cast<double>(min[0]));
+    mul_[1] = static_cast<double>(max_bins__[1]) /
+              (static_cast<double>(max[1]) - static_cast<double>(min[1]));
+    mul_[2] = static_cast<double>(max_bins__[2]) /
+              (static_cast<double>(max[2]) - static_cast<double>(min[2]));
+    min_[0] = static_cast<double>(min[0]);
+    min_[1] = static_cast<double>(min[1]);
+    min_[2] = static_cast<double>(min[2]);
   }
 
   template <class ViewType>
@@ -564,8 +568,30 @@ std::enable_if_t<Kokkos::is_execution_space<ExecutionSpace>::value> sort(
                       exec, 0, view.extent(0)),
                   Impl::min_max_functor<ViewType>(view), reducer);
   if (result.min_val == result.max_val) return;
+  // For integral types the number of bins may be larger than the range
+  // in which case we can exactly have one unique value per bin
+  // and then don't need to sort bins.
+  bool sort_in_bins = true;
+  // TODO: figure out better max_bins then this ...
+  int64_t max_bins = view.extent(0) / 2;
+  if (std::is_integral<typename ViewType::non_const_value_type>::value) {
+    // Cast to double to avoid possible overflow when using integer
+    auto const max_val = static_cast<double>(result.max_val);
+    auto const min_val = static_cast<double>(result.min_val);
+    // using 10M as the cutoff for special behavior (roughly 40MB for the count
+    // array)
+    if ((max_val - min_val) < 10000000) {
+      max_bins     = max_val - min_val + 1;
+      sort_in_bins = false;
+    }
+  }
+  if (std::is_floating_point<typename ViewType::non_const_value_type>::value) {
+    KOKKOS_ASSERT(std::isfinite(static_cast<double>(result.max_val) -
+                                static_cast<double>(result.min_val)));
+  }
+
   BinSort<ViewType, CompType> bin_sort(
-      view, CompType(view.extent(0) / 2, result.min_val, result.max_val), true);
+      view, CompType(max_bins, result.min_val, result.max_val), sort_in_bins);
   bin_sort.create_permute_vector(exec);
   bin_sort.sort(exec, view);
 }

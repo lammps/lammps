@@ -19,14 +19,15 @@
 namespace LAMMPS_NS {
 
 class NeighRequest : protected Pointers {
- friend class Neighbor;
- friend class NBin;
- friend class NeighList;
- friend class NPair;
- friend class NStencil;
- friend class NeighborKokkos;
- friend class NPairSkipIntel;
- friend class FixIntel;
+  friend class Neighbor;
+  friend class NBin;
+  friend class NeighList;
+  friend class NPair;
+  friend class NStencil;
+  friend class NeighborKokkos;
+  friend class NPairSkipIntel;
+  friend class FixIntel;
+
  protected:
   int index;                 // index of which neigh request this is
   void *requestor;           // class that made request
@@ -101,6 +102,7 @@ class NeighRequest : protected Pointers {
   int off2on;      // 1 if this is newton on list, but skips from off list
 
   int copy;        // 1 if this list copied from another list
+  int trim;        // 1 if this list trimmed from another list
   int copylist;    // index of list to copy from
 
   int halffull;        // 1 if half list computed from another full list
@@ -137,6 +139,7 @@ class NeighRequest : protected Pointers {
   void set_skip(int *, int **);
   void enable_full();
   void enable_ghost();
+  void enable_intel();
 
   int get_size() const { return size; }
   void *get_requestor() const { return requestor; }

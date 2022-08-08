@@ -76,7 +76,7 @@ void EwaldDipoleSpin::init()
 
   if (!atom->sp) error->all(FLERR,"Kspace style requires atom attribute sp");
 
-  if ((spinflag && strcmp(update->unit_style,"metal")) != 0)
+  if ((spinflag && strcmp(update->unit_style,"metal") != 0) != 0)
     error->all(FLERR,"'metal' units have to be used with spins");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
@@ -96,7 +96,7 @@ void EwaldDipoleSpin::init()
   pair_check();
 
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;

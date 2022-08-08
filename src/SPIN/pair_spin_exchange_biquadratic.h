@@ -64,23 +64,3 @@ class PairSpinExchangeBiquadratic : public PairSpin {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_spin command
-
-Self-explanatory.
-
-E: Spin simulations require metal unit style
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair spin requires atom attribute spin
-
-The atom style defined does not have these attributes.
-
-*/

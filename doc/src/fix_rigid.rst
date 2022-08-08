@@ -88,7 +88,7 @@ Syntax
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
          seed = random number seed to use for white noise (positive integer)
-       *reinit* = *yes* or *no*
+       *reinit* value = *yes* or *no*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
@@ -98,7 +98,7 @@ Syntax
        *x* or *y* or *z* values = Pstart Pstop Pdamp
          Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
          Pdamp = stress damping parameter (time units)
-       *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
+       *couple* value = *none* or *xyz* or *xy* or *yz* or *xz*
        *tparam* values = Tchain Titer Torder
          Tchain = length of Nose/Hoover thermostat chain
          Titer = number of thermostat iterations performed

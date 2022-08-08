@@ -47,12 +47,21 @@
 #include <bench.hpp>
 #include <cstdlib>
 
+extern template void run_stride_unroll<float>(int, int, int, int, int, int, int,
+                                              int);
+extern template void run_stride_unroll<double>(int, int, int, int, int, int,
+                                               int, int);
+extern template void run_stride_unroll<int32_t>(int, int, int, int, int, int,
+                                                int, int);
+extern template void run_stride_unroll<int64_t>(int, int, int, int, int, int,
+                                                int, int);
+
 int main(int argc, char* argv[]) {
   Kokkos::initialize();
 
   if (argc < 10) {
     printf("Arguments: N K R D U F T S\n");
-    printf("  P:   Precision (1==float, 2==double)\n");
+    printf("  P:   Precision (1==float, 2==double, 3==int32_t, 4==int64_t)\n");
     printf("  N,K: dimensions of the 2D array to allocate\n");
     printf("  R:   how often to loop through the K dimension with each team\n");
     printf("  D:   distance between loaded elements (stride)\n");
@@ -91,8 +100,8 @@ int main(int argc, char* argv[]) {
     printf("D must be one of 1,2,4,8,16,32\n");
     return 0;
   }
-  if ((P != 1) && (P != 2)) {
-    printf("P must be one of 1,2\n");
+  if ((P < 1) && (P > 2)) {
+    printf("P must be one of 1,2,3,4\n");
     return 0;
   }
 
@@ -101,6 +110,12 @@ int main(int argc, char* argv[]) {
   }
   if (P == 2) {
     run_stride_unroll<double>(N, K, R, D, U, F, T, S);
+  }
+  if (P == 3) {
+    run_stride_unroll<int32_t>(N, K, R, D, U, F, T, S);
+  }
+  if (P == 4) {
+    run_stride_unroll<int64_t>(N, K, R, D, U, F, T, S);
   }
 
   Kokkos::finalize();

@@ -76,10 +76,3 @@ struct FixEnforce2DKokkosPostForceFunctor {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Flag in fix_enforce2d_kokkos outside of what it should be
-
-LAMMPS developer-only error.
-
-*/

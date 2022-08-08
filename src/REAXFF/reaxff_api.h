@@ -21,7 +21,7 @@
 #ifndef LMP_REAXFF_API_H
 #define LMP_REAXFF_API_H
 
-#include "reaxff_types.h"       // IWYU pragma: export
+#include "reaxff_types.h"    // IWYU pragma: export
 
 #include <cmath>
 

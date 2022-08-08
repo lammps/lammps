@@ -42,21 +42,3 @@ class ComputeErotateSphereAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute erotate/sphere/atom requires atom style sphere
-
-Self-explanatory.
-
-W: More than one compute erotate/sphere/atom
-
-It is not efficient to use compute erorate/sphere/atom more than once.
-
-*/

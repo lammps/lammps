@@ -47,18 +47,31 @@
 #ifdef KOKKOS_ENABLE_HPX
 #include <Kokkos_HPX.hpp>
 
-#include <hpx/util/yield_while.hpp>
+#include <hpx/local/condition_variable.hpp>
+#include <hpx/local/init.hpp>
+#include <hpx/local/thread.hpp>
+#include <hpx/local/mutex.hpp>
+
+#include <atomic>
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <type_traits>
 
 namespace Kokkos {
 namespace Experimental {
 
 bool HPX::m_hpx_initialized = false;
-std::atomic<uint32_t> HPX::m_next_instance_id{1};
 #if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
-std::atomic<uint32_t> HPX::m_active_parallel_region_count{0};
-HPX::instance_data HPX::m_global_instance_data;
+std::atomic<uint32_t> HPX::m_next_instance_id{HPX::impl_default_instance_id() +
+                                              1};
+uint32_t HPX::m_active_parallel_region_count{0};
+hpx::spinlock HPX::m_active_parallel_region_count_mutex;
+hpx::condition_variable_any HPX::m_active_parallel_region_count_cond;
+HPX::instance_data HPX::m_default_instance_data;
 #else
-Kokkos::Impl::thread_buffer HPX::m_global_buffer;
+Kokkos::Impl::thread_buffer HPX::m_default_buffer;
 #endif
 
 int HPX::concurrency() {
@@ -77,7 +90,8 @@ int HPX::concurrency() {
 void HPX::impl_initialize(int thread_count) {
   hpx::runtime *rt = hpx::get_runtime_ptr();
   if (rt == nullptr) {
-    std::vector<std::string> config = {
+    hpx::local::init_params i;
+    i.cfg = {
         "hpx.os_threads=" + std::to_string(thread_count),
 #ifdef KOKKOS_ENABLE_DEBUG
         "--hpx:attach-debugger=exception",
@@ -86,21 +100,7 @@ void HPX::impl_initialize(int thread_count) {
     int argc_hpx     = 1;
     char name[]      = "kokkos_hpx";
     char *argv_hpx[] = {name, nullptr};
-    hpx::start(nullptr, argc_hpx, argv_hpx, config);
-
-#if HPX_VERSION_FULL < 0x010400
-    // This has been fixed in HPX 1.4.0.
-    //
-    // NOTE: Wait for runtime to start. hpx::start returns as soon as
-    // possible, meaning some operations are not allowed immediately
-    // after hpx::start. Notably, hpx::stop needs state_running. This
-    // needs to be fixed in HPX itself.
-
-    // Get runtime pointer again after it has been started.
-    rt = hpx::get_runtime_ptr();
-    hpx::util::yield_while(
-        [rt]() { return rt->get_state() < hpx::state_running; });
-#endif
+    hpx::local::start(nullptr, argc_hpx, argv_hpx, i);
 
     m_hpx_initialized = true;
   }
@@ -109,7 +109,8 @@ void HPX::impl_initialize(int thread_count) {
 void HPX::impl_initialize() {
   hpx::runtime *rt = hpx::get_runtime_ptr();
   if (rt == nullptr) {
-    std::vector<std::string> config = {
+    hpx::local::init_params i;
+    i.cfg = {
 #ifdef KOKKOS_ENABLE_DEBUG
         "--hpx:attach-debugger=exception",
 #endif
@@ -117,17 +118,7 @@ void HPX::impl_initialize() {
     int argc_hpx     = 1;
     char name[]      = "kokkos_hpx";
     char *argv_hpx[] = {name, nullptr};
-    hpx::start(nullptr, argc_hpx, argv_hpx, config);
-
-    // NOTE: Wait for runtime to start. hpx::start returns as soon as
-    // possible, meaning some operations are not allowed immediately
-    // after hpx::start. Notably, hpx::stop needs state_running. This
-    // needs to be fixed in HPX itself.
-
-    // Get runtime pointer again after it has been started.
-    rt = hpx::get_runtime_ptr();
-    hpx::util::yield_while(
-        [rt]() { return rt->get_state() < hpx::state_running; });
+    hpx::local::start(nullptr, argc_hpx, argv_hpx, i);
 
     m_hpx_initialized = true;
   }
@@ -142,8 +133,8 @@ void HPX::impl_finalize() {
   if (m_hpx_initialized) {
     hpx::runtime *rt = hpx::get_runtime_ptr();
     if (rt != nullptr) {
-      hpx::apply([]() { hpx::finalize(); });
-      hpx::stop();
+      hpx::apply([]() { hpx::local::finalize(); });
+      hpx::local::stop();
     } else {
       Kokkos::abort(
           "Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
@@ -190,9 +181,11 @@ void HPXSpaceInitializer::finalize(const bool all_spaces) {
   }
 }
 
-void HPXSpaceInitializer::fence() { Kokkos::Experimental::HPX().fence(); }
 void HPXSpaceInitializer::fence(const std::string &name) {
-  Kokkos::Experimental::HPX().fence(name);
+  Kokkos::Experimental::HPX::impl_fence_global(name);
+}
+void HPXSpaceInitializer::fence() {
+  Kokkos::Experimental::HPX::impl_fence_global();
 }
 
 void HPXSpaceInitializer::print_configuration(std::ostream &msg,
@@ -206,6 +199,15 @@ void HPXSpaceInitializer::print_configuration(std::ostream &msg,
 }
 
 }  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_CXX14
+namespace Tools {
+namespace Experimental {
+constexpr DeviceType DeviceTypeTraits<Kokkos::Experimental::HPX>::id;
+}
+}  // namespace Tools
+#endif
+
 }  // namespace Kokkos
 
 #else

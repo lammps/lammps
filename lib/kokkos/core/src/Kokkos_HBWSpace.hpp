@@ -216,11 +216,10 @@ class SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>
   KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
       const Kokkos::Experimental::HBWSpace& arg_space,
       const std::string& arg_label, const size_t arg_alloc_size) {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    return new SharedAllocationRecord(arg_space, arg_label, arg_alloc_size);
-#else
-    return (SharedAllocationRecord*)0;
-#endif
+    KOKKOS_IF_ON_HOST((return new SharedAllocationRecord(arg_space, arg_label,
+                                                         arg_alloc_size);))
+    KOKKOS_IF_ON_DEVICE(((void)arg_space; (void)arg_label; (void)arg_alloc_size;
+                         return nullptr;))
   }
 
   /**\brief  Allocate tracked memory in the space */
@@ -281,41 +280,86 @@ namespace Kokkos {
 
 namespace Impl {
 
+template <>
+struct DeepCopy<Kokkos::Experimental::HBWSpace, Kokkos::Experimental::HBWSpace,
+                DefaultHostExecutionSpace> {
+  DeepCopy(void* dst, const void* src, size_t n) {
+    hostspace_parallel_deepcopy(dst, src, n);
+  }
+
+  DeepCopy(const DefaultHostExecutionSpace& exec, void* dst, const void* src,
+           size_t n) {
+    hostspace_parallel_deepcopy(exec, dst, src, n);
+  }
+};
+
 template <class ExecutionSpace>
 struct DeepCopy<Kokkos::Experimental::HBWSpace, Kokkos::Experimental::HBWSpace,
                 ExecutionSpace> {
-  DeepCopy(void* dst, const void* src, size_t n) { memcpy(dst, src, n); }
+  DeepCopy(void* dst, const void* src, size_t n) {
+    hostspace_parallel_deepcopy(dst, src, n);
+  }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     exec.fence(
         "Kokkos::Impl::DeepCopy<Kokkos::Experimental::HBWSpace, "
-        "Kokkos::Experimental::HBWSpace,ExecutionSpace::DeepCopy: fence before "
-        "copy");
-    memcpy(dst, src, n);
+        "Kokkos::Experimental::HBWSpace,ExecutionSpace::DeepCopy: fence "
+        "before copy");
+    hostspace_parallel_deepcopy_async(dst, src, n);
+  }
+};
+
+template <>
+struct DeepCopy<HostSpace, Kokkos::Experimental::HBWSpace,
+                DefaultHostExecutionSpace> {
+  DeepCopy(void* dst, const void* src, size_t n) {
+    hostspace_parallel_deepcopy(dst, src, n);
+  }
+
+  DeepCopy(const DefaultHostExecutionSpace& exec, void* dst, const void* src,
+           size_t n) {
+    hostspace_parallel_deepcopy(exec, dst, src, n);
   }
 };
 
 template <class ExecutionSpace>
 struct DeepCopy<HostSpace, Kokkos::Experimental::HBWSpace, ExecutionSpace> {
-  DeepCopy(void* dst, const void* src, size_t n) { memcpy(dst, src, n); }
+  DeepCopy(void* dst, const void* src, size_t n) {
+    hostspace_parallel_deepcopy(dst, src, n);
+  }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     exec.fence(
         "Kokkos::Impl::DeepCopy<HostSpace, Kokkos::Experimental::HBWSpace, "
         "ExecutionSpace>::DeepCopy: fence before copy");
-    memcpy(dst, src, n);
+    hostspace_parallel_deepcopy_async(copy_space, dst, src, n);
+  }
+};
+
+template <>
+struct DeepCopy<Kokkos::Experimental::HBWSpace, HostSpace,
+                DefaultHostExecutionSpace> {
+  DeepCopy(void* dst, const void* src, size_t n) {
+    hostspace_parallel_deepcopy(dst, src, n);
+  }
+
+  DeepCopy(const DefaultHostExecutionSpace& exec, void* dst, const void* src,
+           size_t n) {
+    hostspace_parallel_deepcopy(exec, dst, src, n);
   }
 };
 
 template <class ExecutionSpace>
 struct DeepCopy<Kokkos::Experimental::HBWSpace, HostSpace, ExecutionSpace> {
-  DeepCopy(void* dst, const void* src, size_t n) { memcpy(dst, src, n); }
+  DeepCopy(void* dst, const void* src, size_t n) {
+    hostspace_parallel_deepcopy(dst, src, n);
+  }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     exec.fence(
         "Kokkos::Impl::DeepCopy<Kokkos::Experimental::HBWSpace, HostSpace, "
         "ExecutionSpace>::DeepCopy: fence before copy");
-    memcpy(dst, src, n);
+    hostspace_parallel_deepcopy_async(dst, src, n);
   }
 };
 

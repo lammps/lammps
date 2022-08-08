@@ -24,7 +24,7 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff * * nialhjea 1 1 2
    pair_coeff * 3 morse.table ENTRY1
-   pair_coeff 1 2 lj/cut 1.0 1.0 2.5 (for pair_style hybrid)
+   pair_coeff 1 2 lj/cut 1.0 1.0 2.5 # (for pair_style hybrid)
 
    labelmap atom 1 C
    labelmap atom 2 H

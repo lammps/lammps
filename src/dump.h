@@ -16,10 +16,13 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
+#include <map>
+
 namespace LAMMPS_NS {
 
 class Dump : protected Pointers {
- friend class Output;
+  friend class Output;
+
  public:
   char *id;                // user-defined name of Dump
   char *style;             // style of Dump
@@ -64,7 +67,6 @@ class Dump : protected Pointers {
   char *multiname;         // filename with % converted to cluster ID
   MPI_Comm clustercomm;    // MPI communicator within my cluster of procs
 
-  int header_flag;          // 0 = item, 2 = xyz
   int flush_flag;           // 0 if no flush, 1 if flush every dump
   int sort_flag;            // 1 if sorted output
   int balance_flag;         // 1 if load balanced output
@@ -100,6 +102,8 @@ class Dump : protected Pointers {
   char *format_bigint_user;
   char **format_column_user;
   enum { INT, DOUBLE, STRING, BIGINT };
+  std::map<std::string, int> key2col;
+  std::vector<std::string> keyword_user;
 
   FILE *fp;        // file to write dump to
   int size_one;    // # of quantities for one atom
@@ -116,11 +120,11 @@ class Dump : protected Pointers {
   int fileidx;         // index of file in names list
   char **nameslist;    // list of history file names
 
-  bigint ntotal;         // total # of per-atom lines in snapshot
-  int reorderflag;       // 1 if OK to reorder instead of sort
+  bigint ntotal;            // total # of per-atom lines in snapshot
+  int reorderflag;          // 1 if OK to reorder instead of sort
   bigint ntotal_reorder;    // # of atoms that must be in snapshot
-  int nme_reorder;       // # of atoms I must own in snapshot
-  tagint idlo;           // lowest ID I own when reordering
+  int nme_reorder;          // # of atoms I must own in snapshot
+  tagint idlo;              // lowest ID I own when reordering
 
   int maxbuf;     // size of buf
   double *buf;    // memory for atom quantities
@@ -149,6 +153,8 @@ class Dump : protected Pointers {
   virtual void pack(tagint *) = 0;
   virtual int convert_string(int, double *) { return 0; }
   virtual void write_data(int, double *) = 0;
+  virtual void write_footer() {}
+
   void pbc_allocate();
   double compute_time();
 
@@ -168,65 +174,3 @@ class Dump : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump file MPI-IO output not allowed with % in filename
-
-This is because a % signifies one file per processor and MPI-IO
-creates one large file for all processors.
-
-E: Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values
-
-Can only dump sort when the number of dump file pieces using % in filename equals the number of processors
-
-E: Cannot dump sort on atom IDs with no atom IDs defined
-
-Self-explanatory.
-
-E: Dump sort column is invalid
-
-Self-explanatory.
-
-E: Dump could not find refresh compute ID
-
-UNDOCUMENTED
-
-E: Too much per-proc info for dump
-
-Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
-
-E: Too much buffered per-proc info for dump
-
-The size of the buffered string must fit in a 32-bit integer for a
-dump.
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Dump_modify buffer yes not allowed for this style
-
-Self-explanatory.
-
-E: Cannot use dump_modify fileper without % in dump file name
-
-Self-explanatory.
-
-E: Cannot use dump_modify nfile without % in dump file name
-
-Self-explanatory.
-
-*/

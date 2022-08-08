@@ -64,12 +64,6 @@ PairSWIntel::PairSWIntel(LAMMPS *lmp) : PairSW(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairSWIntel::~PairSWIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairSWIntel::compute(int eflag, int vflag)
 {
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
@@ -573,7 +567,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 #else
@@ -1107,7 +1101,11 @@ void PairSWIntel::allocate()
 
 void PairSWIntel::init_style()
 {
+  // there is no support for skipping threebody loops (yet)
+  bool tmp_threebody = skip_threebody_flag;
+  skip_threebody_flag = false;
   PairSW::init_style();
+  skip_threebody_flag = tmp_threebody;
 
   map[0] = map[1];
 

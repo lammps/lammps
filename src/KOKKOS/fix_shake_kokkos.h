@@ -216,6 +216,3 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

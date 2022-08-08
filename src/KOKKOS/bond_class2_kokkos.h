@@ -87,6 +87,3 @@ class BondClass2Kokkos : public BondClass2 {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

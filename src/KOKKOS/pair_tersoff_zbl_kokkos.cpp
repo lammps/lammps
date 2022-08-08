@@ -78,18 +78,29 @@ PairTersoffZBLKokkos<DeviceType>::~PairTersoffZBLKokkos()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairTersoffZBLKokkos<DeviceType>::allocate()
+void PairTersoffZBLKokkos<DeviceType>::coeff(int narg, char **arg)
 {
-  PairTersoffZBL::allocate();
+  PairTersoffZBL::coeff(narg,arg);
+
+  // sync map
 
   int n = atom->ntypes;
 
-  k_params = Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType>
-          ("PairTersoffZBL::paramskk",n+1,n+1,n+1);
-  paramskk = k_params.template view<DeviceType>();
+  DAT::tdual_int_1d k_map = DAT::tdual_int_1d("pair:map",n+1);
+  HAT::t_int_1d h_map = k_map.h_view;
+
+  for (int i = 1; i <= n; i++)
+    h_map[i] = map[i];
+
+  k_map.template modify<LMPHostType>();
+  k_map.template sync<DeviceType>();
+
+  d_map = k_map.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -108,9 +119,9 @@ void PairTersoffZBLKokkos<DeviceType>::init_style()
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  request->enable_full();
+
   if (neighflag == FULL)
-    error->all(FLERR,"Cannot (yet) use full neighbor list style with tersoff/zbl/kk");
+    error->all(FLERR,"Must use half neighbor list style with pair tersoff/kk");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,40 +131,29 @@ void PairTersoffZBLKokkos<DeviceType>::setup_params()
 {
   PairTersoffZBL::setup_params();
 
-  int i,j,k,m;
-  int n = atom->ntypes;
+  // sync elem3param and params
 
-  for (i = 1; i <= n; i++)
-    for (j = 1; j <= n; j++)
-      for (k = 1; k <= n; k++) {
-        m = elem3param[map[i]][map[j]][map[k]];
-        k_params.h_view(i,j,k).powerm = params[m].powerm;
-        k_params.h_view(i,j,k).gamma = params[m].gamma;
-        k_params.h_view(i,j,k).lam3 = params[m].lam3;
-        k_params.h_view(i,j,k).c = params[m].c;
-        k_params.h_view(i,j,k).d = params[m].d;
-        k_params.h_view(i,j,k).h = params[m].h;
-        k_params.h_view(i,j,k).powern = params[m].powern;
-        k_params.h_view(i,j,k).beta = params[m].beta;
-        k_params.h_view(i,j,k).lam2 = params[m].lam2;
-        k_params.h_view(i,j,k).bigb = params[m].bigb;
-        k_params.h_view(i,j,k).bigr = params[m].bigr;
-        k_params.h_view(i,j,k).bigd = params[m].bigd;
-        k_params.h_view(i,j,k).lam1 = params[m].lam1;
-        k_params.h_view(i,j,k).biga = params[m].biga;
-        k_params.h_view(i,j,k).cutsq = params[m].cutsq;
-        k_params.h_view(i,j,k).c1 = params[m].c1;
-        k_params.h_view(i,j,k).c2 = params[m].c2;
-        k_params.h_view(i,j,k).c3 = params[m].c3;
-        k_params.h_view(i,j,k).c4 = params[m].c4;
-        k_params.h_view(i,j,k).Z_i = params[m].Z_i;
-        k_params.h_view(i,j,k).Z_j = params[m].Z_j;
-        k_params.h_view(i,j,k).ZBLcut = params[m].ZBLcut;
-        k_params.h_view(i,j,k).ZBLexpscale = params[m].ZBLexpscale;
-      }
+  tdual_int_3d k_elem3param = tdual_int_3d("pair:elem3param",nelements,nelements,nelements);
+  t_host_int_3d h_elem3param = k_elem3param.h_view;
 
-  k_params.template modify<LMPHostType>();
+  tdual_param_1d k_params = tdual_param_1d("pair:params",nparams);
+  t_host_param_1d h_params = k_params.h_view;
 
+  for (int i = 0; i < nelements; i++)
+    for (int j = 0; j < nelements; j++)
+      for (int k = 0; k < nelements; k++)
+        h_elem3param(i,j,k) = elem3param[i][j][k];
+
+  for (int m = 0; m < nparams; m++)
+    h_params[m] = params[m];
+
+  k_elem3param.modify_host();
+  k_elem3param.template sync<DeviceType>();
+  k_params.modify_host();
+  k_params.template sync<DeviceType>();
+
+  d_elem3param = k_elem3param.template view<DeviceType>();
+  d_params = k_params.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,8 +163,6 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
-
-  if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
 
@@ -182,7 +180,6 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   atomKK->sync(execution_space,datamask_read);
-  k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
@@ -221,37 +218,25 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int max_neighs = d_neighbors.extent(1);
 
-  if (((int)d_neighbors_short.extent(1) != max_neighs) ||
-     ((int)d_neighbors_short.extent(0) != ignum)) {
-    d_neighbors_short = Kokkos::View<int**,DeviceType>("Tersoff::neighbors_short",ignum,max_neighs);
+  if (((int)d_neighbors_short.extent(1) < max_neighs) ||
+     ((int)d_neighbors_short.extent(0) < ignum)) {
+    d_neighbors_short = Kokkos::View<int**,DeviceType>("Tersoff::neighbors_short",ignum*1.2,max_neighs);
   }
-  if ((int)d_numneigh_short.extent(0)!=ignum)
-    d_numneigh_short = Kokkos::View<int*,DeviceType>("Tersoff::numneighs_short",ignum);
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairTersoffZBLComputeShortNeigh>(0,neighflag==FULL?ignum:inum), *this);
+  if ((int)d_numneigh_short.extent(0) < ignum)
+    d_numneigh_short = Kokkos::View<int*,DeviceType>("Tersoff::numneighs_short",ignum*1.2);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairTersoffZBLComputeShortNeigh>(0,inum), *this);
 
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeHalf<HALF,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLCompute<HALF,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeHalf<HALF,0> >(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLCompute<HALF,0> >(0,inum),*this);
     ev_all += ev;
   } else if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeHalf<HALFTHREAD,1> >(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLCompute<HALFTHREAD,1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeHalf<HALFTHREAD,0> >(0,inum),*this);
-    ev_all += ev;
-  } else if (neighflag == FULL) {
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeFullA<FULL,1> >(0,inum),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeFullA<FULL,0> >(0,inum),*this);
-    ev_all += ev;
-
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeFullB<FULL,1> >(0,ignum),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLComputeFullB<FULL,0> >(0,ignum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffZBLCompute<HALFTHREAD,0> >(0,inum),*this);
     ev_all += ev;
   }
 
@@ -303,6 +288,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeShortN
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
     const X_FLOAT ztmp = x(i,2);
+    const F_FLOAT cutmax_sq = cutmax*cutmax;
 
     const int jnum = d_numneigh[i];
     int inside = 0;
@@ -315,12 +301,12 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeShortN
       const X_FLOAT delz = ztmp - x(j,2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutmax*cutmax) {
-        d_neighbors_short(i,inside) = j;
+      if (rsq < cutmax_sq) {
+        d_neighbors_short(ii,inside) = j;
         inside++;
       }
     }
-    d_numneigh_short(i) = inside;
+    d_numneigh_short(ii) = inside;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -328,25 +314,25 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeShortN
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  const auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   if (i >= nlocal) return;
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
+  const int itype = d_map(type(i));
   const tagint itag = tag(i);
 
   F_FLOAT fi[3], fj[3], fk[3];
 
   //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
-  const int jnum = d_numneigh_short[i];
+  const int jnum = d_numneigh_short[ii];
 
   // repulsive
 
@@ -355,9 +341,8 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
   F_FLOAT f_z = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors_short(i,jj);
-    j &= NEIGHMASK;
-    const int jtype = type(j);
+    int j = d_neighbors_short(ii,jj);
+    const int jtype = d_map(type(j));
     const tagint jtag = tag(j);
 
     if (itag > jtag) {
@@ -374,26 +359,27 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    const F_FLOAT cutsq = paramskk(itype,jtype,jtype).cutsq;
+    const int iparam_ij = d_elem3param(itype,jtype,jtype);
+    const F_FLOAT cutsq = d_params(iparam_ij).cutsq;
 
     if (rsq > cutsq) continue;
 
     // Tersoff repulsive portion
 
     const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT tmp_fce = ters_fc_k(itype,jtype,jtype,r);
-    const F_FLOAT tmp_fcd = ters_dfc(itype,jtype,jtype,r);
-    const F_FLOAT tmp_exp = exp(-paramskk(itype,jtype,jtype).lam1 * r);
-    const F_FLOAT frep_t = paramskk(itype,jtype,jtype).biga * tmp_exp *
-                          (tmp_fcd - tmp_fce*paramskk(itype,jtype,jtype).lam1);
-    const F_FLOAT eng_t = tmp_fce * paramskk(itype,jtype,jtype).biga * tmp_exp;
+    const F_FLOAT tmp_fce = ters_fc_k(d_params(iparam_ij),r);
+    const F_FLOAT tmp_fcd = ters_dfc(d_params(iparam_ij),r);
+    const F_FLOAT tmp_exp = exp(-d_params(iparam_ij).lam1 * r);
+    const F_FLOAT frep_t = d_params(iparam_ij).biga * tmp_exp *
+                          (tmp_fcd - tmp_fce*d_params(iparam_ij).lam1);
+    const F_FLOAT eng_t = tmp_fce * d_params(iparam_ij).biga * tmp_exp;
 
     // ZBL repulsive portion
 
     const F_FLOAT esq = pow(global_e,2.0);
     const F_FLOAT a_ij = (0.8854*global_a_0) /
-            (pow(paramskk(itype,jtype,jtype).Z_i,0.23) + pow(paramskk(itype,jtype,jtype).Z_j,0.23));
-    const F_FLOAT premult = (paramskk(itype,jtype,jtype).Z_i * paramskk(itype,jtype,jtype).Z_j * esq)/
+            (pow(d_params(iparam_ij).Z_i,0.23) + pow(d_params(iparam_ij).Z_j,0.23));
+    const F_FLOAT premult = (d_params(iparam_ij).Z_i * d_params(iparam_ij).Z_j * esq)/
             (4.0*MY_PI*global_epsilon_0);
     const F_FLOAT r_ov_a = r/a_ij;
     const F_FLOAT phi = 0.1818*exp(-3.2*r_ov_a) + 0.5099*exp(-0.9423*r_ov_a) +
@@ -408,13 +394,13 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
     // combine two parts with smoothing by Fermi-like function
 
     F_FLOAT frep, eng;
-    frep = -(-fermi_d_k(itype,jtype,jtype,r) * eng_z +
-             (1.0 - fermi_k(itype,jtype,jtype,r))*frep_z +
-             fermi_d_k(itype,jtype,jtype,r)*eng_t + fermi_k(itype,jtype,jtype,r)*frep_t) / r;
+    frep = -(-fermi_d_k(d_params(iparam_ij),r) * eng_z +
+             (1.0 - fermi_k(d_params(iparam_ij),r))*frep_z +
+             fermi_d_k(d_params(iparam_ij),r)*eng_t + fermi_k(d_params(iparam_ij),r)*frep_t) / r;
 
     if (eflag)
-      eng = (1.0 - fermi_k(itype,jtype,jtype,r)) * eng_z +
-              fermi_k(itype,jtype,jtype,r) * eng_t;
+      eng = (1.0 - fermi_k(d_params(iparam_ij),r)) * eng_z +
+              fermi_k(d_params(iparam_ij),r) * eng_t;
 
     f_x += delx*frep;
     f_y += dely*frep;
@@ -432,15 +418,15 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
   // attractive: bond order
 
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors_short(i,jj);
-    j &= NEIGHMASK;
-    const int jtype = type(j);
+    int j = d_neighbors_short(ii,jj);
+    const int jtype = d_map(type(j));
 
     const F_FLOAT delx1 = xtmp - x(j,0);
     const F_FLOAT dely1 = ytmp - x(j,1);
     const F_FLOAT delz1 = ztmp - x(j,2);
     const F_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-    const F_FLOAT cutsq1 = paramskk(itype,jtype,jtype).cutsq;
+    const int iparam_ij = d_elem3param(itype,jtype,jtype);
+    const F_FLOAT cutsq1 = d_params(iparam_ij).cutsq;
 
     F_FLOAT bo_ij = 0.0;
     if (rsq1 > cutsq1) continue;
@@ -448,28 +434,28 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
 
     for (int kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
-      int k = d_neighbors_short(i,kk);
-      k &= NEIGHMASK;
-      const int ktype = type(k);
+      int k = d_neighbors_short(ii,kk);
+      const int ktype = d_map(type(k));
 
       const F_FLOAT delx2 = xtmp - x(k,0);
       const F_FLOAT dely2 = ytmp - x(k,1);
       const F_FLOAT delz2 = ztmp - x(k,2);
       const F_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      const F_FLOAT cutsq2 = paramskk(itype,jtype,ktype).cutsq;
+      const int iparam_ijk = d_elem3param(itype,jtype,ktype);
+      const F_FLOAT cutsq2 = d_params(iparam_ijk).cutsq;
 
       if (rsq2 > cutsq2) continue;
       const F_FLOAT rik = sqrt(rsq2);
-      bo_ij += bondorder(itype,jtype,ktype,rij,delx1,dely1,delz1,rik,delx2,dely2,delz2);
+      bo_ij += bondorder(d_params(iparam_ijk),rij,delx1,dely1,delz1,rik,delx2,dely2,delz2);
     }
 
     // attractive: pairwise potential and force
 
-    const F_FLOAT fa = ters_fa_k(itype,jtype,jtype,rij);
-    const F_FLOAT dfa = ters_dfa(itype,jtype,jtype,rij);
-    const F_FLOAT bij = ters_bij_k(itype,jtype,jtype,bo_ij);
+    const F_FLOAT fa = ters_fa_k(d_params(iparam_ij),rij);
+    const F_FLOAT dfa = ters_dfa(d_params(iparam_ij),rij);
+    const F_FLOAT bij = ters_bij_k(d_params(iparam_ij),bo_ij);
     const F_FLOAT fatt = -0.5*bij * dfa / rij;
-    const F_FLOAT prefactor = 0.5*fa * ters_dbij(itype,jtype,jtype,bo_ij);
+    const F_FLOAT prefactor = 0.5*fa * ters_dbij(d_params(iparam_ij),bo_ij);
 
     f_x += delx1*fatt;
     f_y += dely1*fatt;
@@ -489,19 +475,19 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
 
     for (int kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
-      int k = d_neighbors_short(i,kk);
-      k &= NEIGHMASK;
-      const int ktype = type(k);
+      int k = d_neighbors_short(ii,kk);
+      const int ktype = d_map(type(k));
 
       const F_FLOAT delx2 = xtmp - x(k,0);
       const F_FLOAT dely2 = ytmp - x(k,1);
       const F_FLOAT delz2 = ztmp - x(k,2);
       const F_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      const F_FLOAT cutsq2 = paramskk(itype,jtype,ktype).cutsq;
+      const int iparam_ijk = d_elem3param(itype,jtype,ktype);
+      const F_FLOAT cutsq2 = d_params(iparam_ijk).cutsq;
 
       if (rsq2 > cutsq2) continue;
       const F_FLOAT rik = sqrt(rsq2);
-      ters_dthb(itype,jtype,ktype,prefactor,rij,delx1,dely1,delz1,
+      ters_dthb(d_params(iparam_ijk),prefactor,rij,delx1,dely1,delz1,
                 rik,delx2,dely2,delz2,fi,fj,fk);
 
       f_x += fi[0];
@@ -521,6 +507,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
         if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj,fk,delrij,delrik);
       }
     }
+
     a_f(j,0) += fj_x;
     a_f(j,1) += fj_y;
     a_f(j,2) += fj_z;
@@ -533,339 +520,19 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairTersoffZBLComputeHalf<NEIGHFLAG,EVFLAG>(), ii, ev);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
-
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
-
-  int j,k,jj,kk,jtype,ktype;
-  F_FLOAT rsq1, cutsq1, rsq2, cutsq2, rij, rik, bo_ij;
-  F_FLOAT fi[3], fj[3], fk[3];
-  X_FLOAT delx1, dely1, delz1, delx2, dely2, delz2;
-
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
-  const int jnum = d_numneigh[i];
-
-  // repulsive
-
-  F_FLOAT f_x = 0.0;
-  F_FLOAT f_y = 0.0;
-  F_FLOAT f_z = 0.0;
-  for (jj = 0; jj < jnum; jj++) {
-    j = d_neighbors_short(i,jj);
-    j &= NEIGHMASK;
-    const int jtype = type(j);
-
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    const F_FLOAT cutsq = paramskk(itype,jtype,jtype).cutsq;
-
-    if (rsq > cutsq) continue;
-
-    // Tersoff repulsive portion
-
-    const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT tmp_fce = ters_fc_k(itype,jtype,jtype,r);
-    const F_FLOAT tmp_fcd = ters_dfc(itype,jtype,jtype,r);
-    const F_FLOAT tmp_exp = exp(-paramskk(itype,jtype,jtype).lam1 * r);
-    const F_FLOAT frep_t = paramskk(itype,jtype,jtype).biga * tmp_exp *
-                          (tmp_fcd - tmp_fce*paramskk(itype,jtype,jtype).lam1);
-    const F_FLOAT eng_t = tmp_fce * paramskk(itype,jtype,jtype).biga * tmp_exp;
-
-    // ZBL repulsive portion
-
-    const F_FLOAT esq = pow(global_e,2.0);
-    const F_FLOAT a_ij = (0.8854*global_a_0) /
-            (pow(paramskk(itype,jtype,jtype).Z_i,0.23) + pow(paramskk(itype,jtype,jtype).Z_j,0.23));
-    const F_FLOAT premult = (paramskk(itype,jtype,jtype).Z_i * paramskk(itype,jtype,jtype).Z_j * esq)/
-            (4.0*MY_PI*global_epsilon_0);
-    const F_FLOAT r_ov_a = r/a_ij;
-    const F_FLOAT phi = 0.1818*exp(-3.2*r_ov_a) + 0.5099*exp(-0.9423*r_ov_a) +
-            0.2802*exp(-0.4029*r_ov_a) + 0.02817*exp(-0.2016*r_ov_a);
-    const F_FLOAT dphi = (1.0/a_ij) * (-3.2*0.1818*exp(-3.2*r_ov_a) -
-                              0.9423*0.5099*exp(-0.9423*r_ov_a) -
-                              0.4029*0.2802*exp(-0.4029*r_ov_a) -
-                              0.2016*0.02817*exp(-0.2016*r_ov_a));
-    const F_FLOAT frep_z = premult*-phi/rsq + premult*dphi/r;
-    const F_FLOAT eng_z = premult*(1.0/r)*phi;
-
-    // combine two parts with smoothing by Fermi-like function
-
-    F_FLOAT frep, eng;
-    frep = -(-fermi_d_k(itype,jtype,jtype,r) * eng_z +
-             (1.0 - fermi_k(itype,jtype,jtype,r))*frep_z +
-             fermi_d_k(itype,jtype,jtype,r)*eng_t + fermi_k(itype,jtype,jtype,r)*frep_t) / r;
-
-    if (eflag)
-      eng = (1.0 - fermi_k(itype,jtype,jtype,r)) * eng_z +
-              fermi_k(itype,jtype,jtype,r) * eng_t;
-
-    f_x += delx*frep;
-    f_y += dely*frep;
-    f_z += delz*frep;
-
-    if (EVFLAG) {
-      if (eflag)
-        ev.evdwl += 0.5*eng;
-      if (vflag_either || eflag_atom)
-        this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,frep,delx,dely,delz);
-    }
-  }
-
-  // attractive: bond order
-
-  for (jj = 0; jj < jnum; jj++) {
-    j = d_neighbors_short(i,jj);
-    j &= NEIGHMASK;
-    jtype = type(j);
-
-    delx1 = xtmp - x(j,0);
-    dely1 = ytmp - x(j,1);
-    delz1 = ztmp - x(j,2);
-    rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-    cutsq1 = paramskk(itype,jtype,jtype).cutsq;
-
-    bo_ij = 0.0;
-    if (rsq1 > cutsq1) continue;
-    rij = sqrt(rsq1);
-
-    for (kk = 0; kk < jnum; kk++) {
-      if (jj == kk) continue;
-      k = d_neighbors_short(i,kk);
-      k &= NEIGHMASK;
-      ktype = type(k);
-
-      delx2 = xtmp - x(k,0);
-      dely2 = ytmp - x(k,1);
-      delz2 = ztmp - x(k,2);
-      rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      cutsq2 = paramskk(itype,jtype,ktype).cutsq;
-
-      if (rsq2 > cutsq2) continue;
-      rik = sqrt(rsq2);
-      bo_ij += bondorder(itype,jtype,ktype,rij,delx1,dely1,delz1,rik,delx2,dely2,delz2);
-    }
-
-    // attractive: pairwise potential and force
-
-    const F_FLOAT fa = ters_fa_k(itype,jtype,jtype,rij);
-    const F_FLOAT dfa = ters_dfa(itype,jtype,jtype,rij);
-    const F_FLOAT bij = ters_bij_k(itype,jtype,jtype,bo_ij);
-    const F_FLOAT fatt = -0.5*bij * dfa / rij;
-    const F_FLOAT prefactor = 0.5*fa * ters_dbij(itype,jtype,jtype,bo_ij);
-    const F_FLOAT eng = 0.5*bij * fa;
-
-    f_x += delx1*fatt;
-    f_y += dely1*fatt;
-    f_z += delz1*fatt;
-
-    if (EVFLAG) {
-      if (eflag) ev.evdwl += 0.5*eng;
-      if (vflag_either || eflag_atom)
-        this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,fatt,delx1,dely1,delz1);
-    }
-
-    // attractive: three-body force
-
-    for (kk = 0; kk < jnum; kk++) {
-      if (jj == kk) continue;
-      k = d_neighbors_short(i,kk);
-      k &= NEIGHMASK;
-      ktype = type(k);
-
-      delx2 = xtmp - x(k,0);
-      dely2 = ytmp - x(k,1);
-      delz2 = ztmp - x(k,2);
-      rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      cutsq2 = paramskk(itype,jtype,ktype).cutsq;
-
-      if (rsq2 > cutsq2) continue;
-      rik = sqrt(rsq2);
-      ters_dthb(itype,jtype,ktype,prefactor,rij,delx1,dely1,delz1,
-                rik,delx2,dely2,delz2,fi,fj,fk);
-
-      f_x += fi[0];
-      f_y += fi[1];
-      f_z += fi[2];
-
-      if (vflag_either) {
-        F_FLOAT delrij[3], delrik[3];
-        delrij[0] = -delx1; delrij[1] = -dely1; delrij[2] = -delz1;
-        delrik[0] = -delx2; delrik[1] = -dely2; delrik[2] = -delz2;
-        if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj,fk,delrij,delrik);
-      }
-    }
-  }
-  f(i,0) += f_x;
-  f(i,1) += f_y;
-  f(i,2) += f_z;
-}
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii) const {
-  EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairTersoffZBLComputeFullA<NEIGHFLAG,EVFLAG>(), ii, ev);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
-
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
-
-  int j,k,jj,kk,jtype,ktype,j_jnum;
-  F_FLOAT rsq1, cutsq1, rsq2, cutsq2, rij, rik, bo_ij;
-  F_FLOAT fj[3], fk[3];
-  X_FLOAT delx1, dely1, delz1, delx2, dely2, delz2;
-
-  const int jnum = d_numneigh_short[i];
-
-  F_FLOAT f_x = 0.0;
-  F_FLOAT f_y = 0.0;
-  F_FLOAT f_z = 0.0;
-
-  // attractive: bond order
-
-  for (jj = 0; jj < jnum; jj++) {
-    j = d_neighbors_short(i,jj);
-    j &= NEIGHMASK;
-    if (j >= nlocal) continue;
-    jtype = type(j);
-
-    delx1 = x(j,0) - xtmp;
-    dely1 = x(j,1) - ytmp;
-    delz1 = x(j,2) - ztmp;
-    rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-    cutsq1 = paramskk(jtype,itype,itype).cutsq;
-
-    bo_ij = 0.0;
-    if (rsq1 > cutsq1) continue;
-    rij = sqrt(rsq1);
-
-    j_jnum = d_numneigh_short[j];
-
-    for (kk = 0; kk < j_jnum; kk++) {
-      k = d_neighbors_short(j,kk);
-      if (k == i) continue;
-      k &= NEIGHMASK;
-      ktype = type(k);
-
-      delx2 = x(j,0) - x(k,0);
-      dely2 = x(j,1) - x(k,1);
-      delz2 = x(j,2) - x(k,2);
-      rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      cutsq2 = paramskk(jtype,itype,ktype).cutsq;
-
-      if (rsq2 > cutsq2) continue;
-      rik = sqrt(rsq2);
-      bo_ij += bondorder(jtype,itype,ktype,rij,delx1,dely1,delz1,rik,delx2,dely2,delz2);
-
-    }
-
-    // attractive: pairwise potential and force
-
-    const F_FLOAT fa = ters_fa_k(jtype,itype,itype,rij);
-    const F_FLOAT dfa = ters_dfa(jtype,itype,itype,rij);
-    const F_FLOAT bij = ters_bij_k(jtype,itype,itype,bo_ij);
-    const F_FLOAT fatt = -0.5*bij * dfa / rij;
-    const F_FLOAT prefactor = 0.5*fa * ters_dbij(jtype,itype,itype,bo_ij);
-    const F_FLOAT eng = 0.5*bij * fa;
-
-    f_x -= delx1*fatt;
-    f_y -= dely1*fatt;
-    f_z -= delz1*fatt;
-
-    if (EVFLAG) {
-      if (eflag)
-        ev.evdwl += 0.5 * eng;
-      if (vflag_either || eflag_atom)
-        this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,fatt,delx1,dely1,delz1);
-    }
-
-    // attractive: three-body force
-
-    for (kk = 0; kk < j_jnum; kk++) {
-      k = d_neighbors_short(j,kk);
-      if (k == i) continue;
-      k &= NEIGHMASK;
-      ktype = type(k);
-
-      delx2 = x(j,0) - x(k,0);
-      dely2 = x(j,1) - x(k,1);
-      delz2 = x(j,2) - x(k,2);
-      rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      cutsq2 = paramskk(jtype,itype,ktype).cutsq;
-
-      if (rsq2 > cutsq2) continue;
-      rik = sqrt(rsq2);
-      ters_dthbj(jtype,itype,ktype,prefactor,rij,delx1,dely1,delz1,
-                rik,delx2,dely2,delz2,fj,fk);
-      f_x += fj[0];
-      f_y += fj[1];
-      f_z += fj[2];
-
-      if (vflag_either) {
-        F_FLOAT delrji[3], delrjk[3];
-        delrji[0] = -delx1; delrji[1] = -dely1; delrji[2] = -delz1;
-        delrjk[0] = -delx2; delrjk[1] = -dely2; delrjk[2] = -delz2;
-        if (vflag_either) v_tally3_atom(ev,i,j,k,fj,fk,delrji,delrjk);
-      }
-
-      const F_FLOAT fa_jk = ters_fa_k(jtype,ktype,itype,rik);
-      const F_FLOAT prefactor_jk = 0.5*fa_jk * ters_dbij(jtype,ktype,itype,bo_ij);
-      ters_dthbk(jtype,ktype,itype,prefactor_jk,rik,delx2,dely2,delz2,
-                rij,delx1,dely1,delz1,fk);
-      f_x += fk[0];
-      f_y += fk[1];
-      f_z += fk[2];
-    }
-  }
-  f(i,0) += f_x;
-  f(i,1) += f_y;
-  f(i,2) += f_z;
-}
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii) const {
-  EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairTersoffZBLComputeFullB<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::ters_fc_k(const int &i, const int &j,
-                const int &k, const F_FLOAT &r) const
+double PairTersoffZBLKokkos<DeviceType>::ters_fc_k(const Param& param, const F_FLOAT &r) const
 {
-  const F_FLOAT ters_R = paramskk(i,j,k).bigr;
-  const F_FLOAT ters_D = paramskk(i,j,k).bigd;
+  const F_FLOAT ters_R = param.bigr;
+  const F_FLOAT ters_D = param.bigd;
 
   if (r < ters_R-ters_D) return 1.0;
   if (r > ters_R+ters_D) return 0.0;
@@ -876,11 +543,10 @@ double PairTersoffZBLKokkos<DeviceType>::ters_fc_k(const int &i, const int &j,
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::ters_dfc(const int &i, const int &j,
-                const int &k, const F_FLOAT &r) const
+double PairTersoffZBLKokkos<DeviceType>::ters_dfc(const Param& param, const F_FLOAT &r) const
 {
-  const F_FLOAT ters_R = paramskk(i,j,k).bigr;
-  const F_FLOAT ters_D = paramskk(i,j,k).bigd;
+  const F_FLOAT ters_R = param.bigr;
+  const F_FLOAT ters_D = param.bigd;
 
   if (r < ters_R-ters_D) return 0.0;
   if (r > ters_R+ters_D) return 0.0;
@@ -891,7 +557,7 @@ double PairTersoffZBLKokkos<DeviceType>::ters_dfc(const int &i, const int &j,
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::bondorder(const int &i, const int &j, const int &k,
+double PairTersoffZBLKokkos<DeviceType>::bondorder(const Param& param,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const
 {
@@ -899,14 +565,15 @@ double PairTersoffZBLKokkos<DeviceType>::bondorder(const int &i, const int &j, c
 
   const F_FLOAT costheta = (dx1*dx2 + dy1*dy2 + dz1*dz2)/(rij*rik);
 
-  if (int(paramskk(i,j,k).powerm) == 3) arg = pow(paramskk(i,j,k).lam3 * (rij-rik),3.0);
-  else arg = paramskk(i,j,k).lam3 * (rij-rik);
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) arg = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
+  else arg = paramtmp;
 
   if (arg > 69.0776) ex_delr = 1.e30;
   else if (arg < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(arg);
 
-  return ters_fc_k(i,j,k,rik) * ters_gijk(i,j,k,costheta) * ex_delr;
+  return ters_fc_k(param,rik) * ters_gijk(param,costheta) * ex_delr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -914,13 +581,13 @@ double PairTersoffZBLKokkos<DeviceType>::bondorder(const int &i, const int &j, c
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffZBLKokkos<DeviceType>::
-        ters_gijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const
+        ters_gijk(const Param& param, const F_FLOAT &cos) const
 {
-  const F_FLOAT ters_c = paramskk(i,j,k).c * paramskk(i,j,k).c;
-  const F_FLOAT ters_d = paramskk(i,j,k).d * paramskk(i,j,k).d;
-  const F_FLOAT hcth = paramskk(i,j,k).h - cos;
+  const F_FLOAT ters_c = param.c * param.c;
+  const F_FLOAT ters_d = param.d * param.d;
+  const F_FLOAT hcth = param.h - cos;
 
-  return paramskk(i,j,k).gamma*(1.0 + ters_c/ters_d - ters_c/(ters_d+hcth*hcth));
+  return param.gamma*(1.0 + ters_c/ters_d - ters_c/(ters_d+hcth*hcth));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -928,81 +595,77 @@ double PairTersoffZBLKokkos<DeviceType>::
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffZBLKokkos<DeviceType>::
-        ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const
+        ters_dgijk(const Param& param, const F_FLOAT &cos) const
 {
-
-  const F_FLOAT ters_c = paramskk(i,j,k).c * paramskk(i,j,k).c;
-  const F_FLOAT ters_d = paramskk(i,j,k).d * paramskk(i,j,k).d;
-  const F_FLOAT hcth = paramskk(i,j,k).h - cos;
+  const F_FLOAT ters_c = param.c * param.c;
+  const F_FLOAT ters_d = param.d * param.d;
+  const F_FLOAT hcth = param.h - cos;
   const F_FLOAT numerator = -2.0 * ters_c * hcth;
   const F_FLOAT denominator = 1.0/(ters_d + hcth*hcth);
-  return paramskk(i,j,k).gamma * numerator * denominator * denominator;
+  return param.gamma * numerator * denominator * denominator;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::ters_fa_k(const int &i, const int &j,
-                const int &k, const F_FLOAT &r) const
+double PairTersoffZBLKokkos<DeviceType>::ters_fa_k(const Param& param, const F_FLOAT &r) const
 {
-  if (r > paramskk(i,j,k).bigr + paramskk(i,j,k).bigd) return 0.0;
-  return -paramskk(i,j,k).bigb * exp(-paramskk(i,j,k).lam2 * r)
-          * ters_fc_k(i,j,k,r) * fermi_k(i,j,k,r);
+  if (r > param.bigr + param.bigd) return 0.0;
+  return -param.bigb * exp(-param.lam2 * r)
+          * ters_fc_k(param,r) * fermi_k(param,r);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::ters_dfa(const int &i, const int &j,
-                const int &k, const F_FLOAT &r) const
+double PairTersoffZBLKokkos<DeviceType>::ters_dfa(const Param& param, const F_FLOAT &r) const
 {
-  if (r > paramskk(i,j,k).bigr + paramskk(i,j,k).bigd) return 0.0;
-  return paramskk(i,j,k).bigb * exp(-paramskk(i,j,k).lam2 * r) *
-    (paramskk(i,j,k).lam2 * ters_fc_k(i,j,k,r) * fermi_k(i,j,k,r) -
-     ters_dfc(i,j,k,r) * fermi_k(i,j,k,r) - ters_fc_k(i,j,k,r) *
-     fermi_d_k(i,j,k,r));
+  if (r > param.bigr + param.bigd) return 0.0;
+  return param.bigb * exp(-param.lam2 * r) *
+    (param.lam2 * ters_fc_k(param,r) * fermi_k(param,r) -
+     ters_dfc(param,r) * fermi_k(param,r) - ters_fc_k(param,r) *
+     fermi_d_k(param,r));
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::ters_bij_k(const int &i, const int &j,
-                const int &k, const F_FLOAT &bo) const
+double PairTersoffZBLKokkos<DeviceType>::ters_bij_k(const Param& param, const F_FLOAT &bo) const
 {
-  const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
-  if (tmp > paramskk(i,j,k).c1) return 1.0/sqrt(tmp);
-  if (tmp > paramskk(i,j,k).c2)
-    return (1.0 - pow(tmp,-paramskk(i,j,k).powern) / (2.0*paramskk(i,j,k).powern))/sqrt(tmp);
-  if (tmp < paramskk(i,j,k).c4) return 1.0;
-  if (tmp < paramskk(i,j,k).c3)
-    return 1.0 - pow(tmp,paramskk(i,j,k).powern)/(2.0*paramskk(i,j,k).powern);
-  return pow(1.0 + pow(tmp,paramskk(i,j,k).powern), -1.0/(2.0*paramskk(i,j,k).powern));
+  const F_FLOAT tmp = param.beta * bo;
+  if (tmp > param.c1) return 1.0/sqrt(tmp);
+  if (tmp > param.c2)
+    return (1.0 - pow(tmp,-param.powern) / (2.0*param.powern))/sqrt(tmp);
+  if (tmp < param.c4) return 1.0;
+  if (tmp < param.c3)
+    return 1.0 - pow(tmp,param.powern)/(2.0*param.powern);
+  return pow(1.0 + pow(tmp,param.powern), -1.0/(2.0*param.powern));
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
-                const int &k, const F_FLOAT &bo) const
+double PairTersoffZBLKokkos<DeviceType>::ters_dbij(const Param& param, const F_FLOAT &bo) const
 {
-  const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
-  if (tmp > paramskk(i,j,k).c1) return paramskk(i,j,k).beta * -0.5*pow(tmp,-1.5);
-  if (tmp > paramskk(i,j,k).c2)
-    return paramskk(i,j,k).beta * (-0.5*pow(tmp,-1.5) *
+  const F_FLOAT tmp = param.beta * bo;
+  const F_FLOAT factor = -0.5/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
+  if (tmp > param.c1) return param.beta * factor;
+  if (tmp > param.c2)
+    return param.beta * (factor *
            // error in negligible 2nd term fixed 2/21/2022
-           //(1.0 - 0.5*(1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
-           (1.0 - (1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
-           pow(tmp,-paramskk(i,j,k).powern)));
-  if (tmp < paramskk(i,j,k).c4) return 0.0;
-  if (tmp < paramskk(i,j,k).c3)
-    return -0.5*paramskk(i,j,k).beta * pow(tmp,paramskk(i,j,k).powern-1.0);
+           // (1.0 - 0.5*(1.0 +  1.0/(2.0*param.powern)) *
+           (1.0 - (1.0 + 1.0/(2.0*param.powern)) *
+           pow(tmp,-param.powern)));
+  if (tmp < param.c4) return 0.0;
+  if (tmp < param.c3)
+    return -0.5*param.beta * pow(tmp,param.powern-1.0);
 
-  const F_FLOAT tmp_n = pow(tmp,paramskk(i,j,k).powern);
-  return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*paramskk(i,j,k).powern)))*tmp_n / bo;
+  const F_FLOAT tmp_n = pow(tmp,param.powern);
+  return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param.powern)))*tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1010,7 +673,7 @@ double PairTersoffZBLKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::ters_dthb(
-        const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
+        const Param& param, const F_FLOAT &prefactor,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
         F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk) const
@@ -1035,22 +698,24 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthb(
   F_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;
   F_FLOAT dcosfi[3],dcosfj[3],dcosfk[3];
 
-  fc = ters_fc_k(i,j,k,rik);
-  dfc = ters_dfc(i,j,k,rik);
-  if (int(paramskk(i,j,k).powerm) == 3) tmp = pow(paramskk(i,j,k).lam3 * (rij-rik),3.0);
-  else tmp = paramskk(i,j,k).lam3 * (rij-rik);
+  fc = ters_fc_k(param,rik);
+  dfc = ters_dfc(param,rik);
+
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
+  else tmp = paramtmp;
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  if (int(paramskk(i,j,k).powerm) == 3)
-    dex_delr = 3.0*pow(paramskk(i,j,k).lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
-  else dex_delr = paramskk(i,j,k).lam3 * ex_delr;
+  if (int(param.powerm) == 3)
+    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(rij-rik,2.0)*ex_delr;
+  else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
-  gijk = ters_gijk(i,j,k,cos);
-  dgijk = ters_dgijk(i,j,k,cos);
+  gijk = ters_gijk(param,cos);
+  dgijk = ters_dgijk(param,cos);
 
   // from PairTersoffZBL::costheta_d
   vec3_scaleadd(-cos,rij_hat,rik_hat,dcosfj);
@@ -1082,7 +747,7 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthb(
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::ters_dthbj(
-        const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
+        const Param& param, const F_FLOAT &prefactor,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
         F_FLOAT *fj, F_FLOAT *fk) const
@@ -1103,22 +768,23 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbj(
   F_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;
   F_FLOAT dcosfi[3],dcosfj[3],dcosfk[3];
 
-  fc = ters_fc_k(i,j,k,rik);
-  dfc = ters_dfc(i,j,k,rik);
-  if (int(paramskk(i,j,k).powerm) == 3) tmp = pow(paramskk(i,j,k).lam3 * (rij-rik),3.0);
-  else tmp = paramskk(i,j,k).lam3 * (rij-rik);
+  fc = ters_fc_k(param,rik);
+  dfc = ters_dfc(param,rik);
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
+  else tmp = paramtmp;
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  if (int(paramskk(i,j,k).powerm) == 3)
-    dex_delr = 3.0*pow(paramskk(i,j,k).lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
-  else dex_delr = paramskk(i,j,k).lam3 * ex_delr;
+  if (int(param.powerm) == 3)
+    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+  else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
-  gijk = ters_gijk(i,j,k,cos);
-  dgijk = ters_dgijk(i,j,k,cos);
+  gijk = ters_gijk(param,cos);
+  dgijk = ters_dgijk(param,cos);
 
   vec3_scaleadd(-cos,rij_hat,rik_hat,dcosfj);
   vec3_scale(rijinv,dcosfj,dcosfj);
@@ -1143,7 +809,7 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbj(
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::ters_dthbk(
-        const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
+        const Param& param, const F_FLOAT &prefactor,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
         F_FLOAT *fk) const
@@ -1164,22 +830,23 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbk(
   F_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;
   F_FLOAT dcosfi[3],dcosfj[3],dcosfk[3];
 
-  fc = ters_fc_k(i,j,k,rik);
-  dfc = ters_dfc(i,j,k,rik);
-  if (int(paramskk(i,j,k).powerm) == 3) tmp = pow(paramskk(i,j,k).lam3 * (rij-rik),3.0);
-  else tmp = paramskk(i,j,k).lam3 * (rij-rik);
+  fc = ters_fc_k(param,rik);
+  dfc = ters_dfc(param,rik);
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
+  else tmp = paramtmp;
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  if (int(paramskk(i,j,k).powerm) == 3)
-    dex_delr = 3.0*pow(paramskk(i,j,k).lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
-  else dex_delr = paramskk(i,j,k).lam3 * ex_delr;
+  if (int(param.powerm) == 3)
+    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+  else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
-  gijk = ters_gijk(i,j,k,cos);
-  dgijk = ters_dgijk(i,j,k,cos);
+  gijk = ters_gijk(param,cos);
+  dgijk = ters_dgijk(param,cos);
 
   vec3_scaleadd(-cos,rij_hat,rik_hat,dcosfj);
   vec3_scale(rijinv,dcosfj,dcosfj);
@@ -1199,24 +866,22 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbk(
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::fermi_k(const int &i, const int &j,
-                const int &k, const F_FLOAT &r) const
+double PairTersoffZBLKokkos<DeviceType>::fermi_k(const Param& param, const F_FLOAT &r) const
 {
-  return 1.0 / (1.0 + exp(-paramskk(i,j,k).ZBLexpscale *
-                          (r - paramskk(i,j,k).ZBLcut)));
+  return 1.0 / (1.0 + exp(-param.ZBLexpscale *
+                          (r - param.ZBLcut)));
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffZBLKokkos<DeviceType>::fermi_d_k(const int &i, const int &j,
-                const int &k, const F_FLOAT &r) const
+double PairTersoffZBLKokkos<DeviceType>::fermi_d_k(const Param& param, const F_FLOAT &r) const
 {
-  return paramskk(i,j,k).ZBLexpscale * exp(-paramskk(i,j,k).ZBLexpscale *
-         (r - paramskk(i,j,k).ZBLcut)) /
-         pow(1.0 + exp(-paramskk(i,j,k).ZBLexpscale *
-         (r - paramskk(i,j,k).ZBLcut)),2.0);
+  return param.ZBLexpscale * exp(-param.ZBLexpscale *
+         (r - param.ZBLcut)) /
+         pow(1.0 + exp(-param.ZBLexpscale *
+         (r - param.ZBLcut)),2.0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1228,8 +893,6 @@ void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                 const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  const int VFLAG = vflag_either;
-
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
@@ -1241,10 +904,10 @@ void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
   if (eflag_atom) {
     const E_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
-    if (NEIGHFLAG != FULL) a_eatom[j] += epairhalf;
+    a_eatom[j] += epairhalf;
   }
 
-  if (VFLAG) {
+  if (vflag_either) {
     const E_FLOAT v0 = delx*delx*fpair;
     const E_FLOAT v1 = dely*dely*fpair;
     const E_FLOAT v2 = delz*delz*fpair;
@@ -1253,21 +916,12 @@ void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
     const E_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
-      if (NEIGHFLAG != FULL) {
-        ev.v[0] += v0;
-        ev.v[1] += v1;
-        ev.v[2] += v2;
-        ev.v[3] += v3;
-        ev.v[4] += v4;
-        ev.v[5] += v5;
-      } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
+      ev.v[0] += v0;
+      ev.v[1] += v1;
+      ev.v[2] += v2;
+      ev.v[3] += v3;
+      ev.v[4] += v4;
+      ev.v[5] += v5;
     }
 
     if (vflag_atom) {
@@ -1278,14 +932,12 @@ void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
       a_vatom(i,4) += 0.5*v4;
       a_vatom(i,5) += 0.5*v5;
 
-      if (NEIGHFLAG != FULL) {
-        a_vatom(j,0) += 0.5*v0;
-        a_vatom(j,1) += 0.5*v1;
-        a_vatom(j,2) += 0.5*v2;
-        a_vatom(j,3) += 0.5*v3;
-        a_vatom(j,4) += 0.5*v4;
-        a_vatom(j,5) += 0.5*v5;
-      }
+      a_vatom(j,0) += 0.5*v0;
+      a_vatom(j,1) += 0.5*v1;
+      a_vatom(j,2) += 0.5*v2;
+      a_vatom(j,3) += 0.5*v3;
+      a_vatom(j,4) += 0.5*v4;
+      a_vatom(j,5) += 0.5*v5;
     }
   }
 }
@@ -1295,7 +947,8 @@ void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, const int &j, const int &k,
+void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev,
+        const int &i, const int &j, const int &k,
         F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const
 {
   // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -1331,14 +984,13 @@ void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, cons
 
     a_vatom(i,0) += v[0]; a_vatom(i,1) += v[1]; a_vatom(i,2) += v[2];
     a_vatom(i,3) += v[3]; a_vatom(i,4) += v[4]; a_vatom(i,5) += v[5];
-    if (NEIGHFLAG != FULL) {
-      a_vatom(j,0) += v[0]; a_vatom(j,1) += v[1]; a_vatom(j,2) += v[2];
-      a_vatom(j,3) += v[3]; a_vatom(j,4) += v[4]; a_vatom(j,5) += v[5];
-      a_vatom(k,0) += v[0]; a_vatom(k,1) += v[1]; a_vatom(k,2) += v[2];
-      a_vatom(k,3) += v[3]; a_vatom(k,4) += v[4]; a_vatom(k,5) += v[5];
-    }
-  }
 
+    a_vatom(j,0) += v[0]; a_vatom(j,1) += v[1]; a_vatom(j,2) += v[2];
+    a_vatom(j,3) += v[3]; a_vatom(j,4) += v[4]; a_vatom(j,5) += v[5];
+
+    a_vatom(k,0) += v[0]; a_vatom(k,1) += v[1]; a_vatom(k,2) += v[2];
+    a_vatom(k,3) += v[3]; a_vatom(k,4) += v[4]; a_vatom(k,5) += v[5];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1387,4 +1039,3 @@ template class PairTersoffZBLKokkos<LMPDeviceType>;
 template class PairTersoffZBLKokkos<LMPHostType>;
 #endif
 }
-

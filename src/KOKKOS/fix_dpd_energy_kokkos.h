@@ -46,10 +46,3 @@ class FixDPDenergyKokkos : public FixDPDenergy {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Must use pair_style dpd/fdt/energy/kk with fix dpd/energy/kk
-
-Self-explanatory.
-
-*/

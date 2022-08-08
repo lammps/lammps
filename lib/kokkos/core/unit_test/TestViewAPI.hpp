@@ -892,8 +892,8 @@ struct TestViewMirror {
     for (int i = 0; i < 10; i++) {
       a_h(i) = (double)i;
     }
-    auto a_d = Kokkos::create_mirror_view(DeviceType(), a_h,
-                                          Kokkos::WithoutInitializing);
+    auto a_d = Kokkos::create_mirror_view(Kokkos::WithoutInitializing,
+                                          DeviceType(), a_h);
 
     int equal_ptr_h_d = (a_h.data() == a_d.data()) ? 1 : 0;
     constexpr int is_same_memspace =
@@ -1082,10 +1082,24 @@ class TestViewAPI {
     dx = dView4("dx", N0);
     dy = dView4("dy", N0);
 
-    ASSERT_EQ(dx.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
 
     dView4_unmanaged unmanaged_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+
+    // Test self assignment
+#if defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+#endif
+    dx = dx;  // copy-assignment operator
+#if defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    ASSERT_EQ(dx.use_count(), 1);
+    dx = reinterpret_cast<typename dView4::uniform_type &>(
+        dx);  // conversion assignment operator
+    ASSERT_EQ(dx.use_count(), 1);
 
     dView4_unmanaged unmanaged_from_ptr_dx = dView4_unmanaged(
         dx.data(), dx.extent(0), dx.extent(1), dx.extent(2), dx.extent(3));
@@ -1097,24 +1111,24 @@ class TestViewAPI {
     }
 
     const_dView4 const_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     {
       const_dView4 const_dx2;
       const_dx2 = const_dx;
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
 
       const_dx2 = dy;
-      ASSERT_EQ(dx.use_count(), size_t(2));
+      ASSERT_EQ(dx.use_count(), 2);
 
       const_dView4 const_dx3(dx);
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
 
       dView4_unmanaged dx4_unmanaged(dx);
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
     }
 
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     ASSERT_NE(dx.data(), nullptr);
     ASSERT_NE(const_dx.data(), nullptr);
@@ -1477,6 +1491,13 @@ class TestViewAPI {
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
     if (std::is_same<typename dView1::memory_space,
                      Kokkos::Experimental::OpenMPTargetSpace>::value)
+      return;
+#endif
+// FIXME_MSVC_WITH_CUDA
+// This test doesn't behave as expected on Windows with CUDA
+#if defined(_WIN32) && defined(KOKKOS_ENABLE_CUDA)
+    if (std::is_same<typename dView1::memory_space,
+                     Kokkos::CudaUVMSpace>::value)
       return;
 #endif
     auto alloc_size = std::numeric_limits<size_t>::max() - 42;

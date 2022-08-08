@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 Compute commands
 ================
@@ -33,6 +34,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`body/local <compute_body_local>`
    * :doc:`bond <compute_bond>`
    * :doc:`bond/local <compute_bond_local>`
+   * :doc:`born/matrix <compute_born_matrix>`
    * :doc:`centro/atom <compute_centro_atom>`
    * :doc:`centroid/stress/atom <compute_stress_atom>`
    * :doc:`chunk/atom <compute_chunk_atom>`
@@ -63,6 +65,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
    * :doc:`fep <compute_fep>`
+   * :doc:`fep/ta <compute_fep_ta>`
    * :doc:`force/tally <compute_tally>`
    * :doc:`fragment/atom <compute_cluster_atom>`
    * :doc:`global/atom <compute_global_atom>`
@@ -90,6 +93,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`
    * :doc:`msd/nongauss <compute_msd_nongauss>`
+   * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
    * :doc:`pair <compute_pair>`
@@ -135,6 +139,8 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`smd/vol <compute_smd_vol>`
    * :doc:`snap <compute_sna_atom>`
    * :doc:`sna/atom <compute_sna_atom>`
+   * :doc:`sna/grid <compute_sna_atom>`
+   * :doc:`sna/grid/local <compute_sna_atom>`
    * :doc:`snad/atom <compute_sna_atom>`
    * :doc:`snav/atom <compute_sna_atom>`
    * :doc:`sph/e/atom <compute_sph_e_atom>`

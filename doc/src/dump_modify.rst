@@ -26,6 +26,10 @@ Syntax
          N = index of frame written upon first dump
        *balance* arg = *yes* or *no*
        *buffer* arg = *yes* or *no*
+       *colname* values =  ID string, or *default*
+         string = new column header name
+         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* a custom dump keyword or reference to compute, fix, property or variable.
        *delay* arg = Dstep
          Dstep = delay output until this timestep
        *element* args = E1 E2 ... EN, where N = # of atom types
@@ -40,9 +44,10 @@ Syntax
          Np = write one file for every this many processors
        *first* arg = *yes* or *no*
        *flush* arg = *yes* or *no*
-       *format* args = *line* string, *int* string, *float* string, M string, or *none*
+       *format* args = *line* string, *int* string, *float* string, ID string, or *none*
          string = C-style format string
-         M = integer from 1 to N, where N = # of per-atom quantities being output
+         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* a custom dump keyword or reference to compute, fix, property or variable.
        *header* arg = *yes* or *no*
          *yes* to write the header
          *no* to not write the header
@@ -375,6 +380,30 @@ performed with dump style *xtc*\ .
 
 ----------
 
+.. versionadded:: 4May2022
+
+The *colname* keyword can be used to change the default header keyword
+for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
+and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
+represents the column number counting from the left, a negative integer
+when it represents the column number from the right (i.e. -1 is the last
+column/keyword), or a custom dump keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+keyword. For *atom* dump styles only the keywords "id", "type", "x",
+"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
+whether scaled or unwrapped coordinates were enabled or disabled, and
+it always assumes 8 columns for indexing regardless of whether image
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default names.
+
+----------
+
 The *format* keyword can be used to change the default numeric format output
 by the text-based dump styles: *atom*, *local*, *custom*, *cfg*, and
 *xyz* styles, and their MPIIO variants. Only the *line* or *none*
@@ -446,8 +475,9 @@ The *fileper* keyword is documented below with the *nfile* keyword.
 
 The *header* keyword toggles whether the dump file will include a
 header.  Excluding a header will reduce the size of the dump file for
-fixes such as :doc:`fix pair/tracker <fix_pair_tracker>` which do not
-require the information typically written to the header.
+data produced by :doc:`pair tracker <pair_tracker>` or
+:doc:`bpm bond styles <Howto_bpm>` which may not require the
+information typically written to the header.
 
 ----------
 
@@ -684,8 +714,8 @@ run, this option is ignored since the output is already balanced.
 
 ----------
 
-The *thermo* keyword only applies the dump *netcdf* style.  It
-triggers writing of :doc:`thermo <thermo>` information to the dump file
+The *thermo* keyword only applies the dump styles *netcdf* and *yaml*.
+It triggers writing of :doc:`thermo <thermo>` information to the dump file
 alongside per-atom data.  The values included in the dump file are
 identical to the values specified by :doc:`thermo_style <thermo_style>`.
 

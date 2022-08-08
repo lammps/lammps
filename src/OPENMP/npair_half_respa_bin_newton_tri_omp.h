@@ -36,7 +36,3 @@ class NPairHalfRespaBinNewtonTriOmp : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

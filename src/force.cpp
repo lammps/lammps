@@ -53,6 +53,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;
+  special_onefive = 0;
   special_extra = 0;
 
   dielectric = 1.0;
@@ -223,7 +224,7 @@ void Force::create_pair(const std::string &style, int trysuffix)
 {
   delete[] pair_style;
   if (pair) delete pair;
-  if (pair_restart) delete[] pair_restart;
+  delete[] pair_restart;
   pair_style = nullptr;
   pair = nullptr;
   pair_restart = nullptr;
@@ -298,7 +299,7 @@ Pair *Force::pair_match(const std::string &word, int exact, int nsub)
   else if (!exact && utils::strmatch(pair_style, word))
     return pair;
   else if (utils::strmatch(pair_style, "^hybrid")) {
-    PairHybrid *hybrid = (PairHybrid *) pair;
+    auto hybrid = dynamic_cast<PairHybrid *>(pair);
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++)
       if ((exact && (word == hybrid->keywords[i])) ||
@@ -324,7 +325,7 @@ char *Force::pair_match_ptr(Pair *ptr)
   if (ptr == pair) return pair_style;
 
   if (utils::strmatch(pair_style, "^hybrid")) {
-    PairHybrid *hybrid = (PairHybrid *) pair;
+    auto hybrid = dynamic_cast<PairHybrid *>(pair);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
   }
@@ -393,7 +394,7 @@ Bond *Force::bond_match(const std::string &style)
   if (style == bond_style)
     return bond;
   else if (strcmp(bond_style, "hybrid") == 0) {
-    BondHybrid *hybrid = (BondHybrid *) bond;
+    auto hybrid = dynamic_cast<BondHybrid *>(bond);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
@@ -461,7 +462,7 @@ Angle *Force::angle_match(const std::string &style)
   if (style == angle_style)
     return angle;
   else if (utils::strmatch(angle_style, "^hybrid")) {
-    AngleHybrid *hybrid = (AngleHybrid *) angle;
+    auto hybrid = dynamic_cast<AngleHybrid *>(angle);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
@@ -529,7 +530,7 @@ Dihedral *Force::dihedral_match(const std::string &style)
   if (style == dihedral_style)
     return dihedral;
   else if (utils::strmatch(dihedral_style, "^hybrid")) {
-    DihedralHybrid *hybrid = (DihedralHybrid *) dihedral;
+    auto hybrid = dynamic_cast<DihedralHybrid *>(dihedral);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
@@ -597,7 +598,7 @@ Improper *Force::improper_match(const std::string &style)
   if (style == improper_style)
     return improper;
   else if (utils::strmatch(improper_style, "^hybrid")) {
-    ImproperHybrid *hybrid = (ImproperHybrid *) improper;
+    auto hybrid = dynamic_cast<ImproperHybrid *>(improper);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
@@ -704,6 +705,7 @@ void Force::set_special(int narg, char **arg)
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;
+  special_onefive = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -769,8 +771,16 @@ void Force::set_special(int narg, char **arg)
       if (iarg + 2 > narg) error->all(FLERR, "Illegal special_bonds command");
       special_dihedral = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else
-      error->all(FLERR, "Illegal special_bonds command");
+    } else if (strcmp(arg[iarg],"one/five") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
+      if (strcmp(arg[iarg+1],"no") == 0) special_onefive = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) special_onefive = 1;
+      else error->all(FLERR,"Illegal special_bonds command");
+      if (special_onefive && atom->nspecial15_flag == 0)
+        error->all(FLERR,"Cannot set special_bonds one/five if "
+                   "atom style does not support it");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal special_bonds command");
   }
 
   for (int i = 1; i <= 3; i++)

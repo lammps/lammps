@@ -43,6 +43,7 @@
 */
 
 #include <iostream>
+#include <cuda_runtime_api.h>
 
 int main() {
   cudaDeviceProp device_properties;

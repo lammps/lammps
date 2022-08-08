@@ -395,20 +395,18 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   union_int_float_t rsq_lookup;
 
   int rerror = 0;
-  int cerror = 0;
-
   reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    line = reader.next_line(4);
-
+    line = reader.next_line();
     try {
       ValueTokenizer values(line);
       values.next_int();
       rfile = values.next_double();
       tb->efile[i] = conversion_factor * values.next_double();
       tb->ffile[i] = conversion_factor * values.next_double();
-    } catch (TokenizerException &) {
-      ++cerror;
+    } catch (TokenizerException &e) {
+      error->one(FLERR, "Error parsing pair table '{}' line {} of {}. {}\nLine was: {}", keyword,
+                 i + 1, tb->ninput, e.what(), line);
     }
 
     rnew = rfile;
@@ -474,14 +472,6 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
                    "{} of {} distance values in table {} with relative error\n"
                    "WARNING:  over {} to re-computed values",
                    rerror, tb->ninput, EPSILONR, keyword);
-
-  // warn if data was read incompletely, e.g. columns were missing
-
-  if (cerror)
-    error->warning(FLERR,
-                   "{} of {} lines in table {} were incomplete\n"
-                   "WARNING:  or could not be parsed completely",
-                   cerror, tb->ninput, keyword);
 }
 
 /* ----------------------------------------------------------------------
@@ -873,7 +863,7 @@ void PairTable::spline(double *x, double *y, int n, double yp1, double ypn, doub
 {
   int i, k;
   double p, qn, sig, un;
-  double *u = new double[n];
+  auto u = new double[n];
 
   if (yp1 > 0.99e30)
     y2[0] = u[0] = 0.0;

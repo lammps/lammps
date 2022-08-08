@@ -27,14 +27,16 @@ page gives those details.
    :columns: 6
 
    * :ref:`ADIOS <PKG-ADIOS>`
+   * :ref:`AMOEBA <PKG-AMOEBA>`
    * :ref:`ASPHERE <PKG-ASPHERE>`
    * :ref:`ATC <PKG-ATC>`
    * :ref:`AWPMD <PKG-AWPMD>`
    * :ref:`BOCS <PKG-BOCS>`
    * :ref:`BODY <PKG-BODY>`
+   * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
-   * :ref:`CG-SDK <PKG-CG-SDK>`
+   * :ref:`CG-SPICA <PKG-CG-SPICA>`
    * :ref:`CLASS2 <PKG-CLASS2>`
    * :ref:`COLLOID <PKG-COLLOID>`
    * :ref:`COLVARS <PKG-COLVARS>`
@@ -49,6 +51,7 @@ page gives those details.
    * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
    * :ref:`DRUDE <PKG-DRUDE>`
    * :ref:`EFF <PKG-EFF>`
+   * :ref:`ELECTRODE <PKG-ELECTRODE>`
    * :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
    * :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
    * :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
@@ -72,7 +75,6 @@ page gives those details.
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
    * :ref:`MESONT <PKG-MESONT>`
-   * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MGPT <PKG-MGPT>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
@@ -148,6 +150,38 @@ This package has :ref:`specific installation instructions <adios>` on the :doc:`
 
 ----------
 
+.. _PKG-AMOEBA:
+
+AMOEBA package
+---------------
+
+**Contents:**
+
+Implementation of the AMOEBA and HIPPO polarized force fields
+originally developed by Jay Ponder's group at the U Washington at St
+Louis.  The LAMMPS implementation is based on Fortran 90 code
+provided by the Ponder group in their
+`Tinker MD software <https://dasher.wustl.edu/tinker/>`_.
+
+**Authors:** Josh Rackers and Steve Plimpton (Sandia), Trung Nguyen (U
+ Chicago)
+
+**Supporting info:**
+
+* src/AMOEBA: filenames -> commands
+* :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+* :doc:`pair_style amoeba <pair_amoeba>`
+* :doc:`pair_style hippo <pair_amoeba>`
+* :doc:`atom_style amoeba <atom_style>`
+* :doc:`angle_style amoeba <angle_amoeba>`
+* :doc:`improper_style amoeba <improper_amoeba>`
+* :doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`
+* :doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`
+* tools/tinker/tinker2lmp.py
+* examples/amoeba
+
+----------
+
 .. _PKG-ASPHERE:
 
 ASPHERE package
@@ -180,9 +214,10 @@ ATC package
 
 **Contents:**
 
-ATC stands for atoms-to-continuum.  This package implements a :doc:`fix atc <fix_atc>` command to either couple molecular dynamics with
-continuum finite element equations or perform on-the-fly conversion of
-atomic information to continuum fields.
+ATC stands for atoms-to-continuum.  This package implements a
+:doc:`fix atc <fix_atc>` command to either couple molecular dynamics
+with continuum finite element equations or perform on-the-fly
+conversion of atomic information to continuum fields.
 
 **Authors:** Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
 
@@ -284,6 +319,35 @@ overview.
 
 ----------
 
+.. _PKG-BPM:
+
+BPM package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for bonded particle
+models for mesoscale simulations of solids and fracture.  See the
+:doc:`Howto bpm <Howto_bpm>` page for an overview.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs)
+
+.. versionadded:: 4May2022
+
+**Supporting info:**
+
+* src/BPM filenames -> commands
+* :doc:`Howto_bpm <Howto_bpm>`
+* :doc:`atom_style bpm/sphere <atom_style>`
+* :doc:`bond_style bpm/rotational <bond_bpm_rotational>`
+* :doc:`bond_style bpm/spring <bond_bpm_spring>`
+* :doc:`compute nbond/atom <compute_nbond_atom>`
+* :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
+* :doc:`pair_style bpm/spring <pair_bpm_spring>`
+* examples/bpm
+
+----------
+
 .. _PKG-BROWNIAN:
 
 BROWNIAN package
@@ -337,28 +401,30 @@ The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
 
 ----------
 
-.. _PKG-CG-SDK:
+.. _PKG-CG-SPICA:
 
-CG-SDK package
+CG-SPICA package
 ------------------
 
 **Contents:**
 
 Several pair styles and an angle style which implement the
-coarse-grained SDK model of Shinoda, DeVane, and Klein which enables
-simulation of ionic liquids, electrolytes, lipids and charged amino
-acids.
+coarse-grained SPICA (formerly called SDK) model which enables
+simulation of biological or soft material systems.
 
-**Author:** Axel Kohlmeyer (Temple U).
+**Original Author:** Axel Kohlmeyer (Temple U).
+
+**Maintainers:** Yusuke Miyazaki and Wataru Shinoda (Okayama U).
 
 **Supporting info:**
 
-* src/CG-SDK: filenames -> commands
-* src/CG-SDK/README
-* :doc:`pair_style lj/sdk/\* <pair_sdk>`
-* :doc:`angle_style sdk <angle_sdk>`
-* examples/PACKAGES/cgsdk
+* src/CG-SPICA: filenames -> commands
+* src/CG-SPICA/README
+* :doc:`pair_style lj/spica/\* <pair_spica>`
+* :doc:`angle_style spica <angle_spica>`
+* examples/PACKAGES/cgspica
 * https://www.lammps.org/pictures.html#cg
+* https://www.spica-ff.org/
 
 ----------
 
@@ -529,8 +595,20 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 **Supporting info:**
 
 * src/DIELECTRIC: filenames -> commands
+* :doc:`atom_style dielectric <atom_style>`
+* :doc:`pair_style coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/debye/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/msm/dielectric <pair_dielectric>`
+* :doc:`pair_style pppm/dielectric <kspace_style>`
+* :doc:`pair_style pppm/disp/dielectric <kspace_style>`
+* :doc:`pair_style msm/dielectric <kspace_style>`
+* :doc:`fix_style polarize/bem/icc <fix_polarize>`
+* :doc:`fix_style polarize/bem/gmres <fix_polarize>`
+* :doc:`fix_style polarize/functional <fix_polarize>`
 * :doc:`compute efield/atom  <compute_efield_atom>`
-* TODO: add all styles
 * examples/PACKAGES/dielectric
 
 ----------
@@ -617,7 +695,7 @@ advection-diffusion-reaction systems. The equations of motion of these
 DPD extensions are integrated through a modified velocity-Verlet (MVV)
 algorithm.
 
-**Author:** Zhen Li (Division of Applied Mathematics, Brown University)
+**Author:** Zhen Li (Department of Mechanical Engineering, Clemson University)
 
 **Supporting info:**
 
@@ -769,6 +847,33 @@ tools/eff; see its README file.
 * https://www.lammps.org/movies.html#eff
 
 -------------------
+
+.. _PKG-ELECTRODE:
+
+ELECTRODE package
+-----------------
+
+**Contents:**
+
+The ELECTRODE package allows the user to enforce a constant potential method for
+groups of atoms that interact with the remaining atoms as electrolyte.
+
+**Authors:** The ELECTRODE library is written and maintained by Ludwig
+Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
+Robert Meissner (TUHH, Hamburg, Germany).
+
+.. versionadded:: 4May2022
+
+**Install:**
+
+This package has :ref:`specific installation instructions <electrode>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* :doc:`fix electrode/conp <fix_electrode_conp>`
+
+----------
 
 .. _PKG-EXTRA-COMPUTE:
 
@@ -1396,17 +1501,25 @@ MDI package
 
 **Contents:**
 
-A LAMMPS command and fix to allow client-server coupling of LAMMPS to
-other atomic or molecular simulation codes via the `MolSSI Driver Interface
+A LAMMPS command and fixes to allow client-server coupling of LAMMPS
+to other atomic or molecular simulation codes or materials modeling
+workflows via the `MolSSI Driver Interface
 (MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+**Install:**
+
+This package has :ref:`specific installation instructions <mdi>` on
+the :doc:`Build extras <Build_extras>` page.
+
 **Supporting info:**
 
 * src/MDI/README
-* :doc:`mdi/engine <mdi_engine>`
-* :doc:`fix mdi/engine <fix_mdi_engine>`
+* lib/mdi/README
+* :doc:`Howto MDI <Howto_mdi>`
+* :doc:`mdi <mdi>`
+* :doc:`fix mdi/qm <fix_mdi_qm>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1483,32 +1596,6 @@ Philipp Kloza (U Cambridge)
 
 ----------
 
-.. _PKG-MESSAGE:
-
-MESSAGE package
----------------
-
-**Contents:**
-
-Commands to use LAMMPS as either a client or server and couple it to
-another application.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/MESSAGE: filenames -> commands
-* lib/message/README
-* :doc:`message <message>`
-* :doc:`fix client/md <fix_client_md>`
-* :doc:`server md <server_md>`
-* :doc:`server mc <server_mc>`
-* examples/message
-
-----------
-
 .. _PKG-MGPT:
 
 MGPT package
@@ -1564,7 +1651,6 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`pair_style list <pair_list>`
 * :doc:`pair_style srp <pair_srp>`
 * :doc:`pair_style tracker <pair_tracker>`
-* :doc:`fix pair/tracker <fix_pair_tracker>`
 
 ----------
 
@@ -1755,6 +1841,8 @@ computes which analyze attributes of the potential.
 * src/ML-SNAP: filenames -> commands
 * :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
+* :doc:`compute sna/grid <compute_sna_atom>`
+* :doc:`compute sna/grid/local <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`
 * :doc:`compute snav/atom <compute_sna_atom>`
 * examples/snap
@@ -2558,18 +2646,20 @@ SMTBQ package
 
 **Contents:**
 
-A pair style which implements a Second Moment Tight Binding model with
-QEq charge equilibration (SMTBQ) potential for the description of
-ionocovalent bonds in oxides.
+Pair styles which implement Second Moment Tight Binding models.
+One with QEq charge equilibration (SMTBQ) for the description of
+ionocovalent bonds in oxides, and two more as plain SMATB models.
 
-**Authors:** Nicolas Salles, Emile Maras, Olivier Politano, and Robert
-Tetot (LAAS-CNRS, France).
+**Authors:** SMTBQ: Nicolas Salles, Emile Maras, Olivier Politano, and Robert
+Tetot (LAAS-CNRS, France);
+SMATB: Daniele Rapetti (Politecnico di Torino)
 
 **Supporting info:**
 
 * src/SMTBQ: filenames -> commands
 * src/SMTBQ/README
 * :doc:`pair_style smtbq <pair_smtbq>`
+* :doc:`pair_style smatb <pair_smatb>`, :doc:`pair_style smatb/single <pair_smatb>`
 * examples/PACKAGES/smtbq
 
 ----------

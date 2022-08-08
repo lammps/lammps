@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *mesont* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
 
   .. parsed-literal::
 
@@ -21,6 +21,7 @@ Syntax
                          see the :doc:`Howto body <Howto_body>` doc
                          page for details
          *sphere* arg = 0/1 (optional) for static/dynamic particle radii
+         *bpm/sphere* arg = 0/1 (optional) for static/dynamic particle radii
          *tdpd* arg = Nspecies
            Nspecies = # of chemical species
          *template* arg = template-ID
@@ -78,6 +79,8 @@ coordinates, velocities, atom IDs and types.  See the
 quantities.
 
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *amoeba*     | molecular + charge + 1/5 neighbors                  | AMOEBA/HIPPO polarized force fields  |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *angle*      | bonds and angles                                    | bead-spring polymers with stiffness  |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *atomic*     | only the default values                             | coarse-grain liquids, solids, metals |
@@ -120,6 +123,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *sphere*     | diameter, mass, angular velocity                    | granular models                      |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *bpm/sphere* | diameter, mass, angular velocity, quaternion        | granular bonded particle models (BPM)|
++--------------+-----------------------------------------------------+--------------------------------------+
 | *spin*       | magnetic moment                                     | system with magnetic particles       |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *tdpd*       | chemical concentration                              | tDPD particles                       |
@@ -134,15 +139,18 @@ quantities.
 .. note::
 
    It is possible to add some attributes, such as a molecule ID, to
-   atom styles that do not have them via the :doc:`fix property/atom <fix_property_atom>` command.  This command also
-   allows new custom attributes consisting of extra integer or
-   floating-point values to be added to atoms.  See the :doc:`fix property/atom <fix_property_atom>` page for examples of cases
-   where this is useful and details on how to initialize, access, and
-   output the custom values.
+   atom styles that do not have them via the :doc:`fix property/atom
+   <fix_property_atom>` command.  This command also allows new custom
+   attributes consisting of extra integer or floating-point values to
+   be added to atoms.  See the :doc:`fix property/atom
+   <fix_property_atom>` page for examples of cases where this is
+   useful and details on how to initialize, access, and output the
+   custom values.
 
 All of the above styles define point particles, except the *sphere*,
-*ellipsoid*, *electron*, *peri*, *wavepacket*, *line*, *tri*, and
-*body* styles, which define finite-size particles.  See the :doc:`Howto spherical <Howto_spherical>` page for an overview of using
+*bpm/sphere*, *ellipsoid*, *electron*, *peri*, *wavepacket*, *line*,
+*tri*, and *body* styles, which define finite-size particles.  See the
+:doc:`Howto spherical <Howto_spherical>` page for an overview of using
 finite-size particle models with LAMMPS.
 
 All of the point-particle styles assign mass to particles on a
@@ -150,19 +158,20 @@ per-type basis, using the :doc:`mass <mass>` command, The finite-size
 particle styles assign mass to individual particles on a per-particle
 basis.
 
-For the *sphere* style, the particles are spheres and each stores a
-per-particle diameter and mass.  If the diameter > 0.0, the particle
-is a finite-size sphere.  If the diameter = 0.0, it is a point
-particle.  Note that by use of the *disc* keyword with the :doc:`fix
-nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
-:doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere
-<fix_npt_sphere>` commands, spheres can be effectively treated as 2d
-discs for a 2d simulation if desired.  See also the :doc:`set
-density/disc <set>` command.  The *sphere* style takes an optional 0
-or 1 argument.  A value of 0 means the radius of each sphere is
-constant for the duration of the simulation.  A value of 1 means the
-radii may vary dynamically during the simulation, e.g. due to use of
-the :doc:`fix adapt <fix_adapt>` command.
+For the *sphere* and *bpm/sphere* styles, the particles are spheres
+and each stores a per-particle diameter and mass.  If the diameter >
+0.0, the particle is a finite-size sphere.  If the diameter = 0.0, it
+is a point particle.  Note that by use of the *disc* keyword with the
+:doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere
+<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix
+npt/sphere <fix_npt_sphere>` commands for the *sphere* style, spheres
+can be effectively treated as 2d discs for a 2d simulation if desired.
+See also the :doc:`set density/disc <set>` command.  The *sphere* and
+*bpm/sphere* styles take an optional 0 or 1 argument.  A value of 0
+means the radius of each sphere is constant for the duration of the
+simulation.  A value of 1 means the radii may vary dynamically during
+the simulation, e.g. due to use of the :doc:`fix adapt <fix_adapt>`
+command.
 
 For the *ellipsoid* style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
@@ -171,15 +180,16 @@ vector with the 3 diameters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
 For the *dielectric* style, each particle can be either a physical
-particle (e.g. an ion), or an interface particle representing a boundary
-element. For physical particles, the per-particle properties are
-the same as atom_style full.  For interface particles, in addition to
-these properties, each particle also has an area, a normal unit vector,
-a mean local curvature, the mean and difference of the dielectric constants
-of two sides of the interface, and the local dielectric constant at the
-boundary element.  The distinction between the physical and interface
-particles is only meaningful when :doc:`fix polarize <fix_polarize>`
-commands are applied to the interface particles.
+particle (e.g. an ion), or an interface particle representing a
+boundary element. For physical particles, the per-particle properties
+are the same as atom_style full.  For interface particles, in addition
+to these properties, each particle also has an area, a normal unit
+vector, a mean local curvature, the mean and difference of the
+dielectric constants of two sides of the interface, and the local
+dielectric constant at the boundary element.  The distinction between
+the physical and interface particles is only meaningful when :doc:`fix
+polarize <fix_polarize>` commands are applied to the interface
+particles.
 
 For the *dipole* style, a point dipole is defined for each point
 particle.  Note that if you wish the particles to be finite-size
@@ -194,6 +204,8 @@ position, which is represented by the eradius = electron size.
 
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The *bpm/sphere* style is part of the BPM package.
 
 The *oxdna* style is for coarse-grained nucleotides and stores the
 3'-to-5' polarity of the nucleotide strand, which is set through
@@ -266,16 +278,17 @@ showing the use of the *template* atom style versus *molecular*.
 
 .. note::
 
-   When using the *template* style with a :doc:`molecule template <molecule>` that contains multiple molecules, you should
-   insure the atom types, bond types, angle_types, etc in all the
-   molecules are consistent.  E.g. if one molecule represents H2O and
-   another CO2, then you probably do not want each molecule file to
-   define 2 atom types and a single bond type, because they will conflict
-   with each other when a mixture system of H2O and CO2 molecules is
-   defined, e.g. by the :doc:`read_data <read_data>` command.  Rather the
-   H2O molecule should define atom types 1 and 2, and bond type 1.  And
-   the CO2 molecule should define atom types 3 and 4 (or atom types 3 and
-   2 if a single oxygen type is desired), and bond type 2.
+   When using the *template* style with a :doc:`molecule template
+   <molecule>` that contains multiple molecules, you should insure the
+   atom types, bond types, angle_types, etc in all the molecules are
+   consistent.  E.g. if one molecule represents H2O and another CO2,
+   then you probably do not want each molecule file to define 2 atom
+   types and a single bond type, because they will conflict with each
+   other when a mixture system of H2O and CO2 molecules is defined,
+   e.g. by the :doc:`read_data <read_data>` command.  Rather the H2O
+   molecule should define atom types 1 and 2, and bond type 1.  And
+   the CO2 molecule should define atom types 3 and 4 (or atom types 3
+   and 2 if a single oxygen type is desired), and bond type 2.
 
 For the *body* style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
@@ -333,6 +346,8 @@ Many of the styles listed above are only enabled if LAMMPS was built
 with a specific package, as listed below.  See the :doc:`Build package
 <Build_package>` page for more info.
 
+The *amoeba* style is part of the AMOEBA package.
+
 The *angle*, *bond*, *full*, *molecular*, and *template* styles are
 part of the MOLECULE package.
 
@@ -344,9 +359,11 @@ The *dipole* style is part of the DIPOLE package.
 
 The *peri* style is part of the PERI package for Peridynamics.
 
-The *oxdna* style is part of the CG-DNA package for coarse-grained simulation of DNA and RNA.
+The *oxdna* style is part of the CG-DNA package for coarse-grained
+simulation of DNA and RNA.
 
-The *electron* style is part of the EFF package for :doc:`electronic force fields <pair_eff>`.
+The *electron* style is part of the EFF package for :doc:`electronic
+force fields <pair_eff>`.
 
 The *dpd* style is part of the DPD-REACT package for dissipative
 particle dynamics (DPD).
@@ -357,7 +374,8 @@ dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
 The *sph* style is part of the SPH package for smoothed particle
-hydrodynamics (SPH).  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+hydrodynamics (SPH).  See `this PDF guide
+<PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
 The *mesont* style is part of the MESONT package.
 

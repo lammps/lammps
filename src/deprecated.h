@@ -20,6 +20,8 @@ CommandStyle(kim_interactions,Deprecated);
 CommandStyle(kim_param,Deprecated);
 CommandStyle(kim_property,Deprecated);
 CommandStyle(kim_query,Deprecated);
+CommandStyle(message,Deprecated);
+CommandStyle(server,Deprecated);
 // clang-format on
 #else
 
@@ -40,36 +42,3 @@ class Deprecated : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Ignoring unknown or incorrect info command flag
-
-Self-explanatory.  An unknown argument was given to the info command.
-Compare your input with the documentation.
-
-E: Unknown name for info package category
-
-Self-explanatory.
-
-E: Unknown name for info newton category
-
-Self-explanatory.
-
-E: Unknown name for info pair category
-
-Self-explanatory.
-
-E: Unknown category for info is_active()
-
-Self-explanatory.
-
-E: Unknown category for info is_available()
-
-Self-explanatory.
-
-E: Unknown category for info is_defined()
-
-Self-explanatory.
-
-*/

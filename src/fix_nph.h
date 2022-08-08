@@ -33,15 +33,3 @@ class FixNPH : public FixNH {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control can not be used with fix nph
-
-Self-explanatory.
-
-E: Pressure control must be used with fix nph
-
-Self-explanatory.
-
-*/

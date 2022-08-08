@@ -51,15 +51,3 @@ class DumpLocalZstd : public DumpLocal {
 #endif
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump local/zstd only writes compressed files
-
-The dump local/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

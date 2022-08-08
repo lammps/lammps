@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 /*
  * deviator of a tensor
  */
-static Matrix3d Deviator(Matrix3d M) {
+static Matrix3d Deviator(const Matrix3d& M) {
         Matrix3d eye;
         eye.setIdentity();
         eye *= M.trace() / 3.0;
@@ -99,7 +99,7 @@ void ComputeSMDTLSPHStress::compute_peratom() {
         }
 
         int itmp = 0;
-        Matrix3d *T = (Matrix3d *) force->pair->extract("smd/tlsph/stressTensor_ptr", itmp);
+        auto T = (Matrix3d *) force->pair->extract("smd/tlsph/stressTensor_ptr", itmp);
         if (T == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_stress could not access stress tensors. Are the matching pair styles present?");
         }

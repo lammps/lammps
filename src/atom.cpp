@@ -1152,29 +1152,30 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         xdata[2] += shift[2];
       }
 
-    domain->remap(xdata,imagedata);
-    if (triclinic) {
-      domain->x2lamda(xdata,lamda);
-      coord = lamda;
-    } else coord = xdata;
+      domain->remap(xdata,imagedata);
+      if (triclinic) {
+        domain->x2lamda(xdata,lamda);
+        coord = lamda;
+      } else coord = xdata;
 
-    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-        coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-        coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-      avec->data_atom(xdata,imagedata,values,typestr);
-      if (id_offset) tag[nlocal-1] += id_offset;
-      if (mol_offset) molecule[nlocal-1] += mol_offset;
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR,"Invalid Atoms section in data file");
-        type[nlocal-1] = find_label(typestr,Atom::ATOM);
-        if (type[nlocal-1] == -1) error->one(FLERR,"Invalid Atoms section in data file");
-      } else {
-        type[nlocal-1] = utils::inumeric(FLERR,typestr.c_str(),true,lmp);
-        if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
+      if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+          coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+          coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+        avec->data_atom(xdata,imagedata,values,typestr);
+        if (id_offset) tag[nlocal-1] += id_offset;
+        if (mol_offset) molecule[nlocal-1] += mol_offset;
+        if (!isdigit(typestr[0])) {
+          if (!atom->labelmapflag) error->one(FLERR,"Invalid Atoms section in data file");
+          type[nlocal-1] = find_label(typestr,Atom::ATOM);
+          if (type[nlocal-1] == -1) error->one(FLERR,"Invalid Atoms section in data file");
+        } else {
+          type[nlocal-1] = utils::inumeric(FLERR,typestr.c_str(),true,lmp);
+          if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
+        }
+        if (type_offset) type[nlocal-1] += type_offset;
+        if (type[nlocal-1] <= 0 || type[nlocal-1] > ntypes)
+          error->one(FLERR,"Invalid atom type in Atoms section of data file");
       }
-      if (type_offset) type[nlocal-1] += type_offset;
-      if (type[nlocal-1] <= 0 || type[nlocal-1] > ntypes)
-        error->one(FLERR,"Invalid atom type in Atoms section of data file");
     }
     buf = next + 1;
   }
@@ -1260,7 +1261,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         if (labelflag) itype = ilabel[itype-1];
       }
       itype += type_offset;
-  
+
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
         error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
@@ -1339,7 +1340,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         if (labelflag) itype = ilabel[itype-1];
       }
       itype += type_offset;
-  
+
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
           (atom3 <= 0) || (atom3 > map_tag_max) ||
@@ -1434,7 +1435,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
         if (labelflag) itype = ilabel[itype-1];
       }
       itype += type_offset;
-  
+
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
           (atom3 <= 0) || (atom3 > map_tag_max) ||
@@ -1545,7 +1546,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
         if (labelflag) itype = ilabel[itype-1];
       }
       itype += type_offset;
-  
+
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
           (atom3 <= 0) || (atom3 > map_tag_max) ||
@@ -1774,7 +1775,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
       itype += type_offset;
       mass_one = values.next_double();
       if (values.has_next()) throw TokenizerException("Too many tokens", "");
-  
+
       if (itype < 1 || itype > ntypes) throw TokenizerException("Invalid atom type", "");
       if (mass_one <= 0.0) throw TokenizerException("Invalid mass value", "");
     } catch (TokenizerException &e) {
@@ -1824,10 +1825,10 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
     utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
     if ((lo < 1) || (hi > ntypes))
       error->all(file,line,"Invalid type {} for atom mass {}", arg[1]);
-  
+
     const double value = utils::numeric(FLERR,arg[1],false,lmp);
     if (value <= 0.0) error->all(file,line,"Invalid atom mass value {}", value);
-  
+
     for (int itype = lo; itype <= hi; itype++) {
       mass[itype] = value;
       mass_setflag[itype] = 1;

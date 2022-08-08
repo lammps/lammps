@@ -42,6 +42,9 @@ void TangentialLinearNoHistory::coeffs_to_local()
   xt = coeffs[0];
   mu = coeffs[1];
   damp = xt * contact->damping_model->damp;
+
+  if (k < 0.0 || xt < 0.0 || mu < 0.0)
+    error->all(FLERR, "Illegal linear no history tangential model");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,6 +90,9 @@ void TangentialLinearHistory::coeffs_to_local()
   xt = coeffs[1];
   mu = coeffs[2];
   damp = xt * contact->damping_model->damp;
+
+  if (k < 0.0 || xt < 0.0 || mu < 0.0)
+    error->all(FLERR, "Illegal linear tangential model");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -181,6 +187,9 @@ void TangentialMindlin::coeffs_to_local()
       error->all(FLERR, "Must either specify tangential stiffness or material properties for normal model for the Mindlin tangential style");
     k = 8.0 * mix_stiffnessE(contact->normal_model->Emod, contact->normal_model->Emod, contact->normal_model->poiss, contact->normal_model->poiss);
   }
+
+  if (k < 0.0 || xt < 0.0 || mu < 0.0)
+    error->all(FLERR, "Illegal Mindlin tangential model");
 
   damp = xt * contact->damping_model->damp;
 }

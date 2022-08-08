@@ -18,6 +18,7 @@
 */
 
 #include "contact_sub_models.h"
+#include "error.h"
 #include "utils.h"
 
 using namespace LAMMPS_NS;
@@ -55,14 +56,19 @@ void SubModel::allocate_coeffs()
 
 /* ---------------------------------------------------------------------- */
 
-void SubModel::parse_coeffs(char **arg, int iarg)
+int SubModel::parse_coeffs(char **arg, int iarg, int narg)
 {
+  if (iarg + num_coeffs >= narg)
+    error->all(FLERR, "Insufficient arguments provided for {} model", name);
+
   for (int i = 0; i < num_coeffs; i++) {
     // A few parameters (eg.g kt for tangential mindlin) allow null
     if (strcmp(arg[iarg+i+1], "NULL") == 0) coeffs[i] = -1;
     else coeffs[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
   }
   coeffs_to_local();
+
+  return iarg + num_coeffs;
 }
 
 /* ----------------------------------------------------------------------

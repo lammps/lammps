@@ -13,6 +13,7 @@
 
 #include "contact_normal_models.h"
 #include "contact.h"
+#include "error.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -83,6 +84,8 @@ void NormalHooke::coeffs_to_local()
 {
   k = coeffs[0];
   damp = coeffs[1];
+
+  if (k < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hooke normal model");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,6 +127,8 @@ void NormalHertz::coeffs_to_local()
 {
   k = coeffs[0];
   damp = coeffs[1];
+
+  if (k < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hertz normal model");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,6 +174,8 @@ void NormalHertzMaterial::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   k = 4 / 3 * Emod;
+
+  if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hertz material normal model");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -201,6 +208,8 @@ void NormalDMT::coeffs_to_local()
   poiss = coeffs[2];
   cohesion = coeffs[3];
   k = 4 / 3 * Emod;
+
+  if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal DMT normal model");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -260,6 +269,8 @@ void NormalJKR::coeffs_to_local()
   cohesion = coeffs[3];
   k = 4/3*Emod;
   Escaled = k * THREEQUARTERS;
+
+  if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal JKR normal model");
 }
 
 /* ---------------------------------------------------------------------- */

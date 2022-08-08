@@ -13,9 +13,10 @@
 
 #include "contact_normal_models.h"
 #include "contact_rolling_models.h"
+#include "contact.h"
+#include "error.h"
 #include "math_const.h"
 #include "math_extra.h"
-#include "contact.h"
 
 using namespace LAMMPS_NS;
 using namespace Contact;
@@ -39,6 +40,9 @@ void RollingSDS::coeffs_to_local()
   k = coeffs[0];
   mu = coeffs[1];
   gamma = coeffs[2];
+
+  if (k < 0.0 || mu < 0.0 || gamma < 0.0)
+    error->all(FLERR, "Illegal SDS rolling model");
 }
 
 /* ---------------------------------------------------------------------- */

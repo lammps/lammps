@@ -28,7 +28,7 @@ class SubModel : protected Pointers {
   int num_coeffs;
   double *coeffs;
   void read_restart();
-  void parse_coeffs(char **, int);
+  int parse_coeffs(char **, int, int);
   virtual void mix_coeffs(SubModel*, SubModel*) {};
   virtual void coeffs_to_local() {};
   void allocate_coeffs();

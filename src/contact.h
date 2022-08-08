@@ -52,7 +52,7 @@ class ContactModel : protected Pointers {
   double pulloff_distance(double, double);
 
   void init_model(std::string, ModelType);
-
+  int init_classic_model(char **, int, int);
   void mix_coeffs(ContactModel*, ContactModel*);
 
   void write_restart(FILE *);
@@ -68,7 +68,7 @@ class ContactModel : protected Pointers {
   SubModel *sub_models[6];  // Need to resize if we add more model flavors
 
   // Extra options
-  int beyond_contact, limit_damping, history_update;
+  int beyond_contact, limit_damping, history_update, wall_flag;
   double cutoff_type;
 
   // History variables
@@ -79,7 +79,7 @@ class ContactModel : protected Pointers {
   // Contact properties/output
   double *forces, *torquesi, *torquesj;
 
-  double radi, radj, meff, dt, Ti, Tj, area;
+  double radi, radj, rwall, meff, dt, Ti, Tj, area;
   double Fntot, magtortwist;
 
   double *xi, *xj, *vi, *vj, *omegai, *omegaj;

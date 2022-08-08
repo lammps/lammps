@@ -121,14 +121,14 @@ void PairGranular::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double factor_lj,mi,mj,meff,delx,dely,delz;
-  double *forces, *torquesi, *torquesj;
+  double *forces, *torquesi, *torquesj, dq;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
   double *history,*allhistory,**firsthistory;
 
   bool touchflag = false;
-  const bool historyupdate = update->setupflag == 0;
+  const bool history_update = update->setupflag == 0;
 
   ev_init(eflag,vflag);
 
@@ -163,7 +163,7 @@ void PairGranular::compute(int eflag, int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
-  double *heatflux, *temperature, dq;
+  double *heatflux, *temperature;
   if (heat_flag) {
     heatflux = atom->heatflux;
     temperature = atom->temperature;
@@ -234,14 +234,13 @@ void PairGranular::compute(int eflag, int vflag)
         models[itype][jtype]->vj = v[j];
         models[itype][jtype]->omegai = omega[i];
         models[itype][jtype]->omegaj = omega[j];
-        models[itype][jtype]->history_update = historyupdate;
-        models[itype][jtype]->history = history;
-        models[itype][jtype]->prep_contact();
-
+        models[itype][jtype]->history_update = history_update;
+        if (use_history) models[itype][jtype]->history = history;
         if (heat_flag) {
           models[itype][jtype]->Ti = temperature[i];
           models[itype][jtype]->Tj = temperature[j];
         }
+        models[itype][jtype]->prep_contact();
 
         if (models[itype][jtype]->beyond_contact) touch[jj] = 1;
 
@@ -320,9 +319,6 @@ void PairGranular::settings(int narg, char **arg)
   } else {
     cutoff_global = -1; // will be set based on particle sizes, model choice
   }
-
-  normal_history = tangential_history = 0;
-  roll_history = twist_history = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -332,7 +328,6 @@ void PairGranular::settings(int narg, char **arg)
 void PairGranular::coeff(int narg, char **arg)
 {
   double cutoff_one = -1;
-  int ncoeff;
 
   if (narg < 3)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -349,26 +344,16 @@ void PairGranular::coeff(int narg, char **arg)
   //Parse mandatory normal and tangential specifications
   int iarg = 2;
   vec_models.back().init_model(std::string(arg[iarg]), NORMAL);
-  ncoeff = vec_models.back().normal_model->num_coeffs;
   iarg += 1;
-  if (iarg + ncoeff >= narg)
-    error->all(FLERR,"Illegal pair_coeff command"
-      "Insufficient arguments provided for normal model.");
-  vec_models.back().normal_model->parse_coeffs(arg, iarg);
-  iarg += ncoeff;
+  iarg = vec_models.back().normal_model->parse_coeffs(arg, iarg, narg);
 
   if (strcmp(arg[iarg], "tangential") == 0) {
     if (iarg + 1 >= narg)
       error->all(FLERR,"Illegal pair_coeff command, must specify "
           "tangential model after tangential keyword");
     vec_models.back().init_model(std::string(arg[iarg]), TANGENTIAL);
-    ncoeff = vec_models.back().tangential_model->num_coeffs;
     iarg += 1;
-    if (iarg + ncoeff >= narg)
-      error->all(FLERR, "Illegal pair_coeff command"
-        "Insufficient arguments provided for tangential model.");
-    vec_models.back().tangential_model->parse_coeffs(arg, iarg);
-    iarg += ncoeff;
+    iarg = vec_models.back().tangential_model->parse_coeffs(arg, iarg, narg);
   } else{
     error->all(FLERR, "Illegal pair_coeff command, 'tangential' keyword expected");
   }
@@ -379,51 +364,27 @@ void PairGranular::coeff(int narg, char **arg)
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       vec_models.back().init_model(std::string(arg[iarg]), DAMPING);
-      ncoeff = vec_models.back().damping_model->num_coeffs;
       iarg += 1;
-      if (iarg + ncoeff >= narg)
-        error->all(FLERR, "Illegal pair_coeff command"
-              "Insufficient arguments provided for damping model.");
-      vec_models.back().damping_model->parse_coeffs(arg, iarg);
-      iarg += ncoeff;
-
+      iarg = vec_models.back().damping_model->parse_coeffs(arg, iarg, narg);
     } else if (strcmp(arg[iarg], "rolling") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       vec_models.back().init_model(std::string(arg[iarg]), ROLLING);
-      ncoeff = vec_models.back().rolling_model->num_coeffs;
       iarg += 1;
-      if (iarg + ncoeff >= narg)
-        error->all(FLERR, "Illegal pair_coeff command"
-              "Insufficient arguments provided for rolling model.");
-      vec_models.back().rolling_model->parse_coeffs(arg, iarg);
-      iarg += ncoeff;
-
+      iarg = vec_models.back().rolling_model->parse_coeffs(arg, iarg, narg);
     } else if (strcmp(arg[iarg], "twisting") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       vec_models.back().init_model(std::string(arg[iarg]), TWISTING);
-      ncoeff = vec_models.back().twisting_model->num_coeffs;
       iarg += 1;
-      if (iarg + ncoeff >= narg)
-        error->all(FLERR, "Illegal pair_coeff command"
-              "Insufficient arguments provided for twisting model.");
-      vec_models.back().twisting_model->parse_coeffs(arg, iarg);
-      iarg += ncoeff;
-
+      iarg = vec_models.back().twisting_model->parse_coeffs(arg, iarg, narg);
     } else if (strcmp(arg[iarg], "heat") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       vec_models.back().init_model(std::string(arg[iarg]), HEAT);
-      ncoeff = vec_models.back().heat_model->num_coeffs;
       iarg += 1;
-      if (iarg + ncoeff >= narg)
-        error->all(FLERR, "Illegal pair_coeff command"
-              "Insufficient arguments provided for heat model.");
-      vec_models.back().heat_model->parse_coeffs(arg, iarg);
-      iarg += ncoeff;
+      iarg = vec_models.back().heat_model->parse_coeffs(arg, iarg, narg);
       heat_flag = 1;
-
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
@@ -437,11 +398,9 @@ void PairGranular::coeff(int narg, char **arg)
     } else error->all(FLERR, "Illegal pair_coeff command");
   }
 
-  // Define default damping model if unspecified, takes no args
-  if (!vec_models.back().damping_model) {
+  // Define default damping model if unspecified, has no coeffs
+  if (!vec_models.back().damping_model)
     vec_models.back().init_model("viscoelastic", DAMPING);
-    vec_models.back().damping_model->parse_coeffs(arg, 0);
-  }
 
   if (vec_models.back().limit_damping && !vec_models.back().normal_model->allow_limit_damping)
     error->all(FLERR,"Illegal pair_coeff command, "
@@ -483,11 +442,7 @@ void PairGranular::init_style()
   int size_twisting_history = 0;
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
-      if (models[i][j]->normal_model->size_history != 0 ||
-          models[i][j]->damping_model->size_history != 0 ||
-          models[i][j]->tangential_model->size_history != 0 ||
-          models[i][j]->rolling_model->size_history != 0 ||
-          models[i][j]->twisting_model->size_history != 0) use_history = 1;
+      if (models[i][j]->size_history != 0) use_history = 1;
 
       if (models[i][j]->normal_model->size_history > size_normal_history)
         size_normal_history = models[i][j]->damping_model->size_history;
@@ -495,10 +450,12 @@ void PairGranular::init_style()
         size_damping_history = models[i][j]->normal_model->size_history;
       if (models[i][j]->tangential_model->size_history > size_tangential_history)
         size_tangential_history = models[i][j]->tangential_model->size_history;
-      if (models[i][j]->rolling_model->size_history > size_rolling_history)
-        size_rolling_history = models[i][j]->rolling_model->size_history;
-      if (models[i][j]->twisting_model->size_history > size_twisting_history)
-        size_twisting_history = models[i][j]->twisting_model->size_history;
+      if (models[i][j]->rolling_model)
+        if (models[i][j]->rolling_model->size_history > size_rolling_history)
+          size_rolling_history = models[i][j]->rolling_model->size_history;
+      if (models[i][j]->twisting_model)
+        if (models[i][j]->twisting_model->size_history > size_twisting_history)
+          size_twisting_history = models[i][j]->twisting_model->size_history;
     }
   }
 
@@ -506,9 +463,21 @@ void PairGranular::init_style()
       size_tangential_history + size_rolling_history + size_twisting_history;
 
   damping_history_index = size_normal_history;
-  tangential_history_index = size_normal_history + damping_history_index;
-  roll_history_index = size_normal_history + damping_history_index + size_tangential_history;
-  twist_history_index = size_normal_history + damping_history_index + size_tangential_history + size_rolling_history;
+  tangential_history_index = damping_history_index + size_damping_history;
+  roll_history_index = tangential_history_index + size_tangential_history;
+  twist_history_index = roll_history_index + size_rolling_history;
+
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      models[i][j]->normal_model->history_index = 0;
+      models[i][j]->damping_model->history_index = damping_history_index;
+      models[i][j]->tangential_model->history_index = tangential_history_index;
+      if (models[i][j]->rolling_model)
+        models[i][j]->rolling_model->history_index = roll_history_index;
+      if (models[i][j]->twisting_model)
+        models[i][j]->twisting_model->history_index = twist_history_index;
+    }
+  }
 
   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
   else neighbor->add_request(this, NeighConst::REQ_SIZE);

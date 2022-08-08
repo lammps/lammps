@@ -13,6 +13,7 @@
 
 #include "contact_heat_models.h"
 #include "contact.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace Contact;
@@ -31,6 +32,8 @@ HeatArea::HeatArea()
 void HeatArea::coeffs_to_local()
 {
   conductivity = coeffs[0];
+
+  if (conductivity < 0.0) error->all(FLERR, "Illegal area heat model");
 }
 
 /* ---------------------------------------------------------------------- */

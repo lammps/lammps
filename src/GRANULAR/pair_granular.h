@@ -75,9 +75,6 @@ class PairGranular : public Pair {
   std::vector <Contact::ContactModel> vec_models;
   Contact::ContactModel ***models;
 
-  // history flags
-  int normal_history, tangential_history, roll_history, twist_history;
-
   // indices of history entries
   int normal_history_index;
   int damping_history_index;

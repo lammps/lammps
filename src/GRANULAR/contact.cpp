@@ -30,6 +30,7 @@
 #include "contact_heat_models.h"
 #include "comm.h"
 #include "error.h"
+#include "force.h"
 
 #include <cmath>
 
@@ -44,6 +45,7 @@ ContactModel::ContactModel() :
   beyond_contact = 0;
   nondefault_history_transfer = 0;
   cutoff_type = 0.0;
+  wall_flag = 0;
   nmodels = 5;
 
   reset_contact();
@@ -107,6 +109,8 @@ void ContactModel::init_model(std::string model_name, ModelType model_type)
     else if (model_name =="area") heat_model = new HeatArea();
     else error->all(FLERR, "Heat model name not recognized");
     sub_models[model_type] = heat_model;
+  } else {
+    error->all(FLERR, "Illegal model type");
   }
 
   sub_models[model_type]->name.assign(model_name);
@@ -116,14 +120,82 @@ void ContactModel::init_model(std::string model_name, ModelType model_type)
 
 /* ---------------------------------------------------------------------- */
 
+int ContactModel::init_classic_model(char **arg, int iarg, int narg)
+{
+  double kn, kt, gamman, gammat, xmu;
+
+  if (iarg + 6 >= narg)
+    error->all(FLERR,"Insufficient arguments provided for classic gran model command");
+
+  kn = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
+  if (strcmp(arg[iarg + 2],"NULL") == 0) kt = kn * 2.0 / 7.0;
+  else kt = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
+
+  gamman = utils::numeric(FLERR,arg[iarg + 3],false,lmp);
+  if (strcmp(arg[iarg + 4],"NULL") == 0) gammat = 0.5 * gamman;
+  else gammat = utils::numeric(FLERR,arg[iarg + 4],false,lmp);
+
+  xmu = utils::numeric(FLERR,arg[iarg + 5],false,lmp);
+  int dampflag = utils::inumeric(FLERR,arg[iarg + 6],false,lmp);
+  if (dampflag == 0) gammat = 0.0;
+
+  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
+      xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
+    error->all(FLERR,"Illegal classic gran model command");
+
+  if (strcmp(arg[iarg],"hooke") == 0) {
+    init_model("hooke", NORMAL);
+    init_model("linear_nohistory", TANGENTIAL);
+  } else if (strcmp(arg[iarg],"hooke/history") == 0) {
+    init_model("hooke", NORMAL);
+    init_model("linear_history", TANGENTIAL);
+  } else if (strcmp(arg[iarg],"hertz/history") == 0) {
+    // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
+    kn /= force->nktv2p;
+    kt /= force->nktv2p;
+    init_model("hertz", NORMAL);
+    init_model("mindlin", TANGENTIAL); // Dan is this right?
+  } else error->all(FLERR,"Invalid classic gran model");
+  init_model("mass_velocity", DAMPING);
+
+  // ensure additional models are undefined
+  rolling_model = nullptr;
+  twisting_model = nullptr;
+  heat_model = nullptr;
+
+  // manually parse coeffs
+  normal_model->coeffs[0] = kn;
+  normal_model->coeffs[1] = gamman;
+  tangential_model->coeffs[0] = kt;
+  tangential_model->coeffs[1] = gammat;
+  tangential_model->coeffs[2] = xmu;
+
+  normal_model->coeffs_to_local();
+  tangential_model->coeffs_to_local();
+  damping_model->coeffs_to_local();
+
+  iarg += 7;
+  return iarg ;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ContactModel::init()
 {
+  if (!normal_model) error->all(FLERR, "Must specify normal contact model");
+  if (!damping_model) error->all(FLERR, "Must specify damping contact model");
+  if (!tangential_model) error->all(FLERR, "Must specify tangential contact model");
+
   int i, j, size_cumulative;
+  size_history = 0;
   for (i = 0; i < nmodels; i++) {
-    if (sub_models[i]->nondefault_history_transfer)
-      nondefault_history_transfer = 1;
-    if (sub_models[i]->beyond_contact)
-      beyond_contact = 1;
+    if (sub_models[i]) {
+      if (sub_models[i]->nondefault_history_transfer)
+        nondefault_history_transfer = 1;
+      if (sub_models[i]->beyond_contact)
+        beyond_contact = 1;
+      size_history += sub_models[i]->size_history;
+    }
   }
 
   transfer_history_factor = new double(size_history);
@@ -134,13 +206,17 @@ void ContactModel::init()
       // Find which model controls this history value
       size_cumulative = 0;
       for (j = 0; j < nmodels; j++) {
-        if (size_cumulative + sub_models[j]->size_history > i) break;
-        size_cumulative += sub_models[j]->size_history;
+        if (sub_models[j]) {
+          if (size_cumulative + sub_models[j]->size_history > i) break;
+          size_cumulative += sub_models[j]->size_history;
+        }
       }
 
       // Check if model has nondefault transfers, if so copy its array
-      if (sub_models[j]->nondefault_history_transfer) {
-        transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
+      if (j != nmodels) {
+        if (sub_models[j]->nondefault_history_transfer) {
+          transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
+        }
       }
     }
   }
@@ -151,7 +227,8 @@ void ContactModel::init()
 void ContactModel::mix_coeffs(ContactModel *c1, ContactModel *c2)
 {
   for (int i = 0; i < nmodels; i++)
-    sub_models[i]->mix_coeffs(c1->sub_models[i], c2->sub_models[i]);
+    if (sub_models[i])
+      sub_models[i]->mix_coeffs(c1->sub_models[i], c2->sub_models[i]);
 
   limit_damping = MAX(c1->limit_damping, c2->limit_damping);
   cutoff_type = MAX(c1->cutoff_type, c2->cutoff_type);
@@ -218,10 +295,6 @@ void ContactModel::read_restart(FILE *fp)
 
 void ContactModel::reset_contact()
 {
-  radi = radj = Fntot = magtortwist = 0.0;
-  xi = xj = vi = vj = omegai = omegaj = nullptr;
-  forces = torquesi = torquesj = history = nullptr;
-
   prep_flag = check_flag = 0;
   touch = false;
 }
@@ -232,10 +305,17 @@ bool ContactModel::check_contact()
 {
   check_flag = 1;
 
-  sub3(xi, xj, dx);
-  rsq = lensq3(dx);
-  radsum = radi + radj;
-  Reff = radi * radj / radsum;
+  if (wall_flag) {
+    rsq = lensq3(dx);
+    radsum = radi;
+    if (rwall == 0) Reff = radi;
+    else Reff = radi * rwall/(radi + rwall);
+  } else {
+    sub3(xi, xj, dx);
+    rsq = lensq3(dx);
+    radsum = radi + radj;
+    Reff = radi * radj / radsum;
+  }
 
   touch = normal_model->touch();
   return touch;

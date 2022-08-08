@@ -658,19 +658,19 @@ void FixNH::init()
 
   // set temperature and pressure ptrs
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix nvt/npt does not exist");
-  temperature = modify->compute[icompute];
+  auto icompute = modify->get_compute_by_id(id_temp);
+  if (!icompute)
+    error->all(FLERR,"Temperature ID {} for fix nvt/npt does not exist", id_temp);
+  temperature = icompute;
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 
   if (pstat_flag) {
-    icompute = modify->find_compute(id_press);
-    if (icompute < 0)
-      error->all(FLERR,"Pressure ID for fix npt/nph does not exist");
-    pressure = modify->compute[icompute];
+    icompute = modify->get_compute_by_id(id_press);
+    if (!icompute)
+      error->all(FLERR,"Pressure ID {} for fix npt/nph does not exist", id_press);
+    pressure = icompute;
   }
 
   // set timesteps and frequencies
@@ -1411,10 +1411,10 @@ int FixNH::modify_param(int narg, char **arg)
     delete [] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    auto icompute = modify->get_compute_by_id(arg[1]);
+    if (!icompute)
+      error->all(FLERR,"Could not find fix_modify temperature ID {}", arg[1]);
+    temperature = icompute;
 
     if (temperature->tempflag == 0)
       error->all(FLERR,
@@ -1425,10 +1425,10 @@ int FixNH::modify_param(int narg, char **arg)
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      icompute = modify->find_compute(id_press);
-      if (icompute < 0)
-        error->all(FLERR,"Pressure ID for fix modify does not exist");
-      modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+      icompute = modify->get_compute_by_id(id_press);
+      if (!icompute)
+        error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
+      icompute->reset_extra_compute_fix(id_temp);
     }
 
     return 2;
@@ -1443,9 +1443,9 @@ int FixNH::modify_param(int narg, char **arg)
     delete [] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
+    auto icompute = modify->get_compute_by_id(arg[1]);
+    if (!icompute) error->all(FLERR,"Could not find fix_modify pressure ID {}", arg[1]);
+    pressure = icompute;
 
     if (pressure->pressflag == 0)
       error->all(FLERR,"Fix_modify pressure ID does not compute pressure");

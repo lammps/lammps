@@ -25,7 +25,7 @@ try:
     pylib = ctypes.CDLL(library)
 except OSError as e:
     if library.endswith(".a"):
-        library = library.strip(".a") + ".so"
+        library = library.strip(".a") + SHLIB_SUFFIX
         pylib = ctypes.CDLL(library)
     else:
         raise e

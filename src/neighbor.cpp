@@ -1354,7 +1354,7 @@ void Neighbor::morph_granular()
 
 void Neighbor::morph_halffull()
 {
-  int i,j,jj,jmin;
+  int i,j,jj;
   NeighRequest *irq,*jrq;
   double icut,jcut;
 
@@ -1438,7 +1438,7 @@ void Neighbor::morph_halffull()
 
 void Neighbor::morph_copy_trim()
 {
-  int i,j,jj,jmin,inewton,jnewton;
+  int i,j,jj,inewton,jnewton;
   NeighRequest *irq,*jrq;
   double icut,jcut;
 

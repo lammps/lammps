@@ -144,12 +144,14 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten3   uloop     4 pad");
     command("variable dummy  index     0");
     command("variable file   equal     is_file(MYFILE)");
+    command("variable iswin  equal     is_os(^Windows)");
+    command("variable islin  equal     is_os(^Linux)");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 18);
+    ASSERT_EQ(variable->nvar, 20);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 17);
+    ASSERT_EQ(variable->nvar, 19);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
@@ -167,6 +169,17 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("file"), StrEq("1"));
     platform::unlink("MYFILE");
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
+
+#if defined(_WIN32)
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("0"));
+#elif defined(__linux__)
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("1"));
+#else
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("0"));
+#endif
 
     BEGIN_HIDE_OUTPUT();
     command("variable seven delete");

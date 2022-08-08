@@ -1823,7 +1823,7 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
           if (atom->types_style == Atom::LABELS &&
-              strcmp(atom->peratom[mdata_atom.index[nn]].name,"type") == 0) {
+              atom->peratom[mdata_atom.index[nn]].name == "type") {
             fmt::print(fp," {}",atom->lmaps[0]->typelabel[ubuf(buf[i][j++]).i-1]);
             continue;
           }

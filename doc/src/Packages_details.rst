@@ -158,7 +158,7 @@ AMOEBA package
 **Contents:**
 
 Implementation of the AMOEBA and HIPPO polarized force fields
-orginally developed by Jay Ponder's group at the U Washington at St
+originally developed by Jay Ponder's group at the U Washington at St
 Louis.  The LAMMPS implementation is based on Fortran 90 code
 provided by the Ponder group in their
 `Tinker MD software <https://dasher.wustl.edu/tinker/>`_.

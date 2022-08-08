@@ -94,6 +94,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
 
   method = PIMD;
   ensemble      = nvt;
+  integrator = obabo;
   fmass = 1.0;
   sp = 1.0;
   temp          = 298.15;
@@ -106,7 +107,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   mapflag       = 1;
   removecomflag = 1;
   fmmode        = physical;
-  // pstyle        = ISO;
+  pstyle        = ISO;
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
@@ -1591,8 +1592,8 @@ double FixPIMD::compute_vector(int n)
   if(n==0) { return ke_bead; }
   if(n==1) { return se_bead; }
   if(n==2) { return pe_bead; }
-  // if(n==3) { return tote; }
-  if(n==3) { return W*vw[0]; }
+  if(n==3) { return tote; }
+  // if(n==3) { return W*vw[0]; }
   if(!pstat_flag)
   {
     if(n==4) { return t_prim; }

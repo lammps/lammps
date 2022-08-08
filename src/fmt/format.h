@@ -389,7 +389,8 @@ class uint128_fallback {
       hi_ += (lo_ < n ? 1 : 0);
       return *this;
     }
-#if FMT_HAS_BUILTIN(__builtin_addcll)
+// LAMMPS customization: XLCClang does not support __builtin_addcll()
+#if FMT_HAS_BUILTIN(__builtin_addcll) && !(defined(__xlc__) && defined(__clang__))
     unsigned long long carry;
     lo_ = __builtin_addcll(lo_, n, 0, &carry);
     hi_ += carry;

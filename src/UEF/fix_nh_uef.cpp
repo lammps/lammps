@@ -121,7 +121,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (!erate_flag)
-    error->all(FLERR,"Keyword erate must be set for fix npt/npt/uef command");
+    error->all(FLERR,"Keyword erate must be set for fix nvt/npt/uef command");
 
   if (mtchain_default_flag) mtchain=1;
 

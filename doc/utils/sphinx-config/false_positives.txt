@@ -1346,6 +1346,7 @@ hiID
 Hijazi
 Hilger
 Hinestrosa
+hipCUB
 hipFFT
 histo
 histogrammed

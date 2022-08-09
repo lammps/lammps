@@ -181,10 +181,10 @@ set appropriate environment variables. Some variables such as
 and the linker to work correctly.
 
 Using CHIP-SPV implementation of HIP is now supported. It allows one to run HIP
-code on Intel GPUs via the OpenCL or Level Zero backends. To use CHIP-SPV, you must 
-set :code:`-DHIP_USE_DEVICE_SORT=OFF` in your CMake command line as CHIP-SPV does not 
-yet support hipCUB. The use of HIP for Intel GPUs is still experimental so you 
-should only use this option in preparations to run on Aurora system at ANL. 
+code on Intel GPUs via the OpenCL or Level Zero backends. To use CHIP-SPV, you must
+set :code:`-DHIP_USE_DEVICE_SORT=OFF` in your CMake command line as CHIP-SPV does not
+yet support hipCUB. The use of HIP for Intel GPUs is still experimental so you
+should only use this option in preparations to run on Aurora system at ANL.
 
 .. code:: bash
 

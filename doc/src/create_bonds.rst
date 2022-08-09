@@ -10,7 +10,7 @@ Syntax
 
    create_bonds style args ... keyword value ...
 
-* style = *many* or *single/bond* or *single/angle* or *single/dihedral*
+* style = *many* or *single/bond* or *single/angle* or *single/dihedral* or *single/improper*
 
 .. parsed-literal::
 

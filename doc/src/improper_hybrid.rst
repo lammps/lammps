@@ -17,7 +17,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   improper_style hybrid harmonic helix
+   improper_style hybrid harmonic cvff
    improper_coeff 1 harmonic 120.0 30
    improper_coeff 2 cvff 20.0 -1 2
 

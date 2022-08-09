@@ -46,7 +46,10 @@ using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSPICACoulLong::PairLJSPICACoulLong(LAMMPS *lmp) : Pair(lmp)
+PairLJSPICACoulLong::PairLJSPICACoulLong(LAMMPS *lmp) :
+    Pair(lmp), lj_type(nullptr), cut_lj(nullptr), cut_ljsq(nullptr),
+    epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
+    lj4(nullptr), offset(nullptr), rminsq(nullptr), emin(nullptr)
 {
   ewaldflag = pppmflag = 1;
   respa_enable = 0;
@@ -550,8 +553,8 @@ void PairLJSPICACoulLong::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSPICACoulLong::single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
-                                 double factor_lj, double &fforce)
+double PairLJSPICACoulLong::single(int i, int j, int itype, int jtype, double rsq,
+                                   double factor_coul, double factor_lj, double &fforce)
 {
   double r2inv, r, grij, expm2, t, erfc, prefactor;
   double fraction, table, forcecoul, forcelj, phicoul, philj;

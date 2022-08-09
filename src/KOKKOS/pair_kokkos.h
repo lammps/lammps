@@ -23,7 +23,6 @@
 #include "pair.h"               // IWYU pragma: export
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
-#include "Kokkos_Vectorization.hpp"
 #include "Kokkos_ScatterView.hpp"
 
 namespace LAMMPS_NS {

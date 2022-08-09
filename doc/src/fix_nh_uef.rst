@@ -22,13 +22,14 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *ext* or *strain* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
+     keyword = *erate* or *ext* or *strain* or *temp* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
+       *erate* values = e_x e_y = engineering strain rates (required)
        *ext* value = *x* or *y* or *z* or *xy* or *yz* or *xz* = external dimensions
          sets the external dimensions used to calculate the scalar pressure
        *strain* values = e_x e_y = initial strain
          usually not needed, but may be needed to resume a run with a data file.
-       *iso*, *x*, *y*, *z*, *tchain*, *pchain*, *tloop*, *ploop*, *mtk* keywords
-         documented by the :doc:`fix npt <fix_nh>` command
+       *temp*, *iso*, *x*, *y*, *z*, *tchain*, *pchain*, *tloop*, *ploop*, *mtk*
+         keywords documented by the :doc:`fix npt <fix_nh>` command
 
 Examples
 """"""""

@@ -1055,10 +1055,12 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
 FixElectrodeConp::~FixElectrodeConp()
 {
   if (timer_flag && (comm->me == 0)) {
-    utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
-    utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
+    try {
+      utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
+      utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
+    } catch (std::exception &) {}
   }
-  if (modify->find_fix(id) != -1)             // avoid segfault if derived fixes' ctor throws err
+  if (!modify->get_fix_by_id(id))             // avoid segfault if derived fixes' ctor throws err
     atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms
   delete[] recvcounts;
   delete[] displs;

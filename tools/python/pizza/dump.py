@@ -189,12 +189,7 @@ import sys, re, glob, types
 from os import popen
 from math import *             # any function could be used by set()
 
-try:
-    import numpy as np
-    oldnumeric = False
-except:
-    import Numeric as np
-    oldnumeric = True
+import numpy as np
 
 try: from DEFAULTS import PIZZA_GUNZIP
 except: PIZZA_GUNZIP = "gunzip"
@@ -379,10 +374,7 @@ class dump:
         for i in range(1,snap.natoms):
           words += f.readline().decode().split()
         floats = map(float,words)
-        if oldnumeric:
-          atom_data = np.array(list(floats),np.Float)
-        else:
-          atom_data = np.array(list(floats),np.float)
+        atom_data = np.array(list(floats),np.float)
 
         snap.atoms = atom_data.reshape((snap.natoms, ncol))
       else:
@@ -858,8 +850,7 @@ class dump:
     self.map(ncol+1,str)
     for snap in self.snaps:
       atoms = snap.atoms
-      if oldnumeric: newatoms = np.zeros((snap.natoms,ncol+1),np.Float)
-      else: newatoms = np.zeros((snap.natoms,ncol+1),np.float)
+      newatoms = np.zeros((snap.natoms,ncol+1),np.float)
       newatoms[:,0:ncol] = snap.atoms
       snap.atoms = newatoms
 
@@ -1018,8 +1009,7 @@ class dump:
 
         # convert values to int and absolute value since can be negative types
 
-        if oldnumeric: bondlist = np.zeros((nbonds,4),np.Int)
-        else: bondlist = np.zeros((nbonds,4),np.int)
+        bondlist = np.zeros((nbonds,4),np.int)
         ints = [abs(int(value)) for value in words]
         start = 0
         stop = 4

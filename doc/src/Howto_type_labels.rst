@@ -21,14 +21,9 @@ A collection of type labels for all type-kinds (atom types, bond
 types, etc.) is stored as a "label map" which is simply a list of
 numeric types and associated type labels.  Within a type-kind, each
 type label must be unique.  It can be assigned to only one numeric
-type. To read and write the default type labels to data files for a
-given type-kind, all associated numeric types need have a type label
+type. To read and write type labels to data files for a given
+type-kind, all associated numeric types need have a type label
 assigned.
-
-There can be multiple label maps defined.  There is a default label
-map which has no mapID.  Additional label maps each have a mapID,
-which is a string containing only alphanumeric characters and
-underscores.
 
 Valid type labels can contain any alphanumeric character, but cannot
 start with a number.  They can also contain standard characters, such
@@ -44,20 +39,13 @@ enclosing the constituent atom types in square brackets.  E.g., define
 a C-H bond with a type label "[C][H]".
 
 There are two ways to define label maps.  One is via the
-:doc:`labelmap <labelmap>` command, which has an optional *mapID*
-keyword to allow creation of type labels in either the default map or
-an additional map with a mapID.  The other is via the :doc:`read_data
-<read_data>` command.  A data file can have sections such as Atom Type
-Labels, Bond Type Labels, etc, which associate type labels with
-numeric types.  Only the default label map can be defined in this
-manner.
-
-If defined, the default label map can be written out to data files by
-the :doc:`write_data <write_data>` command.  This  map is also written
-to and read from restart files, by the :doc:`write_restart
+:doc:`labelmap <labelmap>` command.  The other is via the
+:doc:`read_data <read_data>` command.  A data file can have sections
+such as Atom Type Labels, Bond Type Labels, etc, which associate type
+labels with numeric types.  The label map can be written out to data
+files by the :doc:`write_data <write_data>` command.  This map is also
+written to and read from restart files, by the :doc:`write_restart
 <write_restart>` and :doc:`read_restart <read_restart>` commands.
-Label maps with mapIDs cannot be written to either data or restart
-files by these commands.
 
 ----------
 
@@ -65,27 +53,18 @@ Use of type labels in LAMMPS input or output
 """"""""""""""""""""""""""""""""""""""""""""
 
 Any LAMMPS input script command which takes a numeric type as an
-argument, can use the associated type label instead, with the optional
-mapID prepended, followed by a double colon "::".  If a type label is
-not defined for a particular numeric type, only its numeric type can
-be used.
+argument, can use the associated type label instead.  If a type label
+is not defined for a particular numeric type, only its numeric type
+can be used.
 
-The first example uses the default label map for bond types.  The
-second uses a label map with mapID = Map2.
+This example assigns a label to a bond type, and then uses the type
+label to redefine the bond coefficients.
 
 .. code-block:: LAMMPS
 
    bond_coeff 2 80.0 1.2               # numeric type
    labelmap bond 2 [C][H]
    bond_coeff [C][H] 80.0 1.2          # type label
-
-or
-
-.. code-block:: LAMMPS
-
-   bond_coeff 2 80.0 1.2               # numeric type
-   labelmap bond 2 [C][H] mapID Map2
-   bond_coeff Map2::[C][H] 80.0 1.2    # type label
 
 Support for type labels is a work-in-progress for LAMMPS as of
 Nov 2021.  If an input script command allows substituting for a

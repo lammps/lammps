@@ -13,12 +13,6 @@ Syntax
 * type-kind = *atom* or *bond* or *angle* or *dihedral* or *improper*
 * one or more numeric-type/type-label pairs may be specified
 * zero or more keyword/arg pairs may be appended
-* keyword = *mapID*
-
-  .. parsed-literal::
-
-       *mapID* arg = name
-         name = ID for the label map
 
 Examples
 """"""""
@@ -27,7 +21,7 @@ Examples
 
    labelmap atom 3 carbon
    labelmap bond 1 [c1][c2] 2 [c1][hc]
-   labelmap bond 1 [c1][c2] 2 [c1][hc] mapID myMap
+   labelmap bond 1 [c1][c2] 2 [c1][hc]
    labelmap atom $(label(carbon)) C  # change type label from 'carbon' to 'C'
 
 Description
@@ -36,10 +30,8 @@ Description
 Define alphanumeric type labels to associate with one or more numeric
 atom, bond, angle, dihedral or improper types.  A collection of type
 labels for all atom types, bond types, etc is stored as a label map.
-As explained below, this command also allows definition of multiple
-label maps by use of the mapID keyword.
 
-The default label maps can also be defined by the :doc:`read_data <read_data>`
+The label map can also be defined by the :doc:`read_data <read_data>`
 command when it reads these sections in a data file: Atom Type Labels,
 Bond Type Labels, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for a general discussion of how type
@@ -60,13 +52,6 @@ cases, such as when reading and writing data files, it is required
 that a type label be defined for every numeric type (within a given
 type-kind).
 
-It may sometimes be useful to define multiple label maps.  This can be
-done using the *mapID* keyword.  The specified *name* is the mapID
-assigned to the label map.  The ID of a label map can only contain
-alphanumeric characters and underscores.  If the *mapID* keyword is
-not used, the specified type labels are assigned to the default label
-map, which has no mapID.
-
 ----------
 
 Restrictions
@@ -85,5 +70,4 @@ Related commands
 Default
 """""""
 
-If the mapID keyword is not used, specified type labels are assigned
-to the default map.
+none

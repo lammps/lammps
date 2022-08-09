@@ -18,7 +18,7 @@ Syntax
 
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
-       *nolabelmap* = do not write out the default label map
+       *nolabelmap* = do not write out type labels
        *types* value = *numeric* or *labels*
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
@@ -108,20 +108,19 @@ sections for user-created per-atom properties from :doc:`fix
 property/atom <fix_property_atom>`.
 
 The *nolabelmap* and *types* keywords refer to type labels that may be
-defined for numeric atom types, bond types, angle types, etc.  Only
-the default label map is written to data files.  The default label map
-can be defined in two ways, either by the :doc:`labelmap <labelmap>`
-command or in data files read by the :doc:`read_data <read_data>`
-command which have sections for Atom Type Labels, Bond Type Labels,
-Angle Type Labels, etc.  See the :doc:`Howto type labels
+defined for numeric atom types, bond types, angle types, etc.  The
+label map can be defined in two ways, either by the :doc:`labelmap
+<labelmap>` command or in data files read by the :doc:`read_data
+<read_data>` command which have sections for Atom Type Labels, Bond
+Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for the allowed syntax of type labels
 and a general discussion of how type labels can be used.
 
-Use of the *nolabelmap* keyword means that even if the default type
-labels exist for a given type-kind (Atoms, Bonds, Angles, etc.), type
-labels are not written to the data file.  By default, they are written
-if they exist.  A type label must be defined for every numeric type
-(within a given type-kind) to be written to the data file.
+Use of the *nolabelmap* keyword means that even if type labels exist
+for a given type-kind (Atoms, Bonds, Angles, etc.), type labels are
+not written to the data file.  By default, they are written if they
+exist.  A type label must be defined for every numeric type (within a
+given type-kind) to be written to the data file.
 
 The *types* keyword determines how atom types, bond types, angle
 types, etc are written into these data file sections: Atoms, Bonds,

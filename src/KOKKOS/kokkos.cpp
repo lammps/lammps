@@ -116,7 +116,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"d") == 0 || strcmp(arg[iarg],"device") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
-      device = atoi(arg[iarg+1]);
+      device = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
@@ -125,11 +125,11 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       error->all(FLERR,"GPUs are requested but Kokkos has not been compiled using a GPU-enabled backend");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
-      ngpus = atoi(arg[iarg+1]);
+      ngpus = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
 
       int skip_gpu = 9999;
       if (iarg+2 < narg && isdigit(arg[iarg+2][0])) {
-        skip_gpu = atoi(arg[iarg+2]);
+        skip_gpu = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
         iarg++;
       }
       iarg += 2;
@@ -173,7 +173,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
-      nthreads = atoi(arg[iarg+1]);
+      nthreads = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
 
       if (nthreads <= 0)
         error->all(FLERR,"Invalid number of threads requested for Kokkos: must be 1 or greater");
@@ -182,19 +182,20 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"n") == 0 ||
                strcmp(arg[iarg],"numa") == 0) {
-      numa = atoi(arg[iarg+1]);
+      numa = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
 
-    } else error->all(FLERR,"Invalid Kokkos command-line args");
+    } else error->all(FLERR,"Invalid Kokkos command-line arg: {}", arg[iarg]);
   }
 
   // Initialize Kokkos. However, we cannot change any
   // Kokkos library parameters after the first initalization
 
   if (args.num_threads != -1) {
-    if (args.num_threads != nthreads || args.num_numa != numa || args.device_id != device)
+    if ((args.num_threads != nthreads) || (args.num_numa != numa) || (args.device_id != device))
       if (me == 0)
-        error->warning(FLERR,"Kokkos package already initalized, cannot reinitialize with different parameters");
+        error->warning(FLERR,"Kokkos package already initalized, "
+                       "cannot reinitialize with different parameters");
     nthreads = args.num_threads;
     numa = args.num_numa;
     device = args.device_id;
@@ -206,8 +207,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     init_ngpus = ngpus;
   }
 
-  if (me == 0)
-    utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n",ngpus);
+  if (me == 0) utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n", ngpus);
 
 #ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)

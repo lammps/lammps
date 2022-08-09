@@ -42,11 +42,13 @@ Building 3 codes needed to run these examples
 
 % git clone git@github.com:lanl/LATTE.git latte
 % cd latte
+% git checkout skimLATTE-progress    # goto branch with MDI support
 % cp makefiles/makefile.CHOICES.mdi makefile.CHOICES    # so can now edit
 % edit makefile.CHOICES settings to have these settings:
   MAKELIB = OFF, SHARED = ON, MDI = ON
   MDI_PATH must point to CMake build of MDI in (1), 
     e.g. /home/sjplimp/mdi/build/MDI_Library
+  comment out 2 LIB lines with CUDA-CUDART_LIBRARY
 % make clean
 % make        # creates liblatte.so and LATTE_DOUBLE with support for MDI
 

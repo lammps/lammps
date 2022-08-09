@@ -18,8 +18,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      0 = max # of 1-3 neighbors
      0 = max # of 1-4 neighbors
      1 = max # of special neighbors
-  special bonds CPU = 0.000 seconds
-  read_data CPU = 0.004 seconds
+  special bonds CPU = 0.037 seconds
+  read_data CPU = 0.205 seconds
 
 velocity        all create 300.0 87287 loop geom
 
@@ -37,7 +37,7 @@ thermo          1
 
 dump            1 all custom 1 dump.aimd.mdi                 id type x y z vx vy vz fx fy fz
 
-run             20
+run             2
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -51,39 +51,21 @@ Per MPI rank memory allocation (min/avg/max) = 6.489 | 6.489 | 6.489 Mbytes
          0   300           -50.539035     -50.345145     -120197.6     
          1   307.57345     -50.544722     -50.345937     -120123.27    
          2   316.3757      -50.551342     -50.346868     -120035.12    
-         3   326.39203     -50.558885     -50.347938     -119933.11    
-         4   337.60559     -50.567341     -50.349146     -119817.17    
-         5   349.99734     -50.576697     -50.350493     -119687.24    
-         6   363.54606     -50.586939     -50.351979     -119543.23    
-         7   378.22834     -50.598054     -50.353605     -119385.07    
-         8   394.0186      -50.610024     -50.355369     -119212.67    
-         9   410.88903     -50.622831     -50.357273     -119025.94    
-        10   428.80963     -50.636457     -50.359317     -118824.77    
-        11   447.74819     -50.65088      -50.3615       -118609.06    
-        12   467.67027     -50.666079     -50.363823     -118378.7     
-        13   488.53922     -50.68203      -50.366287     -118133.58    
-        14   510.31617     -50.698708     -50.36889      -117873.58    
-        15   532.96002     -50.716086     -50.371633     -117598.57    
-        16   556.42747     -50.734137     -50.374517     -117308.44    
-        17   580.67298     -50.75283      -50.377541     -117003.05    
-        18   605.64879     -50.772136     -50.380705     -116682.27    
-        19   631.30497     -50.792023     -50.38401      -116345.95    
-        20   657.58937     -50.812455     -50.387454     -115993.97    
-Loop time of 3.46236 on 1 procs for 20 steps with 6 atoms
+Loop time of 30.0573 on 1 procs for 2 steps with 6 atoms
 
-Performance: 0.125 ns/day, 192.353 hours/ns, 5.776 timesteps/s
+Performance: 0.001 ns/day, 16698.513 hours/ns, 0.067 timesteps/s
 100.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
-Bond    | 1.244e-06  | 1.244e-06  | 1.244e-06  |   0.0 |  0.00
+Bond    | 0.00049455 | 0.00049455 | 0.00049455 |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 4.6286e-05 | 4.6286e-05 | 4.6286e-05 |   0.0 |  0.00
-Output  | 0.00098743 | 0.00098743 | 0.00098743 |   0.0 |  0.03
-Modify  | 3.4613     | 3.4613     | 3.4613     |   0.0 | 99.97
-Other   |            | 2.508e-05  |            |       |  0.00
+Comm    | 0.0024482  | 0.0024482  | 0.0024482  |   0.0 |  0.01
+Output  | 0.0061712  | 0.0061712  | 0.0061712  |   0.0 |  0.02
+Modify  | 30.044     | 30.044     | 30.044     |   0.0 | 99.95
+Other   |            | 0.004682   |            |       |  0.02
 
 Nlocal:              6 ave           6 max           6 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -97,4 +79,4 @@ Ave neighs/atom = 0
 Ave special neighs/atom = 0
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:03
+Total wall time: 0:00:52

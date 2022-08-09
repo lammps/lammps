@@ -19,7 +19,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      0 = max # of 1-4 neighbors
      1 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.005 seconds
+  read_data CPU = 0.004 seconds
 
 velocity        all create 300.0 87287 loop geom
 
@@ -69,21 +69,21 @@ Per MPI rank memory allocation (min/avg/max) = 5.485 | 5.987 | 6.489 Mbytes
         18   605.64879     -50.772136     -50.380705     -116682.27    
         19   631.30497     -50.792023     -50.38401      -116345.95    
         20   657.58937     -50.812455     -50.387454     -115993.97    
-Loop time of 25.2669 on 2 procs for 20 steps with 6 atoms
+Loop time of 25.6068 on 2 procs for 20 steps with 6 atoms
 
-Performance: 0.017 ns/day, 1403.714 hours/ns, 0.792 timesteps/s
+Performance: 0.017 ns/day, 1422.598 hours/ns, 0.781 timesteps/s
 100.0% CPU use with 2 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
-Bond    | 6.38e-07   | 1.355e-06  | 2.072e-06  |   0.0 |  0.00
+Bond    | 1.636e-06  | 2.023e-06  | 2.41e-06   |   0.0 |  0.00
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 1.2956e-05 | 2.4376e-05 | 3.5795e-05 |   0.0 |  0.00
-Output  | 0.001562   | 0.0017841  | 0.0020062  |   0.5 |  0.01
-Modify  | 25.264     | 25.264     | 25.264     |   0.0 | 99.99
-Other   |            | 0.00134    |            |       |  0.01
+Comm    | 4.199e-05  | 4.8295e-05 | 5.4599e-05 |   0.0 |  0.00
+Output  | 0.0018384  | 0.002081   | 0.0023236  |   0.5 |  0.01
+Modify  | 25.604     | 25.604     | 25.604     |   0.0 | 99.99
+Other   |            | 0.000287   |            |       |  0.00
 
 Nlocal:              3 ave           6 max           0 min
 Histogram: 1 0 0 0 0 0 0 0 0 1

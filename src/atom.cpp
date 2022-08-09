@@ -2060,14 +2060,13 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
    allocate space for type label map
 ------------------------------------------------------------------------- */
 
-void Atom::add_label_map(const std::string &mapID)
+void Atom::add_label_map()
 {
   labelmapflag = 1;
   lmap = (LabelMap *)
     memory->srealloc(lmap,sizeof(LabelMap *),
                      "atom::lmap");
   lmap = new LabelMap(lmp);
-  if (mapID != "") lmap->id = mapID;
   lmap->natomtypes = ntypes;
   lmap->nbondtypes = nbondtypes;
   lmap->nangletypes = nangletypes;

@@ -1631,20 +1631,6 @@ void Input::labelmap()
     error->all(FLERR,"Labelmap command before simulation box is defined");
 
   if (!atom->labelmapflag) atom->add_label_map();
-
-  std::string mapid;
-  for (int i = 1; i < narg; i++) {
-    if (strcmp(arg[i],"mapID") == 0) {
-      mapid = arg[i+1];
-      if (narg > i+2) error->all(FLERR,"Illegal labelmap command");
-      if (atom->lmap->id == "") atom->lmap->id == mapid;
-      else if (atom->lmap->id != mapid)
-        error->all(FLERR,"Labelmap ID {} does not match existing ID {}",mapid,atom->lmap->id);
-      narg = narg - 2;
-      break;
-    }
-    i++;
-  }
   atom->lmap->modify_lmap(narg,arg);
 }
 

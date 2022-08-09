@@ -355,7 +355,7 @@ class Atom : protected Pointers {
   int find_molecule(char *);
   void add_molecule_atom(class Molecule *, int, int, tagint);
 
-  void add_label_map(const std::string &mapID = "");
+  void add_label_map();
 
   void first_reorder();
   virtual void sort();

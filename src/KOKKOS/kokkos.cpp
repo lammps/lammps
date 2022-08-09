@@ -160,6 +160,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         if (device >= skip_gpu) device++;
         set_flag = 1;
       }
+      if ((str = getenv("PMI_LOCAL_RANK"))) {
+        int local_rank = atoi(str);
+        device = local_rank % ngpus;
+        if (device >= skip_gpu) device++;
+        set_flag = 1;
+      }
 
       if (ngpus > 1 && !set_flag)
         error->all(FLERR,"Could not determine local MPI rank for multiple "

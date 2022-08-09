@@ -658,19 +658,17 @@ void FixNH::init()
 
   // set temperature and pressure ptrs
 
-  auto icompute = modify->get_compute_by_id(id_temp);
-  if (!icompute)
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature)
     error->all(FLERR,"Temperature ID {} for fix nvt/npt does not exist", id_temp);
-  temperature = icompute;
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 
   if (pstat_flag) {
-    icompute = modify->get_compute_by_id(id_press);
-    if (!icompute)
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure)
       error->all(FLERR,"Pressure ID {} for fix npt/nph does not exist", id_press);
-    pressure = icompute;
   }
 
   // set timesteps and frequencies
@@ -1411,10 +1409,9 @@ int FixNH::modify_param(int narg, char **arg)
     delete [] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    auto icompute = modify->get_compute_by_id(arg[1]);
-    if (!icompute)
+    temperature = modify->get_compute_by_id(arg[1]);
+    if (!temperature)
       error->all(FLERR,"Could not find fix_modify temperature ID {}", arg[1]);
-    temperature = icompute;
 
     if (temperature->tempflag == 0)
       error->all(FLERR,
@@ -1425,7 +1422,7 @@ int FixNH::modify_param(int narg, char **arg)
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      icompute = modify->get_compute_by_id(id_press);
+      auto icompute = modify->get_compute_by_id(id_press);
       if (!icompute)
         error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
       icompute->reset_extra_compute_fix(id_temp);
@@ -1443,9 +1440,8 @@ int FixNH::modify_param(int narg, char **arg)
     delete [] id_press;
     id_press = utils::strdup(arg[1]);
 
-    auto icompute = modify->get_compute_by_id(arg[1]);
-    if (!icompute) error->all(FLERR,"Could not find fix_modify pressure ID {}", arg[1]);
-    pressure = icompute;
+    pressure = modify->get_compute_by_id(arg[1]);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure ID {}", arg[1]);
 
     if (pressure->pressflag == 0)
       error->all(FLERR,"Fix_modify pressure ID does not compute pressure");

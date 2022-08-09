@@ -57,14 +57,14 @@ variable	u uloop 20
 
 # only output atoms near vacancy
 
-#dump events vacneigh custom 1000 dump.neb.sivac.$u id type x y z
 
 # initial minimization to relax vacancy
 
 displace_atoms all random 0.1 0.1 0.1 123456
 minimize	1.0e-6 1.0e-4 1000 10000
+reset_timestep  0
 
-reset_timestep	0
+#dump events vacneigh custom 1000 dump.neb.sivac.$u id type x y z
 
 fix		1 all neb 1.0 
 

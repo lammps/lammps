@@ -226,8 +226,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // type labels
 
-  nlmap = 0;
-  lmaps = nullptr;
+  lmap = nullptr;
 
   // custom atom arrays
 
@@ -348,8 +347,7 @@ Atom::~Atom()
 
   // delete label maps
 
-  for (int i = 0; i < nlmap; i++) delete lmaps[i];
-  memory->sfree(lmaps);
+  memory->sfree(lmap);
 
   // delete per-type arrays
 
@@ -1166,7 +1164,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         if (mol_offset) molecule[nlocal-1] += mol_offset;
         if (!isdigit(typestr[0])) {
           if (!atom->labelmapflag) error->one(FLERR,"Invalid Atoms section in data file");
-          type[nlocal-1] = find_label(typestr,Atom::ATOM);
+          type[nlocal-1] = lmap->find(typestr,Atom::ATOM);
           if (type[nlocal-1] == -1) error->one(FLERR,"Invalid Atoms section in data file");
         } else {
           type[nlocal-1] = utils::inumeric(FLERR,typestr.c_str(),true,lmp);
@@ -1254,7 +1252,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
       }
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Bonds section in data file");
-        itype = find_label(typestr,Atom::BOND);
+        itype = lmap->find(typestr,Atom::BOND);
         if (itype == -1) error->one(FLERR,"Invalid Bonds section in data file");
       } else {
         itype = utils::inumeric(FLERR,typestr,true,lmp);
@@ -1333,7 +1331,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
       }
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Angles section in data file");
-        itype = find_label(typestr,Atom::ANGLE);
+        itype = lmap->find(typestr,Atom::ANGLE);
         if (itype == -1) error->one(FLERR,"Invalid Angles section in data file");
       } else {
         itype = utils::inumeric(FLERR,typestr,true,lmp);
@@ -1428,7 +1426,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
       }
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Dihedrals section in data file");
-        itype = find_label(typestr,Atom::DIHEDRAL);
+        itype = lmap->find(typestr,Atom::DIHEDRAL);
         if (itype == -1) error->one(FLERR,"Invalid Dihedrals section in data file");
       } else {
         itype = utils::inumeric(FLERR,typestr,true,lmp);
@@ -1539,7 +1537,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
       }
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Impropers section in data file");
-        itype = find_label(typestr,Atom::IMPROPER);
+        itype = lmap->find(typestr,Atom::IMPROPER);
         if (itype == -1) error->one(FLERR,"Invalid Impropers section in data file");
       } else {
         itype = utils::inumeric(FLERR,typestr,true,lmp);
@@ -1814,7 +1812,7 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 
   if (!isdigit(arg[0][0]) && arg[0][0] != '*') {
     std::string typestr(arg[0]);
-    int itype = find_label(typestr,Atom::ATOM);
+    int itype = lmap->find(typestr,Atom::ATOM);
     if (itype == -1) error->all(file,line,"Invalid type for mass set");
     mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
     mass_setflag[itype] = 1;
@@ -2062,54 +2060,20 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
    allocate space for type label map
 ------------------------------------------------------------------------- */
 
-int Atom::add_label_map(const std::string &mapID)
+void Atom::add_label_map(const std::string &mapID)
 {
   labelmapflag = 1;
-  lmaps = (LabelMap **)
-    memory->srealloc(lmaps,(nlmap+1)*sizeof(LabelMap *),
-                     "atom::lmaps");
-  lmaps[nlmap] = new LabelMap(lmp);
-  lmaps[nlmap]->id = mapID;
-  lmaps[nlmap]->natomtypes = ntypes;
-  lmaps[nlmap]->nbondtypes = nbondtypes;
-  lmaps[nlmap]->nangletypes = nangletypes;
-  lmaps[nlmap]->ndihedraltypes = ndihedraltypes;
-  lmaps[nlmap]->nimpropertypes = nimpropertypes;
-  lmaps[nlmap]->allocate_type_labels();
-  nlmap++;
-  return nlmap - 1;
-}
-
-/* ----------------------------------------------------------------------
-   find label, first parsing prefix for label map-ID
-   return -1 if does not exist
-------------------------------------------------------------------------- */
-
-int Atom::find_label(const std::string &label, int mode)
-{
-  // check for auxiliary map prefix
-
-  std::string::size_type pos = label.find("::");
-  if (pos != std::string::npos) {
-    int ilmap = find_labelmap(label.substr(0,pos));
-    if (ilmap == -1) return -1;
-    auto slabel = label.substr(pos+2);
-    return lmaps[ilmap]->find(slabel,mode);
-  }
-
-  return lmaps[0]->find(label,mode);
-}
-
-/* ----------------------------------------------------------------------
-   find first label map in set with ID
-   return -1 if does not exist
-------------------------------------------------------------------------- */
-
-int Atom::find_labelmap(const std::string &id)
-{
-  for (int ilmap = 0; ilmap < nlmap; ilmap++)
-    if (id == lmaps[ilmap]->id) return ilmap;
-  return -1;
+  lmap = (LabelMap *)
+    memory->srealloc(lmap,sizeof(LabelMap *),
+                     "atom::lmap");
+  lmap = new LabelMap(lmp);
+  if (mapID != "") lmap->id = mapID;
+  lmap->natomtypes = ntypes;
+  lmap->nbondtypes = nbondtypes;
+  lmap->nangletypes = nangletypes;
+  lmap->ndihedraltypes = ndihedraltypes;
+  lmap->nimpropertypes = nimpropertypes;
+  lmap->allocate_type_labels();
 }
 
 /* ----------------------------------------------------------------------

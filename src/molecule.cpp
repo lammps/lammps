@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "label_map.h"
 #include "math_extra.h"
 #include "math_eigen.h"
 #include "memory.h"
@@ -737,7 +738,7 @@ void Molecule::types(char *line)
       typestr = values.next_string();
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Types section in molecule file");
-        type[iatom] = atom->find_label(typestr,Atom::ATOM);
+        type[iatom] = atom->lmap->find(typestr,Atom::ATOM);
         if (type[iatom] == -1) error->one(FLERR,"Invalid Types section in molecule file");
       } else type[iatom] = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       type[iatom] += toffset;
@@ -959,7 +960,7 @@ void Molecule::bonds(int flag, char *line)
       typestr = values.next_string();
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Bonds section in molecule file");
-        itype = atom->find_label(typestr,Atom::BOND);
+        itype = atom->lmap->find(typestr,Atom::BOND);
         if (itype == -1) error->one(FLERR,"Invalid Bonds section in molecule file");
       } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();
@@ -1033,7 +1034,7 @@ void Molecule::angles(int flag, char *line)
       typestr = values.next_string();
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Angles section in molecule file");
-        itype = atom->find_label(typestr,Atom::ANGLE);
+        itype = atom->lmap->find(typestr,Atom::ANGLE);
         if (itype == -1) error->one(FLERR,"Invalid Angles section in molecule file");
       } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();
@@ -1124,7 +1125,7 @@ void Molecule::dihedrals(int flag, char *line)
       typestr = values.next_string();
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Dihedrals section in molecule file");
-        itype = atom->find_label(typestr,Atom::DIHEDRAL);
+        itype = atom->lmap->find(typestr,Atom::DIHEDRAL);
         if (itype == -1) error->one(FLERR,"Invalid Dihedrals section in molecule file");
       } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();
@@ -1228,7 +1229,7 @@ void Molecule::impropers(int flag, char *line)
       typestr = values.next_string();
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Impropers section in molecule file");
-        itype = atom->find_label(typestr,Atom::IMPROPER);
+        itype = atom->lmap->find(typestr,Atom::IMPROPER);
         if (itype == -1) error->one(FLERR,"Invalid Impropers section in molecule file");
       } else itype = utils::inumeric(FLERR,typestr.c_str(),false,lmp);
       atom1 = values.next_tagint();

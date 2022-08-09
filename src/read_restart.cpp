@@ -893,7 +893,7 @@ void ReadRestart::type_arrays()
     } else if (flag == LABELMAP) {
       read_int();
       atom->add_label_map();
-      atom->lmaps[0]->read_restart(fp);
+      atom->lmap->read_restart(fp);
 
     } else error->all(FLERR,
                       "Invalid flag in type arrays section of restart file");

@@ -24,6 +24,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "label_map.h"
 #include "library.h"
 #include "lmppython.h"
 #include "math_const.h"
@@ -4405,19 +4406,19 @@ int Variable::labelmap_function(char *word, char *contents, Tree **tree,
   std::string typestr(contents);
 
   if (strcmp(word,"label") == 0) {
-    value = atom->find_label(typestr,Atom::ATOM);
+    value = atom->lmap->find(typestr,Atom::ATOM);
 
   } else if (strcmp(word,"blabel") == 0) {
-    value = atom->find_label(typestr,Atom::BOND);
+    value = atom->lmap->find(typestr,Atom::BOND);
 
   } else if (strcmp(word,"alabel") == 0) {
-    value = atom->find_label(typestr,Atom::ANGLE);
+    value = atom->lmap->find(typestr,Atom::ANGLE);
 
   } else if (strcmp(word,"dlabel") == 0) {
-    value = atom->find_label(typestr,Atom::DIHEDRAL);
+    value = atom->lmap->find(typestr,Atom::DIHEDRAL);
 
   } else if (strcmp(word,"ilabel") == 0) {
-    value = atom->find_label(typestr,Atom::IMPROPER);
+    value = atom->lmap->find(typestr,Atom::IMPROPER);
   }
 
   if (value == -1)

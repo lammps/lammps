@@ -526,7 +526,7 @@ void WriteRestart::type_arrays()
   if (atom->mass) write_double_vec(MASS,atom->ntypes,&atom->mass[1]);
   if (atom->labelmapflag) {
     write_int(LABELMAP,atom->labelmapflag);
-    atom->lmaps[0]->write_restart(fp);
+    atom->lmap->write_restart(fp);
   }
 
   // -1 flag signals end of type arrays

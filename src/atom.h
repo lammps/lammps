@@ -256,8 +256,7 @@ class Atom : protected Pointers {
 
   // type label maps
 
-  int nlmap;
-  class LabelMap **lmaps;
+  class LabelMap *lmap;
 
   // extra peratom info in restart file destined for fix & diag
 
@@ -356,9 +355,7 @@ class Atom : protected Pointers {
   int find_molecule(char *);
   void add_molecule_atom(class Molecule *, int, int, tagint);
 
-  int add_label_map(const std::string &mapID = "");
-  int find_label(const std::string &, int);
-  int find_labelmap(const std::string &);
+  void add_label_map(const std::string &mapID = "");
 
   void first_reorder();
   virtual void sort();

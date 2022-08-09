@@ -2109,8 +2109,8 @@ void ReadData::typelabels(int mode)
   // determine mapping to let labels override numeric types
   // valid operations for first or subsequent data files
 
-  atom->lmaps[0]->merge_lmap(lmap,mode);
-  lmap->create_lmap2lmap(atom->lmaps[0],mode);
+  atom->lmap->merge_lmap(lmap,mode);
+  lmap->create_lmap2lmap(atom->lmap,mode);
 }
 
 /* ----------------------------------------------------------------------

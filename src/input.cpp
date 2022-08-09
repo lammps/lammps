@@ -730,7 +730,7 @@ int Input::readtype(char *&str, int mode)
   char typechar[256];
   std::string labelstr(str);
 
-  type = atom->find_label(labelstr,mode);
+  type = atom->lmap->find(labelstr,mode);
   if (type == -1) error->all(FLERR,fmt::format("Invalid type {}",str));
   sprintf(typechar,"%d",type);
 
@@ -1632,20 +1632,20 @@ void Input::labelmap()
 
   if (!atom->labelmapflag) atom->add_label_map();
 
-  int ilmap = 0;
   std::string mapid;
   for (int i = 1; i < narg; i++) {
     if (strcmp(arg[i],"mapID") == 0) {
       mapid = arg[i+1];
-      ilmap = atom->find_labelmap(mapid);
-      if (ilmap == -1) ilmap = atom->add_label_map(mapid);
       if (narg > i+2) error->all(FLERR,"Illegal labelmap command");
+      if (atom->lmap->id == "") atom->lmap->id == mapid;
+      else if (atom->lmap->id != mapid)
+        error->all(FLERR,"Labelmap ID {} does not match existing ID {}",mapid,atom->lmap->id);
       narg = narg - 2;
       break;
     }
     i++;
   }
-  atom->lmaps[ilmap]->modify_lmap(narg,arg);
+  atom->lmap->modify_lmap(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

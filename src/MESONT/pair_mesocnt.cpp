@@ -175,8 +175,10 @@ void PairMesoCNT::compute(int eflag, int vflag)
         }
       }
 
-      if (buckled || j == selfid[i] || endflag == 3) {
+      if (segment_flag || buckled || j == selfid[i] || endflag == 3) {
         for (k = 0; k < clen - 1; k++) {
+
+          // segment-segment interaction
 
           // exclude SELF_CUTOFF neighbors in self-chain
 
@@ -354,6 +356,9 @@ void PairMesoCNT::compute(int eflag, int vflag)
         }
       }
       else {
+
+        // segment-chain interaction
+
         // assign end position
 
         if (endflag == 1) {
@@ -674,9 +679,18 @@ void PairMesoCNT::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::settings(int narg, char ** /* arg */)
+void PairMesoCNT::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all(FLERR, "Illegal pair_style command");
+  if (narg != 2) error->all(FLERR, "Illegal pair_style command");
+  
+  if (strcmp(arg[0], "segment") == 0)
+    segment_flag = true;
+  else if (strcmp(arg[0], "chain") == 0)
+    segment_flag = false;
+  else
+    error->all(FLERR, "Unknown first argument in pair_style mesocnt command, must be 'chain' or 'segment'");
+
+  neigh_cutoff = utils::numeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -770,7 +784,7 @@ void PairMesoCNT::init_style()
 
 double PairMesoCNT::init_one(int /* i */, int /* j */)
 {
-  return cutoff;
+  return neigh_cutoff;
 }
 
 /* ----------------------------------------------------------------------

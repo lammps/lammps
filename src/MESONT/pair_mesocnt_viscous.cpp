@@ -122,7 +122,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         }
       }
 
-      if (buckled || j == selfid[i] || endflag == 3) {
+      if (segment_flag || buckled || j == selfid[i] || endflag == 3) {
 
         zero3(vp1);
         zero3(vp2);
@@ -130,6 +130,8 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         for (k = 0; k < clen - 1; k++) {
           
+          // segment-segment interaction
+    
           // exclude SELF_CUTOFF neighbors in self-chain
 
           if (j == selfid[i]) {
@@ -365,6 +367,9 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         }
       }
       else {
+
+        // segment-chain interaction
+
         // assign end position
 
         endflag = end[j];

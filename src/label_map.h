@@ -71,21 +71,3 @@ class LabelMap : protected Pointers {
 }
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Topology type exceeds system topology type
-
-The number of bond, angle, etc types exceeds the system setting. See
-the create_box or read_data command for how to specify these values.
-
-E: Type label already exists: type labels must be unique
-
-For a given type-kind (atom types, bond types, etc.), a given type
-label can be assigned to only one numeric type.
-
-E: Type labels cannot start with a number
-
-Self-explanatory.
-
-*/

@@ -194,6 +194,21 @@ import numpy as np
 try: from DEFAULTS import PIZZA_GUNZIP
 except: PIZZA_GUNZIP = "gunzip"
 
+# --------------------------------------------------------------------
+# wrapper to convert old style comparision function to key function
+
+def cmp2key(oldcmp):
+    class keycmp:
+      def __init__(self, obj, *args):
+        self.obj = obj
+      def __lt__(self, other):
+        return oldcmp(self.obj,other.obj) < 0
+      def __gt__(self, other):
+        return oldcmp(self.obj,other.obj) > 0
+      def __eq__(self, other):
+        return oldcmp(self.obj,other.obj) == 0
+    return keycmp
+
 # Class definition
 
 class dump:
@@ -255,7 +270,7 @@ class dump:
 
     # sort entries by timestep, cull duplicates
 
-    self.snaps.sort(self.compare_time)
+    self.snaps.sort(key=cmp2key(self.compare_time))
     self.cull()
     self.nsnaps = len(self.snaps)
     print("read %d snapshots" % self.nsnaps)

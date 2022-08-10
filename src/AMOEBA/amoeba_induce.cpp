@@ -369,7 +369,8 @@ void PairAmoeba::induce()
       eps = DEBYE * sqrt(eps/atom->natoms);
 
       if (eps < poleps) done = true;
-      if (eps > epsold) done = true;
+      // also commented out in induce.f of Tinker
+      // if (eps > epsold) done = true;
       if (iter >= politer) done = true;
 
       //  apply a "peek" iteration to the mutual induced dipoles
@@ -390,7 +391,7 @@ void PairAmoeba::induce()
     // terminate the calculation if dipoles failed to converge
     // NOTE: could make this an error
 
-    if (iter >= maxiter || eps > epsold)
+    if (iter >= politer || eps > epsold)
       if (comm->me == 0)
         error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }

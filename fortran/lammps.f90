@@ -30,11 +30,43 @@
 MODULE LIBLAMMPS
 
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_loc, &
-      c_int, c_char, c_null_char, c_double, c_size_t, c_f_pointer
+      c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, c_f_pointer
 
   IMPLICIT NONE
   PRIVATE
   PUBLIC :: lammps
+
+  ! These are public-interface constants that have the same purpose as the
+  ! constants in library.h, except that their types match the type of the
+  ! constant in question. Their purpose is to determine the type of the
+  ! return value without something akin to a C/C++ type cast
+  INTEGER (c_int), PUBLIC, PARAMETER :: LMP_INT = 0_c_int
+  INTEGER (c_int), PUBLIC, DIMENSION(2), PARAMETER :: LMP_INT_1D = 1_c_int
+  INTEGER (c_int), PUBLIC, DIMENSION(2,2), PARAMETER :: LMP_INT_2D = 1_c_int
+  REAL (c_double), PUBLIC, PARAMETER :: LMP_DOUBLE = 2.0_c_double
+  REAL (c_double), PUBLIC, DIMENSION(2), PARAMETER :: &
+    LMP_DOUBLE_1D = 2.0_c_double
+  REAL (c_double), PUBLIC, DIMENSION(2,2), PARAMETER :: &
+    LMP_DOUBLE_2D = 3.0_c_double
+  INTEGER (c_int64_t), PUBLIC, PARAMETER :: LMP_INT64 = 4_c_int64_t
+  INTEGER (c_int64_t), PUBLIC, DIMENSION(2), PARAMETER :: &
+    LMP_INT64_1D = 4_c_int64_t
+  INTEGER (c_int64_t), PUBLIC, DIMENSION(2,2), PARAMETER :: &
+    LMP_INT64_2D = 5_c_int64_t
+  CHARACTER(LEN=*), PUBLIC, PARAMETER :: LMP_STRING = 'six'
+
+  ! Data type constants for extracting data from global, atom, compute, and fix
+  !
+  ! Must be kept in sync with the equivalent declarations in
+  ! src/library.h and python/lammps/constants.py
+  INTEGER (c_int), PARAMETER :: &
+    LAMMPS_INT = 0_c_int, &    ! 32-bit integer (array)
+    LAMMPS_INT_2D = 1, &    ! two-dimensional 32-bit integer array
+    LAMMPS_DOUBLE = 2, &    ! 64-bit double (array)
+    LAMMPS_DOUBLE_2D = 3, & ! two-dimensional 64-bit double array
+    LAMMPS_INT64 = 4, &     ! 64-bit integer (array)
+    LAMMPS_INT64_2D = 5, &  ! two-dimensional 64-bit integer array
+    LAMMPS_STRING = 6       ! C-String
 
   TYPE lammps
       TYPE(c_ptr) :: handle
@@ -44,10 +76,15 @@ MODULE LIBLAMMPS
       PROCEDURE :: command            => lmp_command
       PROCEDURE :: commands_list      => lmp_commands_list
       PROCEDURE :: commands_string    => lmp_commands_string
-      PROCEDURE :: version            => lmp_version
       PROCEDURE :: get_natoms         => lmp_get_natoms
       PROCEDURE :: get_thermo         => lmp_get_thermo
       PROCEDURE :: extract_box        => lmp_extract_box
+      PROCEDURE :: reset_box          => lmp_reset_box
+      PROCEDURE :: memory_usage       => lmp_memory_usage
+      PROCEDURE :: get_mpi_comm       => lmp_get_mpi_comm
+      PROCEDURE :: extract_setting    => lmp_extract_setting
+
+      PROCEDURE :: version            => lmp_version
   END TYPE lammps
 
   INTERFACE lammps
@@ -117,7 +154,7 @@ MODULE LIBLAMMPS
       END FUNCTION lammps_get_natoms
 
       FUNCTION lammps_get_thermo(handle,name) BIND(C)
-        IMPORT :: c_ptr, c_double, c_char
+        IMPORT :: c_ptr, c_double
         IMPLICIT NONE
         REAL(c_double) :: lammps_get_thermo
         TYPE(c_ptr), VALUE :: handle
@@ -132,18 +169,47 @@ MODULE LIBLAMMPS
             boxflag
       END SUBROUTINE lammps_extract_box
 
-      ! TODO
-      !SUBROUTINE lammps_reset_box
+      SUBROUTINE lammps_reset_box(handle,boxlo,boxhi,xy,yz,xz) BIND(C)
+        IMPORT :: c_ptr, c_double
+        IMPLICIT NONE
+        TYPE (c_ptr), VALUE :: handle
+        REAL (c_double), DIMENSION(3) :: boxlo, boxhi
+        REAL (c_double), VALUE :: xy, yz, xz
+      END SUBROUTINE lammps_reset_box
 
-      !SUBROUTINE lammps_memory_usage
+      SUBROUTINE lammps_memory_usage(handle,meminfo) BIND(C)
+        IMPORT :: c_ptr, c_double
+        IMPLICIT NONE
+        TYPE(c_ptr), VALUE :: handle
+        REAL(c_double), DIMENSION(*) :: meminfo
+      END SUBROUTINE lammps_memory_usage
 
-      !INTEGER (c_int) FUNCTION lammps_get_mpi_comm
-      !FIXME? type(MPI_Comm) FUNCTION lammps_get_mpi_comm
+      FUNCTION lammps_get_mpi_comm(handle) BIND(C)
+        IMPORT :: c_ptr, c_int
+        IMPLICIT NONE
+        TYPE (c_ptr), VALUE :: handle
+        INTEGER (c_int) :: lammps_get_mpi_comm
+      END FUNCTION lammps_get_mpi_comm
 
-      !INTEGER (c_int) FUNCTION lammps_extract_setting
+      FUNCTION lammps_extract_setting(handle,keyword) BIND(C)
+        IMPORT :: c_ptr, c_int
+        IMPLICIT NONE
+        TYPE(c_ptr), VALUE :: handle, keyword
+        INTEGER (c_int) :: lammps_extract_setting
+      END FUNCTION lammps_extract_setting
 
-      !INTEGER (c_int) FUNCTION lammps_extract_global_datatype
+      FUNCTION lammps_extract_global_datatype(handle,name) BIND(C)
+        IMPORT :: c_ptr, c_int
+        IMPLICIT NONE
+        TYPE(c_ptr), VALUE :: handle, name
+        INTEGER (c_int) :: lammps_extract_global_datatype
+      END FUNCTION lammps_extract_global_datatype
 
+      FUNCTION lammps_extract_global(handle, name) BIND(C)
+        IMPORT :: c_ptr
+        TYPE(c_ptr), VALUE :: handle, name
+        TYPE(c_ptr) :: lammps_extract_global
+      END FUNCTION lammps_extract_global
       !(generic) lammps_extract_global
       ! TODO: You can fake out the type-casting by declaring non-optional
       ! parameters that help the compiler figure out which one to call
@@ -411,6 +477,79 @@ CONTAINS
     IF ( PRESENT(pflags) ) pflags = ( C_pflags /= 0_C_int )
     IF ( PRESENT(boxflag) ) boxflag = ( C_boxflag /= 0_C_int )
   END SUBROUTINE lmp_extract_box
+
+  ! equivalent function to lammps_reset_box
+  SUBROUTINE lmp_reset_box (self, boxlo, boxhi, xy, yz, xz)
+    CLASS(lammps), INTENT(IN) :: self
+    REAL(C_double), INTENT(IN) :: boxlo(3), boxhi(3), xy, yz, xz
+
+    CALL lammps_reset_box (self%handle, boxlo, boxhi, xy, yz, xz)
+  END SUBROUTINE lmp_reset_box
+
+  ! equivalent function to lammps_memory_usage
+  SUBROUTINE lmp_memory_usage(self,meminfo)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER, PARAMETER :: MEMINFO_ELEM = 3
+    REAL (c_double), DIMENSION(MEMINFO_ELEM), INTENT(OUT) :: meminfo
+
+    CALL lammps_memory_usage(self%handle,meminfo)
+  END SUBROUTINE lmp_memory_usage
+
+  ! equivalent function to lammps_get_mpi_comm
+  INTEGER FUNCTION lmp_get_mpi_comm (self)
+    CLASS(lammps), INTENT(IN) :: self
+
+    lmp_get_mpi_comm = lammps_get_mpi_comm(self%handle)
+  END FUNCTION lmp_get_mpi_comm
+
+  ! equivalent function to lammps_extract_setting
+  INTEGER (c_int) FUNCTION lmp_extract_setting (self, keyword)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: keyword
+    TYPE(c_ptr) :: Ckeyword
+
+    Ckeyword = f2c_string(keyword)
+    lmp_extract_setting = lammps_extract_setting(self%handle, Ckeyword)
+    CALL lammps_free(Ckeyword)
+  END FUNCTION lmp_extract_setting
+
+  ! equivalent function to lammps_extract_global_datatype
+  ! this function doesn't need to be accessed by the user, but is instead used
+  ! for type checking
+  INTEGER (c_int) FUNCTION lmp_extract_global_datatype (self, name)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    TYPE(c_ptr) :: Cname
+
+    Cname = f2c_string(name)
+    lmp_extract_global_datatype &
+      = lammps_extract_global_datatype(self%handle, Cname)
+    CALL lammps_free(Cname)
+  END FUNCTION lmp_extract_global_datatype
+
+  ! equivalent functions to lammps_extract_global (overloaded)
+  FUNCTION lmp_extract_global_int (self, name, dtype)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int) :: dtype
+    INTEGER(c_int) :: lmp_extract_global_int
+    TYPE(c_ptr) :: Cname, Cptr
+    INTEGER(c_int) :: datatype
+    INTEGER(c_int), POINTER :: ptr
+
+    Cname = f2c_string(name)
+    datatype = lammps_extract_global_datatype(self%handle, Cname)
+    IF ( datatype /= LAMMPS_INT ) THEN
+      ! throw an exception or something; data type doesn't match!
+    END IF
+    Cptr = lammps_extract_global(self%handle, Cname)
+    CALL c_f_pointer(Cptr, ptr)
+    lmp_extract_global_int = ptr
+    CALL lammps_free(Cname)
+  END FUNCTION lmp_extract_global_int
+  ! TODO need more generics here to match TKR of LMP_INT_1D, LMP_BIGINT,
+  !   LMP_DOUBLE, LMP_DOUBLE_1D, LMS_STRING [this assumes no one adds anything
+  !   requiring LMP_DOUBLE_2D and the like!]
 
   ! equivalent function to lammps_version()
   INTEGER FUNCTION lmp_version(self)

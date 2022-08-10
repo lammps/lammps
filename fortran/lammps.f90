@@ -83,6 +83,8 @@ MODULE LIBLAMMPS
       PROCEDURE :: memory_usage       => lmp_memory_usage
       PROCEDURE :: get_mpi_comm       => lmp_get_mpi_comm
       PROCEDURE :: extract_setting    => lmp_extract_setting
+      PROCEDURE, PRIVATE :: lmp_extract_global_int
+      GENERIC :: extract_global       => lmp_extract_global_int ! TODO
 
       PROCEDURE :: version            => lmp_version
   END TYPE lammps
@@ -541,6 +543,7 @@ CONTAINS
     datatype = lammps_extract_global_datatype(Cname)
     IF ( datatype /= LAMMPS_INT ) THEN
       ! throw an exception or something; data type doesn't match!
+      WRITE(0,*) 'WARNING: global data type is inconsistent'
     END IF
     Cptr = lammps_extract_global(self%handle, Cname)
     CALL c_f_pointer(Cptr, ptr)

@@ -47,7 +47,7 @@ class AmoebaConvolution : protected Pointers {
   FFT_SCALAR *pre_convolution();
   void *post_convolution();
 
- private:
+ protected:
   int which;                   // caller name for convolution being performed
   int flag3d;                  // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
   int nbrick_owned;            // owned grid points in brick decomp
@@ -71,9 +71,9 @@ class AmoebaConvolution : protected Pointers {
   void *zero_3d();
   void *zero_4d();
   FFT_SCALAR *pre_convolution_3d();
-  FFT_SCALAR *pre_convolution_4d();
+  virtual FFT_SCALAR *pre_convolution_4d();
   void *post_convolution_3d();
-  void *post_convolution_4d();
+  virtual void *post_convolution_4d();
   void kspacebbox(double, double *);
   void procs2grid2d(int, int, int, int &, int &);
 

@@ -381,7 +381,7 @@ class PairAmoeba : public Pair {
   void ufield0c(double **, double **);
   void uscale0b(int, double **, double **, double **, double **);
   void dfield0c(double **, double **);
-  void umutual1(double **, double **);
+  virtual void umutual1(double **, double **);
   virtual void umutual2b(double **, double **);
   void udirect1(double **);
   virtual void udirect2b(double **, double **);

@@ -518,7 +518,8 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
                                      void** fieldp_ptr) {
   // all the necessary data arrays are already copied from host to device
 
-  cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+  //cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+  cast_extra_data(host_amtype, host_amgroup, nullptr, host_uind, host_uinp, nullptr);
   atom->add_extra_data();                          
 
   _off2_polar = off2_polar;

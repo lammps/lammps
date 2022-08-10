@@ -452,7 +452,7 @@ void FixPIMD::setup(int vflag)
     inter_replica_comm(x);
     // printf("me = %d after inter\n", universe->me);
     // printf("%.4f %.4f %.4f\n", bufbeads[0][0], bufbeads[0][1], bufbeads[0][2]);
-    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_x2xp);
+    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
   }
   collect_xc();
@@ -461,7 +461,7 @@ void FixPIMD::setup(int vflag)
   if(method==NMPIMD)
   {
     inter_replica_comm(x);
-    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_xp2x);
+    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
     // nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
   }
@@ -476,7 +476,7 @@ void FixPIMD::setup(int vflag)
   if(method==NMPIMD)
   {
     inter_replica_comm(v);
-    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, v, M_x2xp);
+    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, v, M_x2xp[universe->iworld]);
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, v, M_x2xp[universe->iworld]);
     // nmpimd_transform(bufbeads, atom->v, M_x2xp[universe->iworld]);
   }
@@ -545,7 +545,7 @@ void FixPIMD::initial_integrate(int /*vflag*/)
           if(method==NMPIMD)
     {
       inter_replica_comm(x);
-    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_x2xp);
+    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
       // nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
     }
@@ -568,7 +568,7 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       if(method==NMPIMD)
       {
         inter_replica_comm(x);
-    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_x2xp);
+    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
         // nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
       }
@@ -588,12 +588,12 @@ void FixPIMD::initial_integrate(int /*vflag*/)
       error->universe_all(FLERR,"Unknown integrator parameter for fix pimd");
     }
     collect_xc();
-    // compute_spring_energy();
+    compute_spring_energy();
  
      if(method==NMPIMD)
     {
       inter_replica_comm(x);
-    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_xp2x);
+    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
       // nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
     }
@@ -691,7 +691,7 @@ void FixPIMD::post_force(int /*flag*/)
    if(method==NMPIMD)
   {
     inter_replica_comm(f);
-    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, f, M_x2xp);
+    if(cmode == SINGLE_PROC) nmpimd_transform(bufsortedall, f, M_x2xp[universe->iworld]);
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
     // nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
   }
@@ -1199,59 +1199,6 @@ void FixPIMD::nmpimd_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::nmpimd_transform(double **src, double **des, double **mat)
-{
-  MPI_Request request[1];
-  MPI_Status status[1];
-  if(universe->iworld == 0)
-  {
-    for(int ii=0; ii<nreplica; ii++)
-    {
-      for(int i=0; i<ntotal; i++)
-      {
-        for(int d=0; d<3; d++)
-        {
-          buftransall[ii*ntotal+i][d] = 0.0;
-          for(int j=0; j<nreplica; j++)
-          {
-            buftransall[ii*ntotal+i][d] += src[j*ntotal+i][d] * mat[ii][j];
-          }
-        }
-      }
-    }
-    for(int i=0; i<ntotal; i++)
-    {
-      outsorted[i][0] = buftransall[i][0];
-      outsorted[i][1] = buftransall[i][1];
-      outsorted[i][2] = buftransall[i][2];
-    }
-  }
-  if(universe->iworld == 0)
-  {
-    for(int ii=1; ii<nreplica; ii++)
-    {
-      MPI_Send(buftransall[ii*ntotal], ntotal*3, MPI_DOUBLE, ii, 0, universe->uworld);
-    }
-  }
-  if(universe->iworld != 0)
-  {
-    // MPI_Irecv(outsorted[0], ntotal*3, MPI_DOUBLE, 0, 0, universe->uworld, request);
-    // MPI_Wait(request, status);
-    MPI_Recv(outsorted[0], ntotal*3, MPI_DOUBLE, 0, 0, universe->uworld, status);
-  }
-  for(int i=0; i<ntotal; i++)
-  {
-    tagint tagtmp = atom->tag[i];
-    for(int d=0; d<3; d++)
-    {
-      des[i][d] = outsorted[tagtmp-1][d];
-    }
-  }
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMD::nmpimd_transform(double **src, double **des, double *vector)
 {
   if(cmode == SINGLE_PROC)
@@ -1406,7 +1353,7 @@ void FixPIMD::inter_replica_comm(double **ptr)
     displacements[0] = 0;
     for (i = 0; i < nreplica-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
     MPI_Gatherv(bufsorted[0], 3*m, MPI_DOUBLE, bufsortedall[0], counts, displacements, MPI_DOUBLE, 0, universe->uworld);
-    // MPI_Bcast(bufsortedall[0], nreplica*3*ntotal, MPI_DOUBLE, 0, universe->uworld);
+    MPI_Bcast(bufsortedall[0], nreplica*3*ntotal, MPI_DOUBLE, 0, universe->uworld);
     // printf("me = %d bufsorted[0] = %.8f %.8f %.8f\n", universe->iworld, bufsorted[0][0], bufsorted[0][1], bufsorted[0][2]);
     // printf("me = %d bufsortedall[0] = %.8f %.8f %.8f bufsortedall[ntotal] = %.8f %.8f %.8f\n", universe->iworld, bufsortedall[0][0], bufsortedall[0][1], bufsortedall[0][2], bufsortedall[ntotal][0], bufsortedall[ntotal][1], bufsortedall[ntotal][2]);
     /*
@@ -1602,11 +1549,11 @@ void FixPIMD::compute_totke()
       kine += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j];
     }
   }
+  kine *= force->mvv2e;
   // printf("me = %d, kine = %.6e\n", universe->me, kine);
   MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  ke_bead *= force->mvv2e;
-  MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  totke *= force->mvv2e / np;
+  // MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  // totke *= force->mvv2e / np;
 
   // c_press->compute_scalar();
 }
@@ -1629,8 +1576,8 @@ void FixPIMD::compute_spring_energy()
     spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]); 
   }
   MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  total_spring_energy /= np;
+  // MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  // total_spring_energy /= np;
 }
 
 /* ---------------------------------------------------------------------- */

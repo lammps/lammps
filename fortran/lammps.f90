@@ -44,10 +44,10 @@ MODULE LIBLAMMPS
       PROCEDURE :: command            => lmp_command
       PROCEDURE :: commands_list      => lmp_commands_list
       PROCEDURE :: commands_string    => lmp_commands_string
-      PROCEDURE :: version            => lmp_version
       PROCEDURE :: get_natoms         => lmp_get_natoms
       PROCEDURE :: get_thermo         => lmp_get_thermo
       PROCEDURE :: extract_box        => lmp_extract_box
+      PROCEDURE :: version            => lmp_version
   END TYPE lammps
 
   INTERFACE lammps

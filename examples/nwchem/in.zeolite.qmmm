@@ -1,54 +1,4 @@
-# MM for SiO2 zeolite with one methane molecule
-
-# CHIK potential
-# EPL, Carre, Horbach, Ispas, Kob, 82, 17001 (2008)
-# B = 1/rho
-
-#q Si = 1.910418
-#q O = -0.955209
-#A OO = 659.595398 eV
-#B OO = 2.590066 1/Ang
-#C OO = 26.836679 eV-Ang^6
-#A SiO = 27029.419922 eV
-#B SiO = 5.158606 1/Ang
-#C SiO = 148.099091 eV-Ang^6
-#A SiSi = 3150.462646 eV
-#B SiSi = 2.851451 1/Ang
-#C SiSi = 626.7519553 eV-Ang^6
-
-# LJ params for methane and O from Table 1
-# Bhatia and Nicholson, J Phys Chem C, 2012, 116, 2344-2355.
-
-#q C = -0.66
-#Q H = 0.165
-#sigma C = 0.34 nm
-#sigma H = 0.265 nm
-#sigma O = 0.28 nm
-#eps/kB C = 55.082 K = 0.004745993 eV
-#eps/kB H = 7.905 K = 0.000681113 eV
-#eps/kB O = 492.7 K = 0.0424522 eV
-
-# LJ params for silicon
-#e-Journal of Surf Sci and Nanotech, Inui and Iwasaki, 15, 40-49 (2017)
-
-#sigma Si = 3.826 Ang
-#eps Si = 17.4 meV = 0.0174 eV
-
-# C-H bond and methane angle params
-
-#OPLS C-H bond k = 29.40 ev/Ang^2
-#C-H bond r0 = 1.09 Angs
-#methane angles = 109.5 degrees
-#C-H angle k/kB = 2000 K/rad^2
-
-# conversions
-
-#1 eV = 11606 K
-#1 eV = 23.0609 kcal/mole
-#1 kcal/mole = 503.2761 K
-#1 kcal = 4.814 kJoule
-
-# -------------------------
+# QMMM for SiO2 zeolite with one methane molecule
 
 units		metal
 atom_style	full
@@ -84,6 +34,10 @@ bond_coeff      1 29.40 1.09
 angle_style      harmonic
 angle_coeff      1 0.172325 109.5
 
+# remove bonds/angles in QM methane molecule
+
+delete_bonds    qm multi remove special
+
 #velocity        all create 300.0 458732
 
 neighbor	1.0 bin
@@ -94,6 +48,10 @@ neigh_modify	delay 0 every 1 check yes
 fix		1 all nve
 #fix		1 qm nve
 
+fix             2 qm nwchem template.methane.nw methane.nw &
+                log.pwdft.zeolite Si O C H
+fix_modify      2 energy yes
+
 compute         1 all pair/local dist
 compute         2 all reduce max c_1
 
@@ -103,13 +61,13 @@ variable        fzabs atom abs(fz)
 variable        qabs atom abs(q)
 compute         3 all reduce max v_fxabs v_fyabs v_fzabs v_qabs
 
-dump            1 all custom 1 dump.zeolite.mm id x y z q fx fy fz
+dump            1 all custom 1 dump.zeolite.qmmm id x y z q fx fy fz
 dump_modify     1 sort id format float "%20.16g"
 
 timestep        0.001
 
 thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
-                pe etotal press c_2 c_3[*]
+                f_2 pe etotal press c_2 c_3[*]
 
 thermo          1
 

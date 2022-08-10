@@ -17,7 +17,7 @@ pair_style      lj/cut/coul/cut 6.0
 pair_coeff      1 1 0.13506 3.166         
 pair_coeff      2 2 0.0 1.0         
 
-velocity        all create 300.0 458732
+#velocity        all create 300.0 458732
 
 neighbor	1.0 bin
 neigh_modify	delay 0 every 1 check yes
@@ -38,8 +38,8 @@ dump_modify     1 sort id format float "%20.16g"
 
 timestep        1.0
 
-thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong pe etotal press &
-                c_2 c_3[*]
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
+                pe etotal press c_2 c_3[*]
 
 thermo          1
 

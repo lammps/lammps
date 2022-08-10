@@ -81,6 +81,8 @@ class FixPIMD : public Fix {
 
   tagint *tagsend, *tagrecv; 
   double **bufsend, **bufrecv, **bufbeads;
+  double **bufsorted, **bufsortedall;
+  double **outsorted, **buftransall;
 
   tagint *tagsendall, *tagrecvall;
   double **bufsendall, **bufrecvall;
@@ -97,6 +99,7 @@ class FixPIMD : public Fix {
 
   void reallocate();
   void nmpimd_init();
+  void nmpimd_transform(double **src, double **des, double **mat);
   void nmpimd_transform(double **, double **, double *);
 
   /* Langevin integration */
@@ -157,7 +160,7 @@ class FixPIMD : public Fix {
   // void compute_xc();
   // void compute_fc();
   double xf, vir, vir_, xcf, centroid_vir;
-  double t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;
+  double t_vir, t_cv, p_prim, p_vir, p_cv, p_cv_, p_md;
   // double vir_, xcf, vir2;
 
   /* Computes */

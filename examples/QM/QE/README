@@ -1,0 +1,62 @@
+
+
+------------------
+Building 3 codes needed to run these examples
+
+(1) Download and build MDI
+
+% git clone git@github.com:MolSSI-MDI/MDI_Library.git mdi
+% cd mdi
+% mkdir build; cd build
+% cmake ..           # includes support for all langauges (incl Fortran, Python)
+% make
+
+(2) Download and build QE with MDI support
+
+% git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git git
+% cd qespresso
+% ./configure --enable-parallel --enable-openmp --enable-shared FFLAGS="-fPIC" FCFLAGS="-fPIC" CFLAGS="-fPIC" foxflags="-fPIC" try_foxflags="-fPIC"
+% make -j 4 mdi
+
+
+(3) Build LAMMPS with its MDI package
+    also with the MOLECULE package for these example scripts
+    NOTE: what about its LATTE package for fix latte command ?
+
+Build with regular make:
+% cd lammps/lib/mdi
+% python Install.py -m mpi
+% cd lammps/src
+% make yes-mdi yes-molecule
+% make mpi                     # creates lmp_mpi
+
+Build with CMake:
+% cd lammps
+% mkdir build; cd build
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
+% make                         # creates lmp
+
+(4) Copy LAMMPS and LATTE executables into this dir
+
+Copy the LAMMPS executable into this dir as lmp_mpi.
+Copy the LATTE executable LATTE_DOUBLE into this dir.
+The run commands below assume you have done this.
+
+(5) Insure LD_LIBRARY_PATH includes the dir where MDI was built in (1)
+with its libmdi.so file, e.g. mdi/build/MDI_Library.  This is needed
+so when LATTE_DOUBLE runs as an executable it will able to find
+libmdi.so.
+
+
+
+
+
+for INQ
+
+% git clone --branch mdi --recurse-submodules https://gitlab.com/taylor-a-barnes/inq.git git
+% cd inq
+% mkdir -p build
+% cd build
+% ../configure --prefix=<install_path>/install
+% make -j 4
+% make install

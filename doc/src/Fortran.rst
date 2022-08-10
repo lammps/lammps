@@ -184,6 +184,11 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f command: :f:func:`command`
    :f commands_list: :f:func:`commands_list`
    :f commands_string: :f:func:`commands_string`
+   :f get_natoms: :f:func:`get_natoms`
+   :f get_thermo: :f:func:`get_thermo`
+   :f extract_box: :f:func:`extract_box`
+
+--------
 
 .. f:function:: lammps(args[,comm])
 
@@ -202,6 +207,8 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
 
+--------
+
 .. f:subroutine:: close([finalize])
 
    This method will close down the LAMMPS instance through calling
@@ -210,6 +217,8 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :cpp:func:`lammps_mpi_finalize`.
 
    :o logical finalize [optional]: shut down the MPI environment of the LAMMPS library if true.
+
+--------
 
 .. f:function:: version()
 
@@ -226,12 +235,16 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
    :p character(len=*) filename: name of file with LAMMPS commands
 
+--------
+
 .. f:subroutine:: command(cmd)
 
    This method will call :cpp:func:`lammps_command` to have LAMMPS
    execute a single command.
 
    :p character(len=*) cmd: single LAMMPS command
+
+--------
 
 .. f:subroutine:: commands_list(cmds)
 
@@ -240,9 +253,44 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
    :p character(len=*) cmd(:): list of LAMMPS input lines
 
+--------
+
 .. f:subroutine:: commands_string(str)
 
    This method will call :cpp:func:`lammps_commands_string` to have LAMMPS
    execute a block of commands from a string.
 
    :p character(len=*) str: LAMMPS input in string
+
+--------
+
+.. f:function:: get_natoms()
+
+   This function will call :cpp:func:`lammps_get_natoms` and return the number
+   of atoms in the system.
+
+   :r real(C_double): number of atoms
+
+--------
+
+.. f:function:: get_thermo(name)
+
+   :p character(len=*) name: string with the name of the thermo keyword
+   :r real(C_double): value of the requested thermo property or 0.0_C_double
+
+--------
+
+.. f:subroutine:: extract_box(boxlo, boxhi, xy, yz, xz, pflags, boxflag)
+ 
+   :p real(c_double) boxlo [dimension(3),optional]: vector in which to store
+    lower-bounds of simulation box
+   :p real(c_double) boxhi [dimension(3),optional]: vector in which to store
+    upper-bounds of simulation box
+   :p real(c_double) xy [optional]: variable in which to store *xy* tilt factor
+   :p real(c_double) yz [optional]: variable in which to store *yz* tilt factor
+   :p real(c_double) xz [optional]: variable in which to store *xz* tilt factor
+   :p logical pflags [dimension(3),optional]: vector in which to store
+    periodicity flags (``.TRUE.`` means periodic in that dimension)
+   :p logical boxflag [optional]: variable in which to store boolean denoting
+    whether the box will change during a simulation
+    (``.TRUE.`` means box will change)

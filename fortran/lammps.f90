@@ -46,6 +46,8 @@ MODULE LIBLAMMPS
       PROCEDURE :: commands_string    => lmp_commands_string
       PROCEDURE :: version            => lmp_version
       PROCEDURE :: get_natoms         => lmp_get_natoms
+      PROCEDURE :: get_thermo         => lmp_get_thermo
+      PROCEDURE :: extract_box        => lmp_extract_box
   END TYPE lammps
 
   INTERFACE lammps
@@ -56,80 +58,202 @@ MODULE LIBLAMMPS
   INTERFACE
       FUNCTION lammps_open(argc, argv, comm) BIND(C, name='lammps_open_fortran')
         IMPORT :: c_ptr, c_int
-        INTEGER(c_int), VALUE, INTENT(in)     :: argc, comm
-        TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
+        INTEGER(c_int), VALUE, INTENT(IN)     :: argc, comm
+        TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: argv
         TYPE(c_ptr)                           :: lammps_open
       END FUNCTION lammps_open
 
-      FUNCTION lammps_open_no_mpi(argc, argv, handle) BIND(C, name='lammps_open_no_mpi')
+      FUNCTION lammps_open_no_mpi(argc, argv, handle) BIND(C)
         IMPORT :: c_ptr, c_int
-        INTEGER(c_int), VALUE, INTENT(in)     :: argc
-        TYPE(c_ptr), DIMENSION(*), INTENT(in) :: argv
+        INTEGER(c_int), VALUE, INTENT(IN)     :: argc
+        TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: argv
         TYPE(c_ptr), VALUE, INTENT(in)        :: handle
         TYPE(c_ptr)                           :: lammps_open_no_mpi
       END FUNCTION lammps_open_no_mpi
 
-      SUBROUTINE lammps_close(handle) BIND(C, name='lammps_close')
+      SUBROUTINE lammps_close(handle) BIND(C)
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_close
 
-      SUBROUTINE lammps_mpi_init() BIND(C, name='lammps_mpi_init')
+      SUBROUTINE lammps_mpi_init() BIND(C)
       END SUBROUTINE lammps_mpi_init
 
-      SUBROUTINE lammps_mpi_finalize() BIND(C, name='lammps_mpi_finalize')
+      SUBROUTINE lammps_mpi_finalize() BIND(C)
       END SUBROUTINE lammps_mpi_finalize
 
-      SUBROUTINE lammps_kokkos_finalize() BIND(C, name='lammps_kokkos_finalize')
+      SUBROUTINE lammps_kokkos_finalize() BIND(C)
       END SUBROUTINE lammps_kokkos_finalize
 
-      SUBROUTINE lammps_file(handle, filename) BIND(C, name='lammps_file')
+      SUBROUTINE lammps_file(handle, filename) BIND(C)
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: filename
       END SUBROUTINE lammps_file
 
-      SUBROUTINE lammps_command(handle, cmd) BIND(C, name='lammps_command')
+      SUBROUTINE lammps_command(handle, cmd) BIND(C)
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: cmd
       END SUBROUTINE lammps_command
 
-      SUBROUTINE lammps_commands_list(handle, ncmd, cmds) BIND(C, name='lammps_commands_list')
+      SUBROUTINE lammps_commands_list(handle, ncmd, cmds) BIND(C)
         IMPORT :: c_ptr, c_int
         TYPE(c_ptr), VALUE :: handle
-        INTEGER(c_int), VALUE, INTENT(in)     :: ncmd
-        TYPE(c_ptr), DIMENSION(*), INTENT(in) :: cmds
+        INTEGER(c_int), VALUE, INTENT(IN)     :: ncmd
+        TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: cmds
       END SUBROUTINE lammps_commands_list
 
-      SUBROUTINE lammps_commands_string(handle, str) BIND(C, name='lammps_commands_string')
+      SUBROUTINE lammps_commands_string(handle, str) BIND(C)
         IMPORT :: c_ptr
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: str
       END SUBROUTINE lammps_commands_string
 
-      FUNCTION lammps_malloc(size) BIND(C, name='malloc')
-        IMPORT :: c_ptr, c_size_t
-        INTEGER(c_size_t), value :: size
-        TYPE(c_ptr) :: lammps_malloc
-      END FUNCTION lammps_malloc
+      FUNCTION lammps_get_natoms(handle) BIND(C)
+        IMPORT :: c_ptr, c_double
+        TYPE(c_ptr), VALUE :: handle
+        REAL(c_double) :: lammps_get_natoms
+      END FUNCTION lammps_get_natoms
 
-      SUBROUTINE lammps_free(ptr) BIND(C, name='lammps_free')
-        IMPORT :: c_ptr
-        TYPE(c_ptr), VALUE :: ptr
-      END SUBROUTINE lammps_free
+      FUNCTION lammps_get_thermo(handle,name) BIND(C)
+        IMPORT :: c_ptr, c_double, c_char
+        IMPLICIT NONE
+        REAL(c_double) :: lammps_get_thermo
+        TYPE(c_ptr), VALUE :: handle
+        TYPE(c_ptr), VALUE :: name
+      END FUNCTION lammps_get_thermo
 
-      FUNCTION lammps_version(handle) BIND(C, name='lammps_version')
+      SUBROUTINE lammps_extract_box(handle,boxlo,boxhi,xy,yz,xz,pflags, &
+            boxflag) BIND(C)
+         IMPORT :: c_ptr, c_double, c_int
+         IMPLICIT NONE
+         TYPE(c_ptr), VALUE :: handle, boxlo, boxhi, xy, yz, xz, pflags, &
+            boxflag
+      END SUBROUTINE lammps_extract_box
+
+      ! TODO
+      !SUBROUTINE lammps_reset_box
+
+      !SUBROUTINE lammps_memory_usage
+
+      !INTEGER (c_int) FUNCTION lammps_get_mpi_comm
+      !FIXME? type(MPI_Comm) FUNCTION lammps_get_mpi_comm
+
+      !INTEGER (c_int) FUNCTION lammps_extract_setting
+
+      !INTEGER (c_int) FUNCTION lammps_extract_global_datatype
+
+      !(generic) lammps_extract_global
+      ! TODO: You can fake out the type-casting by declaring non-optional
+      ! parameters that help the compiler figure out which one to call
+
+      !INTEGER (c_int) FUNCTION lammps_extract_atom_datatype
+
+      !(generic) lammps_extract_atom
+
+      !(generic) lammps_extract_compute
+
+      !(generic) lammps_extract_fix
+
+      !(generic) lammps_extract_variable
+
+      !INTEGER (c_int) lammps_set_variable
+
+      !SUBROUTINE lammps_gather_atoms
+
+      !SUBROUTINE lammps_gather_atoms_concat
+
+      !SUBROUTINE lammps_gather_atoms_subset
+
+      !SUBROUTINE lammps_scatter_atoms
+
+      !SUBROUTINE lammps_scatter_atoms_subset
+
+      !SUBROUTINE lammps_gather_bonds
+
+      !SUBROUTINE lammps_gather
+
+      !SUBROUTINE lammps_gather_concat
+
+      !SUBROUTINE lammps_gather_subset
+
+      !SUBROUTINE lammps_scatter_subset
+
+      !(generic / id, type, and image are special) / requires LAMMPS_BIGBIG
+      !INTEGER (C_int) FUNCTION lammps_create_atoms
+
+      !INTEGER (C_int) FUNCTION lammps_find_pair_neighlist
+
+      !INTEGER (C_int) FUNCTION lammps_find_fix_neighlist
+
+      !INTEGER (C_int) FUNCTION lammps_find_compute_neighlist
+
+      !INTEGER (C_int) FUNCTION lammps_neighlist_num_elements
+
+      !SUBROUTINE lammps_neighlist_element_neighbors
+
+      FUNCTION lammps_version(handle) BIND(C)
         IMPORT :: c_ptr, c_int
         TYPE(c_ptr), VALUE :: handle
         INTEGER(c_int) :: lammps_version
       END FUNCTION lammps_version
 
-      FUNCTION lammps_get_natoms(handle) BIND(C, name='lammps_get_natoms')
-        IMPORT :: c_ptr, c_double
-        TYPE(c_ptr), VALUE :: handle
-        REAL(c_double) :: lammps_get_natoms
-      END FUNCTION lammps_get_natoms
+      !SUBROUTINE lammps_get_os_info
+
+      !LOGICAL FUNCTION lammps_config_has_mpi_support
+      !LOGICAL FUNCTION lammps_config_has_gzip_support
+      !LOGICAL FUNCTION lammps_config_has_png_support
+      !LOGICAL FUNCTION lammps_config_has_jpeg_support
+      !LOGICAL FUNCTION lammps_config_has_ffmpeg_support
+      !LOGICAL FUNCTION lammps_config_has_exceptions
+      !LOGICAL FUNCTION lammps_config_has_package
+      !INTEGER (C_int) FUNCTION lammps_config_package_count
+      !SUBROUTINE lammps_config_package_name
+
+      !LOGICAL FUNCTION lammps_config_accelerator
+      !LOGICAL FUNCTION lammps_has_gpu_device
+      !SUBROUTINE lammps_get_gpu_device
+
+      !LOGICAL FUNCTION lammps_has_id
+      !INTEGER (C_int) FUNCTION lammps_id_count
+      !SUBROUTINE lammps_id_name
+
+      !INTEGER (C_int) FUNCTION lammps_plugin_count
+      !SUBROUTINE lammps_plugin_name
+
+      !Both of these use LAMMPS_BIGBIG
+      !INTEGER (LAMMPS_imageint) FUNCTION lammps_encode_image_flags
+      !SUBROUTINE lammps_decode_image_flags
+
+      !SUBROUTINE lammps_set_fix_external_callback ! may have trouble....
+      !FUNCTION lammps_fix_external_get_force() ! returns real(c_double) (:)
+
+      !SUBROUTINE lammps_fix_external_set_energy_global
+      !SUBROUTINE lammps_fix_external_set_energy_peratom
+      !SUBROUTINE lammps_fix_external_set_virial_global
+      !SUBROUTINE lammps_fix_external_set_virial_peratom
+      !SUBROUTINE lammps_fix_external_set_vector_length
+      !SUBROUTINE lammps_fix_external_set_vector
+
+      !SUBROUTINE lammps_flush_buffers
+
+      FUNCTION lammps_malloc(size) BIND(C, name='malloc')
+        IMPORT :: c_ptr, c_size_t
+        INTEGER(c_size_t), VALUE :: size
+        TYPE(c_ptr) :: lammps_malloc
+      END FUNCTION lammps_malloc
+
+      SUBROUTINE lammps_free(ptr) BIND(C)
+        IMPORT :: c_ptr
+        TYPE(c_ptr), VALUE :: ptr
+      END SUBROUTINE lammps_free
+
+
+      !LOGICAL FUNCTION lammps_is_running
+      !SUBROUTINE lammps_force_timeout
+      !LOGICAL FUNCTION lammps_has_error
+      !INTEGER (c_int) FUNCTION lammps_get_last_error_message
   END INTERFACE
 
 CONTAINS
@@ -140,7 +264,7 @@ CONTAINS
   TYPE(lammps) FUNCTION lmp_open(args, comm)
     IMPLICIT NONE
     INTEGER, INTENT(in), OPTIONAL :: comm
-    CHARACTER(len=*), INTENT(in), OPTIONAL :: args(:)
+    CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
     INTEGER(c_int)               :: i, c_comm, argc
 
@@ -175,7 +299,7 @@ CONTAINS
   SUBROUTINE lmp_close(self, finalize)
     IMPLICIT NONE
     CLASS(lammps) :: self
-    LOGICAL, INTENT(in), OPTIONAL :: finalize
+    LOGICAL, INTENT(IN), OPTIONAL :: finalize
 
     CALL lammps_close(self%handle)
 
@@ -186,20 +310,6 @@ CONTAINS
         END IF
     END IF
   END SUBROUTINE lmp_close
-
-  INTEGER FUNCTION lmp_version(self)
-    IMPLICIT NONE
-    CLASS(lammps) :: self
-
-    lmp_version = lammps_version(self%handle)
-  END FUNCTION lmp_version
-
-  DOUBLE PRECISION FUNCTION lmp_get_natoms(self)
-    IMPLICIT NONE
-    CLASS(lammps) :: self
-
-    lmp_get_natoms = lammps_get_natoms(self%handle)
-  END FUNCTION lmp_get_natoms
 
   SUBROUTINE lmp_file(self, filename)
     IMPLICIT NONE
@@ -260,13 +370,63 @@ CONTAINS
     CALL lammps_free(tmp)
   END SUBROUTINE lmp_commands_string
 
+  ! equivalent function to lammps_get_natoms
+  DOUBLE PRECISION FUNCTION lmp_get_natoms(self)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+
+    lmp_get_natoms = lammps_get_natoms(self%handle)
+  END FUNCTION lmp_get_natoms
+
+  ! equivalent function to lammps_get_thermo
+  REAL (C_double) FUNCTION lmp_get_thermo(self,name)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*) :: name
+    TYPE(C_ptr) :: Cname
+
+    Cname = f2c_string(name)
+    lmp_get_thermo = lammps_get_thermo(self%handle, Cname)
+    CALL lammps_free(Cname)
+  END FUNCTION lmp_get_thermo
+
+  ! equivalent subroutine to lammps_extract_box
+  SUBROUTINE lmp_extract_box (self, boxlo, boxhi, xy, yz, xz, pflags, boxflag)
+    CLASS(lammps), INTENT(IN) :: self
+    REAL(c_double), INTENT(OUT), TARGET, OPTIONAL :: boxlo(3), boxhi(3)
+    REAL(c_double), INTENT(OUT), TARGET, OPTIONAL :: xy, yz, xz
+    LOGICAL, INTENT(OUT), OPTIONAL :: pflags(3), boxflag
+    INTEGER(c_int), TARGET :: C_pflags(3), C_boxflag
+    TYPE (c_ptr) :: ptr(7)
+
+    ptr = c_null_ptr
+    IF ( PRESENT(boxlo) ) ptr(1) = C_LOC(boxlo(1))
+    IF ( PRESENT(boxhi) ) ptr(2) = C_LOC(boxhi(1))
+    IF ( PRESENT(xy) ) ptr(3) = C_LOC(xy)
+    IF ( PRESENT(yz) ) ptr(4) = C_LOC(yz)
+    IF ( PRESENT(xz) ) ptr(5) = C_LOC(xz)
+    IF ( PRESENT(pflags) ) ptr(6) = C_LOC(C_pflags(1))
+    IF ( PRESENT(boxflag) ) ptr(7) = C_LOC(C_boxflag)
+    CALL lammps_extract_box(self%handle, ptr(1), ptr(2), ptr(3), ptr(4), &
+      ptr(5), ptr(6), ptr(7))
+    IF ( PRESENT(pflags) ) pflags = ( C_pflags /= 0_C_int )
+    IF ( PRESENT(boxflag) ) boxflag = ( C_boxflag /= 0_C_int )
+  END SUBROUTINE lmp_extract_box
+
+  ! equivalent function to lammps_version()
+  INTEGER FUNCTION lmp_version(self)
+    IMPLICIT NONE
+    CLASS(lammps) :: self
+
+    lmp_version = lammps_version(self%handle)
+  END FUNCTION lmp_version
+
   ! ----------------------------------------------------------------------
   ! local helper functions
   ! copy fortran string to zero terminated c string
   ! ----------------------------------------------------------------------
   FUNCTION f2c_string(f_string) RESULT(ptr)
-    CHARACTER (len=*), INTENT(in)           :: f_string
-    CHARACTER (len=1, kind=c_char), POINTER :: c_string(:)
+    CHARACTER (LEN=*), INTENT(IN)           :: f_string
+    CHARACTER (LEN=1, KIND=c_char), POINTER :: c_string(:)
     TYPE(c_ptr) :: ptr
     INTEGER(c_size_t) :: i, n
 

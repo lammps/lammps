@@ -21,8 +21,8 @@ elif OS_name == "Windows":
 
 try:
     pylib = ctypes.CDLL(library)
-except:
-    OSError
+except Exception as e:
+    raise OSError("Unable to locate python shared library") from e
 
 if not pylib.Py_IsInitialized():
     raise RuntimeError("This interpreter is not compatible with python-based mliap for LAMMPS.")

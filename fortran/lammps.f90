@@ -41,17 +41,17 @@ MODULE LIBLAMMPS
   ! constant in question. Their purpose is to determine the type of the
   ! return value without something akin to a C/C++ type cast
   INTEGER (c_int), PUBLIC, PARAMETER :: LMP_INT = 0_c_int
-  INTEGER (c_int), PUBLIC, DIMENSION(2), PARAMETER :: LMP_INT_1D = 1_c_int
-  INTEGER (c_int), PUBLIC, DIMENSION(2,2), PARAMETER :: LMP_INT_2D = 1_c_int
+  INTEGER (c_int), PUBLIC, DIMENSION(3), PARAMETER :: LMP_INT_1D = 1_c_int
+  INTEGER (c_int), PUBLIC, DIMENSION(3,3), PARAMETER :: LMP_INT_2D = 1_c_int
   REAL (c_double), PUBLIC, PARAMETER :: LMP_DOUBLE = 2.0_c_double
-  REAL (c_double), PUBLIC, DIMENSION(2), PARAMETER :: &
+  REAL (c_double), PUBLIC, DIMENSION(3), PARAMETER :: &
     LMP_DOUBLE_1D = 2.0_c_double
-  REAL (c_double), PUBLIC, DIMENSION(2,2), PARAMETER :: &
+  REAL (c_double), PUBLIC, DIMENSION(3,3), PARAMETER :: &
     LMP_DOUBLE_2D = 3.0_c_double
   INTEGER (c_int64_t), PUBLIC, PARAMETER :: LMP_INT64 = 4_c_int64_t
-  INTEGER (c_int64_t), PUBLIC, DIMENSION(2), PARAMETER :: &
+  INTEGER (c_int64_t), PUBLIC, DIMENSION(3), PARAMETER :: &
     LMP_INT64_1D = 4_c_int64_t
-  INTEGER (c_int64_t), PUBLIC, DIMENSION(2,2), PARAMETER :: &
+  INTEGER (c_int64_t), PUBLIC, DIMENSION(3,3), PARAMETER :: &
     LMP_INT64_2D = 5_c_int64_t
   CHARACTER(LEN=*), PUBLIC, PARAMETER :: LMP_STRING = 'six'
 
@@ -513,19 +513,19 @@ CONTAINS
     CALL lammps_free(Ckeyword)
   END FUNCTION lmp_extract_setting
 
-  ! equivalent function to lammps_extract_global_datatype
-  ! this function doesn't need to be accessed by the user, but is instead used
-  ! for type checking
-  INTEGER (c_int) FUNCTION lmp_extract_global_datatype (self, name)
-    CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(LEN=*), INTENT(IN) :: name
-    TYPE(c_ptr) :: Cname
-
-    Cname = f2c_string(name)
-    lmp_extract_global_datatype &
-      = lammps_extract_global_datatype(self%handle, Cname)
-    CALL lammps_free(Cname)
-  END FUNCTION lmp_extract_global_datatype
+! FIXME Now that I think about it...do we need this at all?
+!  ! equivalent function to lammps_extract_global_datatype
+!  ! this function doesn't need to be accessed by the user, but is instead used
+!  ! for type checking
+!  INTEGER (c_int) FUNCTION lmp_extract_global_datatype (name)
+!    CHARACTER(LEN=*), INTENT(IN) :: name
+!    TYPE(c_ptr) :: Cname
+!
+!    Cname = f2c_string(name)
+!    lmp_extract_global_datatype 
+!      = lammps_extract_global_datatype(c_null_ptr, Cname)
+!    CALL lammps_free(Cname)
+!  END FUNCTION lmp_extract_global_datatype
 
   ! equivalent functions to lammps_extract_global (overloaded)
   FUNCTION lmp_extract_global_int (self, name, dtype)
@@ -538,7 +538,7 @@ CONTAINS
     INTEGER(c_int), POINTER :: ptr
 
     Cname = f2c_string(name)
-    datatype = lammps_extract_global_datatype(self%handle, Cname)
+    datatype = lammps_extract_global_datatype(Cname)
     IF ( datatype /= LAMMPS_INT ) THEN
       ! throw an exception or something; data type doesn't match!
     END IF
@@ -547,6 +547,26 @@ CONTAINS
     lmp_extract_global_int = ptr
     CALL lammps_free(Cname)
   END FUNCTION lmp_extract_global_int
+  FUNCTION lmp_extract_global_int_1d (self, name, dtype)
+    ! This implementation assumes there are three elements to all arrays
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), DIMENSION(3) :: dtype
+    INTEGER(c_int) :: lmp_extract_global_int
+    TYPE(c_ptr) :: Cname, Cptr
+    INTEGER(c_int) :: datatype
+    INTEGER(c_int), DIMENSION(3), POINTER :: ptr
+
+    Cname = f2c_string(name)
+    datatype = lammps_extract_global_datatype(Cname)
+    IF ( datatype /= LAMMPS_INT ) THEN
+      ! throw an exception or something; data type doesn't match!
+    END IF
+    Cptr = lammps_extract_global(self%handle, Cname)
+    CALL c_f_pointer(Cptr, ptr, shape(dtype))
+    lmp_extract_global_int = ptr
+    CALL lammps_free(Cname)
+  END FUNCTION lmp_extract_global_int_1d
   ! TODO need more generics here to match TKR of LMP_INT_1D, LMP_BIGINT,
   !   LMP_DOUBLE, LMP_DOUBLE_1D, LMS_STRING [this assumes no one adds anything
   !   requiring LMP_DOUBLE_2D and the like!]

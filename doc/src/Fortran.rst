@@ -80,7 +80,7 @@ the optional logical argument set to ``.true.``. Here is a simple example:
    END PROGRAM testlib
 
 It is also possible to pass command line flags from Fortran to C/C++ and
-thus make the resulting executable behave similar to the standalone
+thus make the resulting executable behave similarly to the standalone
 executable (it will ignore the `-in/-i` flag, though).  This allows to
 use the command line to configure accelerator and suffix settings,
 configure screen and logfile output, or to set index style variables
@@ -190,6 +190,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f reset_box: :f:func:`reset_box`
    :f memory_usage: :f:func:`memory_usage`
    :f extract_setting: :f:func:`extract_setting`
+   :f extract_global: :f:func:`extract_global`
 
 --------
 
@@ -210,7 +211,57 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
 
---------
+   .. note::
+
+      The ``MPI_F08`` module, which defines Fortran 2008 bindings for MPI,
+      is not directly supported by this interface due to the complexities of
+      supporting both the ``MPI_F08`` and ``MPI`` modules at the same time.
+      However, you should be able to use the ``MPI_VAL`` member of the
+      ``MPI_comm`` derived type to access the integer value of the
+      communicator, such as in
+
+      .. code-block:: Fortran
+       
+         PROGRAM testmpi
+            USE LIBLAMMPS
+            USE MPI_F08
+            TYPE(lammps) :: lmp
+            lmp = lammps(MPI_COMM_SELF%MPI_VAL)
+         END PROGRAM testmpi
+
+Constants Defined by the API
+============================
+
+The following constants are declared by the Fortran API to resolve the
+type/kind/rank signature for return values. These serve the same role as
+``LAMMPS_INT``, ``LAMMPS_DOUBLE``, and similar constants in ``src/library.h``
+and those in ``python/lammps/constants.py`` for the C and Python APIs,
+respectively. Unlike their C and Python bretheren, however, it is the type
+(e.g., ``INTEGER``), kind (e.g., ``C_int``), and rank (e.g., ``DIMENSION(:)``)
+of these constants that is used by the calling routine, rather than their
+numerical values.
+
+:f:LMP_INT: 32-bit integer scalars
+:f:LMP_INT_1D: 32-bit integer vectors
+:f:LMP_INT_2D: 32-bit integer matrices
+:f:LMP_DOUBLE: 64-bit real scalars
+:f:LMP_DOUBLE_1D: 64-bit real vectors
+:f:LMP_DOUBLE_2D: 64-bit real matrices
+:f:LMP_INT64: 64-bit integer scalars
+:f:LMP_INT64_1D: 64-bit integer vectors
+:f:LMP_INT64_2D: 64-bit integer matrices
+
+.. admonition:: Interaction with LAMMPS_BIGBIG and such
+
+   LAMMPS uses different-sized integers to store various entities, such as
+   the number of timesteps or the total number of atoms, depending on certain
+   compiler flags (see the :doc:`size limits <Build_settings_size>`
+   documentation). This API is currently agnostic to these settings, and it
+   is up to the user to know the size of LAMMPS_BIGINT and such and pass
+   LMP_INT or LMP_INT64, as appropriate, for such entities.
+
+Procedures Bound to the lammps Derived Type
+===========================================
 
 .. f:subroutine:: close([finalize])
 
@@ -278,12 +329,20 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
 .. f:function:: get_thermo(name)
 
+   This function will call :cpp:func:`lammps_get_thermo` and return the value
+   of the corresponding thermodynamic keyword.
+
    :p character(len=*) name: string with the name of the thermo keyword
    :r real(C_double): value of the requested thermo property or 0.0_C_double
 
 --------
 
 .. f:subroutine:: extract_box(boxlo, boxhi, xy, yz, xz, pflags, boxflag)
+
+   This subroutine will call :cpp:func:`lammps_extract_box`. All parameters
+   are optional, though obviously at least one should be present. The
+   parameters *pflags* and *boxflag* are stored in LAMMPS as integers, but
+   should be declared as ``LOGICAL`` variables when calling from Fortran.
  
    :p real(c_double) boxlo [dimension(3),optional]: vector in which to store
     lower-bounds of simulation box
@@ -302,6 +361,9 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
 .. f:subroutine:: reset_box(boxlo, boxhi, xy, yz, xz)
 
+   This subroutine will call :cpp:func:`lammps_reset_box`. All parameters
+   are required.
+
    :p real(c_double) boxlo [dimension(3)]: vector of three doubles containing
     the lower box boundary
    :p real(c_double) boxhi [dimension(3)]: vector of three doubles containing
@@ -314,6 +376,9 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
 .. f:subroutine:: memory_usage(meminfo)
 
+   This subroutine will call :cpp:func:`lammps_memory_usage` and store the
+   result in the three-element array *meminfo*.
+
    :p real(c_double) meminfo [dimension(3)]: vector of three doubles in which
     to store memory usage data
 
@@ -321,30 +386,92 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
 .. f:function:: get_mpi_comm()
 
+   This function returns a Fortran representation of the LAMMPS "world"
+   communicator.
+
    :r integer: Fortran integer equivalent to the MPI communicator LAMMPS is
     using
 
-.. note::
+   .. note::
 
-   The MPI_F08 module, which is in compliance with the Fortran 2008 standard,
-   is not directly supported by this function. However, you should be able to
-   convert between the two using the MPI_VAL member of the communicator. For
-   example,
+       The C library interface currently returns type "int" instead of type
+       "MPI_Fint", which is the C type correspending to Fortran "INTEGER"
+       types of the default kind. On most compilers, these are the same anyway,
+       but this interface exchanges values this way to avoid warning messages.
 
-   .. code-block:: fortran
+   .. note::
 
-       USE MPI_F08
-       USE LIBLAMMPS
-       TYPE (LAMMPS) :: lmp
-       TYPE (MPI_Comm) :: comm
-       ! ... [commands to set up LAMMPS/etc.]
-       comm%MPI_VAL = lmp%get_mpi_comm()
+      The MPI_F08 module, which defines Fortran 2008 bindings for MPI, is not
+      directly supported by this function. However, you should be able to
+      convert between the two using the MPI_VAL member of the communicator.
+      For example,
 
-   should assign an MPI_F08 communicator properly.
+      .. code-block:: fortran
+
+         USE MPI_F08
+         USE LIBLAMMPS
+         TYPE (LAMMPS) :: lmp
+         TYPE (MPI_Comm) :: comm
+         ! ... [commands to set up LAMMPS/etc.]
+         comm%MPI_VAL = lmp%get_mpi_comm()
+
+      should assign an MPI_F08 communicator properly.
 
 --------
 
 .. f:function:: extract_setting(keyword)
 
+   Query LAMMPS about global settings. See the documentation for the
+   :c:func:`lammps_extract_setting` function from the C library.
+
    :p character(len=*) keyword: string containing the name of the thermo keyword
    :r integer(c_int): value of the queried setting or :math:`-1` if unknown
+
+--------
+
+.. f:function:: extract_global(name, dtype)
+
+   Overloaded function to get internal global LAMMPS data. Note that all
+   currently implemented global types only return scalars or strings; all
+   array-returning entities currently supported use :f:func:`extract_box`.
+
+   Note that type/kind/rank of the *dtype* argument is used to determine
+   whether to return a type correspending to a C int, a C int64_t, or a
+   C double. The type/kind/rank signature of dtype is checked at runtime to
+   match that of the return value; this type of check cannot be performed at
+   compile time. For example,
+
+   .. code-block:: fortran
+
+      PROGRAM demo
+       USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
+       USE LIBLAMMPS
+       TYPE(lammps) :: lmp
+       INTEGER(C_int) :: nlocal
+       INTEGER(C_int64_t) :: ntimestep
+       CHARACTER(LEN=10) :: units
+       REAL(C_double) :: dt
+       lmp = lammps()
+       ! other commands
+       nlocal = lmp%extract_global('nlocal', LMP_INT)
+       ntimestep = lmp%extract_global('ntimestep', LMP_INT64)
+       dt = lmp%extract_global('dt', LMP_DOUBLE)
+       units = lmp%extract_global('units', LMP_STRING)
+       ! more commands
+       lmp.close(.TRUE.)
+      END PROGRAM demo
+
+   would extract the number of atoms on this processor, the current time step,
+   the size of the current time step, and the units being used into the
+   variables *nlocal*, *ntimestep*, *dt*, and *units*, respectively.
+
+   *Note*: if this function returns a string, the string must have
+   length greater than or equal to the length of the string (not including the
+   terminal NULL character) that LAMMPS returns. If the variable's length is
+   too short, the string will be truncated. As usual in Fortran, strings
+   are padded with spaces at the end.
+
+   :p character(len=*) name: string with the name of the extracted property
+   :p polymorphic dtype: one of *LMP_INT*, *LMP_INT64*, *LMP_DOUBLE*, or
+    *LMP_STRING* designating the type/kind/rank of the return value
+   :r polymorphic: value of the extracted property

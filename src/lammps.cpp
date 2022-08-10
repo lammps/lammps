@@ -545,7 +545,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
             error->one(FLERR,"Cannot open screen file {}: {}",str,utils::getsyserror());
-          setvbuf(screen, NULL, _IONBF, 0);
         } else if (strcmp(arg[screenflag],"none") == 0) {
           screen = nullptr;
         } else {
@@ -569,7 +568,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
             error->one(FLERR,"Cannot open logfile {}: {}",str, utils::getsyserror());
-          setbuf(logfile, NULL);
         } else if (strcmp(arg[logflag],"none") == 0) {
           logfile = nullptr;
         } else {

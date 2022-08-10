@@ -187,6 +187,9 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f get_natoms: :f:func:`get_natoms`
    :f get_thermo: :f:func:`get_thermo`
    :f extract_box: :f:func:`extract_box`
+   :f reset_box: :f:func:`reset_box`
+   :f memory_usage: :f:func:`memory_usage`
+   :f extract_setting: :f:func:`extract_setting`
 
 --------
 
@@ -294,3 +297,54 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :p logical boxflag [optional]: variable in which to store boolean denoting
     whether the box will change during a simulation
     (``.TRUE.`` means box will change)
+
+--------
+
+.. f:subroutine:: reset_box(boxlo, boxhi, xy, yz, xz)
+
+   :p real(c_double) boxlo [dimension(3)]: vector of three doubles containing
+    the lower box boundary
+   :p real(c_double) boxhi [dimension(3)]: vector of three doubles containing
+    the upper box boundary
+   :p real(c_double) xy: *x--y* tilt factor
+   :p real(c_double) yz: *y--z* tilt factor
+   :p real(c_double) xz: *x--z* tilt factor
+
+--------
+
+.. f:subroutine:: memory_usage(meminfo)
+
+   :p real(c_double) meminfo [dimension(3)]: vector of three doubles in which
+    to store memory usage data
+
+--------
+
+.. f:function:: get_mpi_comm()
+
+   :r integer: Fortran integer equivalent to the MPI communicator LAMMPS is
+    using
+
+.. note::
+
+   The MPI_F08 module, which is in compliance with the Fortran 2008 standard,
+   is not directly supported by this function. However, you should be able to
+   convert between the two using the MPI_VAL member of the communicator. For
+   example,
+
+   .. code-block:: fortran
+
+       USE MPI_F08
+       USE LIBLAMMPS
+       TYPE (LAMMPS) :: lmp
+       TYPE (MPI_Comm) :: comm
+       ! ... [commands to set up LAMMPS/etc.]
+       comm%MPI_VAL = lmp%get_mpi_comm()
+
+   should assign an MPI_F08 communicator properly.
+
+--------
+
+.. f:function:: extract_setting(keyword)
+
+   :p character(len=*) keyword: string containing the name of the thermo keyword
+   :r integer(c_int): value of the queried setting or :math:`-1` if unknown

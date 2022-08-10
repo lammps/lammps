@@ -48,20 +48,20 @@ first input file (pod.txt):
 * threebody_number_angular_basis_functions 5 (INT): number of angular basis functions for three-body potential 
 * fourbody_snap_twojmax 0 (INT): band limit for SNAP bispectrum components (0,2,4,6,8... allowed) 
 * fourbody_snap_chemflag 0 (BOOL): turns on/off the explicit multi-element variant of the SNAP bispectrum components
-* quadratic22_number_twobody_basis_functions 0 (INT): number of two-body basis functions for quadratic (2-2) potential
-* quadratic23_number_twobody_basis_functions 0 (INT): number of two-body basis functions for quadratic (2-3) potential
-* quadratic23_number_threebody_basis_functions 0 (INT): number of three-body basis functions for quadratic (2-3) potential
-* quadratic24_number_twobody_basis_functions 0 (INT): number of two-body basis functions for quadratic (2-4) potential
-* quadratic24_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for quadratic (2-4) potential
-* quadratic33_number_threebody_basis_functions 0 (INT): number of three-body basis functions for quadratic (3-3) potential
-* quadratic34_number_threebody_basis_functions 0 (INT): number of three-body basis functions for quadratic (3-4) potential
-* quadratic34_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for quadratic (3-4) potential
-* quadratic44_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for quadratic (4-4) potential
-* cubic234_number_twobody_basis_functions 0 (INT): number of two-body basis functions for cubic (2-3-4) potential
-* cubic234_number_threebody_basis_functions 0 (INT): number of three-body basis functions for cubic (2-3-4) potential
-* cubic234_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for cubic (2-3-4) potential
-* cubic333_number_threebody_basis_functions 0 (INT): number of three-body basis functions for cubic (3-3-3) potential
-* cubic444_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for cubic (4-4-4) potential
+* quadratic22_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*2) quadratic potential
+* quadratic23_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*3) quadratic potential
+* quadratic23_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (2*3) quadratic potential
+* quadratic24_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*4) quadratic potential
+* quadratic24_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (2*4) quadratic potential
+* quadratic33_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (3*3) quadratic potential
+* quadratic34_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (3*4) quadratic potential
+* quadratic34_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (3*4) quadratic potential
+* quadratic44_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (4*4) quadratic potential
+* cubic234_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*3*4) cubic potential
+* cubic234_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (2*3*4) cubic potential
+* cubic234_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (2*3*4) cubic potential
+* cubic333_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (3*3*3) cubic potential
+* cubic444_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (4*4*4) cubic potential
 
 All keywords except species have default values. If keywords are not set in the input file, their defaults are used. 
 Next, we describe all the keywords that can be assigned in the second input file (data.txt):
@@ -231,6 +231,10 @@ are integers, where :math:`N_\alpha` and :math:`N_\gamma` are the highest degree
 Hence, the total number of parameter points is :math:`N_{\rm s} = N_\alpha N_\beta + N_\gamma`. 
 Although  :math:`N_\alpha, N_\beta, N_\gamma` can be chosen conservatively large, 
 we find that :math:`N_\alpha = 6, N_\beta = 3, N_\gamma = 8` are adequate for most problems. 
+Note that :math:`N_\alpha` and :math:`N_\gamma` correspond to *bessel_polynomial_degree* 
+and *inverse_polynomial_degree*, respectively. Furthermore, *bessel_scaling_parameter1*, 
+*bessel_scaling_parameter2*, and *bessel_scaling_parameter3* are three different 
+values of :math:`\beta`.
 
 We employ the Karhunen-Lo\`eve (KL) expansion~\cite{sirovich87:_turbul_dynam_coher_struc_part} 
 to generate an orthogonal basis set which is known to be optimal for representation of 
@@ -248,7 +252,7 @@ eigenvectors of the eigenvalue problem
 
     \boldsymbol C \boldsymbol a = \lambda \boldsymbol a 
 
-where the entries of :math:`\boldsymbol C \in \mathbb{R}^{N_{\rm s} \times N_{\rm s}}` are given by 
+with the entries of :math:`\boldsymbol C \in \mathbb{R}^{N_{\rm s} \times N_{\rm s}}` being given by 
 
 .. math::
 
@@ -258,10 +262,10 @@ Note that the  eigenvalues :math:`\lambda_\ell, 1 \le \ell \le N_{\rm s}`, are o
 that :math:`\lambda_1 \ge \lambda_2 \ge \ldots \ge \lambda_{N_{\rm s}}`, and that the 
 matrix :math:`\boldsymbol A` is pe-computed and stored for any given :math:`\boldsymbol \eta`. 
 Owing to the rapid convergence of the KL expansion, only a small number of orthogonal 
-basis functions is needed to obtain accurate approximation. Typically, we choose :math:`N_{\rm 2b}`  
-less than or equal to 10. 
+basis functions is needed to obtain accurate approximation. The value of :math:`N_{\rm 2b}` 
+corresponds to *twobody_number_radial_basis_functions*. 
 
-Finally, the two-body proper orthogonal descriptors at each atom *i* are computed by 
+The two-body proper orthogonal descriptors at each atom *i* are computed by 
 summing the orthogonal basis functions over the neighbors of atom *i* and numerating on 
 the atom types as follows
 
@@ -344,9 +348,11 @@ basis functions for the parametrized potential are computed as follows
 
 for :math:`1 \le m \le N_{\rm r}, 1 \le n \le N_{\rm a}`. The number of three-body 
 orthogonal basis functions is equal to :math:`N_{\rm 3b} = N_{\rm r} N_{\rm a}` and 
-independent of the number of elements.
+independent of the number of elements. The value of :math:`N_{\rm r}` corresponds to
+*threebody_number_radial_basis_functions*, while that of :math:`N_{\rm a}` to 
+*threebody_number_angular_basis_functions*.  
 
-Finally, the three-body proper orthogonal descriptors at each atom *i* 
+The three-body proper orthogonal descriptors at each atom *i* 
 are obtained by summing over the neighbors *j* and *k* of atom *i* as
 
 .. math::
@@ -387,7 +393,7 @@ atom *i* is expressed as a weighted sum over bispectrum components.
 
 .. math::
 
-   E_i^{\rm SNAP} = \sum_{k=1}^K \sum_{p=1}^{N_{\rm e}} c_{kp}^{(4)} D_{ikp}^{(4)}
+   E_i^{\rm SNAP} = \sum_{k=1}^{N_{\rm 4b}} \sum_{p=1}^{N_{\rm e}} c_{kp}^{(4)} D_{ikp}^{(4)}
 
 
 where the SNAP descriptors are related to the bispectrum components by
@@ -402,32 +408,35 @@ where the SNAP descriptors are related to the bispectrum components by
     \right.   
 
 Here :math:`B_{ik}` is the *k*\ -th bispectrum component of atom *i*. The number of
-bispectrum components used and their definitions depend on the value of
-*fourbody_snap_twojmax* and *fourbody_snap_chemflag*. The bispectrum calculation is described in more detail
-in :doc:`compute sna/atom <compute_sna_atom>`. 
+bispectrum components :math:`N_{\rm 4b}` depends on the value of *fourbody_snap_twojmax* :math:`= 2 J_{\rm max}` 
+and *fourbody_snap_chemflag*. If *fourbody_snap_chemflag* = 0 
+then :math:`N_{\rm 4b} = (J_{\rm max}+1)(J_{\rm max}+2)(J_{\rm max}+1.5)/3`. 
+If *fourbody_snap_chemflag* = 1 then :math:`N_{\rm 4b} = N_{\rm e}^3 (J_{\rm max}+1)(J_{\rm max}+2)(J_{\rm max}+1.5)/3`. 
+The bispectrum calculation is described in more detai in :doc:`compute sna/atom <compute_sna_atom>`. 
 
 Linear Proper Orthogonal Descriptor Potentials
 """"""""""""""""""""""""""""""""""""""""""""""
 
-The proper orthogonal descriptors are used to define the atomic energies 
+The proper orthogonal descriptors and SNAP descriptors are used to define the atomic energies 
 in the following expansion 
 
 .. math::
 
-    E_{i}(\boldsymbol \eta) = \sum_{p=1}^{N_{\rm e}} c^{(1)}_p D^{(1)}_{ip} + \sum_{m=1}^{N_{\rm 2b}}  \sum_{l=1}^{N_{\rm e}(N_{\rm e}+1)/2} c^{(2)}_{ml} D^{(2)}_{iml}(\boldsymbol \eta) + \sum_{m=1}^{N_{\rm r}} \sum_{n=1}^{N_{\rm a}}  \sum_{\ell=1}^{N_{\rm e}^2(N_{\rm e}+1)/2} c^{(3)}_{mn\ell} D^{(3)}_{imn\ell}(\boldsymbol \eta) + \sum_{k=1}^K \sum_{p=1}^{N_{\rm e}} c_{kp}^{(4)} D_{ikp}^{(4)}(\boldsymbol \eta), 
+    E_{i}(\boldsymbol \eta) = \sum_{p=1}^{N_{\rm e}} c^{(1)}_p D^{(1)}_{ip} + \sum_{m=1}^{N_{\rm 2b}}  \sum_{l=1}^{N_{\rm e}(N_{\rm e}+1)/2} c^{(2)}_{ml} D^{(2)}_{iml}(\boldsymbol \eta) + \sum_{m=1}^{N_{\rm r}} \sum_{n=1}^{N_{\rm a}}  \sum_{\ell=1}^{N_{\rm e}^2(N_{\rm e}+1)/2} c^{(3)}_{mn\ell} D^{(3)}_{imn\ell}(\boldsymbol \eta) + \sum_{k=1}^{N_{\rm 4b}} \sum_{p=1}^{N_{\rm e}} c_{kp}^{(4)} D_{ikp}^{(4)}(\boldsymbol \eta), 
 
-where :math:`D^{(1)}_{ip}, D^{(2)}_{iml}, D^{(3)}_{imn\ell}` are the  one-body, two-body descriptors, 
-respectively, and :math:`c^{(1)}_p, c^{(2)}_{ml}, c^{(3)}_{mn\ell}` are their respective expansion 
+where :math:`D^{(1)}_{ip}, D^{(2)}_{iml}, D^{(3)}_{imn\ell}, D^{(4)}_{ikp}` are the  one-body, two-body, three-body, four-body descriptors, 
+respectively, and :math:`c^{(1)}_p, c^{(2)}_{ml}, c^{(3)}_{mn\ell}, c^{(4)}_{kp}` are their respective expansion 
 coefficients. In a more compact notation that implies summation over descriptor indices 
 the atomic energies can be written as
 
 .. math::
 
-    E_i(\boldsymbol \eta) =  \sum_{p=1}^{N_{\rm e}} c^{(1)}_p D^{(1)}_{ip} +  \sum_{k=1}^{N_{\rm d}^{(2)}} c^{(2)}_k D^{(2)}_{ik} + \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(3)}_m D^{(3)}_{im}  %=\sum_{m=1}^M c_m D_{im}(\boldsymbol \eta), 
+    E_i(\boldsymbol \eta) =  \sum_{m=1}^{N_{\rm e}} c^{(1)}_m D^{(1)}_{im} +  \sum_{m=1}^{N_{\rm d}^{(2)}} c^{(2)}_k D^{(2)}_{im} + \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(3)}_m D^{(3)}_{im} + \sum_{m=1}^{N_{\rm d}^{(4)}} c^{(4)}_m D^{(4)}_{im}  
 
-where :math:`N_{\rm d}^{(2)} = N_{\rm 2b} N_{\rm e} (N_{\rm e}+1)/2` 
-and :math:`N_{\rm d}^{(3)} = N_{\rm 3b} N_{\rm e}^2 (N_{\rm e}+1)/2` are 
-the number of two-body and three-body descriptors, respectively.
+where :math:`N_{\rm d}^{(2)} = N_{\rm 2b} N_{\rm e} (N_{\rm e}+1)/2`, 
+:math:`N_{\rm d}^{(3)} = N_{\rm 3b} N_{\rm e}^2 (N_{\rm e}+1)/2`, and
+:math:`N_{\rm d}^{(4)} = N_{\rm 4b} N_{\rm e}` are 
+the number of two-body, three-body, and four-body descriptors, respectively.
 
 The potential energy is then obtained by summing local atomic energies :math:`E_i` 
 for all atoms :math:`i` in the system
@@ -442,36 +451,26 @@ energy as a linear combination of the global descriptors as follows
 
 .. math::
 
-    E(\boldsymbol \eta) = \sum_{p=1}^{N_{\rm e}} c^{(1)}_p d^{(1)}_{p} +  \sum_{k=1}^{N_{\rm d}^{(2)}} c^{(2)}_k d^{(2)}_{k} + \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(3)}_m d^{(3)}_{m} 
+    E(\boldsymbol \eta) = \sum_{m=1}^{N_{\rm e}} c^{(1)}_m d^{(1)}_{m} +  \sum_{m=1}^{N_{\rm d}^{(2)}} c^{(2)}_m d^{(2)}_{m} + \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(3)}_m d^{(3)}_{m} + \sum_{m=1}^{N_{\rm d}^{(4)}} c^{(4)}_m d^{(4)}_{m} 
 
 where  the global descriptors are given by
 
 .. math::
 
-    d_{p}^{(1)}(\boldsymbol \eta) = \sum_{i=1}^N D_{ip}^{(1)}(\boldsymbol \eta), \quad d_{k}^{(2)}(\boldsymbol \eta) = \sum_{i=1}^N D_{ik}^{(2)}(\boldsymbol \eta), \quad d_{m}^{(3)}(\boldsymbol \eta) = \sum_{i=1}^N D_{im}^{(3)}(\boldsymbol \eta)
+    d_{m}^{(1)}(\boldsymbol \eta) = \sum_{i=1}^N D_{im}^{(1)}(\boldsymbol \eta), \quad d_{m}^{(2)}(\boldsymbol \eta) = \sum_{i=1}^N D_{im}^{(2)}(\boldsymbol \eta), \quad d_{m}^{(3)}(\boldsymbol \eta) = \sum_{i=1}^N D_{im}^{(3)}(\boldsymbol \eta), \quad d_{m}^{(4)}(\boldsymbol \eta) = \sum_{i=1}^N D_{im}^{(4)}(\boldsymbol \eta)
 
 Hence, we obtain the atomic forces as
 
 .. math::
 
-    \boldsymbol F = -\nabla E(\boldsymbol \eta) = - \sum_{k=1}^{N_{\rm d}^{(2)}}  c^{(2)}_k  \nabla d_k^{(2)} - \sum_{m=1}^{N_{\rm d}^{(3)}}  c^{(3)}_m \nabla d_m^{(3)} 
+    \boldsymbol F = -\nabla E(\boldsymbol \eta) = - \sum_{m=1}^{N_{\rm d}^{(2)}}  c^{(2)}_m  \nabla d_m^{(2)} - \sum_{m=1}^{N_{\rm d}^{(3)}}  c^{(3)}_m \nabla d_m^{(3)} - \sum_{m=1}^{N_{\rm d}^{(4)}}  c^{(4)}_m \nabla d_m^{(4)} 
 
-where :math:`\nabla d_k^{(2)}` and :math:`\nabla d_m^{(3)}` are derivatives of the two-body 
-and three-body global descriptors with respect to atom positions, respectively. 
+where :math:`\nabla d_m^{(2)}`, :math:`\nabla d_m^{(3)}` and :math:`\nabla d_m^{(4)}` are derivatives of the two-body 
+three-body, and four-body global descriptors with respect to atom positions, respectively. 
 Note that since the first-body global descriptors are constant, their derivatives are zero.
-
-The computational complexity of the linear POD potential is :math:`O(N N_{\rm n}^2 N_{\rm 3b})`. 
-This complexity is linear in the number of atoms and the number of three-body basis functions, 
-quadratic in the number of neighbors, and yet independent of the number of elements. 
 
 Quadratic Proper Orthogonal Descriptor Potentials
 """""""""""""""""""""""""""""""""""""""""""""""""
-
-The linear POD potential is a three-body potential because it is constructed 
-from a set of one-body, two-body, and three-body descriptors. It is desirable to 
-capture higher-order interactions beyond three-body interaction.  To this end, 
-we extend the proper orthogonal descriptors described in Section 2 by coupling them 
-to produce higher-body descriptors. 
 
 We recall two-body PODs :math:`D^{(2)}_{ik}, 1 \le k \le N_{\rm d}^{(2)}`, 
 and three-body PODs :math:`D^{(3)}_{im}, 1 \le m \le N_{\rm d}^{(3)}`, 
@@ -486,7 +485,7 @@ respectively. We employ them to define a new set of atomic descriptors as follow
 
 for :math:`1 \le i \le N, 1 \le k \le N_{\rm d}^{(2)}, 1 \le m \le N_{\rm d}^{(3)}`. 
 The new descriptors are four-body because they involve central atom :math:`i` together 
-with three neighbors :math:`j, k` and :math:`l`. The number of new  descriptors per atom is equal to 
+with three neighbors :math:`j, k` and :math:`l`. The total number of new  descriptors per atom is equal to 
 
 .. math::
 
@@ -505,55 +504,141 @@ of the new global descriptors with respect to atom positions is calculated as
 
     \nabla d^{(2*3)}_{km} = d^{(3)}_m \nabla d^{(2)}_{k}  +  d^{(2)}_{k} \nabla d^{(3)}_m, \quad 1 \le k \le N_{\rm d}^{(2)}, 1 \le m \le N_{\rm d}^{(3)} .
 
-It is also possible to combine the three-body descriptors with the same three-body 
-descriptors (instead of the two-body ones) to produce a new set of five-body descriptors.
+Instead of using all the new descriptors, we allow the user to choose a subset as :math:`{N}_{\rm 2d}^{(2*3)} = N_{\rm 2b}^{2*3} N_{\rm e} (N_{\rm e}+1)/2` and 
+:math:`{N}_{\rm 3d}^{(2*3)} = N^{2*3}_{\rm 3b} N_{\rm e}^2 (N_{\rm e}+1)/2`. Here 
+:math:`N_{\rm 2b}^{2*3}` and :math:`N_{\rm 3b}^{2*3}` correspond to *quadratic23_number_twobody_basis_functions* and 
+*quadratic23_number_threebody_basis_functions*, respectively.
 
-The quadratic POD potential is defined as a linear combination of the 
+
+The (2*3) quadratic  potential is defined as a linear combination of the 
 original and new global descriptors as follows
 
 .. math::
 
-    E = \sum_{p=1}^{N_{\rm e}} c^{(1)}_p d^{(1)}_{p} + \sum_{k=1}^{N_{\rm d}^{(2)}} c^{(2)}_k d_k^{(2)} + \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(3)}_m d_m^{(3)} + \sum_{k=1}^{N_{\rm d}^{(2)}} \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(2*3)}_{km} d^{(2*3)}_{km} .
+    E^{(2*3)} = \sum_{k=1}^{N_{\rm 2d}^{(2*3)}} \sum_{m=1}^{N_{\rm 3d}^{(2*3)}} c^{(2*3)}_{km} d^{(2*3)}_{km} .
 
 It thus follows that
 
 .. math::
 
-    E = & \sum_{p=1}^{{N_{\rm e}}} c^{(1)}_p d^{(1)}_{p} + \sum_{k=1}^{N_{\rm d}^{(2)}} \left(c^{(2)}_k + 0.5 \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(2*3)}_{km} d_m^{(3)} \right) d_k^{(2)} + \\ 
-    & \sum_{m=1}^{N_{\rm d}^{(3)}} \left( c^{(3)}_m + 0.5 \sum_{k=1}^{N_{\rm d}^{(2)}} c^{(2*3)}_{km} d_k^{(2)} \right) d_m^{(3)}  ,
+    E^{(2*3)} = 0.5 \sum_{k=1}^{N_{\rm 2d}^{(2*3)}} \left( \sum_{m=1}^{N_{\rm 3d}^{(2*3)}} c^{(2*3)}_{km} d_m^{(3)} \right) d_k^{(2)} + 0.5 \sum_{m=1}^{N_{\rm 3d}^{(2*3)}} \left( \sum_{k=1}^{N_{\rm 2d}^{(2*3)}} c^{(2*3)}_{km} d_k^{(2)} \right) d_m^{(3)}  ,
 
 which is simplified to
 
 .. math::
 
-    E =  \sum_{p=1}^{N_{\rm e}} c^{(1)}_p d^{(1)}_{p} + \sum_{k=1}^{N_{\rm d}^{(2)}} \left(c^{(2)}_k + 0.5 b_k^{(2)} \right) d_k^{(2)} +  \sum_{m=1}^{N_{\rm d}^{(3)}} \left( c^{(3)}_m + 0.5 b_m^{(3)} \right) d_m^{(3)}  
+    E^{(2*3)} =  0.5 \sum_{k=1}^{N_{\rm 2d}^{(2*3)}} b_k^{(2)} d_k^{(2)} +  0.5 \sum_{m=1}^{N_{\rm 3d}^{(2*3)}}   b_m^{(3)} d_m^{(3)}  
 
 where
 
 .. math::
 
-    b_k^{(2)} & = \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(2*3)}_{km} d_m^{(3)}, \quad k = 1,\ldots, N_{\rm d}^{(2)}, \\
-    b_m^{(3)} & = \sum_{k=1}^{N_{\rm d}^{(2)}} c^{(2*3)}_{km} d_k^{(2)}, \quad m = 1,\ldots, N_{\rm d}^{(3)} .
+    b_k^{(2)} & = \sum_{m=1}^{N_{\rm 3d}^{(2*3)}} c^{(2*3)}_{km} d_m^{(3)}, \quad k = 1,\ldots, N_{\rm 2d}^{(2*3)}, \\
+    b_m^{(3)} & = \sum_{k=1}^{N_{\rm 2d}^{(2*3)}} c^{(2*3)}_{km} d_k^{(2)}, \quad m = 1,\ldots, N_{\rm 3d}^{(2*3)} .
 
-We see that the expression of the potential energy for the quadratic POD potential is similar to the linear POD potential 
-except for the extra evaluation of :math:`b_k^{(2)}` and :math:`b_m^{(3)}`. 
-
-Next, we describe force calculation for the quadratic POD potential resulting in the 
-following atomic forces 
+The (2*3) quadratic  potential results in the following atomic forces 
 
 .. math::
 
-    \boldsymbol F = - \sum_{k=1}^{N_{\rm d}^{(2)}} c^{(2)}_k \nabla d_k^{(2)} - \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(3)}_m \nabla d_m^{(3)} - \sum_{k=1}^{N_{\rm d}^{(2)}} \sum_{m=1}^{N_{\rm d}^{(3)}} c^{(2*3)}_{km}  \nabla d^{(2*3)}_{km} .
+    \boldsymbol F^{(2*3)} = - \sum_{k=1}^{N_{\rm 2d}^{(2*3)}} \sum_{m=1}^{N_{\rm 3d}^{(2*3)}} c^{(2*3)}_{km}  \nabla d^{(2*3)}_{km} .
 
 It can be shown that
 
 .. math::
 
-    \boldsymbol F = - \sum_{k=1}^{N_{\rm d}^{(2)}}  \left(c^{(2)}_k + b^{(2)}_k \right) \nabla d_k^{(2)} - \sum_{m=1}^{N_{\rm d}^{(3)}} \left( c^{(3)}_m + b^{(3)}_m  \right) \nabla d_m^{(3)} .
+    \boldsymbol F^{(2*3)} = - \sum_{k=1}^{N_{\rm 2d}^{(2*3)}}   b^{(2)}_k \nabla d_k^{(2)} - \sum_{m=1}^{N_{\rm 3d}^{(2*3)}}  b^{(3)}_m  \nabla d_m^{(3)} .
 
-We see again that the expression for the atomic forces  of the quadatic POD potential 
-is similar to that of the linear POD potential except for the extra calculation 
-of :math:`b_k^{(2)}` and :math:`b_m^{(3)}`. 
+The calculation of the atomic forces for the (2*3) quadratic  potential 
+only requires the extra calculation of :math:`b_k^{(2)}` and :math:`b_m^{(3)}` which can be negligible. 
+As a result, the (2*3) quadratic  potential does not increase the computational complexity.
+
+A similar procefure can be used to form other quadratic potentials. 
+For instance, we may combine the three-body descriptors with the four-body 
+descriptors to generate the (3*4) quadratic potential. We can also combine 
+the three-body descriptors with themselves to generate the (3*3) quadratic potential. 
+It is important to know that because quadratic potentials have a large number of coefficients 
+they require large training data set in order to avoid overfitting. 
+
+Cubic Proper Orthogonal Descriptor Potentials
+"""""""""""""""""""""""""""""""""""""""""""""
+
+The (2*3*4) cubic  potential is defined as follows
+
+.. math::
+
+    E^{(2*3*4)} = \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}} \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d^{(2)}_{k} d^{(3)}_{m} d^{(4)}_{n} .
+
+It thus follows that
+
+.. math::
+
+    E^{(2*3*4)} =  \frac13 \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} b_k^{(2)} d_k^{(2)} +  \frac13 \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}}   b_m^{(3)} d_m^{(3)}  +  \frac13 \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}}  b_n^{(4)} d_n^{(4)}  
+
+where
+
+.. math::
+
+    b_k^{(2)} & = \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}} \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d_m^{(3)} d_n^{(4)}, \quad k = 1,\ldots, N_{\rm 2d}^{(2*3*4)} \\
+    b_m^{(3)} & = \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d_k^{(2)} d_n^{(4)}, \quad m = 1,\ldots, N_{\rm 3d}^{(2*3*4)} \\
+    b_n^{(4)} & = \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d_k^{(2)} d_m^{(3)}, \quad n = 1,\ldots, N_{\rm 4d}^{(2*3*4)} 
+
+The (2*3*4) cubic  potential results in the following atomic forces 
+
+.. math::
+
+    \boldsymbol F^{(2*3*4)} = - \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} b^{(2)}_k \nabla d_k^{(2)} - \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}}  b^{(3)}_m  \nabla d_m^{(3)} - \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}}  b^{(4)}_n  \nabla d_n^{(4)} .
+
+Note that :math:`{N}_{\rm 2d}^{(2*3*4)} = N_{\rm 2b}^{2*3*4} N_{\rm e} (N_{\rm e}+1)/2`, 
+:math:`{N}_{\rm 3d}^{(2*3*4)} = N^{2*3*4}_{\rm 3b} N_{\rm e}^2 (N_{\rm e}+1)/2`, and 
+:math:`{N}_{\rm 4d}^{(2*3*4)} = N^{2*3*4}_{\rm 4b} N_{\rm e}`. Here 
+:math:`N_{\rm 2b}^{2*3*4}`, :math:`N_{\rm 3b}^{2*3*4}`, and :math:`N_{\rm 4b}^{2*3*4}` correspond to 
+*cubic234_number_twobody_basis_functions*, 
+*cubic234_number_threebody_basis_functions*, and
+*cubic234_number_fourbody_basis_functions*, respectively.
+
+The calculation of the atomic forces for the (2*3*4) cubic  potential 
+only requires the extra calculation of :math:`b_k^{(2)}`, :math:`b_m^{(3)}`, and :math:`b_n^{(4)}` which can be negligible. 
+As a result, the (2*3*4) cubic  potential does not increase the computational complexity.
+Similarly, other cubic potentials can be formed by combining three sets of descriptors. 
+
+Training
+""""""""""""
+
+POD potentials are trained using the least-squares regression against density functional theory (DFT) data. 
+Let :math:`J` be the number of training configurations, with :math:`N_j` being the number of 
+atoms in the jth configuration. Let :math:`\{E^{\star}_j\}_{j=1}^{J}` 
+and :math:`\{\boldsymbol F^{\star}_j\}_{j=1}^{J}` be the DFT energies and forces 
+for :math:`J` configurations. Next, we calculate the global descriptors 
+and their derivatives for all training  configurations. Let :math:`d_{jm}, 1 \le m \le M`, be the 
+global descriptors associated with the jth configuration, where :math:`M` is the number of global 
+descriptors. We then form a matrix :math:`\boldsymbol A \in \mathbb{R}^{J \times M}`
+with entries :math:`A_{jm} = d_{jm}/ N_j` for :math:`j=1,\ldots,J` and :math:`m=1,\ldots,M`. 
+Moreover, we form a matrix :math:`\boldsymbol B \in \mathbb{R}^{\mathcal{N} \times M}` by stacking 
+the derivatives of the global descriptors for all training configurations from top 
+to bottom, where :math:`\mathcal{N} = 3\sum_{j=1}^{J} N_j`. 
+
+The coefficient vector :math:`\boldsymbol c` of the POD potential is found by solving 
+the following least-squares problem  
+
+.. math::
+
+    {\min}_{\boldsymbol c \in \mathbb{R}^{M}} \ w_E \|\boldsymbol A(\boldsymbol \eta) \boldsymbol c - \bar{\boldsymbol E}^{\star} \|^2 + w_F \|\boldsymbol B(\boldsymbol \eta) \boldsymbol c + \boldsymbol F^{\star} \|^2, 
+
+where :math:`w_E` and :math:`w_F` are weights the energy (*fitting_weight_energy*) and 
+force (*fitting_weight_force*), respectively. 
+Here :math:`\bar{\boldsymbol E}^{\star} \in \mathbb{R}^{J}` is a vector of with entries 
+:math:`\bar{E}^{\star}_j = E^{\star}_j/N_j` and :math:`\boldsymbol F^{\star}` is a vector of :math:`\mathcal{N}` 
+entries obtained by stacking :math:`\{\boldsymbol F^{\star}_j\}_{j=1}^{J}` from top to bottom. 
+
+The training procedure is the same for both the linear and quadratic POD potentials. 
+However, since the quadratic POD potential has a significantly larger number of the global 
+descriptors, it is more expensive to train the linear POD potential. This is 
+because the training of the quadratic POD potential 
+still requires us to calculate and store the quadratic global descriptors  and 
+their gradient. Furthermore, the quadratic POD potential may require more training 
+data in order to prevent overfitting. In order to reduce the computational cost of fitting 
+the quadratic POD potential and avoid overfitting, we can use subsets of two-body and three-body 
+PODs for constructing the new descriptors. 
 
 
 Restrictions
@@ -575,31 +660,18 @@ The keyword defaults are also given in the description of the input files.
 
 ----------
 
-.. _Thompson20141:
+.. _Thompson20142:
 
-**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316, (2015).
+**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
 
-.. _Bartok20101:
+.. _Bartok20102:
 
-**(Bartok)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+**(Bartok2010)** Bartok, Payne, Kondor, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
-.. _Meremianin2006:
+.. _Wood20182:
 
-**(Meremianin)** Meremianin, J. Phys. A,  39, 3099 (2006).
+**(Wood)** Wood and Thompson, J Chem Phys, 148, 241721, (2018)
 
-.. _Varshalovich1987:
+.. _Cusentino20202:
 
-**(Varshalovich)** Varshalovich, Moskalev, Khersonskii, Quantum Theory
-of Angular Momentum, World Scientific, Singapore (1987).
-
-.. _Mason2009:
-
-**(Mason)** J. K. Mason, Acta Cryst A65, 259 (2009).
-
-.. _Cusentino2020:
-
-**(Cusentino)** Cusentino, Wood, Thompson, J Phys Chem A, 124, 5456, (2020)
-
-.. _Ellis2021:
-
-**(Ellis)** Ellis, Fiedler, Popoola, Modine, Stephens, Thompson, Cangi, Rajamanickam,  Phys Rev B, 104, 035120, (2021)
+**(Cusentino)** Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)

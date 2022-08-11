@@ -55,7 +55,7 @@ Examples
    delete_atoms random fraction 0.1 yes all cube 482793 bond yes
    delete_atoms random fraction 0.3 no polymer NULL 482793 bond yes
    delete_atoms random count 500 no ions NULL 482793
-   detele_atoms variable checkers
+   delete_atoms variable checkers
 
 Description
 """""""""""

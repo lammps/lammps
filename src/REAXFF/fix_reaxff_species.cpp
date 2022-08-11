@@ -189,11 +189,12 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       // delete species
     } else if (strcmp(arg[iarg],"delete") == 0) {
       delflag = 1;
-      filedel = new char[255];
-      strcpy(filedel,arg[iarg+1]);
+      delete[] filedel;
+      filedel = utils::strdup(arg[iarg+1]);
       if (me == 0) {
         fdel = fopen(filedel, "w");
-        if (fdel == nullptr) error->one(FLERR,"Cannot open fix reaxff/species delete file");
+        if (!fdel) error->one(FLERR,"Cannot open fix reaxff/species delete file {}: {}",
+                              filedel, utils::getsyserror());
       }
 
       del_opened = 1;
@@ -281,6 +282,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(MolName);
 
   delete[] filepos;
+  delete[] filedel;
 
   if (me == 0) {
     if (compressed)
@@ -288,6 +290,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     else
       fclose(fp);
     if (posflag && multipos_opened) fclose(pos);
+    if (fdel) fclose(fdel);
   }
 
   try {
@@ -930,7 +933,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       for (int m = 0; m < Nspec; m++) {
         if (deletecount[m] > 0) {
           if (printflag == 0) {
-            fprintf(fdel, "Timestep %lld", update->ntimestep);
+            fmt::print(fdel, "Timestep {}", update->ntimestep);
             printflag = 1;
           }
           fprintf(fdel, " %g ", deletecount[m]);
@@ -954,7 +957,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
         if (deletecount[i]) writeflag = 1;
 
       if (writeflag) {
-        fprintf(fdel, "%lld", update->ntimestep);
+        fmt::print(fdel, "{}", update->ntimestep);
         for (i = 0; i < ndelspec; i++) {
           fprintf(fdel, "\t%g", deletecount[i]);
         }

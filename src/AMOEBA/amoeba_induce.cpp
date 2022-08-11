@@ -20,8 +20,9 @@
 #include "domain.h"
 #include "error.h"
 #include "fft3d_wrap.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -31,6 +32,8 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+using MathSpecial::cube;
 
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP};   // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                               // reverse comm
@@ -366,7 +369,8 @@ void PairAmoeba::induce()
       eps = DEBYE * sqrt(eps/atom->natoms);
 
       if (eps < poleps) done = true;
-      if (eps > epsold) done = true;
+      // also commented out in induce.f of Tinker
+      // if (eps > epsold) done = true;
       if (iter >= politer) done = true;
 
       //  apply a "peek" iteration to the mutual induced dipoles
@@ -387,7 +391,7 @@ void PairAmoeba::induce()
     // terminate the calculation if dipoles failed to converge
     // NOTE: could make this an error
 
-    if (iter >= maxiter || eps > epsold)
+    if (iter >= politer || eps > epsold)
       if (comm->me == 0)
         error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
@@ -732,7 +736,7 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
         damp = pdi * pdamp[jtype];
         if (damp != 0.0) {
           pgamma = MIN(pti,thole[jtype]);
-          damp = -pgamma * pow((r/damp),3.0);
+          damp = -pgamma * cube(r/damp);
           if (damp > -50.0) {
             expdamp = exp(damp);
             scale3 *= 1.0 - expdamp;
@@ -1332,7 +1336,7 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
             }
           } else {
             pgamma = MIN(pti,thole[jtype]);
-            damp = pgamma * pow(r/damp,3.0);
+            damp = pgamma * cube(r/damp);
             if (damp < 50.0) {
               expdamp = exp(-damp);
               scale3 = 1.0 - expdamp;
@@ -1384,7 +1388,7 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
           damp = pdi * pdamp[jtype];
           if (damp != 0.0) {
             pgamma = MIN(pti,thole[jtype]);
-            damp = pgamma * pow(r/damp,3.0);
+            damp = pgamma * cube(r/damp);
             if (damp < 50.0) {
               expdamp = exp(-damp);
               scale3 = 1.0 - expdamp;

@@ -49,12 +49,12 @@ descriptions of all commands included in the LAMMPS code.
 
 ----------
 
+.. _user_documentation:
 
 ************
 User Guide
 ************
 
-.. _user_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
@@ -75,11 +75,12 @@ User Guide
    Errors
 
 
+.. _programmer_documentation:
+
 ******************
 Programmer Guide
 ******************
 
-.. _programmer_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3

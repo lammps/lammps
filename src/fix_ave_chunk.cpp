@@ -107,6 +107,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 2;
 
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      which[nvalues] = ArgInfo::MASS;
+      argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"density/number") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_NUMBER;
@@ -114,9 +117,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"density/mass") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_MASS;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"mass") == 0) {
-      which[nvalues] = ArgInfo::MASS;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       which[nvalues] = ArgInfo::TEMPERATURE;

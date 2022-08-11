@@ -21,17 +21,17 @@
 
 #include "angle_spica.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "pair.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
 
+#include <cmath>
 
 #include "lj_spica_common.h"
 
@@ -43,7 +43,12 @@ using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-AngleSPICA::AngleSPICA(LAMMPS *lmp) : Angle(lmp) { repflag = 0;}
+AngleSPICA::AngleSPICA(LAMMPS *lmp) :
+    Angle(lmp), k(nullptr), theta0(nullptr), lj_type(nullptr), lj1(nullptr), lj2(nullptr),
+    lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
+{
+  repflag = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

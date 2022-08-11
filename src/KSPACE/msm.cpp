@@ -1379,7 +1379,7 @@ void MSM::set_proc_grid(int n)
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void MSM::setup_grid()
+void MSM::reset_grid()
 {
   // free all arrays previously allocated
   // pre-compute volume-dependent coeffs

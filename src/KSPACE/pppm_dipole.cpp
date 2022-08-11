@@ -356,7 +356,7 @@ void PPPMDipole::setup()
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void PPPMDipole::setup_grid()
+void PPPMDipole::reset_grid()
 {
   // free all arrays previously allocated
 

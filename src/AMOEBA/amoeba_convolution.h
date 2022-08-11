@@ -42,6 +42,7 @@ class AmoebaConvolution : protected Pointers {
 
   AmoebaConvolution(class LAMMPS *, class Pair *, int, int, int, int, int);
   ~AmoebaConvolution();
+  void reset_grid();
   void *zero();
   FFT_SCALAR *pre_convolution();
   void *post_convolution();
@@ -67,6 +68,8 @@ class AmoebaConvolution : protected Pointers {
   double *gc_buf1, *gc_buf2;    // buffers for GridComm
   double *remap_buf;            // buffer for Remap
 
+  void allocate_grid();
+  void deallocate_grid();
   void *zero_3d();
   void *zero_4d();
   FFT_SCALAR *pre_convolution_3d();

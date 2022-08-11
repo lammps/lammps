@@ -34,7 +34,7 @@ class PPPMDisp : public KSpace {
   ~PPPMDisp() override;
   void init() override;
   void setup() override;
-  void setup_grid() override;
+  void reset_grid() override;
   void settings(int, char **) override;
   void compute(int, int) override;
   int timing_1d(int, double &) override;

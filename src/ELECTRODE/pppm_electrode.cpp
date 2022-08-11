@@ -378,7 +378,7 @@ void PPPMElectrode::setup()
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::setup_grid()
+void PPPMElectrode::reset_grid()
 {
   // free all arrays previously allocated
 

@@ -49,11 +49,7 @@ class DumpGrid : public Dump {
 
   int dimension;
 
-  int nchoose;        // # of selected atoms
-  int maxlocal;       // size of atom selection and variable arrays
-  int *choose;        // local indices of selected atoms
-  double *dchoose;    // value for each atom to threshold against
-  int *clist;         // compressed list of indices of selected atoms
+  int nxgrid,nygrid,nzgrid;   // global grid size
 
   int nfield;                 // # of keywords listed by user
   int ioptional;              // index of start of optional args

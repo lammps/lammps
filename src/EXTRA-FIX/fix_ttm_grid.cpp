@@ -389,6 +389,17 @@ void FixTTMGrid::write_electron_temperatures(const std::string &filename)
 }
 
 /* ----------------------------------------------------------------------
+   subset of grid assigned to each proc may have changed
+   called by load balancer when proc subdomains are adjusted
+   not supported for now, b/c requires T_electron to persist, i.e. a remap()
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::reset_grid()
+{
+  error->all(FLERR,"Fix ttm/grid does not support load balancing (yet)");
+}
+
+/* ----------------------------------------------------------------------
    pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 

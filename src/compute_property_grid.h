@@ -31,15 +31,17 @@ class ComputePropertyGrid : public Compute {
   void init() override {}
   void compute_pergrid() override;
 
-  int get_grid_by_name(char *, int &);
-  void *get_grid_by_index(int);
-  int get_griddata_by_name(int, char *, int &);
-  void *get_griddata_by_index(int);
+  void reset_grid() override;
+
+  int get_grid_by_name(char *, int &) override;
+  void *get_grid_by_index(int) override;
+  int get_griddata_by_name(int, char *, int &) override;
+  void *get_griddata_by_index(int) override;
 
   double memory_usage() override;
 
  private:
-  int nx,ny,nz;
+  int nxgrid,nygrid,nzgrid;
   int nvalues;
   int dimension;
 
@@ -52,6 +54,11 @@ class ComputePropertyGrid : public Compute {
 
   double **vec2d,***vec3d;
   double ***array2d,****array3d;
+
+  // local methods
+
+  void allocate_grid();
+  void deallocate_grid();
 
   typedef void (ComputePropertyGrid::*FnPtrPack)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions

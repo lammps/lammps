@@ -100,7 +100,7 @@ class MSM : public KSpace {
   void set_grid_global();
   void set_proc_grid(int);
   void set_grid_local();
-  void setup_grid() override;
+  void reset_grid() override;
   double estimate_1d_error(double, double);
   double estimate_3d_error();
   double estimate_total_error();

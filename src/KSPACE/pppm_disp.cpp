@@ -794,7 +794,7 @@ void PPPMDisp::setup()
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::setup_grid()
+void PPPMDisp::reset_grid()
 {
   // free all arrays previously allocated
 

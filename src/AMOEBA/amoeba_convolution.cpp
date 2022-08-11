@@ -75,7 +75,34 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   if (which == POLAR_GRIDC || which == INDUCE_GRIDC) flag3d = 0;
 
   nfft_global = (bigint) nx * ny * nz;
+}
 
+/* ----------------------------------------------------------------------
+   free all memory
+------------------------------------------------------------------------- */
+
+AmoebaConvolution::~AmoebaConvolution()
+{
+  deallocate_grid();
+}
+
+/* ----------------------------------------------------------------------
+   subset of FFT grids assigned to each proc may have changed
+   called by load balancer when proc subdomains are adjusted
+------------------------------------------------------------------------- */
+
+void AmoebaConvolution::reset_grid()
+{
+  deallocate_grid();
+  allocate_grid();
+}
+
+/* ----------------------------------------------------------------------
+   allocate all local grid data structs: FFT, Grid3d, Remap
+------------------------------------------------------------------------- */
+
+void AmoebaConvolution::allocate_grid()
+{
   // global indices of grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
   //   global grid that I own without ghost cells
@@ -247,11 +274,9 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   memory->create(remap_buf,nqty*nfft_owned,"amoeba:remap_buf");
 }
 
-/* ----------------------------------------------------------------------
-   free all memory
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-AmoebaConvolution::~AmoebaConvolution()
+void AmoebaConvolution::deallocate_grid()
 {
   memory->destroy3d_offset(grid_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset_last(cgrid_brick,nzlo_out,nylo_out,nxlo_out);

@@ -30,7 +30,7 @@ class PPPMDipole : public PPPM {
   ~PPPMDipole() override;
   void init() override;
   void setup() override;
-  void setup_grid() override;
+  void reset_grid() override;
   void compute(int, int) override;
   int timing_1d(int, double &) override;
   int timing_3d(int, double &) override;

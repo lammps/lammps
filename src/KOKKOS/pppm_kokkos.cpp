@@ -551,7 +551,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic2, const int &n) 
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::setup_grid()
+void PPPMKokkos<DeviceType>::reset_grid()
 {
   // free all arrays previously allocated
 

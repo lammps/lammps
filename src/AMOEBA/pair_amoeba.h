@@ -44,6 +44,8 @@ class PairAmoeba : public Pair {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  void reset_grid() override;
+
   void pack_forward_grid(int, void *, int, int *) override;
   void unpack_forward_grid(int, void *, int, int *) override;
   void pack_reverse_grid(int, void *, int, int *) override;

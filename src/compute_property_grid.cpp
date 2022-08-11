@@ -41,14 +41,14 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
 
   dimension = domain->dimension;
 
-  nx = utils::inumeric(FLERR,arg[3],false,lmp);
-  ny = utils::inumeric(FLERR,arg[4],false,lmp);
-  nz = utils::inumeric(FLERR,arg[5],false,lmp);
+  nxgrid = utils::inumeric(FLERR,arg[3],false,lmp);
+  nygrid = utils::inumeric(FLERR,arg[4],false,lmp);
+  nzgrid = utils::inumeric(FLERR,arg[5],false,lmp);
 
-  if (dimension == 2 && nz != 1) 
+  if (dimension == 2 && nzgrid != 1) 
     error->all(FLERR,"Compute property/grid for 2d requires nz = 1");
 
-  if (nx <= 0 || ny <= 0 || nz <= 0) 
+  if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0) 
     error->all(FLERR, "Illegal compute property/grid command");
  
   nvalues = narg - 6;
@@ -108,36 +108,9 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR, "Illegal compute property/grid command");
   }
 
-  // instantiate the Grid class and allocate per-grid memory
+  // initial setup of distributed grid
 
-  if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nx, ny, 0, 0.0, 0.0,
-                        nxlo_in, nxhi_in, nylo_in, nyhi_in,
-                        nxlo_out, nxhi_out, nylo_out, nyhi_out);
-    if (nvalues == 1)
-      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out, 
-                              "property/grid:vec2d");
-    else
-      memory->create3d_offset_last(array2d, nylo_out, nyhi_out, nxlo_out,
-                                   nxhi_out, nvalues, "property/grid:array2d");
-    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
-    
-  } else {
-    grid3d = new Grid3d(lmp, world, nx, ny, nz, 0, 0.0, 0.0,
-                        nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
-                        nxlo_out, nxhi_out, nylo_out, nyhi_out, 
-                        nzlo_out, nzhi_out);
-    if (nvalues == 1)
-      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out, 
-                              nyhi_out, nxlo_out,
-                              nxhi_out, "property/grid:vec3d");
-    else
-      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out, 
-                                   nyhi_out, nxlo_out,
-                                   nxhi_out, nvalues, "property/grid:array3d");
-    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * 
-      (nzhi_out - nzlo_out + 1);
-  }
+  allocate_grid();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -146,12 +119,7 @@ ComputePropertyGrid::~ComputePropertyGrid()
 {
   delete[] pack_choice;
 
-  delete grid2d;
-  delete grid3d;
-  memory->destroy2d_offset(vec2d,nylo_out,nxlo_out);
-  memory->destroy2d_offset(array2d,nylo_out,nxlo_out);
-  memory->destroy3d_offset(vec3d,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy4d_offset_last(array3d,nzlo_out,nylo_out,nxlo_out);
+  deallocate_grid();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,19 +128,6 @@ void ComputePropertyGrid::compute_pergrid()
 {
   invoked_pergrid = update->ntimestep;
 
-  // set current size for portion of grid on each proc
-  // may change between compute invocations due to load balancing
-  
-  if (dimension == 2)
-    grid2d->get_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
-  else
-    grid3d->get_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
-
-  // reallocate data vector or array if changed
-  // NOTE: still need to implement
-
-
-
   // fill data vector or array with values for my grid pts
 
   if (nvalues == 1) {
@@ -180,6 +135,18 @@ void ComputePropertyGrid::compute_pergrid()
   } else {
     for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n);
   }
+}
+
+/* ----------------------------------------------------------------------
+   subset of grid assigned to each proc may have changed
+   deallocate and reallocate Grid class and local data structs
+   called by load balancer when proc subdomains are adjusted
+---------------------------------------------------------------------- */
+
+void ComputePropertyGrid::reset_grid()
+{
+  deallocate_grid();
+  allocate_grid();
 }
 
 /* ----------------------------------------------------------------------
@@ -258,6 +225,54 @@ void *ComputePropertyGrid::get_griddata_by_index(int index)
 }
 
 /* ----------------------------------------------------------------------
+   instantiate the Grid class and allocate local per-grid memory
+---------------------------------------------------------------------- */
+
+void ComputePropertyGrid::allocate_grid()
+{
+  if (dimension == 2) {
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, 0, 0.0, 0.0,
+                        nxlo_in, nxhi_in, nylo_in, nyhi_in,
+                        nxlo_out, nxhi_out, nylo_out, nyhi_out);
+    if (nvalues == 1)
+      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out, 
+                              "property/grid:vec2d");
+    else
+      memory->create3d_offset_last(array2d, nylo_out, nyhi_out, nxlo_out,
+                                   nxhi_out, nvalues, "property/grid:array2d");
+    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
+    
+  } else {
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 0, 0.0, 0.0,
+                        nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
+                        nxlo_out, nxhi_out, nylo_out, nyhi_out, 
+                        nzlo_out, nzhi_out);
+    if (nvalues == 1)
+      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out, 
+                              nyhi_out, nxlo_out,
+                              nxhi_out, "property/grid:vec3d");
+    else
+      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out, 
+                                   nyhi_out, nxlo_out,
+                                   nxhi_out, nvalues, "property/grid:array3d");
+    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * 
+      (nzhi_out - nzlo_out + 1);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyGrid::deallocate_grid()
+{
+  delete grid2d;
+  delete grid3d;
+  memory->destroy2d_offset(vec2d,nylo_out,nxlo_out);
+  memory->destroy2d_offset(array2d,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vec3d,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy4d_offset_last(array3d,nzlo_out,nylo_out,nxlo_out);
+}
+
+/* ----------------------------------------------------------------------
    memory usage of grid data
 ------------------------------------------------------------------------- */
 
@@ -277,23 +292,23 @@ void ComputePropertyGrid::pack_id(int n)
     if (nvalues == 0) {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = iy*nx + ix + 1;
+          vec2d[iy][ix] = iy*nxgrid + ix + 1;
     } else {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = iy*nx + ix + 1;
+          array2d[iy][ix][n] = iy*nxgrid + ix + 1;
     }
   } else if (dimension == 3) {
     if (nvalues == 0) {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = iz*ny*nx + iy*nx + ix + 1;
+            vec3d[iz][iy][ix] = iz*nygrid*nxgrid + iy*nxgrid + ix + 1;
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = iz*ny*nx + iy*nx + ix + 1;
+            array3d[iz][iy][ix][n] = iz*nygrid*nxgrid + iy*nxgrid + ix + 1;
     }
   }
 }
@@ -463,7 +478,7 @@ void ComputePropertyGrid::pack_z(int n)
 
 void ComputePropertyGrid::pack_xs(int n)
 {
-  double dx = 1.0/nx;
+  double dx = 1.0/nxgrid;
 
   if (dimension == 2) {
     if (nvalues == 0) {
@@ -494,7 +509,7 @@ void ComputePropertyGrid::pack_xs(int n)
 
 void ComputePropertyGrid::pack_ys(int n)
 {
-  double dy = 1.0/ny;
+  double dy = 1.0/nygrid;
 
   if (dimension == 2) {
     if (nvalues == 0) {
@@ -525,7 +540,7 @@ void ComputePropertyGrid::pack_ys(int n)
 
 void ComputePropertyGrid::pack_zs(int n)
 {
-  double dz = 1.0/nz;
+  double dz = 1.0/nzgrid;
 
   if (nvalues == 0) {
     for (int iz = nzlo_in; iz <= nzhi_in; iz++)
@@ -630,7 +645,7 @@ void ComputePropertyGrid::pack_zc(int n)
 
 void ComputePropertyGrid::pack_xsc(int n)
 {
-  double dx = 1.0/nx;
+  double dx = 1.0/nxgrid;
 
   if (dimension == 2) {
     if (nvalues == 0) {
@@ -661,7 +676,7 @@ void ComputePropertyGrid::pack_xsc(int n)
 
 void ComputePropertyGrid::pack_ysc(int n)
 {
-  double dy = 1.0/ny;
+  double dy = 1.0/nygrid;
 
   if (dimension == 2) {
     if (nvalues == 0) {
@@ -692,7 +707,7 @@ void ComputePropertyGrid::pack_ysc(int n)
 
 void ComputePropertyGrid::pack_zsc(int n)
 {
-  double dz = 1.0/nz;
+  double dz = 1.0/nzgrid;
 
   if (nvalues == 0) {
     for (int iz = nzlo_in; iz <= nzhi_in; iz++)

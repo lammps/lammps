@@ -43,7 +43,6 @@ enum{COMPUTE,FIX};
 DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr), vtype(nullptr), 
   vformat(nullptr), columns(nullptr), columns_default(nullptr), 
-  choose(nullptr), dchoose(nullptr), clist(nullptr),
   field2index(nullptr), field2grid(nullptr), field2data(nullptr),
   argindex(nullptr), id_compute(nullptr), compute(nullptr),
   id_fix(nullptr), fix(nullptr), pack_choice(nullptr)
@@ -91,7 +90,8 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
 
   if (ioptional < nfield &&
       strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute {} in dump {} command",earg[ioptional],style);
+    error->all(FLERR,"Invalid attribute {} in dump {} command",
+               earg[ioptional],style);
 
   // noptional = # of optional args
   // reset nfield to subtract off optional args
@@ -272,7 +272,7 @@ void DumpGrid::init_style()
   Grid2d *grid2d;
   Grid3d *grid3d;
   
-  int nx,ny,nz,nxtmp,nytmp,nztmp;
+  int nxtmp,nytmp,nztmp;
   
   for (int i = 0; i < nfield; i++) {
      if (dimension == 2) {
@@ -283,10 +283,10 @@ void DumpGrid::init_style()
         ifix = fix[field2index[i]];
         grid2d = (Grid2d *) ifix->get_grid_by_index(field2grid[i]);
       }
-      if (i == 0) grid2d->get_size(nx,ny);
+      if (i == 0) grid2d->get_size(nxgrid,nygrid);
       else {
         grid2d->get_size(nxtmp,nytmp);
-        if (nxtmp != nx || nytmp != ny) 
+        if (nxtmp != nxgrid || nytmp != nygrid) 
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
 
@@ -298,10 +298,10 @@ void DumpGrid::init_style()
         ifix = fix[field2index[i]];
         grid3d = (Grid3d *) ifix->get_grid_by_index(field2grid[i]);
       }
-      if (i == 0) grid3d->get_size(nx,ny,nz);
+      if (i == 0) grid3d->get_size(nxgrid,nygrid,nzgrid);
       else {
         grid3d->get_size(nxtmp,nytmp,nztmp);
-        if (nxtmp != nx || nytmp != ny || nztmp != nz)
+        if (nxtmp != nxgrid || nytmp != nygrid || nztmp != nzgrid)
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
     }
@@ -505,23 +505,6 @@ int DumpGrid::count()
 {
   int i;
 
-  // grow choose arrays if needed
-  // NOTE: needs to change
-
-  /*
-  const int nlocal = atom->nlocal;
-  if (atom->nmax > maxlocal) {
-    maxlocal = atom->nmax;
-
-    memory->destroy(choose);
-    memory->destroy(dchoose);
-    memory->destroy(clist);
-    memory->create(choose,maxlocal,"dump:choose");
-    memory->create(dchoose,maxlocal,"dump:dchoose");
-    memory->create(clist,maxlocal,"dump:clist");
-  }
-  */
-
   // set current size for portion of grid on each proc
   // may change between dump snapshots due to load balancing
 
@@ -575,38 +558,6 @@ int DumpGrid::count()
     ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) * (nzhi_in-nzlo_in+1);
 
   return ngrid;
-
-  // choose all local grid pts for output
-  // NOTE: this needs to change
-
-  //for (i = 0; i < nlocal; i++) choose[i] = 1;
-
-  // un-choose if not in region
-  // NOTE: this needs to change
-
-  /*
-  if (idregion) {
-    auto region = domain->get_region_by_id(idregion);
-    region->prematch();
-    double **x = atom->x;
-    for (i = 0; i < nlocal; i++)
-      if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)
-        choose[i] = 0;
-  }
-  */
-
-  // compress choose flags into clist
-  // nchoose = # of selected atoms
-  // clist[i] = local index of each selected atom
-  // NOTE: this neds to change
-
-  /*
-  nchoose = 0;
-  for (i = 0; i < nlocal; i++)
-    if (choose[i]) clist[nchoose++] = i;
-
-  return nchoose;
-  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -615,14 +566,21 @@ void DumpGrid::pack(tagint *ids)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
 
-  // NOTE: this needs to be grid IDs ?
-  /*
+  // ids = list of my grid IDs
+
   if (ids) {
-    tagint *tag = atom->tag;
-    for (int i = 0; i < nchoose; i++)
-      ids[i] = tag[clist[i]];
+    int m = 0;
+    if (dimension == 2) {
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            ids[m++] = iy*nxgrid + ix + 1;
+    } else if (dimension == 3) {
+        for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (int iy = nylo_in; iy <= nyhi_in; iy++)
+            for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+              ids[m++] = iz*nygrid*nxgrid + iy*nxgrid + ix + 1;
+    }
   }
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -963,10 +921,6 @@ int DumpGrid::modify_param(int narg, char **arg)
 double DumpGrid::memory_usage()
 {
   double bytes = Dump::memory_usage();
-  //NOTE: restore if use choose
-  //bytes += memory->usage(choose,maxlocal);
-  //bytes += memory->usage(dchoose,maxlocal);
-  //bytes += memory->usage(clist,maxlocal);
   return bytes;
 }
 

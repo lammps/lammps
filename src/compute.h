@@ -130,6 +130,8 @@ class Compute : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
+  virtual void reset_grid(){};
+
   virtual int get_grid_by_name(char *, int &) { return -1; };
   virtual void *get_grid_by_index(int) { return nullptr; };
   virtual int get_griddata_by_name(int, char *, int &) { return -1; };

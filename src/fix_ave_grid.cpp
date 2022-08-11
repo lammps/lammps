@@ -692,6 +692,17 @@ void FixAveGrid::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
+   subset of grid assigned to each proc may have changed
+   called by load balancer when proc subdomains are adjusted
+   not supported for now, b/c requires per-grid values to persist, i.e. a remap()
+------------------------------------------------------------------------- */
+
+void FixAveGrid::reset_grid()
+{
+  error->all(FLERR,"Fix ave/grid does not support load balancing (yet)");
+}
+
+/* ----------------------------------------------------------------------
    sum per-atom contributions to owned+ghost grid cells
    sets one of vec2d,array2d,vec3d,array3d
    also set count2d or count3d for atom count per bin

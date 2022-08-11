@@ -549,7 +549,7 @@ void PPPM::setup_triclinic()
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void PPPM::setup_grid()
+void PPPM::reset_grid()
 {
   // free all arrays previously allocated
 

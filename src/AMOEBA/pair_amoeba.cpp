@@ -1410,6 +1410,33 @@ void PairAmoeba::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   subset of FFT grids assigned to each proc may have changed
+   notify each instance of AmoebaConvolution class
+   called by load balancer when proc subdomains are adjusted
+------------------------------------------------------------------------- */
+
+void PairAmoeba::reset_grid()
+{
+  if (use_ewald) {
+    m_kspace->reset_grid();
+    p_kspace->reset_grid();
+    pc_kspace->reset_grid();
+    i_kspace->reset_grid();
+    ic_kspace->reset_grid();
+  }
+  if (use_dewald) d_kspace->reset_grid();
+
+  // qfac is shared by induce and polar
+  // gridfft1 is copy of FFT grid used within polar
+
+  memory->destroy(qfac);
+  memory->destroy(gridfft1);
+  int nmine = p_kspace->nfft_owned;
+  memory->create(qfac,nmine,"ameoba/induce:qfac");
+  memory->create(gridfft1,2*nmine,"amoeba/polar:gridfft1");
+}
+
+/* ----------------------------------------------------------------------
    pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 

@@ -1105,7 +1105,7 @@ contains !! Wrapper functions local to this module {{{1
       C_xy = xy
       C_xz = xz
       C_yz = yz
-      call lammps_actual_reset_box (ptr, C_boxlo, C_boxhi, C_xy, C_xz, C_yz)
+      call lammps_actual_reset_box (ptr, C_boxlo, C_boxhi, C_xy, C_yz, C_xz)
    end subroutine lammps_reset_box
 
 ! lammps_gather_atoms {{{2

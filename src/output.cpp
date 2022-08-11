@@ -792,16 +792,13 @@ Dump *Output::add_dump(int narg, char **arg)
 
 void Output::modify_dump(int narg, char **arg)
 {
-  if (narg < 1) utils::missing_cmd_args(FLERR, "dump_modify",error);
+  if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify",error);
 
   // find which dump it is
 
-  int idump;
-  for (idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0) break;
-  if (idump == ndump) error->all(FLERR,"Could not find dump_modify ID: {}", arg[0]);
-
-  dump[idump]->modify_params(narg-1,&arg[1]);
+  auto idump = get_dump_by_id(arg[0]);
+  if (!idump) error->all(FLERR,"Could not find dump_modify ID: {}", arg[0]);
+  idump->modify_params(narg-1,&arg[1]);
 }
 
 /* ----------------------------------------------------------------------

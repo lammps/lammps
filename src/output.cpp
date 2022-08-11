@@ -783,6 +783,7 @@ Dump *Output::add_dump(int narg, char **arg)
   next_dump[idump] = 0;
 
   ndump++;
+  dump_list = std::vector<Dump *>(dump, dump + ndump);
   return dump[idump];
 }
 
@@ -830,6 +831,7 @@ void Output::delete_dump(const std::string &id)
     ivar_dump[i-1] = ivar_dump[i];
   }
   ndump--;
+  dump_list = std::vector<Dump *>(dump, dump + ndump);
 }
 
 /* ----------------------------------------------------------------------
@@ -842,6 +844,16 @@ Dump *Output::get_dump_by_id(const std::string &id)
   if (id.empty()) return nullptr;
   for (int idump = 0; idump < ndump; idump++) if (id == dump[idump]->id) return dump[idump];
   return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   return list of dumps as vector
+------------------------------------------------------------------------- */
+
+const std::vector<Dump *> &Output::get_dump_list()
+{
+  dump_list = std::vector<Dump *>(dump, dump + ndump);
+  return dump_list;
 }
 
 /* ----------------------------------------------------------------------

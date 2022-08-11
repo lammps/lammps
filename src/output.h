@@ -84,6 +84,7 @@ class Output : protected Pointers {
   void modify_dump(int, char **);               // modify a Dump
   void delete_dump(const std::string &);        // delete a Dump from Dump list
   Dump *get_dump_by_id(const std::string &);    // find a Dump by ID
+  const std::vector<Dump *> &get_dump_list();   // get vector with all dumps
   int check_time_dumps(bigint);                 // check if any time dump is output now
 
   void set_thermo(int, char **);        // set thermo output freqquency
@@ -93,6 +94,7 @@ class Output : protected Pointers {
   void memory_usage();    // print out memory usage
 
  private:
+  std::vector<Dump *> dump_list;
   void calculate_next_dump(int, int, bigint);
 };
 

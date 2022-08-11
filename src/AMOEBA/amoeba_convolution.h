@@ -55,7 +55,7 @@ class AmoebaConvolution : protected Pointers {
 
   class Pair *amoeba;
   class FFT3d *fft1, *fft2;
-  class GridComm *gc;
+  class Grid3d *gc;
   class Remap *remap;
 
   double ***grid_brick;      // 3d real brick grid with ghosts

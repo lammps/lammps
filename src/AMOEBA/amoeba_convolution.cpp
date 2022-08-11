@@ -17,7 +17,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "fft3d_wrap.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
@@ -198,25 +198,23 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
 
   ngrid_either = MAX(nbrick_owned,nfft_owned);
 
-  // instantiate FFT, GridComm, and Remap
+  // instantiate FFT, Grid3d, and Remap
 
   int tmp;
 
   fft1 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-       1,0,&tmp,0);
-  //       0,0,&tmp,0);
+                   1,0,&tmp,0);
 
   fft2 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   //1,0,&tmp,0);
                    0,0,&tmp,0);
 
-  gc = new GridComm(lmp,world,nx,ny,nz,
-                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+  gc = new Grid3d(lmp,world,nx,ny,nz,
+                  nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                  nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
   int nqty = flag3d ? 1 : 2;
   remap = new Remap(lmp,world,
@@ -324,15 +322,15 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   // reverse comm for 3d brick grid + ghosts
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE Grid3d");
 #endif
 
-  gc->reverse_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
+  gc->reverse_comm(Grid3d::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
-  debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST Grid3d");
+  debug_file(GRIDBRICK_IN,"pre.convo.post.grid3d");
 #endif
 
   // copy owned 3d brick grid values to FFT grid
@@ -387,15 +385,15 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   // reverse comm for 4d brick grid + ghosts
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE Grid3d");
 #endif
 
-  gc->reverse_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->reverse_comm(Grid3d::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
-  debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST Grid3d");
+  debug_file(GRIDBRICK_IN,"pre.convo.post.grid3d");
 #endif
   // copy owned 4d brick grid values to FFT grid
 
@@ -476,10 +474,10 @@ void *AmoebaConvolution::post_convolution_3d()
   // forward comm to populate ghost grid values
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
-  debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE grid3d");
+  debug_file(GRIDBRICK_IN,"post.convo.pre.grid3d");
 #endif
-  gc->forward_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
+  gc->forward_comm(Grid3d::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) grid_brick;
@@ -518,10 +516,10 @@ void *AmoebaConvolution::post_convolution_4d()
   // forward comm to populate ghost grid values
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
-  debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE grid3d");
+  debug_file(GRIDBRICK_IN,"post.convo.pre.grid3d");
 #endif
-  gc->forward_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->forward_comm(Grid3d::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) cgrid_brick;

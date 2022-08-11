@@ -305,8 +305,8 @@ void PPPM::init()
     if (overlap_allowed) break;
 
     gctmp = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
     int tmp1,tmp2;
     gctmp->setup(tmp1,tmp2);

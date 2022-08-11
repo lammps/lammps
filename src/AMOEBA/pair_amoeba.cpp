@@ -23,7 +23,6 @@
 #include "fix.h"
 #include "fix_store_peratom.h"
 #include "force.h"
-#include "gridcomm.h"
 #include "group.h"
 #include "math_special.h"
 #include "memory.h"
@@ -824,7 +823,7 @@ void PairAmoeba::init_style()
 
   // initialize KSpace Ewald settings and FFTs and parallel grid objects
   // Coulombic grid is used with two orders: bseorder and bsporder
-  //   so need two GridComm instantiations for ghost comm
+  //   so need two Grid3d instantiations for ghost comm
 
   if (first_flag) {
     kewald();

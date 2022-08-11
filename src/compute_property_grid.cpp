@@ -231,7 +231,7 @@ void *ComputePropertyGrid::get_griddata_by_index(int index)
 void ComputePropertyGrid::allocate_grid()
 {
   if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, 0, 0.0, 0.0,
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, 0.0, 0, 0.0,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out);
     if (nvalues == 1)
@@ -243,7 +243,7 @@ void ComputePropertyGrid::allocate_grid()
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
     
   } else {
-    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 0, 0.0, 0.0,
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 0.0, 0, 0.0,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
                         nxlo_out, nxhi_out, nylo_out, nyhi_out, 
                         nzlo_out, nzhi_out);

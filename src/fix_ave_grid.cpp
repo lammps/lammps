@@ -24,6 +24,7 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "update.h"
 #include "variable.h"
 
@@ -387,17 +388,22 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // instantiate the Grid class and allocate per-grid memory
-  // NOTE: need to extend ghost grid for ATOM mode ?
 
-  if (modeatom) shift = OFFSET + SHIFT;
-  else shift = 0.0;
+  double maxdist,shift;
+
+  if (modeatom) {
+    maxdist = 0.5 * neighbor->skin;
+    shift = SHIFT;
+  } else if (modegrid) {
+    maxdist = 0.0;
+    shift = 0.0;
+  }
 
   if (dimension == 2) {
-    if (modeatom) 
-    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, 0, 0.0, shift,
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, maxdist, 0, shift,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out);
-
+    
     grid2d->setup(ngrid_buf1, ngrid_buf2);
     memory->create(grid_buf1, ngrid_buf1, "ave/grid:grid_buf1");
     memory->create(grid_buf2, ngrid_buf2, "ave/grid:grid_buf2");
@@ -416,7 +422,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                               "ave/grid:count2d");
     
   } else {
-    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 0, 0.0, shift,
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 0, shift,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
                         nxlo_out, nxhi_out, nylo_out, nyhi_out, 
                         nzlo_out, nzhi_out);
@@ -644,7 +650,7 @@ void FixAveGrid::end_of_step()
   if (modeatom) modify->addstep_compute(nvalid);
 
   // ghost to owned grid communication for atom mode
-  // NOTE: still need to implement pack/unpack methods
+  // NOTE: still need to implement pack/unpack methods, for count as well?
 
   if (modeatom) {
     if (dimension == 2) 
@@ -715,9 +721,8 @@ void FixAveGrid::atom2grid()
   // bin[i][dim] = indices of bin each atom is in
   // not set if group mask does not match
   // also count atoms contributing to each bin
+  // check if any atom is out of bounds for my local grid
 
-  // NOTE: error check if any atom out of grid bounds?
-  
   double *boxlo = domain->boxlo;
   double dxinv = nxgrid/domain->xprd;
   double dyinv = nygrid/domain->yprd;
@@ -733,11 +738,20 @@ void FixAveGrid::atom2grid()
     memory->create(bin,maxatom,dimension,"ave/grid:bin");
   }
 
+  int flag = 0;
+
   if (dimension == 2) {
     for (i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
       ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+
+      if (ix < nxlo_out || ix > nxhi_out ||
+          iy < nylo_out || iy > nyhi_out) {
+        flag = 1;
+        continue;
+      }
+
       count2d[iy][ix] += 1.0;
       bin[i][0] = iy;
       bin[i][1] = ix;
@@ -748,12 +762,22 @@ void FixAveGrid::atom2grid()
       ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
       iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
+
+      if (ix < nxlo_out || ix > nxhi_out ||
+          iy < nylo_out || iy > nyhi_out ||
+          iz < nzlo_out || iz > nzhi_out) {
+        flag = 1;
+        continue;
+      }
+
       count3d[iz][iy][ix] += 1.0;
       bin[i][0] = iz;
       bin[i][1] = iy;
       bin[i][2] = ix;
     }
   }
+
+  if (flag) error->one(FLERR,"Out of range fix ave/grid atoms");
 
   // loop over user-specified values
 

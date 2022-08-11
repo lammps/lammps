@@ -455,7 +455,7 @@ void FixTTMGrid::allocate_grid()
 {
   double maxdist = 0.5 * neighbor->skin;
 
-  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 1, maxdist, SHIFT,
+  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 1, SHIFT,
                     nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
                     nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 

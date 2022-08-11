@@ -839,7 +839,7 @@ void Output::delete_dump(const std::string &id)
    return pointer to dump
 ------------------------------------------------------------------------- */
 
-Dump *Output::get_dump_by_id(const std::string &id)
+Dump *Output::get_dump_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (int idump = 0; idump < ndump; idump++) if (id == dump[idump]->id) return dump[idump];

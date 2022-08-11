@@ -80,12 +80,17 @@ class Output : protected Pointers {
   void reset_timestep(bigint);    // reset output which depends on timestep
   void reset_dt();                // reset output which depends on timestep size
 
-  Dump *add_dump(int, char **);                 // add a Dump to Dump list
-  void modify_dump(int, char **);               // modify a Dump
-  void delete_dump(const std::string &);        // delete a Dump from Dump list
-  Dump *get_dump_by_id(const std::string &);    // find a Dump by ID
-  const std::vector<Dump *> &get_dump_list();   // get vector with all dumps
-  int check_time_dumps(bigint);                 // check if any time dump is output now
+  Dump *add_dump(int, char **);                       // add a Dump to Dump list
+  void modify_dump(int, char **);                     // modify a Dump
+  void delete_dump(const std::string &);              // delete a Dump from Dump list
+  Dump *get_dump_by_id(const std::string &) const;    // find a Dump by ID
+  Dump *get_dump_by_index(int idx) const              // find a Dump by index in Dump list
+  {
+    return ((idx >= 0) && (idx < ndump)) ? dump[idx] : nullptr;
+  }
+
+  const std::vector<Dump *> &get_dump_list();    // get vector with all dumps
+  int check_time_dumps(bigint);                  // check if any time dump is output now
 
   void set_thermo(int, char **);        // set thermo output freqquency
   void create_thermo(int, char **);     // create a thermo style

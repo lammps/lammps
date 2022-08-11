@@ -1891,11 +1891,10 @@ void Atom::add_molecule(int narg, char **arg)
    return -1 if does not exist
 ------------------------------------------------------------------------- */
 
-int Atom::find_molecule(char *id)
+int Atom::find_molecule(const char *id)
 {
   if (id == nullptr) return -1;
-  int imol;
-  for (imol = 0; imol < nmolecule; imol++)
+  for (int imol = 0; imol < nmolecule; imol++)
     if (strcmp(id,molecules[imol]->id) == 0) return imol;
   return -1;
 }

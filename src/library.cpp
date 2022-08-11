@@ -4761,43 +4761,19 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(category,"compute") == 0) {
-    int ncompute = lmp->modify->ncompute;
-    Compute **compute = lmp->modify->compute;
-    for (int i=0; i < ncompute; ++i) {
-      if (strcmp(name,compute[i]->id) == 0) return 1;
-    }
+    if (lmp->modify->get_compute_by_id(name)) return 1;
   } else if (strcmp(category,"dump") == 0) {
-    int ndump = lmp->output->ndump;
-    Dump **dump = lmp->output->dump;
-    for (int i=0; i < ndump; ++i) {
-      if (strcmp(name,dump[i]->id) == 0) return 1;
-    }
+    if (lmp->output->get_dump_by_id(name)) return 1;
   } else if (strcmp(category,"fix") == 0) {
-    for (auto &ifix : lmp->modify->get_fix_list()) {
-      if (strcmp(name,ifix->id) == 0) return 1;
-    }
+    if (lmp->modify->get_fix_by_id(name)) return 1;
   } else if (strcmp(category,"group") == 0) {
-    int ngroup = lmp->group->ngroup;
-    char **groups = lmp->group->names;
-    for (int i=0; i < ngroup; ++i) {
-      if (strcmp(groups[i],name) == 0) return 1;
-    }
+    if (lmp->group->find(name) >= 0) return 1;
   } else if (strcmp(category,"molecule") == 0) {
-    int nmolecule = lmp->atom->nmolecule;
-    Molecule **molecule = lmp->atom->molecules;
-    for (int i=0; i < nmolecule; ++i) {
-      if (strcmp(name,molecule[i]->id) == 0) return 1;
-    }
+    if (lmp->atom->find_molecule(name) >= 0) return 1;
   } else if (strcmp(category,"region") == 0) {
-    for (auto &reg : lmp->domain->get_region_list()) {
-      if (strcmp(name,reg->id) == 0) return 1;
-    }
+    if (lmp->domain->get_region_by_id(name)) return 1;
   } else if (strcmp(category,"variable") == 0) {
-    int nvariable = lmp->input->variable->nvar;
-    char **varnames = lmp->input->variable->names;
-    for (int i=0; i < nvariable; ++i) {
-      if (strcmp(name,varnames[i]) == 0) return 1;
-    }
+    if (lmp->input->variable->find(name) >= 0) return 1;
   }
   return 0;
 }
@@ -4823,11 +4799,11 @@ categories.
 int lammps_id_count(void *handle, const char *category) {
   auto lmp = (LAMMPS *) handle;
   if (strcmp(category,"compute") == 0) {
-    return lmp->modify->ncompute;
+    return lmp->modify->get_compute_list().size();
   } else if (strcmp(category,"dump") == 0) {
-    return lmp->output->ndump;
+    return lmp->output->get_dump_list().size();
   } else if (strcmp(category,"fix") == 0) {
-    return lmp->modify->nfix;
+    return lmp->modify->get_fix_list().size();
   } else if (strcmp(category,"group") == 0) {
     return lmp->group->ngroup;
   } else if (strcmp(category,"molecule") == 0) {

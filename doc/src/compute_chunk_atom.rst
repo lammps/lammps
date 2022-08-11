@@ -15,7 +15,7 @@ Syntax
 
   .. parsed-literal::
 
-     style = *bin/1d* or *bin/2d* or *bin/3d* or *bin/sphere* or *type* or *molecule* or c_ID, c_ID[I], f_ID, f_ID[I], v_name
+     style = *bin/1d* or *bin/2d* or *bin/3d* or *bin/sphere* or *bin/cylinder* or *type* or *molecule* or c_ID, c_ID[I], f_ID, f_ID[I], v_name
        *bin/1d* args = dim origin delta
          dim = *x* or *y* or *z*
          origin = *lower* or *center* or *upper* or coordinate value (distance units)
@@ -49,7 +49,7 @@ Syntax
          v_name = per-atom vector calculated by an atom-style variable with name
 
 * zero or more keyword/values pairs may be appended
-* keyword = *region* or *nchunk* or *static* or *compress* or *bound* or *discard* or *pbc* or *units*
+* keyword = *region* or *nchunk* or *limit* or *ids* or *compress* or *discard* or *bound* or *pbc* or *units*
 
   .. parsed-literal::
 
@@ -74,7 +74,7 @@ Syntax
          no = keep atoms with out-of-range chunk IDs by assigning a valid chunk ID
          mixed = keep or discard such atoms according to spatial binning rule
        *bound* values = x/y/z lo hi
-         x/y/z = *x* or *y* or *z* to bound sptial bins in this dimension
+         x/y/z = *x* or *y* or *z* to bound spatial bins in this dimension
          lo = *lower* or coordinate value (distance units)
          hi = *upper* or coordinate value (distance units)
        *pbc* value = *no* or *yes*

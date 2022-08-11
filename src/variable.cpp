@@ -3942,7 +3942,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
       strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_active") != 0 &&
       strcmp(word,"is_defined") != 0 && strcmp(word,"is_available") != 0 && strcmp(word,"is_file") != 0 &&
-      strcmp(word,"extract_setting") != 0)
+      strcmp(word,"is_os") != 0 && strcmp(word,"extract_setting") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -4330,6 +4330,19 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     FILE *fp = fopen(args[0],"r");
     value = (fp == nullptr) ? 0.0 : 1.0;
     if (fp) fclose(fp);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      auto newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_os") == 0) {
+    if (narg != 1) print_var_error(FLERR,"Invalid is_os() function in variable formula",ivar);
+    value = utils::strmatch(platform::os_info(), args[0]) ? 1.0 : 0.0;
 
     // save value in tree or on argstack
 

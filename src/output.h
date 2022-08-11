@@ -83,7 +83,6 @@ class Output : protected Pointers {
   Dump *add_dump(int, char **);                 // add a Dump to Dump list
   void modify_dump(int, char **);               // modify a Dump
   void delete_dump(const std::string &);        // delete a Dump from Dump list
-  int find_dump(const char *);                  // find a Dump ID
   Dump *get_dump_by_id(const std::string &);    // find a Dump by ID
   int check_time_dumps(bigint);                 // check if any time dump is output now
 

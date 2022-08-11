@@ -234,7 +234,7 @@ fails a null pointer is returned.
 
 void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
 {
-  return lammps_open(argc,argv,MPI_COMM_WORLD,ptr);
+  return lammps_open(argc, argv, MPI_COMM_WORLD, ptr);
 }
 
 /* ---------------------------------------------------------------------- */

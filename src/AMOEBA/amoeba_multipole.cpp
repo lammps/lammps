@@ -20,6 +20,7 @@
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -28,6 +29,8 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+using MathSpecial::square;
 
 enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
@@ -670,7 +673,7 @@ void PairAmoeba::multipole_kspace()
   nzlo = m_kspace->nzlo_fft;
   nzhi = m_kspace->nzhi_fft;
 
-  pterm = pow((MY_PI/aewald),2.0);
+  pterm = square(MY_PI/aewald);
   volterm = MY_PI * volbox;
 
   n = 0;

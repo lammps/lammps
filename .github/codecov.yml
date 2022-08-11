@@ -7,7 +7,7 @@ coverage:
         threshold: 10%
         only_pulls: false
         branches:
-          - "master"
+          - "develop"
         flags:
           - "unit"
         paths:
@@ -16,14 +16,14 @@ coverage:
     project:
         default:
             branches:
-              - "master"
+              - "develop"
             paths:
               - "src"
             informational: true
     patch:
         default:
             branches:
-              - "master"
+              - "develop"
             paths:
               - "src"
             informational: true

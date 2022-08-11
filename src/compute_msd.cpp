@@ -16,7 +16,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "modify.h"
 #include "update.h"
@@ -27,7 +27,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg), id_fix(nullptr)
+ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg)
+  : Compute(lmp, narg, arg), id_fix(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute msd command");
 
@@ -63,8 +64,8 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-  fix = dynamic_cast<FixStore *>(
-      modify->add_fix(fmt::format("{} {} STORE peratom 1 3", id_fix, group->names[igroup])));
+  fix = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 3", id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -127,7 +128,7 @@ void ComputeMSD::init()
 {
   // set fix which stores reference atom coords
 
-  fix = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix));
+  fix = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_fix));
   if (!fix) error->all(FLERR, "Could not find compute msd fix with ID {}", id_fix);
 
   // nmsd = # of atoms in group

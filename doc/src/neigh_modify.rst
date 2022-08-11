@@ -22,24 +22,24 @@ Syntax
        *check* value = *yes* or *no*
          *yes* = only build if some atom has moved half the skin distance or more
          *no* = always build on 1st step that *every* and *delay* are satisfied
-       *once*
+       *once* value = *yes* or *no*
          *yes* = only build neighbor list once at start of run and never rebuild
          *no* = rebuild neighbor list according to other settings
-       *cluster*
+       *cluster* value = *yes* or *no*
          *yes* = check bond,angle,etc neighbor list for nearby clusters
          *no* = do not check bond,angle,etc neighbor list for nearby clusters
        *include* value = group-ID
          group-ID = only build pair neighbor lists for atoms in this group
        *exclude* values:
-         type M N
+         *type* M N
            M,N = exclude if one atom in pair is type M, other is type N
-         group group1-ID group2-ID
+         *group* group1-ID group2-ID
            group1-ID,group2-ID = exclude if one atom is in 1st group, other in 2nd
-         molecule/intra group-ID
+         *molecule/intra* group-ID
            group-ID = exclude if both atoms are in the same molecule and in group
-         molecule/inter group-ID
+         *molecule/inter* group-ID
            group-ID = exclude if both atoms are in different molecules and in group
-         none
+         *none*
            delete all exclude settings
        *page* value = N
          N = number of pairs stored in a single neighbor page

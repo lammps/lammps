@@ -31,7 +31,7 @@ Minimize::Minimize(LAMMPS *lmp) : Command(lmp) {}
 
 void Minimize::command(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Illegal minimize command");
+  if (narg != 4) error->all(FLERR,"Illegal minimize command: expected 4 arguments but found {}", narg);
 
   if (domain->box_exist == 0)
     error->all(FLERR, "Minimize command before simulation box is defined");
@@ -44,7 +44,8 @@ void Minimize::command(int narg, char **arg)
   update->nsteps = utils::inumeric(FLERR, arg[2], false, lmp);
   update->max_eval = utils::inumeric(FLERR, arg[3], false, lmp);
 
-  if (update->etol < 0.0 || update->ftol < 0.0) error->all(FLERR, "Illegal minimize command");
+  if (update->etol < 0.0) error->all(FLERR, "Illegal minimize energy tolerance: {}", update->etol);
+  if (update->ftol < 0.0) error->all(FLERR, "Illegal minimize force tolerance: {}", update->ftol);
 
   if (lmp->citeme) lmp->citeme->flush();
   update->whichflag = 2;

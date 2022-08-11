@@ -36,24 +36,24 @@ MODULE LIBLAMMPS
   PRIVATE
   PUBLIC :: lammps
 
-  ! These are public-interface constants that have the same purpose as the
-  ! constants in library.h, except that their types match the type of the
-  ! constant in question. Their purpose is to specify the type of the
-  ! return value without something akin to a C/C++ type cast
-  INTEGER (c_int), PUBLIC, PARAMETER :: LMP_INT = 0_c_int
-  INTEGER (c_int), PUBLIC, DIMENSION(3), PARAMETER :: LMP_INT_1D = 0_c_int
-  INTEGER (c_int), PUBLIC, DIMENSION(3,3), PARAMETER :: LMP_INT_2D = 1_c_int
-  REAL (c_double), PUBLIC, PARAMETER :: LMP_DOUBLE = 2.0_c_double
-  REAL (c_double), PUBLIC, DIMENSION(3), PARAMETER :: &
-    LMP_DOUBLE_1D = 2.0_c_double
-  REAL (c_double), PUBLIC, DIMENSION(3,3), PARAMETER :: &
-    LMP_DOUBLE_2D = 3.0_c_double
-  INTEGER (c_int64_t), PUBLIC, PARAMETER :: LMP_INT64 = 4_c_int64_t
-  INTEGER (c_int64_t), PUBLIC, DIMENSION(3), PARAMETER :: &
-    LMP_INT64_1D = 4_c_int64_t
-  INTEGER (c_int64_t), PUBLIC, DIMENSION(3,3), PARAMETER :: &
-    LMP_INT64_2D = 5_c_int64_t
-  CHARACTER(LEN=*), PUBLIC, PARAMETER :: LMP_STRING = 'six'
+!  ! These are public-interface constants that have the same purpose as the
+!  ! constants in library.h, except that their types match the type of the
+!  ! constant in question. Their purpose is to specify the type of the
+!  ! return value without something akin to a C/C++ type cast
+!  INTEGER (c_int), PUBLIC, PARAMETER :: LMP_INT = 0_c_int
+!  INTEGER (c_int), PUBLIC, DIMENSION(3), PARAMETER :: LMP_INT_1D = 0_c_int
+!  INTEGER (c_int), PUBLIC, DIMENSION(3,3), PARAMETER :: LMP_INT_2D = 1_c_int
+!  REAL (c_double), PUBLIC, PARAMETER :: LMP_DOUBLE = 2.0_c_double
+!  REAL (c_double), PUBLIC, DIMENSION(3), PARAMETER :: &
+!    LMP_DOUBLE_1D = 2.0_c_double
+!  REAL (c_double), PUBLIC, DIMENSION(3,3), PARAMETER :: &
+!    LMP_DOUBLE_2D = 3.0_c_double
+!  INTEGER (c_int64_t), PUBLIC, PARAMETER :: LMP_INT64 = 4_c_int64_t
+!  INTEGER (c_int64_t), PUBLIC, DIMENSION(3), PARAMETER :: &
+!    LMP_INT64_1D = 4_c_int64_t
+!  INTEGER (c_int64_t), PUBLIC, DIMENSION(3,3), PARAMETER :: &
+!    LMP_INT64_2D = 5_c_int64_t
+!  CHARACTER(LEN=*), PUBLIC, PARAMETER :: LMP_STRING = 'six'
 
   ! Data type constants for extracting data from global, atom, compute, and fix
   !
@@ -85,13 +85,17 @@ MODULE LIBLAMMPS
       PROCEDURE :: memory_usage       => lmp_memory_usage
       PROCEDURE :: get_mpi_comm       => lmp_get_mpi_comm
       PROCEDURE :: extract_setting    => lmp_extract_setting
-      PROCEDURE, PRIVATE :: lmp_extract_global_int
-      PROCEDURE, PRIVATE :: lmp_extract_global_int64_t
-      PROCEDURE, PRIVATE :: lmp_extract_global_double
-      PROCEDURE, PRIVATE :: lmp_extract_global_str
-      GENERIC :: extract_global       => lmp_extract_global_int, &
-        lmp_extract_global_int64_t, lmp_extract_global_double, &
-        lmp_extract_global_str
+!      PROCEDURE :: extract_global     => lmp_extract_global
+!      PROCEDURE, PRIVATE :: lmp_extract_global_int
+!      PROCEDURE, PRIVATE :: lmp_extract_global_int64_t
+!      PROCEDURE, PRIVATE :: lmp_extract_global_double
+!      PROCEDURE, PRIVATE :: lmp_extract_global_str
+!      GENERIC :: extract_global       => lmp_extract_global_int, &
+!        lmp_extract_global_int64_t, lmp_extract_global_double, &
+!        lmp_extract_global_str
+!      PROCEDURE, PRIVATE :: lmp_extract_global_scalar
+!      !PROCEDURE, PRIVATE :: lmp_extract_global_string
+!      GENERIC :: extract_global       => lmp_extract_global_scalar
       PROCEDURE :: version            => lmp_version
   END TYPE lammps
 
@@ -225,9 +229,6 @@ MODULE LIBLAMMPS
         TYPE(c_ptr), VALUE :: handle, name
         TYPE(c_ptr) :: lammps_extract_global
       END FUNCTION lammps_extract_global
-      !(generic) lammps_extract_global
-      ! TODO: You can fake out the type-casting by declaring non-optional
-      ! parameters that help the compiler figure out which one to call
 
       !INTEGER (c_int) FUNCTION lammps_extract_atom_datatype
 
@@ -542,95 +543,186 @@ CONTAINS
 !    CALL lammps_free(Cname)
 !  END FUNCTION lmp_extract_global_datatype
 
-  ! equivalent functions to lammps_extract_global (overloaded)
-  ! This implementation assumes there are no non-scalar data that can be
-  ! extracted through lammps_extract_global
-  FUNCTION lmp_extract_global_int (self, name, dtype)
-    CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(LEN=*), INTENT(IN) :: name
-    INTEGER(c_int), INTENT(IN) :: dtype
-    INTEGER(c_int) :: lmp_extract_global_int
-    TYPE(c_ptr) :: Cname, Cptr
-    INTEGER(c_int) :: datatype
-    INTEGER(c_int), POINTER :: ptr
+  ! equivalent function to lammps_extract_global
+  ! the return value should be automatically returned and assigned correctly
+  ! based on the information available from LAMMPS
+!  SUBROUTINE lmp_extract_global_scalar (self, global_data, name)
+!    CLASS(lammps), INTENT(IN) :: self
+!    CLASS(*), INTENT(OUT), POINTER :: global_data
+!    CHARACTER(LEN=*), INTENT(IN) :: name
+!    INTEGER(c_int) :: datatype
+!    TYPE(c_ptr) :: Cname, Cptr
+!    INTEGER(c_size_t) :: length, i
+!    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Fptr
+!
+!    Cname = f2c_string(name)
+!    datatype = lammps_extract_global_datatype(self%handle, Cname)
+!      ! above could be c_null_ptr in place of self%handle...doesn't matter
+!    Cptr = lammps_extract_global(self%handle, Cname)
+!    SELECT CASE (datatype)
+!      CASE (LAMMPS_INT)
+!        SELECT TYPE (global_data)
+!          TYPE IS (INTEGER(c_int))
+!            CALL C_F_POINTER(Cptr, global_data)
+!          CLASS DEFAULT
+!            ! FIXME
+!            WRITE(0,'(A)') 'ERROR: Incompatible pointer type in extract_global'
+!            STOP
+!        END SELECT
+!      CASE (LAMMPS_INT64)
+!        SELECT TYPE (global_data)
+!          TYPE IS (INTEGER(c_int64_t))
+!            CALL C_F_POINTER(Cptr, global_data)
+!          CLASS DEFAULT
+!            ! FIXME
+!            WRITE(0,'(A)') 'ERROR: Incompatible pointer type in extract_global'
+!            STOP
+!        END SELECT
+!      CASE (LAMMPS_DOUBLE)
+!        SELECT TYPE (global_data)
+!          TYPE IS (REAL(c_double))
+!            CALL C_F_POINTER(Cptr, global_data)
+!          CLASS DEFAULT
+!            ! FIXME
+!            WRITE(0,'(A)') 'ERROR: Incompatible pointer type in extract_global'
+!            STOP
+!        END SELECT
+!      CASE (LAMMPS_STRING)
+!        SELECT TYPE (global_data)
+!          TYPE IS (CHARACTER(LEN=*))
+!            length = c_strlen(Cptr)
+!            CALL C_F_POINTER(Cptr, Fptr, [length])
+!            IF ( length < len(global_data) ) length = len(global_data)
+!            FORALL ( i = 1:length )
+!              global_data(i:i) = Fptr(i)
+!            END FORALL
+!        END SELECT
+!      CASE DEFAULT
+!        ! FIXME
+!        WRITE (0,'(A,1X,I0,1X,A)') 'ERROR: Unknown type', datatype, &
+!          'returned from extract_global_datatype'
+!        STOP
+!    END SELECT
+!    CALL lammps_free(Cname)
+!  END SUBROUTINE lmp_extract_global_scalar
+!
+!  SUBROUTINE lmp_extract_global_string (self, global_data, name)
+!    CLASS(lammps), INTENT(IN) :: self
+!    CHARACTER(LEN=*), INTENT(OUT) :: global_data
+!    CHARACTER(LEN=*), INTENT(IN) :: name
+!    INTEGER(c_int) :: datatype
+!    TYPE(c_ptr) :: Cname, Cptr
+!    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Fptr
+!    INTEGER(c_size_t) :: length
+!    INTEGER :: i
+!
+!    global_data = ''
+!    Cname = f2c_string(name)
+!    datatype = lammps_extract_global_datatype(self%handle, Cname)
+!    IF ( datatype /= LAMMPS_STRING ) THEN
+!      ! FIXME
+!      WRITE (0,'(A)') 'ERROR: Cannot assign string to non-string variable.'
+!      STOP
+!    END IF
+!    Cptr = lammps_extract_global(self%handle, Cname)
+!    length = c_strlen(Cptr)
+!    CALL C_F_POINTER(Cptr, Fptr, [length])
+!    IF ( length < len(global_data) ) length = len(global_data)
+!    FORALL ( i = 1:length )
+!      global_data(i:i) = Fptr(i)
+!    END FORALL
+!    CALL lammps_free(Cname)
+!  END SUBROUTINE lmp_extract_global_string
 
-    Cname = f2c_string(name)
-    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
-    IF ( datatype /= LAMMPS_INT ) THEN
-      ! throw an exception or something; data type doesn't match!
-      WRITE(0,*) 'WARNING: global data type is inconsistent (not an int)'
-    END IF
-    Cptr = lammps_extract_global(self%handle, Cname)
-    CALL c_f_pointer(Cptr, ptr)
-    lmp_extract_global_int = ptr
-    CALL lammps_free(Cname)
-  END FUNCTION lmp_extract_global_int
-  FUNCTION lmp_extract_global_int64_t (self, name, dtype)
-    CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(LEN=*), INTENT(IN) :: name
-    INTEGER(c_int64_t), INTENT(IN) :: dtype
-    INTEGER(c_int64_t) :: lmp_extract_global_int64_t
-    TYPE(c_ptr) :: Cname, Cptr
-    INTEGER(c_int) :: datatype
-    INTEGER(c_int64_t), POINTER :: ptr
-
-    Cname = f2c_string(name)
-    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
-    IF ( datatype /= LAMMPS_INT64 ) THEN
-      ! throw an exception or something; data type doesn't match!
-      WRITE(0,*) 'WARNING: global data type is inconsistent (not an int64_t)'
-    END IF
-    Cptr = lammps_extract_global(self%handle, Cname)
-    CALL c_f_pointer(Cptr, ptr)
-    lmp_extract_global_int64_t = ptr
-    CALL lammps_free(Cname)
-  END FUNCTION lmp_extract_global_int64_t
-  FUNCTION lmp_extract_global_double (self, name, dtype)
-    CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(LEN=*), INTENT(IN) :: name
-    REAL(c_double), INTENT(IN) :: dtype
-    REAL(c_double) :: lmp_extract_global_double
-    TYPE(c_ptr) :: Cname, Cptr
-    INTEGER(c_int) :: datatype
-    REAL(c_double), POINTER :: ptr
-
-    Cname = f2c_string(name)
-    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
-    IF ( datatype /= LAMMPS_DOUBLE ) THEN
-      ! throw an exception or something; data type doesn't match!
-      WRITE(0,*) 'WARNING: global data type is inconsistent (not a double)'
-    END IF
-    Cptr = lammps_extract_global(self%handle, Cname)
-    CALL c_f_pointer(Cptr, ptr)
-    lmp_extract_global_double = ptr
-    CALL lammps_free(Cname)
-  END FUNCTION lmp_extract_global_double
-  FUNCTION lmp_extract_global_str (self, name, dtype)
-    CLASS(lammps), INTENT(IN) :: self
-    CHARACTER(LEN=*), INTENT(IN) :: name, dtype
-    CHARACTER(LEN=:), ALLOCATABLE :: lmp_extract_global_str
-    TYPE(c_ptr) :: Cname, Cptr
-    INTEGER(c_int) :: datatype
-    CHARACTER(KIND=c_char,LEN=1), dimension(:), POINTER :: ptr
-    INTEGER(c_size_t) :: length
-    INTEGER :: i
-
-    Cname = f2c_string(name)
-    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
-    IF ( datatype /= LAMMPS_STRING ) THEN
-      ! throw an exception or something; data type doesn't match!
-      WRITE(0,*) 'WARNING: global data type is inconsistent (not a string)'
-    END IF
-    Cptr = lammps_extract_global(self%handle, Cname)
-    length = c_strlen(Cptr)
-    CALL c_f_pointer(Cptr, ptr, [length])
-    ALLOCATE ( CHARACTER(LEN=length) :: lmp_extract_global_str )
-    FORALL ( I=1:length )
-      lmp_extract_global_str(i:i) = ptr(i)
-    END FORALL
-    CALL lammps_free(Cname)
-    ! the allocatable scalar (return value) gets auto-deallocated on return
-  END FUNCTION lmp_extract_global_str
+!  ! equivalent functions to lammps_extract_global (overloaded)
+!  ! This implementation assumes there are no non-scalar data that can be
+!  ! extracted through lammps_extract_global
+!  FUNCTION lmp_extract_global_int (self, name, dtype)
+!    CLASS(lammps), INTENT(IN) :: self
+!    CHARACTER(LEN=*), INTENT(IN) :: name
+!    INTEGER(c_int), INTENT(IN) :: dtype
+!    INTEGER(c_int) :: lmp_extract_global_int
+!    TYPE(c_ptr) :: Cname, Cptr
+!    INTEGER(c_int) :: datatype
+!    INTEGER(c_int), POINTER :: ptr
+!
+!    Cname = f2c_string(name)
+!    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
+!    IF ( datatype /= LAMMPS_INT ) THEN
+!      ! throw an exception or something; data type doesn't match!
+!      WRITE(0,*) 'WARNING: global data type is inconsistent (not an int)'
+!    END IF
+!    Cptr = lammps_extract_global(self%handle, Cname)
+!    CALL C_F_POINTER(Cptr, ptr)
+!    lmp_extract_global_int = ptr
+!    CALL lammps_free(Cname)
+!  END FUNCTION lmp_extract_global_int
+!  FUNCTION lmp_extract_global_int64_t (self, name, dtype)
+!    CLASS(lammps), INTENT(IN) :: self
+!    CHARACTER(LEN=*), INTENT(IN) :: name
+!    INTEGER(c_int64_t), INTENT(IN) :: dtype
+!    INTEGER(c_int64_t) :: lmp_extract_global_int64_t
+!    TYPE(c_ptr) :: Cname, Cptr
+!    INTEGER(c_int) :: datatype
+!    INTEGER(c_int64_t), POINTER :: ptr
+!
+!    Cname = f2c_string(name)
+!    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
+!    IF ( datatype /= LAMMPS_INT64 ) THEN
+!      ! throw an exception or something; data type doesn't match!
+!      WRITE(0,*) 'WARNING: global data type is inconsistent (not an int64_t)'
+!    END IF
+!    Cptr = lammps_extract_global(self%handle, Cname)
+!    CALL C_F_POINTER(Cptr, ptr)
+!    lmp_extract_global_int64_t = ptr
+!    CALL lammps_free(Cname)
+!  END FUNCTION lmp_extract_global_int64_t
+!  FUNCTION lmp_extract_global_double (self, name, dtype)
+!    CLASS(lammps), INTENT(IN) :: self
+!    CHARACTER(LEN=*), INTENT(IN) :: name
+!    REAL(c_double), INTENT(IN) :: dtype
+!    REAL(c_double) :: lmp_extract_global_double
+!    TYPE(c_ptr) :: Cname, Cptr
+!    INTEGER(c_int) :: datatype
+!    REAL(c_double), POINTER :: ptr
+!
+!    Cname = f2c_string(name)
+!    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
+!    IF ( datatype /= LAMMPS_DOUBLE ) THEN
+!      ! throw an exception or something; data type doesn't match!
+!      WRITE(0,*) 'WARNING: global data type is inconsistent (not a double)'
+!    END IF
+!    Cptr = lammps_extract_global(self%handle, Cname)
+!    CALL C_F_POINTER(Cptr, ptr)
+!    lmp_extract_global_double = ptr
+!    CALL lammps_free(Cname)
+!  END FUNCTION lmp_extract_global_double
+!  FUNCTION lmp_extract_global_str (self, name, dtype)
+!    CLASS(lammps), INTENT(IN) :: self
+!    CHARACTER(LEN=*), INTENT(IN) :: name, dtype
+!    CHARACTER(LEN=:), ALLOCATABLE :: lmp_extract_global_str
+!    TYPE(c_ptr) :: Cname, Cptr
+!    INTEGER(c_int) :: datatype
+!    CHARACTER(KIND=c_char,LEN=1), dimension(:), POINTER :: ptr
+!    INTEGER(c_size_t) :: length
+!    INTEGER :: i
+!
+!    Cname = f2c_string(name)
+!    datatype = lammps_extract_global_datatype(c_null_ptr, Cname)
+!    IF ( datatype /= LAMMPS_STRING ) THEN
+!      ! throw an exception or something; data type doesn't match!
+!      WRITE(0,*) 'WARNING: global data type is inconsistent (not a string)'
+!    END IF
+!    Cptr = lammps_extract_global(self%handle, Cname)
+!    length = c_strlen(Cptr)
+!    CALL C_F_POINTER(Cptr, ptr, [length])
+!    ALLOCATE ( CHARACTER(LEN=length) :: lmp_extract_global_str )
+!    FORALL ( I=1:length )
+!      lmp_extract_global_str(i:i) = ptr(i)
+!    END FORALL
+!    CALL lammps_free(Cname)
+!    ! the allocatable scalar (return value) gets auto-deallocated on return
+!  END FUNCTION lmp_extract_global_str
 
   ! equivalent function to lammps_version()
   INTEGER FUNCTION lmp_version(self)
@@ -659,3 +751,5 @@ CONTAINS
     c_string(n+1) = c_null_char
   END FUNCTION f2c_string
 END MODULE LIBLAMMPS
+
+! vim: ts=2 sts=2 sw=2 et

@@ -56,7 +56,7 @@ class PairMesoCNT : public Pair {
   double *param, *w, *wnode;
   double **dq_w;
   double ***q1_dq_w, ***q2_dq_w;
-  double *gl_nodes, *gl_weights;
+  double *gl_nodes, *gl_weights, *lcache;
   double *uinf_data, *gamma_data, **phi_data, **usemi_data;
   double **uinf_coeff, **gamma_coeff, ****phi_coeff, ****usemi_coeff;
   double **flocal, **fglobal, **basis;

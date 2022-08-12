@@ -107,6 +107,7 @@ PairMesoCNT::~PairMesoCNT()
 
     memory->destroy(gl_nodes);
     memory->destroy(gl_weights);
+    memory->destroy(lcache);
   }
 }
 
@@ -683,6 +684,7 @@ void PairMesoCNT::allocate()
 
   memory->create(gl_nodes, QUADRATURE, "pair:gl_nodes");
   memory->create(gl_weights, QUADRATURE, "pair:gl_weights");
+  memory->create(lcache, QUADRATURE + 1, "pair:lcache");
 }
 
 /* ----------------------------------------------------------------------
@@ -2089,8 +2091,9 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double &fend, double
   double dalpha_gamma = 2 * (gamma_orth - 1) * sin_alpha * cos_alpha;
   double dh_gamma = dgamma_orth * sin_alphasq;
 
-  double delxi = (xi2 - xi1) / (QUADRATURE - 1);
-  double c3 = delxi * gamma;
+  double scale = 0.5 * (xi2 - xi1);
+  double shift = 0.5 * (xi1 + xi2);
+  double c3 = gamma * scale;
 
   double jh = 0;
   double jh1 = 0;
@@ -2100,13 +2103,12 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double &fend, double
   double ubar = 0;
 
   for (int i = 0; i < QUADRATURE; i++) {
-    double xibar = xi1 + i * delxi;
+    double xibar = scale * gl_nodes[i] + shift;
     double g = xibar * c1;
     double hbar = sqrt(h * h + g * g);
     double thetabar = xibar * cos_alpha - c2;
 
-    double c = 1.0;
-    if (i == 0 || i == QUADRATURE - 1) c = 0.5;
+    double c = gl_weights[i];
 
     double u = c *
         spline(hbar, thetabar, hstart_usemi, xistart_usemi, delh_usemi, delxi_usemi, usemi_coeff,
@@ -2169,7 +2171,6 @@ double PairMesoCNT::legendre(int n, double x)
   if (n == 0) return 1.0;
   if (n == 1) return x;
 
-  std::vector<double> lcache(n + 1, 0.0);
   lcache[0] = 1.0;
   lcache[1] = x;
 

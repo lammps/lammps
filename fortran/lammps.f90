@@ -291,6 +291,7 @@ MODULE LIBLAMMPS
 
       FUNCTION lammps_version(handle) BIND(C)
         IMPORT :: c_ptr, c_int
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
         INTEGER(c_int) :: lammps_version
       END FUNCTION lammps_version

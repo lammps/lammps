@@ -414,16 +414,24 @@ Procedures Bound to the lammps Derived Type
 
 .. f:function:: extract_global(name)
 
-   Function to get internal global LAMMPS data.
+   This function calls :c:func:`lammps_extract_global` and returns either a
+   string or a pointer to internal global LAMMPS data, depending on the data
+   requested through *name*.
 
    Note that this function actually does not return a value, but rather
-   associates the the pointer on the left-hand side of the assignment to point
+   associates the pointer on the left side of the assignment to point
    to internal LAMMPS data (with the exception of string data, which are
-   copied returned as ordinary Fortran strings). Pointers must be of the
+   copied and returned as ordinary Fortran strings). Pointers must be of the
    correct data type to point to said data (typically INTEGER(c_int),
-   INTEGER(c_int64_t), or REAL(c_double)) and have appropriate rank.
-   The pointer being associated with LAMMPS data is type- and rank-checked at
-   run-time want via an overloaded assignment operator. For example,
+   INTEGER(c_int64_t), or REAL(c_double)) and have compatible kind and rank.
+   The pointer being associated with LAMMPS data is type-, kind-, and
+   rank-checked at run-time via an overloaded assignment operator.
+   The pointers returned by this function are generally persistent; therefore
+   it is not necessary to call the function again, unless a :doc:`clear`
+   command has been issued, which wipes out and recreates the contents of
+   the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class.
+
+   For example,
 
    .. code-block:: fortran
 
@@ -461,9 +469,11 @@ Procedures Bound to the lammps Derived Type
     pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted
     property. If expecting vector data, the pointer should have dimension ":".
 
-.. note::
+    .. warning::
 
-   Functions such as extract_global and extract_atom actually return a
-   derived type, and an overloaded operator tells the compiler how to
-   associate the pointer with the relevant data when the assignment is made.
-   The user need not worry about these implementation details.
+       Modifying the data in the location pointed to by the returned pointer
+       may lead to inconsistent internal data and thus may cause failures or
+       crashes or bogus simulations.  In general it is thus usually better
+       to use a LAMMPS input command that sets or changes these parameters.
+       Those will take care of all side effects and necessary updates of
+       settings derived from such settings.

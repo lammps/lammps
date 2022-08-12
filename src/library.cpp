@@ -1156,8 +1156,8 @@ Please also see :cpp:func:`lammps_extract_setting`,
    may lead to inconsistent internal data and thus may cause failures or
    crashes or bogus simulations.  In general it is thus usually better
    to use a LAMMPS input command that sets or changes these parameters.
-   Those will takes care of all side effects and necessary updates of
-   settings derived from such settings.  Where possible a reference to
+   Those will take care of all side effects and necessary updates of
+   settings derived from such settings.  Where possible, a reference to
    such a command or a relevant section of the manual is given below.
 
 The following tables list the supported names, their data types, length

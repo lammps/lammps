@@ -120,9 +120,9 @@ Executing LAMMPS commands
 =========================
 
 Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
-simulation by telling LAMMPS to read commands from a file, or pass
+simulation by telling LAMMPS to read commands from a file or to pass
 individual or multiple commands from strings or lists of strings.  This
-is done similar to how it is implemented in the `C-library
+is done similarly to how it is implemented in the `C-library
 <pg_lib_execute>` interface. Before handing off the calls to the
 C-library interface, the corresponding Fortran versions of the calls
 (:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
@@ -178,23 +178,23 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    class instance that any of the included calls are forwarded to.
 
    :f c_ptr handle: reference to the LAMMPS class
-   :f close: :f:func:`close`
-   :f version: :f:func:`version`
-   :f file: :f:func:`file`
-   :f command: :f:func:`command`
-   :f commands_list: :f:func:`commands_list`
-   :f commands_string: :f:func:`commands_string`
-   :f get_natoms: :f:func:`get_natoms`
-   :f get_thermo: :f:func:`get_thermo`
-   :f extract_box: :f:func:`extract_box`
-   :f reset_box: :f:func:`reset_box`
-   :f memory_usage: :f:func:`memory_usage`
-   :f extract_setting: :f:func:`extract_setting`
-   :f extract_global: :f:func:`extract_global`
+   :f subroutine close: :f:func:`close`
+   :f function version: :f:func:`version`
+   :f subroutine file: :f:func:`file`
+   :f subroutine command: :f:func:`command`
+   :f subroutine commands_list: :f:func:`commands_list`
+   :f subroutine commands_string: :f:func:`commands_string`
+   :f function get_natoms: :f:func:`get_natoms`
+   :f function get_thermo: :f:func:`get_thermo`
+   :f subroutine extract_box: :f:func:`extract_box`
+   :f subroutine reset_box: :f:func:`reset_box`
+   :f subroutine memory_usage: :f:func:`memory_usage`
+   :f function extract_setting: :f:func:`extract_setting`
+   :f function extract_global: :f:func:`extract_global`
 
 --------
 
-.. f:function:: lammps(args[,comm])
+.. f:function:: lammps([args][,comm])
 
    This is the constructor for the Fortran class and will forward
    the arguments to a call to either :cpp:func:`lammps_open_fortran`
@@ -207,7 +207,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
 
-   :p character(len=*) args(*) [optional]: arguments as list of strings
+   :o character(len=*) args(*) [optional]: arguments as list of strings
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
 
@@ -306,25 +306,39 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
-.. f:subroutine:: extract_box(boxlo, boxhi, xy, yz, xz, pflags, boxflag)
+.. f:subroutine:: extract_box([boxlo][, boxhi][, xy][, yz][, xz][, pflag]s[, boxflag])
 
    This subroutine will call :cpp:func:`lammps_extract_box`. All parameters
    are optional, though obviously at least one should be present. The
    parameters *pflags* and *boxflag* are stored in LAMMPS as integers, but
    should be declared as ``LOGICAL`` variables when calling from Fortran.
  
-   :p real(c_double) boxlo [dimension(3),optional]: vector in which to store
+   :o real(c_double) boxlo [dimension(3),optional]: vector in which to store
     lower-bounds of simulation box
-   :p real(c_double) boxhi [dimension(3),optional]: vector in which to store
+   :o real(c_double) boxhi [dimension(3),optional]: vector in which to store
     upper-bounds of simulation box
-   :p real(c_double) xy [optional]: variable in which to store *xy* tilt factor
-   :p real(c_double) yz [optional]: variable in which to store *yz* tilt factor
-   :p real(c_double) xz [optional]: variable in which to store *xz* tilt factor
-   :p logical pflags [dimension(3),optional]: vector in which to store
+   :o real(c_double) xy [optional]: variable in which to store *xy* tilt factor
+   :o real(c_double) yz [optional]: variable in which to store *yz* tilt factor
+   :o real(c_double) xz [optional]: variable in which to store *xz* tilt factor
+   :o logical pflags [dimension(3),optional]: vector in which to store
     periodicity flags (``.TRUE.`` means periodic in that dimension)
-   :p logical boxflag [optional]: variable in which to store boolean denoting
+   :o logical boxflag [optional]: variable in which to store boolean denoting
     whether the box will change during a simulation
     (``.TRUE.`` means box will change)
+
+.. note::
+
+   Note that a frequent use case of this function is to extract only one or
+   more of the options rather than all seven. For example, assuming "lmp"
+   represents a properly-initalized LAMMPS instance, the following code will
+   extract the periodic box settings into the variable "periodic":
+
+   .. code-block:: Fortran
+
+      ! code to start up
+      logical :: periodic(3)
+      ! code to initialize LAMMPS / run things / etc.
+      call lmp%extract_box(pflags = periodic)
 
 --------
 
@@ -409,8 +423,7 @@ Procedures Bound to the lammps Derived Type
    correct data type to point to said data (typically INTEGER(c_int),
    INTEGER(c_int64_t), or REAL(c_double)) and have appropriate rank.
    The pointer being associated with LAMMPS data is type- and rank-checked at
-   run-time.
-   want via an overloaded assignment operator. For example,
+   run-time want via an overloaded assignment operator. For example,
 
    .. code-block:: fortran
 
@@ -443,14 +456,14 @@ Procedures Bound to the lammps Derived Type
    are padded with spaces at the end.
 
    :p character(len=*) name: string with the name of the extracted property
-   :r polymorphic: the left-hand side of the assignment should be either a
-   string (if expecting string data) or a C-interoperable pointer to the
-   extracted property. If expecting vector data, the pointer should have
-   dimension ":".
+   :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
+    should be either a string (if expecting string data) or a C-interoperable
+    pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted
+    property. If expecting vector data, the pointer should have dimension ":".
 
 .. note::
 
    Functions such as extract_global and extract_atom actually return a
-   derived type, and an overloaded operator tells the compiler how to pull the
-   data out of that derived type when the assignment is made. The user need
-   not worry about these implementation details.
+   derived type, and an overloaded operator tells the compiler how to
+   associate the pointer with the relevant data when the assignment is made.
+   The user need not worry about these implementation details.

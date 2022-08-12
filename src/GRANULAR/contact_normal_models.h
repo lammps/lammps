@@ -108,7 +108,7 @@ class NormalJKR: public NormalModel {
   void set_knfac();
   void set_fncrit();
  private:
-  double k, cohesion;
+  double cohesion;
   double Escaled, F_pulloff;
 };
 

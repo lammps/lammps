@@ -38,7 +38,6 @@ enum{SAMPLE,ALL};
 enum{NOSCALE,ATOM};
 enum{ONE,RUNNING,WINDOW};
 
-
 /* ---------------------------------------------------------------------- */
 
 FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :

@@ -169,6 +169,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
+  /*
   normflag = ALL;
   scaleflag = ATOM;
   ave = ONE;
@@ -204,6 +205,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
     } else error->all(FLERR,"Illegal fix ave/grid command");
   }
+  */
 
   // if wildcard expansion occurred, free earg memory from exapnd_args()
 
@@ -449,7 +451,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                               "ave/grid:vec3d");
   }
 
-  // zero the grid since dump may access it on timestep 0
+  // zero the grid and counts since dump may access it on timestep 0
 
   zero_grid();
 
@@ -607,25 +609,11 @@ void FixAveGrid::end_of_step()
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
-  // zero owned and ghost grid points if first step
-  // zero atom count per bin for ATOM mode
-  // NOTE: when should counts be zeroed
-  // NOTE: is anything normalized by count ?
-  // NOTE: can count be output ?
+  // zero owned and ghost grid points and counts if first sample in epoch
 
   if (irepeat == 0) zero_grid();
 
-  if (modeatom) {
-    if (dimension == 2) {
-      if (ngridout) memset(&count2d[nylo_out][nxlo_out],0,
-                           ngridout*sizeof(double));
-    } else {
-      if (ngridout) memset(&count3d[nzlo_out][nylo_out][nxlo_out],0,
-                           ngridout*sizeof(double));
-    }
-  }
-
-  // set local per-grid values for either ATOM or GRID mode
+  // accumulate per-grid values for one sample for either ATOM or GRID mode
   // per-atom compute/fix/variable may invoke computes so wrap with clear/add
 
   if (modeatom) {
@@ -649,15 +637,15 @@ void FixAveGrid::end_of_step()
   nvalid = ntimestep+pergrid_freq - ((bigint) nrepeat-1)*nevery;
   if (modeatom) modify->addstep_compute(nvalid);
 
-  // ghost to owned grid communication for atom mode
-  // NOTE: still need to implement pack/unpack methods, for count as well?
+  // for ATOM mode, perform ghost to owned grid communication
+  // nvalues + 1 more for atom count
 
   if (modeatom) {
     if (dimension == 2) 
-      grid2d->reverse_comm(Grid2d::FIX,this,1,sizeof(double),0,
+      grid2d->reverse_comm(Grid2d::FIX,this,nvalues+1,sizeof(double),0,
                            grid_buf1,grid_buf2,MPI_DOUBLE);
     else 
-      grid3d->reverse_comm(Grid3d::FIX,this,1,sizeof(double),0,
+      grid3d->reverse_comm(Grid3d::FIX,this,nvalues+1,sizeof(double),0,
                            grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 
@@ -665,47 +653,91 @@ void FixAveGrid::end_of_step()
   
   if (ngridout == 0) return;
   
-  // average the final result for the Nfreq timestep
-  // just loop over owned grid points
-  
-  double invrepeat = 1.0/nrepeat;
+  // average the final results for the Nfreq output
+  // for ATOM mode, divide total values by total count
+  // for GRID mode, divide total values by # of samples
 
-  if (dimension == 2) {
-    if (nvalues == 1) {
-      for (iy = nylo_in; iy <= nyhi_in; iy++)
-	for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	  vec2d[iy][ix] *= invrepeat;
+  if (modeatom) {
+    double count,invcount;
+
+    if (dimension == 2) {
+      if (nvalues == 1) {
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+            count = count2d[iy][ix];
+            if (count) {
+              vec2d[iy][ix] /= count;
+              count2d[iy][iz] /= nrepeat;
+            }
+          }
+      } else {
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+            count = count2d[iy][ix];
+            if (count) {
+              invcount = 1.0/count;
+              for (m = 0; m <= nvalues; m++)
+                array2d[iy][ix][m] *= invcount;
+              count2d[iy][iz] /= nrepeat;
+            }
+          }
+      }
     } else {
-      for (iy = nylo_in; iy <= nyhi_in; iy++)
-	for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	  for (m = 0; m <= nvalues; m++)
-	    array2d[iy][ix][m] *= invrepeat;
-    }
-  } else {
-    if (nvalues == 1) {
-      for (iz = nzlo_in; iz <= nzhi_in; iz++)
-	for (iy = nylo_in; iy <= nyhi_in; iy++)
-	  for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	    vec3d[iz][iy][ix] *= invrepeat;
-    } else {
-      for (iz = nzlo_in; iz <= nzhi_in; iz++)
-	for (iy = nylo_in; iy <= nyhi_in; iy++)
-	  for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	    for (m = 0; m <= nvalues; m++)
-	    array3d[iz][iy][ix][m] *= invrepeat;
+      if (nvalues == 1) {
+        for (iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (iy = nylo_in; iy <= nyhi_in; iy++)
+            for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+              count = count3d[iz][iy][ix];
+              if (count) {
+                vec3d[iz][iy][ix] /= count;
+                count3d[iz][iy][iz] /= nrepeat;
+              }
+            }
+      } else {
+        for (iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (iy = nylo_in; iy <= nyhi_in; iy++)
+            for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+              count = count3d[iz][iy][ix];
+              if (count) {
+                invcount = 1.0/count;
+                for (m = 0; m <= nvalues; m++)
+                  array3d[iz][iy][ix][m] *= invcount;
+                count3d[iz][iy][iz] /= nrepeat;
+              }
+            }
+      }
     }
   }
-}
 
-/* ----------------------------------------------------------------------
-   subset of grid assigned to each proc may have changed
-   called by load balancer when proc subdomains are adjusted
-   not supported for now, b/c requires per-grid values to persist, i.e. a remap()
-------------------------------------------------------------------------- */
+  if (modegrid) {
+    double invrepeat = 1.0/nrepeat;
 
-void FixAveGrid::reset_grid()
-{
-  error->all(FLERR,"Fix ave/grid does not support load balancing (yet)");
+    if (dimension == 2) {
+      if (nvalues == 1) {
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++)
+            vec2d[iy][ix] *= invrepeat;
+      } else {
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++)
+            for (m = 0; m <= nvalues; m++)
+              array2d[iy][ix][m] *= invrepeat;
+      }
+    } else {
+      if (nvalues == 1) {
+        for (iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (iy = nylo_in; iy <= nyhi_in; iy++)
+            for (ix = nxlo_in; ix <= nxhi_in; ix++)
+              vec3d[iz][iy][ix] *= invrepeat;
+      } else {
+        for (iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (iy = nylo_in; iy <= nyhi_in; iy++)
+            for (ix = nxlo_in; ix <= nxhi_in; ix++)
+              for (m = 0; m <= nvalues; m++)
+	    array3d[iz][iy][ix][m] *= invrepeat;
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1021,28 +1053,118 @@ void FixAveGrid::grid2grid()
 
 /* ----------------------------------------------------------------------
    zero grid values incluing ghost cells
+   if ATOM mode, also zero per-cell counts
 ------------------------------------------------------------------------- */
 
 void FixAveGrid::zero_grid()
 {
+  if (!ngridout) return;
+
   if (dimension == 2) {
-    if (nvalues == 1) {
-      if (ngridout) memset(&vec2d[nylo_out][nxlo_out],0,
-                           ngridout*sizeof(double));
-    } else {
-      if (ngridout) memset(&array2d[nylo_out][nxlo_out][0],0,
-                           ngridout*nvalues*sizeof(double));
+    if (nvalues == 1)
+      memset(&vec2d[nylo_out][nxlo_out],0, ngridout*sizeof(double));
+    else
+      memset(&array2d[nylo_out][nxlo_out][0],0,ngridout*nvalues*sizeof(double));
+    if (modeatom) 
+      memset(&count2d[nylo_out][nxlo_out],0,ngridout*sizeof(double));
+  } else {
+    if (nvalues == 1)
+      memset(&vec3d[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double)); 
+    else
+      memset(&array3d[nzlo_out][nylo_out][nxlo_out][0],0,
+             ngridout*nvalues*sizeof(double));
+    if (modeatom)
+      memset(&count3d[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack ghost values into buf to send to another proc
+   nvalues per grid point + count
+------------------------------------------------------------------------- */
+
+void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+{
+  int i,j,m;
+
+  auto buf = (double *) vbuf;
+  double *count,*data,*values;
+  m = 0;
+
+  if (dimension == 2) {
+    count = &count2d[nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec2d[nylo_out][nxlo_out];
+    else data = &array2d[nylo_out][nxlo_out][0];
+  } else if (dimension == 3) {
+    count = &count3d[nzlo_out][nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec3d[nzlo_out][nylo_out][nxlo_out];
+    else data = &array3d[nzlo_out][nylo_out][nxlo_out][0];
+  }
+
+  if (nvalues == 1) {
+    for (i = 0; i < nlist; i++) {
+      buf[m++] = count[list[i]];
+      buf[m++] = data[list[i]];
     }
   } else {
-    if (nvalues == 1) {
-      if (ngridout) memset(&vec3d[nzlo_out][nylo_out][nxlo_out],0,
-                           ngridout*sizeof(double)); 
-    } else {
-      if (ngridout) memset(&array3d[nzlo_out][nylo_out][nxlo_out][0],0,
-                           ngridout*nvalues*sizeof(double));
+    for (i = 0; i < nlist; i++) {
+      buf[m++] = count[list[i]];
+      values = &data[nvalues*list[i]];
+      for (j = 0; j <= nvalues; j++)
+        buf[m++] = values[j];
     }
   }
 }
+
+/* ----------------------------------------------------------------------
+   unpack another proc's ghost values from buf and add to own values
+   nvalues per grid point + count
+------------------------------------------------------------------------- */
+
+void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+{
+  int i,j,m;
+
+  auto buf = (double *) vbuf;
+  double *count,*data,*values;
+  m = 0;
+
+  if (dimension == 2) {
+    count = &count2d[nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec2d[nylo_out][nxlo_out];
+    else data = &array2d[nylo_out][nxlo_out][0];
+  } else if (dimension == 3) {
+    count = &count3d[nzlo_out][nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec3d[nzlo_out][nylo_out][nxlo_out];
+    else data = &array3d[nzlo_out][nylo_out][nxlo_out][0];
+  }
+
+  if (nvalues == 1) {
+    for (i = 0; i < nlist; i++) {
+      count[list[i]] += buf[m++];
+      data[list[i]] += buf[m++];
+    }
+  } else {
+    for (i = 0; i < nlist; i++) {
+      count[list[i]] = buf[m++];
+      values = &data[nvalues*list[i]];
+      for (j = 0; j <= nvalues; j++)
+        values[j] = buf[m++];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   subset of grid assigned to each proc may have changed
+   called by load balancer when proc subdomains are adjusted
+   not supported for now, b/c requires per-grid values to persist, i.e. a remap()
+------------------------------------------------------------------------- */
+
+void FixAveGrid::reset_grid()
+{
+  error->all(FLERR,"Fix ave/grid does not support load balancing (yet)");
+}
+
 
 /* ----------------------------------------------------------------------
    return index of grid associated with name
@@ -1094,7 +1216,10 @@ int FixAveGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
     else ncol = nvalues;
     return 0;
   }
-  if (igrid == 0 && strcmp(name,"count") == 0) {
+
+  // count is only produced for ATOM mode
+
+  if (modeatom && igrid == 0 && strcmp(name,"count") == 0) {
     ncol = 0;
     return 1;
   }
@@ -1129,12 +1254,12 @@ void *FixAveGrid::get_griddata_by_index(int index)
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array
-   NOTE: add more memory tallying
 ------------------------------------------------------------------------- */
 
 double FixAveGrid::memory_usage()
 {
-  double bytes = (double) ngridout * nvalues * sizeof(double);
+  double bytes = (double) ngridout * nvalues * sizeof(double); // vec/array 2d/3d
+  if (modeatom) bytes += (double) ngridout * sizeof(double);   // count2d/3d
   return bytes;
 }
 

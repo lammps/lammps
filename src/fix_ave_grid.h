@@ -33,12 +33,16 @@ class FixAveGrid : public Fix {
   void setup(int) override;
   void end_of_step() override;
 
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
+
   void reset_grid() override;
 
   int get_grid_by_name(char *, int &) override;
   void *get_grid_by_index(int) override;
   int get_griddata_by_name(int, char *, int &) override;
   void *get_griddata_by_index(int) override;
+
   double memory_usage() override;
 
  private:

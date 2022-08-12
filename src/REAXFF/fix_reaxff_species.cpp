@@ -26,6 +26,7 @@
 #include "error.h"
 #include "fix_ave_atom.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -395,9 +396,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   Nmole = Nspec = 0;
 
   FindMolecule();
-
   SortMolecule(Nmole);
-
   FindSpecies(Nmole, Nspec);
 
   vector_nmole = Nmole;
@@ -522,16 +521,21 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
     hi = MAX(hi, nint(clusterID[n]));
   }
   int flagall;
-  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-  if (flagall && me == 0)
-    error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group");
   MPI_Allreduce(&lo, &idlo, 1, MPI_INT, MPI_MIN, world);
   MPI_Allreduce(&hi, &idhi, 1, MPI_INT, MPI_MAX, world);
+  int nlen = idhi - idlo + 1;
+  if (nlen <= 0) {  // no atoms in group
+    Nmole = 0;
+    return;
+  }
   if (idlo == ntotal)
     if (me == 0)
-      error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group");
+      error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group {}",group->names[igroup]);
 
-  int nlen = idhi - idlo + 1;
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+  if (flagall && me == 0)
+    error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group {}", group->names[igroup]);
+
   memory->create(molmap, nlen, "reaxff/species:molmap");
   for (n = 0; n < nlen; n++) molmap[n] = 0;
 

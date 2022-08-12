@@ -47,7 +47,7 @@ using namespace MathExtra;
 #define SWITCH 1.0e-6
 #define RHOMIN 10.0
 
-#define QUADRATURE 100
+#define QUADRATURE 10
 #define BISECTION_STEPS 1000000
 #define BISECTION_EPS 1.0e-15
 
@@ -2224,32 +2224,6 @@ void PairMesoCNT::gl_init_nodes()
     gl_nodes[k_end + root] = c;
     gl_nodes[k_end - root - k_offset] = -c;
     root++;
-
-    /*
-    for (int j = 0; j < BISECTION; j++) {
-      double a = j * bisection_length - 1.0;
-      double b = a + bisection_length;
-      double c;
-
-      // perform bisection if root is between a and b
-
-      int iter = 0;
-
-      if (legendre(QUADRATURE, a) * legendre(QUADRATURE, b) <= 0) {
-        do {
-          c = 0.5 * (a + b);
-          if (legendre(QUADRATURE, c) == 0.0) break;
-          if (legendre(QUADRATURE, a) * legendre(QUADRATURE, c) < 0)
-            b = c;
-          else
-            a = c;
-          iter++;
-        } while (fabs(a - b) >= BISECTION_EPS && iter <= BISECTION_STEPS);
-
-        gl_nodes[root++] = c;
-      }
-    }
-    */
   }
 }
 

@@ -382,6 +382,7 @@ void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond,
         if (i < nlocal) energy += eanglefourth;
         if (j < nlocal) energy += eanglefourth;
         if (k < nlocal) energy += eanglefourth;
+        if (m < nlocal) energy += eanglefourth;
       }
     }
     if (eflag_atom) {

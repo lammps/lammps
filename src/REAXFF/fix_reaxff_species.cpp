@@ -68,6 +68,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   nrepeat = utils::inumeric(FLERR, arg[4], false, lmp);
   global_freq = nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
+  if (nrepeat == 1) dynamic_group_allow = 1;
 
   comm_forward = 4;
 

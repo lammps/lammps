@@ -213,7 +213,7 @@ MODULE LIBLAMMPS
         IMPORT :: c_ptr, c_int
         IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
-        INTEGER c_int) :: lammps_get_mpi_comm
+        INTEGER(c_int) :: lammps_get_mpi_comm
       END FUNCTION lammps_get_mpi_comm
 
       FUNCTION lammps_extract_setting(handle,keyword) BIND(C)

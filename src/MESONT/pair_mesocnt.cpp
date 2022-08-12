@@ -35,6 +35,7 @@
 #include <cstring>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,8 +45,11 @@ using namespace MathExtra;
 #define SELF_CUTOFF 3
 #define SMALL 1.0e-6
 #define SWITCH 1.0e-6
-#define QUADRATURE 10
 #define RHOMIN 10.0
+
+#define QUADRATURE 100
+#define BISECTION_STEPS 1000000
+#define BISECTION_EPS 1.0e-15
 
 /* ---------------------------------------------------------------------- */
 
@@ -100,6 +104,9 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(flocal);
     memory->destroy(fglobal);
     memory->destroy(basis);
+
+    memory->destroy(gl_nodes);
+    memory->destroy(gl_weights);
   }
 }
 
@@ -673,6 +680,9 @@ void PairMesoCNT::allocate()
   memory->create(flocal, 2, 3, "pair:flocal");
   memory->create(fglobal, 4, 3, "pair:fglobal");
   memory->create(basis, 3, 3, "pair:basis");
+
+  memory->create(gl_nodes, QUADRATURE, "pair:gl_nodes");
+  memory->create(gl_weights, QUADRATURE, "pair:gl_weights");
 }
 
 /* ----------------------------------------------------------------------
@@ -756,6 +766,10 @@ void PairMesoCNT::coeff(int narg, char **arg)
   memory->destroy(gamma_data);
   memory->destroy(phi_data);
   memory->destroy(usemi_data);
+
+  // compute Gauss-Legendre quadrature nodes and weights
+  gl_init_nodes();
+  gl_init_weights();
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++)
@@ -2144,4 +2158,112 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double &fend, double
   evdwl = ubar * eunit;
 
   fend = theta * jxi * funit;
+}
+
+/* ----------------------------------------------------------------------
+   n-th Legendre polynomial
+------------------------------------------------------------------------- */
+
+double PairMesoCNT::legendre(int n, double x) 
+{
+  if (n == 0) return 1.0;
+  if (n == 1) return x;
+
+  std::vector<double> lcache(n + 1, 0.0);
+  lcache[0] = 1.0;
+  lcache[1] = x;
+
+  for (int i = 2; i <= n; i++)
+    lcache[i] = ((2 * i - 1) * x * lcache[i - 1] - (i - 1) * lcache[i - 2]) / i;
+
+  return lcache[n];
+}
+
+
+/* ----------------------------------------------------------------------
+   find all roots of Legendre polynomial
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::gl_init_nodes()
+{
+  int k_start, k_end, k_offset;
+  if (QUADRATURE % 2) {
+    k_start = 1;
+    k_end = (QUADRATURE - 1) / 2 + 1;
+    k_offset = 2;
+    gl_nodes[k_end - 1] = 0.0;
+  }
+  else {
+    k_start = 0;
+    k_end = QUADRATURE / 2;
+    k_offset = 1;
+  }
+
+  int root = 0;
+  for (int k = k_start; k < k_end; k++) {
+
+    double theta = (ceil(0.5 * QUADRATURE) - 0.25 - k) * MY_PI / (QUADRATURE + 0.5);
+    double a = cos((ceil(0.5 * QUADRATURE) - k) * MY_PI / (QUADRATURE + 1.0));
+    double b = cos(theta);
+    double c;
+
+    // perform bisection
+
+    int iter = 0;
+
+    do {
+      c = 0.5 * (a + b);
+      if (legendre(QUADRATURE, c) == 0.0) break;
+      if (legendre(QUADRATURE, a) * legendre(QUADRATURE, c) < 0)
+        b = c;
+      else
+        a = c;
+      iter++;
+    } while (fabs(a - b) >= BISECTION_EPS && iter <= BISECTION_STEPS);
+
+    gl_nodes[k_end + root] = c;
+    gl_nodes[k_end - root - k_offset] = -c;
+    root++;
+
+    /*
+    for (int j = 0; j < BISECTION; j++) {
+      double a = j * bisection_length - 1.0;
+      double b = a + bisection_length;
+      double c;
+
+      // perform bisection if root is between a and b
+
+      int iter = 0;
+
+      if (legendre(QUADRATURE, a) * legendre(QUADRATURE, b) <= 0) {
+        do {
+          c = 0.5 * (a + b);
+          if (legendre(QUADRATURE, c) == 0.0) break;
+          if (legendre(QUADRATURE, a) * legendre(QUADRATURE, c) < 0)
+            b = c;
+          else
+            a = c;
+          iter++;
+        } while (fabs(a - b) >= BISECTION_EPS && iter <= BISECTION_STEPS);
+
+        gl_nodes[root++] = c;
+      }
+    }
+    */
+  }
+}
+
+
+/* ----------------------------------------------------------------------
+   find all Gauss-Legendre quadrature weights
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::gl_init_weights()
+{
+  for (int i = 0; i < QUADRATURE; i++) {
+    double x = gl_nodes[i];
+    double dlegendre = QUADRATURE * (x * legendre(QUADRATURE, x) - legendre(QUADRATURE - 1, x)) / (x * x - 1.0);
+
+    gl_weights[i] = 2.0 / ((1.0 - x*x) * dlegendre * dlegendre);
+  }
 }

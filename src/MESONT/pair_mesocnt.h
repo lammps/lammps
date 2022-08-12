@@ -56,6 +56,7 @@ class PairMesoCNT : public Pair {
   double *param, *w, *wnode;
   double **dq_w;
   double ***q1_dq_w, ***q2_dq_w;
+  double *gl_nodes, *gl_weights;
   double *uinf_data, *gamma_data, **phi_data, **usemi_data;
   double **uinf_coeff, **gamma_coeff, ****phi_coeff, ****usemi_coeff;
   double **flocal, **fglobal, **basis;
@@ -77,6 +78,12 @@ class PairMesoCNT : public Pair {
 
   void finf(const double *, double &, double **);
   void fsemi(const double *, double &, double &, double **);
+
+  // Legendre-Gauss integration
+  
+  double legendre(int, double);
+  void gl_init_nodes();
+  void gl_init_weights();
 
   // inlined functions for efficiency
 

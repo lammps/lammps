@@ -31,29 +31,11 @@ MODULE LIBLAMMPS
 
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_loc, &
       c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, c_f_pointer
+  USE, INTRINSIC :: ISO_Fortran_env, ONLY : ERROR_UNIT, OUTPUT_UNIT ! FIXME
 
   IMPLICIT NONE
   PRIVATE
-  PUBLIC :: lammps
-
-!  ! These are public-interface constants that have the same purpose as the
-!  ! constants in library.h, except that their types match the type of the
-!  ! constant in question. Their purpose is to specify the type of the
-!  ! return value without something akin to a C/C++ type cast
-!  INTEGER (c_int), PUBLIC, PARAMETER :: LMP_INT = 0_c_int
-!  INTEGER (c_int), PUBLIC, DIMENSION(3), PARAMETER :: LMP_INT_1D = 0_c_int
-!  INTEGER (c_int), PUBLIC, DIMENSION(3,3), PARAMETER :: LMP_INT_2D = 1_c_int
-!  REAL (c_double), PUBLIC, PARAMETER :: LMP_DOUBLE = 2.0_c_double
-!  REAL (c_double), PUBLIC, DIMENSION(3), PARAMETER :: &
-!    LMP_DOUBLE_1D = 2.0_c_double
-!  REAL (c_double), PUBLIC, DIMENSION(3,3), PARAMETER :: &
-!    LMP_DOUBLE_2D = 3.0_c_double
-!  INTEGER (c_int64_t), PUBLIC, PARAMETER :: LMP_INT64 = 4_c_int64_t
-!  INTEGER (c_int64_t), PUBLIC, DIMENSION(3), PARAMETER :: &
-!    LMP_INT64_1D = 4_c_int64_t
-!  INTEGER (c_int64_t), PUBLIC, DIMENSION(3,3), PARAMETER :: &
-!    LMP_INT64_2D = 5_c_int64_t
-!  CHARACTER(LEN=*), PUBLIC, PARAMETER :: LMP_STRING = 'six'
+  PUBLIC :: lammps, ASSIGNMENT(=)
 
   ! Data type constants for extracting data from global, atom, compute, and fix
   !
@@ -62,7 +44,7 @@ MODULE LIBLAMMPS
   !
   ! NOT part of the API (the part the user sees)
   INTEGER (c_int), PARAMETER :: &
-    LAMMPS_INT = 0_c_int, &    ! 32-bit integer (array)
+    LAMMPS_INT = 0, &    ! 32-bit integer (array)
     LAMMPS_INT_2D = 1, &    ! two-dimensional 32-bit integer array
     LAMMPS_DOUBLE = 2, &    ! 64-bit double (array)
     LAMMPS_DOUBLE_2D = 3, & ! two-dimensional 64-bit double array
@@ -85,23 +67,40 @@ MODULE LIBLAMMPS
       PROCEDURE :: memory_usage       => lmp_memory_usage
       PROCEDURE :: get_mpi_comm       => lmp_get_mpi_comm
       PROCEDURE :: extract_setting    => lmp_extract_setting
-!      PROCEDURE :: extract_global     => lmp_extract_global
-!      PROCEDURE, PRIVATE :: lmp_extract_global_int
-!      PROCEDURE, PRIVATE :: lmp_extract_global_int64_t
-!      PROCEDURE, PRIVATE :: lmp_extract_global_double
-!      PROCEDURE, PRIVATE :: lmp_extract_global_str
-!      GENERIC :: extract_global       => lmp_extract_global_int, &
-!        lmp_extract_global_int64_t, lmp_extract_global_double, &
-!        lmp_extract_global_str
-!      PROCEDURE, PRIVATE :: lmp_extract_global_scalar
-!      !PROCEDURE, PRIVATE :: lmp_extract_global_string
-!      GENERIC :: extract_global       => lmp_extract_global_scalar
+      PROCEDURE :: extract_global     => lmp_extract_global
       PROCEDURE :: version            => lmp_version
   END TYPE lammps
 
   INTERFACE lammps
       MODULE PROCEDURE lmp_open
   END INTERFACE lammps
+
+  ! Constants to use in working with lammps_data
+  ENUM, BIND(C)
+    ENUMERATOR :: DATA_INT, DATA_INT_1D, DATA_INT_2D
+    ENUMERATOR :: DATA_INT64, DATA_INT64_1D, DATA_INT64_2D
+    ENUMERATOR :: DATA_DOUBLE, DATA_DOUBLE_1D, DATA_DOUBLE_2D
+    ENUMERATOR :: DATA_STRING
+  END ENUM
+  ! Derived type for receiving LAMMPS data (in lieu of the ability to type cast
+  ! pointers)
+
+  TYPE lammps_data
+    INTEGER(c_int) :: datatype
+    INTEGER(c_int), POINTER :: i32
+    INTEGER(c_int), DIMENSION(:), POINTER :: i32_vec
+    INTEGER(c_int64_t), POINTER :: i64
+    INTEGER(c_int64_t), DIMENSION(:), POINTER :: i64_vec
+    REAL(c_double), POINTER :: r64
+    REAL(c_double), DIMENSION(:), POINTER :: r64_vec
+    CHARACTER(LEN=:), ALLOCATABLE :: str
+  END TYPE lammps_data
+
+  INTERFACE ASSIGNMENT(=)
+    MODULE PROCEDURE assign_int_to_lammps_data, assign_int64_to_lammps_data, &
+      assign_double_to_lammps_data, assign_doublevec_to_lammps_data, &
+      assign_string_to_lammps_data
+  END INTERFACE
 
   ! interface definitions for calling functions in library.cpp
   INTERFACE
@@ -544,6 +543,78 @@ CONTAINS
 !  END FUNCTION lmp_extract_global_datatype
 
   ! equivalent function to lammps_extract_global
+  ! the assignment is actually overloaded so as to bind the pointers to
+  ! lammps data based on the information available from LAMMPS
+  FUNCTION lmp_extract_global (self, name) result(global_data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    TYPE(lammps_data) :: global_data
+
+    INTEGER(c_int) :: datatype
+    TYPE(c_ptr) :: Cname, Cptr
+    INTEGER(c_size_t) :: length, i
+    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Fptr
+
+    ! Determine vector length
+    ! FIXME Is there a way to get the length of the vector from C rather
+    ! than defining it here AND in the Python API?
+    SELECT CASE (name)
+      CASE ('boxlo','boxhi','sublo','subhi','sublo_lambda','subhi_lambda', &
+            'periodicity')
+        length = 3
+      CASE DEFAULT
+        length = 1
+      ! string cases are overridden later
+    END SELECT
+
+    Cname = f2c_string(name)
+    datatype = lammps_extract_global_datatype(self%handle, Cname)
+      ! above could be c_null_ptr in place of self%handle...doesn't matter
+    Cptr = lammps_extract_global(self%handle, Cname)
+    CALL lammps_free(Cname)
+
+    SELECT CASE (datatype)
+      CASE (LAMMPS_INT)
+        IF ( length == 1 ) THEN
+          global_data%datatype = DATA_INT
+          CALL C_F_POINTER(Cptr, global_data%i32)
+        ELSE
+          global_data%datatype = DATA_INT_1D
+          CALL C_F_POINTER(Cptr, global_data%i32_vec, [length])
+        END IF
+      CASE (LAMMPS_INT64)
+        IF ( length == 1 ) THEN
+          global_data%datatype = DATA_INT64
+          CALL C_F_POINTER(Cptr, global_data%i64)
+        ELSE
+          global_data%datatype = DATA_INT64_1D
+          CALL C_F_POINTER(Cptr, global_data%i64_vec, [length])
+        END IF
+      CASE (LAMMPS_DOUBLE)
+        IF ( length == 1 ) THEN
+          global_data%datatype = DATA_DOUBLE
+          CALL C_F_POINTER(Cptr, global_data%r64)
+        ELSE
+          global_data%datatype = DATA_DOUBLE_1D
+          CALL C_F_POINTER(Cptr, global_data%r64_vec, [length])
+        END IF
+      CASE (LAMMPS_STRING)
+        global_data%datatype = DATA_STRING
+        length = c_strlen(Cptr)
+        CALL C_F_POINTER(Cptr, Fptr, [length])
+        ALLOCATE ( CHARACTER(LEN=length) :: global_data%str )
+        FORALL ( I=1:length )
+          global_data%str(i:i) = Fptr(i)
+        END FORALL
+      CASE DEFAULT
+        WRITE(ERROR_UNIT,'(A)') 'ERROR: Unknown pointer type in&
+          & extract_global'
+        STOP
+    END SELECT
+
+  END FUNCTION
+
+  ! equivalent function to lammps_extract_global
   ! the return value should be automatically returned and assigned correctly
   ! based on the information available from LAMMPS
 !  SUBROUTINE lmp_extract_global_scalar (self, global_data, name)
@@ -733,12 +804,76 @@ CONTAINS
   END FUNCTION lmp_version
 
   ! ----------------------------------------------------------------------
+  ! functions to assign user-space pointers to LAMMPS data
+  ! ----------------------------------------------------------------------
+  SUBROUTINE assign_int_to_lammps_data (lhs, rhs)
+    INTEGER(c_int), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_INT ) THEN
+      lhs => rhs%i32
+    ELSE
+      WRITE(ERROR_UNIT,'(A)') 'ERROR: Data types incompatible in assignment'
+      STOP
+    END IF
+  END SUBROUTINE assign_int_to_lammps_data
+
+  SUBROUTINE assign_int64_to_lammps_data (lhs, rhs)
+    INTEGER(c_int64_t), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_INT64 ) THEN
+      lhs => rhs%i64
+    ELSE
+      WRITE(ERROR_UNIT,'(A)') 'ERROR: Data types incompatible in assignment'
+      STOP
+    END IF
+  END SUBROUTINE assign_int64_to_lammps_data
+
+  SUBROUTINE assign_double_to_lammps_data (lhs, rhs)
+    REAL(c_double), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE ) THEN
+      lhs => rhs%r64
+    ELSE
+      WRITE(ERROR_UNIT,'(A)') 'ERROR: Data types incompatible in assignment'
+      STOP
+    END IF
+  END SUBROUTINE assign_double_to_lammps_data
+
+  SUBROUTINE assign_doublevec_to_lammps_data (lhs, rhs)
+    REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
+      lhs => rhs%r64_vec
+    ELSE
+      WRITE(ERROR_UNIT,'(A)') 'ERROR: Data types incompatible in assignment'
+      STOP
+    END IF
+  END SUBROUTINE assign_doublevec_to_lammps_data
+
+  SUBROUTINE assign_string_to_lammps_data (lhs, rhs)
+    CHARACTER(LEN=*), INTENT(OUT) :: lhs
+    CLASS(lammps_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_STRING ) THEN
+      lhs = rhs%str
+    ELSE
+      WRITE(ERROR_UNIT,'(A)') 'ERROR: Data types incompatible in assignment'
+      STOP
+    END IF
+  END SUBROUTINE assign_string_to_lammps_data
+
+
+  ! ----------------------------------------------------------------------
   ! local helper functions
   ! copy fortran string to zero terminated c string
   ! ----------------------------------------------------------------------
   FUNCTION f2c_string(f_string) RESULT(ptr)
-    CHARACTER (LEN=*), INTENT(IN)           :: f_string
-    CHARACTER (LEN=1, KIND=c_char), POINTER :: c_string(:)
+    CHARACTER(LEN=*), INTENT(IN)           :: f_string
+    CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
     TYPE(c_ptr) :: ptr
     INTEGER(c_size_t) :: i, n
 

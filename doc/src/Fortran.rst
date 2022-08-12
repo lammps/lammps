@@ -229,37 +229,6 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
             lmp = lammps(MPI_COMM_SELF%MPI_VAL)
          END PROGRAM testmpi
 
-Constants Defined by the API
-============================
-
-The following constants are declared by the Fortran API to resolve the
-type/kind/rank signature for return values. These serve the same role as
-``LAMMPS_INT``, ``LAMMPS_DOUBLE``, and similar constants in ``src/library.h``
-and those in ``python/lammps/constants.py`` for the C and Python APIs,
-respectively. Unlike their C and Python bretheren, however, it is the type
-(e.g., ``INTEGER``), kind (e.g., ``C_int``), and rank (e.g., ``DIMENSION(:)``)
-of these constants that is used by the calling routine, rather than their
-numerical values.
-
-:f:LMP_INT: 32-bit integer scalars
-:f:LMP_INT_1D: 32-bit integer vectors
-:f:LMP_INT_2D: 32-bit integer matrices
-:f:LMP_DOUBLE: 64-bit real scalars
-:f:LMP_DOUBLE_1D: 64-bit real vectors
-:f:LMP_DOUBLE_2D: 64-bit real matrices
-:f:LMP_INT64: 64-bit integer scalars
-:f:LMP_INT64_1D: 64-bit integer vectors
-:f:LMP_INT64_2D: 64-bit integer matrices
-
-.. admonition:: Interaction with LAMMPS_BIGBIG and such
-
-   LAMMPS uses different-sized integers to store various entities, such as
-   the number of timesteps or the total number of atoms, depending on certain
-   compiler flags (see the :doc:`size limits <Build_settings_size>`
-   documentation). This API is currently agnostic to these settings, and it
-   is up to the user to know the size of LAMMPS_BIGINT and such and pass
-   LMP_INT or LMP_INT64, as appropriate, for such entities.
-
 Procedures Bound to the lammps Derived Type
 ===========================================
 
@@ -429,17 +398,19 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
-.. f:function:: extract_global(name, dtype)
+.. f:function:: extract_global(name)
 
-   Overloaded function to get internal global LAMMPS data. Note that all
-   currently implemented global types only return scalars or strings; all
-   array-returning entities currently supported use :f:func:`extract_box`.
+   Function to get internal global LAMMPS data.
 
-   Note that type/kind/rank of the *dtype* argument is used to determine
-   whether to return a type correspending to a C int, a C int64_t, or a
-   C double. The type/kind/rank signature of dtype is checked at runtime to
-   match that of the return value; this type of check cannot be performed at
-   compile time. For example,
+   Note that this function actually does not return a value, but rather
+   associates the the pointer on the left-hand side of the assignment to point
+   to internal LAMMPS data (with the exception of string data, which are
+   copied returned as ordinary Fortran strings). Pointers must be of the
+   correct data type to point to said data (typically INTEGER(c_int),
+   INTEGER(c_int64_t), or REAL(c_double)) and have appropriate rank.
+   The pointer being associated with LAMMPS data is type- and rank-checked at
+   run-time.
+   want via an overloaded assignment operator. For example,
 
    .. code-block:: fortran
 
@@ -447,16 +418,16 @@ Procedures Bound to the lammps Derived Type
        USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
        USE LIBLAMMPS
        TYPE(lammps) :: lmp
-       INTEGER(C_int) :: nlocal
-       INTEGER(C_int64_t) :: ntimestep
+       INTEGER(C_int), POINTER :: nlocal
+       INTEGER(C_int64_t), POINTER :: ntimestep
        CHARACTER(LEN=10) :: units
-       REAL(C_double) :: dt
+       REAL(C_double), POINTER :: dt
        lmp = lammps()
        ! other commands
-       nlocal = lmp%extract_global('nlocal', LMP_INT)
-       ntimestep = lmp%extract_global('ntimestep', LMP_INT64)
-       dt = lmp%extract_global('dt', LMP_DOUBLE)
-       units = lmp%extract_global('units', LMP_STRING)
+       nlocal = lmp%extract_global('nlocal')
+       ntimestep = lmp%extract_global('ntimestep')
+       dt = lmp%extract_global('dt')
+       units = lmp%extract_global('units')
        ! more commands
        lmp.close(.TRUE.)
       END PROGRAM demo
@@ -472,6 +443,14 @@ Procedures Bound to the lammps Derived Type
    are padded with spaces at the end.
 
    :p character(len=*) name: string with the name of the extracted property
-   :p polymorphic dtype: one of *LMP_INT*, *LMP_INT64*, *LMP_DOUBLE*, or
-    *LMP_STRING* designating the type/kind/rank of the return value
-   :r polymorphic: value of the extracted property
+   :r polymorphic: the left-hand side of the assignment should be either a
+   string (if expecting string data) or a C-interoperable pointer to the
+   extracted property. If expecting vector data, the pointer should have
+   dimension ":".
+
+.. note::
+
+   Functions such as extract_global and extract_atom actually return a
+   derived type, and an overloaded operator tells the compiler how to pull the
+   data out of that derived type when the assignment is made. The user need
+   not worry about these implementation details.

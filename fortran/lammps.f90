@@ -112,6 +112,7 @@ MODULE LIBLAMMPS
   INTERFACE
       FUNCTION lammps_open(argc, argv, comm) BIND(C,name='lammps_open_fortran')
         IMPORT :: c_ptr, c_int
+        IMPLICIT NONE
         INTEGER(c_int), VALUE, INTENT(IN)     :: argc, comm
         TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: argv
         TYPE(c_ptr)                           :: lammps_open
@@ -119,6 +120,7 @@ MODULE LIBLAMMPS
 
       FUNCTION lammps_open_no_mpi(argc, argv, handle) BIND(C)
         IMPORT :: c_ptr, c_int
+        IMPLICIT NONE
         INTEGER(c_int), VALUE, INTENT(IN)     :: argc
         TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: argv
         TYPE(c_ptr), VALUE, INTENT(in)        :: handle
@@ -127,6 +129,7 @@ MODULE LIBLAMMPS
 
       SUBROUTINE lammps_close(handle) BIND(C)
         IMPORT :: c_ptr
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
       END SUBROUTINE lammps_close
 
@@ -141,18 +144,21 @@ MODULE LIBLAMMPS
 
       SUBROUTINE lammps_file(handle, filename) BIND(C)
         IMPORT :: c_ptr
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: filename
       END SUBROUTINE lammps_file
 
       SUBROUTINE lammps_command(handle, cmd) BIND(C)
         IMPORT :: c_ptr
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: cmd
       END SUBROUTINE lammps_command
 
       SUBROUTINE lammps_commands_list(handle, ncmd, cmds) BIND(C)
         IMPORT :: c_ptr, c_int
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
         INTEGER(c_int), VALUE, INTENT(IN)     :: ncmd
         TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: cmds
@@ -160,12 +166,14 @@ MODULE LIBLAMMPS
 
       SUBROUTINE lammps_commands_string(handle, str) BIND(C)
         IMPORT :: c_ptr
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
         TYPE(c_ptr), VALUE :: str
       END SUBROUTINE lammps_commands_string
 
       FUNCTION lammps_get_natoms(handle) BIND(C)
         IMPORT :: c_ptr, c_double
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle
         REAL(c_double) :: lammps_get_natoms
       END FUNCTION lammps_get_natoms
@@ -179,19 +187,19 @@ MODULE LIBLAMMPS
       END FUNCTION lammps_get_thermo
 
       SUBROUTINE lammps_extract_box(handle,boxlo,boxhi,xy,yz,xz,pflags, &
-            boxflag) BIND(C)
-         IMPORT :: c_ptr, c_double, c_int
-         IMPLICIT NONE
-         TYPE(c_ptr), VALUE :: handle, boxlo, boxhi, xy, yz, xz, pflags, &
-            boxflag
+          boxflag) BIND(C)
+        IMPORT :: c_ptr, c_double, c_int
+        IMPLICIT NONE
+        TYPE(c_ptr), VALUE :: handle, boxlo, boxhi, xy, yz, xz, pflags, &
+          boxflag
       END SUBROUTINE lammps_extract_box
 
       SUBROUTINE lammps_reset_box(handle,boxlo,boxhi,xy,yz,xz) BIND(C)
         IMPORT :: c_ptr, c_double
         IMPLICIT NONE
-        TYPE (c_ptr), VALUE :: handle
-        REAL (c_double), DIMENSION(3) :: boxlo, boxhi
-        REAL (c_double), VALUE :: xy, yz, xz
+        TYPE(c_ptr), VALUE :: handle
+        REAL(c_double), DIMENSION(3) :: boxlo, boxhi
+        REAL(c_double), VALUE :: xy, yz, xz
       END SUBROUTINE lammps_reset_box
 
       SUBROUTINE lammps_memory_usage(handle,meminfo) BIND(C)
@@ -204,22 +212,22 @@ MODULE LIBLAMMPS
       FUNCTION lammps_get_mpi_comm(handle) BIND(C)
         IMPORT :: c_ptr, c_int
         IMPLICIT NONE
-        TYPE (c_ptr), VALUE :: handle
-        INTEGER (c_int) :: lammps_get_mpi_comm
+        TYPE(c_ptr), VALUE :: handle
+        INTEGER c_int) :: lammps_get_mpi_comm
       END FUNCTION lammps_get_mpi_comm
 
       FUNCTION lammps_extract_setting(handle,keyword) BIND(C)
         IMPORT :: c_ptr, c_int
         IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle, keyword
-        INTEGER (c_int) :: lammps_extract_setting
+        INTEGER(c_int) :: lammps_extract_setting
       END FUNCTION lammps_extract_setting
 
       FUNCTION lammps_extract_global_datatype(handle,name) BIND(C)
         IMPORT :: c_ptr, c_int
         IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle, name
-        INTEGER (c_int) :: lammps_extract_global_datatype
+        INTEGER(c_int) :: lammps_extract_global_datatype
       END FUNCTION lammps_extract_global_datatype
 
       FUNCTION c_strlen (str) BIND(C,name='strlen')
@@ -231,6 +239,7 @@ MODULE LIBLAMMPS
 
       FUNCTION lammps_extract_global(handle, name) BIND(C)
         IMPORT :: c_ptr
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: handle, name
         TYPE(c_ptr) :: lammps_extract_global
       END FUNCTION lammps_extract_global
@@ -327,12 +336,14 @@ MODULE LIBLAMMPS
 
       FUNCTION lammps_malloc(size) BIND(C, name='malloc')
         IMPORT :: c_ptr, c_size_t
+        IMPLICIT NONE
         INTEGER(c_size_t), VALUE :: size
         TYPE(c_ptr) :: lammps_malloc
       END FUNCTION lammps_malloc
 
       SUBROUTINE lammps_free(ptr) BIND(C)
         IMPORT :: c_ptr
+        IMPLICIT NONE
         TYPE(c_ptr), VALUE :: ptr
       END SUBROUTINE lammps_free
 
@@ -352,7 +363,6 @@ CONTAINS
   ! Constructor for the LAMMPS class.
   ! Combined wrapper around lammps_open_fortran() and lammps_open_no_mpi()
   TYPE(lammps) FUNCTION lmp_open(args, comm)
-    IMPLICIT NONE
     INTEGER, INTENT(in), OPTIONAL :: comm
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
@@ -387,7 +397,6 @@ CONTAINS
 
   ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
   SUBROUTINE lmp_close(self, finalize)
-    IMPLICIT NONE
     CLASS(lammps) :: self
     LOGICAL, INTENT(IN), OPTIONAL :: finalize
 
@@ -403,7 +412,6 @@ CONTAINS
 
   ! equivalent function to lammps_file()
   SUBROUTINE lmp_file(self, filename)
-    IMPLICIT NONE
     CLASS(lammps) :: self
     CHARACTER(len=*) :: filename
     TYPE(c_ptr) :: str
@@ -415,7 +423,6 @@ CONTAINS
 
   ! equivalent function to lammps_command()
   SUBROUTINE lmp_command(self, cmd)
-    IMPLICIT NONE
     CLASS(lammps) :: self
     CHARACTER(len=*) :: cmd
     TYPE(c_ptr) :: str
@@ -427,7 +434,6 @@ CONTAINS
 
   ! equivalent function to lammps_commands_list()
   SUBROUTINE lmp_commands_list(self, cmds)
-    IMPLICIT NONE
     CLASS(lammps) :: self
     CHARACTER(len=*), INTENT(in), OPTIONAL :: cmds(:)
     TYPE(c_ptr), ALLOCATABLE     :: cmdv(:)
@@ -451,7 +457,6 @@ CONTAINS
 
   ! equivalent function to lammps_commands_string()
   SUBROUTINE lmp_commands_string(self, str)
-    IMPLICIT NONE
     CLASS(lammps) :: self
     CHARACTER(len=*) :: str
     TYPE(c_ptr) :: tmp
@@ -463,7 +468,6 @@ CONTAINS
 
   ! equivalent function to lammps_get_natoms
   DOUBLE PRECISION FUNCTION lmp_get_natoms(self)
-    IMPLICIT NONE
     CLASS(lammps) :: self
 
     lmp_get_natoms = lammps_get_natoms(self%handle)
@@ -623,7 +627,6 @@ CONTAINS
 
   ! equivalent function to lammps_version()
   INTEGER FUNCTION lmp_version(self)
-    IMPLICIT NONE
     CLASS(lammps) :: self
 
     lmp_version = lammps_version(self%handle)

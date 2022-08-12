@@ -49,7 +49,7 @@ found together with equivalent examples in C and C++ in the
 Creating or deleting a LAMMPS object
 ************************************
 
-With the Fortran interface the creation of a :cpp:class:`LAMMPS
+With the Fortran interface, the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructor for
 creating the :f:func:`lammps` derived type.  To import the definition of
 that type and its type bound procedures you need to add a ``USE

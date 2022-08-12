@@ -44,7 +44,7 @@ MODULE LIBLAMMPS
   !
   ! NOT part of the API (the part the user sees)
   INTEGER (c_int), PARAMETER :: &
-    LAMMPS_INT = 0, &    ! 32-bit integer (array)
+    LAMMPS_INT = 0, &       ! 32-bit integer (array)
     LAMMPS_INT_2D = 1, &    ! two-dimensional 32-bit integer array
     LAMMPS_DOUBLE = 2, &    ! 64-bit double (array)
     LAMMPS_DOUBLE_2D = 3, & ! two-dimensional 64-bit double array

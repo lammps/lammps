@@ -2580,47 +2580,47 @@ void Neighbor::modify_params(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid every keyword: expected 1 every argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify every", error);
       every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (every <= 0) error->all(FLERR, "Invalid every argument: {}", every);
+      if (every <= 0) error->all(FLERR, "Invalid neigh_modify every argument: {}", every);
       iarg += 2;
     } else if (strcmp(arg[iarg],"delay") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid delay keyword: expected 1 delay argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify delay", error);
       delay = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (delay < 0) error->all(FLERR, "Invalid delay argument: {}", delay);
+      if (delay < 0) error->all(FLERR, "Invalid neigh_modify delay argument: {}", delay);
       iarg += 2;
     } else if (strcmp(arg[iarg],"check") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid check keyword: expected 1 check argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify check", error);
       dist_check = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"once") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid once keyword: expected 1 once argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify once", error);
       build_once = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"page") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid page keyword: expected 1 page argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify page", error);
       old_pgsize = pgsize;
       pgsize = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"one") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid one keyword: expected 1 one argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify one", error);
       old_oneatom = oneatom;
       oneatom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid binsize keyword: expected 1 binsize argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify binsize", error);
       binsize_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (binsize_user <= 0.0) binsizeflag = 0;
       else binsizeflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"cluster") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid cluster keyword: expected 1 cluster argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify cluster", error);
       cluster_check = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"include") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid include keyword: expected 1 include argument");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify include", error);
       includegroup = group->find(arg[iarg+1]);
-      if (includegroup == -1)
+      if (includegroup < 0)
         error->all(FLERR, "Invalid include keyword: group {} not found", arg[iarg+1]);
       if (atom->firstgroupname == nullptr)
           error->all(FLERR, "Invalid include keyword: atom_modify first command must be used");
@@ -2628,10 +2628,10 @@ void Neighbor::modify_params(int narg, char **arg)
         error->all(FLERR, "Neigh_modify include group != atom_modify first group: {}", atom->firstgroupname);
       iarg += 2;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Invalid exclude keyword: loss exclude arguments");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude", error);
 
       if (strcmp(arg[iarg+1],"type") == 0) {
-        if (iarg+4 > narg) error->all(FLERR, "Invalid exclude type keyword: expected 2 type arguments");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude type", error);
         if (nex_type == maxex_type) {
           maxex_type += EXDELTA;
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
@@ -2642,7 +2642,7 @@ void Neighbor::modify_params(int narg, char **arg)
         nex_type++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"group") == 0) {
-        if (iarg+4 > narg) error->all(FLERR, "Invalid exclude group keyword: expected 2 group arguments");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude group", error);
         if (nex_group == maxex_group) {
           maxex_group += EXDELTA;
           memory->grow(ex1_group,maxex_group,"neigh:ex1_group");
@@ -2658,7 +2658,7 @@ void Neighbor::modify_params(int narg, char **arg)
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||
                  strcmp(arg[iarg+1],"molecule/intra") == 0) {
-        if (iarg+3 > narg) error->all(FLERR, "Invalid exclude molecule keyword: expected 1 molecule argument");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude molecule", error);
         if (atom->molecule_flag == 0)
           error->all(FLERR,"Neigh_modify exclude molecule "
                      "requires atom attribute molecule");
@@ -2682,13 +2682,13 @@ void Neighbor::modify_params(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         nex_type = nex_group = nex_mol = 0;
         iarg += 2;
-      } else error->all(FLERR,"Invalid exclude keyword: {} argument doesn't exist", arg[iarg+1]);
+      } else error->all(FLERR,"Unknown neigh_modify exclude keyword: {}", arg[iarg+1]);
     } else if (strcmp(arg[iarg],"collection/interval") == 0) {
       if (style != Neighbor::MULTI)
         error->all(FLERR,"Cannot use collection/interval command without multi setting");
 
       if (iarg+2 > narg)
-        error->all(FLERR, "Invalid collection/interval keyword: number of custom collections isn't set");
+        utils::missing_cmd_args(FLERR, "neigh_modify collection/interval", error);
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncollections < 1)
         error->all(FLERR, "Invalid collection/interval keyword: illegal number of custom collections: {}", ncollections);
@@ -2722,7 +2722,7 @@ void Neighbor::modify_params(int narg, char **arg)
         error->all(FLERR,"Cannot use collection/type command without multi setting");
 
       if (iarg+2 > narg)
-        error->all(FLERR, "Invalid collection/type keyword: number of custom collections isn't set");
+        utils::missing_cmd_args(FLERR, "neigh_modify collection/type", error);
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncollections < 1)
         error->all(FLERR, "Invalid collection/type keyword: illegal number of custom collections: {}", ncollections);
@@ -2768,7 +2768,7 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       iarg += 2 + ncollections;
-    } else error->all(FLERR,"Illegal neigh_modify command: {} keyword doesn't exist", arg[iarg]);
+    } else error->all(FLERR,"Unknown neigh_modify keyword: {}", arg[iarg]);
   }
 }
 

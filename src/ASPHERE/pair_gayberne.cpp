@@ -34,13 +34,14 @@
 using namespace LAMMPS_NS;
 
 static const char cite_pair_gayberne[] =
-  "pair gayberne command:\n\n"
+  "pair gayberne command: doi:10.1063/1.3058435\n\n"
   "@Article{Brown09,\n"
   " author =  {W. M. Brown, M. K. Petersen, S. J. Plimpton, and G. S. Grest},\n"
   " title =   {Liquid crystal nanodroplets in solution},\n"
   " journal = {J.~Chem.~Phys.},\n"
   " year =    2009,\n"
   " volume =  130,\n"
+  " number =  4,\n"
   " pages =   {044901}\n"
   "}\n\n";
 

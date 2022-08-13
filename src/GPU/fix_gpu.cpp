@@ -53,7 +53,7 @@ extern double lmp_gpu_update_bin_size(const double subx, const double suby, cons
                                       const int nlocal, const double cut);
 
 static const char cite_gpu_package[] =
-  "GPU package (short-range, long-range and three-body potentials):\n\n"
+  "GPU package (short-range, long-range and three-body potentials): doi:10.1016/j.cpc.2010.12.021\n\n"
   "@Article{Brown11,\n"
   " author = {W. M. Brown, P. Wang, S. J. Plimpton, A. N. Tharrington},\n"
   " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Short Range Forces},\n"

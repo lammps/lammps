@@ -44,10 +44,10 @@ enum{ISO,ANISO,TRICLINIC};
 // citation info
 
 static const char cite_user_uef_package[] =
-  "UEF package: src:10.1063/1.4972894\n\n"
+  "UEF package: doi:10.1063/1.4972894\n\n"
   "@Article{NicholsonRutledge16,\n"
   "author = {David A. Nicholson and Gregory C. Rutledge},\n"
-  "title = {Molecular Simulation of Flow-Enhanced Nucleation in\n",
+  "title = {Molecular Simulation of Flow-Enhanced Nucleation in\n"
   "   {$n$}-Eicosane Melts Under Steady Shear and Uniaxial Extension},\n"
   "journal = {The Journal of Chemical Physics},\n"
   "volume = {145},\n"

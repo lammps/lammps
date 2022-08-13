@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_compute_saed_c[] =
-  "compute_saed command: doi:10.1088/0965-0393/21/5/055020\n\n"
+  "compute saed command: doi:10.1088/0965-0393/21/5/055020\n\n"
   "@Article{Coleman13,\n"
   " author = {S. P. Coleman, D. E. Spearot, L. Capolungo},\n"
   " title = {Virtual diffraction analysis of Ni [010] symmetric tilt grain boundaries},\n"

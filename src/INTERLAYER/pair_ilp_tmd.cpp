@@ -42,7 +42,7 @@ using namespace InterLayer;
 #define DELTA 4
 #define PGDELTA 1
 
-static const char cite_ilp_tmd[] = 
+static const char cite_ilp_tmd[] =
 "ilp/tmd potential doi:10.1021/acs.jctc.1c00782\n"
    "@Article{Ouyang2021\n"
    "  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and\n"

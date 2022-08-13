@@ -45,7 +45,7 @@ static const char cite_pair_edip[] =
   "pair edip/multi: doi:10.1103/PhysRevB.86.144118, doi:10.1088/0953-8984/22/3/035802\n\n"
   "@article{cjiang2012\n"
   " author    = {Jian, Chao and Morgan, Dane, and Szlufarska, Izabella},\n"
-  " title     = {Carbon Tri-Interstitial Defect: {A} Model for {D$_{\mathrm{II}}$} Center},\n"
+  " title     = {Carbon Tri-Interstitial Defect: {A} Model for {D$_{\\mathrm{II}}$} Center},\n"
   " journal   = {Phys.\\ Rev.~B},\n"
   " volume    = {86},\n"
   " pages     = {144118},\n"

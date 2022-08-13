@@ -36,8 +36,8 @@ using namespace LAMMPS_NS;
 enum { NOBIAS, BIAS };
 
 static const char cite_centroid_angle_improper_dihedral[] =
-    "compute centroid/stress/atom for angles, impropers and dihedrals:\n\n"
-    "@article{PhysRevE.99.051301,\n"
+    "compute centroid/stress/atom for angles, impropers and dihedrals: doi:10.1103/PhysRevE.99.051301\n\n"
+    "@article{Surblys2019,\n"
     " title = {Application of atomic stress to compute heat flux via molecular dynamics for "
     "systems with many-body interactions},\n"
     " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
@@ -51,8 +51,8 @@ static const char cite_centroid_angle_improper_dihedral[] =
     "}\n\n";
 
 static const char cite_centroid_shake_rigid[] =
-    "compute centroid/stress/atom for constrained dynamics:\n\n"
-    "@article{doi:10.1063/5.0070930,\n"
+    "compute centroid/stress/atom for constrained dynamics: doi:10.1063/5.0070930\n\n"
+    "@article{Surblys2021,\n"
     " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
     " journal = {Journal of Applied Physics},\n"
     " title = {Methodology and meaning of computing heat flux via atomic stress in systems with "

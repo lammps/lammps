@@ -42,18 +42,20 @@ using namespace MathExtra;
 #define DELTA 4
 
 static const char cite_pair_edip[] =
+  "pair edip/multi: doi:10.1103/PhysRevB.86.144118, doi:10.1088/0953-8984/22/3/035802\n\n"
   "@article{cjiang2012\n"
   " author    = {Jian, Chao and Morgan, Dane, and Szlufarska, Izabella},\n"
-  " title     = {Carbon tri-interstitial defect: A model for DII center},\n"
-  " journal   = {Physical Review B},\n"
+  " title     = {Carbon Tri-Interstitial Defect: {A} Model for {D$_{\mathrm{II}}$} Center},\n"
+  " journal   = {Phys.\ Rev.~B},\n"
   " volume    = {86},\n"
   " pages     = {144118},\n"
   " year      = {2012},\n"
   "}\n\n"
   "@article{lpizzagalli2010,\n"
   " author    = {G. Lucas, M. Bertolus, and L. Pizzagalli},\n"
-  " journal   = {J. Phys. : Condens. Matter 22},\n"
+  " journal   = {J.~Phys.\ Condens.\ Matter},\n"
   " volume    = {22},\n"
+  " number    = 3,\n"
   " pages     = {035802},\n"
   " year      = {2010},\n"
   "}\n\n";

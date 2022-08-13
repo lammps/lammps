@@ -47,13 +47,13 @@ under
 using namespace LAMMPS_NS;
 
 static const char cite_user_ptm_package[] =
-    "PTM package:\n\n"
+    "PTM package: doi:10.1088/0965-0393/24/5/055007\n\n"
     "@Article{larsen2016ptm,\n"
     " author={Larsen, Peter Mahler and Schmidt, S{\\o}ren and Schi{\\o}tz, "
     "Jakob},\n"
-    " title={Robust structural identification via polyhedral template "
+    " title={Robust Structural Identification via Polyhedral Template "
     "matching},\n"
-    " journal={Modelling~Simul.~Mater.~Sci.~Eng.},\n"
+    " journal={Model.\\ Simulat.\\ Mater.\\ Sci.\\ Eng.},\n"
     " year={2016},\n"
     " number={5},\n"
     " volume={24},\n"

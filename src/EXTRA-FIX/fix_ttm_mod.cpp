@@ -48,11 +48,11 @@ using namespace MathConst;
 //   to spatially average consistent with the TTM grid
 
 static const char cite_fix_ttm_mod[] =
-  "fix ttm/mod command:\n\n"
+  "fix ttm/mod command: doi:10.1088/0953-8984/26/47/475401, doi:10.1002/ctpp.201310025\n\n"
   "@article{Pisarev2014,\n"
   "author = {Pisarev, V. V. and Starikov, S. V.},\n"
-  "title = {{Atomistic simulation of ion track formation in UO2.}},\n"
-  "journal = {J.~Phys.:~Condens.~Matter},\n"
+  "title = {{Atomistic Simulation of Ion Track Formation in {UO$_2$}.}},\n"
+  "journal = {J.~Phys.\\ Condens.\\ Matter},\n"
   "volume = {26},\n"
   "number = {47},\n"
   "pages = {475401},\n"
@@ -60,7 +60,7 @@ static const char cite_fix_ttm_mod[] =
   "}\n\n"
   "@article{Norman2013,\n"
   "author = {Norman, G. E. and Starikov, S. V. and Stegailov, V. V. and Saitov, I. M. and Zhilyaev, P. A.},\n"
-  "title = {{Atomistic Modeling of Warm Dense Matter in the Two-Temperature State}},\n"
+  "title = {Atomistic Modeling of Warm Dense Matter in the Two-Temperature State},\n"
   "journal = {Contrib.~Plasm.~Phys.},\n"
   "number = {2},\n"
   "volume = {53},\n"

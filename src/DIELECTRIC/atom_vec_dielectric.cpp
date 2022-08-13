@@ -21,13 +21,13 @@
 using namespace LAMMPS_NS;
 
 static const char cite_user_dielectric_package[] =
-    "DIELECTRIC package:\n\n"
+    "DIELECTRIC package: doi:10.1016/j.cpc.2019.03.006\n\n"
     "@Article{TrungCPC19,\n"
-    " author = {Trung Dac Nguyen, Honghao Li, Debarshee Bagchi,"
-    " Francisco J. Solis, Monica Olvera de la Cruz,\n"
-    " title = {Incorporating surface polarization effects into large-scale"
-    " coarse-grained Molecular Dynamics simulation},\n"
-    " journal = {Comp.~Phys.~Comm.},\n"
+    " author = {Trung Dac Nguyen and Honghao Li and Debarshee Bagchi and"
+    "   Francisco J. Solis and Olvera de la Cruz, Monica}\n"
+    " title = {Incorporating Surface Polarization Effects Into Large-Scale"
+    " Coarse-Grained Molecular Dynamics Simulation},\n"
+    " journal = {Comput.\\ Phys.\\ Commun.},\n"
     " year =    2019,\n"
     " volume =  241,\n"
     " pages =   {80--91}\n"

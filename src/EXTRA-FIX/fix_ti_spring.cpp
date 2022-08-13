@@ -38,7 +38,7 @@ static const char cite_fix_ti_spring[] =
   "ti/spring command:\n\n"
   "@article{freitas2016,\n"
   "  author={Freitas, Rodrigo and Asta, Mark and de Koning, Maurice},\n"
-  "  title={Nonequilibrium free-energy calculation of solids using LAMMPS},\n"
+  "  title={Nonequilibrium Free-Energy Calculation of Solids Using {LAMMPS}},\n"
   "  journal={Computational Materials Science},\n"
   "  volume={112},\n"
   "  pages={333--341},\n"

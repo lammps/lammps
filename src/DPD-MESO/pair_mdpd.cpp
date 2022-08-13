@@ -39,8 +39,8 @@ using namespace LAMMPS_NS;
 static const char cite_pair_mdpd[] =
   "pair mdpd command: doi:10.1063/1.4812366\n\n"
   "@Article{ZLi2013_POF,\n"
-  " author = {Li, Z. and Hu, G.H. and Wang, Z.L. and Ma Y.B. and Zhou, Z.W.},\n"
-  " title = {Three dimensional flow structures in a moving droplet on substrate: a dissipative particle dynamics study},\n"
+  " author = {Li, Z. and Hu, G. H. and Wang, Z. L. and Ma Y. B. and Zhou, Z. W.},\n"
+  " title = {Three Dimensional Flow Structures in a Moving Droplet on Substrate: a Dissipative Particle Dynamics Study},\n"
   " journal = {Physics of Fluids},\n"
   " year = {2013},\n"
   " volume = {25},\n"

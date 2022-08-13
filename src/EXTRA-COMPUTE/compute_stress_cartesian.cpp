@@ -37,10 +37,10 @@ using namespace LAMMPS_NS;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_cartesian[] =
-    "compute stress/cartesian:\n\n"
+    "compute stress/cartesian: doi:10.3390/nano11010165\n\n"
     "@article{galteland2021nanothermodynamic,\n"
-    "title={Nanothermodynamic description and molecular simulation of a single-phase fluid in a "
-    "slit pore},\n"
+    "title={Nanothermodynamic Description and Molecular Simulation of a Single-Phase Fluid in a "
+    "Slit Pore},\n"
     "author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe},\n"
     "journal={Nanomaterials},\n"
     "volume={11},\n"

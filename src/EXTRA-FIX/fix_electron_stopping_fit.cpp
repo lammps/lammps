@@ -35,15 +35,15 @@ using namespace FixConst;
 // ---------------------------------------------------------------------
 
 static const char cite_fix_electron_stopping_fit_c[] =
-  "fix electron/stopping/fit command:\n\n"
+  "fix electron/stopping/fit command: doi:10.1063/1.5022471\n\n"
   "@Article{Stewart2018,\n"
-  " author  = { J.A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville },\n"
-  " title   = { Characterizing single isolated radiation-damage events from molecular dynamics via virtual diffraction methods },\n"
-  " journal = { Journal of Applied Physics },\n"
-  " year    = { 2018 },\n"
-  " volume  = { 123 },\n"
-  " number  = { 16 },\n"
-  " pages   = { 165902 }\n"
+  " author  = { J. A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville },\n"
+  " title   = { Characterizing Single Isolated Radiation-Damage Events from Molecular Dynamics via Virtual Diffraction Methods },\n"
+  " journal = {Journal of Applied Physics},\n"
+  " year    = {2018},\n"
+  " volume  = {123},\n"
+  " number  = {16},\n"
+  " pages   = {165902}\n"
   "}\n\n"
   "@Article{Lee2020,\n"
   " author  = { C.W. Lee and J.A. Stewart and S.M. Foiles and R. Dingreville and A. Schleife },\n"

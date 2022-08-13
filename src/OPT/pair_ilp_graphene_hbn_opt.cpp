@@ -42,7 +42,7 @@ static const char cite_ilp_cur[] =
     "ilp/graphene/hbn/opt potential doi:10.1145/3458817.3476137\n"
     "@inproceedings{gao2021lmff\n"
     " author = {Gao, Ping and Duan, Xiaohui and Others},\n"
-    " title = {LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous "
+    " title = {{LMFF}: Efficient and Scalable Layered Materials Force Field on Heterogeneous "
     "Many-Core Processors},\n"
     " year = {2021},\n"
     " isbn = {9781450384421},\n"
@@ -54,7 +54,7 @@ static const char cite_ilp_cur[] =
     "Networking, Storage and Analysis},\n"
     " articleno = {42},\n"
     " numpages = {14},\n"
-    " location = {St. Louis, Missouri},\n"
+    " location = {St.\\ Louis, Missouri},\n"
     " series = {SC'21},\n"
     "}\n\n";
 

@@ -28,7 +28,7 @@ static const char cite_user_eff_package[] =
     " author = {A. Jaramillo-Botero and J. Su and A. Qi and Goddard, III, W. A.},\n"
     " title = {Large-Scale, Long-Term Nonadiabatic Electron Molecular Dynamics for Describing "
     "Material Properties and Phenomena in Extreme Environments},\n"
-    " journal = {J.~Comp.~Chem.},\n"
+    " journal = {J.~Comp.\\ Chem.},\n"
     " year =    2011,\n"
     " volume =  32,\n"
     " number =  3,\n"

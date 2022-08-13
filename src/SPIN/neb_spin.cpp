@@ -50,9 +50,9 @@ using namespace LAMMPS_NS;
 static const char cite_neb_spin[] =
   "neb/spin command: doi:10.1016/j.cpc.2015.07.001\n\n"
   "@article{bessarab2015method,\n"
-  "title={Method for finding mechanism and activation energy of "
-  "  magnetic transitions, applied to skyrmion and antivortex "
-  "  annihilation},\n"
+  "title={Method for Finding Mechanism and Activation Energy of\n"
+  "  Magnetic Transitions, Applied to Skyrmion and Antivortex\n"
+  "  Annihilation},\n"
   "author={Bessarab, P. F. and Uzdin, V. M. and J{\'o}nsson, H.},\n"
   "journal={Computer Physics Communications},\n"
   "volume={196},\n"

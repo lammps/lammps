@@ -57,7 +57,7 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
-  "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038 doi:10.1021/acs.macromol.0c02012\n\n"
+  "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, doi:10.1021/acs.macromol.0c02012\n\n"
   "@Article{Gissinger17,\n"
   " author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},\n"
   " title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},\n"

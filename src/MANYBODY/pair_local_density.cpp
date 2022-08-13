@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 
 static const char cite_pair_local_density[] =
-  "pair_style  local/density  command: doi:10.1063/1.4958629, doi:10.1021/acs.jpcb.7b12446\n\n"
+  "pair_style local/density command: doi:10.1063/1.4958629, doi:10.1021/acs.jpcb.7b12446\n\n"
   "@Article{Sanyal16,\n"
   " author =  {T. Sanyal and M. Scott Shell},\n"
   " title =   {Coarse-Grained Models Using Local-Density Potentials Optimized With the Relative Entropy: {A}pplication to Implicit Solvation},\n"

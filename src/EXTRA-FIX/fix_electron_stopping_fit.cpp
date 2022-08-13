@@ -35,10 +35,10 @@ using namespace FixConst;
 // ---------------------------------------------------------------------
 
 static const char cite_fix_electron_stopping_fit_c[] =
-  "fix electron/stopping/fit command: doi:10.1063/1.5022471\n\n"
+  "fix electron/stopping/fit command: doi:10.1063/1.5022471, doi:10.1103/PhysRevB.102.024107\n\n"
   "@Article{Stewart2018,\n"
-  " author  = { J. A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville },\n"
-  " title   = { Characterizing Single Isolated Radiation-Damage Events from Molecular Dynamics via Virtual Diffraction Methods },\n"
+  " author  = {J. A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville},\n"
+  " title   = {Characterizing Single Isolated Radiation-Damage Events from Molecular Dynamics via Virtual Diffraction Methods},\n"
   " journal = {Journal of Applied Physics},\n"
   " year    = {2018},\n"
   " volume  = {123},\n"
@@ -46,13 +46,13 @@ static const char cite_fix_electron_stopping_fit_c[] =
   " pages   = {165902}\n"
   "}\n\n"
   "@Article{Lee2020,\n"
-  " author  = { C.W. Lee and J.A. Stewart and S.M. Foiles and R. Dingreville and A. Schleife },\n"
-  " title   = { Multiscale simulations of electron and ion dynamics in self-irradiated silicon },\n"
-  " journal = { Physical Review B },\n"
-  " year    = { 2020 },\n"
-  " volume  = { 102 },\n"
-  " number  = { 2 },\n"
-  " pages   = { 024107 }\n"
+  " author  = {C. W. Lee and J. A. Stewart and S. M. Foiles and R. Dingreville and A. Schleife },\n"
+  " title   = {Multiscale Simulations of Electron and Ion Dynamics in Self-Irradiated Silicon},\n"
+  " journal = {Physical Review~B},\n"
+  " year    = {2020},\n"
+  " volume  = {102},\n"
+  " number  = {2},\n"
+  " pages   = {024107}\n"
   "}\n\n";
 
 // ---------------------------------------------------------------------

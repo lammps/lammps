@@ -34,8 +34,8 @@ using namespace LAMMPS_NS;
 static const char cite_momb[] =
   "Pair style momb: doi:10.1021/jp412098n\n\n"
   "@Article{pair_momb_2015,\n"
-  "title = {A Force Field for Describing the Polyvinylpyrrolidone-Mediated"
-       " Solution-Phase Synthesis of Shape-Selective {Ag} Nanoparticles},\n"
+  "title = {A Force Field for Describing the Polyvinylpyrrolidone-Mediated\n"
+  "    Solution-Phase Synthesis of Shape-Selective {Ag} Nanoparticles},\n"
   "volume = {118},\n"
   "number = {6},\n"
   "url = {https://doi.org/10.1021/jp412098n},\n"

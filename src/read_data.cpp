@@ -17,6 +17,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
@@ -99,30 +100,30 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
   // pointers to atom styles that store bonus info
 
   nellipsoids = 0;
-  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   nlines = 0;
-  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
   ntris = 0;
-  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
   nbodies = 0;
-  avec_body = (AtomVecBody *) atom->style_match("body");
+  avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 }
 
 /* ---------------------------------------------------------------------- */
 
 ReadData::~ReadData()
 {
-  delete [] line;
-  delete [] keyword;
-  delete [] style;
-  delete [] buffer;
+  delete[] line;
+  delete[] keyword;
+  delete[] style;
+  delete[] buffer;
   memory->sfree(coeffarg);
 
   for (int i = 0; i < nfix; i++) {
-    delete [] fix_header[i];
-    delete [] fix_section[i];
+    delete[] fix_header[i];
+    delete[] fix_section[i];
   }
-  memory->destroy(fix_index);
+  memory->sfree(fix_index);
   memory->sfree(fix_header);
   memory->sfree(fix_section);
 }
@@ -285,16 +286,13 @@ void ReadData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"fix") == 0) {
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal read_data command");
-      memory->grow(fix_index,nfix+1,"read_data:fix_index");
-      fix_header = (char **) memory->srealloc(fix_header,(nfix+1)*sizeof(char *),
-                                              "read_data:fix_header");
-      fix_section = (char **) memory->srealloc(fix_section,(nfix+1)*sizeof(char *),
-                                               "read_data:fix_section");
+      fix_index = (Fix **)memory->srealloc(fix_index,(nfix+1)*sizeof(Fix *),"read_data:fix_index");
+      fix_header = (char **) memory->srealloc(fix_header,(nfix+1)*sizeof(char *),"read_data:fix_header");
+      fix_section = (char **) memory->srealloc(fix_section,(nfix+1)*sizeof(char *),"read_data:fix_section");
       if (is_data_section(arg[iarg+3]))
-        error->all(FLERR,"Custom data section name {} for fix {} collides with existing "
-                   "data section",arg[iarg+3],arg[iarg+1]);
-      fix_index[nfix] = modify->find_fix(arg[iarg+1]);
-      if (fix_index[nfix] < 0) error->all(FLERR,"Fix ID for read_data does not exist");
+        error->all(FLERR,"Custom data section name {} for fix {} collides with existing data section",arg[iarg+3],arg[iarg+1]);
+      fix_index[nfix] = modify->get_fix_by_id(arg[iarg+1]);
+      if (!fix_index[nfix]) error->all(FLERR,"Fix ID {} for read_data does not exist",arg[iarg+1]);
       if (strcmp(arg[iarg+2],"NULL") == 0) fix_header[nfix] = nullptr;
       else fix_header[nfix] = utils::strdup(arg[iarg+2]);
       if (strcmp(arg[iarg+3],"NULL") == 0) fix_section[nfix] = utils::strdup(arg[iarg+1]);
@@ -743,8 +741,7 @@ void ReadData::command(int narg, char **arg)
         for (i = 0; i < nfix; i++)
           if (strcmp(keyword,fix_section[i]) == 0) {
             if (firstpass) fix(fix_index[i],keyword);
-            else skip_lines(modify->fix[fix_index[i]]->
-                            read_data_skip_lines(keyword));
+            else skip_lines(fix_index[i]->read_data_skip_lines(keyword));
             break;
           }
         if (i == nfix)
@@ -1008,7 +1005,7 @@ void ReadData::header(int firstpass)
       for (n = 0; n < nfix; n++) {
         if (!fix_header[n]) continue;
         if (strstr(line,fix_header[n])) {
-          modify->fix[fix_index[n]]->read_data_header(line);
+          fix_index[n]->read_data_header(line);
           break;
         }
       }
@@ -1754,7 +1751,7 @@ void ReadData::mass()
     atom->set_mass(FLERR,buf,toffset);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1777,7 +1774,7 @@ void ReadData::paircoeffs()
     force->pair->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1804,7 +1801,7 @@ void ReadData::pairIJcoeffs()
       force->pair->coeff(ncoeffarg,coeffarg);
       buf = next + 1;
     }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1829,7 +1826,7 @@ void ReadData::bondcoeffs()
     force->bond->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1856,7 +1853,7 @@ void ReadData::anglecoeffs(int which)
     force->angle->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1886,7 +1883,7 @@ void ReadData::dihedralcoeffs(int which)
     force->dihedral->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1911,7 +1908,7 @@ void ReadData::impropercoeffs(int which)
     force->improper->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ----------------------------------------------------------------------
@@ -1919,18 +1916,18 @@ void ReadData::impropercoeffs(int which)
    n = index of fix
 ------------------------------------------------------------------------- */
 
-void ReadData::fix(int ifix, char *keyword)
+void ReadData::fix(Fix *ifix, char *keyword)
 {
   int nchunk,eof;
 
-  bigint nline = modify->fix[ifix]->read_data_skip_lines(keyword);
+  bigint nline = ifix->read_data_skip_lines(keyword);
 
   bigint nread = 0;
   while (nread < nline) {
     nchunk = MIN(nline-nread,CHUNK);
     eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
-    if (eof) error->all(FLERR,"Unexpected end of data file");
-    modify->fix[ifix]->read_data_section(keyword,nchunk,buffer,id_offset);
+    if (eof) error->all(FLERR,"Unexpected end of data file while reading section {}",keyword);
+    ifix->read_data_section(keyword,nchunk,buffer,id_offset);
     nread += nchunk;
   }
 }

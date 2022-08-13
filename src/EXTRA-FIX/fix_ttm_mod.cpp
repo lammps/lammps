@@ -61,7 +61,7 @@ static const char cite_fix_ttm_mod[] =
   "@article{Norman2013,\n"
   "author = {Norman, G. E. and Starikov, S. V. and Stegailov, V. V. and Saitov, I. M. and Zhilyaev, P. A.},\n"
   "title = {Atomistic Modeling of Warm Dense Matter in the Two-Temperature State},\n"
-  "journal = {Contrib.~Plasm.~Phys.},\n"
+  "journal = {Contrib.\\ Plasma Phys.},\n"
   "number = {2},\n"
   "volume = {53},\n"
   "pages = {129--139},\n"

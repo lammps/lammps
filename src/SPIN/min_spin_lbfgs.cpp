@@ -45,7 +45,7 @@ using namespace MathConst;
 static const char cite_minstyle_spin_lbfgs[] =
   "min_style spin/lbfgs command:\n\n"
   "@article{ivanov2019fast,\n"
-  "title={Fast and Robust Algorithm for the Minimisation of the Energy of "
+  "title={Fast and Robust Algorithm for the Minimisation of the Energy of\n"
   "    Spin Systems},\n"
   "author={Ivanov, A. V and Uzdin, V. M. and J{\'o}nsson, H.},\n"
   "journal={arXiv preprint arXiv:1904.02669},\n"

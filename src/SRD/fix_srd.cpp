@@ -66,7 +66,7 @@ static const char cite_fix_srd[] =
    " author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and\n"
    " G. S. Grest and in 't Veld, P. J. and P. R. Schunk},\n"
    " title =   {Mesoscale Hydrodynamics via Stochastic Rotation\n"
-   "    Dynamics: Comparison with Lennard-Jones Fluid},\n"
+   "    Dynamics: Comparison with {L}ennard-{J}ones Fluid},\n"
    " journal = {J.~Chem.\\ Phys.},\n"
    " year =    2010,\n"
    " volume =  132,\n"

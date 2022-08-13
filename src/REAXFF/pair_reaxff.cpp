@@ -53,7 +53,7 @@ static const char cite_pair_reax_c[] =
   " journal = {Parallel Computing},\n"
   " year =    2012,\n"
   " volume =  38,\n"
-  " number =  {4--5}\n"
+  " number =  {4--5},\n"
   " pages =   {245--259}\n"
   "}\n\n";
 

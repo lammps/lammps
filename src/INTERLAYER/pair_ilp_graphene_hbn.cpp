@@ -51,7 +51,7 @@ static const char cite_ilp[] =
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
     " journal = {Nano Letters},\n"
     " volume =  18,\n"
-    " pages =   6009\n"
+    " pages =   6009,\n"
     " year =    2018,\n"
     "}\n\n";
 

@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 static const char cite_pair_edpd[] =
   "pair edpd command: doi:10.1016/j.jcp.2014.02.003\n\n"
   "@Article{ZLi2014_JCP,\n"
-  " author = {Li, Z. and Tang, Y.-H. and Lei, H. and Caswell, B. and Karniadakis, G.E.},\n"
+  " author = {Li, Z. and Tang, Y.-H. and Lei, H. and Caswell, B. and Karniadakis, G. E.},\n"
   " title = {Energy-Conserving Dissipative Particle Dynamics with Temperature-Dependent Properties},\n"
   " journal = {Journal of Computational Physics},\n"
   " year =    {2014},\n"
@@ -51,7 +51,7 @@ static const char cite_pair_edpd[] =
   " pages =   {113--127}\n"
   "}\n\n"
   "@Article{ZLi2015_CC,\n"
-  " author = {Li, Z. and Tang, Y.-H. and Li, X. and Karniadakis, G.E.},\n"
+  " author = {Li, Z. and Tang, Y.-H. and Li, X. and Karniadakis, G. E.},\n"
   " title = {Mesoscale Modeling of Phase Transition Dynamics of Thermoresponsive Polymers},\n"
   " journal = {Chemical Communications},\n"
   " year =    {2015},\n"

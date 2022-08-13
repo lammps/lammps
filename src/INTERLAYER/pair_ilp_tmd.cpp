@@ -47,7 +47,7 @@ static const char cite_ilp_tmd[] =
    "@Article{Ouyang2021\n"
    "  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and\n"
    "    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},\n"
-   "  title = {Anisotropic Interlayer Force Field for Transition "
+   "  title = {Anisotropic Interlayer Force Field for Transition\n"
    "    Metal Dichalcogenides: The Case of Molybdenum Disulfide},\n"
    "  journal = {J.~Chem.\\ Theory Comput.},\n"
    " volume   = 17,\n"

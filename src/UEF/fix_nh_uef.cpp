@@ -53,7 +53,7 @@ static const char cite_user_uef_package[] =
   "volume = {145},\n"
   "number = {24},\n"
   "pages = {244903},\n"
-  "doi = {10.1063/1.4972894},\n",
+  "doi = {10.1063/1.4972894},\n"
   "year = {2016}\n"
   "}\n\n";
 

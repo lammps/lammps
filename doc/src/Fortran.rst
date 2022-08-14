@@ -52,7 +52,7 @@ Creating or deleting a LAMMPS object
 With the Fortran interface, the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructor for
 creating the :f:func:`lammps` derived type.  To import the definition of
-that type and its type bound procedures you need to add a ``USE
+that type and its type bound procedures, you need to add a ``USE
 LIBLAMMPS`` statement.  Internally it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are

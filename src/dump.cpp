@@ -1183,7 +1183,7 @@ void Dump::modify_params(int narg, char **arg)
         iarg += 3;
       } else {   // pass other format options to child classes
         int n = modify_param(narg-iarg,&arg[iarg]);
-        if (n == 0) utils::missing_cmd_args(FLERR, "dump_modify", error);
+        if (n == 0) error->all(FLERR,"Unknown dump_modify format keyword: {}", arg[iarg+1]);
         iarg += n;
       }
 
@@ -1292,7 +1292,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) utils::missing_cmd_args(FLERR, "dump_modify", error);
+      if (n == 0) error->all(FLERR,"Unknown dump_modify keyword: {}", arg[iarg]);
       iarg += n;
     }
   }

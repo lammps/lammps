@@ -5,7 +5,7 @@ pair_style mesocnt command
 ==========================
 
 pair_style mesocnt/viscous command
-==========================
+==================================
 
 Syntax
 """"""
@@ -16,7 +16,7 @@ Syntax
 
 * style = *mesocnt* or *mesocnt/viscous*
 * mode = *chain* or *segment*
-* neigh_cutoff = neighbor list cutoff
+* neigh_cutoff = neighbor list cutoff (distance units)
 
 Examples
 """"""""
@@ -50,29 +50,35 @@ original papers :ref:`(Volkov1) <Volkov1>` and
 :ref:`(Volkov2) <Volkov2>`.
 
 The potential supports two modes, *segment* and *chain*. 
-In *segment* mode, interactions are pair-wise between all neighboring segments based on a segment-segment approach.
+In *segment* mode, interactions are pair-wise between all neighboring segments based on a segment-segment approach (keyword *segment* in pair_style command).
 In *chain* mode, interactions are calculated between each segment and infinitely or 
 semi-infinitely long CNTs as described in :ref:`(Volkov1) <Volkov1>`. 
 Chains of segments are converted to these (semi-)infinite CNTs bases on an approximate
 chain approach outlined in :ref:`(Volkov2) <Volkov2>`. Hence, interactions are calculated on a 
-segment-chain basis.
+segment-chain basis (keyword *chain* in the pair_style command).
 Using *chain* mode allows to simplify the computation of the interactions
 significantly and reduces the computational times to the
 same order of magnitude as for regular bead spring models
 where beads interact with the standard :doc:`pair_lj/cut <pair_lj>`
 potential. However, this method is only valid when the curvature of the CNTs in the system is small.
-If CNTs are buckled (see `angle_mesocnt <angle_mesocnt>`), local curvature can be very high and the pair_style automatically switches to *segment* mode for interactions involving buckled CNTs.
+When CNTs are buckled (see `angle_mesocnt <angle_mesocnt>`), local curvature can be very high and the pair_style automatically switches to *segment* mode for interactions involving buckled CNTs.
 
-In addition to the LJ interactions described above, style *mesocnt/viscous* explicitly models frictions between neighboring segments. Friction forces are a function of the relative velocity between a segment and its neighboring approximate chain (even in *segment* mode) and only act along the axes of the interacting segment and chain. In this potential, friction forces are modelled as a shifted logistic function:
+In addition to the LJ interactions described above, style *mesocnt/viscous* explicitly models friction between neighboring segments. Friction forces are a function of the relative velocity between a segment and its neighboring approximate chain (even in *segment* mode) and only act along the axes of the interacting segment and chain. In this potential, friction forces are modelled as a shifted logistic function:
 
-:math:`F^{\text{FRICTION}}(v) = \frac{F^{\text{max}}}{1 + exp(-k(v-v_0))} - \frac{F^{\text{max}}}{1 + exp(k v_0)}`.
+.. math::
+
+   F^{\text{FRICTION}}(v) = \frac{F^{\text{max}}}{1 + \exp(-k(v-v_0))} - \frac{F^{\text{max}}}{1 + \exp(k v_0)}
 
 ----------
+
+In the pair_style command, the modes described above can be toggeled using the *segment* or *chain* keywords. 
+The neighbor list cutoff defines the cutoff within which atoms are included in the neighbor list for constructing neighboring CNT chains. 
+This is different from the potential cutoff, which is directly calculated from parameters specified in the potential file. We recommend using a neighbor list cutoff of at least 3 times the maximum segment length used in the simulation to ensure proper neighbor chain construction.
 
 .. note::
 
    CNT ends are treated differently by all *mesocnt* styles. Atoms on CNT ends need to be 
-   assigned different LAMMPS atom types than atoms not on CNT ends._
+   assigned different LAMMPS atom types than atoms not on CNT ends.
 
 Style *mesocnt* requires tabulated data provided in a single ASCII
 text file, as well as a list of integers corresponding to all LAMMPS 
@@ -101,20 +107,6 @@ Using the same example system as with style *mesocnt* with the addition of frict
 
    pair_coeff * * C_10_10.mesocnt 0.03 20.0 0.20 2 4
 
-The first line of the potential file provides a time stamp and
-general information. The second line lists four integers giving
-the number of data points provided in the subsequent four
-data tables. The third line lists four floating point numbers:
-the CNT radius R, the LJ parameter sigma and two numerical
-parameters delta1 and delta2. These four parameters are given
-in Angstroms. This is followed by four data tables each separated
-by a single empty line. The first two tables have two columns
-and list the parameters uInfParallel and Gamma respectively.
-The last two tables have three columns giving data on a quadratic
-array and list the parameters Phi and uSemiParallel respectively.
-uInfParallel and uSemiParallel are given in eV/Angstrom, Phi is
-given in eV and Gamma is unitless.
-
 Potential files for CNTs can be readily generated using the freely
 available code provided on
 
@@ -131,6 +123,20 @@ generate potential files for other 1D systems mentioned above.
    are not bundled with LAMMPS.   When compiling LAMMPS from
    source code, the file ``C_10_10.mesocnt`` should be downloaded
    separately from `https://download.lammps.org/potentials/C_10_10.mesocnt <https://download.lammps.org/potentials/C_10_10.mesocnt>`_
+   
+   The first line of the potential file provides a time stamp and
+   general information. The second line lists four integers giving
+   the number of data points provided in the subsequent four
+   data tables. The third line lists four floating point numbers:
+   the CNT radius R, the LJ parameter sigma and two numerical
+   parameters delta1 and delta2. These four parameters are given
+   in Angstroms. This is followed by four data tables each separated
+   by a single empty line. The first two tables have two columns
+   and list the parameters uInfParallel and Gamma respectively.
+   The last two tables have three columns giving data on a quadratic
+   array and list the parameters Phi and uSemiParallel respectively.
+   uInfParallel and uSemiParallel are given in eV/Angstrom, Phi is
+   given in eV and Gamma is unitless.
 
 ----------
 

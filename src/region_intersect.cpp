@@ -27,9 +27,9 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
 {
   nregion = 0;
 
-  if (narg < 5) error->all(FLERR, "Illegal region command");
+  if (narg < 5) error->all(FLERR, "Illegal region intersect {} arguments 5 expected");
   int n = utils::inumeric(FLERR, arg[2], false, lmp);
-  if (n < 2) error->all(FLERR, "Illegal region command");
+  if (n < 2) error->all(FLERR, "Illegal region intersect n: {}", n);
   options(narg - (n + 3), &arg[n + 3]);
 
   // build list of regions to intersect

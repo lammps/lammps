@@ -34,7 +34,7 @@ The *mesocnt* angle style uses the potential
 where :math:`\Delta \theta = \theta - \pi` is the bending angle of the nanotube, :math:`K_\text{H}` and :math:`K_\text{B}` are prefactors for the harmonic and linear regime respectively and :math:`\theta_\text{B}` is the buckling angle. Note that the usual 1/2 factor for the harmonic potential is included in :math:`K_\text{H}`.
 
 The style implements parametrisation presets of :math:`K_\text{H}`, :math:`K_\text{B}` and :math:`\theta_\text{B}` for mesoscopic simulations of 
-carbon nanotubes based on the atomistic simulations of :ref:`(Zhigilei) <Zhigilei>` and buckling considerations of :ref:`(Volkov) <Volkov>`.
+carbon nanotubes based on the atomistic simulations of :ref:`(Srivastava) <Srivastava_2>` and buckling considerations of :ref:`(Zhigilei) <Zhigilei1_1>`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the examples above, or in
@@ -94,10 +94,10 @@ none
 
 ----------
 
-.. _Zhigilei:
+.. _Srivastava_2:
 
-**(Zhigilei)** Zhigilei, Wei and Srivastava, Phys. Rev. B 71, 165417 (2005).
+**(Srivastava)** Zhigilei, Wei, Srivastava, Phys. Rev. B 71, 165417 (2005).
 
-.. _Volkov:
+.. _Zhigilei1_1:
 
-**(Volkov)** Volkov and Zhigilei, ACS Nano 4, 10, 6187–6195 (2010).
+**(Zhigilei)** Volkov and Zhigilei, ACS Nano 4, 6187 (2010).

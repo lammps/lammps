@@ -31,7 +31,7 @@ The *mesocnt* bond style is a wrapper for the :doc:`harmonic <bond_harmonic>` st
 where :math:`r_0` is the equilibrium bond distance.  Note that the usual 1/2
 factor is included in :math:`K`.
 The style implements parametrisation presets of :math:`K` for mesoscopic simulations of 
-carbon nanotubes based on the atomistic simulations of :ref:`(Zhigilei) <Zhigilei>`.
+carbon nanotubes based on the atomistic simulations of :ref:`(Srivastava) <Srivastava_1>`.
 
 Other presets can be readily implemented in the future.
 
@@ -73,6 +73,6 @@ none
 
 ----------
 
-.. _Zhigilei:
+.. _Srivastava_1:
 
-**(Zhigilei)** Zhigilei, Wei and Srivastava, Phys. Rev. B 71, 165417 (2005).
+**(Srivastava)** Zhigilei, Wei and Srivastava, Phys. Rev. B 71, 165417 (2005).

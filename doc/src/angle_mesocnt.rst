@@ -28,8 +28,8 @@ The *mesocnt* angle style uses the potential
 
 .. math::
 
-   E = K_\text{H} \Delta \theta^2 \qquad |\Delta| \theta < \Delta \theta_\text{B} \\ 
-   E = K_\text{H} \theta_\text{B}^2 + K_\text{B} (\Delta \theta - \theta_\text{B}) \qquad |\Delta| \theta \geq \Delta \theta_\text{B}
+   E = K_\text{H} \Delta \theta^2 \qquad |\Delta \theta| < \Delta \theta_\text{B} \\ 
+   E = K_\text{H} \theta_\text{B}^2 + K_\text{B} (\Delta \theta - \theta_\text{B}) \qquad |\Delta \theta| \geq \Delta \theta_\text{B}
 
 where :math:`\Delta \theta = \theta - \pi` is the bending angle of the nanotube, :math:`K_\text{H}` and :math:`K_\text{B}` are prefactors for the harmonic and linear regime respectively and :math:`\theta_\text{B}` is the buckling angle. Note that the usual 1/2 factor for the harmonic potential is included in :math:`K_\text{H}`.
 

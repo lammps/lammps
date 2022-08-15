@@ -19,6 +19,7 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "grid2d.h"
 #include "grid3d.h"
 #include "input.h"
@@ -169,11 +170,14 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  /*
   normflag = ALL;
   scaleflag = ATOM;
   ave = ONE;
   nwindow = 0;
+  biasflag = 0;
+  id_bias = nullptr;
+  adof = domain->dimension;
+  cdof = 0.0;
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"norm") == 0) {
@@ -189,6 +193,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
         scaleflag = NOSCALE;
       } else error->all(FLERR,"Illegal fix ave/grid command");
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/grid command");
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
@@ -203,9 +208,26 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
       if (ave == WINDOW) iarg++;
 
+    } else if (strcmp(arg[iarg],"bias") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal fix ave/grid command");
+      biasflag = 1;
+      id_bias = utils::strdup(arg[iarg+1]);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"adof") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal fix ave/grid command");
+      adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"cdof") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal fix ave/grid command");
+      cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+
     } else error->all(FLERR,"Illegal fix ave/grid command");
   }
-  */
 
   // if wildcard expansion occurred, free earg memory from exapnd_args()
 
@@ -228,6 +250,21 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Invalid fix ave/grid grid size");
   if (dimension == 2 && nzgrid != 1)
     error->all(FLERR,"Fix ave/grid grid Nz must be 1 for 2d simulation");
+
+  if (biasflag) {
+    tbias = modify->get_compute_by_id(id_bias);
+    if (!tbias) 
+      error->all(FLERR,"Could not find compute ID for temperature bias");
+    if (tbias->tempflag == 0)
+      error->all(FLERR,"Bias compute does not calculate temperature");
+    if (tbias->tempbias == 0)
+      error->all(FLERR,"Bias compute does not calculate a velocity bias");
+  }
+
+  if (normflag != ALL) 
+    error->all(FLERR,"Fix ave/grid norm all is required for now");
+  if (normflag != ONE) 
+    error->all(FLERR,"Fix ave/grid ave one is required for now");
 
   // error checks for ATOM mode
 
@@ -517,6 +554,12 @@ int FixAveGrid::setmask()
 
 void FixAveGrid::init()
 {
+  if (biasflag) {
+    tbias = modify->get_compute_by_id(id_bias);
+    if (!tbias)
+      error->all(FLERR,"Could not find compute ID for temperature bias");
+  }
+
   // set indices and check validity of all computes,fixes,variables
 
   for (int m = 0; m < nvalues; m++) {
@@ -578,6 +621,10 @@ void FixAveGrid::init()
       }
     }
   }
+
+  // set triclinic flag
+
+  triclinic = domain->triclinic;
 
   // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
 
@@ -653,12 +700,33 @@ void FixAveGrid::end_of_step()
   
   if (ngridout == 0) return;
   
-  // average the final results for the Nfreq output
-  // for ATOM mode, divide total values by total count
-  // for GRID mode, divide total values by # of samples
+  // average the final results across Nrepeat samples
+  // for ATOM mode, result = total_value / total_count
+  //   exception is DENSITY_NUMBER:
+  //     result = value / (current binvol * Nrepeat)
+  //   exception is DENSITY_MASS:
+  //     result = (value * mv2d) / (current binvol * Nrepeat)
+  //   exception is TEMPERATURE:
+  //     result = (value * mvv2e) / (Nrepeat*cdof + adof*count) * boltz)
+  // for GRID mode, final is total value / Nrepeat
 
   if (modeatom) {
-    double count,invcount;
+    double mvv2e = force->mvv2e;
+    double mv2d = force->mv2d;
+    double boltz = force->boltz;
+
+    double count,invcount,norm;
+    double repeat = nrepeat;
+    double invrepeat = 1.0/nrepeat;
+
+    double *prd = domain->prd;
+    double dx = prd[0]/nxgrid;
+    double dy = prd[1]/nygrid;
+    double dz = prd[2]/nzgrid;
+
+    double binvol;
+    if (dimension == 2) binvol = dx*dy;
+    else binvol = dx*dy*dz;
 
     if (dimension == 2) {
       if (nvalues == 1) {
@@ -666,8 +734,16 @@ void FixAveGrid::end_of_step()
           for (ix = nxlo_in; ix <= nxhi_in; ix++) {
             count = count2d[iy][ix];
             if (count) {
-              vec2d[iy][ix] /= count;
-              count2d[iy][iz] /= nrepeat;
+              if (which[0] == ArgInfo::DENSITY_NUMBER) 
+                norm = 1.0 / (binvol * repeat);
+              else if (which[0] == ArgInfo::DENSITY_MASS) 
+                norm = mv2d / (binvol * nrepeat);
+              else if (which[0] == ArgInfo::TEMPERATURE) 
+                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+              else
+                norm = 1.0/count;
+              vec2d[iy][ix] *= norm;
+              count2d[iy][iz] *= invrepeat;
             }
           }
       } else {
@@ -676,9 +752,18 @@ void FixAveGrid::end_of_step()
             count = count2d[iy][ix];
             if (count) {
               invcount = 1.0/count;
-              for (m = 0; m <= nvalues; m++)
-                array2d[iy][ix][m] *= invcount;
-              count2d[iy][iz] /= nrepeat;
+              for (m = 0; m <= nvalues; m++) {
+                if (which[m] == ArgInfo::DENSITY_NUMBER) 
+                  norm = 1.0 / (binvol * repeat);
+                else if (which[m] == ArgInfo::DENSITY_MASS) 
+                  norm = mv2d / (binvol * nrepeat);
+                else if (which[m] == ArgInfo::TEMPERATURE) 
+                  norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+                else
+                  norm = 1.0/count;
+                array2d[iy][ix][m] *= norm;
+              }
+              count2d[iy][iz] *= invrepeat;
             }
           }
       }
@@ -689,8 +774,16 @@ void FixAveGrid::end_of_step()
             for (ix = nxlo_in; ix <= nxhi_in; ix++) {
               count = count3d[iz][iy][ix];
               if (count) {
-                vec3d[iz][iy][ix] /= count;
-                count3d[iz][iy][iz] /= nrepeat;
+                if (which[0] == ArgInfo::DENSITY_NUMBER) 
+                  norm = 1.0 / (binvol * repeat);
+                else if (which[0] == ArgInfo::DENSITY_MASS) 
+                  norm = mv2d / (binvol * nrepeat);
+                else if (which[0] == ArgInfo::TEMPERATURE) 
+                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+                else
+                  norm = 1.0/count;
+                vec3d[iz][iy][ix] *= norm;
+                count3d[iz][iy][iz] *= invrepeat;
               }
             }
       } else {
@@ -700,9 +793,18 @@ void FixAveGrid::end_of_step()
               count = count3d[iz][iy][ix];
               if (count) {
                 invcount = 1.0/count;
-                for (m = 0; m <= nvalues; m++)
-                  array3d[iz][iy][ix][m] *= invcount;
-                count3d[iz][iy][iz] /= nrepeat;
+                for (m = 0; m <= nvalues; m++) {
+                  if (which[m] == ArgInfo::DENSITY_NUMBER) 
+                    norm = 1.0 / (binvol * repeat);
+                  else if (which[m] == ArgInfo::DENSITY_MASS) 
+                    norm = mv2d / (binvol * nrepeat);
+                  else if (which[m] == ArgInfo::TEMPERATURE) 
+                    norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+                  else
+                    norm = 1.0/count;
+                  array3d[iz][iy][ix][m] *= norm;
+                }
+                count3d[iz][iy][iz] *= invrepeat;
               }
             }
       }
@@ -755,10 +857,20 @@ void FixAveGrid::atom2grid()
   // also count atoms contributing to each bin
   // check if any atom is out of bounds for my local grid
 
-  double *boxlo = domain->boxlo;
-  double dxinv = nxgrid/domain->xprd;
-  double dyinv = nygrid/domain->yprd;
-  double dzinv = nzgrid/domain->zprd;
+  double *boxlo,*prd;
+  int *periodicity = domain->periodicity;
+
+  if (triclinic) {
+    boxlo = domain->boxlo_lamda;
+    prd = domain->prd_lamda;
+  } else {
+    boxlo = domain->boxlo;
+    prd = domain->prd;
+  }
+
+  double dxinv = nxgrid/prd[0];
+  double dyinv = nygrid/prd[1];
+  double dzinv = nzgrid/prd[2];
   
   double **x = atom->x;
   int *mask = atom->mask;
@@ -766,42 +878,69 @@ void FixAveGrid::atom2grid()
 
   if (nlocal > maxatom) {
     memory->destroy(bin);
+    memory->destroy(skip);
     maxatom = atom->nmax;
     memory->create(bin,maxatom,dimension,"ave/grid:bin");
+    memory->create(skip,maxatom,"ave/grid:skip");
   }
 
+  if (triclinic) domain->x2lamda(nlocal);
   int flag = 0;
 
   if (dimension == 2) {
     for (i = 0; i < nlocal; i++) {
-      if (!(mask[i] & groupbit)) continue;
-      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
-      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
-
-      if (ix < nxlo_out || ix > nxhi_out ||
-          iy < nylo_out || iy > nyhi_out) {
-        flag = 1;
+      if (!(mask[i] & groupbit)) {
+        skip[i] = 1;
         continue;
       }
 
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+
+      if (ix < nxlo_out || ix > nxhi_out) {
+        if (periodicity[0]) flag = 1;
+        else skip[i] = 1;
+        continue;
+      }
+      if (iy < nylo_out || iy > nyhi_out) {
+        if (periodicity[1]) flag = 1;
+        else skip[i] = 1;
+        continue;
+      }
+
+      skip[i] = 0;
       count2d[iy][ix] += 1.0;
       bin[i][0] = iy;
       bin[i][1] = ix;
     }
   } else {
     for (i = 0; i < nlocal; i++) {
-      if (!(mask[i] & groupbit)) continue;
+      if (!(mask[i] & groupbit)) {
+        skip[i] = 1;
+        continue;
+      }
+
       ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
       iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
 
-      if (ix < nxlo_out || ix > nxhi_out ||
-          iy < nylo_out || iy > nyhi_out ||
-          iz < nzlo_out || iz > nzhi_out) {
-        flag = 1;
+      if (ix < nxlo_out || ix > nxhi_out) {
+        if (periodicity[0]) flag = 1;
+        else skip[i] = 1;
+        continue;
+      }
+      if (iy < nylo_out || iy > nyhi_out) {
+        if (periodicity[1]) flag = 1;
+        else skip[i] = 1;
+        continue;
+      }
+      if (iz < nzlo_out || iz > nyhi_out) {
+        if (periodicity[2]) flag = 1;
+        else skip[i] = 1;
         continue;
       }
 
+      skip[i] = 0;
       count3d[iz][iy][ix] += 1.0;
       bin[i][0] = iz;
       bin[i][1] = iy;
@@ -810,6 +949,7 @@ void FixAveGrid::atom2grid()
   }
 
   if (flag) error->one(FLERR,"Out of range fix ave/grid atoms");
+  if (triclinic) domain->lamda2x(nlocal);
 
   // loop over user-specified values
 
@@ -817,8 +957,11 @@ void FixAveGrid::atom2grid()
     n = value2index[m];
     j = argindex[m];
       
+    // X,V,F adds coord,velocity,force to value
+
     if (which[m] == ArgInfo::X || which[m] == ArgInfo::V || 
         which[m] == ArgInfo::F) {
+
       double **attribute;
       if (which[m] == ArgInfo::X) attribute = atom->x;
       else if (which[m] == ArgInfo::V) attribute = atom->v;
@@ -827,27 +970,137 @@ void FixAveGrid::atom2grid()
       if (dimension == 2) {
         if (nvalues == 1) {
           for (i = 0; i < nlocal; i++) {
-            if (mask[i] & groupbit)
+            if (!skip[i])
               vec2d[bin[i][0]][bin[i][1]] += attribute[i][j];
           }
         } else
           for (i = 0; i < nlocal; i++) {
-            if (mask[i] & groupbit)
+            if (skip[i])
               array2d[bin[i][0]][bin[i][1]][m] += attribute[i][j];
           }
       } else {
         if (nvalues == 1) {
           for (i = 0; i < nlocal; i++) {
-            if (mask[i] & groupbit)
+            if (!skip[i])
               vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += attribute[i][j];
           }
         } else
           for (i = 0; i < nlocal; i++) {
-            if (mask[i] & groupbit)
+            if (!skip[i])
               array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += attribute[i][j];
           }
       }
 	
+    // DENSITY_NUMBER adds 1 to value
+    // DENSITY_MASS or MASS adds mass to value
+
+    } else if ((which[m] == ArgInfo::DENSITY_NUMBER) || 
+               (which[m] == ArgInfo::DENSITY_MASS) || 
+               (which[m] == ArgInfo::MASS)) {
+      
+      int *type = atom->type;
+      double *mass = atom->mass;
+      double *rmass = atom->rmass;
+      double one;
+
+      if (dimension == 2) {
+        if (nvalues == 1) {
+          for (i = 0; i < nlocal; i++) {
+            if (!skip[i]) {
+              if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
+              else if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              vec2d[bin[i][0]][bin[i][1]] += one;
+            }
+          }
+        } else
+          for (i = 0; i < nlocal; i++) {
+            if (skip[i]) {
+              if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
+              else if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              array2d[bin[i][0]][bin[i][1]][m] += one;
+            }
+          }
+      } else {
+        if (nvalues == 1) {
+          for (i = 0; i < nlocal; i++) {
+            if (!skip[i]) {
+              if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
+              else if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += one;
+            }
+          }
+        } else
+          for (i = 0; i < nlocal; i++) {
+            if (!skip[i]) {
+              if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
+              else if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += one;
+            }
+          }
+      }
+
+    // TEMPERATURE adds KE to values
+    // subtract and restore velocity bias if requested
+
+    } else if (which[m] == ArgInfo::TEMPERATURE) {
+
+      if (biasflag) {
+        if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
+        tbias->remove_bias_all();
+      }
+
+      double **v = atom->v;
+      int *type = atom->type;
+      double *mass = atom->mass;
+      double *rmass = atom->rmass;
+      double vsq,one;
+
+      if (dimension == 2) {
+        if (nvalues == 1) {
+          for (i = 0; i < nlocal; i++) {
+            if (!skip[i]) {
+              vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+              if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              vec2d[bin[i][0]][bin[i][1]] += one*vsq;
+            }
+          }
+        } else
+          for (i = 0; i < nlocal; i++) {
+            if (skip[i]) {
+              vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+              if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              array2d[bin[i][0]][bin[i][1]][m] += one*vsq;;
+            }
+          }
+      } else {
+        if (nvalues == 1) {
+          for (i = 0; i < nlocal; i++) {
+            if (!skip[i]) {
+              vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+              if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += one*vsq;
+            }
+          }
+        } else
+          for (i = 0; i < nlocal; i++) {
+            if (!skip[i]) {
+              vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
+              if (rmass) one = rmass[i];
+              else one = mass[type[i]];
+              array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += one*vsq;
+            }
+          }
+      }
+
+      if (biasflag) tbias->restore_bias_all();
+
     // per-atom compute or fix or variable
     // invoke compute if not previously invoked
     // evaluate atom-style variable
@@ -883,26 +1136,26 @@ void FixAveGrid::atom2grid()
         if (nvalues == 1) {
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 vec2d[bin[i][0]][bin[i][1]] += ovector[i];
             }
           } else {
             int jm1 = j = 1;
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 vec2d[bin[i][0]][bin[i][1]] += oarray[i][jm1];
             }
           }
         } else {
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 array2d[bin[i][0]][bin[i][1]][m] += ovector[i];
             }
           } else {
             int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 array2d[bin[i][0]][bin[i][1]][m] += oarray[i][jm1];
             }
           }
@@ -912,26 +1165,26 @@ void FixAveGrid::atom2grid()
         if (nvalues == 1) {
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += ovector[i];
             }
           } else { 
             int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += oarray[i][jm1];
             }
           }
         } else {
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += ovector[i];
             }
           } else {
             int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
-              if (mask[i] & groupbit)
+              if (!skip[i])
                 array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += oarray[i][jm1];
             }
           }

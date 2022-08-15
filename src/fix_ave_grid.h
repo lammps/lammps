@@ -52,7 +52,13 @@ class FixAveGrid : public Fix {
   bigint nvalid, nvalid_last;
   int modeatom,modegrid;
   int normflag,scaleflag,ave,nwindow;
-  int dimension;
+
+  int biasflag;
+  char *id_bias;
+  class Compute *tbias;    // ptr to additional bias compute
+  double adof,cdof;
+
+  int dimension,triclinic;
 
   int *which, *argindex;
   char **ids;
@@ -73,6 +79,7 @@ class FixAveGrid : public Fix {
   double **count2d,***count3d;
 
   int **bin;
+  int *skip;
   int maxatom;
 
   double *vresult;

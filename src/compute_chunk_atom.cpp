@@ -629,6 +629,7 @@ void ComputeChunkAtom::compute_peratom()
    to return the number of chunks, we first need to make certain
    that compute_peratom() has been called.
 ------------------------------------------------------------------------- */
+
 double ComputeChunkAtom::compute_scalar()
 {
   if (invoked_peratom != update->ntimestep) compute_peratom();

@@ -23,7 +23,8 @@ using namespace LAMMPS_NS;
 
 // External functions from GPU library
 
-//int amoeba_compute_fft1d(FFT_SCALAR* in, FFT_SCALAR* out, const int size, const int flag);
+int amoeba_setup_fft(const int size);
+int amoeba_compute_fft1d(FFT_SCALAR* in, FFT_SCALAR* out, const int mode);
 
 /* ----------------------------------------------------------------------
    partition an FFT grid across processors
@@ -39,6 +40,7 @@ AmoebaConvolutionGPU::AmoebaConvolutionGPU(LAMMPS *lmp, Pair *pair,
   AmoebaConvolution(lmp, pair, nx_caller, ny_caller,  nz_caller, order_caller,
                     which_caller)
 {
+
 }
 
 /* ----------------------------------------------------------------------
@@ -81,6 +83,7 @@ FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
   debug_scalar(FFT,"PRE Convo / POST Remap");
   debug_file(FFT,"pre.convo.post.remap");
 #endif
+
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);

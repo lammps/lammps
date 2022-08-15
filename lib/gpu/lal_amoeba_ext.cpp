@@ -162,6 +162,10 @@ void amoeba_gpu_compute_polar_real(int *host_amtype, int *host_amgroup, double *
                               eflag_in, vflag_in, eatom, vatom, aewald, felec, off2, tep_ptr);
 }
 
+void amoeba_compute_fft1d(void** in, void** out, const int mode) {
+  AMOEBAMF.compute_fft1d(in, out, mode);
+}
+
 double amoeba_gpu_bytes() {
   return AMOEBAMF.host_memory_usage();
 }

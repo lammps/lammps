@@ -568,11 +568,29 @@ void BaseAmoebaT::compute_polar_real(int *host_amtype, int *host_amgroup,
   _tep.update_host(_max_tep_size*4,false);
 }
 
+// ---------------------------------------------------------------------------
+// Return the memory bytes allocated on the host and device
+// ---------------------------------------------------------------------------
+
 template <class numtyp, class acctyp>
 double BaseAmoebaT::host_memory_usage_atomic() const {
   return device->atom.host_memory_usage()+nbor->host_memory_usage()+
          4*sizeof(numtyp)+sizeof(BaseAmoeba<numtyp,acctyp>);
 }
+
+// ---------------------------------------------------------------------------
+// Compute FFT
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+void BaseAmoebaT::compute_fft1d(void** in, void** out, const int mode)
+{
+
+}
+
+// ---------------------------------------------------------------------------
+// Copy the extra data from host to device
+// ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
@@ -644,6 +662,10 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Compile (load) the kernel strings and set the kernels
+// ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,

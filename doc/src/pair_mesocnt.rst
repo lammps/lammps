@@ -1,6 +1,10 @@
 .. index:: pair_style mesocnt
+.. index:: pair_style mesocnt/viscous
 
 pair_style mesocnt command
+==========================
+
+pair_style mesocnt/viscous command
 ==========================
 
 Syntax
@@ -8,38 +12,35 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style mesocnt
+   pair_style style mode neigh_cutoff
+
+* style = *mesocnt* or *mesocnt/viscous*
+* mode = *chain* or *segment*
+* neigh_cutoff = neighbor list cutoff
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style mesocnt
-   pair_coeff * * 10_10.cnt
+   pair_style mesocnt chain 30.0
+   pair_coeff * * C_10_10.mesocnt 2
+   
+   pair_style mesocnt/viscous segment 60.0
+   pair_coeff * * C_10_10.mesocnt 0.001 20.0 0.2 2 4
 
 Description
 """""""""""
 
 Style *mesocnt* implements a mesoscopic potential
-for the interaction of carbon nanotubes (CNTs). In this potential,
+for the interaction of carbon nanotubes (CNTs), or other 
+quasi-1D objects such as other kinds of nanotubes or nanowires. In this potential,
 CNTs are modelled as chains of cylindrical segments in which
 each infinitesimal surface element interacts with all other
 CNT surface elements with the Lennard-Jones (LJ) term adopted from
 the :doc:`airebo <pair_airebo>` style. The interaction energy
 is then computed by integrating over the surfaces of all interacting
-CNTs.
-
-The potential is based on interactions between one cylindrical
-segment and infinitely or semi-infinitely long CNTs as described
-in :ref:`(Volkov1) <Volkov1>`. Chains of segments are
-converted to these (semi-)infinite CNTs bases on an approximate
-chain approach outlined in :ref:`(Volkov2) <Volkov2>`.
-This allows to simplify the computation of the interactions
-significantly and reduces the computational times to the
-same order of magnitude as for regular bead spring models
-where beads interact with the standard :doc:`pair_lj/cut <pair_lj>`
-potential.
+CNTs. 
 
 In LAMMPS, cylindrical segments are represented by bonds. Each
 segment is defined by its two end points ("nodes") which correspond
@@ -48,9 +49,59 @@ and implementation details, the reader is referred to the
 original papers :ref:`(Volkov1) <Volkov1>` and
 :ref:`(Volkov2) <Volkov2>`.
 
-The potential requires tabulated data provided in a single ASCII
-text file specified in the :doc:`pair_coeff <pair_coeff>` command.
-The first line of the file provides a time stamp and
+The potential supports two modes, *segment* and *chain*. 
+In *segment* mode, interactions are pair-wise between all neighboring segments based on a segment-segment approach.
+In *chain* mode, interactions are calculated between each segment and infinitely or 
+semi-infinitely long CNTs as described in :ref:`(Volkov1) <Volkov1>`. 
+Chains of segments are converted to these (semi-)infinite CNTs bases on an approximate
+chain approach outlined in :ref:`(Volkov2) <Volkov2>`. Hence, interactions are calculated on a 
+segment-chain basis.
+Using *chain* mode allows to simplify the computation of the interactions
+significantly and reduces the computational times to the
+same order of magnitude as for regular bead spring models
+where beads interact with the standard :doc:`pair_lj/cut <pair_lj>`
+potential. However, this method is only valid when the curvature of the CNTs in the system is small.
+If CNTs are buckled (see `angle_mesocnt <angle_mesocnt>`), local curvature can be very high and the pair_style automatically switches to *segment* mode for interactions involving buckled CNTs.
+
+In addition to the LJ interactions described above, style *mesocnt/viscous* explicitly models frictions between neighboring segments. Friction forces are a function of the relative velocity between a segment and its neighboring approximate chain (even in *segment* mode) and only act along the axes of the interacting segment and chain. In this potential, friction forces are modelled as a shifted logistic function:
+
+:math:`F^{\text{FRICTION}}(v) = \frac{F^{\text{max}}}{1 + exp(-k(v-v_0))} - \frac{F^{\text{max}}}{1 + exp(k v_0)}`.
+
+----------
+
+.. note::
+
+   CNT ends are treated differently by all *mesocnt* styles. Atoms on CNT ends need to be 
+   assigned different LAMMPS atom types than atoms not on CNT ends._
+
+Style *mesocnt* requires tabulated data provided in a single ASCII
+text file, as well as a list of integers corresponding to all LAMMPS 
+atom types representing CNT ends:
+
+* filename
+* :math:`N` CNT end atom types
+
+For example, if your LAMMPS simulation of (10, 10) nanotubes has 4 atom types where atom types 1 and 3 are assigned to 'inner' nodes and atom types 2 and 4 are assigned to CNT end nodes, the pair_coeff command would be:
+
+.. code-block:: LAMMPS
+
+   pair_coeff * * C_10_10.mesocnt 2 4
+
+Likewise, style *mesocnt/viscous* also requires the same information as style *mesocnt*, with the addition of 3 parameters for the viscous friction forces as listed above:
+
+* filename
+* :math:`F^{\text{max}}`
+* :math:`k`
+* :math:`v_0`
+* :math:`N` CNT end atom types
+
+Using the same example system as with style *mesocnt* with the addition of friction, the pair_coeff command is:
+
+.. code-block:: LAMMPS
+
+   pair_coeff * * C_10_10.mesocnt 0.03 20.0 0.20 2 4
+
+The first line of the potential file provides a time stamp and
 general information. The second line lists four integers giving
 the number of data points provided in the subsequent four
 data tables. The third line lists four floating point numbers:
@@ -72,44 +123,31 @@ available code provided on
    https://github.com/phankl/cntpot
 
 Using the same approach, it should also be possible to
-generate potential files for other 1D systems such as
-boron nitride nanotubes.
+generate potential files for other 1D systems mentioned above.
 
 .. note::
 
    Because of their size, *mesocnt* style potential files
    are not bundled with LAMMPS.   When compiling LAMMPS from
    source code, the file ``C_10_10.mesocnt`` should be downloaded
-   transparently from `https://download.lammps.org/potentials/C_10_10.mesocnt <https://download.lammps.org/potentials/C_10_10.mesocnt>`_
-   This file has as number of data points per table 1001.
-   This is sufficient for NVT simulations. For proper energy
-   conservation, we recommend using a potential file where
-   the resolution for Phi is at least 2001 data points.
-
-.. note::
-
-   The *mesocnt* style requires CNTs to be represented
-   as a chain of atoms connected by bonds. Atoms need
-   to be numbered consecutively within one chain.
-   Atoms belonging to different CNTs need to be assigned
-   different molecule IDs.
+   separately from `https://download.lammps.org/potentials/C_10_10.mesocnt <https://download.lammps.org/potentials/C_10_10.mesocnt>`_
 
 ----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair style does not support mixing.
+These pair styles does not support mixing.
 
-This pair style does not support the :doc:`pair_modify <pair_modify>`
+These pair styles does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-The *mesocnt* pair style do not write their information to :doc:`binary restart files <restart>`,
+These pair styles do not write their information to :doc:`binary restart files <restart>`,
 since it is stored in tabulated potential files.
 Thus, you need to re-specify the pair_style and pair_coeff commands in
 an input script that reads a restart file.
 
-This pair style can only be used via the *pair* keyword of the
+These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*, *middle*, *outer* keywords.
 
@@ -118,11 +156,16 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This style is part of the MESONT package.  It is only
+These styles are part of the MESONT package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-This pair potential requires the :doc:`newton <newton>` setting to be
+These pair styles require the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
+
+These pair styles require all 3 :doc:`special_bonds lj <special_bonds>` settings to be non-zero for proper neighbor list construction.
+
+Pair style *mesocnt/viscous* requires you to use the :doc:`comm_modify vel yes
+<comm_modify>` command so that velocities are stored by ghost atoms.
 
 Related commands
 """"""""""""""""

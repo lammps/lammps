@@ -184,10 +184,27 @@ TEST_F(RegionTest, NoBox)
 
     reg = domain->get_region_by_id("reg7");
     TEST_FAILURE(".*ERROR: Region intersect region reg1 does not exist.*", reg->init(););
+    TEST_FAILURE(".*ERROR: Delete region reg3 does not exist.*", command("region reg3 delete"););
+}
+
+TEST_F(RegionTest, DeathTests)
+{
+    atomic_system();
+
+    auto list = domain->get_region_list();
+    ASSERT_EQ(list.size(), 1);
+
+    TEST_FAILURE(".*ERROR: Illegal region block xlo: 1 >= xhi: 0.*", command("region reg1 block 1 0 0 1 0 1"););
+    TEST_FAILURE(".*ERROR: Illegal region cone open face: 4.*", command("region reg2 cone x 0 0 2 1 0 1 open 4"););
+    TEST_FAILURE(".*ERROR: Illegal region plane normal vector: 0 0 0.*", command("region reg3 plane 0 0 0 0 0 0 side out"););
+    TEST_FAILURE(".*ERROR: Illegal region prism non-zero xy tilt with infinite x size.*", command("region reg4 prism INF INF 0 1 0 1 0.1 0.2 0.3"););
+    TEST_FAILURE(".*ERROR: Illegal region sphere radius: -1.*", command("region reg5 sphere 0 0 0 -1"););
+    TEST_FAILURE(".*ERROR: Illegal region ellipsoid c: -2.*", command("region reg8 ellipsoid 0 0 0 2 1 -2"););
+    TEST_FAILURE(".*ERROR: Illegal region cylinder axis: xx.*", command("region reg9 cylinder  xx 0 0 1 0 1 open 1 units box"););
 
     TEST_FAILURE(".*ERROR: Unrecognized region style 'xxx'.*", command("region new1 xxx"););
     TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
-    TEST_FAILURE(".*ERROR: Delete region reg3 does not exist.*", command("region reg3 delete"););
+    TEST_FAILURE(".*ERROR: Delete region new3 does not exist.*", command("region new3 delete"););
 }
 
 TEST_F(RegionTest, Counts)

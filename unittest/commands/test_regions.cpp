@@ -77,9 +77,10 @@ TEST_F(RegionTest, NoBox)
     command("region reg6 union 3 reg1 reg2 reg3");
     command("region reg7 intersect 3 reg1 reg2 reg4");
     command("region reg8 ellipsoid 0 0 0 2 1 2");
+    command("region reg9 cylinder  y 0 0 1 0 1 open 1 units box");
     END_HIDE_OUTPUT();
     list = domain->get_region_list();
-    EXPECT_EQ(list.size(), 8);
+    EXPECT_EQ(list.size(), 9);
 
     auto reg = domain->get_region_by_id("reg1");
     EXPECT_EQ(reg->interior, 1);
@@ -161,11 +162,22 @@ TEST_F(RegionTest, NoBox)
     EXPECT_EQ(reg->rotateflag, 0);
     EXPECT_EQ(reg->openflag, 0);
 
+    reg = domain->get_region_by_id("reg9");
+    EXPECT_EQ(reg->interior, 1);
+    EXPECT_EQ(reg->scaleflag, 0);
+    EXPECT_EQ(reg->bboxflag, 1);
+    EXPECT_EQ(reg->varshape, 0);
+    EXPECT_EQ(reg->dynamic, 0);
+    EXPECT_EQ(reg->moveflag, 0);
+    EXPECT_EQ(reg->rotateflag, 0);
+    EXPECT_EQ(reg->openflag, 1);
+
     BEGIN_HIDE_OUTPUT();
     command("region reg3 delete");
     command("region reg5 delete");
     command("region reg6 delete");
     command("region reg1 delete");
+    command("region reg9 delete");
     END_HIDE_OUTPUT();
     list = domain->get_region_list();
     EXPECT_EQ(list.size(), 4);

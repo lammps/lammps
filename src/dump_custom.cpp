@@ -1673,7 +1673,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"format") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
     if (strcmp(arg[1],"none") == 0) {
       // just clear format_column_user allocated by this dump child class
@@ -1684,7 +1684,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       return 2;
     }
 
-    if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
     if (strcmp(arg[1],"int") == 0) {
       delete[] format_int_user;
@@ -1710,7 +1710,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
-        error->all(FLERR,"Illegal dump_modify command");
+        error->all(FLERR,"Unknown dump_modify format ID keyword: {}", arg[1]);
       delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
@@ -1731,7 +1731,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"refresh") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify refresh", error);
     ArgInfo argi(arg[1],ArgInfo::COMPUTE);
     if ((argi.get_type() != ArgInfo::COMPUTE) || (argi.get_dim() != 0))
       error->all(FLERR,"Illegal dump_modify command");
@@ -1743,7 +1743,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"thresh") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify thresh", error);
     if (strcmp(arg[1],"none") == 0) {
       if (nthresh) {
         memory->destroy(thresh_array);
@@ -1765,7 +1765,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       return 2;
     }
 
-    if (narg < 4) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 4) utils::missing_cmd_args(FLERR, "dump_modify thresh", error);
 
     // grow threshold arrays
 

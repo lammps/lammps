@@ -38,6 +38,7 @@ class PairAmoebaGPU : public PairAmoeba {
   //virtual void dispersion_real();
   virtual void multipole_real();
   virtual void udirect2b(double **, double **);
+  virtual void umutual1(double **, double **);
   virtual void umutual2b(double **, double **);
   virtual void ufield0c(double **, double **);
   virtual void polar_real();
@@ -54,6 +55,7 @@ class PairAmoebaGPU : public PairAmoeba {
   bool gpu_dispersion_real_ready;
   bool gpu_multipole_real_ready;
   bool gpu_udirect2b_ready;
+  bool gpu_umutual1_ready;
   bool gpu_umutual2b_ready;
   bool gpu_polar_real_ready;
 

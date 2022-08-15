@@ -18,7 +18,7 @@
 
 #include "pair_amoeba_gpu.h"
 
-#include "amoeba_convolution.h"
+#include "amoeba_convolution_gpu.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -45,6 +45,8 @@ enum{MUTUAL,OPT,TCG,DIRECT};
 enum{GEAR,ASPC,LSQR};
 enum{BUILD,APPLY};
 enum{GORDON1,GORDON2};
+
+enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 
 #define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
 
@@ -108,6 +110,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_dispersion_real_ready = false;   // always false for AMOEBA
   gpu_multipole_real_ready = true;     // need to be true for precompute()
   gpu_udirect2b_ready = true;
+  gpu_umutual1_ready = true;
   gpu_umutual2b_ready = true;
   gpu_polar_real_ready = true;         // need to be true for copying data from device back to host
 
@@ -176,6 +179,17 @@ void PairAmoebaGPU::init_style()
     tq_single = false;
   else
     tq_single = true;
+
+  // replace with the gpu counterpart
+
+  if (gpu_umutual1_ready) {
+    if (use_ewald && ic_kspace) {
+      delete ic_kspace;
+      ic_kspace =
+        new AmoebaConvolutionGPU(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRIDC);
+    }
+
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -922,6 +936,125 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
 
   time_mutual_rspace += time1 - time0;
   time_mutual_kspace += time2 - time1;
+}
+
+/* ----------------------------------------------------------------------
+   umutual1 = Ewald recip mutual induced field
+   umutual1 computes the reciprocal space contribution of the
+   induced atomic dipole moments to the field
+------------------------------------------------------------------------- */
+
+void PairAmoebaGPU::umutual1(double **field, double **fieldp)
+{
+  int i,j,k,m,n;
+  int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
+  double term;
+  double a[3][3];  // indices not flipped vs Fortran
+
+  // return if the Ewald coefficient is zero
+
+  if (aewald < 1.0e-6) return;
+
+  // convert Cartesian dipoles to fractional coordinates
+
+  for (j = 0; j < 3; j++) {
+    a[0][j] = nfft1 * recip[0][j];
+    a[1][j] = nfft2 * recip[1][j];
+    a[2][j] = nfft3 * recip[2][j];
+  }
+
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      fuind[i][j] = a[j][0]*uind[i][0] + a[j][1]*uind[i][1] + a[j][2]*uind[i][2];
+      fuinp[i][j] = a[j][0]*uinp[i][0] + a[j][1]*uinp[i][1] + a[j][2]*uinp[i][2];
+    }
+  }
+
+  // gridpre = my portion of 4d grid in brick decomp w/ ghost values
+
+  double ****gridpre = (double ****) ic_kspace->zero();
+
+  // map 2 values to grid
+
+  grid_uind(fuind,fuinp,gridpre);
+
+  // pre-convolution operations including forward FFT
+  // gridfft = my portion of complex 3d grid in FFT decomposition
+
+  double *gridfft = ic_kspace->pre_convolution();
+
+  // ---------------------
+  // convolution operation
+  // ---------------------
+
+  nxlo = ic_kspace->nxlo_fft;
+  nxhi = ic_kspace->nxhi_fft;
+  nylo = ic_kspace->nylo_fft;
+  nyhi = ic_kspace->nyhi_fft;
+  nzlo = ic_kspace->nzlo_fft;
+  nzhi = ic_kspace->nzhi_fft;
+
+  // use qfac values stored in udirect1()
+
+  m = n = 0;
+  for (k = nzlo; k <= nzhi; k++) {
+    for (j = nylo; j <= nyhi; j++) {
+      for (i = nxlo; i <= nxhi; i++) {
+        term = qfac[m++];
+        gridfft[n] *= term;
+        gridfft[n+1] *= term;
+        n += 2;
+      }
+    }
+  }
+
+  // post-convolution operations including backward FFT
+  // gridppost = my portion of 4d grid in brick decomp w/ ghost values
+
+  double ****gridpost = (double ****) ic_kspace->post_convolution();
+
+  // get potential
+
+  fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);
+
+  // store fractional reciprocal potentials for OPT method
+
+  if (poltyp == OPT) {
+    for (i = 0; i < nlocal; i++) {
+      for (j = 0; j < 10; j++) {
+        fopt[i][optlevel][j] = fdip_phi1[i][j];
+        foptp[i][optlevel][j] = fdip_phi2[i][j];
+      }
+    }
+  }
+
+  // convert the dipole fields from fractional to Cartesian
+
+  for (i = 0; i < 3; i++) {
+    a[0][i] = nfft1 * recip[0][i];
+    a[1][i] = nfft2 * recip[1][i];
+    a[2][i] = nfft3 * recip[2][i];
+  }
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      dipfield1[i][j] = a[j][0]*fdip_phi1[i][1] +
+        a[j][1]*fdip_phi1[i][2] + a[j][2]*fdip_phi1[i][3];
+      dipfield2[i][j] = a[j][0]*fdip_phi2[i][1] +
+        a[j][1]*fdip_phi2[i][2] + a[j][2]*fdip_phi2[i][3];
+    }
+  }
+
+  // increment the field at each multipole site
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      field[i][j] -= dipfield1[i][j];
+      fieldp[i][j] -= dipfield2[i][j];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

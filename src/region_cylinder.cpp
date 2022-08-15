@@ -40,10 +40,10 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   if (openflag)
     for (int i=3; i<6; i++) 
       if (open_faces[i]) 
-        error->all(FLERR,"Illegal open face {} in region cylinder command", i);
+        error->all(FLERR,"Illegal region cylinder open face: {}", i);
 
   if (strcmp(arg[2],"x") != 0 && strcmp(arg[2],"y") != 0 && strcmp(arg[2],"z") != 0)
-    error->all(FLERR,"Illegal axis {} in region cylinder command", arg[2]);
+    error->all(FLERR,"Illegal region cylinder axis: {}", arg[2]);
   axis = arg[2][0];
 
   if (axis == 'x') {

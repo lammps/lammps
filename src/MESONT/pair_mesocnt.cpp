@@ -1955,13 +1955,13 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     double omega = 1.0 / (1.0 - comega * sin_alphasq);
     double c1 = omega * sin_alpha;
     double c1_inv = 1.0 / c1;
-    double domega = 2 * comega * cos_alpha * c1 * omega;
+    double domega = 2.0 * comega * cos_alpha * c1 * omega;
 
     double gamma_orth = spline(h, hstart_gamma, delh_gamma, gamma_coeff, gamma_points);
     double dgamma_orth = dspline(h, hstart_gamma, delh_gamma, gamma_coeff, gamma_points);
     double gamma = 1.0 + (gamma_orth - 1.0) * sin_alphasq;
     double gamma_inv = 1.0 / gamma;
-    double dalpha_gamma = 2 * (gamma_orth - 1) * sin_alpha * cos_alpha;
+    double dalpha_gamma = 2.0 * (gamma_orth - 1.0) * sin_alpha * cos_alpha;
     double dh_gamma = dgamma_orth * sin_alphasq;
 
     double zeta1 = xi1 * c1;
@@ -1988,64 +1988,91 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     double dzetamin = dzetaminbar * smooth + zetaminbar * dsmooth / (delta2 - delta1);
     double dzetamax = -h / zetamax;
 
-    double zeta_range_inv = 1.0 / (zetamax - zetamin);
     double delzeta1 = fabs(zeta1) - zetamin;
     double delzeta2 = fabs(zeta2) - zetamin;
-
+      
+    double zeta_range_inv = 1.0 / (zetamax - zetamin); 
     double psi1 = delzeta1 * zeta_range_inv;
     double psi2 = delzeta2 * zeta_range_inv;
+    
+    double delta_phi, delta_dh_phi;
+    double dzeta_phi1, dzeta_phi2;
 
-    double phi1 =
-        spline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
-    double dh_phibar1 =
-        dxspline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
-    double dpsi_phibar1 =
-        dyspline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
-    double phi2 =
-        spline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
-    double dh_phibar2 =
-        dxspline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
-    double dpsi_phibar2 =
-        dyspline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
-
-    // warn if psi outside of interpolation range
-    if (psi1 < 0 || psi2 < 0)
+    // if psi1 or psi2 are out of interpolation range, 
+    // use numerical integration to calculate phi and its derivatives directly rather than using splines
+    
+    if (psi1 < 0 || psi2 < 0) {
       error->warning(FLERR, "Segment - infinite chain interaction outside of interpolation range." 
-          " Use potential file with lower delta1 and delta2 values.");
+          " Performance may be poor. Use potential file with lower delta1 and delta2 values.");
+    
+      double scale = 0.5 * (zeta2 - zeta1);
+      double shift = 0.5 * (zeta1 + zeta2);
+      
+      delta_phi = 0.0;
+      delta_dh_phi = 0.0;
 
-    double dzeta_range = dzetamax - dzetamin;
-    double dh_psi1 = -zeta_range_inv * (dzetamin + dzeta_range * psi1);
-    double dh_psi2 = -zeta_range_inv * (dzetamin + dzeta_range * psi2);
-    double dh_phi1 = dh_phibar1 + dpsi_phibar1 * dh_psi1;
-    double dh_phi2 = dh_phibar2 + dpsi_phibar2 * dh_psi2;
+      for (int i = 0; i < QUADRATURE; i++) {
+        double zeta = scale * gl_nodes[i] + shift;
+        double spline_arg = sqrt(hsq + zeta * zeta);
+        delta_phi += gl_weights[i] * spline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
+        delta_dh_phi += gl_weights[i] * h * dspline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points) / spline_arg;
+      }
 
-    double dzeta_phi1 = dpsi_phibar1 * zeta_range_inv;
-    double dzeta_phi2 = dpsi_phibar2 * zeta_range_inv;
+      delta_phi *= scale;
+      delta_dh_phi *= scale;
 
-    if (zeta1 < 0) {
-      phi1 *= -1;
-      dh_phi1 *= -1;
+      dzeta_phi1 = spline(sqrt(hsq + zeta1 * zeta1), hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
+      dzeta_phi2 = spline(sqrt(hsq + zeta2 * zeta2), hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
+    } else {
+      double phi1 =
+          spline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
+      double phi2 =
+          spline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
+      double dh_phibar1 =
+          dxspline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
+      double dh_phibar2 =
+          dxspline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
+      double dpsi_phibar1 =
+          dyspline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
+      double dpsi_phibar2 =
+          dyspline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
+     
+      double dzeta_range = dzetamax - dzetamin;
+      double dh_psi1 = -zeta_range_inv * (dzetamin + dzeta_range * psi1);
+      double dh_psi2 = -zeta_range_inv * (dzetamin + dzeta_range * psi2);
+      double dh_phi1 = dh_phibar1 + dpsi_phibar1 * dh_psi1;
+      double dh_phi2 = dh_phibar2 + dpsi_phibar2 * dh_psi2;
+    
+      dzeta_phi1 = dpsi_phibar1 * zeta_range_inv;
+      dzeta_phi2 = dpsi_phibar2 * zeta_range_inv;
+      
+      if (zeta1 < 0) {
+        phi1 = -phi1;
+        dh_phi1 = -dh_phi1;
+      }
+      if (zeta2 < 0) {
+        phi2 = -phi2;
+        dh_phi2 = -dh_phi2;
+      }
+
+      delta_phi = phi2 - phi1;
+      delta_dh_phi = dh_phi2 - dh_phi1;
     }
-
-    if (zeta2 < 0) {
-      phi2 *= -1;
-      dh_phi2 *= -1;
-    }
-
-    double deldzeta_phi = dzeta_phi2 - dzeta_phi1;
+ 
+    double delta_dzeta_phi = dzeta_phi2 - dzeta_phi1;
 
     double c2 = gamma * c1_inv;
-    double u = c2 * (phi2 - phi1);
+    double u = c2 * delta_phi;
     double c3 = u * gamma_inv;
 
-    double dh_u = dh_gamma * c3 + c2 * (dh_phi2 - dh_phi1);
+    double dh_u = dh_gamma * c3 + c2 * delta_dh_phi;
     double dalpha_u = dalpha_gamma * c3 +
         c1_inv * (domega * sin_alpha + omega * cos_alpha) *
             (gamma * (xi2 * dzeta_phi2 - xi1 * dzeta_phi1) - u);
 
     double lr_inv = 1.0 / (xi2 - xi1);
-    double cx = h * gamma * sin_alphasq_inv * deldzeta_phi;
-    double cy = gamma * cot_alpha * deldzeta_phi;
+    double cx = h * gamma * sin_alphasq_inv * delta_dzeta_phi;
+    double cy = gamma * cot_alpha * delta_dzeta_phi;
 
     f[0][0] = lr_inv * (xi2 * dh_u - cx) * funit;
     f[1][0] = lr_inv * (-xi1 * dh_u + cx) * funit;

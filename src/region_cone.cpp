@@ -38,7 +38,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
   // check open face settings
 
   if (openflag)
-    for (int i=3; i<6; i++) 
+    for (int i=3; i<6; i++)
       if (open_faces[i]) error->all(FLERR,"Illegal region cone open face: {}", i+1);
 
   if (strcmp(arg[2],"x") != 0 && strcmp(arg[2],"y") != 0 && strcmp(arg[2],"z") != 0)

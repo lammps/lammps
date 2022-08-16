@@ -38,7 +38,8 @@ are the :math:`(x,y,z)` coordinates of the center of mass.
    "unwrapped" coordinates.  See the Atoms section of the
    :doc:`read_data <read_data>` command for a discussion of image flags and
    how they are set for each atom.  You can reset the image flags
-   (e.g. to 0) before invoking this compute by using the :doc:`set image <set>` command.
+   (e.g., to 0) before invoking this compute by using the
+   :doc:`set image <set>` command.
 
 Output info
 """""""""""

@@ -6,7 +6,7 @@ compute fep command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID fep temp attribute args ... keyword value ...
 
@@ -19,7 +19,7 @@ Syntax
   .. parsed-literal::
 
        *pair* args = pstyle pparam I J v_delta
-         pstyle = pair style name, e.g. lj/cut
+         pstyle = pair style name (e.g., *lj/cut*)
          pparam = parameter to perturb
          I,J = type pair(s) to set parameter for
          v_delta = variable with perturbation to apply (in the units of the parameter)
@@ -37,8 +37,8 @@ Syntax
          *no* = ignore tail correction to pair energies (usually small in fep)
          *yes* = include tail correction to pair energies
        *volume* value = *no* or *yes*
-         *no* = ignore volume changes (e.g. in *NVE* or *NVT* trajectories)
-         *yes* = include volume changes (e.g. in *NpT* trajectories)
+         *no* = ignore volume changes (e.g., in *NVE* or *NVT* trajectories)
+         *yes* = include volume changes (e.g., in *NPT* trajectories)
 
 Examples
 """"""""
@@ -84,7 +84,7 @@ It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential
 energy. Therefore, this compute can apply perturbations to interaction
 parameters that are not directly proportional to the potential energy
-(e.g. :math:`\sigma` in Lennard-Jones potentials).
+(e.g., :math:`\sigma` in Lennard-Jones potentials).
 
 This command can be combined with :doc:`fix adapt <fix_adapt>` to
 perform multistage free-energy perturbation calculations along
@@ -107,7 +107,8 @@ perturbation method using a very small :math:`\delta`:
    A(\lambda)}{\partial\lambda} \right)_\lambda \mathrm{d}\lambda \approx
    \sum_{i=0}^{n-1} w_i \frac{A(\lambda_{i} + \delta) - A(\lambda_i)}{\delta}
 
-where :math:`w_i` are weights of a numerical quadrature. The :doc:`fix adapt <fix_adapt>` command can be used to define the stages of
+where :math:`w_i` are weights of a numerical quadrature. The
+:doc:`fix adapt <fix_adapt>` command can be used to define the stages of
 :math:`\lambda` at which the derivative is calculated and averaged.
 
 The compute fep calculates the exponential Boltzmann term and also the
@@ -125,7 +126,7 @@ the derivative of the potential energy with respect to :math:`\lambda`:
 
 Another technique to calculate free energy differences is the
 acceptance ratio method :ref:`(Bennet) <Bennet>`, which can be implemented
-by calculating the potential energy differences with :math:`\delta` = 1.0 on
+by calculating the potential energy differences with :math:`\delta = 1.0` on
 both the forward and reverse routes:
 
 .. math::
@@ -226,17 +227,17 @@ the pair\_\*.cpp file associated with the potential.
 
 Similar to the :doc:`pair_coeff <pair_coeff>` command, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for
-each, as in the first example above.  I <= J is required.  LAMMPS sets
+each, as in the first example above.  I :math:`\le` J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same
 values. A wild-card asterisk can be used in place of or in conjunction
 with the I,J arguments to set the coefficients for multiple pairs of
-atom types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N =
-the number of atom types, then an asterisk with no numeric values
-means all types from 1 to N.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from n to N
+atom types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If
+:math:`N` is the number of atom types, then an asterisk with no numeric values
+means all types from 1 to :math:`N`.   A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from m to N
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).  Note that only type pairs with I <= J are considered; if
-asterisks imply type pairs where J < I, they are ignored.
+(inclusive).  Note that only type pairs with I :math:`\le` J are considered; if
+asterisks imply type pairs where J :math:`<` I, they are ignored.
 
 If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is being
 used, then the *pstyle* will be a sub-style name.  You must specify
@@ -298,7 +299,7 @@ These output results can be used by any command that uses a global
 scalar or vector from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options. For example, the computed values can be averaged using :doc:`fix ave/time <fix_ave_time>`.
 
-The values calculated by this compute are "extensive".
+The values calculated by this compute are "extensive."
 
 Restrictions
 """"""""""""

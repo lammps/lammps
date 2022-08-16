@@ -213,7 +213,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
-* :doc:`global/atom <compute_global_atom>` -
+* :doc:`global/atom <compute_global_atom>` - assign global values to each atom from arrays of global values
 * :doc:`group/group <compute_group_group>` - energy/force between two groups of atoms
 * :doc:`gyration <compute_gyration>` - radius of gyration of group of atoms
 * :doc:`gyration/chunk <compute_gyration_chunk>` - radius of gyration for each chunk

@@ -6,7 +6,7 @@ compute damage/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID damage/atom
 
@@ -48,7 +48,7 @@ any command that uses per-atom values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The per-atom vector values are unitless numbers (damage) >= 0.0.
+The per-atom vector values are unitless numbers (damage) :math:`\ge 0.0`.
 
 Restrictions
 """"""""""""

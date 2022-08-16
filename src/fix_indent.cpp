@@ -43,7 +43,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr), pstr(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix indent command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix indent", error);
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -405,7 +405,7 @@ double FixIndent::compute_vector(int n)
 
 void FixIndent::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal fix indent command");
+  if (narg < 0) utils::missing_cmd_args(FLERR, "fix indent", error);
 
   istyle = NONE;
   xstr = ystr = zstr = rstr = pstr = nullptr;
@@ -416,7 +416,7 @@ void FixIndent::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sphere") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "fix indent sphere", error);
 
       if (utils::strmatch(arg[iarg+1],"^v_")) {
         xstr = utils::strdup(arg[iarg+1]+2);
@@ -435,7 +435,7 @@ void FixIndent::options(int narg, char **arg)
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"cylinder") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "fix indent cylinder", error);
 
       if (strcmp(arg[iarg+1],"x") == 0) {
         cdim = 0;
@@ -461,7 +461,7 @@ void FixIndent::options(int narg, char **arg)
         if (utils::strmatch(arg[iarg+3],"^v_")) {
           ystr = utils::strdup(arg[iarg+3]+2);
         } else yvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      } else error->all(FLERR,"Illegal fix indent command");
+      } else error->all(FLERR,"Unknown fix indent cylinder argument: {}", arg[iarg+1]);
 
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         rstr = utils::strdup(arg[iarg+4]+2);
@@ -471,11 +471,11 @@ void FixIndent::options(int narg, char **arg)
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"plane") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix indent plane", error);
       if (strcmp(arg[iarg+1],"x") == 0) cdim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) cdim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) cdim = 2;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent plane argument: {}", arg[iarg+1]);
 
       if (utils::strmatch(arg[iarg+2],"^v_")) {
         pstr = utils::strdup(arg[iarg+2]+2);
@@ -483,23 +483,23 @@ void FixIndent::options(int narg, char **arg)
 
       if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;
       else if (strcmp(arg[iarg+3],"hi") == 0) planeside = 1;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent plane argument: {}", arg[iarg+3]);
       istyle = PLANE;
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix indent units", error);
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent units argument: {}", arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"side") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix indent side", error);
       if (strcmp(arg[iarg+1],"in") == 0) side = INSIDE;
       else if (strcmp(arg[iarg+1],"out") == 0) side = OUTSIDE;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent side argument: {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix indent command");
+    } else error->all(FLERR,"Unknown fix indent argument: {}", arg[iarg]);
   }
 }

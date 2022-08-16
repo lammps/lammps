@@ -602,14 +602,14 @@ styles.
 
 Note that in the discussion which follows, for styles which can
 reference values from a compute or fix or custom atom property, like
-the *custom*\ , *cfg*\ , or *local* styles, the bracketed index I can
-be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*"
-or "m\*n".  If N = the number of columns in the array, then an
-asterisk with no numeric values means all column indices from 1 to N.
-A leading asterisk means all indices from 1 to n (inclusive).  A
-trailing asterisk means all indices from n to N (inclusive).  A middle
-asterisk means all indices from m to n (inclusive).
+the *custom*\ , *cfg*\ , *local*, or *grid* styles, the bracketed
+index I can be specified using a wildcard asterisk with the index to
+effectively specify multiple values.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If N = the number of columns in the array,
+then an asterisk with no numeric values means all column indices from
+1 to N.  A leading asterisk means all indices from 1 to n (inclusive).
+A trailing asterisk means all indices from n to N (inclusive).  A
+middle asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 dump commands are

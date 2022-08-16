@@ -64,9 +64,7 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       iarg += 2;
     } else if (strcmp(arg[iarg], "command") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal mdi plugin command");
-      int n = strlen(arg[iarg + 1]) + 1;
-      lammps_command = new char[n];
-      strcpy(lammps_command, arg[iarg + 1]);
+      lammps_command = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal mdi plugin command");

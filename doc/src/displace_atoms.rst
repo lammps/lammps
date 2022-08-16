@@ -36,7 +36,7 @@ Syntax
   .. parsed-literal::
 
        keyword = *units*
-         value = *box* or *lattice*
+         *units* value = *box* or *lattice*
 
 Examples
 """"""""

@@ -277,6 +277,8 @@ is the length of the input vectors, and the number of columns is the
 number of values.  Thus the file ends up to be a series of these array
 sections.
 
+.. versionadded:: 4May2022
+
 If the filename ends in '.yaml' or '.yml' then the output format
 conforms to the `YAML standard <https://yaml.org/>`_ which allows
 easy import that data into tools and scripts that support reading YAML
@@ -328,6 +330,8 @@ appropriate fields from the fix ave/time command.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. versionadded:: 4May2022
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.  The :doc:`fix_modify colname <fix_modify>` option can be

@@ -19,7 +19,7 @@
 
 #include "atom.h"
 #include "domain.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "update.h"
 

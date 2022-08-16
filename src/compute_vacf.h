@@ -35,7 +35,7 @@ class ComputeVACF : public Compute {
  protected:
   bigint nvacf;
   char *id_fix;
-  class FixStore *fix;
+  class FixStorePeratom *fix;
 };
 
 }    // namespace LAMMPS_NS

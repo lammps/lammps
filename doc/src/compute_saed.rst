@@ -41,8 +41,8 @@ Examples
    compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
    compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo
 
-   fix saed/vtk 1 1 1 c_1 file Al2O3_001.saed
-   fix saed/vtk 1 1 1 c_2 file Ni_000.saed
+   fix 1 all saed/vtk 1 1 1 c_1 file Al2O3_001.saed
+   fix 2 all saed/vtk 1 1 1 c_2 file Ni_000.saed
 
 Description
 """""""""""

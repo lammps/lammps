@@ -38,11 +38,11 @@ found together with equivalent examples in C and C++ in the
 
 .. note::
 
-   A contributed (and complete!) Fortran interface that more
-   closely resembles the C-library interface is available
-   in the ``examples/COUPLE/fortran2`` folder.  Please see the
-   ``README`` file in that folder for more information about it
-   and how to contact its author and maintainer.
+   A contributed (and more complete!) Fortran interface that more
+   closely resembles the C-library interface is available in the
+   ``examples/COUPLE/fortran2`` folder.  Please see the ``README`` file
+   in that folder for more information about it and how to contact its
+   author and maintainer.
 
 ----------
 
@@ -65,8 +65,9 @@ the optional logical argument set to ``.true.``. Here is a simple example:
 
    PROGRAM testlib
      USE LIBLAMMPS                 ! include the LAMMPS library interface
+     IMPLICIT NONE
      TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
-     CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
+     CHARACTER(len=*), PARAMETER :: args(3) = &
          [ CHARACTER(len=12) :: 'liblammps', '-log', 'none' ]
 
      ! create a LAMMPS instance (and initialize MPI)
@@ -77,6 +78,41 @@ the optional logical argument set to ``.true.``. Here is a simple example:
      CALL lmp%close(.true.)
 
    END PROGRAM testlib
+
+It is also possible to pass command line flags from Fortran to C/C++ and
+thus make the resulting executable behave similar to the standalone
+executable (it will ignore the `-in/-i` flag, though).  This allows to
+use the command line to configure accelerator and suffix settings,
+configure screen and logfile output, or to set index style variables
+from the command line and more. Here is a correspondingly adapted
+version of the previous example:
+
+.. code-block:: fortran
+
+   PROGRAM testlib2
+     USE LIBLAMMPS                 ! include the LAMMPS library interface
+     IMPLICIT NONE
+     TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
+     CHARACTER(len=128), ALLOCATABLE :: command_args(:)
+     INTEGER :: i, argc
+
+     ! copy command line flags to `command_args()`
+     argc = COMMAND_ARGUMENT_COUNT()
+     ALLOCATE(command_args(0:argc))
+     DO i=0, argc
+       CALL GET_COMMAND_ARGUMENT(i, command_args(i))
+     END DO
+
+     ! create a LAMMPS instance (and initialize MPI)
+     lmp = lammps(command_args)
+     ! get and print numerical version code
+     PRINT*, 'Program name:   ', command_args(0)
+     PRINT*, 'LAMMPS Version: ', lmp%version()
+     ! delete LAMMPS instance (and shuts down MPI)
+     CALL lmp%close(.TRUE.)
+     DEALLOCATE(command_args)
+
+   END PROGRAM testlib2
 
 --------------------
 
@@ -102,7 +138,7 @@ Below is a small demonstration of the uses of the different functions:
      USE LIBLAMMPS
      TYPE(lammps)     :: lmp
      CHARACTER(len=512) :: cmds
-     CHARACTER(len=40),ALLOCATABLE :: cmdlist(:)
+     CHARACTER(len=40), ALLOCATABLE :: cmdlist(:)
      CHARACTER(len=10) :: trimmed
      INTEGER :: i
 
@@ -111,10 +147,10 @@ Below is a small demonstration of the uses of the different functions:
      CALL lmp%command('variable zpos index 1.0')
      ! define 10 groups of 10 atoms each
      ALLOCATE(cmdlist(10))
-     DO i=1,10
+     DO i=1, 10
          WRITE(trimmed,'(I10)') 10*i
          WRITE(cmdlist(i),'(A,I1,A,I10,A,A)')       &
-             'group g',i-1,' id ',10*(i-1)+1,':',ADJUSTL(trimmed)
+             'group g', i-1, ' id ', 10*(i-1)+1, ':', ADJUSTL(trimmed)
      END DO
      CALL lmp%commands_list(cmdlist)
      ! run multiple commands from multi-line string
@@ -123,7 +159,7 @@ Below is a small demonstration of the uses of the different functions:
          'create_box 1 box' // NEW_LINE('A') //               &
          'create_atoms 1 single 1.0 1.0 ${zpos}'
      CALL lmp%commands_string(cmds)
-     CALL lmp%close()
+     CALL lmp%close(.TRUE.)
 
    END PROGRAM testcmd
 
@@ -137,9 +173,9 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
 .. f:type:: lammps
 
-   Derived type that is the general class of the Fortran interface.
-   It holds a reference to the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class instance
-   that any of the included calls are forwarded to.
+   Derived type that is the general class of the Fortran interface.  It
+   holds a reference to the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`
+   class instance that any of the included calls are forwarded to.
 
    :f c_ptr handle: reference to the LAMMPS class
    :f close: :f:func:`close`
@@ -202,7 +238,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    This method will call :cpp:func:`lammps_commands_list` to have LAMMPS
    execute a list of input lines.
 
-   :p character(len=*) cmd(*): list of LAMMPS input lines
+   :p character(len=*) cmd(:): list of LAMMPS input lines
 
 .. f:subroutine:: commands_string(str)
 
@@ -210,4 +246,3 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    execute a block of commands from a string.
 
    :p character(len=*) str: LAMMPS input in string
-

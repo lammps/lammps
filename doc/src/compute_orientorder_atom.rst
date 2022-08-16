@@ -19,12 +19,12 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *cutoff* or *nnn* or *degrees* or *components* or *chunksize*
+     keyword = *cutoff* or *nnn* or *degrees* or *wl* or *wl/hat* or *components* or *chunksize*
        *cutoff* value = distance cutoff
        *nnn* value = number of nearest neighbors
        *degrees* values = nlvalues, l1, l2,...
-       *wl* value = yes or no
-       *wl/hat* value = yes or no
+       *wl* value = *yes* or *no*
+       *wl/hat* value = *yes* or *no*
        *components* value = ldegree
        *chunksize* value = number of atoms in each pass
 

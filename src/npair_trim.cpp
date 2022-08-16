@@ -33,7 +33,7 @@ void NPairTrim::build(NeighList *list)
 
   double cutsq_custom = cutoff_custom * cutoff_custom;
 
-  int i,j,ii,jj,n,jnum,joriginal;
+  int ii,jj,n,jnum,joriginal;
   int *neighptr,*jlist;
   double xtmp,ytmp,ztmp;
   double delx,dely,delz,rsq;
@@ -71,7 +71,7 @@ void NPairTrim::build(NeighList *list)
 
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
-      j = joriginal & NEIGHMASK;
+      const int j = joriginal & NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

@@ -61,7 +61,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
+* style = *atom* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -96,7 +96,7 @@ Syntax
        *xyz/mpiio* args = none
        *yaml* args = same as *custom* args, see below
 
-* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* or *yaml* args = list of atom attributes
+* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* args = list of atom attributes
 
   .. parsed-literal::
 
@@ -413,6 +413,8 @@ and the x-, y-, and z-coordinate of that atom. You can use the
 from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
+
+.. versionadded:: 4May2022
 
 Dump style *yaml* has the same command syntax as style *custom* and
 writes YAML format files that can be easily parsed by a variety of data

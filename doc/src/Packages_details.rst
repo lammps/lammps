@@ -1544,11 +1544,18 @@ segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below. This package contains two
-independent implementations of this model: :doc:`pair_style mesocnt
-<pair_mesocnt>` is a (minimal) C++ implementation, and :doc:`pair_style
-mesont/tpm <pair_mesont_tpm>` is a more general and feature rich
-implementation based on a Fortran library in the ``lib/mesont`` folder.
+provided in the papers listed below. 
+
+This package contains two independent implementations of this model:
+:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original implemention
+of the model based on a Fortran library in the ``lib/mesont`` folder. The
+second implementation is given by the mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`, 
+:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt <pair_mesocnt>`).
+The mesocnt implemenation has the same features as the original implementation with the
+addition of friction,
+but is directly implemented in C++, interfaces more cleanly with general LAMMPS
+functionality and is typically faster. It also doesn't require its own atom type
+and can be installed without any external libraries.
 
 **Download of potential files:**
 
@@ -1561,7 +1568,7 @@ from a web server when the package is installed for the first time.
 
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-**Author of the *mesocnt* pair style:**
+**Author of the *mesocnt* styles:**
 Philipp Kloza (U Cambridge)
 
 **Supporting info:**
@@ -1571,6 +1578,8 @@ Philipp Kloza (U Cambridge)
 * :doc:`atom_style mesont <atom_style>`
 * :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
 * :doc:`compute mesont <compute_mesont>`
+* :doc:`bond_style mesocnt <bond_mesocnt>`
+* :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
 * tools/mesont

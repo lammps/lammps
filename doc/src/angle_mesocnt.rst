@@ -73,7 +73,7 @@ radian\^2 and :math:`K_\text{B}` is energy per radian.
 
 ----------
 
-In *buckling* mode, this angle style adds the *buckled* property to all atoms in the simulation, which is an integer flag indicating whether the bending angle at a given atom has exceeded :math:`\theta_\text{B}`. It can be accessed as an atomic variable, e.g. for custom dump commands, as *i_buckled*. 
+In *buckling* mode, this angle style adds the *buckled* property to all atoms in the simulation, which is an integer flag indicating whether the bending angle at a given atom has exceeded :math:`\Delta \theta_\text{B}`. It can be accessed as an atomic variable, e.g. for custom dump commands, as *i_buckled*. 
 
 Restrictions
 """"""""""""

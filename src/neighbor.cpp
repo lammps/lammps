@@ -1164,7 +1164,6 @@ void Neighbor::morph_unique()
 
       if (irq->cutoff != cutneighmax) {
         irq->unique = 1;
-
       } else {
         irq->cut = 0;
         irq->cutoff = 0.0;
@@ -1808,7 +1807,6 @@ void Neighbor::print_pairwise_info()
     out += "      ";
     if (lists[i]->bin_method == 0) out += "bin: none\n";
     else out += fmt::format("bin: {}\n",binnames[lists[i]->bin_method-1]);
-
   }
   utils::logmesg(lmp,out);
 }
@@ -2582,60 +2580,58 @@ void Neighbor::modify_params(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify every", error);
       every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (every <= 0) error->all(FLERR,"Illegal neigh_modify command");
+      if (every <= 0) error->all(FLERR, "Invalid neigh_modify every argument: {}", every);
       iarg += 2;
     } else if (strcmp(arg[iarg],"delay") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify delay", error);
       delay = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (delay < 0) error->all(FLERR,"Illegal neigh_modify command");
+      if (delay < 0) error->all(FLERR, "Invalid neigh_modify delay argument: {}", delay);
       iarg += 2;
     } else if (strcmp(arg[iarg],"check") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify check", error);
       dist_check = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"once") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify once", error);
       build_once = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"page") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify page", error);
       old_pgsize = pgsize;
       pgsize = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"one") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify one", error);
       old_oneatom = oneatom;
       oneatom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify binsize", error);
       binsize_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (binsize_user <= 0.0) binsizeflag = 0;
       else binsizeflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"cluster") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify cluster", error);
       cluster_check = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-
     } else if (strcmp(arg[iarg],"include") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify include", error);
       includegroup = group->find(arg[iarg+1]);
       if (includegroup < 0)
-        error->all(FLERR,"Invalid group ID in neigh_modify command");
-      if (includegroup && (atom->firstgroupname == nullptr ||
-                            strcmp(arg[iarg+1],atom->firstgroupname) != 0))
-        error->all(FLERR,
-                   "Neigh_modify include group != atom_modify first group");
+        error->all(FLERR, "Invalid include keyword: group {} not found", arg[iarg+1]);
+      if (atom->firstgroupname == nullptr)
+          error->all(FLERR, "Invalid include keyword: atom_modify first command must be used");
+      if (strcmp(arg[iarg+1],atom->firstgroupname) != 0)
+        error->all(FLERR, "Neigh_modify include group != atom_modify first group: {}", atom->firstgroupname);
       iarg += 2;
-
     } else if (strcmp(arg[iarg],"exclude") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude", error);
 
       if (strcmp(arg[iarg+1],"type") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal neigh_modify command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude type", error);
         if (nex_type == maxex_type) {
           maxex_type += EXDELTA;
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
@@ -2645,9 +2641,8 @@ void Neighbor::modify_params(int narg, char **arg)
         ex2_type[nex_type] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         nex_type++;
         iarg += 4;
-
       } else if (strcmp(arg[iarg+1],"group") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal neigh_modify command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude group", error);
         if (nex_group == maxex_group) {
           maxex_group += EXDELTA;
           memory->grow(ex1_group,maxex_group,"neigh:ex1_group");
@@ -2655,14 +2650,15 @@ void Neighbor::modify_params(int narg, char **arg)
         }
         ex1_group[nex_group] = group->find(arg[iarg+2]);
         ex2_group[nex_group] = group->find(arg[iarg+3]);
-        if (ex1_group[nex_group] == -1 || ex2_group[nex_group] == -1)
-          error->all(FLERR,"Invalid group ID in neigh_modify command");
+        if (ex1_group[nex_group] == -1)
+          error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+2]);
+        if (ex2_group[nex_group] == -1)
+            error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
         nex_group++;
         iarg += 4;
-
       } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||
                  strcmp(arg[iarg+1],"molecule/intra") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal neigh_modify command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude molecule", error);
         if (atom->molecule_flag == 0)
           error->all(FLERR,"Neigh_modify exclude molecule "
                      "requires atom attribute molecule");
@@ -2676,30 +2672,28 @@ void Neighbor::modify_params(int narg, char **arg)
         }
         ex_mol_group[nex_mol] = group->find(arg[iarg+2]);
         if (ex_mol_group[nex_mol] == -1)
-          error->all(FLERR,"Invalid group ID in neigh_modify command");
+          error->all(FLERR, "Invalid exclude keyword:group {} not found", arg[iarg+2]);
         if (strcmp(arg[iarg+1],"molecule/intra") == 0)
           ex_mol_intra[nex_mol] = 1;
         else
           ex_mol_intra[nex_mol] = 0;
         nex_mol++;
         iarg += 3;
-
       } else if (strcmp(arg[iarg+1],"none") == 0) {
         nex_type = nex_group = nex_mol = 0;
         iarg += 2;
-
-      } else error->all(FLERR,"Illegal neigh_modify command");
+      } else error->all(FLERR,"Unknown neigh_modify exclude keyword: {}", arg[iarg+1]);
     } else if (strcmp(arg[iarg],"collection/interval") == 0) {
       if (style != Neighbor::MULTI)
         error->all(FLERR,"Cannot use collection/interval command without multi setting");
 
       if (iarg+2 > narg)
-        error->all(FLERR,"Invalid collection/interval command");
+        utils::missing_cmd_args(FLERR, "neigh_modify collection/interval", error);
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncollections < 1)
-        error->all(FLERR,"Invalid collection/interval command");
-      if (iarg+1+ncollections > narg)
-        error->all(FLERR,"Invalid collection/interval command");
+        error->all(FLERR, "Invalid collection/interval keyword: illegal number of custom collections: {}", ncollections);
+      if (iarg+2+ncollections > narg)
+        error->all(FLERR, "Invalid collection/interval keyword: expected {} separate lists of types", ncollections);
 
       int i;
 
@@ -2728,12 +2722,12 @@ void Neighbor::modify_params(int narg, char **arg)
         error->all(FLERR,"Cannot use collection/type command without multi setting");
 
       if (iarg+2 > narg)
-        error->all(FLERR,"Invalid collection/type command");
+        utils::missing_cmd_args(FLERR, "neigh_modify collection/type", error);
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncollections < 1)
-        error->all(FLERR,"Invalid collection/interval command");
-      if (iarg+1+ncollections > narg)
-        error->all(FLERR,"Invalid collection/type command");
+        error->all(FLERR, "Invalid collection/type keyword: illegal number of custom collections: {}", ncollections);
+      if (iarg+2+ncollections > narg)
+        error->all(FLERR, "Invalid collection/type keyword: expected {} separate lists of types", ncollections);
 
       int ntypes = atom->ntypes;
       int nlo, nhi, i, k;
@@ -2774,7 +2768,7 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       iarg += 2 + ncollections;
-    } else error->all(FLERR,"Illegal neigh_modify command");
+    } else error->all(FLERR,"Unknown neigh_modify keyword: {}", arg[iarg]);
   }
 }
 
@@ -2817,7 +2811,6 @@ void Neighbor::exclusion_group_group_delete(int group1, int group2)
   }
   nex_group--;
 }
-
 
 /* ----------------------------------------------------------------------
    return the value of exclude - used to check compatibility with GPU
@@ -2880,7 +2873,6 @@ void Neighbor::build_collection(int istart)
     }
   }
 }
-
 
 /* ----------------------------------------------------------------------
    for neighbor list statistics in Finish class

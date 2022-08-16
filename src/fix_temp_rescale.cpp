@@ -40,10 +40,10 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   tstr(nullptr), id_temp(nullptr), tflag(0)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale command");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "fix temp/rescale", error);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale command");
+  if (nevery <= 0) error->all(FLERR, "Invalid fix temp/rescale argument: {}", nevery);
 
   restart_global = 1;
   scalar_flag = 1;
@@ -106,9 +106,9 @@ void FixTempRescale::init()
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)
-      error->all(FLERR,"Variable name for fix temp/rescale does not exist");
+      error->all(FLERR,"Variable {} for fix temp/rescale does not exist", tstr);
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else error->all(FLERR,"Variable for fix temp/rescale is invalid style");
+    else error->all(FLERR,"Variable {} for fix temp/rescale is invalid style", tstr);
   }
 
   int icompute = modify->find_compute(id_temp);
@@ -195,7 +195,7 @@ void FixTempRescale::end_of_step()
 int FixTempRescale::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify temp", error);
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
@@ -205,7 +205,7 @@ int FixTempRescale::modify_param(int narg, char **arg)
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
+      error->all(FLERR,"Could not find fix_modify temperature ID {}", arg[1]);
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)

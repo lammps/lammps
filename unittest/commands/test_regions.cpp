@@ -203,7 +203,8 @@ TEST_F(RegionTest, DeathTests)
     TEST_FAILURE(".*ERROR: Illegal region cylinder axis: xx.*", command("region reg9 cylinder  xx 0 0 1 0 1 open 1 units box"););
 
     TEST_FAILURE(".*ERROR: Unrecognized region style 'xxx'.*", command("region new1 xxx"););
-    TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
+    //TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
+    TEST_FAILURE(".*ERROR: Illegal region command: missing argument\\(s\\).*", command("region new1 block 0 1"););
     TEST_FAILURE(".*ERROR: Delete region new3 does not exist.*", command("region new3 delete"););
 }
 

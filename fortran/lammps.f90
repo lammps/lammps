@@ -123,7 +123,7 @@ MODULE LIBLAMMPS
         IMPLICIT NONE
         INTEGER(c_int), VALUE, INTENT(IN)     :: argc
         TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: argv
-        TYPE(c_ptr), VALUE, INTENT(in)        :: handle
+        TYPE(c_ptr), VALUE, INTENT(IN)        :: handle
         TYPE(c_ptr)                           :: lammps_open_no_mpi
       END FUNCTION lammps_open_no_mpi
 
@@ -364,7 +364,7 @@ CONTAINS
   ! Constructor for the LAMMPS class.
   ! Combined wrapper around lammps_open_fortran() and lammps_open_no_mpi()
   TYPE(lammps) FUNCTION lmp_open(args, comm)
-    INTEGER, INTENT(in), OPTIONAL :: comm
+    INTEGER, INTENT(IN), OPTIONAL :: comm
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: args(:)
     TYPE(c_ptr), ALLOCATABLE     :: argv(:)
     INTEGER(c_int)               :: i, c_comm, argc
@@ -436,7 +436,7 @@ CONTAINS
   ! equivalent function to lammps_commands_list()
   SUBROUTINE lmp_commands_list(self, cmds)
     CLASS(lammps) :: self
-    CHARACTER(len=*), INTENT(in), OPTIONAL :: cmds(:)
+    CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: cmds(:)
     TYPE(c_ptr), ALLOCATABLE     :: cmdv(:)
     INTEGER :: i, ncmd
 

@@ -81,7 +81,7 @@ the optional logical argument set to ``.true.``. Here is a simple example:
 
 It is also possible to pass command line flags from Fortran to C/C++ and
 thus make the resulting executable behave similarly to the standalone
-executable (it will ignore the `-in/-i` flag, though).  This allows to
+executable (it will ignore the `-in/-i` flag, though).  This allows one to
 use the command line to configure accelerator and suffix settings,
 configure screen and logfile output, or to set index style variables
 from the command line and more. Here is a correspondingly adapted
@@ -207,7 +207,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
 
-   :o character(len=*) args(*) [optional]: arguments as list of strings
+   :o character(len=\*) args(\*) [optional]: arguments as list of strings
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
 
@@ -256,7 +256,7 @@ Procedures Bound to the lammps Derived Type
    This method will call :cpp:func:`lammps_file` to have LAMMPS read
    and process commands from a file.
 
-   :p character(len=*) filename: name of file with LAMMPS commands
+   :p character(len=\*) filename: name of file with LAMMPS commands
 
 --------
 
@@ -265,7 +265,7 @@ Procedures Bound to the lammps Derived Type
    This method will call :cpp:func:`lammps_command` to have LAMMPS
    execute a single command.
 
-   :p character(len=*) cmd: single LAMMPS command
+   :p character(len=\*) cmd: single LAMMPS command
 
 --------
 
@@ -274,7 +274,7 @@ Procedures Bound to the lammps Derived Type
    This method will call :cpp:func:`lammps_commands_list` to have LAMMPS
    execute a list of input lines.
 
-   :p character(len=*) cmd(:): list of LAMMPS input lines
+   :p character(len=\*) cmd(:): list of LAMMPS input lines
 
 --------
 
@@ -283,7 +283,7 @@ Procedures Bound to the lammps Derived Type
    This method will call :cpp:func:`lammps_commands_string` to have LAMMPS
    execute a block of commands from a string.
 
-   :p character(len=*) str: LAMMPS input in string
+   :p character(len=\*) str: LAMMPS input in string
 
 --------
 
@@ -301,12 +301,12 @@ Procedures Bound to the lammps Derived Type
    This function will call :cpp:func:`lammps_get_thermo` and return the value
    of the corresponding thermodynamic keyword.
 
-   :p character(len=*) name: string with the name of the thermo keyword
+   :p character(len=\*) name: string with the name of the thermo keyword
    :r real(C_double): value of the requested thermo property or 0.0_C_double
 
 --------
 
-.. f:subroutine:: extract_box([boxlo][, boxhi][, xy][, yz][, xz][, pflag]s[, boxflag])
+.. f:subroutine:: extract_box([boxlo][, boxhi][, xy][, yz][, xz][, pflags][, boxflag])
 
    This subroutine will call :cpp:func:`lammps_extract_box`. All parameters
    are optional, though obviously at least one should be present. The
@@ -407,7 +407,7 @@ Procedures Bound to the lammps Derived Type
    Query LAMMPS about global settings. See the documentation for the
    :c:func:`lammps_extract_setting` function from the C library.
 
-   :p character(len=*) keyword: string containing the name of the thermo keyword
+   :p character(len=\*) keyword: string containing the name of the thermo keyword
    :r integer(c_int): value of the queried setting or :math:`-1` if unknown
 
 --------
@@ -463,7 +463,7 @@ Procedures Bound to the lammps Derived Type
    too short, the string will be truncated. As usual in Fortran, strings
    are padded with spaces at the end.
 
-   :p character(len=*) name: string with the name of the extracted property
+   :p character(len=\*) name: string with the name of the extracted property
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
     should be either a string (if expecting string data) or a C-interoperable
     pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted

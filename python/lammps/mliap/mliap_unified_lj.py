@@ -7,6 +7,15 @@ class MLIAPUnifiedLJ(MLIAPUnified):
 
     def __init__(self):
         super().__init__()
+        self.element_types = ["Ar"]
+        self.ndescriptors = 1
+        self.nparams = 3
+        # Mimicking the LJ pair-style:
+        # pair_style lj/cut 2.5
+        # pair_coeff * * 1 1
+        self.epsilon = 1.0
+        self.sigma = 1.0
+        self.rcutfac = 1.25
 
     def compute_gradients(self, data):
         """Test compute_gradients."""

@@ -6,7 +6,7 @@ compute command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style args
 
@@ -198,10 +198,10 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`dipole <compute_dipole>` - dipole vector and total dipole
 * :doc:`dipole/chunk <compute_dipole_chunk>` - dipole vector and total dipole for each chunk
 * :doc:`displace/atom <compute_displace_atom>` - displacement of each atom
-* :doc:`dpd <compute_dpd>` -
-* :doc:`dpd/atom <compute_dpd_atom>` -
+* :doc:`dpd <compute_dpd>` - total values of internal conductive energy, internal mechanical energy, chemical energy, and harmonic average of internal temperature
+* :doc:`dpd/atom <compute_dpd_atom>` - per-particle values of internal conductive energy, internal mechanical energy, chemical energy, and internal temperature
 * :doc:`edpd/temp/atom <compute_edpd_temp_atom>` - per-atom temperature for each eDPD particle in a group
-* :doc:`efield/atom <compute_efield_atom>` -
+* :doc:`efield/atom <compute_efield_atom>` - electric field at each atom
 * :doc:`entropy/atom <compute_entropy_atom>` - pair entropy fingerprint of each atom
 * :doc:`erotate/asphere <compute_erotate_asphere>` - rotational energy of aspherical particles
 * :doc:`erotate/rigid <compute_erotate_rigid>` - rotational energy of rigid bodies
@@ -261,25 +261,25 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
 * :doc:`slice <compute_slice>` - extract values from global vector or array
-* :doc:`smd/contact/radius <compute_smd_contact_radius>` -
+* :doc:`smd/contact/radius <compute_smd_contact_radius>` - contact radius for Smooth Mach Dynamics
 * :doc:`smd/damage <compute_smd_damage>` - damage status of SPH particles in Smooth Mach Dynamics
-* :doc:`smd/hourglass/error <compute_smd_hourglass_error>` -
+* :doc:`smd/hourglass/error <compute_smd_hourglass_error>` - error associated with approximated relative separation in Smooth Mach Dynamics
 * :doc:`smd/internal/energy <compute_smd_internal_energy>` - per-particle enthalpy in Smooth Mach Dynamics
 * :doc:`smd/plastic/strain <compute_smd_plastic_strain>` - equivalent plastic strain per particle in Smooth Mach Dynamics
 * :doc:`smd/plastic/strain/rate <compute_smd_plastic_strain_rate>` - time rate of the equivalent plastic strain in Smooth Mach Dynamics
 * :doc:`smd/rho <compute_smd_rho>` - per-particle mass density in Smooth Mach Dynamics
 * :doc:`smd/tlsph/defgrad <compute_smd_tlsph_defgrad>` - deformation gradient in Smooth Mach Dynamics
 * :doc:`smd/tlsph/dt <compute_smd_tlsph_dt>` - CFL-stable time increment per particle in Smooth Mach Dynamics
-* :doc:`smd/tlsph/num/neighs <compute_smd_tlsph_num_neighs>` -
-* :doc:`smd/tlsph/shape <compute_smd_tlsph_shape>` -
-* :doc:`smd/tlsph/strain <compute_smd_tlsph_strain>` -
-* :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>` -
+* :doc:`smd/tlsph/num/neighs <compute_smd_tlsph_num_neighs>` - number of particles inside the smoothing kernel radius for Smooth Mach Dynamics
+* :doc:`smd/tlsph/shape <compute_smd_tlsph_shape>` - current shape of the volume of a particle for Smooth Mach Dynamics
+* :doc:`smd/tlsph/strain <compute_smd_tlsph_strain>` - Green--Lagrange strain tensor for Smooth Mach Dynamics
+* :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>` - rate of strain for Smooth Mach Dynamics
 * :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>` - per-particle Cauchy stress tensor for SPH particles
-* :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>` -
+* :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>` - coordinates of vertices corresponding to the triangle elements of a mesh for Smooth Mach Dynamics
 * :doc:`smd/ulsph/effm <compute_smd_ulsph_effm>` - per-particle effective shear modulus
-* :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>` -
-* :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>` -
-* :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` -
+* :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>` - number of neighbor particles inside the smoothing kernel radius for Smooth Mach Dynamics
+* :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>` - logarithmic strain tensor for Smooth Mach Dynamics
+* :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` - logarithmic strain rate for Smooth Mach Dynamics
 * :doc:`smd/ulsph/stress <compute_smd_ulsph_stress>` - per-particle Cauchy stress tensor and von Mises equivalent stress in Smooth Mach Dynamics
 * :doc:`smd/vol <compute_smd_vol>` - per-particle volumes and their sum in Smooth Mach Dynamics
 * :doc:`snap <compute_sna_atom>` - gradients of SNAP energy and forces w.r.t. linear coefficients and related quantities for fitting SNAP potentials

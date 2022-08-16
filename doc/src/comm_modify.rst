@@ -10,7 +10,7 @@ Syntax
 
    comm_modify keyword value ...
 
-* zero or more keyword/value pairs may be appended
+* one or more keyword/value pairs may be appended
 * keyword = *mode* or *cutoff* or *cutoff/multi* or *multi/reduce* or *group* or *vel*
 
   .. parsed-literal::

@@ -6,7 +6,7 @@ compute com command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID com
 
@@ -28,7 +28,7 @@ of atoms, including all effects due to atoms passing through periodic
 boundaries.
 
 A vector of three quantities is calculated by this compute, which
-are the x,y,z coordinates of the center of mass.
+are the :math:`(x,y,z)` coordinates of the center of mass.
 
 .. note::
 
@@ -44,11 +44,11 @@ Output info
 """""""""""
 
 This compute calculates a global vector of length 3, which can be
-accessed by indices 1-3 by any command that uses global vector values
+accessed by indices 1--3 by any command that uses global vector values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
 
-The vector values are "intensive".  The vector values will be in
+The vector values are "intensive."  The vector values will be in
 distance :doc:`units <units>`.
 
 Restrictions

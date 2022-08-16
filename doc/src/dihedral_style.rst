@@ -10,7 +10,7 @@ Syntax
 
    dihedral_style style
 
-* style = *none* or *hybrid* or *charmm* or *class2* or *harmonic* or *helix* or         *multi/harmonic* or *opls*
+* style = *none* or *zero* or *hybrid* or *charmm* or *charmmfsw* or *class2* or *osine/shift/exp* or *fourier* or *harmonic* or *helix* or *multi/harmonic* or *nharmonic* or *opls* or *spherical* or *table* or *table/cut*
 
 Examples
 """"""""

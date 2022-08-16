@@ -14,7 +14,7 @@ compute aggregate/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID cluster/atom cutoff
    compute ID group-ID fragment/atom keyword value ...

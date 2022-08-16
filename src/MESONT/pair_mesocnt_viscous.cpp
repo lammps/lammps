@@ -752,6 +752,10 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   memory->destroy(gamma_data);
   memory->destroy(phi_data);
   memory->destroy(usemi_data);
+  
+  // compute Gauss-Legendre quadrature nodes and weights
+  gl_init_nodes();
+  gl_init_weights();
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++)

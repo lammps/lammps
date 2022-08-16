@@ -24,7 +24,7 @@ mass 1 26.981
 
 # choose potential
 
-pair_style	mliap unified ../../../hippynn/examples/mliap_unified_hippynn_Al.pkl
+pair_style	mliap unified ../../../hippynn/examples/mliap_unified_hippynn_Al.pt
 pair_coeff	* * Al
 
 # Setup output

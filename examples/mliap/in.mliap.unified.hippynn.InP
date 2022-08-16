@@ -26,7 +26,7 @@ mass 2 30.98
 # choose potential
 
 # Specify MLIAP Unified pair style
-pair_style mliap unified ../../../hippynn/examples/mliap_unified_hippynn_InP.pkl
+pair_style mliap unified ../../../hippynn/examples/mliap_unified_hippynn_InP.pt
 pair_coeff * * In P
 
 #dump 4 all custom 1 forces.xyz fx fy fz

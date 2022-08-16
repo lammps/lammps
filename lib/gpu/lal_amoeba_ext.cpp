@@ -162,6 +162,10 @@ void amoeba_gpu_compute_polar_real(int *host_amtype, int *host_amgroup, double *
                               eflag_in, vflag_in, eatom, vatom, aewald, felec, off2, tep_ptr);
 }
 
+void amoeba_setup_fft(const int size, const int element_type) {
+  AMOEBAMF.setup_fft(size, element_type);
+}
+
 void amoeba_compute_fft1d(void** in, void** out, const int mode) {
   AMOEBAMF.compute_fft1d(in, out, mode);
 }

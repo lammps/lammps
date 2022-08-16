@@ -579,7 +579,17 @@ double BaseAmoebaT::host_memory_usage_atomic() const {
 }
 
 // ---------------------------------------------------------------------------
-// Compute FFT
+// Setup the FFT plan
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+void BaseAmoebaT::setup_fft(const int size, const int element_type)
+{
+
+}
+
+// ---------------------------------------------------------------------------
+// Compute FFT on the device
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>

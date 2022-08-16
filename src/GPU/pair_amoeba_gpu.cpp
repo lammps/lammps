@@ -38,6 +38,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+// same as in amoeba_induce.cpp
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP};   // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                               // reverse comm
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
@@ -46,6 +47,7 @@ enum{GEAR,ASPC,LSQR};
 enum{BUILD,APPLY};
 enum{GORDON1,GORDON2};
 
+// same as in pair_amoeba.cpp
 enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 
 #define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
@@ -188,7 +190,6 @@ void PairAmoebaGPU::init_style()
       ic_kspace =
         new AmoebaConvolutionGPU(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRIDC);
     }
-
   }
 }
 

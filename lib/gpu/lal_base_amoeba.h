@@ -190,7 +190,12 @@ class BaseAmoeba {
     _fieldp.update_host(_max_fieldp_size*8,false);
   }
 
+  /// setup a plan for FFT, where size is the number of elements
+
+  void setup_fft(const int size, const int element_type=0);
+
   /// compute forward/backward FFT on the device
+
   void compute_fft1d(void** in, void** out, const int mode);
 
   // -------------------------- DEVICE DATA -------------------------

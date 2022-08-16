@@ -21,10 +21,12 @@ using namespace LAMMPS_NS;
 
 #define SCALE 0
 
+enum {FORWARD,BACKWARD};
+
 // External functions from GPU library
 
-int amoeba_setup_fft(const int size);
-int amoeba_compute_fft1d(FFT_SCALAR* in, FFT_SCALAR* out, const int mode);
+int amoeba_setup_fft(const int size, const int element_type);
+int amoeba_compute_fft1d(void* in, void* out, const int mode);
 
 /* ----------------------------------------------------------------------
    partition an FFT grid across processors
@@ -64,6 +66,7 @@ FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
   debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
   debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
 #endif
+
   // copy owned 4d brick grid values to FFT grid
 
   n = 0;
@@ -87,6 +90,8 @@ FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+
+  //amoeba_compute_fft1d(cfft,cfft,FORWARD);
 
   if (SCALE) {
     double scale = 1.0/nfft_global;

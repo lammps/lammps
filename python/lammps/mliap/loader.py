@@ -80,3 +80,12 @@ def load_model(model):
                           "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
                           ) from ie
     mliap_model_python_couple.load_from_python(model)
+
+def load_unified(model):
+    try:
+        import mliap_unifiedpy
+    except ImportError as ie:
+        raise ImportError("ML-IAP python module must be activated before loading\n"
+                          "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
+                          ) from ie
+    mliap_unifiedpy.load_from_python(model)

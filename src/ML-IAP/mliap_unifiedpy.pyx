@@ -98,6 +98,9 @@ cdef extern from "mliap_unified.h" namespace "LAMMPS_NS":
     cdef void update_pair_forces(MLIAPData *, double *) except +
 
 
+LOADED_MODEL = None
+
+
 # @property sans getter
 def write_only_property(fset):
     return property(fget=None, fset=fset)
@@ -334,8 +337,16 @@ cdef public void compute_forces_python(unified_int, MLIAPData *data) except * wi
 cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
                                          MLIAPDummyDescriptor * descriptor) with gil:
     str_fname = fname.decode('utf-8')
-    with open(str_fname, 'rb') as pfile:
-        unified = pickle.load(pfile)
+    if str_fname == 'EXISTS':
+        if LOADED_MODEL is None:
+            raise ValueError("No unified model loaded")
+        unified = LOADED_MODEL
+    elif str_fname.endswith(".pt") or str_fname.endswith('.pth'):
+        import torch
+        unified = torch.load(str_fname)
+    else:
+        with open(str_fname, 'rb') as pfile:
+            unified = pickle.load(pfile)
 
     unified_int = MLIAPUnifiedInterface(unified)
     unified_int.model = model
@@ -370,3 +381,8 @@ cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
 
     free(elements)
     return unified_int
+
+
+def load_from_python(unified):
+    global LOADED_MODEL
+    LOADED_MODEL = unified

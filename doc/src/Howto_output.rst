@@ -57,9 +57,9 @@ the atoms it owns, but there may be zero or more per atom, e.g. a list
 of bond distances.
 
 A per-grid datum is one or more values per grid point, for a grid
-which overlays the simulation domain.  Each processor owns the grid
-points which fall within its sub-domain.  Thus the grid points and the
-data they store are distributed across processors.
+which overlays the simulation domain.  The grid points and the data
+they store are distributed across processors; each processor owns the
+grid points which fall within its sub-domain.
 
 .. _scalar:
 
@@ -99,30 +99,8 @@ Per-grid data
 Per-grid data can come in two kinds: a vector of values (one per grid
 point), or a 2d array of values (multiple values per grid point).  The
 doc page for a "compute" or "fix" that generates data will specify
-both the style and kind of data it produces, e.g. a per-grid vector or
-array.
-
-Only computes and fixes produce and output per-grid data.  Per-grid
-variables have not (yet) been implemented.  A compute or fix may
-define one or more grids, e.g. of differing sizes.  Each grid can
-store one or more data fields.
-
-Another command accesses grid data in the following syntax:
-
-* c_ID:gname:dname
-* c_ID:gname:dname[I]
-* f_ID:gname:dname
-* f_ID:gname:dname[I]
-
-The prefix "c_" or "f_" refers to the ID of the compute or fix.  Gname
-is the name of the grid, which is assinged by the compute or fix.
-Dname is the name of the data field, which is also assinged by the
-compute or fix.  If the data field is a per-grid vector (one value per
-grid point), then no brackets are used to access the values.  If the
-data field is a per-grid array (multiple values per grid point), then
-brackets are used to specify the column I of the array.  I ranges from
-1 to Ncol inclusive, where Ncol is the number of columns in the array
-and is defined by the compute or fix.
+names for both the grid(s) and datum(s) it produces, e.g. per-grid
+vectors or arrays, which can be referenced by other commands.
 
 .. _disambiguation:
 
@@ -154,8 +132,7 @@ are calculated and written out.  Pre-defined keywords can be specified
 (e.g. press, etotal, etc).  Three additional kinds of keywords can
 also be specified (c_ID, f_ID, v_name), where a :doc:`compute <compute>`
 or :doc:`fix <fix>` or :doc:`variable <variable>` provides the value to be
-output.  In each case, the compute, fix, or variable must generate
-global values for input to the :doc:`thermo_style custom <dump>`
+output.  In each case, the compute, fix, or variable must generateglobal values for input to the :doc:`thermo_style custom <dump>`
 command.
 
 Note that thermodynamic output values can be "extensive" or
@@ -197,8 +174,8 @@ must generate local values for input to the :doc:`dump local <dump>`
 command.
 
 There is also a :doc:`dump grid <dump>` format where the user
-specifies what per-grid values to output (c_ID:gname:fname or
-f_ID:gname:fname) from computes of fixes that generate per-grid data.
+specifies what per-grid values to output from computes or fixes that
+generate per-grid data.
 
 .. _fixoutput:
 
@@ -237,7 +214,7 @@ global and can also be used as input to other output commands.
 Note that the :doc:`fix ave/grid <fix_ave_grid>` command can also
 average the same per-atom quantities within spatial bins, but it does
 this for a distributed grid whose grid points are owned by different
-processors.  It outputs per-grid data, not global data, so is more
+processors.  It outputs per-grid data, not global data, so it is more
 efficient for large numbers of averaging bins.
 
 The :doc:`fix ave/histo <fix_ave_histo>` command enables direct output
@@ -345,8 +322,8 @@ and :doc:`fix ave/chunk <fix_ave_chunk>` commands when used in this
 context is that the former uses a distributed grid, while the latter
 uses a global grid.  Distributed means that each processor owns the
 subset of grid points within its subdomain.  Global means that each
-processor owns a copy of the entire grid.  Distributed is thus more
-efficient for large grids.
+processor owns a copy of the entire grid.  The :doc:`fix ave/grid
+<fix_ave_grid>` command is thus more efficient for large grids.
 
 For per-grid data, the :doc:`fix ave/grid <fix_ave_grid>` command
 takes inputs for grid data produced by other computes or fixes and

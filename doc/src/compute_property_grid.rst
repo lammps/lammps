@@ -38,11 +38,9 @@ Description
 Define a computation that stores the specified attributes of a
 distributed grid.  In LAMMPS, distributed grids are regular 2d or 3d
 grids which overlay a 2d or 3d simulation domain.  Each processor owns
-the grid points within its subdomain.
-
-See the :doc:`Howto grid <Howto_grid>` doc page for details of how
-distributed grids can be defined by various commands and examples of
-how they can be used to measure properties of a system.
+the grid points within its subdomain.  See the :doc:`Howto grid
+<Howto_grid>` doc page for details of how distributed grids can be
+defined by various commands and referenced.
 
 This compute stores the specified attributes of grids as per-grid data
 so they can be accessed by other :doc:`output commands <Howto_output>`
@@ -64,45 +62,45 @@ corner point of each grid cell.
 
 The *xs*, *ys*, *zs* attributes are also coordinates of the lower left
 corner point of each grid cell, except in scaled coordinates, where
-the lower-left corner of the entire simulation box is (0,0,0) and he
+the lower-left corner of the entire simulation box is (0,0,0) and the
 upper right corner is (1,1,1).
 
+The *xc*, *yc*, *zc* attributes are the coordinates of the center
+point of each grid cell.
 
-Only in triclinic.
+The *xsc*, *ysc*, *zsc* attributes are also coordinates of the center
+point each grid cell, except in scaled coordinates, where the
+lower-left corner of the entire simulation box is (0,0,0) and the upper
+right corner is (1,1,1).
 
-For 2d simulations, none of the attributes which refer to
-the Z dimension can be used.
-
-
+For :doc:`triclinic simulation boxes <Howto triclinic>`, the grid
+point coordinates for (x,y,z) and (xc,yc,zc) will reflect the
+triclinic geometry.  For (xs,yz,zs) and (xsc,ysc,zsc), the coordinates
+are the same for orthogonal versus triclinic boxes.
 
 Output info
 """""""""""
 
 This compute calculates a per-grid vector or array depending on the
-number of input values.  The length of the vector or number of rows
-for each processor is the the number of grid points it owns.
+number of input values.  The length of the vector or number of array
+rows for each processor is the number of grid points it owns.
 
-This compute calculates a global vector or global array where the
-number of rows = the number of chunks *Nchunk* as calculated by the
-specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  If a
-single input is specified, a global vector is produced.  If two or
-more inputs are specified, a global array is produced where the number
-of columns = the number of inputs.  The vector or array can be
-accessed by any command that uses global values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` page for an
-overview of LAMMPS output options.
+For access by other commands, the name of the grid produced
+by this command is "grid".  The name of its data is "data".
 
-The vector or array values are "intensive".  The values will be
-unitless or in the units discussed above.
+The (x,y,z) and (xc,yc,zc) coordinates are in distance :doc:`units
+<units>`.
 
 Restrictions
 """"""""""""
- none
+
+For 2d simulations, the attributes which refer to
+the Z dimension cannot be used.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix ave/grid <fix_ave_grid>`
+:doc:`dump grid <dump>`
 
 Default
 """""""

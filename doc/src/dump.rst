@@ -3,6 +3,7 @@
 .. index:: dump cfg
 .. index:: dump custom
 .. index:: dump dcd
+.. index:: dump grid
 .. index:: dump local
 .. index:: dump xtc
 .. index:: dump yaml
@@ -61,7 +62,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
+* style = *atom* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *grid* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -82,6 +83,7 @@ Syntax
        *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` page
        *dcd* args = none
        *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` page
+       *grid* args = see below
        *image* args = discussed on :doc:`dump image <dump_image>` page
        *local*, *local/gz*, *local/zstd* args = see below
        *molfile* args = discussed on :doc:`dump molfile <dump_molfile>` page
@@ -153,6 +155,18 @@ Syntax
            c_ID[I] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
            f_ID = local vector calculated by a fix with ID
            f_ID[I] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below)
+
+* *grid* args = list of grid attributes
+
+  .. parsed-literal::
+
+         possible attributes = c_ID:gname:dname, c_ID:gname:dname[I], f_ID:gname:dname, f_ID:gname:dname[I]
+           gname = name of grid defined by compute or fix
+           ename = name of data field defined by compute or fix
+           c_ID = per-grid vector calculated by a compute with ID
+           c_ID[I] = Ith column of per-grid array calculated by a compute with ID, I can include wildcard (see below)
+           f_ID = per-grid vector calculated by a fix with ID
+           f_ID[I] = Ith column of per-grid array calculated by a fix with ID, I can include wildcard (see below)
 
 Examples
 """"""""
@@ -564,18 +578,19 @@ MPI-IO.
 Note that MPI-IO dump files are one large file which all processors
 write to.  You thus cannot use the "%" wildcard character described
 above in the filename since that specifies generation of multiple
-files.  You can use the ".bin" or ".lammpsbin" suffix described below in an MPI-IO
-dump file; again this file will be written in parallel and have the
-same binary format as if it were written without MPI-IO.
+files.  You can use the ".bin" or ".lammpsbin" suffix described below
+in an MPI-IO dump file; again this file will be written in parallel
+and have the same binary format as if it were written without MPI-IO.
 
-If the filename ends with ".bin" or ".lammpsbin", the dump file (or files, if "\*" or
-"%" is also used) is written in binary format.  A binary dump file
-will be about the same size as a text version, but will typically
-write out much faster.  Of course, when post-processing, you will need
-to convert it back to text format (see the :ref:`binary2txt tool <binary>`) or write your own code to read the binary
-file.  The format of the binary file can be understood by looking at
-the tools/binary2txt.cpp file.  This option is only available for the
-*atom* and *custom* styles.
+If the filename ends with ".bin" or ".lammpsbin", the dump file (or
+files, if "\*" or "%" is also used) is written in binary format.  A
+binary dump file will be about the same size as a text version, but
+will typically write out much faster.  Of course, when
+post-processing, you will need to convert it back to text format (see
+the :ref:`binary2txt tool <binary>`) or write your own code to read
+the binary file.  The format of the binary file can be understood by
+looking at the tools/binary2txt.cpp file.  This option is only
+available for the *atom* and *custom* styles.
 
 If the filename ends with ".gz", the dump file (or files, if "\*" or "%"
 is also used) is written in gzipped format.  A gzipped dump file will
@@ -607,62 +622,6 @@ command creates a per-atom array with 6 columns:
    dump 2 all custom 100 tmp.dump id myPress[*]
    dump 2 all custom 100 tmp.dump id myPress[1] myPress[2] myPress[3] &
                                      myPress[4] myPress[5] myPress[6]
-
-----------
-
-This section explains the local attributes that can be specified as
-part of the *local* style.
-
-The *index* attribute can be used to generate an index number from 1
-to N for each line written into the dump file, where N is the total
-number of local datums from all processors, or lines of output that
-will appear in the snapshot.  Note that because data from different
-processors depend on what atoms they currently own, and atoms migrate
-between processor, there is no guarantee that the same index will be
-used for the same info (e.g. a particular bond) in successive
-snapshots.
-
-The *c_ID* and *c_ID[I]* attributes allow local vectors or arrays
-calculated by a :doc:`compute <compute>` to be output.  The ID in the
-attribute should be replaced by the actual ID of the compute that has
-been defined previously in the input script.  See the
-:doc:`compute <compute>` command for details.  There are computes for
-calculating local information such as indices, types, and energies for
-bonds and angles.
-
-Note that computes which calculate global or per-atom quantities, as
-opposed to local quantities, cannot be output in a dump local command.
-Instead, global quantities can be output by the :doc:`thermo_style
-custom <thermo_style>` command, and per-atom quantities can be output
-by the dump custom command.
-
-If *c_ID* is used as a attribute, then the local vector calculated by
-the compute is printed.  If *c_ID[I]* is used, then I must be in the
-range from 1-M, which will print the Ith column of the local array
-with M columns calculated by the compute.  See the discussion above
-for how I can be specified with a wildcard asterisk to effectively
-specify multiple values.
-
-The *f_ID* and *f_ID[I]* attributes allow local vectors or arrays
-calculated by a :doc:`fix <fix>` to be output.  The ID in the attribute
-should be replaced by the actual ID of the fix that has been defined
-previously in the input script.
-
-If *f_ID* is used as a attribute, then the local vector calculated by
-the fix is printed.  If *f_ID[I]* is used, then I must be in the
-range from 1-M, which will print the Ith column of the local with M
-columns calculated by the fix.  See the discussion above for how I can
-be specified with a wildcard asterisk to effectively specify multiple
-values.
-
-Here is an example of how to dump bond info for a system, including
-the distance and energy of each bond:
-
-.. code-block:: LAMMPS
-
-   compute 1 all property/local batom1 batom2 btype
-   compute 2 all bond/local dist eng
-   dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
 
 ----------
 
@@ -797,6 +756,101 @@ asterisk to effectively specify multiple values.
 See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities
 which could then be output into dump files.
+
+----------
+
+This section explains the local attributes that can be specified as
+part of the *local* style.
+
+The *index* attribute can be used to generate an index number from 1
+to N for each line written into the dump file, where N is the total
+number of local datums from all processors, or lines of output that
+will appear in the snapshot.  Note that because data from different
+processors depend on what atoms they currently own, and atoms migrate
+between processor, there is no guarantee that the same index will be
+used for the same info (e.g. a particular bond) in successive
+snapshots.
+
+The *c_ID* and *c_ID[I]* attributes allow local vectors or arrays
+calculated by a :doc:`compute <compute>` to be output.  The ID in the
+attribute should be replaced by the actual ID of the compute that has
+been defined previously in the input script.  See the
+:doc:`compute <compute>` command for details.  There are computes for
+calculating local information such as indices, types, and energies for
+bonds and angles.
+
+Note that computes which calculate global or per-atom quantities, as
+opposed to local quantities, cannot be output in a dump local command.
+Instead, global quantities can be output by the :doc:`thermo_style
+custom <thermo_style>` command, and per-atom quantities can be output
+by the dump custom command.
+
+If *c_ID* is used as a attribute, then the local vector calculated by
+the compute is printed.  If *c_ID[I]* is used, then I must be in the
+range from 1-M, which will print the Ith column of the local array
+with M columns calculated by the compute.  See the discussion above
+for how I can be specified with a wildcard asterisk to effectively
+specify multiple values.
+
+The *f_ID* and *f_ID[I]* attributes allow local vectors or arrays
+calculated by a :doc:`fix <fix>` to be output.  The ID in the attribute
+should be replaced by the actual ID of the fix that has been defined
+previously in the input script.
+
+If *f_ID* is used as a attribute, then the local vector calculated by
+the fix is printed.  If *f_ID[I]* is used, then I must be in the
+range from 1-M, which will print the Ith column of the local with M
+columns calculated by the fix.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.
+
+Here is an example of how to dump bond info for a system, including
+the distance and energy of each bond:
+
+.. code-block:: LAMMPS
+
+   compute 1 all property/local batom1 batom2 btype
+   compute 2 all bond/local dist eng
+   dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
+
+----------
+
+This section explains the per-grid attributes that can be specified as
+part of the *grid* style.
+
+The attributes that begin with *c_ID** and *f_ID* both take
+colon-separated fields *gname* and *dname*.  These refer to a grid
+name and data field name which is defined by the compute or fix.  Note
+that a compute or fix can define one or more grids (of different
+sizes) and one or more data fields for each of those grids.  The sizes
+of all grids output in a single dump grid command must be the same.
+
+The *c_ID:gname:dname* and *c_ID:gname:dname[I]* attributes allow
+per-grid vectors or arrays calculated by a :doc:`compute <compute>` to
+be output.  The ID in the attribute should be replaced by the actual
+ID of the compute that has been defined previously in the input
+script.  See the :doc:`compute <compute>` command for details.  There
+are computes for calculating local information such as indices, types,
+and energies for bonds and angles.
+
+If *c_ID:gname:dname* is used as a attribute, then the per-grid vector
+calculated by the compute is printed.  If *c_ID:gname:dname[I]* is
+used, then I must be in the range from 1-M, which will print the Ith
+column of the per-grid array with M columns calculated by the compute.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.
+
+The *f_ID:gname:dname* and *f_ID:gname:dname[I]* attributes allow
+per-grid vectors or arrays calculated by a :doc:`fix <fix>` to be
+output.  The ID in the attribute should be replaced by the actual ID
+of the fix that has been defined previously in the input script.
+
+If *f_ID:gname:dname* is used as a attribute, then the per-grid vector
+calculated by the fix is printed.  If *f_ID:gname:dname[I]* is used,
+then I must be in the range from 1-M, which will print the Ith column
+of the per-grid with M columns calculated by the fix.  See the
+discussion above for how I can be specified with a wildcard asterisk
+to effectively specify multiple values.
 
 ----------
 

@@ -137,10 +137,11 @@ quantities.  :doc:`Variables <variable>` of style *atom* are the only
 ones that can be used with this fix since all other styles of variable
 produce global quantities.
 
-Note that for values from a compute or fix, the bracketed index I can
-be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*" or
-"m\*n".  If N = the size of the vector (for *mode* = scalar) or the
+Note that for values from a compute or fix that produces a per-atom
+array (multiple values per atom), the bracketed index I can be
+specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "\*" or "\*n" or "n\*"
+or "m\*n".  If N = the size of the vector (for *mode* = scalar) or the
 number of columns in the array (for *mode* = vector), then an asterisk
 with no numeric values means all indices from 1 to N.  A leading
 asterisk means all indices from 1 to n (inclusive).  A trailing

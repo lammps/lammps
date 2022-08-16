@@ -8,10 +8,11 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID property/grid input1 input2 ...
+   compute ID group-ID property/grid Nx Ny Nz input1 input2 ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/grid = style name of this compute command
+* Nx, Ny, Nz = grid size in each dimension
 * input1,etc = one or more attributes
 
   .. parsed-literal::
@@ -45,6 +46,12 @@ defined by various commands and referenced.
 This compute stores the specified attributes of grids as per-grid data
 so they can be accessed by other :doc:`output commands <Howto_output>`
 such as :doc:`dump grid <dump>`.
+
+*Nx*, *Ny*, and *Nz* define the size of the grid.  For a 2d simulation
+*Nz* must be 1.  When this compute is used by :doc:`dump grid <dump>`,
+*to output per-grid values from other computes of fixes, the grid size
+*specified for this command must be consistent with the grid sizes
+*used by the other commands.
 
 The *id* attribute stores the grid ID for each grid point.  For a
 global grid of size Nx by Ny by Nz (in 3d simulations) the grid IDs
@@ -83,10 +90,9 @@ Output info
 
 This compute calculates a per-grid vector or array depending on the
 number of input values.  The length of the vector or number of array
-rows for each processor is the number of grid points it owns.
-
-For access by other commands, the name of the grid produced
-by this command is "grid".  The name of its data is "data".
+rows (distributed across all processors) is Nx * Ny * Nz.  For access
+by other commands, the name of the grid produced by this command is
+"grid".  The name of its data is "data".
 
 The (x,y,z) and (xc,yc,zc) coordinates are in distance :doc:`units
 <units>`.

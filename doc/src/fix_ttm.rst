@@ -371,6 +371,13 @@ electronic subsystem energies reported at the end of the timestep.
 
 The vector values calculated are "extensive".
 
+Th fix ttm/grid command also calculates a per-grid vector which store
+the electron temperature for each grid cell in temperature :doc:`units
+<units>`.  The length of the vector (distributed across all
+processors) is Nx * Ny * Nz.  For access by other commands, the name
+of the grid produced by fix ttm/grid is "grid".  The name of its data
+is "data".
+
 No parameter of the fixes can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  The fixes are not invoked during
 :doc:`energy minimization <minimize>`.

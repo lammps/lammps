@@ -28,7 +28,7 @@ class ComputePropertyGrid : public Compute {
  public:
   ComputePropertyGrid(class LAMMPS *, int, char **);
   ~ComputePropertyGrid() override;
-  void init() override {}
+  void init() override;
   void compute_pergrid() override;
 
   void reset_grid() override;
@@ -44,6 +44,7 @@ class ComputePropertyGrid : public Compute {
   int nxgrid,nygrid,nzgrid;
   int nvalues;
   int dimension;
+  int triclinic;
 
   class Grid2d *grid2d;
   class Grid3d *grid3d;
@@ -64,26 +65,8 @@ class ComputePropertyGrid : public Compute {
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
-
-  void pack_ix(int);
-  void pack_iy(int);
-  void pack_iz(int);
-
-  void pack_x(int);
-  void pack_y(int);
-  void pack_z(int);
-
-  void pack_xs(int);
-  void pack_ys(int);
-  void pack_zs(int);
-
-  void pack_xc(int);
-  void pack_yc(int);
-  void pack_zc(int);
-
-  void pack_xsc(int);
-  void pack_ysc(int);
-  void pack_zsc(int);
+  template <int IDIM> void pack_indices(int);
+  template <int POS, int MODE, int IDIM> void pack_coords(int);
 };
 
 }    // namespace LAMMPS_NS

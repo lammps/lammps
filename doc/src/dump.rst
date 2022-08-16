@@ -162,7 +162,7 @@ Syntax
 
          possible attributes = c_ID:gname:dname, c_ID:gname:dname[I], f_ID:gname:dname, f_ID:gname:dname[I]
            gname = name of grid defined by compute or fix
-           ename = name of data field defined by compute or fix
+           dname = name of data field defined by compute or fix
            c_ID = per-grid vector calculated by a compute with ID
            c_ID[I] = Ith column of per-grid array calculated by a compute with ID, I can include wildcard (see below)
            f_ID = per-grid vector calculated by a fix with ID
@@ -818,7 +818,7 @@ the distance and energy of each bond:
 This section explains the per-grid attributes that can be specified as
 part of the *grid* style.
 
-The attributes that begin with *c_ID** and *f_ID* both take
+The attributes that begin with *c_ID* and *f_ID* both take
 colon-separated fields *gname* and *dname*.  These refer to a grid
 name and data field name which is defined by the compute or fix.  Note
 that a compute or fix can define one or more grids (of different
@@ -829,9 +829,7 @@ The *c_ID:gname:dname* and *c_ID:gname:dname[I]* attributes allow
 per-grid vectors or arrays calculated by a :doc:`compute <compute>` to
 be output.  The ID in the attribute should be replaced by the actual
 ID of the compute that has been defined previously in the input
-script.  See the :doc:`compute <compute>` command for details.  There
-are computes for calculating local information such as indices, types,
-and energies for bonds and angles.
+script.
 
 If *c_ID:gname:dname* is used as a attribute, then the per-grid vector
 calculated by the compute is printed.  If *c_ID:gname:dname[I]* is

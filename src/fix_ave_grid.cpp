@@ -64,7 +64,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   pergrid_freq = utils::inumeric(FLERR,arg[5],false,lmp);
   time_depend = 1;
 
-  // NOTE: allow Dxyz as well
+  // NOTE: allow Dxyz as well at some point
 
   nxgrid = utils::inumeric(FLERR,arg[6],false,lmp);
   nygrid = utils::inumeric(FLERR,arg[7],false,lmp);
@@ -957,14 +957,12 @@ void FixAveGrid::atom2grid()
     n = value2index[m];
     j = argindex[m];
       
-    // X,V,F adds coord,velocity,force to value
+    // V,F adds velocity,force to value
 
-    if (which[m] == ArgInfo::X || which[m] == ArgInfo::V || 
-        which[m] == ArgInfo::F) {
+    if (which[m] == ArgInfo::V || which[m] == ArgInfo::F) {
 
       double **attribute;
-      if (which[m] == ArgInfo::X) attribute = atom->x;
-      else if (which[m] == ArgInfo::V) attribute = atom->v;
+      if (which[m] == ArgInfo::V) attribute = atom->v;
       else if (which[m] == ArgInfo::F) attribute = atom->f;
       
       if (dimension == 2) {

@@ -29,7 +29,9 @@ Description
 
 Define a computation that calculates the temperature of a group of
 atoms.  A compute of this style can be used by any command that
-computes a temperature, e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+computes a temperature, e.g. :doc:`thermo_modify <thermo_modify>`,
+:doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`,
+etc.
 
 The temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v\^2),
@@ -79,8 +81,8 @@ Output info
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector values from a compute as input.  See the :doc:`Howto output
+<Howto_output>` page for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".

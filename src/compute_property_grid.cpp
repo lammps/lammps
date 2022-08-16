@@ -24,7 +24,8 @@
 
 using namespace LAMMPS_NS;
 
-enum { ID, X, Y, Z, XS, YS, ZS, XC, YC, ZC, XSC, YSC, ZSC };
+enum { LOW, CTR };
+enum { UNSCALED, SCALED };
 
 #define DELTA 10000
 
@@ -61,49 +62,49 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[jarg] = &ComputePropertyGrid::pack_id;
 
     } else if (strcmp(arg[iarg], "ix") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_ix;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_indices<0>;
     } else if (strcmp(arg[iarg], "iy") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_iy;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_indices<1>;
     } else if (strcmp(arg[iarg], "iz") == 0) {
       if (dimension == 2) 
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
-      pack_choice[jarg] = &ComputePropertyGrid::pack_iz;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_indices<2>;
 
     } else if (strcmp(arg[iarg], "x") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_x;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,UNSCALED,0>;
     } else if (strcmp(arg[iarg], "y") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_y;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,UNSCALED,1>;
     } else if (strcmp(arg[iarg], "z") == 0) {
       if (dimension == 2) 
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
-      pack_choice[jarg] = &ComputePropertyGrid::pack_z;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,UNSCALED,2>;
 
     } else if (strcmp(arg[iarg], "xs") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_xs;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,SCALED,0>;
     } else if (strcmp(arg[iarg], "ys") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_ys;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,SCALED,1>;
     } else if (strcmp(arg[iarg], "zs") == 0) {
       if (dimension == 2) 
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
-      pack_choice[jarg] = &ComputePropertyGrid::pack_zs;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,SCALED,2>;
 
-    } else if (strcmp(arg[iarg], "xc") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_xc;
+    } else if (strcmp(arg[iarg], "xc") == 0) { 
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,UNSCALED,0>;
     } else if (strcmp(arg[iarg], "yc") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_yc;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,UNSCALED,1>;
     } else if (strcmp(arg[iarg], "zc") == 0) {
       if (dimension == 2) 
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
-      pack_choice[jarg] = &ComputePropertyGrid::pack_zc;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,UNSCALED,2>;
 
     } else if (strcmp(arg[iarg], "xsc") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_xsc;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,SCALED,0>;
     } else if (strcmp(arg[iarg], "ysc") == 0) {
-      pack_choice[jarg] = &ComputePropertyGrid::pack_ysc;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,SCALED,1>;
     } else if (strcmp(arg[iarg], "zsc") == 0) {
       if (dimension == 2) 
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
-      pack_choice[jarg] = &ComputePropertyGrid::pack_zsc;
+      pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,SCALED,2>;
 
     } else error->all(FLERR, "Illegal compute property/grid command");
   }
@@ -120,6 +121,13 @@ ComputePropertyGrid::~ComputePropertyGrid()
   delete[] pack_choice;
 
   deallocate_grid();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyGrid::init()
+{
+  triclinic = domain->triclinic;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -283,7 +291,7 @@ double ComputePropertyGrid::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   one method for every keyword compute property/grid can output
+   compute grid point IDs
 ------------------------------------------------------------------------- */
 
 void ComputePropertyGrid::pack_id(int n)
@@ -313,411 +321,220 @@ void ComputePropertyGrid::pack_id(int n)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   compute grid indices via templating
+------------------------------------------------------------------------- */
 
-void ComputePropertyGrid::pack_ix(int n)
+template <int IDIM> void ComputePropertyGrid::pack_indices(int n)
 {
   if (dimension == 2) {
     if (nvalues == 0) {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = ix + 1;
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          if (IDIM == 0) vec2d[iy][ix] = ix + 1;  
+          if (IDIM == 1) vec2d[iy][ix] = iy + 1;
+        }
     } else {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = ix + 1;
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          if (IDIM == 0) array2d[iy][ix][n] = ix + 1;
+          if (IDIM == 1) array2d[iy][ix][n] = iy + 1;
+        }
     }
+
   } else if (dimension == 3) {
     if (nvalues == 0) {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = ix + 1;
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            if (IDIM == 0) vec3d[iz][iy][ix] = ix + 1;
+            if (IDIM == 1) vec3d[iz][iy][ix] = iy + 1;
+            if (IDIM == 2) vec3d[iz][iy][ix] = iz + 1;
+          }
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = ix + 1;
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            if (IDIM == 0) array3d[iz][iy][ix][n] = ix + 1;
+            if (IDIM == 1) array3d[iz][iy][ix][n] = iy + 1;
+            if (IDIM == 2) array3d[iz][iy][ix][n] = iz + 1;
+          }
     }
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   compute LOW/CTR, SCALED/UNSCALED, orthogonal/triclinic grid point coords
+   via templating
+------------------------------------------------------------------------- */
 
-void ComputePropertyGrid::pack_iy(int n)
+template <int POS, int MODE, int IDIM> 
+void ComputePropertyGrid::pack_coords(int n)
 {
-  if (dimension == 2) {
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = iy + 1;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = iy + 1;
-    }
-  } else if (dimension == 3) {
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = iy + 1;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = iy + 1;
-    }
-  }
-}
+  double boxlo,delta;
+  double lamda[3],xone[3];
 
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_iz(int n)
-{
-  if (nvalues == 0) {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec3d[iz][iy][ix] = iz + 1;
-  } else {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array3d[iz][iy][ix][n] = iz + 1;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_x(int n)
-{
-  double boxlo,dx;
+  // 2d grid
 
   if (dimension == 2) {
-    grid2d->get_box(0,boxlo,dx);
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = boxlo + ix*dx;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = boxlo + ix*dx;
-    }
-  } else if (dimension == 3) {
-    grid3d->get_box(0,boxlo,dx);
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+
+    // for coords which are orthogonal OR scaled
+
+    if (!triclinic || MODE == SCALED) {
+
+      if (MODE == UNSCALED) grid2d->get_box(IDIM,boxlo,delta);
+      if (MODE == SCALED) {
+        boxlo = 0.0;
+        if (IDIM == 0) delta = 1.0/nxgrid;
+        if (IDIM == 1) delta = 1.0/nygrid;
+      }
+
+      if (nvalues == 0) {
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = boxlo + ix*dx;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            if (POS == LOW) {
+              if (IDIM == 0) vec2d[iy][ix] = boxlo + ix*delta;
+              if (IDIM == 1) vec2d[iy][ix] = boxlo + iy*delta;
+            }
+            if (POS == CTR) {
+              if (IDIM == 0) vec2d[iy][ix] = boxlo + (ix+0.5)*delta;
+              if (IDIM == 1) vec2d[iy][ix] = boxlo + (iy+0.5)*delta;
+            }
+          }
+        
+      } else {
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = boxlo + ix*dx;
-    }
-  }
-}
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            if (POS == LOW) {
+              if (IDIM == 0) array2d[iy][ix][n] = boxlo + ix*delta;
+              if (IDIM == 1) array2d[iy][ix][n] = boxlo + iy*delta;
+            }
+            if (POS == CTR) {
+              if (IDIM == 0) array2d[iy][ix][n] = boxlo + (ix+0.5)*delta;
+              if (IDIM == 1) array2d[iy][ix][n] = boxlo + (iy+0.5)*delta;
+            }
+          }
+      }
 
-/* ---------------------------------------------------------------------- */
+    // only for coords which are triclinic AND unscaled
 
-void ComputePropertyGrid::pack_y(int n)
-{
-  double boxlo,dy;
-
-  if (dimension == 2) {
-    grid2d->get_box(1,boxlo,dy);
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = boxlo + iy*dy;
     } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = boxlo + iy*dy;
+
+      double dx = 1.0/nxgrid;
+      double dy = 1.0/nygrid;
+      lamda[2] = 0.0;
+      
+      if (nvalues == 0) {
+        for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+          lamda[1] = iy*dy;
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            lamda[0] = ix*dx;
+            domain->lamda2x(lamda,xone);
+            if (IDIM == 0) vec2d[iy][ix] = xone[0];
+            if (IDIM == 1) vec2d[iy][ix] = xone[1];
+          }
+        }
+        
+      } else {
+        for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+          lamda[1] = iy*dy;
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            lamda[0] = ix*dx;
+            domain->lamda2x(lamda,xone);
+            if (IDIM == 0) array2d[iy][ix][n] = xone[0];
+            if (IDIM == 1) array2d[iy][ix][n] = xone[1];
+          }
+        }
+      }
     }
-  } else if (dimension == 3) {
-    grid3d->get_box(1,boxlo,dy);
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = boxlo + iy*dy;
+
+  // 3d grid
+
+  } else if (dimension == 3) { 
+
+    // for coords which are orthogonal OR scaled
+
+    if (!triclinic || MODE == SCALED) {
+
+      if (MODE == UNSCALED) grid3d->get_box(IDIM,boxlo,delta);
+      if (MODE == SCALED) {
+        boxlo = 0.0;
+        if (IDIM == 0) delta = 1.0/nxgrid;
+        if (IDIM == 1) delta = 1.0/nygrid;
+        if (IDIM == 2) delta = 1.0/nzgrid;
+      }
+
+      if (nvalues == 0) {
+        for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (int iy = nylo_in; iy <= nyhi_in; iy++)
+            for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+              if (POS == LOW) {
+                if (IDIM == 0) vec3d[iz][iy][ix] = boxlo + ix*delta;
+                if (IDIM == 1) vec3d[iz][iy][ix] = boxlo + iy*delta;
+                if (IDIM == 2) vec3d[iz][iy][ix] = boxlo + iz*delta;
+              }
+              if (POS == CTR) {
+                if (IDIM == 0) vec3d[iz][iy][ix] = boxlo + (ix+0.5)*delta;
+                if (IDIM == 1) vec3d[iz][iy][ix] = boxlo + (iy+0.5)*delta;
+                if (IDIM == 2) vec3d[iz][iy][ix] = boxlo + (iz+0.5)*delta;
+              }
+            }
+
+      } else {
+        for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (int iy = nylo_in; iy <= nyhi_in; iy++)
+            for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+              if (POS == LOW) {
+                if (IDIM == 0) array3d[iz][iy][ix][n] = boxlo + ix*delta;
+                if (IDIM == 1) array3d[iz][iy][ix][n] = boxlo + iy*delta;
+                if (IDIM == 2) array3d[iz][iy][ix][n] = boxlo + iz*delta;
+              }
+              if (POS == CTR) {
+                if (IDIM == 0) array3d[iz][iy][ix][n] = boxlo + (ix+0.5)*delta;
+                if (IDIM == 1) array3d[iz][iy][ix][n] = boxlo + (iy+0.5)*delta;
+                if (IDIM == 2) array3d[iz][iy][ix][n] = boxlo + (iz+0.5)*delta;
+              }
+            }
+      }
+
+    // only for coords which are triclinic AND unscaled
+
     } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = boxlo + iy*dy;
+
+      double dx = 1.0/nxgrid;
+      double dy = 1.0/nygrid;
+      double dz = 1.0/nzgrid;
+      
+      if (nvalues == 0) {
+        for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
+          lamda[2] = iz*dz;
+          for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+            lamda[1] = iy*dy;
+            for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+              lamda[0] = ix*dx;
+              domain->lamda2x(lamda,xone);
+              if (IDIM == 0) vec3d[iz][iy][ix] = xone[0];
+              if (IDIM == 1) vec3d[iz][iy][ix] = xone[1];
+              if (IDIM == 2) vec3d[iz][iy][ix] = xone[2];
+            }
+          }
+        }
+
+      } else {
+        for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
+          lamda[2] = iz*dz;
+          for (int iy = nylo_in; iy <= nyhi_in; iy++) {
+            lamda[1] = iy*dy;
+            for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+              lamda[0] = ix*dx;
+              domain->lamda2x(lamda,xone);
+              if (IDIM == 0) array3d[iz][iy][ix][n] = xone[0];
+              if (IDIM == 1) array3d[iz][iy][ix][n] = xone[1];
+              if (IDIM == 2) array3d[iz][iy][ix][n] = xone[2];
+            }
+          }
+        }
+      }
     }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_z(int n)
-{
-  double boxlo,dz;
-  grid3d->get_box(2,boxlo,dz);
-
-  if (nvalues == 0) {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec3d[iz][iy][ix] = boxlo + iz*dz;
-  } else {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array3d[iz][iy][ix][n] = boxlo + iz*dz;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_xs(int n)
-{
-  double dx = 1.0/nxgrid;
-
-  if (dimension == 2) {
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = ix*dx;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = ix*dx;
-    }
-  } else if (dimension == 3) {
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = ix*dx;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = ix*dx;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_ys(int n)
-{
-  double dy = 1.0/nygrid;
-
-  if (dimension == 2) {
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = iy*dy;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = iy*dy;
-    }
-  } else if (dimension == 3) {
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = iy*dy;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = iy*dy;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_zs(int n)
-{
-  double dz = 1.0/nzgrid;
-
-  if (nvalues == 0) {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec3d[iz][iy][ix] = iz*dz;
-  } else {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array3d[iz][iy][ix][n] = iz*dz;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_xc(int n)
-{
-  double boxlo,dx;
-
-  if (dimension == 2) {
-    grid2d->get_box(0,boxlo,dx);
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = boxlo + (ix+0.5)*dx;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = boxlo + (ix+0.5)*dx;
-    }
-  } else if (dimension == 3) {
-    grid3d->get_box(0,boxlo,dx);
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = boxlo + (ix+0.5)*dx;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = boxlo + (ix+0.5)*dx;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_yc(int n)
-{
-  double boxlo,dy;
-
-  if (dimension == 2) {
-    grid2d->get_box(1,boxlo,dy);
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = boxlo + (iy+0.5)*dy;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = boxlo + (iy+0.5)*dy;
-    }
-  } else if (dimension == 3) {
-    grid3d->get_box(1,boxlo,dy);
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = boxlo + (iy+0.5)*dy;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = boxlo + (iy+0.5)*dy;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_zc(int n)
-{
-  double boxlo,dz;
-  grid3d->get_box(2,boxlo,dz);
-
-  if (nvalues == 0) {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec3d[iz][iy][ix] = boxlo + (iz+0.5)*dz;
-  } else {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array3d[iz][iy][ix][n] = boxlo + (iz+0.5)*dz;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_xsc(int n)
-{
-  double dx = 1.0/nxgrid;
-
-  if (dimension == 2) {
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = (ix+0.5)*dx;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = (ix+0.5)*dx;
-    }
-  } else if (dimension == 3) {
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = (ix+0.5)*dx;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = (ix+0.5)*dx;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_ysc(int n)
-{
-  double dy = 1.0/nygrid;
-
-  if (dimension == 2) {
-    if (nvalues == 0) {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec2d[iy][ix] = (iy+0.5)*dy;
-    } else {
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array2d[iy][ix][n] = (iy+0.5)*dy;
-    }
-  } else if (dimension == 3) {
-    if (nvalues == 0) {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec3d[iz][iy][ix] = (iy+0.5)*dy;
-    } else {
-      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-        for (int iy = nylo_in; iy <= nyhi_in; iy++)
-          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-            array3d[iz][iy][ix][n] = (iy+0.5)*dy;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyGrid::pack_zsc(int n)
-{
-  double dz = 1.0/nzgrid;
-
-  if (nvalues == 0) {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          vec3d[iz][iy][ix] = (iz+0.5)*dz;
-  } else {
-    for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-          array3d[iz][iy][ix][n] = (iz+0.5)*dz;
   }
 }

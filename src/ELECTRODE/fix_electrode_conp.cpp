@@ -18,6 +18,7 @@
 #include "fix_electrode_conp.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
@@ -52,6 +53,19 @@ void dgetri_(const int *N, double *A, const int *lda, const int *ipiv, double *w
              const int *lwork, int *info);
 }
 
+static const char cite_fix_electrode[] =
+    "fix electrode command:\n\n"
+    "@article{Ahrens2022\n"
+    "author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\\ss}ner, "
+    "Robert H.},\n"
+    "doi = {10.1063/5.0099239},\n"
+    "title = {{ELECTRODE: An electrochemistry package for LAMMPS}},\n"
+    "journal = {The Journal of Chemical Physics},\n"
+    "year = {2022}\n"
+    "volume = {157},\n"
+    "pages = {084801},\n"
+    "}\n";
+
 //     0        1      2              3    4
 // fix fxupdate group1 electrode/conp pot1 eta couple group2 pot2
 FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
@@ -61,6 +75,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     iele_gathered(nullptr), buf_gathered(nullptr), potential_i(nullptr), potential_iele(nullptr),
     charge_iele(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_electrode);
   // fix.h output flags
   scalar_flag = 1;
   vector_flag = 1;

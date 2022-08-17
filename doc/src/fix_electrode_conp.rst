@@ -87,7 +87,7 @@ to be specified using the temp keyword. Currently, only two electrodes are possi
 this style.
 
 For all three fixes, any potential (or charge for *conq*) can be specified as an
-equal-style variable prefixed with "v_". For example, the following code will
+equal-style variable prefixed with "v\_". For example, the following code will
 ramp the potential difference between electrodes from 0.0V to 2.0V over the
 course of the simulation:
 
@@ -157,7 +157,7 @@ the negative of the total charge on each electrode multiplied by that
 electrode's potential.
 
 The global vector outputs the potential on each electrode (and thus has *N*
-entries if the fix manages *N* electrode groups), in :doc:`units <Units>` of
+entries if the fix manages *N* electrode groups), in :doc:`units <units>` of
 electric field multiplied by distance (thus volts for *real* and *metal* units).
 The electrode groups' ordering follows the order in which they were input in the
 fix command using *couple*. The global vector output is useful for
@@ -197,6 +197,11 @@ The global array output is mainly useful for quickly determining the 'vacuum
 capacitance' of the system (capacitance with only electrodes, no electrolyte),
 and can also be used for advanced simulations setting the potential as some
 function of the charge-at-0V (such as in the in.conq2 example mentioned above).
+
+Please cite :ref:`(Ahrens-Iwers2022) <Ahrens-Iwers2>` in any publication that uses
+this implementation.
+Please cite also the publication on the combination of the CPM with pppm if you
+use *pppm/electrode* :ref:`(Ahrens-Iwers) <Ahrens-Iwers>`.
 
 ----------
 
@@ -250,4 +255,8 @@ as on just one processor for testing).
 .. _Scalfi:
 
 **(Scalfi)** Scalfi *et al.*, J. Chem. Phys., 153, 174704 (2020).
+
+.. _Ahrens-Iwers2:
+
+**(Ahrens-Iwers2022)** Ahrens-Iwers *et al.*, J. Chem. Phys. 157, 084801 (2022).
 

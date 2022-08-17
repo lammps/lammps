@@ -777,7 +777,7 @@ std::vector<std::string> utils::gridid_parse(const char *file, int line, const s
   auto words = Tokenizer(name, ":").as_vector();
   if (words.size() != 3) {
     if (error)
-      error->all(FLERR, "Grid ID {} does not contain two ':' characters", name);
+      error->all(file, line, "Grid ID {} must be 3 strings separated by 2 ':'characters", name);
     else
       return {"", "", ""};
   }

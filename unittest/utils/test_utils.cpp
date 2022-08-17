@@ -798,14 +798,14 @@ TEST(Utils, gridid_parse)
     ASSERT_THAT(words[0], StrEq(""));
 
     words = utils::gridid_parse(FLERR, "c_1:full:", nullptr);
-    ASSERT_THAT(words[0], StrEq("c_1"));
-    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq(""));
     ASSERT_THAT(words[0], StrEq(""));
 
     words = utils::gridid_parse(FLERR, ":full:density", nullptr);
     ASSERT_THAT(words[0], StrEq(""));
-    ASSERT_THAT(words[1], StrEq("full"));
-    ASSERT_THAT(words[0], StrEq("density"));
+    ASSERT_THAT(words[1], StrEq(""));
+    ASSERT_THAT(words[0], StrEq(""));
 
     words = utils::gridid_parse(FLERR, "c_1:full", nullptr);
     ASSERT_THAT(words[0], StrEq(""));

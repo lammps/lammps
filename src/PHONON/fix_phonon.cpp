@@ -50,11 +50,11 @@ using namespace FixConst;
 enum{FORWARD=-1,BACKWARD=1};
 
 static const char cite_fix_phonon[] =
-  "fix phonon command:\n\n"
+  "fix phonon command: doi:10.1016/j.cpc.2011.04.019\n\n"
   "@Article{Kong11,\n"
   " author = {L. T. Kong},\n"
-  " title = {Phonon dispersion measured directly from molecular dynamics simulations},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " title = {Phonon Dispersion Measured Directly from Molecular Dynamics Simulations},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2011,\n"
   " volume =  182,\n"
   " pages =   {2201--2207}\n"

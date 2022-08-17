@@ -263,7 +263,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   if (normflag != ALL)
     error->all(FLERR,"Fix ave/grid norm all is required for now");
-  if (normflag != ONE)
+  if (ave != ONE)
     error->all(FLERR,"Fix ave/grid ave one is required for now");
 
   // error checks for ATOM mode

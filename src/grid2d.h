@@ -22,12 +22,12 @@ class Grid2d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
-  Grid2d(class LAMMPS *, MPI_Comm, int, int, double, int, double, 
+  Grid2d(class LAMMPS *, MPI_Comm, int, int, double, int, double,
          int &, int &, int &, int &,
          int &, int &, int &, int &);
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int);
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int,
-	 int, int, int, int, int);
+         int, int, int, int, int);
   ~Grid2d() override;
   void get_size(int &, int &);
   void get_bounds(int &, int &, int &, int &);

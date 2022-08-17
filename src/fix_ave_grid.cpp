@@ -51,8 +51,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   which(nullptr), argindex(nullptr), ids(nullptr),
   value2index(nullptr), value2grid(nullptr), value2data(nullptr),
-  grid2d(nullptr), grid3d(nullptr), 
-  grid_buf1(nullptr), grid_buf2(nullptr), 
+  grid2d(nullptr), grid3d(nullptr),
+  grid_buf1(nullptr), grid_buf2(nullptr),
   vec2d(nullptr), array2d(nullptr), vec3d(nullptr), array3d(nullptr),
   count2d(nullptr), count3d(nullptr)
 {
@@ -141,7 +141,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
     } else {
       ArgInfo argi(arg[iarg]);
-      
+
       if (argi.get_type() == ArgInfo::NONE) break;
       if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
         error->all(FLERR,"Invalid fix ave/grid command");
@@ -164,7 +164,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   if (nvalues == 0) error->all(FLERR,"No values in fix ave/grid command");
 
-  if (modeatom && modegrid) 
+  if (modeatom && modegrid)
     error->all(FLERR,"Fix ave/grid cannot operate on per-atom and "
                "per-grid values");
 
@@ -235,12 +235,12 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvalues; i++) delete [] earg[i];
     memory->sfree(earg);
   }
-  
+
   // setup and error check
   // for fix inputs, check that fix frequency is acceptable
 
   dimension = domain->dimension;
-  
+
   if (nevery <= 0 || nrepeat <= 0 || pergrid_freq <= 0)
     error->all(FLERR,"Illegal fix ave/grid command");
   if (pergrid_freq % nevery || nrepeat*nevery > pergrid_freq)
@@ -253,7 +253,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   if (biasflag) {
     tbias = modify->get_compute_by_id(id_bias);
-    if (!tbias) 
+    if (!tbias)
       error->all(FLERR,"Could not find compute ID for temperature bias");
     if (tbias->tempflag == 0)
       error->all(FLERR,"Bias compute does not calculate temperature");
@@ -261,9 +261,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Bias compute does not calculate a velocity bias");
   }
 
-  if (normflag != ALL) 
+  if (normflag != ALL)
     error->all(FLERR,"Fix ave/grid norm all is required for now");
-  if (normflag != ONE) 
+  if (normflag != ONE)
     error->all(FLERR,"Fix ave/grid ave one is required for now");
 
   // error checks for ATOM mode
@@ -305,7 +305,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
         if (nevery % modify->fix[ifix]->peratom_freq)
           error->all(FLERR,
                      "Fix for fix ave/atom not computed at compatible time");
-        
+
       } else if (which[i] == ArgInfo::VARIABLE) {
         int ivariable = input->variable->find(ids[i]);
         if (ivariable < 0)
@@ -329,7 +329,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
         strcpy(ids[i],idcompute);
 
         Compute *icompute = modify->get_compute_by_id(idcompute);
-        if (!icompute) 
+        if (!icompute)
           error->all(FLERR,"Could not find fix ave/grid compute ID: {}",
                      idcompute);
         if (icompute->pergrid_flag == 0)
@@ -339,14 +339,14 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
         int dim;
         int igrid = icompute->get_grid_by_name(gname,dim);
-        if (igrid < 0) 
+        if (igrid < 0)
           error->all(FLERR,
                      "Fix ave/grid compute {} does not recognize grid name {}",
                      idcompute,gname);
-      
+
         int ncol;
         int idata = icompute->get_griddata_by_name(igrid,dname,ncol);
-        if (idata < 0) 
+        if (idata < 0)
           error->all(FLERR,
                      "Fix ave/grid compute {} does not recognize data name {}",
                      idcompute,dname);
@@ -355,7 +355,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,
                      "Fix ave/grid compute {} data {} is not per-grid vector",
                      idcompute,dname);
-        if (argindex[i] && ncol == 0) 
+        if (argindex[i] && ncol == 0)
           error->all(FLERR,
                      "Fix ave/grid compute {} data {} is not per-grid array",
                      idcompute,dname);
@@ -363,9 +363,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,
                      "Fix ave/grid compute {} array {} is accessed out-of-range",
                      idcompute,dname);
-      
-	value2grid[i] = igrid;
-	value2data[i] = idata;
+
+        value2grid[i] = igrid;
+        value2data[i] = idata;
 
         delete [] idcompute;
         delete [] gname;
@@ -391,14 +391,14 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
         int dim;
         int igrid = ifix->get_grid_by_name(gname,dim);
-        if (igrid < 0) 
+        if (igrid < 0)
           error->all(FLERR,
                      "Fix ave/grid compute {} does not recognize grid name {}",
                      idfix,gname);
-      
+
         int ncol;
         int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
-        if (idata < 0) 
+        if (idata < 0)
           error->all(FLERR,
                      "Fix ave/grid compute {} does not recognize data name {}",
                      idfix,dname);
@@ -407,7 +407,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,
                      "Fix ave/grid compute {} data {} is not per-grid vector",
                      idfix,dname);
-        if (argindex[i] && ncol == 0) 
+        if (argindex[i] && ncol == 0)
           error->all(FLERR,
                      "Fix ave/grid compute {} data {} is not per-grid array",
                      idfix,dname);
@@ -415,9 +415,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,
                      "Fix ave/grid compute {} array {} is accessed out-of-range",
                      idfix,dname);
-      
-	value2grid[i] = igrid;
-	value2data[i] = idata;
+
+        value2grid[i] = igrid;
+        value2data[i] = idata;
 
         delete [] idfix;
         delete [] gname;
@@ -442,7 +442,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     grid2d = new Grid2d(lmp, world, nxgrid, nygrid, maxdist, 0, shift,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out);
-    
+
     grid2d->setup(ngrid_buf1, ngrid_buf2);
     memory->create(grid_buf1, ngrid_buf1, "ave/grid:grid_buf1");
     memory->create(grid_buf2, ngrid_buf2, "ave/grid:grid_buf2");
@@ -450,41 +450,41 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
 
     if (nvalues == 1)
-      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out, 
+      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
                               "ave/grid:vec2d");
     else
       memory->create3d_offset_last(array2d, nylo_out, nyhi_out, nxlo_out,
                                    nxhi_out, nvalues, "ave/grid:array2d");
 
-    if (modeatom) 
-      memory->create2d_offset(count2d, nylo_out, nyhi_out, nxlo_out, nxhi_out, 
+    if (modeatom)
+      memory->create2d_offset(count2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
                               "ave/grid:count2d");
-    
+
   } else {
     grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 0, shift,
-                        nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
-                        nxlo_out, nxhi_out, nylo_out, nyhi_out, 
+                        nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
+                        nxlo_out, nxhi_out, nylo_out, nyhi_out,
                         nzlo_out, nzhi_out);
 
     grid3d->setup(ngrid_buf1, ngrid_buf2);
     memory->create(grid_buf1, ngrid_buf1, "ave/grid:grid_buf1");
     memory->create(grid_buf2, ngrid_buf2, "ave/grid:grid_buf2");
 
-    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * 
+    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
       (nzhi_out - nzlo_out + 1);
 
     if (nvalues == 1)
-      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out, 
-                              nyhi_out, nxlo_out, nxhi_out, 
+      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out,
+                              nyhi_out, nxlo_out, nxhi_out,
                               "ave/grid:vec3d");
     else
-      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out, 
-                                   nyhi_out, nxlo_out, nxhi_out, nvalues, 
+      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out,
+                                   nyhi_out, nxlo_out, nxhi_out, nvalues,
                                    "ave/grid:array3d");
 
     if (modeatom)
-      memory->create3d_offset(count3d, nzlo_out, nzhi_out, nylo_out, 
-                              nyhi_out, nxlo_out, nxhi_out, 
+      memory->create3d_offset(count3d, nzlo_out, nzhi_out, nylo_out,
+                              nyhi_out, nxlo_out, nxhi_out,
                               "ave/grid:vec3d");
   }
 
@@ -591,9 +591,9 @@ void FixAveGrid::init()
     Fix *fix;
     Grid2d *grid2d;
     Grid3d *grid3d;
-  
+
     int nxtmp,nytmp,nztmp;
-  
+
     for (int m = 0; m < nvalues; m++) {
       if (dimension == 2) {
         if (which[m] == ArgInfo::COMPUTE) {
@@ -604,7 +604,7 @@ void FixAveGrid::init()
           grid2d = (Grid2d *) fix->get_grid_by_index(value2grid[m]);
         }
         grid2d->get_size(nxtmp,nytmp);
-        if (nxtmp != nxgrid || nytmp != nygrid) 
+        if (nxtmp != nxgrid || nytmp != nygrid)
           error->all(FLERR,"Fix ave/grid value grid sizes do not match");
 
       } else {
@@ -688,18 +688,18 @@ void FixAveGrid::end_of_step()
   // nvalues + 1 more for atom count
 
   if (modeatom) {
-    if (dimension == 2) 
+    if (dimension == 2)
       grid2d->reverse_comm(Grid2d::FIX,this,nvalues+1,sizeof(double),0,
                            grid_buf1,grid_buf2,MPI_DOUBLE);
-    else 
+    else
       grid3d->reverse_comm(Grid3d::FIX,this,nvalues+1,sizeof(double),0,
                            grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 
   // just return if this proc owns no grid points
-  
+
   if (ngridout == 0) return;
-  
+
   // average the final results across Nrepeat samples
   // for ATOM mode, result = total_value / total_count
   //   exception is DENSITY_NUMBER:
@@ -734,11 +734,11 @@ void FixAveGrid::end_of_step()
           for (ix = nxlo_in; ix <= nxhi_in; ix++) {
             count = count2d[iy][ix];
             if (count) {
-              if (which[0] == ArgInfo::DENSITY_NUMBER) 
+              if (which[0] == ArgInfo::DENSITY_NUMBER)
                 norm = 1.0 / (binvol * repeat);
-              else if (which[0] == ArgInfo::DENSITY_MASS) 
+              else if (which[0] == ArgInfo::DENSITY_MASS)
                 norm = mv2d / (binvol * nrepeat);
-              else if (which[0] == ArgInfo::TEMPERATURE) 
+              else if (which[0] == ArgInfo::TEMPERATURE)
                 norm = mvv2e /((repeat*cdof + adof*count) * boltz);
               else
                 norm = 1.0/count;
@@ -753,11 +753,11 @@ void FixAveGrid::end_of_step()
             if (count) {
               invcount = 1.0/count;
               for (m = 0; m <= nvalues; m++) {
-                if (which[m] == ArgInfo::DENSITY_NUMBER) 
+                if (which[m] == ArgInfo::DENSITY_NUMBER)
                   norm = 1.0 / (binvol * repeat);
-                else if (which[m] == ArgInfo::DENSITY_MASS) 
+                else if (which[m] == ArgInfo::DENSITY_MASS)
                   norm = mv2d / (binvol * nrepeat);
-                else if (which[m] == ArgInfo::TEMPERATURE) 
+                else if (which[m] == ArgInfo::TEMPERATURE)
                   norm = mvv2e /((repeat*cdof + adof*count) * boltz);
                 else
                   norm = 1.0/count;
@@ -774,11 +774,11 @@ void FixAveGrid::end_of_step()
             for (ix = nxlo_in; ix <= nxhi_in; ix++) {
               count = count3d[iz][iy][ix];
               if (count) {
-                if (which[0] == ArgInfo::DENSITY_NUMBER) 
+                if (which[0] == ArgInfo::DENSITY_NUMBER)
                   norm = 1.0 / (binvol * repeat);
-                else if (which[0] == ArgInfo::DENSITY_MASS) 
+                else if (which[0] == ArgInfo::DENSITY_MASS)
                   norm = mv2d / (binvol * nrepeat);
-                else if (which[0] == ArgInfo::TEMPERATURE) 
+                else if (which[0] == ArgInfo::TEMPERATURE)
                 norm = mvv2e /((repeat*cdof + adof*count) * boltz);
                 else
                   norm = 1.0/count;
@@ -794,11 +794,11 @@ void FixAveGrid::end_of_step()
               if (count) {
                 invcount = 1.0/count;
                 for (m = 0; m <= nvalues; m++) {
-                  if (which[m] == ArgInfo::DENSITY_NUMBER) 
+                  if (which[m] == ArgInfo::DENSITY_NUMBER)
                     norm = 1.0 / (binvol * repeat);
-                  else if (which[m] == ArgInfo::DENSITY_MASS) 
+                  else if (which[m] == ArgInfo::DENSITY_MASS)
                     norm = mv2d / (binvol * nrepeat);
-                  else if (which[m] == ArgInfo::TEMPERATURE) 
+                  else if (which[m] == ArgInfo::TEMPERATURE)
                     norm = mvv2e /((repeat*cdof + adof*count) * boltz);
                   else
                     norm = 1.0/count;
@@ -836,7 +836,7 @@ void FixAveGrid::end_of_step()
           for (iy = nylo_in; iy <= nyhi_in; iy++)
             for (ix = nxlo_in; ix <= nxhi_in; ix++)
               for (m = 0; m <= nvalues; m++)
-	    array3d[iz][iy][ix][m] *= invrepeat;
+            array3d[iz][iy][ix][m] *= invrepeat;
       }
     }
   }
@@ -871,7 +871,7 @@ void FixAveGrid::atom2grid()
   double dxinv = nxgrid/prd[0];
   double dyinv = nygrid/prd[1];
   double dzinv = nzgrid/prd[2];
-  
+
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -956,7 +956,7 @@ void FixAveGrid::atom2grid()
   for (m = 0; m < nvalues; m++) {
     n = value2index[m];
     j = argindex[m];
-      
+
     // V,F adds velocity,force to value
 
     if (which[m] == ArgInfo::V || which[m] == ArgInfo::F) {
@@ -964,7 +964,7 @@ void FixAveGrid::atom2grid()
       double **attribute;
       if (which[m] == ArgInfo::V) attribute = atom->v;
       else if (which[m] == ArgInfo::F) attribute = atom->f;
-      
+
       if (dimension == 2) {
         if (nvalues == 1) {
           for (i = 0; i < nlocal; i++) {
@@ -988,14 +988,14 @@ void FixAveGrid::atom2grid()
               array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += attribute[i][j];
           }
       }
-	
+
     // DENSITY_NUMBER adds 1 to value
     // DENSITY_MASS or MASS adds mass to value
 
-    } else if ((which[m] == ArgInfo::DENSITY_NUMBER) || 
-               (which[m] == ArgInfo::DENSITY_MASS) || 
+    } else if ((which[m] == ArgInfo::DENSITY_NUMBER) ||
+               (which[m] == ArgInfo::DENSITY_MASS) ||
                (which[m] == ArgInfo::MASS)) {
-      
+
       int *type = atom->type;
       double *mass = atom->mass;
       double *rmass = atom->rmass;
@@ -1106,7 +1106,7 @@ void FixAveGrid::atom2grid()
     } else if (which[m] == ArgInfo::COMPUTE || which[m] == ArgInfo::FIX ||
                which[m] == ArgInfo::VARIABLE) {
       double *ovector,**oarray;
-      
+
       if (which[m] == ArgInfo::COMPUTE) {
         Compute *compute = modify->compute[n];
         if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
@@ -1166,7 +1166,7 @@ void FixAveGrid::atom2grid()
               if (!skip[i])
                 vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += ovector[i];
             }
-          } else { 
+          } else {
             int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
@@ -1207,10 +1207,10 @@ void FixAveGrid::grid2grid()
     n = value2index[m];
     j = argindex[m];
     int idata = value2data[m];
-      
+
     Compute *compute;
     Fix *fix;
-      
+
     if (which[m] == ArgInfo::COMPUTE) {
       compute = modify->compute[n];
       if (!(compute->invoked_flag & Compute::INVOKED_PERGRID)) {
@@ -1222,17 +1222,17 @@ void FixAveGrid::grid2grid()
     if (dimension == 2) {
       double **ovec2d,***oarray2d;
       if (which[m] == ArgInfo::COMPUTE) {
-        if (j == 0) 
+        if (j == 0)
           ovec2d = (double **) compute->get_griddata_by_index(idata);
         else
           oarray2d = (double ***) compute->get_griddata_by_index(idata);
       } else {
-        if (j == 0) 
+        if (j == 0)
           ovec2d = (double **) fix->get_griddata_by_index(idata);
-        else 
+        else
           oarray2d = (double ***) fix->get_griddata_by_index(idata);
       }
-	
+
       if (nvalues == 1) {
         if (j == 0) {
           for (iy = nylo_in; iy <= nyhi_in; iy++)
@@ -1256,18 +1256,18 @@ void FixAveGrid::grid2grid()
               array2d[iy][ix][m] += oarray2d[iy][ix][jm1];
         }
       }
-	
+
     } else {
       double ***ovec3d,****oarray3d;
       if (which[m] == ArgInfo::COMPUTE) {
-        if (j == 0) 
+        if (j == 0)
           ovec3d = (double ***) compute->get_griddata_by_index(idata);
-        else 
+        else
           oarray3d = (double ****) compute->get_griddata_by_index(idata);
       } else {
         if (j == 0) {
           ovec3d = (double ***) fix->get_griddata_by_index(idata);
-        } else 
+        } else
           oarray3d = (double ****) fix->get_griddata_by_index(idata);
       }
 
@@ -1316,11 +1316,11 @@ void FixAveGrid::zero_grid()
       memset(&vec2d[nylo_out][nxlo_out],0, ngridout*sizeof(double));
     else
       memset(&array2d[nylo_out][nxlo_out][0],0,ngridout*nvalues*sizeof(double));
-    if (modeatom) 
+    if (modeatom)
       memset(&count2d[nylo_out][nxlo_out],0,ngridout*sizeof(double));
   } else {
     if (nvalues == 1)
-      memset(&vec3d[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double)); 
+      memset(&vec3d[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
     else
       memset(&array3d[nzlo_out][nylo_out][nxlo_out][0],0,
              ngridout*nvalues*sizeof(double));

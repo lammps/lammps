@@ -771,17 +771,17 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
    return ptrs to 3 substrings
 ------------------------------------------------------------------------- */
 
-void utils::grid_parse(const char *file, int line, const std::string &name, 
+void utils::grid_parse(const char *file, int line, const std::string &name,
                        char *&id, char *&gridname, char *&dataname, Error *error)
 {
   char *copy = strdup(name);
 
   char *ptr1 = strchr(copy,':');
-  if (!ptr1) 
+  if (!ptr1)
     error->all(FLERR,"Grid reference {} does not contain 2 ':' chars",name);
   *ptr1 = '\0';
   char *ptr2 = strchr(ptr1+1,':');
-  if (!ptr2) 
+  if (!ptr2)
     error->all(FLERR,"Grid reference {} does not contain 2 ':' chars",name);
   *ptr2 = '\0';
 

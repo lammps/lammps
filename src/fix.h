@@ -101,7 +101,7 @@ class Fix : protected Pointers {
 
   int pergrid_flag;       // 0/1 if per-grid data is stored
   int pergrid_freq;       // frequency per-grid data is available at
-  
+
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
   int *extlist;     // list of 0/1 int/ext for each vec component

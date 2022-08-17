@@ -77,7 +77,7 @@ syntax:
 The prefix "c_" or "f_" refers to the ID of the compute or fix.  Gname
 is the name of the grid, which is assigned by the compute or fix.
 Dname is the name of the data field, which is also assigned by the
-compute or fix.  
+compute or fix.
 
 If the data field is a per-grid vector (one value per grid point),
 then no brackets are used to access the values.  If the data field is

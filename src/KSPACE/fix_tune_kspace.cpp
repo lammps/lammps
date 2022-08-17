@@ -283,7 +283,7 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
 
   // re-init neighbor list
   // probably only needed when redefining the pair style
-  // should happen after pair->init() to get pair style 
+  // should happen after pair->init() to get pair style
   //   neighbor list request registered
 
   neighbor->init();

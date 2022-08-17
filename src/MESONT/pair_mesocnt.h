@@ -42,7 +42,7 @@ class PairMesoCNT : public Pair {
   int **reduced_neighlist, **nchainlist, **endlist, **selfpos;
   int ***chainlist;
 
-  bool segment_flag;
+  bool segment_flag, neigh_flag;
 
   double ang, ang_inv, eunit, funit;
   double delta1, delta2;

@@ -148,7 +148,10 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
   // update bond neighbor list when necessary
 
-  if (update->ntimestep == neighbor->lastcall) bond_neigh_topo();
+  if (update->ntimestep == neighbor->lastcall) {
+    if (neigh_flag) bond_neigh_topo();
+    else bond_neigh_id();
+  }
 
   // iterate over all bonds
 
@@ -693,16 +696,36 @@ void PairMesoCNT::allocate()
 
 void PairMesoCNT::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 1 || narg > 3) error->all(FLERR, "Illegal pair_style command");
   
-  if (strcmp(arg[0], "segment") == 0)
-    segment_flag = true;
-  else if (strcmp(arg[0], "chain") == 0)
-    segment_flag = false;
-  else
-    error->all(FLERR, "Unknown first argument in pair_style mesocnt command, must be 'chain' or 'segment'");
+  neigh_cutoff = utils::numeric(FLERR, arg[0], false, lmp);
+  
+  // segment flag (default false)
 
-  neigh_cutoff = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg > 1) {
+    if (strcmp(arg[1], "segment") == 0)
+      segment_flag = true;
+    else if (strcmp(arg[1], "chain") == 0)
+      segment_flag = false;
+    else
+      error->all(FLERR, "Unknown second argument in pair_style mesocnt command, must be 'chain' or 'segment'");
+  }
+  else
+    segment_flag = false;
+
+  // neigh flag (default false)
+
+  if (narg > 2) {
+    if (strcmp(arg[2], "topology") == 0)
+      neigh_flag = true;
+    else if (strcmp(arg[2], "id") == 0)
+      neigh_flag = false;
+    else
+      error->all(FLERR, "Unknown third argument in pair_style mesocnt command, must be 'id' or 'topology'");
+  }
+  else
+    neigh_flag = false;
+
 }
 
 /* ----------------------------------------------------------------------

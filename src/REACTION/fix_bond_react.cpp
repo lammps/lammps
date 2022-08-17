@@ -471,8 +471,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     open(files[i]);
     onemol = atom->molecules[unreacted_mol[i]];
     twomol = atom->molecules[reacted_mol[i]];
-    onemol->check_attributes(0);
-    twomol->check_attributes(0);
+    onemol->check_attributes();
+    twomol->check_attributes();
     get_molxspecials();
     read(i);
     fclose(fp);

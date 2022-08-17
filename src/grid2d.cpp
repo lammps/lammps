@@ -125,7 +125,7 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
   // error check on size of grid stored by this proc
 
   bigint total = (bigint) (oxhi - oxlo + 1) * (oyhi - oylo + 1);
-  if (total > MAXSMALLINT) 
+  if (total > MAXSMALLINT)
     error->one(FLERR, "Too many owned+ghost grid2d points");
 
   // store grid bounds and proc neighs
@@ -883,7 +883,7 @@ void Grid2d::ghost_box_drop(int *box, int *pbc)
 ------------------------------------------------------------------------- */
 
 void Grid2d::box_drop_grid(int *box, int proclower, int procupper,
-			   int &np, int *plist)
+                           int &np, int *plist)
 {
   // end recursion when partition is a single proc
   // add proclower to plist
@@ -899,7 +899,7 @@ void Grid2d::box_drop_grid(int *box, int proclower, int procupper,
   //         = location in tree that stores this cut
   // cut = index of first grid cell in upper partition
   // dim = 0,1,2 dimension of cut
-  
+
   int procmid = proclower + (procupper - proclower) / 2 + 1;
   int dim = rcbinfo[procmid].dim;
   int cut = rcbinfo[procmid].cut;
@@ -955,7 +955,7 @@ int Grid2d::ghost_adjacent_tiled()
 ------------------------------------------------------------------------- */
 
 void Grid2d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
-			  void *buf1, void *buf2, MPI_Datatype datatype)
+                          void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR) {
     if (caller == KSPACE)
@@ -1060,7 +1060,7 @@ forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
 ------------------------------------------------------------------------- */
 
 void Grid2d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
-			  void *buf1, void *buf2, MPI_Datatype datatype)
+                          void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR) {
     if (caller == KSPACE)

@@ -209,7 +209,7 @@ density (mass or number) or atom attributes such as position,
 velocity, force.  They can also be per-atom quantities calculated by a
 :doc:`compute <compute>`, by a :doc:`fix <fix>`, or by an atom-style
 :doc:`variable <variable>`.  The chunk-averaged output of this fix is
-global and can also be used as input to other output commands. 
+global and can also be used as input to other output commands.
 
 Note that the :doc:`fix ave/grid <fix_ave_grid>` command can also
 average the same per-atom quantities within spatial bins, but it does
@@ -307,7 +307,7 @@ command, including per-atom quantities calculated by a :doc:`compute
 output commands.
 
 The :doc:`fix ave/grid <fix_ave_grid>` command performs time-averaging
-of either per-atom or per-grid data.  
+of either per-atom or per-grid data.
 
 For per-atom data it performs averaging for the atoms within each grid
 cell, similar to the :doc:`fix ave/chunk <fix_ave_chunk>` command when
@@ -315,7 +315,7 @@ its chunks are defined as regular 2d or 3d bins.  The per-atom
 quantities can be atom density (mass or number) or atom attributes
 such as position, velocity, force.  They can also be per-atom
 quantities calculated by a :doc:`compute <compute>`, by a :doc:`fix
-<fix>`, or by an atom-style :doc:`variable <variable>`.  
+<fix>`, or by an atom-style :doc:`variable <variable>`.
 
 The chief difference between the :doc:`fix ave/grid <fix_ave_grid>`
 and :doc:`fix ave/chunk <fix_ave_chunk>` commands when used in this

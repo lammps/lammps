@@ -22,13 +22,13 @@ class Grid3d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, double, int, double, 
-         int &, int &, int &, int &, int &, int &, 
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, double, int, double,
+         int &, int &, int &, int &, int &, int &,
          int &, int &, int &, int &, int &, int &);
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, 
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int,
          int, int, int, int, int, int);
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, 
-         int, int, int, int, int, int, int, int, int, int, int, int, 
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int,
+         int, int, int, int, int, int, int, int, int, int, int, int,
          int, int, int, int, int, int);
   ~Grid3d() override;
   void get_size(int &, int &, int &);
@@ -185,7 +185,7 @@ class Grid3d : protected Pointers {
   // internal methods
   // -------------------------------------------
 
-  void store(int, int, int, int, int, int, int, int, int, int, int, int, 
+  void store(int, int, int, int, int, int, int, int, int, int, int, int,
              int, int, int, int, int, int, int, int, int, int, int, int);
   virtual void setup_regular(int &, int &);
   virtual void setup_tiled(int &, int &);

@@ -55,7 +55,7 @@ static constexpr int OFFSET = 16384;
 ------------------------------------------------------------------------- */
 
 Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
-               int gnx, int gny, int gnz, 
+               int gnx, int gny, int gnz,
                double maxdist, int extra, double shift,
                int &ixlo, int &ixhi, int &iylo, int &iyhi, int &izlo, int &izhi,
                int &oxlo, int &oxhi, int &oylo, int &oyhi, int &ozlo, int &ozhi)
@@ -72,7 +72,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   ny = gny;
   nz = gnz;
 
-  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz; 
+  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz;
 
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
@@ -132,12 +132,12 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
     ozlo = MAX(1,ozlo);
     ozhi = MIN(gnx-1,ozhi);
   }
-  
+
   // error check on size of grid stored by this proc
 
-  bigint total = (bigint) 
+  bigint total = (bigint)
     (oxhi - oxlo + 1) * (oyhi - oylo + 1) * (ozhi - ozlo + 1);
-  if (total > MAXSMALLINT) 
+  if (total > MAXSMALLINT)
     error->one(FLERR, "Too many owned+ghost grid3d points");
 
   // store grid bounds and proc neighs
@@ -186,7 +186,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   ny = gny;
   nz = gnz;
 
-  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz; 
+  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz;
 
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
@@ -242,7 +242,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
   ny = gny;
   nz = gnz;
 
-  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz; 
+  ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz;
 
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
@@ -380,7 +380,7 @@ void Grid3d::get_size(int &nxgrid, int &nygrid, int &nzgrid)
 
 /* ---------------------------------------------------------------------- */
 
-void Grid3d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi, 
+void Grid3d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi,
                         int &zlo, int &zhi)
 {
   xlo = inxlo;

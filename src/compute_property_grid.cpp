@@ -32,8 +32,8 @@ enum { UNSCALED, SCALED };
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), pack_choice(nullptr), 
-  grid2d(nullptr), grid3d(nullptr), 
+  Compute(lmp, narg, arg), pack_choice(nullptr),
+  grid2d(nullptr), grid3d(nullptr),
   vec2d(nullptr), array2d(nullptr), vec3d(nullptr), array3d(nullptr)
 {
   if (narg < 7) error->all(FLERR, "Illegal compute property/grid command");
@@ -46,12 +46,12 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
   nygrid = utils::inumeric(FLERR,arg[4],false,lmp);
   nzgrid = utils::inumeric(FLERR,arg[5],false,lmp);
 
-  if (dimension == 2 && nzgrid != 1) 
+  if (dimension == 2 && nzgrid != 1)
     error->all(FLERR,"Compute property/grid for 2d requires nz = 1");
 
-  if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0) 
+  if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0)
     error->all(FLERR, "Illegal compute property/grid command");
- 
+
   nvalues = narg - 6;
   pack_choice = new FnPtrPack[nvalues];
 
@@ -66,7 +66,7 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "iy") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_indices<1>;
     } else if (strcmp(arg[iarg], "iz") == 0) {
-      if (dimension == 2) 
+      if (dimension == 2)
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
       pack_choice[jarg] = &ComputePropertyGrid::pack_indices<2>;
 
@@ -75,7 +75,7 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "y") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,UNSCALED,1>;
     } else if (strcmp(arg[iarg], "z") == 0) {
-      if (dimension == 2) 
+      if (dimension == 2)
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,UNSCALED,2>;
 
@@ -84,16 +84,16 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "ys") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,SCALED,1>;
     } else if (strcmp(arg[iarg], "zs") == 0) {
-      if (dimension == 2) 
+      if (dimension == 2)
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<LOW,SCALED,2>;
 
-    } else if (strcmp(arg[iarg], "xc") == 0) { 
+    } else if (strcmp(arg[iarg], "xc") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,UNSCALED,0>;
     } else if (strcmp(arg[iarg], "yc") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,UNSCALED,1>;
     } else if (strcmp(arg[iarg], "zc") == 0) {
-      if (dimension == 2) 
+      if (dimension == 2)
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,UNSCALED,2>;
 
@@ -102,7 +102,7 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "ysc") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,SCALED,1>;
     } else if (strcmp(arg[iarg], "zsc") == 0) {
-      if (dimension == 2) 
+      if (dimension == 2)
         error->all(FLERR,"Compute property/grid for 2d cannot use z coord");
       pack_choice[jarg] = &ComputePropertyGrid::pack_coords<CTR,SCALED,2>;
 
@@ -243,27 +243,27 @@ void ComputePropertyGrid::allocate_grid()
                         nxlo_in, nxhi_in, nylo_in, nyhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out);
     if (nvalues == 1)
-      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out, 
+      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
                               "property/grid:vec2d");
     else
       memory->create3d_offset_last(array2d, nylo_out, nyhi_out, nxlo_out,
                                    nxhi_out, nvalues, "property/grid:array2d");
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
-    
+
   } else {
     grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 0.0, 0, 0.0,
-                        nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
-                        nxlo_out, nxhi_out, nylo_out, nyhi_out, 
+                        nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
+                        nxlo_out, nxhi_out, nylo_out, nyhi_out,
                         nzlo_out, nzhi_out);
     if (nvalues == 1)
-      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out, 
+      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out,
                               nyhi_out, nxlo_out,
                               nxhi_out, "property/grid:vec3d");
     else
-      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out, 
+      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out,
                                    nyhi_out, nxlo_out,
                                    nxhi_out, nvalues, "property/grid:array3d");
-    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * 
+    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
       (nzhi_out - nzlo_out + 1);
   }
 }
@@ -331,7 +331,7 @@ template <int IDIM> void ComputePropertyGrid::pack_indices(int n)
     if (nvalues == 0) {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-          if (IDIM == 0) vec2d[iy][ix] = ix + 1;  
+          if (IDIM == 0) vec2d[iy][ix] = ix + 1;
           if (IDIM == 1) vec2d[iy][ix] = iy + 1;
         }
     } else {
@@ -368,7 +368,7 @@ template <int IDIM> void ComputePropertyGrid::pack_indices(int n)
    via templating
 ------------------------------------------------------------------------- */
 
-template <int POS, int MODE, int IDIM> 
+template <int POS, int MODE, int IDIM>
 void ComputePropertyGrid::pack_coords(int n)
 {
   double boxlo,delta;
@@ -401,7 +401,7 @@ void ComputePropertyGrid::pack_coords(int n)
               if (IDIM == 1) vec2d[iy][ix] = boxlo + (iy+0.5)*delta;
             }
           }
-        
+
       } else {
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -423,7 +423,7 @@ void ComputePropertyGrid::pack_coords(int n)
       double dx = 1.0/nxgrid;
       double dy = 1.0/nygrid;
       lamda[2] = 0.0;
-      
+
       if (nvalues == 0) {
         for (int iy = nylo_in; iy <= nyhi_in; iy++) {
           lamda[1] = iy*dy;
@@ -434,7 +434,7 @@ void ComputePropertyGrid::pack_coords(int n)
             if (IDIM == 1) vec2d[iy][ix] = xone[1];
           }
         }
-        
+
       } else {
         for (int iy = nylo_in; iy <= nyhi_in; iy++) {
           lamda[1] = iy*dy;
@@ -450,7 +450,7 @@ void ComputePropertyGrid::pack_coords(int n)
 
   // 3d grid
 
-  } else if (dimension == 3) { 
+  } else if (dimension == 3) {
 
     // for coords which are orthogonal OR scaled
 
@@ -504,7 +504,7 @@ void ComputePropertyGrid::pack_coords(int n)
       double dx = 1.0/nxgrid;
       double dy = 1.0/nygrid;
       double dz = 1.0/nzgrid;
-      
+
       if (nvalues == 0) {
         for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
           lamda[2] = iz*dz;

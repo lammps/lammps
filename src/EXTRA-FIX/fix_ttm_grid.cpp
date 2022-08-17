@@ -62,7 +62,7 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
                           "use dump grid instead");
   */
-  
+
   skin_original = neighbor->skin;
 }
 
@@ -456,12 +456,12 @@ void FixTTMGrid::allocate_grid()
   double maxdist = 0.5 * neighbor->skin;
 
   grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 1, SHIFT,
-                    nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 
+                    nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
                     nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
-  ngridown = (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) * 
+  ngridown = (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) *
     (nzhi_in - nzlo_in + 1);
-  ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) * 
+  ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
     (nzhi_out - nzlo_out + 1);
 
   // setup grid communication and allocate grid data structs
@@ -563,7 +563,7 @@ void FixTTMGrid::restart(char *buf)
 
   // communicate new T_electron values to ghost grid points
 
-  grid->forward_comm(Grid3d::FIX, this, 1, sizeof(double), 0, 
+  grid->forward_comm(Grid3d::FIX, this, 1, sizeof(double), 0,
                      grid_buf1, grid_buf2, MPI_DOUBLE);
 }
 

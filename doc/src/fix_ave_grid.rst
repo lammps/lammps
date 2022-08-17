@@ -152,7 +152,7 @@ evaluation of an atom-style :doc:`variable <variable>`.  In the latter
 cases, the compute, fix, or variable must produce a per-atom quantity,
 not a global quantity.  Note that the :doc:`compute property/atom
 <compute_property_atom>` command provides access to any attribute
-defined and stored by atoms.  
+defined and stored by atoms.
 
 The per-atom values of each input vector are summed and averaged
 independently of the per-atom values in other input vectors.

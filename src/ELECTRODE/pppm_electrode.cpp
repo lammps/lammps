@@ -26,7 +26,7 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -200,7 +200,7 @@ void PPPMElectrode::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridComm *gctmp = nullptr;
+  Grid3d *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -215,8 +215,8 @@ void PPPMElectrode::init()
     if (overlap_allowed) break;
 
     gctmp =
-        new GridComm(lmp, world, nx_pppm, ny_pppm, nz_pppm, nxlo_in, nxhi_in, nylo_in, nyhi_in,
-                     nzlo_in, nzhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
+        new Grid3d(lmp, world, nx_pppm, ny_pppm, nz_pppm, nxlo_in, nxhi_in, nylo_in, nyhi_in,
+                   nzlo_in, nzhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
     int tmp1, tmp2;
     gctmp->setup(tmp1, tmp2);
@@ -445,7 +445,7 @@ void PPPMElectrode::compute(int eflag, int vflag)
     // TODO: this is dangerous now that compute_vector's interface has been
     // changed since a compute could call an arbitrary source, needs tightening
     make_rho_in_brick(last_source_grpbit, density_brick, !last_invert_source);
-    gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+    gc->reverse_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
     for (int nz = nzlo_out; nz <= nzhi_out; nz++)
       for (int ny = nylo_out; ny <= nyhi_out; ny++)
@@ -459,7 +459,7 @@ void PPPMElectrode::compute(int eflag, int vflag)
     //   to fully sum contribution in their 3d bricks
     // remap from 3d decomposition to FFT decomposition
 
-    gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+    gc->reverse_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
   }
 
@@ -479,20 +479,20 @@ void PPPMElectrode::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+    gc->forward_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
   else
-    gc->forward_comm(GridComm::KSPACE, this, 3, sizeof(FFT_SCALAR), FORWARD_IK, gc_buf1, gc_buf2,
+    gc->forward_comm(Grid3d::KSPACE, this, 3, sizeof(FFT_SCALAR), FORWARD_IK, gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(GridComm::KSPACE, this, 6, sizeof(FFT_SCALAR), FORWARD_AD_PERATOM, gc_buf1,
+      gc->forward_comm(Grid3d::KSPACE, this, 6, sizeof(FFT_SCALAR), FORWARD_AD_PERATOM, gc_buf1,
                        gc_buf2, MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(GridComm::KSPACE, this, 7, sizeof(FFT_SCALAR), FORWARD_IK_PERATOM, gc_buf1,
+      gc->forward_comm(Grid3d::KSPACE, this, 7, sizeof(FFT_SCALAR), FORWARD_IK_PERATOM, gc_buf1,
                        gc_buf2, MPI_FFT_SCALAR);
   }
 
@@ -590,7 +590,7 @@ void PPPMElectrode::compute_vector(double *vec, int sensor_grpbit, int source_gr
   make_rho_in_brick(source_grpbit, electrolyte_density_brick, invert_source);
   density_brick = electrolyte_density_brick;
   density_fft = electrolyte_density_fft;
-  gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+  gc->reverse_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
   brick2fft();
   // switch back pointers
@@ -618,7 +618,7 @@ void PPPMElectrode::compute_vector(double *vec, int sensor_grpbit, int source_gr
         u_brick[k][j][i] = work2[n];
         n += 2;
       }
-  gc->forward_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+  gc->forward_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
   project_psi(vec, sensor_grpbit);
   compute_vector_called = true;

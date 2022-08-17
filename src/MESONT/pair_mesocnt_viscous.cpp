@@ -82,7 +82,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
   // update bond neighbor list when necessary
 
-  if (update->ntimestep == neighbor->lastcall) bond_neigh_topo();
+  if (update->ntimestep == neighbor->lastcall) {
+    if (neigh_flag) bond_neigh_topo();
+    else bond_neigh_id();
+  }
 
   // iterate over all bonds
 

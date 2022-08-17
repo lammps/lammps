@@ -1232,8 +1232,6 @@ void PairSMTBQ::tabqeq()
   double aCoeff,bCoeff,rcoupe,nang;
 
   int n = atom->ntypes;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
   nmax = atom->nmax;
   nntype = int((n+1)*n/2);
 
@@ -1242,7 +1240,7 @@ void PairSMTBQ::tabqeq()
 
 #if VERBOSE
   printf ("kmax %d, ds %f, nmax %d\n",kmax,ds,nmax);
-  printf ("nlocal = %d, nghost = %d\n",nlocal,nghost);
+  printf ("nlocal = %d, nghost = %d\n",atom->nlocal,atom->nghost);
   printf ("nntypes %d, kmax %d, rc %f, n %d\n",nntype,kmax,rc,n);
 #endif
 

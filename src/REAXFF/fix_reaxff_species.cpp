@@ -827,12 +827,11 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
 void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 {
-  int i, j, m, n, k, itype, cid;
+  int i, j, m, n, itype, cid;
   int ndel, ndelone, count, count_tmp;
   int *Nameall;
   int *mask = atom->mask;
   double localmass, totalmass;
-  double **spec_atom = f_SPECBOND->array_atom;
   std::string species_str;
 
   AtomVec *avec = atom->avec;

@@ -37,7 +37,7 @@ enum { NOBIAS, BIAS };
 
 static const char cite_centroid_angle_improper_dihedral[] =
     "compute centroid/stress/atom for angles, impropers and dihedrals: doi:10.1103/PhysRevE.99.051301\n\n"
-    "@article{PhysRevE.99.051301,\n"
+    "@article{Surblys2019,\n"
     " title = {Application of Atomic Stress to Compute Heat Flux via Molecular\n"
     "    Dynamics for Systems With Many-Body Interactions},\n"
     " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
@@ -52,7 +52,7 @@ static const char cite_centroid_angle_improper_dihedral[] =
 
 static const char cite_centroid_shake_rigid[] =
     "compute centroid/stress/atom for constrained dynamics: doi:10.1063/5.0070930\n\n"
-    "@article{doi:10.1063/5.0070930,\n"
+    "@article{Surblys2021,\n"
     " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
     " journal = {Journal of Applied Physics},\n"
     " title = {Methodology and Meaning of Computing Heat Flux via Atomic Stress in Systems with\n"

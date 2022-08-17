@@ -185,10 +185,11 @@ void DumpLocal::init_style()
 
   auto words = utils::split_words(format);
   if ((int) words.size() <  size_one)
-    error->all(FLERR,"Dump_modify format line is too short");
+    error->all(FLERR,"Dump_modify format line is too short: {}", format);
 
   int i=0;
   for (const auto &word : words) {
+    if (i >= size_one) break;
     delete[] vformat[i];
 
     if (format_column_user[i])

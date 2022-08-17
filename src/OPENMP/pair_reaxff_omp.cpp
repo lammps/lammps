@@ -63,12 +63,14 @@ using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
 static const char cite_pair_reaxff_omp[] =
-  "pair reaxff/omp and fix qeq/reaxff/omp command:\n\n"
+  "pair reaxff/omp and fix qeq/reaxff/omp command: doi:10.1177/1094342017746221\n\n"
   "@Article{Aktulga17,\n"
-  " author =  {H. M. Aktulga, C. Knight, P. Coffman, K. A. OHearn, T. R. Shan, W. Jiang},\n"
-  " title =   {Optimizing the performance of reactive molecular dynamics simulations for multi-core architectures},\n"
+  " author =  {H. M. Aktulga and C. Knight and P. Coffman and\n"
+  "    K. A. O'Hearn and T. R. Shan and W. Jiang},\n"
+  " title =   {Optimizing the Performance of Reactive Molecular Dynamics\n"
+  "    Simulations for Multi-Core Architectures},\n"
   " journal = {International Journal of High Performance Computing Applications},\n"
-  " year =    to appear\n"
+  " year =    2018\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */

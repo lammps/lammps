@@ -863,7 +863,10 @@ void ReadData::command(int narg, char **arg)
   // insure nbondtypes,etc are still consistent with template molecules,
   //   in case data file re-defined them
 
-  if (atom->molecular == Atom::TEMPLATE) atom->avec->onemols[0]->check_attributes(1);
+  if (atom->molecular == Atom::TEMPLATE) {
+    int nset = MAX(1, atom->avec->onemols[0]->nset);
+    for (int i = 0; i < nset; ++i) atom->avec->onemols[i]->check_attributes();
+  }
 
   // if adding atoms, migrate atoms to new processors
   // use irregular() b/c box size could have changed dramaticaly

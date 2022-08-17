@@ -345,6 +345,7 @@ class Atom : protected Pointers {
 
   void add_molecule(int, char **);
   int find_molecule(const char *);
+  std::vector<Molecule *>get_molecule_by_id(const std::string &);
   void add_molecule_atom(class Molecule *, int, int, tagint);
 
   void first_reorder();

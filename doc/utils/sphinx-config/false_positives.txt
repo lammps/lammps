@@ -1623,6 +1623,7 @@ kb
 kB
 kbit
 kbits
+kbond
 kcal
 kcl
 Kd

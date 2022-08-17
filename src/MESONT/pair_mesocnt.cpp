@@ -31,6 +31,7 @@
 #include "potential_file_reader.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -1246,45 +1247,49 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
   int numneigh1, numneigh2;
   int *neighlist1, *neighlist2;
 
+  numred = 0;
+  
   // prevent ghost atom with undefined neighbors
 
-  if (i1 > nlocal - 1)
-    numneigh1 = 0;
-  else {
-    neighlist1 = firstneigh[i1];
-    numneigh1 = numneigh[i1];
+  if (i1 > nlocal - 1 && i2 > nlocal - 1) {
+    return;
   }
-  if (i2 > nlocal - 1)
-    numneigh2 = 0;
-  else {
-    neighlist2 = firstneigh[i2];
+  else if (i1 > nlocal - 1) {
     numneigh2 = numneigh[i2];
+    neighlist2 = firstneigh[i2];
+    for (int j = 0; j < numneigh2; j++)
+      redlist[numred++] = neighlist2[j] & NEIGHMASK;
+    return;
   }
-
-  numred = 0;
-
-  for (int j = 0; j < numneigh1; j++) {
-    int ind = neighlist1[j] & NEIGHMASK;
-    redlist[numred++] = ind;
+  else if (i2 > nlocal - 1) {
+    numneigh1 = numneigh[i1];
+    neighlist1 = firstneigh[i1];
+    for (int j = 0; j < numneigh1; j++)
+      redlist[numred++] = neighlist1[j] & NEIGHMASK;
+    return;
   }
-  int inflag = 0;
-  for (int j2 = 0; j2 < numneigh2 + 2; j2++) {
-    int ind2;
-    if (j2 == numneigh2) ind2 = i1;
-    else if (j2 == numneigh2 + 1) ind2 = i2;
-    else ind2 = neighlist2[j2] & NEIGHMASK;
-    for (int j1 = 0; j1 < numred; j1++) {
-      int ind1 = redlist[j1] & NEIGHMASK;
-      if (ind1 == ind2) {
-        inflag = 1;
-        break;
-      }
-    }
-    if (inflag) {
-      inflag = 0;
-      continue;
-    }
-    redlist[numred++] = ind2;
+  else {
+    numneigh1 = numneigh[i1];
+    numneigh2 = numneigh[i2];
+    neighlist1 = firstneigh[i1];
+    neighlist2 = firstneigh[i2];
+    
+    for (int j = 0; j < numneigh1; j++)
+      neighlist1[j] &= NEIGHMASK;
+    for (int j = 0; j < numneigh2; j++)
+      neighlist2[j] &= NEIGHMASK;
+
+    // sort and unify of neighbor lists
+    
+    std::sort(neighlist1, neighlist1 + numneigh1);
+    std::sort(neighlist2, neighlist2 + numneigh2);
+    std::vector<int> temp;
+    std::set_union(neighlist1, neighlist1 + numneigh1, neighlist2, neighlist2 + numneigh2, std::back_inserter(temp));
+    
+    for (const auto &j : temp)
+      redlist[numred++] = j;
+    
+    return;
   }
 }
 

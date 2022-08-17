@@ -602,7 +602,7 @@ be used.  For non-orthogonal (triclinic) simulation boxes, only the
 *reduced* option may be used.
 
 A *box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., Ångströms for units = *real* or *metal*).
+:doc:`units <units>` command (e.g., Angstroms for units = *real* or *metal*).
 A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacing.  A *reduced* value means normalized

@@ -123,7 +123,7 @@ directly.  The *set* keyword is used to identify the name of this
 other variable associated with theta.
 
 As an example, these commands can be added to the bench/in.rhodo
-script to compute the length\^2 of every bond in the system and
+script to compute the length\ :math:`^2` of every bond in the system and
 output the statistics in various ways:
 
 .. code-block:: LAMMPS
@@ -141,11 +141,11 @@ output the statistics in various ways:
    fix 10 all ave/histo 10 10 100 0 6 20 c_2[3] mode vector file tmp.histo
 
 The :doc:`dump local <dump>` command will output the energy, length,
-and length\^2 for every bond in the system.  The
+and length\ :math:`^2` for every bond in the system.  The
 :doc:`thermo_style <thermo_style>` command will print the average of
 those quantities via the :doc:`compute reduce <compute_reduce>` command
 with thermo output, and the :doc:`fix ave/histo <fix_ave_histo>`
-command will histogram the length\^2 values and write them to a file.
+command will histogram the length\ :math:`^2` values and write them to a file.
 
 ----------
 

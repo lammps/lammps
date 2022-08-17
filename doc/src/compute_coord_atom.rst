@@ -11,11 +11,11 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID coord/atom cstyle args ...
+   compute ID group-ID coord/atom style args ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * coord/atom = style name of this compute command
-* cstyle = *cutoff* or *orientorder*
+* style = *cutoff* or *orientorder*
 
   .. parsed-literal::
 

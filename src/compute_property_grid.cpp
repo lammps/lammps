@@ -32,9 +32,8 @@ enum { UNSCALED, SCALED };
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), pack_choice(nullptr),
-  grid2d(nullptr), grid3d(nullptr),
-  vec2d(nullptr), array2d(nullptr), vec3d(nullptr), array3d(nullptr)
+  Compute(lmp, narg, arg), grid2d(nullptr), grid3d(nullptr), vec2d(nullptr), vec3d(nullptr),
+  array2d(nullptr), array3d(nullptr), pack_choice(nullptr)
 {
   if (narg < 7) error->all(FLERR, "Illegal compute property/grid command");
 
@@ -164,9 +163,9 @@ void ComputePropertyGrid::reset_grid()
    return -1 if grid name not found
 ------------------------------------------------------------------------- */
 
-int ComputePropertyGrid::get_grid_by_name(char *name, int &dim)
+int ComputePropertyGrid::get_grid_by_name(const std::string &name, int &dim)
 {
-  if (strcmp(name,"grid") == 0) {
+  if (name == "grid") {
     dim = dimension;
     return 0;
   }
@@ -200,9 +199,9 @@ void *ComputePropertyGrid::get_grid_by_index(int index)
    return -1 if data name not found
 ------------------------------------------------------------------------- */
 
-int ComputePropertyGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
+int ComputePropertyGrid::get_griddata_by_name(int igrid, const std::string &name, int &ncol)
 {
-  if (igrid == 0 && strcmp(name,"data") == 0) {
+  if ((igrid == 0) && (name == "data")) {
     if (nvalues == 1) ncol = 0;
     else ncol = nvalues;
     return 0;

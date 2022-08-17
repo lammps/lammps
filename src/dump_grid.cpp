@@ -44,8 +44,7 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr), vtype(nullptr),
   vformat(nullptr), columns(nullptr), columns_default(nullptr),
   field2index(nullptr), field2grid(nullptr), field2data(nullptr),
-  argindex(nullptr), id_compute(nullptr), compute(nullptr),
-  id_fix(nullptr), fix(nullptr), pack_choice(nullptr)
+  argindex(nullptr), id_compute(nullptr), id_fix(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump grid arguments specified");
 
@@ -160,11 +159,9 @@ DumpGrid::~DumpGrid()
 
   for (int i = 0; i < ncompute; i++) delete[] id_compute[i];
   memory->sfree(id_compute);
-  delete[] compute;
 
   for (int i = 0; i < nfix; i++) delete[] id_fix[i];
   memory->sfree(id_fix);
-  delete[] fix;
 
   if (vformat) {
     for (int i = 0; i < nfield; i++) delete[] vformat[i];
@@ -668,12 +665,9 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
 
-    int n,flag,cols;
     ArgInfo argi(arg[iarg], ArgInfo::COMPUTE | ArgInfo::FIX);
     argindex[iarg] = argi.get_index1();
     auto name = argi.get_name();
-    Compute *icompute = nullptr;
-    Fix *ifix = nullptr;
 
     switch (argi.get_type()) {
 
@@ -691,49 +685,37 @@ int DumpGrid::parse_fields(int narg, char **arg)
         field2source[iarg] = COMPUTE;
 
         // split name = idcompute:gname:dname into 3 strings
+        
+        auto words = utils::gridid_parse(FLERR,name,error);
+        const auto &idcompute = words[0];
+        const auto &gname = words[1];
+        const auto &dname = words[2];
 
-        char *idcompute,*gname,*dname;
-        utils::grid_parse(FLERR,name,idcompute,gname,dname,error);
-
-        icompute = modify->get_compute_by_id(idcompute);
-        if (!icompute)
-          error->all(FLERR,"Could not find dump grid compute ID: {}",idcompute);
+        auto icompute = modify->get_compute_by_id(idcompute);
+        if (!icompute) error->all(FLERR,"Could not find dump grid compute ID: {}",idcompute);
         if (icompute->pergrid_flag == 0)
-          error->all(FLERR,"Dump grid compute {} does not compute per-grid info",
-                     idcompute);
+          error->all(FLERR,"Dump grid compute {} does not compute per-grid info",idcompute);
 
         int dim;
         int igrid = icompute->get_grid_by_name(gname,dim);
         if (igrid < 0)
-          error->all(FLERR,"Dump grid compute {} does not recognize grid name {}",
-                     idcompute,gname);
+          error->all(FLERR,"Dump grid compute {} does not recognize grid name {}",idcompute,gname);
 
         int ncol;
         int idata = icompute->get_griddata_by_name(igrid,dname,ncol);
         if (idata < 0)
-          error->all(FLERR,
-                     "Dump grid compute {} does not recognize data name {}",
-                     idcompute,dname);
+          error->all(FLERR,"Dump grid compute {} does not recognize data name {}",idcompute,dname);
 
         if (argi.get_dim() == 0 && ncol)
-          error->all(FLERR,"Dump grid compute {} data {} is not per-grid vector",
-                     idcompute,dname);
+          error->all(FLERR,"Dump grid compute {} data {} is not per-grid vector",idcompute,dname);
         if (argi.get_dim() && ncol == 0)
-          error->all(FLERR,"Dump grid compute {} data {} is not per-grid array",
-                     idcompute,dname);
+          error->all(FLERR,"Dump grid compute {} data {} is not per-grid array",idcompute,dname);
         if (argi.get_dim() && argi.get_index1() > ncol)
-          error->all(FLERR,
-                     "Dump grid compute {} array {} is accessed out-of-range",
-                     idcompute,dname);
+          error->all(FLERR,"Dump grid compute {} array {} is accessed out-of-range",idcompute,dname);
 
-
-        field2index[iarg] = add_compute(idcompute);
+        field2index[iarg] = add_compute(idcompute,icompute);
         field2grid[iarg] = igrid;
         field2data[iarg] = idata;
-
-        delete [] idcompute;
-        delete [] gname;
-        delete [] dname;
 
       } break;
 
@@ -748,46 +730,38 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
         // split name = idfix:gname:dname into 3 strings
 
-        char *idfix,*gname,*dname;
-        utils::grid_parse(FLERR,name,idfix,gname,dname,error);
+        auto words = utils::gridid_parse(FLERR,name,error);
+        const auto &idfix = words[0];
+        const auto &gname = words[1];
+        const auto &dname = words[2];
 
-        ifix = modify->get_fix_by_id(idfix);
+        auto ifix = modify->get_fix_by_id(idfix);
         if (!ifix) error->all(FLERR,"Could not find dump grid fix ID: {}",idfix);
         if (ifix->pergrid_flag == 0)
-          error->all(FLERR,"Dump grid fix {} does not compute per-grid info",
-                     idfix);
+          error->all(FLERR,"Dump grid fix {} does not compute per-grid info",idfix);
         if (update->ntimestep % ifix->pergrid_freq)
-          error->all(FLERR,"Fix for dump grid not computed at compatible time");
+          error->all(FLERR,"Fix ID {} for dump grid not computed at compatible time",idfix);
 
         int dim;
         int igrid = ifix->get_grid_by_name(gname,dim);
         if (igrid < 0)
-          error->all(FLERR,"Dump grid fix {} does not recognize grid name {}",
-                     idfix,gname);
+          error->all(FLERR,"Dump grid fix {} does not recognize grid name {}",idfix,gname);
 
         int ncol;
         int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
         if (idata < 0)
-          error->all(FLERR,"Dump grid fix {} does not recognize data name {}",
-                     idfix,dname);
+          error->all(FLERR,"Dump grid fix {} does not recognize data name {}",idfix,dname);
 
         if (argi.get_dim() == 0 && ncol)
-          error->all(FLERR,"Dump grid fix {} data {} is not per-grid vector",
-                     idfix,dname);
+          error->all(FLERR,"Dump grid fix {} data {} is not per-grid vector",idfix,dname);
         if (argi.get_dim() > 0 && ncol == 0)
-          error->all(FLERR,"Dump grid fix {} data {} is not per-grid array",
-                     idfix,dname);
+          error->all(FLERR,"Dump grid fix {} data {} is not per-grid array",idfix,dname);
         if (argi.get_dim() > 0 && argi.get_index1() > ncol)
-          error->all(FLERR,"Dump grid fix {} array {} is accessed out-of-range",
-                     idfix,dname);
+          error->all(FLERR,"Dump grid fix {} array {} is accessed out-of-range",idfix,dname);
 
-        field2index[iarg] = add_fix(idfix);
+        field2index[iarg] = add_fix(idfix,ifix);
         field2grid[iarg] = igrid;
         field2data[iarg] = idata;
-
-        delete [] idfix;
-        delete [] gname;
-        delete [] dname;
 
       } break;
 
@@ -808,19 +782,17 @@ int DumpGrid::parse_fields(int narg, char **arg)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpGrid::add_compute(const char *id)
+int DumpGrid::add_compute(const std::string &id, Compute *cptr)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(id,id_compute[icompute]) == 0) break;
+    if (id == id_compute[icompute]) break;
   if (icompute < ncompute) return icompute;
 
-  id_compute = (char **)
-    memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
-  delete[] compute;
-  compute = new Compute*[ncompute+1];
-
+  id_compute = (char **) memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
   id_compute[ncompute] = utils::strdup(id);
+  compute.push_back(cptr);
+
   ncompute++;
   return ncompute-1;
 }
@@ -831,19 +803,17 @@ int DumpGrid::add_compute(const char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpGrid::add_fix(const char *id)
+int DumpGrid::add_fix(const std::string &id, Fix *fptr)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(id,id_fix[ifix]) == 0) break;
+    if (id == id_fix[ifix]) break;
   if (ifix < nfix) return ifix;
 
-  id_fix = (char **)
-    memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
-  delete[] fix;
-  fix = new Fix*[nfix+1];
-
+  id_fix = (char **) memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
   id_fix[nfix] = utils::strdup(id);
+  fix.push_back(fptr);
+
   nfix++;
   return nfix-1;
 }

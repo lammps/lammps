@@ -768,26 +768,21 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
 /* ----------------------------------------------------------------------
    Parse grid reference into id:gridname:dataname
-   return ptrs to 3 substrings
+   return vector of 3 substrings
 ------------------------------------------------------------------------- */
 
-void utils::grid_parse(const char *file, int line, const std::string &name,
-                       char *&id, char *&gridname, char *&dataname, Error *error)
+std::vector<std::string> utils::gridid_parse(const char *file, int line, const std::string &name,
+                                             Error *error)
 {
-  char *copy = strdup(name);
+  auto words = Tokenizer(name, ":").as_vector();
+  if (words.size() != 3) {
+    if (error)
+      error->all(FLERR, "Grid ID {} does not contain two ':' characters", name);
+    else
+      return {"", "", ""};
+  }
 
-  char *ptr1 = strchr(copy,':');
-  if (!ptr1)
-    error->all(FLERR,"Grid reference {} does not contain 2 ':' chars",name);
-  *ptr1 = '\0';
-  char *ptr2 = strchr(ptr1+1,':');
-  if (!ptr2)
-    error->all(FLERR,"Grid reference {} does not contain 2 ':' chars",name);
-  *ptr2 = '\0';
-
-  id = strdup(copy);
-  gridname = strdup(ptr1+1);
-  dataname = strdup(ptr2+1);
+  return words;
 }
 
 /* ----------------------------------------------------------------------

@@ -220,9 +220,9 @@ class Fix : protected Pointers {
   virtual void pack_gather_grid(int, void *){};
   virtual void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int){};
 
-  virtual int get_grid_by_name(char *, int &) { return -1; };
+  virtual int get_grid_by_name(const std::string &, int &) { return -1; };
   virtual void *get_grid_by_index(int) { return nullptr; };
-  virtual int get_griddata_by_name(int, char *, int &) { return -1; };
+  virtual int get_griddata_by_name(int, const std::string &, int &) { return -1; };
   virtual void *get_griddata_by_index(int) { return nullptr; };
 
   virtual double compute_scalar() { return 0.0; }

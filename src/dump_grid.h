@@ -49,30 +49,30 @@ class DumpGrid : public Dump {
 
   int dimension;
 
-  int nxgrid,nygrid,nzgrid;   // global grid size
+  int nxgrid, nygrid, nzgrid;    // global grid size
 
-  int nfield;                 // # of keywords listed by user
-  int ioptional;              // index of start of optional args
+  int nfield;       // # of keywords listed by user
+  int ioptional;    // index of start of optional args
 
-                              // per field info
-  int *field2index;           // which compute/fix
-  int *field2source;          // COMPUTE or FIX
-  int *field2grid;            // index of grid within compute/fix
-  int *field2data;            // index of data within compute/fix
-  int *argindex;              // index into compute,fix,custom per-atom data
-                              // 0 for per-atom vector, 1-N for cols of per-atom array
+  // per field info
+  int *field2index;     // which compute/fix
+  int *field2source;    // COMPUTE or FIX
+  int *field2grid;      // index of grid within compute/fix
+  int *field2data;      // index of data within compute/fix
+  int *argindex;        // index into compute,fix,custom per-atom data
+                        // 0 for per-atom vector, 1-N for cols of per-atom array
 
-  int ncompute;               // # of Computes accessed by dump
-  char **id_compute;          // their IDs
-  class Compute **compute;    // list of ptrs to the Computes
+  int ncompute;                            // # of Computes accessed by dump
+  char **id_compute;                       // their IDs
+  std::vector<class Compute *> compute;    // list of ptrs to the Computes
 
-  int nfix;                   // # of Fixes used by dump
-  char **id_fix;              // their IDs
-  class Fix **fix;            // list of ptrs to the Fixes
+  int nfix;                        // # of Fixes used by dump
+  char **id_fix;                   // their IDs
+  std::vector<class Fix *> fix;    // list of ptrs to the Fixes
 
-  int nxlo_in,nxhi_in;        // bounds of this proc's portion of grids
-  int nylo_in,nyhi_in;
-  int nzlo_in,nzhi_in;
+  int nxlo_in, nxhi_in;    // bounds of this proc's portion of grids
+  int nylo_in, nyhi_in;
+  int nzlo_in, nzhi_in;
 
   // private methods
 
@@ -85,8 +85,8 @@ class DumpGrid : public Dump {
   double memory_usage() override;
 
   int parse_fields(int, char **);
-  int add_compute(const char *);
-  int add_fix(const char *);
+  int add_compute(const std::string &, class Compute *);
+  int add_fix(const std::string &, class Fix *);
   int modify_param(int, char **) override;
 
   void header_format_binary();

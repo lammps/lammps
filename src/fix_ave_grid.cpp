@@ -53,7 +53,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   value2index(nullptr), value2grid(nullptr), value2data(nullptr),
   grid2d(nullptr), grid3d(nullptr),
   grid_buf1(nullptr), grid_buf2(nullptr),
-  vec2d(nullptr), array2d(nullptr), vec3d(nullptr), array3d(nullptr),
+  vec2d(nullptr), vec3d(nullptr), array2d(nullptr), array3d(nullptr),
   count2d(nullptr), count3d(nullptr)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/grid command");
@@ -232,7 +232,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   // if wildcard expansion occurred, free earg memory from exapnd_args()
 
   if (expand) {
-    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -322,106 +322,78 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvalues; i++) {
       if (which[i] == ArgInfo::COMPUTE) {
 
-        char *idcompute,*gname,*dname;
-        utils::grid_parse(FLERR,ids[i],idcompute,gname,dname,error);
-        delete [] ids[i];
-        ids[i] = new char[strlen(idcompute)+1];
-        strcpy(ids[i],idcompute);
+        auto words = utils::gridid_parse(FLERR,ids[i],error);
+        const auto &idcompute = words[0];
+        const auto &gname = words[1];
+        const auto &dname = words[2];
 
-        Compute *icompute = modify->get_compute_by_id(idcompute);
-        if (!icompute)
-          error->all(FLERR,"Could not find fix ave/grid compute ID: {}",
-                     idcompute);
+        delete[] ids[i];
+        ids[i] = utils::strdup(idcompute);
+
+        auto icompute = modify->get_compute_by_id(idcompute);
+        if (!icompute) error->all(FLERR,"Could not find fix ave/grid compute ID: {}",idcompute);
         if (icompute->pergrid_flag == 0)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} does not compute per-grid info",
-                     idcompute);
+          error->all(FLERR,"Fix ave/grid compute {} does not compute per-grid info",idcompute);
 
         int dim;
         int igrid = icompute->get_grid_by_name(gname,dim);
         if (igrid < 0)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} does not recognize grid name {}",
+          error->all(FLERR,"Fix ave/grid compute {} does not recognize grid name {}",
                      idcompute,gname);
 
         int ncol;
         int idata = icompute->get_griddata_by_name(igrid,dname,ncol);
         if (idata < 0)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} does not recognize data name {}",
+          error->all(FLERR,"Fix ave/grid compute {} does not recognize data name {}",
                      idcompute,dname);
 
         if (argindex[i] == 0 && ncol)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} data {} is not per-grid vector",
-                     idcompute,dname);
+          error->all(FLERR,"Fix ave/grid compute {} data {} is not per-grid vector",idcompute,dname);
         if (argindex[i] && ncol == 0)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} data {} is not per-grid array",
-                     idcompute,dname);
+          error->all(FLERR,"Fix ave/grid compute {} data {} is not per-grid array",idcompute,dname);
         if (argindex[i] && argindex[i] > ncol)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} array {} is accessed out-of-range",
+          error->all(FLERR,"Fix ave/grid compute {} array {} is accessed out-of-range",
                      idcompute,dname);
 
         value2grid[i] = igrid;
         value2data[i] = idata;
 
-        delete [] idcompute;
-        delete [] gname;
-        delete [] dname;
-
       } else if (which[i] == ArgInfo::FIX) {
 
-        char *idfix,*gname,*dname;
-        utils::grid_parse(FLERR,ids[i],idfix,gname,dname,error);
-        delete [] ids[i];
-        ids[i] = new char[strlen(idfix)+1];
-        strcpy(ids[i],idfix);
+        auto words = utils::gridid_parse(FLERR,ids[i],error);
+        const auto &idfix = words[0];
+        const auto &gname = words[1];
+        const auto &dname = words[2];
+
+        delete[] ids[i];
+        ids[i] = utils::strdup(idfix);
 
         Fix *ifix = modify->get_fix_by_id(idfix);
-        if (!ifix) error->all(FLERR,"Could not find fix ave/grid fix ID: {}",
-                              idfix);
+        if (!ifix) error->all(FLERR,"Could not find fix ave/grid fix ID: {}",idfix);
         if (ifix->pergrid_flag == 0)
-          error->all(FLERR,"Fix ave/grid fix {} does not compute per-grid info",
-                     idfix);
+          error->all(FLERR,"Fix ave/grid fix {} does not compute per-grid info",idfix);
         if (nevery % ifix->pergrid_freq)
-          error->all(FLERR,
-                     "Fix for fix grid/atom not computed at compatible time");
+          error->all(FLERR, "Fix ID {} for fix grid/atom not computed at compatible time",idfix);
 
         int dim;
         int igrid = ifix->get_grid_by_name(gname,dim);
         if (igrid < 0)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} does not recognize grid name {}",
-                     idfix,gname);
+          error->all(FLERR,"Fix ave/grid fix {} does not recognize grid name {}",idfix,gname);
 
         int ncol;
         int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
         if (idata < 0)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} does not recognize data name {}",
-                     idfix,dname);
+          error->all(FLERR,"Fix ave/grid fix {} does not recognize data name {}",idfix,dname);
 
         if (argindex[i] == 0 && ncol)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} data {} is not per-grid vector",
-                     idfix,dname);
+          error->all(FLERR, "Fix ave/grid fix {} data {} is not per-grid vector",idfix,dname);
         if (argindex[i] && ncol == 0)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} data {} is not per-grid array",
-                     idfix,dname);
+          error->all(FLERR,"Fix ave/grid fix {} data {} is not per-grid array",idfix,dname);
         if (argindex[i] && argindex[i] > ncol)
-          error->all(FLERR,
-                     "Fix ave/grid compute {} array {} is accessed out-of-range",
-                     idfix,dname);
+          error->all(FLERR,"Fix ave/grid fix {} array {} is accessed out-of-range",idfix,dname);
 
         value2grid[i] = igrid;
         value2data[i] = idata;
-
-        delete [] idfix;
-        delete [] gname;
-        delete [] dname;
       }
     }
   }
@@ -516,13 +488,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveGrid::~FixAveGrid()
 {
-  delete [] which;
-  delete [] argindex;
-  for (int m = 0; m < nvalues; m++) delete [] ids[m];
-  delete [] ids;
-  delete [] value2index;
-  delete [] value2grid;
-  delete [] value2data;
+  delete[] which;
+  delete[] argindex;
+  for (int m = 0; m < nvalues; m++) delete[] ids[m];
+  delete[] ids;
+  delete[] value2index;
+  delete[] value2grid;
+  delete[] value2data;
 
   delete grid2d;
   delete grid3d;
@@ -715,7 +687,7 @@ void FixAveGrid::end_of_step()
     double mv2d = force->mv2d;
     double boltz = force->boltz;
 
-    double count,invcount,norm;
+    double count,norm;
     double repeat = nrepeat;
     double invrepeat = 1.0/nrepeat;
 
@@ -751,7 +723,6 @@ void FixAveGrid::end_of_step()
           for (ix = nxlo_in; ix <= nxhi_in; ix++) {
             count = count2d[iy][ix];
             if (count) {
-              invcount = 1.0/count;
               for (m = 0; m <= nvalues; m++) {
                 if (which[m] == ArgInfo::DENSITY_NUMBER)
                   norm = 1.0 / (binvol * repeat);
@@ -792,7 +763,6 @@ void FixAveGrid::end_of_step()
             for (ix = nxlo_in; ix <= nxhi_in; ix++) {
               count = count3d[iz][iy][ix];
               if (count) {
-                invcount = 1.0/count;
                 for (m = 0; m <= nvalues; m++) {
                   if (which[m] == ArgInfo::DENSITY_NUMBER)
                     norm = 1.0 / (binvol * repeat);
@@ -850,7 +820,7 @@ void FixAveGrid::end_of_step()
 
 void FixAveGrid::atom2grid()
 {
-  int i,j,k,m,n,ix,iy,iz;
+  int i,j,m,n,ix,iy,iz;
 
   // bin[i][dim] = indices of bin each atom is in
   // not set if group mask does not match
@@ -1424,9 +1394,9 @@ void FixAveGrid::reset_grid()
    return -1 if grid name not found
 ------------------------------------------------------------------------- */
 
-int FixAveGrid::get_grid_by_name(char *name, int &dim)
+int FixAveGrid::get_grid_by_name(const std::string &name, int &dim)
 {
-  if (strcmp(name,"grid") == 0) {
+  if (name == "grid") {
     dim = dimension;
     return 0;
   }
@@ -1460,9 +1430,9 @@ void *FixAveGrid::get_grid_by_index(int index)
    return -1 if data name not found
 ------------------------------------------------------------------------- */
 
-int FixAveGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
+int FixAveGrid::get_griddata_by_name(int igrid, const std::string &name, int &ncol)
 {
-  if (igrid == 0 && strcmp(name,"data") == 0) {
+  if ((igrid == 0) && (name == "data")) {
     if (nvalues == 1) ncol = 0;
     else ncol = nvalues;
     return 0;
@@ -1470,7 +1440,7 @@ int FixAveGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
 
   // count is only produced for ATOM mode
 
-  if (modeatom && igrid == 0 && strcmp(name,"count") == 0) {
+  if (modeatom && (igrid == 0) && (name == "count")) {
     ncol = 0;
     return 1;
   }

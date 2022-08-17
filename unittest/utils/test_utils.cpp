@@ -785,6 +785,34 @@ TEST(Utils, boundsbig_case3)
     ASSERT_EQ(nhi, -1);
 }
 
+TEST(Utils, gridid_parse)
+{
+    auto words = utils::gridid_parse(FLERR, "c_1:full:density", nullptr);
+    ASSERT_THAT(words[0], StrEq("c_1"));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[2], StrEq("density"));
+
+    words = utils::gridid_parse(FLERR, "c_1_full_density", nullptr);
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq(""));
+    ASSERT_THAT(words[0], StrEq(""));
+
+    words = utils::gridid_parse(FLERR, "c_1:full:", nullptr);
+    ASSERT_THAT(words[0], StrEq("c_1"));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[0], StrEq(""));
+
+    words = utils::gridid_parse(FLERR, ":full:density", nullptr);
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[0], StrEq("density"));
+
+    words = utils::gridid_parse(FLERR, "c_1:full", nullptr);
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq(""));
+    ASSERT_THAT(words[0], StrEq(""));
+}
+
 TEST(Utils, errorurl)
 {
     auto errmesg = utils::errorurl(10);

@@ -132,9 +132,9 @@ class Compute : protected Pointers {
 
   virtual void reset_grid(){};
 
-  virtual int get_grid_by_name(char *, int &) { return -1; };
+  virtual int get_grid_by_name(const std::string &, int &) { return -1; };
   virtual void *get_grid_by_index(int) { return nullptr; };
-  virtual int get_griddata_by_name(int, char *, int &) { return -1; };
+  virtual int get_griddata_by_name(int, const std::string &, int &) { return -1; };
   virtual void *get_griddata_by_index(int) { return nullptr; };
 
   virtual void dof_remove_pre() {}

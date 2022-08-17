@@ -359,6 +359,19 @@ namespace utils {
   int expand_args(const char *file, int line, int narg, char **arg, int mode, char **&earg,
                   LAMMPS *lmp);
 
+  /*! Parse grid reference into 3 sub-strings
+   *
+   * Format of grid ID reference = id:gridname:dataname
+   * Return vector with the 3 sub-strings
+   *
+   * \param name = grid reference
+   * \param id = ptr to 1st substring
+   * \param gridname = ptr to 2nd substring
+   * \param dataname = ptr to 3rd substring */
+
+  std::vector<std::string> gridid_parse(const char *file, int line, const std::string &name,
+                                        Error *error);
+
   /*! Make C-style copy of string in new storage
    *
    * This allocates a storage buffer and copies the C-style or
@@ -367,19 +380,6 @@ namespace utils {
    *
    * \param text  string that should be copied
    * \return new buffer with copy of string */
-
-  void grid_parse(const char *file, int line, const std::string &name,
-                  char *&id, char *&gridname, char *&dataname, Error *error);
-
-  /*! Parse grid reference into 3 sub-strings
-   *
-   * Format of grid reference = id:gridname:dataname
-   * Return ptrs to the 3 sub-strings
-   *
-   * \param name = grid reference
-   * \param id = ptr to 1st substring
-   * \param gridname = ptr to 2nd substring
-   * \param dataname = ptr to 3rd substring */
 
   char *strdup(const std::string &text);
 

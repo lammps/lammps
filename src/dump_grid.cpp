@@ -685,7 +685,7 @@ int DumpGrid::parse_fields(int narg, char **arg)
         field2source[iarg] = COMPUTE;
 
         // split name = idcompute:gname:dname into 3 strings
-        
+
         auto words = utils::gridid_parse(FLERR,name,error);
         const auto &idcompute = words[0];
         const auto &gname = words[1];

@@ -63,9 +63,16 @@ class PairMesoCNT : public Pair {
 
   bool match_end(int);
 
+  int count_chains(int *, int);
+
   void allocate();
-  void bond_neigh();
+  void bond_neigh_id();
+  void bond_neigh_topo();
   void neigh_common(int, int, int &, int *);
+  void chain_lengths(int *, int, int *);
+  void chain_split(int *, int, int *, int **, int *);
+  void sort(int *, int);
+  
   void read_file(const char *);
   void read_data(PotentialFileReader &, double *, double &, double &, int);
   void read_data(PotentialFileReader &, double **, double &, double &, double &, double &, int);

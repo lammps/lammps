@@ -101,11 +101,11 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in xperiodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension x");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in yperiodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension y");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in zperiodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension z");
   }
 
   for (int m = 0; m < nwall; m++)

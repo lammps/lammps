@@ -148,6 +148,7 @@ d.extra(data)				   extract bond/tri/line list from data
 #   12/09, David Hart (SNL): allow use of NumPy or Numeric
 #   03/17, Richard Berger (Temple U): improve Python 3 compatibility,
 #                                     simplify read_snapshot by using reshape
+#   08/22, Axel Kohlmeyer (Temple U): remove Numeric, more Python 2/3 compatibility
 
 # ToDo list
 #   try to optimize this line in read_snap: words += f.readline().split()
@@ -189,15 +190,25 @@ import sys, re, glob, types
 from os import popen
 from math import *             # any function could be used by set()
 
-try:
-    import numpy as np
-    oldnumeric = False
-except:
-    import Numeric as np
-    oldnumeric = True
+import numpy as np
 
 try: from DEFAULTS import PIZZA_GUNZIP
 except: PIZZA_GUNZIP = "gunzip"
+
+# --------------------------------------------------------------------
+# wrapper to convert old style comparision function to key function
+
+def cmp2key(oldcmp):
+    class keycmp:
+      def __init__(self, obj, *args):
+        self.obj = obj
+      def __lt__(self, other):
+        return oldcmp(self.obj,other.obj) < 0
+      def __gt__(self, other):
+        return oldcmp(self.obj,other.obj) > 0
+      def __eq__(self, other):
+        return oldcmp(self.obj,other.obj) == 0
+    return keycmp
 
 # Class definition
 
@@ -251,7 +262,7 @@ class dump:
       snap = self.read_snapshot(f)
       while snap:
         self.snaps.append(snap)
-        print(snap.time,end='')
+        print(snap.time,end=' ')
         sys.stdout.flush()
         snap = self.read_snapshot(f)
 
@@ -260,7 +271,7 @@ class dump:
 
     # sort entries by timestep, cull duplicates
 
-    self.snaps.sort(self.compare_time)
+    self.snaps.sort(key=cmp2key(self.compare_time))
     self.cull()
     self.nsnaps = len(self.snaps)
     print("read %d snapshots" % self.nsnaps)
@@ -288,9 +299,9 @@ class dump:
 
     # if snapshots are scaled, unscale them
 
-    if (not self.names.has_key("x")) or \
-       (not self.names.has_key("y")) or \
-       (not self.names.has_key("z")):
+    if (not "x" in self.names) or \
+       (not "y" in self.names) or \
+       (not "z" in self.names):
       print("no unscaling could be performed")
     elif self.nsnaps > 0:
       if self.scaled(self.nsnaps-1): self.unscale()
@@ -346,13 +357,13 @@ class dump:
     try:
       snap = Snap()
       item = f.readline()
-      snap.time = int(f.readline().decode().split()[0])    # just grab 1st field
+      snap.time = int(f.readline().split()[0])    # just grab 1st field
       item = f.readline()
-      snap.natoms = int(f.readline().decode())
+      snap.natoms = int(f.readline())
 
       snap.aselect = np.zeros(snap.natoms)
 
-      item = f.readline().decode()
+      item = f.readline()
       words = f.readline().split()
       snap.xlo,snap.xhi = float(words[0]),float(words[1])
       words = f.readline().split()
@@ -360,7 +371,7 @@ class dump:
       words = f.readline().split()
       snap.zlo,snap.zhi = float(words[0]),float(words[1])
 
-      item = f.readline().decode()
+      item = f.readline()
       if len(self.names) == 0:
         words = item.split()[2:]
         if len(words):
@@ -374,15 +385,12 @@ class dump:
             else: self.names[words[i]] = i
 
       if snap.natoms:
-        words = f.readline().decode().split()
+        words = f.readline().split()
         ncol = len(words)
         for i in range(1,snap.natoms):
-          words += f.readline().decode().split()
+          words += f.readline().split()
         floats = map(float,words)
-        if oldnumeric:
-          atom_data = np.array(list(floats),np.Float)
-        else:
-          atom_data = np.array(list(floats),np.float)
+        atom_data = np.array(list(floats),np.float)
 
         snap.atoms = atom_data.reshape((snap.natoms, ncol))
       else:
@@ -572,10 +580,10 @@ class dump:
   def names2str(self):
     ncol = len(self.snaps[0].atoms[0])
     pairs = self.names.items()
-    values = self.names.values()
     str = ""
     for i in range(ncol):
-      if i in values: str += pairs[values.index(i)][0] + ' '
+      for p in pairs:
+        if p[1] == i: str += p[0] + ' '
     return str
 
   # --------------------------------------------------------------------
@@ -618,7 +626,7 @@ class dump:
     else: f = open(file,"a")
     for snap in self.snaps:
       if not snap.tselect: continue
-      print(snap.time,end='')
+      print(snap.time,end=' ')
       sys.stdout.flush()
 
       if header:
@@ -653,7 +661,7 @@ class dump:
     if len(self.snaps): namestr = self.names2str()
     for snap in self.snaps:
       if not snap.tselect: continue
-      print(snap.time,end='')
+      print(snap.time,end=' ')
       sys.stdout.flush()
 
       file = root + "." + str(snap.time)
@@ -707,7 +715,7 @@ class dump:
     list = re.findall(pattern,eq)
 
     lhs = list[0][1:]
-    if not self.names.has_key(lhs):
+    if not lhs in self.names:
       self.newcolumn(lhs)
 
     for item in list:
@@ -727,7 +735,7 @@ class dump:
 
   def setv(self,colname,vec):
     print("Setting ...")
-    if not self.names.has_key(colname):
+    if not colname in self.names:
       self.newcolumn(colname)
     icol = self.names[colname]
 
@@ -765,7 +773,7 @@ class dump:
 
   def spread(self,old,n,new):
     iold = self.names[old]
-    if not self.names.has_key(new): self.newcolumn(new)
+    if not new in self.names: self.newcolumn(new)
     inew = self.names[new]
 
     min,max = self.minmax(old)
@@ -858,8 +866,7 @@ class dump:
     self.map(ncol+1,str)
     for snap in self.snaps:
       atoms = snap.atoms
-      if oldnumeric: newatoms = np.zeros((snap.natoms,ncol+1),np.Float)
-      else: newatoms = np.zeros((snap.natoms,ncol+1),np.float)
+      newatoms = np.zeros((snap.natoms,ncol+1),np.float)
       newatoms[:,0:ncol] = snap.atoms
       snap.atoms = newatoms
 
@@ -1018,8 +1025,7 @@ class dump:
 
         # convert values to int and absolute value since can be negative types
 
-        if oldnumeric: bondlist = np.zeros((nbonds,4),np.Int)
-        else: bondlist = np.zeros((nbonds,4),np.int)
+        bondlist = np.zeros((nbonds,4),np.int)
         ints = [abs(int(value)) for value in words]
         start = 0
         stop = 4

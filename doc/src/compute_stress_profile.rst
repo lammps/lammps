@@ -26,8 +26,9 @@ Syntax
 .. parsed-literal::
 
   *stress/cartesian* args = dim bin_width
-    dim = x, y, or z. One or two dim/bin_width pairs may be appended
+    dim = *x* or *y* or *z*
     bin_width = width of the bin
+    one or two dim/bin_width pairs may be appended
   *stress/cylinder* args = zlo zh Rmax bin_width keyword
     zlo = minimum z-boundary for cylinder
     zhi = maximum z-boundary for cylinder

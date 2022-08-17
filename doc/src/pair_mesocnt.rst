@@ -12,21 +12,22 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style style mode neigh_cutoff
+   pair_style style neigh_cutoff mode neigh_mode
 
 * style = *mesocnt* or *mesocnt/viscous*
-* mode = *chain* or *segment*
 * neigh_cutoff = neighbor list cutoff (distance units)
+* mode = *chain* or *segment* (optional)
+* neigh_mode = *id* or *topology* (optional)
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style mesocnt chain 30.0
+   pair_style mesocnt 30.0
    pair_coeff * * C_10_10.mesocnt 2
    
-   pair_style mesocnt/viscous segment 60.0
+   pair_style mesocnt/viscous 60.0 chain topology
    pair_coeff * * C_10_10.mesocnt 0.001 20.0 0.2 2 4
 
 Description
@@ -49,7 +50,7 @@ and implementation details, the reader is referred to the
 original papers :ref:`(Volkov1) <Volkov1>` and
 :ref:`(Volkov2) <Volkov2>`.
 
-The potential supports two modes, *segment* and *chain*. 
+The potential supports two modes, *segment* and *chain*. By default, *chain* mode is enabled. 
 In *segment* mode, interactions are pair-wise between all neighboring segments based on a segment-segment approach (keyword *segment* in pair_style command).
 In *chain* mode, interactions are calculated between each segment and infinitely or 
 semi-infinitely long CNTs as described in :ref:`(Volkov1) <Volkov1>`. 
@@ -61,7 +62,14 @@ significantly and reduces the computational times to the
 same order of magnitude as for regular bead spring models
 where beads interact with the standard :doc:`pair_lj/cut <pair_lj>`
 potential. However, this method is only valid when the curvature of the CNTs in the system is small.
-When CNTs are buckled (see `angle_mesocnt <angle_mesocnt>`), local curvature can be very high and the pair_style automatically switches to *segment* mode for interactions involving buckled CNTs.
+When CNTs are buckled (see :doc:`angle_mesocnt <angle_mesocnt>`), local curvature can be very high and the pair_style automatically switches to *segment* mode for interactions involving buckled CNTs.
+
+The potential further implements two different neighbor list construction modes. Mode *id* uses atom and mol IDs to construct neighbor lists while *topology* modes uses only the bond topology of the system. While *id* mode requires bonded atoms to have consecutive LAMMPS atom IDs and atoms in different CNTs to have different LAMMPS molecule IDs, *topology* mode has no such requirement. Using *id* mode is faster and is enabled by default. 
+
+.. note::
+
+  Neighbor *id* mode requires all CNTs in the system to have distinct LAMMPS molecule IDs and bonded atoms to have consecutive LAMMPS atom IDs. If this is not possible (e.g. in simulations of CNT rings), 
+  *topology* mode needs to be enabled in the pair_style command.
 
 In addition to the LJ interactions described above, style *mesocnt/viscous* explicitly models friction between neighboring segments. Friction forces are a function of the relative velocity between a segment and its neighboring approximate chain (even in *segment* mode) and only act along the axes of the interacting segment and chain. In this potential, friction forces are modelled as a shifted logistic function:
 
@@ -181,7 +189,7 @@ Related commands
 Default
 """""""
 
-none
+mode = chain, neigh_mode = id
 
 ----------
 

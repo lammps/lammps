@@ -29,11 +29,11 @@ The *mesocnt* angle style uses the potential
 .. math::
 
    E = K_\text{H} \Delta \theta^2 \qquad |\Delta \theta| < \Delta \theta_\text{B} \\ 
-   E = K_\text{H} \theta_\text{B}^2 + K_\text{B} (\Delta \theta - \theta_\text{B}) \qquad |\Delta \theta| \geq \Delta \theta_\text{B}
+   E = K_\text{H} \Delta \theta_\text{B}^2 + K_\text{B} (\Delta \theta - \Delta \theta_\text{B}) \qquad |\Delta \theta| \geq \Delta \theta_\text{B}
 
-where :math:`\Delta \theta = \theta - \pi` is the bending angle of the nanotube, :math:`K_\text{H}` and :math:`K_\text{B}` are prefactors for the harmonic and linear regime respectively and :math:`\theta_\text{B}` is the buckling angle. Note that the usual 1/2 factor for the harmonic potential is included in :math:`K_\text{H}`.
+where :math:`\Delta \theta = \theta - \pi` is the bending angle of the nanotube, :math:`K_\text{H}` and :math:`K_\text{B}` are prefactors for the harmonic and linear regime respectively and :math:`\Delta \theta_\text{B}` is the buckling angle. Note that the usual 1/2 factor for the harmonic potential is included in :math:`K_\text{H}`.
 
-The style implements parametrisation presets of :math:`K_\text{H}`, :math:`K_\text{B}` and :math:`\theta_\text{B}` for mesoscopic simulations of 
+The style implements parametrisation presets of :math:`K_\text{H}`, :math:`K_\text{B}` and :math:`\Delta \theta_\text{B}` for mesoscopic simulations of 
 carbon nanotubes based on the atomistic simulations of :ref:`(Srivastava) <Srivastava_2>` and buckling considerations of :ref:`(Zhigilei) <Zhigilei1_1>`.
 
 The following coefficients must be defined for each angle type via the
@@ -65,15 +65,31 @@ In harmonic mode with preset *custom*, the additional paramters are:
 
 * :math:`K_\text{H}` (energy)
 * :math:`K_\text{B}` (energy)
-* :math:`\theta_\text{B}` (degrees)
+* :math:`\Delta \theta_\text{B}` (degrees)
 
-:math:`\theta_\text{B}` is specified in degrees, but LAMMPS converts it to
+:math:`\Delta \theta_\text{B}` is specified in degrees, but LAMMPS converts it to
 radians internally; hence :math:`K_\text{H}` is effectively energy per
 radian\^2 and :math:`K_\text{B}` is energy per radian.
 
 ----------
 
 In *buckling* mode, this angle style adds the *buckled* property to all atoms in the simulation, which is an integer flag indicating whether the bending angle at a given atom has exceeded :math:`\Delta \theta_\text{B}`. It can be accessed as an atomic variable, e.g. for custom dump commands, as *i_buckled*. 
+
+.. note::
+
+   If the initial state of the simulation contains buckled nanotubes and :doc:`pair_style mesocnt <pair_mesocnt>` is used, the *i_buckled* atomic variable needs to be initialized before the pair_style is defined by doing a *run 0* command straight after the angle_style command. See below for an example.
+
+If CNTs are already buckled at the start of the simulation, this script will correctly initialize *i_buckled*:
+
+.. code-block:: LAMMPS
+
+   angle_style mesocnt
+   angle_coeff 1 buckling C 10 10 20.0
+
+   run 0
+
+   pair_style mesocnt 60.0
+   pair_coeff * * C_10_10.mesocnt 1
 
 Restrictions
 """"""""""""

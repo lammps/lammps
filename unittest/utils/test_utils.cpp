@@ -785,29 +785,39 @@ TEST(Utils, boundsbig_case3)
     ASSERT_EQ(nhi, -1);
 }
 
-TEST(Utils, gridid_parse)
+TEST(Utils, parse_gridid)
 {
-    auto words = utils::gridid_parse(FLERR, "c_1:full:density", nullptr);
+    auto words = utils::parse_gridid(FLERR, "c_1:full:density", nullptr);
     ASSERT_THAT(words[0], StrEq("c_1"));
     ASSERT_THAT(words[1], StrEq("full"));
     ASSERT_THAT(words[2], StrEq("density"));
 
-    words = utils::gridid_parse(FLERR, "c_1_full_density", nullptr);
+    words = utils::parse_gridid(FLERR, "c_1:full:density[1]", nullptr);
+    ASSERT_THAT(words[0], StrEq("c_1"));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[2], StrEq("density[1]"));
+
+    words = utils::parse_gridid(FLERR, "c_1:full:density[*]", nullptr);
+    ASSERT_THAT(words[0], StrEq("c_1"));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[2], StrEq("density[*]"));
+
+    words = utils::parse_gridid(FLERR, "c_1_full_density", nullptr);
     ASSERT_THAT(words[0], StrEq(""));
     ASSERT_THAT(words[1], StrEq(""));
     ASSERT_THAT(words[0], StrEq(""));
 
-    words = utils::gridid_parse(FLERR, "c_1:full:", nullptr);
+    words = utils::parse_gridid(FLERR, "c_1:full:", nullptr);
     ASSERT_THAT(words[0], StrEq(""));
     ASSERT_THAT(words[1], StrEq(""));
     ASSERT_THAT(words[0], StrEq(""));
 
-    words = utils::gridid_parse(FLERR, ":full:density", nullptr);
+    words = utils::parse_gridid(FLERR, ":full:density", nullptr);
     ASSERT_THAT(words[0], StrEq(""));
     ASSERT_THAT(words[1], StrEq(""));
     ASSERT_THAT(words[0], StrEq(""));
 
-    words = utils::gridid_parse(FLERR, "c_1:full", nullptr);
+    words = utils::parse_gridid(FLERR, "c_1:full", nullptr);
     ASSERT_THAT(words[0], StrEq(""));
     ASSERT_THAT(words[1], StrEq(""));
     ASSERT_THAT(words[0], StrEq(""));

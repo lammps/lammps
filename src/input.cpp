@@ -1214,10 +1214,10 @@ void Input::shell()
 {
   int rv,err;
 
-  if (narg < 1) error->all(FLERR,"Illegal shell command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "shell", error);
 
   if (strcmp(arg[0],"cd") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal shell cd command");
+    if (narg != 2) error->all(FLERR,"Illegal shell command: expected 2 argument but found {}", narg);
     rv = (platform::chdir(arg[1]) < 0) ? errno : 0;
     MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
     errno = err;
@@ -1225,7 +1225,7 @@ void Input::shell()
       error->warning(FLERR, "Shell command 'cd {}' failed with error '{}'", arg[1], utils::getsyserror());
     }
   } else if (strcmp(arg[0],"mkdir") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell mkdir", error);
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
         rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
@@ -1235,7 +1235,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"mv") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal shell mv command");
+    if (narg != 3) error->all(FLERR,"Illegal shell command: expected 3 argument but found {}", narg);
     if (me == 0) {
       if (platform::path_is_directory(arg[2])) {
         if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
@@ -1248,7 +1248,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"rm") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell rm command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell rm", error);
     if (me == 0) {
       int i = 1;
       bool warn = true;
@@ -1264,7 +1264,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"rmdir") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell rmdir command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell rmdir", error);
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
         if (platform::rmdir(arg[i]) < 0)
@@ -1273,7 +1273,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"putenv") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell putenv", error);
     for (int i = 1; i < narg; i++) {
       rv = 0;
       if (arg[i]) rv = platform::putenv(arg[i]);

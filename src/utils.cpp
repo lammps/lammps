@@ -771,7 +771,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
    return vector of 3 substrings
 ------------------------------------------------------------------------- */
 
-std::vector<std::string> utils::gridid_parse(const char *file, int line, const std::string &name,
+std::vector<std::string> utils::parse_gridid(const char *file, int line, const std::string &name,
                                              Error *error)
 {
   auto words = Tokenizer(name, ":").as_vector();

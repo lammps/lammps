@@ -510,19 +510,15 @@ int DumpGrid::count()
 
   if (dimension == 2) {
     if (field2source[0] == COMPUTE)
-      grid2d = (Grid2d *)
-        compute[field2index[0]]->get_grid_by_index(field2grid[0]);
+      grid2d = (Grid2d *) compute[field2index[0]]->get_grid_by_index(field2grid[0]);
     else if (field2source[0] == FIX)
-      grid2d = (Grid2d *)
-        fix[field2index[0]]->get_grid_by_index(field2grid[0]);
+      grid2d = (Grid2d *) fix[field2index[0]]->get_grid_by_index(field2grid[0]);
     grid2d->get_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
   } else {
     if (field2source[0] == COMPUTE)
-      grid3d = (Grid3d *)
-        compute[field2index[0]]->get_grid_by_index(field2grid[0]);
+      grid3d = (Grid3d *) compute[field2index[0]]->get_grid_by_index(field2grid[0]);
     else if (field2source[0] == FIX)
-      grid3d = (Grid3d *)
-        fix[field2index[0]]->get_grid_by_index(field2grid[0]);
+      grid3d = (Grid3d *) fix[field2index[0]]->get_grid_by_index(field2grid[0]);
     grid3d->get_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
   }
 
@@ -686,7 +682,7 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
         // split name = idcompute:gname:dname into 3 strings
 
-        auto words = utils::gridid_parse(FLERR,name,error);
+        auto words = utils::parse_gridid(FLERR,name,error);
         const auto &idcompute = words[0];
         const auto &gname = words[1];
         const auto &dname = words[2];
@@ -730,7 +726,7 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
         // split name = idfix:gname:dname into 3 strings
 
-        auto words = utils::gridid_parse(FLERR,name,error);
+        auto words = utils::parse_gridid(FLERR,name,error);
         const auto &idfix = words[0];
         const auto &gname = words[1];
         const auto &dname = words[2];

@@ -205,7 +205,7 @@ Argument processing
 .. doxygenfunction:: expand_args
    :project: progguide
 
-.. doxygenfunction:: gridid_parse
+.. doxygenfunction:: parse_gridid
    :project: progguide
 
 Convenience functions

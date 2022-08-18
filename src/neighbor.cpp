@@ -1713,7 +1713,7 @@ void Neighbor::print_pairwise_info()
   }
 
   std::string out = "Neighbor list info ...\n";
-  out += fmt::format("  update every {} steps, delay {} steps, check {}\n",
+  out += fmt::format("  update: every = {} steps, delay = {} steps, check = {}\n",
                      every,delay,dist_check ? "yes" : "no");
   out += fmt::format("  max neighbors/atom: {}, page size: {}\n",
                      oneatom, pgsize);

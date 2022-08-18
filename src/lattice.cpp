@@ -51,7 +51,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   else error->all(FLERR,"Unknown lattice keyword: {}", arg[0]);
 
   if (style == NONE) {
-    if (narg != 2) error->all(FLERR,"Illegal lattice command: expected 2 argument but found {}", narg);
+    if (narg != 2) error->all(FLERR,"Illegal lattice command: expected 2 arguments but found {}", narg);
 
     // Domain creates a default lattice of style "none"
     //   before Force class is instantiated, just use atof() in that case

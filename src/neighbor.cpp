@@ -2527,7 +2527,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
 void Neighbor::set(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal neighbor command: expected 2 argument but found {}", narg);
+  if (narg != 2) error->all(FLERR,"Illegal neighbor command: expected 2 arguments but found {}", narg);
 
   skin = utils::numeric(FLERR,arg[0],false,lmp);
   if (skin < 0.0) error->all(FLERR, "Invalid neighbor argument: {}", arg[0]);

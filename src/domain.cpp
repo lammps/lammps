@@ -1856,7 +1856,7 @@ const std::vector<Region *> Domain::get_region_list()
 
 void Domain::set_boundary(int narg, char **arg, int flag)
 {
-  if (narg != 3) error->all(FLERR,"Illegal boundary command: expected 3 argument but found {}", narg);
+  if (narg != 3) error->all(FLERR,"Illegal boundary command: expected 3 arguments but found {}", narg);
 
   char c;
   for (int idim = 0; idim < 3; idim++)

@@ -1257,6 +1257,7 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
   else if (i1 > nlocal - 1) {
     numneigh2 = numneigh[i2];
     neighlist2 = firstneigh[i2];
+    redlist[numred++] = i2;
     for (int j = 0; j < numneigh2; j++)
       redlist[numred++] = neighlist2[j] & NEIGHMASK;
     return;
@@ -1264,6 +1265,7 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
   else if (i2 > nlocal - 1) {
     numneigh1 = numneigh[i1];
     neighlist1 = firstneigh[i1];
+    redlist[numred++] = i1;
     for (int j = 0; j < numneigh1; j++)
       redlist[numred++] = neighlist1[j] & NEIGHMASK;
     return;

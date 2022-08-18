@@ -1351,7 +1351,7 @@ void Input::atom_modify()
 
 void Input::atom_style()
 {
-  if (narg < 1) error->all(FLERR,"Illegal atom_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "atom_style", error);
   if (domain->box_exist)
     error->all(FLERR,"Atom_style command after simulation box is defined");
   atom->create_avec(arg[0],narg-1,&arg[1],1);
@@ -1488,12 +1488,12 @@ void Input::dihedral_style()
 
 void Input::dimension()
 {
-  if (narg != 1) error->all(FLERR,"Illegal dimension command");
+  if (narg != 1) error->all(FLERR,"Illegal dimension command: expected 1 argument but found {}", narg);
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
   domain->dimension = utils::inumeric(FLERR,arg[0],false,lmp);
   if (domain->dimension != 2 && domain->dimension != 3)
-    error->all(FLERR,"Illegal dimension command");
+    error->all(FLERR, "Invalid dimension argument: {}", arg[0]);
 
   // must reset default extra_dof of all computes
   // since some were created before dimension command is encountered
@@ -1948,7 +1948,7 @@ void Input::unfix()
 
 void Input::units()
 {
-  if (narg != 1) error->all(FLERR,"Illegal units command");
+  if (narg != 1) error->all(FLERR,"Illegal units command: expected 1 argument but found {}", narg);
   if (domain->box_exist)
     error->all(FLERR,"Units command after simulation box is defined");
   update->set_units(arg[0]);

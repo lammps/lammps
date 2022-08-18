@@ -1856,7 +1856,7 @@ const std::vector<Region *> Domain::get_region_list()
 
 void Domain::set_boundary(int narg, char **arg, int flag)
 {
-  if (narg != 3) error->all(FLERR,"Illegal boundary command");
+  if (narg != 3) error->all(FLERR,"Illegal boundary command: expected 3 argument but found {}", narg);
 
   char c;
   for (int idim = 0; idim < 3; idim++)
@@ -1870,8 +1870,8 @@ void Domain::set_boundary(int narg, char **arg, int flag)
       else if (c == 's') boundary[idim][iside] = 2;
       else if (c == 'm') boundary[idim][iside] = 3;
       else {
-        if (flag == 0) error->all(FLERR,"Illegal boundary command");
-        if (flag == 1) error->all(FLERR,"Illegal change_box command");
+        if (flag == 0) error->all(FLERR,"Unknown boundary keyword: {}", c);
+        if (flag == 1) error->all(FLERR,"Unknown change_box keyword: {}", c);
       }
     }
 

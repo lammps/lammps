@@ -89,11 +89,6 @@ static const char cite_neigh_multi[] =
   " volume =  179,\n"
   " pages =   {320--329}\n"
   "}\n\n"
-  "@article{Stratford2018,\n"
-  " author = {Stratford, Kevin and Shire, Tom and Hanley, Kevin},\n"
-  " title = {Implementation of multi-level contact detection in LAMMPS},\n"
-  " year = {2018}\n"
-  "}\n\n"
   "@article{Shire2020,\n"
   " author = {Shire, Tom and Hanley, Kevin J. and Stratford, Kevin},\n"
   " title = {{DEM} Simulations of Polydisperse Media: Efficient Contact\n"
@@ -1718,7 +1713,7 @@ void Neighbor::print_pairwise_info()
   }
 
   std::string out = "Neighbor list info ...\n";
-  out += fmt::format("  update every {} steps, delay {} steps, check {}\n",
+  out += fmt::format("  update: every = {} steps, delay = {} steps, check = {}\n",
                      every,delay,dist_check ? "yes" : "no");
   out += fmt::format("  max neighbors/atom: {}, page size: {}\n",
                      oneatom, pgsize);

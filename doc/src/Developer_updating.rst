@@ -24,6 +24,7 @@ Available topics in mostly chronological order are:
 - `Use of "override" instead of "virtual"`_
 - `Simplified and more compact neighbor list requests`_
 - `Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM`_
+- `Use Output::get_dump_by_id() instead of Output::find_dump()`_
 
 ----
 
@@ -380,5 +381,45 @@ New:
       modify->add_fix(fmt::format("{} {} STORE/GLOBAL 1 1",id_fix,group->names[igroup]));
 
    FixStoreGlobal *fix = dynamic_cast<FixStoreGlobal *>(modify->get_fix_by_id(id_fix));
+
+This change is **required** or else the code will not compile.
+
+Use Output::get_dump_by_id() instead of Output::find_dump()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: TBD
+
+The accessor function to individual dump style instances has been changed
+from ``Output::find_dump()`` returning the index of the dump instance in
+the list of dumps to ``Output::get_dump_by_id()`` returning a pointer to
+the dump directly.  Example:
+
+Old:
+
+.. code-block:: C++
+
+   int idump = output->find_dump(arg[iarg+1]);
+   if (idump < 0)
+     error->all(FLERR,"Dump ID in hyper command does not exist");
+   memory->grow(dumplist,ndump+1,"hyper:dumplist");
+   dumplist[ndump++] = idump;
+
+   [...]
+
+   if (dumpflag)
+     for (int idump = 0; idump < ndump; idump++)
+       output->dump[dumplist[idump]]->write();
+
+New:
+
+.. code-block:: C++
+
+   auto idump = output->get_dump_by_id(arg[iarg+1]);
+   if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
+   dumplist.emplace_back(idump);
+
+   [...]
+
+   if (dumpflag) for (auto idump : dumplist) idump->write();
 
 This change is **required** or else the code will not compile.

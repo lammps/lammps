@@ -39,7 +39,7 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *lmp) : Command(lmp), dumplist(nullptr) {}
+Hyper::Hyper(LAMMPS *_lmp) : Command(_lmp) {}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation
@@ -177,9 +177,7 @@ void Hyper::command(int narg, char **arg)
 
   fix_event->store_state_quench();
   quench(1);
-  if (dumpflag)
-    for (int idump = 0; idump < ndump; idump++)
-      output->dump[dumplist[idump]]->write();
+  if (dumpflag) for (auto idump : dumplist) idump->write();
   fix_event->store_event();
   if (hyperenable) fix_hyper->build_bond_list(0);
   fix_event->restore_state_quench();
@@ -208,9 +206,7 @@ void Hyper::command(int narg, char **arg)
       nevent++;
       nevent_atoms += ecount;
 
-      if (dumpflag)
-        for (int idump = 0; idump < ndump; idump++)
-          output->dump[dumplist[idump]]->write();
+      if (dumpflag) for (auto idump : dumplist) idump->write();
       fix_event->store_event();
       if (hyperenable) fix_hyper->build_bond_list(ecount);
 
@@ -345,7 +341,6 @@ void Hyper::command(int narg, char **arg)
 
   delete [] id_fix;
   delete [] id_compute;
-  memory->destroy(dumplist);
   delete finish;
   modify->delete_fix("hyper_event");
 
@@ -444,8 +439,6 @@ void Hyper::options(int narg, char **arg)
   maxiter = 40;
   maxeval = 50;
   dumpflag = 0;
-  ndump = 0;
-  dumplist = nullptr;
   rebond = 0;
 
   int iarg = 0;
@@ -462,11 +455,9 @@ void Hyper::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"dump") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
       dumpflag = 1;
-      int idump = output->find_dump(arg[iarg+1]);
-      if (idump < 0)
-        error->all(FLERR,"Dump ID in hyper command does not exist");
-      memory->grow(dumplist,ndump+1,"hyper:dumplist");
-      dumplist[ndump++] = idump;
+      auto idump = output->get_dump_by_id(arg[iarg+1]);
+      if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
+      dumplist.emplace_back(idump);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"rebond") == 0) {

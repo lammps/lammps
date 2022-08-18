@@ -810,7 +810,7 @@ void Modify::reset_grid()
 
 Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 {
-  if (narg < 3) error->all(FLERR, "Illegal fix command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "fix", error);
 
   // cannot define fix before box exists unless style is in exception list
   // don't like this way of checking for exceptions by adding fixes to list,
@@ -1001,7 +1001,7 @@ Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuf
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
 
-  if (narg < 3) error->all(FLERR, "Illegal replace_fix invocation");
+  if (narg < 3) error->all(FLERR, "Not enough arguments for replace_fix invocation");
   if (get_fix_by_id(arg[0])) error->all(FLERR, "Replace_fix ID {} is already in use", arg[0]);
 
   delete[] oldfix->id;
@@ -1039,16 +1039,11 @@ Fix *Modify::replace_fix(const std::string &oldfix, const std::string &fixcmd, i
 
 void Modify::modify_fix(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal fix_modify command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify", error);
 
-  // lookup Fix ID
-
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(arg[0], fix[ifix]->id) == 0) break;
-  if (ifix == nfix) error->all(FLERR, "Could not find fix_modify ID {}", arg[0]);
-
-  fix[ifix]->modify_params(narg - 1, &arg[1]);
+  auto ifix = get_fix_by_id(arg[0]);
+  if (!ifix) error->all(FLERR, "Could not find fix_modify ID {}", arg[0]);
+  ifix->modify_params(narg - 1, &arg[1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1239,13 +1234,11 @@ int Modify::check_rigid_list_overlap(int *select)
 
 Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute", error);
 
   // error check
 
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(arg[0], compute[icompute]->id) == 0)
-      error->all(FLERR, "Reuse of compute ID '{}'", arg[0]);
+  if (get_compute_by_id(arg[0])) error->all(FLERR, "Reuse of compute ID '{}'", arg[0]);
 
   // extend Compute list if necessary
 
@@ -1312,16 +1305,13 @@ Compute *Modify::add_compute(const std::string &computecmd, int trysuffix)
 
 void Modify::modify_compute(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal compute_modify command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "compute_modify",error);
 
   // lookup Compute ID
 
-  int icompute;
-  for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(arg[0], compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) error->all(FLERR, "Could not find compute_modify ID {}", arg[0]);
-
-  compute[icompute]->modify_params(narg - 1, &arg[1]);
+  auto icompute = get_compute_by_id(arg[0]);
+  if (!icompute) error->all(FLERR, "Could not find compute_modify ID {}", arg[0]);
+  icompute->modify_params(narg - 1, &arg[1]);
 }
 
 /* ----------------------------------------------------------------------

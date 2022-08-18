@@ -325,7 +325,7 @@ void Region::options(int narg, char **arg)
         error->all(FLERR, "Illegal region units: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "side") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region side", error); 
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region side", error);
       if (strcmp(arg[iarg + 1], "in") == 0)
         interior = 1;
       else if (strcmp(arg[iarg + 1], "out") == 0)

@@ -53,8 +53,7 @@ enum{GORDON1,GORDON2};
 void PairAmoeba::induce()
 {
   bool done;
-  int i,j,m,itype;
-  int iter,maxiter;
+  int i,j,m,itype,iter;
   double polmin;
   double eps,epsold;
   double epsd,epsp;
@@ -159,7 +158,6 @@ void PairAmoeba::induce()
 
   if (poltyp == MUTUAL) {
     done = false;
-    maxiter = 100;
     iter = 0;
     polmin = 0.00000001;
     eps = 100.0;

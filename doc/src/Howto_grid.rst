@@ -11,7 +11,7 @@ more values (data).
 
 The grid points and data they store are distributed across processors.
 Each processor owns the grid points (and their data) that lie within
-the spatial subdomain of the processor.  If needed for its
+the spatial sub-domain of the processor.  If needed for its
 computations, it may also store ghost grid points with data.
 
 These grids can overlay orthogonal or triclinic simulation boxes; see
@@ -27,7 +27,7 @@ box size, i.e. as set by the :doc:`boundary <boundary>` command for
 fixed or shrink-wrapped boundaries.
 
 If load-balancing is invoked by the :doc:`balance <balance>` or
-:doc:`fix balance <fix balance>` commands, then the subdomain owned by
+:doc:`fix balance <fix_balance>` commands, then the sub-domain owned by
 a processor will change which would also change which grid points they
 own.  Some of the commands listed below support that operation; others
 do not.  Eventually we plan to have all commands which define and
@@ -49,7 +49,7 @@ These are the commands which currently define or use distributed
 grids:
 
 * :doc:`fix ave/grid <fix_ave_grid>` - time average per-atom or per-grid values
-* :doc:`fix ttm/grid <fix_ttm_grid>` - store electron temperature on grid
+* :doc:`fix ttm/grid <fix_ttm>` - store electron temperature on grid
 * :doc:`compute property/grid <compute_property_grid>` - generate grid IDs and coords
 * :doc:`dump grid <dump>` - output per-grid values
 * :doc:`kspace_style pppm <kspace_style>` (and variants) - FFT grids
@@ -74,10 +74,10 @@ syntax:
 * f_ID:gname:dname
 * f_ID:gname:dname[I]
 
-The prefix "c_" or "f_" refers to the ID of the compute or fix.  Gname
-is the name of the grid, which is assigned by the compute or fix.
-Dname is the name of the data field, which is also assigned by the
-compute or fix.
+The prefix "c\_" or "f\_" refers to the ID of the compute or fix; gname is
+the name of the grid, which is assigned by the compute or fix; dname is
+the name of the data field, which is also assigned by the compute or
+fix.
 
 If the data field is a per-grid vector (one value per grid point),
 then no brackets are used to access the values.  If the data field is

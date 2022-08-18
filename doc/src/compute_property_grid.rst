@@ -39,7 +39,7 @@ Description
 Define a computation that stores the specified attributes of a
 distributed grid.  In LAMMPS, distributed grids are regular 2d or 3d
 grids which overlay a 2d or 3d simulation domain.  Each processor owns
-the grid points within its subdomain.  See the :doc:`Howto grid
+the grid points within its sub-domain.  See the :doc:`Howto grid
 <Howto_grid>` doc page for details of how distributed grids can be
 defined by various commands and referenced.
 
@@ -49,9 +49,9 @@ such as :doc:`dump grid <dump>`.
 
 *Nx*, *Ny*, and *Nz* define the size of the grid.  For a 2d simulation
 *Nz* must be 1.  When this compute is used by :doc:`dump grid <dump>`,
-*to output per-grid values from other computes of fixes, the grid size
-*specified for this command must be consistent with the grid sizes
-*used by the other commands.
+to output per-grid values from other computes of fixes, the grid size
+specified for this command must be consistent with the grid sizes
+used by the other commands.
 
 The *id* attribute stores the grid ID for each grid point.  For a
 global grid of size Nx by Ny by Nz (in 3d simulations) the grid IDs
@@ -80,7 +80,7 @@ point each grid cell, except in scaled coordinates, where the
 lower-left corner of the entire simulation box is (0,0,0) and the upper
 right corner is (1,1,1).
 
-For :doc:`triclinic simulation boxes <Howto triclinic>`, the grid
+For :doc:`triclinic simulation boxes <Howto_triclinic>`, the grid
 point coordinates for (x,y,z) and (xc,yc,zc) will reflect the
 triclinic geometry.  For (xs,yz,zs) and (xsc,ysc,zsc), the coordinates
 are the same for orthogonal versus triclinic boxes.

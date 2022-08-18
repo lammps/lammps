@@ -759,6 +759,7 @@ dmax
 Dmax
 dmg
 dmi
+dname
 dnf
 DNi
 Dobnikar
@@ -1225,6 +1226,7 @@ gmask
 Gmask
 GMock
 gmres
+gname
 gneb
 GNEB
 Goldfarb
@@ -3801,6 +3803,7 @@ xa
 xAVX
 xb
 Xc
+xc
 xcm
 Xcm
 Xcode
@@ -3832,6 +3835,7 @@ xplane
 XPlor
 xrd
 xs
+xsc
 xstk
 xsu
 xtc
@@ -3855,6 +3859,7 @@ Yazdani
 Ybar
 ybox
 Yc
+yc
 ycm
 Yeh
 yellowgreen
@@ -3870,6 +3875,7 @@ ymin
 yml
 Yoshida
 ys
+ysc
 ysu
 yu
 Yu
@@ -3887,6 +3893,7 @@ Zavattieri
 zbl
 ZBL
 Zc
+zc
 zcm
 zeeman
 Zeeman
@@ -3914,6 +3921,7 @@ zmin
 zmq
 zN
 zs
+zsc
 zst
 Zstandard
 zstd

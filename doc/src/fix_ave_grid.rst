@@ -80,7 +80,7 @@ produced by other computes or fixes.  This fix operates in either
 (all input values are per-grid).
 
 The grid created by this command is distributed; each processor owns
-the grid points that are within its subdomain.  This is in contrast to
+the grid points that are within its sub-domain.  This is in contrast to
 the :doc:`fix ave/chunk <fix_ave_chunk>` command when it uses chunks
 from the :doc:`compute chunk/atom <compute_chunk_atom>` command which
 are 2d or 3d regular bins.  The per-bin outputs in that case are
@@ -266,7 +266,7 @@ script.
 
 If *c_ID:gname:dname* is used as a attribute, then the per-grid vector
 calculated by the compute is accessed.  If *c_ID:gname:dname[I]* is
-used, then I must be in the range from 1-M, which will acccess the Ith
+used, then I must be in the range from 1-M, which will access the Ith
 column of the per-grid array with M columns calculated by the compute.
 See the discussion above for how I can be specified with a wildcard
 asterisk to effectively specify multiple values.
@@ -316,26 +316,25 @@ average of an average.  For the *density/number* and *density/mass*
 values, the grid cell volume used in the per-sample normalization will
 be the current grid cell volume at each sampling step.
 
-In per-atom mode, *norm none* perfomrma a similar computation as *norm
+In per-atom mode, *norm none* performs a similar computation as *norm
 sample*, except the individual "average sample values" are "summed
 sample values".  A summed sample value is simply the grid value summed
-over atoms in the sample, without dividing by the number of atoms in
-the sample.  The output grid value on the *Nfreq* timesteps is the
-average of the *Nrepeat* "summed sample values", i.e. the sum of
-*Nrepeat* "summed sample values" divided by *Nrepeat*\ .  For the
-*density/number* and *density/mass* values, the grid cell volume used
-in the per-sample sum normalization will be the current grid cell
-volume at each sampling step.
+over atoms in the sample, without dividing by the number of atoms in the
+sample.  The output grid value on the *Nfreq* timesteps is the average
+of the *Nrepeat* "summed sample values", i.e. the sum of *Nrepeat*
+"summed sample values" divided by *Nrepeat*\ .  For the *density/number*
+and *density/mass* values, the grid cell volume used in the per-sample
+sum normalization will be the current grid cell volume at each sampling
+step.
 
 In per-grid mode, all the *norm* keyword options operate the same.
 The output grid value is summed over the grid value in each of the
 *Nrepeat* samples and then divided by *Nrepeat*.
 
-The *ave* keyword is applicated to both per-atom and per-grid mode.
-Itdetermines how the per-grid values produced once every *Nfreq* steps
-are averaged with values produced on previous steps that were
-multiples of *Nfreq*, before they are accessed by another output
-command.
+The *ave* keyword is applied to both per-atom and per-grid mode.  It
+determines how the per-grid values produced once every *Nfreq* steps are
+averaged with values produced on previous steps that were multiples of
+*Nfreq*, before they are accessed by another output command.
 
 If the *ave* setting is *one*, which is the default, then the grid
 values produced on *Nfreq* timesteps are independent of each other;
@@ -403,7 +402,7 @@ various :doc:`output commands <Howto_output>`.  The values can only be
 accessed on timesteps that are multiples of *Nfreq* since that is when
 averaging is performed.  The global array has # of rows = the number
 of grids *grid* as calculated by the specified :doc:`compute
-grid/atom <compute_grid_atom>` command.  The # of columns =
+property/grid <compute_property_grid>` command.  The # of columns =
 M+1+Nvalues, where M = 1 to 4, depending on whether the optional
 columns for OrigID and CoordN are used, as explained above.  Following
 the optional columns, the next column contains the count of atoms in

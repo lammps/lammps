@@ -126,14 +126,14 @@ Thermodynamic output
 
 The frequency and format of thermodynamic output is set by the
 :doc:`thermo <thermo>`, :doc:`thermo_style <thermo_style>`, and
-:doc:`thermo_modify <thermo_modify>` commands.  The
-:doc:`thermo_style <thermo_style>` command also specifies what values
-are calculated and written out.  Pre-defined keywords can be specified
-(e.g. press, etotal, etc).  Three additional kinds of keywords can
-also be specified (c_ID, f_ID, v_name), where a :doc:`compute <compute>`
-or :doc:`fix <fix>` or :doc:`variable <variable>` provides the value to be
-output.  In each case, the compute, fix, or variable must generateglobal values for input to the :doc:`thermo_style custom <dump>`
-command.
+:doc:`thermo_modify <thermo_modify>` commands.  The :doc:`thermo_style
+<thermo_style>` command also specifies what values are calculated and
+written out.  Pre-defined keywords can be specified (e.g. press, etotal,
+etc).  Three additional kinds of keywords can also be specified (c_ID,
+f_ID, v_name), where a :doc:`compute <compute>` or :doc:`fix <fix>` or
+:doc:`variable <variable>` provides the value to be output.  In each
+case, the compute, fix, or variable must generate global values for
+input to the :doc:`thermo_style custom <dump>` command.
 
 Note that thermodynamic output values can be "extensive" or
 "intensive".  The former scale with the number of atoms in the system
@@ -321,7 +321,7 @@ The chief difference between the :doc:`fix ave/grid <fix_ave_grid>`
 and :doc:`fix ave/chunk <fix_ave_chunk>` commands when used in this
 context is that the former uses a distributed grid, while the latter
 uses a global grid.  Distributed means that each processor owns the
-subset of grid points within its subdomain.  Global means that each
+subset of grid points within its sub-domain.  Global means that each
 processor owns a copy of the entire grid.  The :doc:`fix ave/grid
 <fix_ave_grid>` command is thus more efficient for large grids.
 

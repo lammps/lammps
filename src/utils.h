@@ -334,13 +334,15 @@ namespace utils {
   /*! Expand list of arguments when containing fix/compute wildcards
    *
    *  This function searches the list of arguments in *arg* for strings
-   *  of the kind c_ID[*] or f_ID[*] referring to computes or fixes.
+   *  of the kind c_ID[*], f_ID[*], v_ID[*], i2_ID[*], d2_ID[*], or
+   *  c_ID:gname:dname[*] referring to computes, fixes, vector style
+   *  variables, custom per-atom arrays, or grids, respectively.
    *  Any such strings are replaced by one or more strings with the
    *  '*' character replaced by the corresponding possible numbers as
-   *  determined from the fix or compute instance.  Other strings are
-   *  just copied. If the *mode* parameter is set to 0, expand global
-   *  vectors, but not global arrays; if it is set to 1, expand global
-   *  arrays (by column) but not global vectors.
+   *  determined from the fix, compute, variable, property, or grid instance.
+   *  Unrecognized strings are just copied. If the *mode* parameter
+   *  is set to 0, expand global vectors, but not global arrays; if it is
+   *  set to 1, expand global arrays (by column) but not global vectors.
    *
    *  If any expansion happens, the earg list and all its
    *  strings are new allocations and must be freed explicitly by the

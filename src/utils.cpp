@@ -628,11 +628,79 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     std::string word(arg[iarg]);
     expandflag = 0;
 
-    // match compute, fix, or custom property array reference with a '*' wildcard
-    // number range in the first pair of square brackets
+    // match grids
 
-    if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
-        strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
+    if (strmatch(word, "^[cf]_\\w+:\\w+:\\w+\\[\\d*\\*\\d*\\]")) {
+      auto gridid = utils::parse_gridid(FLERR, word, lmp->error);
+
+      size_t first = gridid[2].find('[');
+      size_t second = gridid[2].find(']', first + 1);
+      id = gridid[2].substr(0, first);
+      wc = gridid[2].substr(first + 1, second - first - 1);
+      tail = gridid[2].substr(second + 1);
+
+      // grids from compute
+
+      if (gridid[0][0] == 'c') {
+
+        auto compute = lmp->modify->get_compute_by_id(gridid[0].substr(2));
+        if (compute && compute->pergrid_flag) {
+
+          int dim = 0;
+          int igrid = compute->get_grid_by_name(gridid[1], dim);
+
+          if (igrid >= 0) {
+
+            int ncol = 0;
+            int idata = compute->get_griddata_by_name(igrid, id, ncol);
+            nmax = ncol;
+
+            expandflag = 1;
+          }
+        }
+        // grids from fix
+
+      } else if (gridid[0][0] == 'f') {
+
+        auto fix = lmp->modify->get_fix_by_id(gridid[0].substr(2));
+        if (fix && fix->pergrid_flag) {
+
+          int dim = 0;
+          int igrid = fix->get_grid_by_name(gridid[1], dim);
+
+          if (igrid >= 0) {
+
+            int ncol = 0;
+            int idata = fix->get_griddata_by_name(igrid, id, ncol);
+            nmax = ncol;
+
+            expandflag = 1;
+          }
+        }
+      }
+
+      // expand wild card string to nlo/nhi numbers
+
+      if (expandflag) {
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+
+        if (newarg + nhi - nlo + 1 > maxarg) {
+          maxarg += nhi - nlo + 1;
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        }
+
+        for (int index = nlo; index <= nhi; index++) {
+          earg[newarg] =
+              utils::strdup(fmt::format("{}:{}:{}[{}]{}", gridid[0], gridid[1], id, index, tail));
+          newarg++;
+        }
+      }
+
+      // match compute, fix, or custom property array reference with a '*' wildcard
+      // number range in the first pair of square brackets
+
+    } else if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
+               strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
       // split off the compute/fix/property ID, the wildcard and trailing text
 
@@ -726,30 +794,33 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
       }
+
+      // expansion will take place
+
+      if (expandflag) {
+
+        // expand wild card string to nlo/nhi numbers
+
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+
+        if (newarg + nhi - nlo + 1 > maxarg) {
+          maxarg += nhi - nlo + 1;
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        }
+
+        for (int index = nlo; index <= nhi; index++) {
+          if (word[1] == '2')
+            earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+          else
+            earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+          newarg++;
+        }
+      }
     }
 
-    // expansion will take place
+    // no expansion: duplicate original string
 
-    if (expandflag) {
-
-      // expand wild card string to nlo/nhi numbers
-
-      utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
-
-      if (newarg + nhi - nlo + 1 > maxarg) {
-        maxarg += nhi - nlo + 1;
-        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
-      }
-
-      for (int index = nlo; index <= nhi; index++) {
-        if (word[1] == '2')
-          earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
-        else
-          earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
-        newarg++;
-      }
-    } else {
-      // no expansion: duplicate original string
+    if (!expandflag) {
       if (newarg == maxarg) {
         maxarg++;
         earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
@@ -759,10 +830,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     }
   }
 
-  //printf("NEWARG %d\n",newarg);
-  //for (int i = 0; i < newarg; i++)
-  //  printf("  arg %d: %s\n",i,earg[i]);
-
+  // printf("NEWARG %d\n",newarg); for (int i = 0; i < newarg; i++) printf("  arg %d: %s\n",i,earg[i]);
   return newarg;
 }
 

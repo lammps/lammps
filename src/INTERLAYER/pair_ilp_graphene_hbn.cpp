@@ -47,11 +47,11 @@ using namespace InterLayer;
 static const char cite_ilp[] =
     "ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848\n"
     "@Article{Ouyang2018\n"
-    " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
+    " author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
     " journal = {Nano Letters},\n"
     " volume =  18,\n"
-    " pages =   {6009}\n"
+    " pages =   6009,\n"
     " year =    2018,\n"
     "}\n\n";
 

@@ -47,13 +47,15 @@ There is an example script for this package in examples/PACKAGES/srp_react/.
 using namespace LAMMPS_NS;
 
 static const char cite_srpreact[] =
+  "pair srp/react style: doi:10.1021/acs.jpcb.1c09570\n\n"
   "@Article{palkar2022\n"
   " author = {Palkar, Vaibhav and Kuksenok, Olga},\n"
   " title = {Controlling Degradation and Erosion of Polymer Networks: Insights from Mesoscale Modeling},\n"
-  " journal = {J. Phys. Chem. B},\n"
-  " year = {2022},\n"
-  " volume = {126},\n"
-  " pages = {336-346}\n"
+  " journal = {J.~Phys.\\ Chem.~B},\n"
+  " year = 2022,\n"
+  " volume = 126,\n"
+  " number = 1,\n"
+  " pages = {336--346}\n"
   "}\n\n";
 
 static int srp_instance = 0;

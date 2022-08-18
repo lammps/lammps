@@ -188,7 +188,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "lattice a1", error);
       if (style != CUSTOM)
         error->all(FLERR,
-                   "Invalid a1 in lattice command for non-custom style");
+                   "Invalid a1 option in lattice command for non-custom style");
       a1[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       a1[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       a1[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);

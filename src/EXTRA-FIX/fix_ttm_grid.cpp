@@ -630,9 +630,9 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo,
    return -1 if grid name not found
 ------------------------------------------------------------------------- */
 
-int FixTTMGrid::get_grid_by_name(char *name, int &dim)
+int FixTTMGrid::get_grid_by_name(const std::string &name, int &dim)
 {
-  if (strcmp(name,"grid") == 0) {
+  if (name == "grid") {
     dim = 3;
     return 0;
   }
@@ -663,9 +663,9 @@ void *FixTTMGrid::get_grid_by_index(int index)
    return -1 if data name not found
 ------------------------------------------------------------------------- */
 
-int FixTTMGrid::get_griddata_by_name(int igrid, char *name, int &ncol)
+int FixTTMGrid::get_griddata_by_name(int igrid, const std::string &name, int &ncol)
 {
-  if (igrid == 0 && strcmp(name,"data") == 0) {
+  if ((igrid == 0) && (name == "data")) {
     ncol = 0;
     return 0;
   }

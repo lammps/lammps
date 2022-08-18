@@ -47,10 +47,10 @@ class FixTTMGrid : public FixTTM {
   void write_restart(FILE *) override;
   void restart(char *) override;
 
-  int get_grid_by_name(char *, int &);
-  void *get_grid_by_index(int);
-  int get_griddata_by_name(int, char *, int &);
-  void *get_griddata_by_index(int);
+  int get_grid_by_name(const std::string &, int &) override;
+  void *get_grid_by_index(int) override;
+  int get_griddata_by_name(int, const std::string &, int &) override;
+  void *get_griddata_by_index(int) override;
 
   double compute_vector(int) override;
   double memory_usage() override;

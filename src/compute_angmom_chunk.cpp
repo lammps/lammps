@@ -185,11 +185,8 @@ void ComputeAngmomChunk::lock_enable()
 
 void ComputeAngmomChunk::lock_disable()
 {
-  int icompute = modify->find_compute(idchunk);
-  if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
-    cchunk->lockcount--;
-  }
+  cchunk =  dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if(cchunk) cchunk->lockcount--;
 }
 
 /* ----------------------------------------------------------------------

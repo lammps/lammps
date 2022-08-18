@@ -58,3 +58,7 @@ add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)
+
+add_executable(test_fix_diagnostic test_fix_diagnostic.cpp)
+target_link_libraries(test_fix_diagnostic PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+add_test(NAME FixDiagnostic COMMAND test_fix_diagnostic)

@@ -68,37 +68,31 @@ enum{NONE,ALL,PARTIAL,TEMPLATE};
 static const char cite_neigh_multi_old[] =
   "neighbor multi/old command: doi:10.1016/j.cpc.2008.03.005\n\n"
   "@Article{Intveld08,\n"
-  " author =  {P.{\\,}J.~in{\\,}'t~Veld and S.{\\,}J.~Plimpton"
-  " and G.{\\,}S.~Grest},\n"
+  " author =  {in 't Veld, P. J. and S. J. Plimpton and G. S. Grest},\n"
   " title =   {Accurate and Efficient Methods for Modeling Colloidal\n"
   "            Mixtures in an Explicit Solvent using Molecular Dynamics},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2008,\n"
   " volume =  179,\n"
+  " number =  5,\n"
   " pages =   {320--329}\n"
   "}\n\n";
 
 static const char cite_neigh_multi[] =
   "neighbor multi command: doi:10.1016/j.cpc.2008.03.005, doi:10.1007/s40571-020-00361-2\n\n"
   "@Article{Intveld08,\n"
-  " author =  {P.{\\,}J.~in{\\,}'t~Veld and S.{\\,}J.~Plimpton"
-  " and G.{\\,}S.~Grest},\n"
+  " author =  {in 't Veld, P. J. and S. J.~Plimpton and G. S. Grest},\n"
   " title =   {Accurate and Efficient Methods for Modeling Colloidal\n"
   "            Mixtures in an Explicit Solvent using Molecular Dynamics},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " journal = {Comput.\\ Phys.\\ Commut.},\n"
   " year =    2008,\n"
   " volume =  179,\n"
   " pages =   {320--329}\n"
   "}\n\n"
-  "@article{Stratford2018,\n"
-  " author = {Stratford, Kevin and Shire, Tom and Hanley, Kevin},\n"
-  " title = {Implementation of multi-level contact detection in LAMMPS},\n"
-  " year = {2018}\n"
-  "}\n\n"
   "@article{Shire2020,\n"
   " author = {Shire, Tom and Hanley, Kevin J. and Stratford, Kevin},\n"
-  " title = {DEM simulations of polydisperse media: efficient contact\n"
-  "          detection applied to investigate the quasi-static limit},\n"
+  " title = {{DEM} Simulations of Polydisperse Media: Efficient Contact\n"
+  "          Detection Applied to Investigate the Quasi-Static Limit},\n"
   " journal = {Computational Particle Mechanics},\n"
   " year = {2020}\n"
   "}\n\n";
@@ -1719,7 +1713,7 @@ void Neighbor::print_pairwise_info()
   }
 
   std::string out = "Neighbor list info ...\n";
-  out += fmt::format("  update every {} steps, delay {} steps, check {}\n",
+  out += fmt::format("  update: every = {} steps, delay = {} steps, check = {}\n",
                      every,delay,dist_check ? "yes" : "no");
   out += fmt::format("  max neighbors/atom: {}, page size: {}\n",
                      oneatom, pgsize);

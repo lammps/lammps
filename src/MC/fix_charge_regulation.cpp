@@ -54,11 +54,11 @@ using namespace MathConst;
 using namespace MathSpecial;
 
 static const char cite_fix_charge_regulation[] =
-  "fix charge/regulation: \n\n"
+  "fix charge/regulation: doi:10.1063/5.0066432\n\n"
   "@Article{Curk22,\n"
-  " author = {T. Curk, J. Yuan, E. Luijten},\n"
-  " title = {Accelerated simulation method for charge regulation effects},\n"
-  " journal = {The Journal of Chemical Physics},\n"
+  " author = {T. Curk and J. Yuan and E. Luijten},\n"
+  " title = {Accelerated Simulation Method for Charge Regulation Effects},\n"
+  " journal = {Journal of Chemical Physics},\n"
   " year = 2022,\n"
   " volume = 156\n"
   "}\n\n";

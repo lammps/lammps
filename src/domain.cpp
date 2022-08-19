@@ -1744,7 +1744,7 @@ void Domain::set_lattice(int narg, char **arg)
 
 void Domain::add_region(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal region command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "region", error);
 
   if (strcmp(arg[1],"delete") == 0) {
     delete_region(arg[0]);
@@ -1935,17 +1935,17 @@ void Domain::set_boundary(int narg, char **arg, int flag)
 
 void Domain::set_box(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal box command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "box", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"tilt") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal box command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "box tilt", error);
       if (strcmp(arg[iarg+1],"small") == 0) tiltsmall = 1;
       else if (strcmp(arg[iarg+1],"large") == 0) tiltsmall = 0;
-      else error->all(FLERR,"Illegal box command");
+      else error->all(FLERR,"Unknown box tilt argument: {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal box command");
+    } else error->all(FLERR,"Unknown box keyword: {}", arg[iarg]);
   }
 }
 

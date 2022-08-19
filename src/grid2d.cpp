@@ -1190,7 +1190,7 @@ void Grid2d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
   // ping each proc for its data
   // unpack into full buffer via callback to caller
 
-  int xlo,xhi,ylo,yhi,zlo,zhi,tmp;
+  int xlo,xhi,ylo,yhi,tmp;
   int bounds[4];
 
   if (me == 0) {

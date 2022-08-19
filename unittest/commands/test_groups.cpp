@@ -122,13 +122,13 @@ TEST_F(GroupTest, EmptyDelete)
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new2 delete xxx"););
     TEST_FAILURE(".*ERROR: Cannot delete group all.*", command("group all delete"););
     TEST_FAILURE(".*ERROR: Could not find group delete.*", command("group new0 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a fix.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new2 currently used by fix.*",
                  command("group new2 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a compute.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new3 currently used by compute.*",
                  command("group new3 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a dump.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new4 currently used by dump.*",
                  command("group new4 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by atom_modify.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new5 currently used by atom_modify.*",
                  command("group new5 delete"););
 }
 

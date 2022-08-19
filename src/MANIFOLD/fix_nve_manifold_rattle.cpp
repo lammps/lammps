@@ -55,7 +55,7 @@ using namespace user_manifold;
 enum { CONST, EQUAL }; // For treating the variables.
 
 static const char* cite_fix_nve_manifold_rattle =
-  "fix nve/manifold/rattle command:\n\n"
+  "fix nve/manifold/rattle command: doi:10.1016/j.bpj.2016.02.017\n\n"
   "@article{paquay-2016,\n"
   "   author        = {Paquay, Stefan and Kusters, Remy},\n"
   "   doi           = {10.1016/j.bpj.2016.02.017},\n"

@@ -83,7 +83,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
     if (cdim == 0 && !pstr) pvalue *= xscale;
     else if (cdim == 1 && !pstr) pvalue *= yscale;
     else if (cdim == 2 && !pstr) pvalue *= zscale;
-  } else error->all(FLERR,"Illegal fix indent command");
+  } else error->all(FLERR,"Unknown fix indent keyword: {}", istyle);
 
   varflag = 0;
   if (xstr || ystr || zstr || rstr || pstr) varflag = 1;
@@ -121,37 +121,37 @@ void FixIndent::init()
   if (xstr) {
     xvar = input->variable->find(xstr);
     if (xvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", xstr);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR,"Variable for fix indent is invalid style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", xstr);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
     if (yvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", ystr);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", ystr);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
     if (zvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", zstr);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", zstr);
   }
   if (rstr) {
     rvar = input->variable->find(rstr);
     if (rvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", rstr);
     if (!input->variable->equalstyle(rvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", rstr);
   }
   if (pstr) {
     pvar = input->variable->find(pstr);
     if (pvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", pstr);
     if (!input->variable->equalstyle(pvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", pstr);
   }
 
   if (utils::strmatch(update->integrate_style,"^respa")) {

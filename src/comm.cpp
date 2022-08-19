@@ -222,18 +222,18 @@ void Comm::init()
   if (force->bond) maxreverse = MAX(maxreverse,force->bond->comm_reverse);
 
   for (const auto &fix : fix_list) {
-    maxforward = MAX(maxforward,fix->comm_forward);
-    maxreverse = MAX(maxreverse,fix->comm_reverse);
+    maxforward = MAX(maxforward, fix->comm_forward);
+    maxreverse = MAX(maxreverse, fix->comm_reverse);
   }
 
-  for (int i = 0; i < modify->ncompute; i++) {
-    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
+  for (const auto &compute : modify->get_compute_list()) {
+    maxforward = MAX(maxforward,compute->comm_forward);
+    maxreverse = MAX(maxreverse,compute->comm_reverse);
   }
 
-  for (int i = 0; i < output->ndump; i++) {
-    maxforward = MAX(maxforward,output->dump[i]->comm_forward);
-    maxreverse = MAX(maxreverse,output->dump[i]->comm_reverse);
+  for (const auto &dump: output->get_dump_list()) {
+    maxforward = MAX(maxforward,dump->comm_forward);
+    maxreverse = MAX(maxreverse,dump->comm_reverse);
   }
 
   if (force->newton == 0) maxreverse = 0;
@@ -247,8 +247,7 @@ void Comm::init()
   maxexchange_atom = atom->avec->maxexchange;
 
   maxexchange_fix_dynamic = 0;
-  for (const auto &fix : fix_list)
-    if (fix->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+  for (const auto &fix : fix_list) if (fix->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
   if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
     error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
@@ -270,8 +269,7 @@ void Comm::init()
 void Comm::init_exchange()
 {
   maxexchange_fix = 0;
-  for (const auto &fix : modify->get_fix_list())
-    maxexchange_fix += fix->maxexchange;
+  for (const auto &fix : modify->get_fix_list()) maxexchange_fix += fix->maxexchange;
 
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;

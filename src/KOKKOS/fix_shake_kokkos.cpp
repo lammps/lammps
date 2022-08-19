@@ -12,12 +12,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
 #include "fix_shake_kokkos.h"
+
 #include "fix_rattle.h"
 #include "atom_kokkos.h"
 #include "atom_vec.h"
@@ -37,6 +33,9 @@
 #include "error.h"
 #include "kokkos.h"
 #include "atom_masks.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -182,6 +181,16 @@ void FixShakeKokkos<DeviceType>::init()
 
 
 /* ----------------------------------------------------------------------
+   run setup for minimization.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::min_setup(int /*vflag*/)
+{
+  error->all(FLERR, "Cannot yet use fix {} during minimization with Kokkos", style);
+}
+
+/* ----------------------------------------------------------------------
    build list of SHAKE clusters to constrain
    if one or more atoms in cluster are on this proc,
      this proc lists the cluster exactly once
@@ -193,6 +202,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // local copies of atom quantities
   // used by SHAKE until next re-neighboring
 
+  ebond = 0.0;
   x = atom->x;
   v = atom->v;
   f = atom->f;
@@ -292,7 +302,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
 
   if (h_error_flag() == 1) {
     error->one(FLERR,"Shake atoms missing on proc "
-                                 "{} at step {}",me,update->ntimestep);
+                                 "{} at step {}",comm->me,update->ntimestep);
   }
 }
 
@@ -303,6 +313,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
 template<class DeviceType>
 void FixShakeKokkos<DeviceType>::post_force(int vflag)
 {
+  ebond = 0.0;
   copymode = 1;
 
   d_x = atomKK->k_x.view<DeviceType>();
@@ -341,7 +352,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // communicate results if necessary
 
   unconstrained_update();
-  if (nprocs > 1) comm->forward_comm(this);
+  if (comm->nprocs > 1) comm->forward_comm(this);
   k_xshake.sync<DeviceType>();
 
   // virial setup
@@ -1702,7 +1713,7 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 
   double **xtmp = xshake;
   xshake = x;
-  if (nprocs > 1) {
+  if (comm->nprocs > 1) {
     forward_comm_device = 0;
     comm->forward_comm(this);
     forward_comm_device = 1;

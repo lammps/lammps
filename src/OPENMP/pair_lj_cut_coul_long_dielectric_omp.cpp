@@ -224,12 +224,6 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
         eztmp += delz * efield_i;
         epot[i] += epot_i;
 
-        if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx * fpair;
-          f[j].y -= dely * fpair;
-          f[j].z -= delz * fpair;
-        }
-
         if (EFLAG) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq)

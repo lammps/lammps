@@ -169,13 +169,6 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
         efield[i][1] += dely * efield_i;
         efield[i][2] += delz * efield_i;
 
-        if (newton_pair && j >= nlocal) {
-          fpair_j = eps[j] * forcecoul * r2inv;
-          f[j][0] -= delx * fpair_j;
-          f[j][1] -= dely * fpair_j;
-          f[j][2] -= delz * fpair_j;
-        }
-
         if (eflag) {
           if (!ncoultablebits || rsq <= tabinnersq)
             ecoul = prefactor * (etmp + eps[j]) * erfc;
@@ -183,7 +176,6 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
             table = etable[itable] + fraction * detable[itable];
             ecoul = scale[itype][jtype] * qtmp * q[j] * (etmp + eps[j]) * table;
           }
-          ecoul *= 0.5;
           if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
         }
 

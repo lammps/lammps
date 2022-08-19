@@ -196,14 +196,6 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
         epot[i] += epot_i;
 
-        if (newton_pair && j >= nlocal) {
-
-          fpair_j = (forcecoul * eps[j] + factor_lj * forcelj) * r2inv;
-          f[j][0] -= delx * fpair_j;
-          f[j][1] -= dely * fpair_j;
-          f[j][2] -= delz * fpair_j;
-        }
-
         if (eflag) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq)
@@ -212,7 +204,6 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
               table = etable[itable] + fraction * detable[itable];
               ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
             }
-            ecoul *= 0.5;
             if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
           } else
             ecoul = 0.0;

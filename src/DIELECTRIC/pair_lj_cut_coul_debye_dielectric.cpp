@@ -159,19 +159,11 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
         efield[i][2] += delz * efield_i;
         epot[i] += epot_i;
 
-        if (newton_pair && j >= nlocal) {
-          fpair_j = (factor_coul * eps[j] * forcecoul + factor_lj * forcelj) * r2inv;
-          f[j][0] -= delx * fpair_j;
-          f[j][1] -= dely * fpair_j;
-          f[j][2] -= delz * fpair_j;
-        }
-
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype]) {
             ecoul = factor_coul * qqrd2e * qtmp * q[j] * (etmp + eps[j]) * rinv * screening;
           } else
             ecoul = 0.0;
-          ecoul *= 0.5;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;

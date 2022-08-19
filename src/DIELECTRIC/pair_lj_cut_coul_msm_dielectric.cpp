@@ -208,12 +208,6 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
           efield[i][1] += dely * efield_i;
           efield[i][2] += delz * efield_i;
 
-          if (newton_pair && j >= nlocal) {
-            fpair_j = (forcecoul * eps[j] + factor_lj * forcelj) * r2inv;
-            f[j][0] -= delx * fpair_j;
-            f[j][1] -= dely * fpair_j;
-            f[j][2] -= delz * fpair_j;
-          }
         } else {
 
           // separate LJ and Coulombic forces
@@ -223,11 +217,6 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
           f[i][0] += delx * fpair;
           f[i][1] += dely * fpair;
           f[i][2] += delz * fpair;
-          if (newton_pair) {
-            f[j][0] -= delx * fpair;
-            f[j][1] -= dely * fpair;
-            f[j][2] -= delz * fpair;
-          }
 
           fpair_i = (forcecoul * etmp) * r2inv;
           ftmp[i][0] += delx * fpair_i;
@@ -238,13 +227,6 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
           efield[i][0] += delx * efield_i;
           efield[i][1] += dely * efield_i;
           efield[i][2] += delz * efield_i;
-
-          if (newton_pair && j >= nlocal) {
-            fpair_j = (forcecoul * eps[j]) * r2inv;
-            ftmp[j][0] -= delx * fpair_j;
-            ftmp[j][1] -= dely * fpair_j;
-            ftmp[j][2] -= delz * fpair_j;
-          }
         }
 
         if (eflag) {

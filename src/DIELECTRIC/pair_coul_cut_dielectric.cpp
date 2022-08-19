@@ -137,16 +137,8 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
         efield[i][1] += dely * efield_i;
         efield[i][2] += delz * efield_i;
 
-        if (newton_pair && j >= nlocal) {
-          fpair_j = factor_coul * eps[j] * forcecoul * r2inv;
-          f[j][0] -= delx * fpair_j;
-          f[j][1] -= dely * fpair_j;
-          f[j][2] -= delz * fpair_j;
-        }
-
         if (eflag) {
           ecoul = factor_coul * qqrd2e * scale[itype][jtype] * qtmp * q[j] * (etmp + eps[j]) * rinv;
-          ecoul *= 0.5;
         }
         if (evflag) ev_tally_full(i, 0.0, ecoul, fpair_i, delx, dely, delz);
       }

@@ -17,7 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "math_special_kokkos.h"
+
 #include <cmath>
+
 #include "meam_kokkos.h"
 using namespace MathSpecialKokkos;
 
@@ -210,6 +212,7 @@ void MEAMKokkos<DeviceType>::get_shpfcn(const lattice_t latt, const double sthe,
     case BCC:
     case B1:
     case B2:
+    case SC:
       s[0] = 0.0;
       s[1] = 0.0;
       s[2] = 0.0;
@@ -225,6 +228,11 @@ void MEAMKokkos<DeviceType>::get_shpfcn(const lattice_t latt, const double sthe,
       s[0] = 0.0;
       s[1] = 0.0;
       s[2] = 32.0 / 9.0;
+      break;
+    case BQZ:
+      s[0] = 0.21;
+      s[1] = 2.27;
+      s[2] = 0.567-0.21*0.6;
       break;
     case DIM:
       s[0] = 1.0;
@@ -266,10 +274,13 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
       return 12;
     case DIA:
     case DIA3:
+    case BQZ: // Si part has diamond structure
+    case CH4: // C part has diamond structure
       return 4;
     case DIM:
       return 1;
     case B1:
+    case SC:
       return 6;
     case C11:
       return 10;
@@ -277,8 +288,6 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
       return 12;
     case B2:
       return 8;
-    case CH4: // DYNAMO currently implemented this way while it needs two Z values, 4 and 1
-      return 4;
     case LIN:
     case ZIG:
     case TRI:

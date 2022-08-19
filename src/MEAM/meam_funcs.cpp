@@ -275,7 +275,7 @@ MEAM::get_Zij(const lattice_t latt)
     case DIM:
       return 1;
     case B1:
-                case SC:
+    case SC:
       return 6;
     case C11:
       return 10;

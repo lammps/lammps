@@ -264,41 +264,31 @@ void DumpGrid::init_style()
 
   // check that grid sizes for all fields are the same
 
-  Compute *icompute;
-  Fix *ifix;
-  Grid2d *grid2d;
-  Grid3d *grid3d;
-
+  Grid2d *grid2d = nullptr;
+  Grid3d *grid3d = nullptr;
   int nxtmp,nytmp,nztmp;
-
   for (int i = 0; i < nfield; i++) {
      if (dimension == 2) {
-      if (field2source[i] == COMPUTE) {
-        icompute = compute[field2index[i]];
-        grid2d = (Grid2d *) icompute->get_grid_by_index(field2grid[i]);
-      } else {
-        ifix = fix[field2index[i]];
-        grid2d = (Grid2d *) ifix->get_grid_by_index(field2grid[i]);
-      }
+      if (field2source[i] == COMPUTE)
+        grid2d = (Grid2d *) compute[field2index[i]]->get_grid_by_index(field2grid[i]);
+      else
+        grid2d = (Grid2d *) fix[field2index[i]]->get_grid_by_index(field2grid[i]);
       if (i == 0) grid2d->get_size(nxgrid,nygrid);
       else {
         grid2d->get_size(nxtmp,nytmp);
-        if (nxtmp != nxgrid || nytmp != nygrid)
+        if ((nxtmp != nxgrid) || (nytmp != nygrid))
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
 
     } else {
-      if (field2source[i] == COMPUTE) {
-        icompute = compute[field2index[i]];
-        grid3d = (Grid3d *) icompute->get_grid_by_index(field2grid[i]);
-      } else {
-        ifix = fix[field2index[i]];
-        grid3d = (Grid3d *) ifix->get_grid_by_index(field2grid[i]);
-      }
+      if (field2source[i] == COMPUTE)
+        grid3d = (Grid3d *) compute[field2index[i]]->get_grid_by_index(field2grid[i]);
+      else
+        grid3d = (Grid3d *) fix[field2index[i]]->get_grid_by_index(field2grid[i]);
       if (i == 0) grid3d->get_size(nxgrid,nygrid,nzgrid);
       else {
         grid3d->get_size(nxtmp,nytmp,nztmp);
-        if (nxtmp != nxgrid || nytmp != nygrid || nztmp != nzgrid)
+        if ((nxtmp != nxgrid) || (nytmp != nygrid) || (nztmp != nzgrid))
           error->all(FLERR,"Dump grid field grid sizes do not match");
       }
     }
@@ -505,8 +495,8 @@ int DumpGrid::count()
   // set current size for portion of grid on each proc
   // may change between dump snapshots due to load balancing
 
-  Grid2d *grid2d;
-  Grid3d *grid3d;
+  Grid2d *grid2d = nullptr;
+  Grid3d *grid3d = nullptr;
 
   if (dimension == 2) {
     if (field2source[0] == COMPUTE)
@@ -531,7 +521,7 @@ int DumpGrid::count()
     if (update->whichflag == 0) {
       for (i = 0; i < ncompute; i++)
         if (compute[i]->invoked_pergrid != update->ntimestep)
-          error->all(FLERR,"Compute used in dump between runs is not current");
+          error->all(FLERR,"Compute {} used in dump between runs is not current", compute[i]->id);
     } else {
       for (i = 0; i < ncompute; i++) {
         if (!(compute[i]->invoked_flag & Compute::INVOKED_PERGRID)) {
@@ -600,8 +590,7 @@ int DumpGrid::convert_string(int n, double *mybuf)
       else if (vtype[j] == Dump::DOUBLE)
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
       else if (vtype[j] == Dump::BIGINT)
-        offset += sprintf(&sbuf[offset],vformat[j],
-                          static_cast<bigint> (mybuf[m]));
+        offset += sprintf(&sbuf[offset],vformat[j], static_cast<bigint> (mybuf[m]));
       m++;
     }
     offset += sprintf(&sbuf[offset],"\n");
@@ -645,8 +634,7 @@ void DumpGrid::write_lines(int n, double *mybuf)
     for (j = 0; j < nfield; j++) {
       if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
-      else if (vtype[j] == Dump::BIGINT)
-        fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
+      else if (vtype[j] == Dump::BIGINT) fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
       m++;
     }
     fprintf(fp,"\n");

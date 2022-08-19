@@ -51,7 +51,10 @@ class FixAveGrid : public Fix {
   int nrepeat, irepeat;
   bigint nvalid, nvalid_last;
   int modeatom,modegrid;
-  int normflag,scaleflag,ave,nwindow;
+  int normflag,aveflag,nwindow;
+  
+  int running_count;
+  int window_count,window_oldest,window_newest;
 
   int biasflag;
   char *id_bias;
@@ -82,6 +85,14 @@ class FixAveGrid : public Fix {
   double ***array2d_epoch,****array3d_epoch;
   double **count2d_epoch,***count3d_epoch;
 
+  double **vec2d_running,***vec3d_running;
+  double ***array2d_running,****array3d_running;
+  double **count2d_running,***count3d_running;
+
+  double ***vec2d_window,****vec3d_window;
+  double ****array2d_window,*****array3d_window;
+  double ***count2d_window,****count3d_window;
+
   double **vec2d,***vec3d;
   double ***array2d,****array3d;
   double **count2d,***count3d;
@@ -95,10 +106,20 @@ class FixAveGrid : public Fix {
 
   void atom2grid();
   void grid2grid();
-  void zero_sample();
-  void zero_epoch();
-  void zero_output();
+
+  void zero_grid(double **, double **, double ***, 
+                 double ***, double ***, double ****);
   void sum_sample_to_epoch();
+  void copy_epoch_to_sample();
+  void sum_sample_to_running() {}
+  void copy_sample_to_output() {}
+  void copy_running_to_output() {}
+  void copy_sample_to_window(int) {}
+  void subtract_window_from_running() {}
+
+  void normalize_atom(int);
+  void normalize_grid(int, double **, double ***, double ***, double ****);
+
   bigint nextvalid();
 };
 

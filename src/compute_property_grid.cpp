@@ -289,8 +289,12 @@ double ComputePropertyGrid::memory_usage()
   return bytes;
 }
 
+// ----------------------------------------------------------------------
+// pack methods for all values
+// ----------------------------------------------------------------------
+
 /* ----------------------------------------------------------------------
-   compute grid point IDs
+   grid point IDs
 ------------------------------------------------------------------------- */
 
 void ComputePropertyGrid::pack_id(int n)
@@ -321,7 +325,7 @@ void ComputePropertyGrid::pack_id(int n)
 }
 
 /* ----------------------------------------------------------------------
-   compute grid indices via templating
+   grid indices via templating
 ------------------------------------------------------------------------- */
 
 template <int IDIM> void ComputePropertyGrid::pack_indices(int n)
@@ -363,8 +367,8 @@ template <int IDIM> void ComputePropertyGrid::pack_indices(int n)
 }
 
 /* ----------------------------------------------------------------------
-   compute LOW/CTR, SCALED/UNSCALED, orthogonal/triclinic grid point coords
-   via templating
+   grid point coords
+   LOW/CTR, SCALED/UNSCALED, orthogonal/triclinic via templating
 ------------------------------------------------------------------------- */
 
 template <int POS, int MODE, int IDIM>

@@ -22,7 +22,7 @@
 namespace LAMMPS_NS {
 class Memory;
 
-typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI } lattice_t;
+typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI, SIO2, BQZ, SC } lattice_t;
 
 class MEAM {
  public:
@@ -263,6 +263,7 @@ class MEAM {
     else if (str == "lin") lat = LIN;
     else if (str == "zig") lat = ZIG;
     else if (str == "tri") lat = TRI;
+    else if (str == "sc") lat = SC;
     else {
       if (single)
         return false;
@@ -275,6 +276,8 @@ class MEAM {
       else if (str == "lin") lat =LIN;
       else if (str == "zig") lat = ZIG;
       else if (str == "tri") lat = TRI;
+      else if (str == "sio2") lat = SIO2;
+      else if (str == "bqz") lat = BQZ;
       else return false;
     }
     return true;

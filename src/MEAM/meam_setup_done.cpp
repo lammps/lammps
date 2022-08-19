@@ -484,8 +484,11 @@ double MEAM::phi_meam(double r, int a, int b)
   } else if (this->lattce_meam[a][b] == CH4) {
     phi_m = (5 * Eu - F1 - 4*F2)/4;
 
-  } else if (this->lattce_meam[a][b] == ZIG) {
-      if (a==b) {
+
+  } else if (this->lattce_meam[a][b] == SIO2 || this->lattce_meam[a][b] == BQZ) {
+    phi_m = (3 * Eu - F1 - 2*F2)/4;
+  } else if (this->lattce_meam[a][b] == ZIG){
+      if (a==b){
         phi_m = (2 * Eu - F1 - F2) / Z12;
       } else{
         Z1 = get_Zij(this->lattce_meam[a][b]);
@@ -615,6 +618,9 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
     case LIN:
     case ZIG:
     case TRI:
+    case BQZ:
+    case SIO2:
+    case SC:
       //     all neighbors are of the opposite type
       *t11av = t12;
       *t21av = t22;
@@ -698,6 +704,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho02 = 8.0 * rhoa01;
       break;
     case B1:
+    case SC:
       *rho01 = 6.0 * rhoa02;
       *rho02 = 6.0 * rhoa01;
       break;
@@ -760,6 +767,34 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho32 = s[2] * rhoa31 * rhoa31;
 
       get_shpfcn(CH4, 0, 0, s); //C
+      *rho11 = s[0] * rhoa12 * rhoa12;
+      *rho21 = s[1] * rhoa22 * rhoa22;
+      *rho31 = s[2] * rhoa32 * rhoa32;
+      break;
+    case SIO2:
+      *rho01 = 4.0 * rhoa02; //in assumption that 'a' represent carbon
+      *rho02 = rhoa01;  //in assumption that 'b' represent hydrogen
+
+      get_shpfcn(BQZ, 0, 0, s); //O
+      *rho12 = s[0] * rhoa11 * rhoa11;
+      *rho22 = s[1] * rhoa21 * rhoa21;
+      *rho32 = s[2] * rhoa31 * rhoa31;
+
+      get_shpfcn(DIA, 0, 0, s); //Si
+      *rho11 = s[0] * rhoa12 * rhoa12;
+      *rho21 = s[1] * rhoa22 * rhoa22;
+      *rho31 = s[2] * rhoa32 * rhoa32;
+      break;
+    case BQZ:
+      *rho01 = rhoa02*Zij; //in assumption that 'a' represent silicon
+      *rho02 = 2.0 * rhoa01;    //in assumption that 'b' represent Oxygen
+
+      get_shpfcn(BQZ, 0, 0, s); //O
+      *rho12 = s[0] * rhoa11 * rhoa11;
+      *rho22 = s[1] * rhoa21 * rhoa21;
+      *rho32 = s[2] * rhoa31 * rhoa31;
+
+      get_shpfcn(DIA, 0, 0, s); //Si
       *rho11 = s[0] * rhoa12 * rhoa12;
       *rho21 = s[1] * rhoa22 * rhoa22;
       *rho31 = s[2] * rhoa32 * rhoa32;

@@ -76,6 +76,9 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
       case LIN:
       case ZIG:
       case TRI:
+      case SIO2:
+      case BQZ:
+      case SC:
         this->re_meam[i][i] = tmplat[i];
         break;
       case DIA:

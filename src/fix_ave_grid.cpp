@@ -646,7 +646,7 @@ void FixAveGrid::end_of_step()
 
   // for ATOM mode, perform ghost to owned grid communication
   // done every sample for norm = SAMPLE, else once per Nfreq epoch
-  // nvalues + 1 for atom count
+  // nvalues+1 includes atom count
 
   if (modeatom) {
     if (dimension == 2)
@@ -658,15 +658,11 @@ void FixAveGrid::end_of_step()
   }
 
   // for norm = SAMPLE, sum per-sample values and count to per-epoch
-  // for ATOM mode, also need to normalize per-sample values
+  // for ATOM mode, also need to normalize for single sample
   // then return if irepeat < nrepeat
 
   if (normflag == SAMPLE) {
-    
-
-
-
-
+    if (modeatom) normalize_atom(1);
     sum_sample_to_epoch();
 
     if (irepeat < nrepeat && (normflag == ALL || normflag == NONORM)) {
@@ -686,149 +682,24 @@ void FixAveGrid::end_of_step()
 
   if (ngridout == 0) return;
 
-
-
-
-
-
-  // average the final results across Nrepeat samples
-  // for ATOM mode, result = total_value / total_count
-  //   exception is DENSITY_NUMBER:
-  //     result = value / (current binvol * Nrepeat)
-  //   exception is DENSITY_MASS:
-  //     result = (value * mv2d) / (current binvol * Nrepeat)
-  //   exception is TEMPERATURE:
-  //     result = (value * mvv2e) / (Nrepeat*cdof + adof*count) * boltz)
-  // for GRID mode, final is total value / Nrepeat
+  // average the final results for the entire epoch
+  // for norm = ALL, normalize values_sample by Nrepeat and counts
+  // for norm = SAMPLE, normalize values_epoch by Nrepeat
 
   if (modeatom) {
-    double mvv2e = force->mvv2e;
-    double mv2d = force->mv2d;
-    double boltz = force->boltz;
-
-    double count,norm;
-    double repeat = nrepeat;
-    double invrepeat = 1.0/nrepeat;
-
-    double *prd = domain->prd;
-    double dx = prd[0]/nxgrid;
-    double dy = prd[1]/nygrid;
-    double dz = prd[2]/nzgrid;
-
-    double binvol;
-    if (dimension == 2) binvol = dx*dy;
-    else binvol = dx*dy*dz;
-
-    if (dimension == 2) {
-      if (nvalues == 1) {
-        for (iy = nylo_in; iy <= nyhi_in; iy++)
-          for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-            count = count2d[iy][ix];
-            if (count) {
-              if (which[0] == ArgInfo::DENSITY_NUMBER)
-                norm = 1.0 / (binvol * repeat);
-              else if (which[0] == ArgInfo::DENSITY_MASS)
-                norm = mv2d / (binvol * nrepeat);
-              else if (which[0] == ArgInfo::TEMPERATURE)
-                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
-              else
-                norm = 1.0/count;
-              vec2d[iy][ix] *= norm;
-              count2d[iy][ix] *= invrepeat;
-            }
-          }
-      } else {
-        for (iy = nylo_in; iy <= nyhi_in; iy++)
-          for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-            count = count2d[iy][ix];
-            if (count) {
-              for (m = 0; m <= nvalues; m++) {
-                if (which[m] == ArgInfo::DENSITY_NUMBER)
-                  norm = 1.0 / (binvol * repeat);
-                else if (which[m] == ArgInfo::DENSITY_MASS)
-                  norm = mv2d / (binvol * nrepeat);
-                else if (which[m] == ArgInfo::TEMPERATURE)
-                  norm = mvv2e /((repeat*cdof + adof*count) * boltz);
-                else
-                  norm = 1.0/count;
-                array2d[iy][ix][m] *= norm;
-              }
-              count2d[iy][ix] *= invrepeat;
-            }
-          }
-      }
-    } else {
-      if (nvalues == 1) {
-        for (iz = nzlo_in; iz <= nzhi_in; iz++)
-          for (iy = nylo_in; iy <= nyhi_in; iy++)
-            for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-              count = count3d[iz][iy][ix];
-              if (count) {
-                if (which[0] == ArgInfo::DENSITY_NUMBER)
-                  norm = 1.0 / (binvol * repeat);
-                else if (which[0] == ArgInfo::DENSITY_MASS)
-                  norm = mv2d / (binvol * nrepeat);
-                else if (which[0] == ArgInfo::TEMPERATURE)
-                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
-                else
-                  norm = 1.0/count;
-                vec3d[iz][iy][ix] *= norm;
-                count3d[iz][iy][ix] *= invrepeat;
-              }
-            }
-      } else {
-        for (iz = nzlo_in; iz <= nzhi_in; iz++)
-          for (iy = nylo_in; iy <= nyhi_in; iy++)
-            for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-              count = count3d[iz][iy][ix];
-              if (count) {
-                for (m = 0; m <= nvalues; m++) {
-                  if (which[m] == ArgInfo::DENSITY_NUMBER)
-                    norm = 1.0 / (binvol * repeat);
-                  else if (which[m] == ArgInfo::DENSITY_MASS)
-                    norm = mv2d / (binvol * nrepeat);
-                  else if (which[m] == ArgInfo::TEMPERATURE)
-                    norm = mvv2e /((repeat*cdof + adof*count) * boltz);
-                  else
-                    norm = 1.0/count;
-                  array3d[iz][iy][ix][m] *= norm;
-                }
-                count3d[iz][iy][ix] *= invrepeat;
-              }
-            }
-      }
-    }
+    if (normflag == ALL) normalize_atom(nrepeat);
+    else if (normflag == SAMPLE) 
+      normalize_grid(vec2d_epoch,array2d_epoch,vec3d_epoch,array3d_epoch);
+    else if (normflag == NONORM) normalize_atom();
   }
 
-  if (modegrid) {
-    double invrepeat = 1.0/nrepeat;
+  if (modegrid) 
+    normalize_grid(vec2d_sample,array2d_sample,vec3d_sample,array3d_sample);
 
-    if (dimension == 2) {
-      if (nvalues == 1) {
-        for (iy = nylo_in; iy <= nyhi_in; iy++)
-          for (ix = nxlo_in; ix <= nxhi_in; ix++)
-            vec2d[iy][ix] *= invrepeat;
-      } else {
-        for (iy = nylo_in; iy <= nyhi_in; iy++)
-          for (ix = nxlo_in; ix <= nxhi_in; ix++)
-            for (m = 0; m <= nvalues; m++)
-              array2d[iy][ix][m] *= invrepeat;
-      }
-    } else {
-      if (nvalues == 1) {
-        for (iz = nzlo_in; iz <= nzhi_in; iz++)
-          for (iy = nylo_in; iy <= nyhi_in; iy++)
-            for (ix = nxlo_in; ix <= nxhi_in; ix++)
-              vec3d[iz][iy][ix] *= invrepeat;
-      } else {
-        for (iz = nzlo_in; iz <= nzhi_in; iz++)
-          for (iy = nylo_in; iy <= nyhi_in; iy++)
-            for (ix = nxlo_in; ix <= nxhi_in; ix++)
-              for (m = 0; m <= nvalues; m++)
-            array3d[iz][iy][ix][m] *= invrepeat;
-      }
-    }
-  }
+
+
+  // create Nfreq output
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1427,6 +1298,167 @@ void FixAveGrid::sum_sample_to_epoch()
               array3d_epoch[iz][iy][ix][m] += array3d_sample[iz][iy][ix][m];
     }
     if (modeatom) count3d_epoch[iz][iy][ix] += count3d_sample[iz][iy][ix];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   normalize grid values and per-cell counts for ATOM mode for owned cells
+   flag = SAMPLE or EPOCH
+     set repeat = 1 for SAMPLE, Nrepeat for EPOCH
+     sample_value & count are either for one sample or summed over epoch
+   result = sample_value / count
+     exception is DENSITY_NUMBER:
+       result = value / (current binvol * Nrepeat)
+     exception is DENSITY_MASS:
+       result = (value * mv2d) / (current binvol * Nrepeat)
+     exception is TEMPERATURE:
+       result = (value * mvv2e) / (Nrepeat*cdof + adof*count) * boltz)
+------------------------------------------------------------------------- */
+
+void FixAveGrid::normalize_atom(int flag)
+{
+  int ix,iy,iz,m;
+  double count,norm;
+  double repeat,invrepeat;
+
+  double mvv2e = force->mvv2e;
+  double mv2d = force->mv2d;
+  double boltz = force->boltz;
+  
+  if (flag == EPOCH) {
+    repeat = nrepeat;
+    invrepeat = 1.0/nrepeat;
+  } else if (flag == SAMPLE) {
+    repeat = invrepeat = 1.0;
+  }
+
+  double *prd = domain->prd;
+  double dx = prd[0]/nxgrid;
+  double dy = prd[1]/nygrid;
+  double dz = prd[2]/nzgrid;
+
+  double binvol;
+  if (dimension == 2) binvol = dx*dy;
+  else binvol = dx*dy*dz;
+
+  if (dimension == 2) {
+    if (nvalues == 1) {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+          count = count2d[iy][ix];
+          if (count) {
+            if (which[0] == ArgInfo::DENSITY_NUMBER)
+              norm = 1.0 / (binvol * repeat);
+            else if (which[0] == ArgInfo::DENSITY_MASS)
+              norm = mv2d / (binvol * nrepeat);
+            else if (which[0] == ArgInfo::TEMPERATURE)
+              norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+            else
+              norm = 1.0/count;
+            vec2d_sample[iy][ix] *= norm;
+            count2d_sample[iy][ix] *= invrepeat;
+          }
+        }
+    } else {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+          count = count2d[iy][ix];
+          if (count) {
+            for (m = 0; m <= nvalues; m++) {
+              if (which[m] == ArgInfo::DENSITY_NUMBER)
+                norm = 1.0 / (binvol * repeat);
+              else if (which[m] == ArgInfo::DENSITY_MASS)
+                norm = mv2d / (binvol * nrepeat);
+              else if (which[m] == ArgInfo::TEMPERATURE)
+                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+              else
+                norm = 1.0/count;
+              array2d_sample[iy][ix][m] *= norm;
+            }
+            count2d_sample[iy][ix] *= invrepeat;
+          }
+        }
+    }
+  } else {
+    if (nvalues == 1) {
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+            count = count3d[iz][iy][ix];
+            if (count) {
+              if (which[0] == ArgInfo::DENSITY_NUMBER)
+                norm = 1.0 / (binvol * repeat);
+              else if (which[0] == ArgInfo::DENSITY_MASS)
+                norm = mv2d / (binvol * nrepeat);
+              else if (which[0] == ArgInfo::TEMPERATURE)
+                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+              else
+                norm = 1.0/count;
+              vec3d_sample[iz][iy][ix] *= norm;
+              count3d_value[iz][iy][ix] *= invrepeat;
+            }
+          }
+    } else {
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++) {
+            count = count3d[iz][iy][ix];
+            if (count) {
+              for (m = 0; m <= nvalues; m++) {
+                if (which[m] == ArgInfo::DENSITY_NUMBER)
+                  norm = 1.0 / (binvol * repeat);
+                else if (which[m] == ArgInfo::DENSITY_MASS)
+                  norm = mv2d / (binvol * nrepeat);
+                else if (which[m] == ArgInfo::TEMPERATURE)
+                  norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+                else
+                  norm = 1.0/count;
+                array3d_sample[iz][iy][ix][m] *= norm;
+              }
+              count3d_sample[iz][iy][ix] *= invrepeat;
+            }
+          }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   normalize grid values by Nrepeat
+   used for GRID mode
+   used for ATOM MODE with norm = SAMPLE
+------------------------------------------------------------------------- */
+
+void FixAveGrid::normalize_grid(double **v2d, double ***a2d, 
+                                double ***v3d, double ****a3d)
+{
+  int ix,iy,iz,m;
+
+  double invrepeat = 1.0/nrepeat;
+  
+  if (dimension == 2) {
+    if (nvalues == 1) {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++)
+          v2d[iy][ix] *= invrepeat;
+    } else {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++)
+          for (m = 0; m <= nvalues; m++)
+            a2d[iy][ix][m] *= invrepeat;
+    }
+  } else {
+    if (nvalues == 1) {
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++)
+            v3d[iz][iy][ix] *= invrepeat;
+    } else {
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++)
+            for (m = 0; m <= nvalues; m++)
+              a3d[iz][iy][ix][m] *= invrepeat;
+    }
   }
 }
 

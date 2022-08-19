@@ -202,10 +202,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Illegal fix electrode/conp command with read");
       }
     } else if ((strcmp(arg[iarg], "etypes") == 0)) {
-      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after etypes command");
-      int ilo, ihi;
-      utils::bounds(FLERR, arg[++iarg], 1, atom->ntypes, ilo, ihi, error);
-      for (int i = ilo; i <= ihi; ++i) etypes.push_back(i);
       etypes_neighlists = true;
     } else if ((strcmp(arg[iarg], "temp") == 0)) {
       if (iarg + 4 > narg) error->all(FLERR, "Need three arguments after temp command");
@@ -1172,6 +1168,25 @@ void FixElectrodeConp::read_from_file(const std::string &input_file, double **ar
 void FixElectrodeConp::request_etypes_neighlists()
 {
   int const ntypes = atom->ntypes;
+  // construct etypes
+  int *mask = atom->mask;
+  int *type = atom->type;
+  auto elec = std::vector<int>(ntypes, 0);
+  auto elyt = std::vector<int>(ntypes, 0);
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (mask[i] & groupbit)
+      elec[type[i] - 1] += 1;
+    else
+      elyt[type[i] - 1] += 1;
+  }
+  MPI_Allreduce(MPI_IN_PLACE, &elec.front(), ntypes, MPI_INT, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, &elyt.front(), ntypes, MPI_INT, MPI_SUM, world);
+  etypes.clear();
+  for (int i = 0; i < ntypes; i++) {
+    if (!elec[i] == !elyt[i]) error->all(FLERR, "Types overlap, cannot use etypes keyword");
+    if (elec[i]) etypes.push_back(i + 1);
+  }
+  // construct skip arrays
   int *iskip_mat = new int[ntypes + 1];
   int *iskip_vec = new int[ntypes + 1];
   int **ijskip_mat;

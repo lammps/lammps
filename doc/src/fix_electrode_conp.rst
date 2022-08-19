@@ -45,8 +45,8 @@ Syntax
     *couple group-ID value*
         group-ID = group of atoms treated as additional electrode
         value = electric potential or charge on this electrode
-    *etypes values = atom types*
-        specify atom types exclusive to the electrode for optimized neighbor lists
+    *etypes*
+        construct optimized neighbor lists (types of the electrode must be exclusive to them)
     *ffield on/off*
         turn on/off finite-field implementation
     *write_mat filename*

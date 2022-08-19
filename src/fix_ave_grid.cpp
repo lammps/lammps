@@ -34,8 +34,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{SAMPLE,ALL};
-enum{NOSCALE,ATOM};
+enum{ALL,SAMPLE,NONORM};
 enum{ONE,RUNNING,WINDOW};
 
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
@@ -171,7 +170,6 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   normflag = ALL;
-  scaleflag = ATOM;
   ave = ONE;
   nwindow = 0;
   biasflag = 0;
@@ -182,16 +180,10 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/grid command");
-      if (strcmp(arg[iarg+1],"all") == 0) {
-        normflag = ALL;
-        scaleflag = ATOM;
-      } else if (strcmp(arg[iarg+1],"sample") == 0) {
-        normflag = SAMPLE;
-        scaleflag = ATOM;
-      } else if (strcmp(arg[iarg+1],"none") == 0) {
-        normflag = SAMPLE;
-        scaleflag = NOSCALE;
-      } else error->all(FLERR,"Illegal fix ave/grid command");
+      if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
+      else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
+      else if (strcmp(arg[iarg+1],"none") == 0) normflag = NONORM;
+      else error->all(FLERR,"Illegal fix ave/grid command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ave") == 0) {
@@ -460,9 +452,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                               "ave/grid:vec3d");
   }
 
-  // zero the grid and counts since dump may access it on timestep 0
+  // zero the output grid and counts since dump may access it on timestep 0
 
-  zero_grid();
+  zero_output();
 
   // bin indices for ATOM mode
   // vresult for per-atom variable evaluation
@@ -629,8 +621,9 @@ void FixAveGrid::end_of_step()
   nvalid_last = nvalid;
 
   // zero owned and ghost grid points and counts if first sample in epoch
-
-  if (irepeat == 0) zero_grid();
+  
+  if (irepeat == 0) zero_epoch();
+  if (irepeat == 0 || normflag == SAMPLE) zero_sample();
 
   // accumulate per-grid values for one sample for either ATOM or GRID mode
   // per-atom compute/fix/variable may invoke computes so wrap with clear/add
@@ -642,22 +635,18 @@ void FixAveGrid::end_of_step()
     grid2grid();
   }
 
-  // done if irepeat < nrepeat
-  // else reset irepeat and nvalid
+  // return if irepeat < nrepeat and norm = SAMPLE or NONORM
 
   irepeat++;
-  if (irepeat < nrepeat) {
+  if (irepeat < nrepeat && (normflag == ALL || normflag == NONORM)) {
     nvalid += nevery;
     if (modeatom) modify->addstep_compute(nvalid);
     return;
   }
 
-  irepeat = 0;
-  nvalid = ntimestep+pergrid_freq - ((bigint) nrepeat-1)*nevery;
-  if (modeatom) modify->addstep_compute(nvalid);
-
   // for ATOM mode, perform ghost to owned grid communication
-  // nvalues + 1 more for atom count
+  // done every sample for norm = SAMPLE, else once per Nfreq epoch
+  // nvalues + 1 for atom count
 
   if (modeatom) {
     if (dimension == 2)
@@ -668,9 +657,39 @@ void FixAveGrid::end_of_step()
                            grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 
+  // for norm = SAMPLE, sum per-sample values and count to per-epoch
+  // for ATOM mode, also need to normalize per-sample values
+  // then return if irepeat < nrepeat
+
+  if (normflag == SAMPLE) {
+    
+
+
+
+
+    sum_sample_to_epoch();
+
+    if (irepeat < nrepeat && (normflag == ALL || normflag == NONORM)) {
+      nvalid += nevery;
+      if (modeatom) modify->addstep_compute(nvalid);
+      return;
+    }
+  }
+
+  // reset irepeat and nvalid
+
+  irepeat = 0;
+  nvalid = ntimestep+pergrid_freq - ((bigint) nrepeat-1)*nevery;
+  if (modeatom) modify->addstep_compute(nvalid);
+
   // just return if this proc owns no grid points
 
   if (ngridout == 0) return;
+
+
+
+
+
 
   // average the final results across Nrepeat samples
   // for ATOM mode, result = total_value / total_count
@@ -814,7 +833,7 @@ void FixAveGrid::end_of_step()
 
 /* ----------------------------------------------------------------------
    sum per-atom contributions to owned+ghost grid cells
-   sets one of vec2d,array2d,vec3d,array3d
+   sets one of vec2d,array2d,vec3d,array3d sample
    also set count2d or count3d for atom count per bin
 ------------------------------------------------------------------------- */
 
@@ -939,23 +958,23 @@ void FixAveGrid::atom2grid()
         if (nvalues == 1) {
           for (i = 0; i < nlocal; i++) {
             if (!skip[i])
-              vec2d[bin[i][0]][bin[i][1]] += attribute[i][j];
+              vec2d_sample[bin[i][0]][bin[i][1]] += attribute[i][j];
           }
         } else
           for (i = 0; i < nlocal; i++) {
             if (skip[i])
-              array2d[bin[i][0]][bin[i][1]][m] += attribute[i][j];
+              array2d_sample[bin[i][0]][bin[i][1]][m] += attribute[i][j];
           }
       } else {
         if (nvalues == 1) {
           for (i = 0; i < nlocal; i++) {
             if (!skip[i])
-              vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += attribute[i][j];
+              vec3d_sample[bin[i][0]][bin[i][1]][bin[i][2]] += attribute[i][j];
           }
         } else
           for (i = 0; i < nlocal; i++) {
             if (!skip[i])
-              array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += attribute[i][j];
+              array3d_sample[bin[i][0]][bin[i][1]][bin[i][2]][m] += attribute[i][j];
           }
       }
 
@@ -978,7 +997,7 @@ void FixAveGrid::atom2grid()
               if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
               else if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              vec2d[bin[i][0]][bin[i][1]] += one;
+              vec2d_sample[bin[i][0]][bin[i][1]] += one;
             }
           }
         } else
@@ -987,7 +1006,7 @@ void FixAveGrid::atom2grid()
               if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
               else if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              array2d[bin[i][0]][bin[i][1]][m] += one;
+              array2d_sample[bin[i][0]][bin[i][1]][m] += one;
             }
           }
       } else {
@@ -997,7 +1016,7 @@ void FixAveGrid::atom2grid()
               if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
               else if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += one;
+              vec3d_sample[bin[i][0]][bin[i][1]][bin[i][2]] += one;
             }
           }
         } else
@@ -1006,7 +1025,7 @@ void FixAveGrid::atom2grid()
               if (which[m] == ArgInfo::DENSITY_NUMBER) one = 1.0;
               else if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += one;
+              array3d_sample[bin[i][0]][bin[i][1]][bin[i][2]][m] += one;
             }
           }
       }
@@ -1034,7 +1053,7 @@ void FixAveGrid::atom2grid()
               vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
               if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              vec2d[bin[i][0]][bin[i][1]] += one*vsq;
+              vec2d_sample[bin[i][0]][bin[i][1]] += one*vsq;
             }
           }
         } else
@@ -1043,7 +1062,7 @@ void FixAveGrid::atom2grid()
               vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
               if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              array2d[bin[i][0]][bin[i][1]][m] += one*vsq;;
+              array2d_sample[bin[i][0]][bin[i][1]][m] += one*vsq;;
             }
           }
       } else {
@@ -1053,7 +1072,7 @@ void FixAveGrid::atom2grid()
               vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
               if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += one*vsq;
+              vec3d_sample[bin[i][0]][bin[i][1]][bin[i][2]] += one*vsq;
             }
           }
         } else
@@ -1062,7 +1081,7 @@ void FixAveGrid::atom2grid()
               vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
               if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += one*vsq;
+              array3d_sample[bin[i][0]][bin[i][1]][bin[i][2]][m] += one*vsq;
             }
           }
       }
@@ -1105,26 +1124,26 @@ void FixAveGrid::atom2grid()
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                vec2d[bin[i][0]][bin[i][1]] += ovector[i];
+                vec2d_sample[bin[i][0]][bin[i][1]] += ovector[i];
             }
           } else {
             int jm1 = j = 1;
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                vec2d[bin[i][0]][bin[i][1]] += oarray[i][jm1];
+                vec2d_sample[bin[i][0]][bin[i][1]] += oarray[i][jm1];
             }
           }
         } else {
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                array2d[bin[i][0]][bin[i][1]][m] += ovector[i];
+                array2d_sample[bin[i][0]][bin[i][1]][m] += ovector[i];
             }
           } else {
             int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                array2d[bin[i][0]][bin[i][1]][m] += oarray[i][jm1];
+                array2d_sample[bin[i][0]][bin[i][1]][m] += oarray[i][jm1];
             }
           }
         }
@@ -1134,26 +1153,26 @@ void FixAveGrid::atom2grid()
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += ovector[i];
+                vec3d_sample[bin[i][0]][bin[i][1]][bin[i][2]] += ovector[i];
             }
           } else {
             int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                vec3d[bin[i][0]][bin[i][1]][bin[i][2]] += oarray[i][jm1];
+                vec3d_sample[bin[i][0]][bin[i][1]][bin[i][2]] += oarray[i][jm1];
             }
           }
         } else {
           if (j == 0) {
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += ovector[i];
+                array3d_sample[bin[i][0]][bin[i][1]][bin[i][2]][m] += ovector[i];
             }
           } else {
             int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
-                array3d[bin[i][0]][bin[i][1]][bin[i][2]][m] += oarray[i][jm1];
+                array3d_sample[bin[i][0]][bin[i][1]][bin[i][2]][m] += oarray[i][jm1];
             }
           }
         }
@@ -1207,23 +1226,23 @@ void FixAveGrid::grid2grid()
         if (j == 0) {
           for (iy = nylo_in; iy <= nyhi_in; iy++)
             for (ix = nxlo_in; ix <= nxhi_in; ix++)
-              vec2d[iy][ix] += ovec2d[iy][ix];
+              vec2d_sample[iy][ix] += ovec2d[iy][ix];
         } else {
           int jm1 = j - 1;
           for (iy = nylo_in; iy <= nyhi_in; iy++)
             for (ix = nxlo_in; ix <= nxhi_in; ix++)
-              vec2d[iy][ix] += oarray2d[iy][ix][jm1];
+              vec2d_sample[iy][ix] += oarray2d[iy][ix][jm1];
         }
       } else {
         if (j == 0) {
           for (iy = nylo_in; iy <= nyhi_in; iy++)
             for (ix = nxlo_in; ix <= nxhi_in; ix++)
-              array2d[iy][ix][m] += ovec2d[iy][ix];
+              array2d_sample[iy][ix][m] += ovec2d[iy][ix];
         } else {
           int jm1 = j - 1;
           for (iy = nylo_in; iy <= nyhi_in; iy++)
             for (ix = nxlo_in; ix <= nxhi_in; ix++)
-              array2d[iy][ix][m] += oarray2d[iy][ix][jm1];
+              array2d_sample[iy][ix][m] += oarray2d[iy][ix][jm1];
         }
       }
 
@@ -1246,26 +1265,26 @@ void FixAveGrid::grid2grid()
           for (iz = nzlo_in; iz <= nzhi_in; iz++)
             for (iy = nylo_in; iy <= nyhi_in; iy++)
               for (ix = nxlo_in; ix <= nxhi_in; ix++)
-                vec3d[iz][iy][ix] += ovec3d[iz][iy][ix];
+                vec3d_sample[iz][iy][ix] += ovec3d[iz][iy][ix];
         } else {
           int jm1 = j - 1;
           for (iz = nzlo_in; iz <= nzhi_in; iz++)
             for (iy = nylo_in; iy <= nyhi_in; iy++)
               for (ix = nxlo_in; ix <= nxhi_in; ix++)
-                vec3d[iz][iy][ix] += oarray3d[iz][iy][ix][jm1];
+                vec3d_sample[iz][iy][ix] += oarray3d[iz][iy][ix][jm1];
         }
       } else {
         if (j == 0) {
           for (iz = nzlo_in; iz <= nzhi_in; iz++)
             for (iy = nylo_in; iy <= nyhi_in; iy++)
               for (ix = nxlo_in; ix <= nxhi_in; ix++)
-                array3d[iz][iy][ix][m] += ovec3d[iz][iy][ix];
+                array3d_sample[iz][iy][ix][m] += ovec3d[iz][iy][ix];
         } else {
           int jm1 = j - 1;
           for (iz = nzlo_in; iz <= nzhi_in; iz++)
             for (iy = nylo_in; iy <= nyhi_in; iy++)
               for (ix = nxlo_in; ix <= nxhi_in; ix++)
-                array3d[iz][iy][ix][m] += oarray3d[iz][iy][ix][jm1];
+                array3d_sample[iz][iy][ix][m] += oarray3d[iz][iy][ix][jm1];
         }
       }
     }
@@ -1273,29 +1292,141 @@ void FixAveGrid::grid2grid()
 }
 
 /* ----------------------------------------------------------------------
-   zero grid values incluing ghost cells
+   zero values for sample grids incluing ghost cells
    if ATOM mode, also zero per-cell counts
 ------------------------------------------------------------------------- */
 
-void FixAveGrid::zero_grid()
+void FixAveGrid::zero_sample()
 {
   if (!ngridout) return;
 
   if (dimension == 2) {
     if (nvalues == 1)
-      memset(&vec2d[nylo_out][nxlo_out],0, ngridout*sizeof(double));
+      memset(&vec2d_sample[nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
     else
-      memset(&array2d[nylo_out][nxlo_out][0],0,ngridout*nvalues*sizeof(double));
+      memset(&array2d_sample[nylo_out][nxlo_out][0],0,
+             ngridout*nvalues*sizeof(double));
     if (modeatom)
-      memset(&count2d[nylo_out][nxlo_out],0,ngridout*sizeof(double));
+      memset(&count2d_sample[nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
   } else {
     if (nvalues == 1)
-      memset(&vec3d[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
+      memset(&vec3d_sample[nzlo_out][nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+    else
+      memset(&array3d_sample[nzlo_out][nylo_out][nxlo_out][0],0,
+             ngridout*nvalues*sizeof(double));
+    if (modeatom)
+      memset(&count3d_sample[nzlo_out][nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+  }
+}
+
+/* ----------------------------------------------------------------------
+   zero values for Nfreq epoch grids incluing ghost cells
+   if ATOM mode, also zero per-cell counts
+------------------------------------------------------------------------- */
+
+void FixAveGrid::zero_epoch()
+{
+  if (!ngridout) return;
+
+  if (dimension == 2) {
+    if (nvalues == 1)
+      memset(&vec2d_epoch[nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+    else
+      memset(&array2d_epoch[nylo_out][nxlo_out][0],0,
+             ngridout*nvalues*sizeof(double));
+    if (modeatom)
+      memset(&count2d_epoch[nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+
+  } else {
+    if (nvalues == 1)
+      memset(&vec3d_epoch[nzlo_out][nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+    else
+      memset(&array3d_epoch[nzlo_out][nylo_out][nxlo_out][0],0,
+             ngridout*nvalues*sizeof(double));
+    if (modeatom)
+      memset(&count3d_epoch[nzlo_out][nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+  }
+}
+
+/* ----------------------------------------------------------------------
+   zero values for output grids incluing ghost cells
+   if ATOM mode, also zero per-cell counts
+------------------------------------------------------------------------- */
+
+void FixAveGrid::zero_output()
+{
+  if (!ngridout) return;
+
+  if (dimension == 2) {
+    if (nvalues == 1)
+      memset(&vec2d[nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+    else
+      memset(&array2d[nylo_out][nxlo_out][0],0,
+             ngridout*nvalues*sizeof(double));
+    if (modeatom)
+      memset(&count2d[nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+
+  } else {
+    if (nvalues == 1)
+      memset(&vec3d[nzlo_out][nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
     else
       memset(&array3d[nzlo_out][nylo_out][nxlo_out][0],0,
              ngridout*nvalues*sizeof(double));
     if (modeatom)
-      memset(&count3d[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
+      memset(&count3d[nzlo_out][nylo_out][nxlo_out],0,
+             ngridout*sizeof(double));
+  }
+}
+
+/* ----------------------------------------------------------------------
+   sum sample grid values to Nfreq epoch grids, just for owned grid cells
+   if ATOM mode, also sum per-cell counts
+------------------------------------------------------------------------- */
+
+void FixAveGrid::sum_sample_to_epoch()
+{
+  int ix,iy,iz,m;
+
+  if (!ngridout) return;
+
+  if (dimension == 2) {
+    if (nvalues == 1) {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++)
+          vec2d_epoch[iy][ix] += vec2d_sample[iy][ix];
+    } else {
+      for (iy = nylo_in; iy <= nyhi_in; iy++)
+        for (ix = nxlo_in; ix <= nxhi_in; ix++)
+          for (m = 0; m <= nvalues; m++)
+            array2d_epoch[iy][ix][m] += array2d_sample[iy][ix][m];
+    }
+    if (modeatom) count2d_epoch[iy][ix] += count2d_sample[iy][ix];
+
+  } else {
+    if (nvalues == 1) {
+      for (iz = nylo_in; iz <= nyhi_in; iz++)
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++)
+            vec3d_epoch[iz][iy][ix] += vec3d_sample[iz][iy][ix];
+    } else {
+      for (iz = nylo_in; iz <= nyhi_in; iz++)
+        for (iy = nylo_in; iy <= nyhi_in; iy++)
+          for (ix = nxlo_in; ix <= nxhi_in; ix++)
+            for (m = 0; m <= nvalues; m++)
+              array3d_epoch[iz][iy][ix][m] += array3d_sample[iz][iy][ix][m];
+    }
+    if (modeatom) count3d_epoch[iz][iy][ix] += count3d_sample[iz][iy][ix];
   }
 }
 
@@ -1313,13 +1444,13 @@ void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
   m = 0;
 
   if (dimension == 2) {
-    count = &count2d[nylo_out][nxlo_out];
-    if (nvalues == 1) data = &vec2d[nylo_out][nxlo_out];
-    else data = &array2d[nylo_out][nxlo_out][0];
+    count = &count2d_sample[nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec2d_sample[nylo_out][nxlo_out];
+    else data = &array2d_sample[nylo_out][nxlo_out][0];
   } else if (dimension == 3) {
-    count = &count3d[nzlo_out][nylo_out][nxlo_out];
-    if (nvalues == 1) data = &vec3d[nzlo_out][nylo_out][nxlo_out];
-    else data = &array3d[nzlo_out][nylo_out][nxlo_out][0];
+    count = &count3d_sample[nzlo_out][nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec3d_sample[nzlo_out][nylo_out][nxlo_out];
+    else data = &array3d_sample[nzlo_out][nylo_out][nxlo_out][0];
   }
 
   if (nvalues == 1) {
@@ -1351,13 +1482,13 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
   m = 0;
 
   if (dimension == 2) {
-    count = &count2d[nylo_out][nxlo_out];
-    if (nvalues == 1) data = &vec2d[nylo_out][nxlo_out];
-    else data = &array2d[nylo_out][nxlo_out][0];
+    count = &count2d_sample[nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec2d_sample[nylo_out][nxlo_out];
+    else data = &array2d_sample[nylo_out][nxlo_out][0];
   } else if (dimension == 3) {
-    count = &count3d[nzlo_out][nylo_out][nxlo_out];
-    if (nvalues == 1) data = &vec3d[nzlo_out][nylo_out][nxlo_out];
-    else data = &array3d[nzlo_out][nylo_out][nxlo_out][0];
+    count = &count3d_sample[nzlo_out][nylo_out][nxlo_out];
+    if (nvalues == 1) data = &vec3d_sample[nzlo_out][nylo_out][nxlo_out];
+    else data = &array3d_sample[nzlo_out][nylo_out][nxlo_out][0];
   }
 
   if (nvalues == 1) {

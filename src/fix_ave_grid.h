@@ -74,6 +74,14 @@ class FixAveGrid : public Fix {
   int ngridout;
   double shift;
 
+  double **vec2d_sample,***vec3d_sample;
+  double ***array2d_sample,****array3d_sample;
+  double **count2d_sample,***count3d_sample;
+
+  double **vec2d_epoch,***vec3d_epoch;
+  double ***array2d_epoch,****array3d_epoch;
+  double **count2d_epoch,***count3d_epoch;
+
   double **vec2d,***vec3d;
   double ***array2d,****array3d;
   double **count2d,***count3d;
@@ -87,7 +95,10 @@ class FixAveGrid : public Fix {
 
   void atom2grid();
   void grid2grid();
-  void zero_grid();
+  void zero_sample();
+  void zero_epoch();
+  void zero_output();
+  void sum_sample_to_epoch();
   bigint nextvalid();
 };
 

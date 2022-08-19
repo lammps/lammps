@@ -715,7 +715,7 @@ void FixAveGrid::end_of_step()
               else
                 norm = 1.0/count;
               vec2d[iy][ix] *= norm;
-              count2d[iy][iz] *= invrepeat;
+              count2d[iy][ix] *= invrepeat;
             }
           }
       } else {
@@ -734,7 +734,7 @@ void FixAveGrid::end_of_step()
                   norm = 1.0/count;
                 array2d[iy][ix][m] *= norm;
               }
-              count2d[iy][iz] *= invrepeat;
+              count2d[iy][ix] *= invrepeat;
             }
           }
       }
@@ -754,7 +754,7 @@ void FixAveGrid::end_of_step()
                 else
                   norm = 1.0/count;
                 vec3d[iz][iy][ix] *= norm;
-                count3d[iz][iy][iz] *= invrepeat;
+                count3d[iz][iy][ix] *= invrepeat;
               }
             }
       } else {
@@ -774,7 +774,7 @@ void FixAveGrid::end_of_step()
                     norm = 1.0/count;
                   array3d[iz][iy][ix][m] *= norm;
                 }
-                count3d[iz][iy][iz] *= invrepeat;
+                count3d[iz][iy][ix] *= invrepeat;
               }
             }
       }

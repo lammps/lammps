@@ -86,19 +86,20 @@ will defined using the *c* values for the spacing along each reciprocal
 lattice axis. Note that manual mapping of the reciprocal space mesh is
 good for comparing diffraction results from  multiple simulations; however
 it can reduce the likelihood that Bragg reflections will be satisfied
-unless small spacing parameters <0.05 Angstrom\^(-1) are implemented.
-Meshes with manual spacing do not require a periodic boundary.
+unless small spacing parameters (:math:`<0.05~\mathrm{\mathring A}}^-1`)
+are implemented.  Meshes with manual spacing do not require a periodic
+boundary.
 
 The limits of the reciprocal lattice mesh are determined by the use of
 the *Kmax*, *Zone*, and *dR_Ewald* parameters.  The rectilinear mesh
 created about the origin of reciprocal space is terminated at the
 boundary of a sphere of radius *Kmax* centered at the origin.  If
-*Zone* parameters z1=z2=z3=0 are used, diffraction intensities are
+*Zone* parameters *z1* = *z2* = *z3* = 0 are used, diffraction intensities are
 computed throughout the entire spherical volume - note this can
 greatly increase the cost of computation.  Otherwise, *Zone*
-parameters will denote the z1=h, z2=k, and z3=l (in a global since)
-zone axis of an intersecting Ewald sphere.  Diffraction intensities
-will only be computed at the intersection of the reciprocal lattice
+parameters will denote the :math:`z1=h`, :math:`z2=k`, and :math:`z3=\ell`
+(in a global sense) zone axis of an intersecting Ewald sphere.  Diffraction
+intensities will only be computed at the intersection of the reciprocal lattice
 mesh and a *dR_Ewald* thick surface of the Ewald sphere.  See the
 example 3D intensity data and the intersection of a [010] zone axis
 in the below image.

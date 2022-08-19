@@ -98,7 +98,7 @@ by the corresponding volume. This option can be useful when dealing with
 inhomogeneous systems such as those that have surfaces.
 
 Here are typical input parameters for fcc aluminum (lattice
-constant 4.05 Angstroms),
+constant :math:`4.05~\mathrm{\mathring A}}`),
 
 .. parsed-literal::
 

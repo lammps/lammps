@@ -95,11 +95,12 @@ something like the following commands:
                    refresh c_dsp delay 100
 
 The :doc:`dump_modify thresh <dump_modify>` command will only output
-atoms that have displaced more than 0.6 Angstroms on each snapshot
-(assuming metal units).  The dump_modify *refresh* option triggers a
+atoms that have displaced more than :math:`0.6~\mathrm{\mathring A}` on each
+snapshot (assuming metal units).  The dump_modify *refresh* option triggers a
 call to this compute at the end of every dump.
 
-The *refresh* argument for this compute is the ID of an :doc:`atom-style variable <variable>` which calculates a Boolean value (0 or 1)
+The *refresh* argument for this compute is the ID of an
+:doc:`atom-style variable <variable>` which calculates a Boolean value (0 or 1)
 based on the same criterion used by dump_modify thresh.  This compute
 evaluates the atom-style variable.  For each atom that returns 1 (true),
 the original (reference) coordinates of the atom (stored by

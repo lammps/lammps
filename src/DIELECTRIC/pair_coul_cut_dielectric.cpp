@@ -35,9 +35,9 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *_lmp) : PairCoulCut(_lmp)
+PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *_lmp) :
+ PairCoulCut(_lmp), efield(nullptr)
 {
-  efield = nullptr;
   nmax = 0;
 }
 

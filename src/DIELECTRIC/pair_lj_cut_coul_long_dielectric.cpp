@@ -63,10 +63,9 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
   double fpair_i, fpair_j;
   double fraction, table;
-  double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
+  double r, rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double rsq;
 
   evdwl = ecoul = 0.0;
   ev_init(eflag, vflag);
@@ -123,7 +122,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
 
-    epot[i] = 0;
+    epot[i] = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

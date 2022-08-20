@@ -299,9 +299,9 @@ class dump:
 
     # if snapshots are scaled, unscale them
 
-    if (not "x" in self.names) or \
-       (not "y" in self.names) or \
-       (not "z" in self.names):
+    if ("x" not in self.names) or \
+       ("y" not in self.names) or \
+       ("z" not in self.names):
       print("no unscaling could be performed")
     elif self.nsnaps > 0:
       if self.scaled(self.nsnaps-1): self.unscale()
@@ -582,8 +582,8 @@ class dump:
     pairs = self.names.items()
     str = ""
     for i in range(ncol):
-      for p in pairs:
-        if p[1] == i: str += p[0] + ' '
+      for k,v in pairs:
+        if v == i: str += k + ' '
     return str
 
   # --------------------------------------------------------------------

@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pair/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *dx* or *dy* or *dz* or *eng* or *force* or *fx* or *fy* or *fz* or *pN*
+* value = *dist* or *dx* or *dy* or *dz* or *eng* or *force* or *fx* or *fy* or *fz* or *p1* or *p2* or ...
 
   .. parsed-literal::
 
@@ -22,7 +22,7 @@ Syntax
        *eng* = pairwise energy
        *force* = pairwise force
        *fx*,\ *fy*,\ *fz* = components of pairwise force
-       *pN* = pair style specific quantities for allowed N values
+       *p1*, *p2*, ... = pair style specific quantities for allowed N values
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *cutoff*
@@ -69,9 +69,9 @@ force.  The values *fx*, *fy*, and *fz* are the :math:`(x,y,z)` components of
 *force* on atom I.
 
 A pair style may define additional pairwise quantities which can be
-accessed as *p1* to *pN*, where :math:`N` is defined by the pair style.  Most
-pair styles do not define any additional quantities, so :math:`N = 0`.  An
-example of ones that do are the :doc:`granular pair styles <pair_gran>`
+accessed as *p1* to *pN*, where :math:`N` is defined by the pair style.
+Most pair styles do not define any additional quantities, so :math:`N = 0`.
+An example of ones that do are the :doc:`granular pair styles <pair_gran>`
 which calculate the tangential force between two particles and return
 its components and magnitude acting on atom :math:`I` for
 :math:`N \in \{1,2,3,4\}`.  See individual pair styles for details.

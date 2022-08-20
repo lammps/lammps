@@ -8,11 +8,11 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID dipole charge-correction
+   compute ID group-ID dipole arg
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * dipole = style name of this compute command
-* charge-correction = *mass* or *geometry*, use COM or geometric center for charged chunk correction (optional)
+* arg = *mass* or *geometry* = use COM or geometric center for charged chunk correction (optional)
 
 Examples
 """"""""

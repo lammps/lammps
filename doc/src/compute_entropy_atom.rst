@@ -19,11 +19,10 @@ Syntax
 .. parsed-literal::
 
    keyword = *avg* or *local*
-     *avg* values = *yes* or *no* cutoff2
-       *yes* = average the pair entropy over neighbors
-       *no* = do not average the pair entropy over neighbors
+     *avg* args = neigh cutoff2
+       neigh value = *yes* or *no* = whether to average the pair entropy over neighbors
        cutoff2 = cutoff for the averaging over neighbors
-     *local* values = *yes* or *no* = use the local density around each atom to normalize the g(r)
+     *local* arg = *yes* or *no* = use the local density around each atom to normalize the g(r)
 
 Examples
 """"""""

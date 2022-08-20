@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID fabric cutoff attribute1 attribute2 ... keyword values ...
+   compute ID group-ID fabric cutoff attribute ... keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * fabric = style name of this compute command
@@ -20,6 +20,7 @@ Syntax
        *radius* = cutoffs determined based on atom diameters (atom style sphere)
 
 * one or more attributes may be appended
+* attribute = *contact* or *branch* or *force/normal* or *force/tangential*
 
   .. parsed-literal::
 

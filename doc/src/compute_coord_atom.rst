@@ -19,9 +19,9 @@ Syntax
 
   .. parsed-literal::
 
-     *cutoff* args = cutoff [group group2-ID] typeN
+     *cutoff* args = cutoff [*group* group2-ID] typeN
        cutoff = distance within which to count coordination neighbors (distance units)
-       group *group2-ID* = select group-ID to restrict which atoms to consider for coordination number (optional)
+       *group* group2-ID = select group-ID to restrict which atoms to consider for coordination number (optional)
        typeN = atom type for Nth coordination count (see asterisk form below)
      *orientorder* args = orientorderID threshold
        orientorderID = ID of an orientorder/atom compute

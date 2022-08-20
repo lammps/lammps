@@ -24,7 +24,7 @@ Syntax
          I,J = type pair(s) to set parameter for
          v_delta = variable with perturbation to apply (in the units of the parameter)
        *atom* args = aparam I v_delta
-         aparam = parameter to perturb
+         aparam = *charge* = parameter to perturb
          I = type to set parameter for
          v_delta = variable with perturbation to apply (in the units of the parameter)
 

@@ -724,7 +724,7 @@ class dump:
       column = self.names[name]
       insert = "snap.atoms[i][%d]" % (column)
       eq = eq.replace(item,insert)
-    ceq = compile(eq,'','single')
+    ceq = compile(eq,'<string>','single')
 
     for snap in self.snaps:
       if not snap.tselect: continue
@@ -1157,11 +1157,11 @@ class tselect:
   def test(self,teststr):
     data = self.data
     snaps = data.snaps
-    cmd = "flag = " + teststr.replace("$t","snaps[i].time")
-    ccmd = compile(cmd,'','single')
+    cmd = teststr.replace("$t","snaps[i].time")
+    ccmd = compile(cmd,'<string>','eval')
     for i in range(data.nsnaps):
       if not snaps[i].tselect: continue
-      exec(ccmd)
+      flag = eval(ccmd)
       if not flag:
         snaps[i].tselect = 0
         data.nselect -= 1
@@ -1199,21 +1199,20 @@ class aselect:
     # replace all $var with snap.atoms references and compile test string
 
     pattern = "\$\w*"
-    list = re.findall(pattern,teststr)
-    for item in list:
+    matches = re.findall(pattern,teststr)
+    for item in matches:
       name = item[1:]
       column = data.names[name]
       insert = "snap.atoms[i][%d]" % column
       teststr = teststr.replace(item,insert)
-    cmd = "flag = " + teststr
-    ccmd = compile(cmd,'','single')
+    ccmd = compile(teststr,'<string>','eval')
 
     if len(args) == 0:                           # all selected timesteps
       for snap in data.snaps:
         if not snap.tselect: continue
         for i in range(snap.natoms):
           if not snap.aselect[i]: continue
-          exec(ccmd)
+          flag = eval(ccmd)
           if not flag:
             snap.aselect[i] = 0
             snap.nselect -= 1

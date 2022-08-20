@@ -6,7 +6,7 @@ skip_tests: single
 prerequisites: ! |
   atom dielectric
   pair coul/long/dielectric
-  kspace ewald
+  kspace pppm/dielectric
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic

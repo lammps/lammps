@@ -71,6 +71,7 @@ class log:
     self.names = []
     self.ptr = {}
     self.data = []
+    self.style = -1
 
     # flist = list of all log file names
 

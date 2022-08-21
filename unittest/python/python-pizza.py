@@ -43,7 +43,7 @@ class Logfiles(unittest.TestCase):
         self.assertEqual(m[2],0.0)
         l.write("all.txt",0)
         l.write("some.txt",1,"Step","Temp","Press")
-        
+
         with self.assertRaises(Exception):
             t = l.next()
 
@@ -58,7 +58,7 @@ class Logfiles(unittest.TestCase):
         t = l.next()
         self.assertEqual(l.style, 2)
         self.assertEqual(l.nvec, 6)
-        
+
     def testMultiLogFile(self):
         l = log.log(os.path.join(EXAMPLES_DIR, MULTI_STYLE_EXAMPLE_LOG))
         self.assertEqual(l.nvec, 14)
@@ -120,6 +120,30 @@ class PythonDump(unittest.TestCase):
         self.lmp.command("dump 1 all custom 2 " + dumpfile + " id type mol q x y z vx vy vz")
         self.lmp.command("dump_modify 1 time yes units yes")
         self.lmp.command("run 4 post no")
+        d = dump.dump(dumpfile)
+        id1, id2 = d.minmax("id")
+        self.assertEqual(id1,1)
+        self.assertEqual(id2,29)
+        t = d.time()
+        self.assertEqual(len(t),3)
+        d.tselect.one(2,4)
+        index, time, flag = d.iterator(0)
+        self.assertEqual(index,1)
+        self.assertEqual(time,2)
+        self.assertEqual(flag,1)
+        index, time, flag = d.iterator(1)
+        self.assertEqual(index,2)
+        self.assertEqual(time,4)
+        self.assertEqual(flag,1)
+        index, time, flag = d.iterator(1)
+        self.assertEqual(index,0)
+        self.assertEqual(time,0)
+        self.assertEqual(flag,-1)
+
+        with self.assertRaises(Exception):
+          t = d.next()
+
+        os.remove(dumpfile)
 
 if __name__ == "__main__":
     unittest.main()

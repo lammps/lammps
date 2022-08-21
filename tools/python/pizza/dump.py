@@ -357,7 +357,21 @@ class dump:
   def read_snapshot(self,f):
     try:
       snap = Snap()
-      item = f.readline()
+      snap.units = 'unknown'
+      snap.stime = -1.0
+      # read until hitting next "TIMESTEP" item
+      while True:
+        try:
+          item = f.readline().split()
+          if item[0] == 'ITEM:' and item[1] == 'UNITS':
+            snap.units = f.readline().split()[0]
+          if item[0] == 'ITEM:' and item[1] == 'TIME':
+            snap.time = f.readline().split()[0]
+          if item[0] == 'ITEM:' and item[1] == 'TIMESTEP':
+            break
+        except:
+          return
+
       snap.time = int(f.readline().split()[0])    # just grab 1st field
       item = f.readline()
       snap.natoms = int(f.readline())
@@ -391,7 +405,7 @@ class dump:
         for i in range(1,snap.natoms):
           words += f.readline().split()
         floats = map(float,words)
-        atom_data = np.array(list(floats),np.float)
+        atom_data = np.array(list(floats),float)
 
         snap.atoms = atom_data.reshape((snap.natoms, ncol))
       else:

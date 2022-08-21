@@ -318,9 +318,9 @@ class log:
         last = 1                                      # entire read is a chunk
         s1 = 0
         if self.style == 1:
-          s2 = txt.rfind("\n--".encode('utf-8'),s1) + 1
+          s2 = txt.rfind("\n--",s1) + 1
         else:
-          s2 = txt.rfind("\n".encode('utf-8'),s1) + 1
+          s2 = txt.rfind("\n",s1) + 1
         eof -= len(txt) - s2
         if s1 == s2: break
 

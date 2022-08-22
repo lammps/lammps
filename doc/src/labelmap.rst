@@ -40,7 +40,7 @@ As explained on the Howto page, valid type labels can contain any
 alphanumeric character, but cannot start with a number.  They can also
 contain standard characters such as square brackets "[" and "]", dash
 "-", underscore "_", plus "+" and equals "=" signs.  Note that type
-labels cannot contain the symbols '#' or '*'.
+labels cannot contain the comment symbol '#'.
 
 A *labelmap* command can only modify the label map for one type-kind
 (atom types, bond types, etc).  Any number of numeric-type/type-label

@@ -28,8 +28,8 @@ assigned.
 Valid type labels can contain any alphanumeric character, but cannot
 start with a number.  They can also contain standard characters, such
 as square brackets "[" and "]", underscore "_", dash "-", plus "+" and
-equals "=" signs.  Note that type labels cannot contain the symbols
-'#' or '*'.
+equals "=" signs.  Note that type labels cannot contain the comment
+symbol '#'.
 
 There are two ways to define label maps.  One is via the
 :doc:`labelmap <labelmap>` command.  The other is via the

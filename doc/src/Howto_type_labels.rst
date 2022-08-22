@@ -31,13 +31,6 @@ as square brackets "[" and "]", underscore "_", dash "-", plus "+" and
 equals "=" signs.  Note that type labels cannot contain the symbols
 '#' or '*'.
 
-As explained below, for certain commands in LAMMPS, it is useful to
-define type labels so that the atom types that make up a given bond,
-angle, dihedral, or improper can be deduced from the type label.  A
-standard way to do that is to define the type label for the bond by
-enclosing the constituent atom types in square brackets.  E.g., define
-a C-H bond with a type label "[C][H]".
-
 There are two ways to define label maps.  One is via the
 :doc:`labelmap <labelmap>` command.  The other is via the
 :doc:`read_data <read_data>` command.  A data file can have sections
@@ -57,14 +50,14 @@ argument, can use the associated type label instead.  If a type label
 is not defined for a particular numeric type, only its numeric type
 can be used.
 
-This example assigns a label to a bond type, and then uses the type
-label to redefine the bond coefficients.
+This example assigns labels to the atom types, and then uses the type
+labels to redefine the pair coefficients.
 
 .. code-block:: LAMMPS
 
-   bond_coeff 2 80.0 1.2               # numeric type
-   labelmap bond 2 [C][H]
-   bond_coeff [C][H] 80.0 1.2          # type label
+   pair_coeff 1 2 1.0 1.0              # numeric types
+   labelmap atom 1 C 2 H
+   pair_coeff C H 1.0 1.0              # type labels
 
 Support for type labels is a work-in-progress for LAMMPS as of
 Nov 2021.  If an input script command allows substituting for a
@@ -75,21 +68,22 @@ labelmap function that converts a type label to a numeric type, as in
 the last example above.  See the :doc:`variable <variable>` command
 for details.
 
-For example, here is how the bond_coeff command could be used with a
-type label if it did not yet support them, either with an explicit
-variable command or an implicit variable used in the bond_coeff
+For example, here is how the pair_coeff command could be used with
+type labels if it did not yet support them, either with an explicit
+variable command or an implicit variable used in the pair_coeff
 command.
 
 .. code-block:: LAMMPS
 
-   labelmap bond 2 [C][H]
-   variable bond2 equal blabel([C][H])
-   bond_coeff ${bond2} 80.0 1.2
+   labelmap atom 1 C 2 H
+   variable atom1 equal label(C)
+   variable atom2 equal label(H)
+   pair_coeff ${atom1} ${atom2} 1.0 1.0
 
 .. code-block:: LAMMPS
 
-   labelmap bond 2 [C][H]
-   bond_coeff $(blabel([C][H])) 80.0 1.2
+   labelmap atom 1 C 2 H
+   pair_coeff $(label(C)) $(label(H)) 80.0 1.2
 
 Support for output of type labels in dump files will be added to
 LAMMPS soon (as of Nov 2021).

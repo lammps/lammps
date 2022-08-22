@@ -22,8 +22,8 @@ Examples
    dihedral_coeff * 80.0 1 3 0.5
    dihedral_coeff 2* 80.0 1 3 0.5
 
-   labelmap dihedral 1 [C][C][O][H]
-   dihedral_coeff [C][C][O][H] 80.0 1 3
+   labelmap dihedral 1 backbone
+   dihedral_coeff backbone 80.0 1 3
 
 Description
 """""""""""

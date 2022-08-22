@@ -20,8 +20,7 @@ Examples
 .. code-block:: LAMMPS
 
    labelmap atom 3 carbon
-   labelmap bond 1 [c1][c2] 2 [c1][hc]
-   labelmap bond 1 [c1][c2] 2 [c1][hc]
+   labelmap bond 1 carbonyl 2 nitrile
    labelmap atom $(label(carbon)) C  # change type label from 'carbon' to 'C'
 
 Description

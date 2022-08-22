@@ -22,8 +22,8 @@ Examples
    angle_coeff * 5.0
    angle_coeff 2*10 5.0
 
-   labelmap angle 1 [C][O][H]
-   angle_coeff [C][O][H] 300.0 107.0
+   labelmap angle 1 hydroxyl
+   angle_coeff hydroxyl 300.0 107.0
 
 Description
 """""""""""

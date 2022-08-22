@@ -13,6 +13,7 @@ Accelrys
 acceptor
 Acceptor
 acceptors
+accessor
 accomx
 accomy
 accomz
@@ -1627,6 +1628,7 @@ kb
 kB
 kbit
 kbits
+kbond
 kcal
 kcl
 Kd

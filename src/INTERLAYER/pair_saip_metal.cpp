@@ -40,13 +40,13 @@ using namespace InterLayer;
 #define PGDELTA 1
 
 static const char cite_saip[] =
-    "saip/metal potential doi.org/10.1021/acs.jctc.1c00622\n"
+    "saip/metal potential: doi:10.1021/acs.jctc.1c00622\n\n"
     "@Article{Ouyang2021\n"
-    " author = {W. Ouyang, O. Hod, and R. Guerra},\n"
+    " author = {W. Ouyang and O. Hod and R. Guerra},\n"
     " title = {Registry-Dependent Potential for Interfaces of Gold with Graphitic Systems},\n"
-    " journal = {J. Chem. Theory Comput.},\n"
+    " journal = {J.~Chem.\\ Theory Comput.},\n"
     " volume =  17,\n"
-    " pages =   {7215-7223}\n"
+    " pages =   {7215--7223}\n"
     " year =    2021,\n"
     "}\n\n";
 

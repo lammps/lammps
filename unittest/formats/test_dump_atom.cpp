@@ -624,7 +624,7 @@ TEST_F(DumpAtomTest, dump_modify_invalid)
     command("dump id all atom 1 dump.txt");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id true"););
+    TEST_FAILURE(".*Unknown dump_modify keyword: true.*", command("dump_modify id true"););
 }
 
 TEST_F(DumpAtomTest, write_dump)

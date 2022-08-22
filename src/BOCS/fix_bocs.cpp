@@ -42,13 +42,15 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_user_bocs_package[] =
-  "BOCS package:\n\n"
+  "BOCS package: doi:10.1021/acs.jpcb.7b09993\n\n"
   "@Article{Dunn2018,\n"
-  " author = {NJH Dunn, KM Lebold, MR DeLyser, JF Rudzinski, WG Noid},\n"
-  " title = {BOCS: Bottom-Up Open-Source Coarse-Graining Software},\n"
-  " journal = {J. Phys. Chem. B},\n"
+  " author = {N. J. H. Dunn and K. M. Lebold and M. R. {DeLyser} and\n"
+  "    J. F. Rudzinski and W. G. Noid},\n"
+  " title = {{BOCS}: Bottom-Up Open-Source Coarse-Graining Software},\n"
+  " journal = {J.~Phys.\\ Chem.~B},\n"
   " year =    2018,\n"
   " volume =  122,\n"
+  " number =  13,\n"
   " pages =   {3363--3377}\n"
   "}\n\n";
 

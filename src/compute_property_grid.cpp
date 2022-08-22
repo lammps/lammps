@@ -298,7 +298,7 @@ double ComputePropertyGrid::memory_usage()
 void ComputePropertyGrid::pack_id(int n)
 {
   if (dimension == 2) {
-    if (nvalues == 0) {
+    if (nvalues == 1) {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) vec2d[iy][ix] = iy * nxgrid + ix + 1;
     } else {
@@ -306,7 +306,7 @@ void ComputePropertyGrid::pack_id(int n)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) array2d[iy][ix][n] = iy * nxgrid + ix + 1;
     }
   } else if (dimension == 3) {
-    if (nvalues == 0) {
+    if (nvalues == 1) {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++)
@@ -327,7 +327,7 @@ void ComputePropertyGrid::pack_id(int n)
 template <int IDIM> void ComputePropertyGrid::pack_indices(int n)
 {
   if (dimension == 2) {
-    if (nvalues == 0) {
+    if (nvalues == 1) {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
           if (IDIM == 0) vec2d[iy][ix] = ix + 1;
@@ -342,7 +342,7 @@ template <int IDIM> void ComputePropertyGrid::pack_indices(int n)
     }
 
   } else if (dimension == 3) {
-    if (nvalues == 0) {
+    if (nvalues == 1) {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -387,7 +387,7 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
         if (IDIM == 1) delta = 1.0 / nygrid;
       }
 
-      if (nvalues == 0) {
+      if (nvalues == 1) {
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
             if (POS == LOW) {
@@ -422,7 +422,7 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
       double dy = 1.0 / nygrid;
       lamda[2] = 0.0;
 
-      if (nvalues == 0) {
+      if (nvalues == 1) {
         for (int iy = nylo_in; iy <= nyhi_in; iy++) {
           lamda[1] = iy * dy;
           for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -462,7 +462,7 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
         if (IDIM == 2) delta = 1.0 / nzgrid;
       }
 
-      if (nvalues == 0) {
+      if (nvalues == 1) {
         for (int iz = nzlo_in; iz <= nzhi_in; iz++)
           for (int iy = nylo_in; iy <= nyhi_in; iy++)
             for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -503,7 +503,7 @@ template <int POS, int MODE, int IDIM> void ComputePropertyGrid::pack_coords(int
       double dy = 1.0 / nygrid;
       double dz = 1.0 / nzgrid;
 
-      if (nvalues == 0) {
+      if (nvalues == 1) {
         for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
           lamda[2] = iz * dz;
           for (int iy = nylo_in; iy <= nyhi_in; iy++) {

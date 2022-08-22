@@ -107,6 +107,8 @@ class FixAveGrid : public Fix {
   void atom2grid();
   void grid2grid();
 
+  void allocate_grid();
+  void deallocate_grid();
   void zero_grid(double **, double **, double ***, 
                  double ***, double ***, double ****);
   void sum_sample_to_epoch();

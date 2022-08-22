@@ -53,7 +53,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   grid2d(nullptr), grid3d(nullptr),
   grid_buf1(nullptr), grid_buf2(nullptr),
   vec2d(nullptr), vec3d(nullptr), array2d(nullptr), array3d(nullptr),
-  count2d(nullptr), count3d(nullptr)
+  count2d(nullptr), count3d(nullptr),
+  vec2d_sample(nullptr), vec3d_sample(nullptr), array2d_sample(nullptr), array3d_sample(nullptr),
+  count2d_sample(nullptr), count3d_sample(nullptr),
+  vec2d_epoch(nullptr), vec3d_epoch(nullptr), array2d_epoch(nullptr), array3d_epoch(nullptr),
+  count2d_epoch(nullptr), count3d_epoch(nullptr),
+  vec2d_running(nullptr), vec3d_running(nullptr), array2d_running(nullptr), array3d_running(nullptr),
+  count2d_running(nullptr), count3d_running(nullptr)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/grid command");
 
@@ -97,45 +103,45 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[iarg],"vx") == 0) {
       which[nvalues] = ArgInfo::V;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       modeatom = 1;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       which[nvalues] = ArgInfo::V;
-      argindex[nvalues++] = 1;
+      argindex[nvalues] = 1;
       modeatom = 1;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       which[nvalues] = ArgInfo::V;
-      argindex[nvalues++] = 2;
+      argindex[nvalues] = 2;
       modeatom = 1;
 
     } else if (strcmp(arg[iarg],"fx") == 0) {
       which[nvalues] = ArgInfo::F;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       modeatom = 1;
     } else if (strcmp(arg[iarg],"fy") == 0) {
       which[nvalues] = ArgInfo::F;
-      argindex[nvalues++] = 1;
+      argindex[nvalues] = 1;
       modeatom = 1;
     } else if (strcmp(arg[iarg],"fz") == 0) {
       which[nvalues] = ArgInfo::F;
-      argindex[nvalues++] = 2;
+      argindex[nvalues] = 2;
       modeatom = 1;
 
     } else if (strcmp(arg[iarg],"density/number") == 0) {
       which[nvalues] = ArgInfo::DENSITY_NUMBER;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       modeatom = 1;
     } else if (strcmp(arg[iarg],"density/mass") == 0) {
       which[nvalues] = ArgInfo::DENSITY_MASS;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       modeatom = 1;
     } else if (strcmp(arg[iarg],"mass") == 0) {
       which[nvalues] = ArgInfo::MASS;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       modeatom = 1;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       which[nvalues] = ArgInfo::TEMPERATURE;
-      argindex[nvalues++] = 0;
+      argindex[nvalues] = 0;
       modeatom = 1;
 
     } else {
@@ -154,10 +160,9 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
       if (modegrid && which[nvalues] == ArgInfo::VARIABLE)
         error->all(FLERR,"Fix ave/grid cannot use variable for grid info");
-
-      nvalues++;
     }
 
+    nvalues++;
     iarg++;
   }
 
@@ -387,18 +392,18 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // instantiate the Grid class and allocate per-grid memory
 
-  double maxdist,shift;
+  double maxdist;
 
   if (modeatom) {
     maxdist = 0.5 * neighbor->skin;
-    shift = SHIFT;
+    shift = OFFSET + SHIFT;
   } else if (modegrid) {
     maxdist = 0.0;
     shift = 0.0;
   }
 
   if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, maxdist, 0, shift,
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, maxdist, 0, SHIFT,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out);
 
@@ -408,19 +413,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
 
-    if (nvalues == 1)
-      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
-                              "ave/grid:vec2d");
-    else
-      memory->create3d_offset_last(array2d, nylo_out, nyhi_out, nxlo_out,
-                                   nxhi_out, nvalues, "ave/grid:array2d");
-
-    if (modeatom)
-      memory->create2d_offset(count2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
-                              "ave/grid:count2d");
-
   } else {
-    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 0, shift,
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 0, SHIFT,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out,
                         nzlo_out, nzhi_out);
@@ -431,21 +425,11 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
       (nzhi_out - nzlo_out + 1);
-
-    if (nvalues == 1)
-      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out,
-                              nyhi_out, nxlo_out, nxhi_out,
-                              "ave/grid:vec3d");
-    else
-      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out,
-                                   nyhi_out, nxlo_out, nxhi_out, nvalues,
-                                   "ave/grid:array3d");
-
-    if (modeatom)
-      memory->create3d_offset(count3d, nzlo_out, nzhi_out, nylo_out,
-                              nyhi_out, nxlo_out, nxhi_out,
-                              "ave/grid:vec3d");
   }
+
+  // allocate all per-grid data
+
+  allocate_grid();
 
   // zero the output grid and counts since dump may access it on timestep 0
   // zero running grid if used by ave
@@ -459,12 +443,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   if (aveflag == RUNNING || aveflag == WINDOW)
     zero_grid(count2d_running,vec2d_running,array2d_running,
               count3d_running,vec3d_running,array3d_running);
-  
-  // bin indices for ATOM mode
+
+  // bin indices and skip flags for ATOM mode
   // vresult for per-atom variable evaluation
 
   maxatom = 0;
   bin = nullptr;
+  skip = nullptr;
 
   maxvar = 0;
   vresult = nullptr;
@@ -494,19 +479,19 @@ FixAveGrid::~FixAveGrid()
 
   delete grid2d;
   delete grid3d;
+
   memory->destroy(grid_buf1);
   memory->destroy(grid_buf2);
 
-  memory->destroy2d_offset(vec2d,nylo_out,nxlo_out);
-  memory->destroy2d_offset(array2d,nylo_out,nxlo_out);
-  memory->destroy2d_offset(count2d,nylo_out,nxlo_out);
+  // deallocate all per-grid data
 
-  memory->destroy3d_offset(vec3d,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy4d_offset_last(array3d,nzlo_out,nylo_out,nxlo_out);
-  memory->destroy3d_offset(count3d,nzlo_out,nylo_out,nxlo_out);
+  deallocate_grid();
 
-  memory->destroy(bin);
-  memory->destroy(vresult);
+  if (modeatom) {
+    memory->destroy(bin);
+    memory->destroy(skip);
+    memory->destroy(vresult);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -628,7 +613,7 @@ void FixAveGrid::end_of_step()
   
   if (irepeat == 0) zero_grid(count2d_sample,vec2d_sample,array2d_sample,
                               count3d_sample,vec3d_sample,array3d_sample);
-  if (irepeat == 0 || normflag == SAMPLE)
+  if (irepeat == 0 && normflag == SAMPLE)
     zero_grid(count2d_epoch,vec2d_epoch,array2d_epoch,
               count3d_epoch,vec3d_epoch,array3d_epoch);
 
@@ -781,6 +766,7 @@ void FixAveGrid::atom2grid()
   }
 
   if (triclinic) domain->x2lamda(nlocal);
+
   int flag = 0;
 
   if (dimension == 2) {
@@ -846,6 +832,7 @@ void FixAveGrid::atom2grid()
   }
 
   if (flag) error->one(FLERR,"Out of range fix ave/grid atoms");
+
   if (triclinic) domain->lamda2x(nlocal);
 
   // loop over user-specified values
@@ -1200,6 +1187,144 @@ void FixAveGrid::grid2grid()
 }
 
 /* ----------------------------------------------------------------------
+   allocate all grids which will be used
+   if ATOM mode, also allocate per-cell counts
+------------------------------------------------------------------------- */
+
+void FixAveGrid::allocate_grid()
+{
+  if (dimension == 2) {
+    
+    if (nvalues == 1) {
+      memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                              "ave/grid:vec2d");
+      memory->create2d_offset(vec2d_sample, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                              "ave/grid:vec2d_sample");
+      if (normflag == SAMPLE)
+        memory->create2d_offset(vec2d_epoch, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:vec2d_epoch");
+      if (aveflag == RUNNING) 
+        memory->create2d_offset(vec2d_running, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:vec2d_running");
+    } else {
+      memory->create3d_offset_last(array2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                                   nvalues, "ave/grid:array3d");
+      memory->create3d_offset_last(array2d_sample, nylo_out, nyhi_out, nxlo_out, nxhi_out, 
+                                   nvalues, "ave/grid:array3d_sample");
+      if (normflag == SAMPLE)
+        memory->create3d_offset_last(array2d_epoch, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                                     nvalues, "ave/grid:array3d_epoch");
+      if (aveflag == RUNNING)
+        memory->create3d_offset_last(array2d_running, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                                     nvalues, "ave/grid:array3d_running");
+    }
+
+    if (modeatom) {
+      memory->create2d_offset(count2d, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                              "ave/grid:count2d");
+      memory->create2d_offset(count2d_sample, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                              "ave/grid:count2d_sample");
+      if (normflag == SAMPLE)
+        memory->create2d_offset(count2d_epoch, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:count2d_epoch");
+      if (normflag == RUNNING) {
+        memory->create2d_offset(count2d_running, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:count2d_running");
+      }
+    }
+
+  } else if (dimension == 3) {
+
+    if (nvalues == 1) {
+      memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out,
+                              nyhi_out, nxlo_out, nxhi_out,
+                              "ave/grid:vec3d");
+      memory->create3d_offset(vec3d_sample, nzlo_out, nzhi_out, nylo_out, 
+                              nyhi_out, nxlo_out, nxhi_out,
+                              "ave/grid:vec3d_sample");
+      if (normflag == SAMPLE)
+        memory->create3d_offset(vec3d_epoch, nzlo_out, nzhi_out, nylo_out, 
+                                nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:vec3d_epoch");
+      if (aveflag == RUNNING) 
+        memory->create3d_offset(vec3d_running, nzlo_out, nzhi_out, nylo_out, 
+                                nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:vec3d_running");
+    } else {
+      memory->create4d_offset_last(array3d, nzlo_out, nzhi_out, nylo_out,
+                                   nyhi_out, nxlo_out, nxhi_out, nvalues,
+                                   "ave/grid:array3d");
+      memory->create4d_offset_last(array3d_sample, nzlo_out, nzhi_out, nylo_out, 
+                                   nyhi_out, nxlo_out, nxhi_out, 
+                                   nvalues, "ave/grid:array3d_sample");
+      if (normflag == SAMPLE)
+        memory->create4d_offset_last(array3d_epoch, nzlo_out, nzhi_out, nylo_out, 
+                                     nyhi_out, nxlo_out, nxhi_out,
+                                     nvalues, "ave/grid:array3d_epoch");
+      if (aveflag == RUNNING)
+        memory->create4d_offset_last(array3d_running, nzlo_out, nzhi_out, nylo_out, 
+                                     nyhi_out, nxlo_out, nxhi_out,
+                                     nvalues, "ave/grid:array3d_running");
+    }
+    
+    if (modeatom) {
+      memory->create3d_offset(count3d, nzlo_out, nzhi_out, nylo_out,
+                              nyhi_out, nxlo_out, nxhi_out, "ave/grid:count3d");
+      memory->create3d_offset(count3d_sample, nzlo_out, nzhi_out, nylo_out, 
+                              nyhi_out, nxlo_out, nxhi_out,
+                              "ave/grid:count3d_sample");
+      if (normflag == SAMPLE)
+        memory->create3d_offset(count3d_epoch, nzlo_out, nzhi_out, nylo_out, 
+                                nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:count3d_epoch");
+      if (normflag == RUNNING)
+        memory->create3d_offset(count3d_running, nzlo_out, nzhi_out, nylo_out, 
+                                nyhi_out, nxlo_out, nxhi_out,
+                                "ave/grid:count3d_running");
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   deallocate all grids and counts
+------------------------------------------------------------------------- */
+
+void FixAveGrid::deallocate_grid()
+{
+  memory->destroy2d_offset(vec2d,nylo_out,nxlo_out);
+  memory->destroy2d_offset(array2d,nylo_out,nxlo_out);
+  memory->destroy2d_offset(count2d,nylo_out,nxlo_out);
+
+  memory->destroy2d_offset(vec2d_sample,nylo_out,nxlo_out);
+  memory->destroy2d_offset(array2d_sample,nylo_out,nxlo_out);
+  memory->destroy2d_offset(count2d_sample,nylo_out,nxlo_out);
+
+  memory->destroy2d_offset(vec2d_epoch,nylo_out,nxlo_out);
+  memory->destroy2d_offset(array2d_epoch,nylo_out,nxlo_out);
+  memory->destroy2d_offset(count2d_epoch,nylo_out,nxlo_out);
+
+  memory->destroy2d_offset(vec2d_running,nylo_out,nxlo_out);
+  memory->destroy2d_offset(array2d_running,nylo_out,nxlo_out);
+  memory->destroy2d_offset(count2d_running,nylo_out,nxlo_out);
+
+  memory->destroy3d_offset(vec3d,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(array3d,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(count3d,nzlo_out,nylo_out,nxlo_out);
+
+  memory->destroy3d_offset(vec3d_sample,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(array3d_sample,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(count3d_sample,nzlo_out,nylo_out,nxlo_out);
+
+  memory->destroy3d_offset(vec3d_epoch,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(array3d_epoch,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(count3d_epoch,nzlo_out,nylo_out,nxlo_out);
+
+  memory->destroy3d_offset(vec3d_running,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(array3d_running,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(count3d_running,nzlo_out,nylo_out,nxlo_out);
+}
+
+/* ----------------------------------------------------------------------
    zero values for a grid incluing ghost cells
    if ATOM mode, also zero per-cell counts
 ------------------------------------------------------------------------- */
@@ -1516,9 +1641,11 @@ void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
     }
   } else {
     for (i = 0; i < nlist; i++) {
+      printf("PACK i %d nlist %d, listI %d nvalues %d count %d\n",
+             i,nlist,list[i],nvalues,count[list[i]]);
       buf[m++] = count[list[i]];
       values = &data[nvalues*list[i]];
-      for (j = 0; j <= nvalues; j++)
+      for (j = 0; j < nvalues; j++)
         buf[m++] = values[j];
     }
   }
@@ -1556,7 +1683,7 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
     for (i = 0; i < nlist; i++) {
       count[list[i]] = buf[m++];
       values = &data[nvalues*list[i]];
-      for (j = 0; j <= nvalues; j++)
+      for (j = 0; j < nvalues; j++)
         values[j] = buf[m++];
     }
   }

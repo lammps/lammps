@@ -209,7 +209,7 @@ void Domain::set_initial_box(int expandflag)
   if (boxlo[0] >= boxhi[0] || boxlo[1] >= boxhi[1] || boxlo[2] >= boxhi[2])
     error->one(FLERR,"Box bounds are invalid or missing");
 
-  if (domain->dimension == 2 && (xz != 0.0 || yz != 0.0))
+  if (dimension == 2 && (xz != 0.0 || yz != 0.0))
     error->all(FLERR,"Cannot skew triclinic box in z for 2d simulation");
 
   // error check or warning on triclinic tilt factors

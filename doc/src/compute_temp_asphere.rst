@@ -49,21 +49,21 @@ rotational).
 
 .. note::
 
-   This choice for degrees of freedom (dof) assumes that all
+   This choice for degrees of freedom (DOF) assumes that all
    finite-size aspherical or spherical particles in your model will
-   freely rotate, sampling all their rotational dof.  It is possible to
+   freely rotate, sampling all their rotational DOF.  It is possible to
    use a combination of interaction potentials and fixes that induce no
    torque or otherwise constrain some of all of your particles so that
-   this is not the case.  Then there are fewer dof and you should use the
-   :doc:`compute_modify extra <compute_modify>` command to adjust the dof
+   this is not the case.  Then there are fewer DOF and you should use the
+   :doc:`compute_modify extra <compute_modify>` command to adjust the DOF
    accordingly.
 
 For example, an aspherical particle with all three of its shape
 parameters the same is a sphere.  If it does not rotate, then it
-should have 3 dof instead of 6 in 3d (or two instead of three in 2d).
+should have 3 DOF instead of 6 in 3d (or two instead of three in 2d).
 A uniaxial aspherical particle has two of its three shape parameters the
 same.  If it does not rotate around the axis perpendicular to its
-circular cross section, then it should have 5 dof instead of 6 in 3d.
+circular cross section, then it should have 5 DOF instead of 6 in 3d.
 The latter is the case for uniaxial ellipsoids in a :doc:`GayBerne model <pair_gayberne>` since there is no induced torque around the
 optical axis.  It will also be the case for biaxial ellipsoids when
 exactly two of the semiaxes have the same length and the corresponding

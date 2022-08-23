@@ -49,13 +49,13 @@ each has three degrees of freedom (two translational, one rotational).
 
 .. note::
 
-   This choice for degrees of freedom (dof) assumes that all
+   This choice for degrees of freedom (DOF) assumes that all
    finite-size spherical particles in your model will freely rotate,
-   sampling all their rotational dof.  It is possible to use a
+   sampling all their rotational DOF.  It is possible to use a
    combination of interaction potentials and fixes that induce no torque
    or otherwise constrain some of all of your particles so that this is
-   not the case.  Then there are less dof and you should use the
-   :doc:`compute_modify extra <compute_modify>` command to adjust the dof
+   not the case.  Then there are less DOF and you should use the
+   :doc:`compute_modify extra <compute_modify>` command to adjust the DOF
    accordingly.
 
 The translational kinetic energy is computed the same as is described

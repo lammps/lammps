@@ -69,10 +69,10 @@ The temperature is calculated by the formula
 
 .. math::
 
-  \text{KE} = \frac{\text{dof}}{2} k T,
+  \text{KE} = \frac{\text{DOF}}{2} k T,
 
 where KE is the total kinetic energy of all atoms assigned to chunks
-(sum of :math:`\frac12 m v^2`), dof is the the total number of degrees of
+(sum of :math:`\frac12 m v^2`), DOF is the the total number of degrees of
 freedom for those atoms, :math:`k` is Boltzmann constant, and :math:`T` is the
 absolute temperature.
 
@@ -107,14 +107,14 @@ formula
 
 .. math::
 
-  \text{KE} = \frac{\text{dof}}{2} k T,
+  \text{KE} = \frac{\text{DOF}}{2} k T,
 
 where KE is the total kinetic energy of the chunk of atoms (sum of
-:math:`\frac12 m v^2`), dof is the total number of degrees of freedom for all
+:math:`\frac12 m v^2`), DOF is the total number of degrees of freedom for all
 atoms in the chunk, :math:`k` is the Boltzmann constant, and :math:`T` is the
 absolute temperature.
 
-The number of degrees of freedom (dof) in this case is calculated as
+The number of degrees of freedom (DOF) in this case is calculated as
 :math:`N\times`\ *adof* + *cdof*, where :math:`N` is the number
 of atoms in the chunk, *adof* is the number of degrees of freedom
 per atom, and *cdof* is the number of degrees of freedom per

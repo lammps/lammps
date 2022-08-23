@@ -20,7 +20,7 @@ Syntax
          N = # of extra degrees of freedom to subtract
        *extra* syntax is identical to *extra/dof*, will be disabled at some point
        *dynamic/dof* value = *yes* or *no*
-         yes/no = do or do not re-compute the number of degrees of freedom (dof) contributing to the temperature
+         yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *dynamic* syntax is identical to *dynamic/dof*, will be disabled at some point
 
 Examples
@@ -50,9 +50,9 @@ degrees-of-freedom.  See the :doc:`compute temp/asphere <compute_temp_asphere>` 
 
 The *dynamic/dof* or *dynamic* keyword determines whether the number
 of atoms :math:`N` in the compute group and their associated degrees of
-freedom (dof) are re-computed each time a temperature is computed.  Only
+freedom (DOF) are re-computed each time a temperature is computed.  Only
 compute styles that calculate a temperature use this option.  By
-default, :math:`N` and their dof are assumed to be constant.  If you are
+default, :math:`N` and their DOF are assumed to be constant.  If you are
 adding atoms or molecules to the system (see the :doc:`fix pour <fix_pour>`,
 :doc:`fix deposit <fix_deposit>`, and :doc:`fix gcmc <fix_gcmc>` commands) or
 expect atoms or molecules to be lost (e.g., due to exiting the simulation box

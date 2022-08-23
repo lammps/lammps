@@ -52,7 +52,7 @@ concentration of species *j* in particle *i*, :math:`u_j` is the
 internal energy of species j, :math:`\Delta H_{f,j} is the heat of
 formation of species *j*, N is the number of molecules represented
 by the coarse-grained particle, :math:`k_B` is the Boltzmann constant,
-and *T* is the temperature of the system.  Additionally, it is
+and :math:`T` is the temperature of the system.  Additionally, it is
 possible to modify the concentration-dependent particle internal
 energy relation by adding an energy correction, temperature-dependent
 correction, and/or a molecule-dependent correction.  An energy

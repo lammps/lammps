@@ -41,20 +41,21 @@ The pressure is computed by the formula
    P = \frac{N k_B T}{V} + \frac{1}{V d}\sum_{i=1}^{N'} \vec r_i \cdot \vec f_i
 
 where *N* is the number of atoms in the system (see discussion of DOF
-below), :math:`k_B` is the Boltzmann constant, *T* is the temperature, *d*
-is the dimensionality of the system (2 for 2d, 3 for 3d), and *V* is the
-system volume (or area in 2d).  The second term is the virial, equal to
-:math:`-dU/dV`, computed for all pairwise as well as 2-body, 3-body, 4-body,
-many-body, and long-range interactions, where :math:`\vec r_i` and
-:math:`\vec f_i` are the position and force vector of atom *i*, and the
-dot indicates the dot product (scalar product).  This is computed in parallel
-for each sub-domain and then summed over all parallel processes. Thus
-:math:`N'` necessarily includes atoms from neighboring sub-domains (so-called
-ghost atoms) and the position and force vectors of ghost atoms are thus
-included in the summation.  Only when running in serial and without
-periodic boundary conditions is :math:`N' = N` the number of atoms in the
-system.  :doc:`Fixes <fix>` that impose constraints (e.g., the :doc:`fix
-shake <fix_shake>` command) may also contribute to the virial term.
+below), :math:`k_B` is the Boltzmann constant, :math:`T` is the
+temperature, *d* is the dimensionality of the system (2 for 2d, 3 for
+3d), and *V* is the system volume (or area in 2d).  The second term is
+the virial, equal to :math:`-dU/dV`, computed for all pairwise as well
+as 2-body, 3-body, 4-body, many-body, and long-range interactions, where
+:math:`\vec r_i` and :math:`\vec f_i` are the position and force vector
+of atom *i*, and the dot indicates the dot product (scalar product).
+This is computed in parallel for each sub-domain and then summed over
+all parallel processes. Thus :math:`N'` necessarily includes atoms from
+neighboring sub-domains (so-called ghost atoms) and the position and
+force vectors of ghost atoms are thus included in the summation.  Only
+when running in serial and without periodic boundary conditions is
+:math:`N' = N` the number of atoms in the system.  :doc:`Fixes <fix>`
+that impose constraints (e.g., the :doc:`fix shake <fix_shake>` command)
+may also contribute to the virial term.
 
 A symmetric pressure tensor, stored as a 6-element vector, is also
 calculated by this compute.  The six components of the vector are

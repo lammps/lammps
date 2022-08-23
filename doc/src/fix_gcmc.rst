@@ -261,7 +261,7 @@ pressure of the fictitious gas reservoir by:
    \mu^{id}  = & k T \ln{\rho \Lambda^3} \\
              = & k T \ln{\frac{\phi P \Lambda^3}{k_B T}}
 
-where :math:`k_B` is the Boltzmann constant, *T* is the user-specified
+where :math:`k_B` is the Boltzmann constant, :math:`T` is the user-specified
 temperature, :math:`\rho` is the number density, *P* is the pressure,
 and :math:`\phi` is the fugacity coefficient.  The constant
 :math:`\Lambda` is required for dimensional consistency.  For all unit
@@ -320,7 +320,7 @@ this will ensure roughly the same behavior whether or not the
 *full_energy* option is used.
 
 Inserted atoms and molecules are assigned random velocities based on
-the specified temperature *T*. Because the relative velocity of all
+the specified temperature :math:`T`. Because the relative velocity of all
 atoms in the molecule is zero, this may result in inserted molecules
 that are systematically too cold. In addition, the intramolecular
 potential energy of the inserted molecule may cause the kinetic energy

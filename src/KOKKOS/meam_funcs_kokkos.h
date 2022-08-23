@@ -229,11 +229,6 @@ void MEAMKokkos<DeviceType>::get_shpfcn(const lattice_t latt, const double sthe,
       s[1] = 0.0;
       s[2] = 32.0 / 9.0;
       break;
-    case BQZ:
-      s[0] = 0.21;
-      s[1] = 2.27;
-      s[2] = 0.567-0.21*0.6;
-      break;
     case DIM:
       s[0] = 1.0;
       s[1] = 2.0 / 3.0;
@@ -274,7 +269,6 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
       return 12;
     case DIA:
     case DIA3:
-    case BQZ: // Si part has diamond structure
     case CH4: // C part has diamond structure
       return 4;
     case DIM:

@@ -6,6 +6,6 @@ CUDA_HOME=/usr/local/cuda
 endif
 
 gpu_SYSINC =
-gpu_SYSLIB =  -lcudart -lcuda
+gpu_SYSLIB =  -lcudart -lcuda -lcufft
 gpu_SYSPATH = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
 

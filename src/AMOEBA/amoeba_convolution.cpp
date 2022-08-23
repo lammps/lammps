@@ -203,7 +203,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   fft1 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-       1,0,&tmp,0);
+                   1,0,&tmp,0);
   //       0,0,&tmp,0);
 
   fft2 = new FFT3d(lmp,world,nx,ny,nz,
@@ -358,14 +358,22 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
     cfft[n++] = ZEROF;
   }
 
+  double time0,time1;
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+  time1 = MPI_Wtime();
 
   if (SCALE) {
     double scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT1,"PRE Convo / POST FFT");
@@ -414,14 +422,23 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   debug_scalar(FFT,"PRE Convo / POST Remap");
   debug_file(FFT,"pre.convo.post.remap");
 #endif
+
+  double time0,time1;
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+  time1 = MPI_Wtime();
 
   if (SCALE) {
     double scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
+
+  time_fft += time1  - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT1,"PRE Convo / POST FFT");
@@ -455,7 +472,16 @@ void *AmoebaConvolution::post_convolution_3d()
   debug_scalar(CFFT1,"POST Convo / PRE FFT");
   debug_file(CFFT1,"post.convo.pre.fft");
 #endif
+
+  double time0,time1;
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+  time1 = MPI_Wtime();
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT2,"POST Convo / POST FFT");
@@ -497,7 +523,17 @@ void *AmoebaConvolution::post_convolution_4d()
   debug_scalar(CFFT1,"POST Convo / PRE FFT");
   debug_file(CFFT1,"post.convo.pre.fft");
 #endif
+
+  double time0,time1;
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+
+  time1 = MPI_Wtime();
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT2,"POST Convo / POST FFT");

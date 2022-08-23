@@ -347,6 +347,10 @@ void PairAmoeba::compute(int eflag, int vflag)
     time_direct_rspace = time_direct_kspace = 0.0;
     time_mutual_rspace = time_mutual_kspace = 0.0;
     time_polar_rspace = time_polar_kspace = 0.0;
+
+    if (ic_kspace) {
+      ic_kspace->time_fft = 0.0;
+    }
   }
 
   double time0,time1,time2,time3,time4,time5,time6,time7,time8;
@@ -542,6 +546,10 @@ void PairAmoeba::finish()
   MPI_Allreduce(&time_polar_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_polar_kspace = ave/comm->nprocs;
 
+  double time_mutual_fft = ic_kspace->time_fft;
+  MPI_Allreduce(&time_mutual_fft,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mutual_fft = ave/comm->nprocs;
+  
   double time_total = (time_init + time_hal + time_repulse + time_disp +
                        time_mpole + time_induce + time_polar + time_qxfer) / 100.0;
 
@@ -570,7 +578,9 @@ void PairAmoeba::finish()
     utils::logmesg(lmp,"      Mpole  time: {:.6g} {:.3g}%\n", time_mpole_kspace, time_mpole_kspace/time_total);
     utils::logmesg(lmp,"      Direct time: {:.6g} {:.3g}%\n", time_direct_kspace, time_direct_kspace/time_total);
     utils::logmesg(lmp,"      Mutual time: {:.6g} {:.3g}%\n", time_mutual_kspace, time_mutual_kspace/time_total);
+    utils::logmesg(lmp,"       - FFT time: {:.6g} {:.3g}%\n", time_mutual_fft, time_mutual_fft/time_total);
     utils::logmesg(lmp,"      Polar  time: {:.6g} {:.3g}%\n", time_polar_kspace, time_polar_kspace/time_total);
+    
   }
 }
 

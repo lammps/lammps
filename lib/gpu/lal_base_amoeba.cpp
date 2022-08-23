@@ -15,6 +15,7 @@
  ***************************************************************************/
 
 #include "lal_base_amoeba.h"
+
 namespace LAMMPS_AL {
 #define BaseAmoebaT BaseAmoeba<numtyp, acctyp>
 
@@ -39,6 +40,9 @@ BaseAmoebaT::~BaseAmoeba() {
   k_polar.clear();
   k_special15.clear();
   k_short_nbor.clear();
+
+  //if (cufft_plan_created) cufftDestroy(plan);
+
   if (pair_program) delete pair_program;
 }
 
@@ -137,10 +141,14 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   _max_fieldp_size = _max_tep_size;
   _fieldp.alloc(_max_fieldp_size*8,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
 
+  _max_thetai_size = 0;
+
   _nmax = nall;
   dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
+
+  cufft_plan_created = false;
 
   return success;
 }
@@ -169,6 +177,9 @@ void BaseAmoebaT::clear_atomic() {
 
   _tep.clear();
   _fieldp.clear();
+  _thetai1.clear();
+  _thetai2.clear();
+  _thetai3.clear();
   dev_nspecial15.clear();
   dev_special15.clear();
   dev_special15_t.clear();
@@ -423,6 +434,36 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 }
 
 // ---------------------------------------------------------------------------
+// Prepare for umutual1: bspline_fill
+//   - reallocate per-atom arrays, thetai1, thetai2, thetai3, if needed
+//   - transfer extra data from host to device
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+void BaseAmoebaT::precompute_umutual1(const int ago, const int inum_full, const int nall,
+                                       const int bsordermax, double **host_x,
+                                       double **host_thetai1, double **host_thetai2,
+                                       double **host_thetai3, void* grid) {
+  
+  _bsordermax = bsordermax;
+
+  if (_max_thetai_size == 0) {
+    _max_thetai_size = static_cast<int>(static_cast<double>(inum_full)*1.10);
+    _thetai1.alloc(_max_thetai_size*_bsordermax*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+    _thetai2.alloc(_max_thetai_size*bsordermax*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+    _thetai3.alloc(_max_thetai_size*bsordermax*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  } else {
+    if (inum_full>_max_thetai_size) {
+      _max_thetai_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
+      _thetai1.resize(_max_thetai_size*_bsordermax*4);
+      _thetai2.resize(_max_thetai_size*_bsordermax*4);
+      _thetai3.resize(_max_thetai_size*_bsordermax*4);
+    }
+  }
+
+}
+
+// ---------------------------------------------------------------------------
 // Reneighbor on GPU if necessary, and then compute multipole real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
@@ -583,7 +624,7 @@ double BaseAmoebaT::host_memory_usage_atomic() const {
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::setup_fft(const int size, const int element_type)
+void BaseAmoebaT::setup_fft(const int numel, const int element_type)
 {
 
 }
@@ -593,9 +634,48 @@ void BaseAmoebaT::setup_fft(const int size, const int element_type)
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_fft1d(void** in, void** out, const int mode)
+void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int mode)
 {
+  if (cufft_plan_created == false) {
+    int m = numel/2;
+    cufftPlan1d(&plan, m, CUFFT_Z2Z, 1);
+    cufft_plan_created = true;
+  }
 
+  // n = number of double complex
+  int n = numel/2;
+  
+  // copy the host array to the device (data)
+  UCL_Vector<cufftDoubleComplex,cufftDoubleComplex> data;
+  data.alloc(n, *(this->ucl_device), UCL_READ_WRITE, UCL_READ_WRITE);
+  int m = 0;
+  double* d_in = (double*)in;
+  for (int i = 0; i < n; i++) {
+    data[i].x = d_in[m];
+    data[i].y = d_in[m+1];
+    m += 2;
+  }
+  data.update_device(false);
+
+  // perform the in-place forward FFT
+  
+  cufftResult result = cufftExecZ2Z(plan, (cufftDoubleComplex*)&data.device,
+    (cufftDoubleComplex*)&data.device, CUFFT_FORWARD);
+  if (result != CUFFT_SUCCESS) printf("failed cufft %d\n", result);
+  ucl_device->sync();
+  data.update_host(false);
+
+  // copy back the data to the host array
+
+  m = 0;
+  double* d_out = (double*)out;
+  for (int i = 0; i < n; i++) {
+    d_out[m] = data[i].x;
+    d_out[m+1] = data[i].y;
+    m += 2;
+  }
+
+  data.clear();
 }
 
 // ---------------------------------------------------------------------------

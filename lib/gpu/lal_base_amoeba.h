@@ -31,6 +31,14 @@
 #include "geryon/nvd_texture.h"
 #endif
 
+#if !defined(USE_OPENCL) && !defined(USE_HIP)
+// temporary workaround for int2 also defined in cufft
+#ifdef int2
+#undef int2
+#endif
+#include "cufft.h"
+#endif
+
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
@@ -142,6 +150,11 @@ class BaseAmoeba {
                 int **&ilist, int **&numj, const double cpu_time, bool &success,
                 double *charge, double *boxlo, double *prd);
 
+  virtual void precompute_umutual1(const int ago, const int inum_full, const int nall,
+                                    const int bsordermax, double **host_x,
+                                    double **host_thetai1, double **host_thetai2,
+                                    double **host_thetai3, void* grid);
+
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
@@ -196,7 +209,7 @@ class BaseAmoeba {
 
   /// compute forward/backward FFT on the device
 
-  void compute_fft1d(void** in, void** out, const int mode);
+  void compute_fft1d(void* in, void* out, const int numel, const int mode);
 
   // -------------------------- DEVICE DATA -------------------------
 
@@ -229,6 +242,10 @@ class BaseAmoeba {
   /// Per-atom arrays
   UCL_Vector<acctyp,acctyp> _tep, _fieldp;
   int _nmax, _max_tep_size, _max_fieldp_size;
+
+  int _bsordermax;
+  UCL_Vector<acctyp,acctyp> _thetai1, _thetai2, _thetai3;
+  int _max_thetai_size;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
@@ -282,6 +299,8 @@ class BaseAmoeba {
   virtual int umutual2b(const int eflag, const int vflag) = 0;
   virtual int polar_real(const int eflag, const int vflag) = 0;
 
+  cufftHandle plan;
+  bool cufft_plan_created;
 };
 
 }

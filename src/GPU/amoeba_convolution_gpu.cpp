@@ -21,12 +21,13 @@ using namespace LAMMPS_NS;
 
 #define SCALE 0
 
-enum {FORWARD,BACKWARD};
+//#define USE_AMOEBA_FFT
 
+#ifdef USE_AMOEBA_FFT
 // External functions from GPU library
-
-int amoeba_setup_fft(const int size, const int element_type);
-int amoeba_compute_fft1d(void* in, void* out, const int mode);
+int amoeba_setup_fft(const int size, const int numel, const int element_type);
+int amoeba_compute_fft1d(void* in, void* out, const int numel, const int mode);
+#endif
 
 /* ----------------------------------------------------------------------
    partition an FFT grid across processors
@@ -52,6 +53,7 @@ AmoebaConvolutionGPU::AmoebaConvolutionGPU(LAMMPS *lmp, Pair *pair,
 FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
 {
   int ix,iy,iz,n;
+  double time0,time1;
 
   // reverse comm for 4d brick grid + ghosts
 
@@ -87,11 +89,20 @@ FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
   debug_file(FFT,"pre.convo.post.remap");
 #endif
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   // perform forward FFT
 
+  #ifdef USE_AMOEBA_FFT
+  amoeba_compute_fft1d(cfft,cfft,2*nfft_owned,FFT3d::FORWARD);
+  #else
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+  #endif
 
-  //amoeba_compute_fft1d(cfft,cfft,FORWARD);
+  time1 = MPI_Wtime();
+
+  time_fft += time1 - time0;
 
   if (SCALE) {
     double scale = 1.0/nfft_global;
@@ -119,7 +130,16 @@ void *AmoebaConvolutionGPU::post_convolution_4d()
   debug_scalar(CFFT1,"POST Convo / PRE FFT");
   debug_file(CFFT1,"post.convo.pre.fft");
 #endif
+
+  double time0,time1;
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+  time1 = MPI_Wtime();
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT2,"POST Convo / POST FFT");

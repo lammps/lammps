@@ -47,6 +47,8 @@ class AmoebaConvolution : protected Pointers {
   FFT_SCALAR *pre_convolution();
   void *post_convolution();
 
+  double time_fft;
+
  protected:
   int which;                   // caller name for convolution being performed
   int flag3d;                  // 1 if using 3d grid_brick, 0 for 4d cgrid_brick

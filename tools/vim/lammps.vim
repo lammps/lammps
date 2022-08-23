@@ -62,4 +62,4 @@ if !exists("did_lammps_syntax_inits")
 endif
 
 let b:current_syntax = "lammps"
-vim: set expandtab
+" vim: set expandtab

@@ -57,11 +57,11 @@ The temperature is calculated by the formula
 
 .. math::
 
-   \text{KE} = \frac{\text{dim}}{2} N k T,
+   \text{KE} = \frac{\text{dim}}{2} N k_B T,
 
 where KE is the total kinetic energy of the group of atoms (sum of
 :math:`\frac12 m v^2`), dim = 2 or 3 is the dimensionality of the simulation,
-:math:`N` is the number of atoms in the group, :math:`k` is the Boltzmann
+:math:`N` is the number of atoms in the group, :math:`k_B` is the Boltzmann
 constant, and :math:`T` is the absolute temperature.  Note that
 the velocity of each core or shell atom used in the KE calculation is
 the velocity of the center-of-mass (COM) of the core/shell pair the

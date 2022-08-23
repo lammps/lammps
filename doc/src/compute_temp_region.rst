@@ -42,11 +42,11 @@ The temperature is calculated by the formula
 
 .. math::
 
-  \text{KE} = \frac{\text{dim}}{2} N k T,
+   \text{KE} = \frac{\text{dim}}{2} N k_B T,
 
 where KE = is the total kinetic energy of the group of atoms (sum of
 :math:`\frac12 m v^2`), dim = 2 or 3 is the dimensionality of the simulation,
-:math:`N` is the  number of atoms in both the group and region, :math:`k` is
+:math:`N` is the  number of atoms in both the group and region, :math:`k_B` is
 the Boltzmann constant, and :math:`T` temperature.
 
 A kinetic energy tensor, stored as a six-element vector, is also

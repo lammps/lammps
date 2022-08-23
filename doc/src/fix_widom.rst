@@ -100,9 +100,9 @@ The excess chemical potential mu_ex is defined as:
 
 .. math::
 
-   \mu_{ex} = -kT \ln(<\exp(-(U_{N+1}-U_{N})/{kT})>)
+   \mu_{ex} = -kT \ln(<\exp(-(U_{N+1}-U_{N})/{k_B T})>)
 
-where *k* is Boltzman's constant, *T* is the user-specified temperature,
+where :math:`k_B` is the Boltzmann constant, *T* is the user-specified temperature,
 U_N and U_{N+1} is the potential energy of the system with N and N+1
 particles.
 

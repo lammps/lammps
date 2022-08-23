@@ -399,7 +399,16 @@ void Grid3d::get_box(int dim, double &lo, double &delta)
   delta = prd[dim] / ngrid[dim];
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   return sizes of two buffers needed for communication
+   either on regular grid or procs or irregular tiling
+   nbuf1 = largest pack or unpack in any Send or Recv or Copy
+   nbuf2 = larget of sum of all packs or unpacks in Send or Recv
+   for regular comm, nbuf1 = nbuf2
+   for irregular comm, nbuf2 >= nbuf2
+   nbuf1,nbuf2 are just count of grid points
+     caller converts them to message size for grid data it stores
+------------------------------------------------------------------------- */
 
 void Grid3d::setup(int &nbuf1, int &nbuf2)
 {

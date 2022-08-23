@@ -113,9 +113,9 @@ class FixAveGrid : public Fix {
                  double ***, double ***, double ****);
   void sum_sample_to_epoch();
   void copy_epoch_to_sample();
-  void sum_sample_to_running() {}
-  void copy_sample_to_output() {}
-  void copy_running_to_output() {}
+  void sum_sample_to_running();
+  void copy_sample_to_output();
+  void copy_running_to_output();
   void copy_sample_to_window(int) {}
   void subtract_window_from_running() {}
 

@@ -615,6 +615,7 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
     case LIN:
     case ZIG:
     case TRI:
+    case SC:
       //     all neighbors are of the opposite type
       *t11av = t12;
       *t21av = t22;
@@ -698,6 +699,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho02 = 8.0 * rhoa01;
       break;
     case B1:
+    case SC:
       *rho01 = 6.0 * rhoa02;
       *rho02 = 6.0 * rhoa01;
       break;

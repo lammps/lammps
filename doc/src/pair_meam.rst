@@ -238,6 +238,7 @@ The recognized keywords for the parameter file are as follows:
                    lin = linear structure (180 degree angle)
                    zig = zigzag structure with a uniform angle
                    tri = H2O-like structure that has an angle
+				   sc = simple cubic
    nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
                  I-J pair (see for example :ref:`(Lee) <Lee>`).
                    0 = second-nearest neighbor formulation off

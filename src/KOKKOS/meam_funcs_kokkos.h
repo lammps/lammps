@@ -269,7 +269,6 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
       return 12;
     case DIA:
     case DIA3:
-    case CH4: // C part has diamond structure
       return 4;
     case DIM:
       return 1;
@@ -282,6 +281,8 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
       return 12;
     case B2:
       return 8;
+    case CH4: // DYNAMO currently implemented this way while it needs two Z values, 4 and 1
+      return 4;
     case LIN:
     case ZIG:
     case TRI:

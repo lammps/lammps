@@ -51,7 +51,7 @@ commands that generate per-chunk data, such as
 :doc:`compute msd/chunk <compute_msd_chunk>`.
 
 Note that only atoms in the specified group contribute to the
-calculation of the *count* attribute.  The 
+calculation of the *count* attribute.  The
 :doc:`compute chunk/atom <compute_chunk_atom>` command defines its own group;
 atoms will have a chunk ID = 0 if they are not in that group,
 signifying they are not assigned to a chunk, and will thus also not

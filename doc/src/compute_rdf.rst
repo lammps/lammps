@@ -99,7 +99,7 @@ listed, then a separate histogram is generated for each
 The *itypeN* and *jtypeN* settings can be specified in one of two
 ways.  An explicit numeric value can be used, as in the fourth example
 above.  Or a wild-card asterisk can be used to specify a range of atom
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If 
+types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If
 :math:`N` is the number of atom types, then an asterisk with no numeric values
 means all types from 1 to :math:`N`. A leading asterisk means all types from 1
 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`

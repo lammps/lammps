@@ -107,7 +107,7 @@ invariants :math:`\hat{W}_\ell` (see Eq. 2.2 in :ref:`Steinhardt <Steinhardt>`)
 for the same degrees as for the :math:`Q_\ell` parameters. For the FCC crystal
 with *nnn* =12,
 
-.. math:: 
+.. math::
 
    \hat{W}_4 = -\frac{7}{3} \sqrt{\frac{2}{429}} \approx -0.159317
 

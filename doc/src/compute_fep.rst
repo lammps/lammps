@@ -92,9 +92,9 @@ stepwise alchemical transformations during a simulation run:
 
 .. math::
 
-   \Delta_0^1 A = \sum_{i=0}^{n-1} \Delta_{\lambda_i}^{\lambda_{i+1}} A = - kT
+   \Delta_0^1 A = \sum_{i=0}^{n-1} \Delta_{\lambda_i}^{\lambda_{i+1}} A = - k_B T
    \sum_{i=0}^{n-1} \ln \left< \exp \left( - \frac{U(\lambda_{i+1}) -
-   U(\lambda_i)}{kT} \right) \right>_{\lambda_i}
+   U(\lambda_i)}{k_B T} \right) \right>_{\lambda_i}
 
 This compute is suitable for the finite-difference thermodynamic
 integration (FDTI) method :ref:`(Mezei) <Mezei>`, which is based on an
@@ -131,9 +131,9 @@ both the forward and reverse routes:
 
 .. math::
 
-   \left< \frac{1}{1 + \exp\left[\left(U_1 - U_0 - \Delta_0^1A \right) /kT
+   \left< \frac{1}{1 + \exp\left[\left(U_1 - U_0 - \Delta_0^1A \right) /k_B T
    \right]} \right>_0 = \left< \frac{1}{1 + \exp\left[\left(U_0 - U_1 +
-   \Delta_0^1A \right) /kT \right]} \right>_1
+   \Delta_0^1A \right) /k_B T \right]} \right>_1
 
 The value of the free energy difference is determined by numerical
 root finding to establish the equality.
@@ -276,8 +276,8 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
 
 .. math::
 
-   \Delta_0^1 A = - kT \sum_{i=0}^{n-1} \ln \frac{\left< V \exp \left( -
-   \frac{U(\lambda_{i+1}) - U(\lambda_i)}{kT} \right)
+   \Delta_0^1 A = - k_B T \sum_{i=0}^{n-1} \ln \frac{\left< V \exp \left( -
+   \frac{U(\lambda_{i+1}) - U(\lambda_i)}{k_B T} \right)
    \right>_{\lambda_i}}{\left< V \right>_{\lambda_i}}
 
 ----------
@@ -287,8 +287,8 @@ Output info
 
 This compute calculates a global vector of length 3 which contains the
 energy difference ( :math:`U_1-U_0` ) as c_ID[1], the
-Boltzmann factor :math:`\exp(-(U_1-U_0)/kT)`, or
-:math:`V \exp(-(U_1-U_0)/kT)`, as c_ID[2] and the
+Boltzmann factor :math:`\exp(-(U_1-U_0)/k_B T)`, or
+:math:`V \exp(-(U_1-U_0)/k_B T)`, as c_ID[2] and the
 volume of the simulation box :math:`V` as c_ID[3]. :math:`U_1` is the
 pair potential energy obtained with the perturbed parameters and
 :math:`U_0` is the pair potential energy obtained with the

@@ -81,15 +81,15 @@ each atom, the temperature is calculated by the formula
 .. math::
 
   \text{KE} = \left( \frac{\text{dim}}{N} - N_s N_x N_y N_z
-                        - \text{extra} \right) \frac{k T}{2},
+                        - \text{extra} \right) \frac{k_B T}{2},
 
 where KE is the total kinetic energy of the group of atoms (sum of
 :math:`\frac12 m v^2`; dim = 2 or 3 is the dimensionality of the simulation;
 :math:`N_s =` 0, 1, 2, or 3 for streaming velocity subtracted in 0, 1, 2, or 3
 dimensions, respectively; *extra* is the number of  extra degrees of freedom;
-*N* is the number of atoms in the group; *k* is the Boltzmann constant, and
-*T* is the absolute temperature.  The :math:`N_s N_x N_y N_z` term is the
-number of degrees of freedom subtracted to adjust for the removal of the
+*N* is the number of atoms in the group; :math:`k_B` is the Boltzmann constant,
+and :math:`T` is the absolute temperature.  The :math:`N_s N_x N_y N_z` term is
+the number of degrees of freedom subtracted to adjust for the removal of the
 center-of-mass velocity in each direction of the *Nx\*Ny\*Nz* bins, as
 discussed in the :ref:`(Evans) <Evans1>` paper.  The extra term defaults to
 :math:`\text{dim} - N_s` and accounts for overall conservation of

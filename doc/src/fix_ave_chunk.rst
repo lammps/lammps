@@ -71,9 +71,10 @@ Examples
    fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
    fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
 
-.. versionchanged: 31 May 2016
 
 .. note::
+
+   .. versionchanged:: 31May2016
 
    If you are trying to replace a deprecated fix ave/spatial command
    with the newer, more flexible fix ave/chunk and :doc:`compute

@@ -34,7 +34,7 @@ The temperature is calculated by the formula
 
 .. math::
 
-   \text{KE} = \frac{\text{dim}}{2} N k T,
+   \text{KE} = \frac{\text{dim}}{2} N k_B T,
 
 where KE is the total kinetic energy of the group of atoms (sum of
 :math:`\frac12 m v^2` for nuclei and sum of
@@ -42,7 +42,7 @@ where KE is the total kinetic energy of the group of atoms (sum of
 includes the radial electron velocity contributions), dim = 2 or 3 is the
 dimensionality of the simulation, :math:`N` is the number of atoms (only total
 number of nuclei in the eFF (see the :doc:`pair_eff <pair_style>`
-command) in the group, :math:`k` is the Boltzmann constant, and :math:`T` is
+command) in the group, :math:`k_B` is the Boltzmann constant, and :math:`T` is
 the absolute temperature.  This expression is summed over all nuclear and
 electronic degrees of freedom, essentially by setting the kinetic contribution
 to the heat capacity to :math:`\frac32 k` (where only nuclei contribute). This

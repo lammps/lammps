@@ -286,7 +286,7 @@ For an orthogonal simulation box this information is formatted as:
 where xlo,xhi are the maximum extents of the simulation box in the
 :math:`x`-dimension, and similarly for :math:`y` and :math:`z`.  The
 "xx yy zz" terms are six characters that encode the style of boundary for each
-of the sisx simulation box boundaries (xlo,xhi; ylo,yhi; and zlo,zhi).  Each of
+of the six simulation box boundaries (xlo,xhi; ylo,yhi; and zlo,zhi).  Each of
 the six characters is either p (periodic), f (fixed), s (shrink wrap),
 or m (shrink wrapped with a minimum value).  See the
 :doc:`boundary <boundary>` command for details.

@@ -54,7 +54,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double rsq, r2inv, rinv, forcecoul, factor_coul, efield_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
@@ -75,9 +75,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
   double *curvature = atom->curvature;
   double *area = atom->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;

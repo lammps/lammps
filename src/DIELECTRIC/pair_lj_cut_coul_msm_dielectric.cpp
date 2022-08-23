@@ -63,7 +63,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
 {
   int i, ii, j, jj, inum, jnum, itype, jtype, itable;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double fraction, table;
   double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
   double egamma, fgamma, prefactor, prefactorE, efield_i;
@@ -106,10 +106,8 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
   double *curvature = atom->curvature;
   double *area = atom->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;

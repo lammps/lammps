@@ -55,7 +55,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itable, itype, jtype;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double fraction, table;
   double r, rsq, r2inv, forcecoul, factor_coul;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i;
@@ -78,7 +78,6 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
   double *curvature = atom->curvature;
   double *area = atom->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double qqrd2e = force->qqrd2e;
 

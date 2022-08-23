@@ -672,7 +672,7 @@ when writing to XTC files.  By default, they are initialized for
 whatever :doc:`units <units>` style is being used, to write out
 coordinates in nanometers and time in picoseconds.  For example, for *real*
 units, LAMMPS defines *sfactor* = 0.1 and *tfactor* = 0.001, since the
-:math:`\mathrm{\mathring A}}` and fs used by *real* units are 0.1 nm and
+:math:`\mathrm{\mathring A}` and fs used by *real* units are 0.1 nm and
 0.001 ps, respectively.  If you are using a units system with distance and time
 units far from nm and ps, you may wish to write XTC files with
 different units, since the compression algorithm used in XTC files is

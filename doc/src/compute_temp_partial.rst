@@ -34,7 +34,7 @@ The temperature is calculated by the formula
 
 .. math::
 
-  \text{KE} = \frac{\text{dim}{2} N k T,
+  \text{KE} = \frac{\text{dim}}{2} N k T,
 
 where KE is the total kinetic energy of the group of atoms (sum of
 :math:`\frac12 m v^2`), dim = 2 or 3 is the dimensionality of the simulation,

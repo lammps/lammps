@@ -83,8 +83,10 @@ asterisk means all indices from n to :math:`N` (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
-had been listed one by one.  For example, the folowing two compute reduce/chunk
-commands are equivalent, since the :doc:`compute property/chunk <compute_property_chunk>` command creates a per-atom array with 3 columns:
+had been listed one by one.  For example, the following two compute reduce/chunk
+commands are equivalent, since the
+:doc:`compute property/chunk <compute_property_chunk>` command creates a per-atom
+array with 3 columns:
 
 .. code-block:: LAMMPS
 

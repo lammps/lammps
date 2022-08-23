@@ -71,23 +71,26 @@ Examples
    fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
    fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
 
-**NOTE:**
+.. versionchanged: 31 May 2016
 
-If you are trying to replace a deprecated fix ave/spatial command
-with the newer, more flexible fix ave/chunk and :doc:`compute chunk/atom <compute_chunk_atom>` commands, you simply need to split
-the fix ave/spatial arguments across the two new commands.  For
-example, this command:
+.. note::
 
-.. code-block:: LAMMPS
+   If you are trying to replace a deprecated fix ave/spatial command
+   with the newer, more flexible fix ave/chunk and :doc:`compute
+   chunk/atom <compute_chunk_atom>` commands, you simply need to split
+   the fix ave/spatial arguments across the two new commands.  For
+   example, this command:
 
-   fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
+   .. code-block:: LAMMPS
 
-could be replaced by:
+      fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
 
-.. code-block:: LAMMPS
+   could be replaced by:
 
-   compute cc1 flow chunk/atom bin/1d y 0.0 1.0
-   fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile
+   .. code-block:: LAMMPS
+
+      compute cc1 flow chunk/atom bin/1d y 0.0 1.0
+      fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile
 
 Description
 """""""""""
@@ -236,10 +239,16 @@ bins, the volume is the bin volume.  Otherwise it is the volume of the
 entire simulation box.
 
 The *temp* value means the temperature is computed for each chunk, by
-the formula KE = DOF/2 k T, where KE = total kinetic energy of the
-chunk of atoms (sum of 1/2 m v\^2), DOF = the total number of degrees
-of freedom for all atoms in the chunk, k = Boltzmann constant, and T =
-temperature.
+the formula
+
+.. math::
+
+   \text{KE} = \frac{\text{DOF}}{2} k_B T,
+
+where KE = total kinetic energy of the chunk of atoms (sum of
+:math:`\frac{1}{2} m v^2`), DOF = the total number of degrees of freedom
+for all atoms in the chunk, :math:`k_B` = Boltzmann constant, and
+:math:`T` = temperature.
 
 The DOF is calculated as N\*adof + cdof, where N = number of atoms in
 the chunk, adof = degrees of freedom per atom, and cdof = degrees of

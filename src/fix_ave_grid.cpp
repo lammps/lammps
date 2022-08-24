@@ -29,6 +29,9 @@
 #include "update.h"
 #include "variable.h"
 
+// DEBUG
+#include "comm.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -827,7 +830,7 @@ void FixAveGrid::atom2grid()
         else skip[i] = 1;
         continue;
       }
-      if (iz < nzlo_out || iz > nyhi_out) {
+      if (iz < nzlo_out || iz > nzhi_out) {
         if (periodicity[2]) flag = 1;
         else skip[i] = 1;
         continue;
@@ -1391,19 +1394,19 @@ void FixAveGrid::sum_sample_to_epoch()
 
   } else {
     if (nvalues == 1) {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             vec3d_epoch[iz][iy][ix] += vec3d_sample[iz][iy][ix];
     } else {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             for (m = 0; m <= nvalues; m++)
               array3d_epoch[iz][iy][ix][m] += array3d_sample[iz][iy][ix][m];
     }
     if (modeatom) 
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             count3d_epoch[iz][iy][ix] += count3d_sample[iz][iy][ix];
@@ -1439,19 +1442,19 @@ void FixAveGrid::copy_epoch_to_sample()
 
   } else {
     if (nvalues == 1) {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             vec3d_sample[iz][iy][ix] = vec3d_epoch[iz][iy][ix];
     } else {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             for (m = 0; m <= nvalues; m++)
               array3d_sample[iz][iy][ix][m] = array3d_epoch[iz][iy][ix][m];
     }
     if (modeatom) 
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             count3d_sample[iz][iy][ix] = count3d_epoch[iz][iy][ix];
@@ -1487,19 +1490,19 @@ void FixAveGrid::copy_sample_to_output()
 
   } else {
     if (nvalues == 1) {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             vec3d[iz][iy][ix] = vec3d_sample[iz][iy][ix];
     } else {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             for (m = 0; m <= nvalues; m++)
               array3d[iz][iy][ix][m] = array3d_sample[iz][iy][ix][m];
     }
     if (modeatom) 
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             count3d[iz][iy][ix] = count3d_sample[iz][iy][ix];
@@ -1535,19 +1538,19 @@ void FixAveGrid::copy_running_to_output()
 
   } else {
     if (nvalues == 1) {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             vec3d[iz][iy][ix] = vec3d_running[iz][iy][ix];
     } else {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             for (m = 0; m <= nvalues; m++)
               array3d[iz][iy][ix][m] = array3d_running[iz][iy][ix][m];
     }
     if (modeatom) 
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             count3d[iz][iy][ix] = count3d_running[iz][iy][ix];
@@ -1583,19 +1586,19 @@ void FixAveGrid::sum_sample_to_running()
 
   } else {
     if (nvalues == 1) {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             vec3d_running[iz][iy][ix] += vec3d_sample[iz][iy][ix];
     } else {
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             for (m = 0; m <= nvalues; m++)
               array3d_running[iz][iy][ix][m] += array3d_sample[iz][iy][ix][m];
     }
     if (modeatom) 
-      for (iz = nylo_in; iz <= nyhi_in; iz++)
+      for (iz = nzlo_in; iz <= nzhi_in; iz++)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++)
             count3d_running[iz][iy][ix] += count3d_sample[iz][iy][ix];
@@ -1833,10 +1836,10 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
     }
   } else {
     for (i = 0; i < nlist; i++) {
-      count[list[i]] = buf[m++];
+      count[list[i]] += buf[m++];
       values = &data[nvalues*list[i]];
       for (j = 0; j < nvalues; j++)
-        values[j] = buf[m++];
+        values[j] += buf[m++];
     }
   }
 }

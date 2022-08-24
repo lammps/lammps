@@ -41,7 +41,7 @@ ContactModel::ContactModel(LAMMPS *lmp) : Pointers(lmp)
   limit_damping = 0;
   beyond_contact = 0;
   nondefault_history_transfer = 0;
-  nmodels = 6;
+  nmodels = NMODELS;
 
   wall_type = NONE;
 

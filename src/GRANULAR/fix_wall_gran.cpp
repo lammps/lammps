@@ -361,7 +361,7 @@ void FixWallGran::init()
   int next_index = 0;
   if (model->beyond_contact) next_index = 1;
 
-  for (i = 0; i < 6; i++) {
+  for (i = 0; i < NMODELS; i++) {
     if (model->sub_models[i]) {
       model->sub_models[i]->history_index = next_index;
       next_index += model->sub_models[i]->size_history;

@@ -143,7 +143,6 @@ void NormalHertz::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
 
 double NormalHertz::calculate_forces()
 {
-  contact->area = sqrt(contact->dR);
   Fne = knfac * contact->delta;
   return Fne;
 }
@@ -172,7 +171,7 @@ void NormalHertzMaterial::coeffs_to_local()
   Emod = coeffs[0];
   damp = coeffs[1];
   poiss = coeffs[2];
-  k = FOURTHIRDS * Emod;
+  k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hertz material normal model");
 }
@@ -181,7 +180,7 @@ void NormalHertzMaterial::coeffs_to_local()
 
 void NormalHertzMaterial::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
 {
-  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[0] = mix_stiffnessE(imodel->coeffs[0], jmodel->coeffs[0]);
   coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
   coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
   coeffs_to_local();
@@ -206,7 +205,11 @@ void NormalDMT::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   cohesion = coeffs[3];
+<<<<<<< HEAD
   k = FOURTHIRDS * Emod;
+=======
+  k = 4 / 3 * mix_stiffnessE(Emod, Emod, poiss, poiss);
+>>>>>>> 12c1923511e802b3b531e34b24fcf386f187dab5
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal DMT normal model");
 }
@@ -215,7 +218,7 @@ void NormalDMT::coeffs_to_local()
 
 void NormalDMT::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
 {
-  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[0] = mix_stiffnessE(imodel->coeffs[0], jmodel->coeffs[0]);
   coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
   coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
   coeffs[3] = mix_geom(imodel->coeffs[3], jmodel->coeffs[3]);
@@ -266,8 +269,12 @@ void NormalJKR::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   cohesion = coeffs[3];
+<<<<<<< HEAD
   k = FOURTHIRDS * Emod;
   Escaled = k * THREEQUARTERS;
+=======
+  Escaled = mix_stiffnessE(Emod, Emod, poiss, poiss); //Dan, not sure why these coefficients are mixed in the regular pair style
+>>>>>>> 12c1923511e802b3b531e34b24fcf386f187dab5
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal JKR normal model");
 }
@@ -276,7 +283,7 @@ void NormalJKR::coeffs_to_local()
 
 void NormalJKR::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
 {
-  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[0] = mix_stiffnessE(imodel->coeffs[0], jmodel->coeffs[0]);
   coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
   coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
   coeffs[3] = mix_geom(imodel->coeffs[3], jmodel->coeffs[3]);

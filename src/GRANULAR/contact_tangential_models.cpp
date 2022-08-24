@@ -196,7 +196,7 @@ void TangentialMindlin::coeffs_to_local()
   if (k == -1) {
     if (!contact->normal_model->material_properties)
       error->all(FLERR, "Must either specify tangential stiffness or material properties for normal model for the Mindlin tangential style");
-    k = 8.0 * mix_stiffnessE(contact->normal_model->Emod, contact->normal_model->Emod, contact->normal_model->poiss, contact->normal_model->poiss);
+    k = 8.0 * mix_stiffnessG(contact->normal_model->Emod, contact->normal_model->Emod, contact->normal_model->poiss, contact->normal_model->poiss);
   }
 
   if (k < 0.0 || xt < 0.0 || mu < 0.0)

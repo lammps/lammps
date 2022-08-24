@@ -81,9 +81,6 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   use_history = 0;
   beyond_contact = 0;
   nondefault_history_transfer = 0;
-  tangential_history_index = 0;
-  roll_history_index = 0;
-  twist_history_index = 0;
   heat_flag = 0;
 
   // create dummy fix as placeholder for FixNeighHistory
@@ -105,6 +102,7 @@ PairGranular::~PairGranular()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(cutoff_type);
 
     delete [] onerad_dynamic;
     delete [] onerad_frozen;
@@ -119,7 +117,7 @@ PairGranular::~PairGranular()
 
 void PairGranular::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,k,ii,jj,inum,jnum,itype,jtype;
   double factor_lj,mi,mj,meff,delx,dely,delz;
   double *forces, *torquesi, *torquesj, dq;
 
@@ -203,6 +201,7 @@ void PairGranular::compute(int eflag, int vflag)
       models[itype][jtype]->xj = x[j];
       models[itype][jtype]->radi = radius[i];
       models[itype][jtype]->radj = radius[j];
+      models[itype][jtype]->touch = touch[jj];
 
       touchflag = models[itype][jtype]->check_contact();
 
@@ -211,74 +210,77 @@ void PairGranular::compute(int eflag, int vflag)
         if (use_history) {
           touch[jj] = 0;
           history = &allhistory[size_history*jj];
-          for (int k = 0; k < size_history; k++) history[k] = 0.0;
+          for (k = 0; k < size_history; k++) history[k] = 0.0;
         }
-      } else {
+        continue;
+      }
 
-        // meff = effective mass of pair of particles
-        // if I or J part of rigid body, use body mass
-        // if I or J is frozen, meff is other particle
-        mi = rmass[i];
-        mj = rmass[j];
-        if (fix_rigid) {
-          if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
-          if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
-        }
-        meff = mi * mj / (mi + mj);
-        if (mask[i] & freeze_group_bit) meff = mj;
-        if (mask[j] & freeze_group_bit) meff = mi;
+      if (use_history) {
+        touch[jj] = 1;
+        history = &allhistory[size_history*jj];
+      }
 
-        // Copy additional information and prepare force calculations
-        models[itype][jtype]->meff = meff;
-        models[itype][jtype]->vi = v[i];
-        models[itype][jtype]->vj = v[j];
-        models[itype][jtype]->omegai = omega[i];
-        models[itype][jtype]->omegaj = omega[j];
-        models[itype][jtype]->history_update = history_update;
-        if (use_history) models[itype][jtype]->history = history;
-        if (heat_flag) {
-          models[itype][jtype]->Ti = temperature[i];
-          models[itype][jtype]->Tj = temperature[j];
-        }
-        models[itype][jtype]->prep_contact();
+      // meff = effective mass of pair of particles
+      // if I or J part of rigid body, use body mass
+      // if I or J is frozen, meff is other particle
+      mi = rmass[i];
+      mj = rmass[j];
+      if (fix_rigid) {
+        if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
+        if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
+      }
+      meff = mi * mj / (mi + mj);
+      if (mask[i] & freeze_group_bit) meff = mj;
+      if (mask[j] & freeze_group_bit) meff = mi;
 
-        if (models[itype][jtype]->beyond_contact) touch[jj] = 1;
+      // Copy additional information and prepare force calculations
+      models[itype][jtype]->meff = meff;
+      models[itype][jtype]->vi = v[i];
+      models[itype][jtype]->vj = v[j];
+      models[itype][jtype]->omegai = omega[i];
+      models[itype][jtype]->omegaj = omega[j];
+      models[itype][jtype]->history_update = history_update;
+      if (use_history) models[itype][jtype]->history = history;
+      if (heat_flag) {
+        models[itype][jtype]->Ti = temperature[i];
+        models[itype][jtype]->Tj = temperature[j];
+      }
+      models[itype][jtype]->prep_contact();
 
-        // if any history is needed
-        if (use_history) {
-          touch[jj] = 1;
-          history = &allhistory[size_history*jj];
-        }
+      // if any history is needed
+      if (use_history) {
+        touch[jj] = 1;
+        history = &allhistory[size_history*jj];
+      }
 
-        models[itype][jtype]->calculate_forces();
-        if (heat_flag) dq = models[itype][jtype]->calculate_heat();
+      models[itype][jtype]->calculate_forces();
+      if (heat_flag) dq = models[itype][jtype]->calculate_heat();
 
-        forces = models[itype][jtype]->forces;
-        torquesi = models[itype][jtype]->torquesi;
-        torquesj = models[itype][jtype]->torquesj;
+      forces = models[itype][jtype]->forces;
+      torquesi = models[itype][jtype]->torquesi;
+      torquesj = models[itype][jtype]->torquesj;
 
-        // apply forces & torques
-        scale3(factor_lj, forces);
-        add3(f[i], forces, f[i]);
+      // apply forces & torques
+      scale3(factor_lj, forces);
+      add3(f[i], forces, f[i]);
 
-        scale3(factor_lj, torquesi);
-        add3(torque[i], torquesi, torque[i]);
-        if (heat_flag) heatflux[i] += dq;
+      scale3(factor_lj, torquesi);
+      add3(torque[i], torquesi, torque[i]);
+      if (heat_flag) heatflux[i] += dq;
 
-        if (force->newton_pair || j < nlocal) {
-          sub3(f[j], forces, f[j]);
-          scale3(factor_lj, torquesj);
-          add3(torque[j], torquesj, torque[j]);
-          if (heat_flag) heatflux[j] -= dq;
-        }
+      if (force->newton_pair || j < nlocal) {
+        sub3(f[j], forces, f[j]);
+        scale3(factor_lj, torquesj);
+        add3(torque[j], torquesj, torque[j]);
+        if (heat_flag) heatflux[j] -= dq;
+      }
 
-        if (evflag) {
-          delx = x[i][0] - x[j][0];
-          dely = x[i][1] - x[j][1];
-          delz = x[i][2] - x[j][2];
-          ev_tally_xyz(i,j,nlocal,force->newton_pair,
-            0.0,0.0,forces[0],forces[1],forces[2],delx,dely,delz);
-        }
+      if (evflag) {
+        delx = x[i][0] - x[j][0];
+        dely = x[i][1] - x[j][1];
+        delz = x[i][2] - x[j][2];
+        ev_tally_xyz(i,j,nlocal,force->newton_pair,
+          0.0,0.0,forces[0],forces[1],forces[2],delx,dely,delz);
       }
     }
   }
@@ -293,6 +295,9 @@ void PairGranular::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
+  // Reserve enough memory for vector to avoid reallocation/changing pointers
+  vec_models.reserve(atom->ntypes * atom->ntypes);
+
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
@@ -300,7 +305,7 @@ void PairGranular::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
-  memory->create(models,n+1,n+1,"pair:contact_models");
+  models.resize(n+1, std::vector<Contact::ContactModel*> (n+1, nullptr));
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -338,64 +343,68 @@ void PairGranular::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  // Create new model stored in vector
-  vec_models.push_back(ContactModel());
+  // Construct new model within vector
+  vec_models.emplace_back(lmp);
 
   //Parse mandatory normal and tangential specifications
   int iarg = 2;
-  vec_models.back().init_model(std::string(arg[iarg]), NORMAL);
-  iarg += 1;
+  vec_models.back().init_model(std::string(arg[iarg++]), NORMAL);
   iarg = vec_models.back().normal_model->parse_coeffs(arg, iarg, narg);
 
-  if (strcmp(arg[iarg], "tangential") == 0) {
-    if (iarg + 1 >= narg)
+  if (strcmp(arg[iarg++], "tangential") == 0) {
+    if (iarg >= narg)
       error->all(FLERR,"Illegal pair_coeff command, must specify "
           "tangential model after tangential keyword");
-    vec_models.back().init_model(std::string(arg[iarg]), TANGENTIAL);
-    iarg += 1;
+    vec_models.back().init_model(std::string(arg[iarg++]), TANGENTIAL);
     iarg = vec_models.back().tangential_model->parse_coeffs(arg, iarg, narg);
   } else{
     error->all(FLERR, "Illegal pair_coeff command, 'tangential' keyword expected");
   }
 
   //Parse optional arguments
+
   while (iarg < narg) {
     if (strcmp(arg[iarg], "damping") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      vec_models.back().init_model(std::string(arg[iarg]), DAMPING);
-      iarg += 1;
+      iarg++;
+      if (iarg >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, must specify "
+          "damping model after damping keyword");
+      vec_models.back().init_model(std::string(arg[iarg++]), DAMPING);
       iarg = vec_models.back().damping_model->parse_coeffs(arg, iarg, narg);
     } else if (strcmp(arg[iarg], "rolling") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      vec_models.back().init_model(std::string(arg[iarg]), ROLLING);
-      iarg += 1;
+      iarg++;
+      if (iarg >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, must specify "
+          "rolling model after rolling keyword");
+      vec_models.back().init_model(std::string(arg[iarg++]), ROLLING);
       iarg = vec_models.back().rolling_model->parse_coeffs(arg, iarg, narg);
+
     } else if (strcmp(arg[iarg], "twisting") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      vec_models.back().init_model(std::string(arg[iarg]), TWISTING);
-      iarg += 1;
+      iarg++;
+      if (iarg >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, must specify "
+          "twisting model after twisting keyword");
+      vec_models.back().init_model(std::string(arg[iarg++]), TWISTING);
       iarg = vec_models.back().twisting_model->parse_coeffs(arg, iarg, narg);
     } else if (strcmp(arg[iarg], "heat") == 0) {
-      if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      vec_models.back().init_model(std::string(arg[iarg]), HEAT);
-      iarg += 1;
+      iarg++;
+      if (iarg >= narg)
+        error->all(FLERR, "Illegal pair_coeff command, must specify "
+          "heat model after heat keyword");
+      vec_models.back().init_model(std::string(arg[iarg++]), HEAT);
       iarg = vec_models.back().heat_model->parse_coeffs(arg, iarg, narg);
       heat_flag = 1;
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-      vec_models.back().cutoff_type = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        error->all(FLERR, "Illegal pair_coeff command, not enough parameters for cutoff keyword");
+      cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "limit_damping") == 0) {
       vec_models.back().limit_damping = 1;
       iarg += 1;
 
-    } else error->all(FLERR, "Illegal pair_coeff command");
+    } else error->all(FLERR, "Illegal pair_coeff command {}", arg[iarg]);
   }
 
   // Define default damping model if unspecified, has no coeffs
@@ -410,6 +419,7 @@ void PairGranular::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       models[i][j] = & vec_models.back();
+      cutoff_type[i][j] = cutoff_type[j][i] = cutoff_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -434,48 +444,30 @@ void PairGranular::init_style()
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
   // allocate history and initialize models
+  int size_max[6] = {0,0,0,0,0,0};
 
-  int size_normal_history = 0;
-  int size_damping_history = 0;
-  int size_tangential_history = 0;
-  int size_rolling_history = 0;
-  int size_twisting_history = 0;
-  for (int i = 1; i <= atom->ntypes; i++) {
-    for (int j = i; j <= atom->ntypes; j++) {
-      if (models[i][j]->size_history != 0) use_history = 1;
+  for (auto &model : vec_models) {
+    model.init();
+    if (model.size_history != 0) use_history = 1;
 
-      if (models[i][j]->normal_model->size_history > size_normal_history)
-        size_normal_history = models[i][j]->damping_model->size_history;
-      if (models[i][j]->damping_model->size_history > size_damping_history)
-        size_damping_history = models[i][j]->normal_model->size_history;
-      if (models[i][j]->tangential_model->size_history > size_tangential_history)
-        size_tangential_history = models[i][j]->tangential_model->size_history;
-      if (models[i][j]->rolling_model)
-        if (models[i][j]->rolling_model->size_history > size_rolling_history)
-          size_rolling_history = models[i][j]->rolling_model->size_history;
-      if (models[i][j]->twisting_model)
-        if (models[i][j]->twisting_model->size_history > size_twisting_history)
-          size_twisting_history = models[i][j]->twisting_model->size_history;
-    }
+    for (i = 0; i < 6; i++)
+      if (model.sub_models[i])
+        if (model.sub_models[i]->size_history > size_max[i])
+          size_max[i] = model.sub_models[i]->size_history;
+
+    if (model.nondefault_history_transfer) nondefault_history_transfer = 1;
   }
 
-  size_history = size_normal_history + size_damping_history +
-      size_tangential_history + size_rolling_history + size_twisting_history;
+  size_history = 0;
+  for (i = 0; i < 6; i++) size_history += size_max[i];
 
-  damping_history_index = size_normal_history;
-  tangential_history_index = damping_history_index + size_damping_history;
-  roll_history_index = tangential_history_index + size_tangential_history;
-  twist_history_index = roll_history_index + size_rolling_history;
-
-  for (int i = 1; i <= atom->ntypes; i++) {
-    for (int j = i; j <= atom->ntypes; j++) {
-      models[i][j]->normal_model->history_index = 0;
-      models[i][j]->damping_model->history_index = damping_history_index;
-      models[i][j]->tangential_model->history_index = tangential_history_index;
-      if (models[i][j]->rolling_model)
-        models[i][j]->rolling_model->history_index = roll_history_index;
-      if (models[i][j]->twisting_model)
-        models[i][j]->twisting_model->history_index = twist_history_index;
+  for (auto &model : vec_models) {
+    int next_index = 0;
+    for (i = 0; i < 6; i++) {
+      if (model.sub_models[i]) {
+        model.sub_models[i]->history_index = next_index;
+        next_index += size_max[i];
+      }
     }
   }
 
@@ -490,9 +482,7 @@ void PairGranular::init_style()
 
   if (use_history && fix_history == nullptr) {
     fix_history = dynamic_cast<FixNeighHistory *>( modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
-                                                          "NEIGH_HISTORY_GRANULAR"
-                                                          " all NEIGH_HISTORY "
-                                                          + std::to_string(size_history),1));
+          "NEIGH_HISTORY_GRANULAR all NEIGH_HISTORY " + std::to_string(size_history),1));
     fix_history->pair = this;
   }
 
@@ -583,7 +573,7 @@ double PairGranular::init_one(int i, int j)
                  "pair_coeff command",i,j);
     }
 
-    vec_models.push_back(ContactModel());
+    vec_models.push_back(ContactModel(lmp));
     models[i][j] = models[j][i] = & vec_models.back();
     vec_models.back().init_model(models[i][i]->normal_model->name, NORMAL);
     vec_models.back().init_model(models[i][i]->tangential_model->name, TANGENTIAL);
@@ -593,6 +583,10 @@ double PairGranular::init_one(int i, int j)
     vec_models.back().init_model(models[i][i]->heat_model->name, HEAT);
 
     vec_models.back().mix_coeffs(models[i][i], models[j][j]);
+    vec_models.back().init(); // Calculates cumulative properties of sub models
+
+    for (int k = 0; k < 6; k++)
+      vec_models.back().sub_models[k]->history_index = models[i][i]->sub_models[k]->history_index;
   }
 
   // Check if heat model is defined for all type combinations
@@ -608,7 +602,7 @@ double PairGranular::init_one(int i, int j)
   // we assign cutoff = max(cut[i][j]) for i,j such that cut[i][j] > 0.0.
 
   double pulloff;
-  if (models[i][j]->cutoff_type < 0 && cutoff_global < 0) {
+  if (cutoff_type[i][j] < 0 && cutoff_global < 0) {
     if (((maxrad_dynamic[i] > 0.0) && (maxrad_dynamic[j] > 0.0)) ||
         ((maxrad_dynamic[i] > 0.0) &&  (maxrad_frozen[j] > 0.0)) ||
         // radius info about both i and j exist
@@ -626,7 +620,6 @@ double PairGranular::init_one(int i, int j)
         cutoff = MAX(cutoff,maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
       }
     } else {
-
       // radius info about either i or j does not exist
       // (i.e. not present and not about to get poured;
       // set to largest value to not interfere with neighbor list)
@@ -638,25 +631,15 @@ double PairGranular::init_one(int i, int j)
       }
       cutoff = cutmax;
     }
-  } else if (models[i][j]->cutoff_type > 0) {
-    cutoff = models[i][j]->cutoff_type;
+  } else if (cutoff_type[i][j] > 0) {
+    cutoff = cutoff_type[i][j];
   } else if (cutoff_global > 0) {
     cutoff = cutoff_global;
   }
 
   // Copy global options
-  models[i][j]->dt = models[j][i]->dt = dt;
-  models[i][j]->normal_model->history_index = models[j][i]->normal_model->history_index = normal_history_index;
-  models[i][j]->tangential_model->history_index = models[j][i]->tangential_model->history_index = tangential_history_index;
-  models[i][j]->rolling_model->history_index = models[j][i]->rolling_model->history_index = roll_history_index;
-  models[i][j]->twisting_model->history_index = models[j][i]->twisting_model->history_index = twist_history_index;
-
-  models[i][j]->size_history = models[j][i]->size_history = size_history;
-  models[i][j]->init(); // Calculates cumulative properties of sub models
-  models[j][i]->init();
-
-  if (models[i][j]->nondefault_history_transfer) nondefault_history_transfer = 1;
-
+  models[i][j]->dt = dt;
+  models[j][i] = models[i][j];
   return cutoff;
 }
 
@@ -671,9 +654,8 @@ void PairGranular::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
-        if (comm->me == 0){
-          models[i][j]->write_restart(fp);
-        }
+        fwrite(&cutoff_type[i][j],sizeof(double),1,fp);
+        models[i][j]->write_restart(fp);
       }
     }
   }
@@ -693,9 +675,14 @@ void PairGranular::read_restart(FILE *fp)
       if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        vec_models.push_back(ContactModel());
+        if (me == 0)
+          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,nullptr,error);
+        MPI_Bcast(&cutoff_type[i][j],1,MPI_DOUBLE,0,world);
+
+        vec_models.push_back(ContactModel(lmp));
         models[i][j] = & vec_models.back();
         models[i][j]->read_restart(fp);
+        models[i][j]->init();
       }
     }
   }

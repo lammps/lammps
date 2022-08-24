@@ -21,7 +21,7 @@ namespace Contact {
 
 class TwistingModel : public SubModel {
  public:
-  TwistingModel() {};
+  TwistingModel(class LAMMPS *);
   virtual ~TwistingModel() {};
   virtual void coeffs_to_local() {};
   virtual void mix_coeffs(TwistingModel*, TwistingModel*) {};
@@ -30,21 +30,21 @@ class TwistingModel : public SubModel {
 
 /* ---------------------------------------------------------------------- */
 
-class TwistingMarshall: public TwistingModel {
+class TwistingMarshall : public TwistingModel {
  public:
-  TwistingMarshall();
+  TwistingMarshall(class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TwistingSDS: public TwistingModel {
+class TwistingSDS : public TwistingModel {
  public:
-  TwistingSDS();
+  TwistingSDS(class LAMMPS *);
   void coeffs_to_local();
   void mix_coeffs(TwistingModel*, TwistingModel*);
   double calculate_forces();
- private:
+ protected:
   double k, mu, damp;
 };
 

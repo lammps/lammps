@@ -21,7 +21,7 @@ namespace Contact {
 
 class HeatModel : public SubModel {
  public:
-  HeatModel() {};
+  HeatModel(class LAMMPS *);
   ~HeatModel() {};
   virtual void coeffs_to_local() {};
   virtual void mix_coeffs(HeatModel*, HeatModel*) {};
@@ -30,13 +30,13 @@ class HeatModel : public SubModel {
 
 /* ---------------------------------------------------------------------- */
 
-class HeatArea: public HeatModel {
+class HeatArea : public HeatModel {
  public:
-  HeatArea();
+  HeatArea(class LAMMPS *);
   void coeffs_to_local();
   void mix_coeffs(HeatModel*, HeatModel*);
   double calculate_heat();
- private:
+ protected:
   double conductivity;
 };
 

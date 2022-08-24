@@ -18,6 +18,7 @@
 #include "fix_wall_gran_region.h"
 
 #include "atom.h"
+#include "contact.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -30,6 +31,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace Contact;
 using namespace FixConst;
 using namespace MathExtra;
 
@@ -47,6 +49,8 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   nregion = region->nregion;
   tmax = region->tmax;
   c2r = new int[tmax];
+
+  model->wall_type = RDUPLICATE;
 
   // re-allocate atom-based arrays with nshear
   // do not register with Atom class, since parent class did that
@@ -120,7 +124,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 {
   int i, m, nc, iwall;
   double dx, dy, dz, meff;
-  double *forces, *torquesi, dq, rwall;
+  double *forces, *torquesi, dq;
   double vwall[3];
   double w0[3] = {0.0};
   bool touchflag = false;
@@ -179,7 +183,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     region->set_velocity();
   }
 
-  if (peratom_flag) { clear_stored_contacts(); }
+  if (peratom_flag) clear_stored_contacts();
 
   // Define constant wall properties (atom j)
   model->radj = 0.0;
@@ -188,7 +192,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
   for (i = 0; i < nlocal; i++) {
     if (! mask[i] & groupbit) continue;
-    if (!region->match(x[i][0], x[i][1], x[i][2]))continue;
+    if (! region->match(x[i][0], x[i][1], x[i][2])) continue;
 
     nc = region->surface(x[i][0], x[i][1], x[i][2], model->pulloff_distance(radius[i], 0.0));
     if (nc > tmax) error->one(FLERR, "Too many wallgran/region contacts for one particle");
@@ -221,24 +225,25 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     for (int ic = 0; ic < nc; ic++) {
 
       // Reset model and copy initial geometric data
+      // A bit unncessary since region->contact[ic] stores r
       model->reset_contact();
-      model->xi = x[i];
       model->dx[0] = region->contact[ic].delx;
       model->dx[1] = region->contact[ic].dely;
       model->dx[2] = region->contact[ic].delz;
       model->radi = radius[i];
-      model->rwall = rwall;
+      if (model->beyond_contact) model->touch = history_many[i][c2r[ic]][0];
 
-      touchflag = model->check_contact();
+      touchflag = model->check_contact(region->contact[ic].r);
 
+      if (!touchflag) {
+        if (use_history)
+          for (m = 0; m < size_history; m++)
+            history_many[i][c2r[ic]][m] = 0.0;
+        continue;
+      }
 
-      if (model->beyond_contact) {
-        if (history_many[i][c2r[ic]][0] == 0.0 && model->rsq > model->radsum * model->radsum) {
-          for (m = 0; m < size_history; m++) history_many[i][0][m] = 0.0;
-          continue;
-        }
-      } // Dan: not quite sure about this
-
+      if (model->beyond_contact)
+        history_many[i][c2r[ic]][0] = 1;
 
       if (regiondynamic) region->velocity_contact(vwall, x[i], ic);
       model->vj = vwall;
@@ -254,7 +259,8 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       model->vi = v[i];
       model->omegai = omega[i];
       model->history_update = history_update;
-      if (use_history) model->history = history_one[i];
+
+      if (use_history) model->history = history_many[i][c2r[ic]];
       if (heat_flag) model->Ti = temperature[i];
       model->prep_contact();
 

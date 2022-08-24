@@ -73,14 +73,7 @@ class PairGranular : public Pair {
 
   // contact models
   std::vector <Contact::ContactModel> vec_models;
-  Contact::ContactModel ***models;
-
-  // indices of history entries
-  int normal_history_index;
-  int damping_history_index;
-  int tangential_history_index;
-  int roll_history_index;
-  int twist_history_index;
+  std::vector <std::vector<Contact::ContactModel*>> models;
 
   // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;

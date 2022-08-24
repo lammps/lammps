@@ -15,46 +15,52 @@
 #define CONTACT_DAMPING_MODELS_H_
 
 #include "contact_sub_models.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 namespace Contact {
 
 class DampingModel : public SubModel {
  public:
-  DampingModel() {};
+  DampingModel(class LAMMPS *);
   ~DampingModel() {};
-  virtual void coeffs_to_local();
+  virtual void coeffs_to_local() {};
   virtual void mix_coeffs(DampingModel*, DampingModel*) {};
+  virtual void init();
   virtual double calculate_forces() = 0;
   double damp;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingVelocity: public DampingModel {
+class DampingVelocity : public DampingModel {
  public:
+  DampingVelocity(class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingMassVelocity: public DampingModel {
+class DampingMassVelocity : public DampingModel {
  public:
+  DampingMassVelocity(class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingViscoelastic: public DampingModel {
+class DampingViscoelastic : public DampingModel {
  public:
+  DampingViscoelastic(class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class DampingTsuji: public DampingModel {
+class DampingTsuji : public DampingModel {
  public:
-  void coeffs_to_local();
+  DampingTsuji(class LAMMPS *);
+  void init();
   double calculate_forces();
 };
 

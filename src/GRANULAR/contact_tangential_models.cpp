@@ -25,10 +25,23 @@ using namespace MathConst;
 using namespace MathExtra;
 
 /* ----------------------------------------------------------------------
+   Default model
+------------------------------------------------------------------------- */
+
+TangentialModel::TangentialModel(LAMMPS *lmp) : SubModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+void TangentialModel::init()
+{
+  damp = xt * contact->damping_model->damp;
+}
+
+/* ----------------------------------------------------------------------
    Linear model with no history
 ------------------------------------------------------------------------- */
 
-TangentialLinearNoHistory::TangentialLinearNoHistory()
+TangentialLinearNoHistory::TangentialLinearNoHistory(LAMMPS *lmp) : TangentialModel(lmp)
 {
   num_coeffs = 2;
   size_history = 3;
@@ -41,7 +54,6 @@ void TangentialLinearNoHistory::coeffs_to_local()
   k = 0.0; // No tangential stiffness with no history
   xt = coeffs[0];
   mu = coeffs[1];
-  damp = xt * contact->damping_model->damp;
 
   if (k < 0.0 || xt < 0.0 || mu < 0.0)
     error->all(FLERR, "Illegal linear no history tangential model");
@@ -76,7 +88,7 @@ void TangentialLinearNoHistory::calculate_forces()
    Linear model with history
 ------------------------------------------------------------------------- */
 
-TangentialLinearHistory::TangentialLinearHistory()
+TangentialLinearHistory::TangentialLinearHistory(LAMMPS *lmp) : TangentialModel(lmp)
 {
   num_coeffs = 3;
   size_history = 3;
@@ -89,7 +101,6 @@ void TangentialLinearHistory::coeffs_to_local()
   k = coeffs[0];
   xt = coeffs[1];
   mu = coeffs[2];
-  damp = xt * contact->damping_model->damp;
 
   if (k < 0.0 || xt < 0.0 || mu < 0.0)
     error->all(FLERR, "Illegal linear tangential model");
@@ -166,7 +177,7 @@ void TangentialLinearHistory::calculate_forces()
    Mindlin model
 ------------------------------------------------------------------------- */
 
-TangentialMindlin::TangentialMindlin()
+TangentialMindlin::TangentialMindlin(LAMMPS *lmp) : TangentialModel(lmp)
 {
   num_coeffs = 3;
   size_history = 3;
@@ -190,8 +201,6 @@ void TangentialMindlin::coeffs_to_local()
 
   if (k < 0.0 || xt < 0.0 || mu < 0.0)
     error->all(FLERR, "Illegal Mindlin tangential model");
-
-  damp = xt * contact->damping_model->damp;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,7 +302,7 @@ void TangentialMindlin::calculate_forces()
    Mindlin force model
 ------------------------------------------------------------------------- */
 
-TangentialMindlinForce::TangentialMindlinForce()
+TangentialMindlinForce::TangentialMindlinForce(LAMMPS *lmp) : TangentialMindlin(lmp)
 {
   num_coeffs = 3;
   size_history = 3;
@@ -305,7 +314,7 @@ TangentialMindlinForce::TangentialMindlinForce()
    Mindlin rescale model
 ------------------------------------------------------------------------- */
 
-TangentialMindlinRescale::TangentialMindlinRescale()
+TangentialMindlinRescale::TangentialMindlinRescale(LAMMPS *lmp) : TangentialMindlin(lmp)
 {
   num_coeffs = 3;
   size_history = 4;
@@ -313,7 +322,7 @@ TangentialMindlinRescale::TangentialMindlinRescale()
   mindlin_rescale = 1;
 
   nondefault_history_transfer = 1;
-  transfer_history_factor = new double(size_history);
+  transfer_history_factor = new double[size_history];
   for (int i = 0; i < size_history; i++) transfer_history_factor[i] = -1.0;
   transfer_history_factor[3] = +1;
 }
@@ -322,7 +331,7 @@ TangentialMindlinRescale::TangentialMindlinRescale()
    Mindlin rescale force model
 ------------------------------------------------------------------------- */
 
-TangentialMindlinRescaleForce::TangentialMindlinRescaleForce()
+TangentialMindlinRescaleForce::TangentialMindlinRescaleForce(LAMMPS *lmp) : TangentialMindlin(lmp)
 {
   num_coeffs = 3;
   size_history = 4;
@@ -330,7 +339,7 @@ TangentialMindlinRescaleForce::TangentialMindlinRescaleForce()
   mindlin_rescale = 1;
 
   nondefault_history_transfer = 1;
-  transfer_history_factor = new double(size_history);
+  transfer_history_factor = new double[size_history];
   for (int i = 0; i < size_history; i++) transfer_history_factor[i] = -1.0;
   transfer_history_factor[3] = +1;
 }

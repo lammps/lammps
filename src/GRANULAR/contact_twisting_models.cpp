@@ -23,10 +23,20 @@ using namespace Contact;
 using namespace MathConst;
 
 /* ----------------------------------------------------------------------
+   Default twisting model
+------------------------------------------------------------------------- */
+
+TwistingModel::TwistingModel(LAMMPS *lmp) : SubModel(lmp)
+{
+  num_coeffs = 0;
+  size_history = 3;
+}
+
+/* ----------------------------------------------------------------------
    Marshall twisting model
 ------------------------------------------------------------------------- */
 
-TwistingMarshall::TwistingMarshall()
+TwistingMarshall::TwistingMarshall(LAMMPS *lmp) : TwistingModel(lmp)
 {
   num_coeffs = 0;
   size_history = 3;
@@ -63,7 +73,7 @@ double TwistingMarshall::calculate_forces()
    SDS twisting model
 ------------------------------------------------------------------------- */
 
-TwistingSDS::TwistingSDS()
+TwistingSDS::TwistingSDS(LAMMPS *lmp) : TwistingModel(lmp)
 {
   num_coeffs = 3;
   size_history = 3;

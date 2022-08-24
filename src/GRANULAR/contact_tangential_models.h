@@ -21,71 +21,69 @@ namespace Contact {
 
 class TangentialModel : public SubModel {
  public:
-  TangentialModel() {};
+  TangentialModel(class LAMMPS *);
   virtual ~TangentialModel() {};
   virtual void coeffs_to_local() {};
   virtual void mix_coeffs(TangentialModel*, TangentialModel*) {};
   virtual void calculate_forces() = 0;
+  void init();
   int rescale_flag;
   double k, damp, mu; // Used by Marshall twisting model
-};
-
-/* ---------------------------------------------------------------------- */
-
-class TangentialLinearNoHistory: public TangentialModel {
- public:
-  TangentialLinearNoHistory();
-  void coeffs_to_local();
-  void mix_coeffs(TangentialModel*, TangentialModel*);
-  void calculate_forces();
- private:
+ protected:
   double xt;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialLinearHistory: public TangentialModel {
+class TangentialLinearNoHistory : public TangentialModel {
  public:
-  TangentialLinearHistory();
+  TangentialLinearNoHistory(class LAMMPS *);
   void coeffs_to_local();
   void mix_coeffs(TangentialModel*, TangentialModel*);
   void calculate_forces();
- private:
-  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlin: public TangentialModel {
+class TangentialLinearHistory : public TangentialModel {
  public:
-  TangentialMindlin();
+  TangentialLinearHistory(class LAMMPS *);
+  void coeffs_to_local();
+  void mix_coeffs(TangentialModel*, TangentialModel*);
+  void calculate_forces();
+};
+
+/* ---------------------------------------------------------------------- */
+
+class TangentialMindlin : public TangentialModel {
+ public:
+  TangentialMindlin(class LAMMPS *);
   void coeffs_to_local();
   void mix_coeffs(TangentialModel*, TangentialModel*);
   void calculate_forces();
  protected:
   int mindlin_rescale, mindlin_force;
-  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlinForce: public TangentialMindlin {
+class TangentialMindlinForce : public TangentialMindlin {
  public:
-  TangentialMindlinForce();
+  TangentialMindlinForce(class LAMMPS *);
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlinRescale: public TangentialMindlin {
+class TangentialMindlinRescale : public TangentialMindlin {
  public:
-  TangentialMindlinRescale();
+  TangentialMindlinRescale(class LAMMPS *);
 };
 
 /* ---------------------------------------------------------------------- */
 
-class TangentialMindlinRescaleForce: public TangentialMindlin {
+class TangentialMindlinRescaleForce : public TangentialMindlin {
  public:
-  TangentialMindlinRescaleForce();
+  TangentialMindlinRescaleForce(class LAMMPS *);
 };
 
 }    // namespace Contact

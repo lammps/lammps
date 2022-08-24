@@ -26,6 +26,12 @@ enum ModelType {
   ROLLING = 3,
   TWISTING = 4,
   HEAT = 5
+}; // Relative order matters since some derive coeffs from others
+
+enum WallType {
+  NONE = 0,
+  RWALL = 1,
+  RDUPLICATE = 2
 };
 
 #define EPSILON 1e-10
@@ -41,10 +47,10 @@ class SubModel;
 
 class ContactModel : protected Pointers {
  public:
-  ContactModel();
+  ContactModel(class LAMMPS *);
   ~ContactModel();
   void init();
-  bool check_contact();
+  bool check_contact(double = 0);
   void reset_contact();
   void prep_contact();
   void calculate_forces();
@@ -68,8 +74,8 @@ class ContactModel : protected Pointers {
   SubModel *sub_models[6];  // Need to resize if we add more model flavors
 
   // Extra options
-  int beyond_contact, limit_damping, history_update, wall_flag;
-  double cutoff_type;
+  int beyond_contact, limit_damping, history_update;
+  WallType wall_type;
 
   // History variables
   int size_history, nondefault_history_transfer;
@@ -77,7 +83,7 @@ class ContactModel : protected Pointers {
   double *history;
 
   // Contact properties/output
-  double *forces, *torquesi, *torquesj;
+  double forces[3], torquesi[3], torquesj[3];
 
   double radi, radj, rwall, meff, dt, Ti, Tj, area;
   double Fntot, magtortwist;

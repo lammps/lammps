@@ -32,7 +32,7 @@ using namespace MathConst;
    Default normal model
 ------------------------------------------------------------------------- */
 
-NormalModel::NormalModel()
+NormalModel::NormalModel(LAMMPS *lmp) : SubModel(lmp)
 {
   material_properties = 0;
 }
@@ -72,10 +72,9 @@ void NormalModel::set_fncrit()
    Hookean normal force
 ------------------------------------------------------------------------- */
 
-NormalHooke::NormalHooke()
+NormalHooke::NormalHooke(LAMMPS *lmp) : NormalModel(lmp)
 {
   num_coeffs = 2;
-  allocate_coeffs();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,7 +115,7 @@ void NormalHooke::set_knfac()
    Hertzian normal force
 ------------------------------------------------------------------------- */
 
-NormalHertz::NormalHertz()
+NormalHertz::NormalHertz(LAMMPS *lmp) : NormalModel(lmp)
 {
   num_coeffs = 2;
 }
@@ -160,7 +159,7 @@ void NormalHertz::set_knfac()
    Hertzian normal force with material properties
 ------------------------------------------------------------------------- */
 
-NormalHertzMaterial::NormalHertzMaterial()
+NormalHertzMaterial::NormalHertzMaterial(LAMMPS *lmp) : NormalHertz(lmp)
 {
   material_properties = 1;
   num_coeffs = 3;
@@ -173,7 +172,7 @@ void NormalHertzMaterial::coeffs_to_local()
   Emod = coeffs[0];
   damp = coeffs[1];
   poiss = coeffs[2];
-  k = 4 / 3 * Emod;
+  k = FOURTHIRDS * Emod;
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hertz material normal model");
 }
@@ -192,7 +191,7 @@ void NormalHertzMaterial::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
    DMT normal force
 ------------------------------------------------------------------------- */
 
-NormalDMT::NormalDMT()
+NormalDMT::NormalDMT(LAMMPS *lmp) : NormalModel(lmp)
 {
   allow_limit_damping = 0;
   material_properties = 1;
@@ -207,7 +206,7 @@ void NormalDMT::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   cohesion = coeffs[3];
-  k = 4 / 3 * Emod;
+  k = FOURTHIRDS * Emod;
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal DMT normal model");
 }
@@ -228,7 +227,7 @@ void NormalDMT::mix_coeffs(NormalModel* imodel, NormalModel* jmodel)
 double NormalDMT::calculate_forces()
 {
   Fne = knfac * contact->delta;
-  F_pulloff = 4 * MathConst::MY_PI * cohesion * contact->Reff;
+  F_pulloff = 4.0 * MathConst::MY_PI * cohesion * contact->Reff;
   Fne -= F_pulloff;
   return Fne;
 }
@@ -244,14 +243,14 @@ void NormalDMT::set_knfac()
 
 void NormalDMT::set_fncrit()
 {
-  Fncrit = fabs(Fne + 2 * F_pulloff);
+  Fncrit = fabs(Fne + 2.0 * F_pulloff);
 }
 
 /* ----------------------------------------------------------------------
    JKR normal force
 ------------------------------------------------------------------------- */
 
-NormalJKR::NormalJKR()
+NormalJKR::NormalJKR(LAMMPS *lmp) : NormalModel(lmp)
 {
   allow_limit_damping = 0;
   material_properties = 1;
@@ -267,7 +266,7 @@ void NormalJKR::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   cohesion = coeffs[3];
-  k = 4/3*Emod;
+  k = FOURTHIRDS * Emod;
   Escaled = k * THREEQUARTERS;
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal JKR normal model");
@@ -291,11 +290,15 @@ bool NormalJKR::touch()
   double area_at_pulloff, R2, delta_pulloff, dist_pulloff;
   bool touchflag;
 
-  R2 = contact->Reff * contact->Reff;
-  area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * R2 / (4 * Escaled));
-  delta_pulloff = area_at_pulloff * area_at_pulloff / contact->Reff - 2 * sqrt(MY_PI * cohesion * area_at_pulloff /Escaled);
-  dist_pulloff = contact->radsum - delta_pulloff;
-  touchflag = (contact->rsq < dist_pulloff * dist_pulloff);
+  if (contact->touch) {
+    R2 = contact->Reff * contact->Reff;
+    area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * R2 / (4.0 * Escaled));
+    delta_pulloff = area_at_pulloff * area_at_pulloff / contact->Reff - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff /Escaled);
+    dist_pulloff = contact->radsum - delta_pulloff;
+    touchflag = contact->rsq < (dist_pulloff * dist_pulloff);
+  } else {
+    touchflag = contact->rsq < (contact->radsum * contact->radsum);
+  }
 
   return touchflag;
 }
@@ -311,8 +314,8 @@ double NormalJKR::pulloff_distance(double radi, double radj)
   Reff_tmp = radi * radj / (radi + radj); // May not be defined
   if (Reff_tmp <= 0) return 0;
 
-  area_at_pulloff = cbrt(9 * MY_PI * cohesion * Reff_tmp * Reff_tmp / (4 * Escaled));
-  return area_at_pulloff * area_at_pulloff / Reff_tmp - 2 * sqrt(MY_PI * cohesion * area_at_pulloff / Escaled);
+  area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * Reff_tmp * Reff_tmp / (4.0 * Escaled));
+  return area_at_pulloff * area_at_pulloff / Reff_tmp - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff / Escaled);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -326,16 +329,16 @@ double NormalJKR::calculate_area()
   dR2 = contact->dR * contact->dR;
   t0 = cohesion * cohesion * R2 * R2 * Escaled;
   t1 = PI27SQ * t0;
-  t2 = 8 * contact->dR * dR2 * Escaled * Escaled * Escaled;
-  t3 = 4 * dR2 * Escaled;
+  t2 = 8.0 * contact->dR * dR2 * Escaled * Escaled * Escaled;
+  t3 = 4.0 * dR2 * Escaled;
 
   // in case sqrt(0) < 0 due to precision issues
-  sqrt1 = MAX(0, t0 * (t1 + 2 * t2));
+  sqrt1 = MAX(0, t0 * (t1 + 2.0 * t2));
   t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
   t5 = t3 / t4 + t4 / Escaled;
-  sqrt2 = MAX(0, 2 * contact->dR + t5);
+  sqrt2 = MAX(0, 2.0 * contact->dR + t5);
   t6 = sqrt(sqrt2);
-  sqrt3 = MAX(0, 4 * contact->dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Escaled * t6));
+  sqrt3 = MAX(0, 4.0 * contact->dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Escaled * t6));
 
   return INVROOT6 * (t6 + sqrt(sqrt3));
 }
@@ -347,8 +350,8 @@ double NormalJKR::calculate_forces()
   double a2;
 
   a2 = contact->area * contact->area;
-  Fne = Escaled * contact->area * a2 / contact->Reff - MY_2PI * a2 * sqrt(4 * cohesion * Escaled / (MY_PI * contact->area));
-  F_pulloff = 3 * MY_PI * cohesion * contact->Reff;
+  Fne = Escaled * contact->area * a2 / contact->Reff - MY_2PI * a2 * sqrt(4.0 * cohesion * Escaled / (MY_PI * contact->area));
+  F_pulloff = 3.0 * MY_PI * cohesion * contact->Reff;
 
   return Fne;
 }
@@ -364,5 +367,5 @@ void NormalJKR::set_knfac()
 
 void NormalJKR::set_fncrit()
 {
-  Fncrit = fabs(Fne + 2 * F_pulloff);
+  Fncrit = fabs(Fne + 2.0 * F_pulloff);
 }

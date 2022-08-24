@@ -24,7 +24,11 @@ using namespace MathSpecial;
    Default damping model
 ------------------------------------------------------------------------- */
 
-void DampingModel::coeffs_to_local()
+DampingModel::DampingModel(LAMMPS *lmp) : SubModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+void DampingModel::init()
 {
   damp = contact->normal_model->damp;
 }
@@ -32,6 +36,10 @@ void DampingModel::coeffs_to_local()
 /* ----------------------------------------------------------------------
    Velocity damping
 ------------------------------------------------------------------------- */
+
+DampingVelocity::DampingVelocity(LAMMPS *lmp) : DampingModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
 
 double DampingVelocity::calculate_forces()
 {
@@ -42,6 +50,10 @@ double DampingVelocity::calculate_forces()
    Mass velocity damping
 ------------------------------------------------------------------------- */
 
+DampingMassVelocity::DampingMassVelocity(LAMMPS *lmp) : DampingModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
 double DampingMassVelocity::calculate_forces()
 {
   return -damp * contact->meff * contact->vnnr;
@@ -50,6 +62,10 @@ double DampingMassVelocity::calculate_forces()
 /* ----------------------------------------------------------------------
    Default, viscoelastic damping
 ------------------------------------------------------------------------- */
+
+DampingViscoelastic::DampingViscoelastic(LAMMPS *lmp) : DampingModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
 
 double DampingViscoelastic::calculate_forces()
 {
@@ -60,7 +76,11 @@ double DampingViscoelastic::calculate_forces()
    Tsuji damping
 ------------------------------------------------------------------------- */
 
-void DampingTsuji::coeffs_to_local()
+DampingTsuji::DampingTsuji(LAMMPS *lmp) : DampingModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+void DampingTsuji::init()
 {
   double tmp = contact->normal_model->damp;
   damp = 1.2728 - 4.2783 * tmp + 11.087 * square(tmp);

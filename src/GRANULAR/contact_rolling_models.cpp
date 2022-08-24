@@ -24,10 +24,16 @@ using namespace MathConst;
 using namespace MathExtra;
 
 /* ----------------------------------------------------------------------
+   Default rolling friction model
+------------------------------------------------------------------------- */
+
+RollingModel::RollingModel(LAMMPS *lmp) : SubModel(lmp) {}
+
+/* ----------------------------------------------------------------------
    SDS rolling friction model
 ------------------------------------------------------------------------- */
 
-RollingSDS::RollingSDS()
+RollingSDS::RollingSDS(LAMMPS *lmp) : RollingModel(lmp)
 {
   num_coeffs = 3;
   size_history = 3;

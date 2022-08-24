@@ -55,13 +55,6 @@ class FixWallGran : public Fix {
   // for granular model choices
   Contact::ContactModel *model;
 
-  // indices of history entries
-  int normal_history_index;
-  int damping_history_index;
-  int tangential_history_index;
-  int roll_history_index;
-  int twist_history_index;
-
   double lo, hi, cylradius;
   double amplitude, period, omega, vshear;
   double dt;

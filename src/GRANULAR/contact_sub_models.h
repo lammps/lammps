@@ -15,14 +15,14 @@
 #define CONTACT_SUB_MODEL_H_
 
 #include "contact.h"
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 namespace Contact {
 
 class SubModel : protected Pointers {
  public:
-  SubModel();
+  SubModel(class LAMMPS *);
   virtual ~SubModel();
 
   int num_coeffs;
@@ -31,6 +31,7 @@ class SubModel : protected Pointers {
   int parse_coeffs(char **, int, int);
   virtual void mix_coeffs(SubModel*, SubModel*) {};
   virtual void coeffs_to_local() {};
+  virtual void init() {};                            // called after all other submodel coeffs defined
   void allocate_coeffs();
   std::string name;
 

@@ -659,7 +659,7 @@ is equivalent to *pair gran/hooke 1000.0 NULL 50.0 50.0 0.4 1*\ .
 The second example is equivalent to
 *pair gran/hooke/history 1000.0 500.0 50.0 50.0 0.4 1*\ .
 The third example is equivalent to
-*pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1*\ .
+*pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1 limit_damping*\ .
 
 ----------
 

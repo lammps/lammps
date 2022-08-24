@@ -38,7 +38,6 @@
 #include "respa.h"
 #include "update.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -69,8 +68,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   // set interaction style
   // disable bonded/history option for now
-  model = new ContactModel();
-  model->wall_flag = 1;
+  model = new ContactModel(lmp);
+  model->wall_type = RWALL;
 
   if (strcmp(arg[3],"granular") == 0)  classic_flag = 0;
   else classic_flag = 1;
@@ -82,7 +81,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg;
   if (classic_flag) {
-    iarg = 3;
+    iarg = 4;
     iarg = model->init_classic_model(arg, iarg, narg);
 
     if (iarg < narg) {
@@ -93,40 +92,46 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     }
 
   } else {
-    iarg = 3;
-    model->init_model(std::string(arg[iarg]), NORMAL);
-    iarg += 1;
+    iarg = 4;
+    model->init_model(std::string(arg[iarg++]), NORMAL);
     iarg = model->normal_model->parse_coeffs(arg, iarg, narg);
 
     while (iarg < narg) {
       if (strcmp(arg[iarg], "damping") == 0) {
-        if (iarg + 1 >= narg)
-          error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-        model->init_model(std::string(arg[iarg]), DAMPING);
-        iarg += 1;
+        iarg++;
+        if (iarg >= narg)
+          error->all(FLERR, "Illegal fix wall/gran command, must specify "
+          "damping model after damping keyword");
+        model->init_model(std::string(arg[iarg++]), DAMPING);
         iarg = model->damping_model->parse_coeffs(arg, iarg, narg);
       } else if (strcmp(arg[iarg], "tangential") == 0) {
-        if (iarg + 1 >= narg)
-          error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-        model->init_model(std::string(arg[iarg]), TANGENTIAL);
-        iarg += 1;
+        iarg++;
+        if (iarg >= narg)
+          error->all(FLERR, "Illegal fix wall/gran command, must specify "
+          "tangential model after tangential keyword");
+        model->init_model(std::string(arg[iarg++]), TANGENTIAL);
         iarg = model->tangential_model->parse_coeffs(arg, iarg, narg);
       } else if (strcmp(arg[iarg], "rolling") == 0) {
-        if (iarg + 1 >= narg)
-          error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-        model->init_model(std::string(arg[iarg]), ROLLING);
-        iarg += 1;
+        iarg++;
+        if (iarg >= narg)
+          error->all(FLERR, "Illegal fix wall/gran command, must specify "
+          "rolling model after rolling keyword");
+        model->init_model(std::string(arg[iarg++]), ROLLING);
         iarg = model->rolling_model->parse_coeffs(arg, iarg, narg);
       } else if (strcmp(arg[iarg], "twisting") == 0) {
-        if (iarg + 1 >= narg)
-          error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-        model->init_model(std::string(arg[iarg]), TWISTING);
+        iarg++;
+        if (iarg >= narg)
+          error->all(FLERR, "Illegal fix wall/gran command, must specify "
+          "twisting model after twisting keyword");
+        model->init_model(std::string(arg[iarg++]), TWISTING);
         iarg += 1;
         iarg = model->twisting_model->parse_coeffs(arg, iarg, narg);
       } else if (strcmp(arg[iarg], "heat") == 0) {
-        if (iarg + 1 >= narg)
-          error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
-        model->init_model(std::string(arg[iarg]), HEAT);
+        iarg++;
+        if (iarg >= narg)
+          error->all(FLERR, "Illegal fix wall/gran command, must specify "
+          "heat model after heat keyword");
+        model->init_model(std::string(arg[iarg++]), HEAT);
         iarg += 1;
         iarg = model->heat_model->parse_coeffs(arg, iarg, narg);
         heat_flag = 1;
@@ -156,7 +161,10 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal pair_coeff command, "
         "Cannot limit damping with specified normal contact model");
 
+  model->init();
+
   size_history = model->size_history;
+  if (model->beyond_contact) size_history += 1; //Need to track if particle is touching
   if (size_history == 0) use_history = restart_peratom = 0;
   else use_history = restart_peratom = 1;
 
@@ -349,25 +357,16 @@ void FixWallGran::init()
   if (i < modify->nfix) fix_rigid = modify->fix[i];
 
   // Define history indices
-  int size_normal_history = model->normal_model->size_history;
-  int size_tangential_history = model->tangential_model->size_history;
-  int size_damping_history = model->damping_model->size_history;
 
-  int size_rolling_history = 0;
-  int size_twisting_history = 0;
-  if (model->rolling_model) size_rolling_history = model->rolling_model->size_history;
-  if (model->twisting_model) size_twisting_history = model->twisting_model->size_history;
+  int next_index = 0;
+  if (model->beyond_contact) next_index = 1;
 
-  damping_history_index = size_normal_history;
-  tangential_history_index = damping_history_index + size_damping_history;
-  roll_history_index = tangential_history_index + size_tangential_history;
-  twist_history_index = roll_history_index + size_rolling_history;
-
-  model->normal_model->history_index = 0;
-  model->damping_model->history_index = damping_history_index;
-  model->tangential_model->history_index = tangential_history_index;
-  if (model->rolling_model) model->rolling_model->history_index = roll_history_index;
-  if (model->twisting_model) model->twisting_model->history_index = twist_history_index;
+  for (i = 0; i < 6; i++) {
+    if (model->sub_models[i]) {
+      model->sub_models[i]->history_index = next_index;
+      next_index += model->sub_models[i]->size_history;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -513,59 +512,61 @@ void FixWallGran::post_force(int /*vflag*/)
 
     // Reset model and copy initial geometric data
     model->reset_contact();
-    model->xi = x[i];
     model->dx[0] = dx;
     model->dx[1] = dy;
     model->dx[2] = dz;
     model->radi = radius[i];
-    model->rwall = rwall;
+    if (model->beyond_contact) model->touch = history_one[i][0];
 
-    touchflag = model->check_contact();
+    touchflag = model->check_contact(rwall);
 
     if (!touchflag) {
       if (use_history)
         for (j = 0; j < size_history; j++)
           history_one[i][j] = 0.0;
-    } else {
+      continue;
+    }  // Dan: I tried to simplify this logic, not sure it's 100% correct
 
-      // meff = effective mass of sphere
-      // if I is part of rigid body, use body mass
+    if (model->beyond_contact)
+      history_one[i][0] = 1;
 
-      meff = rmass[i];
-      if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
+    // meff = effective mass of sphere
+    // if I is part of rigid body, use body mass
 
-      // Copy additional information and prepare force calculations
-      model->meff = meff;
-      model->vi = v[i];
-      model->omegai = omega[i];
-      model->history_update = history_update;
-      if (use_history) model->history = history_one[i];
-      if (heat_flag) model->Ti = temperature[i];
-      model->prep_contact();
+    meff = rmass[i];
+    if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
-      model->calculate_forces();
-      if (heat_flag) dq = model->calculate_heat();
+    // Copy additional information and prepare force calculations
+    model->meff = meff;
+    model->vi = v[i];
+    model->omegai = omega[i];
+    model->history_update = history_update;
+    if (use_history) model->history = history_one[i];
+    if (heat_flag) model->Ti = temperature[i];
+    model->prep_contact();
 
-      forces = model->forces;
-      torquesi = model->torquesi;
+    model->calculate_forces();
+    if (heat_flag) dq = model->calculate_heat();
 
-      // apply forces & torques
-      add3(f[i], forces, f[i]);
+    forces = model->forces;
+    torquesi = model->torquesi;
 
-      add3(torque[i], torquesi, torque[i]);
-      if (heat_flag) heatflux[i] += dq;
+    // apply forces & torques
+    add3(f[i], forces, f[i]);
 
-      // store contact info
-      if (peratom_flag) {
-        array_atom[i][0] = 1.0;
-        array_atom[i][1] = forces[0];
-        array_atom[i][2] = forces[1];
-        array_atom[i][3] = forces[2];
-        array_atom[i][4] = x[i][0] - dx;
-        array_atom[i][5] = x[i][1] - dy;
-        array_atom[i][6] = x[i][2] - dz;
-        array_atom[i][7] = radius[i];
-      }
+    add3(torque[i], torquesi, torque[i]);
+    if (heat_flag) heatflux[i] += dq;
+
+    // store contact info
+    if (peratom_flag) {
+      array_atom[i][0] = 1.0;
+      array_atom[i][1] = forces[0];
+      array_atom[i][2] = forces[1];
+      array_atom[i][3] = forces[2];
+      array_atom[i][4] = x[i][0] - dx;
+      array_atom[i][5] = x[i][1] - dy;
+      array_atom[i][6] = x[i][2] - dz;
+      array_atom[i][7] = radius[i];
     }
   }
 }
@@ -583,7 +584,7 @@ void FixWallGran::clear_stored_contacts() {
 
 void FixWallGran::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == nlevels_respa - 1) post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -594,10 +595,10 @@ double FixWallGran::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 0.0;
-  if (use_history) bytes += (double)nmax*size_history * sizeof(double);  // shear history
+  if (use_history) bytes += (double)nmax * size_history * sizeof(double);  // shear history
   if (fix_rigid) bytes += (double)nmax * sizeof(int);                    // mass_rigid
   // store contacts
-  if (peratom_flag) bytes += (double)nmax*size_peratom_cols*sizeof(double);
+  if (peratom_flag) bytes += (double)nmax * size_peratom_cols * sizeof(double);
   return bytes;
 }
 

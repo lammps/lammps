@@ -19,10 +19,16 @@ using namespace LAMMPS_NS;
 using namespace Contact;
 
 /* ----------------------------------------------------------------------
+   Default heat conduction
+------------------------------------------------------------------------- */
+
+HeatModel::HeatModel(LAMMPS *lmp) : SubModel(lmp) {}
+
+/* ----------------------------------------------------------------------
    Area-based heat conduction
 ------------------------------------------------------------------------- */
 
-HeatArea::HeatArea()
+HeatArea::HeatArea(LAMMPS *lmp) : HeatModel(lmp)
 {
   num_coeffs = 1;
 }

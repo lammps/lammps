@@ -21,7 +21,7 @@ namespace Contact {
 
 class NormalModel : public SubModel {
  public:
-  NormalModel();
+  NormalModel(class LAMMPS *);
   ~NormalModel() {};
   virtual void coeffs_to_local() {};
   virtual void mix_coeffs(NormalModel*, NormalModel*) {};
@@ -39,65 +39,63 @@ class NormalModel : public SubModel {
 
 /* ---------------------------------------------------------------------- */
 
-class NormalHooke: public NormalModel {
+class NormalHooke : public NormalModel {
  public:
-  NormalHooke();
+  NormalHooke(class LAMMPS *);
   ~NormalHooke() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
   double calculate_forces();
   void set_knfac();
- private:
+ protected:
   double k;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalHertz: public NormalModel {
+class NormalHertz : public NormalModel {
  public:
-  NormalHertz();
+  NormalHertz(class LAMMPS *);
   ~NormalHertz() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
   double calculate_forces();
   void set_knfac();
- private:
+ protected:
   double k;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalHertzMaterial: public NormalHertz {
+class NormalHertzMaterial : public NormalHertz {
  public:
-  NormalHertzMaterial();
+  NormalHertzMaterial(class LAMMPS *);
   ~NormalHertzMaterial() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
- private:
-  double k;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalDMT: public NormalModel {
+class NormalDMT : public NormalModel {
  public:
-  NormalDMT();
+  NormalDMT(class LAMMPS *);
   ~NormalDMT() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
   double calculate_forces();
   void set_knfac();
   void set_fncrit();
- private:
+ protected:
   double k, cohesion;
   double F_pulloff;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class NormalJKR: public NormalModel {
+class NormalJKR : public NormalModel {
  public:
-  NormalJKR();
+  NormalJKR(class LAMMPS *);
   ~NormalJKR() {};
   void coeffs_to_local();
   void mix_coeffs(NormalModel*, NormalModel*);
@@ -107,7 +105,7 @@ class NormalJKR: public NormalModel {
   double calculate_forces();
   void set_knfac();
   void set_fncrit();
- private:
+ protected:
   double k, cohesion;
   double Escaled, F_pulloff;
 };

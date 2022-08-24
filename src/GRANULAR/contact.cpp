@@ -18,9 +18,6 @@
 */
 
 #include "contact.h"
-#include "pointers.h"
-#include "math_const.h"
-#include "math_extra.h"
 #include "contact_sub_models.h"
 #include "contact_normal_models.h"
 #include "contact_tangential_models.h"
@@ -31,33 +28,48 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_extra.h"
 
 #include <cmath>
 
+using namespace LAMMPS_NS;
+using namespace Contact;
 using namespace MathExtra;
-using namespace LAMMPS_NS::MathConst;
-using namespace LAMMPS_NS::Contact;
 
-ContactModel::ContactModel() :
-  Pointers(lmp)
+ContactModel::ContactModel(LAMMPS *lmp) : Pointers(lmp)
 {
   limit_damping = 0;
   beyond_contact = 0;
   nondefault_history_transfer = 0;
-  cutoff_type = 0.0;
-  wall_flag = 0;
-  nmodels = 5;
+  nmodels = 6;
+
+  wall_type = NONE;
 
   reset_contact();
 
+  normal_model = nullptr;
+  damping_model = nullptr;
+  tangential_model = nullptr;
+  rolling_model = nullptr;
+  twisting_model = nullptr;
+  heat_model = nullptr;
+
   for (int i = 0; i < nmodels; i++) sub_models[i] = nullptr;
+  transfer_history_factor = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ContactModel::~ContactModel()
 {
-  delete[] transfer_history_factor;
+  delete [] transfer_history_factor;
+
+  delete normal_model;
+  delete damping_model;
+  delete tangential_model;
+  delete rolling_model;
+  delete twisting_model;
+  delete heat_model;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,52 +77,52 @@ ContactModel::~ContactModel()
 void ContactModel::init_model(std::string model_name, ModelType model_type)
 {
   if (model_type == NORMAL) {
-    if (model_name == "hooke") normal_model = new NormalHooke();
-    else if (model_name == "hertz") normal_model = new NormalHertz();
-    else if (model_name == "hertz/material") normal_model = new NormalHertzMaterial();
-    else if (model_name == "dmt") normal_model = new NormalDMT();
-    else if (model_name == "jkr") normal_model = new NormalJKR();
-    else error->all(FLERR, "Normal model name not recognized");
+    if (model_name == "hooke") normal_model = new NormalHooke(lmp);
+    else if (model_name == "hertz") normal_model = new NormalHertz(lmp);
+    else if (model_name == "hertz/material") normal_model = new NormalHertzMaterial(lmp);
+    else if (model_name == "dmt") normal_model = new NormalDMT(lmp);
+    else if (model_name == "jkr") normal_model = new NormalJKR(lmp);
+    else error->all(FLERR, "Normal model name {} not recognized", model_name);
     sub_models[model_type] = normal_model;
 
   } else if (model_type == TANGENTIAL) {
-    if (model_name =="linear_nohistory") tangential_model = new TangentialLinearNoHistory();
-    else if (model_name =="linear_history") tangential_model = new TangentialLinearHistory();
-    else if (model_name =="mindlin") tangential_model = new TangentialMindlin();
-    else if (model_name =="mindlin/force") tangential_model = new TangentialMindlinForce();
-    else if (model_name =="mindlin_rescale") tangential_model = new TangentialMindlinRescale();
-    else if (model_name =="mindlin_rescale/force") tangential_model = new TangentialMindlinRescaleForce();
-    else error->all(FLERR, "Tangential model name not recognized");
+    if (model_name == "linear_nohistory") tangential_model = new TangentialLinearNoHistory(lmp);
+    else if (model_name == "linear_history") tangential_model = new TangentialLinearHistory(lmp);
+    else if (model_name == "mindlin") tangential_model = new TangentialMindlin(lmp);
+    else if (model_name == "mindlin/force") tangential_model = new TangentialMindlinForce(lmp);
+    else if (model_name == "mindlin_rescale") tangential_model = new TangentialMindlinRescale(lmp);
+    else if (model_name == "mindlin_rescale/force") tangential_model = new TangentialMindlinRescaleForce(lmp);
+    else error->all(FLERR, "Tangential model name {} not recognized", model_name);
     sub_models[model_type] = tangential_model;
 
   } else if (model_type == DAMPING) {
-    if (model_name =="velocity") damping_model = new DampingVelocity();
-    else if (model_name =="mass_velocity") damping_model = new DampingMassVelocity();
-    else if (model_name =="viscoelastic") damping_model = new DampingViscoelastic();
-    else if (model_name =="tsuji") damping_model = new DampingTsuji();
-    else error->all(FLERR, "Damping model name not recognized");
+    if (model_name == "velocity") damping_model = new DampingVelocity(lmp);
+    else if (model_name == "mass_velocity") damping_model = new DampingMassVelocity(lmp);
+    else if (model_name == "viscoelastic") damping_model = new DampingViscoelastic(lmp);
+    else if (model_name == "tsuji") damping_model = new DampingTsuji(lmp);
+    else error->all(FLERR, "Damping model name {} not recognized", model_name);
     sub_models[model_type] = damping_model;
 
   } else if (model_type == ROLLING) {
-    if (model_name =="none") delete rolling_model;
-    else if (model_name =="sds") rolling_model = new RollingSDS();
-    else error->all(FLERR, "Rolling model name not recognized");
+    if (model_name == "none") delete rolling_model;
+    else if (model_name == "sds") rolling_model = new RollingSDS(lmp);
+    else error->all(FLERR, "Rolling model name {} not recognized", model_name);
     sub_models[model_type] = rolling_model;
 
   } else if (model_type == TWISTING) {
-    if (model_name =="none") delete twisting_model;
-    else if (model_name =="sds") twisting_model = new TwistingSDS();
-    else if (model_name =="marshall") twisting_model = new TwistingMarshall();
-    else error->all(FLERR, "Twisting model name not recognized");
+    if (model_name == "none") delete twisting_model;
+    else if (model_name == "sds") twisting_model = new TwistingSDS(lmp);
+    else if (model_name == "marshall") twisting_model = new TwistingMarshall(lmp);
+    else error->all(FLERR, "Twisting model name {} not recognized", model_name);
     sub_models[model_type] = twisting_model;
 
   } else if (model_type == HEAT) {
-    if (model_name =="none") delete heat_model;
-    else if (model_name =="area") heat_model = new HeatArea();
-    else error->all(FLERR, "Heat model name not recognized");
+    if (model_name == "none") delete heat_model;
+    else if (model_name == "area") heat_model = new HeatArea(lmp);
+    else error->all(FLERR, "Heat model name not {} recognized", model_name);
     sub_models[model_type] = heat_model;
   } else {
-    error->all(FLERR, "Illegal model type");
+    error->all(FLERR, "Illegal model type {}", model_type);
   }
 
   sub_models[model_type]->name.assign(model_name);
@@ -198,10 +210,9 @@ void ContactModel::init()
     }
   }
 
-  transfer_history_factor = new double(size_history);
-  for (i = 0; i < size_history; i++) transfer_history_factor[i] = -1.0;
-
   if (nondefault_history_transfer) {
+    transfer_history_factor = new double[size_history];
+
     for (i = 0; i < size_history; i++) {
       // Find which model controls this history value
       size_cumulative = 0;
@@ -216,10 +227,15 @@ void ContactModel::init()
       if (j != nmodels) {
         if (sub_models[j]->nondefault_history_transfer) {
           transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
+        } else {
+          transfer_history_factor[i] = -1;
         }
       }
     }
   }
+
+  for (i = 0; i < nmodels; i++)
+    if (sub_models[i])  sub_models[i]->init();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -231,7 +247,6 @@ void ContactModel::mix_coeffs(ContactModel *c1, ContactModel *c2)
       sub_models[i]->mix_coeffs(c1->sub_models[i], c2->sub_models[i]);
 
   limit_damping = MAX(c1->limit_damping, c2->limit_damping);
-  cutoff_type = MAX(c1->cutoff_type, c2->cutoff_type);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -301,15 +316,22 @@ void ContactModel::reset_contact()
 
 /* ---------------------------------------------------------------------- */
 
-bool ContactModel::check_contact()
+bool ContactModel::check_contact(double rtemp)
 {
   check_flag = 1;
 
-  if (wall_flag) {
+  if (wall_type == RWALL) {
+    // Used by fix_wall_gran.cpp
     rsq = lensq3(dx);
     radsum = radi;
-    if (rwall == 0) Reff = radi;
-    else Reff = radi * rwall/(radi + rwall);
+    if (rtemp == 0) Reff = radi;
+    else Reff = radi * rtemp/(radi + rtemp);
+  } else if (wall_type == RDUPLICATE) {
+    // Used by fix_wall_gran_region.cpp
+    rsq = rtemp * rtemp;
+    radsum = radi + radi;
+    if (rtemp == 0) Reff = radi;
+    else Reff = radi * rtemp/(radi + rtemp);
   } else {
     sub3(xi, xj, dx);
     rsq = lensq3(dx);
@@ -389,17 +411,17 @@ void ContactModel::calculate_forces()
   //**********************************************
   // calculate forces
   //**********************************************
-
+  forces[0] = 0.0;
   double Fne, Fdamp;
   area = normal_model->calculate_area();
+  normal_model->set_knfac();
   Fne = normal_model->calculate_forces();
-  normal_model->set_knfac(); // Needed for damping
 
   Fdamp = damping_model->calculate_forces();
+  Fntot = Fne + Fdamp;
 
   normal_model->set_fncrit(); // Needed for tangential, rolling, twisting
 
-  Fntot = Fne + Fdamp;
   if (limit_damping && Fntot < 0.0) Fntot = 0.0;
 
   tangential_model->calculate_forces();

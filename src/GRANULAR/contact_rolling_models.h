@@ -21,7 +21,7 @@ namespace Contact {
 
 class RollingModel : public SubModel {
  public:
-  RollingModel() {};
+  RollingModel(class LAMMPS *);
   ~RollingModel() {};
   virtual void coeffs_to_local() {};
   virtual void mix_coeffs(RollingModel*, RollingModel*) {};
@@ -30,13 +30,13 @@ class RollingModel : public SubModel {
 
 /* ---------------------------------------------------------------------- */
 
-class RollingSDS: public RollingModel {
+class RollingSDS : public RollingModel {
  public:
-  RollingSDS();
+  RollingSDS(class LAMMPS *);
   void coeffs_to_local();
   void mix_coeffs(RollingModel*, RollingModel*);
   double calculate_forces();
- private:
+ protected:
   double k, mu, gamma;
 };
 

@@ -24,8 +24,11 @@
 using namespace LAMMPS_NS;
 using namespace Contact;
 
-SubModel::SubModel() :
-  Pointers(lmp)
+/* ----------------------------------------------------------------------
+   Parent class for all types of contact forces
+------------------------------------------------------------------------- */
+
+SubModel::SubModel(LAMMPS *lmp) : Pointers(lmp)
 {
   allocated = 0;
   size_history = 0;
@@ -58,13 +61,12 @@ void SubModel::allocate_coeffs()
 
 int SubModel::parse_coeffs(char **arg, int iarg, int narg)
 {
-  if (iarg + num_coeffs >= narg)
+  if (iarg + num_coeffs > narg)
     error->all(FLERR, "Insufficient arguments provided for {} model", name);
-
   for (int i = 0; i < num_coeffs; i++) {
     // A few parameters (eg.g kt for tangential mindlin) allow null
-    if (strcmp(arg[iarg+i+1], "NULL") == 0) coeffs[i] = -1;
-    else coeffs[i] = utils::numeric(FLERR,arg[iarg+i+1],false,lmp);
+    if (strcmp(arg[iarg+i], "NULL") == 0) coeffs[i] = -1;
+    else coeffs[i] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
   }
   coeffs_to_local();
 

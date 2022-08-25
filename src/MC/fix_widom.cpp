@@ -153,7 +153,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
       error->all(FLERR,"Fix widom molecule template ID must be same "
                  "as atom_style template ID");
-    onemols[imol]->check_attributes(0);
+    onemols[imol]->check_attributes();
   }
 
   if (charge_flag && atom->q == nullptr)
@@ -273,7 +273,7 @@ void FixWidom::init()
 
   triclinic = domain->triclinic;
 
-  ave_widom_chemical_potential = 0;
+  ave_widom_chemical_potential = 0.0;
 
   if (region) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;

@@ -162,6 +162,12 @@ class Atom : protected Pointers {
   double *rho, *drho, *esph, *desph, *cv;
   double **vest;
 
+  // AMOEBA package
+
+  int *nspecial15;              // # of 1-5 neighs
+  tagint **special15;           // IDs of 1-5 neighs of each atom
+  int maxspecial15;             // special15[nlocal][maxspecial15]
+
   // DIELECTRIC package
 
   double *area, *ed, *em, *epsilon, *curvature, *q_unscaled;
@@ -198,6 +204,10 @@ class Atom : protected Pointers {
   int smd_flag, damage_flag;
   int contact_radius_flag, smd_data_9_flag, smd_stress_flag;
   int eff_plastic_strain_flag, eff_plastic_strain_rate_flag;
+
+  // AMOEBA package
+
+  int nspecial15_flag;
 
   // Peridynamics scale factor, used by dump cfg
 
@@ -334,7 +344,8 @@ class Atom : protected Pointers {
   int shape_consistency(int, double &, double &, double &);
 
   void add_molecule(int, char **);
-  int find_molecule(char *);
+  int find_molecule(const char *);
+  std::vector<Molecule *>get_molecule_by_id(const std::string &);
   void add_molecule_atom(class Molecule *, int, int, tagint);
 
   void first_reorder();

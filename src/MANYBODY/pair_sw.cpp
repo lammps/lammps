@@ -14,6 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL)
+   Optimizations for two-body only: Jackson Elowitt (Univ. of Utah)
 ------------------------------------------------------------------------- */
 
 #include "pair_sw.h"
@@ -44,6 +45,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
+  skip_threebody_flag = false;
 
   params = nullptr;
 
@@ -137,14 +139,18 @@ void PairSW::compute(int eflag, int vflag)
       }
 
       jtag = tag[j];
-      if (itag > jtag) {
-        if ((itag+jtag) % 2 == 0) continue;
-      } else if (itag < jtag) {
-        if ((itag+jtag) % 2 == 1) continue;
-      } else {
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-        if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+
+      // only need to skip if we have a full neighbor list
+      if (!skip_threebody_flag) {
+        if (itag > jtag) {
+          if ((itag+jtag) % 2 == 0) continue;
+        } else if (itag < jtag) {
+          if ((itag+jtag) % 2 == 1) continue;
+        } else {
+          if (x[j][2] < ztmp) continue;
+          if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+          if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        }
       }
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
@@ -159,9 +165,11 @@ void PairSW::compute(int eflag, int vflag)
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delx,dely,delz);
     }
-
-    jnumm1 = numshort - 1;
-
+    if (skip_threebody_flag) {
+        jnumm1 = 0;
+    } else {
+        jnumm1 = numshort - 1;
+    }
     for (jj = 0; jj < jnumm1; jj++) {
       j = neighshort[jj];
       jtype = map[type[j]];
@@ -229,9 +237,21 @@ void PairSW::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSW::settings(int narg, char **/*arg*/)
+void PairSW::settings(int narg, char ** arg)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  // process optional keywords
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"threebody") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style sw", error);
+      skip_threebody_flag = !utils::logical(FLERR,arg[iarg+1],false,lmp);
+      // without the threebody terms we don't need to enforce
+      // pair_coeff * * and can enable the single function.
+      one_coeff = skip_threebody_flag ? 0 : 1;
+      single_enable = skip_threebody_flag ? 1 : 0;
+      iarg += 2;
+    } else error->all(FLERR, "Illegal pair_style sw keyword: {}", arg[iarg]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -261,9 +281,12 @@ void PairSW::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style Stillinger-Weber requires newton pair on");
 
-  // need a full neighbor list
+  // need a full neighbor list for full threebody calculation
 
-  neighbor->add_request(this, NeighConst::REQ_FULL);
+  if (skip_threebody_flag)
+    neighbor->add_request(this);
+  else
+    neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -279,6 +302,19 @@ double PairSW::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
+double PairSW::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                      double /*factor_coul*/, double /*factor_lj*/, double &fforce)
+{
+  int ijparam = elem3param[map[itype]][map[jtype]][map[jtype]];
+  double phisw = 0.0;
+  fforce = 0.0;
+
+  if (rsq < params[ijparam].cutsq) twobody(&params[ijparam],rsq,fforce,1,phisw);
+  return phisw;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void PairSW::read_file(char *file)
 {
   memory->sfree(params);
@@ -290,6 +326,8 @@ void PairSW::read_file(char *file)
   if (comm->me == 0) {
     PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
     char *line;
+
+    if (skip_threebody_flag) utils::logmesg(lmp, "  disabling sw potential three-body terms\n");
 
     // transparently convert units for supported conversions
 
@@ -355,6 +393,9 @@ void PairSW::read_file(char *file)
         params[nparams].epsilon *= conversion_factor;
       }
 
+      // turn off three-body term
+      if (skip_threebody_flag) params[nparams].lambda = 0;
+
       if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||
           params[nparams].littlea < 0.0 || params[nparams].lambda < 0.0 ||
           params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 ||
@@ -397,11 +438,13 @@ void PairSW::setup_params()
         for (m = 0; m < nparams; m++) {
           if (i == params[m].ielement && j == params[m].jelement &&
               k == params[m].kelement) {
-            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+            if (n >= 0) error->all(FLERR,"Potential file has a duplicate entry for: {} {} {}",
+                                   elements[i], elements[j], elements[k]);
             n = m;
           }
         }
-        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+        if (n < 0) error->all(FLERR,"Potential file is missing an entry for: {} {} {}",
+                              elements[i], elements[j], elements[k]);
         elem3param[i][j][k] = n;
       }
 

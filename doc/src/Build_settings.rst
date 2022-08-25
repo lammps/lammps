@@ -297,15 +297,15 @@ requires the following settings:
       .. code-block:: bash
 
          -D WITH_JPEG=value      # yes or no
-                                 # default = yes
+                                 # default = yes if CMake finds JPEG files, else no
          -D WITH_PNG=value       # yes or no
-                                 # default = yes
+                                 # default = yes if CMake finds PNG and ZLIB files, else no
          -D WITH_FFMPEG=value    # yes or no
                                  # default = yes if CMake can find ffmpeg, else no
 
-      Usually these settings are all that is needed.  If those libraries
-      or executables are installed but CMake cannot find the graphics header,
-      library, or executable files, you can set these variables accordingly:
+      Usually these settings are all that is needed.  If CMake cannot
+      find the graphics header, library, executable files, you can set
+      these variables:
 
       .. code-block:: bash
 
@@ -316,9 +316,6 @@ requires the following settings:
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
          -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
          -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
-
-      Otherwise, CMake will attempt to download, build, and link with
-      jpeg, png, and zlib libraries statically from source code.
 
    .. tab:: Traditional make
 

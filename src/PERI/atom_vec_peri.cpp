@@ -26,13 +26,14 @@
 using namespace LAMMPS_NS;
 
 static const char cite_peri_package[] =
-    "PERI package for Peridynamics:\n\n"
+    "PERI package for Peridynamics: doi:10.1016/j.cpc.2008.06.011\n\n"
     "@Article{Parks08,\n"
-    " author = {M. L. Parks, R. B. Lehoucq, S. J. Plimpton, S. A. Silling},\n"
-    " title = {Implementing peridynamics within a molecular dynamics code},\n"
-    " journal = {Comp.~Phys.~Comm.},\n"
+    " author = {M. L. Parks and R. B. Lehoucq and S. J. Plimpton and S. A. Silling},\n"
+    " title = {Implementing Peridynamics Within a Molecular Dynamics Code},\n"
+    " journal = {Comput.\\ Phys.\\ Commun.},\n"
     " year =    2008,\n"
     " volume =  179,\n"
+    " number =  11,\n"
     " pages =   {777--783}\n"
     "}\n\n";
 

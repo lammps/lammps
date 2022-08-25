@@ -144,12 +144,14 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten3   uloop     4 pad");
     command("variable dummy  index     0");
     command("variable file   equal     is_file(MYFILE)");
+    command("variable iswin  equal     is_os(^Windows)");
+    command("variable islin  equal     is_os(^Linux)");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 18);
+    ASSERT_EQ(variable->nvar, 20);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 17);
+    ASSERT_EQ(variable->nvar, 19);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
@@ -167,6 +169,17 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("file"), StrEq("1"));
     platform::unlink("MYFILE");
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
+
+#if defined(_WIN32)
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("0"));
+#elif defined(__linux__)
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("1"));
+#else
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("0"));
+#endif
 
     BEGIN_HIDE_OUTPUT();
     command("variable seven delete");
@@ -389,6 +402,8 @@ TEST_F(VariableTest, IfCommand)
 {
     BEGIN_HIDE_OUTPUT();
     command("variable one index 1");
+    command("variable two string xx");
+    command("variable three equal 1");
     END_HIDE_OUTPUT();
 
     BEGIN_CAPTURE_OUTPUT();
@@ -402,9 +417,34 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
+    command("if 0<1 then 'print \"bingo!\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if 2<1 then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
     command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (0<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (0>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (1>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (-1.0e-1<0.0E+0)|^(1<0) then 'print \"bingo!\"'");
@@ -444,7 +484,11 @@ TEST_F(VariableTest, IfCommand)
     BEGIN_CAPTURE_OUTPUT();
     command("if x!=x|^a!=b then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (${three}) then 'print \"bingo!\"'");
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
@@ -455,8 +499,16 @@ TEST_F(VariableTest, IfCommand)
                  command("if 1a then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if 1=<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
                  command("if 1!=a then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a<b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a>b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a<=b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a<=b then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if 1&<2 then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
@@ -465,8 +517,14 @@ TEST_F(VariableTest, IfCommand)
                  command("if (1)( then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if (1)1 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
                  command("if (v_one==1.0)&&(2>=1) then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+                 command("if (something) then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+                 command("if (v_one) then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+                 command("if (${two}) then 'print \"bingo!\"'"););
 }
 
 TEST_F(VariableTest, NextCommand)

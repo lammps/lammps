@@ -1,0 +1,20 @@
+units           real
+atom_style      atomic
+
+read_data       data.spce
+
+pair_style      hybrid/overlay table linear 1200 sw/angle/table
+
+pair_coeff      1 1 table table_CG_CG.txt VOTCA
+pair_coeff      * * sw/angle/table spce.sw type
+
+fix             1 all nvt temp 300.0 300.0 200.0
+
+velocity        all create 300 432567 dist uniform mom yes
+
+timestep        2.0
+
+thermo          100
+#dump            2 all custom 10 spce_sw.dump id type x y z fx fy fz
+
+run             1000

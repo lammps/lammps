@@ -136,6 +136,8 @@ positions.
             :align: right
             :target: _images/marble_race.jpg
 
+.. versionadded:: 2Jun2022
+
 For the *mesh* style, a file with a triangle mesh in `STL format
 <https://en.wikipedia.org/wiki/STL_(file_format)>`_ is read and one or
 more particles are placed into the area of each triangle.  The reader
@@ -390,6 +392,8 @@ the atom style.  Its value is a prefactor (must be > 0.0, default is
 1.0) that is applied to the atom radius inferred from the size of the
 individual triangles in the triangle mesh that the particle corresponds
 to.
+
+.. versionadded:: 2Jun2022
 
 The *overlap* keyword only applies to the *random* style.  It prevents
 newly created particles from being created closer than the specified

@@ -154,6 +154,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_and_count_words
    :project: progguide
 
+.. doxygenfunction:: join_words
+   :project: progguide
+
 .. doxygenfunction:: split_words
    :project: progguide
 
@@ -205,7 +208,7 @@ Argument processing
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: logmesg(LAMMPS *lmp, const S &format, Args&&... args)
+.. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &format, Args&&... args)
    :project: progguide
 
 .. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)

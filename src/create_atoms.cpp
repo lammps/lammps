@@ -299,7 +299,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
 
-    onemol->check_attributes(0);
+    onemol->check_attributes();
 
     // use geometric center of molecule for insertion
     // molecule random number generator, different for each proc

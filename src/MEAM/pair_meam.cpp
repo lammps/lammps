@@ -29,6 +29,7 @@
 #include "neighbor.h"
 #include "potential_file_reader.h"
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 
@@ -73,7 +74,10 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 
 PairMEAM::~PairMEAM()
 {
-  delete meam_inst;
+  if (copymode) return;
+
+  if (meam_inst)
+    delete meam_inst;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -249,11 +253,14 @@ void PairMEAM::coeff(int narg, char **arg)
   nlibelements = paridx - 3;
   if (nlibelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
   if (nlibelements > maxelt)
-    error->all(FLERR,"Too many elements extracted from MEAM "
-                                 "library (current limit: {}). Increase "
-                                 "'maxelt' in meam.h and recompile.", maxelt);
+    error->all(FLERR,"Too many elements extracted from MEAM library (current limit: {}). "
+               "Increase 'maxelt' in meam.h and recompile.", maxelt);
 
   for (int i = 0; i < nlibelements; i++) {
+    if (std::any_of(libelements.begin(), libelements.end(),
+                    [&](const std::string &elem) { return elem == arg[i+3]; }))
+      error->all(FLERR,"Must not extract the same element ({}) from MEAM library twice. ", arg[i+3]);
+
     libelements.emplace_back(arg[i+3]);
     mass.push_back(0.0);
   }
@@ -380,7 +387,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
     PotentialFileReader reader(lmp, globalfile, "MEAM", " library");
     char * line;
 
-    const int params_per_line = 19;
+    constexpr int params_per_line = 19;
     int nset = 0;
 
     while ((line = reader.next_line(params_per_line))) {

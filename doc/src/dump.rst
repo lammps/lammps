@@ -1,4 +1,26 @@
 .. index:: dump
+.. index:: dump atom
+.. index:: dump cfg
+.. index:: dump custom
+.. index:: dump dcd
+.. index:: dump local
+.. index:: dump xtc
+.. index:: dump yaml
+.. index:: dump xyz
+.. index:: dump atom/gz
+.. index:: dump cfg/gz
+.. index:: dump custom/gz
+.. index:: dump local/gz
+.. index:: dump xyz/gz
+.. index:: dump atom/mpiio
+.. index:: dump cfg/mpiio
+.. index:: dump custom/mpiio
+.. index:: dump xyz/mpiio
+.. index:: dump atom/zstd
+.. index:: dump cfg/zstd
+.. index:: dump custom/zstd
+.. index:: dump xyz/zstd
+.. index:: dump local/zstd
 
 dump command
 ============
@@ -27,6 +49,9 @@ dump command
 :doc:`dump custom/adios <dump_adios>` command
 =============================================
 
+:doc:`dump cfg/uef <dump_cfg_uef>` command
+==========================================
+
 Syntax
 """"""
 
@@ -36,7 +61,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
+* style = *atom* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -47,22 +72,23 @@ Syntax
        *atom/gz* args = none
        *atom/zstd* args = none
        *atom/mpiio* args = none
-       *atom/adios* args = none,  discussed on :doc:`dump atom/adios <dump_adios>` doc page
+       *atom/adios* args = none,  discussed on :doc:`dump atom/adios <dump_adios>` page
        *cfg* args = same as *custom* args, see below
        *cfg/gz* args = same as *custom* args, see below
        *cfg/zstd* args = same as *custom* args, see below
        *cfg/mpiio* args = same as *custom* args, see below
+       *cfg/uef* args = same as *custom* args, discussed on :doc:`dump cfg/uef <dump_cfg_uef>` page
        *custom*, *custom/gz*, *custom/zstd*, *custom/mpiio* args = see below
-       *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` doc page
+       *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` page
        *dcd* args = none
-       *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` doc page
-       *image* args = discussed on :doc:`dump image <dump_image>` doc page
+       *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` page
+       *image* args = discussed on :doc:`dump image <dump_image>` page
        *local*, *local/gz*, *local/zstd* args = see below
-       *molfile* args = discussed on :doc:`dump molfile <dump_molfile>` doc page
-       *movie* args = discussed on :doc:`dump image <dump_image>` doc page
-       *netcdf* args = discussed on :doc:`dump netcdf <dump_netcdf>` doc page
-       *netcdf/mpiio* args = discussed on :doc:`dump netcdf <dump_netcdf>` doc page
-       *vtk* args = same as *custom* args, see below, also :doc:`dump vtk <dump_vtk>` doc page
+       *molfile* args = discussed on :doc:`dump molfile <dump_molfile>` page
+       *movie* args = discussed on :doc:`dump image <dump_image>` page
+       *netcdf* args = discussed on :doc:`dump netcdf <dump_netcdf>` page
+       *netcdf/mpiio* args = discussed on :doc:`dump netcdf <dump_netcdf>` page
+       *vtk* args = same as *custom* args, see below, also :doc:`dump vtk <dump_vtk>` page
        *xtc* args = none
        *xyz* args = none
        *xyz/gz* args = none
@@ -70,7 +96,7 @@ Syntax
        *xyz/mpiio* args = none
        *yaml* args = same as *custom* args, see below
 
-* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* or *yaml* args = list of atom attributes
+* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* args = list of atom attributes
 
   .. parsed-literal::
 
@@ -155,7 +181,7 @@ timesteps in one of several styles.  The *image* and *movie* styles are
 the exception: the *image* style renders a JPG, PNG, or PPM image file
 of the atom configuration every N timesteps while the *movie* style
 combines and compresses them into a movie file; both are discussed in
-detail on the :doc:`dump image <dump_image>` doc page.  The timesteps on
+detail on the :doc:`dump image <dump_image>` page.  The timesteps on
 which dump output is written can also be controlled by a variable.
 See the :doc:`dump_modify every <dump_modify>` command.
 
@@ -194,7 +220,7 @@ or multiple smaller files).
 For the *atom*, *custom*, *cfg*, and *local* styles, sorting is off by
 default.  For the *dcd*, *xtc*, *xyz*, and *molfile* styles, sorting
 by atom ID is on by default. See the :doc:`dump_modify <dump_modify>`
-doc page for details.
+page for details.
 
 The *atom/gz*, *cfg/gz*, *custom/gz*, *local/gz*, and *xyz/gz* styles
 are identical in command syntax to the corresponding styles without
@@ -204,7 +230,7 @@ alternative approach to writing compressed files via a pipe, as done
 by the regular dump styles, which may be required on clusters where
 the interface to the high-speed network disallows using the fork()
 library call (which is needed for a pipe).  For the remainder of this
-doc page, you should thus consider the *atom* and *atom/gz* styles
+page, you should thus consider the *atom* and *atom/gz* styles
 (etc) to be inter-changeable, with the exception of the required
 filename suffix.
 
@@ -218,7 +244,7 @@ As explained below, the *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and
 *xyz/mpiio* styles are identical in command syntax and in the format
 of the dump files they create, to the corresponding styles without
 "mpiio", except the single dump file they produce is written in
-parallel via the MPI-IO library.  For the remainder of this doc page,
+parallel via the MPI-IO library.  For the remainder of this page,
 you should thus consider the *atom* and *atom/mpiio* styles (etc) to
 be inter-changeable.  The one exception is how the filename is
 specified for the MPI-IO styles, as explained below.
@@ -387,6 +413,8 @@ and the x-, y-, and z-coordinate of that atom. You can use the
 from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
+
+.. versionadded:: 4May2022
 
 Dump style *yaml* has the same command syntax as style *custom* and
 writes YAML format files that can be easily parsed by a variety of data
@@ -664,7 +692,7 @@ so that each value is 0.0 to 1.0.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.
 I.e. actual unscaled (x,y,z) = xs\*A + ys\*B + zs\*C, where (A,B,C) are
 the non-orthogonal vectors of the simulation box edges, as discussed
-on the :doc:`Howto triclinic <Howto_triclinic>` doc page.
+on the :doc:`Howto triclinic <Howto_triclinic>` page.
 
 Use *xu*, *yu*, *zu* if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has
@@ -779,6 +807,11 @@ To write gzipped dump files, you must either compile LAMMPS with the
 -DLAMMPS_GZIP option or use the styles from the COMPRESS package.
 See the :doc:`Build settings <Build_settings>` page for details.
 
+While a dump command is active (i.e. has not been stopped by using
+the undump command), no commands may be used that will change the
+timestep (e.g. :doc:`reset_timestep <reset_timestep>`).  LAMMPS
+will terminate with an error otherwise.
+
 The *atom/gz*, *cfg/gz*, *custom/gz*, and *xyz/gz* styles are part of
 the COMPRESS package.  They are only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` page for
@@ -787,7 +820,7 @@ more info.
 The *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and *xyz/mpiio* styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+page for more info.
 
 The *xtc*, *dcd* and *yaml* styles are part of the EXTRA-DUMP package.
 They are only enabled if LAMMPS was built with that package.  See the
@@ -797,12 +830,12 @@ Related commands
 """"""""""""""""
 
 :doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`,
-:doc:`dump h5md <dump_h5md>`, :doc:`dump image <dump_image>`,
-:doc:`dump molfile <dump_molfile>`, :doc:`dump_modify <dump_modify>`,
-:doc:`undump <undump>`
+:doc:`dump cfg/uef <dump_cfg_uef>`, :doc:`dump h5md <dump_h5md>`,
+:doc:`dump image <dump_image>`, :doc:`dump molfile <dump_molfile>`,
+:doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`, :doc:`write_dump <write_dump>`
 
 Default
 """""""
 
 The defaults for the *image* and *movie* styles are listed on the
-:doc:`dump image <dump_image>` doc page.
+:doc:`dump image <dump_image>` page.

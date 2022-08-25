@@ -5,6 +5,8 @@ on:
   push:
     branches: [develop]
 
+  workflow_dispatch:
+
 jobs:
   build:
     name: MacOS Unit Test
@@ -15,7 +17,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 2
 
@@ -26,7 +28,7 @@ jobs:
       run: mkdir build
 
     - name: Set up ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.CCACHE_DIR }}
         key: macos-ccache-${{ github.sha }}

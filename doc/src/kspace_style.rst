@@ -129,8 +129,8 @@ Examples
 
    kspace_style pppm 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
-   kspace style msm 1.0e-4
-   kspace style scafacos fmm 1.0e-4
+   kspace_style msm 1.0e-4
+   kspace_style scafacos fmm 1.0e-4
    kspace_style none
 
 Used in input scripts:

@@ -204,6 +204,12 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = esph = desph = cv = nullptr;
   vest = nullptr;
 
+  // AMOEBA package
+
+  maxspecial15 = 1;
+  nspecial15 = nullptr;
+  special15 = nullptr;
+
   // DIELECTRIC package
 
   area = ed = em = epsilon = curvature = q_unscaled = nullptr;
@@ -534,6 +540,11 @@ void Atom::peratom_create()
   add_peratom("eff_plastic_strain_rate",&eff_plastic_strain_rate,DOUBLE,0);
   add_peratom("damage",&damage,DOUBLE,0);
 
+  // AMOEBA package
+
+  add_peratom("nspecial15",&nspecial15,INT,0);
+  add_peratom_vary("special15",&special15,tagintsize,&maxspecial15,&nspecial15,0);
+
   // DIELECTRIC package
 
   add_peratom("area",&area,DOUBLE,0);
@@ -622,6 +633,7 @@ void Atom::set_atomflag_defaults()
   mesont_flag = 0;
   contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
+  nspecial15_flag = 0;
 
   pdscale = 1.0;
 }
@@ -1879,13 +1891,24 @@ void Atom::add_molecule(int narg, char **arg)
    return -1 if does not exist
 ------------------------------------------------------------------------- */
 
-int Atom::find_molecule(char *id)
+int Atom::find_molecule(const char *id)
 {
   if (id == nullptr) return -1;
-  int imol;
-  for (imol = 0; imol < nmolecule; imol++)
+  for (int imol = 0; imol < nmolecule; imol++)
     if (strcmp(id,molecules[imol]->id) == 0) return imol;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return vector of molecules which match template ID
+------------------------------------------------------------------------- */
+
+std::vector<Molecule *>Atom::get_molecule_by_id(const std::string &id)
+{
+  std::vector<Molecule *> result;
+  for (int imol = 0; imol < nmolecule; ++imol)
+    if (id == molecules[imol]->id) result.push_back(molecules[imol]);
+  return result;
 }
 
 /* ----------------------------------------------------------------------
@@ -1900,8 +1923,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
   if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
   else if (rmass_flag)
-    rmass[ilocal] = 4.0*MY_PI/3.0 *
-      radius[ilocal]*radius[ilocal]*radius[ilocal];
+    rmass[ilocal] = 4.0*MY_PI/3.0 * radius[ilocal]*radius[ilocal]*radius[ilocal];
   if (onemol->bodyflag) {
     body[ilocal] = 0;     // as if a body read from data file
     onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
@@ -1911,10 +1933,8 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 
   // initialize custom per-atom properties to zero if present
 
-  for (int i = 0; i < nivector; ++i)
-    ivector[i][ilocal] = 0;
-  for (int i = 0; i < ndvector; ++i)
-    dvector[i][ilocal] = 0.0;
+  for (int i = 0; i < nivector; ++i) ivector[i][ilocal] = 0;
+  for (int i = 0; i < ndvector; ++i) dvector[i][ilocal] = 0.0;
   for (int i = 0; i < niarray; ++i)
     for (int j = 0; j < icols[i]; ++j)
       iarray[i][ilocal][j] = 0;
@@ -2659,9 +2679,17 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"body") == 0) return (void *) body;
   if (strcmp(name,"quat") == 0) return (void *) quat;
 
+  // PERI PACKAGE
+
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;
   if (strcmp(name,"x0") == 0) return (void *) x0;
+
+  // SPIN PACKAGE
+
+  if (strcmp(name,"sp") == 0) return (void *) sp;
+
+  // EFF and AWPMD packages
 
   if (strcmp(name,"spin") == 0) return (void *) spin;
   if (strcmp(name,"eradius") == 0) return (void *) eradius;
@@ -2673,6 +2701,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"vforce") == 0) return (void *) vforce;
   if (strcmp(name,"etag") == 0) return (void *) etag;
 
+  // SPH package
   if (strcmp(name,"rho") == 0) return (void *) rho;
   if (strcmp(name,"drho") == 0) return (void *) drho;
   if (strcmp(name,"esph") == 0) return (void *) esph;

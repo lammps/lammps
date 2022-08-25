@@ -40,17 +40,14 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup double_blas_level1
 *
 *  =====================================================================
       DOUBLE PRECISION FUNCTION DCABS1(Z)
 *
-*  -- Reference BLAS level1 routine (version 3.7.0) --
+*  -- Reference BLAS level1 routine --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       COMPLEX*16 Z
@@ -63,4 +60,7 @@
 *
       DCABS1 = ABS(DBLE(Z)) + ABS(DIMAG(Z))
       RETURN
+*
+*     End of DCABS1
+*
       END

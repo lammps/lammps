@@ -147,8 +147,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date June 2017
-*
 *> \ingroup doubleGEcomputational
 *
 *> \par Further Details:
@@ -205,10 +203,9 @@
       SUBROUTINE DGEBRD( M, N, A, LDA, D, E, TAUQ, TAUP, WORK, LWORK,
      $                   INFO )
 *
-*  -- LAPACK computational routine (version 3.7.1) --
+*  -- LAPACK computational routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     June 2017
 *
 *     .. Scalar Arguments ..
       INTEGER            INFO, LDA, LWORK, M, N
@@ -227,8 +224,7 @@
 *     .. Local Scalars ..
       LOGICAL            LQUERY
       INTEGER            I, IINFO, J, LDWRKX, LDWRKY, LWKOPT, MINMN, NB,
-     $                   NBMIN, NX
-      DOUBLE PRECISION   WS
+     $                   NBMIN, NX, WS
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           DGEBD2, DGEMM, DLABRD, XERBLA

@@ -37,7 +37,7 @@ class ComputeAveSphereAtom : public Compute {
 
  protected:
   int nmax;
-  double cutoff, cutsq, sphere_vol;
+  double cutoff, cutsq, volume;
   class NeighList *list;
 
   double **result;

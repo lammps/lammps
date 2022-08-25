@@ -54,10 +54,10 @@ static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
 
 static const char cite_fix_qeq_reaxff[] =
-  "fix qeq/reaxff command:\n\n"
+  "fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
-  " author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},\n"
-  " title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},\n"
+  " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
+  " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
   " journal = {Parallel Computing},\n"
   " year =    2012,\n"
   " volume =  38,\n"

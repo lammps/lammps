@@ -27,8 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg)
-  : Compute(lmp, narg, arg), id_fix(nullptr)
+ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg), id_fix(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute msd command");
 
@@ -46,15 +45,15 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg)
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "com") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute msd command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute msd com", error);
       comflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "average") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute msd command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute msd average", error);
       avflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal compute msd command");
+      error->all(FLERR, "Unknown compute msd keyword: {}", arg[iarg]);
   }
 
   if (group->dynamic[igroup])

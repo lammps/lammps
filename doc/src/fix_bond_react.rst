@@ -571,14 +571,14 @@ Arrhenius constraint that depends on the bond force of a specific bond:
    variable ke atom c_ke_atom
 
    variable E_a equal 100.0 # activation energy
-   variable natoms equal 10 # number of atoms in reaction site
+   variable l0 equal 1.0 # characteristic length
 
 
 .. code-block:: LAMMPS
 
    # in Constraints section of map file
 
-   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag))/(2/3\*rxnsum(v_ke)\*v_natoms)) < random(0,1,12345)"
+   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag)*v_l0)/(2/3*rxnave(v_ke))) < random(0,1,12345)"
 
 By using an inequality and the 'random(x,y,z)' function, the left-hand
 side can be interpreted as the probability of the reaction occurring,

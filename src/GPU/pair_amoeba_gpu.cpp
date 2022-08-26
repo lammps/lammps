@@ -88,6 +88,10 @@ void amoeba_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
 
 void amoeba_gpu_update_fieldp(void **fieldp_ptr);
 
+void amoeba_gpu_grid_uind(double **host_fuind, double **host_fuinp,
+                          double** host_thetai1, double** host_thetai2,
+                          double** host_thetai3, double ***grid);
+
 void amoeba_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -869,7 +873,7 @@ void PairAmoebaGPU::udirect2b_cpu()
 
 void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
 {
-  int i,j;
+  //int i,j;
   double term;
 
   double time0,time1,time2;
@@ -879,13 +883,18 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  for (i = 0; i < nall; i++) {
-    for (j = 0; j < 3; j++) {
+  memset(&field[0][0], 0, 3*nall *sizeof(double));
+  memset(&fieldp[0][0], 0, 3*nall *sizeof(double));
+
+/*  
+  for (int i = 0; i < nall; i++) {
+    for (int j = 0; j < 3; j++) {
       field[i][j] = 0.0;
       fieldp[i][j] = 0.0;
     }
   }
-
+*/
+  
   // get the real space portion of the mutual field first
 
   MPI_Barrier(world);
@@ -902,13 +911,24 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
   // add the self-energy portion of the mutual field
 
   term = (4.0/3.0) * aewald*aewald*aewald / MY_PIS;
+  for (int i = 0; i < nlocal; i++) {
+    field[i][0] += term*uind[i][0];
+    field[i][1] += term*uind[i][1];
+    field[i][2] += term*uind[i][2];
+  }
+  for (int i = 0; i < nlocal; i++) {
+    fieldp[i][0] += term*uinp[i][0];
+    fieldp[i][1] += term*uinp[i][1];
+    fieldp[i][2] += term*uinp[i][2];
+  }
+/*  
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
       field[i][j] += term*uind[i][j];
       fieldp[i][j] += term*uinp[i][j];
     }
   }
-
+*/
   // accumulate the field and fieldp values from the real space portion from umutual2b() on the GPU
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
@@ -947,7 +967,7 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
 
 void PairAmoebaGPU::umutual1(double **field, double **fieldp)
 {
-  int i,j,k,m,n;
+  int m,n;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
   double term;
   double a[3][3];  // indices not flipped vs Fortran
@@ -958,7 +978,7 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
 
   // convert Cartesian dipoles to fractional coordinates
 
-  for (j = 0; j < 3; j++) {
+  for (int j = 0; j < 3; j++) {
     a[0][j] = nfft1 * recip[0][j];
     a[1][j] = nfft2 * recip[1][j];
     a[2][j] = nfft3 * recip[2][j];
@@ -966,13 +986,25 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
 
   int nlocal = atom->nlocal;
 
+  for (int i = 0; i < nlocal; i++) {
+    fuind[i][0] = a[0][0]*uind[i][0] + a[0][1]*uind[i][1] + a[0][2]*uind[i][2];
+    fuind[i][1] = a[1][0]*uind[i][0] + a[1][1]*uind[i][1] + a[1][2]*uind[i][2];
+    fuind[i][2] = a[2][0]*uind[i][0] + a[2][1]*uind[i][1] + a[2][2]*uind[i][2];
+  }
+    
+  for (int i = 0; i < nlocal; i++) {      
+    fuinp[i][0] = a[0][0]*uinp[i][0] + a[0][1]*uinp[i][1] + a[0][2]*uinp[i][2];
+    fuinp[i][1] = a[1][0]*uinp[i][0] + a[1][1]*uinp[i][1] + a[1][2]*uinp[i][2];
+    fuinp[i][2] = a[2][0]*uinp[i][0] + a[2][1]*uinp[i][1] + a[2][2]*uinp[i][2];
+  }
+/*
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
       fuind[i][j] = a[j][0]*uind[i][0] + a[j][1]*uind[i][1] + a[j][2]*uind[i][2];
       fuinp[i][j] = a[j][0]*uinp[i][0] + a[j][1]*uinp[i][1] + a[j][2]*uinp[i][2];
     }
   }
-
+*/
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
   double ****gridpre = (double ****) ic_kspace->zero();
@@ -1000,9 +1032,9 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
   // use qfac values stored in udirect1()
 
   m = n = 0;
-  for (k = nzlo; k <= nzhi; k++) {
-    for (j = nylo; j <= nyhi; j++) {
-      for (i = nxlo; i <= nxhi; i++) {
+  for (int k = nzlo; k <= nzhi; k++) {
+    for (int j = nylo; j <= nyhi; j++) {
+      for (int i = nxlo; i <= nxhi; i++) {
         term = qfac[m++];
         gridfft[n] *= term;
         gridfft[n+1] *= term;
@@ -1023,8 +1055,8 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
   // store fractional reciprocal potentials for OPT method
 
   if (poltyp == OPT) {
-    for (i = 0; i < nlocal; i++) {
-      for (j = 0; j < 10; j++) {
+    for (int i = 0; i < nlocal; i++) {
+      for (int j = 0; j < 10; j++) {
         fopt[i][optlevel][j] = fdip_phi1[i][j];
         foptp[i][optlevel][j] = fdip_phi2[i][j];
       }
@@ -1033,13 +1065,37 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
 
   // convert the dipole fields from fractional to Cartesian
 
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     a[0][i] = nfft1 * recip[0][i];
     a[1][i] = nfft2 * recip[1][i];
     a[2][i] = nfft3 * recip[2][i];
   }
 
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
+    double dfx = a[0][0]*fdip_phi1[i][1] +
+      a[0][1]*fdip_phi1[i][2] + a[0][2]*fdip_phi1[i][3];
+    double dfy = a[1][0]*fdip_phi1[i][1] +
+      a[1][1]*fdip_phi1[i][2] + a[1][2]*fdip_phi1[i][3];
+    double dfz = a[2][0]*fdip_phi1[i][1] +
+      a[2][1]*fdip_phi1[i][2] + a[2][2]*fdip_phi1[i][3];
+    field[i][0] -= dfx;
+    field[i][1] -= dfy;
+    field[i][2] -= dfz;
+  }
+
+  for (int i = 0; i < nlocal; i++) {
+    double dfx = a[0][0]*fdip_phi2[i][1] +
+      a[0][1]*fdip_phi2[i][2] + a[0][2]*fdip_phi2[i][3];
+    double dfy = a[1][0]*fdip_phi2[i][1] +
+      a[1][1]*fdip_phi2[i][2] + a[1][2]*fdip_phi2[i][3];
+    double dfz = a[2][0]*fdip_phi2[i][1] +
+      a[2][1]*fdip_phi2[i][2] + a[2][2]*fdip_phi2[i][3];
+    fieldp[i][0] -= dfx;
+    fieldp[i][1] -= dfy;
+    fieldp[i][2] -= dfz;
+  }
+/*
+  for (int i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
       dipfield1[i][j] = a[j][0]*fdip_phi1[i][1] +
         a[j][1]*fdip_phi1[i][2] + a[j][2]*fdip_phi1[i][3];
@@ -1056,6 +1112,7 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
       fieldp[i][j] -= dipfield2[i][j];
     }
   }
+*/
 }
 
 /* ----------------------------------------------------------------------

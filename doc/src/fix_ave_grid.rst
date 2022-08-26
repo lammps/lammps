@@ -77,7 +77,8 @@ grid and use it to either (a) time-average per-atom quantities for the
 atoms in each grid cell, or to (b) time-average per-grid quantities
 produced by other computes or fixes.  This fix operates in either
 "per-atom mode" (all input values are per-atom) or in "per-grid mode"
-(all input values are per-grid).
+(all input values are per-grid).  You cannot use both per-atom and
+per-grid inputs in the same command.
 
 The grid created by this command is distributed; each processor owns
 the grid points that are within its sub-domain.  This is in contrast to
@@ -295,6 +296,10 @@ every *Nfreq* timesteps when *Nrepeat* samples contribute to the
 output.  It has 3 possible settings: *all* or *sample* or *none*.
 *All* is the default.
 
+In per-grid mode, all the *norm* keyword options are the same.  The
+output grid value is summed over the grid value in each of the
+*Nrepeat* samples and then divided by *Nrepeat*.
+
 In per-atom mode, *norm all* means the output grid value is summed
 over all atoms in all *Nrepeat* samples, as is the count of atoms in
 each grid cell.  The averaged output value for a grid cell on the
@@ -326,10 +331,6 @@ of the *Nrepeat* "summed sample values", i.e. the sum of *Nrepeat*
 and *density/mass* values, the grid cell volume used in the per-sample
 sum normalization will be the current grid cell volume at each sampling
 step.
-
-In per-grid mode, all the *norm* keyword options operate the same.
-The output grid value is summed over the grid value in each of the
-*Nrepeat* samples and then divided by *Nrepeat*.
 
 The *ave* keyword is applied to both per-atom and per-grid mode.  It
 determines how the per-grid values produced once every *Nfreq* steps are

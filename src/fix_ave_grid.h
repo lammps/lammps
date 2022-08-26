@@ -52,10 +52,10 @@ class FixAveGrid : public Fix {
   bigint nvalid, nvalid_last;
   int modeatom,modegrid;
   int normflag,aveflag,nwindow;
-  
+
   int running_count;
   int window_count,window_oldest,window_newest;
-
+  
   int biasflag;
   char *id_bias;
   class Compute *tbias;    // ptr to additional bias compute
@@ -75,27 +75,16 @@ class FixAveGrid : public Fix {
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
   int ngridout;
-  double shift;
 
-  double **vec2d_sample,***vec3d_sample;
-  double ***array2d_sample,****array3d_sample;
-  double **count2d_sample,***count3d_sample;
+  struct GridData {
+    double **vec2d,***vec3d;
+    double ***array2d,****array3d;
+    double **count2d,***count3d;
+  };
 
-  double **vec2d_epoch,***vec3d_epoch;
-  double ***array2d_epoch,****array3d_epoch;
-  double **count2d_epoch,***count3d_epoch;
-
-  double **vec2d_running,***vec3d_running;
-  double ***array2d_running,****array3d_running;
-  double **count2d_running,***count3d_running;
-
-  double ***vec2d_window,****vec3d_window;
-  double ****array2d_window,*****array3d_window;
-  double ***count2d_window,****count3d_window;
-
-  double **vec2d,***vec3d;
-  double ***array2d,****array3d;
-  double **count2d,***count3d;
+  GridData *grid_output;
+  GridData *grid_sample,*grid_nfreq,*grid_running;
+  GridData **grid_window;
 
   int **bin;
   int *skip;
@@ -107,20 +96,18 @@ class FixAveGrid : public Fix {
   void atom2grid();
   void grid2grid();
 
-  void allocate_grid();
-  void deallocate_grid();
-  void zero_grid(double **, double **, double ***, 
-                 double ***, double ***, double ****);
-  void sum_sample_to_epoch();
-  void copy_epoch_to_sample();
-  void sum_sample_to_running();
-  void copy_sample_to_output();
-  void copy_running_to_output();
-  void copy_sample_to_window(int) {}
-  void subtract_window_from_running() {}
+  void normalize_atom(int, GridData *);
+  void normalize_grid(int, GridData *);
+  void normalize_count(int, GridData *);
 
-  void normalize_atom(int);
-  void normalize_grid(int, double **, double ***, double ***, double ****);
+  void allocate_grid(GridData *);
+  void deallocate_grid(GridData *);
+  double size_grid(GridData *);
+  void zero_grid(GridData *);
+  void copy_grid(GridData *, GridData *);
+  void add_grid(GridData *, GridData *);
+  void subtract_grid(GridData *, GridData *);
+  void output_grid(GridData *);
 
   bigint nextvalid();
 };

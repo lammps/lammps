@@ -40,6 +40,7 @@ PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) :
  PairCoulLong(_lmp), efield(nullptr)
 {
   nmax = 0;
+  single_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,10 +170,10 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
 
         if (eflag) {
           if (!ncoultablebits || rsq <= tabinnersq)
-            ecoul = prefactor * (etmp + eps[j]) * erfc;
+            ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
           else {
             table = etable[itable] + fraction * detable[itable];
-            ecoul = scale[itype][jtype] * qtmp * q[j] * (etmp + eps[j]) * table;
+            ecoul = scale[itype][jtype] * qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
           }
           if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
         } else ecoul = 0.0;

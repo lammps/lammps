@@ -35,8 +35,7 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *_lmp) :
- PairCoulCut(_lmp), efield(nullptr)
+PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *_lmp) : PairCoulCut(_lmp), efield(nullptr)
 {
   nmax = 0;
 }
@@ -136,7 +135,8 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
         efield[i][2] += delz * efield_i;
 
         if (eflag) {
-          ecoul = factor_coul * qqrd2e * scale[itype][jtype] * qtmp * q[j] * (etmp + eps[j]) * rinv;
+          ecoul = factor_coul * qqrd2e * scale[itype][jtype] * qtmp * q[j] * 0.5 * (etmp + eps[j]) *
+              rinv;
         }
         if (evflag) ev_tally_full(i, 0.0, ecoul, fpair_i, delx, dely, delz);
       }

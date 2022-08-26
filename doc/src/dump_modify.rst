@@ -111,7 +111,7 @@ Examples
    dump_modify 1 format line "%d %d %20.15g %g %g" scale yes
    dump_modify 1 format float %20.15g scale yes
    dump_modify myDump image yes scale no flush yes
-   dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
+   dump_modify 1 region mySphere thresh x < 0.0 thresh fx >= 3.2
    dump_modify xtcdump precision 10000 sfactor 0.1
    dump_modify 1 every 1000 nfile 20
    dump_modify 1 every v_myVar

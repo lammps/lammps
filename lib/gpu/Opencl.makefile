@@ -6,7 +6,7 @@ UCL_H  = $(wildcard ./geryon/ucl*.h)
 OCL_H  = $(wildcard ./geryon/ocl*.h) $(UCL_H) lal_precision.h
 
 # Headers for Host files
-HOST_H = lal_answer.h lal_atom.h lal_balance.h lal_base_atomic.h \
+HOST_H = lal_answer.h lal_atom.h lal_balance.h lal_base_atomic.h lal_base_amoeba.h \
          lal_base_charge.h lal_base_dipole.h lal_base_dpd.h \
          lal_base_ellipsoid.h lal_base_three.h lal_device.h lal_neighbor.h \
          lal_neighbor_shared.h lal_pre_ocl_config.h $(OCL_H)

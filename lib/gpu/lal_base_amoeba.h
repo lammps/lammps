@@ -299,8 +299,10 @@ class BaseAmoeba {
   virtual int umutual2b(const int eflag, const int vflag) = 0;
   virtual int polar_real(const int eflag, const int vflag) = 0;
 
+  #if !defined(USE_OPENCL) && !defined(USE_HIP)
   cufftHandle plan;
-  bool cufft_plan_created;
+  #endif
+  bool fft_plan_created;
 };
 
 }

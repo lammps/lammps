@@ -40,8 +40,10 @@ BaseAmoebaT::~BaseAmoeba() {
   k_polar.clear();
   k_special15.clear();
   k_short_nbor.clear();
-
-  //if (cufft_plan_created) cufftDestroy(plan);
+  
+  #if !defined(USE_OPENCL) && !defined(USE_HIP)
+  if (fft_plan_created) cufftDestroy(plan);
+  #endif
 
   if (pair_program) delete pair_program;
 }
@@ -148,7 +150,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
 
-  cufft_plan_created = false;
+  fft_plan_created = false;
 
   return success;
 }
@@ -636,10 +638,11 @@ void BaseAmoebaT::setup_fft(const int numel, const int element_type)
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int mode)
 {
-  if (cufft_plan_created == false) {
+  #if !defined(USE_OPENCL) && !defined(USE_HIP)    
+  if (fft_plan_created == false) {
     int m = numel/2;
     cufftPlan1d(&plan, m, CUFFT_Z2Z, 1);
-    cufft_plan_created = true;
+    fft_plan_created = true;
   }
 
   // n = number of double complex
@@ -676,6 +679,7 @@ void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int 
   }
 
   data.clear();
+  #endif
 }
 
 // ---------------------------------------------------------------------------

@@ -4354,9 +4354,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else argstack[nargstack++] = value;
 
   } else if (strcmp(word,"extract_setting") == 0) {
-    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function in variable formula",ivar);
+    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function syntax in variable formula",ivar);
 
     value = lammps_extract_setting(lmp, args[0]);
+    if (value < 0) {
+      auto mesg = fmt::format("Unknown setting {} for extract_setting() function in variable formula",args[0]);
+      print_var_error(FLERR,mesg,ivar);
+    }
 
     // save value in tree or on argstack
 

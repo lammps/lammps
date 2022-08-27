@@ -1,9 +1,17 @@
+# Common headers for kernels
+PRE1_H = lal_preprocessor.h lal_aux_fun1.h
+
 # Headers for Geryon
 UCL_H  = $(wildcard ./geryon/ucl*.h)
 NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) lal_preprocessor.h \
          lal_pre_cuda_hip.h
-ALL_H  =  $(NVD_H) $(wildcard ./lal_*.h)
 
+# Headers for Host files
+HOST_H = lal_answer.h lal_atom.h lal_balance.h lal_base_atomic.h lal_base_amoeba.h \
+         lal_base_charge.h lal_base_dipole.h lal_base_dpd.h \
+         lal_base_ellipsoid.h lal_base_three.h lal_device.h lal_neighbor.h \
+         lal_neighbor_shared.h lal_pre_ocl_config.h $(NVD_H)
+         
 # Source files
 SRCS := $(wildcard ./lal_*.cpp)
 OBJS := $(subst ./,$(OBJ_DIR)/,$(SRCS:%.cpp=%.o))
@@ -54,13 +62,13 @@ $(OBJ_DIR)/pppm_d.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h \
 $(OBJ_DIR)/pppm_d_cubin.h: $(OBJ_DIR)/pppm_d.cubin
 	$(BIN2C) -c -n pppm_d $(OBJ_DIR)/pppm_d.cubin > $(OBJ_DIR)/pppm_d_cubin.h
 
-$(OBJ_DIR)/%_cubin.h: lal_%.cu  $(ALL_H)
+$(OBJ_DIR)/%_cubin.h: lal_%.cu  $(PRE1_H)
 	$(CUDA) --fatbin -DNV_KERNEL -o $(OBJ_DIR)/$*.cubin $(OBJ_DIR)/lal_$*.cu
 	$(BIN2C) -c -n $* $(OBJ_DIR)/$*.cubin > $@
 
 # host code compilation
 
-$(OBJ_DIR)/lal_%.o: lal_%.cpp $(CUHS) $(ALL_H)
+$(OBJ_DIR)/lal_%.o: lal_%.cpp $(CUHS) $(HOST_H)
 	$(CUDR) -o $@ -c $< -I$(OBJ_DIR)
 
 #ifdef CUDPP_OPT
@@ -77,10 +85,10 @@ $(OBJ_DIR)/cudpp_plan_manager.o: cudpp_mini/cudpp_plan_manager.cpp
 	$(CUDR) -o $@ -c cudpp_mini/cudpp_plan_manager.cpp -Icudpp_mini
 
 $(OBJ_DIR)/radixsort_app.cu_o: cudpp_mini/radixsort_app.cu
-	$(CUDA) -o $@ -c cudpp_mini/radixsort_app.cu
+	$(CUDA) -o $@ -c cudpp_mini/radixsort_app.cu -Icudpp_mini
 
 $(OBJ_DIR)/scan_app.cu_o: cudpp_mini/scan_app.cu
-	$(CUDA) -o $@ -c cudpp_mini/scan_app.cu
+	$(CUDA) -o $@ -c cudpp_mini/scan_app.cu -Icudpp_mini
 #endif
 
 # build libgpu.a

@@ -260,6 +260,33 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
+// Interpolate the potential from the PME grid
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int AmoebaT::fphi_uind() {
+  int ainum=this->ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
+/*
+  this->time_pair.start();
+
+  this->k_fphi_uind.set_size(GX,BX);
+  this->k_fphi_uind.run();
+  this->time_pair.stop();
+*/
+
+  return GX;
+}
+
+// ---------------------------------------------------------------------------
 // Calculate the polar real-space term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>

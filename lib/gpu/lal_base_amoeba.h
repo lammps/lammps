@@ -150,10 +150,9 @@ class BaseAmoeba {
                 int **&ilist, int **&numj, const double cpu_time, bool &success,
                 double *charge, double *boxlo, double *prd);
 
-  virtual void precompute_umutual1(const int ago, const int inum_full, const int nall,
-                                    const int bsordermax, double **host_x,
-                                    double **host_thetai1, double **host_thetai2,
-                                    double **host_thetai3, void* grid);
+  virtual void precompute_induce(const int inum_full, const int bsorder,
+                                 double **host_thetai1, double **host_thetai2,
+                                 double **host_thetai3, int** igrid);
 
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
@@ -176,6 +175,12 @@ class BaseAmoeba {
   virtual void compute_umutual2b(int *host_amtype, int *host_amgroup, double **host_rpole,
                 double **host_uind, double **host_uinp, double *host_pval,
                 const double aewald, const double off2_polar, void **fieldp_ptr);
+
+  virtual void compute_fphi_uind(const int inum_full, const int bsorder,
+                                 double **host_thetai1, double **host_thetai2,
+                                 double **host_thetai3, int** igrid,
+                                 double ****host_grid, double **host_fdip_phi1,
+                                 double **host_fdip_phi2, double **host_fdip_sum_phi);
 
   /// Compute polar real-space with device neighboring
   virtual void compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -243,8 +248,9 @@ class BaseAmoeba {
   UCL_Vector<acctyp,acctyp> _tep, _fieldp;
   int _nmax, _max_tep_size, _max_fieldp_size;
 
-  int _bsordermax;
-  UCL_Vector<acctyp,acctyp> _thetai1, _thetai2, _thetai3;
+  int _bsorder;
+  UCL_Vector<numtyp,numtyp> _thetai1, _thetai2, _thetai3;
+  UCL_Vector<int,int> _igrid;
   int _max_thetai_size;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
@@ -297,7 +303,10 @@ class BaseAmoeba {
   virtual int multipole_real(const int eflag, const int vflag) = 0;
   virtual int udirect2b(const int eflag, const int vflag) = 0;
   virtual int umutual2b(const int eflag, const int vflag) = 0;
+  virtual int fphi_uind() = 0;
   virtual int polar_real(const int eflag, const int vflag) = 0;
+
+  
 
   #if !defined(USE_OPENCL) && !defined(USE_HIP)
   cufftHandle plan;

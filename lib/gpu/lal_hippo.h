@@ -157,6 +157,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   int multipole_real(const int eflag, const int vflag);
   int udirect2b(const int eflag, const int vflag);
   int umutual2b(const int eflag, const int vflag);
+  int fphi_uind();
   int polar_real(const int eflag, const int vflag);
 
 };

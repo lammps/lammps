@@ -442,27 +442,36 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::precompute_umutual1(const int ago, const int inum_full, const int nall,
-                                       const int bsordermax, double **host_x,
-                                       double **host_thetai1, double **host_thetai2,
-                                       double **host_thetai3, void* grid) {
+void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
+                                    double **host_thetai1, double **host_thetai2,
+                                    double **host_thetai3, int** host_igrid) {
   
-  _bsordermax = bsordermax;
+  _bsorder = bsorder;
 
   if (_max_thetai_size == 0) {
     _max_thetai_size = static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _thetai1.alloc(_max_thetai_size*_bsordermax*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
-    _thetai2.alloc(_max_thetai_size*bsordermax*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
-    _thetai3.alloc(_max_thetai_size*bsordermax*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+    _thetai1.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+    _thetai2.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+    _thetai3.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+    _igrid.alloc(_max_thetai_size*3,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
   } else {
     if (inum_full>_max_thetai_size) {
       _max_thetai_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-      _thetai1.resize(_max_thetai_size*_bsordermax*4);
-      _thetai2.resize(_max_thetai_size*_bsordermax*4);
-      _thetai3.resize(_max_thetai_size*_bsordermax*4);
+      _thetai1.resize(_max_thetai_size*bsorder*4);
+      _thetai2.resize(_max_thetai_size*bsorder*4);
+      _thetai3.resize(_max_thetai_size*bsorder*4);
+      _igrid.resize(_max_thetai_size*4);
     }
   }
 
+  memcpy(_thetai1.host.begin(),host_thetai1,inum_full*bsorder*4*sizeof(numtyp));
+  memcpy(_thetai2.host.begin(),host_thetai2,inum_full*bsorder*4*sizeof(numtyp));
+  memcpy(_thetai3.host.begin(),host_thetai3,inum_full*bsorder*4*sizeof(numtyp));
+  memcpy(_igrid.host.begin(),host_igrid,inum_full*4*sizeof(int));
+  _thetai1.update_device(inum_full*bsorder*4,true);
+  _thetai2.update_device(inum_full*bsorder*4,true);
+  _thetai3.update_device(inum_full*bsorder*4,true);
+  _igrid.update_device(inum_full*4,true);
 }
 
 // ---------------------------------------------------------------------------
@@ -574,6 +583,25 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
   // *fieldp_ptr=_fieldp.host.begin();
   // _fieldp.update_host(_max_fieldp_size*8,false);
 }
+
+// ---------------------------------------------------------------------------
+// fphi_uind = induced potential from grid
+// fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
+                                    double **host_thetai1, double **host_thetai2,
+                                    double **host_thetai3, int** igrid,
+                                    double ****host_grid, double **host_fdip_phi1,
+                                    double **host_fdip_phi2, double **host_fdip_sum_phi)
+{
+  // once allocation and transfers
+  precompute_induce(inum_full, bsorder, host_thetai1, host_thetai2, host_thetai3, igrid);
+  
+  const int red_bllocks = fphi_uind();
+}
+
 
 // ---------------------------------------------------------------------------
 // Reneighbor on GPU if necessary, and then compute polar real-space

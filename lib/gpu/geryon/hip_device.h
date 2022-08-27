@@ -394,7 +394,7 @@ UCL_Device::~UCL_Device() {
   clear();
 }
 
-int UCL_Device::set_platform(const int) {
+int UCL_Device::set_platform(const int pid) {
   clear();
   #ifdef UCL_DEBUG
   assert(pid<num_platforms());

@@ -41,6 +41,7 @@ jobs:
       working-directory: build
       run: |
         ccache -z
+        python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C ../cmake/presets/clang.cmake \
               -C ../cmake/presets/most.cmake \

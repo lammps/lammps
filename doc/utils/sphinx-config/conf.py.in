@@ -385,7 +385,7 @@ from sphinx.highlighting import lexers
 
 lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
 
-sys.path.append(LAMMPS_PYTHON_DIR)
+sys.path.insert(1,LAMMPS_PYTHON_DIR)
 
 # avoid syntax highlighting in blocks that don't specify language
 highlight_language = 'none'

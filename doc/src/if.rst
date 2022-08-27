@@ -6,7 +6,7 @@ if command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    if boolean then t1 t2 ... elif boolean f1 f2 ... elif boolean f1 f2 ... else e1 e2 ...
 
@@ -58,14 +58,14 @@ Boolean expression is FALSE, then no commands are executed.
 
 The syntax for Boolean expressions is described below.
 
-Each command (t1, f1, e1, etc) can be any valid LAMMPS input script
+Each command (t1, f1, e1, etc.) can be any valid LAMMPS input script
 command.  If the command is more than one word, it must enclosed in
 quotes, so it will be treated as a single argument, as in the examples
 above.
 
 .. note::
 
-   If a command itself requires a quoted argument (e.g. a
+   If a command itself requires a quoted argument (e.g., a
    :doc:`print <print>` command), then double and single quotes can be used
    and nested in the usual manner, as in the examples above and below.
    The :doc:`Commands parse <Commands_parse>` page has more details on
@@ -153,33 +153,33 @@ and Boolean operators:
 
    A == B, A != B, A < B, A <= B, A > B, A >= B, A && B, A \|\| B, A \|\^ B, !A
 
-Each A and B is a number or string or a variable reference like $a or
-${abc}, or A or B can be another Boolean expression.
+Each A and B is a number or string or a variable reference like ``$a`` or
+``${abc}``, or A or B can be another Boolean expression.
 
 Note that all variables used will be substituted for before the
 Boolean expression in evaluated.  A variable can produce a number,
-like an :doc:`equal-style variable <variable>`.  Or it can produce a
+like an :doc:`equal-style variable <variable>`, or it can produce a
 string, like an :doc:`index-style variable <variable>`.
 
-The Boolean operators "==" and "!=" can operate on a pair or strings
+The Boolean operators ``==`` and ``!=`` can operate on a pair or strings
 or numbers.  They cannot compare a number to a string.  All the other
 Boolean operations can only operate on numbers.
 
 Expressions are evaluated left to right and have the usual C-style
-precedence: the unary logical NOT operator "!" has the highest
-precedence, the 4 relational operators "<", "<=", ">", and ">=" are
-next; the two remaining relational operators "==" and "!=" are next;
-then the logical AND operator "&&"; and finally the logical OR
-operator "\|\|" and logical XOR (exclusive or) operator "\|\^" have
+precedence: the unary logical NOT operator ``!`` has the highest
+precedence, the 4 relational operators ``<``, ``<=``, ``>``, and ``>=`` are
+next; the two remaining relational operators ``==`` and ``!=`` are next;
+then the logical AND operator ``&&``; and finally the logical OR
+operator ``||`` and logical XOR (exclusive or) operator ``|^`` have
 the lowest precedence.  Parenthesis can be used to group one or more
 portions of an expression and/or enforce a different order of
 evaluation than what would occur with the default precedence.
 
-When the 6 relational operators (first 6 in list above) compare 2
+When the six relational operators (first six in list above) compare two
 numbers, they return either a 1.0 or 0.0 depending on whether the
 relationship between A and B is TRUE or FALSE.
 
-When the 3 logical operators (last 3 in list above) compare 2 numbers,
+When the three logical operators (last three in list above) compare two numbers,
 they also return either a 1.0 or 0.0 depending on whether the
 relationship between A and B is TRUE or FALSE (or just A).  The
 logical AND operator will return 1.0 if both its arguments are

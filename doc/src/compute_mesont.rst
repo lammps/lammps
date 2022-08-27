@@ -6,30 +6,29 @@ compute mesont command
 Syntax
 """"""
 
+.. code-block:: LAMMPS
 
-.. parsed-literal::
-
-   compute ID group-ID mesont mode
+   compute ID group-ID mesont style
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * mesont = style name of the compute command
-* mode = one of estretch, ebend, etube (see details below)
+* style = *estretch* or *ebend* or *etube*
 
 Examples
 """"""""
 
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all mesont estretch
 
 Description
 """""""""""
 
-These computes define computations for the stretching (estretch), bending
-(ebend), and intertube (etube) per-node (atom) and total energies. The
-evaluated value is selected by a parameter passed to the compute: estretch,
-ebend, etube.
+These computes define computations for the stretching (*estretch*), bending
+(*ebend*), and intertube (*etube*) per-node (atom) and total energies. The
+evaluated value is selected by the style parameter passed to the compute
+(*estretch*, *ebend*,or *etube*).
 
 Output info
 """""""""""

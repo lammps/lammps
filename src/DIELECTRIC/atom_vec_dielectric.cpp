@@ -148,6 +148,24 @@ void AtomVecDielectric::data_atom_post(int ilocal)
 }
 
 /* ----------------------------------------------------------------------
+   restore original data for writing the data file
+------------------------------------------------------------------------- */
+
+void AtomVecDielectric::pack_data_pre(int ilocal)
+{
+  atom->q[ilocal] = q_unscaled[ilocal];
+}
+
+/* ----------------------------------------------------------------------
+   undo restore and get back to post read data state
+------------------------------------------------------------------------- */
+
+void AtomVecDielectric::pack_data_post(int ilocal)
+{
+  atom->q[ilocal] /= epsilon[ilocal];
+}
+
+/* ----------------------------------------------------------------------
    initialize other atom quantities after AtomVec::unpack_restart()
 ------------------------------------------------------------------------- */
 

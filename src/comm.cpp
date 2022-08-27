@@ -318,10 +318,8 @@ void Comm::modify_params(int narg, char **arg)
       bordergroup = group->find(arg[iarg+1]);
       if (bordergroup < 0)
         error->all(FLERR, "Invalid comm_modify keyword: group {} not found", arg[iarg+1]);
-      if (atom->firstgroupname == nullptr)
-        error->all(FLERR, "Invalid comm_modify keyword: atom_modify first command must be used");
-      if (strcmp(arg[iarg+1],atom->firstgroupname) != 0)
-        error->all(FLERR, "comm_modify group != atom_modify first group: {}", atom->firstgroupname);
+      if (bordergroup && ((atom->firstgroupname == nullptr) || strcmp(arg[iarg+1],atom->firstgroupname) != 0))
+        error->all(FLERR, "Comm_modify group != atom_modify first group: {}", atom->firstgroupname);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify cutoff", error);

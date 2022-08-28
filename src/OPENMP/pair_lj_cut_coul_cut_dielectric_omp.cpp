@@ -99,7 +99,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 {
   int i, j, ii, jj, jnum, itype, jtype;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
   double efield_i, epot_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -167,9 +167,10 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0 / rsq;
+        const double rinv = sqrt(r2inv);
 
         if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
-          efield_i = qqrd2e * q[j] * sqrt(r2inv);
+          efield_i = qqrd2e * q[j] * rinv;
           forcecoul = qtmp * efield_i;
           epot_i = efield_i;
         } else
@@ -182,7 +183,6 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
           forcelj = 0.0;
 
         fpair_i = (factor_coul * etmp * forcecoul + factor_lj * forcelj) * r2inv;
-
         fxtmp += delx * fpair_i;
         fytmp += dely * fpair_i;
         fztmp += delz * fpair_i;
@@ -193,29 +193,18 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
         eztmp += delz * efield_i;
         epot[i] += epot_i;
 
-        if (NEWTON_PAIR || j >= nlocal) {
-          fpair_j = (factor_coul * eps[j] * forcecoul + factor_lj * forcelj) * r2inv;
-          f[j].x -= delx * fpair_j;
-          f[j].y -= dely * fpair_j;
-          f[j].z -= delz * fpair_j;
-        }
-
         if (EFLAG) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = factor_coul * qqrd2e * qtmp * q[j] * (etmp + eps[j]) * sqrt(r2inv);
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv;
           } else
             ecoul = 0.0;
-          ecoul *= 0.5;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else
             evdwl = 0.0;
         }
-
-        if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair_i, delx, dely, delz,
-                       thr);
+        if (EVFLAG) ev_tally_full_thr(this, i, evdwl, ecoul, fpair_i, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

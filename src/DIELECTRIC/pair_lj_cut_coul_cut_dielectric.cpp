@@ -93,15 +93,16 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     qtmp = q[i];
+    etmp = eps[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    etmp = eps[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];

@@ -282,9 +282,11 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   double cutsq = cut * cut;
 
   int igroup1 = group->find(arg[2]);
+  if (igroup1 < 0)
+    error->all(FLERR, "Could not find delete_atoms overlap first group ID {}", arg[2]);
   int igroup2 = group->find(arg[3]);
-  if (igroup1 < 0 || igroup2 < 0)
-    error->all(FLERR, "Could not find delete_atoms group ID {}", arg[1]);
+  if (igroup2 < 0)
+    error->all(FLERR, "Could not find delete_atoms overlap second group ID {}", arg[3]);
   options(narg - 4, &arg[4]);
 
   int group1bit = group->bitmask[igroup1];

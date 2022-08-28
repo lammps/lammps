@@ -257,6 +257,7 @@ Bfrac
 bgq
 Bh
 Bialke
+biaxial
 bicrystal
 Biersack
 bigbig
@@ -304,7 +305,6 @@ Bogaerts
 Bogusz
 Bohrs
 boltz
-Boltzman
 BondAngle
 BondBond
 bondchk
@@ -3645,6 +3645,7 @@ Vandenbrande
 Vanduyfhuys
 varargs
 varavg
+variational
 Varshalovich
 Varshney
 vashishta

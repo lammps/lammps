@@ -10,7 +10,7 @@ compute centroid/stress/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style temp-ID keyword ...
 

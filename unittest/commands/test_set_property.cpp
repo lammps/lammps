@@ -87,6 +87,11 @@ TEST_F(SetTest, NoBoxNoAtoms)
     TEST_FAILURE(".*ERROR: Unknown set command style: xxx.*", command("set xxx 1 x 0.0"););
     TEST_FAILURE(".*ERROR: Set keyword or custom property yyy does not exist.*",
                  command("set type 1 yyy 0.0"););
+
+    TEST_FAILURE(".*ERROR: Cannot set attribute spin/atom for atom style atomic.*",
+                 command("set atom * spin/atom 1.0 1.0 0.0 0.0"););
+    TEST_FAILURE(".*ERROR: Cannot set attribute spin/atom/random for atom style atomic.*",
+                 command("set atom * spin/atom/random 436273456 1.0"););
 }
 
 TEST_F(SetTest, StylesTypes)
@@ -161,6 +166,126 @@ TEST_F(SetTest, StylesTypes)
     for (int i = 0; i < 8; ++i)
         sum += (atom->type[i] == 2) ? 1 : 0;
     ASSERT_EQ(sum, 4);
+
+    TEST_FAILURE(".*ERROR: Numeric index 9 is out of bounds .1-8.*", command("set type 9 x 0.0"););
+    TEST_FAILURE(".*ERROR: Invalid range string: 3:10.*", command("set type 3:10 x 0.0"););
+    TEST_FAILURE(".*ERROR: Could not find set group ID nope.*", command("set group nope x 0.0"););
+}
+
+TEST_F(SetTest, PosVelCharge)
+{
+    atomic_system("charge");
+    ASSERT_EQ(atom->natoms, 8);
+
+    BEGIN_HIDE_OUTPUT();
+    command("set group top charge 1.0");
+    command("set atom 5*8 charge -1.0");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->q[0], 1);
+    EXPECT_EQ(atom->q[1], 1);
+    EXPECT_EQ(atom->q[2], 0);
+    EXPECT_EQ(atom->q[3], 0);
+    EXPECT_EQ(atom->q[4], -1);
+    EXPECT_EQ(atom->q[5], -1);
+    EXPECT_EQ(atom->q[6], -1);
+    EXPECT_EQ(atom->q[7], -1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable xpos atom 0.5-x");
+    command("variable ypos atom y*0.5");
+    command("set atom * x v_xpos y v_ypos z 0.5");
+    command("set group all vx v_xpos vy v_ypos vz 0.5");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->x[0][0], 0.375);
+    EXPECT_EQ(atom->x[0][1], 0.0625);
+    EXPECT_EQ(atom->x[0][2], 0.5);
+    EXPECT_EQ(atom->x[1][0], -0.625);
+    EXPECT_EQ(atom->x[1][1], 0.0625);
+    EXPECT_EQ(atom->x[1][2], 0.5);
+    EXPECT_EQ(atom->x[2][0], 0.375);
+    EXPECT_EQ(atom->x[2][1], 0.5625);
+    EXPECT_EQ(atom->x[2][2], 0.5);
+    EXPECT_EQ(atom->x[3][0], -0.625);
+    EXPECT_EQ(atom->x[3][1], 0.5625);
+    EXPECT_EQ(atom->x[3][2], 0.5);
+    EXPECT_EQ(atom->x[4][0], 0.375);
+    EXPECT_EQ(atom->x[4][1], 0.0625);
+    EXPECT_EQ(atom->x[4][2], 0.5);
+    EXPECT_EQ(atom->x[5][0], -0.625);
+    EXPECT_EQ(atom->x[5][1], 0.0625);
+    EXPECT_EQ(atom->x[5][2], 0.5);
+    EXPECT_EQ(atom->x[6][0], 0.375);
+    EXPECT_EQ(atom->x[6][1], 0.5625);
+    EXPECT_EQ(atom->x[6][2], 0.5);
+    EXPECT_EQ(atom->x[7][0], -0.625);
+    EXPECT_EQ(atom->x[7][1], 0.5625);
+    EXPECT_EQ(atom->x[7][2], 0.5);
+
+    EXPECT_EQ(atom->v[0][0], 0.125);
+    EXPECT_EQ(atom->v[0][1], 0.03125);
+    EXPECT_EQ(atom->v[0][2], 0.5);
+    EXPECT_EQ(atom->v[1][0], 1.125);
+    EXPECT_EQ(atom->v[1][1], 0.03125);
+    EXPECT_EQ(atom->v[1][2], 0.5);
+    EXPECT_EQ(atom->v[2][0], 0.125);
+    EXPECT_EQ(atom->v[2][1], 0.28125);
+    EXPECT_EQ(atom->v[2][2], 0.5);
+    EXPECT_EQ(atom->v[3][0], 1.125);
+    EXPECT_EQ(atom->v[3][1], 0.28125);
+    EXPECT_EQ(atom->v[3][2], 0.5);
+    EXPECT_EQ(atom->v[4][0], 0.125);
+    EXPECT_EQ(atom->v[4][1], 0.03125);
+    EXPECT_EQ(atom->v[4][2], 0.5);
+    EXPECT_EQ(atom->v[5][0], 1.125);
+    EXPECT_EQ(atom->v[5][1], 0.03125);
+    EXPECT_EQ(atom->v[5][2], 0.5);
+    EXPECT_EQ(atom->v[6][0], 0.125);
+    EXPECT_EQ(atom->v[6][1], 0.28125);
+    EXPECT_EQ(atom->v[6][2], 0.5);
+    EXPECT_EQ(atom->v[7][0], 1.125);
+    EXPECT_EQ(atom->v[7][1], 0.28125);
+    EXPECT_EQ(atom->v[7][2], 0.5);
+}
+
+TEST_F(SetTest, SpinPackage)
+{
+    if (!Info::has_package("SPIN")) GTEST_SKIP();
+    atomic_system("spin");
+    ASSERT_EQ(atom->natoms, 8);
+
+    BEGIN_HIDE_OUTPUT();
+    command("set atom 1*2 spin/atom 0.5 0.1 0.5 -0.1");
+    command("set atom 8 spin/atom/random 23974 0.25");
+    END_HIDE_OUTPUT();
+    constexpr double vx   = 0.1;
+    constexpr double vy   = 0.5;
+    constexpr double vz   = -0.1;
+    constexpr double norm = 1.0 / sqrt(vx * vx + vy * vy + vz * vz);
+    EXPECT_EQ(atom->sp[0][0], vx * norm);
+    EXPECT_EQ(atom->sp[0][1], vy * norm);
+    EXPECT_EQ(atom->sp[0][2], vz * norm);
+    EXPECT_EQ(atom->sp[0][3], 0.5);
+    EXPECT_EQ(atom->sp[1][0], vx * norm);
+    EXPECT_EQ(atom->sp[1][1], vy * norm);
+    EXPECT_EQ(atom->sp[1][2], vz * norm);
+    EXPECT_EQ(atom->sp[1][3], 0.5);
+    EXPECT_NE(atom->sp[7][0], 0.0);
+    EXPECT_NE(atom->sp[7][1], 0.0);
+    EXPECT_NE(atom->sp[7][2], 0.0);
+    EXPECT_EQ(atom->sp[7][3], 0.25);
+
+    for (int i = 2; i < 7; ++i)
+        for (int j = 0; j < 4; ++j)
+            EXPECT_EQ(atom->sp[i][j], 0);
+
+    TEST_FAILURE(".*ERROR: Invalid spin magnitude -0.1 in set spin/atom command.*",
+                 command("set atom * spin/atom -0.1 1.0 0.0 0.0"););
+    TEST_FAILURE(".*ERROR: At least one spin vector component must be non-zero.*",
+                 command("set atom * spin/atom 1.0 0.0 0.0 0.0"););
+    TEST_FAILURE(".*ERROR: Invalid spin magnitude -0.2 in set spin/atom/random command.*",
+                 command("set atom * spin/atom/random 436273456 -0.2"););
+    TEST_FAILURE(".*ERROR: Invalid random number seed 0 in set spin/atom/random command.*",
+                 command("set atom * spin/atom/random 0 1.0"););
 }
 } // namespace LAMMPS_NS
 

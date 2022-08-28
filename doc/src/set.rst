@@ -15,7 +15,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 * keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
   or *mol* or *x* or *y* or *z* or *vx* or *vy* or *vz* or *charge* or
-  *dipole* or *dipole/random* or *quat* or *spin* or *spin/random* or
+  *dipole* or *dipole/random* or *quat* or *spin/atom* or *spin/atom/random* or
   *quat* or *quat/random* or *diameter* or *shape* or
   *length* or *tri* or *theta* or *theta/random* or *angmom* or
   *omega* or *mass* or *density* or *density/disc* or
@@ -55,11 +55,11 @@ Syntax
        *dipole/random* value = seed Dlen
          seed = random # seed (positive integer) for dipole moment orientations
          Dlen = magnitude of dipole moment (dipole units)
-       *spin* values = g x y z
+       *spin/atom* values = g x y z
          g = magnitude of magnetic spin vector (in Bohr magneton's unit)
          x,y,z = orientation of magnetic spin vector
          any of x,y,z can be an atom-style variable (see below)
-       *spin/random* value = seed Dlen
+       *spin/atom/random* value = seed Dlen
          seed = random # seed (positive integer) for magnetic spin orientations
          Dlen = magnitude of magnetic spin vector (in Bohr magneton's unit)
        *quat* values = a b c theta
@@ -277,14 +277,18 @@ the orientation of a particular atom is the same, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
-Keyword *spin* uses the specified g value to set the magnitude of the
+.. versionchanged:: TBD
+
+Keyword *spin/atom* uses the specified g value to set the magnitude of the
 magnetic spin vectors, and the x,y,z values as components of a vector
 to set as the orientation of the magnetic spin vectors of the selected
-atoms.
+atoms.  This keyword was previously called *spin*.
 
-Keyword *spin/random* randomizes the orientation of the magnetic spin
+.. versionchanged:: TBD
+
+Keyword *spin/atom/random* randomizes the orientation of the magnetic spin
 vectors for the selected atoms and sets the magnitude of each to the
-specified *Dlen* value.
+specified *Dlen* value.  This keyword was previously called *spin/random*.
 
 Keyword *quat* uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The

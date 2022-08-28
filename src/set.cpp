@@ -46,9 +46,9 @@ enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
 enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
-     DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
-     THETA,THETA_RANDOM,ANGMOM,OMEGA,
-     DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
+     DIPOLE,DIPOLE_RANDOM,SPIN_ATOM,SPIN_RANDOM,SPIN_ELECTRON,RADIUS_ELECTRON,
+     QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,
+     DIAMETER,RADIUS_ATOM,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
 
@@ -265,8 +265,10 @@ void Set::command(int narg, char **arg)
       setrandom(DIPOLE_RANDOM);
       iarg += 3;
 
-    } else if (strcmp(arg[iarg],"spin") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+    } else if ((strcmp(arg[iarg],"spin") == 0) || (strcmp(arg[iarg],"spin/atom") == 0)) {
+      if ((strcmp(arg[iarg],"spin") == 0) && (comm->me == 0))
+        error->warning(FLERR, "Set attribute spin is deprecated. Please use spin/atom instead.");
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "set spin/atom", error);
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
       else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (utils::strmatch(arg[iarg+2],"^v_")) varparse(arg[iarg+2],2);
@@ -275,23 +277,49 @@ void Set::command(int narg, char **arg)
       else yvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (utils::strmatch(arg[iarg+4],"^v_")) varparse(arg[iarg+4],4);
       else zvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      if ((xvalue == 0.0) && (yvalue == 0.0) && (zvalue == 0.0))
+        error->all(FLERR,"At least one spin vector component must be non-zero");
       if (!atom->sp_flag)
-        error->all(FLERR,"Cannot set this attribute for this atom style");
-      set(SPIN);
+        error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
+      if (dvalue <= 0.0)
+        error->all(FLERR,"Invalid spin magnitude {} in set {} command", dvalue, arg[iarg]);
+      set(SPIN_ATOM);
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"spin/random") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal set command");
+    } else if ((strcmp(arg[iarg],"spin/random") == 0) ||
+               (strcmp(arg[iarg],"spin/atom/random") == 0)) {
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "set spin/atom/random", error);
       ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       dvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if ((strcmp(arg[iarg],"spin/random") == 0) && (comm->me == 0))
+        error->warning(FLERR, "Set attribute spin/random is deprecated. "
+                       "Please use spin/atom/random instead.");
       if (!atom->sp_flag)
-        error->all(FLERR,"Cannot set this attribute for this atom style");
+        error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
       if (ivalue <= 0)
-        error->all(FLERR,"Invalid random number seed in set command");
+        error->all(FLERR,"Invalid random number seed {} in set {} command", ivalue, arg[iarg]);
       if (dvalue <= 0.0)
-        error->all(FLERR,"Invalid dipole length in set command");
+        error->all(FLERR,"Invalid spin magnitude {} in set {} command", dvalue, arg[iarg]);
       setrandom(SPIN_RANDOM);
       iarg += 3;
+
+    } else if (strcmp(arg[iarg],"radius/electron") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set radius/electron", error);
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (!atom->eradius_flag)
+        error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
+      set(RADIUS_ELECTRON);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"spin/electron") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set spin/electron", error);
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (!atom->spin_flag)
+        error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
+      set(SPIN_ELECTRON);
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"quat") == 0) {
       if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "set quat", error);
@@ -714,7 +742,7 @@ void Set::selection(int n)
 
   } else if (style == GROUP_SELECT) {
     int igroup = group->find(id);
-    if (igroup == -1) error->all(FLERR,"Could not find set group ID");
+    if (igroup == -1) error->all(FLERR,"Could not find set group ID {}", id);
     int groupbit = group->bitmask[igroup];
 
     int *mask = atom->mask;
@@ -947,7 +975,7 @@ void Set::set(int keyword)
 
     // set magnetic moments
 
-    else if (keyword == SPIN) {
+    else if (keyword == SPIN_ATOM) {
       double **sp = atom->sp;
       double inorm = 1.0/sqrt(xvalue*xvalue+yvalue*yvalue+zvalue*zvalue);
       sp[i][0] = inorm*xvalue;

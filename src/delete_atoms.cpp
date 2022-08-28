@@ -278,8 +278,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // read args
 
-  double cut = utils::numeric(FLERR, arg[1], false, lmp);
-  double cutsq = cut * cut;
+  const double cut = utils::numeric(FLERR, arg[1], false, lmp);
+  const double cutsq = cut * cut;
 
   int igroup1 = group->find(arg[2]);
   if (igroup1 < 0)
@@ -289,8 +289,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
     error->all(FLERR, "Could not find delete_atoms overlap second group ID {}", arg[3]);
   options(narg - 4, &arg[4]);
 
-  int group1bit = group->bitmask[igroup1];
-  int group2bit = group->bitmask[igroup2];
+  const int group1bit = group->bitmask[igroup1];
+  const int group2bit = group->bitmask[igroup2];
 
   if (comm->me == 0) utils::logmesg(lmp, "System init for delete_atoms ...\n");
 
@@ -358,6 +358,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    if (!(mask[i] & (group1bit|group2bit))) continue;
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -369,6 +370,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
+      if (!(mask[j] & (group1bit|group2bit))) continue;
 
       // if both weighting factors are 0, skip this pair
       // could be 0 and still be in neigh list for long-range Coulombics

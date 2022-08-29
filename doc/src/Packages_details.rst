@@ -1573,7 +1573,7 @@ second implementation is given by the mesocnt styles (:doc:`bond_style mesocnt <
 The mesocnt implemenation has the same features as the original implementation with the
 addition of friction,
 but is directly implemented in C++, interfaces more cleanly with general LAMMPS
-functionality and is typically faster. It also doesn't require its own atom type
+functionality and is typically faster. It also doesn't require its own atom style
 and can be installed without any external libraries.
 
 **Download of potential files:**

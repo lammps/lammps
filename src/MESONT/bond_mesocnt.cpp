@@ -55,9 +55,9 @@ BondMesoCNT::~BondMesoCNT()
 void BondMesoCNT::coeff(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR, "Incorrect args for bond coefficients");
-  
+
   // units, eV to energy unit conversion
-  
+
   double ang = force->angstrom;
   double eunit;
   if (strcmp(update->unit_style, "lj") == 0)
@@ -86,18 +86,16 @@ void BondMesoCNT::coeff(int narg, char **arg)
     if (narg != 4) error->all(FLERR, "Incorrect args for custom bond coefficients");
     k_one = utils::numeric(FLERR, arg[2], false, lmp);
     r0_one = utils::numeric(FLERR, arg[3], false, lmp);
-  }
-  else if (strcmp(arg[1], "C") == 0) {
+  } else if (strcmp(arg[1], "C") == 0) {
     if (narg != 5) error->all(FLERR, "Incorrect args for 'C' preset in bond coefficients");
     int n = utils::inumeric(FLERR, arg[2], false, lmp);
     int m = utils::inumeric(FLERR, arg[3], false, lmp);
     r0_one = utils::numeric(FLERR, arg[4], false, lmp);
-    
-    double r_ang = sqrt(3.0 * (n*n + n*m + m*m)) * A_CC / MY_2PI;
+
+    double r_ang = sqrt(3.0 * (n * n + n * m + m * m)) * A_CC / MY_2PI;
     k_one = 0.5 * (86.64 + 100.56 * r_ang) * eunit / (ang * r0_one);
-  }
-  else
-    error->all(FLERR, "Unknown preset in bond  coefficients");
+  } else
+    error->all(FLERR, "Unknown preset in bond coefficients");
 
   if (!allocated) allocate();
 

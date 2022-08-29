@@ -36,7 +36,6 @@ class AngleMesoCNT : public Angle {
   double single(int, int, int, int) override;
 
  protected:
-
   bool *buckling;
   double *kh, *kb, *thetab, *theta0;
 

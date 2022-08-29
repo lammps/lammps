@@ -153,8 +153,10 @@ void PairMesoCNT::compute(int eflag, int vflag)
   // update bond neighbor list when necessary
 
   if (update->ntimestep == neighbor->lastcall) {
-    if (neigh_flag) bond_neigh_topo();
-    else bond_neigh_id();
+    if (neigh_flag)
+      bond_neigh_topo();
+    else
+      bond_neigh_id();
   }
 
   // iterate over all bonds
@@ -176,7 +178,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
     for (j = 0; j < numchain; j++) {
       clen = nchain[j];
       if (clen < 2) continue;
-      
+
       // check if segment-segment interactions are necessary
 
       endflag = end[j];
@@ -219,7 +221,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
 
           geometry(r1, r2, q1, q2, q1, p, m, param, basis);
           if (param[0] > cutoff) continue;
-          
+
           double calpha = cos(param[1]);
           double salpha = sin(param[1]);
           double hsq = param[0] * param[0];
@@ -230,21 +232,19 @@ void PairMesoCNT::compute(int eflag, int vflag)
           if (ceta < param[2]) {
             double dceta = ceta - param[2];
             dsq1 += dceta * dceta;
-          }
-          else if (ceta > param[3]) {
+          } else if (ceta > param[3]) {
             double dceta = ceta - param[3];
             dsq1 += dceta * dceta;
           }
 
           ceta = calpha * param[5];
           seta = salpha * param[5];
-          
+
           double dsq2 = hsq + seta * seta;
           if (ceta < param[2]) {
             double dceta = ceta - param[2];
             dsq2 += dceta * dceta;
-          }
-          else if (ceta > param[3]) {
+          } else if (ceta > param[3]) {
             double dceta = ceta - param[3];
             dsq2 += dceta * dceta;
           }
@@ -252,14 +252,15 @@ void PairMesoCNT::compute(int eflag, int vflag)
           if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
 
           int jj1, jj2;
-          
+
           if (dsq1 < dsq2) {
             jj1 = j1;
             jj2 = j2;
-          }
-          else {
-            if (param[1] > MY_PI) param[1] -= MY_PI;
-            else param[1] += MY_PI;
+          } else {
+            if (param[1] > MY_PI)
+              param[1] -= MY_PI;
+            else
+              param[1] += MY_PI;
 
             double temp = -param[5];
             param[5] = -param[4];
@@ -267,17 +268,17 @@ void PairMesoCNT::compute(int eflag, int vflag)
             param[6] = temp;
 
             negate3(m);
-          
+
             jj1 = j2;
             jj2 = j1;
           }
 
           // first force contribution
 
-          fsemi(param, evdwl, fend, flocal);          
+          fsemi(param, evdwl, fend, flocal);
 
           if (evdwl == 0.0) continue;
-          
+
           // transform to global coordinate system
 
           matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
@@ -294,11 +295,11 @@ void PairMesoCNT::compute(int eflag, int vflag)
           cross3(delr1, fglobal[0], t1);
           cross3(delr2, fglobal[1], t2);
           add3(t1, t2, torque);
-        
+
           cross3(torque, m, ftorque);
           lp = param[5] - param[4];
           scale3(1.0 / lp, ftorque);
-          
+
           add3(ftotal, ftorque, fglobal[2]);
           sub3(ftotal, ftorque, fglobal[3]);
 
@@ -309,7 +310,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
           scaleadd3(0.5, fglobal[2], f[jj1], f[jj1]);
           scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
           scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
-          
+
           // add energy
 
           if (eflag_either) {
@@ -323,13 +324,13 @@ void PairMesoCNT::compute(int eflag, int vflag)
               eatom[jj2] += evdwl_atom;
             }
           }
-          
+
           // second force contribution
 
           param[6] += lp;
-          
+
           fsemi(param, evdwl, fend, flocal);
-          
+
           if (evdwl == 0.0) continue;
 
           // transform to global coordinate system
@@ -350,10 +351,10 @@ void PairMesoCNT::compute(int eflag, int vflag)
           cross3(delr1, fglobal[0], t1);
           cross3(delr2, fglobal[1], t2);
           add3(t1, t2, torque);
-        
+
           cross3(torque, m, ftorque);
           scale3(1.0 / lp, ftorque);
-          
+
           add3(ftotal, ftorque, fglobal[2]);
           sub3(ftotal, ftorque, fglobal[3]);
 
@@ -379,10 +380,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
               eatom[jj2] += evdwl_atom;
             }
           }
-
         }
-      }
-      else {
+      } else {
 
         // segment-chain interaction
 
@@ -475,32 +474,33 @@ void PairMesoCNT::compute(int eflag, int vflag)
         // compute geometry and forces
 
         if (endflag == 0) {
-          
+
           // infinite CNT case
-          
+
           geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
-          
+
           if (param[0] > cutoff) continue;
           if (!(param[2] < 0 && param[3] > 0)) {
             double salpha = sin(param[1]);
             double sxi1 = salpha * param[2];
             double sxi2 = salpha * param[3];
             double hsq = param[0] * param[0];
-            if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
-              continue;
+            if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq) continue;
           }
 
           finf(param, evdwl, flocal);
 
         } else {
-          
+
           // semi-infinite CNT case
           // endflag == 1: CNT end at start of chain
           // endflag == 2: CNT end at end of chain
-        
-          if (endflag == 1) geometry(r1, r2, p1, p2, qe, p, m, param, basis);
-          else geometry(r1, r2, p2, p1, qe, p, m, param, basis);
-          
+
+          if (endflag == 1)
+            geometry(r1, r2, p1, p2, qe, p, m, param, basis);
+          else
+            geometry(r1, r2, p2, p1, qe, p, m, param, basis);
+
           if (param[0] > cutoff) continue;
           if (!(param[2] < 0 && param[3] > 0)) {
             double hsq = param[0] * param[0];
@@ -510,17 +510,15 @@ void PairMesoCNT::compute(int eflag, int vflag)
             if (etamin < param[6]) {
               dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
               dsq1 += pow(param[2] - calpha * param[6], 2);
-            }
-            else
+            } else
               dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
-            
+
             etamin = calpha * param[3];
             double dsq2;
             if (etamin < param[6]) {
               dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
               dsq2 += pow(param[3] - calpha * param[6], 2);
-            }
-            else
+            } else
               dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
 
             if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
@@ -718,9 +716,9 @@ void PairMesoCNT::allocate()
 void PairMesoCNT::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 3) error->all(FLERR, "Illegal pair_style command");
-  
+
   neigh_cutoff = utils::numeric(FLERR, arg[0], false, lmp);
-  
+
   // segment flag (default false)
 
   if (narg > 1) {
@@ -729,9 +727,10 @@ void PairMesoCNT::settings(int narg, char **arg)
     else if (strcmp(arg[1], "chain") == 0)
       segment_flag = false;
     else
-      error->all(FLERR, "Unknown second argument in pair_style mesocnt command, must be 'chain' or 'segment'");
-  }
-  else
+      error->all(
+          FLERR,
+          "Unknown second argument in pair_style mesocnt command, must be 'chain' or 'segment'");
+  } else
     segment_flag = false;
 
   // neigh flag (default false)
@@ -742,11 +741,11 @@ void PairMesoCNT::settings(int narg, char **arg)
     else if (strcmp(arg[2], "id") == 0)
       neigh_flag = false;
     else
-      error->all(FLERR, "Unknown third argument in pair_style mesocnt command, must be 'id' or 'topology'");
-  }
-  else
+      error->all(
+          FLERR,
+          "Unknown third argument in pair_style mesocnt command, must be 'id' or 'topology'");
+  } else
     neigh_flag = false;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -833,7 +832,7 @@ void PairMesoCNT::init_style()
   if (atom->tag_enable == 0) error->all(FLERR, "Pair style mesocnt requires atom IDs");
   if (force->newton_pair == 0) error->all(FLERR, "Pair style mesocnt requires newton pair on");
   if (force->special_lj[1] == 0.0 || force->special_lj[2] == 0.0 || force->special_lj[3] == 0.0)
-    error->all(FLERR,"Pair mesocnt requires special_bond lj x y z to have non-zero x, y and z");
+    error->all(FLERR, "Pair mesocnt requires special_bond lj x y z to have non-zero x, y and z");
 
   // need a full neighbor list
 
@@ -905,7 +904,7 @@ void PairMesoCNT::bond_neigh_id()
   memory->destroy(nchainlist);
   memory->destroy(endlist);
   memory->destroy(chainlist);
-  
+
   memory->grow(selfid, nbondlist, "pair:selfid");
   memory->grow(selfpos, nbondlist, 2, "pair:selfpos");
 
@@ -952,10 +951,10 @@ void PairMesoCNT::bond_neigh_id()
       if (nchain_max < nchain[j]) nchain_max = nchain[j];
 
     // find selfid and selfpos
-    
+
     tagint tag1 = atom->tag[bondlist[i][0]];
     tagint tag2 = atom->tag[bondlist[i][1]];
-    
+
     bool found1 = false;
     bool found2 = false;
 
@@ -966,8 +965,7 @@ void PairMesoCNT::bond_neigh_id()
           selfid[i] = j;
           selfpos[i][0] = k;
           found1 = true;
-        }
-        else if (tag2 == temp_tag) {
+        } else if (tag2 == temp_tag) {
           selfid[i] = j;
           selfpos[i][1] = k;
           found2 = true;
@@ -1012,12 +1010,12 @@ void PairMesoCNT::bond_neigh_topo()
   comm->forward_comm(this);
 
   // create version of atom->special with local ids and correct images
-  
+
   int atom1, atom2;
   int **special_local;
-  memory->create(special_local, nlocal+nghost, 2, "pair:special_local");
-  
-  for (int i = 0; i < nlocal+nghost; i++) {
+  memory->create(special_local, nlocal + nghost, 2, "pair:special_local");
+
+  for (int i = 0; i < nlocal + nghost; i++) {
     atom1 = atom->map(special[i][0]);
     special_local[i][0] = domain->closest_image(i, atom1);
     if (nspecial[i][0] == 1)
@@ -1031,7 +1029,7 @@ void PairMesoCNT::bond_neigh_topo()
   int *numneigh = list->numneigh;
   int *numneigh_max;
   memory->create(numneigh_max, nbondlist, "pair:numneigh_max");
-  
+
   for (int i = 0; i < nbondlist; i++) {
     int i1 = bondlist[i][0];
     int i2 = bondlist[i][1];
@@ -1074,20 +1072,20 @@ void PairMesoCNT::bond_neigh_topo()
   memory->grow(selfpos, nbondlist, 2, "pair:selfpos");
 
   // split neighbor list into neighbor chains based on bond topology
-  
+
   int **chainid, **chainpos;
   memory->create_ragged(chainid, nbondlist, reduced_nlist, "pair:chainid");
-  memory->create_ragged(chainpos, nbondlist, reduced_nlist, "pair:chainpos");  
+  memory->create_ragged(chainpos, nbondlist, reduced_nlist, "pair:chainpos");
   memory->create(numchainlist, nbondlist, "pair:numchainlist");
 
   bool empty_neigh = true;
   for (int i = 0; i < nbondlist; i++) {
-    
+
     numchainlist[i] = 0;
     if (reduced_nlist[i] == 0) continue;
 
     // map local ids to reduced neighbor list ids
-    
+
     std::unordered_map<int, int> reduced_map;
     for (int j = 0; j < reduced_nlist[i]; j++) {
       reduced_map[reduced_neighlist[i][j]] = j;
@@ -1097,25 +1095,24 @@ void PairMesoCNT::bond_neigh_topo()
     // assign chain ids and positions
 
     for (int j = 0; j < reduced_nlist[i]; j++) {
-      
+
       // skip if atom is already assigned to a chain
 
       if (chainid[i][j] != -1) continue;
 
       // iterate along bonded atoms in both directions
-      
+
       chainid[i][j] = numchainlist[i];
       chainpos[i][j] = 0;
 
       if (reduced_neighlist[i][j] == bondlist[i][0]) {
         selfid[i] = numchainlist[i];
         selfpos[i][0] = 0;
-      }
-      else if (reduced_neighlist[i][j] == bondlist[i][1]) {
+      } else if (reduced_neighlist[i][j] == bondlist[i][1]) {
         selfid[i] = numchainlist[i];
         selfpos[i][1] = 0;
       }
-      
+
       int curr_local, next_local;
       int curr_reduced, next_reduced;
 
@@ -1129,21 +1126,19 @@ void PairMesoCNT::bond_neigh_topo()
           try {
             curr_reduced = reduced_map.at(curr_local);
             next_reduced = reduced_map.at(next_local);
-          }
-          catch (const std::out_of_range& e) {
+          } catch (const std::out_of_range &e) {
             break;
           }
 
           chainid[i][next_reduced] = numchainlist[i];
           if (k == 0)
             chainpos[i][next_reduced] = chainpos[i][curr_reduced] - 1;
-          else 
+          else
             chainpos[i][next_reduced] = chainpos[i][curr_reduced] + 1;
           if (special_local[next_local][0] != curr_local) {
             curr_local = next_local;
             next_local = special_local[next_local][0];
-          }
-          else {
+          } else {
             curr_local = next_local;
             next_local = special_local[next_local][1];
           }
@@ -1151,8 +1146,7 @@ void PairMesoCNT::bond_neigh_topo()
           if (curr_local == bondlist[i][0]) {
             selfid[i] = numchainlist[i];
             selfpos[i][0] = chainpos[i][next_reduced];
-          }
-          else if (curr_local == bondlist[i][1]) {
+          } else if (curr_local == bondlist[i][1]) {
             selfid[i] = numchainlist[i];
             selfpos[i][1] = chainpos[i][next_reduced];
           }
@@ -1162,7 +1156,7 @@ void PairMesoCNT::bond_neigh_topo()
     }
     if (numchainlist[i]) empty_neigh = false;
   }
- 
+
   memory->destroy(special_local);
 
   // count neighbor chain lengths per bond
@@ -1178,7 +1172,7 @@ void PairMesoCNT::bond_neigh_topo()
       chainpos_min[i][j] = 0;
       chainpos_max[i][j] = 0;
     }
-    
+
     for (int j = 0; j < reduced_nlist[i]; j++) {
       int cid = chainid[i][j];
       int cpos = chainpos[i][j];
@@ -1210,7 +1204,7 @@ void PairMesoCNT::bond_neigh_topo()
     selfpos[i][1] -= chainpos_min[i][selfid[i]];
 
     // sort atoms into chain lists
-    
+
     for (int j = 0; j < reduced_nlist[i]; j++) {
       int cid = chainid[i][j];
       int cpos = chainpos[i][j] - chainpos_min[i][cid];
@@ -1222,15 +1216,19 @@ void PairMesoCNT::bond_neigh_topo()
     for (int j = 0; j < numchainlist[i]; j++) {
       int clen = nchainlist[i][j];
       int cstart = chainlist[i][j][0];
-      int cend = chainlist[i][j][clen-1];
+      int cend = chainlist[i][j][clen - 1];
 
       bool estart = match_end(type[cstart]);
       bool eend = match_end(type[cend]);
 
-      if (estart && eend) endlist[i][j] = 3;
-      else if (estart) endlist[i][j] = 1;
-      else if (eend) endlist[i][j] = 2;
-      else endlist[i][j] = 0;
+      if (estart && eend)
+        endlist[i][j] = 3;
+      else if (estart)
+        endlist[i][j] = 1;
+      else if (eend)
+        endlist[i][j] = 2;
+      else
+        endlist[i][j] = 0;
     }
   }
 
@@ -1270,49 +1268,42 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
   int *neighlist1, *neighlist2;
 
   numred = 0;
-  
+
   // prevent ghost atom with undefined neighbors
 
   if (i1 > nlocal - 1 && i2 > nlocal - 1) {
     return;
-  }
-  else if (i1 > nlocal - 1) {
+  } else if (i1 > nlocal - 1) {
     numneigh2 = numneigh[i2];
     neighlist2 = firstneigh[i2];
     redlist[numred++] = i2;
-    for (int j = 0; j < numneigh2; j++)
-      redlist[numred++] = neighlist2[j] & NEIGHMASK;
+    for (int j = 0; j < numneigh2; j++) redlist[numred++] = neighlist2[j] & NEIGHMASK;
     return;
-  }
-  else if (i2 > nlocal - 1) {
+  } else if (i2 > nlocal - 1) {
     numneigh1 = numneigh[i1];
     neighlist1 = firstneigh[i1];
     redlist[numred++] = i1;
-    for (int j = 0; j < numneigh1; j++)
-      redlist[numred++] = neighlist1[j] & NEIGHMASK;
+    for (int j = 0; j < numneigh1; j++) redlist[numred++] = neighlist1[j] & NEIGHMASK;
     return;
-  }
-  else {
+  } else {
     numneigh1 = numneigh[i1];
     numneigh2 = numneigh[i2];
     neighlist1 = firstneigh[i1];
     neighlist2 = firstneigh[i2];
-    
-    for (int j = 0; j < numneigh1; j++)
-      neighlist1[j] &= NEIGHMASK;
-    for (int j = 0; j < numneigh2; j++)
-      neighlist2[j] &= NEIGHMASK;
+
+    for (int j = 0; j < numneigh1; j++) neighlist1[j] &= NEIGHMASK;
+    for (int j = 0; j < numneigh2; j++) neighlist2[j] &= NEIGHMASK;
 
     // sort and unify of neighbor lists
-    
+
     std::sort(neighlist1, neighlist1 + numneigh1);
     std::sort(neighlist2, neighlist2 + numneigh2);
     std::vector<int> temp;
-    std::set_union(neighlist1, neighlist1 + numneigh1, neighlist2, neighlist2 + numneigh2, std::back_inserter(temp));
-    
-    for (const auto &j : temp)
-      redlist[numred++] = j;
-    
+    std::set_union(neighlist1, neighlist1 + numneigh1, neighlist2, neighlist2 + numneigh2,
+                   std::back_inserter(temp));
+
+    for (const auto &j : temp) redlist[numred++] = j;
+
     return;
   }
 }
@@ -1406,10 +1397,14 @@ void PairMesoCNT::chain_split(int *redlist, int numred, int *nchain, int **chain
     bool estart = match_end(type[cstart]);
     bool eend = match_end(type[cend]);
 
-    if (estart && eend) end[j] = 3;
-    else if (estart) end[j] = 1;
-    else if (eend) end[j] = 2;
-    else end[j] = 0;
+    if (estart && eend)
+      end[j] = 3;
+    else if (estart)
+      end[j] = 1;
+    else if (eend)
+      end[j] = 2;
+    else
+      end[j] = 0;
   }
 }
 
@@ -1437,10 +1432,9 @@ void PairMesoCNT::sort(int *list, int size)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMesoCNT::pack_forward_comm(int n, int *list, double *buf,
-                               int /*pbc_flag*/, int * /*pbc*/)
+int PairMesoCNT::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -1459,15 +1453,14 @@ int PairMesoCNT::pack_forward_comm(int n, int *list, double *buf,
 
 void PairMesoCNT::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     atom->nspecial[i][0] = (int) ubuf(buf[m++]).i;
     atom->special[i][0] = (tagint) ubuf(buf[m++]).i;
-    if (atom->nspecial[i][0] > 1)
-      atom->special[i][1] = (tagint) ubuf(buf[m]).i;
+    if (atom->nspecial[i][0] > 1) atom->special[i][1] = (tagint) ubuf(buf[m]).i;
     m++;
   }
 }
@@ -2304,41 +2297,45 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
 
     double delzeta1 = fabs(zeta1) - zetamin;
     double delzeta2 = fabs(zeta2) - zetamin;
-      
-    double zeta_range_inv = 1.0 / (zetamax - zetamin); 
+
+    double zeta_range_inv = 1.0 / (zetamax - zetamin);
     double psi1 = delzeta1 * zeta_range_inv;
     double psi2 = delzeta2 * zeta_range_inv;
-    
+
     double delta_phi, delta_dh_phi;
     double dzeta_phi1, dzeta_phi2;
 
-    // if psi1 or psi2 are out of interpolation range, 
+    // if psi1 or psi2 are out of interpolation range,
     // use numerical integration to calculate phi and its derivatives directly rather than using splines
-    
-    if (psi1 < 0 || psi2 < 0) {
-      error->warning(FLERR, "Segment - infinite chain interaction outside of interpolation range. "
-          "Attempting numerical integration, but performance may be poor and simulation likely unstable.");
 
-      printf("param: %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5]);
-    
+    if (psi1 < 0 || psi2 < 0) {
+      error->warning(FLERR,
+                     "Segment - infinite chain interaction outside of interpolation range. "
+                     "Attempting numerical integration, but performance may be poor and simulation "
+                     "likely unstable.");
+
       double scale = 0.5 * (zeta2 - zeta1);
       double shift = 0.5 * (zeta1 + zeta2);
-      
+
       delta_phi = 0.0;
       delta_dh_phi = 0.0;
 
       for (int i = 0; i < QUAD_FINF; i++) {
         double zeta = scale * gl_nodes_finf[i] + shift;
         double spline_arg = sqrt(hsq + zeta * zeta);
-        delta_phi += gl_weights_finf[i] * spline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
-        delta_dh_phi += gl_weights_finf[i] * h * dspline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points) / spline_arg;
+        delta_phi += gl_weights_finf[i] *
+            spline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
+        delta_dh_phi += gl_weights_finf[i] * h *
+            dspline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points) / spline_arg;
       }
 
       delta_phi *= scale;
       delta_dh_phi *= scale;
 
-      dzeta_phi1 = spline(sqrt(hsq + zeta1 * zeta1), hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
-      dzeta_phi2 = spline(sqrt(hsq + zeta2 * zeta2), hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
+      dzeta_phi1 =
+          spline(sqrt(hsq + zeta1 * zeta1), hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
+      dzeta_phi2 =
+          spline(sqrt(hsq + zeta2 * zeta2), hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
     } else {
       double phi1 =
           spline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
@@ -2352,16 +2349,16 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
           dyspline(h, psi1, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
       double dpsi_phibar2 =
           dyspline(h, psi2, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_coeff, phi_points);
-     
+
       double dzeta_range = dzetamax - dzetamin;
       double dh_psi1 = -zeta_range_inv * (dzetamin + dzeta_range * psi1);
       double dh_psi2 = -zeta_range_inv * (dzetamin + dzeta_range * psi2);
       double dh_phi1 = dh_phibar1 + dpsi_phibar1 * dh_psi1;
       double dh_phi2 = dh_phibar2 + dpsi_phibar2 * dh_psi2;
-    
+
       dzeta_phi1 = dpsi_phibar1 * zeta_range_inv;
       dzeta_phi2 = dpsi_phibar2 * zeta_range_inv;
-      
+
       if (zeta1 < 0) {
         phi1 = -phi1;
         dh_phi1 = -dh_phi1;
@@ -2374,7 +2371,7 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
       delta_phi = phi2 - phi1;
       delta_dh_phi = dh_phi2 - dh_phi1;
     }
- 
+
     double delta_dzeta_phi = dzeta_phi2 - dzeta_phi1;
 
     double c2 = gamma * c1_inv;
@@ -2509,7 +2506,7 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double &fend, double
    n-th Legendre polynomial
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::legendre(int n, double x) 
+double PairMesoCNT::legendre(int n, double x)
 {
   if (n == 0) return 1.0;
   if (n == 1) return x;
@@ -2525,7 +2522,6 @@ double PairMesoCNT::legendre(int n, double x)
   return lcache[n];
 }
 
-
 /* ----------------------------------------------------------------------
    find all roots of Legendre polynomial
 ------------------------------------------------------------------------- */
@@ -2538,8 +2534,7 @@ void PairMesoCNT::gl_init_nodes(int quad, double *gl_nodes)
     k_end = (quad - 1) / 2 + 1;
     k_offset = 2;
     gl_nodes[k_end - 1] = 0.0;
-  }
-  else {
+  } else {
     k_start = 0;
     k_end = quad / 2;
     k_offset = 1;
@@ -2573,7 +2568,6 @@ void PairMesoCNT::gl_init_nodes(int quad, double *gl_nodes)
   }
 }
 
-
 /* ----------------------------------------------------------------------
    find all Gauss-Legendre quadrature weights
 ------------------------------------------------------------------------- */
@@ -2584,6 +2578,6 @@ void PairMesoCNT::gl_init_weights(int quad, double *gl_nodes, double *gl_weights
     double x = gl_nodes[i];
     double dlegendre = quad * (x * legendre(quad, x) - legendre(quad - 1, x)) / (x * x - 1.0);
 
-    gl_weights[i] = 2.0 / ((1.0 - x*x) * dlegendre * dlegendre);
+    gl_weights[i] = 2.0 / ((1.0 - x * x) * dlegendre * dlegendre);
   }
 }

@@ -31,7 +31,7 @@ class PairMesoCNT : public Pair {
   void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
-  
+
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
@@ -56,7 +56,7 @@ class PairMesoCNT : public Pair {
   double *param, *w, *wnode;
   double **dq_w;
   double ***q1_dq_w, ***q2_dq_w;
-  double *gl_nodes_finf, *gl_nodes_fsemi; 
+  double *gl_nodes_finf, *gl_nodes_fsemi;
   double *gl_weights_finf, *gl_weights_fsemi;
   double *uinf_data, *gamma_data, **phi_data, **usemi_data;
   double **uinf_coeff, **gamma_coeff, ****phi_coeff, ****usemi_coeff;
@@ -73,7 +73,7 @@ class PairMesoCNT : public Pair {
   void chain_lengths(int *, int, int *);
   void chain_split(int *, int, int *, int **, int *);
   void sort(int *, int);
-  
+
   void read_file(const char *);
   void read_data(PotentialFileReader &, double *, double &, double &, int);
   void read_data(PotentialFileReader &, double **, double &, double &, double &, double &, int);
@@ -88,7 +88,7 @@ class PairMesoCNT : public Pair {
   void fsemi(const double *, double &, double &, double **);
 
   // Legendre-Gauss integration
-  
+
   double legendre(int, double);
   void gl_init_nodes(int, double *);
   void gl_init_weights(int, double *, double *);

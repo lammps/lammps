@@ -79,15 +79,17 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
   double **f = atom->f;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
-  
+
   int flag, cols;
   int buckled_index = atom->find_custom("buckled", flag, cols);
 
   // update bond neighbor list when necessary
 
   if (update->ntimestep == neighbor->lastcall) {
-    if (neigh_flag) bond_neigh_topo();
-    else bond_neigh_id();
+    if (neigh_flag)
+      bond_neigh_topo();
+    else
+      bond_neigh_id();
   }
 
   // iterate over all bonds
@@ -98,7 +100,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
     r1 = x[i1];
     r2 = x[i2];
-    
+
     vr1 = v[i1];
     vr2 = v[i2];
     add3(vr1, vr2, vr);
@@ -114,7 +116,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
     for (j = 0; j < numchain; j++) {
       clen = nchain[j];
       if (clen < 2) continue;
-      
+
       // check if segment-segment interactions are necessary
 
       endflag = end[j];
@@ -135,9 +137,9 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         sumw = 0.0;
 
         for (k = 0; k < clen - 1; k++) {
-          
+
           // segment-segment interaction
-    
+
           // exclude SELF_CUTOFF neighbors in self-chain
 
           if (j == selfid[i]) {
@@ -174,7 +176,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
           geometry(r1, r2, q1, q2, q1, p, m, param, basis);
           if (param[0] > cutoff) continue;
-          
+
           double calpha = cos(param[1]);
           double salpha = sin(param[1]);
           double hsq = param[0] * param[0];
@@ -185,30 +187,27 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (ceta < param[2]) {
             double dceta = ceta - param[2];
             dsq1 += dceta * dceta;
-          }
-          else if (ceta > param[3]) {
+          } else if (ceta > param[3]) {
             double dceta = ceta - param[3];
             dsq1 += dceta * dceta;
           }
 
           ceta = calpha * param[5];
           seta = salpha * param[5];
-          
+
           double dsq2 = hsq + seta * seta;
           if (ceta < param[2]) {
             double dceta = ceta - param[2];
             dsq2 += dceta * dceta;
-          }
-          else if (ceta > param[3]) {
+          } else if (ceta > param[3]) {
             double dceta = ceta - param[3];
             dsq2 += dceta * dceta;
           }
 
-          if (dsq1 > cutoffsq && dsq2 > cutoffsq) 
-            continue;
-          
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
+
           int jj1, jj2;
-          
+
           // do flip if necessary
 
           bool flip;
@@ -217,10 +216,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             jj2 = j2;
 
             flip = false;
-          }
-          else {
-            if (param[1] > MY_PI) param[1] -= MY_PI;
-            else param[1] += MY_PI;
+          } else {
+            if (param[1] > MY_PI)
+              param[1] -= MY_PI;
+            else
+              param[1] += MY_PI;
 
             double eta2 = -param[5];
             param[5] = -param[4];
@@ -228,7 +228,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             param[6] = eta2;
 
             negate3(m);
-          
+
             jj1 = j2;
             jj2 = j1;
 
@@ -240,7 +240,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           fsemi(param, evdwl, fend, flocal);
 
           if (evdwl == 0.0) continue;
-          
+
           // transform to global coordinate system
 
           matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
@@ -257,11 +257,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           cross3(delr1, fglobal[0], t1);
           cross3(delr2, fglobal[1], t2);
           add3(t1, t2, torque);
-        
+
           cross3(torque, m, ftorque);
           lp = param[5] - param[4];
           scale3(1.0 / lp, ftorque);
-          
+
           add3(ftotal, ftorque, fglobal[2]);
           sub3(ftotal, ftorque, fglobal[3]);
 
@@ -272,7 +272,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           scaleadd3(0.5, fglobal[2], f[jj1], f[jj1]);
           scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
           scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
-          
+
           // add energy
 
           if (eflag_either) {
@@ -286,13 +286,13 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
               eatom[jj2] += evdwl_atom;
             }
           }
-          
+
           // second force contribution
 
           param[6] += lp;
-          
+
           fsemi(param, evdwl, fend, flocal);
-          
+
           if (evdwl == 0.0) continue;
 
           // transform to global coordinate system
@@ -313,10 +313,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           cross3(delr1, fglobal[0], t1);
           cross3(delr2, fglobal[1], t2);
           add3(t1, t2, torque);
-        
+
           cross3(torque, m, ftorque);
           scale3(1.0 / lp, ftorque);
-          
+
           add3(ftotal, ftorque, fglobal[2]);
           sub3(ftotal, ftorque, fglobal[3]);
 
@@ -346,11 +346,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         if (sumw == 0.0) continue;
         sumw_inv = 1.0 / sumw;
-              
+
         // mean chain velocity and relative velocity
 
         add3(vp1, vp2, vp);
-        scale3(0.5*sumw_inv, vp);
+        scale3(0.5 * sumw_inv, vp);
         sub3(vp, vr, vrel);
         vtot = dot3(vrel, basis[2]);
 
@@ -364,7 +364,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (vtot < 0) fvisc_tot = -fvisc_tot;
         }
         scale3(fvisc_tot, basis[2], fvisc);
-          
+
         // add friction forces to current segment
 
         add3(fvisc, f[i1], f[i1]);
@@ -379,12 +379,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           j1 &= NEIGHMASK;
           j2 &= NEIGHMASK;
           scale = w[k] * sumw_inv;
-        
+
           scaleadd3(-scale, fvisc, f[j1], f[j1]);
           scaleadd3(-scale, fvisc, f[j2], f[j2]);
         }
-      }
-      else {
+      } else {
 
         // segment-chain interaction
 
@@ -445,7 +444,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
           scaleadd3(w[k], q1, p1, p1);
           scaleadd3(w[k], q2, p2, p2);
-        
+
           // weighted velocity for friction
 
           scaleadd3(w[k], vq1, vp1, vp1);
@@ -487,11 +486,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         // compute geometry and forces
 
         if (endflag == 0) {
-          
+
           // infinite CNT case
-          
+
           geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
-          
+
           if (param[0] > cutoff) continue;
           if (!(param[2] < 0 && param[3] > 0)) {
             double salpha = sin(param[1]);
@@ -499,23 +498,24 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             double sxi2 = salpha * param[3];
             double hsq = param[0] * param[0];
 
-            if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq) 
-              continue;
+            if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq) continue;
           }
 
           finf(param, evdwl, flocal);
 
         } else {
-          
+
           // semi-infinite CNT case
           // endflag == 1: CNT end at start of chain
           // endflag == 2: CNT end at end of chain
-        
-          if (endflag == 1) geometry(r1, r2, p1, p2, qe, p, m, param, basis);
-          else geometry(r1, r2, p2, p1, qe, p, m, param, basis);
-          
+
+          if (endflag == 1)
+            geometry(r1, r2, p1, p2, qe, p, m, param, basis);
+          else
+            geometry(r1, r2, p2, p1, qe, p, m, param, basis);
+
           if (param[0] > cutoff) continue;
-            if (!(param[2] < 0 && param[3] > 0)) {
+          if (!(param[2] < 0 && param[3] > 0)) {
             double hsq = param[0] * param[0];
             double calpha = cos(param[1]);
             double etamin = calpha * param[2];
@@ -523,19 +523,17 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             if (etamin < param[6]) {
               dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
               dsq1 += pow(param[2] - calpha * param[6], 2);
-            }
-            else
+            } else
               dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
-            
+
             etamin = calpha * param[3];
             double dsq2;
             if (etamin < param[6]) {
               dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
               dsq2 += pow(param[3] - calpha * param[6], 2);
-            }
-            else
+            } else
               dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
-            
+
             if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
           }
 
@@ -549,11 +547,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
         matvec(basis[0], basis[1], basis[2], flocal[1], fglobal[1]);
-      
+
         // mean chain velocity and relative velocity
 
         add3(vp1, vp2, vp);
-        scale3(0.5*sumw_inv, vp);
+        scale3(0.5 * sumw_inv, vp);
         sub3(vp, vr, vrel);
         vtot = dot3(vrel, basis[2]);
 
@@ -569,7 +567,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         scale3(fvisc_tot, basis[2], fvisc);
 
         // add friction forces to current segment
-        
+
         add3(fvisc, f[i1], f[i1]);
         add3(fvisc, f[i2], f[i2]);
 
@@ -648,9 +646,9 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           scale = w[k] * sumw_inv;
           scaleadd3(scale, fglobal[2], f[j1], f[j1]);
           scaleadd3(scale, fglobal[3], f[j2], f[j2]);
-        
+
           // friction forces
-          
+
           scaleadd3(-scale, fvisc, f[j1], f[j1]);
           scaleadd3(-scale, fvisc, f[j2], f[j2]);
         }
@@ -773,7 +771,7 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   memory->destroy(gamma_data);
   memory->destroy(phi_data);
   memory->destroy(usemi_data);
-  
+
   // compute Gauss-Legendre quadrature nodes and weights
   gl_init_nodes(QUAD_FINF, gl_nodes_finf);
   gl_init_nodes(QUAD_FSEMI, gl_nodes_fsemi);
@@ -792,11 +790,13 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
 void PairMesoCNTViscous::init_style()
 {
   if (atom->tag_enable == 0) error->all(FLERR, "Pair style mesocnt/viscous requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style mesocnt/viscous requires newton pair on");
+  if (force->newton_pair == 0)
+    error->all(FLERR, "Pair style mesocnt/viscous requires newton pair on");
   if (force->special_lj[1] == 0.0 || force->special_lj[2] == 0.0 || force->special_lj[3] == 0.0)
-    error->all(FLERR,"Pair mesocnt/viscous requires special_bond lj x y z to have non-zero x, y and z");
+    error->all(FLERR,
+               "Pair mesocnt/viscous requires special_bond lj x y z to have non-zero x, y and z");
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair mesocnt/viscous requires ghost atoms store velocity");
+    error->all(FLERR, "Pair mesocnt/viscous requires ghost atoms store velocity");
 
   // need a full neighbor list
 
@@ -808,7 +808,7 @@ void PairMesoCNTViscous::init_style()
 ------------------------------------------------------------------------- */
 
 inline double PairMesoCNTViscous::weight(const double *r1, const double *r2, const double *p1,
-                                const double *p2)
+                                         const double *p2)
 {
   double dr, dp, rhoc, rhomin, rho, frac, arg;
   double r[3], p[3];
@@ -825,15 +825,14 @@ inline double PairMesoCNTViscous::weight(const double *r1, const double *r2, con
   return s((rho - rhomin) / (rhoc - rhomin));
 }
 
-
 /* ----------------------------------------------------------------------
    weight for substitute CNT chain
    computes gradients with respect to positions
 ------------------------------------------------------------------------- */
 
 inline void PairMesoCNTViscous::weight(const double *r1, const double *r2, const double *p1,
-                                const double *p2, double &w, double *dr1_w, double *dr2_w,
-                                double *dp1_w, double *dp2_w)
+                                       const double *p2, double &w, double *dr1_w, double *dr2_w,
+                                       double *dp1_w, double *dp2_w)
 {
   double dr, dp, rhoc, rhomin, rho, frac, arg, factor;
   double r[3], p[3];

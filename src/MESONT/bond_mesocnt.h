@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-BondStyle(mesocnt,BondMesoCNT);
+BondStyle(mesocnt, BondMesoCNT);
 #else
 
 #ifndef LMP_BOND_MESOCNT_H

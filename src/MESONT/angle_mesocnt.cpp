@@ -119,7 +119,7 @@ void AngleMesoCNT::compute(int eflag, int vflag)
     // force & energy
 
     dtheta = acos(c) - theta0[type];
-    
+
     // harmonic bending
     if (!buckling[type] || fabs(dtheta) < thetab[type]) {
       tk = kh[type] * dtheta;
@@ -130,7 +130,8 @@ void AngleMesoCNT::compute(int eflag, int vflag)
     }
     // bending buckling
     else {
-      if (eflag) eangle = kb[type] * fabs(dtheta) + thetab[type] * (kh[type] * thetab[type] - kb[type]);
+      if (eflag)
+        eangle = kb[type] * fabs(dtheta) + thetab[type] * (kh[type] * thetab[type] - kb[type]);
       a = kb[type] * s;
 
       buckled[i2] = 1;
@@ -189,7 +190,6 @@ void AngleMesoCNT::allocate()
   for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
-
 /* ----------------------------------------------------------------------
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
@@ -197,17 +197,18 @@ void AngleMesoCNT::allocate()
 void AngleMesoCNT::coeff(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR, "Incorrect args for angle coefficients");
-  
+
   bool buckling_one;
   if (strcmp(arg[1], "buckling") == 0)
     buckling_one = true;
   else if (strcmp(arg[1], "harmonic") == 0)
     buckling_one = false;
   else
-    error->all(FLERR, "Unknown first argument for angle coefficients, must be 'buckling' or 'harmonic'");
+    error->all(FLERR,
+               "Unknown first argument for angle coefficients, must be 'buckling' or 'harmonic'");
 
   // units, eV to energy unit conversion
-  
+
   double ang = force->angstrom;
   double eunit;
   if (strcmp(update->unit_style, "lj") == 0)
@@ -237,19 +238,18 @@ void AngleMesoCNT::coeff(int narg, char **arg)
       if (narg != 6) error->all(FLERR, "Incorrect args for custom angle coefficients");
       kb_one = utils::numeric(FLERR, arg[4], false, lmp);
       thetab_one = utils::numeric(FLERR, arg[5], false, lmp);
-    }
-    else if (narg != 4) error->all(FLERR, "Incorrect args for custom angle coefficients");
+    } else if (narg != 4)
+      error->all(FLERR, "Incorrect args for custom angle coefficients");
 
     kh_one = utils::numeric(FLERR, arg[3], false, lmp);
-  }
-  else if (strcmp(arg[2], "C") == 0) {
+  } else if (strcmp(arg[2], "C") == 0) {
     if (narg != 6) error->all(FLERR, "Incorrect args for 'C' preset in angle coefficients");
     int n = utils::inumeric(FLERR, arg[3], false, lmp);
     int m = utils::inumeric(FLERR, arg[4], false, lmp);
     double l = utils::numeric(FLERR, arg[5], false, lmp);
-  
-    double r_ang = sqrt(3.0 * (n*n + n*m + m*m)) * A_CC / MY_2PI;
-  
+
+    double r_ang = sqrt(3.0 * (n * n + n * m + m * m)) * A_CC / MY_2PI;
+
     // empirical parameters
 
     double k = 63.80 * pow(r_ang, 2.93) * eunit * ang;
@@ -259,8 +259,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
       kb_one = 0.7 * k / (275.0 * ang);
       thetab_one = 180.0 / MY_PI * atan(l / (275.0 * ang));
     }
-  }
-  else
+  } else
     error->all(FLERR, "Unknown preset in angle coefficients");
 
   // set safe default values for buckling parameters if buckling is disabled
@@ -269,7 +268,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
     kb_one = 0.0;
     thetab_one = 180.0;
   }
-  
+
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -295,7 +294,7 @@ void AngleMesoCNT::init_style()
 {
   char *id_fix = utils::strdup("angle_mesocnt_buckled");
   if (modify->find_fix(id_fix) < 0)
-    modify->add_fix(std::string(id_fix)+" all property/atom i_buckled ghost yes");
+    modify->add_fix(std::string(id_fix) + " all property/atom i_buckled ghost yes");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -376,12 +375,13 @@ double AngleMesoCNT::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   double dtheta = acos(c) - theta0[type];
-  
+
   // harmonic bending
   if (!buckling[type] || dtheta < thetab[type]) {
     double tk = kh[type] * dtheta;
     return tk * dtheta;
   }
   // bending buckling
-  else return kb[type] * dtheta + thetab[type] * (kh[type] * thetab[type] - kb[type]);
+  else
+    return kb[type] * dtheta + thetab[type] * (kh[type] * thetab[type] - kb[type]);
 }

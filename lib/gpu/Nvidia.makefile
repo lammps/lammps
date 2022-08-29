@@ -62,7 +62,7 @@ $(OBJ_DIR)/pppm_d.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h \
 $(OBJ_DIR)/pppm_d_cubin.h: $(OBJ_DIR)/pppm_d.cubin
 	$(BIN2C) -c -n pppm_d $(OBJ_DIR)/pppm_d.cubin > $(OBJ_DIR)/pppm_d_cubin.h
 
-$(OBJ_DIR)/%_cubin.h: lal_%.cu  $(PRE1_H)
+$(OBJ_DIR)/%_cubin.h: lal_%.cu $(PRE1_H)
 	$(CUDA) --fatbin -DNV_KERNEL -o $(OBJ_DIR)/$*.cubin $(OBJ_DIR)/lal_$*.cu
 	$(BIN2C) -c -n $* $(OBJ_DIR)/$*.cubin > $@
 

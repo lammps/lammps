@@ -1616,6 +1616,274 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 }
 
 /* ----------------------------------------------------------------------
+   fphi_uind = induced potential from grid
+   fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
+------------------------------------------------------------------------- */
+
+__kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
+                          const __global numtyp4 *restrict thetai1,
+                          const __global numtyp4 *restrict thetai2,
+                          const __global numtyp4 *restrict thetai3,
+                          const __global int4 *restrict igrid,
+                          const __global numtyp4 *restrict grid,
+                          __global numtyp4 *restrict fdip_phi1,
+                          __global numtyp4 *restrict fdip_phi2,
+                          __global numtyp4 *restrict fdip_sum_phi,
+                          const int bsorder, const int inum,
+                          const int t_per_atom)
+{
+  int tid, ii, offset, i, n_stride;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  if (ii<inum) {
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+
+    int j,k,m;
+    numtyp v0,v1,v2,v3;
+    numtyp u0,u1,u2,u3;
+    numtyp t0,t1,t2,t3;
+    numtyp t0_1,t0_2,t1_1,t1_2;
+    numtyp t2_1,t2_2,tq_1,tq_2;
+    numtyp tu00,tu10,tu01,tu20,tu11;
+    numtyp tu02,tu30,tu21,tu12,tu03;
+    numtyp tu00_1,tu01_1,tu10_1;
+    numtyp tu00_2,tu01_2,tu10_2;
+    numtyp tu20_1,tu11_1,tu02_1;
+    numtyp tu20_2,tu11_2,tu02_2;
+    numtyp tuv100_1,tuv010_1,tuv001_1;
+    numtyp tuv100_2,tuv010_2,tuv001_2;
+    numtyp tuv200_1,tuv020_1,tuv002_1;
+    numtyp tuv110_1,tuv101_1,tuv011_1;
+    numtyp tuv200_2,tuv020_2,tuv002_2;
+    numtyp tuv110_2,tuv101_2,tuv011_2;
+    numtyp tuv000,tuv100,tuv010,tuv001;
+    numtyp tuv200,tuv020,tuv002,tuv110;
+    numtyp tuv101,tuv011,tuv300,tuv030;
+    numtyp tuv003,tuv210,tuv201,tuv120;
+    numtyp tuv021,tuv102,tuv012,tuv111;
+
+    int nlpts = (bsorder-1) / 2;
+
+    // extract the permanent multipole field at each site
+
+    tuv100_1 = 0.0;
+    tuv010_1 = 0.0;
+    tuv001_1 = 0.0;
+    tuv200_1 = 0.0;
+    tuv020_1 = 0.0;
+    tuv002_1 = 0.0;
+    tuv110_1 = 0.0;
+    tuv101_1 = 0.0;
+    tuv011_1 = 0.0;
+    tuv100_2 = 0.0;
+    tuv010_2 = 0.0;
+    tuv001_2 = 0.0;
+    tuv200_2 = 0.0;
+    tuv020_2 = 0.0;
+    tuv002_2 = 0.0;
+    tuv110_2 = 0.0;
+    tuv101_2 = 0.0;
+    tuv011_2 = 0.0;
+    tuv000 = 0.0;
+    tuv001 = 0.0;
+    tuv010 = 0.0;
+    tuv100 = 0.0;
+    tuv200 = 0.0;
+    tuv020 = 0.0;
+    tuv002 = 0.0;
+    tuv110 = 0.0;
+    tuv101 = 0.0;
+    tuv011 = 0.0;
+    tuv300 = 0.0;
+    tuv030 = 0.0;
+    tuv003 = 0.0;
+    tuv210 = 0.0;
+    tuv201 = 0.0;
+    tuv120 = 0.0;
+    tuv021 = 0.0;
+    tuv102 = 0.0;
+    tuv012 = 0.0;
+    tuv111 = 0.0;
+
+    k = igrid[i].z - nlpts;
+    for (int kb = 0; kb < bsorder; kb++) {
+      /*
+      v0 = thetai3[m][kb][0];
+      v1 = thetai3[m][kb][1];
+      v2 = thetai3[m][kb][2];
+      v3 = thetai3[m][kb][3];
+      */
+      tu00_1 = 0.0;
+      tu01_1 = 0.0;
+      tu10_1 = 0.0;
+      tu20_1 = 0.0;
+      tu11_1 = 0.0;
+      tu02_1 = 0.0;
+      tu00_2 = 0.0;
+      tu01_2 = 0.0;
+      tu10_2 = 0.0;
+      tu20_2 = 0.0;
+      tu11_2 = 0.0;
+      tu02_2 = 0.0;
+      tu00 = 0.0;
+      tu10 = 0.0;
+      tu01 = 0.0;
+      tu20 = 0.0;
+      tu11 = 0.0;
+      tu02 = 0.0;
+      tu30 = 0.0;
+      tu21 = 0.0;
+      tu12 = 0.0;
+      tu03 = 0.0;
+
+      j = igrid[i].y - nlpts;
+      for (int jb = 0; jb < bsorder; jb++) {
+        /*
+        u0 = thetai2[m][jb][0];
+        u1 = thetai2[m][jb][1];
+        u2 = thetai2[m][jb][2];
+        u3 = thetai2[m][jb][3];
+        */
+        t0_1 = 0.0;
+        t1_1 = 0.0;
+        t2_1 = 0.0;
+        t0_2 = 0.0;
+        t1_2 = 0.0;
+        t2_2 = 0.0;
+        t3 = 0.0;
+
+        i = igrid[m].x - nlpts;
+        for (int ib = 0; ib < bsorder; ib++) {
+          /*
+          tq_1 = grid[k][j][i][0];
+          tq_2 = grid[k][j][i][1];
+          t0_1 += tq_1*thetai1[m][ib][0];
+          t1_1 += tq_1*thetai1[m][ib][1];
+          t2_1 += tq_1*thetai1[m][ib][2];
+          t0_2 += tq_2*thetai1[m][ib][0];
+          t1_2 += tq_2*thetai1[m][ib][1];
+          t2_2 += tq_2*thetai1[m][ib][2];
+          t3 += (tq_1+tq_2)*thetai1[m][ib][3];
+          */
+          i++;
+        }
+
+        tu00_1 += t0_1*u0;
+        tu10_1 += t1_1*u0;
+        tu01_1 += t0_1*u1;
+        tu20_1 += t2_1*u0;
+        tu11_1 += t1_1*u1;
+        tu02_1 += t0_1*u2;
+        tu00_2 += t0_2*u0;
+        tu10_2 += t1_2*u0;
+        tu01_2 += t0_2*u1;
+        tu20_2 += t2_2*u0;
+        tu11_2 += t1_2*u1;
+        tu02_2 += t0_2*u2;
+        t0 = t0_1 + t0_2;
+        t1 = t1_1 + t1_2;
+        t2 = t2_1 + t2_2;
+        tu00 += t0*u0;
+        tu10 += t1*u0;
+        tu01 += t0*u1;
+        tu20 += t2*u0;
+        tu11 += t1*u1;
+        tu02 += t0*u2;
+        tu30 += t3*u0;
+        tu21 += t2*u1;
+        tu12 += t1*u2;
+        tu03 += t0*u3;
+        j++;
+      }
+
+      tuv100_1 += tu10_1*v0;
+      tuv010_1 += tu01_1*v0;
+      tuv001_1 += tu00_1*v1;
+      tuv200_1 += tu20_1*v0;
+      tuv020_1 += tu02_1*v0;
+      tuv002_1 += tu00_1*v2;
+      tuv110_1 += tu11_1*v0;
+      tuv101_1 += tu10_1*v1;
+      tuv011_1 += tu01_1*v1;
+      tuv100_2 += tu10_2*v0;
+      tuv010_2 += tu01_2*v0;
+      tuv001_2 += tu00_2*v1;
+      tuv200_2 += tu20_2*v0;
+      tuv020_2 += tu02_2*v0;
+      tuv002_2 += tu00_2*v2;
+      tuv110_2 += tu11_2*v0;
+      tuv101_2 += tu10_2*v1;
+      tuv011_2 += tu01_2*v1;
+      tuv000 += tu00*v0;
+      tuv100 += tu10*v0;
+      tuv010 += tu01*v0;
+      tuv001 += tu00*v1;
+      tuv200 += tu20*v0;
+      tuv020 += tu02*v0;
+      tuv002 += tu00*v2;
+      tuv110 += tu11*v0;
+      tuv101 += tu10*v1;
+      tuv011 += tu01*v1;
+      tuv300 += tu30*v0;
+      tuv030 += tu03*v0;
+      tuv003 += tu00*v3;
+      tuv210 += tu21*v0;
+      tuv201 += tu20*v1;
+      tuv120 += tu12*v0;
+      tuv021 += tu02*v1;
+      tuv102 += tu10*v2;
+      tuv012 += tu01*v2;
+      tuv111 += tu11*v1;
+      k++;
+    }
+/*
+    fdip_phi1[m][0] = 0.0;
+    fdip_phi1[m][1] = tuv100_1;
+    fdip_phi1[m][2] = tuv010_1;
+    fdip_phi1[m][3] = tuv001_1;
+    fdip_phi1[m][4] = tuv200_1;
+    fdip_phi1[m][5] = tuv020_1;
+    fdip_phi1[m][6] = tuv002_1;
+    fdip_phi1[m][7] = tuv110_1;
+    fdip_phi1[m][8] = tuv101_1;
+    fdip_phi1[m][9] = tuv011_1;
+
+    fdip_phi2[m][0] = 0.0;
+    fdip_phi2[m][1] = tuv100_2;
+    fdip_phi2[m][2] = tuv010_2;
+    fdip_phi2[m][3] = tuv001_2;
+    fdip_phi2[m][4] = tuv200_2;
+    fdip_phi2[m][5] = tuv020_2;
+    fdip_phi2[m][6] = tuv002_2;
+    fdip_phi2[m][7] = tuv110_2;
+    fdip_phi2[m][8] = tuv101_2;
+    fdip_phi2[m][9] = tuv011_2;
+
+    fdip_sum_phi[m][0] = tuv000;
+    fdip_sum_phi[m][1] = tuv100;
+    fdip_sum_phi[m][2] = tuv010;
+    fdip_sum_phi[m][3] = tuv001;
+    fdip_sum_phi[m][4] = tuv200;
+    fdip_sum_phi[m][5] = tuv020;
+    fdip_sum_phi[m][6] = tuv002;
+    fdip_sum_phi[m][7] = tuv110;
+    fdip_sum_phi[m][8] = tuv101;
+    fdip_sum_phi[m][9] = tuv011;
+    fdip_sum_phi[m][10] = tuv300;
+    fdip_sum_phi[m][11] = tuv030;
+    fdip_sum_phi[m][12] = tuv003;
+    fdip_sum_phi[m][13] = tuv210;
+    fdip_sum_phi[m][14] = tuv201;
+    fdip_sum_phi[m][15] = tuv120;
+    fdip_sum_phi[m][16] = tuv021;
+    fdip_sum_phi[m][17] = tuv102;
+    fdip_sum_phi[m][18] = tuv012;
+    fdip_sum_phi[m][19] = tuv111;
+*/
+  }
+}
+
+/* ----------------------------------------------------------------------
    scan standard neighbor list and make it compatible with 1-5 neighbors
    if IJ entry is a 1-2,1-3,1-4 neighbor then adjust offset to SBBITS15
    else scan special15 to see if a 1-5 neighbor and adjust offset to SBBITS15

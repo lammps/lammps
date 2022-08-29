@@ -250,7 +250,7 @@ class BaseAmoeba {
 
   int _bsorder;
   UCL_Vector<numtyp,numtyp> _thetai1, _thetai2, _thetai3;
-  UCL_Vector<int,int> _igrid;
+  UCL_Vector<int4,int4> _igrid;
   int _max_thetai_size;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------

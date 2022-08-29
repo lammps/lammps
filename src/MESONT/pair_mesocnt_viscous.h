@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Philipp Kloza (University of Cambridge)
+                        pak37@cam.ac.uk
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 PairStyle(mesocnt / viscous, PairMesoCNTViscous);
 #else

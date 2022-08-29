@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Philipp Kloza (University of Cambridge)
+                        pak37@cam.ac.uk
+------------------------------------------------------------------------- */
+
 #ifdef ANGLE_CLASS
 AngleStyle(mesocnt, AngleMesoCNT);
 #else

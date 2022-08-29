@@ -10,7 +10,7 @@ Syntax
 
    angle_style style
 
-* style = *none* or *hybrid* or *charmm* or *class2* or *cosine* or         *cosine/squared* or *harmonic*
+* style = *none* or *zero* or *hybrid* or *amoeba* or *charmm* or *class2* or *class2/p6* or *cosine* or *cosine/buck6d* or *cosine/delta* or *cosine/periodic* or *cosine/shift* or *cosine/shift/exp* or *cosine/squared* or *cross* or *dipole* or *fourier* or *fourier/simple* or *gaussian* or *harmonic* or *mm3* or *quartic* or *spica* or *table*
 
 Examples
 """"""""

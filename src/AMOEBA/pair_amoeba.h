@@ -157,9 +157,9 @@ class PairAmoeba : public Pair {
   int *amgroup;    // AMOEBA polarization group, 1 to Ngroup
 
   char *id_pole, *id_udalt, *id_upalt;
-  class FixStore *fixpole;     // stores pole = multipole components
-  class FixStore *fixudalt;    // stores udalt = induced dipole history
-  class FixStore *fixupalt;    // stores upalt = induced dipole history
+  class FixStorePeratom *fixpole;     // stores pole = multipole components
+  class FixStorePeratom *fixudalt;    // stores udalt = induced dipole history
+  class FixStorePeratom *fixupalt;    // stores upalt = induced dipole history
 
   // static per-type properties defined in force-field file
 

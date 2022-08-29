@@ -26,6 +26,7 @@
 #include "error.h"
 #include "fix_ave_atom.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -68,6 +69,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   nrepeat = utils::inumeric(FLERR, arg[4], false, lmp);
   global_freq = nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
+  if (nrepeat == 1) dynamic_group_allow = 1;
 
   comm_forward = 4;
 
@@ -189,11 +191,12 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       // delete species
     } else if (strcmp(arg[iarg],"delete") == 0) {
       delflag = 1;
-      filedel = new char[255];
-      strcpy(filedel,arg[iarg+1]);
+      delete[] filedel;
+      filedel = utils::strdup(arg[iarg+1]);
       if (me == 0) {
         fdel = fopen(filedel, "w");
-        if (fdel == nullptr) error->one(FLERR,"Cannot open fix reaxff/species delete file");
+        if (!fdel) error->one(FLERR,"Cannot open fix reaxff/species delete file {}: {}",
+                              filedel, utils::getsyserror());
       }
 
       del_opened = 1;
@@ -281,6 +284,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(MolName);
 
   delete[] filepos;
+  delete[] filedel;
 
   if (me == 0) {
     if (compressed)
@@ -288,6 +292,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     else
       fclose(fp);
     if (posflag && multipos_opened) fclose(pos);
+    if (fdel) fclose(fdel);
   }
 
   try {
@@ -391,9 +396,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   Nmole = Nspec = 0;
 
   FindMolecule();
-
   SortMolecule(Nmole);
-
   FindSpecies(Nmole, Nspec);
 
   vector_nmole = Nmole;
@@ -518,16 +521,21 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
     hi = MAX(hi, nint(clusterID[n]));
   }
   int flagall;
-  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-  if (flagall && me == 0)
-    error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group");
   MPI_Allreduce(&lo, &idlo, 1, MPI_INT, MPI_MIN, world);
   MPI_Allreduce(&hi, &idhi, 1, MPI_INT, MPI_MAX, world);
+  int nlen = idhi - idlo + 1;
+  if (nlen <= 0) {  // no atoms in group
+    Nmole = 0;
+    return;
+  }
   if (idlo == ntotal)
     if (me == 0)
-      error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group");
+      error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group {}",group->names[igroup]);
 
-  int nlen = idhi - idlo + 1;
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+  if (flagall && me == 0)
+    error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group {}", group->names[igroup]);
+
   memory->create(molmap, nlen, "reaxff/species:molmap");
   for (n = 0; n < nlen; n++) molmap[n] = 0;
 
@@ -819,12 +827,11 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
 void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 {
-  int i, j, m, n, k, itype, cid;
+  int i, j, m, n, itype, cid;
   int ndel, ndelone, count, count_tmp;
   int *Nameall;
   int *mask = atom->mask;
   double localmass, totalmass;
-  double **spec_atom = f_SPECBOND->array_atom;
   std::string species_str;
 
   AtomVec *avec = atom->avec;
@@ -930,7 +937,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       for (int m = 0; m < Nspec; m++) {
         if (deletecount[m] > 0) {
           if (printflag == 0) {
-            fprintf(fdel, "Timestep %lld", update->ntimestep);
+            fmt::print(fdel, "Timestep {}", update->ntimestep);
             printflag = 1;
           }
           fprintf(fdel, " %g ", deletecount[m]);
@@ -954,7 +961,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
         if (deletecount[i]) writeflag = 1;
 
       if (writeflag) {
-        fprintf(fdel, "%lld", update->ntimestep);
+        fmt::print(fdel, "{}", update->ntimestep);
         for (i = 0; i < ndelspec; i++) {
           fprintf(fdel, "\t%g", deletecount[i]);
         }

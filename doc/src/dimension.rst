@@ -6,7 +6,7 @@ dimension command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dimension N
 

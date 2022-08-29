@@ -9,7 +9,7 @@ Accelerator Variants: *ave/sphere/atom/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID ave/sphere/atom keyword values ...
 
@@ -37,13 +37,13 @@ Description
 
 Define a computation that calculates the local mass density and
 temperature for each atom based on its neighbors inside a spherical
-cutoff.  If an atom has M neighbors, then its local mass density is
-calculated as the sum of its mass and its M neighbor masses, divided
+cutoff.  If an atom has :math:`M` neighbors, then its local mass density is
+calculated as the sum of its mass and its :math:`M` neighbor masses, divided
 by the volume of the cutoff sphere (or circle in 2d).  The local
 temperature of the atom is calculated as the temperature of the
-collection of M+1 atoms, after subtracting the center-of-mass velocity
-of the M+1 atoms from each of the M+1 atom's velocities.  This is
-effectively the thermal velocity of the neighborhood of the central
+collection of :math:`M+1` atoms, after subtracting the center-of-mass velocity
+of the :math:`M+1` atoms from each of the :math:`M+1` atom's velocities.  This
+is effectively the thermal velocity of the neighborhood of the central
 atom, similar to :doc:`compute temp/com <compute_temp_com>`.
 
 The optional keyword *cutoff* defines the distance cutoff used when

@@ -66,7 +66,6 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp)
   pgsize = oneatom = 0;
 
   nC = nH = nullptr;
-  map = nullptr;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
@@ -98,7 +97,6 @@ PairAIREBO::~PairAIREBO()
     memory->destroy(lj2);
     memory->destroy(lj3);
     memory->destroy(lj4);
-    delete[] map;
   }
 }
 
@@ -318,10 +316,10 @@ double PairAIREBO::init_one(int i, int j)
 
   } else {
 
-    lj1[ii][jj] = 48.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
-    lj2[ii][jj] = 24.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
-    lj3[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
-    lj4[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
+    lj1[ii][jj] = 48.0 * epsilon[ii][jj] * powint(sigma[ii][jj],12);
+    lj2[ii][jj] = 24.0 * epsilon[ii][jj] * powint(sigma[ii][jj],6);
+    lj3[ii][jj] = 4.0 * epsilon[ii][jj] * powint(sigma[ii][jj],12);
+    lj4[ii][jj] = 4.0 * epsilon[ii][jj] * powint(sigma[ii][jj],6);
   }
 
   cutghost[j][i] = cutghost[i][j];
@@ -3628,16 +3626,12 @@ void PairAIREBO::read_file(char *filename)
         }
       }
     } catch (TokenizerException &e) {
-      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
-                                    "REASON: {}\n",
-                                    current_section, potential_name, e.what());
-      error->one(FLERR, msg);
+      error->one(FLERR, "reading {} section in {} file\nREASON: {}\n",
+                 current_section, potential_name, e.what());
+
     } catch (FileReaderException &fre) {
-      error->one(FLERR, fre.what());
-      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
-                                    "REASON: {}\n",
+      error->one(FLERR, "reading {} section in {} file\nREASON: {}\n",
                                     current_section, potential_name, fre.what());
-      error->one(FLERR, msg);
     }
 
     // store read-in values in arrays
@@ -3849,32 +3843,6 @@ void PairAIREBO::read_file(char *filename)
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   fifth order spline evaluation
-------------------------------------------------------------------------- */
-
-double PairAIREBO::Sp5th(double x, double coeffs[6], double *df)
-{
-  double f, d;
-  const double x2 = x*x;
-  const double x3 = x2*x;
-
-  f  = coeffs[0];
-  f += coeffs[1]*x;
-  d  = coeffs[1];
-  f += coeffs[2]*x2;
-  d += 2.0*coeffs[2]*x;
-  f += coeffs[3]*x3;
-  d += 3.0*coeffs[3]*x2;
-  f += coeffs[4]*x2*x2;
-  d += 4.0*coeffs[4]*x3;
-  f += coeffs[5]*x2*x3;
-  d += 5.0*coeffs[5]*x2*x2;
-
-  *df = d;
-  return f;
-}
-
-/* ----------------------------------------------------------------------
    bicubic spline evaluation
 ------------------------------------------------------------------------- */
 
@@ -4038,8 +4006,7 @@ def output_matrix(n, k, A):
    tricubic spline coefficient calculation
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::Sptricubic_patch_adjust(double * dl, double wid, double lo,
-                                         char dir) {
+void PairAIREBO::Sptricubic_patch_adjust(double *dl, double wid, double lo, char dir) {
   int rowOuterL = 16, rowInnerL = 1, colL = 4;
   if (dir == 'R') {
     rowOuterL = 4;
@@ -4057,7 +4024,7 @@ void PairAIREBO::Sptricubic_patch_adjust(double * dl, double wid, double lo,
         double acc = 0;
         for (int k = col; k < 4; k++) {
           acc += dl[rowOuterL * rowOuter + rowInnerL * rowInner + colL * k]
-               * pow(wid, -k) * pow(-lo, k - col) * binomial[k] / binomial[col]
+               * powint(wid, -k) * powint(-lo, k - col) * binomial[k] / binomial[col]
                / binomial[k - col];
         }
         dl[rowOuterL * rowOuter + rowInnerL * rowInner + colL * col] = acc;
@@ -4162,8 +4129,7 @@ void PairAIREBO::Sptricubic_patch_coeffs(
    bicubic spline coefficient calculation
 ------------------------------------------------------------------------- */
 
-void PairAIREBO::Spbicubic_patch_adjust(double * dl, double wid, double lo,
-                                        char dir) {
+void PairAIREBO::Spbicubic_patch_adjust(double *dl, double wid, double lo, char dir) {
   int rowL = dir == 'R' ? 1 : 4;
   int colL = dir == 'L' ? 1 : 4;
   double binomial[5] = {1, 1, 2, 6};
@@ -4171,7 +4137,7 @@ void PairAIREBO::Spbicubic_patch_adjust(double * dl, double wid, double lo,
     for (int col = 0; col < 4; col++) {
       double acc = 0;
       for (int k = col; k < 4; k++) {
-        acc += dl[rowL * row + colL * k] * pow(wid, -k) * pow(-lo, k - col)
+        acc += dl[rowL * row + colL * k] * powint(wid, -k) * powint(-lo, k - col)
              * binomial[k] / binomial[col] / binomial[k - col];
       }
       dl[rowL * row + colL * col] = acc;
@@ -4495,6 +4461,6 @@ double PairAIREBO::memory_usage()
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += (double)2*maxlocal * sizeof(double);
+  bytes += 2.0 * maxlocal * sizeof(double);
   return bytes;
 }

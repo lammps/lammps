@@ -43,7 +43,7 @@
 *>
 *> \verbatim
 *>
-*> DLALSA is an intermediate step in solving the least squares problem
+*> DLALSA is an itermediate step in solving the least squares problem
 *> by computing the SVD of the coefficient matrix in compact form (The
 *> singular vectors are computed as products of simple orthorgonal
 *> matrices.).
@@ -250,8 +250,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date June 2017
-*
 *> \ingroup doubleOTHERcomputational
 *
 *> \par Contributors:
@@ -267,10 +265,9 @@
      $                   GIVCOL, LDGCOL, PERM, GIVNUM, C, S, WORK,
      $                   IWORK, INFO )
 *
-*  -- LAPACK computational routine (version 3.7.1) --
+*  -- LAPACK computational routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     June 2017
 *
 *     .. Scalar Arguments ..
       INTEGER            ICOMPQ, INFO, LDB, LDBX, LDGCOL, LDU, N, NRHS,

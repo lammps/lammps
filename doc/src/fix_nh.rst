@@ -208,9 +208,9 @@ The relaxation rate of the barostat is set by its inertia :math:`W`:
 
 .. math::
 
-   W = (N + 1) k T_{\rm target} P_{\rm damp}^2
+   W = (N + 1) k_B T_{\rm target} P_{\rm damp}^2
 
-where :math:`N` is the number of atoms, :math:`k` is the Boltzmann constant,
+where :math:`N` is the number of atoms, :math:`k_B` is the Boltzmann constant,
 and :math:`T_{\rm target}` is the target temperature of the barostat :ref:`(Martyna) <nh-Martyna>`.
 If a thermostat is defined, :math:`T_{\rm target}` is the target temperature
 of the thermostat. If a thermostat is not defined, :math:`T_{\rm target}`

@@ -10,7 +10,7 @@ Syntax
 
    bond_style style args
 
-* style = *none* or *hybrid* or *class2* or *fene* or *fene/expand* or         *harmonic* or *morse* or *nonlinear* or *quartic*
+* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/shift* or *harmonic/shift/cut* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
 
 * args = none for any style except *hybrid*
 

@@ -1671,64 +1671,48 @@ int Molecule::findfragment(const char *name)
 
 /* ----------------------------------------------------------------------
    error check molecule attributes and topology against system settings
-   flag = 0, just check this molecule
-   flag = 1, check all molecules in set, this is 1st molecule in set
 ------------------------------------------------------------------------- */
 
-void Molecule::check_attributes(int flag)
+void Molecule::check_attributes()
 {
-  int n = 1;
-  if (flag) n = nset;
-  int imol = atom->find_molecule(id);
+  // check per-atom attributes of molecule
+  // warn if not a match
 
-  for (int i = imol; i < imol+n; i++) {
-    Molecule *onemol = atom->molecules[imol];
+  int mismatch = 0;
+  if (qflag && !atom->q_flag) mismatch = 1;
+  if (radiusflag && !atom->radius_flag) mismatch = 1;
+  if (rmassflag && !atom->rmass_flag) mismatch = 1;
 
-    // check per-atom attributes of molecule
-    // warn if not a match
+  if (mismatch && me == 0)
+    error->warning(FLERR,"Molecule attributes do not match system attributes");
 
-    int mismatch = 0;
-    if (onemol->qflag && !atom->q_flag) mismatch = 1;
-    if (onemol->radiusflag && !atom->radius_flag) mismatch = 1;
-    if (onemol->rmassflag && !atom->rmass_flag) mismatch = 1;
+  // for all atom styles, check nbondtype,etc
 
-    if (mismatch && me == 0)
-      error->warning(FLERR,"Molecule attributes do not match system attributes");
+  mismatch = 0;
+  if (atom->nbondtypes < nbondtypes) mismatch = 1;
+  if (atom->nangletypes < nangletypes) mismatch = 1;
+  if (atom->ndihedraltypes < ndihedraltypes) mismatch = 1;
+  if (atom->nimpropertypes < nimpropertypes) mismatch = 1;
 
-    // for all atom styles, check nbondtype,etc
+  if (mismatch) error->all(FLERR,"Molecule topology type exceeds system topology type");
 
-    mismatch = 0;
-    if (atom->nbondtypes < onemol->nbondtypes) mismatch = 1;
-    if (atom->nangletypes < onemol->nangletypes) mismatch = 1;
-    if (atom->ndihedraltypes < onemol->ndihedraltypes) mismatch = 1;
-    if (atom->nimpropertypes < onemol->nimpropertypes) mismatch = 1;
+  // for molecular atom styles, check bond_per_atom,etc + maxspecial
+  // do not check for atom style template, since nothing stored per atom
 
-    if (mismatch)
-      error->all(FLERR,"Molecule topology type exceeds system topology type");
+  if (atom->molecular == Atom::MOLECULAR) {
+    if (atom->avec->bonds_allow && atom->bond_per_atom < bond_per_atom) mismatch = 1;
+    if (atom->avec->angles_allow && atom->angle_per_atom < angle_per_atom) mismatch = 1;
+    if (atom->avec->dihedrals_allow && atom->dihedral_per_atom < dihedral_per_atom) mismatch = 1;
+    if (atom->avec->impropers_allow && atom->improper_per_atom < improper_per_atom) mismatch = 1;
+    if (atom->maxspecial < maxspecial) mismatch = 1;
 
-    // for molecular atom styles, check bond_per_atom,etc + maxspecial
-    // do not check for atom style template, since nothing stored per atom
-
-    if (atom->molecular == Atom::MOLECULAR) {
-      if (atom->avec->bonds_allow &&
-          atom->bond_per_atom < onemol->bond_per_atom) mismatch = 1;
-      if (atom->avec->angles_allow &&
-          atom->angle_per_atom < onemol->angle_per_atom) mismatch = 1;
-      if (atom->avec->dihedrals_allow &&
-          atom->dihedral_per_atom < onemol->dihedral_per_atom) mismatch = 1;
-      if (atom->avec->impropers_allow &&
-          atom->improper_per_atom < onemol->improper_per_atom) mismatch = 1;
-      if (atom->maxspecial < onemol->maxspecial) mismatch = 1;
-
-      if (mismatch)
-        error->all(FLERR,"Molecule topology/atom exceeds system topology/atom");
-    }
-
-    // warn if molecule topology defined but no special settings
-
-    if (onemol->bondflag && !onemol->specialflag)
-      if (me == 0) error->warning(FLERR,"Molecule has bond topology but no special bond settings");
+    if (mismatch) error->all(FLERR,"Molecule topology/atom exceeds system topology/atom");
   }
+
+  // warn if molecule topology defined but no special settings
+
+  if (bondflag && !specialflag)
+    if (me == 0) error->warning(FLERR,"Molecule has bond topology but no special bond settings");
 }
 
 /* ----------------------------------------------------------------------

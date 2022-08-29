@@ -13,6 +13,7 @@ Accelrys
 acceptor
 Acceptor
 acceptors
+accessor
 accomx
 accomy
 accomz
@@ -256,6 +257,7 @@ Bfrac
 bgq
 Bh
 Bialke
+biaxial
 bicrystal
 Biersack
 bigbig
@@ -291,6 +293,7 @@ blocksize
 blueviolet
 bn
 bni
+bnumeric
 bo
 Bochkarev
 Bochum
@@ -302,7 +305,6 @@ Bogaerts
 Bogusz
 Bohrs
 boltz
-Boltzman
 BondAngle
 BondBond
 bondchk
@@ -1345,6 +1347,7 @@ hiID
 Hijazi
 Hilger
 Hinestrosa
+hipCUB
 hipFFT
 histo
 histogrammed
@@ -1482,6 +1485,7 @@ intra
 intralayer
 intramolecular
 ints
+inumeric
 inv
 invariants
 inversed
@@ -1620,6 +1624,7 @@ kb
 kB
 kbit
 kbits
+kbond
 kcal
 kcl
 Kd
@@ -2706,6 +2711,7 @@ polydispersity
 polyelectrolyte
 polyhedra
 Polym
+polymorph
 polymorphism
 Ponder
 popen
@@ -3463,6 +3469,7 @@ tmin
 Tmin
 tmp
 tN
+tnumeric
 Tobias
 Toennies
 Tohoku
@@ -3638,6 +3645,7 @@ Vandenbrande
 Vanduyfhuys
 varargs
 varavg
+variational
 Varshalovich
 Varshney
 vashishta

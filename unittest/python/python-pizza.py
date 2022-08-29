@@ -120,6 +120,7 @@ class PythonDump(unittest.TestCase):
         self.lmp.command("dump 1 all custom 2 " + dumpfile + " id type mol q x y z vx vy vz")
         self.lmp.command("dump_modify 1 time yes units yes")
         self.lmp.command("run 4 post no")
+        self.lmp.command("undump 1")
         d = dump.dump(dumpfile)
         id1, id2 = d.minmax("id")
         self.assertEqual(id1,1)

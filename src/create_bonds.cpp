@@ -298,6 +298,7 @@ void CreateBonds::many()
       }
     }
   }
+  neighbor->init();
 
   // recount bonds
 

@@ -33,7 +33,6 @@ class Grid3d : protected Pointers {
   ~Grid3d() override;
   void get_size(int &, int &, int &);
   void get_bounds(int &, int &, int &, int &, int &, int &);
-  void get_box(int, double &, double &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
@@ -47,8 +46,6 @@ class Grid3d : protected Pointers {
                         // usually world, but MSM calls with subset
 
   int ngrid[3];         // global grid size
-  double boxlo[3];      // current box that grid is mapped to
-  double prd[3];
 
   // inputs from caller via constructor
 

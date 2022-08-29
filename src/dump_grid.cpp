@@ -723,7 +723,7 @@ int DumpGrid::parse_fields(int narg, char **arg)
         if (!ifix) error->all(FLERR,"Could not find dump grid fix ID: {}",idfix);
         if (ifix->pergrid_flag == 0)
           error->all(FLERR,"Dump grid fix {} does not compute per-grid info",idfix);
-        if (update->ntimestep % ifix->pergrid_freq)
+        if (nevery % ifix->pergrid_freq)
           error->all(FLERR,"Fix ID {} for dump grid not computed at compatible time",idfix);
 
         int dim;

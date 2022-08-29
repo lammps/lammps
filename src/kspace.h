@@ -113,7 +113,6 @@ class KSpace : protected Pointers {
   void x2lamdaT(double *, double *);
   void lamda2xT(double *, double *);
   void lamda2xvector(double *, double *);
-  void kspacebbox(double, double *);
 
   // public so can be called by commands that change charge
 

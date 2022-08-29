@@ -21,6 +21,7 @@
 #include "pair.h"
 #include "kspace.h"
 #include "fix.h"
+#include "math_extra.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
@@ -88,35 +89,50 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   // max of these 2 quantities is the ghost cells needed in each dim
   // o xyz lo/hi = owned + ghost cells
 
-  memcpy(boxlo,domain->boxlo,3*sizeof(double));
-  memcpy(prd,domain->prd,3*sizeof(double));
+  int triclinic = domain->triclinic;
 
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
-  int *periodicity = domain->periodicity;
+  double *prd,*boxlo,*sublo,*subhi;
+
+  if (triclinic == 0) {
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    prd = domain->prd_lamda;
+    boxlo = domain->boxlo_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  double dist[3] = {0.0,0.0,0.0};
+  if (triclinic == 0) dist[0] = dist[1] = dist[2] = maxdist;
+  else MathExtra::tribbox(domain->h,maxdist,&dist[0]);
 
   double dxinv = nx / prd[0];
   double dyinv = ny / prd[1];
-  double dzinv = nz / prd[2];;
+  double dzinv = nz / prd[2];
   double SHIFT = OFFSET + shift;
   int nlo, nhi;
 
-  nlo = static_cast<int>((sublo[0]-maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
-  nhi = static_cast<int>((subhi[0]+maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  nlo = static_cast<int>((sublo[0]-dist[0]-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[0]+dist[0]-boxlo[0]) * dxinv + SHIFT) - OFFSET;
   oxlo = MIN(nlo, ixlo - extra);
   oxhi = MAX(nhi, ixhi + extra);
 
-  nlo = static_cast<int>((sublo[1]-maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
-  nhi = static_cast<int>((subhi[1]+maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  nlo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv + SHIFT) - OFFSET;
   oylo = MIN(nlo, iylo - extra);
   oyhi = MAX(nhi, iyhi + extra);
 
-  nlo = static_cast<int>((sublo[2]-maxdist-boxlo[2]) * dzinv + SHIFT) - OFFSET;
-  nhi = static_cast<int>((subhi[2]+maxdist-boxlo[2]) * dzinv + SHIFT) - OFFSET;
+  nlo = static_cast<int>((sublo[2]-dist[2]-boxlo[2]) * dzinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[2]+dist[2]-boxlo[2]) * dzinv + SHIFT) - OFFSET;
   ozlo = MIN(nlo, izlo - extra);
   ozhi = MAX(nhi, izhi + extra);
 
   // limit o xyz lo/hi indices for non-periodic dimensions
+
+  int *periodicity = domain->periodicity;
 
   if (!periodicity[0]) {
     oxlo = MAX(1,oxlo);
@@ -191,9 +207,6 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
 
-  memcpy(boxlo,domain->boxlo,3*sizeof(double));
-  memcpy(prd,domain->prd,3*sizeof(double));
-
   // store grid bounds and proc neighs
 
   if (layout == REGULAR) {
@@ -246,9 +259,6 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
 
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
-
-  memcpy(boxlo,domain->boxlo,3*sizeof(double));
-  memcpy(prd,domain->prd,3*sizeof(double));
 
   // store grid bounds and proc neighs
 
@@ -389,14 +399,6 @@ void Grid3d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi,
   yhi = inyhi;
   zlo = inzlo;
   zhi = inzhi;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Grid3d::get_box(int dim, double &lo, double &delta)
-{
-  lo = boxlo[dim];
-  delta = prd[dim] / ngrid[dim];
 }
 
 /* ----------------------------------------------------------------------

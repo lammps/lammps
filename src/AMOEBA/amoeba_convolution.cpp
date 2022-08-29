@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "fft3d_wrap.h"
 #include "grid3d.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
@@ -161,7 +162,7 @@ void AmoebaConvolution::allocate_grid()
   double dist[3] = {0.0,0.0,0.0};
   double cuthalf = 0.5*neighbor->skin;
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else kspacebbox(cuthalf,&dist[0]);
+  else MathExtra::tribbox(domain->h,cuthalf,&dist[0]);
 
   int nlo,nhi;
 
@@ -548,29 +549,6 @@ void *AmoebaConvolution::post_convolution_4d()
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) cgrid_brick;
-}
-
-/* ----------------------------------------------------------------------
-   convert a sphere in box coords to an ellipsoid in lamda (0-1)
-   coords and return the tight (axis-aligned) bounding box, does not
-   preserve vector magnitude
-   see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
-   http://yiningkarlli.blogspot.com/2013/02/
-     bounding-boxes-for-ellipsoidsfigure.html
-------------------------------------------------------------------------- */
-
-void AmoebaConvolution::kspacebbox(double r, double *b)
-{
-  double *h = domain->h;
-  double lx,ly,lz,xy,xz,yz;
-
-  lx = h[0]; ly = h[1]; lz = h[2];
-  yz = h[3]; xz = h[4]; xy = h[5];
-
-  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy +
-         xy*xy*yz*yz)/(lx*ly*lz);
-  b[1] = r*sqrt(lz*lz + yz*yz)/(ly*lz);
-  b[2] = r/lz;
 }
 
 /* ----------------------------------------------------------------------

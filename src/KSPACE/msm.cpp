@@ -25,6 +25,7 @@
 #include "force.h"
 #include "grid3d.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -326,7 +327,7 @@ void MSM::setup()
 
   if (triclinic) {
     double tmp[3];
-    kspacebbox(a,&tmp[0]);
+    MathExtra::tribbox(domain->h,a,&tmp[0]);
     ax = tmp[0];
     ay = tmp[1];
     az = tmp[2];
@@ -1209,7 +1210,7 @@ void MSM::set_grid_local()
     double cuthalf = 0.0;
     if (n == 0) cuthalf = 0.5*neighbor->skin; // only applies to finest grid
     dist[0] = dist[1] = dist[2] = cuthalf;
-    if (triclinic) kspacebbox(cuthalf,&dist[0]);
+    if (triclinic) MathExtra::tribbox(domain->h,cuthalf,&dist[0]);
 
     int nlo,nhi;
 

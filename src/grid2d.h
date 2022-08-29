@@ -31,7 +31,6 @@ class Grid2d : protected Pointers {
   ~Grid2d() override;
   void get_size(int &, int &);
   void get_bounds(int &, int &, int &, int &);
-  void get_box(int, double &, double &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
@@ -45,8 +44,6 @@ class Grid2d : protected Pointers {
                         // usually world, but MSM calls with subset
 
   int ngrid[2];         // global grid size
-  double boxlo[2];      // current box that grid is mapped to
-  double prd[2];
 
   // inputs from caller via constructor
 

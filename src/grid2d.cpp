@@ -21,6 +21,7 @@
 #include "pair.h"
 #include "kspace.h"
 #include "fix.h"
+#include "math_extra.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
@@ -88,29 +89,44 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
   // max of these 2 quantities is the ghost cells needed in each dim
   // o xyz lo/hi = owned + ghost cells
 
-  memcpy(boxlo,domain->boxlo,2*sizeof(double));
-  memcpy(prd,domain->prd,2*sizeof(double));
+  int triclinic = domain->triclinic;
 
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
-  int *periodicity = domain->periodicity;
+  double *prd,*boxlo,*sublo,*subhi;
 
-  double dxinv = nx / domain->prd[0];
-  double dyinv = ny / domain->prd[1];
+  if (triclinic == 0) {
+    prd = domain->prd;
+    boxlo = domain->boxlo;
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    prd = domain->prd_lamda;
+    boxlo = domain->boxlo_lamda;
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  double dist[3] = {0.0,0.0,0.0};
+  if (triclinic == 0) dist[0] = dist[1] = dist[2] = maxdist;
+  else MathExtra::tribbox(domain->h,maxdist,&dist[0]);
+
+  double dxinv = nx / prd[0];
+  double dyinv = ny / prd[1];
   double SHIFT = OFFSET + shift;
   int nlo, nhi;
 
-  nlo = static_cast<int>((sublo[0]-maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
-  nhi = static_cast<int>((subhi[0]+maxdist-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  nlo = static_cast<int>((sublo[0]-dist[0]-boxlo[0]) * dxinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[0]+dist[0]-boxlo[0]) * dxinv + SHIFT) - OFFSET;
   oxlo = MIN(nlo, ixlo - extra);
   oxhi = MAX(nhi, ixhi + extra);
 
-  nlo = static_cast<int>((sublo[1]-maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
-  nhi = static_cast<int>((subhi[1]+maxdist-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  nlo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv + SHIFT) - OFFSET;
+  nhi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv + SHIFT) - OFFSET;
   oylo = MIN(nlo, iylo - extra);
   oyhi = MAX(nhi, iyhi + extra);
 
   // limit o xyz lo/hi indices for non-periodic dimensions
+
+  int *periodicity = domain->periodicity;
 
   if (!periodicity[0]) {
     oxlo = MAX(1,oxlo);
@@ -177,9 +193,6 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
 
-  memcpy(boxlo,domain->boxlo,2*sizeof(double));
-  memcpy(prd,domain->prd,2*sizeof(double));
-
   // store grid bounds and proc neighs
 
   if (layout == REGULAR) {
@@ -230,9 +243,6 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
 
   if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
   else layout = REGULAR;
-
-  memcpy(boxlo,domain->boxlo,2*sizeof(double));
-  memcpy(prd,domain->prd,2*sizeof(double));
 
   // store grid bounds and proc neighs
 
@@ -356,14 +366,6 @@ void Grid2d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
   xhi = inxhi;
   ylo = inylo;
   yhi = inyhi;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Grid2d::get_box(int dim, double &lo, double &delta)
-{
-  lo = boxlo[dim];
-  delta = prd[dim] / ngrid[dim];
 }
 
 /* ----------------------------------------------------------------------

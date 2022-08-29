@@ -76,7 +76,6 @@ class AmoebaConvolution : protected Pointers {
   FFT_SCALAR *pre_convolution_4d();
   void *post_convolution_3d();
   void *post_convolution_4d();
-  void kspacebbox(double, double *);
   void procs2grid2d(int, int, int, int &, int &);
 
   // DEBUG

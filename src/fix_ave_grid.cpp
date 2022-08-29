@@ -29,9 +29,6 @@
 #include "update.h"
 #include "variable.h"
 
-// DEBUG
-#include "comm.h"
-
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -64,7 +61,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   pergrid_freq = utils::inumeric(FLERR,arg[5],false,lmp);
   time_depend = 1;
 
-  // NOTE: allow Dxyz as well at some point
+  // NOTE: allow Dxyz as well at some point ?
 
   nxgrid = utils::inumeric(FLERR,arg[6],false,lmp);
   nygrid = utils::inumeric(FLERR,arg[7],false,lmp);
@@ -753,7 +750,7 @@ void FixAveGrid::end_of_step()
     add_grid(grid_nfreq,grid_running);
     copy_grid(grid_running,grid_nfreq);
     normalize_grid(running_count,grid_nfreq);
-    normalize_count(running_count,grid_nfreq);
+    if (modeatom) normalize_count(running_count,grid_nfreq);
     output_grid(grid_nfreq);
 
   } else if (aveflag == WINDOW) {

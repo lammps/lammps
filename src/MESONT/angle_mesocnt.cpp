@@ -203,11 +203,11 @@ void AngleMesoCNT::coeff(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR, "Incorrect args for angle coefficients");
 
-  bool buckling_one;
+  int buckling_one;
   if (strcmp(arg[1], "buckling") == 0)
-    buckling_one = true;
+    buckling_one = 1;
   else if (strcmp(arg[1], "harmonic") == 0)
-    buckling_one = false;
+    buckling_one = 0;
   else
     error->all(FLERR,
                "Unknown first argument for angle coefficients, must be 'buckling' or 'harmonic'");
@@ -315,7 +315,7 @@ double AngleMesoCNT::equilibrium_angle(int i)
 
 void AngleMesoCNT::write_restart(FILE *fp)
 {
-  fwrite(&buckling[1], sizeof(bool), atom->nangletypes, fp);
+  fwrite(&buckling[1], sizeof(int), atom->nangletypes, fp);
   fwrite(&kh[1], sizeof(double), atom->nangletypes, fp);
   fwrite(&kb[1], sizeof(double), atom->nangletypes, fp);
   fwrite(&thetab[1], sizeof(double), atom->nangletypes, fp);
@@ -330,12 +330,12 @@ void AngleMesoCNT::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR, &buckling[1], sizeof(bool), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &buckling[1], sizeof(int), atom->nangletypes, fp, nullptr, error);
     utils::sfread(FLERR, &kh[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
     utils::sfread(FLERR, &kb[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
     utils::sfread(FLERR, &thetab[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
   }
-  MPI_Bcast(&buckling[1], atom->nangletypes, MPI_CXX_BOOL, 0, world);
+  MPI_Bcast(&buckling[1], atom->nangletypes, MPI_INT, 0, world);
   MPI_Bcast(&kh[1], atom->nangletypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&kb[1], atom->nangletypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&thetab[1], atom->nangletypes, MPI_DOUBLE, 0, world);

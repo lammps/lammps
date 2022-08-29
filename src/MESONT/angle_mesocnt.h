@@ -41,7 +41,7 @@ class AngleMesoCNT : public Angle {
   double single(int, int, int, int) override;
 
  protected:
-  bool *buckling;
+  int *buckling;
   double *kh, *kb, *thetab, *theta0;
 
   virtual void allocate();

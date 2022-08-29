@@ -32,7 +32,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
+using MathConst::MY_2PI;
 
 static constexpr double SMALL = 0.001;
 static constexpr double A_CC = 1.421;

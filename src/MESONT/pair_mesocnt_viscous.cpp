@@ -41,6 +41,9 @@ using namespace MathExtra;
 #define SELF_CUTOFF 3
 #define RHOMIN 10.0
 
+#define QUAD_FINF 129
+#define QUAD_FSEMI 10
+
 /* ---------------------------------------------------------------------- */
 
 void PairMesoCNTViscous::compute(int eflag, int vflag)
@@ -179,15 +182,27 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           double ceta = calpha * param[4];
           double seta = salpha * param[4];
           double dsq1 = hsq + seta * seta;
-          if (ceta < param[2]) dsq1 += pow(ceta - param[2], 2);
-          else if (ceta > param[3]) dsq1 += pow(ceta - param[3], 2);
+          if (ceta < param[2]) {
+            double dceta = ceta - param[2];
+            dsq1 += dceta * dceta;
+          }
+          else if (ceta > param[3]) {
+            double dceta = ceta - param[3];
+            dsq1 += dceta * dceta;
+          }
 
           ceta = calpha * param[5];
           seta = salpha * param[5];
           
           double dsq2 = hsq + seta * seta;
-          if (ceta < param[2]) dsq2 += pow(ceta - param[2], 2);
-          else if (ceta > param[3]) dsq2 += pow(ceta - param[3], 2);
+          if (ceta < param[2]) {
+            double dceta = ceta - param[2];
+            dsq2 += dceta * dceta;
+          }
+          else if (ceta > param[3]) {
+            double dceta = ceta - param[3];
+            dsq2 += dceta * dceta;
+          }
 
           if (dsq1 > cutoffsq && dsq2 > cutoffsq) 
             continue;
@@ -478,13 +493,15 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
           
           if (param[0] > cutoff) continue;
-          double salpha = sin(param[1]);
-          double sxi1 = salpha * param[2];
-          double sxi2 = salpha * param[3];
-          double hsq = param[0] * param[0];
+          if (!(param[2] < 0 && param[3] > 0)) {
+            double salpha = sin(param[1]);
+            double sxi1 = salpha * param[2];
+            double sxi2 = salpha * param[3];
+            double hsq = param[0] * param[0];
 
-          if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
-            continue;
+            if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq) 
+              continue;
+          }
 
           finf(param, evdwl, flocal);
 
@@ -498,28 +515,29 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           else geometry(r1, r2, p2, p1, qe, p, m, param, basis);
           
           if (param[0] > cutoff) continue;
-          double hsq = param[0] * param[0];
-          double calpha = cos(param[1]);
-          double etamin = calpha * param[2];
-          double dsq1;
-          if (etamin < param[6]) {
-            dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
-            dsq1 += pow(param[2] - calpha * param[6], 2);
+            if (!(param[2] < 0 && param[3] > 0)) {
+            double hsq = param[0] * param[0];
+            double calpha = cos(param[1]);
+            double etamin = calpha * param[2];
+            double dsq1;
+            if (etamin < param[6]) {
+              dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
+              dsq1 += pow(param[2] - calpha * param[6], 2);
+            }
+            else
+              dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
+            
+            etamin = calpha * param[3];
+            double dsq2;
+            if (etamin < param[6]) {
+              dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
+              dsq2 += pow(param[3] - calpha * param[6], 2);
+            }
+            else
+              dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
+            
+            if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
           }
-          else
-            dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
-          
-          etamin = calpha * param[3];
-          double dsq2;
-          if (etamin < param[6]) {
-            dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
-            dsq2 += pow(param[3] - calpha * param[6], 2);
-          }
-          else
-            dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
-
-          if (dsq1 > cutoffsq && dsq2 > cutoffsq) 
-            continue;
 
           fsemi(param, evdwl, fend, flocal);
         }
@@ -757,8 +775,10 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   memory->destroy(usemi_data);
   
   // compute Gauss-Legendre quadrature nodes and weights
-  gl_init_nodes();
-  gl_init_weights();
+  gl_init_nodes(QUAD_FINF, gl_nodes_finf);
+  gl_init_nodes(QUAD_FSEMI, gl_nodes_fsemi);
+  gl_init_weights(QUAD_FINF, gl_nodes_finf, gl_weights_finf);
+  gl_init_weights(QUAD_FSEMI, gl_nodes_fsemi, gl_weights_fsemi);
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++)

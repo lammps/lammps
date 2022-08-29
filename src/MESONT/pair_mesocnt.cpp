@@ -48,7 +48,9 @@ using namespace MathExtra;
 #define SWITCH 1.0e-6
 #define RHOMIN 10.0
 
-#define QUADRATURE 10
+#define QUAD_FINF 129
+#define QUAD_FSEMI 10
+
 #define BISECTION_STEPS 1000000
 #define BISECTION_EPS 1.0e-15
 
@@ -106,9 +108,10 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(fglobal);
     memory->destroy(basis);
 
-    memory->destroy(gl_nodes);
-    memory->destroy(gl_weights);
-    memory->destroy(lcache);
+    memory->destroy(gl_nodes_finf);
+    memory->destroy(gl_nodes_fsemi);
+    memory->destroy(gl_weights_finf);
+    memory->destroy(gl_weights_fsemi);
   }
 }
 
@@ -224,15 +227,27 @@ void PairMesoCNT::compute(int eflag, int vflag)
           double ceta = calpha * param[4];
           double seta = salpha * param[4];
           double dsq1 = hsq + seta * seta;
-          if (ceta < param[2]) dsq1 += pow(ceta - param[2], 2);
-          else if (ceta > param[3]) dsq1 += pow(ceta - param[3], 2);
+          if (ceta < param[2]) {
+            double dceta = ceta - param[2];
+            dsq1 += dceta * dceta;
+          }
+          else if (ceta > param[3]) {
+            double dceta = ceta - param[3];
+            dsq1 += dceta * dceta;
+          }
 
           ceta = calpha * param[5];
           seta = salpha * param[5];
           
           double dsq2 = hsq + seta * seta;
-          if (ceta < param[2]) dsq2 += pow(ceta - param[2], 2);
-          else if (ceta > param[3]) dsq2 += pow(ceta - param[3], 2);
+          if (ceta < param[2]) {
+            double dceta = ceta - param[2];
+            dsq2 += dceta * dceta;
+          }
+          else if (ceta > param[3]) {
+            double dceta = ceta - param[3];
+            dsq2 += dceta * dceta;
+          }
 
           if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
 
@@ -466,12 +481,14 @@ void PairMesoCNT::compute(int eflag, int vflag)
           geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
           
           if (param[0] > cutoff) continue;
-          double salpha = sin(param[1]);
-          double sxi1 = salpha * param[2];
-          double sxi2 = salpha * param[3];
-          double hsq = param[0] * param[0];
-          if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
-            continue;
+          if (!(param[2] < 0 && param[3] > 0)) {
+            double salpha = sin(param[1]);
+            double sxi1 = salpha * param[2];
+            double sxi2 = salpha * param[3];
+            double hsq = param[0] * param[0];
+            if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
+              continue;
+          }
 
           finf(param, evdwl, flocal);
 
@@ -485,27 +502,29 @@ void PairMesoCNT::compute(int eflag, int vflag)
           else geometry(r1, r2, p2, p1, qe, p, m, param, basis);
           
           if (param[0] > cutoff) continue;
-          double hsq = param[0] * param[0];
-          double calpha = cos(param[1]);
-          double etamin = calpha * param[2];
-          double dsq1;
-          if (etamin < param[6]) {
-            dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
-            dsq1 += pow(param[2] - calpha * param[6], 2);
-          }
-          else
-            dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
-          
-          etamin = calpha * param[3];
-          double dsq2;
-          if (etamin < param[6]) {
-            dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
-            dsq2 += pow(param[3] - calpha * param[6], 2);
-          }
-          else
-            dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
+          if (!(param[2] < 0 && param[3] > 0)) {
+            double hsq = param[0] * param[0];
+            double calpha = cos(param[1]);
+            double etamin = calpha * param[2];
+            double dsq1;
+            if (etamin < param[6]) {
+              dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
+              dsq1 += pow(param[2] - calpha * param[6], 2);
+            }
+            else
+              dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
+            
+            etamin = calpha * param[3];
+            double dsq2;
+            if (etamin < param[6]) {
+              dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
+              dsq2 += pow(param[3] - calpha * param[6], 2);
+            }
+            else
+              dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
 
-          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
+            if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
+          }
 
           fsemi(param, evdwl, fend, flocal);
         }
@@ -686,9 +705,10 @@ void PairMesoCNT::allocate()
   memory->create(fglobal, 4, 3, "pair:fglobal");
   memory->create(basis, 3, 3, "pair:basis");
 
-  memory->create(gl_nodes, QUADRATURE, "pair:gl_nodes");
-  memory->create(gl_weights, QUADRATURE, "pair:gl_weights");
-  memory->create(lcache, QUADRATURE + 1, "pair:lcache");
+  memory->create(gl_nodes_finf, QUAD_FINF, "pair:gl_nodes_finf");
+  memory->create(gl_nodes_fsemi, QUAD_FSEMI, "pair:gl_nodes_fsemi");
+  memory->create(gl_weights_finf, QUAD_FINF, "pair:gl_weights_finf");
+  memory->create(gl_weights_fsemi, QUAD_FSEMI, "pair:gl_weights_fsemi");
 }
 
 /* ----------------------------------------------------------------------
@@ -794,8 +814,10 @@ void PairMesoCNT::coeff(int narg, char **arg)
   memory->destroy(usemi_data);
 
   // compute Gauss-Legendre quadrature nodes and weights
-  gl_init_nodes();
-  gl_init_weights();
+  gl_init_nodes(QUAD_FINF, gl_nodes_finf);
+  gl_init_nodes(QUAD_FSEMI, gl_nodes_fsemi);
+  gl_init_weights(QUAD_FINF, gl_nodes_finf, gl_weights_finf);
+  gl_init_weights(QUAD_FSEMI, gl_nodes_fsemi, gl_weights_fsemi);
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++)
@@ -2296,6 +2318,8 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     if (psi1 < 0 || psi2 < 0) {
       error->warning(FLERR, "Segment - infinite chain interaction outside of interpolation range." 
           " Performance may be poor. Use potential file with lower delta1 and delta2 values.");
+
+      printf("param: %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5]);
     
       double scale = 0.5 * (zeta2 - zeta1);
       double shift = 0.5 * (zeta1 + zeta2);
@@ -2303,11 +2327,11 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
       delta_phi = 0.0;
       delta_dh_phi = 0.0;
 
-      for (int i = 0; i < QUADRATURE; i++) {
-        double zeta = scale * gl_nodes[i] + shift;
+      for (int i = 0; i < QUAD_FINF; i++) {
+        double zeta = scale * gl_nodes_finf[i] + shift;
         double spline_arg = sqrt(hsq + zeta * zeta);
-        delta_phi += gl_weights[i] * spline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
-        delta_dh_phi += gl_weights[i] * h * dspline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points) / spline_arg;
+        delta_phi += gl_weights_finf[i] * spline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points);
+        delta_dh_phi += gl_weights_finf[i] * h * dspline(spline_arg, hstart_uinf, delh_uinf, uinf_coeff, uinf_points) / spline_arg;
       }
 
       delta_phi *= scale;
@@ -2421,13 +2445,13 @@ void PairMesoCNT::fsemi(const double *param, double &evdwl, double &fend, double
   double jxi1 = 0;
   double ubar = 0;
 
-  for (int i = 0; i < QUADRATURE; i++) {
-    double xibar = scale * gl_nodes[i] + shift;
+  for (int i = 0; i < QUAD_FSEMI; i++) {
+    double xibar = scale * gl_nodes_fsemi[i] + shift;
     double g = xibar * c1;
     double hbar = sqrt(h * h + g * g);
     double thetabar = xibar * cos_alpha - c2;
 
-    double c = gl_weights[i];
+    double c = gl_weights_fsemi[i];
 
     double u = c *
         spline(hbar, thetabar, hstart_usemi, xistart_usemi, delh_usemi, delxi_usemi, usemi_coeff,
@@ -2490,6 +2514,8 @@ double PairMesoCNT::legendre(int n, double x)
   if (n == 0) return 1.0;
   if (n == 1) return x;
 
+  std::vector<double> lcache(n + 1, 0.0);
+
   lcache[0] = 1.0;
   lcache[1] = x;
 
@@ -2504,26 +2530,26 @@ double PairMesoCNT::legendre(int n, double x)
    find all roots of Legendre polynomial
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::gl_init_nodes()
+void PairMesoCNT::gl_init_nodes(int quad, double *gl_nodes)
 {
   int k_start, k_end, k_offset;
-  if (QUADRATURE % 2) {
+  if (quad % 2) {
     k_start = 1;
-    k_end = (QUADRATURE - 1) / 2 + 1;
+    k_end = (quad - 1) / 2 + 1;
     k_offset = 2;
     gl_nodes[k_end - 1] = 0.0;
   }
   else {
     k_start = 0;
-    k_end = QUADRATURE / 2;
+    k_end = quad / 2;
     k_offset = 1;
   }
 
   int root = 0;
   for (int k = k_start; k < k_end; k++) {
 
-    double theta = (ceil(0.5 * QUADRATURE) - 0.25 - k) * MY_PI / (QUADRATURE + 0.5);
-    double a = cos((ceil(0.5 * QUADRATURE) - k) * MY_PI / (QUADRATURE + 1.0));
+    double theta = (ceil(0.5 * quad) - 0.25 - k) * MY_PI / (quad + 0.5);
+    double a = cos((ceil(0.5 * quad) - k) * MY_PI / (quad + 1.0));
     double b = cos(theta);
     double c;
 
@@ -2533,8 +2559,8 @@ void PairMesoCNT::gl_init_nodes()
 
     do {
       c = 0.5 * (a + b);
-      if (legendre(QUADRATURE, c) == 0.0) break;
-      if (legendre(QUADRATURE, a) * legendre(QUADRATURE, c) < 0)
+      if (legendre(quad, c) == 0.0) break;
+      if (legendre(quad, a) * legendre(quad, c) < 0)
         b = c;
       else
         a = c;
@@ -2552,11 +2578,11 @@ void PairMesoCNT::gl_init_nodes()
    find all Gauss-Legendre quadrature weights
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::gl_init_weights()
+void PairMesoCNT::gl_init_weights(int quad, double *gl_nodes, double *gl_weights)
 {
-  for (int i = 0; i < QUADRATURE; i++) {
+  for (int i = 0; i < quad; i++) {
     double x = gl_nodes[i];
-    double dlegendre = QUADRATURE * (x * legendre(QUADRATURE, x) - legendre(QUADRATURE - 1, x)) / (x * x - 1.0);
+    double dlegendre = quad * (x * legendre(quad, x) - legendre(quad - 1, x)) / (x * x - 1.0);
 
     gl_weights[i] = 2.0 / ((1.0 - x*x) * dlegendre * dlegendre);
   }

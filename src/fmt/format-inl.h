@@ -1337,7 +1337,7 @@ template <typename T> decimal_fp<T> to_decimal(T x) noexcept {
 
   if (r < deltai) {
     // Exclude the right endpoint if necessary.
-    if (r == 0 && z_mul.is_integer && !include_right_endpoint) {
+    if (r == 0 && (z_mul.is_integer & !include_right_endpoint)) {
       --ret_value.significand;
       r = float_info<T>::big_divisor;
       goto small_divisor_case_label;
@@ -1346,26 +1346,11 @@ template <typename T> decimal_fp<T> to_decimal(T x) noexcept {
     goto small_divisor_case_label;
   } else {
     // r == deltai; compare fractional parts.
-    const carrier_uint two_fl = two_fc - 1;
+    const typename cache_accessor<T>::compute_mul_parity_result x_mul =
+        cache_accessor<T>::compute_mul_parity(two_fc - 1, cache, beta);
 
-    if (!include_left_endpoint ||
-        exponent < float_info<T>::case_fc_pm_half_lower_threshold ||
-        exponent > float_info<T>::divisibility_check_by_5_threshold) {
-      // If the left endpoint is not included, the condition for
-      // success is z^(f) < delta^(f) (odd parity).
-      // Otherwise, the inequalities on exponent ensure that
-      // x is not an integer, so if z^(f) >= delta^(f) (even parity), we in fact
-      // have strict inequality.
-      if (!cache_accessor<T>::compute_mul_parity(two_fl, cache, beta).parity) {
-        goto small_divisor_case_label;
-      }
-    } else {
-      const typename cache_accessor<T>::compute_mul_parity_result x_mul =
-          cache_accessor<T>::compute_mul_parity(two_fl, cache, beta);
-      if (!x_mul.parity && !x_mul.is_integer) {
-        goto small_divisor_case_label;
-      }
-    }
+    if (!(x_mul.parity | (x_mul.is_integer & include_left_endpoint)))
+      goto small_divisor_case_label;
   }
   ret_value.exponent = minus_k + float_info<T>::kappa + 1;
 
@@ -1404,7 +1389,7 @@ small_divisor_case_label:
   // or equivalently, when y is an integer.
   if (y_mul.parity != approx_y_parity)
     --ret_value.significand;
-  else if (y_mul.is_integer && ret_value.significand % 2 != 0)
+  else if (y_mul.is_integer & (ret_value.significand % 2 != 0))
     --ret_value.significand;
   return ret_value;
 }
@@ -1488,17 +1473,13 @@ FMT_FUNC std::string vformat(string_view fmt, format_args args) {
   return to_string(buffer);
 }
 
-#ifdef _WIN32
 namespace detail {
+#ifdef _WIN32
 using dword = conditional_t<sizeof(long) == 4, unsigned long, unsigned>;
 extern "C" __declspec(dllimport) int __stdcall WriteConsoleW(  //
     void*, const void*, dword, dword*, void*);
-}  // namespace detail
-#endif
 
-namespace detail {
-FMT_FUNC void print(std::FILE* f, string_view text) {
-#ifdef _WIN32
+FMT_FUNC bool write_console(std::FILE* f, string_view text) {
   auto fd = _fileno(f);
   if (_isatty(fd)) {
     detail::utf8_to_utf16 u16(string_view(text.data(), text.size()));
@@ -1506,11 +1487,20 @@ FMT_FUNC void print(std::FILE* f, string_view text) {
     if (detail::WriteConsoleW(reinterpret_cast<void*>(_get_osfhandle(fd)),
                               u16.c_str(), static_cast<uint32_t>(u16.size()),
                               &written, nullptr)) {
-      return;
+      return true;
     }
-    // Fallback to fwrite on failure. It can happen if the output has been
-    // redirected to NUL.
   }
+  // We return false if the file descriptor was not TTY, or it was but
+  // SetConsoleW failed which can happen if the output has been redirected to
+  // NUL. In both cases when we return false, we should attempt to do regular
+  // write via fwrite or std::ostream::write.
+  return false;
+}
+#endif
+
+FMT_FUNC void print(std::FILE* f, string_view text) {
+#ifdef _WIN32
+  if (write_console(f, text)) return;
 #endif
   detail::fwrite_fully(text.data(), 1, text.size(), f);
 }

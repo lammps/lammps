@@ -197,11 +197,11 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_EQ(variable->internalstyle(variable->find("ten")), 1);
 
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy index"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy delete xxx"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop -1"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop 10 1"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy xxxx"););
+    TEST_FAILURE(".*ERROR: Illegal variable index command.*", command("variable dummy index"););
+    TEST_FAILURE(".*ERROR: Illegal variable delete command: expected 2 arguments but found 3.*", command("variable dummy delete xxx"););
+    TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*", command("variable dummy loop -1"););
+    TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
+    TEST_FAILURE(".*ERROR: Unknown variable keyword: xxx.*", command("variable dummy xxxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable two string xxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -380,6 +380,7 @@ TEST_F(VariableTest, Functions)
     command("variable ten1   equal     tan(v_eight/2.0)");
     command("variable ten2   equal     asin(-1.0)+acos(0.0)");
     command("variable ten3   equal     floor(100*random(0.2,0.8,v_seed)+1)");
+    command("variable ten4   equal     extract_setting(world_size)");
     END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
@@ -393,9 +394,18 @@ TEST_F(VariableTest, Functions)
     ASSERT_FLOAT_EQ(variable->compute_equal(variable->find("ten1")), 1);
     ASSERT_GT(variable->compute_equal(variable->find("ten3")), 19);
     ASSERT_LT(variable->compute_equal(variable->find("ten3")), 81);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten4")), 1);
 
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););
+    TEST_FAILURE(".*ERROR on proc 0: Invalid immediate variable.*",
+                 command("print \"$(extract_setting()\""););
+    TEST_FAILURE(".*ERROR on proc 0: Invalid immediate variable.*",
+                 command("print \"$(extract_setting()\""););
+    TEST_FAILURE(".*ERROR: Invalid extract_setting.. function syntax in variable formula.*",
+                 command("print \"$(extract_setting(one,two))\""););
+    TEST_FAILURE(".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
+                 command("print \"$(extract_setting(nprocs))\""););
 }
 
 TEST_F(VariableTest, IfCommand)
@@ -575,9 +585,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

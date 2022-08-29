@@ -81,7 +81,7 @@ TEST_F(SimpleCommandsTest, Echo)
     ASSERT_EQ(lmp->input->echo_log, 1);
 
     TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo"););
-    TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo xxx"););
+    TEST_FAILURE(".*ERROR: Unknown echo keyword: xxx.*", command("echo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Log)
@@ -552,9 +552,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

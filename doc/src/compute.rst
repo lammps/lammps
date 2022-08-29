@@ -6,7 +6,7 @@ compute command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style args
 
@@ -33,8 +33,8 @@ they are calculated from information about atoms on the current
 timestep or iteration, though a compute may internally store some
 information about a previous state of the system.  Defining a compute
 does not perform a computation.  Instead computes are invoked by other
-LAMMPS commands as needed, e.g. to calculate a temperature needed for
-a thermostat fix or to generate thermodynamic or dump file output.
+LAMMPS commands as needed (e.g., to calculate a temperature needed for
+a thermostat fix or to generate thermodynamic or dump file output).
 See the :doc:`Howto output <Howto_output>` page for a summary of
 various LAMMPS output options, many of which involve computes.
 
@@ -89,14 +89,14 @@ notation, where ID is the ID of the compute:
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the
-quantity once (vector -> scalar, array -> vector).  Using two brackets
-reduces the dimension twice (array -> scalar).  Thus a command that
-uses scalar compute values as input can also process elements of a
+quantity once (vector :math:`\to` scalar, array :math:`\to` vector).  Using two
+brackets reduces the dimension twice (array :math:`\to` scalar).  Thus a
+command that uses scalar compute values as input can also process elements of a
 vector or array.
 
 Note that commands and :doc:`variables <variable>` which use compute
-quantities typically do not allow for all kinds, e.g. a command may
-require a vector of values, not a scalar.  This means there is no
+quantities typically do not allow for all kinds (e.g., a command may
+require a vector of values, not a scalar).  This means there is no
 ambiguity about referring to a compute quantity as c_ID even if it
 produces, for example, both a scalar and vector.  The doc pages for
 various commands explain the details.
@@ -120,14 +120,14 @@ ways:
 
 The results of computes that calculate global quantities can be either
 "intensive" or "extensive" values.  Intensive means the value is
-independent of the number of atoms in the simulation,
-e.g. temperature.  Extensive means the value scales with the number of
-atoms in the simulation, e.g. total rotational kinetic energy.
+independent of the number of atoms in the simulation
+(e.g., temperature).  Extensive means the value scales with the number of
+atoms in the simulation (e.g., total rotational kinetic energy).
 :doc:`Thermodynamic output <thermo_style>` will normalize extensive
 values by the number of atoms in the system, depending on the
 "thermo_modify norm" setting.  It will not normalize intensive values.
-If a compute value is accessed in another way, e.g. by a
-:doc:`variable <variable>`, you may want to know whether it is an
+If a compute value is accessed in another way (e.g., by a
+:doc:`variable <variable>`), you may want to know whether it is an
 intensive or extensive value.  See the page for individual
 computes for further info.
 
@@ -196,8 +196,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`cluster/atom <compute_cluster_atom>` - cluster ID for each atom
 * :doc:`cna/atom <compute_cna_atom>` - common neighbor analysis (CNA) for each atom
 * :doc:`cnp/atom <compute_cnp_atom>` - common neighborhood parameter (CNP) for each atom
-* :doc:`com <compute_com>` - center-of-mass of group of atoms
-* :doc:`com/chunk <compute_com_chunk>` - center-of-mass for each chunk
+* :doc:`com <compute_com>` - center of mass of group of atoms
+* :doc:`com/chunk <compute_com_chunk>` - center of mass for each chunk
 * :doc:`contact/atom <compute_contact_atom>` - contact count for each spherical particle
 * :doc:`coord/atom <compute_coord_atom>` - coordination number for each atom
 * :doc:`damage/atom <compute_damage_atom>` - Peridynamic damage for each atom
@@ -207,10 +207,10 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`dipole <compute_dipole>` - dipole vector and total dipole
 * :doc:`dipole/chunk <compute_dipole_chunk>` - dipole vector and total dipole for each chunk
 * :doc:`displace/atom <compute_displace_atom>` - displacement of each atom
-* :doc:`dpd <compute_dpd>` -
-* :doc:`dpd/atom <compute_dpd_atom>` -
+* :doc:`dpd <compute_dpd>` - total values of internal conductive energy, internal mechanical energy, chemical energy, and harmonic average of internal temperature
+* :doc:`dpd/atom <compute_dpd_atom>` - per-particle values of internal conductive energy, internal mechanical energy, chemical energy, and internal temperature
 * :doc:`edpd/temp/atom <compute_edpd_temp_atom>` - per-atom temperature for each eDPD particle in a group
-* :doc:`efield/atom <compute_efield_atom>` -
+* :doc:`efield/atom <compute_efield_atom>` - electric field at each atom
 * :doc:`entropy/atom <compute_entropy_atom>` - pair entropy fingerprint of each atom
 * :doc:`erotate/asphere <compute_erotate_asphere>` - rotational energy of aspherical particles
 * :doc:`erotate/rigid <compute_erotate_rigid>` - rotational energy of rigid bodies
@@ -222,7 +222,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
-* :doc:`global/atom <compute_global_atom>` -
+* :doc:`global/atom <compute_global_atom>` - assign global values to each atom from arrays of global values
 * :doc:`group/group <compute_group_group>` - energy/force between two groups of atoms
 * :doc:`gyration <compute_gyration>` - radius of gyration of group of atoms
 * :doc:`gyration/chunk <compute_gyration_chunk>` - radius of gyration for each chunk
@@ -241,7 +241,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
-* :doc:`mliap <compute_mliap>` - gradients of energy and forces w.r.t. model parameters and related quantities for training machine learning interatomic potentials
+* :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
@@ -264,35 +264,35 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`property/grid <compute_property_grid>` - convert per-grid attributes to per-grid vectors/arrays
 * :doc:`property/local <compute_property_local>` - convert local attributes to local vectors/arrays
 * :doc:`ptm/atom <compute_ptm_atom>` - determines the local lattice structure based on the Polyhedral Template Matching method
-* :doc:`rdf <compute_rdf>` - radial distribution function g(r) histogram of group of atoms
+* :doc:`rdf <compute_rdf>` - radial distribution function :math:`g(r)` histogram of group of atoms
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
 * :doc:`slice <compute_slice>` - extract values from global vector or array
-* :doc:`smd/contact/radius <compute_smd_contact_radius>` -
+* :doc:`smd/contact/radius <compute_smd_contact_radius>` - contact radius for Smooth Mach Dynamics
 * :doc:`smd/damage <compute_smd_damage>` - damage status of SPH particles in Smooth Mach Dynamics
-* :doc:`smd/hourglass/error <compute_smd_hourglass_error>` -
+* :doc:`smd/hourglass/error <compute_smd_hourglass_error>` - error associated with approximated relative separation in Smooth Mach Dynamics
 * :doc:`smd/internal/energy <compute_smd_internal_energy>` - per-particle enthalpy in Smooth Mach Dynamics
 * :doc:`smd/plastic/strain <compute_smd_plastic_strain>` - equivalent plastic strain per particle in Smooth Mach Dynamics
 * :doc:`smd/plastic/strain/rate <compute_smd_plastic_strain_rate>` - time rate of the equivalent plastic strain in Smooth Mach Dynamics
 * :doc:`smd/rho <compute_smd_rho>` - per-particle mass density in Smooth Mach Dynamics
 * :doc:`smd/tlsph/defgrad <compute_smd_tlsph_defgrad>` - deformation gradient in Smooth Mach Dynamics
 * :doc:`smd/tlsph/dt <compute_smd_tlsph_dt>` - CFL-stable time increment per particle in Smooth Mach Dynamics
-* :doc:`smd/tlsph/num/neighs <compute_smd_tlsph_num_neighs>` -
-* :doc:`smd/tlsph/shape <compute_smd_tlsph_shape>` -
-* :doc:`smd/tlsph/strain <compute_smd_tlsph_strain>` -
-* :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>` -
+* :doc:`smd/tlsph/num/neighs <compute_smd_tlsph_num_neighs>` - number of particles inside the smoothing kernel radius for Smooth Mach Dynamics
+* :doc:`smd/tlsph/shape <compute_smd_tlsph_shape>` - current shape of the volume of a particle for Smooth Mach Dynamics
+* :doc:`smd/tlsph/strain <compute_smd_tlsph_strain>` - Green--Lagrange strain tensor for Smooth Mach Dynamics
+* :doc:`smd/tlsph/strain/rate <compute_smd_tlsph_strain_rate>` - rate of strain for Smooth Mach Dynamics
 * :doc:`smd/tlsph/stress <compute_smd_tlsph_stress>` - per-particle Cauchy stress tensor for SPH particles
-* :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>` -
+* :doc:`smd/triangle/vertices <compute_smd_triangle_vertices>` - coordinates of vertices corresponding to the triangle elements of a mesh for Smooth Mach Dynamics
 * :doc:`smd/ulsph/effm <compute_smd_ulsph_effm>` - per-particle effective shear modulus
-* :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>` -
-* :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>` -
-* :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` -
+* :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>` - number of neighbor particles inside the smoothing kernel radius for Smooth Mach Dynamics
+* :doc:`smd/ulsph/strain <compute_smd_ulsph_strain>` - logarithmic strain tensor for Smooth Mach Dynamics
+* :doc:`smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` - logarithmic strain rate for Smooth Mach Dynamics
 * :doc:`smd/ulsph/stress <compute_smd_ulsph_stress>` - per-particle Cauchy stress tensor and von Mises equivalent stress in Smooth Mach Dynamics
 * :doc:`smd/vol <compute_smd_vol>` - per-particle volumes and their sum in Smooth Mach Dynamics
-* :doc:`snap <compute_sna_atom>` - gradients of SNAP energy and forces w.r.t. linear coefficients and related quantities for fitting SNAP potentials
+* :doc:`snap <compute_sna_atom>` - gradients of SNAP energy and forces with respect to linear coefficients and related quantities for fitting SNAP potentials
 * :doc:`sna/atom <compute_sna_atom>` - bispectrum components for each atom
 * :doc:`sna/grid <compute_sna_atom>` - global array of bispectrum components on a regular grid
 * :doc:`sna/grid/local <compute_sna_atom>` - local array of bispectrum components on a regular grid
@@ -318,7 +318,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`temp/cs <compute_temp_cs>` - temperature based on the center-of-mass velocity of atom pairs that are bonded to each other
 * :doc:`temp/deform <compute_temp_deform>` - temperature excluding box deformation velocity
 * :doc:`temp/deform/eff <compute_temp_deform_eff>` - temperature excluding box deformation velocity in the electron force field model
-* :doc:`temp/drude <compute_temp_drude>` - temperature of Core-Drude pairs
+* :doc:`temp/drude <compute_temp_drude>` - temperature of Core--Drude pairs
 * :doc:`temp/eff <compute_temp_eff>` - temperature of a group of nuclei and electrons in the electron force field model
 * :doc:`temp/partial <compute_temp_partial>` - temperature excluding one or more dimensions of velocity
 * :doc:`temp/profile <compute_temp_profile>` - temperature excluding a binned velocity profile
@@ -334,7 +334,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`vcm/chunk <compute_vcm_chunk>` - velocity of center-of-mass for each chunk
 * :doc:`viscosity/cos <compute_viscosity_cos>` - velocity profile under cosine-shaped acceleration
 * :doc:`voronoi/atom <compute_voronoi_atom>` - Voronoi volume and neighbors for each atom
-* :doc:`xrd <compute_xrd>` - x-ray diffraction intensity on a mesh of reciprocal lattice nodes
+* :doc:`xrd <compute_xrd>` - X-ray diffraction intensity on a mesh of reciprocal lattice nodes
 
 Restrictions
 """"""""""""
@@ -343,7 +343,9 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`uncompute <uncompute>`, :doc:`compute_modify <compute_modify>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/histo <fix_ave_histo>`
+:doc:`uncompute <uncompute>`, :doc:`compute_modify <compute_modify>`,
+:doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/time <fix_ave_time>`,
+:doc:`fix ave/histo <fix_ave_histo>`
 
 Default
 """""""

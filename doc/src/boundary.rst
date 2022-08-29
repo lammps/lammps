@@ -6,7 +6,7 @@ boundary command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    boundary x y z
 

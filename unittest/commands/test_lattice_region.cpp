@@ -45,7 +45,9 @@ protected:
     {
         testbinary = "LatticeRegionTest";
         LAMMPSTest::SetUp();
-        command("units metal");
+        HIDE_OUTPUT([&] {
+            command("units metal");
+        });
     }
 };
 
@@ -63,7 +65,7 @@ TEST_F(LatticeRegionTest, lattice_none)
     ASSERT_EQ(lattice->basis, nullptr);
 
     TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice xxx"););
+    TEST_FAILURE(".*ERROR: Unknown lattice keyword: xxx.*", command("lattice xxx"););
     TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice none 1.0 origin"););
     TEST_FAILURE(".*ERROR: Expected floating point.*", command("lattice none xxx"););
 
@@ -114,10 +116,11 @@ TEST_F(LatticeRegionTest, lattice_sc)
     ASSERT_EQ(lattice->basis[0][1], 0.0);
     ASSERT_EQ(lattice->basis[0][2], 0.0);
 
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*",
+    TEST_FAILURE(".*ERROR: Invalid lattice origin argument: 1.*",
                  command("lattice sc 1.0 origin 1.0 1.0 1.0"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice sc 1.0 origin 1.0"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*",
+    TEST_FAILURE(".*ERROR: Illegal lattice origin command: missing argument.*",
+                 command("lattice sc 1.0 origin 1.0"););
+    TEST_FAILURE(".*ERROR: Unknown lattice keyword: xxx.*",
                  command("lattice sc 1.0 origin 0.0 0.0 0.0 xxx"););
     TEST_FAILURE(".*ERROR: Expected floating point.*",
                  command("lattice sc 1.0 origin xxx 1.0 1.0"););
@@ -195,11 +198,12 @@ TEST_F(LatticeRegionTest, lattice_fcc)
     ASSERT_EQ(lattice->basis[3][1], 0.5);
     ASSERT_EQ(lattice->basis[3][2], 0.5);
 
-    TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
+    TEST_FAILURE(".*ERROR: Invalid basis option in lattice command for non-custom style.*",
                  command("lattice fcc 1.0 basis 0.0 0.0 0.0"););
-    TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
+    TEST_FAILURE(".*ERROR: Invalid a1 option in lattice command for non-custom style.*",
                  command("lattice fcc 1.0 a1 0.0 1.0 0.0"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice fcc 1.0 orient w 1 0 0"););
+    TEST_FAILURE(".*ERROR: Unknown lattice orient argument: w.*",
+                 command("lattice fcc 1.0 orient w 1 0 0"););
 
     BEGIN_HIDE_OUTPUT();
     command("dimension 2");
@@ -241,9 +245,9 @@ TEST_F(LatticeRegionTest, lattice_hcp)
     ASSERT_EQ(lattice->a3[1], 0.0);
     ASSERT_DOUBLE_EQ(lattice->a3[2], sqrt(8.0 / 3.0));
 
-    TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
+    TEST_FAILURE(".*ERROR: Invalid a2 option in lattice command for non-custom style.*",
                  command("lattice hcp 1.0 a2 0.0 1.0 0.0"););
-    TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
+    TEST_FAILURE(".*ERROR: Invalid a3 option in lattice command for non-custom style.*",
                  command("lattice hcp 1.0 a3 0.0 1.0 0.0"););
     BEGIN_HIDE_OUTPUT();
     command("dimension 2");
@@ -452,9 +456,9 @@ TEST_F(LatticeRegionTest, lattice_custom)
     ASSERT_DOUBLE_EQ(lattice->a3[1], 0.0);
     ASSERT_DOUBLE_EQ(lattice->a3[2], 4.34 * sqrt(8.0 / 3.0));
 
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*",
+    TEST_FAILURE(".*ERROR: Invalid lattice basis argument: -0.1.*",
                  command("lattice custom 1.0 basis -0.1 0 0"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*",
+    TEST_FAILURE(".*ERROR: Invalid lattice basis argument: 1.*",
                  command("lattice custom 1.0 basis 0.0 1.0 0"););
 
     BEGIN_HIDE_OUTPUT();
@@ -630,9 +634,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

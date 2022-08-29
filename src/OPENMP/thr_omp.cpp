@@ -589,6 +589,43 @@ void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int
 }
 
 /* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into per thread global and per-atom accumulators
+   for full neighbor list. Only tally atom i and also set newton to off.
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_full_thr(Pair * const pair, const int i, const double evdwl,
+                               const double ecoul, const double fpair, const double delx,
+                               const double dely, const double delz, ThrData * const thr)
+{
+
+  if (pair->eflag_either)
+    e_tally_thr(pair, i, i+1, i, 0, evdwl, ecoul, thr);
+
+  if (pair->vflag_either) {
+    double v[6];
+    v[0] = delx*delx*fpair;
+    v[1] = dely*dely*fpair;
+    v[2] = delz*delz*fpair;
+    v[3] = delx*dely*fpair;
+    v[4] = delx*delz*fpair;
+    v[5] = dely*delz*fpair;
+
+    v_tally_thr(pair, i, i+1, i, 0, v, thr);
+  }
+
+  if (pair->num_tally_compute > 0) {
+    // ev_tally callbacks are not thread safe and thus have to be protected
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    for (int k=0; k < pair->num_tally_compute; ++k) {
+      Compute *c = pair->list_tally_compute[k];
+      c->pair_tally_callback(i, i+1, i, 0, evdwl, ecoul, fpair, delx, dely, delz);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    for virial, have delx,dely,delz and fx,fy,fz
 ------------------------------------------------------------------------- */

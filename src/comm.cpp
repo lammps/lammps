@@ -282,12 +282,12 @@ void Comm::init_exchange()
 
 void Comm::modify_params(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal comm_modify command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "comm_modify", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mode") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify mode", error);
       if (strcmp(arg[iarg+1],"single") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
@@ -311,26 +311,25 @@ void Comm::modify_params(int narg, char **arg)
         if (mode == Comm::MULTI) cutghostuser = 0.0;
         memory->destroy(cutusermulti);
         mode = Comm::MULTIOLD;
-      } else error->all(FLERR,"Illegal comm_modify command");
+      } else error->all(FLERR,"Unknown comm_modify mode argument: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify group", error);
       bordergroup = group->find(arg[iarg+1]);
       if (bordergroup < 0)
-        error->all(FLERR,"Invalid group in comm_modify command");
-      if (bordergroup && (atom->firstgroupname == nullptr ||
-                          strcmp(arg[iarg+1],atom->firstgroupname) != 0))
-        error->all(FLERR,"Comm_modify group != atom_modify first group");
+        error->all(FLERR, "Invalid comm_modify keyword: group {} not found", arg[iarg+1]);
+      if (bordergroup && ((atom->firstgroupname == nullptr) || strcmp(arg[iarg+1],atom->firstgroupname) != 0))
+        error->all(FLERR, "Comm_modify group != atom_modify first group: {}", atom->firstgroupname);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify cutoff", error);
       if (mode == Comm::MULTI)
         error->all(FLERR, "Use cutoff/multi keyword to set cutoff in multi mode");
       if (mode == Comm::MULTIOLD)
         error->all(FLERR, "Use cutoff/multi/old keyword to set cutoff in multi mode");
       cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
-        error->all(FLERR,"Invalid cutoff in comm_modify command");
+        error->all(FLERR,"Invalid cutoff {} in comm_modify command", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff/multi") == 0) {
       int i,nlo,nhi;
@@ -355,7 +354,7 @@ void Comm::modify_params(int narg, char **arg)
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)
-        error->all(FLERR,"Invalid cutoff in comm_modify command");
+        error->all(FLERR,"Invalid cutoff {} in comm_modify command", arg[iarg+2]);
       // collections use 1-based indexing externally and 0-based indexing internally
       for (i=nlo; i<=nhi; ++i)
         cutusermulti[i-1] = cut;
@@ -370,8 +369,7 @@ void Comm::modify_params(int narg, char **arg)
       if (domain->box_exist == 0)
         error->all(FLERR, "Cannot set cutoff/multi before simulation box is defined");
       const int ntypes = atom->ntypes;
-      if (iarg+3 > narg)
-        error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "comm_modify cutoff/multi/old", error);
       if (cutusermultiold == nullptr) {
         memory->create(cutusermultiold,ntypes+1,"comm:cutusermultiold");
         for (i=0; i < ntypes+1; ++i)
@@ -381,7 +379,7 @@ void Comm::modify_params(int narg, char **arg)
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)
-        error->all(FLERR,"Invalid cutoff in comm_modify command");
+        error->all(FLERR,"Invalid cutoff {} in comm_modify command", arg[iarg+2]);
       for (i=nlo; i<=nhi; ++i)
         cutusermultiold[i] = cut;
       iarg += 3;
@@ -391,10 +389,10 @@ void Comm::modify_params(int narg, char **arg)
       multi_reduce = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify vel", error);
       ghost_velocity = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal comm_modify command");
+    } else error->all(FLERR,"Unknown comm_modify keyword: {}", arg[iarg]);
   }
 }
 

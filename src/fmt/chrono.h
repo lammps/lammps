@@ -203,7 +203,7 @@ To safe_duration_cast(std::chrono::duration<FromRep, FromPeriod> from,
     }
     const auto min1 =
         (std::numeric_limits<IntermediateRep>::min)() / Factor::num;
-    if (count < min1) {
+    if (!std::is_unsigned<IntermediateRep>::value && count < min1) {
       ec = 1;
       return {};
     }
@@ -1396,7 +1396,8 @@ inline bool isfinite(T) {
 // Converts value to Int and checks that it's in the range [0, upper).
 template <typename T, typename Int, FMT_ENABLE_IF(std::is_integral<T>::value)>
 inline Int to_nonnegative_int(T value, Int upper) {
-  FMT_ASSERT(value >= 0 && to_unsigned(value) <= to_unsigned(upper),
+  FMT_ASSERT(std::is_unsigned<Int>::value ||
+             (value >= 0 && to_unsigned(value) <= to_unsigned(upper)),
              "invalid value");
   (void)upper;
   return static_cast<Int>(value);
@@ -1776,7 +1777,7 @@ struct chrono_formatter {
         format_to(std::back_inserter(buf), runtime("{:.{}f}"),
                   std::fmod(val * static_cast<rep>(Period::num) /
                                 static_cast<rep>(Period::den),
-                            60),
+                            static_cast<rep>(60)),
                   num_fractional_digits);
         if (negative) *out++ = '-';
         if (buf.size() < 2 || buf[1] == '.') *out++ = '0';
@@ -2001,13 +2002,9 @@ template <typename Char, typename Duration>
 struct formatter<std::chrono::time_point<std::chrono::system_clock, Duration>,
                  Char> : formatter<std::tm, Char> {
   FMT_CONSTEXPR formatter() {
-    this->do_parse(default_specs,
-                   default_specs + sizeof(default_specs) / sizeof(Char));
-  }
-
-  template <typename ParseContext>
-  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
-    return this->do_parse(ctx.begin(), ctx.end(), true);
+    basic_string_view<Char> default_specs =
+        detail::string_literal<Char, '%', 'F', ' ', '%', 'T'>{};
+    this->do_parse(default_specs.begin(), default_specs.end());
   }
 
   template <typename FormatContext>
@@ -2015,14 +2012,7 @@ struct formatter<std::chrono::time_point<std::chrono::system_clock, Duration>,
               FormatContext& ctx) const -> decltype(ctx.out()) {
     return formatter<std::tm, Char>::format(localtime(val), ctx);
   }
-
-  static constexpr const Char default_specs[] = {'%', 'F', ' ', '%', 'T'};
 };
-
-template <typename Char, typename Duration>
-constexpr const Char
-    formatter<std::chrono::time_point<std::chrono::system_clock, Duration>,
-              Char>::default_specs[];
 
 template <typename Char> struct formatter<std::tm, Char> {
  private:
@@ -2035,13 +2025,18 @@ template <typename Char> struct formatter<std::tm, Char> {
   basic_string_view<Char> specs;
 
  protected:
-  template <typename It>
-  FMT_CONSTEXPR auto do_parse(It begin, It end, bool with_default = false)
-      -> It {
+  template <typename It> FMT_CONSTEXPR auto do_parse(It begin, It end) -> It {
     if (begin != end && *begin == ':') ++begin;
     end = detail::parse_chrono_format(begin, end, detail::tm_format_checker());
-    if (!with_default || end != begin)
-      specs = {begin, detail::to_unsigned(end - begin)};
+    // Replace default spec only if the new spec is not empty.
+    if (end != begin) specs = {begin, detail::to_unsigned(end - begin)};
+    return end;
+  }
+
+ public:
+  FMT_CONSTEXPR auto parse(basic_format_parse_context<Char>& ctx)
+      -> decltype(ctx.begin()) {
+    auto end = this->do_parse(ctx.begin(), ctx.end());
     // basic_string_view<>::compare isn't constexpr before C++17.
     if (specs.size() == 2 && specs[0] == Char('%')) {
       if (specs[1] == Char('F'))
@@ -2050,12 +2045,6 @@ template <typename Char> struct formatter<std::tm, Char> {
         spec_ = spec::hh_mm_ss;
     }
     return end;
-  }
-
- public:
-  template <typename ParseContext>
-  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
-    return this->do_parse(ctx.begin(), ctx.end());
   }
 
   template <typename FormatContext>

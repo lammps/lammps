@@ -2316,8 +2316,8 @@ void PairMesoCNT::finf(const double *param, double &evdwl, double **f)
     // use numerical integration to calculate phi and its derivatives directly rather than using splines
     
     if (psi1 < 0 || psi2 < 0) {
-      error->warning(FLERR, "Segment - infinite chain interaction outside of interpolation range." 
-          " Performance may be poor. Use potential file with lower delta1 and delta2 values.");
+      error->warning(FLERR, "Segment - infinite chain interaction outside of interpolation range. "
+          "Attempting numerical integration, but performance may be poor and simulation likely unstable.");
 
       printf("param: %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5]);
     

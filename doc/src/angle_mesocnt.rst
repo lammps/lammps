@@ -40,7 +40,7 @@ the harmonic and linear regime respectively and :math:`\Delta
 \theta_\text{B}` is the buckling angle. Note that the usual 1/2 factor
 for the harmonic potential is included in :math:`K_\text{H}`.
 
-The style implements parametrisation presets of :math:`K_\text{H}`,
+The style implements parameterization presets of :math:`K_\text{H}`,
 :math:`K_\text{B}` and :math:`\Delta \theta_\text{B}` for mesoscopic
 simulations of carbon nanotubes based on the atomistic simulations of
 :ref:`(Srivastava) <Srivastava_2>` and buckling considerations of
@@ -68,14 +68,14 @@ Preset *C* is for carbon nanotubes, and the additional parameters are:
 Here, :math:`r_0` is the equilibrium distance of the bonds included in
 the angle, see :doc:`bond_style mesocnt <bond_mesocnt>`.
 
-In harmonic mode with preset *custom*, the additional paramter is:
+In harmonic mode with preset *custom*, the additional parameter is:
 
 * :math:`K_\text{H}` (energy)
 
 Hence, this setting is simply a wrapper for :doc:`bond_style harmonic
 <bond_harmonic>` with an equilibrium angle of 180 degrees.
 
-In harmonic mode with preset *custom*, the additional paramters are:
+In harmonic mode with preset *custom*, the additional parameters are:
 
 * :math:`K_\text{H}` (energy)
 * :math:`K_\text{B}` (energy)

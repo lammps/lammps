@@ -97,7 +97,7 @@ shifted logistic function:
 
 ----------
 
-In the pair_style command, the modes described above can be toggeled
+In the pair_style command, the modes described above can be toggled
 using the *segment* or *chain* keywords.  The neighbor list cutoff
 defines the cutoff within which atoms are included in the neighbor
 list for constructing neighboring CNT chains.  This is different from

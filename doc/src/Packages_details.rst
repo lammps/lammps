@@ -1556,9 +1556,9 @@ MESONT package
 
 **Contents:**
 
-MESONT is a LAMMPS package for simulation of nanomechanics of
-nanotubes (NTs). The model is based on a coarse-grained representation
-of NTs as "flexible cylinders" consisting of a variable number of
+MESONT is a LAMMPS package for simulation of nanomechanics of nanotubes
+(NTs). The model is based on a coarse-grained representation of NTs as
+"flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
@@ -1566,26 +1566,28 @@ molecular dynamics simulations. The description of the force field is
 provided in the papers listed below.
 
 This package contains two independent implementations of this model:
-:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original implemention
-of the model based on a Fortran library in the ``lib/mesont`` folder. The
-second implementation is given by the mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
-:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt <pair_mesocnt>`).
-The mesocnt implemenation has the same features as the original implementation with the
-addition of friction,
-but is directly implemented in C++, interfaces more cleanly with general LAMMPS
-functionality and is typically faster. It also doesn't require its own atom style
-and can be installed without any external libraries.
+:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original
+implementation of the model based on a Fortran library in the
+``lib/mesont`` folder. The second implementation is provided by the
+mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
+:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt
+<pair_mesocnt>`).  The mesocnt implementation has the same features as
+the original implementation with the addition of friction, but is
+directly implemented in C++, interfaces more cleanly with general LAMMPS
+functionality, and is typically faster. It also does not require its own
+atom style and can be installed without any external libraries.
 
 **Download of potential files:**
 
-The potential files for these pair styles are *very* large and thus
-are not included in the regular downloaded packages of LAMMPS or the
-git repositories.  Instead, they will be automatically downloaded
-from a web server when the package is installed for the first time.
+The potential files for these pair styles are *very* large and thus are
+not included in the regular downloaded packages of LAMMPS or the git
+repositories.  Instead, they will be automatically downloaded from a web
+server when the package is installed for the first time.
 
 **Authors of the *mesont* styles:**
 
-Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
+Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
+of Alabama), Leonid V. Zhigilei (University of Virginia)
 
 **Author of the *mesocnt* styles:**
 Philipp Kloza (U Cambridge)

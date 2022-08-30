@@ -290,47 +290,91 @@ Additional optional keywords also affect the operation of this fix and
 its outputs.  Some are only applicable to per-atom mode.  Some are
 applicable to both per-atom and per-grid mode.
 
-The *norm* keyword is only applicable to per-atom mode.  It affects
-how averaging is done for the per-grid values that are output once
-every *Nfreq* timesteps when *Nrepeat* samples contribute to the
-output.  It has 3 possible settings: *all* or *sample* or *none*.
-*All* is the default.
+The *norm* keyword is only applicable to per-atom mode.  In per-grid
+mode, all the *norm* keyword options act the same.  The output grid
+value is simply the sum of the grid values in each of the *Nrepeat*
+samples, divided by *Nrepeat*.
 
-In per-grid mode, all the *norm* keyword options are the same.  The
-output grid value is summed over the grid value in each of the
-*Nrepeat* samples and then divided by *Nrepeat*.
+In per-atom mode, the *norm" keywod affects how averaging is done for
+the per-grid values that are output once every *Nfreq* timesteps when
+*Nrepeat* samples contribute to the output.  It has 3 possible
+settings: *all* or *sample* or *none*.  *All* is the default.
 
-In per-atom mode, *norm all* means the output grid value is summed
-over all atoms in all *Nrepeat* samples, as is the count of atoms in
-each grid cell.  The averaged output value for a grid cell on the
-*Nfreq* timesteps is Total-sum / Total-count.  In other words it is an
-average over atoms across the entire *Nfreq* timescale.  For the
-*density/number* and *density/mass* values, the grid cell volume used
-in the final normalization will be the volume at the final *Nfreq*
-timestep. For the *temp* values, degrees of freedom and kinetic energy
-are summed separately across the entire *Nfreq* timescale, and the
-output value is calculated by dividing those two sums.
+In the formulas that follow, SumI is the sum of a per-atom property
+over the CountI atoms in a grid cell for a single sample I where I
+varies from 1 to N, where N = Nrepeat.  These formulas are applicable
+for any per-atom input listed above, except *density/number*,
+*density/mass*, and *temp*.  Those input values are discussed below.
 
-In per-atom mode, *norm sample* means the output grid value is summed
-over atoms for each sample, as is the count, and an "average sample
-value" is computed for each sample, i.e. Sample-sum / Sample-count.
-The output grid value on the *Nfreq* timesteps is the average of the
-*Nrepeat* "average sample values", i.e. the sum of *Nrepeat* "average
-sample values" divided by *Nrepeat*\ .  In other words it is an
-average of an average.  For the *density/number* and *density/mass*
-values, the grid cell volume used in the per-sample normalization will
-be the current grid cell volume at each sampling step.
+In per-atom mode, for *norm all* the output grid value on the *Nfreq*
+timestep is an average over atoms across the entire *Nfreq* timescale:
 
-In per-atom mode, *norm none* performs a similar computation as *norm
+Output = (Sum1 + Sum2 + ... + SumN) / (Count1 + Count2 + ... + CountN)
+
+In per-atom mode, for *norm sample* the output grid value on the
+*Nfreq* timestep is an average of an average:
+
+Output = (Sum1/Count1 + Sum2/Count2 + ... + SumN/CountN) / Nrepeat
+
+In per-atom mode, for *norm none* the output grid value on the
+*Nfreq* timestep is not normalized by the atom counts:
+
+Output = (Sum1 + Sum2 + ... SumN) / Nrepeat
+
+For all 3 *norm* settings the output count of atoms per grid cell
+contributing to the grid value is the same:
+
+Output count = (Count1 + Count2 + ... CountN) / Nrepeat
+
+This count is the same for all per-atom input values, including
+*density/number*, *density/mass*, and *temp*
+
+
+
+Special casesl
+
+use temp formula up above from fix ave/chunk doc page, so
+can refer to cdor, adof, etc
+
+ALL: For the *density/number* and *density/mass* values, the grid cell
+volume used in the final normalization will be the volume at the final
+*Nfreq* timestep. For the *temp* values, degrees of freedom and
+kinetic energy are summed separately across the entire *Nfreq*
+timescale, and the output value is calculated by dividing those two
+sums.
+
+SAMPLE: For the *density/number* and
+*density/mass* values, the grid cell volume used in the per-sample
+normalization will be the current grid cell volume at each sampling
+step.
+
+For the *density/number* and *density/mass* values, the grid cell
+volume used in the per-sample sum normalization will be the current
+grid cell volume at each sampling step.
+
+doc that exception values are exempt from norm = NONORM option
+
+
+
+performs a similar computation as *norm
 sample*, except the individual "average sample values" are "summed
 sample values".  A summed sample value is simply the grid value summed
 over atoms in the sample, without dividing by the number of atoms in the
 sample.  The output grid value on the *Nfreq* timesteps is the average
 of the *Nrepeat* "summed sample values", i.e. the sum of *Nrepeat*
-"summed sample values" divided by *Nrepeat*\ .  For the *density/number*
-and *density/mass* values, the grid cell volume used in the per-sample
-sum normalization will be the current grid cell volume at each sampling
-step.
+"summed sample values" divided by *Nrepeat*\ .  
+
+
+
+Fix ave/chunk doc page: same for count - doc this
+maybe put these formulas there as well ?
+
+
+
+
+
+
+
 
 The *ave* keyword is applied to both per-atom and per-grid mode.  It
 determines how the per-grid values produced once every *Nfreq* steps are

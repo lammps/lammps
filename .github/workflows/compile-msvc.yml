@@ -3,9 +3,11 @@ name: "Native Windows Compilation and Unit Tests"
 
 on:
   push:
-    branches: [ develop ]
+    branches:
+      - develop
   pull_request:
-    branches: [ $default-branch ]
+    branches:
+      - develop
 
   workflow_dispatch:
 

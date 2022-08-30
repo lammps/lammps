@@ -354,6 +354,8 @@ values", i.e. the sum of *Nrepeat* "summed sample values" divided by
 volume (bin volume or system volume) used in the per-sample sum
 normalization will be the current volume at each sampling step.
 
+----------
+
 The *ave* keyword determines how the per-chunk values produced every
 *Nfreq* steps are averaged with values produced on previous steps that
 were multiples of *Nfreq*, before they are accessed by another output
@@ -380,6 +382,8 @@ chunk are used to produce the output.  E.g. if M = 3 and Nfreq = 1000,
 then the output on step 10000 will be the average of the individual
 chunk values on steps 8000,9000,10000.  Outputs on early steps will
 average over less than M values if they are not available.
+
+----------
 
 The *bias* keyword specifies the ID of a temperature compute that
 removes a "bias" velocity from each atom, specified as *bias-ID*\ .  It
@@ -411,6 +415,8 @@ by :doc:`fix rigid/small <fix_rigid>`, *adof* = 0.0 and *cdof* could be
 set to the remaining degrees of freedom for the entire molecule
 (entire chunk in this case), e.g. 6 for 3d, or 3 for 2d, for a rigid
 molecule.
+
+----------
 
 The *file* keyword allows a filename to be specified.  Every *Nfreq*
 timesteps, a section of chunk info will be written to a text file in

@@ -181,10 +181,16 @@ density (mass/volume).  See the :doc:`units <units>` command page for
 the definition of density for each choice of units, e.g. gram/cm\^3.
 
 The *temp* value means the temperature is computed for each grid cell,
-by the formula KE = DOF/2 k T, where KE = total kinetic energy of the
-atoms in the grid cell (sum of 1/2 m v\^2), DOF = the total number of
-degrees of freedom for all atoms in the grid cell, k = Boltzmann
-constant, and T = temperature.
+by the formula 
+
+.. math::
+
+   \text{KE} = \frac{\text{DOF}}{2} k_B T,
+
+where KE = total kinetic energy of the atoms in the grid cell (
+:math:`\frac{1}{2} m v^2`), DOF = the total number of degrees of
+freedom for all atoms in the grid cell, :math:`k_B` = Boltzmann
+constant, and :math:`T` = temperature.
 
 The DOF is calculated as N\*adof + cdof, where N = number of atoms in
 the grid cell, adof = degrees of freedom per atom, and cdof = degrees
@@ -291,19 +297,19 @@ its outputs.  Some are only applicable to per-atom mode.  Some are
 applicable to both per-atom and per-grid mode.
 
 The *norm* keyword is only applicable to per-atom mode.  In per-grid
-mode, all the *norm* keyword options act the same.  The output grid
-value is simply the sum of the grid values in each of the *Nrepeat*
-samples, divided by *Nrepeat*.
+mode, the *norm* keyword setting is ignored.  The output grid value on
+an *Nfreq* timestep is the sum of the grid values in each of the
+*Nrepeat* samples, divided by *Nrepeat*.
 
 In per-atom mode, the *norm" keywod affects how averaging is done for
-the per-grid values that are output once every *Nfreq* timesteps when
-*Nrepeat* samples contribute to the output.  It has 3 possible
+the per-grid values that are output on an *Nfreq* timestep.  *Nrepeat*
+samples contribute to the output.  The *norm* keyword has 3 possible
 settings: *all* or *sample* or *none*.  *All* is the default.
 
 In the formulas that follow, SumI is the sum of a per-atom property
-over the CountI atoms in a grid cell for a single sample I where I
-varies from 1 to N, where N = Nrepeat.  These formulas are applicable
-for any per-atom input listed above, except *density/number*,
+over the CountI atoms in a grid cell for a single sample I, where I
+varies from 1 to N, and N = Nrepeat.  These formulas are used for any
+per-atom input value listed above, except *density/number*,
 *density/mass*, and *temp*.  Those input values are discussed below.
 
 In per-atom mode, for *norm all* the output grid value on the *Nfreq*
@@ -321,65 +327,45 @@ In per-atom mode, for *norm none* the output grid value on the
 
 Output = (Sum1 + Sum2 + ... SumN) / Nrepeat
 
-For all 3 *norm* settings the output count of atoms per grid cell
-contributing to the grid value is the same:
+For *density/number* and *density/mass*, the output value is the same
+as in the formulas above for *norm all* and *norm sample*, except that
+the result is also divided by the grid cell volume.  For *norm all*,
+this will be the volume at the final *Nfreq* timestep.  For *norm
+sample*, the divide-by-volume is done for each sample, using the grid
+cell volume at the sample timestep.  For *norm none*, the output is
+the same as for *norm all*.
+
+For *temp*, the output temperature uses the formula for kinetic energy
+KE listed above, and is normalized similarl to the formulas above for
+*norm all* and *norm sample*, except for the way the degrees of
+freedom (DOF) are calculated.  For *norm none*, the output is the same
+as for *norm all*.
+
+For *norm all*, the DOF = *Nrepeat* times *cdof* plus *Count* times
+*adof*, where *Count* = (Count1 + Count2 + ... + CountN).  The *cdof*
+and *adof* keywords are discussed below.  The output temperature is
+computed with all atoms across all samples contributing.
+
+For *norm sample*, the DOF for a single sample = *cdof* plus *Count*
+times *adof*, where *Count* = CountI for a single sample.  The output
+temperature is the average of *Nsample* temperatures calculated for
+each sample.
+
+Finally, for all 3 *norm* settings the output count of atoms per grid
+cell is:
 
 Output count = (Count1 + Count2 + ... CountN) / Nrepeat
 
 This count is the same for all per-atom input values, including
-*density/number*, *density/mass*, and *temp*
+*density/number*, *density/mass*, and *temp*.
 
-
-
-Special casesl
-
-use temp formula up above from fix ave/chunk doc page, so
-can refer to cdor, adof, etc
-
-ALL: For the *density/number* and *density/mass* values, the grid cell
-volume used in the final normalization will be the volume at the final
-*Nfreq* timestep. For the *temp* values, degrees of freedom and
-kinetic energy are summed separately across the entire *Nfreq*
-timescale, and the output value is calculated by dividing those two
-sums.
-
-SAMPLE: For the *density/number* and
-*density/mass* values, the grid cell volume used in the per-sample
-normalization will be the current grid cell volume at each sampling
-step.
-
-For the *density/number* and *density/mass* values, the grid cell
-volume used in the per-sample sum normalization will be the current
-grid cell volume at each sampling step.
-
-doc that exception values are exempt from norm = NONORM option
-
-
-
-performs a similar computation as *norm
-sample*, except the individual "average sample values" are "summed
-sample values".  A summed sample value is simply the grid value summed
-over atoms in the sample, without dividing by the number of atoms in the
-sample.  The output grid value on the *Nfreq* timesteps is the average
-of the *Nrepeat* "summed sample values", i.e. the sum of *Nrepeat*
-"summed sample values" divided by *Nrepeat*\ .  
-
-
-
-Fix ave/chunk doc page: same for count - doc this
-maybe put these formulas there as well ?
-
-
-
-
-
-
-
+----------
 
 The *ave* keyword is applied to both per-atom and per-grid mode.  It
-determines how the per-grid values produced once every *Nfreq* steps are
-averaged with values produced on previous steps that were multiples of
-*Nfreq*, before they are accessed by another output command.
+determines how the per-grid values produced once every *Nfreq* steps
+are averaged with values produced on previous steps that were
+multiples of *Nfreq*, before they are accessed by another output
+command.
 
 If the *ave* setting is *one*, which is the default, then the grid
 values produced on *Nfreq* timesteps are independent of each other;
@@ -400,6 +386,8 @@ the output.  E.g. if M = 3 and Nfreq = 1000, then the grid value
 output on step 10000 will be the average of the grid values on steps
 8000,9000,10000.  Outputs on early steps will average over less than M
 values if they are not available.
+
+----------
 
 The *bias*, *adof*, and *cdof* keywords are only applicable to
 per-atom mode.

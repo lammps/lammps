@@ -716,7 +716,8 @@ void PairMesoCNT::allocate()
 
 void PairMesoCNT::settings(int narg, char **arg)
 {
-  if (narg < 1 || narg > 3) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "pair_coeff", error);
+  else if (narg > 3) error->all(FLERR, "Too many arguments in pair_style mesocnt command");
 
   neigh_cutoff = utils::numeric(FLERR, arg[0], false, lmp);
 

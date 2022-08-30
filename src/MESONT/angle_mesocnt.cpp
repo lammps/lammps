@@ -298,11 +298,13 @@ void AngleMesoCNT::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR, "Invalid angle type {}", arg[0]);
 }
 
+/* ---------------------------------------------------------------------- */
+
 void AngleMesoCNT::init_style()
 {
-  char *id_fix = utils::strdup("angle_mesocnt_buckled");
-  if (modify->find_fix(id_fix) < 0)
-    modify->add_fix(std::string(id_fix) + " all property/atom i_buckled ghost yes");
+  std::string id_fix = "angle_mesocnt_buckled";
+  if (!modify->get_fix_by_id(id_fix))
+    modify->add_fix(id_fix + " all property/atom i_buckled ghost yes");
 }
 
 /* ---------------------------------------------------------------------- */

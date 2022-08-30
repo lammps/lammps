@@ -204,7 +204,7 @@ void AngleMesoCNT::allocate()
 
 void AngleMesoCNT::coeff(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "angle_coeff", error);
 
   int buckling_one;
   if (strcmp(arg[1], "buckling") == 0)
@@ -219,9 +219,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
 
   double ang = force->angstrom;
   double eunit;
-  if (strcmp(update->unit_style, "lj") == 0)
-    error->all(FLERR, "Angle style mesocnt does not support lj units");
-  else if (strcmp(update->unit_style, "real") == 0)
+  if (strcmp(update->unit_style, "real") == 0)
     eunit = 23.06054966;
   else if (strcmp(update->unit_style, "metal") == 0)
     eunit = 1.0;
@@ -236,22 +234,22 @@ void AngleMesoCNT::coeff(int narg, char **arg)
   else if (strcmp(update->unit_style, "nano") == 0)
     eunit = 1.6021765e2;
   else
-    error->all(FLERR, "Angle style mesocnt does not recognize this units style");
+    error->all(FLERR, "Angle style mesocnt does not support {} units", update->unit_style);
 
   // set parameters
 
   double kh_one, kb_one, thetab_one;
   if (strcmp(arg[2], "custom") == 0) {
     if (buckling_one) {
-      if (narg != 6) error->all(FLERR, "Incorrect args for custom angle coefficients");
+      if (narg != 6) error->all(FLERR, "Incorrect number of args for 'custom' angle coefficients");
       kb_one = utils::numeric(FLERR, arg[4], false, lmp);
       thetab_one = utils::numeric(FLERR, arg[5], false, lmp);
     } else if (narg != 4)
-      error->all(FLERR, "Incorrect args for custom angle coefficients");
+      error->all(FLERR, "Incorrect number of args for 'custom' angle coefficients");
 
     kh_one = utils::numeric(FLERR, arg[3], false, lmp);
   } else if (strcmp(arg[2], "C") == 0) {
-    if (narg != 6) error->all(FLERR, "Incorrect args for 'C' preset in angle coefficients");
+    if (narg != 6) error->all(FLERR, "Incorrect number of args for 'C' preset in angle coefficients");
     int n = utils::inumeric(FLERR, arg[3], false, lmp);
     int m = utils::inumeric(FLERR, arg[4], false, lmp);
     double l = utils::numeric(FLERR, arg[5], false, lmp);
@@ -268,7 +266,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
       thetab_one = 180.0 / MY_PI * atan(l / (275.0 * ang));
     }
   } else
-    error->all(FLERR, "Unknown preset in angle coefficients");
+    error->all(FLERR, "Unknown {} preset in angle coefficients", arg[2]);
 
   // set safe default values for buckling parameters if buckling is disabled
 
@@ -295,7 +293,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Invalid angle type {}", arg[0]);
 }
 
 void AngleMesoCNT::init_style()

@@ -59,15 +59,13 @@ BondMesoCNT::~BondMesoCNT()
 
 void BondMesoCNT::coeff(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "bond_coeff", error);
 
   // units, eV to energy unit conversion
 
   double ang = force->angstrom;
   double eunit;
-  if (strcmp(update->unit_style, "lj") == 0)
-    error->all(FLERR, "Angle style mesocnt does not support lj units");
-  else if (strcmp(update->unit_style, "real") == 0)
+  if (strcmp(update->unit_style, "real") == 0)
     eunit = 23.06054966;
   else if (strcmp(update->unit_style, "metal") == 0)
     eunit = 1.0;
@@ -82,17 +80,17 @@ void BondMesoCNT::coeff(int narg, char **arg)
   else if (strcmp(update->unit_style, "nano") == 0)
     eunit = 1.6021765e2;
   else
-    error->all(FLERR, "Angle style mesocnt does not recognize this units style");
+    error->all(FLERR, "Bond style mesocnt does not support {} units", update->unit_style);
 
   // set parameters
 
   double k_one, r0_one;
   if (strcmp(arg[1], "custom") == 0) {
-    if (narg != 4) error->all(FLERR, "Incorrect args for custom bond coefficients");
+    if (narg != 4) error->all(FLERR, "Incorrect number of args for 'custom' bond coefficients");
     k_one = utils::numeric(FLERR, arg[2], false, lmp);
     r0_one = utils::numeric(FLERR, arg[3], false, lmp);
   } else if (strcmp(arg[1], "C") == 0) {
-    if (narg != 5) error->all(FLERR, "Incorrect args for 'C' preset in bond coefficients");
+    if (narg != 5) error->all(FLERR, "Incorrect number of args for 'C' preset in bond coefficients");
     int n = utils::inumeric(FLERR, arg[2], false, lmp);
     int m = utils::inumeric(FLERR, arg[3], false, lmp);
     r0_one = utils::numeric(FLERR, arg[4], false, lmp);
@@ -100,7 +98,7 @@ void BondMesoCNT::coeff(int narg, char **arg)
     double r_ang = sqrt(3.0 * (n * n + n * m + m * m)) * A_CC / MY_2PI;
     k_one = 0.5 * (86.64 + 100.56 * r_ang) * eunit / (ang * r0_one);
   } else
-    error->all(FLERR, "Unknown preset in bond coefficients");
+    error->all(FLERR, "Unknown {} preset in bond coefficients", arg[1]);
 
   if (!allocated) allocate();
 
@@ -115,5 +113,5 @@ void BondMesoCNT::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Invalid bond type {}", arg[0]);
 }

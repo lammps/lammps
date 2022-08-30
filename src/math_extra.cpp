@@ -639,7 +639,7 @@ void tribbox(double *h, double radius, double *dist)
   double xz = h[4];
   double xy = h[5];
 
-  dist[0] = radius * sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + 
+  dist[0] = radius * sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz +
                           lz*lz*xy*xy + xy*xy*yz*yz) / (lx*ly*lz);
   dist[1] = radius * sqrt(lz*lz + yz*yz) / (ly*lz);
   dist[2] = radius / lz;

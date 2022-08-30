@@ -183,19 +183,22 @@ embedded within a larger continuum representation of the electronic
 subsystem.
 
 The *set* keyword specifies a *Tinit* temperature value to initialize
-the value stored on all grid points.
+the value stored on all grid points.  By default the temperatures
+are all zero when the grid is created.
 
 The *infile* keyword specifies an input file of electronic temperatures
-for each grid point to be read in to initialize the grid.  By default
-the temperatures are all zero when the grid is created.  The input file
-is a text file which may have comments starting with the '#' character.
-Each line contains four numeric columns: ix,iy,iz,Temperature.  Empty
-or comment-only lines will be ignored. The
-number of lines must be equal to the number of user-specified grid
-points (Nx by Ny by Nz).  The ix,iy,iz are grid point indices ranging
-from 0 to nxnodes-1 inclusive in each dimension.  The lines can appear
-in any order.  For example, the initial electronic temperatures on a 1
-by 2 by 3 grid could be specified in the file as follows:
+for each grid point to be read in to initialize the grid, as an alternative
+to using the *set* keyword.
+
+The input file is a text file which may have comments starting with
+the '#' character.  Each line contains four numeric columns:
+ix,iy,iz,Temperature.  Empty or comment-only lines will be
+ignored. The number of lines must be equal to the number of
+user-specified grid points (Nx by Ny by Nz).  The ix,iy,iz are grid
+point indices ranging from 0 to nxnodes-1 inclusive in each dimension.
+The lines can appear in any order.  For example, the initial
+electronic temperatures on a 1 by 2 by 3 grid could be specified in
+the file as follows:
 
 .. parsed-literal::
 
@@ -229,11 +232,20 @@ the same as the input temperature file. It will contain a comment in
 the first line reporting the date the file was created, the LAMMPS
 units setting in use, grid size and the current timestep.
 
-Note that the atomic temperature for atoms in each grid cell can also
-be computed and output by the :doc:`fix ave/chunk <fix_ave_chunk>`
-command using the :doc:`compute chunk/atom <compute_chunk_atom>`
-command to create a 3d array of chunks consistent with the grid used
-by this fix.
+.. note::
+
+  The fix ttm/grid command does not support the *outfile* keyword.
+  Instead you can use the :doc:`dump grid <dump>` command to output
+  the electronic temperature on the distributed grid to a dump file.
+
+For the fix ttm and fix ttm/mod commands, the corresponding atomic
+temperature for atoms in each grid cell can be computed and output by
+the :doc:`fix ave/chunk <fix_ave_chunk>` command using the
+:doc:`compute chunk/atom <compute_chunk_atom>` command to create a 3d
+array of chunks consistent with the grid used by this fix.  For the
+fix ttm/grid command the same thing can be done using the :doc:`fix
+ave/grid <fix_ave_grid>` command and its per-grid values can be output
+via the :doc:`dump grid <dump>` command.
 
 ----------
 
@@ -339,13 +351,16 @@ ignored. The lines with the even numbers are treated as follows:
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-These fixes write the state of the electronic subsystem and the energy
-exchange between the subsystems to :doc:`binary restart files
-<restart>`.  See the :doc:`read_restart <read_restart>` command for
-info on how to re-specify a fix in an input script that reads a
-restart file, so that the operation of the fix continues in an
-uninterrupted fashion.  Note that the restart script must define the
-same size grid as the original script.
+The fix ttm and fix ttm/mod commands write the state of the electronic
+subsystem and the energy exchange between the subsystems to
+:doc:`binary restart files <restart>`.  The fix ttm/grid command does
+not yet support writing of its distributed grid to a restart file.
+
+See the :doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.  Note
+that the restart script must define the same size grid as the original
+script.
 
 Because the state of the random number generator is not saved in the
 restart files, this means you cannot do "exact" restarts with this
@@ -373,7 +388,8 @@ The vector values calculated are "extensive".
 
 Th fix ttm/grid command also calculates a per-grid vector which store
 the electron temperature for each grid cell in temperature :doc:`units
-<units>`.  The length of the vector (distributed across all
+<units>`. which can be accessed by various :doc:`output commands
+<Howto_output>`.  The length of the vector (distributed across all
 processors) is Nx * Ny * Nz.  For access by other commands, the name
 of the grid produced by fix ttm/grid is "grid".  The name of its data
 is "data".

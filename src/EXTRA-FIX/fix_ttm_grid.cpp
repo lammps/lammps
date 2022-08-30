@@ -57,11 +57,8 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   pergrid_flag = 1;
   pergrid_freq = 1;
 
-  /*
-  NOTE: uncomment this when ready to release
   if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
-                          "use dump grid instead");
-  */
+                          "use dump grid command instead");
 
   skin_original = neighbor->skin;
 }
@@ -365,30 +362,6 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 }
 
 /* ----------------------------------------------------------------------
-   write out current electron temperatures to user-specified file
-   only written by proc 0
-   NOTE: remove this function when ready to release
-------------------------------------------------------------------------- */
-
-void FixTTMGrid::write_electron_temperatures(const std::string &filename)
-{
-  if (comm->me == 0) {
-    FPout = fopen(filename.c_str(), "w");
-    if (!FPout) error->one(FLERR, "Fix ttm/grid could not open output file");
-
-    fmt::print(FPout,
-               "# DATE: {} UNITS: {} COMMENT: Electron temperature "
-               "{}x{}x{} grid at step {}. Created by fix {}\n",
-               utils::current_date(), update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep,
-               style);
-  }
-
-  grid->gather(Grid3d::FIX, this, 1, sizeof(double), 1, nullptr, MPI_DOUBLE);
-
-  if (comm->me == 0) fclose(FPout);
-}
-
-/* ----------------------------------------------------------------------
    subset of grid assigned to each proc may have changed
    called by load balancer when proc subdomains are adjusted
    not supported for now, b/c requires T_electron to persist, i.e. a remap()
@@ -500,27 +473,8 @@ void FixTTMGrid::deallocate_grid()
 
 void FixTTMGrid::write_restart(FILE *fp)
 {
-  int rsize = nxgrid * nygrid * nzgrid + 4;
-  double *rlist;
-  memory->create(rlist, rsize, "ttm/grid:rlist");
-
-  int n = 0;
-  rlist[n++] = nxgrid;
-  rlist[n++] = nygrid;
-  rlist[n++] = nzgrid;
-  rlist[n++] = seed;
-
-  // gather rest of rlist on proc 0 as global grid values
-
-  //grid->gather(Grid3d::FIX, this, 1, sizeof(double), 0, &rlist[4], MPI_DOUBLE);
-
-  if (comm->me == 0) {
-    int size = rsize * sizeof(double);
-    fwrite(&size, sizeof(int), 1, fp);
-    fwrite(rlist, sizeof(double), rsize, fp);
-  }
-
-  memory->destroy(rlist);
+  error->all(FLERR,"Fix ttm/grid command does not yet support "
+             "writing a distributed grid to a restart file");
 }
 
 /* ----------------------------------------------------------------------
@@ -529,42 +483,8 @@ void FixTTMGrid::write_restart(FILE *fp)
 
 void FixTTMGrid::restart(char *buf)
 {
-  int ix, iy, iz;
-
-  int n = 0;
-  auto rlist = (double *) buf;
-
-  // check that restart grid size is same as current grid size
-
-  int nxgrid_old = static_cast<int>(rlist[n++]);
-  int nygrid_old = static_cast<int>(rlist[n++]);
-  int nzgrid_old = static_cast<int>(rlist[n++]);
-
-  if (nxgrid_old != nxgrid || nygrid_old != nygrid || nzgrid_old != nzgrid)
-    error->all(FLERR, "Must restart fix ttm/grid with same grid size");
-
-  // change RN seed from initial seed, to avoid same Langevin factors
-  // just increment by 1, since for RanMars that is a new RN stream
-
-  seed = static_cast<int>(rlist[n++]) + 1;
-  delete random;
-  random = new RanMars(lmp, seed + comm->me);
-
-  // extract this proc's local grid values from global grid in rlist
-
-  int iglobal;
-
-  for (iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-        iglobal = nygrid * nxgrid * iz + nxgrid * iy + ix;
-        T_electron[iz][iy][ix] = rlist[n + iglobal];
-      }
-
-  // communicate new T_electron values to ghost grid points
-
-  grid->forward_comm(Grid3d::FIX, this, 1, sizeof(double), 0,
-                     grid_buf1, grid_buf2, MPI_DOUBLE);
+  error->all(FLERR,"Fix ttm/grid command does not yet support "
+             "reading a distributed grid from a restart file");
 }
 
 /* ----------------------------------------------------------------------

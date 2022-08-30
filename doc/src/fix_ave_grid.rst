@@ -479,4 +479,5 @@ Related commands
 Default
 """""""
 
-The option defaults are norm = all, ave = one, and bias = none.
+The option defaults are discard = yes, norm = all, ave = one, and bias
+= none.

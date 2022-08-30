@@ -70,7 +70,6 @@ class FixTTMGrid : public FixTTM {
   void allocate_grid() override;
   void deallocate_grid() override;
   void read_electron_temperatures(const std::string &) override;
-  void write_electron_temperatures(const std::string &) override;
 };
 
 }    // namespace LAMMPS_NS

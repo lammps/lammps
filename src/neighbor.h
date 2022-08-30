@@ -165,6 +165,7 @@ class Neighbor : protected Pointers {
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
   bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
+  void add_temporary_bond(int, int, int);    // add temporary bond to bondlist array
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call

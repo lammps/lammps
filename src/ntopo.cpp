@@ -24,6 +24,7 @@
 using namespace LAMMPS_NS;
 
 #define LB_FACTOR 1.5
+#define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
 
@@ -203,6 +204,21 @@ void NTopo::dihedral_check(int nlist, int **list)
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all)
     error->all(FLERR,"Dihedral/improper extent > half of periodic box length");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NTopo::add_temporary_bond(int i1, int i2, int btype)
+{
+  if (nbondlist == maxbond) {
+    maxbond += DELTA;
+    memory->grow(bondlist, maxbond, 3, "neigh_topo:bondlist");
+  }
+
+  bondlist[nbondlist][0] = i1;
+  bondlist[nbondlist][1] = i2;
+  bondlist[nbondlist][2] = btype;
+  nbondlist++;
 }
 
 /* ---------------------------------------------------------------------- */

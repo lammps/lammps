@@ -2830,6 +2830,16 @@ bigint Neighbor::get_nneigh_half()
 }
 
 /* ----------------------------------------------------------------------
+   add pair of atoms to bondlist array
+   will only persist until the next neighbor build
+------------------------------------------------------------------------- */
+
+void Neighbor::add_temporary_bond(int i1, int i2, int btype)
+{
+  neigh_bond->add_temporary_bond(i1, i2, btype);
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

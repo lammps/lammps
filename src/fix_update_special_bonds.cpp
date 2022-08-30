@@ -17,6 +17,7 @@
 #include "atom_vec.h"
 #include "error.h"
 #include "force.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -50,6 +51,11 @@ int FixUpdateSpecialBonds::setmask()
 
 void FixUpdateSpecialBonds::setup(int /*vflag*/)
 {
+  // error if more than one fix update/special/bonds
+
+  if (modify->get_fix_by_style("UPDATE_SPECIAL_BONDS").size() > 1)
+    error->all(FLERR,"More than one fix update/special/bonds");
+
   // Require atoms know about all of their bonds and if they break
   if (force->newton_bond) error->all(FLERR, "Fix update/special/bonds requires Newton bond off");
 

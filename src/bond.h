@@ -102,6 +102,7 @@ class Bond : protected Pointers {
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, double, double, double, double, double);
+  void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double);
 };
 
 }    // namespace LAMMPS_NS

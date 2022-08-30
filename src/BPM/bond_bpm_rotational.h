@@ -34,6 +34,8 @@ class BondBPMRotational : public BondBPM {
   void settings(int, char **) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
   void write_data(FILE *) override;
   double single(int, double, int, int, double &) override;
 
@@ -44,9 +46,9 @@ class BondBPMRotational : public BondBPM {
 
   double acos_limit(double);
 
-  double elastic_forces(int, int, int, double &, double, double, double, double *, double *,
+  double elastic_forces(int, int, int, double, double, double, double *, double *,
                         double *, double *, double *, double *);
-  void damping_forces(int, int, int, double &, double *, double *, double *, double *, double *);
+  void damping_forces(int, int, int, double *, double *, double *, double *, double *);
 
   void allocate();
   void store_data();

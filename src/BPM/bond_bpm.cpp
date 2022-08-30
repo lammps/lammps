@@ -14,6 +14,7 @@
 #include "bond_bpm.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_bond_history.h"
@@ -284,6 +285,33 @@ double BondBPM::equilibrium_distance(int /*i*/)
 
   // Divide out heuristic prefactor added in comm class
   return max_stretch * r0_max_estimate / 1.5;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void BondBPM::write_restart(FILE *fp)
+{
+  fwrite(&max_stretch, sizeof(double), 1, fp);
+  fwrite(&r0_max_estimate, sizeof(double), 1, fp);
+  fwrite(&overlay_flag, sizeof(int), 1, fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void BondBPM::read_restart(FILE *fp)
+{
+  if (comm->me == 0) {
+    utils::sfread(FLERR, &max_stretch, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &r0_max_estimate, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &overlay_flag, sizeof(int), 1, fp, nullptr, error);
+  }
+  MPI_Bcast(&max_stretch, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&r0_max_estimate, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&overlay_flag, 1, MPI_INT, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

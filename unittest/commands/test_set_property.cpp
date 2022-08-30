@@ -117,10 +117,11 @@ TEST_F(SetTest, StylesTypes)
     command("set region left mol 2");
     command("compute 1 all property/atom id type mol");
     END_HIDE_OUTPUT();
+
     auto compute = lmp->modify->get_compute_by_id("1");
+    ASSERT_NE(compute, nullptr);
     compute->compute_peratom();
 
-    ASSERT_NE(compute, nullptr);
     ASSERT_EQ(atom->type[0], 2);
     ASSERT_EQ(atom->type[1], 2);
     ASSERT_EQ(atom->type[2], 1);
@@ -342,6 +343,68 @@ TEST_F(SetTest, SpinPackage)
     TEST_FAILURE(".*ERROR: Invalid random number seed 0 in set spin/atom/random command.*",
                  command("set atom * spin/atom/random 0 1.0"););
 }
+
+TEST_F(SetTest, EffPackage)
+{
+    if (!Info::has_package("EFF")) GTEST_SKIP();
+    atomic_system("electron");
+    ASSERT_EQ(atom->natoms, 8);
+
+    BEGIN_HIDE_OUTPUT();
+    command("set atom 1*2 spin/electron -1");
+    command("set atom 3*4 spin/electron 1");
+    command("set atom 5 spin/electron 0");
+    command("set atom 6 spin/electron 2");
+    command("set atom 7* spin/electron 3");
+    command("set region left radius/electron 0.5");
+    command("set region right radius/electron 1.0");
+    command("compute 1 all property/atom espin eradius");
+    END_HIDE_OUTPUT();
+
+    auto compute = lmp->modify->get_compute_by_id("1");
+    ASSERT_NE(compute, nullptr);
+    compute->compute_peratom();
+
+    EXPECT_EQ(atom->spin[0],-1);
+    EXPECT_EQ(atom->spin[1],-1);
+    EXPECT_EQ(atom->spin[2],1);
+    EXPECT_EQ(atom->spin[3],1);
+    EXPECT_EQ(atom->spin[4],0);
+    EXPECT_EQ(atom->spin[5],2);
+    EXPECT_EQ(atom->spin[6],3);
+    EXPECT_EQ(atom->spin[7],3);
+    EXPECT_EQ(atom->eradius[0],0.5);
+    EXPECT_EQ(atom->eradius[1],1.0);
+    EXPECT_EQ(atom->eradius[2],0.5);
+    EXPECT_EQ(atom->eradius[3],1.0);
+    EXPECT_EQ(atom->eradius[4],0.5);
+    EXPECT_EQ(atom->eradius[5],1.0);
+    EXPECT_EQ(atom->eradius[6],0.5);
+    EXPECT_EQ(atom->eradius[7],1.0);
+
+    EXPECT_EQ(compute->array_atom[0][0],-1);
+    EXPECT_EQ(compute->array_atom[1][0],-1);
+    EXPECT_EQ(compute->array_atom[2][0],1);
+    EXPECT_EQ(compute->array_atom[3][0],1);
+    EXPECT_EQ(compute->array_atom[4][0],0);
+    EXPECT_EQ(compute->array_atom[5][0],2);
+    EXPECT_EQ(compute->array_atom[6][0],3);
+    EXPECT_EQ(compute->array_atom[7][0],3);
+    EXPECT_EQ(compute->array_atom[0][1],0.5);
+    EXPECT_EQ(compute->array_atom[1][1],1.0);
+    EXPECT_EQ(compute->array_atom[2][1],0.5);
+    EXPECT_EQ(compute->array_atom[3][1],1.0);
+    EXPECT_EQ(compute->array_atom[4][1],0.5);
+    EXPECT_EQ(compute->array_atom[5][1],1.0);
+    EXPECT_EQ(compute->array_atom[6][1],0.5);
+    EXPECT_EQ(compute->array_atom[7][1],1.0);
+
+    TEST_FAILURE(".*ERROR on proc 0: Incorrect value for electron spin: 0.5.*",
+                 command("set atom * spin/electron 0.5"););
+    TEST_FAILURE(".*ERROR on proc 0: Incorrect value for electron radius: -0.5.*",
+                 command("set atom * radius/electron 0.5"););
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

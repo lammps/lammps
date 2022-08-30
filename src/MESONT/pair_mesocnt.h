@@ -17,7 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
+// clang-format off
 PairStyle(mesocnt, PairMesoCNT);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MESOCNT_H

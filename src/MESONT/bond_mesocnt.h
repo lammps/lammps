@@ -17,7 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
+// clang-format off
 BondStyle(mesocnt, BondMesoCNT);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_MESOCNT_H

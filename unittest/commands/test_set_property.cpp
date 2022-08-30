@@ -358,10 +358,10 @@ TEST_F(SetTest, EffPackage)
     command("set atom 7* spin/electron 3");
     command("set region left radius/electron 0.5");
     command("set region right radius/electron 1.0");
-    command("compute 1 all property/atom espin eradius");
+    command("compute 2 all property/atom espin eradius");
     END_HIDE_OUTPUT();
 
-    auto compute = lmp->modify->get_compute_by_id("1");
+    auto compute = lmp->modify->get_compute_by_id("2");
     ASSERT_NE(compute, nullptr);
     compute->compute_peratom();
 
@@ -402,7 +402,7 @@ TEST_F(SetTest, EffPackage)
     TEST_FAILURE(".*ERROR on proc 0: Incorrect value for electron spin: 0.5.*",
                  command("set atom * spin/electron 0.5"););
     TEST_FAILURE(".*ERROR on proc 0: Incorrect value for electron radius: -0.5.*",
-                 command("set atom * radius/electron 0.5"););
+                 command("set atom * radius/electron -0.5"););
 }
 
 } // namespace LAMMPS_NS

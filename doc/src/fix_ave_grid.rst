@@ -42,10 +42,13 @@ Syntax
        f_ID[I] = Ith column of per-grid array calculated by a fix with ID, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *norm* or *ave* or *bias* or *adof* or *cdof*
+* keyword = *discard* or *norm* or *ave* or *bias* or *adof* or *cdof*
 
   .. parsed-literal::
 
+       *discard* arg = *yes* or *no*
+         yes = discard an atom outside grid in a non-periodic dimension
+         no = remap an atom outside grid in a non-periodic dimension to first or last grid cell
        *norm* arg = *all* or *sample* or *none* = how output on *Nfreq* steps is normalized
          all = output is sum of atoms across all *Nrepeat* samples, divided by atom count
          sample = output is sum of *Nrepeat* sample averages, divided by *Nrepeat*
@@ -295,6 +298,17 @@ to effectively specify multiple values.
 Additional optional keywords also affect the operation of this fix and
 its outputs.  Some are only applicable to per-atom mode.  Some are
 applicable to both per-atom and per-grid mode.
+
+The *discard* keyword is only applicable to per-atom mode.  If a
+dimension of the system is non-periodic, then grid cells will only
+span the box dimension (fixed or shrink-wrap boundaries as set by the
+:doc:`boundary` command).  An atom may thus be slighlty outside the
+range of grid cells on a particular timestep.  If *discard* is set to
+*yes* (the default), then the atom will be assigned to the closest
+grid cell (lowest or highest) in that dimension.  If *discard* is set
+to *no* the atom will be ignored.
+ 
+----------
 
 The *norm* keyword is only applicable to per-atom mode.  In per-grid
 mode, the *norm* keyword setting is ignored.  The output grid value on

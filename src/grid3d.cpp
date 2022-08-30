@@ -135,18 +135,18 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   int *periodicity = domain->periodicity;
 
   if (!periodicity[0]) {
-    oxlo = MAX(1,oxlo);
-    oxhi = MIN(gnx-1,oxhi);
+    oxlo = MAX(0,oxlo);
+    oxhi = MIN(nx-1,oxhi);
   }
 
   if (!periodicity[1]) {
-    oylo = MAX(1,oylo);
-    oyhi = MIN(gnx-1,oyhi);
+    oylo = MAX(0,oylo);
+    oyhi = MIN(ny-1,oyhi);
   }
 
   if (!periodicity[2]) {
-    ozlo = MAX(1,ozlo);
-    ozhi = MIN(gnx-1,ozhi);
+    ozlo = MAX(0,ozlo);
+    ozhi = MIN(nz-1,ozhi);
   }
 
   // error check on size of grid stored by this proc

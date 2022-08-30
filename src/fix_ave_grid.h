@@ -50,8 +50,8 @@ class FixAveGrid : public Fix {
   int nvalues;
   int nrepeat, irepeat;
   bigint nvalid, nvalid_last;
-  int modeatom,modegrid;
-  int normflag,aveflag,nwindow;
+  int modeatom, modegrid;
+  int discardflag, normflag, aveflag, nwindow;
 
   int running_count;
   int window_count,window_oldest,window_newest;

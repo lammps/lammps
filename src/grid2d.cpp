@@ -129,13 +129,13 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
   int *periodicity = domain->periodicity;
 
   if (!periodicity[0]) {
-    oxlo = MAX(1,oxlo);
-    oxhi = MIN(gnx-1,oxhi);
+    oxlo = MAX(0,oxlo);
+    oxhi = MIN(nx-1,oxhi);
   }
 
   if (!periodicity[1]) {
-    oylo = MAX(1,oylo);
-    oyhi = MIN(gnx-1,oyhi);
+    oylo = MAX(0,oylo);
+    oyhi = MIN(ny-1,oyhi);
   }
 
   // error check on size of grid stored by this proc

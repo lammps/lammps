@@ -36,6 +36,7 @@ using namespace FixConst;
 
 enum{ALL,SAMPLE,NONORM};
 enum{ONE,RUNNING,WINDOW};
+enum{DISCARD,KEEP};
 
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
@@ -166,6 +167,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
+  discardflag = DISCARD;
   normflag = ALL;
   aveflag = ONE;
   nwindow = 0;
@@ -175,7 +177,14 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   cdof = 0.0;
 
   while (iarg < nargnew) {
-    if (strcmp(arg[iarg],"norm") == 0) {
+    if (strcmp(arg[iarg],"discard") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/grid command");
+      if (strcmp(arg[iarg+1],"yes") == 0) discardflag = DISCARD;
+      else if (strcmp(arg[iarg+1],"no") == 0) discardflag = KEEP;
+      else error->all(FLERR,"Illegal fix ave/grid command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/grid command");
       if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
       else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
@@ -794,10 +803,18 @@ void FixAveGrid::atom2grid()
 {
   int i,j,m,n,ix,iy,iz;
 
+  double **count2d = grid_sample->count2d;
+  double **vec2d = grid_sample->vec2d;
+  double ***array2d = grid_sample->array2d;
+  double ***count3d = grid_sample->count3d;
+  double ***vec3d = grid_sample->vec3d;
+  double ****array3d = grid_sample->array3d;
+
   // bin[i][dim] = indices of bin each atom is in
-  // not set if group mask does not match
-  // also count atoms contributing to each bin
+  // skip atom if group mask does not match
   // check if any atom is out of bounds for my local grid
+  // for nonperiodic dim, remap atom to first/last bin if out of bounds
+  // count atoms contributing to each bin
 
   double *boxlo,*prd;
   int *periodicity = domain->periodicity;
@@ -826,13 +843,6 @@ void FixAveGrid::atom2grid()
     memory->create(skip,maxatom,"ave/grid:skip");
   }
 
-  double **count2d = grid_sample->count2d;
-  double **vec2d = grid_sample->vec2d;
-  double ***array2d = grid_sample->array2d;
-  double ***count3d = grid_sample->count3d;
-  double ***vec3d = grid_sample->vec3d;
-  double ****array3d = grid_sample->array3d;
-
   if (triclinic) domain->x2lamda(nlocal);
 
   int flag = 0;
@@ -850,12 +860,20 @@ void FixAveGrid::atom2grid()
 
       if (ix < nxlo_out || ix > nxhi_out) {
         if (periodicity[0]) flag = 1;
-        else skip[i] = 1;
+        else if (discardflag == KEEP) {
+          if (ix < nxlo_out && nxlo_out == 0) ix = 0;
+          else if (ix > nxhi_out && nxhi_out == nxgrid-1) ix = nxgrid-1;
+          else flag = 1;
+        } else skip[i] = 1;
         continue;
       }
       if (iy < nylo_out || iy > nyhi_out) {
         if (periodicity[1]) flag = 1;
-        else skip[i] = 1;
+        else if (discardflag == KEEP) {
+          if (iy < nylo_out && nylo_out == 0) iy = 0;
+          else if (iy > nyhi_out && nyhi_out == nygrid-1) iy = nygrid-1;
+          else flag = 1;
+        } else skip[i] = 1;
         continue;
       }
 
@@ -878,17 +896,30 @@ void FixAveGrid::atom2grid()
 
       if (ix < nxlo_out || ix > nxhi_out) {
         if (periodicity[0]) flag = 1;
-        else skip[i] = 1;
-        continue;
+        else if (discardflag == KEEP) {
+          if (ix < nxlo_out && nxlo_out == 0) ix = 0;
+          else if (ix > nxhi_out && nxhi_out == nxgrid-1) ix = nxgrid-1;
+          else flag = 1;
+        } else skip[i] = 1;
       }
+
       if (iy < nylo_out || iy > nyhi_out) {
         if (periodicity[1]) flag = 1;
-        else skip[i] = 1;
+        else if (discardflag == KEEP) {
+          if (iy < nylo_out && nylo_out == 0) iy = 0;
+          else if (iy > nyhi_out && nyhi_out == nygrid-1) iy = nygrid-1;
+          else flag = 1;
+        } else skip[i] = 1;
         continue;
       }
+
       if (iz < nzlo_out || iz > nzhi_out) {
         if (periodicity[2]) flag = 1;
-        else skip[i] = 1;
+        else if (discardflag == KEEP) {
+          if (iz < nzlo_out && nzlo_out == 0) iz = 0;
+          else if (iz > nzhi_out && nzhi_out == nzgrid-1) iz = nzgrid-1;
+          else flag = 1;
+        } else skip[i] = 1;
         continue;
       }
 

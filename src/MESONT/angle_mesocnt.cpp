@@ -213,7 +213,7 @@ void AngleMesoCNT::coeff(int narg, char **arg)
     buckling_one = 0;
   else
     error->all(FLERR,
-               "Unknown first argument for angle coefficients, must be 'buckling' or 'harmonic'");
+               "Unknown first argument {} for angle coefficients, must be 'buckling' or 'harmonic'", arg[1]);
 
   // units, eV to energy unit conversion
 

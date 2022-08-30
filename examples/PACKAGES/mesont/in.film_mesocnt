@@ -23,8 +23,6 @@ pair_coeff        * * C_10_10.mesocnt 1
 
 # output
 
-thermo          100
-
 compute         epair all pe pair
 compute         ebond all pe bond
 compute         eangle all pe angle
@@ -35,12 +33,13 @@ compute         eangle_atom all pe/atom angle
 
 fix             angle_mesocnt_buckled all property/atom i_buckled ghost yes
 
-thermo_style    custom step time cpu temp etotal ke pe c_ebond c_eangle c_epair
-dump            custom all custom 1000 film_mesocnt.lmp id mol type x y z c_ebond_atom c_eangle_atom c_epair_atom i_buckled
+thermo_style    custom step temp etotal ke pe c_ebond c_eangle c_epair
+thermo 10
+#dump            custom all custom 100 film_mesocnt.lmp id mol type x y z c_ebond_atom c_eangle_atom c_epair_atom i_buckled
 
 # simulation setup
 
-velocity        all create 600.0 2022
+velocity        all create 600.0 2022 loop geom
 timestep        0.01
 fix             nvt all nvt temp 300.0 300.0 1
 

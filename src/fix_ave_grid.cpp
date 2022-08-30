@@ -450,7 +450,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   window_newest = 0;
 
   // zero grid_nfreq for output since dump may access it on timestep 0
-  // also one-time zero of grid_running for ave = RUNNING or WINDOW 
+  // also one-time zero of grid_running for ave = RUNNING or WINDOW
 
   zero_grid(grid_nfreq);
   output_grid(grid_nfreq);
@@ -636,7 +636,7 @@ void FixAveGrid::end_of_step()
   nvalid_last = nvalid;
 
   // if first sample in nfreq, zero owned and ghost grid points
-  
+
   if (irepeat == 0) {
     zero_grid(grid_sample);
     if (normflag == SAMPLE) zero_grid(grid_nfreq);
@@ -759,7 +759,7 @@ void FixAveGrid::end_of_step()
     //   add grid_nfreq to grid_running
     //   if window is full, subtract oldest window entry from grid_running
     // copy grid_nfreq into window
-    
+
     add_grid(grid_nfreq,grid_running);
     if (window_count == nwindow)
       subtract_grid(grid_window[window_oldest],grid_running);
@@ -1405,7 +1405,7 @@ void FixAveGrid::normalize_grid(int numsamples, GridData *grid)
   int ix,iy,iz,m;
 
   double invrepeat = 1.0/numsamples;
-  
+
   if (dimension == 2) {
     if (nvalues == 1) {
       double **vec2d = grid->vec2d;
@@ -1448,7 +1448,7 @@ void FixAveGrid::normalize_count(int numsamples, GridData *grid)
   int ix,iy,iz;
 
   double invrepeat = 1.0/numsamples;
-  
+
   if (dimension == 2) {
     double **count2d = grid->count2d;
     for (iy = nylo_in; iy <= nyhi_in; iy++)
@@ -1473,14 +1473,14 @@ void FixAveGrid::allocate_grid(GridData *grid)
 {
   if (dimension == 2) {
     if (nvalues == 1)
-      memory->create2d_offset(grid->vec2d, nylo_out, nyhi_out, 
+      memory->create2d_offset(grid->vec2d, nylo_out, nyhi_out,
                               nxlo_out, nxhi_out, "ave/grid:vec2d");
     else
-      memory->create3d_offset_last(grid->array2d, nylo_out, nyhi_out, 
-                                   nxlo_out, nxhi_out, 
+      memory->create3d_offset_last(grid->array2d, nylo_out, nyhi_out,
+                                   nxlo_out, nxhi_out,
                                    nvalues, "ave/grid:array3d");
     if (modeatom)
-      memory->create2d_offset(grid->count2d, nylo_out, nyhi_out, 
+      memory->create2d_offset(grid->count2d, nylo_out, nyhi_out,
                               nxlo_out, nxhi_out, "ave/grid:count2d");
 
   } else if (dimension == 3) {
@@ -1534,10 +1534,10 @@ double FixAveGrid::size_grid(GridData *grid)
 
   double bytes;
   if (dimension == 2)
-    bytes = nper * (nxhi_out - nxlo_out + 1) * 
+    bytes = nper * (nxhi_out - nxlo_out + 1) *
       (nyhi_out - nylo_out + 1) * sizeof(double);
   else
-    bytes = nper * (nxhi_out - nxlo_out + 1) * 
+    bytes = nper * (nxhi_out - nxlo_out + 1) *
       (nyhi_out - nylo_out + 1) * (nzhi_out - nzlo_out + 1) * sizeof(double);
 
   return bytes;
@@ -1558,7 +1558,7 @@ void FixAveGrid::zero_grid(GridData *grid)
     else
       memset(&grid->array2d[nylo_out][nxlo_out][0],0,
              ngridout*nvalues*sizeof(double));
-    if (modeatom) 
+    if (modeatom)
       memset(&grid->count2d[nylo_out][nxlo_out],0,ngridout*sizeof(double));
 
   } else if (dimension == 3) {
@@ -1772,7 +1772,7 @@ void FixAveGrid::output_grid(GridData *src)
       grid_output->vec2d = src->vec2d;
     else
       grid_output->array2d = src->array2d;
-    if (modeatom) 
+    if (modeatom)
       grid_output->count2d = src->count2d;
 
   } else if (dimension == 3) {
@@ -1780,7 +1780,7 @@ void FixAveGrid::output_grid(GridData *src)
       grid_output->vec3d = src->vec3d;
     else
       grid_output->array3d = src->array3d;
-    if (modeatom) 
+    if (modeatom)
       grid_output->count3d = src->count3d;
   }
 }
@@ -1969,9 +1969,9 @@ double FixAveGrid::memory_usage()
 
   bytes += size_grid(grid_sample);
   bytes += size_grid(grid_nfreq);
-  if (aveflag == RUNNING || aveflag == WINDOW) 
+  if (aveflag == RUNNING || aveflag == WINDOW)
     bytes += size_grid(grid_running);
-  if (aveflag == WINDOW) 
+  if (aveflag == WINDOW)
     bytes += nwindow * size_grid(grid_window[0]);
 
   if (modeatom) {

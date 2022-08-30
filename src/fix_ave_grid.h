@@ -55,7 +55,7 @@ class FixAveGrid : public Fix {
 
   int running_count;
   int window_count,window_oldest,window_newest;
-  
+
   int biasflag;
   char *id_bias;
   class Compute *tbias;    // ptr to additional bias compute

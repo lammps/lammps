@@ -36,7 +36,7 @@ Syntax
        *kspace* arg = v_name
          v_name = variable with name that calculates scale factor on K-space terms
        *atom* args = atomparam v_name
-         atomparam = parameter to adapt over time
+         atomparam = *charge* or *diameter* or *diameter/disc* = parameter to adapt over time
          v_name = variable with name that calculates value of atomparam
 
 * zero or more keyword/value pairs may be appended
@@ -44,15 +44,15 @@ Syntax
 
   .. parsed-literal::
 
-       *scale* value = *no* or *yes*
-         *no* = the variable value is the new setting
-         *yes* = the variable value multiplies the original setting
-       *reset* value = *no* or *yes*
-         *no* = values will remain altered at the end of a run
-         *yes* = reset altered values to their original values at the end of a run
-       *mass* value = *no* or *yes*
-         *no* = mass is not altered by changes in diameter
-         *yes* = mass is altered by changes in diameter
+     *scale* value = *no* or *yes*
+       *no* = the variable value is the new setting
+       *yes* = the variable value multiplies the original setting
+     *reset* value = *no* or *yes*
+       *no* = values will remain altered at the end of a run
+       *yes* = reset altered values to their original values at the end of a run
+     *mass* value = *no* or *yes*
+       *no* = mass is not altered by changes in diameter
+       *yes* = mass is altered by changes in diameter
 
 Examples
 """"""""

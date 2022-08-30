@@ -15,8 +15,8 @@ Syntax
 * Nevery = use input values every this many timesteps
 * Nrepeat = # of times to use input values for calculating averages
 * Nfreq = calculate averages every this many timesteps
-  one or more input values can be listed
-* value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[i], f_ID, f_ID[i], v_name
+* one or more input values can be listed
+* value = *x*, *y*, *z*, *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, c_ID, c_ID[i], f_ID, f_ID[i], v_name
 
   .. parsed-literal::
 

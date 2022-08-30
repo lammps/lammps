@@ -17,7 +17,7 @@ Syntax
 * Nfreq = calculate averages every this many timesteps
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more input values can be listed
-* value = vx, vy, vz, fx, fy, fz, density/mass, density/number, mass, temp, c_ID, c_ID[I], f_ID, f_ID[I], v_name
+* value = *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, *density/mass*, *density/number*, *mass*, *temp*, c_ID, c_ID[I], f_ID, f_ID[I], v_name
 
   .. parsed-literal::
 

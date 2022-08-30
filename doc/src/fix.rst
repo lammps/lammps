@@ -171,6 +171,8 @@ accelerated styles exist.
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom
 * :doc:`addtorque <fix_addtorque>` - add a torque to a group of atoms
+* :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>` - torsion/torsion terms in AMOEBA force field
+* :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>` - 6-body terms in AMOEBA force field
 * :doc:`append/atoms <fix_append_atoms>` - append atoms to a running simulation
 * :doc:`atc <fix_atc>` - initiates a coupled MD/FE simulation
 * :doc:`atom/swap <fix_atom_swap>` - Monte Carlo atom type swapping
@@ -194,7 +196,7 @@ accelerated styles exist.
 * :doc:`bond/swap <fix_bond_swap>` - Monte Carlo bond swapping
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
 * :doc:`charge/regulation <fix_charge_regulation>` - Monte Carlo sampling of charge regulation
-* :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
+* :doc:`cmap <fix_cmap>` - CMAP torsion/torsion terms in CHARMM force field
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
 * :doc:`damping/cundall <fix_damping_cundall>` - Cundall non-viscous damping for granular simulations
@@ -305,6 +307,7 @@ accelerated styles exist.
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
+* :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane

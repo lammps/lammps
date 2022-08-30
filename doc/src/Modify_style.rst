@@ -100,13 +100,14 @@ Documentation (strict)
 
 Contributions that add new styles or commands or augment existing ones
 must include the corresponding new or modified documentation in
-`ReStructuredText format <rst>`_ (.rst files in the ``doc/src/`` folder). The
-documentation shall be written in American English and the .rst file
-must use only ASCII characters so it can be cleanly translated to PDF
-files (via `sphinx <sphinx>`_ and PDFLaTeX).  Special characters may be included via
-embedded math expression typeset in a LaTeX subset.
+`ReStructuredText format <rst_>`_ (.rst files in the ``doc/src/``
+folder). The documentation shall be written in American English and the
+.rst file must use only ASCII characters so it can be cleanly translated
+to PDF files (via `sphinx <https://www.sphinx-doc.org>`_ and PDFLaTeX).
+Special characters may be included via embedded math expression typeset
+in a LaTeX subset.
 
-.. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
+.. _rst: https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 
 When adding new commands, they need to be integrated into the sphinx
 documentation system, and the corresponding command tables and lists
@@ -133,7 +134,7 @@ error free completion of the HTML and PDF build will be performed and
 also a spell check, a check for correct anchors and labels, and a check
 for completeness of references all styles in their corresponding tables
 and lists is run.  In case the spell check reports false positives they
-can be added to the file doc/utils/sphinx-config/false_positives.txt
+can be added to the file ``doc/utils/sphinx-config/false_positives.txt``
 
 Contributions that add or modify the library interface or "public" APIs
 from the C++ code or the Fortran module must include suitable doxygen

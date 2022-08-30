@@ -1,4 +1,26 @@
 .. index:: dump
+.. index:: dump atom
+.. index:: dump cfg
+.. index:: dump custom
+.. index:: dump dcd
+.. index:: dump local
+.. index:: dump xtc
+.. index:: dump yaml
+.. index:: dump xyz
+.. index:: dump atom/gz
+.. index:: dump cfg/gz
+.. index:: dump custom/gz
+.. index:: dump local/gz
+.. index:: dump xyz/gz
+.. index:: dump atom/mpiio
+.. index:: dump cfg/mpiio
+.. index:: dump custom/mpiio
+.. index:: dump xyz/mpiio
+.. index:: dump atom/zstd
+.. index:: dump cfg/zstd
+.. index:: dump custom/zstd
+.. index:: dump xyz/zstd
+.. index:: dump local/zstd
 
 dump command
 ============
@@ -782,6 +804,11 @@ Restrictions
 To write gzipped dump files, you must either compile LAMMPS with the
 -DLAMMPS_GZIP option or use the styles from the COMPRESS package.
 See the :doc:`Build settings <Build_settings>` page for details.
+
+While a dump command is active (i.e. has not been stopped by using
+the undump command), no commands may be used that will change the
+timestep (e.g. :doc:`reset_timestep <reset_timestep>`).  LAMMPS
+will terminate with an error otherwise.
 
 The *atom/gz*, *cfg/gz*, *custom/gz*, and *xyz/gz* styles are part of
 the COMPRESS package.  They are only enabled if LAMMPS was built with

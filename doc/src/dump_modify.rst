@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -65,6 +65,8 @@ Syntax
        *refresh* arg = c_ID = compute ID that supports a refresh operation
        *scale* arg = *yes* or *no*
        *sfactor* arg = coordinate scaling factor (> 0.0)
+       *skip* arg = v_name
+         v_name = variable with name which evaluates to non-zero (skip) or 0
        *sort* arg = *off* or *id* or N or -N
           off = no sorting of per-atom lines within a snapshot
           id = sort per-atom lines by atom ID
@@ -173,6 +175,28 @@ The buffering mode is typically faster since each processor does the
 relatively expensive task of formatting the output for its own atoms.
 However it requires about twice the memory (per processor) for the
 extra buffering.
+
+----------
+
+The *colname* keyword can be used to change the default header keyword
+for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
+and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
+represents the column number counting from the left, a negative integer
+when it represents the column number from the right (i.e. -1 is the last
+column/keyword), or a custom dump keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+keyword. For *atom* dump styles only the keywords "id", "type", "x",
+"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
+whether scaled or unwrapped coordinates were enabled or disabled, and
+it always assumes 8 columns for indexing regardless of whether image
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default names.
 
 ----------
 
@@ -357,7 +381,7 @@ always occur if the current timestep is a multiple of $N$, the
 frequency specified in the :doc:`dump <dump>` command or
 :doc:`dump_modify every <dump_modify>` command, including timestep 0.
 It will also always occur if the current simulation time is a multiple
-of *Delta*, the time interval specified in the doc:`dump_modify
+of *Delta*, the time interval specified in the :doc:`dump_modify
 every/time <dump_modify>` command.
 
 But if this is not the case, a dump snapshot will only be written if
@@ -365,10 +389,10 @@ the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 Note that if the argument to the :doc:`dump_modify every
-<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
-a variable and not a numeric value, then specifying *first yes* is the
-only way to write a dump snapshot on the first timestep after the dump
-command is invoked.
+<dump_modify>` or doc:`dump_modify every/time <dump_modify>` commands
+is a variable and not a numeric value, then specifying *first yes* is
+the only way to write a dump snapshot on the first timestep after the
+dump command is invoked.
 
 ----------
 
@@ -377,28 +401,6 @@ after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style *xtc*\ .
-
-----------
-
-The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
-
-The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.  A
-setting of *default* clears all previous settings, reverting all values
-to their default names.
 
 ----------
 
@@ -678,10 +680,28 @@ most effective when the typical magnitude of position data is between
 
 ----------
 
+The *skip* keyword can be used with all dump styles.  It allows a dump
+snapshot to be skipped (not written to the dump file), if a condition
+is met.  The condition is computed by an :doc:`equal-style variable
+<variable>`, which should be specified as v_name, where name is the
+variable name.  If the variable evaulation returns a non-zero value,
+then the dump snapshot is skipped.  If it returns zero, the dump
+proceeds as usual.  Note that :doc:`equal-style variable <variable>`
+can contain Boolean operators which effectively evaluate as a true
+(non-zero) or false (zero) result.
+
+The *skip* keyword can be useful for debugging purposes, e.g. to dump
+only on a particular timestep.  Or to limit output to conditions of
+interest, e.g. only when the force on some atom exceeds a threshold
+value.
+
+----------
+
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the :doc:`atom_modify sort <atom_modify>` option is turned on, which it is by default, to
+parallel.  This is the case even in serial if the :doc:`atom_modify
+sort <atom_modify>` option is turned on, which it is by default, to
 improve performance.  A sort value of *id* means sort the output by
 atom ID.  A sort value of N or -N means sort the output by the value
 in the Nth column of per-atom info in either ascending or descending
@@ -727,8 +747,9 @@ are written to the dump file or included in the image.  The possible
 attributes that can be tested for are the same as those that can be
 specified in the :doc:`dump custom <dump>` command, with the exception
 of the *element* attribute, since it is not a numeric value.  Note
-that a different attributes can be used than those output by the :doc:`dump custom <dump>` command.  E.g. you can output the coordinates and
-stress of atoms whose energy is above some threshold.
+that a different attributes can be used than those output by the
+:doc:`dump custom <dump>` command.  E.g. you can output the
+coordinates and stress of atoms whose energy is above some threshold.
 
 If an atom-style variable is used as the attribute, then it can
 produce continuous numeric values or effective Boolean 0/1 values

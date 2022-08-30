@@ -486,6 +486,17 @@ namespace utils {
 
   size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
 
+  /*! Take list of words and join them with a given separator text.
+   *
+   * This is the inverse operation of what the split_words() function
+   * Tokenizer classes do.
+   *
+   * \param words  STL vector with strings
+   * \param sep    separator string (may be empty)
+   * \return  string with the concatenated words and separators */
+
+  std::string join_words(const std::vector<std::string> &words, const std::string &sep);
+
   /*! Take text and split into non-whitespace words.
    *
    * This can handle strings with single and double quotes, escaped quotes,

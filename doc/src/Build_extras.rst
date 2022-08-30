@@ -788,14 +788,23 @@ library.
 
       .. code-block:: bash
 
-         -D DOWNLOAD_LATTE=value    # download LATTE for build, value = no (default) or yes
-         -D LATTE_LIBRARY=path      # LATTE library file (only needed if a custom location)
+         -D DOWNLOAD_LATTE=value      # download LATTE for build, value = no (default) or yes
+         -D LATTE_LIBRARY=path        # LATTE library file (only needed if a custom location)
+         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
+                                      #   value = no (default) or yes
 
       If ``DOWNLOAD_LATTE`` is set, the LATTE library will be downloaded
       and built inside the CMake build directory.  If the LATTE library
       is already on your system (in a location CMake cannot find it),
       ``LATTE_LIBRARY`` is the filename (plus path) of the LATTE library
       file, not the directory the library file is in.
+
+      The LATTE library requires LAPACK (and BLAS) and CMake can identify
+      their locations and pass that info to the LATTE build script. But
+      on some systems this triggers a (current) limitation of CMake and
+      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
+      those cases to use the bundled linear algebra library and work around
+      the limitation.
 
    .. tab:: Traditional make
 
@@ -1913,14 +1922,25 @@ within CMake will download the non-commercial use version.
 
       .. code-block:: bash
 
-         -D DOWNLOAD_QUIP=value   # download OpenKIM API v2 for build, value = no (default) or yes
-         -D QUIP_LIBRARY=path     # path to libquip.a (only needed if a custom location)
+         -D DOWNLOAD_QUIP=value       # download QUIP library for build, value = no (default) or yes
+         -D QUIP_LIBRARY=path         # path to libquip.a (only needed if a custom location)
+         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
+                                      #   value = no (default) or yes
 
-      CMake will try to download and build the QUIP library from GitHub, if it is not
-      found on the local machine. This requires to have git installed. It will use the same compilers
-      and flags as used for compiling LAMMPS.  Currently this is only supported for the GNU and the
-      Intel compilers. Set the ``QUIP_LIBRARY`` variable if you want to use a previously compiled
-      and installed QUIP library and CMake cannot find it.
+      CMake will try to download and build the QUIP library from GitHub,
+      if it is not found on the local machine. This requires to have git
+      installed. It will use the same compilers and flags as used for
+      compiling LAMMPS.  Currently this is only supported for the GNU
+      and the Intel compilers. Set the ``QUIP_LIBRARY`` variable if you
+      want to use a previously compiled and installed QUIP library and
+      CMake cannot find it.
+
+      The QUIP library requires LAPACK (and BLAS) and CMake can identify
+      their locations and pass that info to the QUIP build script. But
+      on some systems this triggers a (current) limitation of CMake and
+      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
+      those cases to use the bundled linear algebra library and work around
+      the limitation.
 
    .. tab:: Traditional make
 

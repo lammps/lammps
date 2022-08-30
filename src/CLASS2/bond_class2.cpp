@@ -24,9 +24,9 @@
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
+#include "pair.h"
 #include "memory.h"
 #include "error.h"
-
 
 using namespace LAMMPS_NS;
 

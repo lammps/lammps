@@ -1563,12 +1563,12 @@ segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below. 
+provided in the papers listed below.
 
 This package contains two independent implementations of this model:
 :doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original implemention
 of the model based on a Fortran library in the ``lib/mesont`` folder. The
-second implementation is given by the mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`, 
+second implementation is given by the mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
 :doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt <pair_mesocnt>`).
 The mesocnt implemenation has the same features as the original implementation with the
 addition of friction,

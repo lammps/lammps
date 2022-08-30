@@ -26,7 +26,7 @@ Examples
 
    pair_style mesocnt 30.0
    pair_coeff * * C_10_10.mesocnt 2
-   
+
    pair_style mesocnt/viscous 60.0 chain topology
    pair_coeff * * C_10_10.mesocnt 0.001 20.0 0.2 2 4
 
@@ -34,14 +34,14 @@ Description
 """""""""""
 
 Style *mesocnt* implements a mesoscopic potential
-for the interaction of carbon nanotubes (CNTs), or other 
+for the interaction of carbon nanotubes (CNTs), or other
 quasi-1D objects such as other kinds of nanotubes or nanowires. In this potential,
 CNTs are modelled as chains of cylindrical segments in which
 each infinitesimal surface element interacts with all other
 CNT surface elements with the Lennard-Jones (LJ) term adopted from
 the :doc:`airebo <pair_airebo>` style. The interaction energy
 is then computed by integrating over the surfaces of all interacting
-CNTs. 
+CNTs.
 
 In LAMMPS, cylindrical segments are represented by bonds. Each
 segment is defined by its two end points ("nodes") which correspond
@@ -50,12 +50,12 @@ and implementation details, the reader is referred to the
 original papers :ref:`(Volkov1) <Volkov1>` and
 :ref:`(Volkov2) <Volkov2>`.
 
-The potential supports two modes, *segment* and *chain*. By default, *chain* mode is enabled. 
+The potential supports two modes, *segment* and *chain*. By default, *chain* mode is enabled.
 In *segment* mode, interactions are pair-wise between all neighboring segments based on a segment-segment approach (keyword *segment* in pair_style command).
-In *chain* mode, interactions are calculated between each segment and infinitely or 
-semi-infinitely long CNTs as described in :ref:`(Volkov1) <Volkov1>`. 
+In *chain* mode, interactions are calculated between each segment and infinitely or
+semi-infinitely long CNTs as described in :ref:`(Volkov1) <Volkov1>`.
 Chains of segments are converted to these (semi-)infinite CNTs bases on an approximate
-chain approach outlined in :ref:`(Volkov2) <Volkov2>`. Hence, interactions are calculated on a 
+chain approach outlined in :ref:`(Volkov2) <Volkov2>`. Hence, interactions are calculated on a
 segment-chain basis (keyword *chain* in the pair_style command).
 Using *chain* mode allows to simplify the computation of the interactions
 significantly and reduces the computational times to the
@@ -64,11 +64,11 @@ where beads interact with the standard :doc:`pair_lj/cut <pair_lj>`
 potential. However, this method is only valid when the curvature of the CNTs in the system is small.
 When CNTs are buckled (see :doc:`angle_mesocnt <angle_mesocnt>`), local curvature can be very high and the pair_style automatically switches to *segment* mode for interactions involving buckled CNTs.
 
-The potential further implements two different neighbor list construction modes. Mode *id* uses atom and mol IDs to construct neighbor lists while *topology* modes uses only the bond topology of the system. While *id* mode requires bonded atoms to have consecutive LAMMPS atom IDs and atoms in different CNTs to have different LAMMPS molecule IDs, *topology* mode has no such requirement. Using *id* mode is faster and is enabled by default. 
+The potential further implements two different neighbor list construction modes. Mode *id* uses atom and mol IDs to construct neighbor lists while *topology* modes uses only the bond topology of the system. While *id* mode requires bonded atoms to have consecutive LAMMPS atom IDs and atoms in different CNTs to have different LAMMPS molecule IDs, *topology* mode has no such requirement. Using *id* mode is faster and is enabled by default.
 
 .. note::
 
-  Neighbor *id* mode requires all CNTs in the system to have distinct LAMMPS molecule IDs and bonded atoms to have consecutive LAMMPS atom IDs. If this is not possible (e.g. in simulations of CNT rings), 
+  Neighbor *id* mode requires all CNTs in the system to have distinct LAMMPS molecule IDs and bonded atoms to have consecutive LAMMPS atom IDs. If this is not possible (e.g. in simulations of CNT rings),
   *topology* mode needs to be enabled in the pair_style command.
 
 In addition to the LJ interactions described above, style *mesocnt/viscous* explicitly models friction between neighboring segments. Friction forces are a function of the relative velocity between a segment and its neighboring approximate chain (even in *segment* mode) and only act along the axes of the interacting segment and chain. In this potential, friction forces are modelled as a shifted logistic function:
@@ -79,17 +79,17 @@ In addition to the LJ interactions described above, style *mesocnt/viscous* expl
 
 ----------
 
-In the pair_style command, the modes described above can be toggeled using the *segment* or *chain* keywords. 
-The neighbor list cutoff defines the cutoff within which atoms are included in the neighbor list for constructing neighboring CNT chains. 
+In the pair_style command, the modes described above can be toggeled using the *segment* or *chain* keywords.
+The neighbor list cutoff defines the cutoff within which atoms are included in the neighbor list for constructing neighboring CNT chains.
 This is different from the potential cutoff, which is directly calculated from parameters specified in the potential file. We recommend using a neighbor list cutoff of at least 3 times the maximum segment length used in the simulation to ensure proper neighbor chain construction.
 
 .. note::
 
-   CNT ends are treated differently by all *mesocnt* styles. Atoms on CNT ends need to be 
+   CNT ends are treated differently by all *mesocnt* styles. Atoms on CNT ends need to be
    assigned different LAMMPS atom types than atoms not on CNT ends.
 
 Style *mesocnt* requires tabulated data provided in a single ASCII
-text file, as well as a list of integers corresponding to all LAMMPS 
+text file, as well as a list of integers corresponding to all LAMMPS
 atom types representing CNT ends:
 
 * filename
@@ -131,7 +131,7 @@ generate potential files for other 1D systems mentioned above.
    are not bundled with LAMMPS.   When compiling LAMMPS from
    source code, the file ``C_10_10.mesocnt`` should be downloaded
    separately from `https://download.lammps.org/potentials/C_10_10.mesocnt <https://download.lammps.org/potentials/C_10_10.mesocnt>`_
-   
+
    The first line of the potential file provides a time stamp and
    general information. The second line lists four integers giving
    the number of data points provided in the subsequent four

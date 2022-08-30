@@ -1424,10 +1424,11 @@ void PairMesoCNT::sort(int *list, int size)
     j = i;
     temp1 = list[j - 1];
     temp2 = list[j];
-    while (j > 0 && tag[temp1] > tag[temp2]) {
+    while (tag[temp1] > tag[temp2]) {
       list[j] = temp1;
       list[j - 1] = temp2;
       j--;
+      if (j == 0) break;
       temp1 = list[j - 1];
       temp2 = list[j];
     }

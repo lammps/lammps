@@ -90,7 +90,8 @@ void BondMesoCNT::coeff(int narg, char **arg)
     k_one = utils::numeric(FLERR, arg[2], false, lmp);
     r0_one = utils::numeric(FLERR, arg[3], false, lmp);
   } else if (strcmp(arg[1], "C") == 0) {
-    if (narg != 5) error->all(FLERR, "Incorrect number of args for 'C' preset in bond coefficients");
+    if (narg != 5)
+      error->all(FLERR, "Incorrect number of args for 'C' preset in bond coefficients");
     int n = utils::inumeric(FLERR, arg[2], false, lmp);
     int m = utils::inumeric(FLERR, arg[3], false, lmp);
     r0_one = utils::numeric(FLERR, arg[4], false, lmp);

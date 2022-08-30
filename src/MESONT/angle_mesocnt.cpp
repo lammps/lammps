@@ -33,9 +33,9 @@
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
-using MathConst::RAD2DEG;
-using MathConst::MY_PI;
 using MathConst::MY_2PI;
+using MathConst::MY_PI;
+using MathConst::RAD2DEG;
 
 static constexpr double SMALL = 0.001;
 static constexpr double A_CC = 1.421;
@@ -213,7 +213,8 @@ void AngleMesoCNT::coeff(int narg, char **arg)
     buckling_one = 0;
   else
     error->all(FLERR,
-               "Unknown first argument {} for angle coefficients, must be 'buckling' or 'harmonic'", arg[1]);
+               "Unknown first argument {} for angle coefficients, must be 'buckling' or 'harmonic'",
+               arg[1]);
 
   // units, eV to energy unit conversion
 
@@ -249,7 +250,8 @@ void AngleMesoCNT::coeff(int narg, char **arg)
 
     kh_one = utils::numeric(FLERR, arg[3], false, lmp);
   } else if (strcmp(arg[2], "C") == 0) {
-    if (narg != 6) error->all(FLERR, "Incorrect number of args for 'C' preset in angle coefficients");
+    if (narg != 6)
+      error->all(FLERR, "Incorrect number of args for 'C' preset in angle coefficients");
     int n = utils::inumeric(FLERR, arg[3], false, lmp);
     int m = utils::inumeric(FLERR, arg[4], false, lmp);
     double l = utils::numeric(FLERR, arg[5], false, lmp);

@@ -40,8 +40,8 @@
 
 using namespace LAMMPS_NS;
 using namespace MathExtra;
-using MathConst::MY_PI;
 using MathConst::MY_2PI;
+using MathConst::MY_PI;
 
 #define MAXLINE 1024
 #define SELF_CUTOFF 3
@@ -716,8 +716,10 @@ void PairMesoCNT::allocate()
 
 void PairMesoCNT::settings(int narg, char **arg)
 {
-  if (narg < 1) utils::missing_cmd_args(FLERR, "pair_coeff", error);
-  else if (narg > 3) error->all(FLERR, "Too many arguments in pair_style mesocnt command");
+  if (narg < 1)
+    utils::missing_cmd_args(FLERR, "pair_coeff", error);
+  else if (narg > 3)
+    error->all(FLERR, "Too many arguments in pair_style mesocnt command");
 
   neigh_cutoff = utils::numeric(FLERR, arg[0], false, lmp);
 
@@ -731,7 +733,8 @@ void PairMesoCNT::settings(int narg, char **arg)
     else
       error->all(
           FLERR,
-          "Unknown second argument {} in pair_style mesocnt command, must be 'chain' or 'segment'", arg[1]);
+          "Unknown second argument {} in pair_style mesocnt command, must be 'chain' or 'segment'",
+          arg[1]);
   } else
     segment_flag = false;
 
@@ -745,7 +748,8 @@ void PairMesoCNT::settings(int narg, char **arg)
     else
       error->all(
           FLERR,
-          "Unknown third argument {} in pair_style mesocnt command, must be 'id' or 'topology'", arg[2]);
+          "Unknown third argument {} in pair_style mesocnt command, must be 'id' or 'topology'",
+          arg[2]);
   } else
     neigh_flag = false;
 }

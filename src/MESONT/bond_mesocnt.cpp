@@ -31,7 +31,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_2PI;
 
 static constexpr double A_CC = 1.421;
 

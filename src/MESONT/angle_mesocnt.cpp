@@ -32,6 +32,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathConst::DEG2RAD;
+using MathConst::RAD2DEG;
 using MathConst::MY_PI;
 using MathConst::MY_2PI;
 

@@ -35,8 +35,8 @@
 #include <fstream>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathExtra;
+using MathConst::MY_PI;
 
 #define SELF_CUTOFF 3
 #define RHOMIN 10.0

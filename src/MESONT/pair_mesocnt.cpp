@@ -39,8 +39,9 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathExtra;
+using MathConst::MY_PI;
+using MathConst::MY_2PI;
 
 #define MAXLINE 1024
 #define SELF_CUTOFF 3

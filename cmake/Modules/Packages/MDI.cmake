@@ -6,10 +6,13 @@ else()
 endif()
 option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an already installed one" ${DOWNLOAD_MDI_DEFAULT})
 
+
+
+
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.1.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "f9505fccd4c79301a619f6452dad4ad9" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.7.tar.gz" CACHE STRING "URL for MDI tarball")
+  set(MDI_MD5 "eaafc1714816e99fabf2d5cf78dfeabf" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
   enable_language(C)

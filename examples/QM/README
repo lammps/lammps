@@ -5,13 +5,13 @@ LATTE = semi-empirical tight-binding code from LANL
   https://www.osti.gov/biblio/1526907-los-alamos-transferable-tight-binding-energetics-latte-version
   https://github.com/lanl/LATTE
 
-To be added later (as of July 2022):
-
-DFT-FE = real-space DFT code from U Michigan
-  https://github.com/dftfeDevelopers/dftfe
+To be added later (as of Aug 2022):
 
 Quantum Espresso (QE) = DFT code for materials modeling
   https://www.quantum-espresso.org/
+
+DFT-FE = real-space DFT code from U Michigan
+  https://github.com/dftfeDevelopers/dftfe
 
 NWChem = computational chemistry code from PNNL
   focus here is on DFT portion of NWChem

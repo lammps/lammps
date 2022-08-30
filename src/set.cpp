@@ -976,12 +976,31 @@ void Set::set(int keyword)
     // set magnetic moments
 
     else if (keyword == SPIN_ATOM) {
+      if (dvalue < 0.0)
+        error->one(FLERR,"Incorrect value for atomic spin magnitude: {}", dvalue);
       double **sp = atom->sp;
       double inorm = 1.0/sqrt(xvalue*xvalue+yvalue*yvalue+zvalue*zvalue);
       sp[i][0] = inorm*xvalue;
       sp[i][1] = inorm*yvalue;
       sp[i][2] = inorm*zvalue;
       sp[i][3] = dvalue;
+    }
+
+    // set electron radius
+
+    else if (keyword == RADIUS_ELECTRON) {
+      atom->eradius[i] = dvalue;
+      if (dvalue < 0.0)
+        error->one(FLERR,"Incorrect value for electron radius: {}", dvalue);
+    }
+
+    // set electron spin
+
+    else if (keyword == SPIN_ELECTRON) {
+      if ((dvalue == -1) || (dvalue == 1) || (dvalue == 0) || (dvalue == 2) || (dvalue == 3))
+        atom->spin[i] = (int)dvalue;
+      else
+        error->one(FLERR,"Incorrect value for electron spin: {}", dvalue);
     }
 
     // set quaternion orientation of ellipsoid or tri or body particle or sphere/bpm

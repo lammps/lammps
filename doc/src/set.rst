@@ -16,9 +16,10 @@ Syntax
 * keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
   or *mol* or *x* or *y* or *z* or *vx* or *vy* or *vz* or *charge* or
   *dipole* or *dipole/random* or *quat* or *spin/atom* or *spin/atom/random* or
-  *quat* or *quat/random* or *diameter* or *shape* or
-  *length* or *tri* or *theta* or *theta/random* or *angmom* or
-  *omega* or *mass* or *density* or *density/disc* or
+  *spin/electron* or *radius/electron* or
+  *quat* or *quat/random* or *diameter* or *shape* or *length* or *tri* or
+  *theta* or *theta/random* or *angmom* or *omega* or
+  *mass* or *density* or *density/disc* or
   *volume* or *image* or *bond* or *angle* or *dihedral* or
   *improper* or *sph/e* or *sph/cv* or *sph/rho* or
   *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
@@ -62,6 +63,10 @@ Syntax
        *spin/atom/random* value = seed Dlen
          seed = random # seed (positive integer) for magnetic spin orientations
          Dlen = magnitude of magnetic spin vector (in Bohr magneton's unit)
+       *radius/electron* values = eradius
+         eradius = electron radius (or fixed-core radius) (distance units)
+       *spin/electron* value = espin
+         espin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
        *quat* values = a b c theta
          a,b,c = unit vector to rotate particle around via right-hand rule
          theta = rotation angle (degrees)
@@ -289,6 +294,16 @@ atoms.  This keyword was previously called *spin*.
 Keyword *spin/atom/random* randomizes the orientation of the magnetic spin
 vectors for the selected atoms and sets the magnitude of each to the
 specified *Dlen* value.  This keyword was previously called *spin/random*.
+
+.. versionadded:: TBD
+
+Keyword *radius/electron* uses the specified value to set the radius of
+electrons or fixed cores.
+
+.. versionadded:: TBD
+
+Keyword *spin/electron* sets the spin of an electron (+/- 1) or indicates
+nuclei (=0), fixed-cores (=2), or pseudo-cores (= 3).
 
 Keyword *quat* uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The

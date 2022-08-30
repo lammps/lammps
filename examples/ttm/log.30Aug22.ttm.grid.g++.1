@@ -1,4 +1,4 @@
-LAMMPS (30 Jul 2021)
+LAMMPS (3 Aug 2022)
 units           metal
 atom_style      atomic
 boundary        p p p
@@ -6,7 +6,7 @@ boundary        p p p
 variable        latc  equal 2.87
 lattice         bcc ${latc}
 lattice         bcc 2.87
-Lattice spacing in x,y,z = 2.8700000 2.8700000 2.8700000
+Lattice spacing in x,y,z = 2.87 2.87 2.87
 variable 	xmax equal   10.0
 variable 	xmin equal  -10.0
 variable 	ymax equal   10.0
@@ -22,7 +22,7 @@ region 		sim_box block -10 10 -10 10 ${zmin} ${zmax}                 units latti
 region 		sim_box block -10 10 -10 10 -10 ${zmax}                 units lattice
 region 		sim_box block -10 10 -10 10 -10 10                 units lattice
 create_box 	1 sim_box
-Created orthogonal box = (-28.700000 -28.700000 -28.700000) to (28.700000 28.700000 28.700000)
+Created orthogonal box = (-28.7 -28.7 -28.7) to (28.7 28.7 28.7)
   1 by 1 by 1 MPI processor grid
 region 		atom_box block ${xmin} ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
 region 		atom_box block -10 ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
@@ -33,14 +33,14 @@ region 		atom_box block -10 10 -10 10 -10 ${zmax}                 units lattice
 region 		atom_box block -10 10 -10 10 -10 10                 units lattice
 create_atoms 	1 region atom_box
 Created 16000 atoms
-  using lattice units in orthogonal box = (-28.700000 -28.700000 -28.700000) to (28.700000 28.700000 28.700000)
-  create_atoms CPU = 0.005 seconds
+  using lattice units in orthogonal box = (-28.7 -28.7 -28.7) to (28.7 28.7 28.7)
+  create_atoms CPU = 0.004 seconds
 
 mass            1 55.845
 
-include		pot_iron.mod
 pair_style      eam/fs
 pair_coeff      * * FeVoter-ChenRecheck.fs Fe
+Reading eam/fs potential file FeVoter-ChenRecheck.fs with DATE: 2016-04-04
 
 neighbor        2.0 bin
 neigh_modify    every 5 delay 0 check yes
@@ -58,9 +58,13 @@ thermo          100
 thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
                 thermo_modify format float "%20.16g"
 
+compute         10 all property/grid 10 10 10 id xc yc zc
+fix             ave all ave/grid 100 5 500 10 10 10 f_twotemp:grid:data
+dump            ave all grid 500 tmp.dump.ave                 c_10:grid:data[*] f_ave:grid:data
+
 run             1000
 Neighbor list info ...
-  update every 5 steps, delay 0 steps, check yes
+  update: every = 5 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 6.524
   ghost atom cutoff = 6.524
@@ -71,43 +75,43 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 10.99 | 10.99 | 10.99 Mbytes
-Step Temp TotEng f_twotemp[1] f_twotemp[2] 
-       0                    0   -68483.52254543516    371.9188105082105                    0 
-     100    17.01353086098387   -68446.50228930202    334.6217068813629   0.3763710887774046 
-     200    27.91331236535322   -68413.16008042906    301.3181773007303   0.3165912892484031 
-     300    32.20115656493125   -68383.19634217303    271.3756381838045   0.2901111802983097 
-     400    33.46056398887347   -68355.73057141017    243.9344715501159   0.2548133388123378 
-     500     35.5346204243821   -68331.63060947017      219.84946888619   0.2388591367999414 
-     600    40.61692458441596   -68309.36124792948    197.5527667607886   0.3056696014124338 
-     700    46.20303146200326   -68290.12727395598    178.3775768561405   0.1982123493608406 
-     800     50.4375018189932   -68272.72651051797     160.995046695269   0.1708386295858845 
-     900    52.17011714635106   -68257.85059865142    146.1567281868867   0.1032829304640776 
-    1000    53.49296457217382   -68244.38715993936    132.7166474251702  0.06428993394665769 
-Loop time of 14.8767 on 1 procs for 1000 steps with 16000 atoms
+Per MPI rank memory allocation (min/avg/max) = 12.09 | 12.09 | 12.09 Mbytes
+   Step          Temp          TotEng      f_twotemp[1]   f_twotemp[2] 
+         0                     0   -68483.52254543516    371.9188105082105                    0
+       100     17.01353086098387   -68446.50228930202    334.6217068813629   0.3763710887774046
+       200     27.91331236535322   -68413.16008042906    301.3181773007303   0.3165912892484031
+       300     32.20115656493125   -68383.19634217303    271.3756381838045   0.2901111802983097
+       400     33.46056398887347   -68355.73057141017    243.9344715501159   0.2548133388123378
+       500      35.5346204243821   -68331.63060947017      219.84946888619   0.2388591367999414
+       600     40.61692458441596   -68309.36124792948    197.5527667607886   0.3056696014124338
+       700     46.20303146200326   -68290.12727395598    178.3775768561405   0.1982123493608406
+       800      50.4375018189932   -68272.72651051797     160.995046695269   0.1708386295858845
+       900     52.17011714635106   -68257.85059865142    146.1567281868867   0.1032829304640776
+      1000     53.49296457217382   -68244.38715993936    132.7166474251702  0.06428993394665769
+Loop time of 15.6373 on 1 procs for 1000 steps with 16000 atoms
 
-Performance: 0.581 ns/day, 41.324 hours/ns, 67.219 timesteps/s
+Performance: 0.553 ns/day, 43.437 hours/ns, 63.950 timesteps/s
 100.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 13.759     | 13.759     | 13.759     |   0.0 | 92.49
+Pair    | 14.493     | 14.493     | 14.493     |   0.0 | 92.68
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.087429   | 0.087429   | 0.087429   |   0.0 |  0.59
-Output  | 0.00063941 | 0.00063941 | 0.00063941 |   0.0 |  0.00
-Modify  | 0.98561    | 0.98561    | 0.98561    |   0.0 |  6.63
-Other   |            | 0.04396    |            |       |  0.30
+Comm    | 0.088097   | 0.088097   | 0.088097   |   0.0 |  0.56
+Output  | 0.0044447  | 0.0044447  | 0.0044447  |   0.0 |  0.03
+Modify  | 1.0075     | 1.0075     | 1.0075     |   0.0 |  6.44
+Other   |            | 0.04433    |            |       |  0.28
 
-Nlocal:        16000.0 ave       16000 max       16000 min
+Nlocal:          16000 ave       16000 max       16000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:        13449.0 ave       13449 max       13449 min
+Nghost:          13449 ave       13449 max       13449 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:        896000.0 ave      896000 max      896000 min
+Neighs:         896000 ave      896000 max      896000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 896000
-Ave neighs/atom = 56.000000
+Ave neighs/atom = 56
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:14
+Total wall time: 0:00:15

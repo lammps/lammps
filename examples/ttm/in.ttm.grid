@@ -40,9 +40,10 @@ thermo          100
 thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
                 thermo_modify format float "%20.16g"
 
-compute         10 all property/grid 5 5 5 id xc yc zc
-fix             ave all ave/grid 100 5 500 5 5 5 f_twotemp:grid:data
+compute         10 all property/grid 10 10 10 id xc yc zc
+fix             ave all ave/grid 100 5 500 10 10 10 f_twotemp:grid:data
 dump            ave all grid 500 tmp.dump.ave &
                 c_10:grid:data[*] f_ave:grid:data
+dump_modify     ave sort 1
 
 run             1000

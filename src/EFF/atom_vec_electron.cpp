@@ -53,17 +53,17 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"q", "spin", "eradius", "ervel", "erforce"};
-  fields_copy = {"q", "spin", "eradius", "ervel"};
+  fields_grow = {"q", "espin", "eradius", "ervel", "erforce"};
+  fields_copy = {"q", "espin", "eradius", "ervel"};
   fields_comm = {"eradius"};
   fields_comm_vel = {"eradius"};
   fields_reverse = {"erforce"};
-  fields_border = {"q", "spin", "eradius"};
-  fields_border_vel = {"q", "spin", "eradius"};
-  fields_exchange = {"q", "spin", "eradius", "ervel"};
-  fields_restart = {"q", "spin", "eradius", "ervel"};
-  fields_create = {"q", "spin", "eradius", "ervel"};
-  fields_data_atom = {"id", "type", "q", "spin", "eradius", "x"};
+  fields_border = {"q", "espin", "eradius"};
+  fields_border_vel = {"q", "espin", "eradius"};
+  fields_exchange = {"q", "espin", "eradius", "ervel"};
+  fields_restart = {"q", "espin", "eradius", "ervel"};
+  fields_create = {"q", "espin", "eradius", "ervel"};
+  fields_data_atom = {"id", "type", "q", "espin", "eradius", "x"};
   fields_data_vel = {"id", "v", "ervel"};
 
   setup_fields();
@@ -119,7 +119,8 @@ void AtomVecElectron::data_atom_post(int ilocal)
 
 int AtomVecElectron::property_atom(const std::string &name)
 {
-  if (name == "spin") return 0;
+  if (name == "espin") return 0;
+  if (name == "spin") return 0;  // backward compatibility
   if (name == "eradius") return 1;
   if (name == "ervel") return 2;
   if (name == "erforce") return 3;

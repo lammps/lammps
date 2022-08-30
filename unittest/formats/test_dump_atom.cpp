@@ -28,6 +28,8 @@ using ::testing::Eq;
 char *BINARY2TXT_EXECUTABLE = nullptr;
 bool verbose                = false;
 
+namespace LAMMPS_NS {
+
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
 
@@ -678,6 +680,7 @@ TEST_F(DumpAtomTest, binary_write_dump)
     delete_file(reference);
     delete_file(dump_file);
 }
+}
 
 int main(int argc, char **argv)
 {
@@ -686,7 +689,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

@@ -730,7 +730,7 @@ void PairMesoCNT::settings(int narg, char **arg)
     else
       error->all(
           FLERR,
-          "Unknown second argument in pair_style mesocnt command, must be 'chain' or 'segment'");
+          "Unknown second argument {} in pair_style mesocnt command, must be 'chain' or 'segment'", arg[1]);
   } else
     segment_flag = false;
 
@@ -744,7 +744,7 @@ void PairMesoCNT::settings(int narg, char **arg)
     else
       error->all(
           FLERR,
-          "Unknown third argument in pair_style mesocnt command, must be 'id' or 'topology'");
+          "Unknown third argument {} in pair_style mesocnt command, must be 'id' or 'topology'", arg[2]);
   } else
     neigh_flag = false;
 }
@@ -755,7 +755,7 @@ void PairMesoCNT::settings(int narg, char **arg)
 
 void PairMesoCNT::coeff(int narg, char **arg)
 {
-  if (narg < 4) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "pair_coeff", error);
   read_file(arg[2]);
 
   nend_types = narg - 3;
@@ -768,9 +768,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
   // units, eV to energy unit conversion
   ang = force->angstrom;
   ang_inv = 1.0 / ang;
-  if (strcmp(update->unit_style, "lj") == 0)
-    error->all(FLERR, "Pair style mesocnt does not support lj units");
-  else if (strcmp(update->unit_style, "real") == 0)
+  if (strcmp(update->unit_style, "real") == 0)
     eunit = 23.06054966;
   else if (strcmp(update->unit_style, "metal") == 0)
     eunit = 1.0;
@@ -785,7 +783,7 @@ void PairMesoCNT::coeff(int narg, char **arg)
   else if (strcmp(update->unit_style, "nano") == 0)
     eunit = 1.6021765e2;
   else
-    error->all(FLERR, "Pair style mesocnt does not recognize this units style");
+    error->all(FLERR, "Pair style mesocnt does not support {} units", update->unit_style);
   funit = eunit * ang_inv;
 
   // potential variables

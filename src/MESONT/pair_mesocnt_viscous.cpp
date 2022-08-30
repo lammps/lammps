@@ -709,7 +709,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
 void PairMesoCNTViscous::coeff(int narg, char **arg)
 {
-  if (narg < 6) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "pair_coeff", error);
   read_file(arg[2]);
 
   fvisc_max = utils::numeric(FLERR, arg[3], false, lmp);
@@ -727,9 +727,7 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   // units, eV to energy unit conversion
   ang = force->angstrom;
   ang_inv = 1.0 / ang;
-  if (strcmp(update->unit_style, "lj") == 0)
-    error->all(FLERR, "Pair style mesocnt does not support lj units");
-  else if (strcmp(update->unit_style, "real") == 0)
+  if (strcmp(update->unit_style, "real") == 0)
     eunit = 23.06054966;
   else if (strcmp(update->unit_style, "metal") == 0)
     eunit = 1.0;
@@ -744,7 +742,7 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
   else if (strcmp(update->unit_style, "nano") == 0)
     eunit = 1.6021765e2;
   else
-    error->all(FLERR, "Pair style mesocnt does not recognize this units style");
+    error->all(FLERR, "Pair style mesocnt/viscous does not support {} units", update->unit_style);
   funit = eunit * ang_inv;
 
   // potential variables

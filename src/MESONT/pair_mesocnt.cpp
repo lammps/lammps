@@ -46,7 +46,7 @@ using MathConst::MY_PI;
 #define MAXLINE 1024
 #define SELF_CUTOFF 3
 #define SMALL 1.0e-6
-#define SWITCH 1.0e-6
+#define SWITCH 1.0e-4
 #define RHOMIN 10.0
 
 #define QUAD_FINF 129

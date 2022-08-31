@@ -235,14 +235,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   ele_vector = new ElectrodeVector(lmp, igroup, igroup, eta, true);
 
   // error checks
-  int write_inv = 0;
-  int write_mat = 0;
-  if (comm->me == 0) {
-    write_inv = !!(f_inv);
-    write_mat = !!(f_mat);
-  }
-  MPI_Bcast(&write_inv, 1, MPI_INT, 0, world);
-  MPI_Bcast(&write_mat, 1, MPI_INT, 0, world);
   assert(groups.size() == group_bits.size());
   assert(groups.size() == group_psi.size());
   assert(groups.size() == group_psi_var_styles.size());
@@ -260,7 +252,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     if (read_mat || write_mat)
       error->all(FLERR, "Selected algorithm does not use matrix. Cannot read/write matrix.");
   }
-  if (need_array_compute) assert(igroup == array_compute->igroup);
   if (read_inv && read_mat) error->all(FLERR, "Cannot read matrix from two files");
   if (write_mat && read_inv)
     error->all(FLERR,
@@ -483,7 +474,7 @@ void FixElectrodeConp::setup_post_neighbor()
 
   evscale = force->qe2f / force->qqrd2e;
   ele_vector->setup(pair, vec_neighlist, timer_flag);
-  
+
   // setup psi with target potentials
   iele_to_group = std::vector<int>(ngroup, -1);
   sd_vectors = std::vector<std::vector<double>>(num_of_groups, std::vector<double>(ngroup));
@@ -525,7 +516,7 @@ void FixElectrodeConp::setup_post_neighbor()
         if (tfflag) { array_compute->setup_tf(tf_types); }
         array_compute->compute_array(elastance, timer_flag);
       }
-      if (comm->me == 0 && write_mat) {  //         writing elastance?    Y: write elastance     
+      if (comm->me == 0 && write_mat) {  //         writing elastance?    Y: write elastance
         auto f_mat = fopen(output_file_mat.c_str(), "w");
         if (f_mat == nullptr)
           error->one(FLERR,

@@ -18,7 +18,7 @@ bond_coeff        1 C 10 10 10
 angle_style       mesocnt
 angle_coeff       1 buckling C 10 10 10
 
-pair_style        mesocnt 30 chain
+pair_style        mesocnt 40 chain
 pair_coeff        * * C_10_10.mesocnt 1
 
 # output

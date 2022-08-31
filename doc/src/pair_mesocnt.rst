@@ -91,12 +91,12 @@ In addition to the LJ interactions described above, style
 segments. Friction forces are a function of the relative velocity
 between a segment and its neighboring approximate chain (even in
 *segment* mode) and only act along the axes of the interacting segment
-and chain. In this potential, friction forces are modelled as a
-shifted logistic function:
+and chain. In this potential, friction forces acting per unit length
+of a nanotube segent are modelled as a shifted logistic function:
 
 .. math::
 
-   F^{\text{FRICTION}}(v) = \frac{F^{\text{max}}}{1 +
+   F^{\text{FRICTION}}(v) / L = \frac{F^{\text{max}}}{1 +
    \exp(-k(v-v_0))} - \frac{F^{\text{max}}}{1 + \exp(k v_0)}
 
 ----------

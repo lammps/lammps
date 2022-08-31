@@ -22,6 +22,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 The *mesocnt* bond style is a wrapper for the :doc:`harmonic
 <bond_harmonic>` style, and uses the potential
 

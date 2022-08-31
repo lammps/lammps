@@ -21,7 +21,9 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <fstream>
 #include <string>
+#include <vector>
 
 using ::testing::Eq;
 
@@ -107,6 +109,21 @@ public:
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
+    }
+
+    std::vector<std::string> extract_items(const std::string &file, const std::string &item)
+    {
+        std::string match = fmt::format("^ITEM: {}", item);
+        std::vector<std::string> values;
+
+        std::ifstream dump(file);
+        for (std::string buffer; std::getline(dump, buffer);) {
+            if (utils::strmatch(buffer, match)) {
+                std::getline(dump, buffer);
+                values.push_back(utils::trim(buffer));
+            }
+        }
+        return values;
     }
 };
 
@@ -680,7 +697,49 @@ TEST_F(DumpAtomTest, binary_write_dump)
     delete_file(reference);
     delete_file(dump_file);
 }
+
+TEST_F(DumpAtomTest, every)
+{
+    auto dump_file = dump_filename("every");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 10 " + dump_file);
+    command("run 20 post no");
+    command("dump_modify id every 5");
+    command("run 15 post no");
+    command("dump_modify id every 10");
+    command("run 25 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    auto timesteps                    = extract_items(dump_file, "TIMESTEP");
+    std::vector<std::string> expected = {"0", "10", "20", "25", "30", "35", "40", "50", "60"};
+    ASSERT_EQ(timesteps.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(timesteps[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 0");
+    command("dump id all atom 1 " + dump_file);
+    command("variable next equal (step+1)*(step+1)");
+    command("dump_modify id every v_next");
+    command("run 50 post no");
+    command("variable next equal logfreq(10,7,10)");
+    command("dump_modify id every v_next");
+    command("run 100 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    timesteps = extract_items(dump_file, "TIMESTEP");
+    expected  = {"1", "4", "25", "60", "70", "100"};
+    ASSERT_EQ(timesteps.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(timesteps[i], Eq(expected[i]));
+
+    delete_file(dump_file);
 }
+} // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {

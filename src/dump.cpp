@@ -1074,6 +1074,7 @@ void Dump::modify_params(int narg, char **arg)
       }
       output->mode_dump[idump] = 0;
       output->every_dump[idump] = n;
+      output->next_dump[idump] = (update->ntimestep/n)*n+n;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"every/time") == 0) {

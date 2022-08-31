@@ -1064,10 +1064,12 @@ void Dump::modify_params(int narg, char **arg)
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
         delete[] output->var_dump[idump];
         output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
+        output->last_dump[idump] = -1;
         n = 0;
       } else {
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
+        output->next_dump[idump] = (update->ntimestep/n)*n+n;
       }
       output->mode_dump[idump] = 0;
       output->every_dump[idump] = n;

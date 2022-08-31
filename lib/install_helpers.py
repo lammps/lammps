@@ -1,4 +1,4 @@
-import hashlib,os,subprocess,sys
+import hashlib,os,subprocess
 
 # try to auto-detect the maximum number of available CPUs
 def get_cpus():

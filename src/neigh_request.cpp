@@ -86,6 +86,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
   skiplist = -1;
   off2on = 0;
   copy = 0;
+  trim = 0;
   copylist = -1;
   halffull = 0;
   halffulllist = -1;

@@ -79,6 +79,52 @@ TEST(TEST_CATEGORY, reducers_half_t) {
   TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(25);
 }
 
+// TODO: File a bug report for this?
+// This fails on the CUDA-11.0-NVCC-C++17-RDC CI check.
+// TEST(TEST_CATEGORY, openmp_cuda11_reduction_bug_with_bhalf_t) {
+//  using ThisTestType = Kokkos::Experimental::bhalf_t;
+//  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(50);
+//  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(51);
+//  // For some reason commenting out reductions of 52,53,54,55 causes
+//  // the reduction of 56 to fail on OpenMP with Cuda/11.0
+//  //TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(52);
+//  //TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(53);
+//  //TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(54);
+//  //TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(55);
+//  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(56);
+//}
+
+TEST(TEST_CATEGORY, reducers_bhalf_t) {
+#if defined(KOKKOS_ENABLE_OPENMP)
+  if (!std::is_same<TEST_EXECSPACE, Kokkos::OpenMP>::value)
+#else
+  if (true)
+#endif  // ENABLE_OPENMP
+  {
+    using ThisTestType = Kokkos::Experimental::bhalf_t;
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(2);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(50);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(51);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(52);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(53);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(54);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(55);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(56);
+    // TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(57);
+    // This could be 57 on device but there seems to be a loss of precision when
+    // running on OpenMP with Cuda/11.0
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(5);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(10);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(15);
+#if (CUDA_VERSION < 11000)
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(20);
+    TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(21);
+#endif
+  } else {
+    GTEST_SKIP();
+  }
+}
+
 TEST(TEST_CATEGORY, reducers_int8_t) {
   using ThisTestType = int8_t;
 

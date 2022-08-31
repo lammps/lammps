@@ -37,6 +37,7 @@ FixStyle(electrode/conp, FixElectrodeConp);
 namespace LAMMPS_NS {
 
 class FixElectrodeConp : public Fix {
+
  public:
   FixElectrodeConp(class LAMMPS *, int, char **);
   ~FixElectrodeConp() override;
@@ -64,6 +65,8 @@ class FixElectrodeConp : public Fix {
   void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
+  enum class Algo { MATRIX_INV, MATRIX_CG, CG };
+  enum class VarStyle { CONST, EQUAL };
   virtual void update_psi();
   virtual void pre_update(){};
   virtual void compute_macro_matrices();
@@ -73,10 +76,12 @@ class FixElectrodeConp : public Fix {
   bigint ngroup;
   std::vector<std::vector<double>> sd_vectors;
   std::vector<double> sb_charges;
-  std::vector<int> group_psi_var_ids, group_psi_var_styles;
+  std::vector<int> group_psi_var_ids;
+  std::vector<VarStyle> group_psi_var_styles;
   std::vector<std::string> group_psi_var_names;
-  bool symm;                                           // symmetrize elastance for charge neutrality
-  std::vector<std::vector<double>> macro_elastance;    // used by conq
+  bool symm;    // symmetrize elastance for charge neutrality
+  Algo algo;
+  std::vector<std::vector<double>> macro_elastance;      // used by conq
   std::vector<std::vector<double>> macro_capacitance;    // used by thermo
   double thermo_temp, thermo_time;                       // used by electrode/thermo only
   int thermo_init;                                       // initializer for rng in electrode/thermo
@@ -90,8 +95,9 @@ class FixElectrodeConp : public Fix {
   std::string input_file_inv, input_file_mat;
   class ElectrodeVector *ele_vector;
   std::vector<int> groups;
-  double **capacitance;
+  double **capacitance, **elastance;
   bool read_inv, read_mat, write_inv, write_mat, write_vec;
+  bool matrix_algo, need_array_compute;
   double eta;
   double update_time, mult_time;
   void create_taglist();
@@ -102,7 +108,7 @@ class FixElectrodeConp : public Fix {
   double potential_energy(int);
   double self_energy(int);
   void write_to_file(FILE *, const std::vector<tagint> &, const std::vector<std::vector<double>> &);
-  void read_from_file(std::string input_file, double **, const std::string &);
+  void read_from_file(const std::string &input_file, double **, const std::string &);
   void compute_sd_vectors();
   void compute_sd_vectors_ffield();
   int groupnum_from_name(char *);

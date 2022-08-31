@@ -35,7 +35,7 @@ class ComputeSnap : public Compute {
 
  private:
   int natoms, nmax, size_peratom, lastcol;
-  int ncoeff, nperdim, yoffset, zoffset;
+  int ncoeff, nvalues, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
   double **cutsq;
   class NeighList *list;
@@ -47,13 +47,12 @@ class ComputeSnap : public Compute {
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
   int switchinnerflag;
-  double *rinnerelem;
-  double *drinnerelem;
+  double *sinnerelem;
+  double *dinnerelem;
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
-  int bikflag;
-  int bik_rows;
+  int bikflag, bik_rows, dgradflag, dgrad_rows;
 
   Compute *c_pe;
   Compute *c_virial;

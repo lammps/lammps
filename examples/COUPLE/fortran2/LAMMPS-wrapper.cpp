@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-    Contributing author:  Karl D. Hammond <karlh@ugcs.caltech.edu>
-                          University of Tennessee, Knoxville (USA), 2012
+    Contributing author:  Karl D. Hammond <hammondkd@missouri.edu>
+                          University of Missouri (USA), 2012
 ------------------------------------------------------------------------- */
 
 /* This is set of "wrapper" functions to assist LAMMPS.F90, which itself
@@ -23,6 +23,7 @@
 
 #include <mpi.h>
 #include "LAMMPS-wrapper.h"
+#define LAMMPS_LIB_MPI 1
 #include <library.h>
 #include <lammps.h>
 #include <atom.h>
@@ -56,181 +57,40 @@ void lammps_error_all (void *ptr, const char *file, int line, const char *str)
 
 int lammps_extract_compute_vectorsize (void *ptr, char *id, int style)
 {
-   class LAMMPS *lmp = (class LAMMPS *) ptr;
-   int icompute = lmp->modify->find_compute(id);
-   if ( icompute < 0 ) return 0;
-   class Compute *compute = lmp->modify->compute[icompute];
-
-   if ( style == 0 )
-   {
-      if ( !compute->vector_flag )
-         return 0;
-      else
-         return compute->size_vector;
-   }
-   else if ( style == 1 )
-   {
-      return lammps_get_natoms (ptr);
-   }
-   else if ( style == 2 )
-   {
-      if ( !compute->local_flag )
-         return 0;
-      else
-         return compute->size_local_rows;
-   }
-   else
-      return 0;
+   int *size;
+   size = (int *) lammps_extract_compute(ptr, id, style, LMP_SIZE_VECTOR);
+   if (size) return *size;
+   return 0;
 }
 
 void lammps_extract_compute_arraysize (void *ptr, char *id, int style,
       int *nrows, int *ncols)
 {
-   class LAMMPS *lmp = (class LAMMPS *) ptr;
-   int icompute = lmp->modify->find_compute(id);
-   if ( icompute < 0 )
-   {
-      *nrows = 0;
-      *ncols = 0;
-   }
-   class Compute *compute = lmp->modify->compute[icompute];
-
-   if ( style == 0 )
-   {
-      if ( !compute->array_flag )
-      {
-         *nrows = 0;
-         *ncols = 0;
-      }
-      else
-      {
-         *nrows = compute->size_array_rows;
-         *ncols = compute->size_array_cols;
-      }
-   }
-   else if ( style == 1 )
-   {
-      if ( !compute->peratom_flag )
-      {
-         *nrows = 0;
-         *ncols = 0;
-      }
-      else
-      {
-         *nrows = lammps_get_natoms (ptr);
-         *ncols = compute->size_peratom_cols;
-      }
-   }
-   else if ( style == 2 )
-   {
-      if ( !compute->local_flag )
-      {
-         *nrows = 0;
-         *ncols = 0;
-      }
-      else
-      {
-         *nrows = compute->size_local_rows;
-         *ncols = compute->size_local_cols;
-      }
-   }
-   else
-   {
-      *nrows = 0;
-      *ncols = 0;
-   }
-
+   int *tmp;
+   tmp = (int *) lammps_extract_compute(ptr, id, style, LMP_SIZE_ROWS);
+   if (tmp) *nrows = *tmp;
+   tmp = (int *) lammps_extract_compute(ptr, id, style, LMP_SIZE_COLS);
+   if (tmp) *ncols = *tmp;
    return;
 }
 
 int lammps_extract_fix_vectorsize (void *ptr, char *id, int style)
 {
-   class LAMMPS *lmp = (class LAMMPS *) ptr;
-   int ifix = lmp->modify->find_fix(id);
-   if ( ifix < 0 ) return 0;
-   class Fix *fix = lmp->modify->fix[ifix];
-
-   if ( style == 0 )
-   {
-      if ( !fix->vector_flag )
-         return 0;
-      else
-         return fix->size_vector;
-   }
-   else if ( style == 1 )
-   {
-      return lammps_get_natoms (ptr);
-   }
-   else if ( style == 2 )
-   {
-      if ( !fix->local_flag )
-         return 0;
-      else
-         return fix->size_local_rows;
-   }
-   else
-      return 0;
+   int *size;
+   size = (int *) lammps_extract_fix(ptr, id, style, LMP_SIZE_VECTOR, 0, 0);
+   if (size) return *size;
+   return 0;
 }
 
 void lammps_extract_fix_arraysize (void *ptr, char *id, int style,
       int *nrows, int *ncols)
 {
-   class LAMMPS *lmp = (class LAMMPS *) ptr;
-   int ifix = lmp->modify->find_fix(id);
-   if ( ifix < 0 )
-   {
-      *nrows = 0;
-      *ncols = 0;
-   }
-   class Fix *fix = lmp->modify->fix[ifix];
-
-   if ( style == 0 )
-   {
-      if ( !fix->array_flag )
-      {
-         *nrows = 0;
-         *ncols = 0;
-      }
-      else
-      {
-         *nrows = fix->size_array_rows;
-         *ncols = fix->size_array_cols;
-      }
-   }
-   else if ( style == 1 )
-   {
-      if ( !fix->peratom_flag )
-      {
-         *nrows = 0;
-         *ncols = 0;
-      }
-      else
-      {
-         *nrows = lammps_get_natoms (ptr);
-         *ncols = fix->size_peratom_cols;
-      }
-   }
-   else if ( style == 2 )
-   {
-      if ( !fix->local_flag )
-      {
-         *nrows = 0;
-         *ncols = 0;
-      }
-      else
-      {
-         *nrows = fix->size_local_rows;
-         *ncols = fix->size_local_cols;
-      }
-   }
-   else
-   {
-      *nrows = 0;
-      *ncols = 0;
-   }
-
+   int *tmp;
+   tmp = (int *) lammps_extract_fix(ptr, id, style, LMP_SIZE_ROWS, 0, 0);
+   if (tmp) *nrows = *tmp;
+   tmp = (int *) lammps_extract_fix(ptr, id, style, LMP_SIZE_COLS, 0, 0);
+   if (tmp) *ncols = *tmp;
    return;
-
 }
 
 /* vim: set ts=3 sts=3 expandtab: */

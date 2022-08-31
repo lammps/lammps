@@ -74,6 +74,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <angle_amoeba>`
    * :doc:`charmm (iko) <angle_charmm>`
    * :doc:`class2 (ko) <angle_class2>`
    * :doc:`class2/p6 <angle_class2>`
@@ -88,7 +89,7 @@ OPT.
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
-   * :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
+   * :doc:`gaussian <angle_gaussian>`
    * :doc:`harmonic (iko) <angle_harmonic>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
@@ -152,6 +153,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <improper_amoeba>`
    * :doc:`class2 (ko) <improper_class2>`
    * :doc:`cossq (o) <improper_cossq>`
    * :doc:`cvff (io) <improper_cvff>`

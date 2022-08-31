@@ -42,25 +42,25 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
  public:
   PPPMElectrodeIntel(class LAMMPS *);
   ~PPPMElectrodeIntel();
-  void init();
-  void setup();
-  void compute(int, int);
+  void init() override;
+  void setup() override;
+  void compute(int, int) override;
 
   void compute_vector(double *, int, int, bool) override;
   void compute_vector_corr(double *, int, int, bool) override;
   void compute_matrix(bigint *, double **, bool) override;
   void compute_matrix_corr(bigint *, double **) override;
 
-  void compute_group_group(int, int, int);
+  void compute_group_group(int, int, int) override;
 
  protected:
   FFT_SCALAR ***electrolyte_density_brick;
   FFT_SCALAR *electrolyte_density_fft;
   class BoundaryCorrection *boundcorr;
 
-  void allocate();
-  void deallocate();
-  void allocate_peratom();
+  void allocate() override;
+  void deallocate() override;
+  void allocate_peratom() override;
 
  private:
   int compute_step;

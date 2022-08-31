@@ -37,7 +37,7 @@ class ComputeSNADAtom : public Compute {
 
  private:
   int nmax;
-  int ncoeff, nperdim, yoffset, zoffset;
+  int ncoeff, nvalues, yoffset, zoffset;
   double **cutsq;
   class NeighList *list;
   double **snad;
@@ -47,8 +47,8 @@ class ComputeSNADAtom : public Compute {
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
   int switchinnerflag;
-  double *rinnerelem;
-  double *drinnerelem;
+  double *sinnerelem;
+  double *dinnerelem;
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;

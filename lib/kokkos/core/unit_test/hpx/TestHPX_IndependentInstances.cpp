@@ -46,7 +46,7 @@
 #include <TestHPX_Category.hpp>
 
 #include <hpx/config.hpp>
-#include <hpx/include/lcos.hpp>
+#include <hpx/local/future.hpp>
 
 #ifdef KOKKOS_ENABLE_HPX_ASYNC_DISPATCH
 #ifndef HPX_COMPUTE_DEVICE_CODE
@@ -153,7 +153,7 @@ TEST(hpx, independent_instances) {
     // future<void>>> (return type of when_all) into a future<void> which is
     // ready whenever the un-collapsed future would've been ready. HPX does not
     // currently have the functionality to collapse this automatically.
-    Kokkos::Experimental::HPX hpx4(hpx::util::get<0>(hpx::split_future(
+    Kokkos::Experimental::HPX hpx4(hpx::get<0>(hpx::split_future(
         hpx::when_all(hpx2.impl_get_future(), hpx3.impl_get_future()))));
     Kokkos::parallel_for(
         "Test::hpx::independent_instances::pointwise_sum",

@@ -100,7 +100,7 @@ void ElectrodeMatrix::pair_contribution(double **array)
 {
   int inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz;
-  double r, rinv, rsq, grij, etarij, expm2, t, erfc, aij;
+  double r, rinv, rsq, aij;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double **x = atom->x;

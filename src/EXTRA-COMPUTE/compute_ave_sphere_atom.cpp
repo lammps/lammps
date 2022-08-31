@@ -11,10 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Stan Moore (SNL)
+------------------------------------------------------------------------- */
+
 #include "compute_ave_sphere_atom.h"
 
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -98,7 +103,10 @@ void ComputeAveSphereAtom::init()
   }
 
   cutsq = cutoff * cutoff;
-  sphere_vol = 4.0 / 3.0 * MY_PI * cutsq * cutoff;
+  if (domain->dimension == 3)
+    volume = 4.0 / 3.0 * MY_PI * cutsq * cutoff;
+  else
+    volume = MY_PI * cutsq;
 
   // need an occasional full neighbor list
 
@@ -121,7 +129,7 @@ void ComputeAveSphereAtom::compute_peratom()
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
   int count;
-  double vsum[3], vavg[3], vnet[3];
+  double p[3], vcom[3], vnet[3];
 
   invoked_peratom = update->ntimestep;
 
@@ -152,12 +160,26 @@ void ComputeAveSphereAtom::compute_peratom()
 
   double **x = atom->x;
   double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
   int *mask = atom->mask;
+  double massone_i, massone_j, totalmass;
+
+  double adof = domain->dimension;
+  double mvv2e = force->mvv2e;
+  double mv2d = force->mv2d;
+  double boltz = force->boltz;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
 
     if (mask[i] & groupbit) {
+      if (rmass)
+        massone_i = rmass[i];
+      else
+        massone_i = mass[type[i]];
+
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
@@ -167,13 +189,18 @@ void ComputeAveSphereAtom::compute_peratom()
       // i atom contribution
 
       count = 1;
-      vsum[0] = v[i][0];
-      vsum[1] = v[i][1];
-      vsum[2] = v[i][2];
+      totalmass = massone_i;
+      p[0] = v[i][0] * massone_i;
+      p[1] = v[i][1] * massone_i;
+      p[2] = v[i][2] * massone_i;
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
+        if (rmass)
+          massone_j = rmass[j];
+        else
+          massone_j = mass[type[j]];
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
@@ -181,42 +208,45 @@ void ComputeAveSphereAtom::compute_peratom()
         rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
           count++;
-          vsum[0] += v[j][0];
-          vsum[1] += v[j][1];
-          vsum[2] += v[j][2];
+          totalmass += massone_j;
+          p[0] += v[j][0] * massone_j;
+          p[1] += v[j][1] * massone_j;
+          p[2] += v[j][2] * massone_j;
         }
       }
 
-      vavg[0] = vsum[0] / count;
-      vavg[1] = vsum[1] / count;
-      vavg[2] = vsum[2] / count;
+      vcom[0] = p[0] / totalmass;
+      vcom[1] = p[1] / totalmass;
+      vcom[2] = p[2] / totalmass;
 
       // i atom contribution
 
-      count = 1;
-      vnet[0] = v[i][0] - vavg[0];
-      vnet[1] = v[i][1] - vavg[1];
-      vnet[2] = v[i][2] - vavg[2];
-      double ke_sum = vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2];
+      vnet[0] = v[i][0] - vcom[0];
+      vnet[1] = v[i][1] - vcom[1];
+      vnet[2] = v[i][2] - vcom[2];
+      double ke_sum = massone_i * (vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2]);
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
+        if (rmass)
+          massone_j = rmass[j];
+        else
+          massone_j = mass[type[j]];
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
-          count++;
-          vnet[0] = v[j][0] - vavg[0];
-          vnet[1] = v[j][1] - vavg[1];
-          vnet[2] = v[j][2] - vavg[2];
-          ke_sum += vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2];
+          vnet[0] = v[j][0] - vcom[0];
+          vnet[1] = v[j][1] - vcom[1];
+          vnet[2] = v[j][2] - vcom[2];
+          ke_sum += massone_j * (vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2]);
         }
       }
-      double density = count / sphere_vol;
-      double temp = ke_sum / 3.0 / count;
+      double density = mv2d * totalmass / volume;
+      double temp = mvv2e * ke_sum / (adof * count * boltz);
       result[i][0] = density;
       result[i][1] = temp;
     }

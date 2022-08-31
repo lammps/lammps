@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,15 +20,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpDeprecated::DumpDeprecated(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg)
+DumpDeprecated::DumpDeprecated(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
   std::string my_style = style;
 
   if (my_style == "DEPRECATED") {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp,"\nDump style 'DEPRECATED' is a dummy style\n\n");
+    if (lmp->comm->me == 0) utils::logmesg(lmp, "\nDump style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR,"This dump style is no longer available");
+  error->all(FLERR, "This dump style is no longer available");
 }

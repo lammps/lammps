@@ -91,8 +91,8 @@ void test_offsetview_construction() {
   ASSERT_EQ(ov.begin(1), -2);
   ASSERT_EQ(ov.end(1), 3);
 
-  ASSERT_EQ(ov.extent(0), 5);
-  ASSERT_EQ(ov.extent(1), 5);
+  ASSERT_EQ(ov.extent(0), 5u);
+  ASSERT_EQ(ov.extent(1), 5u);
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
   {
@@ -357,7 +357,6 @@ void test_offsetview_unmanaged_construction() {
     ASSERT_EQ(bb, ii);
   }
 
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
   {
     using offset_view_type = Kokkos::Experimental::OffsetView<Scalar*, Device>;
 
@@ -397,7 +396,6 @@ void test_offsetview_unmanaged_construction() {
     ASSERT_THROW(offset_view_type(&s, {0, 0, 0}, {1, 1, 1}),
                  std::runtime_error);
   }
-#endif  // KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
 }
 
 template <typename Scalar, typename Device>

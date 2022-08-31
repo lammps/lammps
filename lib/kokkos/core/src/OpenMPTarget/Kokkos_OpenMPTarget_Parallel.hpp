@@ -168,16 +168,22 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
     const auto begin = p.begin();
     const auto end   = p.end();
 
-    if (end <= begin) return;
+    ValueType result;
+    OpenMPTargetReducerWrapper<ReducerType>::init(result);
 
-    ValueType result = ValueType();
+    // Initialize and copy back the result even if it is a zero length
+    // reduction.
+    if (end <= begin) {
+      ParReduceCommon::memcpy_result(result_ptr, &result, sizeof(ValueType),
+                                     ptr_on_device);
+      return;
+    }
 
 #pragma omp declare reduction(                                         \
     custom:ValueType                                                   \
     : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
     initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
 
-    OpenMPTargetReducerWrapper<ReducerType>::init(result);
 #pragma omp target teams distribute parallel for map(to                    \
                                                      : f) reduction(custom \
                                                                     : result)
@@ -203,12 +209,17 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
     const auto begin = p.begin();
     const auto end   = p.end();
 
-    if (end <= begin) return;
-
-    ValueType result = ValueType();
-
     // Enter the loop if the reduction is on a scalar type.
     if constexpr (NumReductions == 1) {
+      ValueType result = ValueType();
+
+      // Initialize and copy back the result even if it is a zero length
+      // reduction.
+      if (end <= begin) {
+        ParReduceCommon::memcpy_result(result_ptr, &result, sizeof(ValueType),
+                                       ptr_on_device);
+        return;
+      }
       // Case where reduction is on a native data type.
       if constexpr (std::is_arithmetic<ValueType>::value) {
 #pragma omp target teams distribute parallel for \
@@ -233,7 +244,20 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
             f(TagType(), i, result);
           }
       }
+
+      ParReduceCommon::memcpy_result(result_ptr, &result, sizeof(ValueType),
+                                     ptr_on_device);
     } else {
+      ValueType result[NumReductions] = {};
+
+      // Initialize and copy back the result even if it is a zero length
+      // reduction.
+      if (end <= begin) {
+        ParReduceCommon::memcpy_result(result_ptr, result,
+                                       NumReductions * sizeof(ValueType),
+                                       ptr_on_device);
+        return;
+      }
 #pragma omp target teams distribute parallel for map(to:f) reduction(+:result[:NumReductions])
       for (auto i = begin; i < end; ++i) {
         if constexpr (std::is_same<TagType, void>::value) {
@@ -242,10 +266,10 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
           f(TagType(), i, result);
         }
       }
-    }
 
-    ParReduceCommon::memcpy_result(result_ptr, &result, sizeof(ValueType),
-                                   ptr_on_device);
+      ParReduceCommon::memcpy_result(
+          result_ptr, result, NumReductions * sizeof(ValueType), ptr_on_device);
+    }
   }
 
   static void execute_init_join(const FunctorType& f, const PolicyType& p,
@@ -896,8 +920,6 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
                                      shmem_size_L0, shmem_size_L1);
     void* scratch_ptr = OpenMPTargetExec::get_scratch_ptr();
 
-    ValueType result = ValueType();
-
     // Maximum active teams possible.
     int max_active_teams = OpenMPTargetExec::MAX_ACTIVE_THREADS / team_size;
     const auto nteams =
@@ -905,6 +927,8 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
 
     // Case where the number of reduction items is 1.
     if constexpr (NumReductions == 1) {
+      ValueType result = ValueType();
+
       // Case where reduction is on a native data type.
       if constexpr (std::is_arithmetic<ValueType>::value) {
 #pragma omp target teams num_teams(nteams) thread_limit(team_size) map(to   \
@@ -958,7 +982,12 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
             Kokkos::abort("`num_teams` clause was not respected.\n");
         }
       }
+
+      // Copy results back to device if `parallel_reduce` is on a device view.
+      ParReduceCommon::memcpy_result(result_ptr, &result, sizeof(ValueType),
+                                     ptr_on_device);
     } else {
+      ValueType result[NumReductions] = {};
       // Case where the reduction is on an array.
 #pragma omp target teams num_teams(nteams) thread_limit(team_size) map(to   \
                                                                        : f) \
@@ -983,26 +1012,25 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
         } else
           Kokkos::abort("`num_teams` clause was not respected.\n");
       }
-    }
 
-    // Copy results back to device if `parallel_reduce` is on a device view.
-    ParReduceCommon::memcpy_result(result_ptr, &result, sizeof(ValueType),
-                                   ptr_on_device);
+      // Copy results back to device if `parallel_reduce` is on a device view.
+      ParReduceCommon::memcpy_result(
+          result_ptr, result, NumReductions * sizeof(ValueType), ptr_on_device);
+    }
   }
 
   // FIXME_OPENMPTARGET : This routine is a copy from `parallel_reduce` over
   // RangePolicy. Need a new implementation.
   static void execute_init_join(const FunctorType& f, const PolicyType& p,
                                 PointerType ptr, const bool ptr_on_device) {
-    const auto begin      = p.begin();
-    const auto end        = p.end();
     constexpr int HasInit = ReduceFunctorHasInit<FunctorType>::value;
-
-    const auto size = end - begin;
 
     const int league_size   = p.league_size();
     const int team_size     = p.team_size();
     const int vector_length = p.impl_vector_length();
+
+    auto begin = 0;
+    auto end   = league_size * team_size + team_size * vector_length;
 
     const size_t shmem_size_L0 = p.scratch_size(0, team_size);
     const size_t shmem_size_L1 = p.scratch_size(1, team_size);
@@ -1010,16 +1038,13 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
     // FIXME_OPENMPTARGET: This would oversubscribe scratch memory since we are
     // already using the available scratch memory to create temporaries for each
     // thread.
-    if constexpr ((shmem_size_L0 + shmem_size_L1) > 0) {
+    if ((shmem_size_L0 + shmem_size_L1) > 0) {
       Kokkos::abort(
           "OpenMPTarget: Scratch memory is not supported in `parallel_reduce` "
           "over functors with init/join.");
     }
 
-    // Maximum active teams possible.
-    int max_active_teams = OpenMPTargetExec::MAX_ACTIVE_THREADS / team_size;
-    const auto nteams =
-        league_size < max_active_teams ? league_size : max_active_teams;
+    const auto nteams = league_size;
 
     // Number of elements in the reduction
     const auto value_count =
@@ -1100,7 +1125,7 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
     is_device_ptr(scratch_ptr)
       for (int i = 0; i < nteams - tree_neighbor_offset;
            i += 2 * tree_neighbor_offset) {
-        ValueType* team_scratch = scratch_ptr;
+        ValueType* team_scratch = static_cast<ValueType*>(scratch_ptr);
         const int team_offset   = team_size * value_count;
         ValueJoin::join(
             f, &team_scratch[i * team_offset],

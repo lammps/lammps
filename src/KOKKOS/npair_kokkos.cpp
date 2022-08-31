@@ -31,6 +31,8 @@ namespace LAMMPS_NS {
 template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
 NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
 
+  last_stencil_old = -1;
+
   // use 1D view for scalars to reduce GPU memory operations
 
   d_scalars = typename AT::t_int_1d("neighbor:scalars",2);
@@ -114,8 +116,10 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (ns->last_stencil == update->ntimestep) {
+  if (ns->last_stencil != last_stencil_old) {
     // copy stencil to device as it may have changed
+
+    last_stencil_old = ns->last_stencil;
 
     int maxstencil = ns->get_maxstencil();
 
@@ -149,6 +153,9 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   int nall = nlocal;
   if (GHOST)
     nall += atom->nghost;
+
+  if (nall == 0) return;
+
   list->grow(nall);
 
   NeighborKokkosExecute<DeviceType>

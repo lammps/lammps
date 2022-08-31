@@ -26,3 +26,5 @@ tag:  3.3.01     date: 01:06:2021    master: 6d65b5a3    release: 4d23839c
 tag:  3.4.00     date: 04:26:2021    master: 1fb0c284    release: 5d7738d6
 tag:  3.4.01     date: 05:20:2021    master: 4b97a22f    release: 410b15c8
 tag:  3.5.00     date: 11:19:2021    master: c28a8b03    release: 21b879e4
+tag:  3.6.00     date: 04:14:2022    master: 2834f94a    release: 6ea708ff
+tag:  3.6.01     date: 06:16:2022    master: b52f8c83    release: afe9b404

@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 
 PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
   styles(nullptr), keywords(nullptr), multiple(nullptr), nmap(nullptr),
-  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
+  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr), cutmax_style(nullptr)
 {
   nstyles = 0;
 
@@ -56,6 +56,7 @@ PairHybrid::~PairHybrid()
     }
   }
   delete[] styles;
+  delete[] cutmax_style;
   delete[] keywords;
   delete[] multiple;
 
@@ -192,6 +193,12 @@ void PairHybrid::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::finish()
+{
+  for (int m = 0; m < nstyles; m++) styles[m]->finish();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -298,6 +305,8 @@ void PairHybrid::settings(int narg, char **arg)
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair *[narg];
+  cutmax_style = new double[narg];
+  memset(cutmax_style, 0.0, narg*sizeof(double));
   keywords = new char *[narg];
   multiple = new int[narg];
 
@@ -332,7 +341,7 @@ void PairHybrid::settings(int narg, char **arg)
     jarg = iarg + 1;
     while ((jarg < narg)
            && !force->pair_map->count(arg[jarg])
-           && !lmp->match_style("pair",arg[jarg])) jarg++;
+           && !lmp->match_style("pair", arg[jarg])) jarg++;
 
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
@@ -716,6 +725,24 @@ double PairHybrid::init_one(int i, int j)
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
     }
     cutmax = MAX(cutmax,cut);
+
+    int istyle;
+    for (istyle = 0; istyle < nstyles; istyle++)
+      if (styles[istyle] == styles[map[i][j][k]]) break;
+
+    if (styles[istyle]->trim_flag) {
+
+      if (cut > cutmax_style[istyle]) {
+        cutmax_style[istyle] = cut;
+
+        for (auto &request : neighbor->get_pair_requests()) {
+          if (styles[istyle] == request->get_requestor() && styles[istyle]->trim_flag) {
+            request->set_cutoff(cutmax_style[istyle]);
+            break;
+          }
+        }
+      }
+    }
   }
 
   return cutmax;
@@ -778,6 +805,8 @@ void PairHybrid::read_restart(FILE *fp)
   delete[] compute_tally;
 
   styles = new Pair*[nstyles];
+  cutmax_style = new double[nstyles];
+  memset(cutmax_style, 0.0, nstyles*sizeof(double));
   keywords = new char*[nstyles];
   multiple = new int[nstyles];
 
@@ -1010,8 +1039,7 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
   if (styles[m]->suffix_flag & (Suffix::INTEL|Suffix::GPU))
-    error->all(FLERR,"Pair_modify special is not compatible with "
-                     "suffix version of hybrid substyle");
+    error->all(FLERR,"Pair_modify special not compatible with suffix version of hybrid substyle");
 
   if (strcmp(arg[0],"lj/coul") == 0) {
     if (!special_lj[m]) special_lj[m] = new double[4];
@@ -1090,13 +1118,11 @@ void *PairHybrid::extract(const char *str, int &dim)
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
       if (couldim != -1 && dim != couldim)
-        error->all(FLERR,
-                   "Coulomb styles of pair hybrid sub-styles do not match");
+        error->all(FLERR, "Coulomb styles of pair hybrid sub-styles do not match");
       auto p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
-        error->all(FLERR,
-                   "Coulomb cutoffs of pair hybrid sub-styles do not match");
+        error->all(FLERR, "Coulomb cutoffs of pair hybrid sub-styles do not match");
       if (dim == 0) {
         cutptr = ptr;
         cutvalue = newvalue;

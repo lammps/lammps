@@ -16,9 +16,9 @@
 
 
 colvar::map_total::map_total()
-  : cvc(), volmap_index(-1)
+  : cvc()
 {
-  function_type = "map_total";
+  set_function_type("mapTotal");
   volmap_id = -1;
   volmap_index = -1;
   atoms = NULL;
@@ -27,9 +27,9 @@ colvar::map_total::map_total()
 
 
 colvar::map_total::map_total(std::string const &conf)
-  : cvc(), volmap_index(-1)
+  : cvc() // init() will take care of this
 {
-  function_type = "map_total";
+  set_function_type("mapTotal");
   volmap_id = -1;
   volmap_index = -1;
   atoms = NULL;
@@ -45,6 +45,8 @@ int colvar::map_total::init(std::string const &conf)
   get_keyval(conf, "mapName", volmap_name, volmap_name);
   get_keyval(conf, "mapID", volmap_id, volmap_id);
   register_param("mapID", reinterpret_cast<void *>(&volmap_id));
+
+  cvm::main()->cite_feature("Volumetric map-based collective variables");
 
   if ((volmap_name.size() > 0) && (volmap_id >= 0)) {
     error_code |=
@@ -72,21 +74,21 @@ int colvar::map_total::init(std::string const &conf)
     if (volmap_id >= 0) {
       volmap_index = proxy->init_volmap_by_id(volmap_id);
     }
-    error_code |= volmap_index > 0 ? COLVARS_OK : INPUT_ERROR;
+    error_code |= volmap_index > 0 ? COLVARS_OK : COLVARS_INPUT_ERROR;
   }
 
   if (get_keyval(conf, "atomWeights", atom_weights, atom_weights)) {
     if (atoms == NULL) {
       error_code |= cvm::error("Error: weights can only be assigned when atoms "
                                "are selected explicitly in Colvars.\n",
-                               INPUT_ERROR);
+                               COLVARS_INPUT_ERROR);
     } else {
       if (atoms->size() != atom_weights.size()) {
         error_code |= cvm::error("Error: if defined, the number of weights ("+
                                  cvm::to_str(atom_weights.size())+
                                  ") must equal the number of atoms ("+
                                  cvm::to_str(atoms->size())+
-                                 ").\n", INPUT_ERROR);
+                                 ").\n", COLVARS_INPUT_ERROR);
       }
     }
   }

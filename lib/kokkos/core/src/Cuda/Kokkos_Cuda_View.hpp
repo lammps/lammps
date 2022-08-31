@@ -139,7 +139,7 @@ struct CudaLDGFetch {
 
   template <typename iType>
   KOKKOS_INLINE_FUNCTION ValueType operator[](const iType& i) const {
-#if defined(__CUDA_ARCH__) && (350 <= _CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) && (350 <= __CUDA_ARCH__)
     AliasType v = __ldg(reinterpret_cast<const AliasType*>(&m_ptr[i]));
     return *(reinterpret_cast<ValueType*>(&v));
 #else
@@ -252,32 +252,45 @@ class ViewDataHandle<
                             track_type const& arg_tracker) {
     if (arg_data_ptr == nullptr) return handle_type();
 
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    // Assignment of texture = non-texture requires creation of a texture object
-    // which can only occur on the host.  In addition, 'get_record' is only
-    // valid if called in a host execution space
-
-    using memory_space = typename Traits::memory_space;
-    using record = typename Impl::SharedAllocationRecord<memory_space, void>;
-
-    record* const r = arg_tracker.template get_record<memory_space>();
-
 #if !defined(KOKKOS_ENABLE_CUDA_LDG_INTRINSIC)
-    if (0 == r) {
-      Kokkos::abort(
-          "Cuda const random access View using Cuda texture memory requires "
-          "Kokkos to allocate the View's memory");
-    }
-#endif
+    KOKKOS_IF_ON_HOST((
+        // Assignment of texture = non-texture requires creation of a texture
+        // object which can only occur on the host.  In addition, 'get_record'
+        // is only valid if called in a host execution space
 
-    return handle_type(arg_data_ptr, r);
+        using memory_space = typename Traits::memory_space;
+        using record =
+            typename Impl::SharedAllocationRecord<memory_space, void>;
 
+        record* const r = arg_tracker.template get_record<memory_space>();
+
+        if (0 == r) {
+          Kokkos::abort(
+              "Cuda const random access View using Cuda texture memory "
+              "requires "
+              "Kokkos to allocate the View's memory");
+        }
+
+        return handle_type(arg_data_ptr, r);))
 #else
-    (void)arg_tracker;
-    Kokkos::Impl::cuda_abort(
-        "Cannot create Cuda texture object from within a Cuda kernel");
-    return handle_type();
+    KOKKOS_IF_ON_HOST((
+        // Assignment of texture = non-texture requires creation of a texture
+        // object which can only occur on the host.  In addition, 'get_record'
+        // is only valid if called in a host execution space
+
+        using memory_space = typename Traits::memory_space;
+        using record =
+            typename Impl::SharedAllocationRecord<memory_space, void>;
+
+        record* const r = arg_tracker.template get_record<memory_space>();
+
+        return handle_type(arg_data_ptr, r);))
 #endif
+
+    KOKKOS_IF_ON_DEVICE(
+        ((void)arg_tracker; Kokkos::Impl::cuda_abort(
+             "Cannot create Cuda texture object from within a Cuda kernel");
+         return handle_type();))
   }
 };
 

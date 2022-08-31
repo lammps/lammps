@@ -188,17 +188,20 @@ of the file is reached.  The *infile* pointer will usually point to
 
 void Input::file()
 {
-  int m,n;
+  int m,n,mstart,ntriple,endfile;
 
   while (true) {
 
     // read a line from input script
-    // n = length of line including str terminator, 0 if end of file
+    // when done, n = length of line including str terminator, 0 if end of file
     // if line ends in continuation char '&', concatenate next line
+    // if triple quotes are used, read until closing triple quotes
 
     if (me == 0) {
-
+      ntriple = 0;
+      endfile = 0;
       m = 0;
+
       while (true) {
 
         if (infile == nullptr) {
@@ -206,38 +209,58 @@ void Input::file()
           break;
         }
 
-        if (maxline-m < 2) reallocate(line,maxline,0);
+        mstart = m;
 
-        // end of file reached, so break
-        // n == 0 if nothing read, else n = line with str terminator
+        while (1) {
+          if (maxline-m < 2) reallocate(line,maxline,0);
 
-        if (fgets(&line[m],maxline-m,infile) == nullptr) {
-          if (m) n = strlen(line) + 1;
-          else n = 0;
+          // end of file reached, so break
+          // n == 0 if nothing read, else n = line with str terminator
+
+          if (fgets(&line[m],maxline-m,infile) == nullptr) {
+            endfile = 1;
+            if (m) n = strlen(line) + 1;
+            else n = 0;
+            break;
+          }
+
+          // continue if last char read was not a newline
+          // can happen if line is very long
+
+          m += strlen(&line[m]);
+          if (line[m-1] != '\n') continue;
           break;
         }
 
-        // continue if last char read was not a newline
-        // could happen if line is very long
+        if (endfile) break;
 
-        m = strlen(line);
-        if (line[m-1] != '\n') continue;
+        // add # of triple quotes in just-read line to ntriple
 
-        // continue reading if final printable char is & char
-        // or if odd number of triple quotes
-        // else break with n = line with str terminator
+        ntriple += numtriple(&line[mstart]);
+
+        // trim whitespace from end of line
+        // line[m] = last printable char
 
         m--;
         while (m >= 0 && isspace(line[m])) m--;
-        if (m < 0 || line[m] != '&') {
-          if (numtriple(line) % 2) {
-            m += 2;
-            continue;
-          }
-          line[m+1] = '\0';
-          n = m+2;
-          break;
+
+        // continue reading if final printable char is "&"
+
+        if (m >= 0 && line[m] == '&') continue;
+
+        // continue reading if odd number of triple quotes
+
+        if (ntriple % 2) {
+          line[m+1] = '\n';
+          m += 2;
+          continue;
         }
+
+        // done, break with n = length of line with str terminator
+
+        line[m+1] = '\0';
+        n = m+2;
+        break;
       }
     }
 
@@ -371,8 +394,9 @@ char *Input::one(const std::string &single)
 }
 
 /* ----------------------------------------------------------------------
-   Send text to active echo file pointers
+   send text to active echo file pointers
 ------------------------------------------------------------------------- */
+
 void Input::write_echo(const std::string &txt)
 {
   if (me == 0) {
@@ -399,34 +423,35 @@ void Input::parse()
   if (n > maxcopy) reallocate(copy,maxcopy,n);
   strcpy(copy,line);
 
-  // strip any # comment by replacing it with 0
-  // do not strip from a # inside single/double/triple quotes
-  // quoteflag = 1,2,3 when encounter first single/double,triple quote
-  // quoteflag = 0 when encounter matching single/double,triple quote
+  // strip a # comment by replacing it with 0
+  // do not treat a # inside single/double/triple quotes as a comment
 
-  int quoteflag = 0;
+  char *ptrmatch;
   char *ptr = copy;
+
   while (*ptr) {
-    if (*ptr == '#' && !quoteflag) {
+    if (*ptr == '#') {
       *ptr = '\0';
       break;
     }
-    if (quoteflag == 0) {
+    if (*ptr == '\'') {
+      ptrmatch = strchr(ptr+1,'\'');
+      if (ptrmatch == NULL)
+        error->all(FLERR,"Unmatched single quote in command");
+      ptr = ptrmatch + 1;
+    } else if (*ptr == '"') {
       if (strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 3;
-        ptr += 2;
+        ptrmatch = strstr(ptr+3,"\"\"\"");
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched triple quote in command");
+        ptr = ptrmatch + 3;
+      } else {
+        ptrmatch = strchr(ptr+1,'"');
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched double quote in command");
+        ptr = ptrmatch + 1;
       }
-      else if (*ptr == '"') quoteflag = 2;
-      else if (*ptr == '\'') quoteflag = 1;
-    } else {
-      if (quoteflag == 3 && strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 0;
-        ptr += 2;
-      }
-      else if (quoteflag == 2 && *ptr == '"') quoteflag = 0;
-      else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
-    }
-    ptr++;
+    } else ptr++;
   }
 
   if (utils::has_utf8(copy)) {
@@ -534,16 +559,18 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 {
   // use str2 as scratch space to expand str, then copy back to str
   // reallocate str and str2 as necessary
-  // do not replace $ inside single/double/triple quotes
+  // do not replace variables inside single/double/triple quotes
   // var = pts at variable name, ended by null char
   //   if $ is followed by '{', trailing '}' becomes null char
   //   else $x becomes x followed by null char
   // beyond = points to text following variable
 
-  int i,n,paren_count;
+  int i,n,paren_count,nchars;;
   char immediate[256];
   char *var,*value,*beyond;
   int quoteflag = 0;
+  char *ptrmatch;
+
   char *ptr = str;
 
   n = strlen(str) + 1;
@@ -637,34 +664,41 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         if (echo_log && logfile) fprintf(logfile,"%s%s\n",str2,beyond);
       }
 
-      continue;
-    }
+    // check for single/double/triple quotes and skip past them
 
-    // quoteflag = 1,2,3 when encounter first single/double,triple quote
-    // quoteflag = 0 when encounter matching single/double,triple quote
-    // copy 2 extra triple quote chars into str2
-
-    if (quoteflag == 0) {
+    } else if (*ptr == '\'') {
+      ptrmatch = strchr(ptr+1,'\'');
+      if (ptrmatch == NULL)
+        error->all(FLERR,"Unmatched single quote in command");
+      nchars = ptrmatch+1 - ptr;
+      strncpy(ptr2,ptr,nchars);
+      ptr += nchars;
+      ptr2 += nchars;
+    } else if (*ptr == '"') {
       if (strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 3;
-        *ptr2++ = *ptr++;
-        *ptr2++ = *ptr++;
+        ptrmatch = strstr(ptr+3,"\"\"\"");
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched triple quote in command");
+        nchars = ptrmatch+3 - ptr;
+        strncpy(ptr2,ptr,nchars);
+        ptr += nchars;
+        ptr2 += nchars;
+      } else {
+        ptrmatch = strchr(ptr+1,'"');
+        if (ptrmatch == NULL)
+          error->all(FLERR,"Unmatched double quote in command");
+        nchars = ptrmatch+1 - ptr;
+        strncpy(ptr2,ptr,nchars);
+        ptr += nchars;
+        ptr2 += nchars;
       }
-      else if (*ptr == '"') quoteflag = 2;
-      else if (*ptr == '\'') quoteflag = 1;
-    } else {
-      if (quoteflag == 3 && strstr(ptr,"\"\"\"") == ptr) {
-        quoteflag = 0;
-        *ptr2++ = *ptr++;
-        *ptr2++ = *ptr++;
-      }
-      else if (quoteflag == 2 && *ptr == '"') quoteflag = 0;
-      else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
-    }
 
-    // copy current character into str2
+    // else copy current single character into str2
 
-    *ptr2++ = *ptr++;
+    } else *ptr2++ = *ptr++;
+
+    // terminate current str2 so variable sub can perform strlen()
+
     *ptr2 = '\0';
   }
 
@@ -1195,11 +1229,9 @@ void Input::shell()
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
         rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
-        MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
-        errno = err;
-        if (err != 0)
-          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'",
-                         arg[i],utils::getsyserror());
+        if (rv != 0)
+          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'", arg[i],
+                         utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"mv") == 0) {
@@ -1783,6 +1815,7 @@ void Input::special_bonds()
   double lj3 = force->special_lj[3];
   double coul2 = force->special_coul[2];
   double coul3 = force->special_coul[3];
+  int onefive = force->special_onefive;
   int angle = force->special_angle;
   int dihedral = force->special_dihedral;
 
@@ -1793,6 +1826,7 @@ void Input::special_bonds()
   if (domain->box_exist && atom->molecular == Atom::MOLECULAR) {
     if (lj2 != force->special_lj[2] || lj3 != force->special_lj[3] ||
         coul2 != force->special_coul[2] || coul3 != force->special_coul[3] ||
+        onefive != force->special_onefive ||
         angle != force->special_angle ||
         dihedral != force->special_dihedral) {
       Special special(lmp);

@@ -207,7 +207,7 @@ void AtomVec::grow(int n)
   if (n == 0)
     grow_nmax();
   else
-    nmax = n;
+    nmax = MAX(n,nmax);
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT) error->one(FLERR, "Per-processor system is too big");
 

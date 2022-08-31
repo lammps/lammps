@@ -139,6 +139,24 @@ TEST(Utils, count_words_with_extra_spaces)
     ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
 }
 
+TEST(Utils, join_words)
+{
+    std::vector<std::string> words = {"one", "two", "three" };
+    auto combined = utils::join_words(words, " ");
+    ASSERT_THAT(combined, StrEq("one two three"));
+    combined = utils::join_words(words, "");
+    ASSERT_THAT(combined, StrEq("onetwothree"));
+    words[1] = "two ";
+    combined = utils::join_words(words, "__");
+    ASSERT_THAT(combined, StrEq("one__two __three"));
+    words.resize(1);
+    combined = utils::join_words(words, "/");
+    ASSERT_THAT(combined, StrEq("one"));
+    words.push_back("");
+    combined = utils::join_words(words, "1");
+    ASSERT_THAT(combined, StrEq("one1"));
+}
+
 TEST(Utils, split_words_simple)
 {
     auto list = utils::split_words("one two three");
@@ -519,6 +537,27 @@ TEST(Utils, strmatch_opt_char)
     ASSERT_FALSE(utils::strmatch("x_name", "^[cfvid]2?_name"));
 }
 
+TEST(Utils, strmatch_yaml_suffix)
+{
+    ASSERT_TRUE(utils::strmatch("test.yaml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("test.yml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("TEST.YAML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("TEST.YML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test.yamlx", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test.ymlx", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TEST.YAMLX", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TEST.YMLX", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("testyaml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("testyml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TESTYAML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TESTYML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("yaml.test", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("yml.test", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("YAML.TEST", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("YML.TEST", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test", "\\.[yY][aA]?[mM][lL]$"));
+}
+
 TEST(Utils, strmatch_dot)
 {
     ASSERT_TRUE(utils::strmatch("rigid", ".igid"));
@@ -744,6 +783,12 @@ TEST(Utils, boundsbig_case3)
     utils::bounds(FLERR, "3*:2", -10, 5, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, -1);
     ASSERT_EQ(nhi, -1);
+}
+
+TEST(Utils, errorurl)
+{
+    auto errmesg = utils::errorurl(10);
+    ASSERT_THAT(errmesg, Eq("\nFor more information see https://docs.lammps.org/err0010"));
 }
 
 TEST(Utils, getsyserror)

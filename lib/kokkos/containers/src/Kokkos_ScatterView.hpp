@@ -369,18 +369,6 @@ struct ScatterValue<ValueType, Kokkos::Experimental::ScatterProd, DeviceType,
     Kokkos::atomic_div(&value, rhs);
   }
 
-  KOKKOS_FORCEINLINE_FUNCTION
-  void atomic_prod(ValueType& dest, const ValueType& src) const {
-    bool success = false;
-    while (!success) {
-      ValueType dest_old = dest;
-      ValueType dest_new = dest_old * src;
-      dest_new =
-          Kokkos::atomic_compare_exchange<ValueType>(&dest, dest_old, dest_new);
-      success = ((dest_new - dest_old) / dest_old <= 1e-15);
-    }
-  }
-
   KOKKOS_INLINE_FUNCTION
   void join(ValueType& dest, const ValueType& src) const {
     atomic_prod(&dest, src);
@@ -440,21 +428,9 @@ struct ScatterValue<ValueType, Kokkos::Experimental::ScatterMin, DeviceType,
   KOKKOS_FORCEINLINE_FUNCTION ScatterValue(ScatterValue&& other)
       : value(other.value) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION
-  void atomic_min(ValueType& dest, const ValueType& src) const {
-    bool success = false;
-    while (!success) {
-      ValueType dest_old = dest;
-      ValueType dest_new = (dest_old > src) ? src : dest_old;
-      dest_new =
-          Kokkos::atomic_compare_exchange<ValueType>(&dest, dest_old, dest_new);
-      success = ((dest_new - dest_old) / dest_old <= 1e-15);
-    }
-  }
-
   KOKKOS_INLINE_FUNCTION
   void join(ValueType& dest, const ValueType& src) const {
-    atomic_min(dest, src);
+    atomic_min(&dest, src);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -511,21 +487,9 @@ struct ScatterValue<ValueType, Kokkos::Experimental::ScatterMax, DeviceType,
   KOKKOS_FORCEINLINE_FUNCTION ScatterValue(ScatterValue&& other)
       : value(other.value) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION
-  void atomic_max(ValueType& dest, const ValueType& src) const {
-    bool success = false;
-    while (!success) {
-      ValueType dest_old = dest;
-      ValueType dest_new = (dest_old < src) ? src : dest_old;
-      dest_new =
-          Kokkos::atomic_compare_exchange<ValueType>(&dest, dest_old, dest_new);
-      success = ((dest_new - dest_old) / dest_old <= 1e-15);
-    }
-  }
-
   KOKKOS_INLINE_FUNCTION
   void join(ValueType& dest, const ValueType& src) const {
-    atomic_max(dest, src);
+    atomic_max(&dest, src);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -861,16 +825,52 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
     if (view.data() != internal_view.data()) reset(exec_space);
   }
 
-  void resize(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
-              const size_t n3 = 0, const size_t n4 = 0, const size_t n5 = 0,
-              const size_t n6 = 0, const size_t n7 = 0) {
+  void resize(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     ::Kokkos::resize(internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
   }
 
-  void realloc(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
-               const size_t n3 = 0, const size_t n4 = 0, const size_t n5 = 0,
-               const size_t n6 = 0, const size_t n7 = 0) {
+  template <class I>
+  std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> resize(
+      const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::resize(arg_prop, internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
+  }
+
+  void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     ::Kokkos::realloc(internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
+  }
+
+  template <class I>
+  std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> realloc(
+      const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::realloc(arg_prop, internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
   }
 
  protected:
@@ -1097,18 +1097,52 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
         internal_view.size() - view.size(), internal_view.label());
   }
 
-  void resize(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
-              const size_t n3 = 0, const size_t n4 = 0, const size_t n5 = 0,
-              const size_t n6 = 0) {
+  void resize(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     ::Kokkos::resize(internal_view, unique_token.size(), n0, n1, n2, n3, n4, n5,
                      n6);
   }
 
-  void realloc(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
-               const size_t n3 = 0, const size_t n4 = 0, const size_t n5 = 0,
-               const size_t n6 = 0) {
+  template <class I>
+  std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> resize(
+      const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::resize(arg_prop, internal_view, unique_token.size(), n0, n1, n2,
+                     n3, n4, n5, n6);
+  }
+
+  void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     ::Kokkos::realloc(internal_view, unique_token.size(), n0, n1, n2, n3, n4,
                       n5, n6);
+  }
+
+  template <class I>
+  std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> realloc(
+      const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::realloc(arg_prop, internal_view, unique_token.size(), n0, n1, n2,
+                      n3, n4, n5, n6);
   }
 
  protected:
@@ -1328,9 +1362,13 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
         internal_view.size() - view.size(), internal_view.label());
   }
 
-  void resize(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
-              const size_t n3 = 0, const size_t n4 = 0, const size_t n5 = 0,
-              const size_t n6 = 0) {
+  void resize(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     size_t arg_N[8] = {n0, n1, n2, n3, n4, n5, n6, 0};
     const int i     = internal_view.rank - 1;
     arg_N[i]        = unique_token.size();
@@ -1339,9 +1377,13 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
                      arg_N[4], arg_N[5], arg_N[6], arg_N[7]);
   }
 
-  void realloc(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
-               const size_t n3 = 0, const size_t n4 = 0, const size_t n5 = 0,
-               const size_t n6 = 0) {
+  void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     size_t arg_N[8] = {n0, n1, n2, n3, n4, n5, n6, 0};
     const int i     = internal_view.rank - 1;
     arg_N[i]        = unique_token.size();
@@ -1518,12 +1560,30 @@ void realloc(
   scatter_view.realloc(is...);
 }
 
+template <typename I, typename DT, typename LY, typename ES, typename OP,
+          typename CT, typename DP, typename... IS>
+std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> realloc(
+    const I& arg_prop,
+    Kokkos::Experimental::ScatterView<DT, LY, ES, OP, CT, DP>& scatter_view,
+    IS... is) {
+  scatter_view.realloc(arg_prop, is...);
+}
+
 template <typename DT, typename LY, typename ES, typename OP, typename CT,
           typename DP, typename... IS>
 void resize(
     Kokkos::Experimental::ScatterView<DT, LY, ES, OP, CT, DP>& scatter_view,
     IS... is) {
   scatter_view.resize(is...);
+}
+
+template <typename I, typename DT, typename LY, typename ES, typename OP,
+          typename CT, typename DP, typename... IS>
+std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> resize(
+    const I& arg_prop,
+    Kokkos::Experimental::ScatterView<DT, LY, ES, OP, CT, DP>& scatter_view,
+    IS... is) {
+  scatter_view.resize(arg_prop, is...);
 }
 
 }  // namespace Kokkos

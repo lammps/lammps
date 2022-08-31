@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"           // IWYU pragma: keep
 #include "output.h"
+#include "pair.h"
 #include "thermo.h"
 #include "timer.h"              // IWYU pragma: keep
 #include "universe.h"
@@ -213,6 +214,10 @@ void Finish::end(int flag)
       utils::logmesg(lmp,mesg);
     }
   }
+
+  // pair_style timing stats if provided
+
+  if (force->pair) force->pair->finish();
 
   // PRD stats
 
@@ -483,7 +488,7 @@ void Finish::end(int flag)
   if (neighflag) {
     if (me == 0) utils::logmesg(lmp,"\n");
 
-    tmp = MAX(nneigh,nneighfull);
+    tmp = MAX(MAX(nneigh,nneighfull),0.0);
     double nall;
     MPI_Allreduce(&tmp,&nall,1,MPI_DOUBLE,MPI_SUM,world);
 

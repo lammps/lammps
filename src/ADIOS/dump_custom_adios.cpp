@@ -40,7 +40,7 @@ namespace LAMMPS_NS {
 class DumpCustomADIOSInternal {
 
  public:
-  DumpCustomADIOSInternal(){};
+  DumpCustomADIOSInternal() = default;
   ~DumpCustomADIOSInternal() = default;
 
   // name of adios group, referrable in adios2_config.xml
@@ -76,7 +76,7 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
   }
 
   internal->columnNames.reserve(nfield);
-  for (int i = 0; i < nfield; ++i) { internal->columnNames.push_back(earg[i]); }
+  for (int i = 0; i < nfield; ++i) { internal->columnNames.emplace_back(earg[i]); }
 }
 
 /* ---------------------------------------------------------------------- */

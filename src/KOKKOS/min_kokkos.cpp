@@ -55,13 +55,6 @@ MinKokkos::MinKokkos(LAMMPS *lmp) : Min(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-MinKokkos::~MinKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void MinKokkos::init()
 {
   Min::init();
@@ -85,6 +78,8 @@ void MinKokkos::setup(int flag)
     }
   }
   update->setupflag = 1;
+
+  lmp->kokkos->auto_sync = 1;
 
   // setup extra global dof due to fixes
   // cannot be done in init() b/c update init() is before modify init()
@@ -177,7 +172,7 @@ void MinKokkos::setup(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -249,6 +244,8 @@ void MinKokkos::setup_minimal(int flag)
   // acquire ghosts
   // build neighbor lists
 
+  lmp->kokkos->auto_sync = 1;
+
   if (flag) {
     modify->setup_pre_exchange();
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -284,7 +281,7 @@ void MinKokkos::setup_minimal(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -502,6 +499,7 @@ double MinKokkos::energy_force(int resetflag)
   if (force->newton) {
     comm->reverse_comm();
     timer->stamp(Timer::COMM);
+    atomKK->sync(Device,F_MASK);
   }
 
   // update per-atom minimization variables stored by pair styles
@@ -574,7 +572,7 @@ void MinKokkos::force_clear()
       }
     });
   }
-  atomKK->modified(Device,F_MASK);
+  atomKK->modified(Device,F_MASK|TORQUE_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -583,6 +581,7 @@ void MinKokkos::force_clear()
 
 double MinKokkos::fnorm_sqr()
 {
+  atomKK->sync(Device,F_MASK);
 
   double local_norm2_sqr = 0.0;
   {
@@ -611,6 +610,7 @@ double MinKokkos::fnorm_sqr()
 
 double MinKokkos::fnorm_inf()
 {
+  atomKK->sync(Device,F_MASK);
 
   double local_norm_inf = 0.0;
   {
@@ -639,6 +639,7 @@ double MinKokkos::fnorm_inf()
 
 double MinKokkos::fnorm_max()
 {
+  atomKK->sync(Device,F_MASK);
 
   double local_norm_max = 0.0;
   {

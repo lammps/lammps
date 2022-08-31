@@ -1,10 +1,11 @@
 .. index:: pair_style adp
+.. index:: pair_style adp/kk
 .. index:: pair_style adp/omp
 
 pair_style adp command
 ======================
 
-Accelerator Variants: *adp/omp*
+Accelerator Variants: *adp/kk*, *adp/omp*
 
 Syntax
 """"""

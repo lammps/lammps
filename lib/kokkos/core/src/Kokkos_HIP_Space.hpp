@@ -506,7 +506,7 @@ class HIP {
   //@{
 
   KOKKOS_INLINE_FUNCTION static int in_parallel() {
-#if defined(__HIP_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     return true;
 #else
     return false;
@@ -571,6 +571,9 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<Kokkos::Experimental::HIP> {
   static constexpr DeviceType id = DeviceType::HIP;
+  static int device_id(const Kokkos::Experimental::HIP& exec) {
+    return exec.hip_device();
+  }
 };
 }  // namespace Experimental
 }  // namespace Tools

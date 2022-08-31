@@ -19,11 +19,13 @@
 #include "error.h"
 #include "fix.h"
 #include "fmt/chrono.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
 #include "universe.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cctype>
 #include <cerrno>
@@ -232,7 +234,6 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
     if (error) error->one(srcname, srcline, errmsg);
     if (s) *s = '\0';    // truncate string to empty in case error is null pointer
   }
-  return;
 }
 
 /* like fread() but aborts with an error or EOF is encountered */
@@ -260,7 +261,6 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_
 
     if (error) error->one(srcname, srcline, errmsg);
   }
-  return;
 }
 
 /* ------------------------------------------------------------------ */
@@ -301,7 +301,7 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
 
   if (pkg) {
     errmsg += fmt::format(" is part of the {} package", pkg);
-    if (lmp->is_installed_pkg(pkg))
+    if (LAMMPS::is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else
       errmsg += " which is not enabled in this LAMMPS binary.";
@@ -631,7 +631,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     // match compute, fix, or custom property array reference with a '*' wildcard
     // number range in the first pair of square brackets
 
-    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]") ||
+    if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
         strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
       // split off the compute/fix/property ID, the wildcard and trailing text
@@ -692,6 +692,23 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
+        // vector variable
+
+      } else if (word[0] == 'v') {
+        int index = lmp->input->variable->find(id.c_str());
+
+        // check for global vector/array, peratom array, local array
+
+        if (index >= 0) {
+          if (mode == 0 && lmp->input->variable->vectorstyle(index)) {
+            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error);
+            if (nhi < MAXSMALLINT) {
+              nmax = nhi;
+              expandflag = 1;
+            }
+          }
+        }
+
         // only match custom array reference with a '*' wildcard
         // number range in the first pair of square brackets
 
@@ -716,6 +733,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     if (expandflag) {
 
       // expand wild card string to nlo/nhi numbers
+
       utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
 
       if (newarg + nhi - nlo + 1 > maxarg) {
@@ -964,6 +982,19 @@ size_t utils::count_words(const std::string &text, const std::string &separators
 size_t utils::trim_and_count_words(const std::string &text, const std::string &separators)
 {
   return utils::count_words(trim_comment(text), separators);
+}
+
+/* ----------------------------------------------------------------------
+   combine words in vector to single string with separator added between words
+------------------------------------------------------------------------- */
+std::string utils::join_words(const std::vector<std::string> &words, const std::string &sep)
+{
+  std::string result;
+
+  if (words.size() > 0) result = words[0];
+  for (std::size_t i = 1; i < words.size(); ++i) result += sep + words[i];
+
+  return result;
 }
 
 /* ----------------------------------------------------------------------

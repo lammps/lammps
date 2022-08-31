@@ -70,6 +70,8 @@ class MDIEngine : protected Pointers {
 
   int actionflag;    // 1 if MD or OPTG just completed, else 0
 
+  int *elements;
+
   // buffers for MDI comm
 
   int maxatom;
@@ -106,6 +108,7 @@ class MDIEngine : protected Pointers {
   void receive_cell_displ();
   void receive_charges();
   void receive_coords();
+  void receive_elements();
   void receive_natoms();
   void receive_nsteps();
   void receive_tolerance();

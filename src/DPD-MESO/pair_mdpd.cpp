@@ -13,8 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Zhen Li (Brown University)
-   Email: zhen_li@brown.edu
+   Contributing author: Zhen Li (Clemson University)
+   Email: zli7@clemson.edu
 ------------------------------------------------------------------------- */
 
 #include "pair_mdpd.h"

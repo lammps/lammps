@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "bond.h"
 #include "boundary_correction.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -62,12 +63,25 @@ enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 #define ONEF 1.0
 #endif
 
+static const char cite_pppm_electrode[] =
+    "kspace_style pppm/electrode command:\n\n"
+    "@article{Ahrens2021,\n"
+    "author = {Ahrens-Iwers, Ludwig J.V. and Mei{\\ss}ner, Robert H.},\n"
+    "doi = {10.1063/5.0063381},\n"
+    "title = {{Constant potential simulations on a mesh}},\n"
+    "journal = {Journal of Chemical Physics},\n"
+    "year = {2021}\n"
+    "volume = {155},\n"
+    "pages = {104104},\n"
+    "}\n";
+
 /* ---------------------------------------------------------------------- */
 
 PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
-    PPPM(lmp), ElectrodeKSpace(), electrolyte_density_brick(nullptr),
-    electrolyte_density_fft(nullptr)
+    PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
+
   group_group_enable = 0;
   electrolyte_density_brick = nullptr;
   electrolyte_density_fft = nullptr;
@@ -670,7 +684,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
   compute(1, 0);
 
   // fft green's function k -> r
-  std::vector<double> greens_real(nz_pppm * ny_pppm * nx_pppm, 0.);
+  std::vector<double> greens_real((std::size_t) nz_pppm * ny_pppm * nx_pppm, 0.0);
   for (int i = 0, n = 0; i < nfft; i++) {
     work2[n++] = greensfn[i];
     work2[n++] = ZEROF;

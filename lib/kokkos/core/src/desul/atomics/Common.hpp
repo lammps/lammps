@@ -52,6 +52,8 @@ struct MemoryScopeNode {};
 struct MemoryScopeDevice {};
 // Core scoped (i.e. a shared Level 1 cache)
 struct MemoryScopeCore {};
+// Caller scoped (i.e. NOT atomic!)
+struct MemoryScopeCaller {};
 }  // namespace desul
 
 #ifndef __ATOMIC_RELAXED

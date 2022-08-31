@@ -56,8 +56,7 @@ namespace utils {
    *  \param cmd      name of the failing command
    *  \param error    pointer to Error class instance (for abort) or nullptr */
 
-  [[noreturn]] void missing_cmd_args(const std::string &file, int line, const std::string &cmd,
-                                     Error *error);
+  void missing_cmd_args(const std::string &file, int line, const std::string &cmd, Error *error);
 
   /* Internal function handling the argument list for logmesg(). */
 
@@ -486,6 +485,17 @@ namespace utils {
    * \return number of words found */
 
   size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
+
+  /*! Take list of words and join them with a given separator text.
+   *
+   * This is the inverse operation of what the split_words() function
+   * Tokenizer classes do.
+   *
+   * \param words  STL vector with strings
+   * \param sep    separator string (may be empty)
+   * \return  string with the concatenated words and separators */
+
+  std::string join_words(const std::vector<std::string> &words, const std::string &sep);
 
   /*! Take text and split into non-whitespace words.
    *

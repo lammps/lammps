@@ -27,27 +27,6 @@ KSpaceStyle(pppm/electrode, PPPMElectrode);
 #include "electrode_kspace.h"
 #include "pppm.h"
 
-#if defined(FFT_FFTW3)
-#define LMP_FFT_LIB "FFTW3"
-#elif defined(FFT_MKL)
-#define LMP_FFT_LIB "MKL FFT"
-#elif defined(FFT_CUFFT)
-#define LMP_FFT_LIB "cuFFT"
-#else
-#define LMP_FFT_LIB "KISS FFT"
-#endif
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define LMP_FFT_PREC "single"
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-
-typedef double FFT_SCALAR;
-#define LMP_FFT_PREC "double"
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
-
 namespace LAMMPS_NS {
 
 class PPPMElectrode : public PPPM, public ElectrodeKSpace {
@@ -60,7 +39,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void compute(int, int) override;
 
   void compute_vector(double *, int, int, bool) override;
-  void compute_vector_corr(double*, int, int, bool) override;
+  void compute_vector_corr(double *, int, int, bool) override;
   void compute_matrix(bigint *, double **, bool) override;
   void compute_matrix_corr(bigint *, double **) override;
 

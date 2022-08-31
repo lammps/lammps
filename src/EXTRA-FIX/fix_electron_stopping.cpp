@@ -106,6 +106,7 @@ FixElectronStopping::FixElectronStopping(LAMMPS *lmp, int narg, char **arg) :
 
 FixElectronStopping::~FixElectronStopping()
 {
+  delete[] idregion;
   memory->destroy(elstop_ranges);
 }
 

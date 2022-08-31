@@ -40,7 +40,7 @@ class EwaldElectrode : public Ewald, public ElectrodeKSpace {
 
   // k-space part of coulomb matrix computation
   void compute_vector(double *, int, int, bool) override;
-  void compute_vector_corr(double*, int, int, bool) override;
+  void compute_vector_corr(double *, int, int, bool) override;
   void compute_matrix(bigint *, double **, bool) override;
   void compute_matrix_corr(bigint *, double **) override;
 

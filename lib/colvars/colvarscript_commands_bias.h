@@ -99,7 +99,7 @@ CVSCRIPT(bias_help,
            if (cmdstr.size()) {
              script->set_result_str(script->get_command_cmdline_help(colvarscript::use_bias,
                                                                      cmdstr));
-             return COLVARS_OK;
+             return cvm::get_error();
            } else {
              return COLVARSCRIPT_ERROR;
            }
@@ -169,6 +169,15 @@ CVSCRIPT(bias_state,
          0, 0,
          "",
          this_bias->print_state();
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(bias_type,
+         "Print the type of this bias object\n"
+         "type : string - Type of this bias object (e.g. metadynamics)",
+         0, 0,
+         "",
+         script->set_result_str(this_bias->bias_type);
          return COLVARS_OK;
          )
 

@@ -37,6 +37,12 @@
 /library_mdi.h
 /mdi_engine.cpp
 /mdi_engine.h
+/fix_mdi_aimd.cpp
+/fix_mdi_aimd.h
+/mdi_command.cpp
+/mdi_command.h
+/mdi_plugin.cpp
+/mdi_plugin.h
 
 /fix_brownian*.cpp
 /fix_brownian*.h
@@ -167,12 +173,20 @@
 /pair_tdpd.cpp
 /pair_tdpd.h
 
+/compute_grid.cpp
+/compute_grid.h
+/compute_grid_local.cpp
+/compute_grid_local.h
 /compute_sna_atom.cpp
 /compute_sna_atom.h
 /compute_snad_atom.cpp
 /compute_snad_atom.h
 /compute_snav_atom.cpp
 /compute_snav_atom.h
+/compute_sna_grid.cpp
+/compute_sna_grid.h
+/compute_sna_grid_local.cpp
+/compute_sna_grid_local.h
 /compute_snap.cpp
 /compute_snap.h
 /openmp_snap.h
@@ -268,6 +282,32 @@
 /fix_nve_bpm_sphere.h
 /pair_bpm_spring.cpp
 /pair_bpm_spring.h
+
+/boundary_correction.cpp
+/boundary_correction.h
+/electrode_accel_interface.h
+/electrode_kspace.h
+/electrode_math.h
+/electrode_matrix.cpp
+/electrode_matrix.h
+/electrode_vector.cpp
+/electrode_vector.h
+/ewald_electrode.cpp
+/ewald_electrode.h
+/fix_electrode_conp.cpp
+/fix_electrode_conp.h
+/fix_electrode_conq.cpp
+/fix_electrode_conq.h
+/fix_electrode_thermo.cpp
+/fix_electrode_thermo.h
+/pppm_electrode.cpp
+/pppm_electrode.h
+/slab_2d.cpp
+/slab_2d.h
+/slab_dipole.cpp
+/slab_dipole.h
+/wire_dipole.cpp
+/wire_dipole.h
 
 /compute_adf.cpp
 /compute_adf.h
@@ -579,6 +619,7 @@
 /dihedral_table_cut.h
 /dump_atom_adios.cpp
 /dump_atom_adios.h
+/adios_common.h
 /dump_atom_gz.cpp
 /dump_atom_gz.h
 /dump_atom_zstd.cpp
@@ -627,6 +668,7 @@
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
+/ewald_const.h
 /ewald_dipole.cpp
 /ewald_dipole.h
 /ewald_dipole_spin.cpp
@@ -671,6 +713,8 @@
 /fix_client_md.h
 /fix_cmap.cpp
 /fix_cmap.h
+/fix_damping_cundall.cpp
+/fix_damping_cundall.h
 /fix_dpd_energy.cpp
 /fix_dpd_energy.h
 /fix_electron_stopping.cpp
@@ -727,6 +771,7 @@
 /fix_langevin_eff.h
 /fix_latte.cpp
 /fix_latte.h
+/latboltz_const.h
 /fix_lb_fluid.cpp
 /fix_lb_fluid.h
 /fix_lb_momentum.cpp
@@ -888,6 +933,8 @@
 /fix_ti_spring.h
 /fix_tune_kspace.cpp
 /fix_tune_kspace.h
+/fix_viscous_sphere.cpp
+/fix_viscous_sphere.h
 /fix_wall_body_polygon.cpp
 /fix_wall_body_polygon.h
 /fix_wall_body_polyhedron.cpp
@@ -958,6 +1005,8 @@
 /neb.h
 /netcdf_units.cpp
 /netcdf_units.h
+/pair_threebody_table.cpp
+/pair_threebody_table.h
 /pair_adp.cpp
 /pair_adp.h
 /pair_agni.cpp
@@ -1097,6 +1146,8 @@
 /pair_ilp_graphene_hbn_opt.h
 /pair_ilp_tmd.cpp
 /pair_ilp_tmd.h
+/pair_ilp_tmd_opt.cpp
+/pair_ilp_tmd_opt.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
@@ -1232,6 +1283,8 @@
 /pair_resquared.h
 /pair_saip_metal.cpp
 /pair_saip_metal.h
+/pair_saip_metal_opt.cpp
+/pair_saip_metal_opt.h
 /pair_sdpd_taitwater_isothermal.cpp
 /pair_sdpd_taitwater_isothermal.h
 /pair_sph_heatconduction.cpp
@@ -1248,6 +1301,8 @@
 /pair_sph_taitwater_morris.h
 /pair_sw.cpp
 /pair_sw.h
+/pair_sw_angle_table.cpp
+/pair_sw_angle_table.h
 /pair_sw_mod.cpp
 /pair_sw_mod.h
 /pair_tersoff.cpp
@@ -1537,6 +1592,10 @@
 /pair_mgpt.h
 /pair_morse_smooth_linear.cpp
 /pair_morse_smooth_linear.h
+/pair_smatb.cpp
+/pair_smatb.h
+/pair_smatb_single.cpp
+/pair_smatb_single.h
 /pair_smtbq.cpp
 /pair_smtbq.h
 /pair_vashishta*.cpp

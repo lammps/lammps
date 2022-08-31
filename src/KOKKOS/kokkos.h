@@ -30,6 +30,7 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_classic;
   int forward_comm_classic;
   int forward_pair_comm_classic;
+  int reverse_pair_comm_classic;
   int forward_fix_comm_classic;
   int reverse_comm_classic;
   int exchange_comm_on_host;
@@ -38,6 +39,7 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_changed;
   int forward_comm_changed;
   int forward_pair_comm_changed;
+  int reverse_pair_comm_changed;
   int forward_fix_comm_changed;
   int reverse_comm_changed;
   int nthreads,ngpus;
@@ -55,7 +57,7 @@ class KokkosLMP : protected Pointers {
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);
-  ~KokkosLMP() override;
+
   static void initialize(Kokkos::InitArguments, Error *);
   static void finalize();
   void accelerator(int, char **);

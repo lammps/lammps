@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "sna_kokkos.h"
+#include "memory_kokkos.h"
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
@@ -25,12 +26,13 @@
 namespace LAMMPS_NS {
 
 static const double MY_PI  = 3.14159265358979323846; // pi
+static const double MY_PI2  = 1.57079632679489661923; // pi/2
 
 template<class DeviceType, typename real_type, int vector_length>
 inline
 SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
          int twojmax_in, real_type rmin0_in, int switch_flag_in, int bzero_flag_in,
-         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in)
+         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in, int switch_inner_flag_in)
 {
   LAMMPS_NS::ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   host_flag = (execution_space == LAMMPS_NS::Host);
@@ -40,6 +42,7 @@ SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
+  switch_inner_flag = switch_inner_flag_in;
   bzero_flag = bzero_flag_in;
 
   chem_flag = chem_flag_in;
@@ -60,12 +63,12 @@ SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
   build_indexlist();
 
   int jdimpq = twojmax + 2;
-  rootpqarray = t_sna_2d("SNAKokkos::rootpqarray",jdimpq,jdimpq);
+  MemKK::realloc_kokkos(rootpqarray,"SNAKokkos::rootpqarray",jdimpq,jdimpq);
 
-  cglist = t_sna_1d("SNAKokkos::cglist",idxcg_max);
+  MemKK::realloc_kokkos(cglist,"SNAKokkos::cglist",idxcg_max);
 
   if (bzero_flag) {
-    bzero = Kokkos::View<real_type*, Kokkos::LayoutRight, DeviceType>("sna:bzero",twojmax+1);
+    MemKK::realloc_kokkos(bzero,"sna:bzero",twojmax+1);
     auto h_bzero = Kokkos::create_mirror_view(bzero);
 
     double www = wself*wself*wself;
@@ -93,7 +96,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   // index list for cglist
 
   int jdim = twojmax + 1;
-  idxcg_block = Kokkos::View<int***, DeviceType>(Kokkos::NoInit("SNAKokkos::idxcg_block"),jdim,jdim,jdim);
+  MemKK::realloc_kokkos(idxcg_block,"SNAKokkos::idxcg_block",jdim,jdim,jdim);
   auto h_idxcg_block = Kokkos::create_mirror_view(idxcg_block);
 
   int idxcg_count = 0;
@@ -111,7 +114,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   // index list for uarray
   // need to include both halves
 
-  idxu_block = Kokkos::View<int*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_block"),jdim);
+  MemKK::realloc_kokkos(idxu_block,"SNAKokkos::idxu_block",jdim);
   auto h_idxu_block = Kokkos::create_mirror_view(idxu_block);
 
   int idxu_count = 0;
@@ -126,7 +129,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   Kokkos::deep_copy(idxu_block,h_idxu_block);
 
   // index list for half uarray
-  idxu_half_block = Kokkos::View<int*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_half_block"),jdim);
+  MemKK::realloc_kokkos(idxu_half_block,"SNAKokkos::idxu_half_block",jdim);
   auto h_idxu_half_block = Kokkos::create_mirror_view(idxu_half_block);
 
   int idxu_half_count = 0;
@@ -140,7 +143,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   Kokkos::deep_copy(idxu_half_block, h_idxu_half_block);
 
   // mapping between full and half indexing, encoding flipping
-  idxu_full_half = Kokkos::View<FullHalfMapper*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_full_half"),idxu_max);
+  MemKK::realloc_kokkos(idxu_full_half,"SNAKokkos::idxu_full_half",idxu_max);
   auto h_idxu_full_half = Kokkos::create_mirror_view(idxu_full_half);
 
   idxu_count = 0;
@@ -167,7 +170,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   // index list for "cache" uarray
   // this is the GPU scratch memory requirements
   // applied the CPU structures
-  idxu_cache_block = Kokkos::View<int*, DeviceType>(Kokkos::NoInit("SNAKokkos::idxu_cache_block"),jdim);
+  MemKK::realloc_kokkos(idxu_cache_block,"SNAKokkos::idxu_cache_block",jdim);
   auto h_idxu_cache_block = Kokkos::create_mirror_view(idxu_cache_block);
 
   int idxu_cache_count = 0;
@@ -189,7 +192,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
         if (j >= j1) idxb_count++;
 
   idxb_max = idxb_count;
-  idxb = Kokkos::View<int*[3], DeviceType>(Kokkos::NoInit("SNAKokkos::idxb"),idxb_max);
+  MemKK::realloc_kokkos(idxb,"SNAKokkos::idxb",idxb_max);
   auto h_idxb = Kokkos::create_mirror_view(idxb);
 
   idxb_count = 0;
@@ -206,7 +209,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
 
   // reverse index list for beta and b
 
-  idxb_block = Kokkos::View<int***, DeviceType>(Kokkos::NoInit("SNAKokkos::idxb_block"),jdim,jdim,jdim);
+  MemKK::realloc_kokkos(idxb_block,"SNAKokkos::idxb_block",jdim,jdim,jdim);
   auto h_idxb_block = Kokkos::create_mirror_view(idxb_block);
 
   idxb_count = 0;
@@ -232,10 +235,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
             idxz_count++;
 
   idxz_max = idxz_count;
-  idxz = Kokkos::View<int*[10], DeviceType>(Kokkos::NoInit("SNAKokkos::idxz"),idxz_max);
+  MemKK::realloc_kokkos(idxz,"SNAKokkos::idxz",idxz_max);
   auto h_idxz = Kokkos::create_mirror_view(idxz);
 
-  idxz_block = Kokkos::View<int***, DeviceType>(Kokkos::NoInit("SNAKokkos::idxz_block"), jdim,jdim,jdim);
+  MemKK::realloc_kokkos(idxz_block,"SNAKokkos::idxz_block", jdim,jdim,jdim);
   auto h_idxz_block = Kokkos::create_mirror_view(idxz_block);
 
   idxz_count = 0;
@@ -292,57 +295,59 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
   natom = newnatom;
   nmax = newnmax;
 
-  rij = t_sna_3d(Kokkos::NoInit("sna:rij"),natom,nmax,3);
-  wj = t_sna_2d(Kokkos::NoInit("sna:wj"),natom,nmax);
-  rcutij = t_sna_2d(Kokkos::NoInit("sna:rcutij"),natom,nmax);
-  inside = t_sna_2i(Kokkos::NoInit("sna:inside"),natom,nmax);
-  element = t_sna_2i(Kokkos::NoInit("sna:element"),natom,nmax);
-  dedr = t_sna_3d(Kokkos::NoInit("sna:dedr"),natom,nmax,3);
+  MemKK::realloc_kokkos(rij,"sna:rij",natom,nmax,3);
+  MemKK::realloc_kokkos(wj,"sna:wj",natom,nmax);
+  MemKK::realloc_kokkos(rcutij,"sna:rcutij",natom,nmax);
+  MemKK::realloc_kokkos(sinnerij,"sna:sinnerij",natom,nmax);
+  MemKK::realloc_kokkos(dinnerij,"sna:dinnerij",natom,nmax);
+  MemKK::realloc_kokkos(inside,"sna:inside",natom,nmax);
+  MemKK::realloc_kokkos(element,"sna:element",natom,nmax);
+  MemKK::realloc_kokkos(dedr,"sna:dedr",natom,nmax,3);
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
     const int natom_div = (natom + vector_length - 1) / vector_length;
 
-    a_pack = t_sna_3c_ll(Kokkos::NoInit("sna:a_pack"),vector_length,nmax,natom_div);
-    b_pack = t_sna_3c_ll(Kokkos::NoInit("sna:b_pack"),vector_length,nmax,natom_div);
-    da_pack = t_sna_4c_ll(Kokkos::NoInit("sna:da_pack"),vector_length,nmax,natom_div,3);
-    db_pack = t_sna_4c_ll(Kokkos::NoInit("sna:db_pack"),vector_length,nmax,natom_div,3);
-    sfac_pack = t_sna_4d_ll(Kokkos::NoInit("sna:sfac_pack"),vector_length,nmax,natom_div,4);
-    ulisttot = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),1,1,1); // dummy allocation
-    ulisttot_full = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),1,1,1);
-    ulisttot_re_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_re_pack"),vector_length,idxu_half_max,nelements,natom_div);
-    ulisttot_im_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_im_pack"),vector_length,idxu_half_max,nelements,natom_div);
-    ulisttot_pack = t_sna_4c_ll(Kokkos::NoInit("sna:ulisttot_pack"),vector_length,idxu_max,nelements,natom_div);
-    ulist = t_sna_3c_ll(Kokkos::NoInit("sna:ulist"),1,1,1);
-    zlist = t_sna_3c_ll(Kokkos::NoInit("sna:zlist"),1,1,1);
-    zlist_pack = t_sna_4c_ll(Kokkos::NoInit("sna:zlist_pack"),vector_length,idxz_max,ndoubles,natom_div);
-    blist = t_sna_3d(Kokkos::NoInit("sna:blist"),natom,ntriples,idxb_max);
-    blist_pack = t_sna_4d_ll(Kokkos::NoInit("sna:blist_pack"),vector_length,idxb_max,ntriples,natom_div);
-    ylist = t_sna_3c_ll(Kokkos::NoInit("sna:ylist"),1,1,1);
-    ylist_pack_re = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_re"),vector_length,idxu_half_max,nelements,natom_div);
-    ylist_pack_im = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_im"),vector_length,idxu_half_max,nelements,natom_div);
-    dulist = t_sna_4c3_ll(Kokkos::NoInit("sna:dulist"),1,1,1);
+    MemKK::realloc_kokkos(a_pack,"sna:a_pack",vector_length,nmax,natom_div);
+    MemKK::realloc_kokkos(b_pack,"sna:b_pack",vector_length,nmax,natom_div);
+    MemKK::realloc_kokkos(da_pack,"sna:da_pack",vector_length,nmax,natom_div,3);
+    MemKK::realloc_kokkos(db_pack,"sna:db_pack",vector_length,nmax,natom_div,3);
+    MemKK::realloc_kokkos(sfac_pack,"sna:sfac_pack",vector_length,nmax,natom_div,4);
+    MemKK::realloc_kokkos(ulisttot,"sna:ulisttot",1,1,1); // dummy allocation
+    MemKK::realloc_kokkos(ulisttot_full,"sna:ulisttot",1,1,1);
+    MemKK::realloc_kokkos(ulisttot_re_pack,"sna:ulisttot_re_pack",vector_length,idxu_half_max,nelements,natom_div);
+    MemKK::realloc_kokkos(ulisttot_im_pack,"sna:ulisttot_im_pack",vector_length,idxu_half_max,nelements,natom_div);
+    MemKK::realloc_kokkos(ulisttot_pack,"sna:ulisttot_pack",vector_length,idxu_max,nelements,natom_div);
+    MemKK::realloc_kokkos(ulist,"sna:ulist",1,1,1);
+    MemKK::realloc_kokkos(zlist,"sna:zlist",1,1,1);
+    MemKK::realloc_kokkos(zlist_pack,"sna:zlist_pack",vector_length,idxz_max,ndoubles,natom_div);
+    MemKK::realloc_kokkos(blist,"sna:blist",natom,ntriples,idxb_max);
+    MemKK::realloc_kokkos(blist_pack,"sna:blist_pack",vector_length,idxb_max,ntriples,natom_div);
+    MemKK::realloc_kokkos(ylist,"sna:ylist",1,1,1);
+    MemKK::realloc_kokkos(ylist_pack_re,"sna:ylist_pack_re",vector_length,idxu_half_max,nelements,natom_div);
+    MemKK::realloc_kokkos(ylist_pack_im,"sna:ylist_pack_im",vector_length,idxu_half_max,nelements,natom_div);
+    MemKK::realloc_kokkos(dulist,"sna:dulist",1,1,1);
   } else {
 #endif
-    a_pack = t_sna_3c_ll(Kokkos::NoInit("sna:a_pack"),1,1,1);
-    b_pack = t_sna_3c_ll(Kokkos::NoInit("sna:b_pack"),1,1,1);
-    da_pack = t_sna_4c_ll(Kokkos::NoInit("sna:da_pack"),1,1,1,1);
-    db_pack = t_sna_4c_ll(Kokkos::NoInit("sna:db_pack"),1,1,1,1);
-    sfac_pack = t_sna_4d_ll(Kokkos::NoInit("sna:sfac_pack"),1,1,1,1);
-    ulisttot = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot"),idxu_half_max,nelements,natom);
-    ulisttot_full = t_sna_3c_ll(Kokkos::NoInit("sna:ulisttot_full"),idxu_max,nelements,natom);
-    ulisttot_re_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_re"),1,1,1,1);
-    ulisttot_im_pack = t_sna_4d_ll(Kokkos::NoInit("sna:ulisttot_im"),1,1,1,1);
-    ulisttot_pack = t_sna_4c_ll(Kokkos::NoInit("sna:ulisttot_pack"),1,1,1,1);
-    ulist = t_sna_3c_ll(Kokkos::NoInit("sna:ulist"),idxu_cache_max,natom,nmax);
-    zlist = t_sna_3c_ll(Kokkos::NoInit("sna:zlist"),idxz_max,ndoubles,natom);
-    zlist_pack = t_sna_4c_ll(Kokkos::NoInit("sna:zlist_pack"),1,1,1,1);
-    blist = t_sna_3d(Kokkos::NoInit("sna:blist"),natom,ntriples,idxb_max);
-    blist_pack = t_sna_4d_ll(Kokkos::NoInit("sna:blist_pack"),1,1,1,1);
-    ylist = t_sna_3c_ll(Kokkos::NoInit("sna:ylist"),idxu_half_max,nelements,natom);
-    ylist_pack_re = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_re"),1,1,1,1);
-    ylist_pack_im = t_sna_4d_ll(Kokkos::NoInit("sna:ylist_pack_im"),1,1,1,1);
-    dulist = t_sna_4c3_ll(Kokkos::NoInit("sna:dulist"),idxu_cache_max,natom,nmax);
+    MemKK::realloc_kokkos(a_pack,"sna:a_pack",1,1,1);
+    MemKK::realloc_kokkos(b_pack,"sna:b_pack",1,1,1);
+    MemKK::realloc_kokkos(da_pack,"sna:da_pack",1,1,1,1);
+    MemKK::realloc_kokkos(db_pack,"sna:db_pack",1,1,1,1);
+    MemKK::realloc_kokkos(sfac_pack,"sna:sfac_pack",1,1,1,1);
+    MemKK::realloc_kokkos(ulisttot,"sna:ulisttot",idxu_half_max,nelements,natom);
+    MemKK::realloc_kokkos(ulisttot_full,"sna:ulisttot_full",idxu_max,nelements,natom);
+    MemKK::realloc_kokkos(ulisttot_re_pack,"sna:ulisttot_re",1,1,1,1);
+    MemKK::realloc_kokkos(ulisttot_im_pack,"sna:ulisttot_im",1,1,1,1);
+    MemKK::realloc_kokkos(ulisttot_pack,"sna:ulisttot_pack",1,1,1,1);
+    MemKK::realloc_kokkos(ulist,"sna:ulist",idxu_cache_max,natom,nmax);
+    MemKK::realloc_kokkos(zlist,"sna:zlist",idxz_max,ndoubles,natom);
+    MemKK::realloc_kokkos(zlist_pack,"sna:zlist_pack",1,1,1,1);
+    MemKK::realloc_kokkos(blist,"sna:blist",natom,ntriples,idxb_max);
+    MemKK::realloc_kokkos(blist_pack,"sna:blist_pack",1,1,1,1);
+    MemKK::realloc_kokkos(ylist,"sna:ylist",idxu_half_max,nelements,natom);
+    MemKK::realloc_kokkos(ylist_pack_re,"sna:ylist_pack_re",1,1,1,1);
+    MemKK::realloc_kokkos(ylist_pack_im,"sna:ylist_pack_im",1,1,1,1);
+    MemKK::realloc_kokkos(dulist,"sna:dulist",idxu_cache_max,natom,nmax);
 
 #ifdef LMP_KOKKOS_GPU
   }
@@ -371,6 +376,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_cayley_klein(const
   const real_type rsq = x * x + y * y + z * z;
   const real_type r = sqrt(rsq);
   const real_type rcut = rcutij(iatom, jnbor);
+  const real_type sinner = sinnerij(iatom, jnbor);
+  const real_type dinner = dinnerij(iatom, jnbor);
   const real_type rscale0 = rfac0 * static_cast<real_type>(MY_PI) / (rcut - rmin0);
   const real_type theta0 = (r - rmin0) * rscale0;
   const real_type sn = sin(theta0);
@@ -380,7 +387,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_cayley_klein(const
 
   const real_type wj_local = wj(iatom, jnbor);
   real_type sfac, dsfac;
-  compute_s_dsfac(r, rcut, sfac, dsfac);
+  compute_s_dsfac(r, rcut, sinner, dinner, sfac, dsfac);
   sfac *= wj_local;
   dsfac *= wj_local;
 
@@ -1238,7 +1245,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui_cpu(const typen
   z0 = r / tan(theta0);
 
   compute_uarray_cpu(team, iatom, jnbor, x, y, z, z0, r);
-  add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor), element(iatom, jnbor));
+  add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor), sinnerij(iatom,jnbor), dinnerij(iatom,jnbor), element(iatom, jnbor));
 
 }
 /* ----------------------------------------------------------------------
@@ -1541,7 +1548,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_duidrj_cpu(const t
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  compute_duarray_cpu(team, iatom, jnbor, x, y, z, z0, r, dz0dr, wj(iatom,jnbor), rcutij(iatom,jnbor));
+  compute_duarray_cpu(team, iatom, jnbor, x, y, z, z0, r, dz0dr, wj(iatom,jnbor), rcutij(iatom,jnbor), sinnerij(iatom,jnbor), dinnerij(iatom,jnbor));
 }
 
 
@@ -1623,9 +1630,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_deidrj_cpu(const t
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                                          const real_type& r, const real_type& wj, const real_type& rcut, int jelem)
+    const real_type& r, const real_type& wj, const real_type& rcut,
+    const real_type& sinner, const real_type& dinner, int jelem)
 {
-  const real_type sfac = compute_sfac(r, rcut) * wj;
+  const real_type sfac = compute_sfac(r, rcut, sinner, dinner) * wj;
 
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,twojmax+1),
       [&] (const int& j) {
@@ -1746,7 +1754,8 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
                           const real_type& x, const real_type& y, const real_type& z,
                           const real_type& z0, const real_type& r, const real_type& dz0dr,
-                          const real_type& wj, const real_type& rcut)
+                          const real_type& wj, const real_type& rcut,
+                          const real_type& sinner, const real_type& dinner)
 {
   real_type r0inv;
   real_type a_r, a_i, b_r, b_i;
@@ -1872,8 +1881,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_duarray_cpu(const 
     });
   }
 
-  real_type sfac = compute_sfac(r, rcut);
-  real_type dsfac = compute_dsfac(r, rcut);
+  real_type sfac = compute_sfac(r, rcut, sinner, dinner);
+  real_type dsfac = compute_dsfac(r, rcut, sinner, dinner);
 
   sfac *= wj;
   dsfac *= wj;
@@ -2224,63 +2233,121 @@ int SNAKokkos<DeviceType, real_type, vector_length>::compute_ncoeff()
 
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_type r, real_type rcut)
+real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_type r, real_type rcut, real_type sinner, real_type  dinner)
 {
+  real_type sfac_outer;
   constexpr real_type one = static_cast<real_type>(1.0);
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
-  if (switch_flag == 0) return one;
+  if (switch_flag == 0) sfac_outer = one;
   if (switch_flag == 1) {
-    if (r <= rmin0) return one;
+    if (r <= rmin0) sfac_outer = one;
     else if (r > rcut) return zero;
     else {
       real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
-      return onehalf * (cos((r - rmin0) * rcutfac) + one);
+      sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
     }
   }
-  return zero;
+
+  if (switch_inner_flag == 0) return sfac_outer;
+  if (switch_inner_flag == 1) {
+    if (r >= sinner + dinner)
+        return sfac_outer;
+    else if (r > sinner - dinner) {
+      real_type rcutfac = static_cast<real_type>(MY_PI2) / dinner;
+      return sfac_outer *
+        onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
+    } else return zero;
+  }
+  return zero; // dummy return
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_type r, real_type rcut)
+real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_type r, real_type rcut, real_type sinner, real_type dinner)
 {
+  real_type sfac_outer, dsfac_outer, sfac_inner, dsfac_inner;
+  constexpr real_type one = static_cast<real_type>(1.0);
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
-  if (switch_flag == 0) return zero;
+  if (switch_flag == 0) dsfac_outer = zero;
   if (switch_flag == 1) {
-    if (r <= rmin0) return zero;
+    if (r <= rmin0) dsfac_outer = zero;
     else if (r > rcut) return zero;
     else {
       real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
-      return -onehalf * sin((r - rmin0) * rcutfac) * rcutfac;
+      dsfac_outer = -onehalf * sin((r - rmin0) * rcutfac) * rcutfac;
     }
   }
-  return zero;
+
+  if (switch_inner_flag == 0) return dsfac_outer;
+  if (switch_inner_flag == 1) {
+    if (r >= sinner + dinner)
+      return dsfac_outer;
+    else if (r > sinner - dinner) {
+
+      // calculate sfac_outer
+
+      if (switch_flag == 0) sfac_outer = one;
+      if (switch_flag == 1) {
+        if (r <= rmin0) sfac_outer = one;
+        else if (r > rcut) sfac_outer = zero;
+        else {
+          real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
+          sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
+        }
+      }
+
+      // calculate sfac_inner
+
+      real_type rcutfac = static_cast<real_type>(MY_PI2) / dinner;
+      sfac_inner = onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
+      dsfac_inner = onehalf * rcutfac * sin(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac);
+      return dsfac_outer * sfac_inner + sfac_outer * dsfac_inner;
+
+    } else return zero;
+  }
+  return zero; // dummy return
 }
 
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real_type r, const real_type rcut, real_type& sfac, real_type& dsfac) {
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real_type r, const real_type rcut, const real_type sinner, const real_type dinner, real_type& sfac, real_type& dsfac) {
+
+  real_type sfac_outer, dsfac_outer, sfac_inner, dsfac_inner;
   constexpr real_type one = static_cast<real_type>(1.0);
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
-  if (switch_flag == 0) { sfac = zero; dsfac = zero; }
+
+  if (switch_flag == 0) { sfac_outer = zero; dsfac_outer = zero; }
   else if (switch_flag == 1) {
-    if (r <= rmin0) { sfac = one; dsfac = zero; }
-    else if (r > rcut) { sfac = zero; dsfac = zero; }
+    if (r <= rmin0) { sfac_outer = one; dsfac_outer = zero; }
+    else if (r > rcut) { sfac = zero; dsfac = zero; return; }
     else {
       const real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
       const real_type theta0 = (r - rmin0) * rcutfac;
       const real_type sn = sin(theta0);
       const real_type cs = cos(theta0);
-      sfac = onehalf * (cs + one);
-      dsfac = -onehalf * sn * rcutfac;
-
+      sfac_outer = onehalf * (cs + one);
+      dsfac_outer = -onehalf * sn * rcutfac;
     }
-  } else { sfac = zero; dsfac = zero; }
+  } else { sfac = zero; dsfac = zero; return; } // dummy return
+
+  if (switch_inner_flag == 0) { sfac = sfac_outer; dsfac = dsfac_outer; return; }
+  else if (switch_inner_flag == 1) {
+    if (r >= sinner + dinner) { sfac = sfac_outer; dsfac = dsfac_outer; return; }
+    else if (r > sinner - dinner) {
+      real_type rcutfac = static_cast<real_type>(MY_PI2) / dinner;
+      sfac_inner = onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
+      dsfac_inner = onehalf * rcutfac * sin(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac);
+      sfac = sfac_outer * sfac_inner;
+      dsfac = dsfac_outer * sfac_inner + sfac_outer * dsfac_inner;
+      return;
+    } else { sfac = zero; dsfac = zero; return; }
+  } else { sfac = zero; dsfac = zero; return; } // dummy return
+
 }
 
 /* ----------------------------------------------------------------------
@@ -2290,72 +2357,68 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real
 template<class DeviceType, typename real_type, int vector_length>
 double SNAKokkos<DeviceType, real_type, vector_length>::memory_usage()
 {
-  int jdimpq = twojmax + 2;
-  int jdim = twojmax + 1;
-  double bytes;
+  double bytes = 0;
 
-  bytes = 0;
-
-  bytes += jdimpq*jdimpq * sizeof(real_type);               // pqarray
-  bytes += idxcg_max * sizeof(real_type);                   // cglist
+  bytes += MemKK::memory_usage(rootpqarray);
+  bytes += MemKK::memory_usage(cglist);
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
 
-    auto natom_pad = (natom+vector_length-1)/vector_length;
-
-    bytes += natom_pad * nmax * sizeof(real_type) * 2;     // a_pack
-    bytes += natom_pad * nmax * sizeof(real_type) * 2;     // b_pack
-    bytes += natom_pad * nmax * 3 * sizeof(real_type) * 2; // da_pack
-    bytes += natom_pad * nmax * 3 * sizeof(real_type) * 2; // db_pack
-    bytes += natom_pad * nmax * 4 * sizeof(real_type);     // sfac_pack
+    bytes += MemKK::memory_usage(a_pack);
+    bytes += MemKK::memory_usage(b_pack);
+    bytes += MemKK::memory_usage(da_pack);
+    bytes += MemKK::memory_usage(db_pack);
+    bytes += MemKK::memory_usage(sfac_pack);
 
 
-    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type);     // ulisttot_re_pack
-    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type);     // ulisttot_im_pack
-    bytes += natom_pad * idxu_max * nelements * sizeof(real_type) * 2;      // ulisttot_pack
+    bytes += MemKK::memory_usage(ulisttot_re_pack);
+    bytes += MemKK::memory_usage(ulisttot_im_pack);
+    bytes += MemKK::memory_usage(ulisttot_pack);
 
-    bytes += natom_pad * idxz_max * ndoubles * sizeof(real_type) * 2;   // zlist_pack
-    bytes += natom_pad * idxb_max * ntriples * sizeof(real_type);       // blist_pack
+    bytes += MemKK::memory_usage(zlist_pack);
+    bytes += MemKK::memory_usage(blist_pack);
 
-    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type); // ylist_pack_re
-    bytes += natom_pad * idxu_half_max * nelements * sizeof(real_type); // ylist_pack_im
+    bytes += MemKK::memory_usage(ylist_pack_re);
+    bytes += MemKK::memory_usage(ylist_pack_im);
   } else {
 #endif
 
-    bytes += natom * nmax * idxu_cache_max * sizeof(real_type) * 2;     // ulist
-    bytes += natom * idxu_half_max * nelements * sizeof(real_type) * 2; // ulisttot
-    bytes += natom * idxu_max * nelements * sizeof(real_type) * 2;      // ulisttot_full
+    bytes += MemKK::memory_usage(ulist);
+    bytes += MemKK::memory_usage(ulisttot);
+    bytes += MemKK::memory_usage(ulisttot_full);
 
-    bytes += natom * idxz_max * ndoubles * sizeof(real_type) * 2;       // zlist
-    bytes += natom * idxb_max * ntriples * sizeof(real_type);           // blist
+    bytes += MemKK::memory_usage(zlist);
+    bytes += MemKK::memory_usage(blist);
 
-    bytes += natom * idxu_half_max * nelements * sizeof(real_type) * 2; // ylist
+    bytes += MemKK::memory_usage(ylist);
 
-    bytes += natom * nmax * idxu_cache_max * 3 * sizeof(real_type) * 2; // dulist
+    bytes += MemKK::memory_usage(dulist);
 #ifdef LMP_KOKKOS_GPU
   }
 #endif
 
-  bytes += natom * nmax * 3 * sizeof(real_type);            // dedr
+  bytes += MemKK::memory_usage(dedr);
 
-  bytes += jdim * jdim * jdim * sizeof(int);             // idxcg_block
-  bytes += jdim * sizeof(int);                           // idxu_block
-  bytes += jdim * sizeof(int);                           // idxu_half_block
-  bytes += idxu_max * sizeof(FullHalfMapper);            // idxu_full_half
-  bytes += jdim * sizeof(int);                           // idxu_cache_block
-  bytes += jdim * jdim * jdim * sizeof(int);             // idxz_block
-  bytes += jdim * jdim * jdim * sizeof(int);             // idxb_block
+  bytes += MemKK::memory_usage(idxcg_block);
+  bytes += MemKK::memory_usage(idxu_block);
+  bytes += MemKK::memory_usage(idxu_half_block);
+  bytes += MemKK::memory_usage(idxu_full_half);
+  bytes += MemKK::memory_usage(idxu_cache_block);
+  bytes += MemKK::memory_usage(idxz_block);
+  bytes += MemKK::memory_usage(idxb_block);
 
-  bytes += idxz_max * 10 * sizeof(int);                  // idxz
-  bytes += idxb_max * 3 * sizeof(int);                   // idxb
+  bytes += MemKK::memory_usage(idxz);
+  bytes += MemKK::memory_usage(idxb);
 
-  bytes += jdim * sizeof(real_type);                        // bzero
+  bytes += MemKK::memory_usage(bzero);
 
-  bytes += natom * nmax * 3 * sizeof(real_type);            // rij
-  bytes += natom * nmax * sizeof(real_type);                // inside
-  bytes += natom * nmax * sizeof(real_type);                // wj
-  bytes += natom * nmax * sizeof(real_type);                // rcutij
+  bytes += MemKK::memory_usage(rij);
+  bytes += MemKK::memory_usage(inside);
+  bytes += MemKK::memory_usage(wj);
+  bytes += MemKK::memory_usage(rcutij);
+  bytes += MemKK::memory_usage(sinnerij);
+  bytes += MemKK::memory_usage(dinnerij);
 
   return bytes;
 }

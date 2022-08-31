@@ -30,9 +30,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
-
-#include <fstream>
 
 using namespace LAMMPS_NS;
 using namespace MathExtra;
@@ -210,12 +207,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
           // do flip if necessary
 
-          bool flip;
           if (dsq1 < dsq2) {
             jj1 = j1;
             jj2 = j2;
 
-            flip = false;
           } else {
             if (param[1] > MY_PI)
               param[1] -= MY_PI;
@@ -231,8 +226,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
             jj1 = j2;
             jj2 = j1;
-
-            flip = true;
           }
 
           // first force contribution
@@ -791,8 +784,7 @@ void PairMesoCNTViscous::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR, "Pair style mesocnt/viscous requires newton pair on");
   if (force->special_lj[1] == 0.0 || force->special_lj[2] == 0.0 || force->special_lj[3] == 0.0)
-    error->all(FLERR,
-               "Pair mesocnt/viscous requires special_bond lj x y z to have non-zero x, y and z");
+    error->all(FLERR, "Pair mesocnt/viscous requires all special_bond lj values to be non-zero");
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Pair mesocnt/viscous requires ghost atoms store velocity");
 
@@ -808,7 +800,7 @@ void PairMesoCNTViscous::init_style()
 inline double PairMesoCNTViscous::weight(const double *r1, const double *r2, const double *p1,
                                          const double *p2)
 {
-  double dr, dp, rhoc, rhomin, rho, frac, arg;
+  double dr, dp, rhoc, rhomin, rho;
   double r[3], p[3];
 
   add3(r1, r2, r);

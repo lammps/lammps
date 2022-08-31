@@ -84,7 +84,7 @@ is faster and is enabled by default.
   IDs. If this is not possible (e.g. in simulations of CNT rings),
   *topology* mode needs to be enabled in the pair_style command.
 
-.. versionadded:: TBD 
+.. versionadded:: TBD
 
 In addition to the LJ interactions described above, style
 *mesocnt/viscous* explicitly models friction between neighboring

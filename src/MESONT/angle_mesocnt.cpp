@@ -309,7 +309,7 @@ void AngleMesoCNT::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double AngleMesoCNT::equilibrium_angle(int i)
+double AngleMesoCNT::equilibrium_angle(int /*i*/)
 {
   return 180.0;
 }

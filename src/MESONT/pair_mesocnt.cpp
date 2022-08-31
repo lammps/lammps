@@ -1264,8 +1264,6 @@ void PairMesoCNT::bond_neigh_topo()
 void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
 {
   int nlocal = atom->nlocal;
-  tagint *tag = atom->tag;
-  tagint *mol = atom->molecule;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   int numneigh1, numneigh2;

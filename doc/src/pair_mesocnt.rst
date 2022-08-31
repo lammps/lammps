@@ -181,6 +181,10 @@ potential files for other 1D systems mentioned above.
    and uSemiParallel are given in eV/Angstrom, Phi is given in eV and
    Gamma is unitless.
 
+   If a simulation produces many warnings about segment-chain
+   interactions falling outside the interpolation range, we recommend
+   generating a potential file with lower values of delta1 and delta2.
+
 ----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info

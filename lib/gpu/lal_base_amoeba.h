@@ -152,7 +152,10 @@ class BaseAmoeba {
 
   virtual void precompute_induce(const int inum_full, const int bsorder,
                                  double **host_thetai1, double **host_thetai2,
-                                 double **host_thetai3, int** igrid);
+                                 double **host_thetai3, int** igrid,
+                                 double* grid_brick_start, int nzlo_out,
+                                 int nzhi_out, int nylo_out, int nyhi_out,
+                                 int nxlo_out, int nxhi_out);
 
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
@@ -179,8 +182,10 @@ class BaseAmoeba {
   virtual void compute_fphi_uind(const int inum_full, const int bsorder,
                                  double **host_thetai1, double **host_thetai2,
                                  double **host_thetai3, int** igrid,
-                                 double ****host_grid, double **host_fdip_phi1,
-                                 double **host_fdip_phi2, double **host_fdip_sum_phi);
+                                 double *host_grid_brick_start, double **host_fdip_phi1,
+                                 double **host_fdip_phi2, double **host_fdip_sum_phi,
+                                 int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
+                                 int nxlo_out, int nxhi_out);
 
   /// Compute polar real-space with device neighboring
   virtual void compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -249,9 +254,12 @@ class BaseAmoeba {
   int _nmax, _max_tep_size, _max_fieldp_size;
 
   int _bsorder;
-  UCL_Vector<numtyp,numtyp> _thetai1, _thetai2, _thetai3;
-  UCL_Vector<int4,int4> _igrid;
+  UCL_D_Vec<numtyp> _thetai1, _thetai2, _thetai3, _cgrid_brick;
+  UCL_D_Vec<int> _igrid;
+  UCL_Vector<numtyp,numtyp> _fdip_phi1, _fdip_phi2, _fdip_sum_phi;
   int _max_thetai_size;
+  int _nzlo_out, _nzhi_out, _nylo_out, _nyhi_out, _nxlo_out, _nxhi_out;
+  int _ngridx, _ngridy, _ngridz, _num_grid_points;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
@@ -272,7 +280,7 @@ class BaseAmoeba {
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pair_program;
-  UCL_Kernel k_multipole, k_udirect2b, k_umutual2b, k_polar;
+  UCL_Kernel k_multipole, k_udirect2b, k_umutual2b, k_polar, k_fphi_uind;
   UCL_Kernel k_special15, k_short_nbor;
   inline int block_size() { return _block_size; }
   inline void set_kernel(const int eflag, const int vflag) {}
@@ -305,7 +313,6 @@ class BaseAmoeba {
   virtual int umutual2b(const int eflag, const int vflag) = 0;
   virtual int fphi_uind() = 0;
   virtual int polar_real(const int eflag, const int vflag) = 0;
-
   
 
   #if !defined(USE_OPENCL) && !defined(USE_HIP)

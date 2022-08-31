@@ -1621,15 +1621,16 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
-                          const __global numtyp4 *restrict thetai1,
-                          const __global numtyp4 *restrict thetai2,
-                          const __global numtyp4 *restrict thetai3,
-                          const __global int4 *restrict igrid,
-                          const __global numtyp4 *restrict grid,
-                          __global numtyp4 *restrict fdip_phi1,
-                          __global numtyp4 *restrict fdip_phi2,
-                          __global numtyp4 *restrict fdip_sum_phi,
+                          const __global numtyp *restrict thetai1,
+                          const __global numtyp *restrict thetai2,
+                          const __global numtyp *restrict thetai3,
+                          const __global int *restrict igrid,
+                          const __global numtyp *restrict grid,
+                          __global numtyp *restrict fdip_phi1,
+                          __global numtyp *restrict fdip_phi2,
+                          __global numtyp *restrict fdip_sum_phi,
                           const int bsorder, const int inum,
+                          const int nyzgrid, const int nygrid,
                           const int t_per_atom)
 {
   int tid, ii, offset, i, n_stride;
@@ -1666,46 +1667,46 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
 
     // extract the permanent multipole field at each site
 
-    tuv100_1 = 0.0;
-    tuv010_1 = 0.0;
-    tuv001_1 = 0.0;
-    tuv200_1 = 0.0;
-    tuv020_1 = 0.0;
-    tuv002_1 = 0.0;
-    tuv110_1 = 0.0;
-    tuv101_1 = 0.0;
-    tuv011_1 = 0.0;
-    tuv100_2 = 0.0;
-    tuv010_2 = 0.0;
-    tuv001_2 = 0.0;
-    tuv200_2 = 0.0;
-    tuv020_2 = 0.0;
-    tuv002_2 = 0.0;
-    tuv110_2 = 0.0;
-    tuv101_2 = 0.0;
-    tuv011_2 = 0.0;
-    tuv000 = 0.0;
-    tuv001 = 0.0;
-    tuv010 = 0.0;
-    tuv100 = 0.0;
-    tuv200 = 0.0;
-    tuv020 = 0.0;
-    tuv002 = 0.0;
-    tuv110 = 0.0;
-    tuv101 = 0.0;
-    tuv011 = 0.0;
-    tuv300 = 0.0;
-    tuv030 = 0.0;
-    tuv003 = 0.0;
-    tuv210 = 0.0;
-    tuv201 = 0.0;
-    tuv120 = 0.0;
-    tuv021 = 0.0;
-    tuv102 = 0.0;
-    tuv012 = 0.0;
-    tuv111 = 0.0;
+    tuv100_1 = (numtyp)0.0;
+    tuv010_1 = (numtyp)0.0;
+    tuv001_1 = (numtyp)0.0;
+    tuv200_1 = (numtyp)0.0;
+    tuv020_1 = (numtyp)0.0;
+    tuv002_1 = (numtyp)0.0;
+    tuv110_1 = (numtyp)0.0;
+    tuv101_1 = (numtyp)0.0;
+    tuv011_1 = (numtyp)0.0;
+    tuv100_2 = (numtyp)0.0;
+    tuv010_2 = (numtyp)0.0;
+    tuv001_2 = (numtyp)0.0;
+    tuv200_2 = (numtyp)0.0;
+    tuv020_2 = (numtyp)0.0;
+    tuv002_2 = (numtyp)0.0;
+    tuv110_2 = (numtyp)0.0;
+    tuv101_2 = (numtyp)0.0;
+    tuv011_2 = (numtyp)0.0;
+    tuv000 = (numtyp)0.0;
+    tuv001 = (numtyp)0.0;
+    tuv010 = (numtyp)0.0;
+    tuv100 = (numtyp)0.0;
+    tuv200 = (numtyp)0.0;
+    tuv020 = (numtyp)0.0;
+    tuv002 = (numtyp)0.0;
+    tuv110 = (numtyp)0.0;
+    tuv101 = (numtyp)0.0;
+    tuv011 = (numtyp)0.0;
+    tuv300 = (numtyp)0.0;
+    tuv030 = (numtyp)0.0;
+    tuv003 = (numtyp)0.0;
+    tuv210 = (numtyp)0.0;
+    tuv201 = (numtyp)0.0;
+    tuv120 = (numtyp)0.0;
+    tuv021 = (numtyp)0.0;
+    tuv102 = (numtyp)0.0;
+    tuv012 = (numtyp)0.0;
+    tuv111 = (numtyp)0.0;
 
-    k = igrid[i].z - nlpts;
+    k = igrid[3*i+2] - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
       /*
       v0 = thetai3[m][kb][0];
@@ -1713,30 +1714,35 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       v2 = thetai3[m][kb][2];
       v3 = thetai3[m][kb][3];
       */
-      tu00_1 = 0.0;
-      tu01_1 = 0.0;
-      tu10_1 = 0.0;
-      tu20_1 = 0.0;
-      tu11_1 = 0.0;
-      tu02_1 = 0.0;
-      tu00_2 = 0.0;
-      tu01_2 = 0.0;
-      tu10_2 = 0.0;
-      tu20_2 = 0.0;
-      tu11_2 = 0.0;
-      tu02_2 = 0.0;
-      tu00 = 0.0;
-      tu10 = 0.0;
-      tu01 = 0.0;
-      tu20 = 0.0;
-      tu11 = 0.0;
-      tu02 = 0.0;
-      tu30 = 0.0;
-      tu21 = 0.0;
-      tu12 = 0.0;
-      tu03 = 0.0;
+      int i3 = m*4*bsorder + 4*kb;
+      v0 = thetai3[i3];
+      v1 = thetai3[i3]+1;
+      v2 = thetai3[i3+2];
+      v3 = thetai3[i3+3];
+      tu00_1 = (numtyp)0.0;
+      tu01_1 = (numtyp)0.0;
+      tu10_1 = (numtyp)0.0;
+      tu20_1 = (numtyp)0.0;
+      tu11_1 = (numtyp)0.0;
+      tu02_1 = (numtyp)0.0;
+      tu00_2 = (numtyp)0.0;
+      tu01_2 = (numtyp)0.0;
+      tu10_2 = (numtyp)0.0;
+      tu20_2 = (numtyp)0.0;
+      tu11_2 = (numtyp)0.0;
+      tu02_2 = (numtyp)0.0;
+      tu00 = (numtyp)0.0;
+      tu10 = (numtyp)0.0;
+      tu01 = (numtyp)0.0;
+      tu20 = (numtyp)0.0;
+      tu11 = (numtyp)0.0;
+      tu02 = (numtyp)0.0;
+      tu30 = (numtyp)0.0;
+      tu21 = (numtyp)0.0;
+      tu12 = (numtyp)0.0;
+      tu03 = (numtyp)0.0;
 
-      j = igrid[i].y - nlpts;
+      j = igrid[3*i+1] - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
         /*
         u0 = thetai2[m][jb][0];
@@ -1744,19 +1750,24 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         u2 = thetai2[m][jb][2];
         u3 = thetai2[m][jb][3];
         */
-        t0_1 = 0.0;
-        t1_1 = 0.0;
-        t2_1 = 0.0;
-        t0_2 = 0.0;
-        t1_2 = 0.0;
-        t2_2 = 0.0;
-        t3 = 0.0;
+        int i2 = m*4*bsorder+4*jb;
+        u0 = thetai2[i2];
+        u1 = thetai2[i2+1];
+        u2 = thetai2[i2+2];
+        u3 = thetai2[i2+3];
+        t0_1 = (numtyp)0.0;
+        t1_1 = (numtyp)0.0;
+        t2_1 = (numtyp)0.0;
+        t0_2 = (numtyp)0.0;
+        t1_2 = (numtyp)0.0;
+        t2_2 = (numtyp)0.0;
+        t3 = (numtyp)0.0;
 
-        i = igrid[m].x - nlpts;
+        int ii = igrid[3*i] - nlpts;
         for (int ib = 0; ib < bsorder; ib++) {
           /*
-          tq_1 = grid[k][j][i][0];
-          tq_2 = grid[k][j][i][1];
+          tq_1 = grid[k][j][ii][0];
+          tq_2 = grid[k][j][ii][1];
           t0_1 += tq_1*thetai1[m][ib][0];
           t1_1 += tq_1*thetai1[m][ib][1];
           t2_1 += tq_1*thetai1[m][ib][2];
@@ -1765,7 +1776,22 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
           t2_2 += tq_2*thetai1[m][ib][2];
           t3 += (tq_1+tq_2)*thetai1[m][ib][3];
           */
-          i++;
+          int i1 = m*4*bsorder+4*ib;
+          numtyp w0 = thetai1[i1];
+          numtyp w1 = thetai1[i1+1];
+          numtyp w2 = thetai1[i1+2];
+          numtyp w3 = thetai1[i1+3];
+          int gidx = 2*(k*nyzgrid + j*nygrid + ii);
+          tq_1 = grid[gidx];
+          tq_2 = grid[gidx+1];
+          t0_1 += tq_1*w0;
+          t1_1 += tq_1*w1;
+          t2_1 += tq_1*w2;
+          t0_2 += tq_2*w0;
+          t1_2 += tq_2*w1;
+          t2_2 += tq_2*w2;
+          t3 += (tq_1+tq_2)*w3;
+          ii++;
         }
 
         tu00_1 += t0_1*u0;
@@ -1836,6 +1862,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       tuv111 += tu11*v1;
       k++;
     }
+
 /*
     fdip_phi1[m][0] = 0.0;
     fdip_phi1[m][1] = tuv100_1;
@@ -1847,39 +1874,51 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     fdip_phi1[m][7] = tuv110_1;
     fdip_phi1[m][8] = tuv101_1;
     fdip_phi1[m][9] = tuv011_1;
-
-    fdip_phi2[m][0] = 0.0;
-    fdip_phi2[m][1] = tuv100_2;
-    fdip_phi2[m][2] = tuv010_2;
-    fdip_phi2[m][3] = tuv001_2;
-    fdip_phi2[m][4] = tuv200_2;
-    fdip_phi2[m][5] = tuv020_2;
-    fdip_phi2[m][6] = tuv002_2;
-    fdip_phi2[m][7] = tuv110_2;
-    fdip_phi2[m][8] = tuv101_2;
-    fdip_phi2[m][9] = tuv011_2;
-
-    fdip_sum_phi[m][0] = tuv000;
-    fdip_sum_phi[m][1] = tuv100;
-    fdip_sum_phi[m][2] = tuv010;
-    fdip_sum_phi[m][3] = tuv001;
-    fdip_sum_phi[m][4] = tuv200;
-    fdip_sum_phi[m][5] = tuv020;
-    fdip_sum_phi[m][6] = tuv002;
-    fdip_sum_phi[m][7] = tuv110;
-    fdip_sum_phi[m][8] = tuv101;
-    fdip_sum_phi[m][9] = tuv011;
-    fdip_sum_phi[m][10] = tuv300;
-    fdip_sum_phi[m][11] = tuv030;
-    fdip_sum_phi[m][12] = tuv003;
-    fdip_sum_phi[m][13] = tuv210;
-    fdip_sum_phi[m][14] = tuv201;
-    fdip_sum_phi[m][15] = tuv120;
-    fdip_sum_phi[m][16] = tuv021;
-    fdip_sum_phi[m][17] = tuv102;
-    fdip_sum_phi[m][18] = tuv012;
-    fdip_sum_phi[m][19] = tuv111;
 */
+    int idx = 10*m;
+    fdip_phi1[idx+0] = (numtyp)0.0;
+    fdip_phi1[idx+1] = tuv100_1;
+    fdip_phi1[idx+2] = tuv010_1;
+    fdip_phi1[idx+3] = tuv001_1;
+    fdip_phi1[idx+4] = tuv200_1;
+    fdip_phi1[idx+5] = tuv020_1;
+    fdip_phi1[idx+6] = tuv002_1;
+    fdip_phi1[idx+7] = tuv110_1;
+    fdip_phi1[idx+8] = tuv101_1;
+    fdip_phi1[idx+9] = tuv011_1;
+
+    fdip_phi2[idx+0] = (numtyp)0.0;
+    fdip_phi2[idx+1] = tuv100_2;
+    fdip_phi2[idx+2] = tuv010_2;
+    fdip_phi2[idx+3] = tuv001_2;
+    fdip_phi2[idx+4] = tuv200_2;
+    fdip_phi2[idx+5] = tuv020_2;
+    fdip_phi2[idx+6] = tuv002_2;
+    fdip_phi2[idx+7] = tuv110_2;
+    fdip_phi2[idx+8] = tuv101_2;
+    fdip_phi2[idx+9] = tuv011_2;
+
+    idx = 20*m;
+    fdip_sum_phi[idx+0] = tuv000;
+    fdip_sum_phi[idx+1] = tuv100;
+    fdip_sum_phi[idx+2] = tuv010;
+    fdip_sum_phi[idx+3] = tuv001;
+    fdip_sum_phi[idx+4] = tuv200;
+    fdip_sum_phi[idx+5] = tuv020;
+    fdip_sum_phi[idx+6] = tuv002;
+    fdip_sum_phi[idx+7] = tuv110;
+    fdip_sum_phi[idx+8] = tuv101;
+    fdip_sum_phi[idx+9] = tuv011;
+    fdip_sum_phi[idx+10] = tuv300;
+    fdip_sum_phi[idx+11] = tuv030;
+    fdip_sum_phi[idx+12] = tuv003;
+    fdip_sum_phi[idx+13] = tuv210;
+    fdip_sum_phi[idx+14] = tuv201;
+    fdip_sum_phi[idx+15] = tuv120;
+    fdip_sum_phi[idx+16] = tuv021;
+    fdip_sum_phi[idx+17] = tuv102;
+    fdip_sum_phi[idx+18] = tuv012;
+    fdip_sum_phi[idx+19] = tuv111;
   }
 }
 

@@ -275,13 +275,18 @@ int AmoebaT::fphi_uind() {
   const int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
-/*
-  this->time_pair.start();
 
+  this->time_pair.start();
+  int ngridyz = this->_ngridy * this->_ngridz;
   this->k_fphi_uind.set_size(GX,BX);
-  this->k_fphi_uind.run();
+  this->k_fphi_uind.run(&this->atom->x, &this->_thetai1,
+                        &this->_thetai2, &this->_thetai3,
+                        &this->_igrid, &this->_cgrid_brick,
+                        &this->_fdip_phi1, &this->_fdip_phi2,
+                        &this->_fdip_sum_phi, &this->_bsorder,
+                        &ainum, &ngridyz, &this->_ngridy,
+                        &this->_threads_per_atom);
   this->time_pair.stop();
-*/
 
   return GX;
 }

@@ -37,6 +37,7 @@ BaseAmoebaT::~BaseAmoeba() {
   k_multipole.clear();
   k_udirect2b.clear();
   k_umutual2b.clear();
+  k_fphi_uind.clear();
   k_polar.clear();
   k_special15.clear();
   k_short_nbor.clear();
@@ -182,6 +183,11 @@ void BaseAmoebaT::clear_atomic() {
   _thetai1.clear();
   _thetai2.clear();
   _thetai3.clear();
+  _igrid.clear();
+  _fdip_phi1.clear();
+  _fdip_phi2.clear();
+  _cgrid_brick.clear();
+  _fdip_sum_phi.clear();
   dev_nspecial15.clear();
   dev_special15.clear();
   dev_special15_t.clear();
@@ -444,34 +450,70 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 template <class numtyp, class acctyp>
 void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
                                     double **host_thetai1, double **host_thetai2,
-                                    double **host_thetai3, int** host_igrid) {
+                                    double **host_thetai3, int** host_igrid,
+                                    double* grid_brick_start, int nzlo_out,
+                                    int nzhi_out, int nylo_out, int nyhi_out,
+                                    int nxlo_out, int nxhi_out) {
   
   _bsorder = bsorder;
 
+  // allocate or resize per-atom arrays
+  // _max_thetai_size, _max_tep_size and _max_fieldp_size are essentially _nmax
+  //   will be consolidated once all terms are ready
+
   if (_max_thetai_size == 0) {
     _max_thetai_size = static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _thetai1.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
-    _thetai2.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
-    _thetai3.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
-    _igrid.alloc(_max_thetai_size,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+    _thetai1.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
+    _thetai2.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
+    _thetai3.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
+    _igrid.alloc(_max_thetai_size*3,*(this->ucl_device),UCL_READ_ONLY);
+
+    _fdip_phi1.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_WRITE_ONLY);
+    _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_WRITE_ONLY);
+    _fdip_sum_phi.alloc(_max_thetai_size*20,*(this->ucl_device),UCL_WRITE_ONLY);
+
   } else {
     if (inum_full>_max_thetai_size) {
       _max_thetai_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
       _thetai1.resize(_max_thetai_size*bsorder*4);
       _thetai2.resize(_max_thetai_size*bsorder*4);
       _thetai3.resize(_max_thetai_size*bsorder*4);
-      _igrid.resize(_max_thetai_size);
+      _igrid.resize(_max_thetai_size*3);
+
+      _fdip_phi1.resize(_max_thetai_size*10);
+      _fdip_phi2.resize(_max_thetai_size*10);
+      _fdip_sum_phi.resize(_max_thetai_size*20);
     }
   }
 
-  memcpy(_thetai1.host.begin(),host_thetai1,inum_full*bsorder*4*sizeof(numtyp));
-  memcpy(_thetai2.host.begin(),host_thetai2,inum_full*bsorder*4*sizeof(numtyp));
-  memcpy(_thetai3.host.begin(),host_thetai3,inum_full*bsorder*4*sizeof(numtyp));
-  memcpy(_igrid.host.begin(),host_igrid,inum_full*4*sizeof(int));
-  _thetai1.update_device(inum_full*bsorder*4,true);
-  _thetai2.update_device(inum_full*bsorder*4,true);
-  _thetai3.update_device(inum_full*bsorder*4,true);
-  _igrid.update_device(inum_full,true);
+  UCL_H_Vec<double> dview;
+
+  // copy from host to device
+  
+  dview.view(&host_thetai1[0][0],inum_full*bsorder*4,*(this->ucl_device));
+  ucl_copy(_thetai1,dview,false);
+  dview.view(&host_thetai2[0][0],inum_full*bsorder*4,*(this->ucl_device));
+  ucl_copy(_thetai2,dview,false);
+  dview.view(&host_thetai3[0][0],inum_full*bsorder*4,*(this->ucl_device));
+  ucl_copy(_thetai3,dview,false);
+
+  UCL_H_Vec<int> dview_int;
+  dview_int.view(&host_igrid[0][0],inum_full*3,*(this->ucl_device));
+  ucl_copy(_igrid,dview_int,false);
+
+  _nzlo_out = nzlo_out;
+  _nzhi_out = nzhi_out;
+  _nylo_out = nylo_out;
+  _nyhi_out = nyhi_out;
+  _nxlo_out = nxlo_out;
+  _nxhi_out = nxhi_out;
+  _ngridz = nzhi_out - nzlo_out + 1;
+  _ngridy = nyhi_out - nylo_out + 1;
+  _ngridx = nxhi_out - nxlo_out + 1;
+  _num_grid_points = _ngridx*_ngridy*_ngridz*2;
+  dview.view(grid_brick_start,_num_grid_points,*(this->ucl_device));
+  ucl_copy(_cgrid_brick,dview,false);
+
 }
 
 // ---------------------------------------------------------------------------
@@ -593,18 +635,35 @@ template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
                                     double **host_thetai1, double **host_thetai2,
                                     double **host_thetai3, int** igrid,
-                                    double ****host_cgrid_brick, double **host_fdip_phi1,
-                                    double **host_fdip_phi2, double **host_fdip_sum_phi)
+                                    double *host_grid_brick_start, double **host_fdip_phi1,
+                                    double **host_fdip_phi2, double **host_fdip_sum_phi,
+                                    int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
+                                    int nxlo_out, int nxhi_out)
 {
-  // once allocation and transfers
-  precompute_induce(inum_full, bsorder, host_thetai1, host_thetai2, host_thetai3, igrid);
+  // allocation/resize and transfers (do this right after udirect?)
   
-  // resize grid if needed, then copy from host to device
-  // cgrid_brick.alloc()/resize()
-  // cgrid_brick.begin() = host_cgrid_brick[0][0][0][0];
-  //
+  precompute_induce(inum_full, bsorder, host_thetai1, host_thetai2, host_thetai3,
+                    igrid, host_grid_brick_start, nzlo_out, nzhi_out, nylo_out, nyhi_out,
+                    nxlo_out, nxhi_out);
 
-  const int red_bllocks = fphi_uind();
+  // update the cgrid_brick with data host
+  
+  _nzlo_out = nzlo_out;
+  _nzhi_out = nzhi_out;
+  _nylo_out = nylo_out;
+  _nyhi_out = nyhi_out;
+  _nxlo_out = nxlo_out;
+  _nxhi_out = nxhi_out;
+  _ngridz = nzhi_out - nzlo_out + 1;
+  _ngridy = nyhi_out - nylo_out + 1;
+  _ngridx = nxhi_out - nxlo_out + 1;
+  _num_grid_points = _ngridx*_ngridy*_ngridz*2;
+
+  UCL_H_Vec<double> dview;
+  dview.view(host_grid_brick_start,_num_grid_points,*(this->ucl_device));
+  ucl_copy(_cgrid_brick,dview,false);
+
+  const int red_blocks = fphi_uind();
 }
 
 
@@ -814,6 +873,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_udirect2b.set_function(*pair_program,kname_udirect2b);
   k_umutual2b.set_function(*pair_program,kname_umutual2b);
   k_polar.set_function(*pair_program,kname_polar);
+  k_fphi_uind.set_function(*pair_program,"kname_fphi_uind");
   k_short_nbor.set_function(*pair_program,kname_short_nbor);
   k_special15.set_function(*pair_program,kname_special15);
   pos_tex.get_texture(*pair_program,"pos_tex");

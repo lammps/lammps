@@ -142,5 +142,14 @@ lmp_mpi -mdi \
   "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
    -in in.series.mdi.plugin -log log.series.mdi.plugin.1
 
+
+
+valgrind --trace-children=yes --track-origins=yes --keep-debuginfo=yes \
+lmp_mpi -mdi \
+  "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
+   -in in.series.mdi.plugin -log log.series.mdi.plugin.1
+
+
+
 NOTE: The -plugin_path needs to point to where LATTE was built in step
 (2).

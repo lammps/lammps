@@ -1035,31 +1035,31 @@ void Dump::balance()
 
 void Dump::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR,"Illegal dump_modify command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "dump_modify", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"append") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify append", error);
       append_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"buffer") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify buffer", error);
       buffer_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (buffer_flag && buffer_allow == 0)
         error->all(FLERR,"Dump_modify buffer yes not allowed for this style");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"delay") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify delay", error);
       delaystep = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (delaystep >= 0) delay_flag = 1;
       else delay_flag = 0;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify every", error);
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
@@ -1070,14 +1070,14 @@ void Dump::modify_params(int narg, char **arg)
         n = 0;
       } else {
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-        if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
+        if (n <= 0) error->all(FLERR, "Invalid dump_modify every argument: {}", n);
       }
       output->mode_dump[idump] = 0;
       output->every_dump[idump] = n;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"every/time") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify every/time", error);
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
@@ -1088,7 +1088,7 @@ void Dump::modify_params(int narg, char **arg)
         delta = 0.0;
       } else {
         delta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-        if (delta <= 0.0) error->all(FLERR,"Illegal dump_modify command");
+        if (delta <= 0.0) error->all(FLERR, "Invalid dump_modify every/time argument: {}", delta);
       }
       output->mode_dump[idump] = 1;
       output->every_time_dump[idump] = delta;
@@ -1096,11 +1096,11 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"fileper") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify fileper", error);
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify fileper without % in dump file name");
       int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
+      if (nper <= 0) error->all(FLERR, "Invalid dump_modify fileper argument: {}", nper);
 
       multiproc = nprocs/nper;
       if (nprocs % nper) multiproc++;
@@ -1122,22 +1122,22 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"first") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify first", error);
       first_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"flush") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify flush", error);
       flush_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"colname") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);
       if (strcmp(arg[iarg+1],"default") == 0) {
         for (auto item : keyword_user) item.clear();
         iarg += 2;
       } else {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
           icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
@@ -1157,7 +1157,7 @@ void Dump::modify_params(int narg, char **arg)
         iarg += 3;
       }
     } else if (strcmp(arg[iarg],"format") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
       if (strcmp(arg[iarg+1],"none") == 0) {
         delete[] format_line_user;
@@ -1175,7 +1175,7 @@ void Dump::modify_params(int narg, char **arg)
         continue;
       }
 
-      if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
       if (strcmp(arg[iarg+1],"line") == 0) {
         delete[] format_line_user;
@@ -1183,17 +1183,17 @@ void Dump::modify_params(int narg, char **arg)
         iarg += 3;
       } else {   // pass other format options to child classes
         int n = modify_param(narg-iarg,&arg[iarg]);
-        if (n == 0) error->all(FLERR,"Illegal dump_modify command");
+        if (n == 0) error->all(FLERR,"Unknown dump_modify format keyword: {}", arg[iarg+1]);
         iarg += n;
       }
 
     } else if (strcmp(arg[iarg],"header") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify header", error);
       write_header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"maxfiles") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify maxfiles", error);
       if (!multifile)
         error->all(FLERR,"Cannot use dump_modify maxfiles without * in dump file name");
       // wipe out existing storage
@@ -1203,7 +1203,7 @@ void Dump::modify_params(int narg, char **arg)
         delete[] nameslist;
       }
       maxfiles = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (maxfiles == 0) error->all(FLERR,"Illegal dump_modify command");
+      if (maxfiles == 0) error->all(FLERR, "Invalid dump_modify maxfiles argument: {}", maxfiles);
       if (maxfiles > 0) {
         nameslist = new char*[maxfiles];
         numfiles = 0;
@@ -1213,11 +1213,11 @@ void Dump::modify_params(int narg, char **arg)
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"nfile") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify nfile", error);
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify nfile without % in dump file name");
       int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");
+      if (nfile <= 0) error->all(FLERR, "Invalid dump_modify nfile argument: {}", nfile);
       nfile = MIN(nfile,nprocs);
 
       multiproc = nfile;
@@ -1244,18 +1244,18 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"pad") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify pad", error);
       padflag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (padflag < 0) error->all(FLERR,"Illegal dump_modify command");
+      if (padflag < 0) error->all(FLERR, "Invalid dump_modify pad argument: {}", padflag);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"pbc") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify pbc", error);
       pbcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"sort") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify sort", error);
       if (strcmp(arg[iarg+1],"off") == 0) sort_flag = 0;
       else if (strcmp(arg[iarg+1],"id") == 0) {
         sort_flag = 1;
@@ -1265,7 +1265,7 @@ void Dump::modify_params(int narg, char **arg)
         sort_flag = 1;
         sortcol = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         sortorder = ASCEND;
-        if (sortcol == 0) error->all(FLERR,"Illegal dump_modify command");
+        if (sortcol == 0) error->all(FLERR, "Invalid dump_modify sort argument: {}", sortcol);
         if (sortcol < 0) {
           sortorder = DESCEND;
           sortcol = -sortcol;
@@ -1275,24 +1275,24 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"balance") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify blance", error);
       if (nprocs > 1)
         balance_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"time") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify time", error);
       time_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify units", error);
       unit_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) error->all(FLERR,"Illegal dump_modify command");
+      if (n == 0) error->all(FLERR,"Unknown dump_modify keyword: {}", arg[iarg]);
       iarg += n;
     }
   }

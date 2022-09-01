@@ -43,13 +43,14 @@ using MathSpecial::square;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_cylinder[] =
-    "compute stress/cylinder:\n\n"
+    "compute stress/cylinder: doi:10.1063/1.5037054\n\n"
     "@Article{Addington,\n"
-    " author = {C. K. Addington, Y. Long, K. E. Gubbins},\n"
-    " title = {The pressure in interfaces having cylindrical geometry},\n"
-    " journal = {J.~Chem.~Phys.},\n"
+    " author = {C. K. Addington and Y. Long and K. E. Gubbins},\n"
+    " title = {The Pressure in Interfaces Having Cylindrical Geometry},\n"
+    " journal = {J.~Chem.\\ Phys.},\n"
     " year =    2018,\n"
     " volume =  149,\n"
+    " number =  8,\n"
     " pages =   {084109}\n"
     "}\n\n";
 

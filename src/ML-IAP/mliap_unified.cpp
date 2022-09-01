@@ -23,7 +23,7 @@
 #include "memory.h"
 #include "lmppython.h"
 #include "mliap_data.h"
-#include "mliap_unifiedpy.h"
+#include "mliap_unified_couple.h"
 #include "pair_mliap.h"
 #include "python_compat.h"
 #include "utils.h"
@@ -169,7 +169,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
     lmp->error->all(FLERR, "Could not initialize embedded Python");
   }
 
-  PyObject *unified_module = PyImport_ImportModule("mliap_unifiedpy");
+  PyObject *unified_module = PyImport_ImportModule("mliap_unified_couple");
 
   if (PyErr_Occurred()) {
     PyErr_Print();

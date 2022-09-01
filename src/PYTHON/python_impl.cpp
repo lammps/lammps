@@ -34,7 +34,7 @@
 // We could get around this with cython --capi-reexport-cincludes
 // However, that exposes -too many- headers.
 #include "mliap_model_python_couple.h"
-#include "mliap_unifiedpy.h"
+#include "mliap_unified_couple.h"
 #endif
 
 using namespace LAMMPS_NS;
@@ -69,7 +69,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
   if (err) error->all(FLERR, "Could not register MLIAPPY embedded python module.");
 
-  err = PyImport_AppendInittab("mliap_unifiedpy", PyInit_mliap_unifiedpy);
+  err = PyImport_AppendInittab("mliap_unified_couple", PyInit_mliap_unified_couple);
   if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python module.");
 #endif
 

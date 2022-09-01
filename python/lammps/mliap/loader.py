@@ -57,7 +57,7 @@ class DynamicLoader(importlib.abc.Loader):
 def activate_mliappy(lmp):
     try:
         library = lmp.lib
-        module_names = ["mliap_model_python_couple", "mliap_unifiedpy"]
+        module_names = ["mliap_model_python_couple", "mliap_unified_couple"]
         api_version = library.lammps_PYTHON_API_VERSION()
         
         for module_name in module_names:
@@ -83,9 +83,9 @@ def load_model(model):
 
 def load_unified(model):
     try:
-        import mliap_unifiedpy
+        import mliap_unified_couple
     except ImportError as ie:
         raise ImportError("ML-IAP python module must be activated before loading\n"
                           "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
                           ) from ie
-    mliap_unifiedpy.load_from_python(model)
+    mliap_unified_couple.load_from_python(model)

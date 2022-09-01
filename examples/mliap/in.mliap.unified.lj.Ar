@@ -11,7 +11,7 @@ mass		1 1.0
 
 velocity	all create 3.0 87287 loop geom
 
-pair_style	mliap unified mliap_unified_lj_Ar.pkl
+pair_style	mliap unified mliap_unified_lj_Ar.pkl 0
 pair_coeff	* * Ar
 
 neighbor	0.3 bin

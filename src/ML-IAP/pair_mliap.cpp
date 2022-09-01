@@ -182,17 +182,16 @@ void PairMLIAP::settings(int narg, char ** arg)
 #ifdef MLIAP_PYTHON
     } else if (strcmp(arg[iarg], "unified") == 0) {
       MLIAPBuildUnified_t build;
-      if (iarg+1 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-      if (strcmp(arg[iarg+1],"ghostneigh") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-        build = build_unified(arg[iarg+2], data, lmp);
+      if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      build = build_unified(arg[iarg+1], data, lmp);
+      if (strcmp(arg[iarg+2],"0") == 0) {
+        ghostneigh = 0;
+      } else if (strcmp(arg[iarg+2],"1") == 0) {
         ghostneigh = 1;
-        iarg += 3;
       } else {
-        if (iarg+1 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-        build = build_unified(arg[iarg+1], data, lmp);
-        iarg += 2;
+        error->all(FLERR,"Illegal pair_style mliap command");
       }
+      iarg += 3;
       model = build.model;
       descriptor = build.descriptor;
       modelflag = 1;

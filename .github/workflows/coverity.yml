@@ -4,11 +4,13 @@ on:
   schedule:
     - cron: "0 0 * * FRI"
 
+  workflow_dispatch:
+
 jobs:
   analyze:
     name: Analyze
     if: ${{ github.repository == 'lammps/lammps' }}
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
     container:
       image: lammps/buildenv:ubuntu20.04
 

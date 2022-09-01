@@ -1312,17 +1312,6 @@ template <> struct float_info<double> {
   static const int shorter_interval_tie_upper_threshold = -77;
 };
 
-#if 1
-// LAMMPS workaround: Some LLVM based compilers (e.g. AMD's hipcc, Intel's dpcpp)
-// fail to match the following mixed 80/128-bit template below for "long double".
-// since they silently change long double to double. So we provide an explicit one.
-
-template <> struct float_info<long double> {
-  using carrier_uint = detail::uint128_t;
-  static const int exponent_bits = 15;
-};
-#endif
-
 // An 80- or 128-bit floating point number.
 template <typename T>
 struct float_info<T, enable_if_t<std::numeric_limits<T>::digits == 64 ||
@@ -1636,7 +1625,9 @@ auto snprintf_float(T value, int precision, float_specs specs,
 
 template <typename T>
 using convert_float_result =
-    conditional_t<std::is_same<T, float>::value || sizeof(T) == sizeof(double),
+    conditional_t<std::is_same<T, float>::value ||
+                      std::numeric_limits<T>::digits ==
+                          std::numeric_limits<double>::digits,
                   double, T>;
 
 template <typename T>

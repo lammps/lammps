@@ -5,17 +5,17 @@ import numpy as np
 class MLIAPUnifiedLJ(MLIAPUnified):
     """Test implementation for MLIAPUnified."""
 
-    def __init__(self):
+    def __init__(self, element_types, epsilon=1.0, sigma=1.0, rcutfac=1.25):
         super().__init__()
-        self.element_types = ["Ar"]
+        self.element_types = element_types
         self.ndescriptors = 1
         self.nparams = 3
         # Mimicking the LJ pair-style:
         # pair_style lj/cut 2.5
         # pair_coeff * * 1 1
-        self.epsilon = 1.0
-        self.sigma = 1.0
-        self.rcutfac = 1.25
+        self.epsilon = epsilon
+        self.sigma = sigma
+        self.rcutfac = rcutfac
 
     def compute_gradients(self, data):
         """Test compute_gradients."""

@@ -49,7 +49,7 @@ lmp.commands_string(before_loading)
 # Define the model however you like. In this example
 # we simply import the unified L-J example from mliap
 from lammps.mliap.mliap_unified_lj import MLIAPUnifiedLJ
-unified = MLIAPUnifiedLJ()
+unified = MLIAPUnifiedLJ(["Ar"])
 
 # You can also load the model from a pickle file.
 # import pickle

@@ -145,24 +145,31 @@ void CPairPOD::coeff(int narg, char **arg)
         for (int jj = 0; jj < n+1; jj++) 
             scale[ii][jj] = 1.0;                      
     allocated = 1;
-    
+   
+    printf("!!!!! %d\n", narg); 
     if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
-    if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
+    //if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
     //cout<<"map_element2type"<<endl;
     //cout<<narg-5<<endl;
     //cout<<arg[5]<<endl;
-    map_element2type(narg-5,&arg[5]);
+    //printf("^^^^^ %d %d\n", narg-5, &arg[5]);
+    //map_element2type(narg-5,&arg[5]);
+    //std::cout << arg[4] << std::endl;
+    map_element2type(narg-4, &arg[4]); // if not including data file
 //     cout<<map[0]<<endl;
 //     cout<<map[1]<<endl;        
     
     std::string pod_file = std::string(arg[2]);  // pod input file
     std::string coeff_file = std::string(arg[3]); // coefficient input file       
     std::string data_file;                       // data input file           
-  
-    if (narg>4) data_file = std::string(arg[4]); // data input file     
-    else data_file = "";
-    
+ 
+    std::cout << coeff_file << std::endl; 
+    //if (narg>4) data_file = std::string(arg[4]); // data input file     
+    //else data_file = "";
+    data_file = "";
+   
+    printf("^^^^^ ^^^^^ 1\n"); 
     this->InitPairPOD(pod_file, coeff_file, data_file);        
     
     for (int ii = 0; ii < n+1; ii++)
@@ -226,12 +233,18 @@ void *CPairPOD::extract(const char *str, int &dim)
 
 void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file, std::string data_file)
 {
+
+    printf("^^^^^ init pair pod\n");
     podptr = new CPOD(lmp, pod_file, coeff_file);
-    
+  
+    printf("^^^^^ Made new CPOD\n"); 
+    std::cout << data_file << std::endl;
+ 
     if (data_file != "")
         this->read_data_files(data_file, podptr->pod.species);       
     else 
-        error->all(FLERR,"\n Error: Data filename is empty");    
+        //error->all(FLERR,"\n Error: Data filename is empty");    
+        printf("Data filename is empty\n");
     
     if ((int) data.data_path.size() > 1) { 
         podpairlist = 1;

@@ -652,6 +652,8 @@ void CPOD::read_pod(std::string pod_file)
 
 void CPOD::read_coeff_file(std::string coeff_file)
 {
+
+    std::cout << coeff_file << std::endl;
     std::ifstream file_in(coeff_file);
     if (!file_in) {error->all(FLERR,"Error: Coefficient input file is not found");}
     

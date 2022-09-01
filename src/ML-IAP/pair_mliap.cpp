@@ -146,6 +146,7 @@ void PairMLIAP::settings(int narg, char ** arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (strcmp(arg[iarg+1],"linear") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelLinear(lmp,arg[iarg+2]);
@@ -168,6 +169,7 @@ void PairMLIAP::settings(int narg, char ** arg)
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
@@ -181,9 +183,10 @@ void PairMLIAP::settings(int narg, char ** arg)
       descriptorflag = 1;
 #ifdef MLIAP_PYTHON
     } else if (strcmp(arg[iarg], "unified") == 0) {
-      MLIAPBuildUnified_t build;
+      if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
+      if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-      build = build_unified(arg[iarg+1], data, lmp);
+      MLIAPBuildUnified_t build = build_unified(arg[iarg+1], data, lmp);
       if (strcmp(arg[iarg+2],"0") == 0) {
         ghostneigh = 0;
       } else if (strcmp(arg[iarg+2],"1") == 0) {

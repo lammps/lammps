@@ -124,7 +124,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   int nlocal = atom->nlocal;
 
-  if (ncols == 0) {
+  if (ncols == 1) {
     for (int i = 0; i < nlocal; i++)
       vector[i] = 0.0;
   } else {
@@ -153,7 +153,7 @@ FixPair::~FixPair()
   delete [] triggername;
   delete [] triggerptr;
   
-  if (ncols == 0) memory->destroy(vector);
+  if (ncols == 1) memory->destroy(vector);
   else memory->destroy(array);
 }
 
@@ -228,7 +228,7 @@ void FixPair::post_force(int /*vflag*/)
 
     if (columns == 0) {
       double *pvector = (double *) pvoid;
-      if (ncols == 0) { 
+      if (ncols == 1) { 
         for (int i = 0; i < nlocal; i++)
           vector[i] = pvector[i];
       } else {
@@ -259,7 +259,7 @@ void FixPair::post_force(int /*vflag*/)
 
 void FixPair::grow_arrays(int nmax)
 {
-  if (ncols == 0) {
+  if (ncols == 1) {
     memory->grow(vector,nmax,"store/state:vector");
     vector_atom = vector;
   } else {
@@ -275,7 +275,7 @@ void FixPair::grow_arrays(int nmax)
 double FixPair::memory_usage()
 {
   double bytes = 0.0;
-  if (ncols == 0) bytes += (double)atom->nmax * sizeof(double);
+  if (ncols == 1) bytes += (double)atom->nmax * sizeof(double);
   else bytes += (double)atom->nmax*ncols * sizeof(double);
   return bytes;
 }

@@ -95,6 +95,7 @@ accelerated styles exist.
 * :doc:`harmonic <bond_harmonic>` - harmonic bond
 * :doc:`harmonic/shift <bond_harmonic_shift>` - shifted harmonic bond
 * :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` - shifted harmonic bond with a cutoff
+* :doc:`mesocnt <bond_mesocnt>` - Harmonic bond wrapper with parameterization presets for nanotubes
 * :doc:`mm3 <bond_mm3>` - MM3 anharmonic bond
 * :doc:`morse <bond_morse>` - Morse bond
 * :doc:`nonlinear <bond_nonlinear>` - nonlinear bond

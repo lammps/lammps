@@ -62,7 +62,7 @@ Syntax
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
 * style = *atom* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
-* N = dump every this many timesteps
+* N = dump on timesteps which are a multiple of N
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
 
@@ -176,14 +176,15 @@ Examples
 Description
 """""""""""
 
-Dump a snapshot of atom quantities to one or more files every :math:`N`
-timesteps in one of several styles.  The *image* and *movie* styles are
-the exception: the *image* style renders a JPG, PNG, or PPM image file
-of the atom configuration every :math:`N` timesteps while the *movie* style
-combines and compresses them into a movie file; both are discussed in
-detail on the :doc:`dump image <dump_image>` page.  The timesteps on
-which dump output is written can also be controlled by a variable.
-See the :doc:`dump_modify every <dump_modify>` command.
+Dump a snapshot of atom quantities to one or more files once every
+:math:`N` timesteps in one of several styles.  The *image* and *movie*
+styles are the exception: the *image* style renders a JPG, PNG, or PPM
+image file of the atom configuration every :math:`N` timesteps while
+the *movie* style combines and compresses them into a movie file; both
+are discussed in detail on the :doc:`dump image <dump_image>` page.
+The timesteps on which dump output is written can also be controlled
+by a variable.  See the :doc:`dump_modify every <dump_modify>`
+command.
 
 Only information for atoms in the specified group is dumped.  The
 :doc:`dump_modify thresh and region and refresh <dump_modify>` commands
@@ -485,20 +486,28 @@ popular molecular viewing program.
 
 ----------
 
-Dumps are performed on timesteps that are a multiple of :math:`N` (including
-timestep 0) and on the last timestep of a minimization if the
-minimization converges.  Note that this means a dump will not be
+Dumps are performed on timesteps that are a multiple of :math:`N`
+(including timestep 0) and on the last timestep of a minimization if
+the minimization converges.  Note that this means a dump will not be
 performed on the initial timestep after the dump command is invoked,
-if the current timestep is not a multiple of :math:`N`.  This behavior can be
-changed via the :doc:`dump_modify first <dump_modify>` command, which
-can also be useful if the dump command is invoked after a minimization
-ended on an arbitrary timestep.  :math:`N` can be changed between runs by
-using the :doc:`dump_modify every <dump_modify>` command (not allowed
-for *dcd* style).  The :doc:`dump_modify every <dump_modify>` command
-also allows a variable to be used to determine the sequence of
-timesteps on which dump files are written.  In this mode a dump on the
-first timestep of a run will also not be written unless the
+if the current timestep is not a multiple of :math:`N`.  This behavior
+can be changed via the :doc:`dump_modify first <dump_modify>` command,
+which can also be useful if the dump command is invoked after a
+minimization ended on an arbitrary timestep.
+
+The value of :math:`N` can be changed between runs by using the
+:doc:`dump_modify every <dump_modify>` command (not allowed for *dcd*
+style).  The :doc:`dump_modify every <dump_modify>` command also
+allows a variable to be used to determine the sequence of timesteps on
+which dump files are written.  In this mode a dump on the first
+timestep of a run will also not be written unless the
 :doc:`dump_modify first <dump_modify>` command is used.
+
+If you instead want to dump snapshots based on simulation time (in
+time units of the :doc:`units` command), the :doc:`dump_modify
+every/time <dump_modify>` command can be used.  This can be useful
+when the timestep size varies during a simulation run, e.g. by use of
+the :doc:`fix dt/reset <fix_dt_reset>` command.
 
 The specified filename determines how the dump file(s) is written.
 The default is to write one large text file, which is opened when the

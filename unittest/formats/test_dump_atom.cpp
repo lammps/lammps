@@ -703,6 +703,54 @@ TEST_F(DumpAtomTest, binary_write_dump)
 // dump_modify
 //-------------------------------------------------------------------------------------------------
 
+TEST_F(DumpAtomTest, delay)
+{
+    auto dump_file = dump_filename("delay");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id delay 20");
+    command("run 50 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"20", "30", "40", "50"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, colname)
+{
+    auto dump_file = dump_filename("colname");
+    BEGIN_HIDE_OUTPUT();
+    command("group one id 1");
+    command("dump id one atom 10 " + dump_file);
+    command("run 5 post no");
+    command("dump_modify id colname id AtomID colname 3 x-scaled colname -1 z-scaled");
+    command("run 10 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "ATOMS id type xs ys zs");
+    expected = {"1 1 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS AtomID type x-scaled ys z-scaled");
+    expected = {"1 1 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
 TEST_F(DumpAtomTest, units_time)
 {
     auto dump_file = dump_filename("units_time");
@@ -720,13 +768,13 @@ TEST_F(DumpAtomTest, units_time)
     expected = {"0", "0.05", "0.1", "0.15", "0.25", "0.35", "0.45"};
     ASSERT_EQ(values.size(), expected.size());
     for (int i = 0; i < expected.size(); ++i)
-        EXPECT_THAT(values[i], Eq(expected[i]));
+        ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "UNITS");
     expected = {"lj"};
     ASSERT_EQ(values.size(), expected.size());
     for (int i = 0; i < expected.size(); ++i)
-        EXPECT_THAT(values[i], Eq(expected[i]));
+        ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
 }

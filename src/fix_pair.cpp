@@ -72,7 +72,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
     if (trigger[ifield] == 0) triggername[ifield] = nullptr;
     else {
       auto str = fmt::format("{}_flag", fieldname[ifield]);
-      triggername[nfield] = utils::strdup(str);
+      triggername[ifield] = utils::strdup(str);
     }
   }
 

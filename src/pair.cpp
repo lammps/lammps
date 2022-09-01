@@ -818,15 +818,14 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
 
   if (narg != ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
-  
+ 
   if (elements) {
     for (i = 0; i < nelements; i++) delete[] elements[i];
     delete[] elements;
   }
   elements = new char*[ntypes];
-  for (i = 0; i < ntypes; i++) elements[i] = nullptr;
-    
-  
+  for (i = 0; i < ntypes; i++) elements[i] = nullptr; 
+ 
   nelements = 0;
   map[0] = -1;
   for (i = 1; i <= narg; i++) {
@@ -843,7 +842,7 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
       nelements++;
     }
   }
-  
+ 
   // if requested, clear setflag[i][j] and set it for type pairs
   // where both are mapped to elements in map.
   

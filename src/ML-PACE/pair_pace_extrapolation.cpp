@@ -53,6 +53,9 @@ namespace LAMMPS_NS {
         ~ACEALImpl() {
             delete basis_set;
             delete ace;
+
+            delete ctilde_basis_set;
+            delete rec_ace;
         }
 
         ACEBBasisSet *basis_set;
@@ -154,11 +157,14 @@ void PairPACEExtrapolation::compute(int eflag, int vflag) {
     // So this check and error effectively disallows use with pair style hybrid.
     if (inum != nlocal) { error->all(FLERR, "inum: {} nlocal: {} are different", inum, nlocal); }
 
-    //grow extrapolation_grade_gamma array, that store per-atom extrapolation grades
-    if (atom->nlocal > nmax) {
+    //if flag_compute_extrapolation_grade at this iteration then
+    // grow extrapolation_grade_gamma array, that store per-atom extrapolation grades
+    if (flag_compute_extrapolation_grade && atom->nlocal > nmax) {
         memory->destroy(extrapolation_grade_gamma);
         nmax = atom->nlocal;
         memory->create(extrapolation_grade_gamma, nmax, "pace/atom:gamma");
+        //zeroify array
+        memset(extrapolation_grade_gamma, 0, nmax * sizeof(*extrapolation_grade_gamma));
     }
 
     //determine the maximum number of neighbours
@@ -171,8 +177,6 @@ void PairPACEExtrapolation::compute(int eflag, int vflag) {
         if (jnum > max_jnum) max_jnum = jnum;
     }
 
-    bigint current_timestep = update->ntimestep;
-//  flag_compute_extrapolation_grade = (current_timestep - bevaluator_timestep_shift) % gamma_grade_eval_freq == 0;
 
     if (flag_compute_extrapolation_grade)
         aceimpl->ace->resize_neighbours_cache(max_jnum);
@@ -211,7 +215,6 @@ void PairPACEExtrapolation::compute(int eflag, int vflag) {
         if (flag_compute_extrapolation_grade) {
             double current_atom_gamma_grade = aceimpl->ace->max_gamma_grade;
             if (max_gamma_grade < current_atom_gamma_grade) max_gamma_grade = current_atom_gamma_grade;
-//            bevaluator_timestep = current_timestep;
             extrapolation_grade_gamma[i] = current_atom_gamma_grade;
         }
 
@@ -261,24 +264,24 @@ void PairPACEExtrapolation::compute(int eflag, int vflag) {
 
     if (vflag_fdotr) virial_fdotr_compute();
 
-    if (flag_compute_extrapolation_grade) {
-        //gather together max_gamma_grade_per_structure
-        MPI_Allreduce(&max_gamma_grade, &max_gamma_grade_per_structure, 1, MPI_DOUBLE, MPI_MAX, world);
-
-        // TODO: check, whether to stop here or externally in LAMMPS
-        // check if gamma_upper_bound is exceeded
-        if (max_gamma_grade_per_structure > gamma_upper_bound) {
-            if (comm->me == 0)
-                error->all(FLERR,
-                           "Extrapolation grade is too large (gamma={:.3f} > gamma_upper_bound={:.3f}, "
-                           "timestep={}), stopping...\n",
-                           max_gamma_grade_per_structure, gamma_upper_bound, current_timestep);
-
-            MPI_Barrier(world);
-            MPI_Abort(world, 1);    //abort properly with error code '1' if not using many processes
-            exit(EXIT_FAILURE);
-        }
-    }
+//    if (flag_compute_extrapolation_grade) {
+//        //gather together max_gamma_grade_per_structure
+//        MPI_Allreduce(&max_gamma_grade, &max_gamma_grade_per_structure, 1, MPI_DOUBLE, MPI_MAX, world);
+//
+//        // TODO: check, whether to stop here or externally in LAMMPS
+//        // check if gamma_upper_bound is exceeded
+//        if (max_gamma_grade_per_structure > gamma_upper_bound) {
+//            if (comm->me == 0)
+//                error->all(FLERR,
+//                           "Extrapolation grade is too large (gamma={:.3f} > gamma_upper_bound={:.3f}, "
+//                           "timestep={}), stopping...\n",
+//                           max_gamma_grade_per_structure, gamma_upper_bound, current_timestep);
+//
+//            MPI_Barrier(world);
+//            MPI_Abort(world, 1);    //abort properly with error code '1' if not using many processes
+//            exit(EXIT_FAILURE);
+//        }
+//    }
 
     // end modifications YL
 }
@@ -467,7 +470,8 @@ double PairPACEExtrapolation::init_one(int i, int j) {
 void *PairPACEExtrapolation::extract(const char *str, int &dim) {
     //check if str=="gamma_flag" then compute extrapolation grades on this iteration
     dim = 0;
-    if (strcmp(str, "gamma_flag")) return (void *) &flag_compute_extrapolation_grade;
+    if (strcmp(str, "gamma_flag")==0)
+        return (void *) &flag_compute_extrapolation_grade;
 
     dim = 2;
     if (strcmp(str, "scale") == 0) return (void *) scale;

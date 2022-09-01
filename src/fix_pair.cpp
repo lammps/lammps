@@ -71,7 +71,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   for (int ifield = 0; ifield < nfield; ifield++) {
     if (trigger[ifield] == 0) triggername[ifield] = nullptr;
     else {
-      auto str = fmt::format("%s_flag", fieldname[ifield]);
+      auto str = fmt::format("{}_flag", fieldname[ifield]);
       triggername[nfield] = utils::strdup(str);
     }
   }
@@ -107,7 +107,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   //   which this fix outputs whenever it wants
 
   peratom_flag = 1;
-  if (ncols == 1) size_peratom_cols = 0;
+  if (ncols == 1) size_peratom_cols = 0; // MODIFIED
   else size_peratom_cols = ncols;
   peratom_freq = nevery;
 

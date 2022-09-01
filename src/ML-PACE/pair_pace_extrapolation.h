@@ -20,7 +20,7 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(pace/extrapolation,PairPACEExtrapolation);
+PairStyle(pace/extrapolation,PairPACEExtrapolation)
 // clang-format on
 #else
 
@@ -32,14 +32,7 @@ PairStyle(pace/extrapolation,PairPACEExtrapolation);
 
 namespace LAMMPS_NS {
 
-//forward declaration
-class ComputePACEExtrapolation;
-class DumpPACEExtrapolation;
-
 class PairPACEExtrapolation : public Pair {
-  friend class ComputePACEExtrapolation;
-  friend class DumpPACEExtrapolation;
-
  public:
   PairPACEExtrapolation(class LAMMPS *);
   ~PairPACEExtrapolation() override;
@@ -50,11 +43,12 @@ class PairPACEExtrapolation : public Pair {
   void init_style() override;
   double init_one(int, int) override;
   void *extract(const char *, int &) override;
+  void *extract_peratom(const char *, int &) override;
 
  protected:
   struct ACEALImpl *aceimpl;
-  bigint gamma_grade_eval_freq = 1;
-  bool is_set_energies_forces = true;    // if set, then update forces and energies
+//  bigint gamma_grade_eval_freq = 1;
+//  bool is_set_energies_forces = true;    // if set, then update forces and energies
   int nmax;
 
   double gamma_lower_bound = 1.5;
@@ -65,9 +59,9 @@ class PairPACEExtrapolation : public Pair {
   std::vector<std::string> element_names;    // list of elements (used by dump pace/extrapolation)
   double rcutmax;                            // max cutoff for all elements
   int nelements;                             // # of unique elements
-  bigint bevaluator_timestep;                // timestep, on which gamma grade were computed
-  bigint bevaluator_timestep_shift = 0;      //
   double *extrapolation_grade_gamma;         //per-atom gamma value
+
+  int flag_compute_extrapolation_grade;
 
   double **scale;
 };

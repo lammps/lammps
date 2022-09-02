@@ -311,7 +311,7 @@ class BaseAmoeba {
   virtual int multipole_real(const int eflag, const int vflag) = 0;
   virtual int udirect2b(const int eflag, const int vflag) = 0;
   virtual int umutual2b(const int eflag, const int vflag) = 0;
-  virtual int fphi_uind() = 0;
+  virtual int fphi_uind();
   virtual int polar_real(const int eflag, const int vflag) = 0;
   
 

@@ -1706,7 +1706,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     tuv012 = (numtyp)0.0;
     tuv111 = (numtyp)0.0;
 
-    k = igrid[3*i+2] - nlpts;
+    k = igrid[4*i+2] - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
       /*
       v0 = thetai3[m][kb][0];
@@ -1742,7 +1742,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       tu12 = (numtyp)0.0;
       tu03 = (numtyp)0.0;
 
-      j = igrid[3*i+1] - nlpts;
+      j = igrid[4*i+1] - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
         /*
         u0 = thetai2[m][jb][0];
@@ -1763,7 +1763,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         t2_2 = (numtyp)0.0;
         t3 = (numtyp)0.0;
 
-        int ii = igrid[3*i] - nlpts;
+        int ii = igrid[4*i] - nlpts;
         for (int ib = 0; ib < bsorder; ib++) {
           /*
           tq_1 = grid[k][j][ii][0];

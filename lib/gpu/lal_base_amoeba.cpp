@@ -144,7 +144,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   _max_fieldp_size = _max_tep_size;
   _fieldp.alloc(_max_fieldp_size*8,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
 
-  _max_thetai_size = 0;
+  _max_thetai_size = _max_tep_size;
 
   _nmax = nall;
   dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
@@ -466,7 +466,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
     _thetai1.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
     _thetai2.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
     _thetai3.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
-    _igrid.alloc(_max_thetai_size*3,*(this->ucl_device),UCL_READ_ONLY);
+    _igrid.alloc(_max_thetai_size*4,*(this->ucl_device),UCL_READ_ONLY);
 
     _fdip_phi1.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_WRITE_ONLY);
     _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_WRITE_ONLY);
@@ -478,7 +478,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
       _thetai1.resize(_max_thetai_size*bsorder*4);
       _thetai2.resize(_max_thetai_size*bsorder*4);
       _thetai3.resize(_max_thetai_size*bsorder*4);
-      _igrid.resize(_max_thetai_size*3);
+      _igrid.resize(_max_thetai_size*4);
 
       _fdip_phi1.resize(_max_thetai_size*10);
       _fdip_phi2.resize(_max_thetai_size*10);
@@ -498,7 +498,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
   ucl_copy(_thetai3,dview,false);
 
   UCL_H_Vec<int> dview_int;
-  dview_int.view(&host_igrid[0][0],inum_full*3,*(this->ucl_device));
+  dview_int.view(&host_igrid[0][0],inum_full*4,*(this->ucl_device));
   ucl_copy(_igrid,dview_int,false);
 
   _nzlo_out = nzlo_out;
@@ -666,6 +666,34 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
   const int red_blocks = fphi_uind();
 }
 
+// ---------------------------------------------------------------------------
+// Interpolate the potential from the PME grid
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int BaseAmoebaT::fphi_uind() {
+  int ainum=ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=atom->nall();
+  int nbor_pitch=nbor->nbor_pitch();
+
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(ans->inum())/
+                               (BX/_threads_per_atom)));
+
+  time_pair.start();
+  int ngridyz = _ngridy * _ngridz;
+  k_fphi_uind.set_size(GX,BX);
+  k_fphi_uind.run(&atom->x, &_thetai1, &_thetai2, &_thetai3,
+                  &_igrid, &_cgrid_brick, &_fdip_phi1, &_fdip_phi2,
+                  &_fdip_sum_phi, &_bsorder, &ainum, &ngridyz, &_ngridy,
+                  &_threads_per_atom);
+  time_pair.stop();
+
+  return GX;
+}
 
 // ---------------------------------------------------------------------------
 // Reneighbor on GPU if necessary, and then compute polar real-space

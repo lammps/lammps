@@ -264,7 +264,7 @@ samples every :math:`N_\text{freq}` timesteps.  If the *ave* setting is *one*,
 then the accumulation is restarted or zeroed every :math:`N_\text{freq}`
 timesteps.  Thus the outputs on successive :math:`N_\text{freq}` timesteps are
 essentially independent of each other.  The exception is that the
-:math:`C_{ij}(0) = V_i(t) V_j(t)` value at a time step :math:`t`, where
+:math:`C_{ij}(0) = V_i(t) V_j(t)` value at a time step :math:`t,` where
 :math:`t` is a multiple of :math:`N_\text{freq}`, contributes to the
 correlation output both at time :math:`t` and at time :math:`t+N_\text{freq}`.
 
@@ -287,7 +287,7 @@ window or other unit conversions.
 The *file* keyword allows a filename to be specified.  Every
 :math:`N_\text{freq}` steps, an array of correlation data is written to the
 file.  The number of rows is :math:`N_\text{repeat}`, as described above.
-The number of columns is the :math:`N_\text{pair}+2`, also as described above.
+The number of columns is :math:`N_\text{pair}+2`, also as described above.
 Thus the file ends up to be a series of these array sections.
 
 The *overwrite* keyword will continuously overwrite the output file

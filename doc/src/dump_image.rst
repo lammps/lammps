@@ -775,7 +775,7 @@ specifies the bin size to use within the range for assigning
 consecutive colors to.  For example, if the range is from :math:`-10.0` to
 :math:`10.0` and a *delta* of :math:`1.0` is used, then 20 colors will be
 assigned to the range.  The first will be from
-:math:`-10.0 \le \text{color1} < -9.0`, then second from 
+:math:`-10.0 \le \text{color1} < -9.0`, then second from
 :math:`-9.0 \le color2 < -8.0`, etc.
 
 The *N* setting is how many entries follow.  The format of the entries

@@ -56,7 +56,7 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj, efield_i, epot_i;
   double r, rinv, screening;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -80,10 +80,8 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
   double *curvature = atom->curvature;
   double *area = atom->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;
@@ -159,19 +157,11 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
         efield[i][2] += delz * efield_i;
         epot[i] += epot_i;
 
-        if (newton_pair && j >= nlocal) {
-          fpair_j = (factor_coul * eps[j] * forcecoul + factor_lj * forcelj) * r2inv;
-          f[j][0] -= delx * fpair_j;
-          f[j][1] -= dely * fpair_j;
-          f[j][2] -= delz * fpair_j;
-        }
-
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = factor_coul * qqrd2e * qtmp * q[j] * (etmp + eps[j]) * rinv * screening;
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv * screening;
           } else
             ecoul = 0.0;
-          ecoul *= 0.5;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;

@@ -402,7 +402,7 @@ void Info::command(int narg, char **arg)
   if (flags & SYSTEM) {
     fputs("\nSystem information:\n",out);
     fmt::print(out,"Units         = {}\n", update->unit_style);
-    fmt::print(out,"Atom style    = {}\n", atom->atom_style);
+    fmt::print(out,"Atom style    = {}\n", atom->get_style());
     fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
     if (atom->molecular != Atom::ATOMIC) {
       const char *msg;

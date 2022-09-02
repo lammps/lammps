@@ -10,7 +10,7 @@
 
 import sys,os,code
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
+sys.path.insert(1,path)
 from log import log
 from gnu import gnu
 

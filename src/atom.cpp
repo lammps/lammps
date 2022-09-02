@@ -490,7 +490,7 @@ void Atom::peratom_create()
 
   // EFF package
 
-  add_peratom("spin",&spin,INT,0);
+  add_peratom("espin",&spin,INT,0);
   add_peratom("eradius",&eradius,DOUBLE,0);
   add_peratom("ervel",&ervel,DOUBLE,0);
   add_peratom("erforce",&erforce,DOUBLE,0,1);     // set per-thread flag
@@ -769,6 +769,21 @@ void Atom::setup()
   // cannot do this in init() because uses neighbor cutoff
 
   if (sortfreq > 0) setup_sort_bins();
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Atom::get_style()
+{
+  std::string retval = atom_style;
+  if (retval == "hybrid") {
+    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
+    for (int i = 0; i < avec_hybrid->nstyles; i++) {
+      retval += ' ';
+      retval += avec_hybrid->keywords[i];
+    }
+  }
+  return retval;
 }
 
 /* ----------------------------------------------------------------------
@@ -2778,7 +2793,8 @@ void *Atom::extract(const char *name)
 
   // EFF and AWPMD packages
 
-  if (strcmp(name,"spin") == 0) return (void *) spin;
+  if (strcmp(name,"espin") == 0) return (void *) spin;
+  if (strcmp(name,"spin") == 0) return (void *) spin;  // backward compatibility
   if (strcmp(name,"eradius") == 0) return (void *) eradius;
   if (strcmp(name,"ervel") == 0) return (void *) ervel;
   if (strcmp(name,"erforce") == 0) return (void *) erforce;
@@ -2902,7 +2918,8 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE_2D;
 
-  if (strcmp(name,"spin") == 0) return LAMMPS_INT;
+  if (strcmp(name,"espin") == 0) return LAMMPS_INT;
+  if (strcmp(name,"spin") == 0) return LAMMPS_INT;   // backwards compatibility
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;

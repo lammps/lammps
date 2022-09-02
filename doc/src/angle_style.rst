@@ -10,7 +10,7 @@ Syntax
 
    angle_style style
 
-* style = *none* or *hybrid* or *charmm* or *class2* or *cosine* or         *cosine/squared* or *harmonic*
+* style = *none* or *zero* or *hybrid* or *amoeba* or *charmm* or *class2* or *class2/p6* or *cosine* or *cosine/buck6d* or *cosine/delta* or *cosine/periodic* or *cosine/shift* or *cosine/shift/exp* or *cosine/squared* or *cross* or *dipole* or *fourier* or *fourier/simple* or *gaussian* or *harmonic* or *mm3* or *quartic* or *spica* or *table*
 
 Examples
 """"""""
@@ -90,6 +90,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`fourier/simple <angle_fourier_simple>` - angle with a single cosine term
 * :doc:`gaussian <angle_gaussian>` - multi-centered Gaussian-based angle potential
 * :doc:`harmonic <angle_harmonic>` - harmonic angle
+* :doc:`mesocnt <angle_mesocnt>` - piecewise harmonic and linear angle for bending-buckling of nanotubes
 * :doc:`mm3 <angle_mm3>` - anharmonic angle
 * :doc:`quartic <angle_quartic>` - angle with cubic and quartic terms
 * :doc:`spica <angle_spica>` - harmonic angle with repulsive SPICA pair style between 1-3 atoms

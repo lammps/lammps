@@ -897,7 +897,7 @@ int Input::execute_command()
 
 void Input::clear()
 {
-  if (narg > 0) error->all(FLERR,"Illegal clear command");
+  if (narg > 0) error->all(FLERR,"Illegal clear command: unexpected arguments but found {}", narg);
   lmp->destroy();
   lmp->create();
   lmp->post_create();
@@ -907,7 +907,7 @@ void Input::clear()
 
 void Input::echo()
 {
-  if (narg != 1) error->all(FLERR,"Illegal echo command");
+  if (narg != 1) error->all(FLERR,"Illegal echo command: expected 1 argument but found {}", narg);
 
   if (strcmp(arg[0],"none") == 0) {
     echo_screen = 0;
@@ -921,14 +921,14 @@ void Input::echo()
   } else if (strcmp(arg[0],"both") == 0) {
     echo_screen = 1;
     echo_log = 1;
-  } else error->all(FLERR,"Illegal echo command");
+  } else error->all(FLERR,"Unknown echo keyword: {}", arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Input::ifthenelse()
 {
-  if (narg < 3) error->all(FLERR,"Illegal if command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "if", error);
 
   // substitute for variables in Boolean expression for "if"
   // in case expression was enclosed in quotes
@@ -945,7 +945,7 @@ void Input::ifthenelse()
 
   // bound "then" commands
 
-  if (strcmp(arg[1],"then") != 0) error->all(FLERR,"Illegal if command");
+  if (strcmp(arg[1],"then") != 0) error->all(FLERR,"Illegal if command: expected \"then\" but found \"{}\"", arg[1]);
 
   int first = 2;
   int iarg = first;
@@ -960,13 +960,13 @@ void Input::ifthenelse()
 
   if (btest != 0.0) {
     int ncommands = last-first + 1;
-    if (ncommands <= 0) error->all(FLERR,"Illegal if command");
+    if (ncommands <= 0) utils::missing_cmd_args(FLERR, "if then", error);
 
     auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
-      if (n == 1) error->all(FLERR,"Illegal if command");
+      if (n == 1) error->all(FLERR,"Illegal if then command: execute command is empty");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
       ncommands++;
@@ -991,7 +991,7 @@ void Input::ifthenelse()
   // bound and execute "elif" or "else" commands
 
   while (iarg != narg) {
-    if (iarg+2 > narg) error->all(FLERR,"Illegal if command");
+    if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "if then", error);
     if (strcmp(arg[iarg],"elif") == 0) {
       n = strlen(arg[iarg+1]) + 1;
       if (n > maxline) reallocate(line,maxline,n);
@@ -1013,13 +1013,13 @@ void Input::ifthenelse()
     if (btest == 0.0) continue;
 
     int ncommands = last-first + 1;
-    if (ncommands <= 0) error->all(FLERR,"Illegal if command");
+    if (ncommands <= 0) utils::missing_cmd_args(FLERR, "if elif/else", error);
 
     auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
-      if (n == 1) error->all(FLERR,"Illegal if command");
+      if (n == 1) error->all(FLERR,"Illegal if elif/else command: execute command is empty");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
       ncommands++;
@@ -1075,7 +1075,7 @@ void Input::include()
 
 void Input::jump()
 {
-  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal jump command");
+  if (narg < 1 || narg > 2) error->all(FLERR,"Illegal jump command: expected 1 or 2 argument(s) but found {}", narg);
 
   if (jump_skip) {
     jump_skip = 0;
@@ -1106,7 +1106,7 @@ void Input::jump()
 
 void Input::label()
 {
-  if (narg != 1) error->all(FLERR,"Illegal label command");
+  if (narg != 1) error->all(FLERR,"Illegal label command: expected 1 argument but found {}", narg);
   if (label_active && strcmp(labelstr,arg[0]) == 0) label_active = 0;
 }
 
@@ -1114,12 +1114,12 @@ void Input::label()
 
 void Input::log()
 {
-  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal log command");
+  if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal log command: expected 1 or 2 argument(s) but found {}", narg);
 
   int appendflag = 0;
   if (narg == 2) {
     if (strcmp(arg[1],"append") == 0) appendflag = 1;
-    else error->all(FLERR,"Illegal log command");
+    else error->all(FLERR,"Unknown log keyword: {}", arg[1]);
   }
 
   if (me == 0) {
@@ -1149,7 +1149,7 @@ void Input::next_command()
 
 void Input::partition()
 {
-  if (narg < 3) error->all(FLERR,"Illegal partition command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "partition", error);
 
   int ilo,ihi;
   int yesflag = utils::logical(FLERR,arg[0],false,lmp);
@@ -1175,7 +1175,7 @@ void Input::partition()
 
 void Input::print()
 {
-  if (narg < 1) error->all(FLERR,"Illegal print command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "print", error);
 
   // copy 1st arg back into line (copy is being used)
   // check maxline since arg[0] could have been expanded by variables
@@ -1195,7 +1195,7 @@ void Input::print()
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0 || strcmp(arg[iarg],"append") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal print {} command: missing argument(s)", arg[iarg]);
       if (me == 0) {
         if (fp != nullptr) fclose(fp);
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
@@ -1205,14 +1205,14 @@ void Input::print()
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "print screen", error);
       screenflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"universe") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "print universe", error);
       universeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal print command");
+    } else error->all(FLERR,"Unknown print keyword: {}", arg[iarg]);
   }
 
   if (me == 0) {
@@ -1242,7 +1242,7 @@ void Input::quit()
 {
   if (narg == 0) error->done(0); // 1 would be fully backwards compatible
   if (narg == 1) error->done(utils::inumeric(FLERR,arg[0],false,lmp));
-  error->all(FLERR,"Illegal quit command");
+  error->all(FLERR,"Illegal quit command: expected 0 or 1 argument but found {}", narg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1251,10 +1251,10 @@ void Input::shell()
 {
   int rv,err;
 
-  if (narg < 1) error->all(FLERR,"Illegal shell command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "shell", error);
 
   if (strcmp(arg[0],"cd") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal shell cd command");
+    if (narg != 2) error->all(FLERR,"Illegal shell command: expected 2 argument but found {}", narg);
     rv = (platform::chdir(arg[1]) < 0) ? errno : 0;
     MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
     errno = err;
@@ -1262,7 +1262,7 @@ void Input::shell()
       error->warning(FLERR, "Shell command 'cd {}' failed with error '{}'", arg[1], utils::getsyserror());
     }
   } else if (strcmp(arg[0],"mkdir") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell mkdir", error);
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
         rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
@@ -1272,7 +1272,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"mv") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal shell mv command");
+    if (narg != 3) error->all(FLERR,"Illegal shell command: expected 3 argument but found {}", narg);
     if (me == 0) {
       if (platform::path_is_directory(arg[2])) {
         if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
@@ -1285,7 +1285,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"rm") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell rm command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell rm", error);
     if (me == 0) {
       int i = 1;
       bool warn = true;
@@ -1301,7 +1301,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"rmdir") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell rmdir command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell rmdir", error);
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
         if (platform::rmdir(arg[i]) < 0)
@@ -1310,7 +1310,7 @@ void Input::shell()
       }
     }
   } else if (strcmp(arg[0],"putenv") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "shell putenv", error);
     for (int i = 1; i < narg; i++) {
       rv = 0;
       if (arg[i]) rv = platform::putenv(arg[i]);
@@ -1390,7 +1390,7 @@ void Input::atom_modify()
 
 void Input::atom_style()
 {
-  if (narg < 1) error->all(FLERR,"Illegal atom_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "atom_style", error);
   if (domain->box_exist)
     error->all(FLERR,"Atom_style command after simulation box is defined");
   atom->create_avec(arg[0],narg-1,&arg[1],1);
@@ -1531,12 +1531,12 @@ void Input::dihedral_style()
 
 void Input::dimension()
 {
-  if (narg != 1) error->all(FLERR,"Illegal dimension command");
+  if (narg != 1) error->all(FLERR,"Illegal dimension command: expected 1 argument but found {}", narg);
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
   domain->dimension = utils::inumeric(FLERR,arg[0],false,lmp);
   if (domain->dimension != 2 && domain->dimension != 3)
-    error->all(FLERR,"Illegal dimension command");
+    error->all(FLERR, "Invalid dimension argument: {}", arg[0]);
 
   // must reset default extra_dof of all computes
   // since some were created before dimension command is encountered
@@ -1645,7 +1645,7 @@ void Input::lattice()
 
 void Input::mass()
 {
-  if (narg != 2) error->all(FLERR,"Illegal mass command");
+  if (narg != 2) error->all(FLERR,"Illegal mass command: expected 2 arguments but found {}", narg);
   if (domain->box_exist == 0)
     error->all(FLERR,"Mass command before simulation box is defined");
   atom->set_mass(FLERR,narg,arg);
@@ -1810,7 +1810,7 @@ void Input::pair_modify()
 
 void Input::pair_style()
 {
-  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "pair_style", error);
   if (force->pair) {
     std::string style = arg[0];
     int match = 0;
@@ -2027,7 +2027,7 @@ void Input::unfix()
 
 void Input::units()
 {
-  if (narg != 1) error->all(FLERR,"Illegal units command");
+  if (narg != 1) error->all(FLERR,"Illegal units command: expected 1 argument but found {}", narg);
   if (domain->box_exist)
     error->all(FLERR,"Units command after simulation box is defined");
   update->set_units(arg[0]);

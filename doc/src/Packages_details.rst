@@ -1404,7 +1404,7 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 * src/MACHDYN: filenames -> commands
 * src/MACHDYN/README
-* doc/PDF/MACHDYN_LAMMPS_userguide.pdf
+* `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/machdyn
 * https://www.lammps.org/movies.html#smd
 
@@ -2692,7 +2692,7 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * src/SPH: filenames -> commands
 * src/SPH/README
-* doc/PDF/SPH_LAMMPS_userguide.pdf
+* `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/sph
 * https://www.lammps.org/movies.html#sph
 

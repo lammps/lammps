@@ -123,8 +123,6 @@ void PairPACEExtrapolation::compute(int eflag, int vflag) {
     double delx, dely, delz, evdwl;
     double fij[3];
     int *ilist, *jlist, *numneigh, **firstneigh;
-    double max_gamma_grade = 0;
-    max_gamma_grade_per_structure = 0;
     ev_init(eflag, vflag);
 
     // downwards modified by YL
@@ -213,9 +211,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag) {
         // 'compute_atom' will update the `ace->e_atom` and `ace->neighbours_forces(jj, alpha)` arrays and max_gamma_grade
 
         if (flag_compute_extrapolation_grade) {
-            double current_atom_gamma_grade = aceimpl->ace->max_gamma_grade;
-            if (max_gamma_grade < current_atom_gamma_grade) max_gamma_grade = current_atom_gamma_grade;
-            extrapolation_grade_gamma[i] = current_atom_gamma_grade;
+            extrapolation_grade_gamma[i] =  aceimpl->ace->max_gamma_grade;;
         }
 
         Array2D<DOUBLE_TYPE> &neighbours_forces =
@@ -264,25 +260,6 @@ void PairPACEExtrapolation::compute(int eflag, int vflag) {
 
     if (vflag_fdotr) virial_fdotr_compute();
 
-//    if (flag_compute_extrapolation_grade) {
-//        //gather together max_gamma_grade_per_structure
-//        MPI_Allreduce(&max_gamma_grade, &max_gamma_grade_per_structure, 1, MPI_DOUBLE, MPI_MAX, world);
-//
-//        // TODO: check, whether to stop here or externally in LAMMPS
-//        // check if gamma_upper_bound is exceeded
-//        if (max_gamma_grade_per_structure > gamma_upper_bound) {
-//            if (comm->me == 0)
-//                error->all(FLERR,
-//                           "Extrapolation grade is too large (gamma={:.3f} > gamma_upper_bound={:.3f}, "
-//                           "timestep={}), stopping...\n",
-//                           max_gamma_grade_per_structure, gamma_upper_bound, current_timestep);
-//
-//            MPI_Barrier(world);
-//            MPI_Abort(world, 1);    //abort properly with error code '1' if not using many processes
-//            exit(EXIT_FAILURE);
-//        }
-//    }
-
     // end modifications YL
 }
 
@@ -303,41 +280,13 @@ void PairPACEExtrapolation::allocate() {
 ------------------------------------------------------------------------- */
 
 void PairPACEExtrapolation::settings(int narg, char **arg) {
-    if (narg > 3) {
-        error->all(FLERR,
-                   "Illegal pair_style command. Correct form:\n\tpair_style pace/al "
-                   "[gamma_lower_bound] [gamma_upper_bound] [freq]");
-    }
-
     if (narg > 0) {
-        double glb = atof(arg[0]);    // gamma lower bound
-        if (glb < 1.0)
-            error->all(FLERR, "Illegal gamma_lower_bound value: it should be real number >= 1.0");
-        else
-            gamma_lower_bound = glb;
+        error->all(FLERR,
+                   "Illegal pair_style command. Correct form:\n\tpair_style pace/extrapolation ");
     }
-
-    if (narg > 1) {
-        double gub = atof(arg[1]);    // gamma upper bound
-        if (gub < gamma_lower_bound)
-            error->all(
-                    FLERR,
-                    "Illegal gamma_upper_bound value: it should be real number >= gamma_lower_bound >= 1.0");
-        else
-            gamma_upper_bound = gub;
-    }
-
-//    if (narg > 2) {
-//        gamma_grade_eval_freq = atoi(arg[2]);
-//        if (gamma_grade_eval_freq < 1)
-//            error->all(FLERR, "Illegal gamma_grade_eval_freq value: it should be integer number >= 1");
-//    }
 
     if (comm->me == 0) {
         utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
-        utils::logmesg(lmp, "Extrapolation grade thresholds (lower/upper): {}/{}\n", gamma_lower_bound,
-                       gamma_upper_bound);
-//        utils::logmesg(lmp, "Extrapolation grade evaluation frequency: {}\n", gamma_grade_eval_freq);
     }
 }
 

@@ -38,6 +38,8 @@ class FixPair : public Fix {
   void grow_arrays(int) override;
   double memory_usage() override;
 
+  int modify_param(int, char **) override;
+
  private:
   int nevery,nfield,ncols;
   char *pairname;

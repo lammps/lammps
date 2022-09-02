@@ -279,3 +279,11 @@ double FixPair::memory_usage()
   else bytes += (double)atom->nmax*ncols * sizeof(double);
   return bytes;
 }
+
+int FixPair::modify_param(int narg, char **arg)
+{
+    nevery = utils::inumeric(FLERR,arg[0],false,lmp);
+    if (nevery < 1) error->all(FLERR,"Illegal fix_modify pair command");
+
+    return 1; // how many arguments were processed
+}

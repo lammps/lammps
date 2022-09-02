@@ -47,17 +47,10 @@ class PairPACEExtrapolation : public Pair {
 
  protected:
   struct ACEALImpl *aceimpl;
-//  bigint gamma_grade_eval_freq = 1;
-//  bool is_set_energies_forces = true;    // if set, then update forces and energies
   int nmax;
-
-  double gamma_lower_bound = 1.5;
-  double gamma_upper_bound = 10;
-  double max_gamma_grade_per_structure = 0;
 
   void allocate();
   std::vector<std::string> element_names;    // list of elements (used by dump pace/extrapolation)
-  double rcutmax;                            // max cutoff for all elements
   int nelements;                             // # of unique elements
   double *extrapolation_grade_gamma;         //per-atom gamma value
 

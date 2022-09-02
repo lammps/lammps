@@ -101,15 +101,18 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // settings
-  // freq = 1 since vector/array always have values
-  // allows user to specify nevery = 0 for a dump
-  //   which this fix outputs whenever it wants
+  // if set peratom_freq = Nevery, then cannot access the per-atom
+  //   values as part of thermo output during minimiziation 
+  //   at different frequency or on last step of minimization
+  // instead set peratom_freq = 1
+  //   ok, since vector/array always have values
+  //   but requires the vector/array be persisted between Nevery steps
+  //     since it may be accessed
 
   peratom_flag = 1;
   if (ncols == 1) size_peratom_cols = 0;
   else size_peratom_cols = ncols;
-  peratom_freq = nevery;
+  peratom_freq = 1;
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -163,7 +166,9 @@ int FixPair::setmask()
 {
   int mask = 0;
   mask |= PRE_FORCE;
+  mask |= MIN_PRE_FORCE;
   mask |= POST_FORCE;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -203,6 +208,13 @@ void FixPair::pre_force(int /*vflag*/)
 
   for (int ifield = 0; ifield < nfield; ifield++)
     if (trigger[ifield]) *(triggerptr[ifield]) = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPair::min_pre_force(int vflag)
+{
+  pre_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -253,6 +265,13 @@ void FixPair::post_force(int /*vflag*/)
     if (trigger[ifield]) *(triggerptr[ifield]) = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixPair::min_post_force(int vflag)
+{
+  post_force(vflag);
+}
+
 /* ----------------------------------------------------------------------
    allocate atom-based vector or array
 ------------------------------------------------------------------------- */
@@ -266,6 +285,52 @@ void FixPair::grow_arrays(int nmax)
     memory->grow(array,nmax,ncols,"store/state:array");
     array_atom = array;
   }
+}
+
+/* ----------------------------------------------------------------------
+   copy values within local atom-based array
+------------------------------------------------------------------------- */
+
+void FixPair::copy_arrays(int i, int j, int /*delflag*/)
+{
+  if (ncols == 1) {
+    vector[j] = vector[i];
+  } else {
+    for (int m = 0; m < ncols; m++)
+      array[j][m] = array[i][m];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based array for exchange with another proc
+------------------------------------------------------------------------- */
+
+int FixPair::pack_exchange(int i, double *buf)
+{
+  if (ncols == 1) {
+    buf[0] = vector[i];
+  } else {
+    for (int m = 0; m < ncols; m++)
+      buf[m] = array[i][m];
+  }
+
+  return ncols;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values in local atom-based array from exchange with another proc
+------------------------------------------------------------------------- */
+
+int FixPair::unpack_exchange(int nlocal, double *buf)
+{
+  if (ncols == 1) {
+    vector[nlocal] = buf[0];
+  } else {
+    for (int m = 0; m < ncols; m++)
+      array[nlocal][m] = buf[m];
+  }
+
+  return ncols;
 }
 
 /* ----------------------------------------------------------------------

@@ -33,9 +33,15 @@ class FixPair : public Fix {
   void setup(int) override;
   void setup_pre_force(int) override;
   void pre_force(int) override;
+  void min_pre_force(int) override;
   void post_force(int) override;
+  void min_post_force(int) override;
 
   void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
   double memory_usage() override;
 
  private:

@@ -732,12 +732,14 @@ TEST_F(DumpAtomTest, colname)
     command("run 5 post no");
     command("dump_modify id colname id AtomID colname 3 x-scaled colname -1 z-scaled");
     command("run 10 post no");
+    command("dump_modify id colname default");
+    command("run 10 post no");
     command("undump id");
     END_HIDE_OUTPUT();
 
     std::vector<std::string> expected, values;
     values   = extract_items(dump_file, "ATOMS id type xs ys zs");
-    expected = {"1 1 0 0 0"};
+    expected = {"1 1 0 0 0", "1 1 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
     for (int i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));

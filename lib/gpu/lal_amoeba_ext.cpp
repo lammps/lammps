@@ -162,9 +162,17 @@ void amoeba_gpu_compute_polar_real(int *host_amtype, int *host_amgroup, double *
                               eflag_in, vflag_in, eatom, vatom, aewald, felec, off2, tep_ptr);
 }
 
-void amoeba_gpu_grid_uind(double **host_fuind, double **host_fuinp,
+void amoeba_gpu_fphi_uind(const int inum_full, const int bsorder,
                           double ***host_thetai1, double ***host_thetai2,
-                          double ***host_thetai3, double ***grid) {
+                          double ***host_thetai3, int** igrid,
+                          double *host_grid_brick_start, void **host_fdip_phi1,
+                          void **host_fdip_phi2, void **host_fdip_sum_phi,
+                          int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
+                          int nxlo_out, int nxhi_out, bool& first_iteration) {
+   AMOEBAMF.compute_fphi_uind(inum_full, bsorder, host_thetai1, host_thetai2,
+                          host_thetai3, igrid, host_grid_brick_start, host_fdip_phi1,
+                          host_fdip_phi2, host_fdip_sum_phi, nzlo_out, nzhi_out,
+                          nylo_out, nyhi_out,  nxlo_out, nxhi_out, first_iteration);
 }
 
 void amoeba_setup_fft(const int numel, const int element_type) {

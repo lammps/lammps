@@ -407,7 +407,7 @@ class PairAmoeba : public Pair {
   void grid_mpole(double **, double ***);
   void fphi_mpole(double ***, double **);
   void grid_uind(double **, double **, double ****);
-  void fphi_uind(double ****, double **, double **, double **);
+  virtual void fphi_uind(double ****, double **, double **, double **);
   void grid_disp(double ***);
 
   void kewald();

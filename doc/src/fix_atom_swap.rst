@@ -45,7 +45,7 @@ Description
 """""""""""
 
 This fix performs Monte Carlo swaps of atoms of one given atom type
-with atoms of the other given atom types. The specified T is used in
+with atoms of the other given atom types. The specified :math:`T` is used in
 the Metropolis criterion dictating swap probabilities.
 
 Perform :math:`X` swaps of atoms of one type with atoms of another type
@@ -122,7 +122,7 @@ Since this fix computes total potential energies before and after
 proposed swaps, so even complicated potential energy calculations are
 OK, including the following:
 
-* long-range electrostatics (kspace)
+* long-range electrostatics (:math:`k`-space)
 * many body pair styles
 * hybrid pair styles
 * eam pair styles
@@ -136,7 +136,7 @@ include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
 <fix_temp_berendsen>`, :doc:`temp/rescale <fix_temp_rescale>`, and
 :doc:`wall fixes <fix_wall>`.  For that energy to be included in the
 total potential energy of the system (the quantity used when
-performing GCMC moves), you MUST enable the :doc:`fix_modify
+performing GCMC moves), you **must** enable the :doc:`fix_modify
 <fix_modify>` *energy* option for that fix.  The doc pages for
 individual :doc:`fix <fix>` commands specify if this should be done.
 

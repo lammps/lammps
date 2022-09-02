@@ -92,16 +92,16 @@ command creates a per-atom array with six columns:
 
 ----------
 
-The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
-timesteps the input values will be used in order to contribute to the
-average.  The final averaged quantities are generated on timesteps
-that are a multiple of *Nfreq*\ .  The average is over *Nrepeat*
-quantities, computed in the preceding portion of the simulation every
-*Nevery* timesteps.  *Nfreq* must be a multiple of *Nevery* and
-*Nevery* must be non-zero even if *Nrepeat* is 1.  Also, the timesteps
-contributing to the average value cannot overlap;
-that is, :math:`N_\text{repeat} N_\text{every}` cannot exceed
-:math:`N_\text{freq}`.
+The :math:`N_\text{every}`, :math:`N_\text{repeat}`, and :math:`N_\text{freq}`
+arguments specify on what timesteps the input values will be used in order to
+contribute to the average.  The final averaged quantities are generated on
+timesteps that are a multiple of :math:`N_\text{freq}`\ .  The average is over
+:math:`N_\text{repeat}` quantities, computed in the preceding portion of the
+simulation every :math:`N_\text{every}` timesteps.  :math:`N_\text{freq}` must
+be a multiple of :math:`N_\text{every}` and :math:`N_\text{every}` must be
+non-zero even if :math:`N_\text{repeat}` is 1.  Also, the timesteps
+contributing to the average value cannot overlap; that is,
+:math:`N_\text{repeat} N_\text{every}` cannot exceed :math:`N_\text{freq}`.
 
 For example, if :math:`N_\text{every}=2`, :math:`N_\text{repeat}=6`, and
 :math:`N_\text{freq}=100`, then values on timesteps 90, 92, 94, 96, 98, and 100
@@ -118,8 +118,8 @@ specifying an input value from that compute.
 
 .. note::
 
-   The *x*,*y*,*z* attributes are values that are re-wrapped inside the
-   periodic box whenever an atom crosses a periodic boundary.  Thus, if
+   The *x*\ , *y*\ , and *z* attributes are values that are re-wrapped inside
+   the periodic box whenever an atom crosses a periodic boundary.  Thus, if
    you time-average an atom that spends half of its time on either side of
    the periodic box, you will get a value in the middle of the box.  If
    this is not what you want, consider averaging unwrapped coordinates,
@@ -127,27 +127,28 @@ specifying an input value from that compute.
    :doc:`compute property/atom <compute_property_atom>`
    command via its *xu*, *yu*, and *zu* attributes.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_," a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed term containing an index :math:`I` is appended, the
 :math:`I^\text{th}` column of the per-atom array calculated by the compute is
 used.  Users can also write code for their own compute styles and
-:doc:`add them to LAMMPS <Modify>`.  See the discussion above for how I can
-be specified with a wildcard asterisk to effectively specify multiple
-values.
+:doc:`add them to LAMMPS <Modify>`.  See the discussion above for how
+:math:`I` can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
 If a value begins with "f\_," a fix ID must follow which has been previously
 defined in the input script.  If no bracketed term is appended, the per-atom
 vector calculated by the fix is used.  If a bracketed term containing an index
 :math:`I` is appended, the :math:`I^\text{th}` column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce their values
-on certain timesteps, which must be compatible with *Nevery*, else an error
-will result.  Users can also write code for their own fix styles and
-:doc:`add them to LAMMPS <Modify>`.  See the discussion above for how I can be
-specified with a wildcard asterisk to effectively specify multiple values.
+on certain timesteps, which must be compatible with :math:`N_\text{every}`,
+else an error will result.  Users can also write code for their own fix styles
+and :doc:`add them to LAMMPS <Modify>`.  See the discussion above for how
+:math:`I` can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
-If a value begins with "v\_", a variable name must follow which has
+If a value begins with "v\_," a variable name must follow which has
 been previously defined in the input script as an
 :doc:`atom-style variable <variable>`. Variables of style *atom* can reference
 thermodynamic keywords or invoke other computes, fixes, or variables
@@ -170,7 +171,7 @@ various :doc:`output commands <Howto_output>`.  A vector is produced if
 only a single quantity is averaged by this fix.  If two or more
 quantities are averaged, then an array of values is produced.  The
 per-atom values can only be accessed on timesteps that are multiples
-of *Nfreq* since that is when averaging is performed.
+of :math:`N_\text{freq}` since that is when averaging is performed.
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

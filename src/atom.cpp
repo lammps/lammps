@@ -1057,7 +1057,14 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   next = strchr(buf,'\n');
   if (!next) error->all(FLERR, "Missing data in Atoms section of data file");
   *next = '\0';
-  int nwords = utils::trim_and_count_words(buf);
+  auto values = Tokenizer(buf).as_vector();
+  int nwords = 0;
+  for (std::size_t i = 0; i < values.size(); ++i) {
+    if (utils::strmatch(values[i], "^#")) {
+      nwords = i;
+      break;
+    }
+  }
   *next = '\n';
 
   if ((nwords != avec->size_data_atom) && (nwords != avec->size_data_atom + 3))
@@ -1135,10 +1142,12 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     next = strchr(buf,'\n');
     if (!next) error->all(FLERR, "Missing data in Atoms section of data file");
     *next = '\0';
-    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() == 0) {
+    auto values = Tokenizer(buf).as_vector();
+    int nvalues = values.size();
+    if ((nvalues == 0) || (utils::strmatch(values[0],"^#.*")))  {
       // skip over empty or comment lines
-    } else if ((int)values.size() != nwords) {
+    } else if ((nvalues < nwords) ||
+               ((nvalues > nwords) && (!utils::strmatch(values[nwords],"^#")))) {
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
     } else {
       int imx = 0, imy = 0, imz = 0;

@@ -119,6 +119,10 @@ TEST_F(SetTest, NoBoxAtoms)
                  command("labelmap atom 5 C1"););
     TEST_FAILURE(".*ERROR: Label 1C for atom type 1 must not start with a number.*",
                  command("labelmap atom 1 1C"););
+    TEST_FAILURE(".*ERROR: Label #C for atom type 1 must not start with a number, a '#', or.*",
+                 command("labelmap atom 1 '#C'"););
+    TEST_FAILURE(".*ERROR: Label \\*C for atom type 1 must not start with a number, a '#', or.*",
+                 command("labelmap atom 1 *C"););
     TEST_FAILURE(".*ERROR: The atom type label N2 is already in use for type 2.*",
                  command("labelmap atom 1 N2"););
 

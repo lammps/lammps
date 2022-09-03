@@ -138,9 +138,9 @@ void LabelMap::modify_lmap(int narg, char **arg)
     if ((itype < 1) || (itype > ntypes))
       error->all(FLERR, "Labelmap {} type {} must be within 1-{}", tlabel, itype, ntypes);
     std::string slabel(arg[iarg++]);
-    if (isdigit(slabel[0]))
-      error->all(FLERR, "Label {} for {} type {} must not start with a number", slabel, tlabel,
-                 itype);
+    if (isdigit(slabel[0]) || (slabel[0] == '#') || (slabel[0] == '*'))
+      error->all(FLERR, "Label {} for {} type {} must not start with a number, a '#', or a '*'",
+                 slabel, tlabel, itype);
     int found = search(slabel, (*labels_map));
     if ((found != -1) && (found != itype))
       error->all(FLERR, "The {} type label {} is already in use for type {}", tlabel, slabel,

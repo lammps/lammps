@@ -172,19 +172,6 @@ void DumpLocal::init_style()
   if (sort_flag && sortcol == 0)
     error->all(FLERR,"Dump local cannot sort by atom ID");
 
-  // assemble ITEMS: column string from defaults and user values
-
-  delete[] columns;
-  std::string combined;
-  int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
-    if (combined.size()) combined += " ";
-    if (keyword_user[icol].size()) combined += keyword_user[icol];
-    else combined += item;
-    ++icol;
-  }
-  columns = utils::strdup(combined);
-
   // format = copy of default or user-specified line format
 
   delete[] format;

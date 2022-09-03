@@ -257,24 +257,43 @@ double BondBPM::equilibrium_distance(int /*i*/)
 {
   // Ghost atoms may not yet be communicated, this may only be an estimate
   if (r0_max_estimate == 0) {
-    int type, j;
-    double delx, dely, delz, r;
-    double **x = atom->x;
-    for (int i = 0; i < atom->nlocal; i++) {
-      for (int m = 0; m < atom->num_bond[i]; m++) {
-        type = atom->bond_type[i][m];
-        if (type == 0) continue;
+    if (!fix_bond_history->restart_reset) {
+      int type, j;
+      double delx, dely, delz, r;
+      double **x = atom->x;
+      for (int i = 0; i < atom->nlocal; i++) {
+        for (int m = 0; m < atom->num_bond[i]; m++) {
+          type = atom->bond_type[i][m];
+          if (type == 0) continue;
 
-        j = atom->map(atom->bond_atom[i][m]);
-        if (j == -1) continue;
+          j = atom->map(atom->bond_atom[i][m]);
+          if (j == -1) continue;
 
-        delx = x[i][0] - x[j][0];
-        dely = x[i][1] - x[j][1];
-        delz = x[i][2] - x[j][2];
-        domain->minimum_image(delx, dely, delz);
+          delx = x[i][0] - x[j][0];
+          dely = x[i][1] - x[j][1];
+          delz = x[i][2] - x[j][2];
+          domain->minimum_image(delx, dely, delz);
 
-        r = sqrt(delx * delx + dely * dely + delz * delz);
-        if (r > r0_max_estimate) r0_max_estimate = r;
+          r = sqrt(delx * delx + dely * dely + delz * delz);
+          if (r > r0_max_estimate) r0_max_estimate = r;
+        }
+      }
+    } else {
+      int type, j;
+      double delx, dely, delz, r;
+      double **x = atom->x;
+      for (int i = 0; i < atom->nlocal; i++) {
+        for (int m = 0; m < atom->num_bond[i]; m++) {
+          type = atom->bond_type[i][m];
+          if (type == 0) continue;
+
+          j = atom->map(atom->bond_atom[i][m]);
+          if (j == -1) continue;
+
+          // First value must always be reference length
+          r = fix_bond_history->get_atom_value(i, m, 0);
+          if (r > r0_max_estimate) r0_max_estimate = r;
+        }
       }
     }
 
@@ -293,8 +312,6 @@ double BondBPM::equilibrium_distance(int /*i*/)
 
 void BondBPM::write_restart(FILE *fp)
 {
-  fwrite(&max_stretch, sizeof(double), 1, fp);
-  fwrite(&r0_max_estimate, sizeof(double), 1, fp);
   fwrite(&overlay_flag, sizeof(int), 1, fp);
 }
 
@@ -304,13 +321,8 @@ void BondBPM::write_restart(FILE *fp)
 
 void BondBPM::read_restart(FILE *fp)
 {
-  if (comm->me == 0) {
-    utils::sfread(FLERR, &max_stretch, sizeof(double), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &r0_max_estimate, sizeof(double), 1, fp, nullptr, error);
+  if (comm->me == 0)
     utils::sfread(FLERR, &overlay_flag, sizeof(int), 1, fp, nullptr, error);
-  }
-  MPI_Bcast(&max_stretch, 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&r0_max_estimate, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&overlay_flag, 1, MPI_INT, 0, world);
 }
 

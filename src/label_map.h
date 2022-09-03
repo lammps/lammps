@@ -61,7 +61,7 @@ class LabelMap : protected Pointers {
 
   Lmap2Lmap lmap2lmap;
 
-  void allocate_type_labels();
+  void reset_type_labels();
   int find_or_create(const std::string &, std::vector<std::string> &,
                      std::unordered_map<std::string, int> &);    // look up type or create new type
   int search(const std::string &,

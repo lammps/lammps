@@ -33,7 +33,7 @@ LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nanglety
 {
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
-  allocate_type_labels();
+  reset_type_labels();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,40 +48,45 @@ LabelMap::~LabelMap()
 }
 
 /* ----------------------------------------------------------------------
-   allocate character-based type arrays (labels) of length ntypes
+   reset/allocate character-based type arrays (labels) of length ntypes
 ------------------------------------------------------------------------- */
 
-void LabelMap::allocate_type_labels()
+void LabelMap::reset_type_labels()
 {
+  typelabel_map.clear();
   typelabel.resize(natomtypes);
   delete[] lmap2lmap.atom;
   lmap2lmap.atom = new int[natomtypes];
   for (auto &i : typelabel) i.clear();
   memset(lmap2lmap.atom, 0, natomtypes * sizeof(int));
 
+  btypelabel_map.clear();
   btypelabel.resize(nbondtypes);
   delete[] lmap2lmap.bond;
   for (auto &i : btypelabel) i.clear();
   lmap2lmap.bond = new int[nbondtypes];
   memset(lmap2lmap.bond, 0, nbondtypes * sizeof(int));
 
+  atypelabel_map.clear();
   atypelabel.resize(nangletypes);
   delete[] lmap2lmap.angle;
   for (auto &i : atypelabel) i.clear();
   lmap2lmap.angle = new int[nangletypes];
   memset(lmap2lmap.angle, 0, nangletypes * sizeof(int));
 
+  dtypelabel_map.clear();
   dtypelabel.resize(ndihedraltypes);
   delete[] lmap2lmap.dihedral;
   for (auto &i : dtypelabel) i.clear();
   lmap2lmap.dihedral = new int[ndihedraltypes];
   memset(lmap2lmap.dihedral, 0, ndihedraltypes * sizeof(int));
 
+  itypelabel_map.clear();
   itypelabel.resize(nimpropertypes);
   delete[] lmap2lmap.improper;
   for (auto &i : itypelabel) i.clear();
   lmap2lmap.improper = new int[nimpropertypes];
-  memset(lmap2lmap.dihedral, 0, nimpropertypes * sizeof(int));
+  memset(lmap2lmap.improper, 0, nimpropertypes * sizeof(int));
 }
 
 /* ----------------------------------------------------------------------
@@ -90,7 +95,7 @@ void LabelMap::allocate_type_labels()
 
 void LabelMap::modify_lmap(int narg, char **arg)
 {
-  if (narg < 3 || narg % 2 == 0)
+  if ((narg < 1) || ((narg > 2) && ((narg % 2) == 0)))
     error->all(FLERR, "Incorrect number of arguments for labelmap command");
 
   int ntypes;
@@ -117,11 +122,17 @@ void LabelMap::modify_lmap(int narg, char **arg)
     ntypes = nimpropertypes;
     labels = &itypelabel;
     labels_map = &itypelabel_map;
+  } else if (tlabel == "clear") {
+    if (narg != 1) error->all(FLERR, "Incorrect number of arguments for labelmap command");
+    reset_type_labels();
+    return;
   } else
-    error->all(FLERR, "Unknown labelmap type {}", tlabel);
+    error->all(FLERR, "Unknown labelmap keyword {}", tlabel);
 
   int iarg = 1;
+  if (narg == 1) utils::missing_cmd_args(FLERR, "labelmap " + tlabel, error);
   while (iarg < narg) {
+    if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "labelmap " + tlabel, error);
     if (ntypes < 1) error->all(FLERR, "No {} types allowed with current box settings", tlabel);
     int itype = utils::inumeric(FLERR, arg[iarg++], false, lmp);
     if ((itype < 1) || (itype > ntypes))
@@ -130,7 +141,8 @@ void LabelMap::modify_lmap(int narg, char **arg)
     if (isdigit(slabel[0]))
       error->all(FLERR, "Label {} for {} type {} must not start with a number", slabel, tlabel,
                  itype);
-    if (search(slabel, (*labels_map)) != -1)
+    int found = search(slabel, (*labels_map));
+    if ((found != -1) && (found != itype))
       error->all(FLERR, "The {} type label {} is already in use for type {}", tlabel, slabel,
                  (*labels_map)[slabel]);
     std::string &str = (*labels)[itype - 1];

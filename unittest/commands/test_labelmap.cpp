@@ -105,13 +105,13 @@ TEST_F(SetTest, NoBoxAtoms)
     ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
 
     BEGIN_HIDE_OUTPUT();
-    command("labelmap atom 1 C1 2 N2");
+    command("labelmap atom 1 C1 2 N2 3 'O#' 1 C1 4 H#");
     END_HIDE_OUTPUT();
     ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
     ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
     ASSERT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
-    ASSERT_EQ(atom->lmap->find("O1", Atom::ATOM), 3);
-    ASSERT_EQ(atom->lmap->find("H1", Atom::ATOM), 4);
+    ASSERT_EQ(atom->lmap->find("O#", Atom::ATOM), 3);
+    ASSERT_EQ(atom->lmap->find("H", Atom::ATOM), 4);
 
     TEST_FAILURE(".*ERROR: Labelmap atom type 0 must be within 1-4.*",
                  command("labelmap atom 0 C1"););
@@ -136,9 +136,19 @@ TEST_F(SetTest, NoBoxAtoms)
     TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
                  command("labelmap atom 1 C1 atom 2 C2"););
     TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
+                 command("labelmap clear atom"););
+    TEST_FAILURE(".*ERROR: Illegal labelmap atom command: missing argument.*",
                  command("labelmap atom 1"););
-    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
+    TEST_FAILURE(".*ERROR: Illegal labelmap atom command: missing argument.*",
                  command("labelmap atom"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap clear");
+    command("labelmap atom 3 C1 2 N2");
+    END_HIDE_OUTPUT();
+    ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 3);
+    ASSERT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
 }
 
 } // namespace LAMMPS_NS

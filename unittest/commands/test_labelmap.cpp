@@ -105,7 +105,7 @@ TEST_F(SetTest, NoBoxAtoms)
     ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
 
     BEGIN_HIDE_OUTPUT();
-    command("labelmap atom 1 C1 2 N2 3 'O#' 1 C1 4 H#");
+    command("labelmap atom 1 C1 2 N2 3 'O#' 1 C1 4 H# 2 N3"); // second '#' starts comment
     END_HIDE_OUTPUT();
     ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
     ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);

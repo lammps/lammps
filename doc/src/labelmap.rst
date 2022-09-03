@@ -26,6 +26,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Define alphanumeric type labels to associate with one or more numeric
 atom, bond, angle, dihedral or improper types.  A collection of type
 labels for all atom types, bond types, etc is stored as a label map.
@@ -36,11 +38,14 @@ Bond Type Labels, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for a general discussion of how type
 labels can be used.
 
-As explained on the Howto page, valid type labels can contain any
-alphanumeric character, but cannot start with a number.  They can also
-contain standard characters such as square brackets "[" and "]", dash
-"-", underscore "_", plus "+" and equals "=" signs.  Note that type
-labels must be put in quotation marks if they contain the comment symbol '#'.
+Valid type labels may contain any alphanumeric character, but must not
+start with a number.  They can also contain other standard ASCII
+characters such as angular or square brackets '<' and '>' or '[' and
+']', parenthesis '(' and ')', dash '-', underscore '_', plus '+' and
+equals '=' signs and more.  Note that type labels must be put in
+quotation marks if they contain the '#' character when used in a context
+where the '#' character would be interpreted as starting a comment like
+in the LAMMPS input file.
 
 A *labelmap* command can only modify the label map for one type-kind
 (atom types, bond types, etc).  Any number of numeric-type/type-label
@@ -48,8 +53,8 @@ pairs may follow.  If a type label already exists for a given numeric
 type, it will be overwritten.  Type labels must be unique; assigning
 the same type label to multiple numeric types is not allowed.  In some
 cases, such as when reading and writing data files, it is required
-that a type label be defined for every numeric type (within a given
-type-kind).
+that when type labels are used, that there is a label defined for
+*every* numeric type.
 
 The *clear* option resets the labelmap and thus discards all previous
 settings.

@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
+#include "label_map.h"
 #include "math_const.h"
 #include "modify.h"
 
@@ -86,23 +87,40 @@ protected:
     }
 };
 
-TEST_F(SetTest, NoBoxNoAtoms)
+TEST_F(SetTest, NoBoxAtoms)
 {
     ASSERT_EQ(atom->natoms, 0);
     ASSERT_EQ(domain->box_exist, 0);
+    ASSERT_EQ(atom->lmap, nullptr);
     TEST_FAILURE(".*ERROR: Labelmap command before simulation box is.*",
                  command("labelmap atom 3 C1"););
 
     BEGIN_HIDE_OUTPUT();
     command("region box block 0 2 0 2 0 2");
     command("create_box 4 box");
+    command("labelmap atom 2 N1");
+    command("labelmap atom 3 O1 4 H1");
     END_HIDE_OUTPUT();
+    ASSERT_NE(atom->lmap, nullptr);
+    ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 1 C1 2 N2");
+    END_HIDE_OUTPUT();
+    ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
+    ASSERT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
+    ASSERT_EQ(atom->lmap->find("O1", Atom::ATOM), 3);
+    ASSERT_EQ(atom->lmap->find("H1", Atom::ATOM), 4);
+
     TEST_FAILURE(".*ERROR: Labelmap atom type 0 must be within 1-4.*",
                  command("labelmap atom 0 C1"););
     TEST_FAILURE(".*ERROR: Labelmap atom type 5 must be within 1-4.*",
                  command("labelmap atom 5 C1"););
     TEST_FAILURE(".*ERROR: Label 1C for atom type 1 must not start with a number.*",
                  command("labelmap atom 1 1C"););
+    TEST_FAILURE(".*ERROR: The atom type label N2 is already in use for type 2.*",
+                 command("labelmap atom 1 N2"););
 
     TEST_FAILURE(".*ERROR: No bond types allowed with current box settings.*",
                  command("labelmap bond 1 C1-C1"););
@@ -114,7 +132,11 @@ TEST_F(SetTest, NoBoxNoAtoms)
                  command("labelmap improper 1 C1-C1-C1-C1"););
 
     TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
-                 command("labelmap atom 0"););
+                 command("labelmap atom 1 C1 2"););
+    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
+                 command("labelmap atom 1 C1 atom 2 C2"););
+    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
+                 command("labelmap atom 1"););
     TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
                  command("labelmap atom"););
 }

@@ -153,6 +153,16 @@ TEST_F(SetTest, NoBoxAtoms)
     ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
     ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 3);
     ASSERT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
+
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap clear");
+    command("labelmap atom 1 \"C1'\" 2 'C2\"' 3 \"\"\"C1'-C2\" \"\"\" 4 \"\"\" C2\"-C1'\"\"\"");
+    END_HIDE_OUTPUT();
+    ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    ASSERT_EQ(atom->lmap->find("C1'", Atom::ATOM), 1);
+    ASSERT_EQ(atom->lmap->find("C2\"", Atom::ATOM), 2);
+    ASSERT_EQ(atom->lmap->find("C1'-C2\"", Atom::ATOM), 3);
+    ASSERT_EQ(atom->lmap->find("C2\"-C1'", Atom::ATOM), 4);
 }
 
 } // namespace LAMMPS_NS

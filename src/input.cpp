@@ -728,7 +728,7 @@ int Input::readtype(char *&str, int mode)
 
   int type,max,max2;
   char typechar[256];
-  std::string labelstr(str);
+  std::string labelstr = utils::trim(str);
 
   type = atom->lmap->find(labelstr,mode);
   if (type == -1) error->all(FLERR,fmt::format("Invalid type {}",str));

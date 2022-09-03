@@ -1834,8 +1834,8 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 {
   if (mass == nullptr) error->all(file,line, "Cannot set atom mass for atom style {}", atom_style);
 
-  if (!isdigit(arg[0][0]) && arg[0][0] != '*') {
-    std::string typestr(arg[0]);
+  std::string typestr = utils::trim(arg[0]);
+  if (!isdigit(typestr[0]) && typestr[0] != '*') {
     int itype = lmap->find(typestr,Atom::ATOM);
     if (itype == -1) error->all(file,line,"Invalid type for mass set");
     mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);

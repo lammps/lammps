@@ -137,7 +137,7 @@ void LabelMap::modify_lmap(int narg, char **arg)
     int itype = utils::inumeric(FLERR, arg[iarg++], false, lmp);
     if ((itype < 1) || (itype > ntypes))
       error->all(FLERR, "Labelmap {} type {} must be within 1-{}", tlabel, itype, ntypes);
-    std::string slabel(arg[iarg++]);
+    std::string slabel = utils::trim(arg[iarg++]);
     if (isdigit(slabel[0]) || (slabel[0] == '#') || (slabel[0] == '*'))
       error->all(FLERR, "Label {} for {} type {} must not start with a number, a '#', or a '*'",
                  slabel, tlabel, itype);

@@ -69,6 +69,8 @@ class LabelMap : protected Pointers {
   char *read_string(FILE *);
   void write_string(const std::string &, FILE *);
   int read_int(FILE *);
+
+  void write_map(const std::string &);
 };
 
 }    // namespace LAMMPS_NS

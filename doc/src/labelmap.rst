@@ -10,8 +10,14 @@ Syntax
 
    labelmap option args
 
-* *option* = *atom* or *bond* or *angle* or *dihedral* or *improper* or *clear*
-* except for the *clear* option, one or more numeric-type/type-label pairs may be appended
+* *option* = *atom* or *bond* or *angle* or *dihedral* or *improper* or *clear* or *write*
+
+  .. parsed-literal::
+
+     *clear* = no args
+     *write* arg = filename
+     *atom* or *bond* or *angle* or *dihedral* or *improper*
+       args = list of one or more numeric-type/type-label pairs
 
 Examples
 """"""""
@@ -22,6 +28,7 @@ Examples
    labelmap bond 1 carbonyl 2 nitrile
    labelmap atom $(label(carbon)) C  # change type label from 'carbon' to 'C'
    labelmap clear
+   labelmap write mymap.include
 
 Description
 """""""""""
@@ -58,6 +65,11 @@ that when type labels are used, that there is a label defined for
 
 The *clear* option resets the labelmap and thus discards all previous
 settings.
+
+The *write* option takes a filename as argument and writes the current
+label mappings to a file as labelmap commands, so the file can be copied
+into a different LAMMPS input file or read using the :doc:`include
+<include>` command.
 
 ----------
 

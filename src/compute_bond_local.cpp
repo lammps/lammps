@@ -83,7 +83,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       nvar++;
     } else if (arg[iarg][0] == 'b') {
       int n = atoi(&arg[iarg][1]);
-      if (n <= 0) error->all(FLERR, "Invalid keyword in compute bond/local command");
+      if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute bond/local command", arg[iarg]);
       bstyle[nvalues] = BN;
       bindex[nvalues++] = n - 1;
     } else break;

@@ -660,11 +660,11 @@ void BondBPMRotational::settings(int narg, char **arg)
   for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "smooth") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command");
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for smooth");
       smooth_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else {
-      error->all(FLERR, "Illegal bond_style command");
+      error->all(FLERR, "Illegal bond bpm command, invalid argument {}", arg[iarg]);
     }
   }
 }

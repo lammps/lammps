@@ -38,7 +38,7 @@ ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
 
   if (narg == 4) {
     if (utils::strmatch(arg[3], "forward")) comm_forward = 1;
-    else error->all(FLERR, "Illegal compute nbond/atom command");
+    else error->all(FLERR, "Illegal compute nbond/atom argument {}", arg[3]);
   }
 
   nmax = 0;

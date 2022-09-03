@@ -1058,7 +1058,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   if (!next) error->all(FLERR, "Missing data in Atoms section of data file");
   *next = '\0';
   auto values = Tokenizer(buf).as_vector();
-  int nwords = 0;
+  int nwords = values.size();
   for (std::size_t i = 0; i < values.size(); ++i) {
     if (utils::strmatch(values[i], "^#")) {
       nwords = i;

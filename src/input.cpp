@@ -1626,10 +1626,7 @@ void Input::kspace_style()
 
 void Input::labelmap()
 {
-  if (narg < 2 || (narg % 2 == 0)) error->all(FLERR,"Illegal labelmap command");
-  if (domain->box_exist == 0)
-    error->all(FLERR,"Labelmap command before simulation box is defined");
-
+  if (domain->box_exist == 0) error->all(FLERR,"Labelmap command before simulation box is defined");
   if (!atom->labelmapflag) atom->add_label_map();
   atom->lmap->modify_lmap(narg,arg);
 }

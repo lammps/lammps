@@ -36,7 +36,6 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
   if (narg < 3) utils::missing_cmd_args(FLERR, "fix nve/sphere", error);
-  
 
   time_integrate = 1;
 

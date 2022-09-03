@@ -345,9 +345,9 @@ Atom::~Atom()
   for (int i = 0; i < nmolecule; i++) delete molecules[i];
   memory->sfree(molecules);
 
-  // delete label maps
+  // delete label map
 
-  memory->sfree(lmap);
+  delete lmap;
 
   // delete per-type arrays
 

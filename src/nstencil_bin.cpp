@@ -39,15 +39,20 @@ void NStencilBin<HALF, DIM_3D, TRI>::create()
 
   nstencil = 0;
 
+  // Half and ortho stencils include central bin first
+  // This preserves the historical order of the neighbor list
+  // as the old npair classes used to separately parse the central bin first
+  if (HALF && (!TRI)) stencil[nstencil++] = 0;
+
   for (k = -sz_min; k <= sz; k++) {
     for (j = -sy_min; j <= sy; j++) {
       for (i = -sx; i <= sx; i++) {
 
-        // Half and ortho stencils only include own and "upper right" bins
+        // Now only include "upper right" bins for half and ortho stencils
         if (HALF && (!DIM_3D) && (!TRI))
-          if (! (j > 0 || (j == 0 && i >= 0))) continue;
+          if (! (j > 0 || (j == 0 && i > 0))) continue;
         if (HALF && DIM_3D && (!TRI))
-          if (! (k > 0 || j > 0 || (j == 0 && i >= 0))) continue;
+          if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
 
         if (bin_distance(i,j,k) < cutneighmaxsq)
           stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;

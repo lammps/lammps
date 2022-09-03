@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 Fix commands
 ============
@@ -28,6 +29,8 @@ OPT.
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
    * :doc:`addtorque <fix_addtorque>`
+   * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
+   * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
    * :doc:`atc <fix_atc>`
    * :doc:`atom/swap <fix_atom_swap>`
@@ -103,7 +106,7 @@ OPT.
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`mdi/aimd <fix_mdi_aimd>`
+   * :doc:`mdi/qm <fix_mdi_qm>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`

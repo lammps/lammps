@@ -172,6 +172,23 @@ struct test_vector_insert {
       run_test(a);
       check_test(a, size);
     }
+    { test_vector_insert_into_empty(size); }
+  }
+
+  void test_vector_insert_into_empty(const size_t size) {
+    using Vector = Kokkos::vector<Scalar, Device>;
+    {
+      Vector a;
+      Vector b(size);
+      a.insert(a.begin(), b.begin(), b.end());
+      ASSERT_EQ(a.size(), size);
+    }
+
+    {
+      Vector c;
+      c.insert(c.begin(), size, Scalar{});
+      ASSERT_EQ(c.size(), size);
+    }
   }
 };
 

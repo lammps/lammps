@@ -73,7 +73,6 @@ void CreateBonds::command(int narg, char **arg)
     iarg = 6;
   } else if (strcmp(arg[0], "single/bond") == 0) {
     style = SBOND;
-    if (narg < 4) error->all(FLERR, "Illegal create_bonds command");
     btype = utils::inumeric(FLERR, arg[1], false, lmp);
     batom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
     batom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
@@ -299,6 +298,7 @@ void CreateBonds::many()
       }
     }
   }
+  neighbor->init();
 
   // recount bonds
 

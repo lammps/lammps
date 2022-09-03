@@ -30,8 +30,6 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-using LAMMPS_NS::utils::split_words;
-
 namespace LAMMPS_NS {
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
@@ -77,9 +75,10 @@ TEST_F(RegionTest, NoBox)
     command("region reg6 union 3 reg1 reg2 reg3");
     command("region reg7 intersect 3 reg1 reg2 reg4");
     command("region reg8 ellipsoid 0 0 0 2 1 2");
+    command("region reg9 cylinder  y 0 0 1 0 1 open 1 units box");
     END_HIDE_OUTPUT();
     list = domain->get_region_list();
-    EXPECT_EQ(list.size(), 8);
+    EXPECT_EQ(list.size(), 9);
 
     auto reg = domain->get_region_by_id("reg1");
     EXPECT_EQ(reg->interior, 1);
@@ -161,21 +160,50 @@ TEST_F(RegionTest, NoBox)
     EXPECT_EQ(reg->rotateflag, 0);
     EXPECT_EQ(reg->openflag, 0);
 
+    reg = domain->get_region_by_id("reg9");
+    EXPECT_EQ(reg->interior, 1);
+    EXPECT_EQ(reg->scaleflag, 0);
+    EXPECT_EQ(reg->bboxflag, 1);
+    EXPECT_EQ(reg->varshape, 0);
+    EXPECT_EQ(reg->dynamic, 0);
+    EXPECT_EQ(reg->moveflag, 0);
+    EXPECT_EQ(reg->rotateflag, 0);
+    EXPECT_EQ(reg->openflag, 1);
+
     BEGIN_HIDE_OUTPUT();
     command("region reg3 delete");
     command("region reg5 delete");
     command("region reg6 delete");
     command("region reg1 delete");
+    command("region reg9 delete");
     END_HIDE_OUTPUT();
     list = domain->get_region_list();
     EXPECT_EQ(list.size(), 4);
 
     reg = domain->get_region_by_id("reg7");
     TEST_FAILURE(".*ERROR: Region intersect region reg1 does not exist.*", reg->init(););
+    TEST_FAILURE(".*ERROR: Delete region reg3 does not exist.*", command("region reg3 delete"););
+}
+
+TEST_F(RegionTest, DeathTests)
+{
+    atomic_system();
+
+    auto list = domain->get_region_list();
+    ASSERT_EQ(list.size(), 1);
+
+    TEST_FAILURE(".*ERROR: Illegal region block xlo: 1 >= xhi: 0.*", command("region reg1 block 1 0 0 1 0 1"););
+    TEST_FAILURE(".*ERROR: Illegal region cone open face: 4.*", command("region reg2 cone x 0 0 2 1 0 1 open 4"););
+    TEST_FAILURE(".*ERROR: Illegal region plane normal vector: 0 0 0.*", command("region reg3 plane 0 0 0 0 0 0 side out"););
+    TEST_FAILURE(".*ERROR: Illegal region prism non-zero xy tilt with infinite x size.*", command("region reg4 prism INF INF 0 1 0 1 0.1 0.2 0.3"););
+    TEST_FAILURE(".*ERROR: Illegal region sphere radius: -1.*", command("region reg5 sphere 0 0 0 -1"););
+    TEST_FAILURE(".*ERROR: Illegal region ellipsoid c: -2.*", command("region reg8 ellipsoid 0 0 0 2 1 -2"););
+    TEST_FAILURE(".*ERROR: Illegal region cylinder axis: xx.*", command("region reg9 cylinder  xx 0 0 1 0 1 open 1 units box"););
 
     TEST_FAILURE(".*ERROR: Unrecognized region style 'xxx'.*", command("region new1 xxx"););
-    TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
-    TEST_FAILURE(".*ERROR: Delete region reg3 does not exist.*", command("region reg3 delete"););
+    //TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
+    TEST_FAILURE(".*ERROR: Illegal region command: missing argument\\(s\\).*", command("region new1 block 0 1"););
+    TEST_FAILURE(".*ERROR: Delete region new3 does not exist.*", command("region new3 delete"););
 }
 
 TEST_F(RegionTest, Counts)
@@ -249,12 +277,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

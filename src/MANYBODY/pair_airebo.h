@@ -40,8 +40,6 @@ class PairAIREBO : public Pair {
   enum { AIREBO, REBO_2, AIREBO_M };    // for telling class variants apart in shared code
 
  protected:
-  int *map;    // 0 (C), 1 (H), or -1 ("NULL") for each type
-
   int variant;
   int ljflag, torflag;    // 0/1 if LJ/Morse,torsion terms included
   int morseflag;          // 1 if Morse instead of LJ for non-bonded
@@ -110,7 +108,6 @@ class PairAIREBO : public Pair {
 
   void read_file(char *);
 
-  double Sp5th(double, double *, double *);
   double Spbicubic(double, double, double *, double *);
   double Sptricubic(double, double, double, double *, double *);
   void Sptricubic_patch_adjust(double *, double, double, char);
@@ -129,6 +126,33 @@ class PairAIREBO : public Pair {
   // ----------------------------------------------------------------------
 
   /* ----------------------------------------------------------------------
+   fifth order spline evaluation using Horner's rule
+   ------------------------------------------------------------------------- */
+  double Sp5th(const double &x, const double coeffs[6], double *df) const
+  {
+    double f = coeffs[5] * x;
+    double d = 5.0 * coeffs[5] * x;
+    f += coeffs[4];
+    d += 4.0 * coeffs[4];
+    f *= x;
+    d *= x;
+    f += coeffs[3];
+    d += 3.0 * coeffs[3];
+    f *= x;
+    d *= x;
+    f += coeffs[2];
+    d += 2.0 * coeffs[2];
+    f *= x;
+    d *= x;
+    f += coeffs[1];
+    d += coeffs[1];
+    f *= x;
+    f += coeffs[0];
+    *df = d;
+    return f;
+  }
+
+  /* ----------------------------------------------------------------------
      cutoff function Sprime
      return cutoff and dX = derivative
      no side effects
@@ -138,7 +162,7 @@ class PairAIREBO : public Pair {
   {
     double cutoff;
 
-    double t = (Xij - Xmin) / (Xmax - Xmin);
+    const double t = (Xij - Xmin) / (Xmax - Xmin);
     if (t <= 0.0) {
       cutoff = 1.0;
       dX = 0.0;
@@ -162,7 +186,7 @@ class PairAIREBO : public Pair {
   {
     double cutoff;
 
-    double t = (Xij - Xmin) / (Xmax - Xmin);
+    const double t = (Xij - Xmin) / (Xmax - Xmin);
     if (t <= 0.0) {
       cutoff = 1.0;
       dX = 0.0;
@@ -180,7 +204,6 @@ class PairAIREBO : public Pair {
 
   inline double kronecker(const int a, const int b) const { return (a == b) ? 1.0 : 0.0; };
 };
-
 }    // namespace LAMMPS_NS
 
 #endif

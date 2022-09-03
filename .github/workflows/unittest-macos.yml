@@ -3,7 +3,9 @@ name: "Unittest for MacOS"
 
 on:
   push:
-    branches: [develop]
+    branches: [ develop ]
+  pull_request:
+    branches: [ $default-branch ]
 
   workflow_dispatch:
 
@@ -17,7 +19,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 2
 
@@ -28,7 +30,7 @@ jobs:
       run: mkdir build
 
     - name: Set up ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.CCACHE_DIR }}
         key: macos-ccache-${{ github.sha }}
@@ -39,6 +41,7 @@ jobs:
       working-directory: build
       run: |
         ccache -z
+        python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C ../cmake/presets/clang.cmake \
               -C ../cmake/presets/most.cmake \

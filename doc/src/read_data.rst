@@ -56,7 +56,7 @@ Examples
    read_data ../run7/data.polymer.gz
    read_data data.protein fix mycmap crossterm CMAP
    read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
-   read_data data.water add merge 1 group solvent
+   read_data data.water add merge group solvent
 
 Description
 """""""""""
@@ -622,6 +622,8 @@ of analysis.
      - atom-ID molecule-ID atom-type x y z
    * - charge
      - atom-ID atom-type q x y z
+   * - dielectric
+     - atom-ID atom-type q x y z normx normy normz area ed em epsilon curvature
    * - dipole
      - atom-ID atom-type q x y z mux muy muz
    * - dpd
@@ -629,7 +631,7 @@ of analysis.
    * - edpd
      - atom-ID atom-type edpd_temp edpd_cv x y z
    * - electron
-     - atom-ID atom-type q spin eradius x y z
+     - atom-ID atom-type q espin eradius x y z
    * - ellipsoid
      - atom-ID atom-type ellipsoidflag density x y z
    * - full
@@ -661,7 +663,7 @@ of analysis.
    * - tri
      - atom-ID molecule-ID atom-type triangleflag density x y z
    * - wavepacket
-     - atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
+     - atom-ID atom-type charge espin eradius etag cs_re cs_im x y z
    * - hybrid
      - atom-ID atom-type x y z sub-style1 sub-style2 ...
 
@@ -678,11 +680,12 @@ The per-atom values have these meanings and units, listed alphabetically:
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
 * diameter = diameter of spherical atom (distance units)
-* esph = energy (need units) for SPH particles
 * edpd_temp = temperature for eDPD particles (temperature units)
 * edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 * eradius = electron radius (or fixed-core radius)
+* esph = energy (need units) for SPH particles
+* espin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 * etag = integer ID of electron that each wave packet belongs to
 * kradius = kernel radius for SMD particles (distance units)
 * lineflag = 1 for line segment particles, 0 for point or spherical particles
@@ -693,7 +696,6 @@ The per-atom values have these meanings and units, listed alphabetically:
 * mux,muy,muz = components of dipole moment of atom (dipole units)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles
-* spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 * sp = magnitude of magnetic spin of atom (Bohr magnetons)
 * spx,spy,spz = components of magnetic spin of atom (unit vector)
 * template-atom = which atom within a template molecule the atom is

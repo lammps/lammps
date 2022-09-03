@@ -124,6 +124,12 @@ void DumpYAML::write_data(int n, double *mybuf)
     }
     fputs("]\n", fp);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpYAML::write_footer()
+{
   fputs("...\n", fp);
 }
 

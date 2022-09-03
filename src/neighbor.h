@@ -94,6 +94,7 @@ class Neighbor : protected Pointers {
   NeighList **lists;
   NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
   NeighRequest **old_requests;    // copy of requests to compare to
+  int* j_sorted;                  // index of requests sorted by cutoff distance
 
   // data from topology neighbor lists
 
@@ -246,11 +247,13 @@ class Neighbor : protected Pointers {
   int init_pair();
   virtual void init_topology();
 
+  void sort_requests();
+
   void morph_unique();
   void morph_skip();
   void morph_granular();
   void morph_halffull();
-  void morph_copy();
+  void morph_copy_trim();
 
   void print_pairwise_info();
   void requests_new2old();
@@ -324,7 +327,8 @@ namespace NeighConst {
     NP_SKIP = 1 << 22,
     NP_HALF_FULL = 1 << 23,
     NP_OFF2ON = 1 << 24,
-    NP_MULTI_OLD = 1 << 25
+    NP_MULTI_OLD = 1 << 25,
+    NP_TRIM = 1 << 26
   };
 
   enum {

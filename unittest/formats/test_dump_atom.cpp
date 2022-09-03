@@ -28,6 +28,8 @@ using ::testing::Eq;
 char *BINARY2TXT_EXECUTABLE = nullptr;
 bool verbose                = false;
 
+namespace LAMMPS_NS {
+
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
 
@@ -39,22 +41,23 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string dump_filename(std::string ident)
+    std::string dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_{}.melt", dump_style, ident);
     }
 
-    std::string text_dump_filename(std::string ident)
+    std::string text_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_text_{}.melt", dump_style, ident);
     }
 
-    std::string binary_dump_filename(std::string ident)
+    std::string binary_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_binary_{}.melt.bin", dump_style, ident);
     }
 
-    void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &dump_modify_options,
+                       int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {}", dump_style, dump_file));
@@ -81,8 +84,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
-                                       std::string dump_modify_options, int ntimesteps)
+    void generate_text_and_binary_dump(const std::string &text_file, const std::string &binary_file,
+                                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
@@ -97,7 +100,7 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string convert_binary_to_text(std::string binary_file)
+    std::string convert_binary_to_text(const std::string &binary_file)
     {
         BEGIN_HIDE_OUTPUT();
         std::string cmdline = fmt::format("\"{}\" {}", BINARY2TXT_EXECUTABLE, binary_file);
@@ -623,7 +626,7 @@ TEST_F(DumpAtomTest, dump_modify_invalid)
     command("dump id all atom 1 dump.txt");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id true"););
+    TEST_FAILURE(".*Unknown dump_modify keyword: true.*", command("dump_modify id true"););
 }
 
 TEST_F(DumpAtomTest, write_dump)
@@ -677,6 +680,7 @@ TEST_F(DumpAtomTest, binary_write_dump)
     delete_file(reference);
     delete_file(dump_file);
 }
+}
 
 int main(int argc, char **argv)
 {
@@ -685,7 +689,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

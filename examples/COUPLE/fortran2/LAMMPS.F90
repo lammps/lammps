@@ -1105,7 +1105,7 @@ contains !! Wrapper functions local to this module {{{1
       C_xy = xy
       C_xz = xz
       C_yz = yz
-      call lammps_actual_reset_box (ptr, C_boxlo, C_boxhi, C_xy, C_xz, C_yz)
+      call lammps_actual_reset_box (ptr, C_boxlo, C_boxhi, C_xy, C_yz, C_xz)
    end subroutine lammps_reset_box
 
 ! lammps_gather_atoms {{{2
@@ -1292,7 +1292,7 @@ contains !! Wrapper functions local to this module {{{1
       Cname = string2Cstring (name)
       Ccount = size(data) / natoms
       if ( Ccount /= 1 .and. Ccount /= 3 ) &
-         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+         call lammps_error_all (ptr, FLERR, 'lammps_scatter_atoms requires&
             & count to be either 1 or 3')
       Fdata = data
       Cdata = C_loc (Fdata(1))
@@ -1355,7 +1355,7 @@ contains !! Wrapper functions local to this module {{{1
       Cname = string2Cstring (name)
       Ccount = size(data) / ndata
       if ( Ccount /= 1 .and. Ccount /= 3 ) &
-         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+         call lammps_error_all (ptr, FLERR, 'lammps_scatter_atoms requires&
             & count to be either 1 or 3')
       Fdata = data
       Cdata = C_loc (Fdata(1))

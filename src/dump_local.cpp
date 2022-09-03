@@ -34,9 +34,9 @@ using namespace LAMMPS_NS;
 
 DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg),
-  label(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), field2index(nullptr),
-  argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr), fix(nullptr),
-  pack_choice(nullptr)
+  label(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), columns_default(nullptr),
+  field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr),
+  id_fix(nullptr), fix(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump local arguments specified");
 
@@ -87,20 +87,21 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   // setup format strings
 
   vformat = new char*[size_one];
-  std::string fdefault;
+  std::string cols;
+
   for (int i = 0; i < size_one; i++) {
-    if (vtype[i] == Dump::INT) fdefault += "%d ";
-    else if (vtype[i] == Dump::DOUBLE) fdefault += "%g ";
+    if (vtype[i] == Dump::INT) cols += "%d ";
+    else if (vtype[i] == Dump::DOUBLE) cols += "%g ";
     vformat[i] = nullptr;
   }
-  format_default = utils::strdup(fdefault);
+  cols.resize(cols.size()-1);
+  format_default = utils::strdup(cols);
 
   format_column_user = new char*[size_one];
   for (int i = 0; i < size_one; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
-  std::string cols;
   cols.clear();
   keyword_user.resize(nfield);
   for (int iarg = 0; iarg < nfield; iarg++) {
@@ -147,6 +148,7 @@ DumpLocal::~DumpLocal()
   delete[] format_column_user;
 
   delete[] columns;
+  delete[] columns_default;
   delete[] label;
 }
 
@@ -154,6 +156,19 @@ DumpLocal::~DumpLocal()
 
 void DumpLocal::init_style()
 {
+  // assemble ITEMS: column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
+
   if (sort_flag && sortcol == 0)
     error->all(FLERR,"Dump local cannot sort by atom ID");
 
@@ -183,10 +198,11 @@ void DumpLocal::init_style()
 
   auto words = utils::split_words(format);
   if ((int) words.size() <  size_one)
-    error->all(FLERR,"Dump_modify format line is too short");
+    error->all(FLERR,"Dump_modify format line is too short: {}", format);
 
   int i=0;
   for (const auto &word : words) {
+    if (i >= size_one) break;
     delete[] vformat[i];
 
     if (format_column_user[i])

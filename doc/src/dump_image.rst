@@ -1,4 +1,5 @@
 .. index:: dump image
+.. index:: dump movie
 
 dump image command
 ==================
@@ -55,7 +56,7 @@ Syntax
          phi = azimuthal view angle (degrees)
          theta or phi can be a variable (see below)
        *center* values = flag Cx Cy Cz = center point of image
-         flag = "s" for static, "d" for dynamic
+         flag = *s* for static, *d* for dynamic
          Cx,Cy,Cz = center point of image as fraction of box dimension (0.5 = center of box)
          Cx,Cy,Cz can be variables (see below)
        *up* values = Ux Uy Uz = direction that is "up" in image
@@ -109,13 +110,13 @@ Syntax
        *amap* args = lo hi style delta N entry1 entry2 ... entryN
          lo = number or *min* = lower bound of range of color map
          hi = number or *max* = upper bound of range of color map
-         style = 2 letters = "c" or "d" or "s" plus "a" or "f"
-           "c" for continuous
-           "d" for discrete
-           "s" for sequential
-           "a" for absolute
-           "f" for fractional
-         delta = binsize (only used for style "s", otherwise ignored)
+         style = 2 letters = *c* or *d* or *s* plus *a* or *f*
+           *c* for continuous
+           *d* for discrete
+           *s* for sequential
+           *a* for absolute
+           *f* for fractional
+         delta = binsize (only used for style *s*, otherwise ignored)
            binsize = range is divided into bins of this width
          N = # of subsequent entries
          entry = value color (for continuous style)

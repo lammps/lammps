@@ -257,7 +257,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   // Abstraction for counting and populating torsion intermediated
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  int preprocess_torsion(int, int, int, F_FLOAT, F_FLOAT, F_FLOAT, int, int, int) const;
+  int preprocess_torsion(int, int, tagint, F_FLOAT, F_FLOAT, F_FLOAT, int, int, int) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

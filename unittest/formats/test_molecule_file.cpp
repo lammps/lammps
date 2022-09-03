@@ -216,6 +216,9 @@ TEST_F(MoleculeFileTest, twomols)
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*2 molecules.*\n"
                                       ".*0 fragments.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
+    ASSERT_EQ(lmp->atom->nmolecule, 1);
+    auto mols = lmp->atom->get_molecule_by_id(test_name);
+    ASSERT_EQ(mols.size(), 1);
 }
 
 TEST_F(MoleculeFileTest, twofiles)
@@ -231,6 +234,17 @@ TEST_F(MoleculeFileTest, twofiles)
                       ".*Read molecule template twomols:.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule h2o moltest.h2o.mol");
+    command("molecule co2 moltest.co2.mol");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_EQ(lmp->atom->nmolecule, 4);
+    auto mols = lmp->atom->get_molecule_by_id("twomols");
+    ASSERT_EQ(mols.size(), 2);
+    mols = lmp->atom->get_molecule_by_id("h2o");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("co2");
+    ASSERT_EQ(mols.size(), 1);
 }
 
 TEST_F(MoleculeFileTest, bonds)
@@ -289,9 +303,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

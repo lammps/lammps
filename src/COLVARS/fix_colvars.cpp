@@ -135,8 +135,6 @@ static void rebuild_table_int(inthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -166,8 +164,6 @@ void inthash_init(inthash_t *tptr, int buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(inthash_node_t **) calloc(tptr->size, sizeof(inthash_node_t *));
-
-  return;
 }
 
 /*
@@ -847,7 +843,6 @@ void FixColvars::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process colvar forces on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -939,7 +934,7 @@ void FixColvars::end_of_step()
 void FixColvars::write_restart(FILE *fp)
 {
   if (me == 0) {
-    std::string rest_text("");
+    std::string rest_text;
     proxy->serialize_status(rest_text);
     // TODO call write_output_files()
     const char *cvm_state = rest_text.c_str();

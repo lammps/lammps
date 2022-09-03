@@ -1,3 +1,5 @@
+include 'lammps.f90'
+
 MODULE keepcreate
   USE liblammps
   TYPE(LAMMPS) :: lmp
@@ -75,10 +77,11 @@ SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
 END SUBROUTINE f_lammps_close
 
 FUNCTION f_lammps_get_comm() BIND(C, name="f_lammps_get_comm")
+  USE ISO_C_BINDING, ONLY: c_int
   USE liblammps
   USE keepcreate, ONLY: mycomm
   IMPLICIT NONE
-  INTEGER :: f_lammps_get_comm
+  INTEGER(c_int) :: f_lammps_get_comm
 
   f_lammps_get_comm = mycomm
 END FUNCTION f_lammps_get_comm

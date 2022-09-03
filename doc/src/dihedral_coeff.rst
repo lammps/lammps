@@ -28,28 +28,29 @@ Examples
 Description
 """""""""""
 
-Specify the dihedral force field coefficients for one or more dihedral types.
-The number and meaning of the coefficients depends on the dihedral style.
-Dihedral coefficients can also be set in the data file read by the
-:doc:`read_data <read_data>` command or in a restart file.
+Specify the dihedral force field coefficients for one or more dihedral
+types.  The number and meaning of the coefficients depends on the
+dihedral style.  Dihedral coefficients can also be set in the data file
+read by the :doc:`read_data <read_data>` command or in a restart file.
 
-:math:`N` can be specified in one of two ways.  An explicit numeric value
-can be used, as in the first example above.  Or :math:`N` can be an
-alphanumeric type label, which is a string defined by the :doc:`labelmap
-<labelmap>` command or in a corresponding section of a data file read by
-the :doc:`read_data <read_data>` command.
+:math:`N` can be specified in one of two ways.  An explicit numeric
+value can be used, as in the first example above.  Or :math:`N` can be
+an alphanumeric type label, which is a string defined by the
+:doc:`labelmap <labelmap>` command or in a corresponding section of a
+data file read by the :doc:`read_data <read_data>` command.
 
 For numeric values only, a wild-card asterisk can be used to set the
 coefficients for multiple dihedral types.  This takes the form "\*" or
 "\*n" or "n\*" or "m\*n".  If :math:`N` is the number of dihedral types,
-then an asterisk with no numeric values means all types from 1 to :math:`N`.
-A leading asterisk means all types from 1 to n (inclusive).  A trailing
-asterisk means all types from n to :math:`N` (inclusive).  A middle asterisk
-means all types from m to n (inclusive).
+then an asterisk with no numeric values means all types from 1 to
+:math:`N`.  A leading asterisk means all types from 1 to n (inclusive).
+A trailing asterisk means all types from n to :math:`N` (inclusive).  A
+middle asterisk means all types from m to n (inclusive).
 
 Note that using a dihedral_coeff command can override a previous setting
 for the same dihedral type.  For example, these commands set the coeffs
-for all dihedral types, then overwrite the coeffs for just dihedral type 2:
+for all dihedral types, then overwrite the coeffs for just dihedral type
+2:
 
 .. code-block:: LAMMPS
 

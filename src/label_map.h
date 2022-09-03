@@ -14,59 +14,63 @@
 #ifndef LMP_LABEL_MAP_H
 #define LMP_LABEL_MAP_H
 
-#include "pointers.h"  // IWYU pragma: export
+#include "pointers.h"    // IWYU pragma: export
 
 #include <unordered_map>
 
 namespace LAMMPS_NS {
 
 class LabelMap : protected Pointers {
+  friend class AtomVec;
+  friend class ReadData;
  public:
-   int natomtypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
-   std::vector<std::string> typelabel,btypelabel,atypelabel;
-   std::vector<std::string> dtypelabel,itypelabel;
-   std::unordered_map<std::string, int> typelabel_map;
-   std::unordered_map<std::string, int> btypelabel_map;
-   std::unordered_map<std::string, int> atypelabel_map;
-   std::unordered_map<std::string, int> dtypelabel_map;
-   std::unordered_map<std::string, int> itypelabel_map;
+  LabelMap(LAMMPS *lmp, int, int, int, int, int);
+  ~LabelMap();
 
-   // per-type data struct mapping this label map to another
+  void modify_lmap(int, char **);              // labelmap command in the input script
+  void merge_lmap(LabelMap *, int);            // copy another lmap into this one
+  void create_lmap2lmap(LabelMap *, int);      // index mapping between two lmaps
+  int find(const std::string &, int) const;    // find numeric type of type label
+  bool is_complete(int) const;                  // check if all types are assigned
 
-   struct Lmap2Lmap {
-     int *atom;
-     int *bond;
-     int *angle;
-     int *dihedral;
-     int *improper;
-   };
+  // input/output for atom class label map
 
-   Lmap2Lmap lmap2lmap;
+  void write_data(FILE *);
+  void read_restart(FILE *fp);
+  void write_restart(FILE *);
 
-   LabelMap(LAMMPS *lmp);
-   ~LabelMap();
+ protected:
+  int natomtypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
+  std::vector<std::string> typelabel, btypelabel, atypelabel;
+  std::vector<std::string> dtypelabel, itypelabel;
+  std::unordered_map<std::string, int> typelabel_map;
+  std::unordered_map<std::string, int> btypelabel_map;
+  std::unordered_map<std::string, int> atypelabel_map;
+  std::unordered_map<std::string, int> dtypelabel_map;
+  std::unordered_map<std::string, int> itypelabel_map;
 
-   void allocate_type_labels();
-   void modify_lmap(int, char **);                // labelmap command in the input script
-   void merge_lmap(class LabelMap *, int);        // copy another lmap into this one
-   void create_lmap2lmap(class LabelMap *, int);  // index mapping between two lmaps
-   int find(const std::string &, int);            // find numeric type of type label
-   int is_complete(int);                          // check if all types are assigned
+  // per-type data struct mapping this label map to another
 
-   // input/output for atom class label map
+  struct Lmap2Lmap {
+    int *atom;
+    int *bond;
+    int *angle;
+    int *dihedral;
+    int *improper;
+  };
 
-   void write_data(FILE *);
-   void read_restart(FILE *fp);
-   void write_restart(FILE *);
+  Lmap2Lmap lmap2lmap;
 
- private:
-   int find_or_create(const std::string &, std::vector<std::string> &, std::unordered_map<std::string, int> &); // look up type or create new type
-   int search(const std::string &, const std::unordered_map<std::string, int> &); // look up type index
-   char *read_string(FILE *);
-   void write_string(const std::string &, FILE *);
-   int read_int(FILE *);
+  void allocate_type_labels();
+  int find_or_create(const std::string &, std::vector<std::string> &,
+                     std::unordered_map<std::string, int> &);    // look up type or create new type
+  int search(const std::string &,
+             const std::unordered_map<std::string, int> &) const;    // look up type index
+  char *read_string(FILE *);
+  void write_string(const std::string &, FILE *);
+  int read_int(FILE *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

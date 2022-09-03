@@ -55,9 +55,9 @@ using namespace MathConst;
    one instance per AtomVec style in style_atom.h
 ------------------------------------------------------------------------- */
 
-template <typename T> static AtomVec *avec_creator(LAMMPS *lmp)
+template <typename T> static AtomVec *avec_creator(LAMMPS *_lmp)
 {
-  return new T(lmp);
+  return new T(_lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,7 +89,7 @@ are updated by the AtomVec class as needed.
  *
  * \param  lmp  pointer to the base LAMMPS class */
 
-Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
+Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
 {
   natoms = 0;
   nlocal = nghost = nmax = 0;
@@ -2086,16 +2086,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 void Atom::add_label_map()
 {
   labelmapflag = 1;
-  lmap = (LabelMap *)
-    memory->srealloc(lmap,sizeof(LabelMap *),
-                     "atom::lmap");
-  lmap = new LabelMap(lmp);
-  lmap->natomtypes = ntypes;
-  lmap->nbondtypes = nbondtypes;
-  lmap->nangletypes = nangletypes;
-  lmap->ndihedraltypes = ndihedraltypes;
-  lmap->nimpropertypes = nimpropertypes;
-  lmap->allocate_type_labels();
+  lmap = new LabelMap(lmp,ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
 }
 
 /* ----------------------------------------------------------------------

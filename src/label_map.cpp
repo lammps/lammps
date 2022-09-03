@@ -25,10 +25,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-LabelMap::LabelMap(LAMMPS *lmp) : Pointers(lmp)
+LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nangletypes,
+                   int _ndihedraltypes, int _nimpropertypes) :
+    Pointers(_lmp),
+    natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
+    ndihedraltypes(_ndihedraltypes), nimpropertypes(_nimpropertypes)
 {
-  natomtypes = nbondtypes = nangletypes = 0;
-  ndihedraltypes = nimpropertypes = 0;
+  lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
+      nullptr;
+  allocate_type_labels();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,19 +54,34 @@ LabelMap::~LabelMap()
 void LabelMap::allocate_type_labels()
 {
   typelabel.resize(natomtypes);
+  delete[] lmap2lmap.atom;
   lmap2lmap.atom = new int[natomtypes];
+  for (auto &i : typelabel) i.clear();
+  memset(lmap2lmap.atom, 0, natomtypes * sizeof(int));
 
   btypelabel.resize(nbondtypes);
+  delete[] lmap2lmap.bond;
+  for (auto &i : btypelabel) i.clear();
   lmap2lmap.bond = new int[nbondtypes];
+  memset(lmap2lmap.bond, 0, nbondtypes * sizeof(int));
 
   atypelabel.resize(nangletypes);
+  delete[] lmap2lmap.angle;
+  for (auto &i : atypelabel) i.clear();
   lmap2lmap.angle = new int[nangletypes];
+  memset(lmap2lmap.angle, 0, nangletypes * sizeof(int));
 
   dtypelabel.resize(ndihedraltypes);
+  delete[] lmap2lmap.dihedral;
+  for (auto &i : dtypelabel) i.clear();
   lmap2lmap.dihedral = new int[ndihedraltypes];
+  memset(lmap2lmap.dihedral, 0, ndihedraltypes * sizeof(int));
 
   itypelabel.resize(nimpropertypes);
+  delete[] lmap2lmap.improper;
+  for (auto &i : itypelabel) i.clear();
   lmap2lmap.improper = new int[nimpropertypes];
+  memset(lmap2lmap.dihedral, 0, nimpropertypes * sizeof(int));
 }
 
 /* ----------------------------------------------------------------------
@@ -70,7 +90,8 @@ void LabelMap::allocate_type_labels()
 
 void LabelMap::modify_lmap(int narg, char **arg)
 {
-  if (narg < 3 || narg % 2 == 0) error->all(FLERR,"Illegal labelmap command");
+  if (narg < 3 || narg % 2 == 0)
+    error->all(FLERR, "Incorrect number of arguments for labelmap command");
 
   int ntypes;
   std::vector<std::string> *labels;
@@ -96,19 +117,21 @@ void LabelMap::modify_lmap(int narg, char **arg)
     ntypes = nimpropertypes;
     labels = &itypelabel;
     labels_map = &itypelabel_map;
-  } else error->all(FLERR,"Illegal labelmap command");
+  } else
+    error->all(FLERR, "Unknown labelmap type {}", tlabel);
 
   int iarg = 1;
   while (iarg < narg) {
-    int itype = utils::inumeric(FLERR,arg[iarg++],false,lmp);
+    int itype = utils::inumeric(FLERR, arg[iarg++], false, lmp);
     if (itype > ntypes)
-      error->all(FLERR,"Topology type exceeds system topology type");
+      error->all(FLERR, "Assigned {} type {} is larger than allowed maximum of {}", tlabel, itype,
+                 ntypes);
     std::string slabel(arg[iarg++]);
     if (isdigit(slabel[0]))
-      error->all(FLERR,"Type labels cannot start with a number");
-    if (search(slabel,(*labels_map)) != -1)
-      error->all(FLERR,"Type label already exists: type labels must be unique");
-    std::string &str = (*labels)[itype-1];
+      error->all(FLERR, "Label {} for {} type must not start with a number", slabel, tlabel);
+    if (search(slabel, (*labels_map)) != -1)
+      error->all(FLERR, "The {} type label {} already exists: type labels must be unique");
+    std::string &str = (*labels)[itype - 1];
     if (!str.empty()) (*labels_map).erase(str);
     str = slabel;
     (*labels_map)[slabel] = itype;
@@ -123,28 +146,22 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
 void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 {
-  switch (mode)
-  {
-  case Atom::ATOM:
-    for (auto &it : lmap2->typelabel)
-      find_or_create(it,typelabel,typelabel_map);
-    break;
-  case Atom::BOND:
-    for (auto &it : lmap2->btypelabel)
-      find_or_create(it,btypelabel,btypelabel_map);
-    break;
-  case Atom::ANGLE:
-    for (auto &it : lmap2->atypelabel)
-      find_or_create(it,atypelabel,atypelabel_map);
-    break;
-  case Atom::DIHEDRAL:
-    for (auto &it : lmap2->dtypelabel)
-      find_or_create(it,dtypelabel,dtypelabel_map);
-    break;
-  case Atom::IMPROPER:
-    for (auto &it : lmap2->itypelabel)
-      find_or_create(it,itypelabel,itypelabel_map);
-    break;
+  switch (mode) {
+    case Atom::ATOM:
+      for (auto &it : lmap2->typelabel) find_or_create(it, typelabel, typelabel_map);
+      break;
+    case Atom::BOND:
+      for (auto &it : lmap2->btypelabel) find_or_create(it, btypelabel, btypelabel_map);
+      break;
+    case Atom::ANGLE:
+      for (auto &it : lmap2->atypelabel) find_or_create(it, atypelabel, atypelabel_map);
+      break;
+    case Atom::DIHEDRAL:
+      for (auto &it : lmap2->dtypelabel) find_or_create(it, dtypelabel, dtypelabel_map);
+      break;
+    case Atom::IMPROPER:
+      for (auto &it : lmap2->itypelabel) find_or_create(it, itypelabel, itypelabel_map);
+      break;
   }
 }
 
@@ -155,28 +172,27 @@ void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 
 void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
 {
-  switch (mode)
-  {
-  case Atom::ATOM:
-    for (int i = 0; i < natomtypes; ++i)
-      lmap2lmap.atom[i] = search(typelabel[i],lmap2->typelabel_map);
-    break;
-  case Atom::BOND:
-    for (int i = 0; i < nbondtypes; ++i)
-      lmap2lmap.bond[i] = search(btypelabel[i],lmap2->btypelabel_map);
-    break;
-  case Atom::ANGLE:
-    for (int i = 0; i < nangletypes; ++i)
-      lmap2lmap.angle[i] = search(atypelabel[i],lmap2->atypelabel_map);
-    break;
-  case Atom::DIHEDRAL:
-    for (int i = 0; i < ndihedraltypes; ++i)
-      lmap2lmap.dihedral[i] = search(dtypelabel[i],lmap2->dtypelabel_map);
-    break;
-  case Atom::IMPROPER:
-    for (int i = 0; i < nimpropertypes; ++i)
-      lmap2lmap.improper[i] = search(itypelabel[i],lmap2->itypelabel_map);
-    break;
+  switch (mode) {
+    case Atom::ATOM:
+      for (int i = 0; i < natomtypes; ++i)
+        lmap2lmap.atom[i] = search(typelabel[i], lmap2->typelabel_map);
+      break;
+    case Atom::BOND:
+      for (int i = 0; i < nbondtypes; ++i)
+        lmap2lmap.bond[i] = search(btypelabel[i], lmap2->btypelabel_map);
+      break;
+    case Atom::ANGLE:
+      for (int i = 0; i < nangletypes; ++i)
+        lmap2lmap.angle[i] = search(atypelabel[i], lmap2->atypelabel_map);
+      break;
+    case Atom::DIHEDRAL:
+      for (int i = 0; i < ndihedraltypes; ++i)
+        lmap2lmap.dihedral[i] = search(dtypelabel[i], lmap2->dtypelabel_map);
+      break;
+    case Atom::IMPROPER:
+      for (int i = 0; i < nimpropertypes; ++i)
+        lmap2lmap.improper[i] = search(itypelabel[i], lmap2->itypelabel_map);
+      break;
   }
 }
 
@@ -185,8 +201,7 @@ void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
    return numeric type
 ------------------------------------------------------------------------- */
 
-int LabelMap::find_or_create(const std::string &mylabel,
-                             std::vector<std::string> &labels,
+int LabelMap::find_or_create(const std::string &mylabel, std::vector<std::string> &labels,
                              std::unordered_map<std::string, int> &labels_map)
 {
   auto search = labels_map.find(mylabel);
@@ -206,40 +221,38 @@ int LabelMap::find_or_create(const std::string &mylabel,
 
   // if label cannot be found or created, need more space reserved
 
-  error->all(FLERR,"Topology type exceeds system topology type");
+  error->all(FLERR, "Topology type exceeds system topology type");
 
   // never reaches here, just to prevent compiler warning
 
   return -1;
 }
 
-
 /* ----------------------------------------------------------------------
    return numeric type given a type label
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::find(const std::string &mylabel, int mode)
+int LabelMap::find(const std::string &mylabel, int mode) const
 {
-  switch (mode)
-  {
-  case Atom::ATOM:
-    return search(mylabel,typelabel_map);
-    break;
-  case Atom::BOND:
-    return search(mylabel,btypelabel_map);
-    break;
-  case Atom::ANGLE:
-    return search(mylabel,atypelabel_map);
-    break;
-  case Atom::DIHEDRAL:
-    return search(mylabel,dtypelabel_map);
-    break;
-  case Atom::IMPROPER:
-    return search(mylabel,itypelabel_map);
-    break;
-  default:
-    return -1;
+  switch (mode) {
+    case Atom::ATOM:
+      return search(mylabel, typelabel_map);
+      break;
+    case Atom::BOND:
+      return search(mylabel, btypelabel_map);
+      break;
+    case Atom::ANGLE:
+      return search(mylabel, atypelabel_map);
+      break;
+    case Atom::DIHEDRAL:
+      return search(mylabel, dtypelabel_map);
+      break;
+    case Atom::IMPROPER:
+      return search(mylabel, itypelabel_map);
+      break;
+    default:
+      return -1;
   }
 }
 
@@ -249,43 +262,37 @@ int LabelMap::find(const std::string &mylabel, int mode)
 ------------------------------------------------------------------------- */
 
 int LabelMap::search(const std::string &mylabel,
-                     const std::unordered_map<std::string, int> &labels_map)
+                     const std::unordered_map<std::string, int> &labels_map) const
 {
   auto search = labels_map.find(mylabel);
   if (search == labels_map.end()) return -1;
   return search->second;
 }
 
-
 /* ----------------------------------------------------------------------
    check that all types have been assigned a unique type label
 ------------------------------------------------------------------------- */
 
-int LabelMap::is_complete(int mode)
+bool LabelMap::is_complete(int mode) const
 {
-  switch (mode)
-  {
-  case Atom::ATOM:
-    return static_cast<int>(typelabel_map.size()) == natomtypes;
-    break;
-  case Atom::BOND:
-    if (force->bond)
-      return static_cast<int>(btypelabel_map.size()) == nbondtypes;
-    break;
-  case Atom::ANGLE:
-    if (force->angle)
-      return static_cast<int>(atypelabel_map.size()) == nangletypes;
-    break;
-  case Atom::DIHEDRAL:
-    if (force->dihedral)
-      return static_cast<int>(dtypelabel_map.size()) == ndihedraltypes;
-    break;
-  case Atom::IMPROPER:
-    if (force->improper)
-      return static_cast<int>(itypelabel_map.size()) == nimpropertypes;
-    break;
+  switch (mode) {
+    case Atom::ATOM:
+      return static_cast<int>(typelabel_map.size()) == natomtypes;
+      break;
+    case Atom::BOND:
+      if (force->bond) return static_cast<int>(btypelabel_map.size()) == nbondtypes;
+      break;
+    case Atom::ANGLE:
+      if (force->angle) return static_cast<int>(atypelabel_map.size()) == nangletypes;
+      break;
+    case Atom::DIHEDRAL:
+      if (force->dihedral) return static_cast<int>(dtypelabel_map.size()) == ndihedraltypes;
+      break;
+    case Atom::IMPROPER:
+      if (force->improper) return static_cast<int>(itypelabel_map.size()) == nimpropertypes;
+      break;
   }
-  return 1;
+  return true;
 }
 
 /* ----------------------------------------------------------------------
@@ -295,33 +302,28 @@ int LabelMap::is_complete(int mode)
 void LabelMap::write_data(FILE *fp)
 {
   if (is_complete(Atom::ATOM)) {
-    fmt::print(fp,"\nAtom Type Labels\n\n");
-    for (int i = 0; i < natomtypes; i++)
-      fmt::print(fp,"{} {}\n",i+1,typelabel[i]);
+    fmt::print(fp, "\nAtom Type Labels\n\n");
+    for (int i = 0; i < natomtypes; i++) fmt::print(fp, "{} {}\n", i + 1, typelabel[i]);
   }
 
   if (force->bond && is_complete(Atom::BOND)) {
-    fmt::print(fp,"\nBond Type Labels\n\n");
-    for (int i = 0; i < nbondtypes; i++)
-      fmt::print(fp,"{} {}\n",i+1,btypelabel[i]);
+    fmt::print(fp, "\nBond Type Labels\n\n");
+    for (int i = 0; i < nbondtypes; i++) fmt::print(fp, "{} {}\n", i + 1, btypelabel[i]);
   }
 
   if (force->angle && is_complete(Atom::ANGLE)) {
-    fmt::print(fp,"\nAngle Type Labels\n\n");
-    for (int i = 0; i < nangletypes; i++)
-      fmt::print(fp,"{} {}\n",i+1,atypelabel[i]);
+    fmt::print(fp, "\nAngle Type Labels\n\n");
+    for (int i = 0; i < nangletypes; i++) fmt::print(fp, "{} {}\n", i + 1, atypelabel[i]);
   }
 
   if (force->dihedral && is_complete(Atom::DIHEDRAL)) {
-    fmt::print(fp,"\nDihedral Type Labels\n\n");
-    for (int i = 0; i < ndihedraltypes; i++)
-      fmt::print(fp,"{} {}\n",i+1,dtypelabel[i]);
+    fmt::print(fp, "\nDihedral Type Labels\n\n");
+    for (int i = 0; i < ndihedraltypes; i++) fmt::print(fp, "{} {}\n", i + 1, dtypelabel[i]);
   }
 
   if (force->improper && is_complete(Atom::IMPROPER)) {
-    fmt::print(fp,"\nImproper Type Labels\n\n");
-    for (int i = 0; i < nimpropertypes; i++)
-      fmt::print(fp,"{} {}\n",i+1,itypelabel[i]);
+    fmt::print(fp, "\nImproper Type Labels\n\n");
+    for (int i = 0; i < nimpropertypes; i++) fmt::print(fp, "{} {}\n", i + 1, itypelabel[i]);
   }
 }
 
@@ -375,20 +377,15 @@ void LabelMap::read_restart(FILE *fp)
 
 void LabelMap::write_restart(FILE *fp)
 {
-  for (int i = 0; i < natomtypes; i++)
-    write_string(typelabel[i],fp);
+  for (int i = 0; i < natomtypes; i++) write_string(typelabel[i], fp);
 
-  for (int i = 0; i < nbondtypes; i++)
-    write_string(btypelabel[i],fp);
+  for (int i = 0; i < nbondtypes; i++) write_string(btypelabel[i], fp);
 
-  for (int i = 0; i < nangletypes; i++)
-    write_string(atypelabel[i],fp);
+  for (int i = 0; i < nangletypes; i++) write_string(atypelabel[i], fp);
 
-  for (int i = 0; i < ndihedraltypes; i++)
-    write_string(dtypelabel[i],fp);
+  for (int i = 0; i < ndihedraltypes; i++) write_string(dtypelabel[i], fp);
 
-  for (int i = 0; i < nimpropertypes; i++)
-    write_string(itypelabel[i],fp);
+  for (int i = 0; i < nimpropertypes; i++) write_string(itypelabel[i], fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -399,11 +396,10 @@ void LabelMap::write_restart(FILE *fp)
 char *LabelMap::read_string(FILE *fp)
 {
   int n = read_int(fp);
-  if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
+  if (n < 0) error->all(FLERR, "Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (comm->me == 0)
-    utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
-  MPI_Bcast(value,n,MPI_CHAR,0,world);
+  if (comm->me == 0) utils::sfread(FLERR, value, sizeof(char), n, fp, nullptr, error);
+  MPI_Bcast(value, n, MPI_CHAR, 0, world);
   return value;
 }
 
@@ -416,8 +412,8 @@ void LabelMap::write_string(const std::string &str, FILE *fp)
 {
   const char *cstr = str.c_str();
   int n = strlen(cstr) + 1;
-  fwrite(&n,sizeof(int),1,fp);
-  fwrite(cstr,sizeof(char),n,fp);
+  fwrite(&n, sizeof(int), 1, fp);
+  fwrite(cstr, sizeof(char), n, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -427,7 +423,7 @@ void LabelMap::write_string(const std::string &str, FILE *fp)
 int LabelMap::read_int(FILE *fp)
 {
   int value;
-  if ((comm->me == 0) && (fread(&value,sizeof(int),1,fp) < 1)) value = -1;
-  MPI_Bcast(&value,1,MPI_INT,0,world);
+  if ((comm->me == 0) && (fread(&value, sizeof(int), 1, fp) < 1)) value = -1;
+  MPI_Bcast(&value, 1, MPI_INT, 0, world);
   return value;
 }

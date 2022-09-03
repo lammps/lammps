@@ -533,13 +533,8 @@ void ReadData::command(int narg, char **arg)
     // allocate space for type label map
 
     if (firstpass) {
-      lmap = new LabelMap(lmp);
-      lmap->natomtypes = ntypes;
-      lmap->nbondtypes = nbondtypes;
-      lmap->nangletypes = nangletypes;
-      lmap->ndihedraltypes = ndihedraltypes;
-      lmap->nimpropertypes = nimpropertypes;
-      lmap->allocate_type_labels();
+      delete lmap;
+      lmap = new LabelMap(lmp,ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
     }
 
     // customize for new sections

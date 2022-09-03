@@ -122,13 +122,14 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
   int iarg = 1;
   while (iarg < narg) {
+    if (ntypes < 1) error->all(FLERR, "No {} types allowed with current box settings", tlabel);
     int itype = utils::inumeric(FLERR, arg[iarg++], false, lmp);
-    if (itype > ntypes)
-      error->all(FLERR, "Assigned {} type {} is larger than allowed maximum of {}", tlabel, itype,
-                 ntypes);
+    if ((itype < 1) || (itype > ntypes))
+      error->all(FLERR, "Labelmap {} type {} must be within 1-{}", tlabel, itype, ntypes);
     std::string slabel(arg[iarg++]);
     if (isdigit(slabel[0]))
-      error->all(FLERR, "Label {} for {} type must not start with a number", slabel, tlabel);
+      error->all(FLERR, "Label {} for {} type {} must not start with a number", slabel, tlabel,
+                 itype);
     if (search(slabel, (*labels_map)) != -1)
       error->all(FLERR, "The {} type label {} already exists: type labels must be unique");
     std::string &str = (*labels)[itype - 1];

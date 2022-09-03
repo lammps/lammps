@@ -131,7 +131,8 @@ void LabelMap::modify_lmap(int narg, char **arg)
       error->all(FLERR, "Label {} for {} type {} must not start with a number", slabel, tlabel,
                  itype);
     if (search(slabel, (*labels_map)) != -1)
-      error->all(FLERR, "The {} type label {} already exists: type labels must be unique");
+      error->all(FLERR, "The {} type label {} is already in use for type {}", tlabel, slabel,
+                 (*labels_map)[slabel]);
     std::string &str = (*labels)[itype - 1];
     if (!str.empty()) (*labels_map).erase(str);
     str = slabel;

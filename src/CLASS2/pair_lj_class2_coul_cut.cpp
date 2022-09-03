@@ -277,6 +277,7 @@ double PairLJClass2CoulCut::init_one(int i, int j)
     sigma[i][j] = pow((0.5 * (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0))), 1.0 / 6.0);
     cut_lj[i][j] = mix_distance(cut_lj[i][i], cut_lj[j][j]);
     cut_coul[i][j] = mix_distance(cut_coul[i][i], cut_coul[j][j]);
+    did_mix = true;
   }
 
   double cut = MAX(cut_lj[i][j], cut_coul[i][j]);

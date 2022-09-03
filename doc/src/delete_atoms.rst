@@ -169,7 +169,7 @@ part of molecules.
 
 .. note::
 
-   The molecule deletion operation in invoked after all individual
+   The molecule deletion operation is invoked after all individual
    atoms have been deleted using the rules described above for each
    style.  This means additional atoms may be deleted that are not in the
    group or region, that are not required by the overlap cutoff

@@ -658,7 +658,7 @@ void Neighbor::init()
   for (i = 0; i < nlist; i++)
     if (neigh_pair[i]) neigh_pair[i]->copy_neighbor_info();
 
-  if (!same && comm->me == 0) print_pairwise_info();
+  if (!same && (nrequest > 0) && (comm->me == 0)) print_pairwise_info();
 
   // can now delete requests so next run can make new ones
   // print_pairwise_info() made use of requests
@@ -2152,7 +2152,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
 }
 
 /* ----------------------------------------------------------------------
-   called by other classes to request a pairwise neighbor list
+   called internally to request a pairwise neighbor list
 ------------------------------------------------------------------------- */
 
 int Neighbor::request(void *requestor, int instance)

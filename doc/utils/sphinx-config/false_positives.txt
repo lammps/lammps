@@ -974,6 +974,7 @@ Eshelby
 eskm
 Espanol
 esph
+espin
 estretch
 esu
 esub
@@ -2249,6 +2250,7 @@ nanoparticles
 nanotube
 Nanotube
 nanotubes
+nanowires
 Narulkar
 nasa
 nasr

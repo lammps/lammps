@@ -1884,33 +1884,63 @@ void Atom::allocate_type_arrays()
    called from reading of data file
    type_offset may be used when reading multiple data files
 ------------------------------------------------------------------------- */
+// clang-format on
 
-void Atom::set_mass(const char *file, int line, const char *str, int type_offset,
-                    int labelflag, int *ilabel)
+void Atom::set_mass(const char *file, int line, const char *str, int type_offset, int labelflag,
+                    int *ilabel)
 {
-  if (mass == nullptr) error->all(file,line,"Cannot set mass for atom style {}", atom_style);
+  if (mass == nullptr) error->all(file, line, "Cannot set mass for atom style {}", atom_style);
 
   int itype;
   double mass_one;
-  ValueTokenizer values(utils::trim_comment(str));
-  if (values.has_next()) {
-    try {
-      itype = values.next_int();
-      if (labelflag) itype = ilabel[itype-1];
-      itype += type_offset;
-      mass_one = values.next_double();
-      if (values.has_next()) throw TokenizerException("Too many tokens", "");
+  auto location = "Masses section of data file";
+  auto values = Tokenizer(str).as_vector();
+  int nwords = values.size();
+  for (std::size_t i = 0; i < values.size(); ++i) {
+    if (utils::strmatch(values[i], "^#")) {
+      nwords = i;
+      break;
+    }
+  }
+  if (nwords != 2) error->all(file, line, "Invalid format in {}: {}", location, str);
+  auto typestr = utils::utf8_subst(values[0]);
 
-      if (itype < 1 || itype > ntypes) throw TokenizerException("Invalid atom type", "");
-      if (mass_one <= 0.0) throw TokenizerException("Invalid mass value", "");
-    } catch (TokenizerException &e) {
-      error->all(file,line,"{} in Masses section of data file: {}", e.what(), utils::trim(str));
+  switch (utils::is_type(typestr)) {
+
+    case 0: {    // numeric
+      itype = utils::inumeric(file, line, typestr, false, lmp);
+      if ((itype < 1) || (itype > ntypes))
+        error->all(file, line, "Invalid atom type {} in {}: {}", itype, location, utils::trim(str));
+      if (labelflag) itype = ilabel[itype - 1];
+      break;
     }
 
-    mass[itype] = mass_one;
-    mass_setflag[itype] = 1;
+    case 1: {    // type label
+      if (!atom->labelmapflag)
+        error->all(file, line, "Invalid atom type in {}: {}", location, utils::trim(str));
+      itype = lmap->find(typestr, Atom::ATOM);
+      if (itype == -1)
+        error->all(file, line, "Unknown atom type {} in {}: {}", typestr, location,
+                   utils::trim(str));
+      break;
+    }
+
+    default:    // invalid
+      error->one(file, line, "Invalid {}: {}", location, utils::trim(str));
+      break;
   }
+  itype += type_offset;
+  mass_one = utils::numeric(file, line, values[1], false, lmp);
+
+  if (itype < 1 || itype > ntypes)
+    error->all(file, line, "Invalid atom type {} in {}: {}", itype, location, utils::trim(str));
+
+  if (mass_one <= 0.0)
+    error->all(file, line, "Invalid mass value {} in {}: {}", mass_one, location, utils::trim(str));
+  mass[itype] = mass_one;
+  mass_setflag[itype] = 1;
 }
+// clang-format off
 
 /* ----------------------------------------------------------------------
    set a mass and flag it as set

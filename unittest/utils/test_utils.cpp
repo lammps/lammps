@@ -440,6 +440,51 @@ TEST(Utils, invalid_id4)
     ASSERT_FALSE(utils::is_id("a$12"));
 }
 
+TEST(Utils, valid_numeric)
+{
+    ASSERT_EQ(utils::is_type("1"), 0);
+    ASSERT_EQ(utils::is_type("21"), 0);
+    ASSERT_EQ(utils::is_type("05"), 0);
+    ASSERT_EQ(utils::is_type("1*"), 0);
+    ASSERT_EQ(utils::is_type("*2"), 0);
+    ASSERT_EQ(utils::is_type("1*4"), 0);
+}
+
+TEST(Utils, invalid_numeric)
+{
+    ASSERT_EQ(utils::is_type("1*2*"), -1);
+    ASSERT_EQ(utils::is_type("**2"), -1);
+    ASSERT_EQ(utils::is_type("*4*"), -1);
+    ASSERT_EQ(utils::is_type("30**"), -1);
+}
+
+TEST(Utils, valid_label)
+{
+    ASSERT_EQ(utils::is_type("A"), 1);
+    ASSERT_EQ(utils::is_type("c1"), 1);
+    ASSERT_EQ(utils::is_type("o1_"), 1);
+    ASSERT_EQ(utils::is_type("C1'"), 1);
+    ASSERT_EQ(utils::is_type("N2\"-C1'"), 1);
+    ASSERT_EQ(utils::is_type("[N2\"][C1']"), 1);
+    ASSERT_EQ(utils::is_type("@X2=&X1"), 1);
+    ASSERT_EQ(utils::is_type("|Na|Cl|H2O|"), 1);
+    ASSERT_EQ(utils::is_type("CA(1)/CB(1)"), 1);
+}
+
+TEST(Utils, invalid_label)
+{
+    ASSERT_EQ(utils::is_type("1A"), -1);
+    ASSERT_EQ(utils::is_type("#c"), -1);
+    ASSERT_EQ(utils::is_type("*B"), -1);
+    ASSERT_EQ(utils::is_type(" B"), -1);
+    ASSERT_EQ(utils::is_type("A "), -1);
+    ASSERT_EQ(utils::is_type("A B"), -1);
+    ASSERT_EQ(utils::is_type("\tB"), -1);
+    ASSERT_EQ(utils::is_type("C\n"), -1);
+    ASSERT_EQ(utils::is_type("d\r"), -1);
+    ASSERT_EQ(utils::is_type(""), -1);
+}
+
 TEST(Utils, strmatch_beg)
 {
     ASSERT_TRUE(utils::strmatch("rigid/small/omp", "^rigid"));

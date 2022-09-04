@@ -1140,6 +1140,34 @@ bool utils::is_id(const std::string &str)
 }
 
 /* ----------------------------------------------------------------------
+   Check whether string is a valid type or type label string
+------------------------------------------------------------------------- */
+
+int utils::is_type(const std::string &str)
+{
+  if (str.empty()) return -1;
+
+  bool numeric = true;
+  int nstar = 0;
+  for (auto c : str) {
+    if (isdigit(c)) continue;
+    if (c == '*') {
+      ++nstar;
+      continue;
+    }
+    numeric = false;
+  }
+  if (numeric && (nstar < 2)) return 0;
+
+  // TODO: the first two checks below are not really needed with this function.
+  // If a type label has at least one character that is not a digit or '*'
+  // it can be identified by this function as type label due to the check above.
+  if (isdigit(str[0]) || (str[0] == '*') || (str[0] == '#')) return -1;
+  if (str.find_first_of(" \t\r\n\f") != std::string::npos) return -1;
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
    try to find potential file as specified by name
    search current directory and the LAMMPS_POTENTIALS directory if
    specified

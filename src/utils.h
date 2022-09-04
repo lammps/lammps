@@ -544,6 +544,19 @@ namespace utils {
 
   bool is_id(const std::string &str);
 
+  /*! Check if string is a valid type label, or numeric type, or numeric type range.
+   * Numeric type or type range may only contain digits or the '*' character.
+   * Type label strings may not contain a digit, or a '*', or a '#' character as the
+   * first character to distinguish them from comments and numeric types or type ranges.
+   * They also may not contain any whitespace. If the string is a valid numeric type
+   * or type range the function returns 0, if it is a valid type label the function
+   * returns 1, otherwise it returns -1.
+   *
+   * \param str string that should be checked
+   * \return 0, 1, or -1, depending on whether the string is valid numeric type, valid type label or neither, respectively */
+
+  int is_type(const std::string &str);
+
   /*! Determine full path of potential file. If file is not found in current directory,
    *  search directories listed in LAMMPS_POTENTIALS environment variable
    *

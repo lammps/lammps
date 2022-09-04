@@ -297,19 +297,19 @@ bool LabelMap::is_complete(int mode) const
       return static_cast<int>(typelabel_map.size()) == natomtypes;
       break;
     case Atom::BOND:
-      if (force->bond) return static_cast<int>(btypelabel_map.size()) == nbondtypes;
+      return static_cast<int>(btypelabel_map.size()) == nbondtypes;
       break;
     case Atom::ANGLE:
-      if (force->angle) return static_cast<int>(atypelabel_map.size()) == nangletypes;
+      return static_cast<int>(atypelabel_map.size()) == nangletypes;
       break;
     case Atom::DIHEDRAL:
-      if (force->dihedral) return static_cast<int>(dtypelabel_map.size()) == ndihedraltypes;
+      return static_cast<int>(dtypelabel_map.size()) == ndihedraltypes;
       break;
     case Atom::IMPROPER:
-      if (force->improper) return static_cast<int>(itypelabel_map.size()) == nimpropertypes;
+      return static_cast<int>(itypelabel_map.size()) == nimpropertypes;
       break;
   }
-  return true;
+  return false;
 }
 
 /* ----------------------------------------------------------------------

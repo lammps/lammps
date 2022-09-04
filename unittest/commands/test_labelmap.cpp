@@ -105,7 +105,7 @@ TEST_F(SetTest, NoBoxAtoms)
     ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
 
     BEGIN_HIDE_OUTPUT();
-    command("labelmap atom 1 C1 2 N2 3 'O#' 1 C1 4 H# 2 N3"); // second '#' starts comment
+    command("labelmap atom 1 C1 2 N2 3 ' O#' 1 C1 4 H# 2 N3"); // second '#' starts comment
     END_HIDE_OUTPUT();
     ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
     ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
@@ -117,11 +117,13 @@ TEST_F(SetTest, NoBoxAtoms)
                  command("labelmap atom 0 C1"););
     TEST_FAILURE(".*ERROR: Labelmap atom type 5 must be within 1-4.*",
                  command("labelmap atom 5 C1"););
-    TEST_FAILURE(".*ERROR: Label 1C for atom type 1 must not start with a number.*",
+    TEST_FAILURE(".*ERROR: Type label string 1C for atom type 1 is invalid.*",
                  command("labelmap atom 1 1C"););
-    TEST_FAILURE(".*ERROR: Label #C for atom type 1 must not start with a number, a '#', or.*",
+    TEST_FAILURE(".*ERROR: Type label string #C for atom type 1 is invalid.*",
                  command("labelmap atom 1 '#C'"););
-    TEST_FAILURE(".*ERROR: Label \\*C for atom type 1 must not start with a number, a '#', or.*",
+    TEST_FAILURE(".*ERROR: Type label string CA CB for atom type 1 is invalid.*",
+                 command("labelmap atom 1 ' CA CB '"););
+    TEST_FAILURE(".*ERROR: Type label string \\*C for atom type 1 is invalid.*",
                  command("labelmap atom 1 *C"););
     TEST_FAILURE(".*ERROR: The atom type label N2 is already in use for type 2.*",
                  command("labelmap atom 1 N2"););

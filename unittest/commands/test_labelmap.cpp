@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
+#include "info.h"
 #include "label_map.h"
 #include "math_const.h"
 #include "modify.h"
@@ -35,13 +36,13 @@ using ::testing::ExitedWithCode;
 using ::testing::StrEq;
 
 namespace LAMMPS_NS {
-class SetTest : public LAMMPSTest {
+class LabelMapTest : public LAMMPSTest {
 protected:
     Atom *atom;
     Domain *domain;
     void SetUp() override
     {
-        testbinary = "SetTest";
+        testbinary = "LabelMapTest";
         args       = {"-log", "none", "-echo", "screen", "-nocite", "-v", "num", "1"};
         LAMMPSTest::SetUp();
         atom   = lmp->atom;
@@ -51,10 +52,10 @@ protected:
     void TearDown() override { LAMMPSTest::TearDown(); }
 };
 
-TEST_F(SetTest, NoBoxAtoms)
+TEST_F(LabelMapTest, Atoms)
 {
-    ASSERT_EQ(atom->natoms, 0);
-    ASSERT_EQ(domain->box_exist, 0);
+    EXPECT_EQ(atom->natoms, 0);
+    EXPECT_EQ(domain->box_exist, 0);
     ASSERT_EQ(atom->lmap, nullptr);
     TEST_FAILURE(".*ERROR: Labelmap command before simulation box is.*",
                  command("labelmap atom 3 C1"););
@@ -70,22 +71,23 @@ TEST_F(SetTest, NoBoxAtoms)
     command("mass H1 4.0");
     END_HIDE_OUTPUT();
     ASSERT_NE(atom->lmap, nullptr);
-    ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
-    ASSERT_DOUBLE_EQ(atom->mass[1], 1.0);
-    ASSERT_DOUBLE_EQ(atom->mass[2], 2.0);
-    ASSERT_DOUBLE_EQ(atom->mass[3], 3.0);
-    ASSERT_DOUBLE_EQ(atom->mass[4], 4.0);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_DOUBLE_EQ(atom->mass[1], 1.0);
+    EXPECT_DOUBLE_EQ(atom->mass[2], 2.0);
+    EXPECT_DOUBLE_EQ(atom->mass[3], 3.0);
+    EXPECT_DOUBLE_EQ(atom->mass[4], 4.0);
 
     BEGIN_HIDE_OUTPUT();
     command("labelmap atom 1 C1 2 N2 3 ' O#' 1 C1 4 H# 2 N3"); // second '#' starts comment
     command("mass \"O#\" 10.0");
     END_HIDE_OUTPUT();
-    ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
-    ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
-    ASSERT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
-    ASSERT_EQ(atom->lmap->find("O#", Atom::ATOM), 3);
-    ASSERT_EQ(atom->lmap->find("H", Atom::ATOM), 4);
-    ASSERT_DOUBLE_EQ(atom->mass[3], 10.0);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find("O#", Atom::ATOM), 3);
+    EXPECT_EQ(atom->lmap->find("H", Atom::ATOM), 4);
+    EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
+    EXPECT_DOUBLE_EQ(atom->mass[3], 10.0);
 
     TEST_FAILURE(".*ERROR: Labelmap atom type 0 must be within 1-4.*",
                  command("labelmap atom 0 C1"););
@@ -132,21 +134,110 @@ TEST_F(SetTest, NoBoxAtoms)
     command("labelmap clear");
     command("labelmap atom 3 C1 2 N2");
     END_HIDE_OUTPUT();
-    ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
-    ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 3);
-    ASSERT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 3);
+    EXPECT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
 
     BEGIN_HIDE_OUTPUT();
     command("labelmap clear");
     command("labelmap atom 1 \"C1'\" 2 'C2\"' 3 \"\"\"C1'-C2\" \"\"\" 4 \"\"\" C2\"-C1'\"\"\"");
     END_HIDE_OUTPUT();
-    ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
-    ASSERT_EQ(atom->lmap->find("C1'", Atom::ATOM), 1);
-    ASSERT_EQ(atom->lmap->find("C2\"", Atom::ATOM), 2);
-    ASSERT_EQ(atom->lmap->find("C1'-C2\"", Atom::ATOM), 3);
-    ASSERT_EQ(atom->lmap->find("C2\"-C1'", Atom::ATOM), 4);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_EQ(atom->lmap->find("C1'", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find("C2\"", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find("C1'-C2\"", Atom::ATOM), 3);
+    EXPECT_EQ(atom->lmap->find("C2\"-C1'", Atom::ATOM), 4);
 }
 
+TEST_F(LabelMapTest, Topology)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+
+    EXPECT_EQ(atom->natoms, 0);
+    EXPECT_EQ(atom->nbonds, 0);
+    EXPECT_EQ(atom->nangles, 0);
+    EXPECT_EQ(atom->ndihedrals, 0);
+    EXPECT_EQ(atom->nimpropers, 0);
+    EXPECT_EQ(domain->box_exist, 0);
+    ASSERT_EQ(atom->lmap, nullptr);
+    TEST_FAILURE(".*ERROR: Labelmap command before simulation box is.*",
+                 command("labelmap atom 3 C1"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 2 box bond/types 3 angle/types 2 dihedral/types 1 improper/types 1");
+    command("labelmap atom 1 C1");
+    END_HIDE_OUTPUT();
+    ASSERT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 2 \"N2'\"");
+    command("labelmap bond 1 C1-N2 2 [C1][C1] 3 N2=N2");
+    command("labelmap angle 1 C1-N2-C1 2 \"\"\" N2'-C1\"-N2' \"\"\"");
+    command("labelmap dihedral 1 'C1-N2-C1-N2'");
+    command("labelmap improper 1 \"C1-N2-C1-N2\"");
+    command("mass C1 12.0");
+    command("mass \"N2'\" 14.0");
+    command("labelmap write labelmap_topology.inc");
+    END_HIDE_OUTPUT();
+
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
+    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find("N2'", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find("C1-N2", Atom::BOND), 1);
+    EXPECT_EQ(atom->lmap->find("[C1][C1]", Atom::BOND), 2);
+    EXPECT_EQ(atom->lmap->find("N2=N2", Atom::BOND), 3);
+    EXPECT_EQ(atom->lmap->find("C1-N2-C1", Atom::ANGLE), 1);
+    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::ANGLE), 2);
+    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::DIHEDRAL), 1);
+    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::IMPROPER), 1);
+    EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::BOND), -1);
+    EXPECT_DOUBLE_EQ(atom->mass[1], 12.0);
+    EXPECT_DOUBLE_EQ(atom->mass[2], 14.0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap clear");
+    command("labelmap atom 1 C1");
+    END_HIDE_OUTPUT();
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    BEGIN_HIDE_OUTPUT();
+    command("include labelmap_topology.inc");
+    END_HIDE_OUTPUT();
+
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
+    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find("N2'", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find("C1-N2", Atom::BOND), 1);
+    EXPECT_EQ(atom->lmap->find("[C1][C1]", Atom::BOND), 2);
+    EXPECT_EQ(atom->lmap->find("N2=N2", Atom::BOND), 3);
+    EXPECT_EQ(atom->lmap->find("C1-N2-C1", Atom::ANGLE), 1);
+    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::ANGLE), 2);
+    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::DIHEDRAL), 1);
+    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::IMPROPER), 1);
+    EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::BOND), -1);
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

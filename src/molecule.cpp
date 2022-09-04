@@ -770,7 +770,7 @@ void Molecule::types(char *line)
         type[iatom] = atom->lmap->find(typestr, Atom::ATOM);
         if (type[iatom] == -1) error->one(FLERR, "Invalid Types section in molecule file");
       } else
-        type[iatom] = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+        type[iatom] = utils::inumeric(FLERR, typestr, false, lmp);
       type[iatom] += toffset;
     }
   } catch (TokenizerException &e) {
@@ -1002,7 +1002,7 @@ void Molecule::bonds(int flag, char *line)
         itype = atom->lmap->find(typestr, Atom::BOND);
         if (itype == -1) error->one(FLERR, "Invalid Bonds section in molecule file");
       } else
-        itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+        itype = utils::inumeric(FLERR, typestr, false, lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
     } catch (TokenizerException &e) {
@@ -1075,7 +1075,7 @@ void Molecule::angles(int flag, char *line)
         itype = atom->lmap->find(typestr, Atom::ANGLE);
         if (itype == -1) error->one(FLERR, "Invalid Angles section in molecule file");
       } else
-        itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+        itype = utils::inumeric(FLERR, typestr, false, lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
@@ -1164,7 +1164,7 @@ void Molecule::dihedrals(int flag, char *line)
         itype = atom->lmap->find(typestr, Atom::DIHEDRAL);
         if (itype == -1) error->one(FLERR, "Invalid Dihedrals section in molecule file");
       } else
-        itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+        itype = utils::inumeric(FLERR, typestr, false, lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
@@ -1267,7 +1267,7 @@ void Molecule::impropers(int flag, char *line)
         itype = atom->lmap->find(typestr, Atom::IMPROPER);
         if (itype == -1) error->one(FLERR, "Invalid Impropers section in molecule file");
       } else
-        itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+        itype = utils::inumeric(FLERR, typestr, false, lmp);
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();

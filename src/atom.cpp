@@ -1192,7 +1192,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         switch (utils::is_type(typestr)) {
 
           case 0: {    // numeric
-            int itype = utils::inumeric(FLERR, typestr.c_str(), true, lmp);
+            int itype = utils::inumeric(FLERR, typestr, true, lmp);
             if ((itype < 1) || (itype > ntypes))
               error->one(FLERR, "Invalid atom type {} in {}: {}", itype, location,
                          utils::trim(buf));
@@ -1304,7 +1304,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
       switch (utils::is_type(typestr)) {
 
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp);
           if ((itype < 1) || (itype > nbondtypes))
             error->all(FLERR, "Invalid bond type {} in {}: {}", itype, location, utils::trim(buf));
           if (labelflag) itype = ilabel[itype - 1];
@@ -1403,7 +1403,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
       switch (utils::is_type(typestr)) {
 
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp);
           if ((itype < 1) || (itype > nangletypes))
             error->all(FLERR, "Invalid angle type {} in {}: {}", itype, location, utils::trim(buf));
           if (labelflag) itype = ilabel[itype - 1];
@@ -1518,7 +1518,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
       switch (utils::is_type(typestr)) {
 
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp);
           if ((itype < 1) || (itype > ndihedraltypes))
             error->all(FLERR, "Invalid dihedral type {} in {}: {}", itype, location,
                        utils::trim(buf));
@@ -1650,7 +1650,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
       switch (utils::is_type(typestr)) {
 
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp);
           if ((itype < 1) || (itype > nimpropertypes))
             error->all(FLERR, "Invalid improper type {} in {}: {}", itype, location,
                        utils::trim(buf));
@@ -1944,7 +1944,7 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 
     case 0: {    // numeric
       int lo, hi;
-      utils::bounds(file, line, typestr.c_str(), 1, ntypes, lo, hi, error);
+      utils::bounds(file, line, typestr, 1, ntypes, lo, hi, error);
       if ((lo < 1) || (hi > ntypes))
         error->all(file, line, "Invalid atom type {} for atom mass", typestr);
 

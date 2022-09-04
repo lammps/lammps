@@ -748,46 +748,62 @@ void Molecule::coords(char *line)
    set ntypes = max of any atom type
 ------------------------------------------------------------------------- */
 
+// clang-format on
 void Molecule::types(char *line)
 {
+  const std::string location = "Types section of molecule file";
   std::string typestr;
   for (int i = 0; i < natoms; i++) count[i] = 0;
-  try {
-    for (int i = 0; i < natoms; i++) {
-      readline(line);
 
-      ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 2)
-        error->all(FLERR, "Invalid line in Types section of molecule file: {}", line);
-
-      int iatom = values.next_int() - 1;
-      if (iatom < 0 || iatom >= natoms)
-        error->all(FLERR, "Invalid atom index in Types section of molecule file");
-      count[iatom]++;
-      typestr = values.next_string();
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR, "Invalid Types section in molecule file");
-        type[iatom] = atom->lmap->find(typestr, Atom::ATOM);
-        if (type[iatom] == -1) error->one(FLERR, "Invalid Types section in molecule file");
-      } else
-        type[iatom] = utils::inumeric(FLERR, typestr, false, lmp);
-      type[iatom] += toffset;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
+      }
     }
-  } catch (TokenizerException &e) {
-    error->all(FLERR, "Invalid line in Types section of molecule file: {}\n{}", e.what(), line);
+    if (nwords != 2) error->all(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
+
+    int iatom = utils::inumeric(FLERR, values[0], false, lmp);
+    if (iatom < 1 || iatom > natoms)
+      error->all(FLERR, "Invalid atom index {} in {}: {}", iatom, location, utils::trim(line));
+    count[--iatom]++;
+
+    typestr = utils::utf8_subst(values[1]);
+    switch (utils::is_type(typestr)) {
+
+      case 0: {    // numeric
+        type[iatom] = utils::inumeric(FLERR, typestr, false, lmp);
+        type[iatom] += toffset;
+        break;
+      }
+
+      case 1: {    // type label
+        if (!atom->labelmapflag)
+          error->all(FLERR, "Invalid atom type {} in {}: {}", typestr, location, utils::trim(line));
+        type[iatom] = atom->lmap->find(typestr, Atom::ATOM);
+        if (type[iatom] == -1)
+          error->all(FLERR, "Unknown atom type {} in {}: {}", typestr, location, utils::trim(line));
+        break;
+      }
+
+      default:    // invalid
+        error->one(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
+        break;
+    }
   }
 
   for (int i = 0; i < natoms; i++) {
-    if (count[i] == 0)
-      error->all(FLERR, "Atom {} missing in Types section of molecule file", i + 1);
-
+    if (count[i] == 0) error->all(FLERR, "Atom {} missing in {}", i + 1, location);
     if ((type[i] <= 0) || (domain->box_exist && (type[i] > atom->ntypes)))
       error->all(FLERR, "Invalid atom type {} for atom {} in molecule file", type[i], i + 1);
-
     ntypes = MAX(ntypes, type[i]);
   }
 }
-
+// clang-format off
 /* ----------------------------------------------------------------------
    read molecules from file
    set nmolecules = max of any molecule type
@@ -846,8 +862,7 @@ void Molecule::fragments(char *line)
         int iatom = values.next_int() - 1;
         if (iatom < 0 || iatom >= natoms)
           error->all(FLERR,
-                     "Invalid atom ID {} for fragment {} in Fragments section of "
-                     "molecule file",
+                     "Invalid atom ID {} for fragment {} in Fragments section of molecule file",
                      iatom + 1, fragmentnames[i]);
         fragmentmask[i][iatom] = 1;
       }

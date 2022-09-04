@@ -652,7 +652,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
-* :doc: `angle_style dipole <angle_dipole>`
+* :doc:`angle_style dipole <angle_dipole>`
 * examples/dipole
 
 ----------

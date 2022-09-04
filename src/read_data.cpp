@@ -135,7 +135,7 @@ ReadData::~ReadData()
 
 void ReadData::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR, "Illegal read_data command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "read_data", error);
 
   MPI_Barrier(world);
   double time1 = platform::walltime();
@@ -162,29 +162,31 @@ void ReadData::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "add") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data add", error);
       if (strcmp(arg[iarg + 1], "append") == 0)
         addflag = APPEND;
       else if (strcmp(arg[iarg + 1], "merge") == 0)
         addflag = MERGE;
       else {
         if (atom->molecule_flag && (iarg + 3 > narg))
-          error->all(FLERR, "Illegal read_data command");
+           utils::missing_cmd_args(FLERR, "read_data add", error);
         addflag = VALUE;
         bigint offset = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
-        if (offset > MAXTAGINT) error->all(FLERR, "Read data add atomID offset is too big");
+        if (offset > MAXTAGINT)
+          error->all(FLERR, "Read data add atomID offset {} is too big", offset);
         id_offset = offset;
 
         if (atom->molecule_flag) {
           offset = utils::bnumeric(FLERR, arg[iarg + 2], false, lmp);
-          if (offset > MAXTAGINT) error->all(FLERR, "Read data add molID offset is too big");
+          if (offset > MAXTAGINT)
+            error->all(FLERR, "Read data add molID offset {} is too big", offset);
           mol_offset = offset;
           iarg++;
         }
       }
       iarg += 2;
     } else if (strcmp(arg[iarg], "offset") == 0) {
-      if (iarg + 6 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "read_data offset", error);
       offsetflag = 1;
       toffset = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       boffset = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
@@ -192,93 +194,109 @@ void ReadData::command(int narg, char **arg)
       doffset = utils::inumeric(FLERR, arg[iarg + 4], false, lmp);
       ioffset = utils::inumeric(FLERR, arg[iarg + 5], false, lmp);
       if (toffset < 0 || boffset < 0 || aoffset < 0 || doffset < 0 || ioffset < 0)
-        error->all(FLERR, "Illegal read_data command");
+        error->all(FLERR, "Illegal read_data offset value(s)");
       iarg += 6;
     } else if (strcmp(arg[iarg], "shift") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "read_data shift", error);
       shiftflag = 1;
       shift[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       shift[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       shift[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       if (domain->dimension == 2 && shift[2] != 0.0)
-        error->all(FLERR, "Non-zero read_data shift z value for 2d simulation");
+        error->all(FLERR, "Non-zero read_data shift z value for 2d simulation not allowed");
       iarg += 4;
     } else if (strcmp(arg[iarg], "nocoeff") == 0) {
       coeffflag = 0;
       iarg++;
     } else if (strcmp(arg[iarg], "extra/atom/types") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg)  utils::missing_cmd_args(FLERR, "read_data extra/atom/types", error);
       extra_atom_types = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (extra_atom_types < 0) error->all(FLERR, "Illegal read_data command");
+      if (extra_atom_types < 0)
+        error->all(FLERR, "Illegal read_data extra/atom/types value {}", extra_atom_types);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/bond/types") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
-      if (!atom->avec->bonds_allow) error->all(FLERR, "No bonds allowed with this atom style");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/bond/types", error);
+      if (!atom->avec->bonds_allow)
+        error->all(FLERR, "No bonds allowed with atom style {}", atom->get_style());
       extra_bond_types = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (extra_bond_types < 0) error->all(FLERR, "Illegal read_data command");
+      if (extra_bond_types < 0)
+        error->all(FLERR, "Illegal read_data extra/bond/types value {}", extra_bond_types);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/angle/types") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
-      if (!atom->avec->angles_allow) error->all(FLERR, "No angles allowed with this atom style");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/angle/types", error);
+      if (!atom->avec->angles_allow)
+        error->all(FLERR, "No angles allowed with atom style {}", atom->get_style());
       extra_angle_types = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (extra_angle_types < 0) error->all(FLERR, "Illegal read_data command");
+      if (extra_angle_types < 0)
+        error->all(FLERR, "Illegal read_data extra/angle/types value {}", extra_angle_types);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/dihedral/types") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/dihedral/types", error);
       if (!atom->avec->dihedrals_allow)
-        error->all(FLERR, "No dihedrals allowed with this atom style");
+        error->all(FLERR, "No dihedrals allowed with atom style {}", atom->get_style());
       extra_dihedral_types = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (extra_dihedral_types < 0) error->all(FLERR, "Illegal read_data command");
+      if (extra_dihedral_types < 0)
+        error->all(FLERR, "Illegal read_data extra/dihedral/types value {}", extra_dihedral_types);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/improper/types") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/improper/types", error);
       if (!atom->avec->impropers_allow)
-        error->all(FLERR, "No impropers allowed with this atom style");
+        error->all(FLERR, "No impropers allowed with atom style {}", atom->get_style());
       extra_improper_types = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (extra_improper_types < 0) error->all(FLERR, "Illegal read_data command");
+      if (extra_improper_types < 0)
+        error->all(FLERR, "Illegal read_data extra/improper/types value {}", extra_improper_types);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/bond/per/atom") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/bond/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR, "No bonds allowed with this atom style");
+        error->all(FLERR, "No bonds allowed with atom style {}", atom->get_style());
       atom->extra_bond_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (atom->extra_bond_per_atom < 0) error->all(FLERR, "Illegal read_data command");
+      if (atom->extra_bond_per_atom < 0)
+        error->all(FLERR, "Illegal read_data extra/bond/per/atom value {}",
+                   atom->extra_bond_per_atom);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/angle/per/atom") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/angle/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR, "No angles allowed with this atom style");
+        error->all(FLERR, "No angles allowed with atom style {}", atom->get_style());
       atom->extra_angle_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (atom->extra_angle_per_atom < 0) error->all(FLERR, "Illegal read_data command");
+      if (atom->extra_angle_per_atom < 0)
+        error->all(FLERR, "Illegal read_data extra/angle/per/atom value {}",
+                   atom->extra_angle_per_atom);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/dihedral/per/atom") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/dihedral/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR, "No dihedrals allowed with this atom style");
+        error->all(FLERR, "No dihedrals allowed with atom style {}", atom->get_style());
       atom->extra_dihedral_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (atom->extra_dihedral_per_atom < 0) error->all(FLERR, "Illegal read_data command");
+      if (atom->extra_dihedral_per_atom < 0)
+        error->all(FLERR, "Illegal read_data extra/dihedral/per/atom value {}",
+                   atom->extra_dihedral_per_atom);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/improper/per/atom") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/improper/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR, "No impropers allowed with this atom style");
+        error->all(FLERR, "No impropers allowed with atom style {}", atom->get_style());
       atom->extra_improper_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (atom->extra_improper_per_atom < 0) error->all(FLERR, "Illegal read_data command");
+      if (atom->extra_improper_per_atom < 0)
+        error->all(FLERR, "Illegal read_data extra/improper/per/atom value {}",
+                   atom->extra_improper_per_atom);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/special/per/atom") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/special/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR, "No bonded interactions allowed with this atom style");
+        error->all(FLERR, "No bonded interactions allowed with atom style {}", atom->get_style());
       force->special_extra = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (force->special_extra < 0) error->all(FLERR, "Illegal read_data command");
+      if (force->special_extra < 0)
+        error->all(FLERR, "Illegal read_data extra/special/per/atom value {}", force->special_extra);
       iarg += 2;
     } else if (strcmp(arg[iarg], "group") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data group", error);
       int igroup = group->find_or_create(arg[iarg + 1]);
       groupbit = group->bitmask[igroup];
       iarg += 2;
     } else if (strcmp(arg[iarg], "fix") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal read_data command");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "read_data fix", error);
       fix_index =
           (Fix **) memory->srealloc(fix_index, (nfix + 1) * sizeof(Fix *), "read_data:fix_index");
       fix_header = (char **) memory->srealloc(fix_header, (nfix + 1) * sizeof(char *),
@@ -304,7 +322,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 4;
 
     } else
-      error->all(FLERR, "Illegal read_data command");
+      error->all(FLERR, "Unknown read_data keyword {}", arg[iarg]);
   }
 
   // error checks
@@ -316,17 +334,17 @@ void ReadData::command(int narg, char **arg)
                "Reading a data file with shrinkwrap boundaries is "
                "not compatible with a MSM KSpace style");
   if (domain->box_exist && !addflag)
-    error->all(FLERR, "Cannot read_data without add keyword after simulation box is defined");
+    error->all(FLERR, "Cannot use read_data without add keyword after simulation box is defined");
   if (!domain->box_exist && addflag)
     error->all(FLERR, "Cannot use read_data add before simulation box is defined");
   if (offsetflag && addflag == NONE)
-    error->all(FLERR, "Cannot use read_data offset without add flag");
+    error->all(FLERR, "Cannot use read_data offset without add keyword");
   if (shiftflag && addflag == NONE)
-    error->all(FLERR, "Cannot use read_data shift without add flag");
+    error->all(FLERR, "Cannot use read_data shift without add keyword");
   if (addflag != NONE &&
       (extra_atom_types || extra_bond_types || extra_angle_types || extra_dihedral_types ||
        extra_improper_types))
-    error->all(FLERR, "Cannot use read_data extra with add flag");
+    error->all(FLERR, "Cannot use any read_data extra/*/types keyword with add keyword");
 
   // check if data file is available and readable
 
@@ -554,8 +572,7 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) {
           if (me == 0 && !style_match(style, atom->atom_style))
             error->warning(FLERR,
-                           "Atom style in data file differs "
-                           "from currently defined atom style");
+                           "Atom style in data file differs from currently defined atom style");
           atoms();
         } else
           skip_lines(natoms);
@@ -634,8 +651,7 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) {
           if (me == 0 && !style_match(style, force->pair_style))
             error->warning(FLERR,
-                           "Pair style in data file differs "
-                           "from currently defined pair style");
+                           "Pair style in data file differs from currently defined pair style");
           paircoeffs();
         } else
           skip_lines(ntypes);
@@ -657,8 +673,7 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) {
           if (me == 0 && !style_match(style, force->bond_style))
             error->warning(FLERR,
-                           "Bond style in data file differs "
-                           "from currently defined bond style");
+                           "Bond style in data file differs from currently defined bond style");
           bondcoeffs();
         } else
           skip_lines(nbondtypes);
@@ -670,8 +685,7 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) {
           if (me == 0 && !style_match(style, force->angle_style))
             error->warning(FLERR,
-                           "Angle style in data file differs "
-                           "from currently defined angle style");
+                           "Angle style in data file differs from currently defined angle style");
           anglecoeffs(0);
         } else
           skip_lines(nangletypes);
@@ -864,7 +878,7 @@ void ReadData::command(int narg, char **arg)
 
     // error if natoms > 0 yet no atoms were read
 
-    if (natoms > 0 && atomflag == 0) error->all(FLERR, "No atoms in data file");
+    if (natoms > 0 && atomflag == 0) error->all(FLERR, "No valid atoms found in data file");
 
     // close file
 
@@ -885,11 +899,11 @@ void ReadData::command(int narg, char **arg)
 
     if ((nbonds && !bondflag) || (nangles && !angleflag) || (ndihedrals && !dihedralflag) ||
         (nimpropers && !improperflag))
-      error->one(FLERR, "Needed molecular topology not in data file");
+      error->one(FLERR, "A required molecular topology section not found in data file");
 
     if ((nellipsoids && !ellipsoidflag) || (nlines && !lineflag) || (ntris && !triflag) ||
         (nbodies && !bodyflag))
-      error->one(FLERR, "Needed bonus data not in data file");
+      error->one(FLERR, "Required bonus data not found in data file");
 
     // break out of loop if no molecular topology in file
     // else make 2nd pass
@@ -1706,9 +1720,7 @@ void ReadData::impropers(int firstpass)
 
     if (addflag != NONE) {
       if (maxall > atom->improper_per_atom)
-        error->all(FLERR,
-                   "Subsequent read data induced "
-                   "too many impropers per atom");
+        error->all(FLERR, "Subsequent read data induced too many impropers per atom");
     } else
       atom->improper_per_atom = maxall;
 
@@ -1889,9 +1901,7 @@ void ReadData::mass()
   int eof = utils::read_lines_from_file(fp, ntypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR,
-               "Label map is incomplete: "
-               "all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
@@ -1914,9 +1924,7 @@ void ReadData::paircoeffs()
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR,
-               "Label map is incomplete: "
-               "all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
@@ -2152,7 +2160,7 @@ void ReadData::typelabels(int mode)
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
     for (std::size_t ii = 0; ii < values.size(); ++ii) {
-      if (utils::strmatch(values[ii],"^#")) {
+      if (utils::strmatch(values[ii], "^#")) {
         nwords = ii;
         break;
       }
@@ -2175,7 +2183,7 @@ void ReadData::typelabels(int mode)
     if ((*labels)[i].empty())
       error->all(FLERR, "{} Type Labels map is incomplete", labeltypes[mode]);
   }
-  if ((int)(*labels_map).size() != lntypes)
+  if ((int) (*labels_map).size() != lntypes)
     error->all(FLERR, "{} Type Labels map is incomplete", labeltypes[mode]);
 
   // merge this read_data label map to atom class

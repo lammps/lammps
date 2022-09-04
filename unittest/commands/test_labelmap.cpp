@@ -139,8 +139,14 @@ TEST_F(SetTest, NoBoxAtoms)
                  command("labelmap atom 1 C1 2"););
     TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
                  command("labelmap atom 1 C1 atom 2 C2"););
-    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap command.*",
+    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap clear command.*",
                  command("labelmap clear atom"););
+    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap clear command.*",
+                 command("labelmap clear atom bond"););
+    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap write command.*",
+                 command("labelmap write"););
+    TEST_FAILURE(".*ERROR: Incorrect number of arguments for labelmap write command.*",
+                 command("labelmap write filename xxx"););
     TEST_FAILURE(".*ERROR: Illegal labelmap atom command: missing argument.*",
                  command("labelmap atom 1"););
     TEST_FAILURE(".*ERROR: Illegal labelmap atom command: missing argument.*",

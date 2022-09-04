@@ -87,7 +87,7 @@ are updated by the AtomVec class as needed.
  * instances of classes derived from the AtomVec base
  * class, which correspond to the selected atom style.
  *
- * \param  lmp  pointer to the base LAMMPS class */
+ * \param  _lmp  pointer to the base LAMMPS class */
 
 Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
 {
@@ -1186,17 +1186,36 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         avec->data_atom(xdata,imagedata,values,typestr);
         if (id_offset) tag[nlocal-1] += id_offset;
         if (mol_offset) molecule[nlocal-1] += mol_offset;
-        if (!isdigit(typestr[0])) {
-          if (!atom->labelmapflag) error->one(FLERR,"Invalid Atoms section in data file");
-          type[nlocal-1] = lmap->find(typestr,Atom::ATOM);
-          if (type[nlocal-1] == -1) error->one(FLERR,"Invalid Atoms section in data file");
-        } else {
-          type[nlocal-1] = utils::inumeric(FLERR,typestr.c_str(),true,lmp);
-          if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
+        // clang-format on
+        switch (utils::is_type(typestr)) {
+
+          case 0: {    // numeric
+            int itype = utils::inumeric(FLERR, typestr.c_str(), true, lmp);
+            if ((itype < 1) || (itype > ntypes))
+              error->one(FLERR, "Invalid atom type {} in Atoms section of data file: {}", itype,
+                         buf);
+            type[nlocal - 1] = itype;
+            if (labelflag) type[nlocal - 1] = ilabel[itype - 1];
+            break;
+          }
+
+          case 1: {    // type label
+            if (!atom->labelmapflag)
+              error->one(FLERR, "Invalid Atoms section line in data file: {}", buf);
+            type[nlocal - 1] = lmap->find(typestr, Atom::ATOM);
+            if (type[nlocal - 1] == -1)
+              error->one(FLERR, "Invalid Atoms section line in data file: {}", buf);
+            break;
+          }
+
+          default:    // invalid
+            error->one(FLERR, "Invalid Atoms section line in data file: {}", buf);
+            break;
         }
+        // clang-format off
         if (type_offset) type[nlocal-1] += type_offset;
         if (type[nlocal-1] <= 0 || type[nlocal-1] > ntypes)
-          error->one(FLERR,"Invalid atom type in Atoms section of data file");
+          error->one(FLERR,"Invalid atom type {} in Atoms section of data file", typestr);
       }
     }
     buf = next + 1;

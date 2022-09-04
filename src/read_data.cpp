@@ -82,6 +82,8 @@ enum{NONE, APPEND, VALUE, MERGE};
 static const char *suffixes[] = {"/cuda", "/gpu", "/opt", "/omp", "/kk", "/coul/cut", "/coul/long",
                                  "/coul/msm", "/coul/dsf", "/coul/debye", "/coul/charmm", nullptr};
 
+static const char *labeltypes[] = {"Atom", "Bond", "Angle", "Dihedral", "Improper" };
+
 // clang-format on
 /* ---------------------------------------------------------------------- */
 ReadData::ReadData(LAMMPS *_lmp) : Command(_lmp), fp(nullptr), coeffarg(nullptr), lmap(nullptr)
@@ -1322,9 +1324,7 @@ void ReadData::atoms()
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
+      error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
     atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, shiftflag, shift, tlabelflag,
                      lmap->lmap2lmap.atom);
     nread += nchunk;
@@ -2144,21 +2144,38 @@ void ReadData::typelabels(int mode)
   int eof = utils::read_lines_from_file(fp, lntypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
-  char *next;
   char *original = buf;
-  char *typelabel = new char[MAXLINE];
+  char *next;
   for (int i = 0; i < lntypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    int rv = sscanf(buf, "%*d %s", typelabel);
-    if (rv != 1) error->all(FLERR, "Invalid data file section: Type Labels");
-    if (isdigit(typelabel[0])) error->all(FLERR, "Type labels cannot start with a number");
-    (*labels)[i] = typelabel;
-    (*labels_map)[typelabel] = i + 1;
+    auto values = Tokenizer(buf).as_vector();
+    int nwords = values.size();
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii],"^#")) {
+        nwords = ii;
+        break;
+      }
+    }
+    if (nwords != 2)
+      error->all(FLERR, "Invalid format in section: {} Type Labels: {}", labeltypes[mode], buf);
+    if (utils::is_type(values[1]) != 1) error->all(FLERR, "Invalid type label {}", values[1]);
+    int itype = utils::inumeric(FLERR, values[0], false, lmp);
+    if ((itype < 1) || (itype > lntypes))
+      error->all(FLERR, "Invalid type {} in section: {} Type Labels: {}", labeltypes[mode], buf);
+    
+    (*labels)[itype - 1] = values[1];
+    (*labels_map)[values[1]] = itype;
     buf = next + 1;
   }
   delete[] original;
-  delete[] typelabel;
+
+  for (int i = 0; i < lntypes; ++i) {
+    if ((*labels)[i].empty())
+      error->all(FLERR, "{} Type Labels map is incomplete", labeltypes[mode]);
+  }
+  if ((int)(*labels_map).size() != lntypes)
+    error->all(FLERR, "{} Type Labels map is incomplete", labeltypes[mode]);
 
   // merge this read_data label map to atom class
   // determine mapping to let labels override numeric types

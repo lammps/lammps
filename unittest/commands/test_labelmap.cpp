@@ -49,42 +49,6 @@ protected:
     }
 
     void TearDown() override { LAMMPSTest::TearDown(); }
-
-    void atomic_system(const std::string &atom_style, const std::string units = "real")
-    {
-        BEGIN_HIDE_OUTPUT();
-        command("atom_style " + atom_style);
-        command("atom_modify map array");
-        command("units " + units);
-        command("lattice sc 1.0 origin 0.125 0.125 0.125");
-        command("region box block 0 2 0 2 0 2");
-        command("create_box 8 box");
-        command("create_atoms 1 box");
-        command("mass * 1.0");
-        command("region left block 0.0 1.0 INF INF INF INF");
-        command("region right block 1.0 2.0 INF INF INF INF");
-        command("region top block INF INF 0.0 1.0 INF INF");
-        command("region bottom block INF INF 1.0 2.0 INF INF");
-        command("region front block INF INF INF INF 0.0 1.0");
-        command("region back block INF INF INF 1.0 2.0 INF");
-        command("group top region top");
-        command("group bottom region bottom");
-        END_HIDE_OUTPUT();
-    }
-
-    bool molecular_system()
-    {
-        if (info->has_style("atom", "full")) {
-            BEGIN_HIDE_OUTPUT();
-            command("variable input_dir index \"" STRINGIFY(TEST_INPUT_FOLDER) "\"");
-            command("include \"${input_dir}/in.fourmol\"");
-            command("group allwater molecule 3:6");
-            command("region half block 0.0 INF INF INF INF INF");
-            END_HIDE_OUTPUT();
-            return true;
-        } else
-            return false;
-    }
 };
 
 TEST_F(SetTest, NoBoxAtoms)

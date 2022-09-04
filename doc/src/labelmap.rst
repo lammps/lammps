@@ -24,8 +24,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   labelmap atom 3 carbon
-   labelmap bond 1 carbonyl 2 nitrile
+   labelmap atom 3 carbon 4 'c3"' 5 "c1'" 6 "c#"
+   labelmap bond 1 carbonyl 2 nitrile 3 """ c1'-c2" """
    labelmap atom $(label(carbon)) C  # change type label from 'carbon' to 'C'
    labelmap clear
    labelmap write mymap.include
@@ -46,29 +46,33 @@ Bond Type Labels, etc.  See the :doc:`Howto type labels
 labels can be used.
 
 Valid type labels may contain any alphanumeric character, but must not
-start with a number.  They can also contain other standard ASCII
-characters such as angular or square brackets '<' and '>' or '[' and
-']', parenthesis '(' and ')', dash '-', underscore '_', plus '+' and
-equals '=' signs and more.  Note that type labels must be put in
-quotation marks if they contain the '#' character when used in a context
-where the '#' character would be interpreted as starting a comment like
-in the LAMMPS input file.
+start with a number, a '#', or a '*' character.  They may contain other
+standard ASCII characters such as angular or square brackets '<' and '>'
+or '[' and ']', parenthesis '(' and ')', dash '-', underscore '_', plus
+'+' and equals '=' signs and more.  The must not contain blanks or any
+other whitespace.  Note that type labels must be put in single or double
+quotation marks if they contain the '#' character, or a double (") or
+single quotation mark ("). If the label contains both, single and double
+quotes, triple quotation (""") must be used.  When using quotation
+marks, the LAMMPS input parser may require adding leading or trailing
+blanks so it can identify the quotation marks. Those blanks will be
+removed when defining the label.
 
 A *labelmap* command can only modify the label map for one type-kind
 (atom types, bond types, etc).  Any number of numeric-type/type-label
-pairs may follow.  If a type label already exists for a given numeric
-type, it will be overwritten.  Type labels must be unique; assigning
-the same type label to multiple numeric types is not allowed.  In some
-cases, such as when reading and writing data files, it is required
-that when type labels are used, that there is a label defined for
-*every* numeric type.
+pairs may follow.  If a type label already exists for the same numeric
+type, it will be overwritten.  Type labels must be unique; assigning the
+same type label to multiple numeric types is not allowed.  In some
+cases, such as when reading and writing data files, it is required that
+when type labels are used, that there is a label defined for *every*
+numeric type.
 
 The *clear* option resets the labelmap and thus discards all previous
 settings.
 
 The *write* option takes a filename as argument and writes the current
 label mappings to a file as labelmap commands, so the file can be copied
-into a different LAMMPS input file or read using the :doc:`include
+into a new LAMMPS input file or read in using the :doc:`include
 <include>` command.
 
 ----------

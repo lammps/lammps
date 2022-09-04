@@ -2159,6 +2159,7 @@ void ReadData::typelabels(int mode)
     }
     if (nwords != 2)
       error->all(FLERR, "Invalid format in section: {} Type Labels: {}", labeltypes[mode], buf);
+    values[1] = utils::utf8_subst(values[1]);
     if (utils::is_type(values[1]) != 1) error->all(FLERR, "Invalid type label {}", values[1]);
     int itype = utils::inumeric(FLERR, values[0], false, lmp);
     if ((itype < 1) || (itype > lntypes))

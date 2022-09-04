@@ -64,18 +64,28 @@ TEST_F(SetTest, NoBoxAtoms)
     command("create_box 4 box");
     command("labelmap atom 2 N1");
     command("labelmap atom 3 O1 4 H1");
+    command("mass * 1.0");
+    command("mass O1 3.0");
+    command("mass N1 2.0");
+    command("mass H1 4.0");
     END_HIDE_OUTPUT();
     ASSERT_NE(atom->lmap, nullptr);
     ASSERT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    ASSERT_DOUBLE_EQ(atom->mass[1], 1.0);
+    ASSERT_DOUBLE_EQ(atom->mass[2], 2.0);
+    ASSERT_DOUBLE_EQ(atom->mass[3], 3.0);
+    ASSERT_DOUBLE_EQ(atom->mass[4], 4.0);
 
     BEGIN_HIDE_OUTPUT();
     command("labelmap atom 1 C1 2 N2 3 ' O#' 1 C1 4 H# 2 N3"); // second '#' starts comment
+    command("mass \"O#\" 10.0");
     END_HIDE_OUTPUT();
     ASSERT_TRUE(atom->lmap->is_complete(Atom::ATOM));
     ASSERT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
     ASSERT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
     ASSERT_EQ(atom->lmap->find("O#", Atom::ATOM), 3);
     ASSERT_EQ(atom->lmap->find("H", Atom::ATOM), 4);
+    ASSERT_DOUBLE_EQ(atom->mass[3], 10.0);
 
     TEST_FAILURE(".*ERROR: Labelmap atom type 0 must be within 1-4.*",
                  command("labelmap atom 0 C1"););

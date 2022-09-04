@@ -141,8 +141,8 @@ TEST(Utils, count_words_with_extra_spaces)
 
 TEST(Utils, join_words)
 {
-    std::vector<std::string> words = {"one", "two", "three" };
-    auto combined = utils::join_words(words, " ");
+    std::vector<std::string> words = {"one", "two", "three"};
+    auto combined                  = utils::join_words(words, " ");
     ASSERT_THAT(combined, StrEq("one two three"));
     combined = utils::join_words(words, "");
     ASSERT_THAT(combined, StrEq("onetwothree"));
@@ -469,6 +469,8 @@ TEST(Utils, valid_label)
     ASSERT_EQ(utils::is_type("@X2=&X1"), 1);
     ASSERT_EQ(utils::is_type("|Na|Cl|H2O|"), 1);
     ASSERT_EQ(utils::is_type("CA(1)/CB(1)"), 1);
+    ASSERT_EQ(utils::is_type("A-B"), 1); // ASCII
+    ASSERT_EQ(utils::is_type("A−B"), 1); // UTF-8
 }
 
 TEST(Utils, invalid_label)

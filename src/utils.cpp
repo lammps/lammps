@@ -1162,8 +1162,10 @@ int utils::is_type(const std::string &str)
   // TODO: the first two checks below are not really needed with this function.
   // If a type label has at least one character that is not a digit or '*'
   // it can be identified by this function as type label due to the check above.
+  // Whitespace and multi-byte characters are not allowed.
   if (isdigit(str[0]) || (str[0] == '*') || (str[0] == '#')) return -1;
   if (str.find_first_of(" \t\r\n\f") != std::string::npos) return -1;
+  if (has_utf8(utf8_subst(str))) return -1;
   return 1;
 }
 

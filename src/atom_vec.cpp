@@ -1666,7 +1666,8 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
    initialize other peratom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std::string> &values, std::string &extract)
+void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std::string> &values,
+                        std::string &extract)
 {
   int m, n, datatype, cols;
   void *pdata;

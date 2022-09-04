@@ -141,7 +141,7 @@ void LabelMap::modify_lmap(int narg, char **arg)
     int itype = utils::inumeric(FLERR, arg[iarg++], false, lmp);
     if ((itype < 1) || (itype > ntypes))
       error->all(FLERR, "Labelmap {} type {} must be within 1-{}", tlabel, itype, ntypes);
-    std::string slabel = utils::trim(arg[iarg++]);
+    std::string slabel = utils::utf8_subst(utils::trim(arg[iarg++]));
     if (utils::is_type(slabel) != 1)
       error->all(FLERR, "Type label string {} for {} type {} is invalid", slabel, tlabel, itype);
     int found = search(slabel, (*labels_map));

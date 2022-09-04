@@ -1185,6 +1185,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
           coord[1] >= sublo[1] && coord[1] < subhi[1] &&
           coord[2] >= sublo[2] && coord[2] < subhi[2]) {
         avec->data_atom(xdata,imagedata,values,typestr);
+        typestr = utils::utf8_subst(typestr);
         if (id_offset) tag[nlocal-1] += id_offset;
         if (mol_offset) molecule[nlocal-1] += mol_offset;
         // clang-format on
@@ -1291,7 +1292,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     // Bonds line is: number(ignored), bond type, atomID 1, atomID 2
     if (nwords > 0) {
       if (nwords != 4) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
-      typestr = values[1];
+      typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
       if (id_offset) {
@@ -1388,7 +1389,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     // Angles line is: number(ignored), angle type, atomID 1, atomID 2, atomID 3
     if (nwords > 0) {
       if (nwords != 5) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
-      typestr = values[1];
+      typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
       atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
@@ -1501,7 +1502,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     // Dihedrals line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
     if (nwords > 0) {
       if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
-      typestr = values[1];
+      typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
       atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
@@ -1633,7 +1634,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     // Impropers line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
     if (nwords > 0) {
       if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
-      typestr = values[1];
+      typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
       atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
@@ -1934,30 +1935,44 @@ void Atom::set_mass(const char *file, int line, int itype, double value)
 
 void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 {
-  if (mass == nullptr) error->all(file,line, "Cannot set atom mass for atom style {}", atom_style);
+  if (mass == nullptr)
+    error->all(file,line, "Cannot set per-type atom mass for atom style {}", atom_style);
 
-  std::string typestr = utils::trim(arg[0]);
-  if (!isdigit(typestr[0]) && typestr[0] != '*') {
-    int itype = lmap->find(typestr,Atom::ATOM);
-    if (itype == -1) error->all(file,line,"Invalid type for mass set");
-    mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
-    mass_setflag[itype] = 1;
+  // clang-format on
+  std::string typestr = utils::utf8_subst(utils::trim(arg[0]));
+  switch (utils::is_type(typestr)) {
 
-    if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
-  } else {
-    int lo,hi;
-    utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
-    if ((lo < 1) || (hi > ntypes))
-      error->all(file,line,"Invalid type {} for atom mass {}", arg[1]);
+    case 0: {    // numeric
+      int lo, hi;
+      utils::bounds(file, line, typestr.c_str(), 1, ntypes, lo, hi, error);
+      if ((lo < 1) || (hi > ntypes))
+        error->all(file, line, "Invalid atom type {} for atom mass", typestr);
 
-    const double value = utils::numeric(FLERR,arg[1],false,lmp);
-    if (value <= 0.0) error->all(file,line,"Invalid atom mass value {}", value);
+      const double value = utils::numeric(FLERR, arg[1], false, lmp);
+      if (value <= 0.0)
+        error->all(file, line, "Invalid atom mass value {} for type {}", value, typestr);
 
-    for (int itype = lo; itype <= hi; itype++) {
-      mass[itype] = value;
-      mass_setflag[itype] = 1;
+      for (int itype = lo; itype <= hi; itype++) {
+        mass[itype] = value;
+        mass_setflag[itype] = 1;
+      }
+      break;
     }
+
+    case 1: {    // type label
+      if (!atom->labelmapflag) error->all(FLERR, "Invalid atom type {} for setting mass", typestr);
+      int itype = lmap->find(typestr, Atom::ATOM);
+      if (itype == -1) error->all(file, line, "Invalid type {} for setting mass", typestr);
+      mass[itype] = utils::numeric(FLERR, arg[1], false, lmp);
+      mass_setflag[itype] = 1;
+      break;
+    }
+
+    default:    // invalid
+      error->one(FLERR, "Invalid mass setting");
+      break;
   }
+  // clang-format off
 }
 
 /* ----------------------------------------------------------------------

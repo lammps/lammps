@@ -1052,10 +1052,11 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double *coord;
   char *next;
   std::string typestr;
+  auto location = "Atoms section of data file";
 
   // use the first line to detect and validate the number of words/tokens per line
   next = strchr(buf,'\n');
-  if (!next) error->all(FLERR, "Missing data in Atoms section of data file");
+  if (!next) error->all(FLERR, "Missing data in {}", location);
   *next = '\0';
   auto values = Tokenizer(buf).as_vector();
   int nwords = values.size();
@@ -1068,7 +1069,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   *next = '\n';
 
   if ((nwords != avec->size_data_atom) && (nwords != avec->size_data_atom + 3))
-    error->all(FLERR,"Incorrect atom format in data file: {}", utils::trim(buf));
+    error->all(FLERR,"Incorrect atom format in {}: {}", location, utils::trim(buf));
 
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
@@ -1140,7 +1141,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-    if (!next) error->all(FLERR, "Missing data in Atoms section of data file");
+    if (!next) error->all(FLERR, "Missing data in {}", location);
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nvalues = values.size();
@@ -1148,7 +1149,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       // skip over empty or comment lines
     } else if ((nvalues < nwords) ||
                ((nvalues > nwords) && (!utils::strmatch(values[nwords],"^#")))) {
-      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
+      error->all(FLERR, "Incorrect atom format in {}: {}", location, utils::trim(buf));
     } else {
       int imx = 0, imy = 0, imz = 0;
       if (imageflag) {
@@ -1192,8 +1193,8 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
           case 0: {    // numeric
             int itype = utils::inumeric(FLERR, typestr.c_str(), true, lmp);
             if ((itype < 1) || (itype > ntypes))
-              error->one(FLERR, "Invalid atom type {} in Atoms section of data file: {}", itype,
-                         buf);
+              error->one(FLERR, "Invalid atom type {} in {}: {}", itype, location,
+                         utils::trim(buf));
             type[nlocal - 1] = itype;
             if (labelflag) type[nlocal - 1] = ilabel[itype - 1];
             break;
@@ -1201,21 +1202,21 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
           case 1: {    // type label
             if (!atom->labelmapflag)
-              error->one(FLERR, "Invalid Atoms section line in data file: {}", buf);
+              error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             type[nlocal - 1] = lmap->find(typestr, Atom::ATOM);
             if (type[nlocal - 1] == -1)
-              error->one(FLERR, "Invalid Atoms section line in data file: {}", buf);
+              error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             break;
           }
 
           default:    // invalid
-            error->one(FLERR, "Invalid Atoms section line in data file: {}", buf);
+            error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             break;
         }
         // clang-format off
         if (type_offset) type[nlocal-1] += type_offset;
         if (type[nlocal-1] <= 0 || type[nlocal-1] > ntypes)
-          error->one(FLERR,"Invalid atom type {} in Atoms section of data file", typestr);
+          error->one(FLERR,"Invalid atom type {} in {}", location, typestr);
       }
     }
     buf = next + 1;
@@ -1275,39 +1276,59 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-    if (!next) error->all(FLERR, "Missing data in Bonds section of data file");
+    if (!next) error->all(FLERR, "Missing data in {}", location);
     *next = '\0';
-    ValueTokenizer values(utils::trim_comment(buf));
-    // skip over empty or comment lines
-    if (values.has_next()) {
-      try {
-        values.next_int();
-        typestr = values.next_string();
-        atom1 = values.next_tagint();
-        atom2 = values.next_tagint();
-        if (values.has_next()) throw TokenizerException("Too many tokens","");
-      } catch (TokenizerException &e) {
-        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    auto values = Tokenizer(buf).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
       }
+    }
+
+    // skip over empty or comment lines
+    // Bonds line is: number(ignored), bond type, atomID 1, atomID 2
+    if (nwords > 0) {
+      if (nwords != 4) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      typestr = values[1];
+      atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+      atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
       if (id_offset) {
         atom1 += id_offset;
         atom2 += id_offset;
       }
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR,"Invalid Bonds section in data file");
-        itype = lmap->find(typestr,Atom::BOND);
-        if (itype == -1) error->one(FLERR,"Invalid Bonds section in data file");
-      } else {
-        itype = utils::inumeric(FLERR,typestr,true,lmp);
-        if (labelflag) itype = ilabel[itype-1];
+
+      // clang-format on
+      switch (utils::is_type(typestr)) {
+
+        case 0: {    // numeric
+          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          if ((itype < 1) || (itype > nbondtypes))
+            error->all(FLERR, "Invalid bond type {} in {}: {}", itype, location, utils::trim(buf));
+          if (labelflag) itype = ilabel[itype - 1];
+          break;
+        }
+
+        case 1: {    // type label
+          if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          itype = lmap->find(typestr, Atom::BOND);
+          if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
+        }
+
+        default:    // invalid
+          error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
       }
       itype += type_offset;
+      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
-        error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
-      if (itype <= 0 || itype > nbondtypes)
-        error->one(FLERR,"Invalid bond type in {}: {}", location, utils::trim(buf));
+        error->all(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
+      if ((itype <= 0) || (itype > nbondtypes))
+        error->all(FLERR,"Invalid bond type {} in {}: {}", itype, location, utils::trim(buf));
       if ((m = map(atom1)) >= 0) {
         if (count) count[m]++;
         else {
@@ -1352,35 +1373,55 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-    if (!next) error->all(FLERR, "Missing data in Angles section of data file");
+    if (!next) error->all(FLERR, "Missing data in {}", location);
     *next = '\0';
-    ValueTokenizer values(utils::trim_comment(buf));
-    // skip over empty or comment lines
-    if (values.has_next()) {
-      try {
-        values.next_int();
-        typestr = values.next_string();
-        atom1 = values.next_tagint();
-        atom2 = values.next_tagint();
-        atom3 = values.next_tagint();
-        if (values.has_next()) throw TokenizerException("Too many tokens","");
-      } catch (TokenizerException &e) {
-        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    auto values = Tokenizer(buf).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
       }
+    }
+
+    // skip over empty or comment lines
+    // Angles line is: number(ignored), angle type, atomID 1, atomID 2, atomID 3
+    if (nwords > 0) {
+      if (nwords != 5) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      typestr = values[1];
+      atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+      atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
+      atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
       if (id_offset) {
         atom1 += id_offset;
         atom2 += id_offset;
         atom3 += id_offset;
       }
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR,"Invalid Angles section in data file");
-        itype = lmap->find(typestr,Atom::ANGLE);
-        if (itype == -1) error->one(FLERR,"Invalid Angles section in data file");
-      } else {
-        itype = utils::inumeric(FLERR,typestr,true,lmp);
-        if (labelflag) itype = ilabel[itype-1];
+
+      // clang-format on
+      switch (utils::is_type(typestr)) {
+
+        case 0: {    // numeric
+          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          if ((itype < 1) || (itype > nangletypes))
+            error->all(FLERR, "Invalid angle type {} in {}: {}", itype, location, utils::trim(buf));
+          if (labelflag) itype = ilabel[itype - 1];
+          break;
+        }
+
+        case 1: {    // type label
+          if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          itype = lmap->find(typestr, Atom::ANGLE);
+          if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
+        }
+
+        default:    // invalid
+          error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
       }
       itype += type_offset;
+      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
@@ -1388,7 +1429,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
           (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
         error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
       if (itype <= 0 || itype > nangletypes)
-        error->one(FLERR,"Invalid angle type in {}: {}", location, utils::trim(buf));
+        error->one(FLERR,"Invalid angle type {} in {}: {}", itype, location, utils::trim(buf));
       if ((m = map(atom2)) >= 0) {
         if (count) count[m]++;
         else {
@@ -1445,37 +1486,58 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-    if (!next) error->all(FLERR, "Missing data in Dihedrals section of data file");
+    if (!next) error->all(FLERR, "Missing data in {}", location);
     *next = '\0';
-    ValueTokenizer values(utils::trim_comment(buf));
-    // skip over empty or comment lines
-    if (values.has_next()) {
-      try {
-        values.next_int();
-        typestr = values.next_string();
-        atom1 = values.next_tagint();
-        atom2 = values.next_tagint();
-        atom3 = values.next_tagint();
-        atom4 = values.next_tagint();
-        if (values.has_next()) throw TokenizerException("Too many tokens","");
-      } catch (TokenizerException &e) {
-        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    auto values = Tokenizer(buf).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
       }
+    }
+
+    // skip over empty or comment lines
+    // Dihedrals line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
+    if (nwords > 0) {
+      if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      typestr = values[1];
+      atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+      atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
+      atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
+      atom4 = utils::tnumeric(FLERR, values[5], false, lmp);
       if (id_offset) {
         atom1 += id_offset;
         atom2 += id_offset;
         atom3 += id_offset;
         atom4 += id_offset;
       }
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR,"Invalid Dihedrals section in data file");
-        itype = lmap->find(typestr,Atom::DIHEDRAL);
-        if (itype == -1) error->one(FLERR,"Invalid Dihedrals section in data file");
-      } else {
-        itype = utils::inumeric(FLERR,typestr,true,lmp);
-        if (labelflag) itype = ilabel[itype-1];
+
+      // clang-format on
+      switch (utils::is_type(typestr)) {
+
+        case 0: {    // numeric
+          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          if ((itype < 1) || (itype > ndihedraltypes))
+            error->all(FLERR, "Invalid dihedral type {} in {}: {}", itype, location,
+                       utils::trim(buf));
+          if (labelflag) itype = ilabel[itype - 1];
+          break;
+        }
+
+        case 1: {    // type label
+          if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          itype = lmap->find(typestr, Atom::DIHEDRAL);
+          if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
+        }
+
+        default:    // invalid
+          error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
       }
       itype += type_offset;
+      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
@@ -1485,7 +1547,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
           (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
         error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
       if (itype <= 0 || itype > ndihedraltypes)
-        error->one(FLERR, "Invalid dihedral type in {}: {}", location, utils::trim(buf));
+        error->one(FLERR, "Invalid dihedral type {} in {}: {}", itype, location, utils::trim(buf));
       if ((m = map(atom2)) >= 0) {
         if (count) count[m]++;
         else {
@@ -1556,37 +1618,58 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-    if (!next) error->all(FLERR, "Missing data in Impropers section of data file");
+    if (!next) error->all(FLERR, "Missing data in {}", location);
     *next = '\0';
-    ValueTokenizer values(utils::trim_comment(buf));
-    // skip over empty or comment lines
-    if (values.has_next()) {
-      try {
-        values.next_int();
-        typestr = values.next_string();
-        atom1 = values.next_tagint();
-        atom2 = values.next_tagint();
-        atom3 = values.next_tagint();
-        atom4 = values.next_tagint();
-        if (values.has_next()) throw TokenizerException("Too many tokens","");
-      } catch (TokenizerException &e) {
-        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    auto values = Tokenizer(buf).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
       }
+    }
+
+    // skip over empty or comment lines
+    // Impropers line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
+    if (nwords > 0) {
+      if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      typestr = values[1];
+      atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+      atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
+      atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
+      atom4 = utils::tnumeric(FLERR, values[5], false, lmp);
       if (id_offset) {
         atom1 += id_offset;
         atom2 += id_offset;
         atom3 += id_offset;
         atom4 += id_offset;
       }
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR,"Invalid Impropers section in data file");
-        itype = lmap->find(typestr,Atom::IMPROPER);
-        if (itype == -1) error->one(FLERR,"Invalid Impropers section in data file");
-      } else {
-        itype = utils::inumeric(FLERR,typestr,true,lmp);
-        if (labelflag) itype = ilabel[itype-1];
+
+      // clang-format on
+      switch (utils::is_type(typestr)) {
+
+        case 0: {    // numeric
+          itype = utils::inumeric(FLERR, typestr.c_str(), false, lmp);
+          if ((itype < 1) || (itype > nimpropertypes))
+            error->all(FLERR, "Invalid improper type {} in {}: {}", itype, location,
+                       utils::trim(buf));
+          if (labelflag) itype = ilabel[itype - 1];
+          break;
+        }
+
+        case 1: {    // type label
+          if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          itype = lmap->find(typestr, Atom::IMPROPER);
+          if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
+        }
+
+        default:    // invalid
+          error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
+          break;
       }
       itype += type_offset;
+      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
@@ -1596,7 +1679,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
           (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
         error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
       if (itype <= 0 || itype > nimpropertypes)
-        error->one(FLERR, "Invalid improper type in {}: {}", location, utils::trim(buf));
+        error->one(FLERR, "Invalid improper type {} in {}: {}", itype, location, utils::trim(buf));
       if ((m = map(atom2)) >= 0) {
         if (count) count[m]++;
         else {

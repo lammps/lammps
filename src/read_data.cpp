@@ -2163,7 +2163,7 @@ void ReadData::typelabels(int mode)
     int itype = utils::inumeric(FLERR, values[0], false, lmp);
     if ((itype < 1) || (itype > lntypes))
       error->all(FLERR, "Invalid type {} in section: {} Type Labels: {}", labeltypes[mode], buf);
-    
+
     (*labels)[itype - 1] = values[1];
     (*labels_map)[values[1]] = itype;
     buf = next + 1;

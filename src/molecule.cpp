@@ -774,13 +774,11 @@ void Molecule::types(char *line)
 
     typestr = utils::utf8_subst(values[1]);
     switch (utils::is_type(typestr)) {
-
       case 0: {    // numeric
         type[iatom] = utils::inumeric(FLERR, typestr, false, lmp);
         type[iatom] += toffset;
         break;
       }
-
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, "Invalid atom type {} in {}: {}", typestr, location, utils::trim(line));
@@ -789,7 +787,6 @@ void Molecule::types(char *line)
           error->all(FLERR, "Unknown atom type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
-
       default:    // invalid
         error->one(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
         break;
@@ -971,15 +968,9 @@ void Molecule::masses(char *line)
 
   for (int i = 0; i < natoms; i++) {
     if (count[i] == 0)
-      error->all(FLERR,
-                 "Atom {} missing in Masses "
-                 "section of molecule file",
-                 i + 1);
+      error->all(FLERR, "Atom {} missing in Masses section of molecule file", i + 1);
     if (rmass[i] <= 0.0)
-      error->all(FLERR,
-                 "Invalid atom mass {} for atom {} "
-                 "in molecule file",
-                 radius[i], i + 1);
+      error->all(FLERR, "Invalid atom mass {} for atom {} in molecule file", radius[i], i + 1);
   }
 }
 
@@ -993,6 +984,7 @@ void Molecule::masses(char *line)
 
 void Molecule::bonds(int flag, char *line)
 {
+  const std::string location = "Bonds section of molecule file";
   int itype;
   tagint m, atom1, atom2;
   std::string typestr;
@@ -1005,31 +997,43 @@ void Molecule::bonds(int flag, char *line)
 
   for (int i = 0; i < nbonds; i++) {
     readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
+      }
+    }
+    if (nwords != 4) error->all(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
 
-    try {
-      ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 4)
-        error->all(FLERR, "Invalid line in Bonds section of molecule file: {}", line);
-      values.next_int();
-      typestr = values.next_string();
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR, "Invalid Bonds section in molecule file");
-        itype = atom->lmap->find(typestr, Atom::BOND);
-        if (itype == -1) error->one(FLERR, "Invalid Bonds section in molecule file");
-      } else
+    typestr = utils::utf8_subst(values[1]);
+    switch (utils::is_type(typestr)) {
+      case 0: {    // numeric
         itype = utils::inumeric(FLERR, typestr, false, lmp);
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-    } catch (TokenizerException &e) {
-      error->all(FLERR, "Invalid line in Bonds section of molecule file: {}\n{}", e.what(), line);
+        itype += boffset;
+        break;
+      }
+      case 1: {    // type label
+        if (!atom->labelmapflag)
+          error->all(FLERR, "Invalid bond type {} in {}: {}", typestr, location, utils::trim(line));
+        itype = atom->lmap->find(typestr, Atom::BOND);
+        if (itype == -1)
+          error->all(FLERR, "Unknown bond type {} in {}: {}", typestr, location, utils::trim(line));
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
+        break;
     }
 
-    itype += boffset;
+    atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+    atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
 
     if ((atom1 <= 0) || (atom1 > natoms) || (atom2 <= 0) || (atom2 > natoms) || (atom1 == atom2))
-      error->all(FLERR, "Invalid atom ID in Bonds section of molecule file");
+      error->all(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(line));
     if ((itype <= 0) || (domain->box_exist && (itype > atom->nbondtypes)))
-      error->all(FLERR, "Invalid bond type in Bonds section of molecule file");
+      error->all(FLERR, "Invalid bond type in {}: {}", location, utils::trim(line));
 
     if (flag) {
       m = atom1 - 1;
@@ -1066,6 +1070,7 @@ void Molecule::bonds(int flag, char *line)
 
 void Molecule::angles(int flag, char *line)
 {
+  const std::string location = "Angles section of molecule file";
   int itype;
   tagint m, atom1, atom2, atom3;
   std::string typestr;
@@ -1078,33 +1083,45 @@ void Molecule::angles(int flag, char *line)
 
   for (int i = 0; i < nangles; i++) {
     readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
+      }
+    }
+    if (nwords != 5) error->all(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
 
-    try {
-      ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 5)
-        error->all(FLERR, "Invalid line in Angles section of molecule file: {}", line);
-      values.next_int();
-      typestr = values.next_string();
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR, "Invalid Angles section in molecule file");
-        itype = atom->lmap->find(typestr, Atom::ANGLE);
-        if (itype == -1) error->one(FLERR, "Invalid Angles section in molecule file");
-      } else
+    typestr = utils::utf8_subst(values[1]);
+    switch (utils::is_type(typestr)) {
+      case 0: {    // numeric
         itype = utils::inumeric(FLERR, typestr, false, lmp);
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-      atom3 = values.next_tagint();
-    } catch (TokenizerException &e) {
-      error->all(FLERR, "Invalid line in Angles section of molecule file: {}\n{}", e.what(), line);
+        itype += aoffset;
+        break;
+      }
+      case 1: {    // type label
+        if (!atom->labelmapflag)
+          error->all(FLERR, "Invalid angle type {} in {}: {}", typestr, location, utils::trim(line));
+        itype = atom->lmap->find(typestr, Atom::ANGLE);
+        if (itype == -1)
+          error->all(FLERR, "Unknown angle type {} in {}: {}", typestr, location, utils::trim(line));
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
+        break;
     }
 
-    itype += aoffset;
+    atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+    atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
+    atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
 
     if ((atom1 <= 0) || (atom1 > natoms) || (atom2 <= 0) || (atom2 > natoms) || (atom3 <= 0) ||
         (atom3 > natoms) || (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
-      error->all(FLERR, "Invalid atom ID in Angles section of molecule file");
+      error->all(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(line));
     if ((itype <= 0) || (domain->box_exist && (itype > atom->nangletypes)))
-      error->all(FLERR, "Invalid angle type in Angles section of molecule file");
+      error->all(FLERR, "Invalid angle type in {}: {}", location, utils::trim(line));
 
     if (flag) {
       m = atom2 - 1;
@@ -1154,6 +1171,7 @@ void Molecule::angles(int flag, char *line)
 
 void Molecule::dihedrals(int flag, char *line)
 {
+  const std::string location = "Dihedrals section of molecule file";
   int itype;
   tagint m, atom1, atom2, atom3, atom4;
   std::string typestr;
@@ -1166,38 +1184,48 @@ void Molecule::dihedrals(int flag, char *line)
 
   for (int i = 0; i < ndihedrals; i++) {
     readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
+      }
+    }
+    if (nwords != 6) error->all(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
 
-    try {
-      ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 6)
-        error->all(FLERR, "Invalid line in Dihedrals section of molecule file: {}", line);
-
-      values.next_int();
-      typestr = values.next_string();
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR, "Invalid Dihedrals section in molecule file");
-        itype = atom->lmap->find(typestr, Atom::DIHEDRAL);
-        if (itype == -1) error->one(FLERR, "Invalid Dihedrals section in molecule file");
-      } else
+    typestr = utils::utf8_subst(values[1]);
+    switch (utils::is_type(typestr)) {
+      case 0: {    // numeric
         itype = utils::inumeric(FLERR, typestr, false, lmp);
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-      atom3 = values.next_tagint();
-      atom4 = values.next_tagint();
-    } catch (TokenizerException &e) {
-      error->all(FLERR, "Invalid line in Dihedrals section of molecule file: {}\n{}", e.what(),
-                 line);
+        itype += doffset;
+        break;
+      }
+      case 1: {    // type label
+        if (!atom->labelmapflag)
+          error->all(FLERR, "Invalid dihedral type {} in {}: {}", typestr, location, utils::trim(line));
+        itype = atom->lmap->find(typestr, Atom::DIHEDRAL);
+        if (itype == -1)
+          error->all(FLERR, "Unknown dihedral type {} in {}: {}", typestr, location, utils::trim(line));
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
+        break;
     }
 
-    itype += doffset;
+    atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+    atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
+    atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
+    atom4 = utils::tnumeric(FLERR, values[5], false, lmp);
 
     if ((atom1 <= 0) || (atom1 > natoms) || (atom2 <= 0) || (atom2 > natoms) || (atom3 <= 0) ||
         (atom3 > natoms) || (atom4 <= 0) || (atom4 > natoms) || (atom1 == atom2) ||
         (atom1 == atom3) || (atom1 == atom4) || (atom2 == atom3) || (atom2 == atom4) ||
         (atom3 == atom4))
-      error->all(FLERR, "Invalid atom ID in Dihedrals section of molecule file");
+      error->all(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(line));
     if ((itype <= 0) || (domain->box_exist && (itype > atom->ndihedraltypes)))
-      error->all(FLERR, "Invalid dihedral type in Dihedrals section of molecule file");
+      error->all(FLERR, "Invalid dihedral type in {}: {}", location, utils::trim(line));
 
     if (flag) {
       m = atom2 - 1;
@@ -1258,6 +1286,7 @@ void Molecule::dihedrals(int flag, char *line)
 
 void Molecule::impropers(int flag, char *line)
 {
+  const std::string location = "Impropers section of molecule file";
   int itype;
   tagint m, atom1, atom2, atom3, atom4;
   std::string typestr;
@@ -1270,37 +1299,48 @@ void Molecule::impropers(int flag, char *line)
 
   for (int i = 0; i < nimpropers; i++) {
     readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    int nwords = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nwords = i;
+        break;
+      }
+    }
+    if (nwords != 6) error->all(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
 
-    try {
-      ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 6)
-        error->all(FLERR, "Invalid line in Impropers section of molecule file: {}", line);
-      values.next_int();
-      typestr = values.next_string();
-      if (!isdigit(typestr[0])) {
-        if (!atom->labelmapflag) error->one(FLERR, "Invalid Impropers section in molecule file");
-        itype = atom->lmap->find(typestr, Atom::IMPROPER);
-        if (itype == -1) error->one(FLERR, "Invalid Impropers section in molecule file");
-      } else
+    typestr = utils::utf8_subst(values[1]);
+    switch (utils::is_type(typestr)) {
+      case 0: {    // numeric
         itype = utils::inumeric(FLERR, typestr, false, lmp);
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-      atom3 = values.next_tagint();
-      atom4 = values.next_tagint();
-    } catch (TokenizerException &e) {
-      error->all(FLERR, "Invalid line in Impropers section of molecule file: {}\n{}", e.what(),
-                 line);
+        itype += ioffset;
+        break;
+      }
+      case 1: {    // type label
+        if (!atom->labelmapflag)
+          error->all(FLERR, "Invalid improper type {} in {}: {}", typestr, location, utils::trim(line));
+        itype = atom->lmap->find(typestr, Atom::IMPROPER);
+        if (itype == -1)
+          error->all(FLERR, "Unknown improper type {} in {}: {}", typestr, location, utils::trim(line));
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, "Invalid format in {}: {}", location, utils::trim(line));
+        break;
     }
 
-    itype += ioffset;
+    atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
+    atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
+    atom3 = utils::tnumeric(FLERR, values[4], false, lmp);
+    atom4 = utils::tnumeric(FLERR, values[5], false, lmp);
 
     if ((atom1 <= 0) || (atom1 > natoms) || (atom2 <= 0) || (atom2 > natoms) || (atom3 <= 0) ||
         (atom3 > natoms) || (atom4 <= 0) || (atom4 > natoms) || (atom1 == atom2) ||
         (atom1 == atom3) || (atom1 == atom4) || (atom2 == atom3) || (atom2 == atom4) ||
         (atom3 == atom4))
-      error->all(FLERR, "Invalid atom ID in impropers section of molecule file");
+      error->all(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(line));
     if ((itype <= 0) || (domain->box_exist && (itype > atom->nimpropertypes)))
-      error->all(FLERR, "Invalid improper type in Impropers section of molecule file");
+      error->all(FLERR, "Invalid improper type in {}: {}", location, utils::trim(line));
 
     if (flag) {
       m = atom2 - 1;

@@ -77,13 +77,13 @@ static void create_labelmap_files(const std::string &h2o_filename, const std::st
     const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
                             "Coords\n\n1 1.12456 0.09298 1.27452\n"
                             "2 1.53683 0.75606 1.89928\n3 0.49482 0.56390 0.65678\n\n"
-                            "Types\n\n1 OW\n2 HW\n3 HW\n\n"
+                            "Types\n\n1 OW\n2 HO\n3 HO\n\n"
                             "Charges\n\n1 -0.8472\n2 0.4236\n3 0.4236\n\n"
-                            "Bonds\n\n1 OW-HW 1 2\n2 OW-HW 1 3\n\n"
-                            "Angles\n\n1 HW-OW-HW 2 1 3\n\n"
+                            "Bonds\n\n1 OW-HO 1 2\n2 OW-HO 1 3\n\n"
+                            "Angles\n\n1 HO-OW-HO 2 1 3\n\n"
                             "Shake Flags\n\n1 1\n2 1\n3 1\n\n"
                             "Shake Atoms\n\n1 1 2 3\n2 1 2 3\n3 1 2 3\n\n"
-                            "Shake Bond Types\n\n1 1 1 1\n2 1 1 1\n3 1 1 1\n\n"
+                            "Shake Bond Types\n\n1 OW-HO OW-HO HO-OW-HO\n2 OW-HO OW-HO HO-OW-HO\n3 OW-HO OW-HO HO-OW-HO\n\n"
                             "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
                             "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
     const char co2_file[] = "# CO2 molecule file. TraPPE model.\n\n"
@@ -298,9 +298,9 @@ TEST_F(MoleculeFileTest, labelmap)
     command("atom_style full");
     command("region box block 0 2 0 2 0 2");
     command("create_box 4 box bond/types 2 angle/types 2");
-    command("labelmap atom 1 HW 2 OW 3 C 4 O");
-    command("labelmap bond 1 OW-HW 2 C=O");
-    command("labelmap angle 1 HW-OW-HW 2 O=C=O");
+    command("labelmap atom 1 HO 2 OW 3 C 4 O");
+    command("labelmap bond 1 OW-HO 2 C=O");
+    command("labelmap angle 1 HO-OW-HO 2 O=C=O");
     command("molecule h2olabel labelmap.h2o.mol");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(

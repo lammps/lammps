@@ -1667,57 +1667,88 @@ void Molecule::shakeatom_read(char *line)
 
 void Molecule::shaketype_read(char *line)
 {
-  try {
-    int nmatch = 0, nwant = 0;
-    for (int i = 0; i < natoms; i++) {
-      readline(line);
-
-      ValueTokenizer values(utils::trim_comment(line));
-      nmatch = values.count();
-
-      switch (shake_flag[i]) {
-        case 1:
-          values.next_int();
-          shake_type[i][0] = values.next_int();
-          shake_type[i][1] = values.next_int();
-          shake_type[i][2] = values.next_int();
-          nwant = 4;
-          break;
-
-        case 2:
-          values.next_int();
-          shake_type[i][0] = values.next_int();
-          nwant = 2;
-          break;
-
-        case 3:
-          values.next_int();
-          shake_type[i][0] = values.next_int();
-          shake_type[i][1] = values.next_int();
-          nwant = 3;
-          break;
-
-        case 4:
-          values.next_int();
-          shake_type[i][0] = values.next_int();
-          shake_type[i][1] = values.next_int();
-          shake_type[i][2] = values.next_int();
-          nwant = 4;
-          break;
-
-        case 0:
-          values.next_int();
-          nwant = 1;
-          break;
-
-        default:
-          error->all(FLERR, "Invalid shake type data in molecule file");
+  int nmatch = 0, nwant = 0;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    nmatch = values.size();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      if (utils::strmatch(values[i], "^#")) {
+        nmatch = i;
+        break;
       }
-
-      if (nmatch != nwant) error->all(FLERR, "Invalid shake type data in molecule file");
     }
-  } catch (TokenizerException &e) {
-    error->all(FLERR, "Invalid shake type data in molecule file: {}", e.what());
+    char *subst;
+    switch (shake_flag[i]) {
+      case 1:
+        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
+        if (subst) values[1] = subst;
+        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        subst = utils::expand_type(FLERR, values[2], Atom::BOND, lmp);
+        if (subst) values[2] = subst;
+        shake_type[i][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        subst = utils::expand_type(FLERR, values[3], Atom::ANGLE, lmp);
+        if (subst) values[3] = subst;
+        shake_type[i][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : aoffset);
+        delete[] subst;
+
+        nwant = 4;
+        break;
+
+      case 2:
+        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
+        if (subst) values[1] = subst;
+        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        nwant = 2;
+        break;
+
+      case 3:
+        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
+        if (subst) values[1] = subst;
+        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
+        if (subst) values[1] = subst;
+        shake_type[i][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        nwant = 3;
+        break;
+
+      case 4:
+        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
+        if (subst) values[1] = subst;
+        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
+        if (subst) values[1] = subst;
+        shake_type[i][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
+        if (subst) values[1] = subst;
+        shake_type[i][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : boffset);
+        delete[] subst;
+
+        nwant = 4;
+        break;
+
+      case 0:
+        nwant = 1;
+        break;
+
+      default:
+        error->all(FLERR, "Invalid shake type values in molecule file");
+    }
+    if (nmatch != nwant) error->all(FLERR, "Invalid shake type data in molecule file");
   }
 
   for (int i = 0; i < natoms; i++) {

@@ -316,6 +316,7 @@ class UCL_Device {
   std::vector<CUstream> _cq;
   CUdevice _cu_device;
   CUcontext _context;
+  CUcontext _old_context;
 };
 
 // Grabs the properties for all devices
@@ -391,8 +392,9 @@ int UCL_Device::set_platform(const int pid) {
 int UCL_Device::set(int num) {
   clear();
   _device=_properties[num].device_id;
+  CU_SAFE_CALL_NS(cuCtxGetCurrent(&_old_context));
   CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));
-  CUresult err=cuCtxCreate(&_context,0,_cu_device);
+  CUresult err=cuDevicePrimaryCtxRetain(&_context,_cu_device);
   if (err!=CUDA_SUCCESS) {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << num
@@ -401,13 +403,17 @@ int UCL_Device::set(int num) {
     #endif
     return UCL_ERROR;
   }
+  if (_context != _old_context) {
+    CU_SAFE_CALL_NS(cuCtxSetCurrent(_context));
+  }
   return UCL_SUCCESS;
 }
 
 void UCL_Device::clear() {
   if (_device>-1) {
     for (int i=1; i<num_queues(); i++) pop_command_queue();
-    cuCtxDestroy(_context);
+    CU_SAFE_CALL_NS(cuCtxSetCurrent(_old_context));
+    CU_SAFE_CALL_NS(cuDevicePrimaryCtxRelease(_cu_device));
   }
   _device=-1;
 }

@@ -237,6 +237,7 @@ TEST_F(LabelMapTest, Topology)
     EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::IMPROPER), 1);
     EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
     EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::BOND), -1);
+    platform::unlink("labelmap_topology.inc");
 }
 } // namespace LAMMPS_NS
 

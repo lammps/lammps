@@ -66,7 +66,7 @@ TEST_F(LabelMapTest, Atoms)
     END_HIDE_OUTPUT();
     EXPECT_EQ(domain->box_exist, 1);
     EXPECT_EQ(atom->lmap, nullptr);
-    TEST_FAILURE(".*ERROR: Type string C1 cannot be used without a labelmap.*",
+    TEST_FAILURE(".*ERROR: Atom type string C1 cannot be used without a labelmap.*",
                  utils::expand_type(FLERR, "C1", Atom::ATOM, lmp););
 
     BEGIN_HIDE_OUTPUT();
@@ -109,7 +109,7 @@ TEST_F(LabelMapTest, Atoms)
     expanded = utils::expand_type(FLERR, "O#", Atom::ATOM, lmp);
     EXPECT_THAT(expanded, StrEq("3"));
     delete[] expanded;
-    TEST_FAILURE(".*ERROR: Type string XX not found in labelmap.*",
+    TEST_FAILURE(".*ERROR: Atom type string XX not found in labelmap.*",
                  utils::expand_type(FLERR, "XX", Atom::ATOM, lmp););
 
     TEST_FAILURE(".*ERROR: Labelmap atom type 0 must be within 1-4.*",
@@ -277,8 +277,14 @@ TEST_F(LabelMapTest, Topology)
     expanded = utils::expand_type(FLERR, "C1-N2-C1-N2", Atom::IMPROPER, lmp);
     EXPECT_THAT(expanded, StrEq("1"));
     delete[] expanded;
-    TEST_FAILURE(".*ERROR: Type string XX not found in labelmap.*",
+    TEST_FAILURE(".*ERROR: Bond type string XX not found in labelmap.*",
                  utils::expand_type(FLERR, "XX", Atom::BOND, lmp););
+    TEST_FAILURE(".*ERROR: Angle type string XX not found in labelmap.*",
+                 utils::expand_type(FLERR, "XX", Atom::ANGLE, lmp););
+    TEST_FAILURE(".*ERROR: Dihedral type string XX not found in labelmap.*",
+                 utils::expand_type(FLERR, "XX", Atom::DIHEDRAL, lmp););
+    TEST_FAILURE(".*ERROR: Improper type string XX not found in labelmap.*",
+                 utils::expand_type(FLERR, "XX", Atom::IMPROPER, lmp););
 }
 } // namespace LAMMPS_NS
 

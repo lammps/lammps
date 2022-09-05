@@ -1940,41 +1940,22 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
   if (mass == nullptr)
     error->all(file,line, "Cannot set per-type atom mass for atom style {}", atom_style);
 
-  // clang-format on
-  std::string typestr = utils::utf8_subst(utils::trim(arg[0]));
-  switch (utils::is_type(typestr)) {
+  char *typestr = utils::expand_type(file, line, arg[0], Atom::ATOM, lmp);
+  if (typestr) arg[0] = typestr;
 
-    case 0: {    // numeric
-      int lo, hi;
-      utils::bounds(file, line, typestr, 1, ntypes, lo, hi, error);
-      if ((lo < 1) || (hi > ntypes))
-        error->all(file, line, "Invalid atom type {} for atom mass", typestr);
+  int lo, hi;
+  utils::bounds(file, line, arg[0], 1, ntypes, lo, hi, error);
+  if ((lo < 1) || (hi > ntypes))
+    error->all(file, line, "Invalid atom type {} for atom mass", arg[0]);
 
-      const double value = utils::numeric(FLERR, arg[1], false, lmp);
-      if (value <= 0.0)
-        error->all(file, line, "Invalid atom mass value {} for type {}", value, typestr);
+  const double value = utils::numeric(FLERR, arg[1], false, lmp);
+  if (value <= 0.0)
+    error->all(file, line, "Invalid atom mass value {} for type {}", value, arg[0]);
 
-      for (int itype = lo; itype <= hi; itype++) {
-        mass[itype] = value;
-        mass_setflag[itype] = 1;
-      }
-      break;
-    }
-
-    case 1: {    // type label
-      if (!atom->labelmapflag) error->all(FLERR, "Invalid atom type {} for setting mass", typestr);
-      int itype = lmap->find(typestr, Atom::ATOM);
-      if (itype == -1) error->all(file, line, "Invalid type {} for setting mass", typestr);
-      mass[itype] = utils::numeric(FLERR, arg[1], false, lmp);
-      mass_setflag[itype] = 1;
-      break;
-    }
-
-    default:    // invalid
-      error->one(FLERR, "Invalid mass setting");
-      break;
+  for (int itype = lo; itype <= hi; itype++) {
+    mass[itype] = value;
+    mass_setflag[itype] = 1;
   }
-  // clang-format off
 }
 
 /* ----------------------------------------------------------------------

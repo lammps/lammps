@@ -34,13 +34,11 @@ class Input : protected Pointers {
 
   Input(class LAMMPS *, int, char **);
   ~Input() override;
-  void file();                       // process all input
-  void file(const char *);           // process an input script
-  char *one(const std::string &);    // process a single command
-  void substitute(char *&, char *&, int &, int &, int);
-  // substitute for variables in a string
-  void write_echo(const std::string &);    // send text to active echo file pointers
-  int readtype(char *&, int);              // substitute type label with numeric type
+  void file();                                             // process all input
+  void file(const char *);                                 // process an input script
+  char *one(const std::string &);                          // process a single command
+  void substitute(char *&, char *&, int &, int &, int);    // substitute for variables in a string
+  void write_echo(const std::string &);                    // send text to active echo file pointers
 
  protected:
   char *command;      // ptr to current command

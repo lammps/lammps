@@ -767,6 +767,8 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
   return newarg;
 }
 
+static const char *labeltypes[] = {"Atom", "Bond", "Angle", "Dihedral", "Improper"};
+
 /* -------------------------------------------------------------------------
    Expand type string to numeric string from labelmap.
    Return copy of expanded type or null pointer.
@@ -775,12 +777,16 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 char *utils::expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
 {
   if (!lmp) return nullptr;
-  if (is_type(str) == 1) {
+  const std::string typestr = utils::utf8_subst(str);
+  if (is_type(typestr) == 1) {
     if (!lmp->atom->labelmapflag)
-      lmp->error->all(file, line, "Type string {} cannot be used without a labelmap", str);
+      lmp->error->all(file, line, "{} type string {} cannot be used without a labelmap",
+                      labeltypes[mode], typestr);
 
-    int type = lmp->atom->lmap->find(str, mode);
-    if (type == -1) lmp->error->all(file, line, "Type string {} not found in labelmap", str);
+    int type = lmp->atom->lmap->find(typestr, mode);
+    if (type == -1)
+      lmp->error->all(file, line, "{} type string {} not found in labelmap", labeltypes[mode],
+                      typestr);
 
     return utils::strdup(std::to_string(type));
   } else

@@ -89,6 +89,12 @@ molecule file.  E.g. if *toff* = 2, and the file uses atom types
 individual values will be ignored if the molecule template does not
 use that attribute (e.g. no bonds).
 
+.. note::
+
+   Offsets are **ignored** if the molecule file lines using type labels,
+   as the type labels will determine the actual types depending on the
+   current :doc:`labelmap <labelmap>` settings.
+
 The *scale* keyword scales the size of the molecule.  This can be
 useful for modeling polydisperse granular rigid bodies.  The scale
 factor is applied to each of these properties in the molecule file, if
@@ -183,6 +189,7 @@ type labels have been defined, either by the :doc:`labelmap
 Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for the allowed syntax of type labels
 and a general discussion of how type labels can be used.
+When using type labels, any values specified as *offset* are ignored.
 
 If a Bonds section is specified then the Special Bond Counts and
 Special Bonds sections can also be used, if desired, to explicitly

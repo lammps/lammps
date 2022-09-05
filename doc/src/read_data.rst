@@ -164,6 +164,12 @@ other types already exist.  All five offset values must be specified,
 but individual values will be ignored if the data file does not use
 that attribute (e.g. no bonds).
 
+.. note::
+
+   Offsets are **ignored** for any data file lines using type labels, as
+   the type labels will determine the actual types depending on the
+   current :doc:`labelmap <labelmap>` settings.
+
 The *shift* keyword can be used to specify an (Sx, Sy, Sz)
 displacement applied to the coordinates of each atom.  Sz must be 0.0
 for a 2d simulation.  This is a mechanism for adding structured

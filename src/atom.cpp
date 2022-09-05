@@ -1188,11 +1188,10 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         typestr = utils::utf8_subst(typestr);
         if (id_offset) tag[nlocal-1] += id_offset;
         if (mol_offset) molecule[nlocal-1] += mol_offset;
-        // clang-format on
-        switch (utils::is_type(typestr)) {
 
+        switch (utils::is_type(typestr)) {
           case 0: {    // numeric
-            int itype = utils::inumeric(FLERR, typestr, true, lmp);
+            int itype = utils::inumeric(FLERR, typestr, true, lmp) + type_offset;
             if ((itype < 1) || (itype > ntypes))
               error->one(FLERR, "Invalid atom type {} in {}: {}", itype, location,
                          utils::trim(buf));
@@ -1200,7 +1199,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
             if (labelflag) type[nlocal - 1] = ilabel[itype - 1];
             break;
           }
-
           case 1: {    // type label
             if (!atom->labelmapflag)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
@@ -1209,13 +1207,11 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             break;
           }
-
           default:    // invalid
             error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             break;
         }
-        // clang-format off
-        if (type_offset) type[nlocal-1] += type_offset;
+
         if (type[nlocal-1] <= 0 || type[nlocal-1] > ntypes)
           error->one(FLERR,"Invalid atom type {} in {}", location, typestr);
       }
@@ -1300,30 +1296,24 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         atom2 += id_offset;
       }
 
-      // clang-format on
       switch (utils::is_type(typestr)) {
-
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr, false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp) + type_offset;
           if ((itype < 1) || (itype > nbondtypes))
             error->all(FLERR, "Invalid bond type {} in {}: {}", itype, location, utils::trim(buf));
           if (labelflag) itype = ilabel[itype - 1];
           break;
         }
-
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           itype = lmap->find(typestr, Atom::BOND);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
-
         default:    // invalid
           error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
       }
-      itype += type_offset;
-      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
@@ -1399,30 +1389,24 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         atom3 += id_offset;
       }
 
-      // clang-format on
       switch (utils::is_type(typestr)) {
-
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr, false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp) + type_offset;
           if ((itype < 1) || (itype > nangletypes))
             error->all(FLERR, "Invalid angle type {} in {}: {}", itype, location, utils::trim(buf));
           if (labelflag) itype = ilabel[itype - 1];
           break;
         }
-
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           itype = lmap->find(typestr, Atom::ANGLE);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
-
         default:    // invalid
           error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
       }
-      itype += type_offset;
-      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
@@ -1514,31 +1498,25 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
         atom4 += id_offset;
       }
 
-      // clang-format on
       switch (utils::is_type(typestr)) {
-
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr, false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp) + type_offset;
           if ((itype < 1) || (itype > ndihedraltypes))
             error->all(FLERR, "Invalid dihedral type {} in {}: {}", itype, location,
                        utils::trim(buf));
           if (labelflag) itype = ilabel[itype - 1];
           break;
         }
-
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           itype = lmap->find(typestr, Atom::DIHEDRAL);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
-
         default:    // invalid
           error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
       }
-      itype += type_offset;
-      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||
@@ -1646,31 +1624,25 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
         atom4 += id_offset;
       }
 
-      // clang-format on
       switch (utils::is_type(typestr)) {
-
         case 0: {    // numeric
-          itype = utils::inumeric(FLERR, typestr, false, lmp);
+          itype = utils::inumeric(FLERR, typestr, false, lmp) + type_offset;
           if ((itype < 1) || (itype > nimpropertypes))
             error->all(FLERR, "Invalid improper type {} in {}: {}", itype, location,
                        utils::trim(buf));
           if (labelflag) itype = ilabel[itype - 1];
           break;
         }
-
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           itype = lmap->find(typestr, Atom::IMPROPER);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
-
         default:    // invalid
           error->one(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
       }
-      itype += type_offset;
-      // clang-format off
 
       if ((atom1 <= 0) || (atom1 > map_tag_max) ||
           (atom2 <= 0) || (atom2 > map_tag_max) ||

@@ -33,10 +33,10 @@
 bool verbose = false;
 
 namespace LAMMPS_NS {
+using MathConst::MY_PI;
 using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
-using MathConst::MY_PI;
 
 class VariableTest : public LAMMPSTest {
 protected:
@@ -196,8 +196,10 @@ TEST_F(VariableTest, CreateDelete)
 
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
     TEST_FAILURE(".*ERROR: Illegal variable index command.*", command("variable dummy index"););
-    TEST_FAILURE(".*ERROR: Illegal variable delete command: expected 2 arguments but found 3.*", command("variable dummy delete xxx"););
-    TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*", command("variable dummy loop -1"););
+    TEST_FAILURE(".*ERROR: Illegal variable delete command: expected 2 arguments but found 3.*",
+                 command("variable dummy delete xxx"););
+    TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*",
+                 command("variable dummy loop -1"););
     TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
     TEST_FAILURE(".*ERROR: Unknown variable keyword: xxx.*", command("variable dummy xxxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -402,8 +404,9 @@ TEST_F(VariableTest, Functions)
                  command("print \"$(extract_setting()\""););
     TEST_FAILURE(".*ERROR: Invalid extract_setting.. function syntax in variable formula.*",
                  command("print \"$(extract_setting(one,two))\""););
-    TEST_FAILURE(".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
-                 command("print \"$(extract_setting(nprocs))\""););
+    TEST_FAILURE(
+        ".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
+        command("print \"$(extract_setting(nprocs))\""););
 }
 
 TEST_F(VariableTest, IfCommand)

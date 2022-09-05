@@ -63,6 +63,13 @@ TEST_F(LabelMapTest, Atoms)
     BEGIN_HIDE_OUTPUT();
     command("region box block 0 2 0 2 0 2");
     command("create_box 4 box");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(domain->box_exist, 1);
+    EXPECT_EQ(atom->lmap, nullptr);
+    TEST_FAILURE(".*ERROR: Type string C1 cannot be used without a labelmap.*",
+                 utils::expand_type(FLERR, "C1", Atom::ATOM, lmp););
+
+    BEGIN_HIDE_OUTPUT();
     command("labelmap atom 2 N1");
     command("labelmap atom 3 O1 4 H1");
     command("mass * 1.0");
@@ -88,6 +95,22 @@ TEST_F(LabelMapTest, Atoms)
     EXPECT_EQ(atom->lmap->find("H", Atom::ATOM), 4);
     EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
     EXPECT_DOUBLE_EQ(atom->mass[3], 10.0);
+
+    EXPECT_EQ(utils::expand_type(FLERR, "1", Atom::ATOM, lmp), nullptr);
+    EXPECT_EQ(utils::expand_type(FLERR, "*3", Atom::ATOM, lmp), nullptr);
+    EXPECT_EQ(utils::expand_type(FLERR, "1*2", Atom::ATOM, lmp), nullptr);
+    EXPECT_EQ(utils::expand_type(FLERR, "*", Atom::ATOM, lmp), nullptr);
+    EXPECT_EQ(utils::expand_type(FLERR, "**", Atom::ATOM, lmp), nullptr);
+    EXPECT_EQ(utils::expand_type(FLERR, "1*2*", Atom::ATOM, lmp), nullptr);
+
+    auto expanded = utils::expand_type(FLERR, "C1", Atom::ATOM, lmp);
+    EXPECT_THAT(expanded, StrEq("1"));
+    delete[] expanded;
+    expanded = utils::expand_type(FLERR, "O#", Atom::ATOM, lmp);
+    EXPECT_THAT(expanded, StrEq("3"));
+    delete[] expanded;
+    TEST_FAILURE(".*ERROR: Type string XX not found in labelmap.*",
+                 utils::expand_type(FLERR, "XX", Atom::ATOM, lmp););
 
     TEST_FAILURE(".*ERROR: Labelmap atom type 0 must be within 1-4.*",
                  command("labelmap atom 0 C1"););
@@ -238,6 +261,24 @@ TEST_F(LabelMapTest, Topology)
     EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
     EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::BOND), -1);
     platform::unlink("labelmap_topology.inc");
+
+    auto expanded = utils::expand_type(FLERR, "N2'", Atom::ATOM, lmp);
+    EXPECT_THAT(expanded, StrEq("2"));
+    delete[] expanded;
+    expanded = utils::expand_type(FLERR, "[C1][C1]", Atom::BOND, lmp);
+    EXPECT_THAT(expanded, StrEq("2"));
+    delete[] expanded;
+    expanded = utils::expand_type(FLERR, "C1-N2-C1", Atom::ANGLE, lmp);
+    EXPECT_THAT(expanded, StrEq("1"));
+    delete[] expanded;
+    expanded = utils::expand_type(FLERR, "C1-N2-C1-N2", Atom::DIHEDRAL, lmp);
+    EXPECT_THAT(expanded, StrEq("1"));
+    delete[] expanded;
+    expanded = utils::expand_type(FLERR, "C1-N2-C1-N2", Atom::IMPROPER, lmp);
+    EXPECT_THAT(expanded, StrEq("1"));
+    delete[] expanded;
+    TEST_FAILURE(".*ERROR: Type string XX not found in labelmap.*",
+                 utils::expand_type(FLERR, "XX", Atom::BOND, lmp););
 }
 } // namespace LAMMPS_NS
 

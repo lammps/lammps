@@ -20,6 +20,7 @@
 #include "fix.h"
 #include "fmt/chrono.h"
 #include "input.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
@@ -764,6 +765,26 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
   //  printf("  arg %d: %s\n",i,earg[i]);
 
   return newarg;
+}
+
+/* -------------------------------------------------------------------------
+   Expand type string to numeric string from labelmap.
+   Return copy of expanded type or null pointer.
+------------------------------------------------------------------------- */
+
+char *utils::expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
+{
+  if (!lmp) return nullptr;
+  if (is_type(str) == 1) {
+    if (!lmp->atom->labelmapflag)
+      lmp->error->all(file, line, "Type string {} cannot be used without a labelmap", str);
+
+    int type = lmp->atom->lmap->find(str, mode);
+    if (type == -1) lmp->error->all(file, line, "Type string {} not found in labelmap", str);
+
+    return utils::strdup(std::to_string(type));
+  } else
+    return nullptr;
 }
 
 /* ----------------------------------------------------------------------

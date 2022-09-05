@@ -359,6 +359,24 @@ namespace utils {
   int expand_args(const char *file, int line, int narg, char **arg, int mode, char **&earg,
                   LAMMPS *lmp);
 
+  /*! Expand type label string into its equivalent numeric type
+   *
+   *  This function checks if a given string may be a type label and
+   *  then searches the labelmap type indicated by the *mode* argument
+   *  for the corresponding numeric type.  If this is found a copy of
+   *  the numeric type string is made and returned. Otherwise a null
+   *  pointer is returned.
+   *  If a string is returned, the calling code must free it with delete[].
+   *
+   * \param file  name of source file for error message
+   * \param line  line number in source file for error message
+   * \param str   type string to be expanded
+   * \param mode  select labelmap using constants from Atom class
+   * \param lmp   pointer to top-level LAMMPS class instance
+   * \return      pointer to expanded string or null pointer */
+
+  char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+
   /*! Make C-style copy of string in new storage
    *
    * This allocates a storage buffer and copies the C-style or

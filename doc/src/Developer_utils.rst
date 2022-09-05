@@ -211,6 +211,9 @@ Argument processing
 .. doxygenfunction:: expand_args
    :project: progguide
 
+.. doxygenfunction:: expand_type
+   :project: progguide
+
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
 

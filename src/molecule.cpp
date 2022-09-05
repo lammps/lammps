@@ -1562,30 +1562,30 @@ void Molecule::shaketype_read(char *line)
       switch (shake_flag[i]) {
         case 1:
           values.next_int();
-          shake_type[i][0] = values.next_int();
-          shake_type[i][1] = values.next_int();
-          shake_type[i][2] = values.next_int();
+          shake_type[i][0] = values.next_int() + boffset;
+          shake_type[i][1] = values.next_int() + boffset;
+          shake_type[i][2] = values.next_int() + aoffset;
           nwant = 4;
           break;
 
         case 2:
           values.next_int();
-          shake_type[i][0] = values.next_int();
+          shake_type[i][0] = values.next_int() + boffset;
           nwant = 2;
           break;
 
         case 3:
           values.next_int();
-          shake_type[i][0] = values.next_int();
-          shake_type[i][1] = values.next_int();
+          shake_type[i][0] = values.next_int() + boffset;
+          shake_type[i][1] = values.next_int() + boffset;
           nwant = 3;
           break;
 
         case 4:
           values.next_int();
-          shake_type[i][0] = values.next_int();
-          shake_type[i][1] = values.next_int();
-          shake_type[i][2] = values.next_int();
+          shake_type[i][0] = values.next_int() + boffset;
+          shake_type[i][1] = values.next_int() + boffset;
+          shake_type[i][2] = values.next_int() + boffset;
           nwant = 4;
           break;
 

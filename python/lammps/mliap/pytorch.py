@@ -134,9 +134,6 @@ class TorchWrapper(torch.nn.Module):
         descriptors = torch.from_numpy(descriptors).to(dtype=self.dtype, device=self.device).requires_grad_(True)
         elems = torch.from_numpy(elems).to(dtype=torch.long, device=self.device) - 1
 
-        #print(self.model)
-        #print("ASDFASDF")
-
         with torch.autograd.enable_grad():
 
             energy_nn = self.model(descriptors, elems)

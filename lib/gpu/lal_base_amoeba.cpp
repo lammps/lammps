@@ -563,7 +563,7 @@ template <class numtyp, class acctyp>
 void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
                                     double ***host_thetai1, double ***host_thetai2,
                                     double ***host_thetai3, int** host_igrid,
-                                    double* grid_brick_start, int nzlo_out,
+                                    double* host_grid_brick_start, int nzlo_out,
                                     int nzhi_out, int nylo_out, int nyhi_out,
                                     int nxlo_out, int nxhi_out) {
   
@@ -580,9 +580,9 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
     _thetai3.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
     _igrid.alloc(_max_thetai_size*4,*(this->ucl_device),UCL_READ_ONLY);
 
-    _fdip_phi1.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_WRITE_ONLY);
-    _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_WRITE_ONLY);
-    _fdip_sum_phi.alloc(_max_thetai_size*20,*(this->ucl_device),UCL_WRITE_ONLY);
+    _fdip_phi1.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
+    _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
+    _fdip_sum_phi.alloc(_max_thetai_size*20,*(this->ucl_device),UCL_READ_WRITE);
 
   } else {
     if (inum_full>_max_thetai_size) {
@@ -634,13 +634,33 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
   ucl_copy(_thetai3,dview,false);
 
   UCL_H_Vec<int> dview_int;
+  dview_int.alloc(inum_full*4, *(this->ucl_device));
   for (int i = 0; i < inum_full; i++) {
     int idx = i*4;
     dview_int[idx+0] = host_igrid[i][0];
     dview_int[idx+1] = host_igrid[i][1];
     dview_int[idx+2] = host_igrid[i][2];
   }
-  ucl_copy(_igrid,dview_int,false);
+  ucl_copy(_igrid, dview_int, false);
+
+  // update the cgrid_brick with data host
+  
+  _nzlo_out = nzlo_out;
+  _nzhi_out = nzhi_out;
+  _nylo_out = nylo_out;
+  _nyhi_out = nyhi_out;
+  _nxlo_out = nxlo_out;
+  _nxhi_out = nxhi_out;
+  _ngridz = nzhi_out - nzlo_out + 1;
+  _ngridy = nyhi_out - nylo_out + 1;
+  _ngridx = nxhi_out - nxlo_out + 1;
+  _num_grid_points = _ngridx * _ngridy * _ngridz;
+
+  UCL_H_Vec<double> dview_cgrid;
+  dview_cgrid.view(host_grid_brick_start, _num_grid_points*2, *(this->ucl_device));
+  _cgrid_brick.alloc(_num_grid_points*2, *(this->ucl_device), UCL_READ_ONLY);
+  ucl_copy(_cgrid_brick,dview_cgrid,false);
+
 }
 
 // ---------------------------------------------------------------------------
@@ -666,23 +686,6 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
     if (first_iteration) first_iteration = false;
   }
     
-  // update the cgrid_brick with data host
-  
-  _nzlo_out = nzlo_out;
-  _nzhi_out = nzhi_out;
-  _nylo_out = nylo_out;
-  _nyhi_out = nyhi_out;
-  _nxlo_out = nxlo_out;
-  _nxhi_out = nxhi_out;
-  _ngridz = nzhi_out - nzlo_out + 1;
-  _ngridy = nyhi_out - nylo_out + 1;
-  _ngridx = nxhi_out - nxlo_out + 1;
-  _num_grid_points = _ngridx*_ngridy*_ngridz*2;
-
-  UCL_H_Vec<double> dview;
-  dview.view(host_grid_brick_start,_num_grid_points,*(this->ucl_device));
-  ucl_copy(_cgrid_brick,dview,false);
-
   const int red_blocks = fphi_uind();
 
   _fdip_phi1.update_host(_max_thetai_size*10);
@@ -929,7 +932,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_udirect2b.set_function(*pair_program,kname_udirect2b);
   k_umutual2b.set_function(*pair_program,kname_umutual2b);
   k_polar.set_function(*pair_program,kname_polar);
-  k_fphi_uind.set_function(*pair_program,"kname_fphi_uind");
+  k_fphi_uind.set_function(*pair_program,"k_fphi_uind");
   k_short_nbor.set_function(*pair_program,kname_short_nbor);
   k_special15.set_function(*pair_program,kname_special15);
   pos_tex.get_texture(*pair_program,"pos_tex");

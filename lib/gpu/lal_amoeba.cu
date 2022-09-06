@@ -1714,7 +1714,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       v2 = thetai3[m][kb][2];
       v3 = thetai3[m][kb][3];
       */
-      int i3 = m*4*bsorder + 4*kb;
+      int i3 = i*4*bsorder + 4*kb;
       v0 = thetai3[i3];
       v1 = thetai3[i3]+1;
       v2 = thetai3[i3+2];
@@ -1750,7 +1750,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         u2 = thetai2[m][jb][2];
         u3 = thetai2[m][jb][3];
         */
-        int i2 = m*4*bsorder+4*jb;
+        int i2 = i*4*bsorder+4*jb;
         u0 = thetai2[i2];
         u1 = thetai2[i2+1];
         u2 = thetai2[i2+2];
@@ -1776,7 +1776,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
           t2_2 += tq_2*thetai1[m][ib][2];
           t3 += (tq_1+tq_2)*thetai1[m][ib][3];
           */
-          int i1 = m*4*bsorder+4*ib;
+          int i1 = i*4*bsorder+4*ib;
           numtyp w0 = thetai1[i1];
           numtyp w1 = thetai1[i1+1];
           numtyp w2 = thetai1[i1+2];

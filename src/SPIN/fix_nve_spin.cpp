@@ -431,22 +431,21 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
         }
       }
     }
-  } else if (sector_flag == 0) {                // serial seq. update
+  } else {                                      // serial seq. update
     comm->forward_comm();                       // comm. positions of ghost atoms
-    for (int i = 0; i < nlocal; i++) {           // advance quarter s for nlocal-1
+    for (int i = 0; i < nlocal; i++) {          // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i);
       }
     }
-    for (int i = nlocal-1; i >= 0; i--) {        // advance quarter s for nlocal-1
+    for (int i = nlocal-1; i >= 0; i--) {       // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i);
       }
     }
-  } else error->all(FLERR,"Illegal fix nve/spin command");
-
+  }
 }
 
 /* ----------------------------------------------------------------------

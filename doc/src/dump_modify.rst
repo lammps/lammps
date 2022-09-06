@@ -35,10 +35,10 @@ Syntax
        *element* args = E1 E2 ... EN, where N = # of atom types
          E1,...,EN = element name (e.g., C or Fe or Ga)
        *every* arg = N
-         N = dump every this many timesteps
+         N = dump on timesteps which are a multiple of N
          N can be a variable (see below)
        *every/time* arg = Delta
-         Delta = dump every this interval in simulation time (time units)
+         Delta = dump once every Delta interval of simulation time (time units)
          Delta can be a variable (see below)
        *fileper* arg = Np
          Np = write one file for every this many processors
@@ -207,13 +207,10 @@ will be accepted.
 ----------
 
 The *every* keyword can be used with any dump style except the *dcd*
-and *xtc* styles.  It does two things.  It specifies that the interval
-between dump snapshots will be set in timesteps, which is the default
-if the *every* or *every/time* keywords are not used.  See the
-*every/time* keyword for how to specify the interval in simulation
-time, i.e. in time units of the :doc:`units <units>` command.  The
-*every* keyword also sets the interval value, which overrides the dump
-frequency originally specified by the :doc:`dump <dump>` command.
+and *xtc* styles.  It specifies that the output of dump snapshots will
+now be performed on timesteps which are a multiple of a new :math:`N`
+value, This overrides the dump frequency originally specified by the
+:doc:`dump <dump>` command.
 
 The *every* keyword can be specified in one of two ways.  It can be a
 numeric value in which case it must be > 0.  Or it can be an
@@ -272,6 +269,17 @@ in file tmp.times:
    place of 101.
 
 ----------
+
+The *every/time* keyword can be used with any dump style except the
+*dcd* and *xtc* styles.  It changes the frequency of dump snapshots
+from being based on the current timestep to being determined by
+elapsed simulation time, i.e. in time units of the :doc:`units
+<units>` command, and specifies *Delta* for the interval between
+snapshots.  This can be useful when the timestep size varies during a
+simulation run, e.g. by use of the :doc:`fix dt/reset <fix_dt_reset>`
+command.  The default is to perform output on timesteps which a
+multiples of specified timestep value :math:`N`; see the *every*
+keyword.
 
 The *every/time* keyword can be used with any dump style except the
 *dcd* and *xtc* styles.  It does two things.  It specifies that the

@@ -198,8 +198,8 @@ Related commands
 """"""""""""""""
 
 :doc:`dump custom <dump>`, :doc:`compute reduce <compute_reduce>`,
-:doc::doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk
-:doc:<fix_ave_chunk>`, `fix property/atom <fix_property_atom>`
+:doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk`
+:doc:`<fix_ave_chunk>`, `fix property/atom <fix_property_atom>`
 
 Default
 """""""

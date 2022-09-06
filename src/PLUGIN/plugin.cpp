@@ -448,7 +448,7 @@ int plugin_get_num_plugins()
 int plugin_find(const char *style, const char *name)
 {
   int i = 0;
-  for (auto entry : pluginlist) {
+  for (const auto &entry : pluginlist) {
     if ((strcmp(style, entry.style) == 0) && (strcmp(name, entry.name) == 0)) return i;
     ++i;
   }

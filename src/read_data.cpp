@@ -337,8 +337,17 @@ void ReadData::command(int narg, char **arg)
     error->all(FLERR, "Cannot use read_data without add keyword after simulation box is defined");
   if (!domain->box_exist && addflag)
     error->all(FLERR, "Cannot use read_data add before simulation box is defined");
-  if (offsetflag && addflag == NONE)
-    error->all(FLERR, "Cannot use read_data offset without add keyword");
+  if (offsetflag) {
+    if (addflag == NONE) {
+      error->all(FLERR, "Cannot use read_data offset without add keyword");
+    } else {
+      if (atom->labelmapflag) {
+        if (comm->me == 0)
+          error->warning(FLERR, "Using read_data offset with a labelmap. Offsets will be only "
+                         "applied to numeric types and not to type labels");
+      }
+    }
+  }
   if (shiftflag && addflag == NONE)
     error->all(FLERR, "Cannot use read_data shift without add keyword");
   if (addflag != NONE &&

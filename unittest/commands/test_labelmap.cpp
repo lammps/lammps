@@ -56,6 +56,7 @@ TEST_F(LabelMapTest, Atoms)
 {
     EXPECT_EQ(atom->natoms, 0);
     EXPECT_EQ(domain->box_exist, 0);
+    EXPECT_EQ(atom->labelmapflag, 0);
     ASSERT_EQ(atom->lmap, nullptr);
     TEST_FAILURE(".*ERROR: Labelmap command before simulation box is.*",
                  command("labelmap atom 3 C1"););
@@ -66,8 +67,8 @@ TEST_F(LabelMapTest, Atoms)
     END_HIDE_OUTPUT();
     EXPECT_EQ(domain->box_exist, 1);
     EXPECT_EQ(atom->lmap, nullptr);
-    TEST_FAILURE(".*ERROR: Atom type string C1 cannot be used without a labelmap.*",
-                 utils::expand_type(FLERR, "C1", Atom::ATOM, lmp););
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(utils::expand_type(FLERR, "C1", Atom::ATOM, lmp), nullptr);
 
     BEGIN_HIDE_OUTPUT();
     command("labelmap atom 2 N1");
@@ -77,6 +78,7 @@ TEST_F(LabelMapTest, Atoms)
     command("mass N1 2.0");
     command("mass H1 4.0");
     END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
     ASSERT_NE(atom->lmap, nullptr);
     EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
     EXPECT_DOUBLE_EQ(atom->mass[1], 1.0);
@@ -182,6 +184,7 @@ TEST_F(LabelMapTest, Topology)
     EXPECT_EQ(atom->ndihedrals, 0);
     EXPECT_EQ(atom->nimpropers, 0);
     EXPECT_EQ(domain->box_exist, 0);
+    EXPECT_EQ(atom->labelmapflag, 0);
     ASSERT_EQ(atom->lmap, nullptr);
     TEST_FAILURE(".*ERROR: Labelmap command before simulation box is.*",
                  command("labelmap atom 3 C1"););
@@ -192,6 +195,7 @@ TEST_F(LabelMapTest, Topology)
     command("create_box 2 box bond/types 3 angle/types 2 dihedral/types 1 improper/types 1");
     command("labelmap atom 1 C1");
     END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
     ASSERT_NE(atom->lmap, nullptr);
     EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
     EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
@@ -233,7 +237,8 @@ TEST_F(LabelMapTest, Topology)
     command("labelmap clear");
     command("labelmap atom 1 C1");
     END_HIDE_OUTPUT();
-    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_EQ(atom->labelmapflag, 1);
+    ASSERT_NE(atom->lmap, nullptr);
     EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
     EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
     EXPECT_FALSE(atom->lmap->is_complete(Atom::ANGLE));

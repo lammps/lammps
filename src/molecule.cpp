@@ -115,6 +115,14 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   index = iarg;
 
+  if (atom->labelmapflag &&
+      ((toffset > 0) || (boffset > 0) || (aoffset > 0) || (doffset > 0) || (ioffset > 0))) {
+    if (comm->me == 0)
+      error->warning(FLERR,
+                     "Using molecule command with type offsets and a labelmap. "
+                     "Offsets will be only applied to numeric types and not to type labels");
+  }
+
   // last molecule if have scanned all args
 
   if (iarg == narg)

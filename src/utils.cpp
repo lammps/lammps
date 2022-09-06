@@ -777,7 +777,9 @@ static const char *labeltypes[] = {"Atom", "Bond", "Angle", "Dihedral", "Imprope
 char *utils::expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
 {
   if (!lmp) return nullptr;
-  const std::string typestr = utils::utf8_subst(str);
+  if (!lmp->atom->labelmapflag) return nullptr;
+
+  const std::string typestr = utils::utf8_subst(utils::trim(str));
   if (is_type(typestr) == 1) {
     if (!lmp->atom->labelmapflag)
       lmp->error->all(file, line, "{} type string {} cannot be used without a labelmap",

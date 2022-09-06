@@ -59,7 +59,7 @@ include this pair interaction and overlay the pair force over the bond
 force or to exclude this pair interaction such that the two particles
 only interact via the bond force. See discussion of the *overlay/pair*
 option for BPM bond styles and the :doc:`special_bonds <special_bonds>`
-command in the `:doc: how to <Howto_BPM>` page on BPMs for more details.
+command in the :doc:`how to <Howto_BPM>` page on BPMs for more details.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples

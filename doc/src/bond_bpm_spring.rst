@@ -143,7 +143,7 @@ This bond style writes the reference state of each bond to
 :doc:`binary restart files <restart>`. Loading a restart
 file will properly restore bonds. However, the reference state is NOT
 written to data files. Therefore reading a data file will not
-restore bonds which will recalculate their reference state.
+restore bonds and will cause their reference states to be redefined.
 
 The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these

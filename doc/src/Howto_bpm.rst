@@ -65,9 +65,9 @@ Various properties of bonds can be computed using the
 :doc:`compute property/bond <compute_property_bond>` command. This
 command allows one to access data saved to the bond's history
 such as the reference length of the bond. More information on
-historical data can be found on the documentation pages for the specific
-BPM bond styles. Finally, this data can be output using `dump local <dump>`.
-As one may output many columns from the same compute, the
+bond history data can be found on the documentation pages for the specific
+BPM bond styles. Finally, this data can be output using a :doc:`dump local <dump>`
+command. As one may output many columns from the same compute, the
 :doc:`dump modify <dump_modify>` *colname* option may be used to provide
 more helpful column names. An example of this procedure is found in
 /examples/bpm/pour/. External software, such as OVITO, can read these dump
@@ -80,13 +80,16 @@ As bonds can be broken between neighbor list builds, the
 bond styles. There are two possible settings which determine how pair
 interactions work between bonded particles.  First, one can overlay
 pair forces with bond forces such that all bonded particles also
-feel pair interactions. This can be accomplished by using the *overlay/pair* keyword present in all bpm bond styles and by using the following special bond settings
+feel pair interactions. This can be accomplished by using the *overlay/pair*
+keyword present in all bpm bond styles and by using the following special
+bond settings
 
    .. code-block:: LAMMPS
 
       special_bonds lj/coul 1 1 1
 
-Alternatively, one can turn off all pair interactions between bonded particles. Unlike :doc:`bond quartic <bond_quartic>`, this is not done
+Alternatively, one can turn off all pair interactions between bonded
+particles. Unlike :doc:`bond quartic <bond_quartic>`, this is not done
 by subtracting pair forces during the bond computation but rather by
 dynamically updating the special bond list. This is the default behavior
 of BPM bond styles and is done by updating the 1-2 special bond list as

@@ -179,7 +179,7 @@ This bond style writes the reference state of each bond to
 :doc:`binary restart files <restart>`. Loading a restart file will
 properly resume bonds. However, the reference state is NOT
 written to data files. Therefore reading a data file will not
-restore bonds which will recalculate their reference state.
+restore bonds and will cause their reference states to be redefined.
 
 The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
@@ -207,11 +207,12 @@ of a bonded interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the bonded interaction force.  However, the single() function also
 calculates 7 extra bond quantities.  The first 4 are data from the
-reference state of the bond including the magnitude :math:`r_0`
-followed by the :math:`x`, :math:`y`, and :math:`z` components of the
-initial unit vector pointing to particle I from particle J. The next 3
-(5-7) are the components of the total force, including normal and
-tangential contributions, acting on particle I.
+reference state of the bond including the initial distance between particles
+:math:`r_0` followed by the :math:`x`, :math:`y`, and :math:`z` components
+of the initial unit vector pointing to particle I from particle J. The next 3
+quantities (5-7) are the  :math:`x`, :math:`y`, and :math:`z` components
+of the total force, including normal and tangential contributions, acting
+on particle I.
 
 These extra quantities can be accessed by the :doc:`compute bond/local <compute_bond_local>`
 command, as *b1*, *b2*, ..., *b7*\ .

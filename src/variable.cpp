@@ -4378,7 +4378,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   } else if (strcmp(word,"label2type") == 0) {
     if (narg != 2) print_var_error(FLERR,"Invalid label2type() function syntax in variable formula",ivar);
-    
+
     if (!atom->labelmapflag)
       print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
 

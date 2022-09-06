@@ -1067,10 +1067,12 @@ void Dump::modify_params(int narg, char **arg)
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
         delete[] output->var_dump[idump];
         output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
+        output->last_dump[idump] = -1;
         n = 0;
       } else {
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR, "Invalid dump_modify every argument: {}", n);
+        output->next_dump[idump] = (update->ntimestep/n)*n+n;
       }
       output->mode_dump[idump] = 0;
       output->every_dump[idump] = n;
@@ -1134,7 +1136,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"colname") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);
       if (strcmp(arg[iarg+1],"default") == 0) {
-        for (auto item : keyword_user) item.clear();
+        for (auto &item : keyword_user) item.clear();
         iarg += 2;
       } else {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);

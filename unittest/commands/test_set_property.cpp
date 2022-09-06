@@ -316,7 +316,7 @@ TEST_F(SetTest, SpinPackage)
     constexpr double vx   = 0.1;
     constexpr double vy   = 0.5;
     constexpr double vz   = -0.1;
-    constexpr double norm = 1.0 / sqrt(vx * vx + vy * vy + vz * vz);
+    const double norm = 1.0 / sqrt(vx * vx + vy * vy + vz * vz);
     ASSERT_EQ(atom->sp[0][0], vx * norm);
     ASSERT_EQ(atom->sp[0][1], vy * norm);
     ASSERT_EQ(atom->sp[0][2], vz * norm);

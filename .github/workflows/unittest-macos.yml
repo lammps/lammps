@@ -3,9 +3,11 @@ name: "Unittest for MacOS"
 
 on:
   push:
-    branches: [ develop ]
+    branches:
+      - develop
   pull_request:
-    branches: [ $default-branch ]
+    branches:
+      - develop
 
   workflow_dispatch:
 

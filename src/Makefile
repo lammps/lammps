@@ -55,7 +55,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
-        bpm \
+    bpm \
 	brownian \
 	cg-dna \
 	cg-spica \
@@ -139,7 +139,8 @@ PACKAGE = \
 	dielectric \
 	electrode \
 	ml-iap \
-	phonon
+	phonon \
+	mspin
 
 # NOTE: the last four packages must remain at the end since
 # they depend on other packages to be installed first.

@@ -38,7 +38,7 @@
 using namespace std;
 using namespace LAMMPS_NS;
 
-static const char cite_fix_mspin_c[] = "rigid/mspin command: doi:10.1021/acs.jctc.1c01253\n\n"
+static const char cite_fix_mspin_c[] = "mspin package: doi:10.1021/acs.jctc.1c01253\n\n"
                                        "@Article{Mahmood22,\n"
                                        " author = {A.U. Mahmood and Y.G. Yingling},\n"
                                        " title = {All-Atom Simulation Method for Zeeman Alignment "
@@ -148,10 +148,10 @@ FixMspinNH::FixMspinNH(LAMMPS *lmp, int narg, char **arg) :
   bydx = bydz = 0.0;
   bzdx = bzdy = 0.0;
 
-  memory->create(mu, nbody, 3, "rigid:mu");
-  memory->create(dq, nbody, 3, "rigid:dq");
-  memory->create(qm, nbody, "rigid:qm");
-  memory->create(qmcount, nbody, "rigid:mspin_count");
+  memory->create(mu, nbody, 3, "mspin:mu");
+  memory->create(dq, nbody, 3, "mspin:dq");
+  memory->create(qm, nbody, "mspin:qm");
+  memory->create(qmcount, nbody, "mspin:mspin_count");
 
   // initialize constants/counts
   nsum = 0;
@@ -322,7 +322,7 @@ void FixMspinNH::calculate_dipoles(int initialize)
   for (int i = 0; i < nbody; i++) {
     // printf("Proc [%d]: qmcount[%d] %d\n", me, i, qmcount[i]);
     if (initialize && qmcount[i] != 2)
-      error->all(FLERR, "Fix rigid/mspin requires exactly 2 non-zero qm atoms per particle.");
+      error->all(FLERR, "Fix mspin requires exactly 2 non-zero qm atoms per particle.");
 
     // qmag charge in kilo-e/fs units, multiply by 1000
     mu[i][0] = 1000 * beta * qm[i] * dq[i][0];
@@ -529,8 +529,8 @@ double FixMspinNH::extract_distance(int ibody, int jbody)
   double jwrap[3];
 
   if (ibody > nbody or jbody > nbody)
-    error->all(FLERR, "Invalid molecule id for distance computation");
-  if (ibody == 0 or jbody == 0) error->all(FLERR, "Invalid molecule id for distance computation");
+    error->all(FLERR, "Invalid molecule id for mspin/distance compute");
+  if (ibody == 0 or jbody == 0) error->all(FLERR, "Invalid molecule id for mspin/distance compute");
 
   domain->unmap(xcm[ibody - 1], imagebody[ibody - 1], iwrap);
   domain->unmap(xcm[jbody - 1], imagebody[jbody - 1], jwrap);

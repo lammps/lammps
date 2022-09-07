@@ -24,7 +24,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(rigid/mspin/distance, ComputeMSDistance)
+ComputeStyle(mspin/distance, ComputeMSDistance)
 // clang-format on
 #else
 

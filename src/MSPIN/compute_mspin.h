@@ -24,7 +24,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(mspin, ComputeMspin)
+ComputeStyle(mspin/energy, ComputeMspin)
 // clang-format on
 #else
 

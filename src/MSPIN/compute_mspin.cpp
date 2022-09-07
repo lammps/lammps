@@ -34,7 +34,6 @@
 using namespace LAMMPS_NS;
 using namespace std;
 
-// @todo: change this into rigid/mspin/energy
 ComputeMspin::ComputeMspin(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg), rfix(NULL)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute mspin command.");
@@ -65,9 +64,9 @@ ComputeMspin::~ComputeMspin()
 void ComputeMspin::init()
 {
   irfix = modify->find_fix(rfix);
-  if (irfix < 0) error->all(FLERR, "Fix ID for compute mspin does not exist");
+  if (irfix < 0) error->all(FLERR, "Fix ID for compute mspin/energy does not exist");
 
-  if (strncmp(modify->fix[irfix]->style, "rigid/mspin", 11))
+  if (!utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t"))
     error->all(FLERR, "Compute mspin with non-mspin fix-ID");
 }
 
@@ -77,7 +76,7 @@ void ComputeMspin::compute_vector()
 
   invoked_vector = update->ntimestep;
 
-  if (strncmp(modify->fix[irfix]->style, "rigid/mspin", 11) == 0) {
+  if (utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t")) {
     zeeman = ((FixMspinNH *) modify->fix[irfix])->extract_zeeman_pe();
     dipolar = ((FixMspinNH *) modify->fix[irfix])->extract_dipolar_pe();
   }

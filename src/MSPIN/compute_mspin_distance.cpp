@@ -64,9 +64,9 @@ ComputeMSDistance::~ComputeMSDistance()
 void ComputeMSDistance::init()
 {
   irfix = modify->find_fix(rfix);
-  if (irfix < 0) error->all(FLERR, "Fix ID for compute mspin does not exist");
+  if (irfix < 0) error->all(FLERR, "Fix ID for compute mspin/distance does not exist");
 
-  if (strncmp(modify->fix[irfix]->style, "rigid/mspin", 11))
+  if (!utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t"))
     error->all(FLERR, "Compute mspin with non-mspin fix-ID");
 }
 
@@ -75,7 +75,7 @@ void ComputeMSDistance::compute_vector()
   double dist;
   invoked_vector = update->ntimestep;
 
-  if (strncmp(modify->fix[irfix]->style, "rigid/mspin", 11) == 0) {
+  if (utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t")) {
     dist = ((FixMspinNH *) modify->fix[irfix])->extract_distance(ibody, jbody);
   }
 

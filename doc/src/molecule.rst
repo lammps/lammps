@@ -470,11 +470,15 @@ This section is only needed when molecules created using the template
 will be constrained by SHAKE via the "fix shake" command.  The other
 two Shake sections must also appear in the file.
 
-The a,b,c values are bond types (from 1 to Nbondtypes) for all bonds
-in the SHAKE cluster that this atom belongs to.  The number of values
-that must appear is determined by the shake flag for the atom (see the
-Shake Flags section above).  All atoms in a particular cluster should
-list their a,b,c values identically.
+The a,b,c values are bond types for all bonds in the SHAKE cluster that
+this atom belongs to.  Bond types may be either numbers (from 1 to Nbondtypes)
+or bond type labels as defined by the :doc:`labelmap <labelmap>` command
+or a "Bond Type Labels" section of a data file.
+
+
+The number of values that must appear is determined by the shake flag
+for the atom (see the Shake Flags section above).  All atoms in a
+particular cluster should list their a,b,c values identically.
 
 If flag = 0, no a,b,c values are listed on the line, just the
 (ignored) ID.
@@ -482,8 +486,9 @@ If flag = 0, no a,b,c values are listed on the line, just the
 If flag = 1, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the second non-central atom (value c in the Shake Atoms section), and c =
-the angle type (1 to Nangletypes) of the angle between the 3 atoms.
+the second non-central atom (value c in the Shake Atoms section), and c
+= the angle type (1 to Nangletypes, or angle type label) of the angle
+between the 3 atoms.
 
 If flag = 2, only a is listed, where a = bondtype of the bond between
 the 2 atoms in the cluster.
@@ -496,9 +501,9 @@ and the second non-central atom (value c in the Shake Atoms section).
 If flag = 4, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the second non-central atom (value c in the Shake Atoms section), and c =
-bondtype of the bond between the central atom and the third non-central
-atom (value d in the Shake Atoms section).
+the second non-central atom (value c in the Shake Atoms section), and c
+= bondtype of the bond between the central atom and the third
+non-central atom (value d in the Shake Atoms section).
 
 See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.

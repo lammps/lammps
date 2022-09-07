@@ -80,7 +80,7 @@ void DumpAtom::init_style()
 
   int icol = 0;
   columns.clear();
-  for (auto item : utils::split_words(default_columns)) {
+  for (const auto &item : utils::split_words(default_columns)) {
     if (columns.size()) columns += " ";
     if (keyword_user[icol].size()) columns += keyword_user[icol];
     else columns += item;

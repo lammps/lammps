@@ -5293,7 +5293,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid math function in variable formula*
    Self-explanatory.
 
-*Invalid math/group/special/labelmap function in variable formula*
+*Invalid math/group/special function in variable formula*
    Self-explanatory.
 
 *Invalid option in lattice command for non-custom style*
@@ -5453,9 +5453,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Mass command must set a type from 1-N where N is the number of atom
    types.
 
-*Invalid type label in variable formula*
-   Argument of a labelmap function must be a valid type label that has
-   been assigned to a numeric type.
+*Invalid label2type() function syntax in variable formula*
+   The first argument must be a label map kind (atom, bond, angle,
+   dihedral, or improper) and the second argument must be a valid type
+   label that has been assigned to a numeric type.
 
 *Invalid use of library file() function*
    This function is called through the library interface.  This
@@ -7905,12 +7906,12 @@ keyword to allow for additional bonds to be formed
 *Two groups cannot be the same in fix spring couple*
    Self-explanatory.
 
-*Type label already exists: type labels must be unique*
+*The %s type label %s is already in use for type %s*
    For a given type-kind (atom types, bond types, etc.), a given type
    label can be assigned to only one numeric type.
 
-*Type labels cannot start with a number*
-   Self-explanatory.
+*Type label string %s for %s type %s is invalid*
+   See the labelmap command documentation for valid type labels.
 
 *Unable to initialize accelerator for use*
    There was a problem initializing an accelerator for the gpu package

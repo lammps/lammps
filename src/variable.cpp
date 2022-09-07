@@ -3953,6 +3953,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
   // parse contents for comma-separated args
   // narg = number of args, args = strings between commas
 
+  std::string contents_copy(contents); // for label2type
+
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
 
@@ -4377,15 +4379,17 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else argstack[nargstack++] = value;
 
   } else if (strcmp(word,"label2type") == 0) {
-    if (narg != 2) print_var_error(FLERR,"Invalid label2type() function syntax in variable formula",ivar);
-
     if (!atom->labelmapflag)
       print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
 
-    int value;
-    std::string kind = args[0];
-    std::string typestr = utils::trim(utils::utf8_subst(args[1]));
+    auto pos = contents_copy.find_first_of(',');
+    if (pos == std::string::npos)
+      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                       contents_copy), ivar);
+    std::string typestr = contents_copy.substr(pos+1);
+    std::string kind = contents_copy.substr(0, pos);
 
+    int value = -1;
     if (kind == "atom") {
       value = atom->lmap->find(typestr,Atom::ATOM);
     } else if (kind == "bond") {
@@ -4396,6 +4400,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       value = atom->lmap->find(typestr,Atom::DIHEDRAL);
     } else if (kind == "improper") {
       value = atom->lmap->find(typestr,Atom::IMPROPER);
+    } else {
+      print_var_error(FLERR, fmt::format("Invalid type kind {} in variable formula",kind), ivar);
     }
 
     if (value == -1)

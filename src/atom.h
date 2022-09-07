@@ -72,7 +72,7 @@ class Atom : protected Pointers {
   // charged and dipolar particles
 
   double *rmass;
-  double *q, **mu;
+  double *q, *qm, **mu;
 
   // finite-size particles
 
@@ -186,7 +186,7 @@ class Atom : protected Pointers {
   int wavepacket_flag, sph_flag;
 
   int molecule_flag, molindex_flag, molatom_flag;
-  int q_flag, mu_flag;
+  int q_flag, qm_flag, mu_flag;
   int rmass_flag, radius_flag, omega_flag, torque_flag, angmom_flag, quat_flag;
   int vfrac_flag, spin_flag, eradius_flag, ervel_flag, erforce_flag;
   int cs_flag, csforce_flag, vforce_flag, ervelforce_flag, etag_flag;

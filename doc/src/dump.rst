@@ -55,24 +55,24 @@ dump command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID style N file args
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
-* N = dump on timesteps which are a multiple of N
+* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *custom/adios* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
+* N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *atom* args = none
+       *atom/adios* args = none,  discussed on :doc:`dump atom/adios <dump_adios>` page
        *atom/gz* args = none
        *atom/zstd* args = none
        *atom/mpiio* args = none
-       *atom/adios* args = none,  discussed on :doc:`dump atom/adios <dump_adios>` page
        *cfg* args = same as *custom* args, see below
        *cfg/gz* args = same as *custom* args, see below
        *cfg/zstd* args = same as *custom* args, see below
@@ -224,7 +224,7 @@ page for details.
 
 The *atom/gz*, *cfg/gz*, *custom/gz*, *local/gz*, and *xyz/gz* styles
 are identical in command syntax to the corresponding styles without
-"gz", however, they generate compressed files using the zlib
+"gz," however, they generate compressed files using the zlib
 library. Thus the filename suffix ".gz" is mandatory. This is an
 alternative approach to writing compressed files via a pipe, as done
 by the regular dump styles, which may be required on clusters where
@@ -288,13 +288,13 @@ where xlo,xhi are the maximum extents of the simulation box in the
 :math:`x`-dimension, and similarly for :math:`y` and :math:`z`.  The
 "xx yy zz" terms are six characters that encode the style of boundary for each
 of the six simulation box boundaries (xlo,xhi; ylo,yhi; and zlo,zhi).  Each of
-the six characters is either p (periodic), f (fixed), s (shrink wrap),
-or m (shrink wrapped with a minimum value).  See the
+the six characters is one of *p* (periodic), *f* (fixed), *s* (shrink wrap),
+or *m* (shrink wrapped with a minimum value).  See the
 :doc:`boundary <boundary>` command for details.
 
 For triclinic simulation boxes (non-orthogonal), an orthogonal
 bounding box which encloses the triclinic simulation box is output,
-along with the 3 tilt factors (*xy*, *xz*, *yz*) of the triclinic box,
+along with the three tilt factors (*xy*, *xz*, *yz*) of the triclinic box,
 formatted as follows:
 
 .. parsed-literal::
@@ -333,8 +333,8 @@ added for each atom via dump_modify.
 Style *custom* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  Possible attributes are
 listed above and will appear in the order specified.  You cannot
-specify a quantity that is not defined for a particular simulation -
-such as *q* for atom style *bond*, since that atom style does not
+specify a quantity that is not defined for a particular simulation---such as
+*q* for atom style *bond*, since that atom style does not
 assign charges.  Dumps occur at the very end of a timestep, so atom
 attributes will include effects due to fixes that are applied during
 the timestep.  An explanation of the possible dump custom attributes
@@ -575,7 +575,7 @@ files.  You can use the ".bin" or ".lammpsbin" suffix described below in an
 MPI-IO dump file; again this file will be written in parallel and have the
 same binary format as if it were written without MPI-IO.
 
-If the filename ends with ".bin" or ".lammpsbin", the dump file (or files, if
+If the filename ends with ".bin" or ".lammpsbin," the dump file (or files, if
 "\*" or "%" is also used) is written in binary format.  A binary dump file
 will be about the same size as a text version, but will typically
 write out much faster.  Of course, when post-processing, you will need
@@ -584,7 +584,7 @@ write your own code to read the binary file.  The format of the binary file can
 be understood by looking at the :file:`tools/binary2txt.cpp` file.  This option
 is only available for the *atom* and *custom* styles.
 
-If the filename ends with ".gz", the dump file (or files, if "\*" or "%"
+If the filename ends with ".gz," the dump file (or files, if "\*" or "%"
 is also used) is written in gzipped format.  A gzipped dump file will be about
 :math:`3\times` smaller than the text version, but will also take longer
 to write.  This option is not available for the *dcd* and *xtc* styles.
@@ -692,10 +692,10 @@ of atom velocity and force and atomic charge.
 There are several options for outputting atom coordinates.  The *x*,
 *y*, and *z* attributes write atom coordinates "unscaled," in the
 appropriate distance :doc:`units <units>` (:math:`\mathrm{\mathring A}`,
-:math:`\sigma`, etc.).  Use *xs*, *ys*, *zs* if you want the coordinates
-"scaled" to the box size, so that each value is 0.0 to 1.0.  If the simulation
+:math:`\sigma`, etc.).  Use *xs*, *ys*, and *zs* if you want the coordinates
+"scaled" to the box size so that each value is 0.0 to 1.0.  If the simulation
 box is triclinic (tilted), then all atom coords will still be between 0.0 and
-1.0.  The  actual unscaled :math:`(x,y,z)` coordinate is
+1.0.  The actual unscaled :math:`(x,y,z)` coordinate is
 :math:`x_s a + y_s b + z_s c`, where :math:`(a,b,c)` are the non-orthogonal
 vectors of the simulation box edges, as discussed on the
 :doc:`Howto triclinic <Howto_triclinic>` page.
@@ -736,7 +736,7 @@ The *angmomx*, *angmomy*, and *angmomz* attributes are specific to
 finite-size aspherical particles that have an angular momentum.  Only
 the *ellipsoid* atom style defines this quantity.
 
-The *tqx*, *tqy*, *tqz* attributes are for finite-size particles that
+The *tqx*, *tqy*, and *tqz* attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
 particles.
 
@@ -775,8 +775,8 @@ If *f_ID* is used as a attribute, then the per-atom vector calculated
 by the fix is printed.  If *f_ID[i]* is used, then :math:`i` must be in the
 range from 1 to :math:`M`, which will print the :math:`i`\ th column of the
 per-atom array with :math:`M` columns calculated by the fix.  See the
-discussion above for how :math:`i` can be specified with a wildcard asterisk to
-effectively specify multiple values.
+discussion above for how :math:`i` can be specified with a wildcard asterisk
+to effectively specify multiple values.
 
 The *v_name* attribute allows per-atom vectors calculated by a
 :doc:`variable <variable>` to be output.  The name in the attribute

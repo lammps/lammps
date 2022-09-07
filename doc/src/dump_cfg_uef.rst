@@ -6,7 +6,7 @@ dump cfg/uef command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID cfg/uef N file mass type xs ys zs args
 
@@ -32,9 +32,8 @@ Description
 
 This command is used to dump atomic coordinates in the
 reference frame of the applied flow field when
-:doc:`fix nvt/uef <fix_nh_uef>` or
-:doc:`fix npt/uef <fix_nh_uef>` or is used. Only the atomic
-coordinates and frame-invariant scalar quantities
+:doc:`fix nvt/uef <fix_nh_uef>` or :doc:`fix npt/uef <fix_nh_uef>` is used.
+Only the atomic coordinates and frame-invariant scalar quantities
 will be in the flow frame. If velocities are selected
 as output, for example, they will not be in the same
 reference frame as the atomic positions.
@@ -43,7 +42,8 @@ Restrictions
 """"""""""""
 
 This fix is part of the UEF package. It is only enabled if LAMMPS
-was built with that package. See the :doc:`Build package <Build_package>` page for more info.
+was built with that package. See the :doc:`Build package <Build_package>`
+page for more info.
 
 This command can only be used when :doc:`fix nvt/uef <fix_nh_uef>`
 or :doc:`fix npt/uef <fix_nh_uef>` is active.

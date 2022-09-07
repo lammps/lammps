@@ -83,7 +83,8 @@ static void create_labelmap_files(const std::string &h2o_filename, const std::st
                             "Angles\n\n1 HO-OW-HO 2 1 3\n\n"
                             "Shake Flags\n\n1 1\n2 1\n3 1\n\n"
                             "Shake Atoms\n\n1 1 2 3\n2 1 2 3\n3 1 2 3\n\n"
-                            "Shake Bond Types\n\n1 OW-HO OW-HO HO-OW-HO\n2 OW-HO OW-HO HO-OW-HO\n3 OW-HO OW-HO HO-OW-HO\n\n"
+                            "Shake Bond Types\n\n1 OW-HO OW-HO HO-OW-HO\n2 OW-HO OW-HO HO-OW-HO\n3 "
+                            "OW-HO OW-HO HO-OW-HO\n\n"
                             "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
                             "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
     const char co2_file[] = "# CO2 molecule file. TraPPE model.\n\n"
@@ -320,12 +321,19 @@ TEST_F(MoleculeFileTest, labelmap)
     command("molecule h2onum moltest.h2o.mol");
     command("molecule co2num moltest.co2.mol offset 2 1 1 0 0");
     output = END_CAPTURE_OUTPUT();
+
+    auto mark   = output.find("WARNING");
+    auto first  = output.substr(0, mark);
+    mark        = output.find("Read molecule", mark);
+    auto second = output.substr(mark);
     ASSERT_THAT(
-        output,
+        first,
         ContainsRegex(".*Read molecule template h2onum:.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
-                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"
-                      ".*Read molecule template co2num:.*\n.*1 molecules.*\n"
+                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"));
+    ASSERT_THAT(
+        second,
+        ContainsRegex(".*Read molecule template co2num:.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     ASSERT_EQ(lmp->atom->nmolecule, 4);

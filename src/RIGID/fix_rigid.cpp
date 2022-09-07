@@ -544,7 +544,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
-    } else error->all(FLERR,"Illegal fix rigid command");
+    }
+    iarg++; // allow additional arguments for the derived classes (eg. MSPIN)
   }
 
   // set pstat_flag

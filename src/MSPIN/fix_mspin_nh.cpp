@@ -184,17 +184,17 @@ FixMspinNH::FixMspinNH(LAMMPS *lmp, int narg, char **arg) :
     if (zeeman_flag == 1) {
       if (uniform_field == 0) {
         if (screen)
-          fprintf(screen, "  non-uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(screen, "  non-uniform external B field %lf %lf %lf T applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
         if (logfile)
-          fprintf(logfile, "  non-uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(logfile, "  non-uniform external B field %lf %lf %lf T applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
       } else {
         if (screen)
-          fprintf(screen, "  uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(screen, "  uniform external B field %lf %lf %lf T applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
         if (logfile)
-          fprintf(logfile, "  uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(logfile, "  uniform external B field %lf %lf %lf T applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
       }
     }

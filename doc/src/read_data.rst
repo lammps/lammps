@@ -166,8 +166,8 @@ that attribute (e.g. no bonds).
 
 .. note::
 
-   Offsets are **ignored** for any data file lines using type labels, as
-   the type labels will determine the actual types depending on the
+   Offsets are **ignored** on lines using type labels, as the type
+   labels will determine the actual types directly depending on the
    current :doc:`labelmap <labelmap>` settings.
 
 The *shift* keyword can be used to specify an (Sx, Sy, Sz)
@@ -233,22 +233,27 @@ The file will be read line by line, but there is a limit of 254
 characters per line and characters beyond that limit will be ignored.
 
 A data file has a header and a body.  The header appears first.  The
-first line of the header is always skipped; it typically contains a
-description of the file.  Then lines are read one at a time.  Lines
-can have a trailing comment starting with '#' that is ignored.  If the
-line is blank (only white-space after comment is deleted), it is
-skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it does not contain a header
-keyword, the line begins the body of the file.
+first line of the header and thus of the data file is *always* skipped;
+it typically contains a description of the file or a comment from the
+software that created the file.
 
-The body of the file contains zero or more sections.  The first line
-of a section has only a keyword.  This line can have a trailing
-comment starting with '#' that is either ignored or can be used to
-check for a style match, as described below.  The next line is
-skipped.  The remaining lines of the section contain values.  The
-number of lines depends on the section keyword as described below.
-Zero or more blank lines can be used between sections.  Sections can
-appear in any order, with a few exceptions as noted below.
+Then lines are read one line at a time.  Lines can have a trailing
+comment starting with '#' that is ignored.  There *must* be at least one
+blank between any valid content and the comment. If a line is blank
+(i.e. contains only white-space after comments are deleted), it is
+skipped.  If the line contains a header keyword, the corresponding
+value(s) is/are read from the line.  A line that is *not* blank and does
+*not* contain a header keyword begins the body of the file.
+
+The body of the file contains zero or more sections.  The first line of
+a section has only a keyword.  This line can have a trailing comment
+starting with '#' that is either ignored or can be used to check for a
+style match, as described below.  There must be a blank between the
+keyword and any comment. The *next* line is *always* skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used *between* sections.  Sections can appear in any order,
+with a few exceptions as noted below.
 
 The keyword *fix* can be used one or more times.  Each usage specifies
 a fix that will be used to process a specific portion of the data
@@ -510,7 +515,8 @@ section is described including the number of lines it must contain and
 rules (if any) for where it can appear in the data file.
 
 Any individual line in the various sections can have a trailing
-comment starting with "#" for annotation purposes.  E.g. in the
+comment starting with "#" for annotation purposes. There must be at least
+one blank between valid content and the comment. E.g. in the
 Atoms section:
 
 .. parsed-literal::
@@ -1324,7 +1330,7 @@ The *Lines* section must appear after the *Atoms* section.
 
   .. parsed-literal::
 
-       ID = atom type (1-N)
+       ID = atom type (1-N or atom type label)
        mass = mass value
 
 * example:
@@ -1337,6 +1343,13 @@ This defines the mass of each atom type.  This can also be set via the
 :doc:`mass <mass>` command in the input script.  This section cannot be
 used for atom styles that define a mass for individual atoms -
 e.g. :doc:`atom_style sphere <atom_style>`.
+
+Using type labels instead of atom type numbers is only allowed if the
+type label has been defined by the :doc:`labelmap <labelmap>` command or
+a Atom Type Labels section earlier in the data file.  See the
+:doc:`Howto type labels <Howto_type_labels>` doc page for the allowed
+syntax of type labels and a general discussion of how type labels can be
+used.
 
 ----------
 

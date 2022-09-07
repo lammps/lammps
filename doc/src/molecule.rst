@@ -91,8 +91,8 @@ use that attribute (e.g. no bonds).
 
 .. note::
 
-   Offsets are **ignored** if the molecule file lines using type labels,
-   as the type labels will determine the actual types depending on the
+   Offsets are **ignored** on lines using type labels, as the type
+   labels will determine the actual types directly depending on the
    current :doc:`labelmap <labelmap>` settings.
 
 The *scale* keyword scales the size of the molecule.  This can be
@@ -125,14 +125,18 @@ The format of an individual molecule file is similar but
 (not identical) to the data file read by the :doc:`read_data <read_data>`
 commands, and is as follows.
 
-A molecule file has a header and a body.  The header appears first.
-The first line of the header is always skipped; it typically contains
-a description of the file.  Then lines are read one at a time.  Lines
-can have a trailing comment starting with '#' that is ignored.  If the
-line is blank (only white-space after comment is deleted), it is
+A molecule file has a header and a body.  The header appears first.  The
+first line of the header and thus of the molecule file is *always* skipped;
+it typically contains a description of the file or a comment from the software
+that created the file.
+
+Then lines are read one line at a time.  Lines can have a trailing
+comment starting with '#' that is ignored.  There *must* be at least one
+blank between any valid content and the comment.  If the line is blank
+(i.e. contains only white-space after comments are deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it does not contain a header
-keyword, the line begins the body of the file.
+value(s) is/are read from the line.  A line that is *not* blank and does
+*not* contains a header keyword begins the body of the file.
 
 The body of the file contains zero or more sections.  The first line
 of a section has only a keyword.  The next line is skipped.  The

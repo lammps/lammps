@@ -117,6 +117,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *peri*       | mass, volume                                        | mesoscopic Peridynamic models        |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *qmag*       | molecular + electronic charge + magnetic charge     | magnetic nanoparticles               |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *smd*        | volume, kernel diameter, contact radius, mass       | solid and fluid SPH particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *sph*        | rho, esph, cv                                       | SPH particles                        |
@@ -248,6 +250,10 @@ individual physical bodies from penetrating each other.
 For the *spin* style, a magnetic spin is associated to each atom.
 Those spins have a norm (their magnetic moment) and a direction.
 
+For the *qmag* style, a magnetic charge is associated to each atom.
+The atoms having non-zero magnetic charges are used to define a
+magnetic dipole moment inside the core of a magnetic nanoparticle.
+
 The *wavepacket* style is similar to *electron*, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
 cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
@@ -378,6 +384,8 @@ hydrodynamics (SPH).  See `this PDF guide
 <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
 The *mesont* style is part of the MESONT package.
+
+The *qmag* style is part of the MSPIN package.
 
 The *spin* style is part of the SPIN package.
 

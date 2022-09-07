@@ -159,8 +159,8 @@ FixMspinNH::FixMspinNH(LAMMPS *lmp, int narg, char **arg) :
 
   if (me == 0) {
 
-    if (screen) fprintf(screen, "MSPIN\n");
-    if (logfile) fprintf(logfile, "MSPIN\n");
+    if (screen) fprintf(screen, "\nMSPIN initialization ...\n");
+    if (logfile) fprintf(logfile, "\nMSPIN initialization ...\n");
 
     if (nbody == 1 && dipolar_flag == 1) {
       if (screen) fprintf(screen, "  only 1 rigid body found, turning off dipolar interaction\n");
@@ -339,8 +339,8 @@ void FixMspinNH::calculate_dipoles(int initialize)
       // print as kilo-e units
       double m = sqrt(mu[i][0] * mu[i][0] + mu[i][1] * mu[i][1] + mu[i][2] * mu[i][2]) / 1000.0;
 
-      if (screen) fprintf(screen, "MSPIN\n");
-      if (logfile) fprintf(logfile, "MSPIN\n");
+      if (i == 0 && screen)   fprintf(screen, "\nMSPIN magnetic dipoles ...\n");
+      if (i == 0 && logfile)  fprintf(logfile, "\nMSPIN magnetic dipoles ...\n");
 
       if (screen)
         fprintf(screen, "  Dipole %d: qm = %lf Ke/fs A\td = %lf A\tmu = %lf Ke/fs A^2\n", i + 1,

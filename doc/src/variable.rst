@@ -964,9 +964,9 @@ via the link in this paragraph.
 
 The label2type() function converts type labels into numeric types, using label
 maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
-commands.  The first argument must be label map kind (atom, bond, angle,
-dihedral, or improper) and the second argument the label.  Iwill return
-the corresponding integer numeric type.
+commands.  The first argument is the label map kind (atom, bond, angle,
+dihedral, or improper) and the second argument is the label.  The function
+returns the corresponding numeric type.
 
 ----------
 

@@ -159,39 +159,42 @@ FixMspinNH::FixMspinNH(LAMMPS *lmp, int narg, char **arg) :
 
   if (me == 0) {
 
+    if (screen) fprintf(screen, "MSPIN\n");
+    if (logfile) fprintf(logfile, "MSPIN\n");
+
     if (nbody == 1 && dipolar_flag == 1) {
-      if (screen) fprintf(screen, "\tonly 1 rigid body found, turning off dipolar interaction\n");
-      if (logfile) fprintf(logfile, "\tonly 1 rigid body found, turning off dipolar interaction\n");
+      if (screen) fprintf(screen, "  only 1 rigid body found, turning off dipolar interaction\n");
+      if (logfile) fprintf(logfile, "  only 1 rigid body found, turning off dipolar interaction\n");
 
       dipolar_flag = 0;
     }
 
     if (dipolar_flag == 1) {
       if (screen)
-        fprintf(screen, "\timplementing magnetic dipolar interactions with cutoff %f A\n",
+        fprintf(screen, "  implementing magnetic dipolar interactions with cutoff %f A\n",
                 dipole_cutoff);
       if (logfile)
-        fprintf(logfile, "\timplementing magnetic dipolar interactions with cutoff %f A\n",
+        fprintf(logfile, "  implementing magnetic dipolar interactions with cutoff %f A\n",
                 dipole_cutoff);
 
-      if (screen) fprintf(screen, "\tdipolar interaction scaling factor alpha %f\n", alpha);
-      if (logfile) fprintf(logfile, "\tdipolar interaction scaling factor alpha %f\n", alpha);
+      if (screen) fprintf(screen, "  dipolar interaction scaling factor alpha %f\n", alpha);
+      if (logfile) fprintf(logfile, "  dipolar interaction scaling factor alpha %f\n", alpha);
     }
 
     if (zeeman_flag == 1) {
       if (uniform_field == 0) {
         if (screen)
-          fprintf(screen, "\tnon-uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(screen, "  non-uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
         if (logfile)
-          fprintf(logfile, "\tnon-uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(logfile, "  non-uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
       } else {
         if (screen)
-          fprintf(screen, "\tuniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(screen, "  uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
         if (logfile)
-          fprintf(logfile, "\tuniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
+          fprintf(logfile, "  uniform external B field %lf %lf %lf applied\n", bxdx / qb2f,
                   bydy / qb2f, bzdz / qb2f);
       }
     }
@@ -200,15 +203,15 @@ FixMspinNH::FixMspinNH(LAMMPS *lmp, int narg, char **arg) :
       if (screen)
         fprintf(
             screen,
-            "\tboth zeeman and dipolar interaction is off, dynamics will be same as rigid/nh\n");
+            "  both zeeman and dipolar interaction is off, dynamics will be same as rigid/nh\n");
       if (logfile)
         fprintf(
             logfile,
-            "\tboth zeeman and dipolar interaction is off, dynamics will be same as rigid/nh\n");
+            "  both zeeman and dipolar interaction is off, dynamics will be same as rigid/nh\n");
     }
 
-    if (screen) fprintf(screen, "\tdipole moment scaling factor beta %f\n", beta);
-    if (logfile) fprintf(logfile, "\tdipole moment scaling factor beta %f\n", beta);
+    if (screen) fprintf(screen, "  dipole moment scaling factor beta %f\n", beta);
+    if (logfile) fprintf(logfile, "  dipole moment scaling factor beta %f\n", beta);
   }
 }
 
@@ -321,7 +324,8 @@ void FixMspinNH::calculate_dipoles(int initialize)
 
   for (int i = 0; i < nbody; i++) {
     if (initialize && qmcount[i] != 2)
-      error->all(FLERR, "Fix mspin requires exactly 2 non-zero qm atoms per particle, found: {}", qmcount[i]);
+      error->all(FLERR, "Fix mspin requires exactly 2 non-zero qm atoms per particle, found: {}",
+                 qmcount[i]);
 
     // qmag charge in kilo-e/fs units, multiply by 1000
     mu[i][0] = 1000 * beta * qm[i] * dq[i][0];
@@ -335,17 +339,20 @@ void FixMspinNH::calculate_dipoles(int initialize)
       // print as kilo-e units
       double m = sqrt(mu[i][0] * mu[i][0] + mu[i][1] * mu[i][1] + mu[i][2] * mu[i][2]) / 1000.0;
 
+      if (screen) fprintf(screen, "MSPIN\n");
+      if (logfile) fprintf(logfile, "MSPIN\n");
+
       if (screen)
-        fprintf(screen, "\tDipole %d: qm = %lf Ke/fs A\td = %lf A\tmu = %lf Ke/fs A^2\n", i + 1,
+        fprintf(screen, "  Dipole %d: qm = %lf Ke/fs A\td = %lf A\tmu = %lf Ke/fs A^2\n", i + 1,
                 qm[i], d, m);
       if (logfile)
-        fprintf(logfile, "\tDipole %d: qm = %lf Ke/fs A\td = %lf A\tmu = %lf Ke/fs A^2\n", i + 1,
+        fprintf(logfile, "  Dipole %d: qm = %lf Ke/fs A\td = %lf A\tmu = %lf Ke/fs A^2\n", i + 1,
                 qm[i], d, m);
       if (screen)
-        fprintf(screen, "\tEffective dipole moment [%d]:\tbeta * mu = %lf x 10^-21 A m^2\n", i + 1,
+        fprintf(screen, "  Effective dipole moment [%d]:\tbeta * mu = %lf x 10^-21 A m^2\n", i + 1,
                 m * beta * 1.6022);
       if (logfile)
-        fprintf(logfile, "\tEffective dipole moment [%d]:\tbeta * mu = %lf x 10^-21 A m^2\n", i + 1,
+        fprintf(logfile, "  Effective dipole moment [%d]:\tbeta * mu = %lf x 10^-21 A m^2\n", i + 1,
                 m * beta * 1.6022);
     }
   }

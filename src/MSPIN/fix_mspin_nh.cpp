@@ -320,9 +320,8 @@ void FixMspinNH::calculate_dipoles(int initialize)
   if (initialize) MPI_Allreduce(MPI_IN_PLACE, &qmcount[0], nbody, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
   for (int i = 0; i < nbody; i++) {
-    // printf("Proc [%d]: qmcount[%d] %d\n", me, i, qmcount[i]);
     if (initialize && qmcount[i] != 2)
-      error->all(FLERR, "Fix mspin requires exactly 2 non-zero qm atoms per particle.");
+      error->all(FLERR, "Fix mspin requires exactly 2 non-zero qm atoms per particle, found: {}", qmcount[i]);
 
     // qmag charge in kilo-e/fs units, multiply by 1000
     mu[i][0] = 1000 * beta * qm[i] * dq[i][0];

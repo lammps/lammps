@@ -41,44 +41,31 @@ AtomVecQMag::AtomVecQMag(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "q qm molecule num_bond bond_type bond_atom "
-                         "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-                         "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-                         "dihedral_atom3 dihedral_atom4 "
-                         "num_improper improper_type improper_atom1 improper_atom2 "
-                         "improper_atom3 improper_atom4 "
-                         "nspecial special";
-  fields_copy = (char *) "q qm molecule num_bond bond_type bond_atom "
-                         "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-                         "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-                         "dihedral_atom3 dihedral_atom4 "
-                         "num_improper improper_type improper_atom1 improper_atom2 "
-                         "improper_atom3 improper_atom4 "
-                         "nspecial special";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "q qm molecule";
-  fields_border_vel = (char *) "q qm molecule";
-  fields_exchange = (char *) "q qm molecule num_bond bond_type bond_atom "
-                             "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-                             "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-                             "dihedral_atom3 dihedral_atom4 "
-                             "num_improper improper_type improper_atom1 improper_atom2 "
-                             "improper_atom3 improper_atom4 "
-                             "nspecial special";
-  fields_restart = (char *) "q qm molecule num_bond bond_type bond_atom "
-                            "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-                            "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-                            "dihedral_atom3 dihedral_atom4 "
-                            "num_improper improper_type improper_atom1 improper_atom2 "
-                            "improper_atom3 improper_atom4";
-  fields_create = (char *) "q qm molecule num_bond num_angle num_dihedral num_improper nspecial";
-
-  // format in the lammps data file, order matters
-  fields_data_atom = (char *) "id molecule type q x qm";
-  fields_data_vel = (char *) "id v";
-
+  // clang-format off
+  fields_grow = {"q", "qm", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle", "angle_type",
+    "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
+    "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
+    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+  fields_copy = {"q", "qm", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle", "angle_type",
+    "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
+    "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
+    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+  fields_border = {"q", "qm", "molecule"};
+  fields_border_vel = {"q", "qm", "molecule"};
+  fields_exchange = {"q", "qm", "molecule", "num_bond", "bond_type", "bond_atom",
+    "num_angle", "angle_type", "angle_atom1", "angle_atom2", "angle_atom3",
+    "num_dihedral", "dihedral_type", "dihedral_atom1", "dihedral_atom2",
+    "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type", "improper_atom1",
+    "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+ fields_restart = {"q", "qm", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle",
+   "angle_type", "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type",
+   "dihedral_atom1", "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper",
+   "improper_type", "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4"};
+  fields_create = {"q", "qm", "molecule", "num_bond", "num_angle",
+    "num_dihedral", "num_improper", "nspecial"};
+  fields_data_atom = {"id", "molecule", "type", "q", "qm", "x"};
+  fields_data_vel = {"id", "v"};
+  // clang-format on
   setup_fields();
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;

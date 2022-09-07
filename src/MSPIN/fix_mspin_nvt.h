@@ -24,7 +24,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(mspin/nvt, FixMspinNVT)
+FixStyle(rigid/nvt/mspin, FixMspinNVT)
 // clang-format on
 #else
 

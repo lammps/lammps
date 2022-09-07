@@ -49,8 +49,8 @@ ComputeMSDistance::ComputeMSDistance(LAMMPS *lmp, int narg, char **arg) :
   rfix = new char[n];
   strcpy(rfix, arg[3]);
 
-  ibody = utils::inumeric(FLERR, arg[4], false, lmp) - 1;
-  jbody = utils::inumeric(FLERR, arg[5], false, lmp) - 1;
+  ibody = utils::inumeric(FLERR, arg[4], false, lmp);
+  jbody = utils::inumeric(FLERR, arg[5], false, lmp);
 
   memory->create(vector, size_vector, "compute/mspin:distance");
 }

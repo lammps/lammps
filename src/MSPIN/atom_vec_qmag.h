@@ -61,7 +61,3 @@ class AtomVecQMag : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

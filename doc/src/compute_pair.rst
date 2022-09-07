@@ -6,7 +6,7 @@ compute pair command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID pair pstyle [nstyle] [evalue]
 
@@ -74,7 +74,7 @@ Output info
 
 This compute calculates a global scalar which is *epair* or *evdwl* or
 *ecoul*\ .  If the pair style supports it, it also calculates a global
-vector of length >= 1, as determined by the pair style.  These values
+vector of length :math:`\ge` 1, as determined by the pair style.  These values
 can be used by any command that uses global scalar or vector values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.

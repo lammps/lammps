@@ -23,7 +23,7 @@ CommandStyle(read_data,ReadData);
 #include "command.h"
 
 namespace LAMMPS_NS {
-
+class Fix;
 class ReadData : public Command {
  public:
   ReadData(class LAMMPS *);
@@ -73,7 +73,7 @@ class ReadData : public Command {
   int groupbit;
 
   int nfix;
-  int *fix_index;
+  Fix **fix_index;
   char **fix_header;
   char **fix_section;
 
@@ -108,7 +108,7 @@ class ReadData : public Command {
   void dihedralcoeffs(int);
   void impropercoeffs(int);
 
-  void fix(int, char *);
+  void fix(Fix *, char *);
 };
 
 }    // namespace LAMMPS_NS

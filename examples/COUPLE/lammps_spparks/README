@@ -31,7 +31,7 @@ spkpath.h           contains path to SPPARKS home directory
 After editing the Makefile, lmppath.h, and spkpath.h to make them
 suitable for your box, type:
 
-g++ -f Makefile.g++
+make -f Makefile.g++
 
 and you should get the lmpspk executable.
 

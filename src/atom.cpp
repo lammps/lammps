@@ -480,7 +480,7 @@ void Atom::peratom_create()
 
   // EFF package
 
-  add_peratom("spin",&spin,INT,0);
+  add_peratom("espin",&spin,INT,0);
   add_peratom("eradius",&eradius,DOUBLE,0);
   add_peratom("ervel",&ervel,DOUBLE,0);
   add_peratom("erforce",&erforce,DOUBLE,0,1);     // set per-thread flag
@@ -758,6 +758,21 @@ void Atom::setup()
   // cannot do this in init() because uses neighbor cutoff
 
   if (sortfreq > 0) setup_sort_bins();
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Atom::get_style()
+{
+  std::string retval = atom_style;
+  if (retval == "hybrid") {
+    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
+    for (int i = 0; i < avec_hybrid->nstyles; i++) {
+      retval += ' ';
+      retval += avec_hybrid->keywords[i];
+    }
+  }
+  return retval;
 }
 
 /* ----------------------------------------------------------------------
@@ -1891,13 +1906,24 @@ void Atom::add_molecule(int narg, char **arg)
    return -1 if does not exist
 ------------------------------------------------------------------------- */
 
-int Atom::find_molecule(char *id)
+int Atom::find_molecule(const char *id)
 {
   if (id == nullptr) return -1;
-  int imol;
-  for (imol = 0; imol < nmolecule; imol++)
+  for (int imol = 0; imol < nmolecule; imol++)
     if (strcmp(id,molecules[imol]->id) == 0) return imol;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return vector of molecules which match template ID
+------------------------------------------------------------------------- */
+
+std::vector<Molecule *>Atom::get_molecule_by_id(const std::string &id)
+{
+  std::vector<Molecule *> result;
+  for (int imol = 0; imol < nmolecule; ++imol)
+    if (id == molecules[imol]->id) result.push_back(molecules[imol]);
+  return result;
 }
 
 /* ----------------------------------------------------------------------
@@ -1912,8 +1938,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
   if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
   else if (rmass_flag)
-    rmass[ilocal] = 4.0*MY_PI/3.0 *
-      radius[ilocal]*radius[ilocal]*radius[ilocal];
+    rmass[ilocal] = 4.0*MY_PI/3.0 * radius[ilocal]*radius[ilocal]*radius[ilocal];
   if (onemol->bodyflag) {
     body[ilocal] = 0;     // as if a body read from data file
     onemol->avec_body->data_body(ilocal,onemol->nibody,onemol->ndbody,
@@ -1923,10 +1948,8 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 
   // initialize custom per-atom properties to zero if present
 
-  for (int i = 0; i < nivector; ++i)
-    ivector[i][ilocal] = 0;
-  for (int i = 0; i < ndvector; ++i)
-    dvector[i][ilocal] = 0.0;
+  for (int i = 0; i < nivector; ++i) ivector[i][ilocal] = 0;
+  for (int i = 0; i < ndvector; ++i) dvector[i][ilocal] = 0.0;
   for (int i = 0; i < niarray; ++i)
     for (int j = 0; j < icols[i]; ++j)
       iarray[i][ilocal][j] = 0;
@@ -2683,7 +2706,8 @@ void *Atom::extract(const char *name)
 
   // EFF and AWPMD packages
 
-  if (strcmp(name,"spin") == 0) return (void *) spin;
+  if (strcmp(name,"espin") == 0) return (void *) spin;
+  if (strcmp(name,"spin") == 0) return (void *) spin;  // backward compatibility
   if (strcmp(name,"eradius") == 0) return (void *) eradius;
   if (strcmp(name,"ervel") == 0) return (void *) ervel;
   if (strcmp(name,"erforce") == 0) return (void *) erforce;
@@ -2807,7 +2831,8 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE_2D;
 
-  if (strcmp(name,"spin") == 0) return LAMMPS_INT;
+  if (strcmp(name,"espin") == 0) return LAMMPS_INT;
+  if (strcmp(name,"spin") == 0) return LAMMPS_INT;   // backwards compatibility
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;

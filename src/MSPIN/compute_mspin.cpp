@@ -66,7 +66,7 @@ void ComputeMspin::init()
   irfix = modify->find_fix(rfix);
   if (irfix < 0) error->all(FLERR, "Fix ID for compute mspin/energy does not exist");
 
-  if (!utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t"))
+  if (!utils::strmatch(modify->fix[irfix]->style,"^rigid/n.t/mspin"))
     error->all(FLERR, "Compute mspin with non-mspin fix-ID");
 }
 
@@ -76,7 +76,7 @@ void ComputeMspin::compute_vector()
 
   invoked_vector = update->ntimestep;
 
-  if (utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t")) {
+  if (utils::strmatch(modify->fix[irfix]->style,"^rigid/n.t/mspin")) {
     zeeman = ((FixMspinNH *) modify->fix[irfix])->extract_zeeman_pe();
     dipolar = ((FixMspinNH *) modify->fix[irfix])->extract_dipolar_pe();
   }

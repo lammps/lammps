@@ -38,7 +38,7 @@ using namespace std;
 ComputeMSDistance::ComputeMSDistance(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), rfix(NULL)
 {
-  if (narg != 6) error->all(FLERR, "Illegal compute rigid/mspin/distance command.");
+  if (narg != 6) error->all(FLERR, "Illegal compute mspin/distance command.");
 
   vector_flag = 1;
   size_vector = 1;
@@ -66,7 +66,7 @@ void ComputeMSDistance::init()
   irfix = modify->find_fix(rfix);
   if (irfix < 0) error->all(FLERR, "Fix ID for compute mspin/distance does not exist");
 
-  if (!utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t"))
+  if (!utils::strmatch(modify->fix[irfix]->style,"^rigid/n.t/mspin"))
     error->all(FLERR, "Compute mspin with non-mspin fix-ID");
 }
 
@@ -75,7 +75,7 @@ void ComputeMSDistance::compute_vector()
   double dist;
   invoked_vector = update->ntimestep;
 
-  if (utils::strmatch(modify->fix[irfix]->style,"^mspin/n.t")) {
+  if (utils::strmatch(modify->fix[irfix]->style,"^rigid/n.t/mspin")) {
     dist = ((FixMspinNH *) modify->fix[irfix])->extract_distance(ibody, jbody);
   }
 

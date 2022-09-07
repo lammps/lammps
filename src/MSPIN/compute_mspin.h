@@ -23,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(mspin, ComputeMspin)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MSPIN_H

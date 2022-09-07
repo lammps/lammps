@@ -23,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(rigid / mspin / distance, ComputeMSDistance)
-
+// clang-format off
+ComputeStyle(rigid/mspin/distance, ComputeMSDistance)
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MSPIN_DISTANCE_H

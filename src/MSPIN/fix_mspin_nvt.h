@@ -23,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rigid / mspin, FixMspinNVT)
-
+// clang-format off
+FixStyle(rigid/mspin, FixMspinNVT)
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MSPIN_NVT_H

@@ -63,7 +63,7 @@ AtomVecQMag::AtomVecQMag(LAMMPS *lmp) : AtomVec(lmp)
    "improper_type", "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4"};
   fields_create = {"q", "qm", "molecule", "num_bond", "num_angle",
     "num_dihedral", "num_improper", "nspecial"};
-  fields_data_atom = {"id", "molecule", "type", "q", "qm", "x"};
+  fields_data_atom = {"id", "molecule", "type", "q", "x", "qm"};
   fields_data_vel = {"id", "v"};
   // clang-format on
   setup_fields();

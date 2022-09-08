@@ -279,11 +279,10 @@ void FixMspinNH::post_force(int vflag)
 void FixMspinNH::calculate_dipoles(int initialize)
 {
   int ibody;
-  double *q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
   imageint *image = atom->image;
-  double unwrap[3];
+  double q, unwrap[3];
 
   // reset global arrays
   for (int i = 0; i < nbody; i++) {
@@ -311,14 +310,14 @@ void FixMspinNH::calculate_dipoles(int initialize)
     domain->unmap(x[i], image[i], unwrap);
 
     // atom has qm defined and +ve
-    if (q[i] > 0) {
-      qm[ibody] = q[i];    // we take the +ve one as qm value
+    if (q > 0) {
+      qm[ibody] = q;    // we take the +ve one as qm value
       dq[ibody][0] += unwrap[0];
       dq[ibody][1] += unwrap[1];
       dq[ibody][2] += unwrap[2];
       if (initialize) qmcount[ibody] += 1;
     }
-    if (q[i] < 0) {
+    if (q < 0) {
       dq[ibody][0] -= unwrap[0];
       dq[ibody][1] -= unwrap[1];
       dq[ibody][2] -= unwrap[2];

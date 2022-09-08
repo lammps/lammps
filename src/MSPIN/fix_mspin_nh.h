@@ -73,4 +73,3 @@ class FixMspinNH : public FixRigidNH {
 }    // namespace LAMMPS_NS
 
 #endif
-#endif

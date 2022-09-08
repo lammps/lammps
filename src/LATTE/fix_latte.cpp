@@ -328,11 +328,13 @@ void FixLatte::latte_wrapper_exclude()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   
+  // nlatte = number of non-excluded atoms to pass to LATTE
+
   int nlatte = 0;
   for (int i = 0; i < nlocal; i++)
     if (!(mask[i] & excludebit)) nlatte++;
 
-  // created compressed type vectory and coords array
+  // created compressed type vector and coords array
 
   int *typeinclude;
   double **xinclude,**finclude;
@@ -381,6 +383,10 @@ void FixLatte::latte_wrapper_exclude()
     f[i][2] = forces[m+2];
     m += 3;
   }
+
+  memory->destroy(typeinclude);
+  memory->destroy(xinclude);
+  memory->destroy(finclude);
 }
 
 /* ---------------------------------------------------------------------- */

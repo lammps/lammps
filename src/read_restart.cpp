@@ -559,6 +559,10 @@ std::string ReadRestart::file_search(const std::string &inpfile)
   bigint maxnum = -1;
   loc = pattern.find('*');
   if (loc != std::string::npos) {
+    // the regex matcher in utils::strmatch() only checks the first 256 characters.
+    if (loc > 256)
+      error->one(FLERR, "Filename part before '*' is too long to find restart with largest step");
+
     // convert pattern to equivalent regexp
     pattern.replace(loc,1,"\\d+");
 

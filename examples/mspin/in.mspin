@@ -14,26 +14,27 @@ pair_modify         mix arithmetic
 kspace_style        pppm 1e-4
 
 read_data		    data.mspin
+special_bonds       amber
 
 reset_timestep		0
 timestep 			2.0
 
-group 	            core    molecule 1 37
+group 	            core    molecule 1 21
 group 	            ligs    subtract all core
 
 fix                 qm      all property/atom d_qm
-set                 atom    15      d_qm     0.0353   # NP 1
-set                 atom    195     d_qm    -0.0353   # NP 1
-set                 atom    2073    d_qm     0.0353   # NP 2
-set                 atom    2253    d_qm    -0.0353   # NP 2
+set                 atom    79      d_qm     0.0353   # NP 1
+set                 atom    140     d_qm    -0.0353   # NP 1
+set                 atom    1347    d_qm     0.0353   # NP 2
+set                 atom    1283    d_qm    -0.0353   # NP 2
 
 velocity            all create 300.0 908070
 run         0
 velocity            all scale 300.0
 
 delete_bonds        core 		multi remove special
-fix				    fligs		ligs nvt temp 300 300 100
-fix			        fcore       core rigid/nvt/mspin molecule temp 300.0 300.0 100 &
+fix				    fligs		ligs nvt temp 300 300 10
+fix			        fcore       core rigid/nvt/mspin molecule temp 300.0 300.0 10 &
                                         bfield 0.0 0.0 1.0 uniform alpha 1.0 beta 50.0 dpcut 160.0
 
 fix_modify 	        fcore	    energy yes

@@ -1,7 +1,4 @@
-## Magnetic Interaction Simulation
-## Part of "MSPIN" package for magnetic interaction.
-## Author: Akhlak Mahmood, Yingling Group, NC State University.
-
+# Magnetic interaction simulation of 2 MNPs using MSPIN package
 units				real
 dimension			3
 boundary 			p p p
@@ -22,28 +19,20 @@ special_bonds       amber
 reset_timestep		0
 timestep 			2.0
 
-# Create a group of NP cores.
-group 	    core    molecule 1 37
-group 	    ligs    subtract all core
+group 	            core    molecule 1 37
+group 	            ligs    subtract all core
 
-# Create a new magnetic charge property for all atoms.
-fix         qm      all property/atom d_qm
+fix                 qm      all property/atom d_qm
+set                 atom    15      d_qm     0.03 # Core 1
+set                 atom    195     d_qm    -0.03 # Core 1
+set                 atom    15      d_qm     0.03 # Core 2
+set                 atom    195     d_qm    -0.03 # Core 2
 
-# Specify a pair of atom per NP and set their magnetic charge values.
-# Magnetic dipole, mu = d * |qm|, where d is their interatomic distance vector.
-set         atom    15          d_qm     0.03      # Core 1
-set         atom    195         d_qm    -0.03      # Core 1
-
-set         atom    15          d_qm     0.03      # Core 2
-set         atom    195         d_qm    -0.03      # Core 2
-
-delete_bonds        core 		multi remove special
 velocity            all create 300.0 908070
 run         0
 velocity            all scale 300.0
 
-# Evaluate NP ligand dynamics using atomistic NVT simulation.
-# Evaluate NP core dynamics as rigid bodies.
+delete_bonds        core 		multi remove special
 fix				    fligs		ligs nvt temp 300 300 100
 fix			        fcore       core rigid/nvt/mspin molecule temp 300.0 300.0 100 &
                                         bfield 0.0 0.0 1.0 uniform alpha 1.0 beta 50.0 dpcut 160.0
@@ -53,7 +42,7 @@ compute			    engy		core mspin/energy fcore
 compute			    dist		core mspin/distance fcore 1 2
 
 thermo 				10
-# dump	    dvmd    all         custom 100 mspin.lammpstrj id mol type x y z ix iy iz
 thermo_style 	    custom 		step ecoul evdwl pe ke etotal temp c_engy[1] c_engy[2] c_dist[1]
+# dump	            dvmd        all custom 100 mspin.lammpstrj id mol type x y z ix iy iz
 
 run			1000

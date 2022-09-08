@@ -8,18 +8,27 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID latte peID
+   fix ID group-ID latte keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * latte = style name of this fix command
-* peID = NULL or ID of compute used to calculate per-atom energy
+* zero or more keyword/value pairs may be appended
+
+  .. parsed-literal::
+
+     keyword = *coulomb* or *exclude*
+       *coulomb* value = peID
+         peID = ID of compute used to calculate per-atom energy
+       *exclude* value = groupID
+         groupID = ID of group of atoms to exclude before calling LATTE
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix dftb all latte NULL
+   fix dftb all latte
+   fix dftb all exclude GCMCmol
 
 Description
 """""""""""
@@ -48,10 +57,34 @@ found in examples/latte.
 
 A step-by-step tutorial can be followed at: `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
 
-The *peID* argument is not yet supported by fix latte, so it must be
-specified as NULL.  Eventually it will be used to enable LAMMPS to
-calculate a Coulomb potential as an alternative to LATTE performing
-the calculation.
+----------
+
+The *coulomb* argument is not yet supported by fix latte (as of Sept
+2022).  Eventually it will be used to enable LAMMPS to calculate a
+Coulomb potential as an alternative to LATTE performing the
+calculation.
+
+NOTE: after intitial debugging, change the exclude arg to
+be the ID of another fix (GCMC in this case), and extract()
+the exclusion group ID from fix gcmc.
+
+The *exclude argument allows this fix to work in tandem with the
+:doc:`fix gcmc <fix_gcmc>` command which may decide to delete an atom
+or molecule as one of its Monte Carlo events.  In this case, LAMMPS
+needs to pass LATTE the atoms for the system with the atom/molecule
+removed.  Fix gcmc does not actually remove the atom/molecule until
+after the new energy is computed (in this case by LATTE), and a Monte
+Carlo accept/reject decision is made for the event.
+
+The specified groupID must match the group ID which the :doc:`fix gcmc
+<fix_gcmc>` command assigns to atoms flagged for possible deletion.
+It should be either its default exclusion group ID or group ID used
+with its "exclude" keyword option.
+
+.. note::
+
+  The fix gcmc command must appear in the input script prior
+  to the fix latte command for this to work.
 
 ----------
 

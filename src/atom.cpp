@@ -115,7 +115,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // charged and dipolar particles
 
   q = nullptr;
-  qm = nullptr;
   mu = nullptr;
 
   // finite-size particles
@@ -402,7 +401,6 @@ void Atom::peratom_create()
 
   add_peratom("rmass",&rmass,DOUBLE,0);
   add_peratom("q",&q,DOUBLE,0);
-  add_peratom("qm",&qm,DOUBLE,0);
   add_peratom("mu",&mu,DOUBLE,4);
   add_peratom("mu3",&mu,DOUBLE,3);     // just first 3 values of mu[4]
 
@@ -2594,10 +2592,6 @@ length of the data area, and a short description.
      - double
      - 1
      - charge of the particles
-   * - qm
-     - double
-     - 1
-     - magnetic charge of the particles
    * - mu
      - double
      - 3
@@ -2688,7 +2682,6 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"f") == 0) return (void *) f;
   if (strcmp(name,"molecule") == 0) return (void *) molecule;
   if (strcmp(name,"q") == 0) return (void *) q;
-  if (strcmp(name,"qm") == 0) return (void *) qm;
   if (strcmp(name,"mu") == 0) return (void *) mu;
   if (strcmp(name,"omega") == 0) return (void *) omega;
   if (strcmp(name,"angmom") == 0) return (void *) angmom;
@@ -2822,7 +2815,6 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"f") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"molecule") == 0) return LAMMPS_TAGINT;
   if (strcmp(name,"q") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"qm") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"mu") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"omega") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"angmom") == 0) return LAMMPS_DOUBLE_2D;

@@ -345,23 +345,22 @@ void FixMspinNH::calculate_dipoles(int initialize)
     if (me == 0 && initialize) {
       double d = sqrt(dq[i][0] * dq[i][0] + dq[i][1] * dq[i][1] + dq[i][2] * dq[i][2]);
       // print as kilo-e units
-      double m = sqrt(mu[i][0] * mu[i][0] + mu[i][1] * mu[i][1] + mu[i][2] * mu[i][2]) / beta / 1000;
+      double m =
+          sqrt(mu[i][0] * mu[i][0] + mu[i][1] * mu[i][1] + mu[i][2] * mu[i][2]) / beta / 1000;
 
-      if (i == 0 && screen)   fprintf(screen, "\nMSPIN magnetic dipoles ...\n");
-      if (i == 0 && logfile)  fprintf(logfile, "\nMSPIN magnetic dipoles ...\n");
+      if (i == 0 && screen) fprintf(screen, "\nMSPIN magnetic dipoles ...\n");
+      if (screen)
+        fprintf(screen,
+                "  Dipole %d:\tqm = %lf Ke/fs Ang.\t\td = %lf Ang.\n"
+                "\t\tmu = %lf Ke/fs Ang.^2 (real)\tbeta*mu = %lf x 10^-21 A m^2 (SI)\n",
+                i + 1, qm[i], d, m, m * beta * 1.6022);
 
-      if (screen)
-        fprintf(screen, "  Dipole %d: qm = %lf Ke/fs A,\td = %lf A,\tmu = %lf Ke/fs A^2\n", i + 1,
-                qm[i], d, m);
+      if (i == 0 && logfile) fprintf(logfile, "\nMSPIN magnetic dipoles ...\n");
       if (logfile)
-        fprintf(logfile, "  Dipole %d: qm = %lf Ke/fs A,\td = %lf A,\tmu = %lf Ke/fs A^2\n", i + 1,
-                qm[i], d, m);
-      if (screen)
-        fprintf(screen, "  Effective dipole moment [%d]:\tbeta * mu = %lf x 10^-21 A m^2\n", i + 1,
-                m * beta * 1.6022);
-      if (logfile)
-        fprintf(logfile, "  Effective dipole moment [%d]:\tbeta * mu = %lf x 10^-21 A m^2\n", i + 1,
-                m * beta * 1.6022);
+        fprintf(logfile,
+                "  Dipole %d:\tqm = %lf Ke/fs Ang.\t\td = %lf Ang.\n"
+                "\t\tmu = %lf Ke/fs Ang.^2 (real)\tbeta*mu = %lf x 10^-21 A m^2 (SI)\n",
+                i + 1, qm[i], d, m, m * beta * 1.6022);
     }
   }
 }

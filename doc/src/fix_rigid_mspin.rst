@@ -78,12 +78,12 @@ Coversion of the dipole moment from SI (i.e., :math:`\text{A m}^{-2}`) to *real*
 can be done using the following equation.
 
 .. math::
-  
+
   \mu_{\text{real}} = \frac{\mu_{\text{SI}}}{1.6022 \times 10^{-21}}
 
 In current implementation, each NP can carry only 1 magnetic dipole moment,
 specified by a pair of atoms carrying non-zero :math:`q_m` values.
-The :math:`q_m` values of the selected atoms can be set using the 
+The :math:`q_m` values of the selected atoms can be set using the
 :doc:`set command <set>` and their atomic indices. The magnitude
 of the two atoms should be same while the signs should be opposite.
 For example,
@@ -98,14 +98,14 @@ the specified :math:`q_m` values, the package calculates the embedded
 dipole moment of a particle from the :math:`-q_m` atom towards the
 :math:`+q_m` atom during simulation and evaluates the dynamics
 of the particle utilizing the :ref:`RIGID <PKG-RIGID>` package.
-The dynamics of the solvent and ligands attached to the surface of 
+The dynamics of the solvent and ligands attached to the surface of
 the nanoparticle are evaluated using :doc:`fix NVT <fix_nh>` simulation.
 
 .. note::
 
   The force field parameters of the selected atoms should be kept unchanged,
   since the atoms are used only to identify the position and direction
-  of the dipole moment. The magnetic charge values do not affect the 
+  of the dipole moment. The magnetic charge values do not affect the
   interatomic interactions.
 
 The keyword *bfield* is used to specify an external magnetic field

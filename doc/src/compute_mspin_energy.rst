@@ -40,7 +40,7 @@ where :math:`\vec{\mu}` is the magnetic dipole moment of the rigid body, and
 The dipolar interaction energy of each nanoparticle is computed as
 
 .. math::
-    
+
     - \alpha \frac{\mu_0}{4\pi} \frac{3\left(\vec{\mu_1}\cdot\vec{r}\right)\left(\vec{\mu_2}\cdot\vec{r}\right) - \vec{\mu_1}\cdot\vec{\mu_2}}{r^3}
 
 where magnetic dipole moments are denoted by :math:`\vec{\mu}` and :math:`\vec{r}`

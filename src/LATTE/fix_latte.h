@@ -46,7 +46,10 @@ class FixLatte : public Fix {
  protected:
   char *id_pe;
   int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
+  int exclude, excludebit;
   int eflag_caller;
+
+  int flags_latte[6];
 
   int nmax, newsystem;
   double *qpotential;
@@ -55,6 +58,9 @@ class FixLatte : public Fix {
 
   class NeighList *list;
   class Compute *c_pe;
+
+  void latte_wrapper_all();
+  void latte_wrapper_exclude();
 };
 
 }    // namespace LAMMPS_NS

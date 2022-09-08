@@ -24,6 +24,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
@@ -63,8 +64,6 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (LATTE_ABIVERSION != latte_abiversion())
     error->all(FLERR,"LAMMPS is linked against incompatible LATTE library");
 
-  if (narg != 4) error->all(FLERR,"Illegal fix latte command");
-
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
@@ -72,21 +71,40 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   virial_global_flag = 1;
   thermo_energy = thermo_virial = 1;
 
-  // store ID of compute pe/atom used to generate Coulomb potential for LATTE
-  // null pointer means LATTE will compute Coulombic potential
-
+  // process optional args
+  
   coulomb = 0;
   id_pe = nullptr;
+  exclude = 0;
 
-  if (strcmp(arg[3],"NULL") != 0) {
-    coulomb = 1;
-    error->all(FLERR,"Fix latte does not yet support a LAMMPS calculation of a Coulomb potential");
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"coulomb") == 0) {
+      if (iarg+2 > narg)
+        utils::missing_cmd_args(FLERR, "fix latte coulomb", error);
+      coulomb = 1;
+      error->all(FLERR,"Fix latte does not yet support a "
+                 "LAMMPS calculation of a Coulomb potential");
+      id_pe = utils::strdup(arg[3]);
+      c_pe = modify->get_compute_by_id(id_pe);
+      if (!c_pe) error->all(FLERR,"Could not find fix latte compute ID {}", id_pe);
+      if (c_pe->peatomflag == 0)
+        error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
+      iarg += 2;
 
-    id_pe = utils::strdup(arg[3]);
-    c_pe = modify->get_compute_by_id(id_pe);
-    if (!c_pe) error->all(FLERR,"Could not find fix latte compute ID {}", id_pe);
-    if (c_pe->peatomflag == 0)
-      error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
+    } else if (strcmp(arg[iarg],"exclude") == 0) {
+      if (iarg+2 > narg)
+        utils::missing_cmd_args(FLERR, "fix latte exclude", error);
+      exclude = 1;
+      int excludegroup = group->find(arg[iarg+1]);
+      if (excludegroup == -1) 
+        error->all(FLERR, "Fix latte couldd not find exclude group ID: {}", 
+                   arg[iarg+1]);
+      excludebit = group->bitmask[excludegroup];
+      iarg += 2;
+
+    } else
+      error->all(FLERR, "Unknown fix latte keyword: {}", arg[iarg]);
   }
 
   // initializations
@@ -234,37 +252,32 @@ void FixLatte::post_force(int vflag)
   neighflag = 0;
 
   // set flags used by LATTE
-  // NOTE: LATTE does not compute per-atom energies or virials
+  // note that LATTE does not compute per-atom energies or virials
 
-  int flags[6];
+  flags_latte[0] = pbcflag;   // 1 for fully periodic, 0 for fully non-periodic
+  flags_latte[1] = coulombflag;  // 1 for LAMMPS computes Coulombics, 0 for LATTE
+  flags_latte[2] = eflag_atom;   // 1 to return per-atom energies, 0 for no
+  flags_latte[3] = vflag_global && thermo_virial; // 1 to return global/per-atom
+  flags_latte[4] = vflag_atom && thermo_virial;   //   virial, 0 for no
+  flags_latte[5] = neighflag;    // 1 to pass neighbor list to LATTE, 0 for no
 
-  flags[0] = pbcflag;         // 1 for fully periodic, 0 for fully non-periodic
-  flags[1] = coulombflag;     // 1 for LAMMPS computes Coulombics, 0 for LATTE
-  flags[2] = eflag_atom;      // 1 to return per-atom energies, 0 for no
-  flags[3] = vflag_global && thermo_virial;    // 1 to return global/per-atom
-  flags[4] = vflag_atom && thermo_virial;      //   virial, 0 for no
-  flags[5] = neighflag;       // 1 to pass neighbor list to LATTE, 0 for no
+  // setup arguments for latte() function within LATTE lib and invoke it
+  // either for all atoms or excluding some atoms
+  // in latter case, need to construct reduced-size per-atom vectors/arrays
 
-  // setup LATTE arguments
+  if (!exclude) latte_wrapper_all();
+  else {
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
 
-  int natoms = atom->nlocal;
-  double *coords = &atom->x[0][0];
-  int *type = atom->type;
-  int ntypes = atom->ntypes;
-  double *mass = &atom->mass[1];
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *forces;
-  bool latteerror = false;
-  if (coulomb) forces = &flatte[0][0];
-  else forces = &atom->f[0][0];
-  int maxiter = -1;
+    int anyexclude = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & excludebit) anyexclude = 1;
 
-  latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
-        &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
-        &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
+    if (!anyexclude) latte_wrapper_all();
+    else latte_wrapper_exclude();
+  }
 
-  if (latteerror) error->all(FLERR,"Internal LATTE problem");
 
   // sum LATTE forces to LAMMPS forces
   // e.g. LAMMPS may compute Coulombics at some point
@@ -277,6 +290,96 @@ void FixLatte::post_force(int vflag)
       f[i][1] += flatte[i][1];
       f[i][2] += flatte[i][2];
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   invoke LATTE on all LAMMPS atoms
+------------------------------------------------------------------------- */
+
+void FixLatte::latte_wrapper_all()
+{
+  int natoms = atom->nlocal;
+  double *coords = &atom->x[0][0];
+  int *types = atom->type;
+  int ntypes = atom->ntypes;
+  double *mass = &atom->mass[1];
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+  double *forces;
+  bool latteerror = false;
+  if (coulomb) forces = &flatte[0][0];
+  else forces = &atom->f[0][0];
+  int maxiter = -1;
+
+  latte(flags_latte,&natoms,coords,types,&ntypes,mass,boxlo,boxhi,
+        &domain->xy,&domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
+        &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
+
+  if (latteerror) error->all(FLERR,"Internal LATTE problem");
+}
+
+/* ----------------------------------------------------------------------
+   invoke LATTE on only LAMMPS atoms not in exclude group
+------------------------------------------------------------------------- */
+
+void FixLatte::latte_wrapper_exclude()
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  
+  int nlatte = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (!(mask[i] & excludebit)) nlatte++;
+
+  // created compressed type vectory and coords array
+
+  int *typeinclude;
+  double **xinclude,**finclude;
+  memory->create(typeinclude,nlatte,"latte:typeinclude");
+  memory->create(xinclude,nlatte,3,"latte:xinclude");
+  memory->create(finclude,nlatte,3,"latte:finclude");
+
+  double **x = atom->x;
+  int *type = atom->type;
+
+  nlatte = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & excludebit) continue;
+    typeinclude[nlatte] = type[i];
+    x[nlatte][0] = x[i][0];
+    x[nlatte][1] = x[i][1];
+    x[nlatte][2] = x[i][2];
+    nlatte++;
+  }
+
+  double *coords = &xinclude[0][0];
+  int *types = typeinclude;
+  int ntypes = atom->ntypes;
+  double *mass = &atom->mass[1];
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+  double *forces = &finclude[0][0];
+  bool latteerror = false;
+  int maxiter = -1;
+
+  latte(flags_latte,&nlatte,coords,types,&ntypes,mass,boxlo,boxhi,
+        &domain->xy,&domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
+        &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
+
+  if (latteerror) error->all(FLERR,"Internal LATTE problem");
+
+  // expand compressed forces array
+
+  double **f = atom->f;
+
+  int m = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & excludebit) continue;
+    f[i][0] = forces[m+0];
+    f[i][1] = forces[m+1];
+    f[i][2] = forces[m+2];
+    m += 3;
   }
 }
 

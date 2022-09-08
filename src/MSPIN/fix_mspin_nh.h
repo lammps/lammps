@@ -22,12 +22,6 @@
      amahmoo3@ncsu.edu; mahmoodakhlak@gmail.com
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
-// clang-format off
-FixStyle(rigid/nh/mspin, FixMspinNH)
-// clang-format on
-#else
-
 #ifndef LMP_FIX_MSPIN_NH_H
 #define LMP_FIX_MSPIN_NH_H
 

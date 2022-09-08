@@ -4,7 +4,7 @@ dimension			3
 boundary 			p p p
 
 atom_style		    full
-newton              off
+newton              on
 
 bond_style          harmonic
 angle_style         harmonic
@@ -19,6 +19,10 @@ special_bonds       amber
 reset_timestep		0
 timestep 			2.0
 
+velocity            all create 300.0 908070
+run         0
+velocity            all scale 300.0
+
 group 	            core    molecule 1 21
 group 	            ligs    subtract all core
 
@@ -28,13 +32,9 @@ set                 atom    140     d_qm    -0.0353   # NP 1
 set                 atom    1347    d_qm     0.0353   # NP 2
 set                 atom    1283    d_qm    -0.0353   # NP 2
 
-velocity            all create 300.0 908070
-run         0
-velocity            all scale 300.0
-
 delete_bonds        core 		multi remove special
-fix				    fligs		ligs nvt temp 300 300 10
-fix			        fcore       core rigid/nvt/mspin molecule temp 300.0 300.0 10 &
+fix				    fligs		ligs nvt temp 300 300 200
+fix			        fcore       core rigid/nvt/mspin molecule temp 300.0 300.0 200 &
                                         bfield 0.0 0.0 1.0 uniform alpha 1.0 beta 50.0 dpcut 160.0
 
 fix_modify 	        fcore	    energy yes
@@ -43,6 +43,6 @@ compute			    dist		core mspin/distance fcore 1 2
 
 thermo 				10
 thermo_style 	    custom 		step ecoul evdwl pe ke etotal temp c_engy[1] c_engy[2] c_dist[1]
-# dump	            dvmd        all custom 100 mspin.lammpstrj id mol type x y z ix iy iz
+#dump	            dvmd        all custom 100 mspin.lammpstrj id mol type x y z ix iy iz
 
 run			1000

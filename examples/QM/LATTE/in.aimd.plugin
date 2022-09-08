@@ -20,7 +20,7 @@ fix             2 all mdi/qm virial yes elements 92 8
 thermo_style    custom step temp pe etotal press
 thermo          1
 
-dump            1 all custom 1 dump.aimd.mdi.plugin &
+dump            1 all custom 1 dump.aimd.plugin &
                 id type x y z vx vy vz fx fy fz
 
 mdi             plugin latte_mdi mdi "-role ENGINE -name LATTE -method LINK" &

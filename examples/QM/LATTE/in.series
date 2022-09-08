@@ -25,7 +25,7 @@ label LOOP
 
   run             0
 
-  write_dump      all custom dump.series.${files} &
+  write_dump      all custom dump.series.mpi.${files} &
                   id type x y z fx fy fz modify sort id
 
   clear

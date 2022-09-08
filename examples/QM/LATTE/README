@@ -24,8 +24,7 @@ is illustrated in this dir.
 NOTE: If you compare MDI runs in this dir to similar fix latte runs in
 examples/latte, the answers for energy and virial will be differnt.
 This is b/c the version of LATTE used by the fix latte command within
-the LATTE package is older than the version of LATTE used here which
-now has MDI support.
+the LATTE package is older than the version of LATTE used here.
 
 ------------------
 Building 3 codes needed to run these examples
@@ -54,16 +53,9 @@ Building 3 codes needed to run these examples
 
 (3) Build LAMMPS with its MDI package
     also with the MOLECULE package for these example scripts
-    NOTE: what about its LATTE package for fix latte command ?
 
-Build with regular make:
-% cd lammps/lib/mdi
-% python Install.py -m mpi
-% cd lammps/src
-% make yes-mdi yes-molecule
-% make mpi                     # creates lmp_mpi
+Build with CMake (NOTE: do not use traditional make for this use case)
 
-Build with CMake:
 % cd lammps
 % mkdir build; cd build
 % cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
@@ -83,6 +75,13 @@ libmdi.so.
 ------------------
 Notes on LATTE usage
 
+You must run this version of LATTE on a single MPI processor.
+However, you can use OpenMP with LATTE.  To do this you need to build
+LATTE with OpenMP support by editing the makefile.CHOICES file to
+include -fopenmp with FFLAGS and LINKFLAGS.  Also -lapack and -lblas
+need to be added to LIB, and those libraries must be available on your
+system.  At run time, ...
+
 By default LATTE reads the latte.in file for its parameters.  That
 file specifies other files LATTE will read.  With MDI, the driver code
 (e.g. LAMMPS) can use the >FNAME command to specify an alternate
@@ -92,31 +91,26 @@ By default LATTE writes out a log.latte file with info about its
 calculations.  An "OUTFILE= logfile" setting in latte.in can rename
 this file.
 
-This version of LATTE can only run on a single processor in an MPI
-context.  However LATTE can use OpenMP for parallelism, so that it
-effectively runs on more cores.  See instructions below for how to do
-this.
-
 ---------
 Run example #1: AIMD
 
 * Run with MPI: 1 proc each
 
 mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.aimd.mdi -log log.aimd.mdi.lammps.1 : \
+  -in in.aimd -log log.aimd.lammps.mpi : \
   -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
 
 * Run with MPI: 2 procs for LAMMPS, 1 for LATTE
 
 mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.aimd.mdi -log log.aimd.mdi.lammps.2 : \
+  -in in.aimd -log log.aimd.lammps.mpi : \
   -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
 
 * Run in plugin mode: 1 proc
 
 lmp_mpi -mdi \
   "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
-  -in in.aimd.mdi.plugin -log log.aimd.mdi.plugin.lammps.1
+  -in in.aimd.plugin -log log.aimd.lammps.plugin
 
 NOTE: The -plugin_path needs to point to where LATTE was built in step
 (2).
@@ -127,20 +121,20 @@ Run example #2: sequence of configurations
 * Run with MPI: 1 proc each
 
 mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.series.mdi -log log.series.mdi.lammps.1 : \
+  -in in.series -log log.series.lammps.mpi : \
   -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
 
 * Run with MPI: 2 procs for LAMMPS, 1 for LATTE
 
 mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.series.mdi -log log.series.mdi.lammps.2 : \
+  -in in.series -log log.series.lammps.mpi : \
   -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
 
 * Run in plugin mode: 1 proc
 
 lmp_mpi -mdi \
   "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
-   -in in.series.mdi.plugin -log log.series.mdi.plugin.1
+   -in in.series.plugin -log log.series.lammps.plugin
 
 NOTE: The -plugin_path needs to point to where LATTE was built in step
 (2).

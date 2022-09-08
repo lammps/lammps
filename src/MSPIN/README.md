@@ -1,4 +1,24 @@
 # MSPIN Package
+This package contains a `fix rigid/nvt/mspin` command that updates nanoparticle
+dynamics subjected to external magnetic field and mangetic dipolar interactions.
+
+It also contains commands to compute the externel field interaction energy,
+dipolar interaction energy, and interparticle distance during simulation.
+
+See the doc page for the `fix rigid/nvt/mspin` or the `compute mspin/energy`
+or `compute mspin/distance` commands for detailed usage instructions.
+
+Use of this package requires LAMMPS to be built with the RIGID package.
+
+There are example scripts for using commands in this package in the
+examples/mspin directory.
+
+The authors of the package is Akhlak U. Mahmood (amahmoo3 at ncsu dot edu)
+and Yaroslava G. Yingling (yara_yingling at ncsu dot edu) at North Carolina
+State University, USA. Contact the authors directly if you have questions.
+
+# Installation
+CMake based installation preset.
 
 ```cmake
 # Enable required packages

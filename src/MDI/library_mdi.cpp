@@ -48,16 +48,16 @@ command-line argument, which must be provided by the MDI driver.
  * \param  class_obj  pointer to an instance of an mdi/engine fix cast to ``void *``.
  * \return 0 on no error. */
 
-int MDI_Plugin_init_lammps()
+int MDI_Plugin_init_lammps(void* plugin_state)
 {
   // initialize MDI
 
   int mdi_argc;
   char **mdi_argv;
 
+  if (MDI_Set_plugin_state(plugin_state)) MPI_Abort(MPI_COMM_WORLD, 1);
   if (MDI_Plugin_get_argc(&mdi_argc)) MPI_Abort(MPI_COMM_WORLD, 1);
   if (MDI_Plugin_get_argv(&mdi_argv)) MPI_Abort(MPI_COMM_WORLD, 1);
-  if (MDI_Init(&mdi_argc, &mdi_argv)) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // get the MPI intra-communicator for this code
 

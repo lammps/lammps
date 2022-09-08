@@ -206,6 +206,7 @@ OPT.
    * :doc:`rigid/nve (o) <fix_rigid>`
    * :doc:`rigid/nve/small <fix_rigid>`
    * :doc:`rigid/nvt (o) <fix_rigid>`
+   * :doc:`rigid/nvt/mspin <fix_rigid_mspin>`
    * :doc:`rigid/nvt/small <fix_rigid>`
    * :doc:`rigid/small (o) <fix_rigid>`
    * :doc:`rx (k) <fix_rx>`

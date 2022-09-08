@@ -93,6 +93,8 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`
    * :doc:`msd/nongauss <compute_msd_nongauss>`
+   * :doc:`mspin/distance <compute_mspin_distance>`
+   * :doc:`mspin/energy <compute_mspin_energy>`
    * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (k) <compute_orientorder_atom>`

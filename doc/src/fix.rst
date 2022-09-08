@@ -353,6 +353,7 @@ accelerated styles exist.
 * :doc:`rigid/nve <fix_rigid>` - constrain one or more clusters of atoms to move as a rigid body with alternate NVE integration
 * :doc:`rigid/nve/small <fix_rigid>` - constrain many small clusters of atoms to move as a rigid body with alternate NVE integration
 * :doc:`rigid/nvt <fix_rigid>` - constrain one or more clusters of atoms to move as a rigid body with NVT integration
+* :doc:`rigid/nvt/mspin <fix_rigid_mspin>` - apply magnetic field or dipolar interactions on magnetic nanoparticles
 * :doc:`rigid/nvt/small <fix_rigid>` - constrain many small clusters of atoms to move as a rigid body with NVT integration
 * :doc:`rigid/small <fix_rigid>` - constrain many small clusters of atoms to move as a rigid body with NVE integration
 * :doc:`rx <fix_rx>` - solve reaction kinetic ODEs for a defined reaction set

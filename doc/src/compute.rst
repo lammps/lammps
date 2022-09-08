@@ -237,6 +237,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
 * :doc:`msd/nongauss <compute_msd_nongauss>` - MSD and non-Gaussian parameter of group of atoms
+* :doc:`mspin/energy <compute_mspin_energy>` - Magnetic Zeeman and dipolar interaction energy of magnetic nanoparticles
+* :doc:`mspin/distance <compute_mspin_distance>` - Center of mass distance between two magnetic nanoparticles
 * :doc:`nbond/atom <compute_nbond_atom>` - calculates number of bonds per atom
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql

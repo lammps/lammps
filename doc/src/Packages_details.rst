@@ -88,6 +88,7 @@ page gives those details.
    * :ref:`MOLFILE <PKG-MOLFILE>`
    * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`MSCG <PKG-MSCG>`
+   * :ref:`MSPIN <PKG-MSPIN>`
    * :ref:`NETCDF <PKG-NETCDF>`
    * :ref:`OPENMP <PKG-OPENMP>`
    * :ref:`OPT <PKG-OPT>`
@@ -2028,6 +2029,35 @@ This package has :ref:`specific installation instructions <mscg>` on the :doc:`B
 * src/MSCG/README
 * lib/mscg/README
 * examples/mscg
+
+----------
+
+.. _PKG-MSPIN:
+
+MSPIN package
+-------------
+
+**Contents:**
+
+A :doc:`fix rigid/nvt/mspin <fix_rigid_mspin>` command which can simulate magnetic
+dipolar interactions and external magnetic interaction of colloidal nanoparticles.
+
+**Authors:** Akhlak U. Mahmood and Yaroslava G. Yingling (North Carolina State University)
+
+**Install:**
+
+The MSPIN package requires that also the :ref:`RIGID <PKG-RIGID>`
+package is installed.
+
+**Supporting info:**
+
+* src/MSPIN: filenames -> commands
+* src/MSPIN/README.md
+* :doc:`fix rigid/nvt/mspin <fix_rigid_mspin>`
+* :doc:`compute mspin/energy <compute_mspin_energy>`
+* :doc:`compute mspin/distance <compute_mspin_distance>`
+* examples/mspin
+* examples/mspin/README.md
 
 ----------
 

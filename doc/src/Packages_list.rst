@@ -338,6 +338,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix mscg <fix_mscg>`
      - mscg
      - ext
+   * - :ref:`MSPIN <PKG-MSPIN>`
+     - magnetic nanoparticles, atomistic simulation
+     - :doc:`fix rigid/nvt/mspin <fix_rigid_mspin>`
+     - mspin
+     - no
    * - :ref:`NETCDF <PKG-NETCDF>`
      - dump output via NetCDF
      - :doc:`dump netcdf <dump_netcdf>`

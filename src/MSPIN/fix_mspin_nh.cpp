@@ -89,9 +89,9 @@ FixMspinNH::FixMspinNH(LAMMPS *lmp, int narg, char **arg) :
   mu_0 = 4.6434E-4;    // force/Ampere^2 in real
 
   // check if qm property has been set
-  int which, flag, ncols;
-  which = atom->find_custom("qm", flag, ncols);
-  if (which < 0 || flag == 0 || ncols > 0)
+  int flag, ncols;
+  qm_icustom = atom->find_custom("qm", flag, ncols);
+  if (qm_icustom < 0 || flag == 0 || ncols > 0)
     error->all(FLERR, "Fix property/atom d_qm not set from magnetic dipole moment");
 
   int iarg = 2;
@@ -279,7 +279,7 @@ void FixMspinNH::post_force(int vflag)
 void FixMspinNH::calculate_dipoles(int initialize)
 {
   int ibody;
-  double *q = atom->qm;
+  double *q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
   imageint *image = atom->image;
@@ -302,6 +302,9 @@ void FixMspinNH::calculate_dipoles(int initialize)
       continue;
     else
       ibody = body[i];
+
+    // get the custom qm property value
+    q = atom->dvector[qm_icustom][i];
 
     // get unwrapped coordinates
     // we are interested in measuring the distance only

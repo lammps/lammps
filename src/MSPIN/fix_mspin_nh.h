@@ -58,6 +58,7 @@ class FixMspinNH : public FixRigidNH {
   double **dq;
   double *qm;
   int *qmcount;
+  int qm_icustom;
 
   int nsum;    // total number of rigid atoms
 

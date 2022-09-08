@@ -1160,9 +1160,17 @@ void MDIEngine::receive_cell()
   for (int icell = 0; icell < 9; icell++) sys_cell[icell] *= mdi2lmp_length;
 
   // error check that edge vectors match LAMMPS triclinic requirement
+  // 3,7,6 = xy, yz, xz tilt factors
 
   if (sys_cell[1] != 0.0 || sys_cell[2] != 0.0 || sys_cell[5] != 0.0)
-    error->all(FLERR, "MDI: Received cell edges are not LAMMPS compatible");
+    error->all(FLERR, 
+               "MDI: Received cell edges are not an upper triangular matrix");
+
+  if (sys_cell[3] != 0.0 || sys_cell[7] != 0.0 || sys_cell[6] != 0.0)
+    if (!domain->triclinic)
+      error->all(FLERR, 
+               "MDI: Received cell edges are for a triclinic box, "
+                 "but LAMMPS is using an orthogonal box");
 }
 
 /* ----------------------------------------------------------------------

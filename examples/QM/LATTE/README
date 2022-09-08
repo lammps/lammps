@@ -80,7 +80,16 @@ However, you can use OpenMP with LATTE.  To do this you need to build
 LATTE with OpenMP support by editing the makefile.CHOICES file to
 include -fopenmp with FFLAGS and LINKFLAGS.  Also -lapack and -lblas
 need to be added to LIB, and those libraries must be available on your
-system.  At run time, ...
+system.  For best performance you should also build LATTE with its
+PROGRESS and BML libraries.  Building those libs is more complex,
+see details here:
+
+https://github.com/lanl/LATTE_SUPER/tree/allMachines/Laptop
+
+At run time, you need to also first set an environment variable for
+the number of OpenMP threads to use, e.g.
+
+% export OMP_NUM_THREADS=12 
 
 By default LATTE reads the latte.in file for its parameters.  That
 file specifies other files LATTE will read.  With MDI, the driver code

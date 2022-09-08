@@ -13,6 +13,9 @@ Quantum Espresso (QE) = DFT code for materials modeling
 DFT-FE = real-space DFT code from U Michigan
   https://github.com/dftfeDevelopers/dftfe
 
+INQ = DFT code from LLNL
+  https://github.com/LLNL/inq
+
 NWChem = computational chemistry code from PNNL
   focus here is on DFT portion of NWChem
   https://www.nwchem-sw.org

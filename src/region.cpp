@@ -66,27 +66,27 @@ void Region::init()
 {
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (xvar < 0) error->all(FLERR, "Variable {} for region does not exist", xstr);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR, "Variable for region is invalid style");
+      error->all(FLERR, "Variable {} for region is invalid style", xstr);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (yvar < 0) error->all(FLERR, "Variable {} for region does not exist", ystr);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR, "Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", ystr);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (zvar < 0) error->all(FLERR, "Variable {} for region does not exist", zstr);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR, "Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", zstr);
   }
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (tvar < 0) error->all(FLERR, "Variable {} for region does not exist", tstr);
     if (!input->variable->equalstyle(tvar))
-      error->all(FLERR, "Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", tstr);
   }
   vel_timestep = -1;
 }

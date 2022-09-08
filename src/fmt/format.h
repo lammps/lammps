@@ -249,6 +249,18 @@ FMT_CONSTEXPR inline void abort_fuzzing_if(bool condition) {
 #endif
 }
 
+template <typename CharT, CharT... C> struct string_literal {
+  static constexpr CharT value[sizeof...(C)] = {C...};
+  constexpr operator basic_string_view<CharT>() const {
+    return {value, sizeof...(C)};
+  }
+};
+
+#if FMT_CPLUSPLUS < 201703L
+template <typename CharT, CharT... C>
+constexpr CharT string_literal<CharT, C...>::value[sizeof...(C)];
+#endif
+
 template <typename Streambuf> class formatbuf : public Streambuf {
  private:
   using char_type = typename Streambuf::char_type;
@@ -287,7 +299,8 @@ FMT_CONSTEXPR20 auto bit_cast(const From& from) -> To {
   if (is_constant_evaluated()) return std::bit_cast<To>(from);
 #endif
   auto to = To();
-  std::memcpy(&to, &from, sizeof(to));
+  // The cast suppresses a bogus -Wclass-memaccess on GCC.
+  std::memcpy(static_cast<void*>(&to), &from, sizeof(to));
   return to;
 }
 
@@ -366,10 +379,12 @@ class uint128_fallback {
   }
   FMT_CONSTEXPR auto operator>>(int shift) const -> uint128_fallback {
     if (shift == 64) return {0, hi_};
+    if (shift > 64) return uint128_fallback(0, hi_) >> (shift - 64);
     return {hi_ >> shift, (hi_ << (64 - shift)) | (lo_ >> shift)};
   }
   FMT_CONSTEXPR auto operator<<(int shift) const -> uint128_fallback {
     if (shift == 64) return {lo_, 0};
+    if (shift > 64) return uint128_fallback(lo_, 0) << (shift - 64);
     return {hi_ << shift | (lo_ >> (64 - shift)), (lo_ << shift)};
   }
   FMT_CONSTEXPR auto operator>>=(int shift) -> uint128_fallback& {
@@ -592,19 +607,23 @@ FMT_CONSTEXPR inline auto utf8_decode(const char* s, uint32_t* c, int* e)
   constexpr const int shiftc[] = {0, 18, 12, 6, 0};
   constexpr const int shifte[] = {0, 6, 4, 2, 0};
 
-  int len = code_point_length(s);
-  const char* next = s + len;
+  int len = code_point_length_impl(*s);
+  // Compute the pointer to the next character early so that the next
+  // iteration can start working on the next character. Neither Clang
+  // nor GCC figure out this reordering on their own.
+  const char* next = s + len + !len;
+
+  using uchar = unsigned char;
 
   // Assume a four-byte character and load four bytes. Unused bits are
   // shifted out.
-  *c = uint32_t(s[0] & masks[len]) << 18;
-  *c |= uint32_t(s[1] & 0x3f) << 12;
-  *c |= uint32_t(s[2] & 0x3f) << 6;
-  *c |= uint32_t(s[3] & 0x3f) << 0;
+  *c = uint32_t(uchar(s[0]) & masks[len]) << 18;
+  *c |= uint32_t(uchar(s[1]) & 0x3f) << 12;
+  *c |= uint32_t(uchar(s[2]) & 0x3f) << 6;
+  *c |= uint32_t(uchar(s[3]) & 0x3f) << 0;
   *c >>= shiftc[len];
 
   // Accumulate the various error conditions.
-  using uchar = unsigned char;
   *e = (*c < mins[len]) << 6;       // non-canonical encoding
   *e |= ((*c >> 11) == 0x1b) << 7;  // surrogate half?
   *e |= (*c > 0x10FFFF) << 8;       // out of range?
@@ -628,8 +647,8 @@ FMT_CONSTEXPR void for_each_codepoint(string_view s, F f) {
     auto error = 0;
     auto end = utf8_decode(buf_ptr, &cp, &error);
     bool result = f(error ? invalid_code_point : cp,
-                    string_view(ptr, to_unsigned(end - buf_ptr)));
-    return result ? end : nullptr;
+                    string_view(ptr, error ? 1 : to_unsigned(end - buf_ptr)));
+    return result ? (error ? buf_ptr + 1 : end) : nullptr;
   };
   auto p = s.data();
   const size_t block_size = 4;  // utf8_decode always reads blocks of 4 chars.
@@ -919,8 +938,11 @@ struct is_contiguous<basic_memory_buffer<T, SIZE, Allocator>> : std::true_type {
 };
 
 namespace detail {
+#ifdef _WIN32
+FMT_API bool write_console(std::FILE* f, string_view text);
+#endif
 FMT_API void print(std::FILE*, string_view);
-}
+}  // namespace detail
 
 /** A formatting error such as invalid format string. */
 FMT_CLASS_API
@@ -1213,7 +1235,7 @@ FMT_CONSTEXPR20 auto format_decimal(Char* out, UInt value, int size)
 
 template <typename Char, typename UInt, typename Iterator,
           FMT_ENABLE_IF(!std::is_pointer<remove_cvref_t<Iterator>>::value)>
-inline auto format_decimal(Iterator out, UInt value, int size)
+FMT_CONSTEXPR inline auto format_decimal(Iterator out, UInt value, int size)
     -> format_decimal_result<Iterator> {
   // Buffer is large enough to hold all digits (digits10 + 1).
   Char buffer[digits10<UInt>() + 1];
@@ -1274,8 +1296,6 @@ template <> struct float_info<float> {
   static const int small_divisor = 10;
   static const int min_k = -31;
   static const int max_k = 46;
-  static const int divisibility_check_by_5_threshold = 39;
-  static const int case_fc_pm_half_lower_threshold = -1;
   static const int shorter_interval_tie_lower_threshold = -35;
   static const int shorter_interval_tie_upper_threshold = -35;
 };
@@ -1288,8 +1308,6 @@ template <> struct float_info<double> {
   static const int small_divisor = 100;
   static const int min_k = -292;
   static const int max_k = 326;
-  static const int divisibility_check_by_5_threshold = 86;
-  static const int case_fc_pm_half_lower_threshold = -2;
   static const int shorter_interval_tie_lower_threshold = -77;
   static const int shorter_interval_tie_upper_threshold = -77;
 };
@@ -1543,7 +1561,10 @@ FMT_CONSTEXPR inline fp get_cached_power(int min_exponent,
   const int dec_exp_step = 8;
   index = (index - first_dec_exp - 1) / dec_exp_step + 1;
   pow10_exponent = first_dec_exp + index * dec_exp_step;
-  return {data::pow10_significands[index], data::pow10_exponents[index]};
+  // Using *(x + index) instead of x[index] avoids an issue with some compilers
+  // using the EDG frontend (e.g. nvhpc/22.3 in C++17 mode).
+  return {*(data::pow10_significands + index),
+          *(data::pow10_exponents + index)};
 }
 
 #ifndef _MSC_VER
@@ -1604,7 +1625,9 @@ auto snprintf_float(T value, int precision, float_specs specs,
 
 template <typename T>
 using convert_float_result =
-    conditional_t<std::is_same<T, float>::value || sizeof(T) == sizeof(double),
+    conditional_t<std::is_same<T, float>::value ||
+                      std::numeric_limits<T>::digits ==
+                          std::numeric_limits<double>::digits,
                   double, T>;
 
 template <typename T>
@@ -1724,18 +1747,18 @@ inline auto find_escape(const char* begin, const char* end)
   return result;
 }
 
-#define FMT_STRING_IMPL(s, base, explicit)                                 \
-  [] {                                                                     \
-    /* Use the hidden visibility as a workaround for a GCC bug (#1973). */ \
-    /* Use a macro-like name to avoid shadowing warnings. */               \
-    struct FMT_GCC_VISIBILITY_HIDDEN FMT_COMPILE_STRING : base {           \
-      using char_type = fmt::remove_cvref_t<decltype(s[0])>;               \
-      FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                              \
-      operator fmt::basic_string_view<char_type>() const {                 \
-        return fmt::detail_exported::compile_string_to_view<char_type>(s); \
-      }                                                                    \
-    };                                                                     \
-    return FMT_COMPILE_STRING();                                           \
+#define FMT_STRING_IMPL(s, base, explicit)                                    \
+  [] {                                                                        \
+    /* Use the hidden visibility as a workaround for a GCC bug (#1973). */    \
+    /* Use a macro-like name to avoid shadowing warnings. */                  \
+    struct FMT_GCC_VISIBILITY_HIDDEN FMT_COMPILE_STRING : base {              \
+      using char_type FMT_MAYBE_UNUSED = fmt::remove_cvref_t<decltype(s[0])>; \
+      FMT_MAYBE_UNUSED FMT_CONSTEXPR explicit                                 \
+      operator fmt::basic_string_view<char_type>() const {                    \
+        return fmt::detail_exported::compile_string_to_view<char_type>(s);    \
+      }                                                                       \
+    };                                                                        \
+    return FMT_COMPILE_STRING();                                              \
   }()
 
 /**
@@ -1981,7 +2004,10 @@ auto write_int_localized(OutputIt out, UInt value, unsigned prefix,
                               grouping.count_separators(num_digits));
   return write_padded<align::right>(
       out, specs, size, size, [&](reserve_iterator<OutputIt> it) {
-        if (prefix != 0) *it++ = static_cast<Char>(prefix);
+        if (prefix != 0) {
+          char sign = static_cast<char>(prefix);
+          *it++ = static_cast<Char>(sign);
+        }
         return grouping.apply(it, string_view(digits, to_unsigned(num_digits)));
       });
 }
@@ -2123,29 +2149,30 @@ class counting_iterator {
   FMT_UNCHECKED_ITERATOR(counting_iterator);
 
   struct value_type {
-    template <typename T> void operator=(const T&) {}
+    template <typename T> FMT_CONSTEXPR void operator=(const T&) {}
   };
 
-  counting_iterator() : count_(0) {}
+  FMT_CONSTEXPR counting_iterator() : count_(0) {}
 
-  size_t count() const { return count_; }
+  FMT_CONSTEXPR size_t count() const { return count_; }
 
-  counting_iterator& operator++() {
+  FMT_CONSTEXPR counting_iterator& operator++() {
     ++count_;
     return *this;
   }
-  counting_iterator operator++(int) {
+  FMT_CONSTEXPR counting_iterator operator++(int) {
     auto it = *this;
     ++*this;
     return it;
   }
 
-  friend counting_iterator operator+(counting_iterator it, difference_type n) {
+  FMT_CONSTEXPR friend counting_iterator operator+(counting_iterator it,
+                                                   difference_type n) {
     it.count_ += static_cast<size_t>(n);
     return it;
   }
 
-  value_type operator*() const { return {}; }
+  FMT_CONSTEXPR value_type operator*() const { return {}; }
 };
 
 template <typename Char, typename OutputIt>
@@ -2991,7 +3018,7 @@ FMT_CONSTEXPR20 inline void format_dragon(basic_fp<uint128_t> value,
       upper = &upper_store;
     }
   }
-  bool even = (value.f & 1) == 0;
+  int even = static_cast<int>((value.f & 1) == 0);
   if (!upper) upper = &lower;
   if ((flags & dragon::fixup) != 0) {
     if (add_compare(numerator, *upper, denominator) + even <= 0) {

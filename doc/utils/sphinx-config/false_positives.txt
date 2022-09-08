@@ -257,6 +257,7 @@ Bfrac
 bgq
 Bh
 Bialke
+biaxial
 bicrystal
 Biersack
 bigbig
@@ -304,7 +305,6 @@ Bogaerts
 Bogusz
 Bohrs
 boltz
-Boltzman
 BondAngle
 BondBond
 bondchk
@@ -974,6 +974,7 @@ Eshelby
 eskm
 Espanol
 esph
+espin
 estretch
 esu
 esub
@@ -2249,6 +2250,7 @@ nanoparticles
 nanotube
 Nanotube
 nanotubes
+nanowires
 Narulkar
 nasa
 nasr
@@ -3645,6 +3647,7 @@ Vandenbrande
 Vanduyfhuys
 varargs
 varavg
+variational
 Varshalovich
 Varshney
 vashishta

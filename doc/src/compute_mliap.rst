@@ -36,10 +36,10 @@ Description
 """""""""""
 
 Compute style *mliap* provides a general interface to the gradient
-of machine-learning interatomic potentials w.r.t. model parameters.
+of machine-learning interatomic potentials with respect to model parameters.
 It is used primarily for calculating the gradient of energy, force, and
-stress components w.r.t. model parameters, which is useful when training
-:doc:`mliap pair_style <pair_mliap>` models to match target data.
+stress components with respect to model parameters, which is useful when
+training :doc:`mliap pair_style <pair_mliap>` models to match target data.
 It provides separate
 definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
@@ -58,8 +58,8 @@ The compute *mliap* command must be followed by two keywords
 
 The *model* keyword is followed by the model style (*linear*,
 *quadratic* or *mliappy*).  The *mliappy* model is only available if
-LAMMPS is built with the *mliappy* python module. There are
-:ref:`specific installation instructions <mliap>` for that.
+LAMMPS is built with the *mliappy* Python module. There are
+:ref:`specific installation instructions <mliap>` for that module.
 
 The *descriptor* keyword is followed by a descriptor style, and
 additional arguments.  The compute currently supports two descriptor
@@ -79,13 +79,13 @@ described in detail there.
    must match the value of *nelems* in the descriptor file.
 
 Compute *mliap* calculates a global array containing gradient information.
-The number of columns in the array is :math:`nelems \times nparams + 1`.
-The first row of the array contain the derivative of potential energy w.r.t. to
-each parameter and each element. The last six rows
+The number of columns in the array is *nelems* :math:`\times` *nparams* + 1.
+The first row of the array contain the derivative of potential energy with
+respect to. to each parameter and each element. The last six rows
 of the array contain the corresponding derivatives of the
 virial stress tensor, listed in Voigt notation: *pxx*, *pyy*, *pzz*,
-*pyz*, *pxz*, *pxy*. In between the energy and stress rows are
-the 3\*\ *N* rows containing the derivatives of the force components.
+*pyz*, *pxz*, and *pxy*. In between the energy and stress rows are
+the :math:`3N` rows containing the derivatives of the force components.
 See section below on output for a detailed description of how
 rows and columns are ordered.
 
@@ -107,19 +107,19 @@ layout in the global array.
 
 The optional keyword *gradgradflag* controls how the force
 gradient is calculated. A value of 1 requires that the model provide
-the matrix of double gradients of energy w.r.t. both parameters
+the matrix of double gradients of energy with respect to both parameters
 and descriptors. For the linear and quadratic models this matrix is
 sparse and so is easily calculated and stored. For other models, this
 matrix may be prohibitively expensive to calculate and store.
 A value of 0 requires that the descriptor provide the derivative
-of the descriptors w.r.t. the position of every neighbor atom.
+of the descriptors with respect to the position of every neighbor atom.
 This is not optimal for linear and quadratic models, but may be
 a better choice for more complex models.
 
 Atoms not in the group do not contribute to this compute.
 Neighbor atoms not in the group do not contribute to this compute.
 The neighbor list needed to compute this quantity is constructed each
-time the calculation is performed (i.e. each time a snapshot of atoms
+time the calculation is performed (i.e., each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently.
 
@@ -144,17 +144,20 @@ too frequently.
 Output info
 """""""""""
 
-Compute *mliap* evaluates a global array.
-The columns are arranged into
+Compute *mliap* evaluates a global array.  The columns are arranged into
 *nelems* blocks, listed in order of element *I*\ . Each block
 contains one column for each of the *nparams* model parameters.
 A final column contains the corresponding energy, force component
 on an atom, or virial stress component. The rows of the array appear
 in the following order:
 
-* 1 row: Derivatives of potential energy w.r.t. each parameter of each element.
-* 3\*\ *N* rows: Derivatives of force components. x, y, and z components of force on atom *i* appearing in consecutive rows. The atoms are sorted based on atom ID.
-* 6 rows: Derivatives of virial stress tensor  w.r.t. each parameter of each element. The ordering of the rows follows Voigt notation: *pxx*, *pyy*, *pzz*, *pyz*, *pxz*, *pxy*.
+* 1 row: Derivatives of potential energy with respect to each parameter of each element.
+* :math:`3N` rows: Derivatives of force components; the *x*, *y*, and *z*
+  components of the force on atom *i* appear in consecutive rows. The atoms are
+  sorted based on atom ID.
+* 6 rows: Derivatives of the virial stress tensor with respect to each
+  parameter of each element. The ordering of the rows follows Voigt notation:
+  *pxx*, *pyy*, *pzz*, *pyz*, *pxz*, *pxy*.
 
 These values can be accessed by any command that uses a global array
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

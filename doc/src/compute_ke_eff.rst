@@ -6,7 +6,7 @@ compute ke/eff command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID ke/eff
 
@@ -29,9 +29,9 @@ group of eFF particles (nuclei and electrons), as modeled with the
 
 The kinetic energy for each nucleus is computed as :math:`\frac{1}{2} m
 v^2` and the kinetic energy for each electron is computed as
-:math:`\frac{1}{2}(m_e v^2 + \frac{3}{4} m_e s^2)`, where *m*
-corresponds to the nuclear mass, :math:`m_e` to the electron mass, *v*
-to the translational velocity of each particle, and *s* to the radial
+:math:`\frac{1}{2}(m_e v^2 + \frac{3}{4} m_e s^2)`, where :math:`m`
+corresponds to the nuclear mass, :math:`m_e` to the electron mass, :math:`v`
+to the translational velocity of each particle, and :math:`s` to the radial
 velocity of the electron, respectively.
 
 There is a subtle difference between the quantity calculated by this

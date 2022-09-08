@@ -6,7 +6,7 @@ units				real
 dimension			3
 boundary 			p p p
 
-atom_style		    qmag
+atom_style		    full
 newton off
 
 bond_style          harmonic
@@ -22,15 +22,28 @@ special_bonds       amber
 reset_timestep		0
 timestep 			2.0
 
+# Create a group of NP cores.
 group 	    core    molecule 1 37
 group 	    ligs    subtract all core
 
-delete_bonds        core 		multi remove special
+# Create a new magnetic charge property for all atoms.
+fix         qm      all property/atom d_qm
 
+# Specify a pair of atom per NP and set their magnetic charge values.
+# Magnetic dipole, mu = d * |qm|, where d is their interatomic distance vector.
+set         atom    15          d_qm     0.03      # Core 1
+set         atom    195         d_qm    -0.03      # Core 1
+
+set         atom    15          d_qm     0.03      # Core 2
+set         atom    195         d_qm    -0.03      # Core 2
+
+delete_bonds        core 		multi remove special
 velocity            all create 300.0 908070
 run         0
 velocity            all scale 300.0
 
+# Evaluate NP ligand dynamics using atomistic NVT simulation.
+# Evaluate NP core dynamics as rigid bodies.
 fix				    fligs		ligs nvt temp 300 300 100
 fix			        fcore       core rigid/nvt/mspin molecule temp 300.0 300.0 100 &
                                         bfield 0.0 0.0 1.0 uniform alpha 1.0 beta 50.0 dpcut 160.0

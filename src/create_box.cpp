@@ -108,46 +108,50 @@ void CreateBox::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "bond/types") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box bond/type", error);
-      if (!atom->avec->bonds_allow) error->all(FLERR, "No bonds allowed with this atom style");
+      if (!atom->avec->bonds_allow)
+        error->all(FLERR, "No bonds allowed with atom style {}", atom->get_style());
       atom->nbondtypes = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "angle/types") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box angle/types", error);
-      if (!atom->avec->angles_allow) error->all(FLERR, "No angles allowed with this atom style");
+      if (!atom->avec->angles_allow)
+        error->all(FLERR, "No angles allowed with atom style {}", atom->get_style());
       atom->nangletypes = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dihedral/types") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box dihedral/types", error);
       if (!atom->avec->dihedrals_allow)
-        error->all(FLERR, "No dihedrals allowed with this atom style");
+        error->all(FLERR, "No dihedrals allowed with atom style {}", atom->get_style());
       atom->ndihedraltypes = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "improper/types") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box improper/types", error);
       if (!atom->avec->impropers_allow)
-        error->all(FLERR, "No impropers allowed with this atom style");
+        error->all(FLERR, "No impropers allowed with atom style {}", atom->get_style());
       atom->nimpropertypes = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/bond/per/atom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/bond/per/atom", error);
-      if (!atom->avec->bonds_allow) error->all(FLERR, "No bonds allowed with this atom style");
+      if (!atom->avec->bonds_allow)
+        error->all(FLERR, "No bonds allowed with atom style {}", atom->get_style());
       atom->bond_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/angle/per/atom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/angle/per/atom", error);
-      if (!atom->avec->angles_allow) error->all(FLERR, "No angles allowed with this atom style");
+      if (!atom->avec->angles_allow)
+        error->all(FLERR, "No angles allowed with atom style {}", atom->get_style());
       atom->angle_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/dihedral/per/atom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/dihedral/per/atom", error);
       if (!atom->avec->dihedrals_allow)
-        error->all(FLERR, "No dihedrals allowed with this atom style");
+        error->all(FLERR, "No dihedrals allowed with atom style {}", atom->get_style());
       atom->dihedral_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/improper/per/atom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/improper/per/atom", error);
       if (!atom->avec->impropers_allow)
-        error->all(FLERR, "No impropers allowed with this atom style");
+        error->all(FLERR, "No impropers allowed with atom style {}", atom->get_style());
       atom->improper_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/special/per/atom") == 0) {

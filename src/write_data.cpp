@@ -25,6 +25,7 @@
 #include "fix.h"
 #include "force.h"
 #include "improper.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "output.h"
@@ -71,6 +72,8 @@ void WriteData::command(int narg, char **arg)
   pairflag = II;
   coeffflag = 1;
   fixflag = 1;
+  lmapflag = 1;
+  atom->types_style = Atom::NUMERIC;
   int noinit = 0;
 
   int iarg = 1;
@@ -90,6 +93,15 @@ void WriteData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nofix") == 0) {
       fixflag = 0;
       iarg++;
+    } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
+      lmapflag = 0;
+      iarg++;
+    } else if (strcmp(arg[iarg],"types") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal write_data command");
+      if (strcmp(arg[iarg+1],"numeric") == 0) atom->types_style = Atom::NUMERIC;
+      else if (strcmp(arg[iarg+1],"labels") == 0) atom->types_style = Atom::LABELS;
+      else error->all(FLERR,"Illegal write_data command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal write_data command");
   }
 
@@ -181,9 +193,11 @@ void WriteData::write(const std::string &file)
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
+  // label map must come before coeffs
 
   if (me == 0) {
     header();
+    if (lmapflag && atom->labelmapflag) atom->lmap->write_data(fp);
     type_arrays();
     if (coeffflag) force_fields();
   }

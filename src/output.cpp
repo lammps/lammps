@@ -480,103 +480,103 @@ void Output::write_dump(bigint ntimestep)
 ------------------------------------------------------------------------- */
 
 void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
- {
-   // dump mode is by timestep
-   // just set next_dump
+{
+  // dump mode is by timestep
+  // just set next_dump
 
-   if (mode_dump[idump] == 0) {
+  if (mode_dump[idump] == 0) {
 
-     if (every_dump[idump]) {
+    if (every_dump[idump]) {
 
-       // which = SETUP: next_dump = next multiple of every_dump
-       // which = WRITE: increment next_dump by every_dump
-       //                current step is already multiple of every_dump
+      // which = SETUP: next_dump = next multiple of every_dump
+      // which = WRITE: increment next_dump by every_dump
+      //                current step is already multiple of every_dump
 
-       if (which == SETUP) 
-         next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
-       else if (which == WRITE)
-         next_dump[idump] += every_dump[idump];
+      if (which == SETUP) 
+        next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
+      else if (which == WRITE)
+        next_dump[idump] += every_dump[idump];
 
-     } else {
-       next_dump[idump] = static_cast<bigint>
-         (input->variable->compute_equal(ivar_dump[idump]));
-       if (next_dump[idump] <= ntimestep)
-         error->all(FLERR,"Dump every variable returned a bad timestep");
-     }
+    } else {
+      next_dump[idump] = static_cast<bigint>
+        (input->variable->compute_equal(ivar_dump[idump]));
+      if (next_dump[idump] <= ntimestep)
+        error->all(FLERR,"Dump every variable returned a bad timestep");
+    }
 
-   // dump mode is by simulation time
-   // set next_time_dump and next_dump
+    // dump mode is by simulation time
+    // set next_time_dump and next_dump
 
-   } else {
+  } else {
 
-     bigint nextdump;
-     double nexttime;
-     double tcurrent = update->atime +
-       (ntimestep - update->atimestep) * update->dt;
+    bigint nextdump;
+    double nexttime;
+    double tcurrent = update->atime +
+      (ntimestep - update->atimestep) * update->dt;
 
-     if (every_time_dump[idump] > 0.0) {
+    if (every_time_dump[idump] > 0.0) {
 
-       // which = SETUP: nexttime = next multiple of every_time_dump
-       // which = WRITE: increment nexttime by every_time_dump
-       // which = RESET_DT: no change to previous nexttime (only timestep has changed)
+      // which = SETUP: nexttime = next multiple of every_time_dump
+      // which = WRITE: increment nexttime by every_time_dump
+      // which = RESET_DT: no change to previous nexttime (only timestep has changed)
 
-       switch (which) {
-       case SETUP:
-         nexttime = static_cast<bigint> (tcurrent/every_time_dump[idump]) *
-           every_time_dump[idump] + every_time_dump[idump];
-         break;
+      switch (which) {
+      case SETUP:
+        nexttime = static_cast<bigint> (tcurrent/every_time_dump[idump]) *
+          every_time_dump[idump] + every_time_dump[idump];
+        break;
 
-       case WRITE:
-         nexttime = next_time_dump[idump] + every_time_dump[idump];
-         break;
+      case WRITE:
+        nexttime = next_time_dump[idump] + every_time_dump[idump];
+        break;
 
-       case RESET_DT:
-         nexttime = next_time_dump[idump];
-         break;
+      case RESET_DT:
+        nexttime = next_time_dump[idump];
+        break;
 
-       default:
-         nexttime = 0;
-         error->all(FLERR,"Unexpected argument to calculate_next_dump");
-       }
+      default:
+        nexttime = 0;
+        error->all(FLERR,"Unexpected argument to calculate_next_dump");
+      }
 
-       nextdump = ntimestep +
-         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
+      nextdump = ntimestep +
+        static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
 
-       // if delta is too small to reach next timestep, use multiple of delta
+      // if delta is too small to reach next timestep, use multiple of delta
 
-       if (nextdump == ntimestep) {
-         double tnext = update->atime +
-           (ntimestep+1 - update->atimestep) * update->dt;
-         int multiple = static_cast<int>
-           ((tnext - nexttime) / every_time_dump[idump]);
-         nexttime = nexttime + (multiple+1)*every_time_dump[idump];
-         nextdump = ntimestep +
-           static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
-       }
+      if (nextdump == ntimestep) {
+        double tnext = update->atime +
+          (ntimestep+1 - update->atimestep) * update->dt;
+        int multiple = static_cast<int>
+          ((tnext - nexttime) / every_time_dump[idump]);
+        nexttime = nexttime + (multiple+1)*every_time_dump[idump];
+        nextdump = ntimestep +
+          static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
+      }
 
-     } else {
+    } else {
 
-       // do not re-evaulate variable for which = RESET_DT, leave nexttime as-is
-       // unless next_time_dump < 0.0, which means variable never yet evaluated
+      // do not re-evaulate variable for which = RESET_DT, leave nexttime as-is
+      // unless next_time_dump < 0.0, which means variable never yet evaluated
 
-       if (which < RESET_DT || next_time_dump[idump] < 0.0) {
-         nexttime = input->variable->compute_equal(ivar_dump[idump]);
-       } else
-         nexttime = next_time_dump[idump];
+      if (which < RESET_DT || next_time_dump[idump] < 0.0) {
+        nexttime = input->variable->compute_equal(ivar_dump[idump]);
+      } else
+        nexttime = next_time_dump[idump];
 
-       if (nexttime <= tcurrent)
-         error->all(FLERR,"Dump every/time variable returned a bad time");
+      if (nexttime <= tcurrent)
+        error->all(FLERR,"Dump every/time variable returned a bad time");
 
-       nextdump = ntimestep +
-         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
-       if (nextdump <= ntimestep)
-         error->all(FLERR,"Dump every/time variable too small for next timestep");
-     }
+      nextdump = ntimestep +
+        static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
+      if (nextdump <= ntimestep)
+        error->all(FLERR,"Dump every/time variable too small for next timestep");
+    }
 
-     next_time_dump[idump] = nexttime;
-     next_dump[idump] = nextdump;
-   }
- }
+    next_time_dump[idump] = nexttime;
+    next_dump[idump] = nextdump;
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 

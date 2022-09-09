@@ -1085,7 +1085,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"colname") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"default") == 0) {
-        for (auto item : keyword_user) item.clear();
+        for (auto &item : keyword_user) item.clear();
         iarg += 2;
       } else {
         if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");

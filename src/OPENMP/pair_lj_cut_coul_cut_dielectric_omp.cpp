@@ -23,6 +23,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "suffix.h"
 
 #include <cmath>
 
@@ -37,6 +38,7 @@ static constexpr double EPSILON = 1.0e-6;
 PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *_lmp) :
     PairLJCutCoulCutDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,10 +132,10 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 
     i = ilist[ii];
     qtmp = q[i];
+    etmp = eps[i];
     xtmp = x[i].x;
     ytmp = x[i].y;
     ztmp = x[i].z;
-    etmp = eps[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -141,6 +143,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
     extmp = eytmp = eztmp = 0.0;
 
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
@@ -151,7 +154,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
 
-    epot[i] = 0;
+    epot[i] = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

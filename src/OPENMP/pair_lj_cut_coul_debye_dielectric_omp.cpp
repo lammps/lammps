@@ -23,6 +23,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "suffix.h"
 
 #include <cmath>
 
@@ -37,6 +38,7 @@ static constexpr double EPSILON = 1.0e-6;
 PairLJCutCoulDebyeDielectricOMP::PairLJCutCoulDebyeDielectricOMP(LAMMPS *_lmp) :
     PairLJCutCoulDebyeDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */

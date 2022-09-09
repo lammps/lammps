@@ -20,6 +20,6 @@
 #include <mdi.h>
 
 extern "C" {
-int MDI_Plugin_init_lammps();
+int MDI_Plugin_init_lammps(void* plugin_state);
 }
 #endif

@@ -37,7 +37,7 @@ url = "https://github.com/MolSSI-MDI/MDI_Library/archive/v%s.tar.gz" % version
 
 # known checksums for different MDI versions. used to validate the download.
 checksums = { \
-              '1.4.9' : '705ddb6b0018a542d39f17cc45c67bd9', \
+              '1.4.10' : '1c203b7fd462d9934834f643f09f3c06', \
               }
 
 # print error message or help

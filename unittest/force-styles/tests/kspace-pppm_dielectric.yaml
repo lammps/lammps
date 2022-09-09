@@ -1,7 +1,7 @@
 ---
 lammps_version: 2 Jun 2022
 date_generated: Sun Jun  5 11:47:58 2022
-epsilon: 7.5e-14
+epsilon: 1.0e-13
 skip_tests:
 prerequisites: ! |
   atom dielectric

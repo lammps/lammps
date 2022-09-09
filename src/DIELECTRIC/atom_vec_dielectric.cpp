@@ -15,6 +15,10 @@
 
 #include "atom.h"
 #include "citeme.h"
+#include "error.h"
+#include "force.h"
+#include "pair.h"
+#include "pair_hybrid.h"
 
 #include <cmath>
 
@@ -85,6 +89,42 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *_lmp) : AtomVec(_lmp)
 
   setup_fields();
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecDielectric::init()
+{
+  AtomVec::init();
+
+  // since atom style dielectric modifies the charge q, it will produce incorrect results
+  // with pair styles using coulomb without dielectric support.
+
+  std::string pair_style(force->pair_style);
+  if ((pair_style != "none") && (pair_style != "zero") && !utils::strmatch(force->pair_style,"/dielectric")) {
+    bool mismatch = false;
+    if (utils::strmatch(force->pair_style,"^reaxff")) mismatch = true;
+    if (utils::strmatch(force->pair_style,"^comb")) mismatch = true;
+    if (utils::strmatch(force->pair_style,"coul")) mismatch = true;
+    if (utils::strmatch(force->pair_style,"tip4p")) mismatch = true;
+    if (utils::strmatch(force->pair_style,"dipole")) mismatch = true;
+
+    if (utils::strmatch(force->pair_style,"^hybrid")) {
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
+      if (hybrid) {
+        for (int i = 0; i < hybrid->nstyles; i++) {
+          if (utils::strmatch(hybrid->keywords[i],"^reaxff")) mismatch = true;
+          if (utils::strmatch(hybrid->keywords[i],"^comb")) mismatch = true;
+          if (utils::strmatch(hybrid->keywords[i],"coul")) mismatch = true;
+          if (utils::strmatch(hybrid->keywords[i],"tip4p")) mismatch = true;
+          if (utils::strmatch(hybrid->keywords[i],"dipole")) mismatch = true;
+        }
+      }
+    }
+    if (mismatch)
+      error->all(FLERR, "Pair style {} is not compatible with atom style {}",
+                 pair_style, atom->get_style());
+  }
 }
 
 /* ----------------------------------------------------------------------

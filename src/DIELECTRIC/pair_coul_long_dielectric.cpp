@@ -41,6 +41,7 @@ PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) :
 {
   nmax = 0;
   single_enable = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */

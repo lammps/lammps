@@ -153,8 +153,9 @@ class BaseAmoeba {
   virtual void precompute_induce(const int inum_full, const int bsorder,
                                  double ***host_thetai1, double ***host_thetai2,
                                  double ***host_thetai3, int** igrid,
-                                 double* grid_brick_start, int nzlo_out,
-                                 int nzhi_out, int nylo_out, int nyhi_out,
+                                 double *host_grid_brick_start, double ****host_grid_brick,
+                                 int nzlo_out, int nzhi_out,
+                                 int nylo_out, int nyhi_out,
                                  int nxlo_out, int nxhi_out);
 
   /// Compute multipole real-space with device neighboring
@@ -182,8 +183,8 @@ class BaseAmoeba {
   virtual void compute_fphi_uind(const int inum_full, const int bsorder,
                                  double ***host_thetai1, double ***host_thetai2,
                                  double ***host_thetai3, int** igrid,
-                                 double *host_grid_brick_start, void **host_fdip_phi1,
-                                 void **host_fdip_phi2, void **host_fdip_sum_phi,
+                                 double *host_grid_brick_start, double ****host_grid_brick,
+                                 void **host_fdip_phi1, void **host_fdip_phi2, void **host_fdip_sum_phi,
                                  int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
                                  int nxlo_out, int nxhi_out, bool& first_iteration);
 

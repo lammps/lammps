@@ -14,7 +14,7 @@
 // ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
-//#include <stdio.h>
+#include <stdio.h>
 #include "lal_aux_fun1.h"
 #ifdef LAMMPS_SMALLBIG
 #define tagint int
@@ -1630,14 +1630,19 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
                           __global numtyp *restrict fdip_phi2,
                           __global numtyp *restrict fdip_sum_phi,
                           const int bsorder, const int inum,
-                          const int nyzgrid, const int nygrid,
-                          const int t_per_atom)
+                          const int nzlo_out, const int nzhi_out,
+                          const int nylo_out, const int nyhi_out,
+                          const int nxlo_out, const int nxhi_out,
+                          const int ngridxy, const int ngridx)
 {
-  int tid, ii, offset, i, n_stride;
-  atom_info(t_per_atom,ii,tid,offset);
+  //int tid, ii, offset, i, n_stride;
+  //atom_info(t_per_atom,ii,tid,offset);
+
+  int tid=THREAD_ID_X;
+  int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
 
   if (ii<inum) {
-    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    numtyp4 ix; fetch4(ix,ii,pos_tex); //x_[i];
 
     int j,k,m;
     numtyp v0,v1,v2,v3;
@@ -1706,7 +1711,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     tuv012 = (numtyp)0.0;
     tuv111 = (numtyp)0.0;
 
-    k = igrid[4*i+2] - nlpts;
+    k = igrid[4*ii+2] - nzlo_out - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
       /*
       v0 = thetai3[m][kb][0];
@@ -1714,9 +1719,9 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       v2 = thetai3[m][kb][2];
       v3 = thetai3[m][kb][3];
       */
-      int i3 = i*4*bsorder + 4*kb;
+      int i3 = ii*4*bsorder + 4*kb;
       v0 = thetai3[i3];
-      v1 = thetai3[i3]+1;
+      v1 = thetai3[i3+1];
       v2 = thetai3[i3+2];
       v3 = thetai3[i3+3];
       tu00_1 = (numtyp)0.0;
@@ -1742,7 +1747,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       tu12 = (numtyp)0.0;
       tu03 = (numtyp)0.0;
 
-      j = igrid[4*i+1] - nlpts;
+      j = igrid[4*ii+1] - nylo_out - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
         /*
         u0 = thetai2[m][jb][0];
@@ -1750,7 +1755,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         u2 = thetai2[m][jb][2];
         u3 = thetai2[m][jb][3];
         */
-        int i2 = i*4*bsorder+4*jb;
+        int i2 = ii*4*bsorder+4*jb;
         u0 = thetai2[i2];
         u1 = thetai2[i2+1];
         u2 = thetai2[i2+2];
@@ -1763,11 +1768,11 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         t2_2 = (numtyp)0.0;
         t3 = (numtyp)0.0;
 
-        int ii = igrid[4*i] - nlpts;
+        int i = igrid[4*ii] - nxlo_out - nlpts;
         for (int ib = 0; ib < bsorder; ib++) {
           /*
-          tq_1 = grid[k][j][ii][0];
-          tq_2 = grid[k][j][ii][1];
+          tq_1 = grid[k][j][i][0];
+          tq_2 = grid[k][j][i][1];
           t0_1 += tq_1*thetai1[m][ib][0];
           t1_1 += tq_1*thetai1[m][ib][1];
           t2_1 += tq_1*thetai1[m][ib][2];
@@ -1776,14 +1781,19 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
           t2_2 += tq_2*thetai1[m][ib][2];
           t3 += (tq_1+tq_2)*thetai1[m][ib][3];
           */
-          int i1 = i*4*bsorder+4*ib;
+          int i1 = ii*4*bsorder+4*ib;
           numtyp w0 = thetai1[i1];
           numtyp w1 = thetai1[i1+1];
           numtyp w2 = thetai1[i1+2];
           numtyp w3 = thetai1[i1+3];
-          int gidx = 2*(k*nyzgrid + j*nygrid + ii);
+          int gidx = 2*(k*ngridxy + j*ngridx + i);
           tq_1 = grid[gidx];
           tq_2 = grid[gidx+1];
+/*
+          if (ii == 0 && jb == 0 && kb == 0)
+            printf("ii = 0: igrid %d %d %d; grid %f %f; k = %d j = %d; i = %d; origin = %f %f; gidx = %d\n",
+              igrid[4*ii+0], igrid[4*ii+1], igrid[4*ii+2], tq_1, tq_2, k, j, i, grid[0], grid[1], gidx);
+*/          
           t0_1 += tq_1*w0;
           t1_1 += tq_1*w1;
           t2_1 += tq_1*w2;
@@ -1791,7 +1801,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
           t1_2 += tq_2*w1;
           t2_2 += tq_2*w2;
           t3 += (tq_1+tq_2)*w3;
-          ii++;
+          i++;
         }
 
         tu00_1 += t0_1*u0;
@@ -1875,7 +1885,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     fdip_phi1[m][8] = tuv101_1;
     fdip_phi1[m][9] = tuv011_1;
 */
-    int idx = 10*m;
+    int idx = 10*ii;
     fdip_phi1[idx+0] = (numtyp)0.0;
     fdip_phi1[idx+1] = tuv100_1;
     fdip_phi1[idx+2] = tuv010_1;
@@ -1886,7 +1896,18 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     fdip_phi1[idx+7] = tuv110_1;
     fdip_phi1[idx+8] = tuv101_1;
     fdip_phi1[idx+9] = tuv011_1;
-
+/*
+    fdip_phi2[m][0] = 0.0;
+    fdip_phi2[m][1] = tuv100_2;
+    fdip_phi2[m][2] = tuv010_2;
+    fdip_phi2[m][3] = tuv001_2;
+    fdip_phi2[m][4] = tuv200_2;
+    fdip_phi2[m][5] = tuv020_2;
+    fdip_phi2[m][6] = tuv002_2;
+    fdip_phi2[m][7] = tuv110_2;
+    fdip_phi2[m][8] = tuv101_2;
+    fdip_phi2[m][9] = tuv011_2;
+*/    
     fdip_phi2[idx+0] = (numtyp)0.0;
     fdip_phi2[idx+1] = tuv100_2;
     fdip_phi2[idx+2] = tuv010_2;
@@ -1898,7 +1919,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     fdip_phi2[idx+8] = tuv101_2;
     fdip_phi2[idx+9] = tuv011_2;
 
-    idx = 20*m;
+    idx = 20*ii;
     fdip_sum_phi[idx+0] = tuv000;
     fdip_sum_phi[idx+1] = tuv100;
     fdip_sum_phi[idx+2] = tuv010;

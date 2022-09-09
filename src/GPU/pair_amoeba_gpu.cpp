@@ -91,7 +91,7 @@ void amoeba_gpu_update_fieldp(void **fieldp_ptr);
 void amoeba_gpu_fphi_uind(const int inum_full, const int bsorder,
                           double ***host_thetai1, double ***host_thetai2,
                           double ***host_thetai3, int** igrid,
-                          double *host_grid_brick_start, void **host_fdip_phi1,
+                          double *host_grid_brick_start, double ****host_grid_brick, void **host_fdip_phi1,
                           void **host_fdip_phi2, void **host_fdip_sum_phi,
                           int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
                           int nxlo_out, int nxhi_out, bool& first_iteration);
@@ -121,7 +121,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_multipole_real_ready = true;     // need to be true for precompute()
   gpu_udirect2b_ready = true;
   gpu_umutual1_ready = true;
-  gpu_fphi_uind_ready = false;
+  gpu_fphi_uind_ready = true;
   gpu_umutual2b_ready = true;
   gpu_polar_real_ready = true;         // need to be true for copying data from device back to host
 
@@ -1139,7 +1139,7 @@ void PairAmoebaGPU::fphi_uind(double ****grid, double **fdip_phi1,
   void* fdip_phi2_pinned = nullptr;
   void* fdip_sum_phi_pinned = nullptr;
   amoeba_gpu_fphi_uind(atom->nlocal, bsorder, thetai1, thetai2, thetai3,
-                        igrid, ic_kspace->grid_brick_start,
+                        igrid, ic_kspace->grid_brick_start, grid,
                         &fdip_phi1_pinned, &fdip_phi2_pinned, &fdip_sum_phi_pinned,
                         ic_kspace->nzlo_out, ic_kspace->nzhi_out,
                         ic_kspace->nylo_out, ic_kspace->nyhi_out,
@@ -1150,8 +1150,10 @@ void PairAmoebaGPU::fphi_uind(double ****grid, double **fdip_phi1,
   double *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
   for (int i = 0; i < nlocal; i++) {
     int idx = 10 * i;
-    for (int m = 0; m < 10; m++)
-      fdip_phi1[i][m] = _fdip_phi1_ptr[idx+m];
+    for (int m = 0; m < 10; m++) {
+       fdip_phi1[i][m] = _fdip_phi1_ptr[idx+m];
+    }
+    if (i == 0) printf("gpu fdip phi1 = %f %f %f\n", fdip_phi1[i][0], fdip_phi1[i][1], fdip_phi1[i][2]);      
   }
 
   double *_fdip_phi2_ptr = (double *)fdip_phi2_pinned;
@@ -1159,6 +1161,7 @@ void PairAmoebaGPU::fphi_uind(double ****grid, double **fdip_phi1,
     int idx = 10 * i;
     for (int m = 0; m < 10; m++)
       fdip_phi2[i][m] = _fdip_phi2_ptr[idx+m];
+    if (i == 0) printf("gpu fdip phi2 = %f %f %f\n", fdip_phi2[i][0], fdip_phi2[i][1], fdip_phi2[i][2]);      
   }
 
   double *_fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
@@ -1166,6 +1169,7 @@ void PairAmoebaGPU::fphi_uind(double ****grid, double **fdip_phi1,
     int idx = 20 * i;
     for (int m = 0; m < 20; m++)
       fdip_sum_phi[i][m] = _fdip_sum_phi_ptr[idx+m];
+    if (i == 0) printf("gpu fdip sum phi = %f %f %f\n", fdip_sum_phi[i][0], fdip_sum_phi[i][1], fdip_sum_phi[i][2]);            
   }
 }
 

@@ -555,7 +555,7 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
 // Prepare for umutual1() after bspline_fill() is done on host
 //   - reallocate per-atom arrays, thetai1, thetai2, thetai3, and igrid if needed
 //     host_thetai1, host_thetai2, host_thetai3 are allocated with nmax by bsordermax by 4
-//     host_igrid is allocated with nmax by by 4
+//     host_igrid is allocated with nmax by 4
 //   - transfer extra data from host to device
 // ---------------------------------------------------------------------------
 
@@ -563,8 +563,9 @@ template <class numtyp, class acctyp>
 void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
                                     double ***host_thetai1, double ***host_thetai2,
                                     double ***host_thetai3, int** host_igrid,
-                                    double* host_grid_brick_start, int nzlo_out,
-                                    int nzhi_out, int nylo_out, int nyhi_out,
+                                    double* host_grid_brick_start, double**** host_grid_brick,
+                                    int nzlo_out, int nzhi_out,
+                                    int nylo_out, int nyhi_out,
                                     int nxlo_out, int nxhi_out) {
   
   _bsorder = bsorder;
@@ -599,7 +600,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
   }
 
   UCL_H_Vec<double> dview;
-  dview.alloc(inum_full*bsorder*4,*(this->ucl_device));
+  dview.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device));
 
   // pack host data to device
 
@@ -634,7 +635,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
   ucl_copy(_thetai3,dview,false);
 
   UCL_H_Vec<int> dview_int;
-  dview_int.alloc(inum_full*4, *(this->ucl_device));
+  dview_int.alloc(_max_thetai_size*4, *(this->ucl_device));
   for (int i = 0; i < inum_full; i++) {
     int idx = i*4;
     dview_int[idx+0] = host_igrid[i][0];
@@ -642,6 +643,33 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
     dview_int[idx+2] = host_igrid[i][2];
   }
   ucl_copy(_igrid, dview_int, false);
+
+  
+  
+}
+
+// ---------------------------------------------------------------------------
+// fphi_uind = induced potential from grid
+// fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
+                                    double ***host_thetai1, double ***host_thetai2,
+                                    double ***host_thetai3, int** igrid,
+                                    double *host_grid_brick_start, double ****host_grid_brick,
+                                    void** host_fdip_phi1, void **host_fdip_phi2, void **host_fdip_sum_phi,
+                                    int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
+                                    int nxlo_out, int nxhi_out, bool& first_iteration)
+{
+  // allocation/resize and transfers before the first iteration
+  
+  if (first_iteration) {
+    precompute_induce(inum_full, bsorder, host_thetai1, host_thetai2, host_thetai3,
+                      igrid, host_grid_brick_start, host_grid_brick, nzlo_out, nzhi_out,
+                      nylo_out, nyhi_out, nxlo_out, nxhi_out);
+    if (first_iteration) first_iteration = false;
+  }
 
   // update the cgrid_brick with data host
   
@@ -656,36 +684,27 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
   _ngridx = nxhi_out - nxlo_out + 1;
   _num_grid_points = _ngridx * _ngridy * _ngridz;
 
-  UCL_H_Vec<double> dview_cgrid;
-  dview_cgrid.view(host_grid_brick_start, _num_grid_points*2, *(this->ucl_device));
+  UCL_H_Vec<double> hview_cgrid;
+  hview_cgrid.alloc(_num_grid_points*2, *(this->ucl_device), UCL_READ_WRITE);
+  int n = 0;
+  for (int iz = nzlo_out; iz <= nzhi_out; iz++)
+    for (int iy = nylo_out; iy <= nyhi_out; iy++)
+      for (int ix = nxlo_out; ix <= nxhi_out; ix++) {
+/*        
+        if (iz == nzlo_out && iy == nylo_out && ix == nxlo_out) {
+          printf("origin = %d %d %d: grid = %f %f %f\n", iz, iy, ix, host_grid_brick[iz][iy][ix][0], host_grid_brick[iz][iy][ix][1]);
+        }
+        if (iz == -2 && iy == 4 && ix == 8) printf("ixyz = %d %d %d: grid = %f %f %f; n = %d\n", iz, iy, ix, host_grid_brick[iz][iy][ix][0], host_grid_brick[iz][iy][ix][1], n);
+*/        
+        hview_cgrid[n] = host_grid_brick[iz][iy][ix][0];
+        hview_cgrid[n+1] = host_grid_brick[iz][iy][ix][1];
+        n += 2;
+      }
+  //hview_cgrid.view(host_grid_brick_start, _num_grid_points*2, *(this->ucl_device));
   _cgrid_brick.alloc(_num_grid_points*2, *(this->ucl_device), UCL_READ_ONLY);
-  ucl_copy(_cgrid_brick,dview_cgrid,false);
+  ucl_copy(_cgrid_brick,hview_cgrid,false);
 
-}
 
-// ---------------------------------------------------------------------------
-// fphi_uind = induced potential from grid
-// fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
-// ---------------------------------------------------------------------------
-
-template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
-                                    double ***host_thetai1, double ***host_thetai2,
-                                    double ***host_thetai3, int** igrid,
-                                    double *host_grid_brick_start, void** host_fdip_phi1,
-                                    void **host_fdip_phi2, void **host_fdip_sum_phi,
-                                    int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
-                                    int nxlo_out, int nxhi_out, bool& first_iteration)
-{
-  // allocation/resize and transfers before the first iteration
-  
-  if (first_iteration) {
-    precompute_induce(inum_full, bsorder, host_thetai1, host_thetai2, host_thetai3,
-                      igrid, host_grid_brick_start, nzlo_out, nzhi_out,
-                      nylo_out, nyhi_out, nxlo_out, nxhi_out);
-    if (first_iteration) first_iteration = false;
-  }
-    
   const int red_blocks = fphi_uind();
 
   _fdip_phi1.update_host(_max_thetai_size*10);
@@ -711,16 +730,16 @@ int BaseAmoebaT::fphi_uind() {
 
   // Compute the block size and grid size to keep all cores busy
   const int BX=block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(ans->inum())/
-                               (BX/_threads_per_atom)));
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
   time_pair.start();
-  int ngridyz = _ngridy * _ngridz;
+  int ngridxy = _ngridx * _ngridy;
   k_fphi_uind.set_size(GX,BX);
   k_fphi_uind.run(&atom->x, &_thetai1, &_thetai2, &_thetai3,
                   &_igrid, &_cgrid_brick, &_fdip_phi1, &_fdip_phi2,
-                  &_fdip_sum_phi, &_bsorder, &ainum, &ngridyz, &_ngridy,
-                  &_threads_per_atom);
+                  &_fdip_sum_phi, &_bsorder, &ainum, 
+                  &_nzlo_out, &_nzhi_out, &_nylo_out, &_nyhi_out, 
+                  &_nxlo_out, &_nxhi_out, &ngridxy, &_ngridx);
   time_pair.stop();
 
   return GX;

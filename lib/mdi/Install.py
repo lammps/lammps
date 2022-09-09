@@ -32,7 +32,7 @@ make lib-mdi args="-m mpi" # build MDI lib with same settings as in the mpi Make
 
 # settings
 
-version = "1.4.9"
+version = "1.4.10"
 url = "https://github.com/MolSSI-MDI/MDI_Library/archive/v%s.tar.gz" % version
 
 # known checksums for different MDI versions. used to validate the download.

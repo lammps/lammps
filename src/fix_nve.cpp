@@ -29,7 +29,7 @@ FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (!utils::strmatch(style,"^nve/sphere") && narg < 3)
-    error->all(FLERR,"Illegal fix nve command");
+    utils::missing_cmd_args(FLERR, "fix nve", error);
 
   dynamic_group_allow = 1;
   time_integrate = 1;

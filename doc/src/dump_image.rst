@@ -12,7 +12,7 @@ dump movie command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID style N file color diameter keyword value ...
 
@@ -28,7 +28,7 @@ Syntax
 
   .. parsed-literal::
 
-       *atom* = yes/no = do or do not draw atoms
+       *atom* = *yes* or *no* = do or do not draw atoms
        *adiam* size = numeric value for atom diameter (distance units)
        *bond* values = color width = color and width of bonds
          color = *atom* or *type* or *none*
@@ -68,20 +68,19 @@ Syntax
        *box* values = yes/no diam = draw outline of simulation box
          yes/no = do or do not draw simulation box lines
          diam = diameter of box lines as fraction of shortest box length
-       *axes* values = yes/no length diam = draw xyz axes
-         yes/no = do or do not draw xyz axes lines next to simulation box
+       *axes* values = axes length diam = draw xyz axes
+         axes = *yes* or *no = do or do not draw xyz axes lines next to simulation box
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
-       *subbox* values = yes/no diam = draw outline of processor sub-domains
-         yes/no = do or do not draw sub-domain lines
+       *subbox* values = lines diam = draw outline of processor sub-domains
+         lines = *yes* or *no* = do or do not draw sub-domain lines
          diam = diameter of sub-domain lines as fraction of shortest box length
        *shiny* value = sfactor = shinyness of spheres and cylinders
          sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
-       *ssao* value = yes/no seed dfactor = SSAO depth shading
-         yes/no = turn depth shading on/off
+       *ssao* value = shading seed dfactor = SSAO depth shading
+         shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
-
 
 .. _dump_modify_image:
 
@@ -162,7 +161,7 @@ Examples
 Description
 """""""""""
 
-Dump a high-quality rendered image of the atom configuration every N
+Dump a high-quality rendered image of the atom configuration every :math:`N`
 timesteps and save the images either as a sequence of JPEG or PNG or
 PPM files, or as a single movie file.  The options for this command as
 well as the :doc:`dump_modify <dump_modify>` command control what is
@@ -179,7 +178,7 @@ has been run, using the :doc:`rerun <rerun>` command to read snapshots
 from an existing dump file, and using these dump commands in the rerun
 script to generate the images/movie.
 
-Here are two sample images, rendered as 1024x1024 JPEG files.
+Here are two sample images, rendered as :math:`1024\times 1024` JPEG files.
 
 .. |dump1| image:: img/dump1.jpg
    :width: 48%
@@ -197,8 +196,8 @@ Only atoms in the specified group are rendered in the image.  The
 alter what atoms are included in the image.
 The filename suffix determines whether a JPEG, PNG, or PPM file is
 created with the *image* dump style.  If the suffix is ".jpg" or
-".jpeg", then a `JPEG format <jpeg_format_>`_ file is created, if the
-suffix is ".png", then a `PNG format <png_format_>`_ is created, else
+".jpeg," then a `JPEG format <jpeg_format_>`_ file is created, if the
+suffix is ".png," then a `PNG format <png_format_>`_ is created, else
 a `PPM (aka NETPBM) format <ppm_format_>`_ file is created.
 The JPEG and PNG files are binary; PPM has a text mode header followed
 by binary data. JPEG images have lossy compression, PNG has lossless
@@ -232,22 +231,22 @@ details.
 
 ----------
 
-Dumps are performed on timesteps that are a multiple of N (including
+Dumps are performed on timesteps that are a multiple of :math:`N` (including
 timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
 performed on the initial timestep after the dump command is invoked,
-if the current timestep is not a multiple of N.  This behavior can be
+if the current timestep is not a multiple of :math:`N`.  This behavior can be
 changed via the :doc:`dump_modify first <dump_modify>` command, which
 can be useful if the dump command is invoked after a minimization
-ended on an arbitrary timestep.  N can be changed between runs by
+ended on an arbitrary timestep. :math:`N` can be changed between runs by
 using the :doc:`dump_modify every <dump_modify>` command.
 
-Dump *image* filenames must contain a wildcard character "\*", so that
+Dump *image* filenames must contain a wildcard character "\*" so that
 one image file per snapshot is written.  The "\*" character is replaced
 with the timestep value.  For example, tmp.dump.\*.jpg becomes
 tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
 that the :doc:`dump_modify pad <dump_modify>` command can be used to
-insure all timestep numbers are the same length (e.g. 00010), which
+insure all timestep numbers are the same length (e.g., 00010), which
 can make it easier to convert a series of images into a movie in the
 correct ordering.
 
@@ -262,7 +261,7 @@ atoms rendered in the image.  They can be any atom attribute defined
 for the :doc:`dump custom <dump>` command, including *type* and
 *element*\ .  This includes per-atom quantities calculated by a
 :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`,
-which are prefixed by "c\_", "f\_", or "v\_" respectively.  Note that the
+which are prefixed by "c\_," "f\_," or "v\_," respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to
 all atoms by the optional *adiam* keyword.
 
@@ -277,7 +276,7 @@ to colors is as follows:
 * type 5 = aqua
 * type 6 = cyan
 
-and repeats itself for types > 6.  This mapping can be changed by the
+and repeats itself for types :math:`> 6`.  This mapping can be changed by the
 "dump_modify acolor" command, as described below.
 
 If *type* is specified for the *diameter* setting then the diameter of
@@ -298,18 +297,18 @@ and sizes used by the `AtomEye <atomeye_>`_ visualization package.
 If other atom attributes are used for the *color* or *diameter*
 settings, they are interpreted in the following way.
 
-If "vx", for example, is used as the *color* setting, then the color
+If "vx," for example, is used as the *color* setting, then the color
 of the atom will depend on the x-component of its velocity.  The
 association of a per-atom value with a specific color is determined by
-a "color map", which can be specified via the dump_modify command, as
+a "color map," which can be specified via the dump_modify command, as
 described below.  The basic idea is that the atom-attribute will be
 within a range of values, and every value within the range is mapped
 to a specific color.  Depending on how the color map is defined, that
 mapping can take place via interpolation so that a value of -3.2 is
-halfway between "red" and "blue", or discretely so that the value of
+halfway between "red" and "blue," or discretely so that the value of
 -3.2 is "orange".
 
-If "vx", for example, is used as the *diameter* setting, then the atom
+If "vx," for example, is used as the *diameter* setting, then the atom
 will be rendered using the x-component of its velocity as the
 diameter.  If the per-atom value <= 0.0, them the atom will not be
 drawn.  Note that finite-size spherical particles, as defined by
@@ -773,10 +772,11 @@ the number 5.0 would be used.  But for a fractional map, the number
 The *delta* setting must be specified for all styles, but is only used
 for the sequential style; otherwise the value is ignored.  It
 specifies the bin size to use within the range for assigning
-consecutive colors to.  For example, if the range is from -10.0 to
-10.0 and a *delta* of 1.0 is used, then 20 colors will be assigned to
-the range.  The first will be from -10.0 <= color1 < -9.0, then second
-from -9.0 <= color2 < -8.0, etc.
+consecutive colors to.  For example, if the range is from :math:`-10.0` to
+:math:`10.0` and a *delta* of :math:`1.0` is used, then 20 colors will be
+assigned to the range.  The first will be from
+:math:`-10.0 \le \text{color1} < -9.0`, then second from
+:math:`-9.0 \le color2 < -8.0`, etc.
 
 The *N* setting is how many entries follow.  The format of the entries
 depends on whether the color map style is continuous, discrete or
@@ -793,13 +793,13 @@ as absolute numbers or as fractions (0.0 to 1.0) of the range,
 depending on the "a" or "f" in the style setting for the color map.
 
 Here is how the entries are used to determine the color of an
-individual atom, given the value X of its atom attribute.  X will fall
-between 2 of the entry values.  The color of the atom is linearly
-interpolated (in each of the RGB values) between the 2 colors
-associated with those entries.  For example, if X = -5.0 and the 2
-surrounding entries are "red" at -10.0 and "blue" at 0.0, then the
-atom's color will be halfway between "red" and "blue", which happens
-to be "purple".
+individual atom, given the value :math:`X` of its atom attribute.
+:math:`X` will fall between 2 of the entry values.  The color of the atom is
+linearly interpolated (in each of the RGB values) between the 2 colors
+associated with those entries.  For example, if :math:`X = -5.0` and the two
+surrounding entries are "red" at :math:`-10.0` and "blue" at :math:`0.0`,
+then the atom's color will be halfway between "red" and "blue," which happens
+to be "purple."
 
 For discrete color maps, each entry has a *lo* and *hi* value and a
 *color*\ .  The *lo* and *hi* settings are either numbers within the
@@ -864,20 +864,20 @@ The *bcolor* keyword can be used with the dump image command, with its
 *bond* keyword, when its color setting is *type*, to set the color
 that bonds of each type will be drawn in the image.
 
-The specified *type* should be an integer from 1 to Nbondtypes = the
-number of bond types.  A wildcard asterisk can be used in place of or
+The specified *type* should be an integer from 1 to :math:`N`, where :math:`N`
+is the number of bond types.  A wildcard asterisk can be used in place of or
 in conjunction with the *type* argument to specify a range of bond
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N =
-the number of bond types, then an asterisk with no numeric values
-means all types from 1 to N.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from n to N
+types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n."  If :math:`N`
+is the number of bond types, then an asterisk with no numerical values
+means all types from 1 to :math:`N`.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
 The specified *color* can be a single color which is any of the 140
 pre-defined colors (see below) or a color name defined by the
 dump_modify color option.  Or it can be two or more colors separated
-by a "/" character, e.g. red/green/blue.  In the former case, that
+by a "/" character (e.g., red/green/blue).  In the former case, that
 color is assigned to all the specified bond types.  In the latter
 case, the list of colors are assigned in a round-robin fashion to each
 of the specified bond types.
@@ -885,13 +885,13 @@ of the specified bond types.
 ----------
 
 The *bdiam* keyword can be used with the dump image command, with its
-*bond* keyword, when its diam setting is *type*, to set the diameter
+*bond* keyword, when its *diam* setting is *type*, to set the diameter
 that bonds of each type will be drawn in the image.  The specified
 *type* should be an integer from 1 to Nbondtypes.  As with the
 *bcolor* keyword, a wildcard asterisk can be used as part of the
 *type* argument to specify a range of bond types.  The specified
 *diam* is the size in whatever distance :doc:`units <units>` you are
-using, e.g. Angstroms.
+using (e.g., Angstroms).
 
 ----------
 
@@ -922,7 +922,7 @@ dump_modify color option.
 ----------
 
 The *color* keyword allows definition of a new color name, in addition
-to the 140-predefined colors (see below), and associates 3
+to the 140-predefined colors (see below), and associates three
 red/green/blue RGB values with that color name.  The color name can
 then be used with any other dump_modify keyword that takes a color
 name as a value.  The RGB values should each be floating point values
@@ -959,15 +959,15 @@ PNG library.
 
 To write *movie* dumps, you must use the -DLAMMPS_FFMPEG switch when
 building LAMMPS and have the FFmpeg executable available on the
-machine where LAMMPS is being run.  Typically it's name is lowercase,
-i.e. ffmpeg.
+machine where LAMMPS is being run.  Typically its name is lowercase
+(i.e., "ffmpeg").
 
 See the :doc:`Build settings <Build_settings>` page for details.
 
 Note that since FFmpeg is run as an external program via a pipe,
 LAMMPS has limited control over its execution and no knowledge about
 errors and warnings printed by it. Those warnings and error messages
-will be printed to the screen only. Due to the way image data is
+will be printed to the screen only. Due to the way image data are
 communicated to FFmpeg, it will often print the message
 
 .. parsed-literal::
@@ -976,7 +976,7 @@ communicated to FFmpeg, it will often print the message
 
 which can be safely ignored. Other warnings
 and errors have to be addressed according to the FFmpeg documentation.
-One known issue is that certain movie file formats (e.g. MPEG level 1
+One known issue is that certain movie file formats (e.g., MPEG level 1
 and 2 format streams) have video bandwidth limits that can be crossed
 when rendering too large of image sizes. Typical warnings look like
 this:
@@ -987,10 +987,9 @@ this:
    [mpeg @ 0x98b5e0] buffer underflow st=0 bufi=281407 size=285018
    [mpeg @ 0x98b5e0] buffer underflow st=0 bufi=283448 size=285018
 
-In this case it is recommended to either reduce the size of the image
-or encode in a different format that is also supported by your copy of
-FFmpeg, and which does not have this limitation (e.g. .avi, .mkv,
-mp4).
+In this case it is recommended either to reduce the size of the image
+or to encode in a different format that is also supported by your copy of
+FFmpeg and which does not have this limitation (e.g., .avi, .mkv, mp4).
 
 Related commands
 """"""""""""""""

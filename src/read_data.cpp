@@ -906,13 +906,23 @@ void ReadData::command(int narg, char **arg)
     // at end of 1st pass, error check for required sections
     // customize for new sections
 
-    if ((nbonds && !bondflag) || (nangles && !angleflag) || (ndihedrals && !dihedralflag) ||
-        (nimpropers && !improperflag))
-      error->one(FLERR, "A required molecular topology section not found in data file");
+    if (nbonds && !bondflag)
+      error->one(FLERR, "Bonds section for {} bonds not found", nbonds);
+    if (nangles && !angleflag)
+      error->one(FLERR, "Angles section for {} angles not found", nangles);
+    if (ndihedrals && !dihedralflag)
+      error->one(FLERR, "Dihedrals section for {} dihedrals not found", ndihedrals);
+    if (nimpropers && !improperflag)
+      error->one(FLERR, "Impropers section for {} impropers not found", nimpropers);
 
-    if ((nellipsoids && !ellipsoidflag) || (nlines && !lineflag) || (ntris && !triflag) ||
-        (nbodies && !bodyflag))
-      error->one(FLERR, "Required bonus data not found in data file");
+    if (nellipsoids && !ellipsoidflag)
+      error->one(FLERR, "Ellipsoids section for {} ellipsoids not found", nellipsoids);
+    if (nlines && !lineflag)
+      error->one(FLERR, "Lines section for {} lines not found", nlines);
+    if (ntris && !triflag)
+      error->one(FLERR, "Triangles section for {} triangles not found", ntris);
+    if (nbodies && !bodyflag)
+      error->one(FLERR, "Bodies section for {} bodies not found", nbodies);
 
     // break out of loop if no molecular topology in file
     // else make 2nd pass
@@ -2124,6 +2134,8 @@ void ReadData::typelabels(int mode)
   int lntypes = 0;
   std::vector<std::string> *labels;
   std::unordered_map<std::string, int> *labels_map;
+  if (me == 0)
+    utils::logmesg(lmp, "  reading {} labelmap ...\n", utils::lowercase(labeltypes[mode]));
 
   switch (mode) {
     case Atom::ATOM:

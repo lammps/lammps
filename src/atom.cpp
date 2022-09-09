@@ -1066,11 +1066,11 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       break;
     }
   }
-  *next = '\n';
 
   if ((nwords != avec->size_data_atom) && (nwords != avec->size_data_atom + 3))
-    error->all(FLERR,"Incorrect atom format in {}: {}", location, utils::trim(buf));
+    error->all(FLERR,"Incorrect format in {}: {}", location, utils::trim(buf));
 
+  *next = '\n';
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
   // insures all data atoms will be owned even with round-off
@@ -1149,7 +1149,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       // skip over empty or comment lines
     } else if ((nvalues < nwords) ||
                ((nvalues > nwords) && (!utils::strmatch(values[nwords],"^#")))) {
-      error->all(FLERR, "Incorrect atom format in {}: {}", location, utils::trim(buf));
+      error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
     } else {
       int imx = 0, imy = 0, imz = 0;
       if (imageflag) {

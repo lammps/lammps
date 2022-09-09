@@ -310,7 +310,7 @@ void Dump::init()
   if (skipflag) {
     skipindex = input->variable->find(skipvar);
     if (skipindex < 0) error->all(FLERR,"Dump skip variable not found");
-    if (!input->variable->equalstyle(skipindex)) 
+    if (!input->variable->equalstyle(skipindex))
       error->all(FLERR,"Variable for dump skip is invalid style");
   }
 

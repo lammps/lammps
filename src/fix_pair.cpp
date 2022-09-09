@@ -93,7 +93,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
     if (trigger[ifield]) {
       int dim;
       triggerptr[ifield] = (int *) pstyle->extract(triggername[ifield],dim);
-      if (!triggerptr[ifield]) 
+      if (!triggerptr[ifield])
         error->all(FLERR,"Fix pair pair style cannot extract {}",
                    triggername[ifield]);
       if (dim) error->all(FLERR,"Fix pair pair style {} is not a scalar",
@@ -102,7 +102,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // if set peratom_freq = Nevery, then cannot access the per-atom
-  //   values as part of thermo output during minimiziation 
+  //   values as part of thermo output during minimiziation
   //   at different frequency or on last step of minimization
   // instead set peratom_freq = 1
   //   ok, since vector/array always have values
@@ -155,7 +155,7 @@ FixPair::~FixPair()
   delete [] trigger;
   delete [] triggername;
   delete [] triggerptr;
-  
+
   if (ncols == 1) memory->destroy(vector);
   else memory->destroy(array);
 }
@@ -225,7 +225,7 @@ void FixPair::post_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
-  // extract pair style fields one by one 
+  // extract pair style fields one by one
   // store their values in this fix
 
   int nlocal = atom->nlocal;
@@ -235,12 +235,12 @@ void FixPair::post_force(int /*vflag*/)
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
-    if (pvoid == nullptr) 
+    if (pvoid == nullptr)
       error->all(FLERR,"Fix pair pair style cannot extract {}",fieldname[ifield]);
 
     if (columns == 0) {
       double *pvector = (double *) pvoid;
-      if (ncols == 1) { 
+      if (ncols == 1) {
         for (int i = 0; i < nlocal; i++)
           vector[i] = pvector[i];
       } else {

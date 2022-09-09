@@ -432,7 +432,8 @@ flags are enabled or not.  For dump style *cfg* only changes to the
 The *colname* keyword can be used multiple times. If multiple *colname*
 settings refer to the same keyword, the last setting has precedence.  A
 setting of *default* clears all previous settings, reverting all values
-to their default names.
+to their default names. Using the *scale* or *image* keyword will also
+reset all header keywords to their default values.
 
 ----------
 
@@ -522,6 +523,8 @@ boundary twice and is really two box lengths to the left of its
 current coordinate.  Note that for dump style *custom* these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
+Using this keyword will reset all custom header names set with
+*dump_modify colname*.
 
 ----------
 
@@ -695,6 +698,8 @@ value of *yes* means atom coords are written in normalized units from
 (tilted), then all atom coords will still be between 0.0 and 1.0.  A
 value of *no* means they are written in absolute distance units
 (e.g., :math:`\mathrm{\mathring A}` or :math:`\sigma`).
+Using this keyword will reset all custom header names set with
+*dump_modify colname*.
 
 ----------
 

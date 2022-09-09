@@ -255,7 +255,7 @@ void FixMDIQM::init()
     ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS data");
 
-  } else { 
+  } else {
     ierr = MDI_Send_command("<NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <NATOMS command");
     int n;

@@ -101,8 +101,7 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
   // this calls back to plugin_wrapper(), which issues MDI EXIT at end & returns
   // plugin_wrapper() must be a static method
 
-  MDI_Launch_plugin(plugin_name, plugin_args, &world, plugin_wrapper, 
-                    (void *) this);
+  MDI_Launch_plugin(plugin_name, plugin_args, &world, plugin_wrapper, (void *) this);
 
   delete[] plugin_args;
 }

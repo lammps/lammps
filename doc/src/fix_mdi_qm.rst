@@ -125,7 +125,7 @@ LAMMPS atom type corresponds to.  This is specified by the atomic
 number of the element, e.g. 13 for Al.  An atomic number must be
 specified for each of the ntypes LAMMPS atom types.  Ntypes is
 typically specified via the create_box command or in the data file
-read by the read_data command.  
+read by the read_data command.
 
 If this keyword is specified, then this fix will send the MDI
 ">ELEMENTS" command to the engine, to insure the two codes are

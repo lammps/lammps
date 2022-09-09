@@ -748,6 +748,21 @@ void Atom::setup()
   if (sortfreq > 0) setup_sort_bins();
 }
 
+/* ---------------------------------------------------------------------- */
+
+std::string Atom::get_style()
+{
+  std::string retval = atom_style;
+  if (retval == "hybrid") {
+    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
+    for (int i = 0; i < avec_hybrid->nstyles; i++) {
+      retval += ' ';
+      retval += avec_hybrid->keywords[i];
+    }
+  }
+  return retval;
+}
+
 /* ----------------------------------------------------------------------
    return ptr to AtomVec class if matches style or to matching hybrid sub-class
    return nullptr if no match

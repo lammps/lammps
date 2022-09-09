@@ -301,6 +301,7 @@ class Atom : protected Pointers {
   void init();
   void setup();
 
+  std::string get_style();
   AtomVec *style_match(const char *);
   void modify_params(int, char **);
   void tag_check();

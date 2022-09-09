@@ -48,7 +48,7 @@ command-line argument, which must be provided by the MDI driver.
  * \param  class_obj  pointer to an instance of an mdi/engine fix cast to ``void *``.
  * \return 0 on no error. */
 
-int MDI_Plugin_init_lammps(void* plugin_state)
+int MDI_Plugin_init_lammps(void *plugin_state)
 {
   // initialize MDI
 
@@ -92,11 +92,10 @@ int MDI_Plugin_init_lammps(void* plugin_state)
   // same as if it were called from main.cpp
 
   int mdi_argc_extra = mdi_argc + 1;
-  char **mdi_argv_extra = new char*[mdi_argc_extra];
+  char **mdi_argv_extra = new char *[mdi_argc_extra];
 
   mdi_argv_extra[0] = (char *) "MDI_plugin_engine";
-  for (int i = 0; i < mdi_argc; i++)
-    mdi_argv_extra[i+1] = mdi_argv[i];
+  for (int i = 0; i < mdi_argc; i++) mdi_argv_extra[i + 1] = mdi_argv[i];
 
   void *lmp = nullptr;
   if (lammps_config_has_mpi_support() > 0)
@@ -104,7 +103,7 @@ int MDI_Plugin_init_lammps(void* plugin_state)
   else
     lmp = lammps_open_no_mpi(mdi_argc_extra, mdi_argv_extra, nullptr);
 
-  delete [] mdi_argv_extra;
+  delete[] mdi_argv_extra;
 
   // process the specified input script
   // must contain "mdi engine" command

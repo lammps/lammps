@@ -398,12 +398,12 @@ void Dump::write()
   // use nmax to insure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
 
-  if (nmax > maxbuf) {
+  if (nmax*size_one > maxbuf) {
     if ((bigint) nmax * size_one > MAXSMALLINT)
       error->all(FLERR,"Too much per-proc info for dump");
-    maxbuf = nmax;
+    maxbuf = nmax * size_one;
     memory->destroy(buf);
-    memory->create(buf,maxbuf*size_one,"dump:buf");
+    memory->create(buf,maxbuf,"dump:buf");
   }
 
   // insure ids buffer is sized for sorting
@@ -492,7 +492,7 @@ void Dump::write()
     if (filewriter) {
       for (int iproc = 0; iproc < nclusterprocs; iproc++) {
         if (iproc) {
-          MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,me+iproc,0,world,&request);
+          MPI_Irecv(buf,maxbuf,MPI_DOUBLE,me+iproc,0,world,&request);
           MPI_Send(&tmp,0,MPI_INT,me+iproc,0,world);
           MPI_Wait(&request,&status);
           MPI_Get_count(&status,MPI_DOUBLE,&nlines);
@@ -774,10 +774,10 @@ void Dump::sort()
   int nmax;
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
 
-  if (nmax > maxbuf) {
-    maxbuf = nmax;
+  if (nmax*size_one > maxbuf) {
+    maxbuf = nmax * size_one;
     memory->destroy(buf);
-    memory->create(buf,maxbuf*size_one,"dump:buf");
+    memory->create(buf,maxbuf,"dump:buf");
   }
 
   // copy data from bufsort to buf using index
@@ -958,12 +958,12 @@ void Dump::balance()
 
   int nmax;
   MPI_Allreduce(&nme_balance,&nmax,1,MPI_INT,MPI_MAX,world);
-  if (nmax > maxbuf) maxbuf = nmax;
+  if (nmax*size_one > maxbuf) maxbuf = nmax*size_one;
 
   // allocate a second buffer for balanced data
 
   double* buf_balance;
-  memory->create(buf_balance,maxbuf*size_one,"dump:buf_balance");
+  memory->create(buf_balance,maxbuf,"dump:buf_balance");
 
   // compute from which procs I am receiving atoms
   // post recvs first
@@ -1370,7 +1370,7 @@ void Dump::pbc_allocate()
 
 double Dump::memory_usage()
 {
-  double bytes = memory->usage(buf,size_one*maxbuf);
+  double bytes = memory->usage(buf,maxbuf);
   bytes += memory->usage(sbuf,maxsbuf);
   if (sort_flag) {
     if (sortcol == 0) bytes += memory->usage(ids,maxids);

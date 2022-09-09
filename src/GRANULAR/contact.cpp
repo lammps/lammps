@@ -76,7 +76,9 @@ ContactModel::~ContactModel()
 void ContactModel::init_model(std::string model_name, ModelType model_type)
 {
   if (model_type == NORMAL) {
-    if (model_name == "hooke") normal_model = new NormalHooke(lmp);
+    delete normal_model;
+    if (model_name == "none") normal_model = new NormalNone(lmp);
+    else if (model_name == "hooke") normal_model = new NormalHooke(lmp);
     else if (model_name == "hertz") normal_model = new NormalHertz(lmp);
     else if (model_name == "hertz/material") normal_model = new NormalHertzMaterial(lmp);
     else if (model_name == "dmt") normal_model = new NormalDMT(lmp);
@@ -85,7 +87,9 @@ void ContactModel::init_model(std::string model_name, ModelType model_type)
     sub_models[model_type] = normal_model;
 
   } else if (model_type == TANGENTIAL) {
-    if (model_name == "linear_nohistory") tangential_model = new TangentialLinearNoHistory(lmp);
+    delete tangential_model;
+    if (model_name == "none") tangential_model = new TangentialNone(lmp);
+    else if (model_name == "linear_nohistory") tangential_model = new TangentialLinearNoHistory(lmp);
     else if (model_name == "linear_history") tangential_model = new TangentialLinearHistory(lmp);
     else if (model_name == "mindlin") tangential_model = new TangentialMindlin(lmp);
     else if (model_name == "mindlin/force") tangential_model = new TangentialMindlinForce(lmp);
@@ -95,7 +99,9 @@ void ContactModel::init_model(std::string model_name, ModelType model_type)
     sub_models[model_type] = tangential_model;
 
   } else if (model_type == DAMPING) {
-    if (model_name == "velocity") damping_model = new DampingVelocity(lmp);
+    delete damping_model;
+    if (model_name == "none") damping_model = new DampingNone(lmp);
+    else if (model_name == "velocity") damping_model = new DampingVelocity(lmp);
     else if (model_name == "mass_velocity") damping_model = new DampingMassVelocity(lmp);
     else if (model_name == "viscoelastic") damping_model = new DampingViscoelastic(lmp);
     else if (model_name == "tsuji") damping_model = new DampingTsuji(lmp);
@@ -103,21 +109,33 @@ void ContactModel::init_model(std::string model_name, ModelType model_type)
     sub_models[model_type] = damping_model;
 
   } else if (model_type == ROLLING) {
-    if (model_name == "none") delete rolling_model;
-    else if (model_name == "sds") rolling_model = new RollingSDS(lmp);
+    delete rolling_model;
+    rolling_defined = 1;
+    if (model_name == "none") {
+      rolling_model = new RollingNone(lmp);
+      rolling_defined = 0;
+    } else if (model_name == "sds") rolling_model = new RollingSDS(lmp);
     else error->all(FLERR, "Rolling model name {} not recognized", model_name);
     sub_models[model_type] = rolling_model;
 
   } else if (model_type == TWISTING) {
-    if (model_name == "none") delete twisting_model;
-    else if (model_name == "sds") twisting_model = new TwistingSDS(lmp);
+    delete twisting_model;
+    twisting_defined = 1;
+    if (model_name == "none") {
+      twisting_model = new TwistingNone(lmp);
+      twisting_defined = 0;
+    } else if (model_name == "sds") twisting_model = new TwistingSDS(lmp);
     else if (model_name == "marshall") twisting_model = new TwistingMarshall(lmp);
     else error->all(FLERR, "Twisting model name {} not recognized", model_name);
     sub_models[model_type] = twisting_model;
 
   } else if (model_type == HEAT) {
-    if (model_name == "none") delete heat_model;
-    else if (model_name == "area") heat_model = new HeatArea(lmp);
+    delete heat_model;
+    heat_defined = 1;
+    if (model_name == "none") {
+      heat_model = new HeatNone(lmp);
+      heat_defined = 0;
+    } else if (model_name == "area") heat_model = new HeatArea(lmp);
     else error->all(FLERR, "Heat model name not {} recognized", model_name);
     sub_models[model_type] = heat_model;
   } else {
@@ -170,9 +188,9 @@ int ContactModel::init_classic_model(char **arg, int iarg, int narg)
   init_model("mass_velocity", DAMPING);
 
   // ensure additional models are undefined
-  rolling_model = nullptr;
-  twisting_model = nullptr;
-  heat_model = nullptr;
+  init_model("none", ROLLING);
+  init_model("none", TWISTING);
+  init_model("none", HEAT);
 
   // manually parse coeffs
   normal_model->coeffs[0] = kn;
@@ -186,67 +204,71 @@ int ContactModel::init_classic_model(char **arg, int iarg, int narg)
   damping_model->coeffs_to_local();
 
   iarg += 7;
-  return iarg ;
+  return iarg;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ContactModel::init()
 {
-  if (!normal_model) error->all(FLERR, "Must specify normal contact model");
-  if (!damping_model) error->all(FLERR, "Must specify damping contact model");
-  if (!tangential_model) error->all(FLERR, "Must specify tangential contact model");
+  int i, j;
+  for (i = 0; i < NSUBMODELS; i++)
+    if (!sub_models[i]) init_model("none", (ModelType) i);
 
-  int i, j, size_cumulative;
+  // Must have valid normal, damping, and tangential models
+  if (normal_model->name == "none") error->all(FLERR, "Must specify normal contact model");
+  if (damping_model->name == "none") error->all(FLERR, "Must specify damping contact model");
+  if (tangential_model->name == "none") error->all(FLERR, "Must specify tangential contact model");
+
+  int size_cumulative;
   size_history = 0;
   for (i = 0; i < NSUBMODELS; i++) {
-    if (sub_models[i]) {
-      if (sub_models[i]->nondefault_history_transfer)
-        nondefault_history_transfer = 1;
-      if (sub_models[i]->beyond_contact)
-        beyond_contact = 1;
-      size_history += sub_models[i]->size_history;
-    }
+    if (sub_models[i]->nondefault_history_transfer)
+      nondefault_history_transfer = 1;
+    if (sub_models[i]->beyond_contact)
+      beyond_contact = 1;
+    size_history += sub_models[i]->size_history;
   }
 
   if (nondefault_history_transfer) {
     transfer_history_factor = new double[size_history];
 
     for (i = 0; i < size_history; i++) {
-      // Find which model controls this history value
+      // Find which model owns this history value
       size_cumulative = 0;
       for (j = 0; j < NSUBMODELS; j++) {
-        if (sub_models[j]) {
-          if (size_cumulative + sub_models[j]->size_history > i) break;
-          size_cumulative += sub_models[j]->size_history;
-        }
+        if (size_cumulative + sub_models[j]->size_history > i) break;
+        size_cumulative += sub_models[j]->size_history;
       }
 
       // Check if model has nondefault transfers, if so copy its array
+      transfer_history_factor[i] = -1;
       if (j != NSUBMODELS) {
-        transfer_history_factor[i] = -1;
-        if (sub_models[j]) {
-          if (sub_models[j]->nondefault_history_transfer) {
-            transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
-          }
+        if (sub_models[j]->nondefault_history_transfer) {
+          transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
         }
       }
     }
   }
 
-  for (i = 0; i < NSUBMODELS; i++)
-    if (sub_models[i]) sub_models[i]->init();
+  for (i = 0; i < NSUBMODELS; i++) sub_models[i]->init();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ContactModel::mix_coeffs(ContactModel *c1, ContactModel *c2)
+int ContactModel::mix_coeffs(ContactModel *c1, ContactModel *c2)
 {
-  for (int i = 0; i < NSUBMODELS; i++)
-    if (sub_models[i])
-      sub_models[i]->mix_coeffs(c1->sub_models[i]->coeffs, c2->sub_models[i]->coeffs);
+  int i;
+  for (i = 0; i < NSUBMODELS; i++) {
+    if (c1->sub_models[i]->name != c2->sub_models[i]->name) return i;
+
+    init_model(c1->sub_models[i]->name, (ModelType) i);
+    sub_models[i]->mix_coeffs(c1->sub_models[i]->coeffs, c2->sub_models[i]->coeffs);
+  }
 
   limit_damping = MAX(c1->limit_damping, c2->limit_damping);
+
+  return -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -256,17 +278,12 @@ void ContactModel::write_restart(FILE *fp)
   int num_char, num_coeffs;
 
   for (int i = 0; i < NSUBMODELS; i++) {
-    num_char = -1;
-    if (sub_models[i]) {
-        num_char = sub_models[i]->name.length();
-        num_coeffs = sub_models[i]->num_coeffs;
-        fwrite(&num_char, sizeof(int), 1, fp);
-        fwrite(sub_models[i]->name.data(), sizeof(char), num_char, fp);
-        fwrite(&num_coeffs, sizeof(int), 1, fp);
-        fwrite(sub_models[i]->coeffs, sizeof(double), num_coeffs, fp);
-    } else {
-      fwrite(&num_char, sizeof(int), 1, fp);
-    }
+    num_char = sub_models[i]->name.length();
+    num_coeffs = sub_models[i]->num_coeffs;
+    fwrite(&num_char, sizeof(int), 1, fp);
+    fwrite(sub_models[i]->name.data(), sizeof(char), num_char, fp);
+    fwrite(&num_coeffs, sizeof(int), 1, fp);
+    fwrite(sub_models[i]->coeffs, sizeof(double), num_coeffs, fp);
   }
 }
 
@@ -281,27 +298,25 @@ void ContactModel::read_restart(FILE *fp)
       utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&num_char, 1, MPI_INT, 0, world);
 
-    if (num_char != -1) {
-      std::string model_name (num_char, ' ');
-      if (comm->me == 0)
-        utils::sfread(FLERR, const_cast<char*>(model_name.data()), sizeof(char),num_char, fp, nullptr, error);
-      MPI_Bcast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, 0, world);
+    std::string model_name (num_char, ' ');
+    if (comm->me == 0)
+      utils::sfread(FLERR, const_cast<char*>(model_name.data()), sizeof(char),num_char, fp, nullptr, error);
+    MPI_Bcast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, 0, world);
 
-      init_model(model_name, (ModelType) i);
+    init_model(model_name, (ModelType) i);
 
-      if (comm->me == 0) {
-        utils::sfread(FLERR, &num_coeff, sizeof(int), 1, fp, nullptr, error);
-        if (num_coeff != sub_models[i]->num_coeffs)
-          error->one(FLERR, "Invalid contact model written to restart file");
-      }
-      MPI_Bcast(&num_coeff, 1, MPI_INT, 0, world);
-
-      if (comm->me == 0) {
-        utils::sfread(FLERR, sub_models[i]->coeffs, sizeof(double), num_coeff, fp, nullptr, error);
-      }
-      MPI_Bcast(sub_models[i]->coeffs, num_coeff, MPI_DOUBLE, 0, world);
-      sub_models[i]->coeffs_to_local();
+    if (comm->me == 0) {
+      utils::sfread(FLERR, &num_coeff, sizeof(int), 1, fp, nullptr, error);
+      if (num_coeff != sub_models[i]->num_coeffs)
+        error->one(FLERR, "Invalid contact model written to restart file");
     }
+    MPI_Bcast(&num_coeff, 1, MPI_INT, 0, world);
+
+    if (comm->me == 0) {
+      utils::sfread(FLERR, sub_models[i]->coeffs, sizeof(double), num_coeff, fp, nullptr, error);
+    }
+    MPI_Bcast(sub_models[i]->coeffs, num_coeff, MPI_DOUBLE, 0, world);
+    sub_models[i]->coeffs_to_local();
   }
 }
 
@@ -378,10 +393,10 @@ void ContactModel::prep_contact()
   sub3(vt, temp, vtr);
   vrel = len3(vtr);
 
-  if (rolling_model || twisting_model)
+  if (rolling_defined || twisting_defined)
     sub3(omegai, omegaj, relrot);
 
-  if (rolling_model) {
+  if (rolling_defined) {
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // this is different from the Marshall papers, which use the Bagi/Kuhn formulation
     // for rolling velocity (see Wang et al for why the latter is wrong)
@@ -390,7 +405,7 @@ void ContactModel::prep_contact()
     vrl[2] = Reff * (relrot[0] * nx[1] - relrot[1] * nx[0]);
   }
 
-  if (twisting_model) {
+  if (twisting_defined) {
     // omega_T (eq 29 of Marshall)
     magtwist = dot3(relrot, nx);
   }
@@ -424,8 +439,8 @@ void ContactModel::calculate_forces()
   if (limit_damping && Fntot < 0.0) Fntot = 0.0;
 
   tangential_model->calculate_forces();
-  if (rolling_model) rolling_model->calculate_forces();
-  if (twisting_model) twisting_model->calculate_forces();
+  if (rolling_defined) rolling_model->calculate_forces();
+  if (twisting_defined) twisting_model->calculate_forces();
 
   //**********************************************
   // sum contributions
@@ -438,13 +453,13 @@ void ContactModel::calculate_forces()
   cross3(nx, fs, torquesi);
   copy3(torquesi, torquesj);
 
-  double dist_to_contact = radi-0.5*delta;
+  double dist_to_contact = radi - 0.5 * delta;
   scale3(dist_to_contact, torquesi);
-  dist_to_contact = radj-0.5*delta;
+  dist_to_contact = radj - 0.5 * delta;
   scale3(dist_to_contact, torquesj);
 
   double torroll[3];
-  if (rolling_model) {
+  if (rolling_defined) {
     cross3(nx, fr, torroll);
     scale3(Reff, torroll);
     add3(torquesi, torroll, torquesi);
@@ -452,18 +467,15 @@ void ContactModel::calculate_forces()
   }
 
   double tortwist[3];
-  if (twisting_model) {
+  if (twisting_defined) {
     scale3(magtortwist, nx, tortwist);
     add3(torquesi, tortwist, torquesi);
     sub3(torquesj, tortwist, torquesj);
   }
-}
 
-/* ---------------------------------------------------------------------- */
-
-double ContactModel::calculate_heat()
-{
-  return heat_model->calculate_heat();
+  if (heat_defined) {
+    dq = heat_model->calculate_heat();
+  }
 }
 
 /* ----------------------------------------------------------------------

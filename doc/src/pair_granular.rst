@@ -38,7 +38,7 @@ Examples
    pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin NULL 0.5 0.1 rolling sds 500.0 200.0 0.1 twisting marshall
 
    pair_style granular
-   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat 0.1
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat area 0.1
 
 Description
 """""""""""
@@ -634,18 +634,30 @@ attractive force. This keyword cannot be used with the JKR or DMT models.
 
 ----------
 
-The optional *heat* keyword enables heat conduction and it must be followed by
-a non-negative numeric value for the conductivity :math:`k_{s}.`` The heat :math:`Q`
-conducted across an interface is given by
+The optional *heat* keyword enables heat conduction . The options currently
+supported are:
+
+1. *none*
+2. *area* : :math:`k_{s}`
+
+If the *heat* keyword is not specified, the model defaults to *none*.
+
+For *heat* *area*, the heat
+:math:`Q` conducted across an interface is given by
 
 .. math::
 
    Q = k_{s} a \Delta T
 
-where :math:`\Delta T` is the difference in the two particles' temperature and :math:`a`
-is the area of the contact and depends on the normal force model. Note that the *heat* keyword
-must be included in either all or none of of the *pair_coeff* calls. See
-:doc:`fix temp/integrate <fix_temp_integrate>` for more information on this option.
+
+
+where :math:`\Delta T` is the difference in the two particles' temperature,
+:math:`k_{s}` is a non-negative numeric value for the conductivity, and
+:math:`a` is the area of the contact and depends on the normal force model.
+
+Note that the option *none* must either be used in all or none of of the
+*pair_coeff* calls. See :doc:`fix temp/integrate <fix_temp_integrate>` for
+more information on this option.
 
 ----------
 

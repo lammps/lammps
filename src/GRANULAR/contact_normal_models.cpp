@@ -69,6 +69,19 @@ void NormalModel::set_fncrit()
 }
 
 /* ----------------------------------------------------------------------
+   No model
+------------------------------------------------------------------------- */
+
+NormalNone::NormalNone(LAMMPS *lmp) : NormalModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+double NormalNone::calculate_forces()
+{
+  return 0.0;
+}
+
+/* ----------------------------------------------------------------------
    Hookean normal force
 ------------------------------------------------------------------------- */
 
@@ -85,15 +98,6 @@ void NormalHooke::coeffs_to_local()
   damp = coeffs[1];
 
   if (k < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hooke normal model");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void NormalHooke::mix_coeffs(double* icoeffs, double* jcoeffs)
-{
-  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
-  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
-  coeffs_to_local();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,15 +132,6 @@ void NormalHertz::coeffs_to_local()
   damp = coeffs[1];
 
   if (k < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hertz normal model");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void NormalHertz::mix_coeffs(double* icoeffs, double* jcoeffs)
-{
-  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
-  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
-  coeffs_to_local();
 }
 
 /* ---------------------------------------------------------------------- */

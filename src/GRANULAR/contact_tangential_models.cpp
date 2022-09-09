@@ -38,6 +38,12 @@ void TangentialModel::init()
 }
 
 /* ----------------------------------------------------------------------
+   No model
+------------------------------------------------------------------------- */
+
+TangentialNone::TangentialNone(LAMMPS *lmp) : TangentialModel(lmp) {}
+
+/* ----------------------------------------------------------------------
    Linear model with no history
 ------------------------------------------------------------------------- */
 
@@ -57,15 +63,6 @@ void TangentialLinearNoHistory::coeffs_to_local()
 
   if (k < 0.0 || xt < 0.0 || mu < 0.0)
     error->all(FLERR, "Illegal linear no history tangential model");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void TangentialLinearNoHistory::mix_coeffs(double* icoeffs, double* jcoeffs)
-{
-  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
-  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
-  coeffs_to_local();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,16 +101,6 @@ void TangentialLinearHistory::coeffs_to_local()
 
   if (k < 0.0 || xt < 0.0 || mu < 0.0)
     error->all(FLERR, "Illegal linear tangential model");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void TangentialLinearHistory::mix_coeffs(double* icoeffs, double* jcoeffs)
-{
-  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
-  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
-  coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
-  coeffs_to_local();
 }
 
 /* ---------------------------------------------------------------------- */

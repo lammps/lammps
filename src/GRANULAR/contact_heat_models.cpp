@@ -28,6 +28,19 @@ HeatModel::HeatModel(LAMMPS *lmp) : SubModel(lmp) {}
    Area-based heat conduction
 ------------------------------------------------------------------------- */
 
+HeatNone::HeatNone(LAMMPS *lmp) : HeatModel(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+double HeatNone::calculate_heat()
+{
+  return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   Area-based heat conduction
+------------------------------------------------------------------------- */
+
 HeatArea::HeatArea(LAMMPS *lmp) : HeatModel(lmp)
 {
   num_coeffs = 1;
@@ -40,14 +53,6 @@ void HeatArea::coeffs_to_local()
   conductivity = coeffs[0];
 
   if (conductivity < 0.0) error->all(FLERR, "Illegal area heat model");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void HeatArea::mix_coeffs(double* icoeffs, double* jcoeffs)
-{
-  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
-  coeffs_to_local();
 }
 
 /* ---------------------------------------------------------------------- */

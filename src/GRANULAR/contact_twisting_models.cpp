@@ -26,11 +26,13 @@ using namespace MathConst;
    Default twisting model
 ------------------------------------------------------------------------- */
 
-TwistingModel::TwistingModel(LAMMPS *lmp) : SubModel(lmp)
-{
-  num_coeffs = 0;
-  size_history = 3;
-}
+TwistingModel::TwistingModel(LAMMPS *lmp) : SubModel(lmp) {}
+
+/* ----------------------------------------------------------------------
+   No model
+------------------------------------------------------------------------- */
+
+TwistingNone::TwistingNone(LAMMPS *lmp) : TwistingModel(lmp) {}
 
 /* ----------------------------------------------------------------------
    Marshall twisting model
@@ -44,7 +46,7 @@ TwistingMarshall::TwistingMarshall(LAMMPS *lmp) : TwistingModel(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-double TwistingMarshall::calculate_forces()
+void TwistingMarshall::calculate_forces()
 {
   double signtwist, Mtcrit;
 
@@ -93,17 +95,7 @@ void TwistingSDS::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void TwistingSDS::mix_coeffs(double* icoeffs, double* jcoeffs)
-{
-  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
-  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
-  coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
-  coeffs_to_local();
-}
-
-/* ---------------------------------------------------------------------- */
-
-double TwistingSDS::calculate_forces()
+void TwistingSDS::calculate_forces()
 {
   double signtwist, Mtcrit;
 

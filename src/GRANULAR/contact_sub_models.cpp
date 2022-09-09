@@ -73,6 +73,15 @@ int SubModel::parse_coeffs(char **arg, int iarg, int narg)
   return iarg + num_coeffs;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void SubModel::mix_coeffs(double* icoeffs, double* jcoeffs)
+{
+  for (int i = 0; i < num_coeffs; i++)
+    coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
+  coeffs_to_local();
+}
+
 /* ----------------------------------------------------------------------
    mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */

@@ -24,9 +24,16 @@ class TwistingModel : public SubModel {
   TwistingModel(class LAMMPS *);
   virtual ~TwistingModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(double*, double*) {};
   virtual void init() {};
-  virtual double calculate_forces() = 0;
+  virtual void calculate_forces() = 0;
+};
+
+/* ---------------------------------------------------------------------- */
+
+class TwistingNone : public TwistingModel {
+ public:
+  TwistingNone(class LAMMPS *);
+  void calculate_forces() {};
 };
 
 /* ---------------------------------------------------------------------- */
@@ -34,7 +41,7 @@ class TwistingModel : public SubModel {
 class TwistingMarshall : public TwistingModel {
  public:
   TwistingMarshall(class LAMMPS *);
-  double calculate_forces();
+  void calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
@@ -43,8 +50,7 @@ class TwistingSDS : public TwistingModel {
  public:
   TwistingSDS(class LAMMPS *);
   void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  double calculate_forces();
+  void calculate_forces();
  protected:
   double k, mu, damp;
 };

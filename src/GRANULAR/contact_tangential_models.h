@@ -24,7 +24,6 @@ class TangentialModel : public SubModel {
   TangentialModel(class LAMMPS *);
   virtual ~TangentialModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(double*, double*) {};
   virtual void init();
   virtual void calculate_forces() = 0;
   int rescale_flag;
@@ -35,11 +34,18 @@ class TangentialModel : public SubModel {
 
 /* ---------------------------------------------------------------------- */
 
+class TangentialNone : public TangentialModel {
+ public:
+  TangentialNone(class LAMMPS *);
+  void calculate_forces() {};
+};
+
+/* ---------------------------------------------------------------------- */
+
 class TangentialLinearNoHistory : public TangentialModel {
  public:
   TangentialLinearNoHistory(class LAMMPS *);
   void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
   void calculate_forces();
 };
 
@@ -49,7 +55,6 @@ class TangentialLinearHistory : public TangentialModel {
  public:
   TangentialLinearHistory(class LAMMPS *);
   void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
   void calculate_forces();
 };
 

@@ -24,9 +24,16 @@ class RollingModel : public SubModel {
   RollingModel(class LAMMPS *);
   ~RollingModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(double*, double*) {};
   virtual void init() {};
-  virtual double calculate_forces() = 0;
+  virtual void calculate_forces() = 0;
+};
+
+/* ---------------------------------------------------------------------- */
+
+class RollingNone : public RollingModel {
+ public:
+  RollingNone(class LAMMPS *);
+  void calculate_forces() {};
 };
 
 /* ---------------------------------------------------------------------- */
@@ -35,8 +42,7 @@ class RollingSDS : public RollingModel {
  public:
   RollingSDS(class LAMMPS *);
   void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  double calculate_forces();
+  void calculate_forces();
  protected:
   double k, mu, gamma;
 };

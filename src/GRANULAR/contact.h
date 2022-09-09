@@ -55,12 +55,11 @@ class ContactModel : protected Pointers {
   void reset_contact();
   void prep_contact();
   void calculate_forces();
-  double calculate_heat();
   double pulloff_distance(double, double);
 
   void init_model(std::string, ModelType);
   int init_classic_model(char **, int, int);
-  void mix_coeffs(ContactModel*, ContactModel*);
+  int mix_coeffs(ContactModel*, ContactModel*);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -84,7 +83,7 @@ class ContactModel : protected Pointers {
   double *history;
 
   // Contact properties/output
-  double forces[3], torquesi[3], torquesj[3];
+  double forces[3], torquesi[3], torquesj[3], dq;
 
   double radi, radj, rwall, meff, dt, Ti, Tj, area;
   double Fntot, magtortwist;
@@ -98,7 +97,7 @@ class ContactModel : protected Pointers {
   bool touch;
 
  protected:
-
+  int rolling_defined, twisting_defined, heat_defined; // Used to quickly skip undefined submodels
   int prep_flag, check_flag;
 };
 

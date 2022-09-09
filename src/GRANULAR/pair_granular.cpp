@@ -254,11 +254,11 @@ void PairGranular::compute(int eflag, int vflag)
       }
 
       models[itype][jtype]->calculate_forces();
-      if (heat_flag) dq = models[itype][jtype]->calculate_heat();
 
       forces = models[itype][jtype]->forces;
       torquesi = models[itype][jtype]->torquesi;
       torquesj = models[itype][jtype]->torquesj;
+      if (heat_flag) dq = models[itype][jtype]->dq;
 
       // apply forces & torques
       scale3(factor_lj, forces);
@@ -450,9 +450,8 @@ void PairGranular::init_style()
     if (model.size_history != 0) use_history = 1;
 
     for (i = 0; i < NSUBMODELS; i++)
-      if (model.sub_models[i])
-        if (model.sub_models[i]->size_history > size_max[i])
-          size_max[i] = model.sub_models[i]->size_history;
+      if (model.sub_models[i]->size_history > size_max[i])
+        size_max[i] = model.sub_models[i]->size_history;
 
     if (model.nondefault_history_transfer) nondefault_history_transfer = 1;
   }
@@ -463,10 +462,8 @@ void PairGranular::init_style()
   for (auto &model : vec_models) {
     int next_index = 0;
     for (i = 0; i < NSUBMODELS; i++) {
-      if (model.sub_models[i]) {
-        model.sub_models[i]->history_index = next_index;
-        next_index += size_max[i];
-      }
+      model.sub_models[i]->history_index = next_index;
+      next_index += size_max[i];
     }
   }
 
@@ -561,27 +558,20 @@ double PairGranular::init_one(int i, int j)
   double cutoff = 0.0;
 
   if (setflag[i][j] == 0) {
-    if ((models[i][i]->normal_model->name != models[j][j]->normal_model->name) ||
-        (models[i][i]->damping_model->name != models[j][j]->damping_model->name) ||
-        (models[i][i]->tangential_model->name != models[j][j]->tangential_model->name) ||
-        (models[i][i]->rolling_model->name != models[j][j]->rolling_model->name) ||
-        (models[i][i]->twisting_model->name != models[j][j]->twisting_model->name)) {
-      error->all(FLERR,"Granular pair style functional forms are different, "
-                 "cannot mix coefficients for types {} and {}. \n"
-                 "This combination must be set explicitly via a "
-                 "pair_coeff command",i,j);
-    }
 
     vec_models.push_back(ContactModel(lmp));
     models[i][j] = models[j][i] = & vec_models.back();
-    vec_models.back().init_model(models[i][i]->normal_model->name, NORMAL);
-    vec_models.back().init_model(models[i][i]->tangential_model->name, TANGENTIAL);
-    vec_models.back().init_model(models[i][i]->damping_model->name, DAMPING);
-    vec_models.back().init_model(models[i][i]->rolling_model->name, ROLLING);
-    vec_models.back().init_model(models[i][i]->twisting_model->name, TWISTING);
-    vec_models.back().init_model(models[i][i]->heat_model->name, HEAT);
 
-    vec_models.back().mix_coeffs(models[i][i], models[j][j]);
+    int error_code = vec_models.back().mix_coeffs(models[i][i], models[j][j]);
+    if (error_code != -1)
+      error->all(FLERR,"Granular pair style functional forms are different, "
+                 "cannot mix coefficients for types {} and {} \n"
+                 "with submodels {} and {}. \n"
+                 "This combination must be set explicitly via a "
+                 "pair_coeff command",i,j,
+                 models[i][i]->sub_models[error_code]->name,
+                 models[j][j]->sub_models[error_code]->name);
+
     vec_models.back().init(); // Calculates cumulative properties of sub models
 
     for (int k = 0; k < NSUBMODELS; k++)

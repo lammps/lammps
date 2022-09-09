@@ -24,7 +24,6 @@ class NormalModel : public SubModel {
   NormalModel(class LAMMPS *);
   ~NormalModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(double*, double*) {};
   virtual void init() {};
   virtual bool touch();
   virtual double pulloff_distance(double, double);
@@ -40,12 +39,19 @@ class NormalModel : public SubModel {
 
 /* ---------------------------------------------------------------------- */
 
+class NormalNone : public NormalModel {
+ public:
+  NormalNone(class LAMMPS *);
+  double calculate_forces();
+  void set_knfac() {};
+};
+
+/* ---------------------------------------------------------------------- */
+
 class NormalHooke : public NormalModel {
  public:
   NormalHooke(class LAMMPS *);
-  ~NormalHooke() {};
   void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
   double calculate_forces();
   void set_knfac();
  protected:
@@ -57,9 +63,7 @@ class NormalHooke : public NormalModel {
 class NormalHertz : public NormalModel {
  public:
   NormalHertz(class LAMMPS *);
-  ~NormalHertz() {};
   void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
   double calculate_forces();
   void set_knfac();
  protected:
@@ -71,7 +75,6 @@ class NormalHertz : public NormalModel {
 class NormalHertzMaterial : public NormalHertz {
  public:
   NormalHertzMaterial(class LAMMPS *);
-  ~NormalHertzMaterial() {};
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
 };
@@ -81,7 +84,6 @@ class NormalHertzMaterial : public NormalHertz {
 class NormalDMT : public NormalModel {
  public:
   NormalDMT(class LAMMPS *);
-  ~NormalDMT() {};
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
   double calculate_forces();
@@ -97,14 +99,13 @@ class NormalDMT : public NormalModel {
 class NormalJKR : public NormalModel {
  public:
   NormalJKR(class LAMMPS *);
-  ~NormalJKR() {};
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
   bool touch() override;
   double pulloff_distance(double, double) override;
   double calculate_area() override;
-  double calculate_forces();
-  void set_knfac();
+  double calculate_forces() override;
+  void set_knfac() override;
   void set_fncrit() override;
  protected:
   double k, cohesion;

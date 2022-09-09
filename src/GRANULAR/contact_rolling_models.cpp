@@ -30,6 +30,12 @@ using namespace MathExtra;
 RollingModel::RollingModel(LAMMPS *lmp) : SubModel(lmp) {}
 
 /* ----------------------------------------------------------------------
+   No model
+------------------------------------------------------------------------- */
+
+RollingNone::RollingNone(LAMMPS *lmp) : RollingModel(lmp) {}
+
+/* ----------------------------------------------------------------------
    SDS rolling friction model
 ------------------------------------------------------------------------- */
 
@@ -53,17 +59,7 @@ void RollingSDS::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void RollingSDS::mix_coeffs(double* icoeffs, double* jcoeffs)
-{
-  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
-  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
-  coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
-  coeffs_to_local();
-}
-
-/* ---------------------------------------------------------------------- */
-
-double RollingSDS::calculate_forces()
+void RollingSDS::calculate_forces()
 {
   int rhist0, rhist1, rhist2, frameupdate;
   double Frcrit, rolldotn, rollmag, prjmag, magfr, hist_temp[3], temp_dbl, temp_array[3];
@@ -125,5 +121,4 @@ double RollingSDS::calculate_forces()
   contact->history[rhist0] = hist_temp[0];
   contact->history[rhist1] = hist_temp[1];
   contact->history[rhist2] = hist_temp[2];
-  return 0;
 }

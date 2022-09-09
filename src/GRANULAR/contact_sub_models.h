@@ -29,7 +29,7 @@ class SubModel : protected Pointers {
   double *coeffs;
   void read_restart();
   int parse_coeffs(char **, int, int);
-  virtual void mix_coeffs(double*, double*) = 0;
+  virtual void mix_coeffs(double*, double*);
   virtual void coeffs_to_local() = 0;
   virtual void init() = 0;   // called after all other submodel coeffs defined
 

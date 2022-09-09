@@ -33,6 +33,15 @@ class DampingModel : public SubModel {
 
 /* ---------------------------------------------------------------------- */
 
+class DampingNone : public DampingModel {
+ public:
+  DampingNone(class LAMMPS *);
+  void init() override {};
+  double calculate_forces();
+};
+
+/* ---------------------------------------------------------------------- */
+
 class DampingVelocity : public DampingModel {
  public:
   DampingVelocity(class LAMMPS *);

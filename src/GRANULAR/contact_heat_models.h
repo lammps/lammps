@@ -24,9 +24,16 @@ class HeatModel : public SubModel {
   HeatModel(class LAMMPS *);
   ~HeatModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(double*, double*) {};
   virtual void init() {};
   virtual double calculate_heat() = 0;
+};
+
+/* ---------------------------------------------------------------------- */
+
+class HeatNone : public HeatModel {
+ public:
+  HeatNone(class LAMMPS *);
+  double calculate_heat();
 };
 
 /* ---------------------------------------------------------------------- */
@@ -35,7 +42,6 @@ class HeatArea : public HeatModel {
  public:
   HeatArea(class LAMMPS *);
   void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
   double calculate_heat();
  protected:
   double conductivity;

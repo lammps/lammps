@@ -265,10 +265,10 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       model->prep_contact();
 
       model->calculate_forces();
-      if (heat_flag) dq = model->calculate_heat();
 
       forces = model->forces;
       torquesi = model->torquesi;
+      if (heat_flag) dq = model->dq;
 
       // apply forces & torques
       add3(f[i], forces, f[i]);

@@ -362,10 +362,8 @@ void FixWallGran::init()
   if (model->beyond_contact) next_index = 1;
 
   for (i = 0; i < NSUBMODELS; i++) {
-    if (model->sub_models[i]) {
-      model->sub_models[i]->history_index = next_index;
-      next_index += model->sub_models[i]->size_history;
-    }
+    model->sub_models[i]->history_index = next_index;
+    next_index += model->sub_models[i]->size_history;
   }
 }
 
@@ -546,10 +544,10 @@ void FixWallGran::post_force(int /*vflag*/)
     model->prep_contact();
 
     model->calculate_forces();
-    if (heat_flag) dq = model->calculate_heat();
 
     forces = model->forces;
     torquesi = model->torquesi;
+    if (heat_flag) dq = model->dq;
 
     // apply forces & torques
     add3(f[i], forces, f[i]);

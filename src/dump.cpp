@@ -1190,32 +1190,6 @@ void Dump::modify_params(int narg, char **arg)
       flush_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"colname") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);
-      if (strcmp(arg[iarg+1],"default") == 0) {
-        for (auto &item : keyword_user) item.clear();
-        iarg += 2;
-      } else {
-        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);
-        int icol = -1;
-        if (utils::is_integer(arg[iarg + 1])) {
-          icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
-          if (icol < 0) icol = keyword_user.size() + icol + 1;
-          icol--;
-        } else {
-          try {
-            icol = key2col.at(arg[iarg + 1]);
-          } catch (std::out_of_range &) {
-            icol = -1;
-          }
-        }
-        if ((icol < 0) || (icol >= (int)keyword_user.size()))
-          error->all(FLERR, "Incorrect dump_modify arguments: {} {} {}",
-                     arg[iarg], arg[iarg+1], arg[iarg+2]);
-        keyword_user[icol] = arg[iarg+2];
-        iarg += 3;
-      }
-
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 

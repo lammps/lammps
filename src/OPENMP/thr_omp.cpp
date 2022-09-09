@@ -597,9 +597,8 @@ void ThrOMP::ev_tally_full_thr(Pair * const pair, const int i, const double evdw
                                const double ecoul, const double fpair, const double delx,
                                const double dely, const double delz, ThrData * const thr)
 {
-
   if (pair->eflag_either)
-    e_tally_thr(pair, i, i+1, i, 0, evdwl, ecoul, thr);
+    e_tally_thr(pair, i, /*j*/ i+1, /*nlocal*/ i+1, /*newton_pair*/ 0, evdwl, ecoul, thr);
 
   if (pair->vflag_either) {
     double v[6];
@@ -610,7 +609,7 @@ void ThrOMP::ev_tally_full_thr(Pair * const pair, const int i, const double evdw
     v[4] = delx*delz*fpair;
     v[5] = dely*delz*fpair;
 
-    v_tally_thr(pair, i, i+1, i, 0, v, thr);
+    v_tally_thr(pair, i, /*j*/ i+1, /*nlocal*/ i+1, /*newton_pair*/ 0, v, thr);
   }
 
   if (pair->num_tally_compute > 0) {

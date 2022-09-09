@@ -1712,9 +1712,12 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
 
   // error checks applicable to all styles
 
-  if (tag[nlocal] <= 0) error->one(FLERR, "Invalid atom ID in Atoms section of data file");
+  if (tag[nlocal] <= 0)
+    error->one(FLERR, "Invalid atom ID {} in line {} of Atoms section of data file",
+               tag[nlocal], nlocal+1);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one(FLERR, "Invalid atom type in Atoms section of data file");
+    error->one(FLERR, "Invalid atom type {} for atom {} in line {} of Atoms section of data file",
+               type[nlocal], tag[nlocal], nlocal+1);
 
   // if needed, modify unpacked values or initialize other peratom values
 

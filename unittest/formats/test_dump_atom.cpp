@@ -730,7 +730,7 @@ TEST_F(DumpAtomTest, colname)
     command("group one id 1");
     command("dump id one atom 10 " + dump_file);
     command("run 5 post no");
-    command("dump_modify id colname id AtomID colname 3 x-scaled colname -1 z-scaled");
+    command("dump_modify id colname id AtomID colname 3 x-scaled colname -4 z-scaled");
     command("run 10 post no");
     command("dump_modify id colname default");
     command("run 10 post no");

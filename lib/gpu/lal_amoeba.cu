@@ -14,7 +14,7 @@
 // ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
-#include <stdio.h>
+//#include <stdio.h>
 #include "lal_aux_fun1.h"
 #ifdef LAMMPS_SMALLBIG
 #define tagint int
@@ -1789,11 +1789,6 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
           int gidx = 2*(k*ngridxy + j*ngridx + i);
           tq_1 = grid[gidx];
           tq_2 = grid[gidx+1];
-/*
-          if (ii == 0 && jb == 0 && kb == 0)
-            printf("ii = 0: igrid %d %d %d; grid %f %f; k = %d j = %d; i = %d; origin = %f %f; gidx = %d\n",
-              igrid[4*ii+0], igrid[4*ii+1], igrid[4*ii+2], tq_1, tq_2, k, j, i, grid[0], grid[1], gidx);
-*/          
           t0_1 += tq_1*w0;
           t1_1 += tq_1*w1;
           t2_1 += tq_1*w2;

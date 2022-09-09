@@ -642,10 +642,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
     dview_int[idx+1] = host_igrid[i][1];
     dview_int[idx+2] = host_igrid[i][2];
   }
-  ucl_copy(_igrid, dview_int, false);
-
-  
-  
+  ucl_copy(_igrid, dview_int, false);  
 }
 
 // ---------------------------------------------------------------------------
@@ -690,12 +687,6 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
   for (int iz = nzlo_out; iz <= nzhi_out; iz++)
     for (int iy = nylo_out; iy <= nyhi_out; iy++)
       for (int ix = nxlo_out; ix <= nxhi_out; ix++) {
-/*        
-        if (iz == nzlo_out && iy == nylo_out && ix == nxlo_out) {
-          printf("origin = %d %d %d: grid = %f %f %f\n", iz, iy, ix, host_grid_brick[iz][iy][ix][0], host_grid_brick[iz][iy][ix][1]);
-        }
-        if (iz == -2 && iy == 4 && ix == 8) printf("ixyz = %d %d %d: grid = %f %f %f; n = %d\n", iz, iy, ix, host_grid_brick[iz][iy][ix][0], host_grid_brick[iz][iy][ix][1], n);
-*/        
         hview_cgrid[n] = host_grid_brick[iz][iy][ix][0];
         hview_cgrid[n+1] = host_grid_brick[iz][iy][ix][1];
         n += 2;

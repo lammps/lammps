@@ -44,9 +44,9 @@ void HeatArea::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void HeatArea::mix_coeffs(HeatModel* imodel, HeatModel* jmodel)
+void HeatArea::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
-  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
+  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
   coeffs_to_local();
 }
 

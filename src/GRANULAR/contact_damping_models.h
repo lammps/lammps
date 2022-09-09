@@ -25,7 +25,7 @@ class DampingModel : public SubModel {
   DampingModel(class LAMMPS *);
   ~DampingModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(DampingModel*, DampingModel*) {};
+  virtual void mix_coeffs(double*, double*) {};
   virtual void init();
   virtual double calculate_forces() = 0;
   double damp;
@@ -60,7 +60,7 @@ class DampingViscoelastic : public DampingModel {
 class DampingTsuji : public DampingModel {
  public:
   DampingTsuji(class LAMMPS *);
-  void init();
+  void init() override;
   double calculate_forces();
 };
 

@@ -93,11 +93,11 @@ void TwistingSDS::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void TwistingSDS::mix_coeffs(TwistingModel* imodel, TwistingModel* jmodel)
+void TwistingSDS::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
-  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
-  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
-  coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
+  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
+  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
+  coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs_to_local();
 }
 

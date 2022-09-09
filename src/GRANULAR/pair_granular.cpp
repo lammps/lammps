@@ -443,13 +443,13 @@ void PairGranular::init_style()
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
   // allocate history and initialize models
-  int size_max[NMODELS] = {0};
+  int size_max[NSUBMODELS] = {0};
 
   for (auto &model : vec_models) {
     model.init();
     if (model.size_history != 0) use_history = 1;
 
-    for (i = 0; i < NMODELS; i++)
+    for (i = 0; i < NSUBMODELS; i++)
       if (model.sub_models[i])
         if (model.sub_models[i]->size_history > size_max[i])
           size_max[i] = model.sub_models[i]->size_history;
@@ -458,11 +458,11 @@ void PairGranular::init_style()
   }
 
   size_history = 0;
-  for (i = 0; i < NMODELS; i++) size_history += size_max[i];
+  for (i = 0; i < NSUBMODELS; i++) size_history += size_max[i];
 
   for (auto &model : vec_models) {
     int next_index = 0;
-    for (i = 0; i < NMODELS; i++) {
+    for (i = 0; i < NSUBMODELS; i++) {
       if (model.sub_models[i]) {
         model.sub_models[i]->history_index = next_index;
         next_index += size_max[i];
@@ -584,7 +584,7 @@ double PairGranular::init_one(int i, int j)
     vec_models.back().mix_coeffs(models[i][i], models[j][j]);
     vec_models.back().init(); // Calculates cumulative properties of sub models
 
-    for (int k = 0; k < NMODELS; k++)
+    for (int k = 0; k < NSUBMODELS; k++)
       vec_models.back().sub_models[k]->history_index = models[i][i]->sub_models[k]->history_index;
   }
 

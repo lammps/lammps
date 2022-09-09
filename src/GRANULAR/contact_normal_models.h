@@ -24,7 +24,8 @@ class NormalModel : public SubModel {
   NormalModel(class LAMMPS *);
   ~NormalModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(NormalModel*, NormalModel*) {};
+  virtual void mix_coeffs(double*, double*) {};
+  virtual void init() {};
   virtual bool touch();
   virtual double pulloff_distance(double, double);
   virtual double calculate_area();
@@ -43,8 +44,8 @@ class NormalHooke : public NormalModel {
  public:
   NormalHooke(class LAMMPS *);
   ~NormalHooke() {};
-  void coeffs_to_local();
-  void mix_coeffs(NormalModel*, NormalModel*);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
   double calculate_forces();
   void set_knfac();
  protected:
@@ -57,8 +58,8 @@ class NormalHertz : public NormalModel {
  public:
   NormalHertz(class LAMMPS *);
   ~NormalHertz() {};
-  void coeffs_to_local();
-  void mix_coeffs(NormalModel*, NormalModel*);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
   double calculate_forces();
   void set_knfac();
  protected:
@@ -71,8 +72,8 @@ class NormalHertzMaterial : public NormalHertz {
  public:
   NormalHertzMaterial(class LAMMPS *);
   ~NormalHertzMaterial() {};
-  void coeffs_to_local();
-  void mix_coeffs(NormalModel*, NormalModel*);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -81,11 +82,11 @@ class NormalDMT : public NormalModel {
  public:
   NormalDMT(class LAMMPS *);
   ~NormalDMT() {};
-  void coeffs_to_local();
-  void mix_coeffs(NormalModel*, NormalModel*);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
   double calculate_forces();
   void set_knfac();
-  void set_fncrit();
+  void set_fncrit() override;
  protected:
   double k, cohesion;
   double F_pulloff;
@@ -97,14 +98,14 @@ class NormalJKR : public NormalModel {
  public:
   NormalJKR(class LAMMPS *);
   ~NormalJKR() {};
-  void coeffs_to_local();
-  void mix_coeffs(NormalModel*, NormalModel*);
-  bool touch();
-  double pulloff_distance(double, double);
-  double calculate_area();
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
+  bool touch() override;
+  double pulloff_distance(double, double) override;
+  double calculate_area() override;
   double calculate_forces();
   void set_knfac();
-  void set_fncrit();
+  void set_fncrit() override;
  protected:
   double k, cohesion;
   double Escaled, F_pulloff;

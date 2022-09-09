@@ -61,10 +61,10 @@ void TangentialLinearNoHistory::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void TangentialLinearNoHistory::mix_coeffs(TangentialModel* imodel, TangentialModel* jmodel)
+void TangentialLinearNoHistory::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
-  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
-  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
+  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
+  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs_to_local();
 }
 
@@ -108,11 +108,11 @@ void TangentialLinearHistory::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void TangentialLinearHistory::mix_coeffs(TangentialModel* imodel, TangentialModel* jmodel)
+void TangentialLinearHistory::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
-  coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
-  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
-  coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
+  coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
+  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
+  coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs_to_local();
 }
 
@@ -205,12 +205,12 @@ void TangentialMindlin::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void TangentialMindlin::mix_coeffs(TangentialModel* imodel, TangentialModel* jmodel)
+void TangentialMindlin::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
-  if (imodel->coeffs[0] == -1 || imodel->coeffs[0] == -1) coeffs[0] = -1;
-  else coeffs[0] = mix_geom(imodel->coeffs[0], jmodel->coeffs[0]);
-  coeffs[1] = mix_geom(imodel->coeffs[1], jmodel->coeffs[1]);
-  coeffs[2] = mix_geom(imodel->coeffs[2], jmodel->coeffs[2]);
+  if (icoeffs[0] == -1 || jcoeffs[0] == -1) coeffs[0] = -1;
+  else coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
+  coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
+  coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs_to_local();
 }
 

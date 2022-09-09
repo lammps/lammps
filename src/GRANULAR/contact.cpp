@@ -41,7 +41,6 @@ ContactModel::ContactModel(LAMMPS *lmp) : Pointers(lmp)
   limit_damping = 0;
   beyond_contact = 0;
   nondefault_history_transfer = 0;
-  nmodels = NMODELS;
 
   wall_type = NONE;
 
@@ -54,7 +53,7 @@ ContactModel::ContactModel(LAMMPS *lmp) : Pointers(lmp)
   twisting_model = nullptr;
   heat_model = nullptr;
 
-  for (int i = 0; i < nmodels; i++) sub_models[i] = nullptr;
+  for (int i = 0; i < NSUBMODELS; i++) sub_models[i] = nullptr;
   transfer_history_factor = nullptr;
 }
 
@@ -200,7 +199,7 @@ void ContactModel::init()
 
   int i, j, size_cumulative;
   size_history = 0;
-  for (i = 0; i < nmodels; i++) {
+  for (i = 0; i < NSUBMODELS; i++) {
     if (sub_models[i]) {
       if (sub_models[i]->nondefault_history_transfer)
         nondefault_history_transfer = 1;
@@ -216,7 +215,7 @@ void ContactModel::init()
     for (i = 0; i < size_history; i++) {
       // Find which model controls this history value
       size_cumulative = 0;
-      for (j = 0; j < nmodels; j++) {
+      for (j = 0; j < NSUBMODELS; j++) {
         if (sub_models[j]) {
           if (size_cumulative + sub_models[j]->size_history > i) break;
           size_cumulative += sub_models[j]->size_history;
@@ -224,7 +223,7 @@ void ContactModel::init()
       }
 
       // Check if model has nondefault transfers, if so copy its array
-      if (j != nmodels) {
+      if (j != NSUBMODELS) {
         transfer_history_factor[i] = -1;
         if (sub_models[j]) {
           if (sub_models[j]->nondefault_history_transfer) {
@@ -235,7 +234,7 @@ void ContactModel::init()
     }
   }
 
-  for (i = 0; i < nmodels; i++)
+  for (i = 0; i < NSUBMODELS; i++)
     if (sub_models[i]) sub_models[i]->init();
 }
 
@@ -243,9 +242,9 @@ void ContactModel::init()
 
 void ContactModel::mix_coeffs(ContactModel *c1, ContactModel *c2)
 {
-  for (int i = 0; i < nmodels; i++)
+  for (int i = 0; i < NSUBMODELS; i++)
     if (sub_models[i])
-      sub_models[i]->mix_coeffs(c1->sub_models[i], c2->sub_models[i]);
+      sub_models[i]->mix_coeffs(c1->sub_models[i]->coeffs, c2->sub_models[i]->coeffs);
 
   limit_damping = MAX(c1->limit_damping, c2->limit_damping);
 }
@@ -256,7 +255,7 @@ void ContactModel::write_restart(FILE *fp)
 {
   int num_char, num_coeffs;
 
-  for (int i = 0; i < nmodels; i++) {
+  for (int i = 0; i < NSUBMODELS; i++) {
     num_char = -1;
     if (sub_models[i]) {
         num_char = sub_models[i]->name.length();
@@ -277,7 +276,7 @@ void ContactModel::read_restart(FILE *fp)
 {
   int num_char, num_coeff;
 
-  for (int i = 0; i < nmodels; i++) {
+  for (int i = 0; i < NSUBMODELS; i++) {
     if (comm->me == 0)
       utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&num_char, 1, MPI_INT, 0, world);

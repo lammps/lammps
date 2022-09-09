@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 namespace Contact {
 
 #define EPSILON 1e-10
-#define NMODELS 6
+#define NSUBMODELS 6
 
 enum ModelType {
   NORMAL = 0,
@@ -72,7 +72,7 @@ class ContactModel : protected Pointers {
   RollingModel *rolling_model;
   TwistingModel *twisting_model;
   HeatModel *heat_model;
-  SubModel *sub_models[NMODELS];  // Need to resize if we add more model flavors
+  SubModel *sub_models[NSUBMODELS];  // Need to resize if we add more model flavors
 
   // Extra options
   int beyond_contact, limit_damping, history_update;
@@ -96,7 +96,6 @@ class ContactModel : protected Pointers {
   double vr[3], vn[3], vnnr, vt[3], wr[3], vtr[3], vrl[3], relrot[3], vrel;
   double magtwist;
   bool touch;
-  int nmodels;
 
  protected:
 

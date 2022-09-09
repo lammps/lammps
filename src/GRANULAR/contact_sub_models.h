@@ -29,9 +29,10 @@ class SubModel : protected Pointers {
   double *coeffs;
   void read_restart();
   int parse_coeffs(char **, int, int);
-  virtual void mix_coeffs(SubModel*, SubModel*) {};
-  virtual void coeffs_to_local() {};
-  virtual void init() {};                            // called after all other submodel coeffs defined
+  virtual void mix_coeffs(double*, double*) = 0;
+  virtual void coeffs_to_local() = 0;
+  virtual void init() = 0;   // called after all other submodel coeffs defined
+
   void allocate_coeffs();
   std::string name;
 

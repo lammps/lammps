@@ -24,9 +24,9 @@ class TangentialModel : public SubModel {
   TangentialModel(class LAMMPS *);
   virtual ~TangentialModel() {};
   virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(TangentialModel*, TangentialModel*) {};
+  virtual void mix_coeffs(double*, double*) {};
+  virtual void init();
   virtual void calculate_forces() = 0;
-  void init();
   int rescale_flag;
   double k, damp, mu; // Used by Marshall twisting model
  protected:
@@ -38,8 +38,8 @@ class TangentialModel : public SubModel {
 class TangentialLinearNoHistory : public TangentialModel {
  public:
   TangentialLinearNoHistory(class LAMMPS *);
-  void coeffs_to_local();
-  void mix_coeffs(TangentialModel*, TangentialModel*);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
   void calculate_forces();
 };
 
@@ -48,8 +48,8 @@ class TangentialLinearNoHistory : public TangentialModel {
 class TangentialLinearHistory : public TangentialModel {
  public:
   TangentialLinearHistory(class LAMMPS *);
-  void coeffs_to_local();
-  void mix_coeffs(TangentialModel*, TangentialModel*);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
   void calculate_forces();
 };
 
@@ -58,8 +58,8 @@ class TangentialLinearHistory : public TangentialModel {
 class TangentialMindlin : public TangentialModel {
  public:
   TangentialMindlin(class LAMMPS *);
-  void coeffs_to_local();
-  void mix_coeffs(TangentialModel*, TangentialModel*);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
   void calculate_forces();
  protected:
   int mindlin_rescale, mindlin_force;

@@ -295,7 +295,7 @@ void Output::setup(int memflag)
   } else next_restart = update->laststep + 1;
 
   // print memory usage unless being called between multiple runs
-  
+
   if (memflag) memory_usage();
 
    // set next_thermo to multiple of every or variable eval if var defined
@@ -303,11 +303,11 @@ void Output::setup(int memflag)
    // thermo may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
-  
+
   thermo->header();
   thermo->compute(0);
   last_thermo = ntimestep;
-  
+
   if (var_thermo) {
     next_thermo = static_cast<bigint>
       (input->variable->compute_equal(ivar_thermo));
@@ -317,11 +317,11 @@ void Output::setup(int memflag)
     next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
     next_thermo = MIN(next_thermo,update->laststep);
   } else next_thermo = update->laststep;
-  
+
   modify->addstep_compute(next_thermo);
-  
+
   // next = next timestep any output will be done
-  
+
   next = MIN(next_dump_any,next_restart);
   next = MIN(next,next_thermo);
 }
@@ -492,7 +492,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
       // which = WRITE: increment next_dump by every_dump
       //                current step is already multiple of every_dump
 
-      if (which == SETUP) 
+      if (which == SETUP)
         next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
       else if (which == WRITE)
         next_dump[idump] += every_dump[idump];

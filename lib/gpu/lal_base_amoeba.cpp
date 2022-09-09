@@ -656,7 +656,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
                                     double ***host_thetai1, double ***host_thetai2,
-                                    double ***host_thetai3, int** igrid,
+                                    double ***host_thetai3, int** host_igrid,
                                     double *host_grid_brick_start, double ****host_grid_brick,
                                     void** host_fdip_phi1, void **host_fdip_phi2, void **host_fdip_sum_phi,
                                     int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
@@ -666,9 +666,9 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
   
   if (first_iteration) {
     precompute_induce(inum_full, bsorder, host_thetai1, host_thetai2, host_thetai3,
-                      igrid, host_grid_brick_start, host_grid_brick, nzlo_out, nzhi_out,
+                      host_igrid, host_grid_brick_start, host_grid_brick, nzlo_out, nzhi_out,
                       nylo_out, nyhi_out, nxlo_out, nxhi_out);
-    if (first_iteration) first_iteration = false;
+    first_iteration = false;
   }
 
   // update the cgrid_brick with data host

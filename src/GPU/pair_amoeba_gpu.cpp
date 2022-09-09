@@ -290,6 +290,8 @@ void PairAmoebaGPU::induce()
 
   int debug = 1;
 
+  first_induce_iteration  = true;
+
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()
 
@@ -485,8 +487,6 @@ void PairAmoebaGPU::induce()
     }
 
     // conjugate gradient iteration of the mutual induced dipoles
-
-    first_induce_iteration  = true;
 
     while (!done) {
       iter++;

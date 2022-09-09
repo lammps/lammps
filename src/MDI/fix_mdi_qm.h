@@ -40,7 +40,7 @@ class FixMDIQM : public Fix {
 
  private:
   int nprocs;
-  int every,virialflag,addflag,connectflag;
+  int every, virialflag, addflag, connectflag;
   int plugin;
   int maxlocal;
   int sumflag;
@@ -48,7 +48,7 @@ class FixMDIQM : public Fix {
 
   double qm_energy;
   int lmpunits;
-  double qm_virial[9],qm_virial_symmetric[6];
+  double qm_virial[9], qm_virial_symmetric[6];
   double **fqm;
 
   MDI_Comm mdicomm;

@@ -658,7 +658,7 @@ void Neighbor::init()
   for (i = 0; i < nlist; i++)
     if (neigh_pair[i]) neigh_pair[i]->copy_neighbor_info();
 
-  if (!same && comm->me == 0) print_pairwise_info();
+  if (!same && (nrequest > 0) && (comm->me == 0)) print_pairwise_info();
 
   // can now delete requests so next run can make new ones
   // print_pairwise_info() made use of requests
@@ -2152,7 +2152,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
 }
 
 /* ----------------------------------------------------------------------
-   called by other classes to request a pairwise neighbor list
+   called internally to request a pairwise neighbor list
 ------------------------------------------------------------------------- */
 
 int Neighbor::request(void *requestor, int instance)
@@ -2527,10 +2527,10 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
 void Neighbor::set(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal neighbor command");
+  if (narg != 2) error->all(FLERR,"Illegal neighbor command: expected 2 arguments but found {}", narg);
 
   skin = utils::numeric(FLERR,arg[0],false,lmp);
-  if (skin < 0.0) error->all(FLERR,"Illegal neighbor command");
+  if (skin < 0.0) error->all(FLERR, "Invalid neighbor argument: {}", arg[0]);
 
   if (strcmp(arg[1],"nsq") == 0) style = Neighbor::NSQ;
   else if (strcmp(arg[1],"bin") == 0) style = Neighbor::BIN;
@@ -2538,7 +2538,7 @@ void Neighbor::set(int narg, char **arg)
     style = Neighbor::MULTI;
     ncollections = atom->ntypes;
   } else if (strcmp(arg[1],"multi/old") == 0) style = Neighbor::MULTI_OLD;
-  else error->all(FLERR,"Illegal neighbor command");
+  else error->all(FLERR,"Unknown neighbor {} argument: {}", arg[0], arg[1]);
 
   if (style == Neighbor::MULTI_OLD && lmp->citeme) lmp->citeme->add(cite_neigh_multi_old);
   if (style == Neighbor::MULTI && lmp->citeme) lmp->citeme->add(cite_neigh_multi);

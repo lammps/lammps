@@ -6,7 +6,7 @@ compute nbond/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID nbond/atom
 

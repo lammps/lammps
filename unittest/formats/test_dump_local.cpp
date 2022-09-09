@@ -28,6 +28,7 @@ using ::testing::Eq;
 char *BINARY2TXT_EXECUTABLE = nullptr;
 bool verbose                = false;
 
+namespace LAMMPS_NS {
 class DumpLocalTest : public MeltTest {
     std::string dump_style = "local";
 
@@ -237,6 +238,7 @@ TEST_F(DumpLocalTest, triclinic_run0)
     ASSERT_EQ(utils::split_words(lines[7]).size(), 3);
     delete_file(dump_file);
 }
+}
 
 int main(int argc, char **argv)
 {
@@ -245,7 +247,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

@@ -23,6 +23,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "suffix.h"
 
 #include <cmath>
 
@@ -37,6 +38,7 @@ static constexpr double EPSILON = 1.0e-6;
 PairLJCutCoulDebyeDielectricOMP::PairLJCutCoulDebyeDielectricOMP(LAMMPS *_lmp) :
     PairLJCutCoulDebyeDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,7 +101,7 @@ void PairLJCutCoulDebyeDielectricOMP::eval(int iifrom, int iito, ThrData *const 
 {
   int i, j, ii, jj, jnum, itype, jtype;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj, efield_i, epot_i;
   double r, rinv, screening;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -185,7 +187,6 @@ void PairLJCutCoulDebyeDielectricOMP::eval(int iifrom, int iito, ThrData *const 
           forcelj = 0.0;
 
         fpair_i = (factor_coul * etmp * forcecoul + factor_lj * forcelj) * r2inv;
-
         fxtmp += delx * fpair_i;
         fytmp += dely * fpair_i;
         fztmp += delz * fpair_i;
@@ -196,19 +197,11 @@ void PairLJCutCoulDebyeDielectricOMP::eval(int iifrom, int iito, ThrData *const 
         eztmp += delz * efield_i;
         epot[i] += epot_i;
 
-        if (NEWTON_PAIR || j >= nlocal) {
-          fpair_j = (factor_coul * eps[j] * forcecoul + factor_lj * forcelj) * r2inv;
-          f[j].x -= delx * fpair_j;
-          f[j].y -= dely * fpair_j;
-          f[j].z -= delz * fpair_j;
-        }
-
         if (EFLAG) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = factor_coul * qqrd2e * qtmp * q[j] * (etmp + eps[j]) * rinv * screening;
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv * screening;
           } else
             ecoul = 0.0;
-          ecoul *= 0.5;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
@@ -216,9 +209,7 @@ void PairLJCutCoulDebyeDielectricOMP::eval(int iifrom, int iito, ThrData *const 
             evdwl = 0.0;
         }
 
-        if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair_i, delx, dely, delz,
-                       thr);
+        if (EVFLAG) ev_tally_full_thr(this, i, evdwl, ecoul, fpair_i, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

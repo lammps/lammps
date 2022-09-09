@@ -629,7 +629,7 @@ void Thermo::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg], "colname") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
       if (strcmp(arg[iarg + 1], "default") == 0) {
-        for (auto item : keyword_user) item.clear();
+        for (auto &item : keyword_user) item.clear();
         iarg += 2;
       } else {
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
@@ -658,7 +658,7 @@ void Thermo::modify_params(int narg, char **arg)
         format_int_user.clear();
         format_bigint_user.clear();
         format_float_user.clear();
-        for (auto item : format_column_user) item.clear();
+        for (auto &item : format_column_user) item.clear();
         iarg += 2;
         continue;
       }
@@ -747,7 +747,7 @@ void Thermo::allocate()
 
   int i = 0;
   key2col.clear();
-  for (auto item : utils::split_words(line)) { key2col[item] = i++; }
+  for (const auto &item : utils::split_words(line)) { key2col[item] = i++; }
 }
 
 /* ----------------------------------------------------------------------

@@ -678,7 +678,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       if (!yaml_header || overwrite) {
         yaml_header = true;
         fputs("keywords: ['Step', ", fp);
-        for (auto k : keyword) fmt::print(fp, "'{}', ", k);
+        for (const auto &k : keyword) fmt::print(fp, "'{}', ", k);
         fputs("]\ndata:\n", fp);
       }
       fmt::print(fp, "  - [{}, ", ntimestep);
@@ -900,7 +900,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       if (!yaml_header || overwrite) {
         yaml_header = true;
         fputs("keywords: [", fp);
-        for (auto k : keyword) fmt::print(fp, "'{}', ", k);
+        for (const auto &k : keyword) fmt::print(fp, "'{}', ", k);
         fputs("]\ndata:\n", fp);
       }
       fmt::print(fp, "  {}:\n", ntimestep);

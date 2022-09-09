@@ -323,7 +323,7 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
 {
   // initialize per-chunk values in accumulation vector
 
-  for (int i = 0; i < nchunk; i += nstride) vchunk[i] = initvalue;
+  for (int i = 0; i < nvalues*nchunk; i += nstride) vchunk[i] = initvalue;
 
   // loop over my atoms
   // use peratom input and chunk ID of each atom to update vector

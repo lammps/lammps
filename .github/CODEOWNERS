@@ -134,6 +134,7 @@ tools/coding_standard/* @rbberger
 tools/valgrind/*      @akohlmey
 tools/swig/*          @akohlmey
 tools/offline/*       @rbberger
+tools/vim/*           @hammondkd
 
 # tests
 unittest/*            @akohlmey @rbberger

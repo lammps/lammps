@@ -110,7 +110,7 @@ namespace ATC {
     /** Static instance of this class */
     static UXT_Function_Mgr * instance();
 
-    UXT_Function* function(std::string & type, int nargs, double * arg);
+    UXT_Function* function(const std::string & type, int nargs, double * arg);
     UXT_Function* function(char ** arg, int nargs);
     UXT_Function* linear_function(double c0, double c1);
     UXT_Function* copy_UXT_function(UXT_Function* other);
@@ -181,7 +181,7 @@ namespace ATC {
     /** Static instance of this class */
     static XT_Function_Mgr * instance();
 
-    XT_Function* function(std::string & type, int nargs, double * arg);
+    XT_Function* function(const std::string & type, int nargs, double * arg);
     XT_Function* function(char ** arg, int nargs);
     XT_Function* constant_function(double c);
     XT_Function* copy_XT_function(XT_Function* other);

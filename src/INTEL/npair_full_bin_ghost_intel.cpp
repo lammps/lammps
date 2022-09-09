@@ -370,7 +370,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           #pragma vector aligned
           #endif
           for (int u = 0; u < ncount; u++) {
-            const int j = tj[u];
+            const int j = IP_PRE_dword_index(tj[u]);
             tx[u] = x[j].x;
             ty[u] = x[j].y;
             tz[u] = x[j].z;

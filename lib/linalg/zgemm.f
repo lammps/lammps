@@ -166,8 +166,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup complex16_blas_level3
 *
 *> \par Further Details:
@@ -187,10 +185,9 @@
 *  =====================================================================
       SUBROUTINE ZGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
 *
-*  -- Reference BLAS level3 routine (version 3.7.0) --
+*  -- Reference BLAS level3 routine --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       COMPLEX*16 ALPHA,BETA
@@ -215,7 +212,7 @@
 *     ..
 *     .. Local Scalars ..
       COMPLEX*16 TEMP
-      INTEGER I,INFO,J,L,NCOLA,NROWA,NROWB
+      INTEGER I,INFO,J,L,NROWA,NROWB
       LOGICAL CONJA,CONJB,NOTA,NOTB
 *     ..
 *     .. Parameters ..
@@ -228,8 +225,7 @@
 *     Set  NOTA  and  NOTB  as  true if  A  and  B  respectively are not
 *     conjugated or transposed, set  CONJA and CONJB  as true if  A  and
 *     B  respectively are to be  transposed but  not conjugated  and set
-*     NROWA, NCOLA and  NROWB  as the number of rows and  columns  of  A
-*     and the number of rows of  B  respectively.
+*     NROWA and NROWB  as the number of rows  of  A  and  B  respectively.
 *
       NOTA = LSAME(TRANSA,'N')
       NOTB = LSAME(TRANSB,'N')
@@ -237,10 +233,8 @@
       CONJB = LSAME(TRANSB,'C')
       IF (NOTA) THEN
           NROWA = M
-          NCOLA = K
       ELSE
           NROWA = K
-          NCOLA = M
       END IF
       IF (NOTB) THEN
           NROWB = K
@@ -478,6 +472,6 @@
 *
       RETURN
 *
-*     End of ZGEMM .
+*     End of ZGEMM
 *
       END

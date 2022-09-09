@@ -292,7 +292,7 @@ void ComputeSNAGrid::compute_array()
         }
       }
 
-  memset(&grid[0][0], 0, size_array_rows * size_array_cols * sizeof(double));
+  memset(&grid[0][0], 0, sizeof(double) * size_array_rows * size_array_cols);
 
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)

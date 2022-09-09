@@ -33,9 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
-  styles(nullptr), keywords(nullptr), multiple(nullptr), nmap(nullptr),
-  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr), cutmax_style(nullptr)
+PairHybrid::PairHybrid(LAMMPS *lmp) :
+    Pair(lmp), styles(nullptr), cutmax_style(nullptr), keywords(nullptr), multiple(nullptr),
+    nmap(nullptr), map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
 {
   nstyles = 0;
 

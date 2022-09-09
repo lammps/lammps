@@ -38,3 +38,10 @@ up the Conda capability.
 .. _openkim: https://openkim.org
 .. _conda: https://docs.conda.io/en/latest/index.html
 .. _mini_conda_install: https://docs.conda.io/en/latest/miniconda.html
+
+.. note::
+
+   If you have questions about these pre-compiled LAMMPS executables,
+   you need to contact the people preparing those packages.  The LAMMPS
+   developers have no control over their choices of how they configure
+   and build their packages and when they update them.

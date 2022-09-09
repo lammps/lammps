@@ -1,0 +1,91 @@
+# YAML 1.2
+---
+cff-version: 1.2.0
+title: "LAMMPS: Large-scale Atomic/Molecular Massively Parallel Simulator"
+type: software
+authors:
+  - family-names: "Plimpton"
+    given-names: "Steven J."
+  - family-names: "Kohlmeyer"
+    given-names: "Axel"
+    orcid: "https://orcid.org/0000-0001-6204-6475"
+  - family-names: "Thompson"
+    given-names: "Aidan P."
+    orcid: "https://orcid.org/0000-0002-0324-9114"
+  - family-names: "Moore"
+    given-names: "Stan G."
+  - family-names: "Berger"
+    given-names: "Richard"
+    orcid: "https://orcid.org/0000-0002-3044-8266"
+doi: 10.5281/zenodo.3726416
+license: GPL-2.0-only
+url: https://www.lammps.org
+repository-code: https://github.com/lammps/lammps/
+keywords:
+  - "Molecular Dynamics"
+  - "Materials Modeling"
+message: "If you are referencing LAMMPS in a publication, please cite the paper below."
+preferred-citation:
+  type: article
+  doi: "10.1016/j.cpc.2021.108171"
+  url: "https://www.sciencedirect.com/science/article/pii/S0010465521002836"
+  authors:
+  - family-names: "Thompson"
+    given-names: "Aidan P."
+    orcid: "https://orcid.org/0000-0002-0324-9114"
+  - family-names: "Aktulga"
+    given-names: "H. Metin"
+  - family-names: "Berger"
+    given-names: "Richard"
+    orcid: "https://orcid.org/0000-0002-3044-8266"
+  - family-names: "Bolintineanu"
+    given-names: "Dan S."
+  - family-names: "Brown"
+    given-names: "W. Michael"
+  - family-names: "Crozier"
+    given-names: "Paul S."
+  - family-names: "in 't Veld"
+    given-names: "Pieter J."
+  - family-names: "Kohlmeyer"
+    given-names: "Axel"
+    orcid: "https://orcid.org/0000-0001-6204-6475"
+  - family-names: "Moore"
+    given-names: "Stan G."
+  - family-names: "Nguyen"
+    given-names: "Trung Dac"
+  - family-names: "Shan"
+    given-names: "Ray"
+  - family-names: "Stevens"
+    given-names: "Mark J."
+  - family-names: "Tranchida"
+    given-names: "Julien"
+  - family-names: "Trott"
+    given-names: "Christian"
+  - family-names: "Plimpton"
+    given-names: "Steven J."
+  title: "LAMMPS - a flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales"
+  journal: "Computer Physics Communications"
+  keywords:
+   - Molecular dynamics
+   - Materials modeling
+   - Parallel algorithms
+   - LAMMPS
+  month: 2
+  volume: 271
+  issn: 0010-4655
+  pages: 108171
+  year: 2022
+references:
+ - title: "Fast Parallel Algorithms for Short-Range Molecular Dynamics"
+   type: article
+   journal: Journal of Computational Physics
+   volume: 117
+   number: 1
+   pages: "1-19"
+   year: 1995
+   issn: 0021-9991
+   doi: 10.1006/jcph.1995.1039
+   url: https://www.sciencedirect.com/science/article/pii/S002199918571039X
+   authors:
+   - family-names: "Plimpton"
+     given-names: "Steve"

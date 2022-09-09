@@ -126,8 +126,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup double_blas_level2
 *
 *> \par Further Details:
@@ -147,10 +145,9 @@
 *  =====================================================================
       SUBROUTINE DSYR2(UPLO,N,ALPHA,X,INCX,Y,INCY,A,LDA)
 *
-*  -- Reference BLAS level2 routine (version 3.7.0) --
+*  -- Reference BLAS level2 routine --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       DOUBLE PRECISION ALPHA
@@ -293,6 +290,6 @@
 *
       RETURN
 *
-*     End of DSYR2 .
+*     End of DSYR2
 *
       END

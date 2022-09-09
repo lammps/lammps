@@ -6,7 +6,7 @@ fix amoeba/bitorsion command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ameoba/bitorsion filename
 
@@ -55,8 +55,8 @@ should have a line like this in its header section:
 
    N bitorsions
 
-where N is the number of bitorsion 5-body interactions.  It should
-also have a section in the body of the data file like this with N
+where :math:`N` is the number of bitorsion 5-body interactions.  It should
+also have a section in the body of the data file like this with :math:`N`
 lines:
 
 .. parsed-literal::
@@ -68,7 +68,7 @@ lines:
           [...]
           N       3     314     315     317      318    330
 
-The first column is an index from 1 to N to enumerate the bitorsion
+The first column is an index from 1 to :math:`N` to enumerate the bitorsion
 5-atom tuples; it is ignored by LAMMPS.  The second column is the
 *type* of the interaction; it is an index into the bitorsion force
 field file.  The remaining 5 columns are the atom IDs of the atoms in
@@ -124,7 +124,7 @@ setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential
 energy discussed above.  The scalar value calculated by this fix is
-"extensive".
+"extensive."
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.

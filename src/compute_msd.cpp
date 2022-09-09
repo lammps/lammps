@@ -16,7 +16,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "modify.h"
 #include "update.h"
@@ -45,15 +45,15 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "com") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute msd command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute msd com", error);
       comflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "average") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute msd command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute msd average", error);
       avflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal compute msd command");
+      error->all(FLERR, "Unknown compute msd keyword: {}", arg[iarg]);
   }
 
   if (group->dynamic[igroup])
@@ -63,8 +63,8 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-  fix = dynamic_cast<FixStore *>(
-      modify->add_fix(fmt::format("{} {} STORE peratom 1 3", id_fix, group->names[igroup])));
+  fix = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 3", id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -127,7 +127,7 @@ void ComputeMSD::init()
 {
   // set fix which stores reference atom coords
 
-  fix = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix));
+  fix = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_fix));
   if (!fix) error->all(FLERR, "Could not find compute msd fix with ID {}", id_fix);
 
   // nmsd = # of atoms in group

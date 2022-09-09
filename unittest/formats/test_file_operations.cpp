@@ -245,16 +245,17 @@ TEST_F(FileOperationsTest, logmesg)
     command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
     utils::logmesg(lmp, "three={}\n", 3);
-    utils::logmesg(lmp, "four {}\n");
+    utils::logmesg(lmp, "four {} {}\n", 4);
     utils::logmesg(lmp, "five\n", 5);
+    utils::logmesg(lmp, "six {}\n");
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
     memset(buf, 0, 64);
     FILE *fp = fopen("test_logmesg.log", "r");
     fread(buf, 1, 64, fp);
     fclose(fp);
-    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\n"));
-    ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\n"));
+    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\nsix {}\n"));
+    ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\nsix {}\n"));
     remove("test_logmesg.log");
 }
 
@@ -493,8 +494,7 @@ int main(int argc, char **argv)
     ::testing::InitGoogleMock(&argc, argv);
 
     if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

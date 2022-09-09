@@ -108,6 +108,11 @@ if(Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonFormats PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
+  add_test(NAME PythonPizza
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-pizza.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonPizza PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
   add_test(NAME PythonFixExternal
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-fix-external.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})

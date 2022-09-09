@@ -10,7 +10,7 @@ from cpython.ref cimport PyObject
 from libc.stdlib cimport malloc, free
 
 
-cdef extern from "../lammps.h" namespace "LAMMPS_NS":
+cdef extern from "lammps.h" namespace "LAMMPS_NS":
     cdef cppclass LAMMPS:
         pass
 

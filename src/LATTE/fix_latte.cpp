@@ -76,6 +76,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   coulomb = 0;
   id_pe = nullptr;
   exclude = 0;
+  id_exclude = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -85,7 +86,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
       coulomb = 1;
       error->all(FLERR,"Fix latte does not yet support a "
                  "LAMMPS calculation of a Coulomb potential");
-      id_pe = utils::strdup(arg[3]);
+      id_pe = utils::strdup(arg[iarg+1]);
       c_pe = modify->get_compute_by_id(id_pe);
       if (!c_pe) error->all(FLERR,"Could not find fix latte compute ID {}", id_pe);
       if (c_pe->peatomflag == 0)
@@ -96,11 +97,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         utils::missing_cmd_args(FLERR, "fix latte exclude", error);
       exclude = 1;
-      int excludegroup = group->find(arg[iarg+1]);
-      if (excludegroup == -1) 
-        error->all(FLERR, "Fix latte couldd not find exclude group ID: {}", 
-                   arg[iarg+1]);
-      excludebit = group->bitmask[excludegroup];
+      id_exclude = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else
@@ -121,6 +118,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
 FixLatte::~FixLatte()
 {
   delete[] id_pe;
+  delete[] id_exclude;
   memory->destroy(qpotential);
   memory->destroy(flatte);
 }
@@ -148,9 +146,9 @@ void FixLatte::init()
   if (coulomb) {
     if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
       error->all(FLERR,"Fix latte cannot compute Coulomb potential");
-
     c_pe = modify->get_compute_by_id(id_pe);
-    if (!c_pe) error->all(FLERR,"Could not find fix latte compute ID {}", id_pe);
+    if (!c_pe) 
+      error->all(FLERR,"Fix latte could not find Coulomb compute ID {}",id_pe);
   }
 
   // must be fully periodic or fully non-periodic
@@ -166,6 +164,20 @@ void FixLatte::init()
   if (coulomb && qpotential == nullptr) {
     memory->create(qpotential,atom->nlocal,"latte:qpotential");
     memory->create(flatte,atom->nlocal,3,"latte:flatte");
+  }
+
+  // extract pointer to exclusion_group variable from id_exclude
+  // exclusion_group is index of a group the Fix defines
+
+  if (exclude) {
+    Fix *f_exclude = modify->get_fix_by_id(id_exclude);
+    if (!f_exclude) 
+      error->all(FLERR,"Fix latte could not find exclude fix ID {}", id_exclude);
+    int exclude_group_index,dim;
+    exclusion_group_ptr = (int *) f_exclude->extract("exclusion_group",dim);
+    if (!exclusion_group_ptr || dim != 0) 
+      error->all(FLERR,"Fix latte could not query exclude_group of fix ID {}", 
+                 id_exclude);
   }
 }
 
@@ -267,12 +279,18 @@ void FixLatte::post_force(int vflag)
 
   if (!exclude) latte_wrapper_all();
   else {
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
     int anyexclude = 0;
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & excludebit) anyexclude = 1;
+
+    int exclusion_group = *exclusion_group_ptr;
+    if (exclusion_group) {
+      int excludebit = group->bitmask[exclusion_group];
+
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+
+      for (int i = 0; i < nlocal; i++)
+        if (mask[i] & excludebit) anyexclude = 1;
+    }
 
     if (!anyexclude) latte_wrapper_all();
     else latte_wrapper_exclude();
@@ -316,6 +334,9 @@ void FixLatte::latte_wrapper_all()
         &domain->xy,&domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
 
+  printf("LATTE ALL: step %ld, natoms %d, LATTE eng %g\n",
+         update->ntimestep, natoms, latte_energy);
+
   if (latteerror) error->all(FLERR,"Internal LATTE problem");
 }
 
@@ -325,6 +346,11 @@ void FixLatte::latte_wrapper_all()
 
 void FixLatte::latte_wrapper_exclude()
 {
+  int m;
+
+  int exclusion_group = *exclusion_group_ptr;
+  int excludebit = group->bitmask[exclusion_group];
+
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   
@@ -342,26 +368,29 @@ void FixLatte::latte_wrapper_exclude()
   memory->create(xinclude,nlatte,3,"latte:xinclude");
   memory->create(finclude,nlatte,3,"latte:finclude");
 
+  double *coords = &xinclude[0][0];
+  int *types = typeinclude;
+  double *forces = &finclude[0][0];
+
   double **x = atom->x;
   int *type = atom->type;
 
   nlatte = 0;
+  m = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & excludebit) continue;
-    typeinclude[nlatte] = type[i];
-    x[nlatte][0] = x[i][0];
-    x[nlatte][1] = x[i][1];
-    x[nlatte][2] = x[i][2];
+    types[nlatte] = type[i];
     nlatte++;
+    coords[m+0] = x[i][0];
+    coords[m+1] = x[i][1];
+    coords[m+2] = x[i][2];
+    m += 3;
   }
 
-  double *coords = &xinclude[0][0];
-  int *types = typeinclude;
   int ntypes = atom->ntypes;
   double *mass = &atom->mass[1];
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
-  double *forces = &finclude[0][0];
   bool latteerror = false;
   int maxiter = -1;
 
@@ -369,13 +398,16 @@ void FixLatte::latte_wrapper_exclude()
         &domain->xy,&domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
 
+  printf("LATTE EXCLUDE: step %ld, natoms %d, LATTE eng %g\n",
+         update->ntimestep, nlatte, latte_energy);
+
   if (latteerror) error->all(FLERR,"Internal LATTE problem");
 
   // expand compressed forces array
 
   double **f = atom->f;
 
-  int m = 0;
+  m = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & excludebit) continue;
     f[i][0] = forces[m+0];

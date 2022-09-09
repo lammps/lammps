@@ -44,10 +44,11 @@ class FixLatte : public Fix {
   double memory_usage() override;
 
  protected:
-  char *id_pe;
   int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
   int exclude, excludebit;
   int eflag_caller;
+  char *id_pe,*id_exclude;
+  int *exclusion_group_ptr;
 
   int flags_latte[6];
 

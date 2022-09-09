@@ -19,8 +19,8 @@ Syntax
      keyword = *coulomb* or *exclude*
        *coulomb* value = peID
          peID = ID of compute used to calculate per-atom energy
-       *exclude* value = groupID
-         groupID = ID of group of atoms to exclude before calling LATTE
+       *exclude* value = fixID
+         fixID = ID of fix which potentially excludes atoms before calling LATTE
 
 Examples
 """"""""
@@ -28,7 +28,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix dftb all latte
-   fix dftb all exclude GCMCmol
+   fix dftb all exclude GCMC
 
 Description
 """""""""""
@@ -64,27 +64,17 @@ The *coulomb* argument is not yet supported by fix latte (as of Sept
 Coulomb potential as an alternative to LATTE performing the
 calculation.
 
-NOTE: after intitial debugging, change the exclude arg to
-be the ID of another fix (GCMC in this case), and extract()
-the exclusion group ID from fix gcmc.
+The *exclude argument allows this fix to work in tandem with another
+fix which may decide to delete one or more atoms of molecules.  The
+specified fixID is the ID of the other fix.
 
-The *exclude argument allows this fix to work in tandem with the
-:doc:`fix gcmc <fix_gcmc>` command which may decide to delete an atom
-or molecule as one of its Monte Carlo events.  In this case, LAMMPS
-needs to pass LATTE the atoms for the system with the atom/molecule
-removed.  Fix gcmc does not actually remove the atom/molecule until
-after the new energy is computed (in this case by LATTE), and a Monte
-Carlo accept/reject decision is made for the event.
-
-The specified groupID must match the group ID which the :doc:`fix gcmc
-<fix_gcmc>` command assigns to atoms flagged for possible deletion.
-It should be either its default exclusion group ID or group ID used
-with its "exclude" keyword option.
-
-.. note::
-
-  The fix gcmc command must appear in the input script prior
-  to the fix latte command for this to work.
+The one current example of such a fix is the :doc:`fix gcmc
+<fix_gcmc>` command which performs Monte Carlo insertions and
+deletions.  If a trial deletion is performed, then LAMMPS needs to
+only pass LATTE the atoms which remain.  Fix gcmc does not actually
+remove any atoms until after the new energy is computed (in this case
+by LATTE), and a Monte Carlo accept/reject decision is made for the
+trial deletion.
 
 ----------
 

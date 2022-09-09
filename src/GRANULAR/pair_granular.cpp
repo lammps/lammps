@@ -435,7 +435,6 @@ void PairGranular::coeff(int narg, char **arg)
 void PairGranular::init_style()
 {
   int i;
-
   // error and warning checks
 
   if (!atom->radius_flag || !atom->rmass_flag)
@@ -649,13 +648,18 @@ double PairGranular::init_one(int i, int j)
 
 void PairGranular::write_restart(FILE *fp)
 {
-  int i,j;
+  int i,j,index;
+  int nmodels = vec_models.size();
+  fwrite(&nmodels,sizeof(int),1,fp);
+  for (auto &model : vec_models) model.write_restart(fp);
+
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
         fwrite(&cutoff_type[i][j],sizeof(double),1,fp);
-        models[i][j]->write_restart(fp);
+        index = models[i][j] - &vec_models[0];
+        fwrite(&index,sizeof(int),1,fp); // save index of model
       }
     }
   }
@@ -668,21 +672,31 @@ void PairGranular::write_restart(FILE *fp)
 void PairGranular::read_restart(FILE *fp)
 {
   allocate();
-  int i,j;
+  int i,j,index,nmodels;
   int me = comm->me;
+
+  if (me == 0) utils::sfread(FLERR,&nmodels,sizeof(int),1,fp,nullptr,error);
+  MPI_Bcast(&nmodels,1,MPI_INT,0,world);
+
+  for (i = 0; i < nmodels; i++) {
+    vec_models.push_back(ContactModel(lmp));
+    vec_models.back().read_restart(fp);
+    vec_models.back().init();
+  }
+
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0)
+        if (me == 0) {
           utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&index,sizeof(int),1,fp,nullptr,error);
+        }
         MPI_Bcast(&cutoff_type[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&index,1,MPI_INT,0,world);
 
-        vec_models.push_back(ContactModel(lmp));
-        models[i][j] = & vec_models.back();
-        models[i][j]->read_restart(fp);
-        models[i][j]->init();
+        models[i][j] = & vec_models[index];
       }
     }
   }

@@ -225,17 +225,18 @@ void ContactModel::init()
 
       // Check if model has nondefault transfers, if so copy its array
       if (j != nmodels) {
-        if (sub_models[j]->nondefault_history_transfer) {
-          transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
-        } else {
-          transfer_history_factor[i] = -1;
+        transfer_history_factor[i] = -1;
+        if (sub_models[j]) {
+          if (sub_models[j]->nondefault_history_transfer) {
+            transfer_history_factor[i] = sub_models[j]->transfer_history_factor[i - size_cumulative];
+          }
         }
       }
     }
   }
 
   for (i = 0; i < nmodels; i++)
-    if (sub_models[i])  sub_models[i]->init();
+    if (sub_models[i]) sub_models[i]->init();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,7 +264,7 @@ void ContactModel::write_restart(FILE *fp)
         fwrite(&num_char, sizeof(int), 1, fp);
         fwrite(sub_models[i]->name.data(), sizeof(char), num_char, fp);
         fwrite(&num_coeffs, sizeof(int), 1, fp);
-        fwrite(sub_models[i]->coeffs, sizeof(int), num_coeffs, fp);
+        fwrite(sub_models[i]->coeffs, sizeof(double), num_coeffs, fp);
     } else {
       fwrite(&num_char, sizeof(int), 1, fp);
     }
@@ -297,10 +298,9 @@ void ContactModel::read_restart(FILE *fp)
       MPI_Bcast(&num_coeff, 1, MPI_INT, 0, world);
 
       if (comm->me == 0) {
-        utils::sfread(FLERR, sub_models[i]->coeffs, sizeof(int), num_coeff, fp, nullptr, error);
+        utils::sfread(FLERR, sub_models[i]->coeffs, sizeof(double), num_coeff, fp, nullptr, error);
       }
       MPI_Bcast(sub_models[i]->coeffs, num_coeff, MPI_DOUBLE, 0, world);
-
       sub_models[i]->coeffs_to_local();
     }
   }

@@ -107,6 +107,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 2;
 
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      which[nvalues] = ArgInfo::MASS;
+      argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"density/number") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_NUMBER;
@@ -114,9 +117,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"density/mass") == 0) {
       densityflag = 1;
       which[nvalues] = ArgInfo::DENSITY_MASS;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"mass") == 0) {
-      which[nvalues] = ArgInfo::MASS;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       which[nvalues] = ArgInfo::TEMPERATURE;
@@ -260,45 +260,36 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == ArgInfo::COMPUTE) {
-      int icompute = modify->find_compute(ids[i]);
-      if (icompute < 0)
-        error->all(FLERR,"Compute ID for fix ave/chunk does not exist");
-      if (modify->compute[icompute]->peratom_flag == 0)
-        error->all(FLERR,"Fix ave/chunk compute does not "
-                   "calculate per-atom values");
-      if (argindex[i] == 0 &&
-          modify->compute[icompute]->size_peratom_cols != 0)
-        error->all(FLERR,"Fix ave/chunk compute does not "
-                   "calculate a per-atom vector");
-      if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-        error->all(FLERR,"Fix ave/chunk compute does not "
-                   "calculate a per-atom array");
-      if (argindex[i] &&
-          argindex[i] > modify->compute[icompute]->size_peratom_cols)
-        error->all(FLERR,
-                   "Fix ave/chunk compute vector is accessed out-of-range");
+      auto icompute = modify->get_compute_by_id(ids[i]);
+      if (!icompute)
+        error->all(FLERR,"Compute ID {} for fix ave/chunk does not exist",ids[i]);
+      if (icompute->peratom_flag == 0)
+        error->all(FLERR,"Fix ave/chunk compute {} does not calculate per-atom values",ids[i]);
+      if (argindex[i] == 0 && (icompute->size_peratom_cols != 0))
+        error->all(FLERR,"Fix ave/chunk compute {} does not calculate a per-atom vector",ids[i]);
+      if (argindex[i] && (icompute->size_peratom_cols == 0))
+        error->all(FLERR,"Fix ave/chunk compute {} does not calculate a per-atom array",ids[i]);
+      if (argindex[i] && (argindex[i] > icompute->size_peratom_cols))
+        error->all(FLERR,"Fix ave/chunk compute {} vector is accessed out-of-range",ids[i]);
 
     } else if (which[i] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for fix ave/chunk does not exist");
-      if (modify->fix[ifix]->peratom_flag == 0)
-        error->all(FLERR,
-                   "Fix ave/chunk fix does not calculate per-atom values");
-      if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
-        error->all(FLERR,
-                   "Fix ave/chunk fix does not calculate a per-atom vector");
-      if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-        error->all(FLERR,
-                   "Fix ave/chunk fix does not calculate a per-atom array");
-      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-        error->all(FLERR,"Fix ave/chunk fix vector is accessed out-of-range");
+      auto ifix = modify->get_fix_by_id(ids[i]);
+      if (!ifix)
+        error->all(FLERR, "Fix ID {} for fix ave/chunk does not exist",ids[i]);
+      if (ifix->peratom_flag == 0)
+        error->all(FLERR, "Fix ave/chunk fix {} does not calculate per-atom values",ids[i]);
+      if (argindex[i] == 0 && (ifix->size_peratom_cols != 0))
+        error->all(FLERR, "Fix ave/chunk fix {} does not calculate a per-atom vector",ids[i]);
+      if (argindex[i] && (ifix->size_peratom_cols == 0))
+        error->all(FLERR, "Fix ave/chunk fix {} does not calculate a per-atom array",ids[i]);
+      if (argindex[i] && argindex[i] > ifix->size_peratom_cols)
+        error->all(FLERR,"Fix ave/chunk fix {} vector is accessed out-of-range",ids[i]);
     } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-        error->all(FLERR,"Variable name for fix ave/chunk does not exist");
+        error->all(FLERR,"Variable name {} for fix ave/chunk does not exist",ids[i]);
       if (input->variable->atomstyle(ivariable) == 0)
-        error->all(FLERR,"Fix ave/chunk variable is not atom-style variable");
+        error->all(FLERR,"Fix ave/chunk variable {} is not atom-style variable",ids[i]);
     }
   }
 
@@ -306,14 +297,12 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
   //   so that locking spans multiple timesteps
 
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
-  if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Fix ave/chunk does not use chunk/atom compute");
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (!cchunk)
+    error->all(FLERR,"Chunk/atom compute {} does not exist or is "
+               "incorrect style for fix ave/chunk",idchunk);
 
-  if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) cchunk->lockcount++;
+  if ((nrepeat > 1) || (ave == RUNNING) || (ave == WINDOW)) cchunk->lockcount++;
   lockforever = 0;
 
   // print file comment lines
@@ -430,9 +419,8 @@ FixAveChunk::~FixAveChunk()
   // decrement lock counter in compute chunk/atom, it if still exists
 
   if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) {
-    int icompute = modify->find_compute(idchunk);
-    if (icompute >= 0) {
-      cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+    if (cchunk) {
       if (ave == RUNNING || ave == WINDOW) cchunk->unlock(this);
       cchunk->lockcount--;
     }

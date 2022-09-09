@@ -37,19 +37,19 @@ class DumpCustom : public Dump {
   int nevery;        // dump frequency for output
   char *idregion;    // region ID, nullptr if no region
 
-  int nthresh;                    // # of defined thresholds
-  int nthreshlast;                // # of defined thresholds with value = LAST
-                                  //
-  int *thresh_array;              // array to threshold on for each nthresh
-  int *thresh_op;                 // threshold operation for each nthresh
-  double *thresh_value;           // threshold value for each nthresh
-  int *thresh_last;               // for threshold value = LAST,
-                                  // index into thresh_fix
-                                  // -1 if not LAST, value is numeric
-                                  //
-  class FixStore **thresh_fix;    // stores values for each threshold LAST
-  char **thresh_fixID;            // IDs of thresh_fixes
-  int *thresh_first;              // 1 the first time a FixStore values accessed
+  int nthresh;                           // # of defined thresholds
+  int nthreshlast;                       // # of defined thresholds with value = LAST
+                                         //
+  int *thresh_array;                     // array to threshold on for each nthresh
+  int *thresh_op;                        // threshold operation for each nthresh
+  double *thresh_value;                  // threshold value for each nthresh
+  int *thresh_last;                      // for threshold value = LAST,
+                                         // index into thresh_fix
+                                         // -1 if not LAST, value is numeric
+                                         //
+  class FixStorePeratom **thresh_fix;    // stores values for each threshold LAST
+  char **thresh_fixID;                   // IDs of thresh_fixes
+  int *thresh_first;                     // 1 the first time a FixStore values accessed
 
   int expand;        // flag for whether field args were expanded
   char **earg;       // field names with wildcard expansion
@@ -126,11 +126,6 @@ class DumpCustom : public Dump {
   void header_binary_triclinic(bigint);
   void header_item(bigint);
   void header_item_triclinic(bigint);
-
-  typedef int (DumpCustom::*FnPtrConvert)(int, double *);
-  FnPtrConvert convert_choice;    // ptr to convert data functions
-  int convert_image(int, double *);
-  int convert_noimage(int, double *);
 
   typedef void (DumpCustom::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions

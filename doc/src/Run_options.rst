@@ -14,6 +14,7 @@ letter abbreviation can be used:
 * :ref:`-m or -mpicolor <mpicolor>`
 * :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
+* :ref:`-nb or -nonbuf <nonbuf>`
 * :ref:`-pk or -package <package>`
 * :ref:`-p or -partition <partition>`
 * :ref:`-pl or -plog <plog>`
@@ -254,6 +255,24 @@ how to correctly reference and cite LAMMPS.
 **-nocite**
 
 Disable generating a citation reminder (see above) at all.
+
+----------
+
+.. _nonbuf:
+
+**-nonbuf**
+
+Turn off buffering for screen and logfile output.  For performance
+reasons, output to the screen and logfile is usually buffered, i.e.
+output is only written to a file if its buffer - typically 4096 bytes -
+has been filled.  When LAMMPS crashes for some reason, however, that can
+mean that there is important output missing.  With this flag the
+buffering can be turned off (only for screen and logfile output) and any
+output will be committed immediately.  Note that when running in
+parallel with MPI, the screen output may still be buffered by the MPI
+library and this cannot be changed by LAMMPS.  This flag should only be
+used for debugging and not for production simulations as the performance
+impact can be significant, especially for large parallel runs.
 
 ----------
 

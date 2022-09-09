@@ -318,7 +318,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
           #ifdef INTEL_VMASK
           if (rsq < cut_ljsq) {
           #endif
-            const int jtype = tjtype[jj];
+            const int jtype = IP_PRE_dword_index(tjtype[jj]);
             flt_t r6inv = r2inv * r2inv * r2inv;
             forcelj = r6inv * (lji[jtype].x * r6inv - lji[jtype].y);
             if (EFLAG) evdwl = r6inv*(lji[jtype].z * r6inv - lji[jtype].w);

@@ -35,6 +35,8 @@ Used in example input scripts:
 Description
 """""""""""
 
+.. versionadded:: 2Jun2022
+
 The *threebody/table* style is a pair style for generic tabulated
 three-body interactions.  It has been developed for (coarse-grained)
 simulations (of water) with Kernel-based machine learning (ML)

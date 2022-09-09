@@ -38,10 +38,10 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_orient_eco[] =
-  "fix orient/eco command:\n\n"
+  "fix orient/eco command: doi:j.commatsci.2020.109774\n\n"
   "@Article{Schratt20,\n"
-  " author = {A. A. Schratt, V. Mohles},\n"
-  " title = {Efficient calculation of the ECO driving force for atomistic simulations of grain boundary motion},\n"
+  " author = {A. A. Schratt and V. Mohles},\n"
+  " title = {Efficient Calculation of the {ECO} Driving Force for Atomistic Simulations of Grain Boundary Motion},\n"
   " journal = {Computational Materials Science},\n"
   " volume = {182},\n"
   " year = {2020},\n"

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,15 +18,15 @@
 
 #include "pair_lj_spica.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
 
+#include <cmath>
+#include <cstring>
 
 #define LMP_NEED_SPICA_FIND_LJ_TYPE 1
 #include "lj_spica_common.h"
@@ -37,7 +36,9 @@ using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSPICA::PairLJSPICA(LAMMPS *lmp) : Pair(lmp)
+PairLJSPICA::PairLJSPICA(LAMMPS *lmp) :
+    Pair(lmp), lj_type(nullptr), cut(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), rminsq(nullptr), emin(nullptr)
 {
   respa_enable = 0;
   single_enable = 1;
@@ -71,6 +72,7 @@ PairLJSPICA::~PairLJSPICA()
   }
 }
 
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 void PairLJSPICA::compute(int eflag, int vflag)

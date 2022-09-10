@@ -156,6 +156,8 @@ settings.
 
 ----------
 
+.. versionadded:: TBD
+
 The *amoeba* and *hippo* pair styles support extraction of two
 per-atom quantities by the :doc:`fix pair <fix_pair>` command.  This
 allows the quantities to be output to files by the :doc:`dump <dump>`

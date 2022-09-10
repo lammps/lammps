@@ -30,6 +30,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Extract per-atom quantities from a pair style and store them in this
 fix so they can be accessed by other LAMMPS commands, e.g. by a
 :doc:`dump <dump>` command or by another :doc:`fix <fix>`,
@@ -40,7 +42,7 @@ These are example use cases:
 * extract per-atom density from :doc:`pair_style eam <pair_eam>` to a dump file
 * extract induced dipoles from :doc:`pair_style amoeba <pair_amoeba>` to a dump file
 * extract accuracy metrics from a machine-learned potential to trigger output when
-a condition is met (see the :doc:`dump_modify skip <dump_modify>` command)
+  a condition is met (see the :doc:`dump_modify skip <dump_modify>` command)
 
 The *N* argument determines how often the fix is invoked.
 

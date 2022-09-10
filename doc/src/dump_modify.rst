@@ -199,7 +199,8 @@ flags are enabled or not.  For dump style *cfg* only changes to the
 The *colname* keyword can be used multiple times. If multiple *colname*
 settings refer to the same keyword, the last setting has precedence.  A
 setting of *default* clears all previous settings, reverting all values
-to their default names.
+to their default names. Using the *scale* or *image* keyword will also
+reset all header keywords to their default values.
 
 ----------
 
@@ -695,6 +696,8 @@ most effective when the typical magnitude of position data is between
 10.0 and 0.1.
 
 ----------
+
+.. versionadded:: TBD
 
 The *skip* keyword can be used with all dump styles.  It allows a dump
 snapshot to be skipped (not written to the dump file), if a condition

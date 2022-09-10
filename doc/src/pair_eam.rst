@@ -444,6 +444,8 @@ identical to the FS EAM files (see above).
 
 ----------
 
+.. versionadded:: TBD
+
 The *eam*, *eam/alloy*, *eam/fs*, and *eam/he* pair styles support
 extraction of two per-atom quantities by the :doc:`fix pair
 <fix_pair>` command.  This allows the quantities to be output to files

@@ -33,7 +33,7 @@ class Atom : protected Pointers {
   enum { GROW = 0, RESTART = 1, BORDER = 2 };
   enum { ATOMIC = 0, MOLECULAR = 1, TEMPLATE = 2 };
   enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4 };
-  enum { NUMERIC = 0, LABELS = 1};
+  enum { NUMERIC = 0, LABELS = 1 };
   enum { MAP_NONE = 0, MAP_ARRAY = 1, MAP_HASH = 2, MAP_YES = 3 };
 
   // atom counts
@@ -166,9 +166,9 @@ class Atom : protected Pointers {
 
   // AMOEBA package
 
-  int *nspecial15;              // # of 1-5 neighs
-  tagint **special15;           // IDs of 1-5 neighs of each atom
-  int maxspecial15;             // special15[nlocal][maxspecial15]
+  int *nspecial15;       // # of 1-5 neighs
+  tagint **special15;    // IDs of 1-5 neighs of each atom
+  int maxspecial15;      // special15[nlocal][maxspecial15]
 
   // DIELECTRIC package
 
@@ -331,8 +331,7 @@ class Atom : protected Pointers {
 
   void deallocate_topology();
 
-  void data_atoms(int, char *, tagint, tagint, int, int, double *,
-                  int, int *);
+  void data_atoms(int, char *, tagint, tagint, int, int, double *, int, int *);
   void data_vels(int, char *, tagint);
   void data_bonds(int, char *, int *, tagint, int, int, int *);
   void data_angles(int, char *, int *, tagint, int, int, int *);
@@ -354,7 +353,7 @@ class Atom : protected Pointers {
 
   void add_molecule(int, char **);
   int find_molecule(const char *);
-  std::vector<Molecule *>get_molecule_by_id(const std::string &);
+  std::vector<Molecule *> get_molecule_by_id(const std::string &);
   void add_molecule_atom(class Molecule *, int, int, tagint);
 
   void add_label_map();

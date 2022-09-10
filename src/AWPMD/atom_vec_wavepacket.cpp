@@ -39,7 +39,7 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"q",  "espin",    "eradius", "ervel",      "erforce",
+  fields_grow = {"q",  "espin",   "eradius", "ervel",      "erforce",
                  "cs", "csforce", "vforce",  "ervelforce", "etag"};
   fields_copy = {"q", "espin", "eradius", "ervel", "cs", "etag"};
   fields_comm = {"eradius"};
@@ -108,7 +108,7 @@ void AtomVecWavepacket::data_atom_post(int ilocal)
 int AtomVecWavepacket::property_atom(const std::string &name)
 {
   if (name == "espin") return 0;
-  if (name == "spin") return 0;   // backward compatibility
+  if (name == "spin") return 0;    // backward compatibility
   if (name == "eradius") return 1;
   if (name == "ervel") return 2;
   if (name == "erforce") return 3;

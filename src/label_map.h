@@ -23,6 +23,7 @@ namespace LAMMPS_NS {
 class LabelMap : protected Pointers {
   friend class AtomVec;
   friend class ReadData;
+
  public:
   LabelMap(LAMMPS *lmp, int, int, int, int, int);
   ~LabelMap();
@@ -31,7 +32,7 @@ class LabelMap : protected Pointers {
   void merge_lmap(LabelMap *, int);            // copy another lmap into this one
   void create_lmap2lmap(LabelMap *, int);      // index mapping between two lmaps
   int find(const std::string &, int) const;    // find numeric type of type label
-  bool is_complete(int) const;                  // check if all types are assigned
+  bool is_complete(int) const;                 // check if all types are assigned
 
   // input/output for atom class label map
 

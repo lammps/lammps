@@ -82,7 +82,7 @@ class Pair : protected Pointers {
   int tail_flag;          // pair_modify flag for LJ tail correction
   double etail, ptail;    // energy/pressure tail corrections
   double etail_ij, ptail_ij;
-  int trim_flag;          // pair_modify flag for trimming neigh list
+  int trim_flag;    // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
   int eflag_either, eflag_global, eflag_atom;
@@ -123,7 +123,7 @@ class Pair : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int kokkosable;    // 1 if Kokkos pair
+  int kokkosable;             // 1 if Kokkos pair
   int reverse_comm_device;    // 1 if reverse comm on Device
 
   Pair(class LAMMPS *);

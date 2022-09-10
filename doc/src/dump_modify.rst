@@ -365,7 +365,7 @@ always occur if the current timestep is a multiple of $N$, the
 frequency specified in the :doc:`dump <dump>` command or
 :doc:`dump_modify every <dump_modify>` command, including timestep 0.
 It will also always occur if the current simulation time is a multiple
-of *Delta*, the time interval specified in the doc:`dump_modify
+of *Delta*, the time interval specified in the :doc:`dump_modify
 every/time <dump_modify>` command.
 
 But if this is not the case, a dump snapshot will only be written if
@@ -373,7 +373,7 @@ the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 Note that if the argument to the :doc:`dump_modify every
-<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
+<dump_modify>` :doc:`dump_modify every/time <dump_modify>` commands is
 a variable and not a numeric value, then specifying *first yes* is the
 only way to write a dump snapshot on the first timestep after the dump
 command is invoked.

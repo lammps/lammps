@@ -178,6 +178,9 @@ extra buffering.
 
 ----------
 
+
+.. versionadded:: 4May2022
+
 The *colname* keyword can be used to change the default header keyword
 for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
 and MPIIO variants.  The setting for *ID string* replaces the default
@@ -409,31 +412,6 @@ after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style *xtc*\ .
-
-----------
-
-.. versionadded:: 4May2022
-
-The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
-
-The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.  A
-setting of *default* clears all previous settings, reverting all values
-to their default names. Using the *scale* or *image* keyword will also
-reset all header keywords to their default values.
 
 ----------
 

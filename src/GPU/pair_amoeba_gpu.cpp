@@ -1149,24 +1149,29 @@ void PairAmoebaGPU::fphi_uind(double ****grid, double **fdip_phi1,
   int nlocal = atom->nlocal;
   double *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
   for (int i = 0; i < nlocal; i++) {
-    int idx = 10 * i;
+    int n = i;
     for (int m = 0; m < 10; m++) {
-       fdip_phi1[i][m] = _fdip_phi1_ptr[idx+m];
+      fdip_phi1[i][m] = _fdip_phi1_ptr[n];
+      n += nlocal;
     }
   }
 
   double *_fdip_phi2_ptr = (double *)fdip_phi2_pinned;
   for (int i = 0; i < nlocal; i++) {
-    int idx = 10 * i;
-    for (int m = 0; m < 10; m++)
-      fdip_phi2[i][m] = _fdip_phi2_ptr[idx+m];
+    int n = i;
+    for (int m = 0; m < 10; m++) {
+      fdip_phi2[i][m] = _fdip_phi2_ptr[n];
+      n += nlocal;
+    }
   }
 
   double *_fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
   for (int i = 0; i < nlocal; i++) {
-    int idx = 20 * i;
-    for (int m = 0; m < 20; m++)
-      fdip_sum_phi[i][m] = _fdip_sum_phi_ptr[idx+m];
+    int n = i;
+    for (int m = 0; m < 20; m++) {
+      fdip_sum_phi[i][m] = _fdip_sum_phi_ptr[n];
+      n += nlocal;
+    }
   }
 }
 

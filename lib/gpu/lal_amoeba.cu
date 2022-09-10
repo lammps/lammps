@@ -1637,12 +1637,14 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
 {
   //int tid, ii, offset, i, n_stride;
   //atom_info(t_per_atom,ii,tid,offset);
+  
 
   int tid=THREAD_ID_X;
   int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
 
   if (ii<inum) {
     numtyp4 ix; fetch4(ix,ii,pos_tex); //x_[i];
+    acctyp fdip_buf[32];
 
     int j,k,m;
     numtyp v0,v1,v2,v3;
@@ -1868,73 +1870,64 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       k++;
     }
 
-/*
-    fdip_phi1[m][0] = 0.0;
-    fdip_phi1[m][1] = tuv100_1;
-    fdip_phi1[m][2] = tuv010_1;
-    fdip_phi1[m][3] = tuv001_1;
-    fdip_phi1[m][4] = tuv200_1;
-    fdip_phi1[m][5] = tuv020_1;
-    fdip_phi1[m][6] = tuv002_1;
-    fdip_phi1[m][7] = tuv110_1;
-    fdip_phi1[m][8] = tuv101_1;
-    fdip_phi1[m][9] = tuv011_1;
-*/
-    int idx = 10*ii;
-    fdip_phi1[idx+0] = (numtyp)0.0;
-    fdip_phi1[idx+1] = tuv100_1;
-    fdip_phi1[idx+2] = tuv010_1;
-    fdip_phi1[idx+3] = tuv001_1;
-    fdip_phi1[idx+4] = tuv200_1;
-    fdip_phi1[idx+5] = tuv020_1;
-    fdip_phi1[idx+6] = tuv002_1;
-    fdip_phi1[idx+7] = tuv110_1;
-    fdip_phi1[idx+8] = tuv101_1;
-    fdip_phi1[idx+9] = tuv011_1;
-/*
-    fdip_phi2[m][0] = 0.0;
-    fdip_phi2[m][1] = tuv100_2;
-    fdip_phi2[m][2] = tuv010_2;
-    fdip_phi2[m][3] = tuv001_2;
-    fdip_phi2[m][4] = tuv200_2;
-    fdip_phi2[m][5] = tuv020_2;
-    fdip_phi2[m][6] = tuv002_2;
-    fdip_phi2[m][7] = tuv110_2;
-    fdip_phi2[m][8] = tuv101_2;
-    fdip_phi2[m][9] = tuv011_2;
-*/    
-    fdip_phi2[idx+0] = (numtyp)0.0;
-    fdip_phi2[idx+1] = tuv100_2;
-    fdip_phi2[idx+2] = tuv010_2;
-    fdip_phi2[idx+3] = tuv001_2;
-    fdip_phi2[idx+4] = tuv200_2;
-    fdip_phi2[idx+5] = tuv020_2;
-    fdip_phi2[idx+6] = tuv002_2;
-    fdip_phi2[idx+7] = tuv110_2;
-    fdip_phi2[idx+8] = tuv101_2;
-    fdip_phi2[idx+9] = tuv011_2;
+    int idx;
+    fdip_buf[0] = (numtyp)0.0;
+    fdip_buf[1] = tuv100_1;
+    fdip_buf[2] = tuv010_1;
+    fdip_buf[3] = tuv001_1;
+    fdip_buf[4] = tuv200_1;
+    fdip_buf[5] = tuv020_1;
+    fdip_buf[6] = tuv002_1;
+    fdip_buf[7] = tuv110_1;
+    fdip_buf[8] = tuv101_1;
+    fdip_buf[9] = tuv011_1;
+    idx = ii;    
+    for (int m = 0; m < 10; m++) {
+      fdip_phi1[idx] = fdip_buf[m];
+      idx += inum;
+    }
 
-    idx = 20*ii;
-    fdip_sum_phi[idx+0] = tuv000;
-    fdip_sum_phi[idx+1] = tuv100;
-    fdip_sum_phi[idx+2] = tuv010;
-    fdip_sum_phi[idx+3] = tuv001;
-    fdip_sum_phi[idx+4] = tuv200;
-    fdip_sum_phi[idx+5] = tuv020;
-    fdip_sum_phi[idx+6] = tuv002;
-    fdip_sum_phi[idx+7] = tuv110;
-    fdip_sum_phi[idx+8] = tuv101;
-    fdip_sum_phi[idx+9] = tuv011;
-    fdip_sum_phi[idx+10] = tuv300;
-    fdip_sum_phi[idx+11] = tuv030;
-    fdip_sum_phi[idx+12] = tuv003;
-    fdip_sum_phi[idx+13] = tuv210;
-    fdip_sum_phi[idx+14] = tuv201;
-    fdip_sum_phi[idx+15] = tuv120;
-    fdip_sum_phi[idx+16] = tuv021;
-    fdip_sum_phi[idx+17] = tuv102;
-    fdip_sum_phi[idx+18] = tuv012;
-    fdip_sum_phi[idx+19] = tuv111;
+    fdip_buf[0] = (numtyp)0.0;
+    fdip_buf[1] = tuv100_2;
+    fdip_buf[2] = tuv010_2;
+    fdip_buf[3] = tuv001_2;
+    fdip_buf[4] = tuv200_2;
+    fdip_buf[5] = tuv020_2;
+    fdip_buf[6] = tuv002_2;
+    fdip_buf[7] = tuv110_2;
+    fdip_buf[8] = tuv101_2;
+    fdip_buf[9] = tuv011_2;
+    idx = ii;    
+    for (int m = 0; m < 10; m++) {
+      fdip_phi2[idx] = fdip_buf[m];
+      idx += inum;
+    }
+
+    fdip_buf[0] = tuv000;
+    fdip_buf[1] = tuv100;
+    fdip_buf[2] = tuv010;
+    fdip_buf[3] = tuv001;
+    fdip_buf[4] = tuv200;
+    fdip_buf[5] = tuv020;
+    fdip_buf[6] = tuv002;
+    fdip_buf[7] = tuv110;
+    fdip_buf[8] = tuv101;
+    fdip_buf[9] = tuv011;
+    fdip_buf[10] = tuv300;
+    fdip_buf[11] = tuv030;
+    fdip_buf[12] = tuv003;
+    fdip_buf[13] = tuv210;
+    fdip_buf[14] = tuv201;
+    fdip_buf[15] = tuv120;
+    fdip_buf[16] = tuv021;
+    fdip_buf[17] = tuv102;
+    fdip_buf[18] = tuv012;
+    fdip_buf[19] = tuv111;
+    idx = ii;    
+    for (int m = 0; m < 20; m++) {
+      fdip_sum_phi[idx] = fdip_buf[m];
+      idx += inum;
+    }
   }
 }
 

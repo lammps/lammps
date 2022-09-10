@@ -143,11 +143,11 @@ void PairTlsph::PreCompute() {
   int nlocal = atom->nlocal;
   int jnum, jj, i, j, itype, idim;
 
-  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->partner;
-  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->npartner;
-  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wfd_list;
-  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wf_list;
-  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->degradation_ij;
+  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->partner;
+  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->npartner;
+  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wfd_list;
+  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wf_list;
+  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->degradation_ij;
   double r0, r0Sq, wf, wfd, h, irad, voli, volj, scale, shepardWeight;
   Vector3d dx, dx0, dv, g;
   Matrix3d Ktmp, Ftmp, Fdottmp, L, U, eye;
@@ -421,12 +421,12 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
   Vector3d xi, xj, vi, vj, f_visc, sumForces, f_spring;
   int periodic = (domain->xperiodic || domain->yperiodic || domain->zperiodic);
 
-  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->partner;
-  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->npartner;
-  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wfd_list;
-  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wf_list;
-  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->degradation_ij;
-  float **energy_per_bond = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->energy_per_bond;
+  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->partner;
+  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->npartner;
+  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wfd_list;
+  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wf_list;
+  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->degradation_ij;
+  float **energy_per_bond = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->energy_per_bond;
   Matrix3d eye;
   eye.setIdentity();
 
@@ -1612,7 +1612,7 @@ void PairTlsph::init_style() {
     fixarg[2] = (char *) "SMD_TLSPH_NEIGHBORS";
     modify->add_fix(3, fixarg);
     delete[] fixarg;
-    fix_tlsph_reference_configuration = dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[modify->nfix - 1]);
+    fix_tlsph_reference_configuration = dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[modify->nfix - 1]);
     fix_tlsph_reference_configuration->pair = this;
   }
 

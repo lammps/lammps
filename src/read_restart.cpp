@@ -451,7 +451,7 @@ void ReadRestart::command(int narg, char **arg)
     if (nextra) {
       memory->destroy(atom->extra);
       memory->create(atom->extra,atom->nmax,nextra,"atom:extra");
-      auto fix = dynamic_cast<FixReadRestart *>( modify->get_fix_by_id("_read_restart"));
+      auto fix = dynamic_cast<FixReadRestart *>(modify->get_fix_by_id("_read_restart"));
       int *count = fix->count;
       double **extra = fix->extra;
       double **atom_extra = atom->extra;

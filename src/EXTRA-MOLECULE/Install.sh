@@ -26,7 +26,7 @@ action () {
   fi
 }
 
-# some styles in EXTRA-MOLECULE have base classes in MOLECULE 
+# some styles in EXTRA-MOLECULE have base classes in MOLECULE
 
 if (test $1 = 1) then
   if (test ! -e ../bond_fene.cpp) then

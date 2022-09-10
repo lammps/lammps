@@ -229,10 +229,10 @@ void PRD::command(int narg, char **arg)
 
   // cannot use PRD with time-dependent fixes or regions
 
-  for (auto ifix : modify->get_fix_list())
+  for (auto &ifix : modify->get_fix_list())
     if (ifix->time_depend) error->all(FLERR,"Cannot use PRD with a time-dependent fix defined");
 
-  for (auto reg : domain->get_region_list())
+  for (auto &reg : domain->get_region_list())
     if (reg->dynamic_check())
       error->all(FLERR,"Cannot use PRD with a time-dependent region defined");
 

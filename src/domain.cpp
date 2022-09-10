@@ -125,7 +125,7 @@ Domain::~Domain()
 {
   if (copymode) return;
 
-  for (auto reg : regions) delete reg;
+  for (auto &reg : regions) delete reg;
   regions.clear();
   delete lattice;
   delete region_map;
@@ -190,7 +190,7 @@ void Domain::init()
 
   // region inits
 
-  for (auto reg : regions) reg->init();
+  for (auto &reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------

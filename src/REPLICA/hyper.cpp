@@ -152,10 +152,10 @@ void Hyper::command(int narg, char **arg)
 
   // cannot use hyper with time-dependent fixes or regions
 
-  for (auto ifix : modify->get_fix_list())
+  for (auto &ifix : modify->get_fix_list())
     if (ifix->time_depend) error->all(FLERR,"Cannot use hyper with a time-dependent fix defined");
 
-  for (auto reg : domain->get_region_list())
+  for (auto &reg : domain->get_region_list())
     if (reg->dynamic_check())
       error->all(FLERR,"Cannot use hyper with a time-dependent region defined");
 
@@ -177,7 +177,7 @@ void Hyper::command(int narg, char **arg)
 
   fix_event->store_state_quench();
   quench(1);
-  if (dumpflag) for (auto idump : dumplist) idump->write();
+  if (dumpflag) for (auto &idump : dumplist) idump->write();
   fix_event->store_event();
   if (hyperenable) fix_hyper->build_bond_list(0);
   fix_event->restore_state_quench();
@@ -206,7 +206,7 @@ void Hyper::command(int narg, char **arg)
       nevent++;
       nevent_atoms += ecount;
 
-      if (dumpflag) for (auto idump : dumplist) idump->write();
+      if (dumpflag) for (auto &idump : dumplist) idump->write();
       fix_event->store_event();
       if (hyperenable) fix_hyper->build_bond_list(ecount);
 

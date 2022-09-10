@@ -360,7 +360,7 @@ void FixShake::init()
 
   // error if a fix changing the box comes before shake fix
   bool boxflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
    if (boxflag && utils::strmatch(ifix->style,pattern))
      error->all(FLERR,"Fix {} must come before any box changing fix", style);
     if (ifix->box_change) boxflag = true;

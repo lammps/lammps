@@ -72,7 +72,7 @@ PairSRPREACT::PairSRPREACT(LAMMPS *lmp) :
 
   // pair srp/react has its own fix, hence delete fix srp instance
   // created in the constructor of pair srp
-  for (auto ifix : modify->get_fix_by_style("SRP"))
+  for (auto &ifix : modify->get_fix_by_style("SRP"))
     modify->delete_fix(ifix->id);
 
   // similar to fix SRP, create fix SRP REACT instance here with unique fix id

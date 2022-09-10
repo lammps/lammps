@@ -354,7 +354,7 @@ void FixPOEMS::init()
 
   if (earlyflag) {
     bool pflag = false;
-    for (auto ifix : modify->get_fix_list()) {
+    for (auto &ifix : modify->get_fix_list()) {
       if (utils::strmatch(ifix->style, "^poems")) pflag = true;
       if (pflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         if (comm->me == 0)
@@ -365,7 +365,7 @@ void FixPOEMS::init()
 
   // error if npt,nph fix comes before rigid fix
   bool pflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (!pflag && utils::strmatch(ifix->style, "np[th]"))
       error->all(FLERR, "POEMS fix must come before NPT/NPH fix");
     if (utils::strmatch(ifix->style, "^poems")) pflag = true;

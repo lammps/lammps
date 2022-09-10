@@ -144,7 +144,7 @@ TEST_F(DumpCfgTest, no_unwrap_no_buffer_run0)
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
     delete_file("dump_cfg_no_unwrap_no_buffer_run0.melt.cfg");
 }
-}
+} // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {

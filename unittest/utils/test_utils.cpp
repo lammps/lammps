@@ -152,7 +152,7 @@ TEST(Utils, join_words)
     words.resize(1);
     combined = utils::join_words(words, "/");
     ASSERT_THAT(combined, StrEq("one"));
-    words.push_back("");
+    words.emplace_back("");
     combined = utils::join_words(words, "1");
     ASSERT_THAT(combined, StrEq("one1"));
 }

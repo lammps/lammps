@@ -1898,6 +1898,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
     }
 
     default:    // invalid
+      itype = -1000000000;
       error->one(file, line, "Invalid {}: {}", location, utils::trim(str));
       break;
   }

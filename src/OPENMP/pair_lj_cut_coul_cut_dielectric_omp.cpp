@@ -116,7 +116,6 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
   const double *_noalias const curvature = atom->curvature;
   const double *_noalias const area = atom->area;
   const int *_noalias const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double *_noalias const special_coul = force->special_coul;
   const double *_noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;

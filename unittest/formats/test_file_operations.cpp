@@ -348,7 +348,7 @@ TEST_F(FileOperationsTest, write_restart)
     }
 
     TEST_FAILURE(".*ERROR: Illegal write_restart command.*", command("write_restart"););
-    TEST_FAILURE(".*ERROR: Illegal write_restart command.*",
+    TEST_FAILURE(".*ERROR: Unknown write_restart keyword: xxxx.*",
                  command("write_restart test.restart xxxx"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open restart file some_crazy_dir/test.restart:"
                  " No such file or directory.*",

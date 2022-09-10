@@ -33,6 +33,7 @@
 #include "improper.h"
 #include "integrate.h"
 #include "kspace.h"
+#include "label_map.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
@@ -789,6 +790,7 @@ int Input::execute_command()
   else if (!strcmp(command,"improper_style")) improper_style();
   else if (!strcmp(command,"kspace_modify")) kspace_modify();
   else if (!strcmp(command,"kspace_style")) kspace_style();
+  else if (!strcmp(command,"labelmap")) labelmap();
   else if (!strcmp(command,"lattice")) lattice();
   else if (!strcmp(command,"mass")) mass();
   else if (!strcmp(command,"min_modify")) min_modify();
@@ -1326,7 +1328,10 @@ void Input::angle_coeff()
     error->all(FLERR,"Angle_coeff command before angle_style is defined");
   if (atom->avec->angles_allow == 0)
     error->all(FLERR,"Angle_coeff command when no angles allowed");
+  char *newarg = utils::expand_type(FLERR, arg[0], Atom::ANGLE, lmp);
+  if (newarg) arg[0] = newarg;
   force->angle->coeff(narg,arg);
+  delete[] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1367,7 +1372,10 @@ void Input::bond_coeff()
     error->all(FLERR,"Bond_coeff command before bond_style is defined");
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Bond_coeff command when no bonds allowed");
+  char *newarg = utils::expand_type(FLERR, arg[0], Atom::BOND, lmp);
+  if (newarg) arg[0] = newarg;
   force->bond->coeff(narg,arg);
+  delete[] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1470,7 +1478,10 @@ void Input::dihedral_coeff()
     error->all(FLERR,"Dihedral_coeff command before dihedral_style is defined");
   if (atom->avec->dihedrals_allow == 0)
     error->all(FLERR,"Dihedral_coeff command when no dihedrals allowed");
+  char *newarg = utils::expand_type(FLERR, arg[0], Atom::DIHEDRAL, lmp);
+  if (newarg) arg[0] = newarg;
   force->dihedral->coeff(narg,arg);
+  delete[] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1547,7 +1558,10 @@ void Input::improper_coeff()
     error->all(FLERR,"Improper_coeff command before improper_style is defined");
   if (atom->avec->impropers_allow == 0)
     error->all(FLERR,"Improper_coeff command when no impropers allowed");
+  char *newarg = utils::expand_type(FLERR, arg[0], Atom::IMPROPER, lmp);
+  if (newarg) arg[0] = newarg;
   force->improper->coeff(narg,arg);
+  delete[] newarg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1576,6 +1590,14 @@ void Input::kspace_style()
 {
   force->create_kspace(arg[0],1);
   if (force->kspace) force->kspace->settings(narg-1,&arg[1]);
+}
+/* ---------------------------------------------------------------------- */
+
+void Input::labelmap()
+{
+  if (domain->box_exist == 0) error->all(FLERR,"Labelmap command before simulation box is defined");
+  if (!atom->labelmapflag) atom->add_label_map();
+  atom->lmap->modify_lmap(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1676,14 +1698,12 @@ void Input::package()
 
   } else if (strcmp(arg[0],"kokkos") == 0) {
     if (lmp->kokkos == nullptr || lmp->kokkos->kokkos_exists == 0)
-      error->all(FLERR,
-                 "Package kokkos command without KOKKOS package enabled");
+      error->all(FLERR, "Package kokkos command without KOKKOS package enabled");
     lmp->kokkos->accelerator(narg-1,&arg[1]);
 
   } else if (strcmp(arg[0],"omp") == 0) {
     if (!modify->check_package("OMP"))
-      error->all(FLERR,
-                 "Package omp command without OPENMP package installed");
+      error->all(FLERR, "Package omp command without OPENMP package installed");
 
     std::string fixcmd = "package_omp all OMP";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
@@ -1691,14 +1711,13 @@ void Input::package()
 
  } else if (strcmp(arg[0],"intel") == 0) {
     if (!modify->check_package("INTEL"))
-      error->all(FLERR,
-                 "Package intel command without INTEL package installed");
+      error->all(FLERR, "Package intel command without INTEL package installed");
 
     std::string fixcmd = "package_intel all INTEL";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
     modify->add_fix(fixcmd);
 
-  } else error->all(FLERR,"Illegal package command");
+  } else error->all(FLERR,"Unknown package keyword: {}", arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1710,9 +1729,30 @@ void Input::pair_coeff()
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
   if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
-                                               || (strcmp(arg[1],"*") != 0))))
+                                             || (strcmp(arg[1],"*") != 0))))
     error->all(FLERR,"Incorrect args for pair coefficients");
+
+  char *newarg0 = utils::expand_type(FLERR, arg[0], Atom::ATOM, lmp);
+  if (newarg0) arg[0] = newarg0;
+  char *newarg1 = utils::expand_type(FLERR, arg[1], Atom::ATOM, lmp);
+  if (newarg1) arg[1] = newarg1;
+
+  // if arg[1] < arg[0], and neither contain a wildcard, reorder
+
+  int itype,jtype;
+  if (strchr(arg[0],'*') == nullptr && strchr(arg[1],'*') == nullptr) {
+    itype = utils::numeric(FLERR,arg[0],false,lmp);
+    jtype = utils::numeric(FLERR,arg[1],false,lmp);
+    if (jtype < itype) {
+      char *str = arg[0];
+      arg[0] = arg[1];
+      arg[1] = str;
+    }
+  }
+
   force->pair->coeff(narg,arg);
+  delete[] newarg0;
+  delete[] newarg1;
 }
 
 /* ---------------------------------------------------------------------- */

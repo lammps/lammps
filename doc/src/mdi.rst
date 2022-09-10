@@ -14,7 +14,7 @@ Syntax
 
   .. parsed-literal::
 
-     *engine* args = zero or more keyword arg pairs
+     *engine* args = zero or more keyword/args pairs
        keywords = *elements*
          *elements* args = N_1 N_2 ... N_ntypes
            N_1,N_2,...N_ntypes = atomic number for each of ntypes LAMMPS atom types
@@ -24,7 +24,7 @@ Syntax
        keywords = *mdi* or *infile* or *extra* or *command*
          *mdi* value = args passed to MDI for driver to operate with plugins (required)
          *infile* value = filename the engine will read at start-up (optional)
-         *extra* value = aditional command-line args to pass to engine library when loaded
+         *extra* value = aditional command-line args to pass to engine library when loaded (optional)
          *command* value = a LAMMPS input script command to execute (required)
      *connect* args = none
      *exit* args = none
@@ -289,11 +289,11 @@ are required.  The -name setting can be anything you choose.  MDI
 drivers and engines can query their names to verify they are values
 they expect.
 
-The *infile* keyword is also required.  It is the name of an input
-script which the engine will open and process.  MDI will pass it as a
+The *infile* keyword is optional.  It sets the name of an input script
+which the engine will open and process.  MDI will pass it as a
 command-line argument to the library when it is launched.  The file
 typically contains settings that an MD or QM code will use for its
-subsequent calculations.
+calculations.
 
 The *extra* keyword is optional.  It contains additional command-line
 arguments which MDI will pass to the library when it is launched.
@@ -309,12 +309,12 @@ could specify a filename with multiple LAMMPS commands.
 
 .. note::
 
-   When the single *command* is complete, LAMMPS will send an MDI
-   EXIT command to the plugin engine and the plugin will be removed.
-   The "mdi plugin" command will then exit and the next command
-   (if any) in the LAMMPS input script will be processed.  A subsequent
-   "mdi plugin" command could then load the same library plugin or
-   a different one if desired.
+   When the *command* is complete, LAMMPS will send an MDI EXIT
+   command to the plugin engine and the plugin will be removed.  The
+   "mdi plugin" command will then exit and the next command (if any)
+   in the LAMMPS input script will be processed.  A subsequent "mdi
+   plugin" command could then load the same or a different MDI
+   plugin if desired.
 
 ----------
 

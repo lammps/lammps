@@ -164,6 +164,12 @@ other types already exist.  All five offset values must be specified,
 but individual values will be ignored if the data file does not use
 that attribute (e.g. no bonds).
 
+.. note::
+
+   Offsets are **ignored** on lines using type labels, as the type
+   labels will determine the actual types directly depending on the
+   current :doc:`labelmap <labelmap>` settings.
+
 The *shift* keyword can be used to specify an (Sx, Sy, Sz)
 displacement applied to the coordinates of each atom.  Sz must be 0.0
 for a 2d simulation.  This is a mechanism for adding structured
@@ -227,22 +233,27 @@ The file will be read line by line, but there is a limit of 254
 characters per line and characters beyond that limit will be ignored.
 
 A data file has a header and a body.  The header appears first.  The
-first line of the header is always skipped; it typically contains a
-description of the file.  Then lines are read one at a time.  Lines
-can have a trailing comment starting with '#' that is ignored.  If the
-line is blank (only white-space after comment is deleted), it is
-skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it does not contain a header
-keyword, the line begins the body of the file.
+first line of the header and thus of the data file is *always* skipped;
+it typically contains a description of the file or a comment from the
+software that created the file.
 
-The body of the file contains zero or more sections.  The first line
-of a section has only a keyword.  This line can have a trailing
-comment starting with '#' that is either ignored or can be used to
-check for a style match, as described below.  The next line is
-skipped.  The remaining lines of the section contain values.  The
-number of lines depends on the section keyword as described below.
-Zero or more blank lines can be used between sections.  Sections can
-appear in any order, with a few exceptions as noted below.
+Then lines are read one line at a time.  Lines can have a trailing
+comment starting with '#' that is ignored.  There *must* be at least one
+blank between any valid content and the comment. If a line is blank
+(i.e. contains only white-space after comments are deleted), it is
+skipped.  If the line contains a header keyword, the corresponding
+value(s) is/are read from the line.  A line that is *not* blank and does
+*not* contain a header keyword begins the body of the file.
+
+The body of the file contains zero or more sections.  The first line of
+a section has only a keyword.  This line can have a trailing comment
+starting with '#' that is either ignored or can be used to check for a
+style match, as described below.  There must be a blank between the
+keyword and any comment. The *next* line is *always* skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used *between* sections.  Sections can appear in any order,
+with a few exceptions as noted below.
 
 The keyword *fix* can be used one or more times.  Each usage specifies
 a fix that will be used to process a specific portion of the data
@@ -477,6 +488,7 @@ These are the section keywords for the body of the file.
 
 * *Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
+* *Atom Type Labels, Bond Type Labels, Angle Type Labels, Dihedral Type Labels, Improper Type Labels* = type label maps
 * *Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs* = force field sections
 * *BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs* = class 2 force field sections
 
@@ -503,7 +515,8 @@ section is described including the number of lines it must contain and
 rules (if any) for where it can appear in the data file.
 
 Any individual line in the various sections can have a trailing
-comment starting with "#" for annotation purposes.  E.g. in the
+comment starting with "#" for annotation purposes. There must be at least
+one blank between valid content and the comment. E.g. in the
 Atoms section:
 
 .. parsed-literal::
@@ -533,6 +546,26 @@ angle style.  See the :doc:`angle_style <angle_style>` and
 :doc:`angle_coeff <angle_coeff>` commands for details.  Coefficients can
 also be set via the :doc:`angle_coeff <angle_coeff>` command in the
 input script.
+
+----------
+
+*Angle Type Labels* section:
+
+* one line per angle type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = angle type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric angle type.  These
+can be used in the Angles section in place of a numeric type, but only
+if the this section appears before the Angles section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -568,7 +601,7 @@ input script.
   .. parsed-literal::
 
        ID = number of angle (1-Nangles)
-       type = angle type (1-Nangletype)
+       type = angle type (1-Nangletype, or type label)
        atom1,atom2,atom3 = IDs of 1st,2nd,3rd atom in angle
 
 example:
@@ -580,8 +613,15 @@ example:
 The 3 atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
 E.g. H,O,H for a water molecule.  The *Angles* section must appear
-after the *Atoms* section.  All values in this section must be
-integers (1, not 1.0).
+after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or an Angle Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -594,6 +634,26 @@ integers (1, not 1.0).
 
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*Atom Type Labels* section:
+
+* one line per atom type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = numeric atom type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric atom type.  These
+can be used in the Atoms section in place of a numeric type, but only
+if the Atom Type Labels section appears before the Atoms section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -670,7 +730,7 @@ of analysis.
 The per-atom values have these meanings and units, listed alphabetically:
 
 * atom-ID = integer ID of atom
-* atom-type = type of atom (1-Ntype)
+* atom-type = type of atom (1-Ntype, or type label)
 * bodyflag = 1 for body particles, 0 for point particles
 * bond_nt = bond NT factor for MESONT particles (?? units)
 * buckling = buckling factor for MESONT particles (?? units)
@@ -721,6 +781,13 @@ map array is used, but not if an atom map hash is used; see the
 not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
+
+The atom-type can be a numeric value or an alphanumeric label.  The
+latter is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or an Atom Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 The molecule ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
@@ -932,6 +999,26 @@ script.
 
 ----------
 
+*Bond Type Labels* section:
+
+* one line per bond type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = bond type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric bond type.  These can
+be used in the Bonds section in place of a numeric type, but only if
+the this section appears before the Angles section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
+
+----------
+
 *BondAngle Coeffs* section:
 
 * one line per angle type
@@ -976,7 +1063,7 @@ script.
   .. parsed-literal::
 
        ID = bond number (1-Nbonds)
-       type = bond type (1-Nbondtype)
+       type = bond type (1-Nbondtype, or type label)
        atom1,atom2 = IDs of 1st,2nd atom in bond
 
 * example:
@@ -985,8 +1072,15 @@ script.
 
        12 3 17 29
 
-The *Bonds* section must appear after the *Atoms* section.  All values
-in this section must be integers (1, not 1.0).
+The *Bonds* section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Bond Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1014,6 +1108,26 @@ Coefficients can also be set via the
 
 ----------
 
+*Dihedral Type Labels* section:
+
+* one line per dihedral type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = dihedral type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric dihedral type.  These
+can be used in the Dihedrals section in place of a numeric type, but
+only if the this section appears before the Dihedrals section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
+
+----------
+
 *Dihedrals* section:
 
 * one line per dihedral
@@ -1022,7 +1136,7 @@ Coefficients can also be set via the
   .. parsed-literal::
 
        ID = number of dihedral (1-Ndihedrals)
-       type = dihedral type (1-Ndihedraltype)
+       type = dihedral type (1-Ndihedraltype, or type label)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in dihedral
 
 * example:
@@ -1032,8 +1146,15 @@ Coefficients can also be set via the
        12 4 17 29 30 21
 
 The 4 atoms are ordered linearly within the dihedral.  The *Dihedrals*
-section must appear after the *Atoms* section.  All values in this
-section must be integers (1, not 1.0).
+section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Dihedral Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1115,6 +1236,26 @@ Coefficients can also be set via the
 
 ----------
 
+*Improper Type Labels* section:
+
+* one line per improper type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = improper type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric improper type.  These
+can be used in the Impropers section in place of a numeric type, but
+only if the this section appears before the Impropers section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
+
+----------
+
 *Impropers* section:
 
 * one line per improper
@@ -1123,7 +1264,7 @@ Coefficients can also be set via the
   .. parsed-literal::
 
        ID = number of improper (1-Nimpropers)
-       type = improper type (1-Nimpropertype)
+       type = improper type (1-Nimpropertype, or type label)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in improper
 
 * example:
@@ -1133,11 +1274,19 @@ Coefficients can also be set via the
        12 3 17 29 13 100
 
 The ordering of the 4 atoms determines the definition of the improper
-angle used in the formula for each :doc:`improper style <improper_style>`.  See the doc pages for individual styles
-for details.
+angle used in the formula for each :doc:`improper style
+<improper_style>`.  See the doc pages for individual styles for
+details.
 
-The *Impropers* section must appear after the *Atoms* section.  All
-values in this section must be integers (1, not 1.0).
+The *Impropers* section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Improper Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1181,7 +1330,7 @@ The *Lines* section must appear after the *Atoms* section.
 
   .. parsed-literal::
 
-       ID = atom type (1-N)
+       ID = atom type (1-N or atom type label)
        mass = mass value
 
 * example:
@@ -1194,6 +1343,13 @@ This defines the mass of each atom type.  This can also be set via the
 :doc:`mass <mass>` command in the input script.  This section cannot be
 used for atom styles that define a mass for individual atoms -
 e.g. :doc:`atom_style sphere <atom_style>`.
+
+Using type labels instead of atom type numbers is only allowed if the
+type label has been defined by the :doc:`labelmap <labelmap>` command or
+a Atom Type Labels section earlier in the data file.  See the
+:doc:`Howto type labels <Howto_type_labels>` doc page for the allowed
+syntax of type labels and a general discussion of how type labels can be
+used.
 
 ----------
 

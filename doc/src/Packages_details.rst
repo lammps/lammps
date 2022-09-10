@@ -931,6 +931,7 @@ EXTRA-MOLECULE package
 **Contents:**
 
 Additional bond, angle, dihedral, and improper styles that are less commonly used.
+
 **Install:**
 
 To use this package, also the :ref:`MOLECULE <PKG-MOLECULE>` package needs to be installed.

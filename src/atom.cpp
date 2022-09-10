@@ -1200,7 +1200,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
             break;
           }
           case 1: {    // type label
-            if (!atom->labelmapflag)
+            if (!labelmapflag)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             type[nlocal - 1] = lmap->find(typestr, Atom::ATOM);
             if (type[nlocal - 1] == -1)
@@ -2195,6 +2195,8 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 
 void Atom::add_label_map()
 {
+  if (lmp->kokkos)
+    error->all(FLERR, "Label maps are currently not supported with Kokkos");
   labelmapflag = 1;
   lmap = new LabelMap(lmp,ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
 }

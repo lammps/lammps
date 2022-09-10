@@ -1651,17 +1651,6 @@ void AtomVec::create_atom(int itype, double *coord)
 }
 
 /* ----------------------------------------------------------------------
-   version of data_atom without extract option
-   temporary fix for Kokkos compilation
-------------------------------------------------------------------------- */
-
-void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std::string> &values)
-{
-  std::string strtmp;
-  data_atom(coord, imagetmp, values, strtmp);
-}
-
-/* ----------------------------------------------------------------------
    unpack one line from Atoms section of data file
    initialize other peratom quantities
 ------------------------------------------------------------------------- */

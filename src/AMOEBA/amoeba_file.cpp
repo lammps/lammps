@@ -416,7 +416,7 @@ void PairAmoeba::read_keyfile(char *filename)
 
     const auto words = Tokenizer(trimmed).as_vector();
     const int nwords = words.size();
-    const auto keyword = words[0];
+    const auto &keyword = words[0];
 
     if (utils::strmatch(keyword, "^[^a-z]+")) {
       ;    // ignore keywords that do not start with text

@@ -169,7 +169,6 @@ Dump::~Dump()
   delete[] format_bigint_user;
 
   delete[] refresh;
-
   delete[] skipvar;
 
   // format_column_user is deallocated by child classes that use it
@@ -1070,7 +1069,7 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"balance") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify balance", error);
       if (nprocs > 1)
         balance_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
@@ -1083,12 +1082,12 @@ void Dump::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"colname") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);
       if (strcmp(arg[iarg+1],"default") == 0) {
         for (auto &item : keyword_user) item.clear();
         iarg += 2;
       } else {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "dump_modify colname", error);
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
           icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
@@ -1316,12 +1315,6 @@ void Dump::modify_params(int narg, char **arg)
         }
         sortcolm1 = sortcol - 1;
       }
-      iarg += 2;
-
-    } else if (strcmp(arg[iarg],"balance") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify blance", error);
-      if (nprocs > 1)
-        balance_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"time") == 0) {

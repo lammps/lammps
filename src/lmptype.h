@@ -256,9 +256,9 @@ union ubuf {
 
 // declaration to lift aliasing restrictions
 
-#if defined(__INTEL_COMPILER) || defined(__PGI)
+#if defined(__INTEL_COMPILER) || (defined(__PGI) && !defined(__NVCOMPILER))
 #define _noalias restrict
-#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER)
+#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCOMPILER)
 #define _noalias __restrict
 #else
 #define _noalias

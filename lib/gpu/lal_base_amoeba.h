@@ -153,10 +153,9 @@ class BaseAmoeba {
   virtual void precompute_induce(const int inum_full, const int bsorder,
                                  double ***host_thetai1, double ***host_thetai2,
                                  double ***host_thetai3, int** igrid,
-                                 double *host_grid_brick_start, double ****host_grid_brick,
-                                 int nzlo_out, int nzhi_out,
-                                 int nylo_out, int nyhi_out,
-                                 int nxlo_out, int nxhi_out);
+                                 const int nzlo_out, const int nzhi_out,
+                                 const int nylo_out, const int nyhi_out,
+                                 const int nxlo_out, const int nxhi_out);
 
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
@@ -183,10 +182,12 @@ class BaseAmoeba {
   virtual void compute_fphi_uind(const int inum_full, const int bsorder,
                                  double ***host_thetai1, double ***host_thetai2,
                                  double ***host_thetai3, int** igrid,
-                                 double *host_grid_brick_start, double ****host_grid_brick,
+                                 double ****host_grid_brick,
                                  void **host_fdip_phi1, void **host_fdip_phi2, void **host_fdip_sum_phi,
-                                 int nzlo_out, int nzhi_out, int nylo_out, int nyhi_out,
-                                 int nxlo_out, int nxhi_out, bool& first_iteration);
+                                 const int nzlo_out, const int nzhi_out,
+                                 const int nylo_out, const int nyhi_out,
+                                 const int nxlo_out, const int nxhi_out,
+                                 bool& first_iteration);
 
   /// Compute polar real-space with device neighboring
   virtual void compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -255,7 +256,9 @@ class BaseAmoeba {
   int _nmax, _max_tep_size, _max_fieldp_size;
 
   int _bsorder;
-  UCL_D_Vec<numtyp> _thetai1, _thetai2, _thetai3, _cgrid_brick;
+  UCL_D_Vec<numtyp> _thetai1, _thetai2, _thetai3;
+  UCL_H_Vec<numtyp> hview_cgrid;
+  UCL_D_Vec<numtyp> _cgrid_brick;
   UCL_D_Vec<int> _igrid;
   UCL_Vector<numtyp,numtyp> _fdip_phi1, _fdip_phi2, _fdip_sum_phi;
   int _max_thetai_size;

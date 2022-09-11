@@ -1646,7 +1646,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     //numtyp4 ix; fetch4(ix,ii,pos_tex); //x_[i];
     acctyp fdip_buf[32];
 
-    int j,k,m;    
+    int j,k;    
     int nlpts = (bsorder-1) / 2;
 
     // extract the permanent multipole field at each site

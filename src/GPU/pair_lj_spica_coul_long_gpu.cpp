@@ -42,23 +42,23 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int spical_gpu_init(const int ntypes, double **cutsq, int **lj_type, double **host_lj1,
-                  double **host_lj2, double **host_lj3, double **host_lj4, double **offset,
-                  double *special_lj, const int nlocal, const int nall, const int max_nbors,
-                  const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
-                  double **host_cut_ljsq, double host_cut_coulsq, double *host_special_coul,
-                  const double qqrd2e, const double g_ewald);
+                    double **host_lj2, double **host_lj3, double **host_lj4, double **offset,
+                    double *special_lj, const int nlocal, const int nall, const int max_nbors,
+                    const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
+                    double **host_cut_ljsq, double host_cut_coulsq, double *host_special_coul,
+                    const double qqrd2e, const double g_ewald);
 void spical_gpu_clear();
 int **spical_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
-                         double *prd);
+                           int *host_type, double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int &host_start, int **ilist,
+                           int **jnum, const double cpu_time, bool &success, double *host_q,
+                           double *boxlo, double *prd);
 void spical_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
-                      int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
-                      double *boxlo, double *prd);
+                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
+                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
+                        const double cpu_time, bool &success, double *host_q, const int nlocal,
+                        double *boxlo, double *prd);
 double spical_gpu_bytes();
 
 #include "lj_spica_common.h"
@@ -111,17 +111,17 @@ void PairLJSPICACoulLongGPU::compute(int eflag, int vflag)
     }
     inum = atom->nlocal;
     firstneigh = spical_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
-                                    atom->tag, atom->nspecial, atom->special, eflag, vflag,
-                                    eflag_atom, vflag_atom, host_start, &ilist, &numneigh, cpu_time,
-                                    success, atom->q, domain->boxlo, domain->prd);
+                                      atom->tag, atom->nspecial, atom->special, eflag, vflag,
+                                      eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
+                                      cpu_time, success, atom->q, domain->boxlo, domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     spical_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->q,
-                     atom->nlocal, domain->boxlo, domain->prd);
+                       eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->q,
+                       atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
@@ -144,7 +144,8 @@ void PairLJSPICACoulLongGPU::compute(int eflag, int vflag)
 
 void PairLJSPICACoulLongGPU::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/spica/coul/long/gpu requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR, "Pair style lj/spica/coul/long/gpu requires atom attribute q");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -176,10 +177,10 @@ void PairLJSPICACoulLongGPU::init_style()
   int maxspecial = 0;
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
-  int success =
-      spical_gpu_init(atom->ntypes + 1, cutsq, lj_type, lj1, lj2, lj3, lj4, offset, force->special_lj,
-                    atom->nlocal, atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode,
-                    screen, cut_ljsq, cut_coulsq, force->special_coul, force->qqrd2e, g_ewald);
+  int success = spical_gpu_init(atom->ntypes + 1, cutsq, lj_type, lj1, lj2, lj3, lj4, offset,
+                                force->special_lj, atom->nlocal, atom->nlocal + atom->nghost, mnf,
+                                maxspecial, cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
+                                force->special_coul, force->qqrd2e, g_ewald);
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
@@ -196,7 +197,7 @@ double PairLJSPICACoulLongGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 template <int EVFLAG, int EFLAG>
 void PairLJSPICACoulLongGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh,
-                                       int **firstneigh)
+                                         int **firstneigh)
 {
   int i, j, ii, jj;
   double qtmp, xtmp, ytmp, ztmp;

@@ -227,7 +227,7 @@ void ComputeSNAGridLocal::compute_local()
         const double ztmp = xgrid[2];
 
         // currently, all grid points are type 1
-	// not clear what a better choice would be
+        // not clear what a better choice would be
 
         const int itype = 1;
         int ielem = 0;

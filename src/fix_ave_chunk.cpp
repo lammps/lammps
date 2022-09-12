@@ -466,7 +466,7 @@ void FixAveChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
 
   if (biasflag) {
     int i = modify->find_compute(id_bias);

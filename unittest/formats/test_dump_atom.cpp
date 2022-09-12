@@ -794,6 +794,13 @@ TEST_F(DumpAtomTest, colname)
     command("run 10 post no");
     command("dump_modify id colname default");
     command("run 10 post no");
+    command("dump_modify id colname id AtomID colname 3 x-scaled colname -4 z-scaled");
+    command("dump_modify id scale no image yes");
+    command("run 10 post no");
+    command("dump_modify id colname id AtomID colname 3 X colname -4 Z colname ix img_x");
+    command("run 10 post no");
+    command("dump_modify id colname default");
+    command("run 10 post no");
     command("undump id");
     END_HIDE_OUTPUT();
 
@@ -806,6 +813,18 @@ TEST_F(DumpAtomTest, colname)
 
     values   = extract_items(dump_file, "ATOMS AtomID type x-scaled ys z-scaled");
     expected = {"1 1 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS id type x y z ix iy iz");
+    expected = {"1 1 0 0 0 0 0 0", "1 1 0 0 0 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS AtomID type X y Z img_x iy iz");
+    expected = {"1 1 0 0 0 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
     for (int i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));

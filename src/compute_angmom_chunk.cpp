@@ -185,8 +185,8 @@ void ComputeAngmomChunk::lock_enable()
 
 void ComputeAngmomChunk::lock_disable()
 {
-  cchunk =  dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
-  if(cchunk) cchunk->lockcount--;
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (cchunk) cchunk->lockcount--;
 }
 
 /* ----------------------------------------------------------------------

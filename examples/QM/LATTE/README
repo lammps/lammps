@@ -54,7 +54,19 @@ Building 3 codes needed to run these examples
 (3) Build LAMMPS with its MDI package
     also with the MOLECULE package for these example scripts
 
-Build with CMake (NOTE: do not use traditional make for this use case)
+Build with traditional make
+
+% cd lammps/lib/mdi
+% python Install.py -m mpi     # downloads and builds MDI
+% cd ../../src
+% make yes-mdi yes-molecule
+$ make mpi                     # creates lmp_mpi
+
+% mkdir build; cd build
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
+% make                         # creates lmp
+
+Build with CMake
 
 % cd lammps
 % mkdir build; cd build
@@ -63,7 +75,7 @@ Build with CMake (NOTE: do not use traditional make for this use case)
 
 (4) Copy LAMMPS and LATTE executables into this dir
 
-Copy the LAMMPS executable into this dir as lmp_mpi.
+Copy the LAMMPS executable (lmp_mpi or lmp) into this dir as lmp_mpi.
 Copy the LATTE executable LATTE_DOUBLE into this dir.
 The run commands below assume you have done this.
 

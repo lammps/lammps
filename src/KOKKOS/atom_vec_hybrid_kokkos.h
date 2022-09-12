@@ -57,7 +57,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
   int pack_restart(int, double *) override;
   int unpack_restart(double *) override;
   void create_atom(int, double *) override;
-  void data_atom(double *, imageint, const std::vector<std::string> &) override;
+  void data_atom(double *, imageint, const std::vector<std::string> &, std::string &) override;
   int data_atom_hybrid(int, const std::vector<std::string> &, int) override {return 0;}
   void data_vel(int, const std::vector<std::string> &) override;
   void pack_data(double **) override;

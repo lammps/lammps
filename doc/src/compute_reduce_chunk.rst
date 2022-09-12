@@ -102,7 +102,7 @@ The commands below can be added to the examples/in.micelle script.
 
 Imagine a collection of polymer chains or small molecules with
 hydrophobic end groups.  All the hydrophobic (HP) atoms are assigned
-to a group called "phobic."
+to a group called "phobic".
 
 These commands will assign a unique cluster ID to all HP atoms within
 a specified distance of each other.  A cluster will contain all HP

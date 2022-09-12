@@ -318,7 +318,7 @@ Restrictions
 """"""""""""
 
 There can be no more than 32 groups defined at one time, including
-"all."
+"all".
 
 The parent group of a dynamic group cannot itself be a dynamic group.
 

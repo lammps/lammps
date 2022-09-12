@@ -78,7 +78,7 @@ vector values from a compute as input.  See the
 options.
 
 The vector values calculated by this compute are
-"intensive."  The first five vector values will be in
+"intensive".  The first five vector values will be in
 distance\ :math:`2` :doc:`units <units>` while the sixth one is dimensionless.
 
 Restrictions

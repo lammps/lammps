@@ -172,7 +172,7 @@ requested as arguments to the command (the potential energy, pressure and/or hea
 capacity).  The elements of the vector can be accessed by indices 1--n by any
 command that uses global vector values as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output options.
 
-The vector values calculated by this compute are "extensive."  The
+The vector values calculated by this compute are "extensive".  The
 scalar value will be in energy :doc:`units <units>`.
 
 Restrictions

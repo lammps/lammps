@@ -169,7 +169,7 @@ void ReadData::command(int narg, char **arg)
         addflag = MERGE;
       else {
         if (atom->molecule_flag && (iarg + 3 > narg))
-           utils::missing_cmd_args(FLERR, "read_data add", error);
+          utils::missing_cmd_args(FLERR, "read_data add", error);
         addflag = VALUE;
         bigint offset = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
         if (offset > MAXTAGINT)
@@ -209,7 +209,7 @@ void ReadData::command(int narg, char **arg)
       coeffflag = 0;
       iarg++;
     } else if (strcmp(arg[iarg], "extra/atom/types") == 0) {
-      if (iarg + 2 > narg)  utils::missing_cmd_args(FLERR, "read_data extra/atom/types", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/atom/types", error);
       extra_atom_types = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (extra_atom_types < 0)
         error->all(FLERR, "Illegal read_data extra/atom/types value {}", extra_atom_types);
@@ -265,7 +265,8 @@ void ReadData::command(int narg, char **arg)
                    atom->extra_angle_per_atom);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/dihedral/per/atom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/dihedral/per/atom", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "read_data extra/dihedral/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR, "No dihedrals allowed with atom style {}", atom->get_style());
       atom->extra_dihedral_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
@@ -274,7 +275,8 @@ void ReadData::command(int narg, char **arg)
                    atom->extra_dihedral_per_atom);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/improper/per/atom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/improper/per/atom", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "read_data extra/improper/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR, "No impropers allowed with atom style {}", atom->get_style());
       atom->extra_improper_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
@@ -283,12 +285,14 @@ void ReadData::command(int narg, char **arg)
                    atom->extra_improper_per_atom);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/special/per/atom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data extra/special/per/atom", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "read_data extra/special/per/atom", error);
       if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR, "No bonded interactions allowed with atom style {}", atom->get_style());
       force->special_extra = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (force->special_extra < 0)
-        error->all(FLERR, "Illegal read_data extra/special/per/atom value {}", force->special_extra);
+        error->all(FLERR, "Illegal read_data extra/special/per/atom value {}",
+                   force->special_extra);
       iarg += 2;
     } else if (strcmp(arg[iarg], "group") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "read_data group", error);
@@ -343,7 +347,8 @@ void ReadData::command(int narg, char **arg)
     } else {
       if (atom->labelmapflag) {
         if (comm->me == 0)
-          error->warning(FLERR, "Using read_data offset with a labelmap. Offsets will be only "
+          error->warning(FLERR,
+                         "Using read_data offset with a labelmap. Offsets will be only "
                          "applied to numeric types and not to type labels");
       }
     }
@@ -906,10 +911,8 @@ void ReadData::command(int narg, char **arg)
     // at end of 1st pass, error check for required sections
     // customize for new sections
 
-    if (nbonds && !bondflag)
-      error->one(FLERR, "Bonds section for {} bonds not found", nbonds);
-    if (nangles && !angleflag)
-      error->one(FLERR, "Angles section for {} angles not found", nangles);
+    if (nbonds && !bondflag) error->one(FLERR, "Bonds section for {} bonds not found", nbonds);
+    if (nangles && !angleflag) error->one(FLERR, "Angles section for {} angles not found", nangles);
     if (ndihedrals && !dihedralflag)
       error->one(FLERR, "Dihedrals section for {} dihedrals not found", ndihedrals);
     if (nimpropers && !improperflag)
@@ -917,12 +920,9 @@ void ReadData::command(int narg, char **arg)
 
     if (nellipsoids && !ellipsoidflag)
       error->one(FLERR, "Ellipsoids section for {} ellipsoids not found", nellipsoids);
-    if (nlines && !lineflag)
-      error->one(FLERR, "Lines section for {} lines not found", nlines);
-    if (ntris && !triflag)
-      error->one(FLERR, "Triangles section for {} triangles not found", ntris);
-    if (nbodies && !bodyflag)
-      error->one(FLERR, "Bodies section for {} bodies not found", nbodies);
+    if (nlines && !lineflag) error->one(FLERR, "Lines section for {} lines not found", nlines);
+    if (ntris && !triflag) error->one(FLERR, "Triangles section for {} triangles not found", ntris);
+    if (nbodies && !bodyflag) error->one(FLERR, "Bodies section for {} bodies not found", nbodies);
 
     // break out of loop if no molecular topology in file
     // else make 2nd pass

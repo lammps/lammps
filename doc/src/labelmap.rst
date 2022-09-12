@@ -86,6 +86,8 @@ This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
 :doc:`create_box <create_box>` command.
 
+Labelmaps are currently not supported when using the KOKKOS package.
+
 Related commands
 """"""""""""""""
 

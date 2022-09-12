@@ -19,6 +19,7 @@
 
 #include "mliap_model_python.h"
 
+#include "comm.h"
 #include "error.h"
 #include "lmppython.h"
 #include "mliap_data.h"
@@ -26,7 +27,6 @@
 #include "pair_mliap.h"
 #include "python_compat.h"
 #include "utils.h"
-#include "comm.h"
 
 #include <Python.h>
 

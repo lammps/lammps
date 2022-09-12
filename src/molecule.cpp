@@ -767,9 +767,9 @@ void Molecule::types(char *line)
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1007,9 +1007,9 @@ void Molecule::bonds(int flag, char *line)
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1093,9 +1093,9 @@ void Molecule::angles(int flag, char *line)
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1194,9 +1194,9 @@ void Molecule::dihedrals(int flag, char *line)
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1309,9 +1309,9 @@ void Molecule::impropers(int flag, char *line)
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1680,9 +1680,9 @@ void Molecule::shaketype_read(char *line)
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
     nmatch = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nmatch = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nmatch = ii;
         break;
       }
     }

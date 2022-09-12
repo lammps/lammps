@@ -1491,7 +1491,7 @@ void AtomVecFullKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecFullKokkos::data_atom(double *coord, imageint imagetmp,
-                                  const std::vector<std::string> &values)
+                                  const std::vector<std::string> &values, std::string &extract)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -1500,6 +1500,7 @@ void AtomVecFullKokkos::data_atom(double *coord, imageint imagetmp,
   h_tag(nlocal) = utils::inumeric(FLERR,values[0],true,lmp);
   h_molecule(nlocal) = utils::inumeric(FLERR,values[1],true,lmp);
   h_type(nlocal) = utils::inumeric(FLERR,values[2],true,lmp);
+  extract = values[2];
   if (h_type(nlocal) <= 0 || h_type(nlocal) > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 

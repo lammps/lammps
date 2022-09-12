@@ -14,8 +14,8 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
-using ::LAMMPS_NS::platform::path_join;
 using ::LAMMPS_NS::tagint;
+using ::LAMMPS_NS::platform::path_join;
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 using ::testing::StrEq;

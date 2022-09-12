@@ -227,6 +227,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   // type labels
 
   lmap = nullptr;
+  types_style = NUMERIC;
 
   // custom atom arrays
 
@@ -795,7 +796,7 @@ AtomVec *Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
-    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>( avec);
+    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
     for (int i = 0; i < avec_hybrid->nstyles; i++)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
@@ -1200,7 +1201,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
             break;
           }
           case 1: {    // type label
-            if (!atom->labelmapflag)
+            if (!labelmapflag)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             type[nlocal - 1] = lmap->find(typestr, Atom::ATOM);
             if (type[nlocal - 1] == -1)
@@ -1277,9 +1278,9 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1368,9 +1369,9 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1475,9 +1476,9 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1601,9 +1602,9 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1898,6 +1899,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
     }
 
     default:    // invalid
+      itype = -1000000000;
       error->one(file, line, "Invalid {}: {}", location, utils::trim(str));
       break;
   }
@@ -2020,7 +2022,7 @@ int Atom::shape_consistency(int itype, double &shapex, double &shapey, double &s
   double one[3] = {-1.0, -1.0, -1.0};
   double *shape;
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( style_match("ellipsoid"));
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(style_match("ellipsoid"));
   auto bonus = avec_ellipsoid->bonus;
 
   int flag = 0;
@@ -2194,6 +2196,8 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 
 void Atom::add_label_map()
 {
+  if (lmp->kokkos)
+    error->all(FLERR, "Label maps are currently not supported with Kokkos");
   labelmapflag = 1;
   lmap = new LabelMap(lmp,ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
 }

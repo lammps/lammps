@@ -28,7 +28,7 @@ class Special : protected Pointers {
   int me, nprocs;
   int maxall;
   int onefive_flag;
-  tagint **onetwo,**onethree,**onefour,**onefive;
+  tagint **onetwo, **onethree, **onefour, **onefive;
 
   // data used by rendezvous callback methods
 

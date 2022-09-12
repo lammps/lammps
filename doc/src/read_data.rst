@@ -1519,11 +1519,14 @@ To read gzipped data files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
+Labelmaps are currently not supported when using the KOKKOS package.
+
 Related commands
 """"""""""""""""
 
 :doc:`read_dump <read_dump>`, :doc:`read_restart <read_restart>`,
-:doc:`create_atoms <create_atoms>`, :doc:`write_data <write_data>`
+:doc:`create_atoms <create_atoms>`, :doc:`write_data <write_data>`,
+:doc:`labelmap <labelmap>`
 
 Default
 """""""

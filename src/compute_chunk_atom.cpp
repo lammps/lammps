@@ -572,7 +572,7 @@ void ComputeChunkAtom::init()
   if ((idsflag == ONCE || lockcount) && !fixstore) {
     id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
     fixstore = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1", id_fix, group->names[igroup])));
+        modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1", id_fix, group->names[igroup])));
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {

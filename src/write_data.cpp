@@ -57,7 +57,7 @@ void WriteData::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Write_data command before simulation box is defined");
 
-  if (narg < 1) error->all(FLERR,"Illegal write_data command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "write_data", error);
 
   // if filename contains a "*", replace with current timestep
 
@@ -73,16 +73,17 @@ void WriteData::command(int narg, char **arg)
   coeffflag = 1;
   fixflag = 1;
   lmapflag = 1;
-  atom->types_style = Atom::NUMERIC;
+  // store current (default) setting since we may change it.
+  int types_style = atom->types_style;
   int noinit = 0;
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal write_data command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "write_data pair", error);
       if (strcmp(arg[iarg+1],"ii") == 0) pairflag = II;
       else if (strcmp(arg[iarg+1],"ij") == 0) pairflag = IJ;
-      else error->all(FLERR,"Illegal write_data command");
+      else error->all(FLERR,"Unknown write_data pair option: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"noinit") == 0) {
       noinit = 1;
@@ -97,12 +98,12 @@ void WriteData::command(int narg, char **arg)
       lmapflag = 0;
       iarg++;
     } else if (strcmp(arg[iarg],"types") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal write_data command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "write_data types", error);
       if (strcmp(arg[iarg+1],"numeric") == 0) atom->types_style = Atom::NUMERIC;
       else if (strcmp(arg[iarg+1],"labels") == 0) atom->types_style = Atom::LABELS;
-      else error->all(FLERR,"Illegal write_data command");
+      else error->all(FLERR,"Unknown write_data types option: {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal write_data command");
+    } else error->all(FLERR,"Unknown write_data keyword: {}", arg[iarg]);
   }
 
   // init entire system since comm->exchange is done
@@ -134,6 +135,8 @@ void WriteData::command(int narg, char **arg)
   }
 
   write(file);
+  // restore saved setting
+  atom->types_style = types_style;
 }
 
 /* ----------------------------------------------------------------------

@@ -143,19 +143,22 @@ void CreateBox::command(int narg, char **arg)
       atom->angle_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/dihedral/per/atom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/dihedral/per/atom", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "create_box extra/dihedral/per/atom", error);
       if (!atom->avec->dihedrals_allow)
         error->all(FLERR, "No dihedrals allowed with atom style {}", atom->get_style());
       atom->dihedral_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/improper/per/atom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/improper/per/atom", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "create_box extra/improper/per/atom", error);
       if (!atom->avec->impropers_allow)
         error->all(FLERR, "No impropers allowed with atom style {}", atom->get_style());
       atom->improper_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/special/per/atom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/special/per/atom", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "create_box extra/special/per/atom", error);
       force->special_extra = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       atom->maxspecial += force->special_extra;
       iarg += 2;

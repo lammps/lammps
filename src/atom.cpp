@@ -1278,9 +1278,9 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1369,9 +1369,9 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1476,9 +1476,9 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }
@@ -1602,9 +1602,9 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nwords = values.size();
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      if (utils::strmatch(values[i], "^#")) {
-        nwords = i;
+    for (std::size_t ii = 0; ii < values.size(); ++ii) {
+      if (utils::strmatch(values[ii], "^#")) {
+        nwords = ii;
         break;
       }
     }

@@ -45,6 +45,7 @@ PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) : PairLJC
   efield = nullptr;
   epot = nullptr;
   nmax = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */

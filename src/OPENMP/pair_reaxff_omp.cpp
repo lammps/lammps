@@ -136,7 +136,7 @@ void PairReaxFFOMP::init_style()
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
-    fix_reaxff = dynamic_cast<FixReaxFF *>( modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
+    fix_reaxff = dynamic_cast<FixReaxFF *>(modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 
   api->control->nthreads = comm->nthreads;
 }

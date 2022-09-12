@@ -384,7 +384,7 @@ TEST_F(DumpCustomTest, rerun_bin)
     ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
     delete_file(dump_file);
 }
-}
+} // namespace LAMMPS_NS
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);

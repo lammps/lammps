@@ -31,6 +31,7 @@ class AtomVecDielectric : public AtomVec {
  public:
   AtomVecDielectric(class LAMMPS *);
 
+  void init() override;
   void grow_pointers() override;
   void create_atom_post(int) override;
   void data_atom_post(int) override;

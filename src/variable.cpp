@@ -24,6 +24,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "label_map.h"
 #include "library.h"
 #include "lmppython.h"
 #include "math_const.h"
@@ -1961,7 +1962,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
 
       // ----------------
-      // math/group/special function or atom value/vector or
+      // math/group/special/labelmap function or atom value/vector or
       // constant or thermo keyword
       // ----------------
 
@@ -3946,11 +3947,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
       strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_active") != 0 &&
       strcmp(word,"is_defined") != 0 && strcmp(word,"is_available") != 0 && strcmp(word,"is_file") != 0 &&
-      strcmp(word,"is_os") != 0 && strcmp(word,"extract_setting") != 0)
+      strcmp(word,"is_os") != 0 && strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
     return 0;
 
   // parse contents for comma-separated args
   // narg = number of args, args = strings between commas
+
+  std::string contents_copy(contents); // for label2type
 
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
@@ -4372,6 +4375,47 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       auto newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"label2type") == 0) {
+    if (!atom->labelmapflag)
+      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+
+    auto pos = contents_copy.find_first_of(',');
+    if (pos == std::string::npos)
+      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                       contents_copy), ivar);
+    std::string typestr = contents_copy.substr(pos+1);
+    std::string kind = contents_copy.substr(0, pos);
+
+    int value = -1;
+    if (kind == "atom") {
+      value = atom->lmap->find(typestr,Atom::ATOM);
+    } else if (kind == "bond") {
+      value = atom->lmap->find(typestr,Atom::BOND);
+    } else if (kind == "angle") {
+      value = atom->lmap->find(typestr,Atom::ANGLE);
+    } else if (kind == "dihedral") {
+      value = atom->lmap->find(typestr,Atom::DIHEDRAL);
+    } else if (kind == "improper") {
+      value = atom->lmap->find(typestr,Atom::IMPROPER);
+    } else {
+      print_var_error(FLERR, fmt::format("Invalid type kind {} in variable formula",kind), ivar);
+    }
+
+    if (value == -1)
+      print_var_error(FLERR, fmt::format("Invalid {} type label {} in variable formula",
+                                         kind, typestr), ivar);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = nullptr;
+      newtree->nextra = 0;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
   }

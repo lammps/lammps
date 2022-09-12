@@ -123,7 +123,7 @@ class AtomVec : protected Pointers {
   virtual void create_atom(int, double *);
   virtual void create_atom_post(int) {}
 
-  virtual void data_atom(double *, imageint, const std::vector<std::string> &);
+  virtual void data_atom(double *, imageint, const std::vector<std::string> &, std::string &);
   virtual void data_atom_post(int) {}
   virtual void data_atom_bonus(int, const std::vector<std::string> &) {}
   virtual void data_body(int, int, int, int *, double *) {}

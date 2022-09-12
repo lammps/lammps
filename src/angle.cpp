@@ -368,17 +368,17 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond, double ea
    called by AngleAmoeba for its 4-body angle term
 ------------------------------------------------------------------------- */
 
-void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond,
-                      double eangle,
+void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond, double eangle,
                       double *f1, double *f2, double *f3, double *f4)
 {
-  double eanglefourth,v[6];
+  double eanglefourth, v[6];
 
   if (eflag_either) {
     if (eflag_global) {
-      if (newton_bond) energy += eangle;
+      if (newton_bond)
+        energy += eangle;
       else {
-        eanglefourth = FOURTH*eangle;
+        eanglefourth = FOURTH * eangle;
         if (i < nlocal) energy += eanglefourth;
         if (j < nlocal) energy += eanglefourth;
         if (k < nlocal) energy += eanglefourth;
@@ -386,7 +386,7 @@ void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond,
       }
     }
     if (eflag_atom) {
-      eanglefourth = FOURTH*eangle;
+      eanglefourth = FOURTH * eangle;
       if (newton_bond || i < nlocal) eatom[i] += eanglefourth;
       if (newton_bond || j < nlocal) eatom[j] += eanglefourth;
       if (newton_bond || k < nlocal) eatom[k] += eanglefourth;
@@ -396,12 +396,12 @@ void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond,
 
   if (vflag_either) {
     double **x = atom->x;
-    v[0] = x[i][0]*f1[0] + x[j][0]*f2[0] + x[k][0]*f3[0] + x[m][0]*f4[0];
-    v[1] = x[i][1]*f1[1] + x[j][1]*f2[1] + x[k][1]*f3[1] + x[m][1]*f4[1];
-    v[2] = x[i][2]*f1[2] + x[j][2]*f2[2] + x[k][2]*f3[2] + x[m][2]*f4[2];
-    v[3] = x[i][0]*f1[1] + x[j][0]*f2[1] + x[k][0]*f3[1] + x[m][0]*f4[1];
-    v[4] = x[i][0]*f1[2] + x[j][0]*f2[2] + x[k][0]*f3[2] + x[m][0]*f4[2];
-    v[5] = x[i][1]*f1[2] + x[j][1]*f2[2] + x[k][1]*f3[2] + x[m][1]*f4[2];
+    v[0] = x[i][0] * f1[0] + x[j][0] * f2[0] + x[k][0] * f3[0] + x[m][0] * f4[0];
+    v[1] = x[i][1] * f1[1] + x[j][1] * f2[1] + x[k][1] * f3[1] + x[m][1] * f4[1];
+    v[2] = x[i][2] * f1[2] + x[j][2] * f2[2] + x[k][2] * f3[2] + x[m][2] * f4[2];
+    v[3] = x[i][0] * f1[1] + x[j][0] * f2[1] + x[k][0] * f3[1] + x[m][0] * f4[1];
+    v[4] = x[i][0] * f1[2] + x[j][0] * f2[2] + x[k][0] * f3[2] + x[m][0] * f4[2];
+    v[5] = x[i][1] * f1[2] + x[j][1] * f2[2] + x[k][1] * f3[2] + x[m][1] * f4[2];
 
     if (vflag_global) {
       if (newton_bond) {
@@ -417,52 +417,51 @@ void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond,
         if (j < nlocal) prefactor += 1.0;
         if (k < nlocal) prefactor += 1.0;
         if (m < nlocal) prefactor += 1.0;
-        virial[0] += prefactor*FOURTH*v[0];
-        virial[1] += prefactor*FOURTH*v[1];
-        virial[2] += prefactor*FOURTH*v[2];
-        virial[3] += prefactor*FOURTH*v[3];
-        virial[4] += prefactor*FOURTH*v[4];
-        virial[5] += prefactor*FOURTH*v[5];
+        virial[0] += prefactor * FOURTH * v[0];
+        virial[1] += prefactor * FOURTH * v[1];
+        virial[2] += prefactor * FOURTH * v[2];
+        virial[3] += prefactor * FOURTH * v[3];
+        virial[4] += prefactor * FOURTH * v[4];
+        virial[5] += prefactor * FOURTH * v[5];
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        vatom[i][0] += FOURTH*v[0];
-        vatom[i][1] += FOURTH*v[1];
-        vatom[i][2] += FOURTH*v[2];
-        vatom[i][3] += FOURTH*v[3];
-        vatom[i][4] += FOURTH*v[4];
-        vatom[i][5] += FOURTH*v[5];
+        vatom[i][0] += FOURTH * v[0];
+        vatom[i][1] += FOURTH * v[1];
+        vatom[i][2] += FOURTH * v[2];
+        vatom[i][3] += FOURTH * v[3];
+        vatom[i][4] += FOURTH * v[4];
+        vatom[i][5] += FOURTH * v[5];
       }
       if (newton_bond || j < nlocal) {
-        vatom[j][0] += FOURTH*v[0];
-        vatom[j][1] += FOURTH*v[1];
-        vatom[j][2] += FOURTH*v[2];
-        vatom[j][3] += FOURTH*v[3];
-        vatom[j][4] += FOURTH*v[4];
-        vatom[j][5] += FOURTH*v[5];
+        vatom[j][0] += FOURTH * v[0];
+        vatom[j][1] += FOURTH * v[1];
+        vatom[j][2] += FOURTH * v[2];
+        vatom[j][3] += FOURTH * v[3];
+        vatom[j][4] += FOURTH * v[4];
+        vatom[j][5] += FOURTH * v[5];
       }
       if (newton_bond || k < nlocal) {
-        vatom[k][0] += FOURTH*v[0];
-        vatom[k][1] += FOURTH*v[1];
-        vatom[k][2] += FOURTH*v[2];
-        vatom[k][3] += FOURTH*v[3];
-        vatom[k][4] += FOURTH*v[4];
-        vatom[k][5] += FOURTH*v[5];
+        vatom[k][0] += FOURTH * v[0];
+        vatom[k][1] += FOURTH * v[1];
+        vatom[k][2] += FOURTH * v[2];
+        vatom[k][3] += FOURTH * v[3];
+        vatom[k][4] += FOURTH * v[4];
+        vatom[k][5] += FOURTH * v[5];
       }
       if (newton_bond || m < nlocal) {
-        vatom[m][0] += FOURTH*v[0];
-        vatom[m][1] += FOURTH*v[1];
-        vatom[m][2] += FOURTH*v[2];
-        vatom[m][3] += FOURTH*v[3];
-        vatom[m][4] += FOURTH*v[4];
-        vatom[m][5] += FOURTH*v[5];
+        vatom[m][0] += FOURTH * v[0];
+        vatom[m][1] += FOURTH * v[1];
+        vatom[m][2] += FOURTH * v[2];
+        vatom[m][3] += FOURTH * v[3];
+        vatom[m][4] += FOURTH * v[4];
+        vatom[m][5] += FOURTH * v[5];
       }
     }
   }
 }
-
 
 /* ----------------------------------------------------------------------
    tally energy and virial into global and per-atom accumulators
@@ -470,35 +469,35 @@ void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond,
    identical to Bond:ev_tally()
 ------------------------------------------------------------------------- */
 
-void Angle::ev_tally2(int i, int j, int nlocal, int newton_bond,
-                      double ebond, double fbond,
+void Angle::ev_tally2(int i, int j, int nlocal, int newton_bond, double ebond, double fbond,
                       double delx, double dely, double delz)
 {
-  double ebondhalf,v[6];
+  double ebondhalf, v[6];
 
   if (eflag_either) {
     if (eflag_global) {
-      if (newton_bond) energy += ebond;
+      if (newton_bond)
+        energy += ebond;
       else {
-        ebondhalf = 0.5*ebond;
+        ebondhalf = 0.5 * ebond;
         if (i < nlocal) energy += ebondhalf;
         if (j < nlocal) energy += ebondhalf;
       }
     }
     if (eflag_atom) {
-      ebondhalf = 0.5*ebond;
+      ebondhalf = 0.5 * ebond;
       if (newton_bond || i < nlocal) eatom[i] += ebondhalf;
       if (newton_bond || j < nlocal) eatom[j] += ebondhalf;
     }
   }
 
   if (vflag_either) {
-    v[0] = delx*delx*fbond;
-    v[1] = dely*dely*fbond;
-    v[2] = delz*delz*fbond;
-    v[3] = delx*dely*fbond;
-    v[4] = delx*delz*fbond;
-    v[5] = dely*delz*fbond;
+    v[0] = delx * delx * fbond;
+    v[1] = dely * dely * fbond;
+    v[2] = delz * delz * fbond;
+    v[3] = delx * dely * fbond;
+    v[4] = delx * delz * fbond;
+    v[5] = dely * delz * fbond;
 
     if (vflag_global) {
       if (newton_bond) {
@@ -510,40 +509,40 @@ void Angle::ev_tally2(int i, int j, int nlocal, int newton_bond,
         virial[5] += v[5];
       } else {
         if (i < nlocal) {
-          virial[0] += 0.5*v[0];
-          virial[1] += 0.5*v[1];
-          virial[2] += 0.5*v[2];
-          virial[3] += 0.5*v[3];
-          virial[4] += 0.5*v[4];
-          virial[5] += 0.5*v[5];
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
         }
         if (j < nlocal) {
-          virial[0] += 0.5*v[0];
-          virial[1] += 0.5*v[1];
-          virial[2] += 0.5*v[2];
-          virial[3] += 0.5*v[3];
-          virial[4] += 0.5*v[4];
-          virial[5] += 0.5*v[5];
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
         }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        vatom[i][0] += 0.5*v[0];
-        vatom[i][1] += 0.5*v[1];
-        vatom[i][2] += 0.5*v[2];
-        vatom[i][3] += 0.5*v[3];
-        vatom[i][4] += 0.5*v[4];
-        vatom[i][5] += 0.5*v[5];
+        vatom[i][0] += 0.5 * v[0];
+        vatom[i][1] += 0.5 * v[1];
+        vatom[i][2] += 0.5 * v[2];
+        vatom[i][3] += 0.5 * v[3];
+        vatom[i][4] += 0.5 * v[4];
+        vatom[i][5] += 0.5 * v[5];
       }
       if (newton_bond || j < nlocal) {
-        vatom[j][0] += 0.5*v[0];
-        vatom[j][1] += 0.5*v[1];
-        vatom[j][2] += 0.5*v[2];
-        vatom[j][3] += 0.5*v[3];
-        vatom[j][4] += 0.5*v[4];
-        vatom[j][5] += 0.5*v[5];
+        vatom[j][0] += 0.5 * v[0];
+        vatom[j][1] += 0.5 * v[1];
+        vatom[j][2] += 0.5 * v[2];
+        vatom[j][3] += 0.5 * v[3];
+        vatom[j][4] += 0.5 * v[4];
+        vatom[j][5] += 0.5 * v[5];
       }
     }
   }

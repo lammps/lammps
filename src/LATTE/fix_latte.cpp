@@ -72,7 +72,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   thermo_energy = thermo_virial = 1;
 
   // process optional args
-  
+
   coulomb = 0;
   id_pe = nullptr;
   exclude = 0;
@@ -147,7 +147,7 @@ void FixLatte::init()
     if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
       error->all(FLERR,"Fix latte cannot compute Coulomb potential");
     c_pe = modify->get_compute_by_id(id_pe);
-    if (!c_pe) 
+    if (!c_pe)
       error->all(FLERR,"Fix latte could not find Coulomb compute ID {}",id_pe);
   }
 
@@ -171,12 +171,12 @@ void FixLatte::init()
 
   if (exclude) {
     Fix *f_exclude = modify->get_fix_by_id(id_exclude);
-    if (!f_exclude) 
+    if (!f_exclude)
       error->all(FLERR,"Fix latte could not find exclude fix ID {}", id_exclude);
     int exclude_group_index,dim;
     exclusion_group_ptr = (int *) f_exclude->extract("exclusion_group",dim);
-    if (!exclusion_group_ptr || dim != 0) 
-      error->all(FLERR,"Fix latte could not query exclude_group of fix ID {}", 
+    if (!exclusion_group_ptr || dim != 0)
+      error->all(FLERR,"Fix latte could not query exclude_group of fix ID {}",
                  id_exclude);
   }
 }
@@ -308,7 +308,7 @@ void FixLatte::post_force(int vflag)
 
   newsystem = 0;
   natoms_last = atom->natoms;
-  
+
   // sum LATTE forces to LAMMPS forces
   // e.g. LAMMPS may compute Coulombics at some point
 
@@ -362,7 +362,7 @@ void FixLatte::latte_wrapper_exclude()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   // nlatte = number of non-excluded atoms to pass to LATTE
 
   int nlatte = 0;

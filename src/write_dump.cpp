@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 void WriteDump::command(int narg, char **arg)
 {
-  if (narg < 3) error->all(FLERR, "Illegal write_dump command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "write_dump", error);
 
   // modindex = index in args of "modify" keyword
   // will be narg if "modify" is not present

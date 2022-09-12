@@ -439,9 +439,17 @@ TEST_F(FileOperationsTest, write_data)
     ASSERT_FILE_EXISTS("charge.data");
     ASSERT_EQ(count_lines("charge.data"), 30);
 
-    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data"););
-    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data test.data xxxx"););
-    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data test.data pair xx"););
+    TEST_FAILURE(".*ERROR: Illegal write_data command: missing argument.*", command("write_data"););
+    TEST_FAILURE(".*ERROR: Unknown write_data keyword: xxxx.*",
+                 command("write_data test.data xxxx"););
+    TEST_FAILURE(".*ERROR: Illegal write_data pair command: missing argument.*",
+                 command("write_data test.data pair"););
+    TEST_FAILURE(".*ERROR: Unknown write_data pair option: xx.*",
+                 command("write_data test.data pair xx"););
+    TEST_FAILURE(".*ERROR: Illegal write_data types command: missing argument.*",
+                 command("write_data test.data types"););
+    TEST_FAILURE(".*ERROR: Unknown write_data types option: xx.*",
+                 command("write_data test.data types xx"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open data file some_crazy_dir/test.data:"
                  " No such file or directory.*",
                  command("write_data some_crazy_dir/test.data"););

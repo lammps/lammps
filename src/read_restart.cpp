@@ -27,6 +27,7 @@
 #include "group.h"
 #include "improper.h"
 #include "irregular.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "mpiio.h"
@@ -450,7 +451,7 @@ void ReadRestart::command(int narg, char **arg)
     if (nextra) {
       memory->destroy(atom->extra);
       memory->create(atom->extra,atom->nmax,nextra,"atom:extra");
-      auto fix = dynamic_cast<FixReadRestart *>( modify->get_fix_by_id("_read_restart"));
+      auto fix = dynamic_cast<FixReadRestart *>(modify->get_fix_by_id("_read_restart"));
       int *count = fix->count;
       double **extra = fix->extra;
       double **atom_extra = atom->extra;
@@ -892,6 +893,11 @@ void ReadRestart::type_arrays()
       read_double_vec(atom->ntypes,&mass[1]);
       atom->set_mass(mass);
       delete[] mass;
+
+    } else if (flag == LABELMAP) {
+      read_int();
+      atom->add_label_map();
+      atom->lmap->read_restart(fp);
 
     } else error->all(FLERR,
                       "Invalid flag in type arrays section of restart file");

@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixBondBreak : public Fix {
   friend class FixSRPREACT;
+
  public:
   FixBondBreak(class LAMMPS *, int, char **);
   ~FixBondBreak() override;

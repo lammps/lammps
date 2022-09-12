@@ -961,7 +961,7 @@ void Dump::balance()
 
   // allocate a second buffer for balanced data
 
-  double* buf_balance;
+  double *buf_balance;
   memory->create(buf_balance,maxbuf,"dump:buf_balance");
 
   // compute from which procs I am receiving atoms

@@ -187,7 +187,7 @@ void PairLJCutTIP4PLongGPU::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
   double cut_coulplus = cut_coul + qdist + blen;
-  double cut_coulsqplus = cut_coulplus*cut_coulplus;
+  double cut_coulsqplus = cut_coulplus * cut_coulplus;
   if (maxcut < cut_coulsqplus) { cell_size = cut_coulplus + neighbor->skin; }
   if (comm->cutghostuser < cell_size) {
     if (comm->me == 0)

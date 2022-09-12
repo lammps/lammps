@@ -178,7 +178,6 @@ extra buffering.
 
 ----------
 
-
 .. versionadded:: 4May2022
 
 The *colname* keyword can be used to change the default header keyword
@@ -401,10 +400,10 @@ the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 Note that if the argument to the :doc:`dump_modify every
-<dump_modify>` or doc:`dump_modify every/time <dump_modify>` commands
-is a variable and not a numeric value, then specifying *first yes* is
-the only way to write a dump snapshot on the first timestep after the
-dump command is invoked.
+<dump_modify>` :doc:`dump_modify every/time <dump_modify>` commands is
+a variable and not a numeric value, then specifying *first yes* is the
+only way to write a dump snapshot on the first timestep after the dump
+command is invoked.
 
 ----------
 
@@ -503,7 +502,7 @@ current coordinate.  Note that for dump style *custom* these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
 Using this keyword will reset all custom header names set with
-*dump_modify colname*.
+*dump_modify colname* to their respective default values.
 
 ----------
 
@@ -678,7 +677,7 @@ value of *yes* means atom coords are written in normalized units from
 value of *no* means they are written in absolute distance units
 (e.g., :math:`\mathrm{\mathring A}` or :math:`\sigma`).
 Using this keyword will reset all custom header names set with
-*dump_modify colname*.
+*dump_modify colname* to their respective default values.
 
 ----------
 

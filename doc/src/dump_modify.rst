@@ -35,10 +35,10 @@ Syntax
        *element* args = E1 E2 ... EN, where N = # of atom types
          E1,...,EN = element name (e.g., C or Fe or Ga)
        *every* arg = N
-         N = dump every this many timesteps
+         N = dump on timesteps which are a multiple of N
          N can be a variable (see below)
        *every/time* arg = Delta
-         Delta = dump every this interval in simulation time (time units)
+         Delta = dump once every Delta interval of simulation time (time units)
          Delta can be a variable (see below)
        *fileper* arg = Np
          Np = write one file for every this many processors
@@ -176,6 +176,31 @@ extra buffering.
 
 ----------
 
+.. versionadded:: 4May2022
+
+The *colname* keyword can be used to change the default header keyword
+for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
+and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
+represents the column number counting from the left, a negative integer
+when it represents the column number from the right (i.e. -1 is the last
+column/keyword), or a custom dump keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+keyword. For *atom* dump styles only the keywords "id", "type", "x",
+"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
+whether scaled or unwrapped coordinates were enabled or disabled, and
+it always assumes 8 columns for indexing regardless of whether image
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default names. Using the *scale* or *image* keyword will also
+reset all header keywords to their default values.
+
+----------
+
 The *delay* keyword applies to all dump styles.  No snapshots will be
 output until the specified *Dstep* timestep or later.  Specifying
 *Dstep* < 0 is the same as turning off the delay setting.  This is a
@@ -207,13 +232,10 @@ will be accepted.
 ----------
 
 The *every* keyword can be used with any dump style except the *dcd*
-and *xtc* styles.  It does two things.  It specifies that the interval
-between dump snapshots will be set in timesteps, which is the default
-if the *every* or *every/time* keywords are not used.  See the
-*every/time* keyword for how to specify the interval in simulation
-time, i.e. in time units of the :doc:`units <units>` command.  The
-*every* keyword also sets the interval value, which overrides the dump
-frequency originally specified by the :doc:`dump <dump>` command.
+and *xtc* styles.  It specifies that the output of dump snapshots will
+now be performed on timesteps which are a multiple of a new :math:`N`
+value, This overrides the dump frequency originally specified by the
+:doc:`dump <dump>` command.
 
 The *every* keyword can be specified in one of two ways.  It can be a
 numeric value in which case it must be > 0.  Or it can be an
@@ -272,6 +294,17 @@ in file tmp.times:
    place of 101.
 
 ----------
+
+The *every/time* keyword can be used with any dump style except the
+*dcd* and *xtc* styles.  It changes the frequency of dump snapshots
+from being based on the current timestep to being determined by
+elapsed simulation time, i.e. in time units of the :doc:`units
+<units>` command, and specifies *Delta* for the interval between
+snapshots.  This can be useful when the timestep size varies during a
+simulation run, e.g. by use of the :doc:`fix dt/reset <fix_dt_reset>`
+command.  The default is to perform output on timesteps which a
+multiples of specified timestep value :math:`N`; see the *every*
+keyword.
 
 The *every/time* keyword can be used with any dump style except the
 *dcd* and *xtc* styles.  It does two things.  It specifies that the
@@ -357,7 +390,7 @@ always occur if the current timestep is a multiple of $N$, the
 frequency specified in the :doc:`dump <dump>` command or
 :doc:`dump_modify every <dump_modify>` command, including timestep 0.
 It will also always occur if the current simulation time is a multiple
-of *Delta*, the time interval specified in the doc:`dump_modify
+of *Delta*, the time interval specified in the :doc:`dump_modify
 every/time <dump_modify>` command.
 
 But if this is not the case, a dump snapshot will only be written if
@@ -365,7 +398,7 @@ the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 Note that if the argument to the :doc:`dump_modify every
-<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
+<dump_modify>` :doc:`dump_modify every/time <dump_modify>` commands is
 a variable and not a numeric value, then specifying *first yes* is the
 only way to write a dump snapshot on the first timestep after the dump
 command is invoked.
@@ -377,30 +410,6 @@ after a dump snapshot is written to the dump file.  A flush insures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style *xtc*\ .
-
-----------
-
-.. versionadded:: 4May2022
-
-The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
-
-The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.  A
-setting of *default* clears all previous settings, reverting all values
-to their default names.
 
 ----------
 
@@ -490,6 +499,8 @@ boundary twice and is really two box lengths to the left of its
 current coordinate.  Note that for dump style *custom* these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
+Using this keyword will reset all custom header names set with
+*dump_modify colname* to their respective default values.
 
 ----------
 
@@ -663,6 +674,8 @@ value of *yes* means atom coords are written in normalized units from
 (tilted), then all atom coords will still be between 0.0 and 1.0.  A
 value of *no* means they are written in absolute distance units
 (e.g., :math:`\mathrm{\mathring A}` or :math:`\sigma`).
+Using this keyword will reset all custom header names set with
+*dump_modify colname* to their respective default values.
 
 ----------
 

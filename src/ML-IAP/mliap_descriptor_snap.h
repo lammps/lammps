@@ -42,8 +42,8 @@ class MLIAPDescriptorSNAP : public MLIAPDescriptor {
   int switchinnerflag;
   double rfac0, rmin0;
 
-  double* sinnerelem;
-  double* dinnerelem;
+  double *sinnerelem;
+  double *dinnerelem;
 };
 
 }    // namespace LAMMPS_NS

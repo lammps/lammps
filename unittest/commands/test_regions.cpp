@@ -192,17 +192,25 @@ TEST_F(RegionTest, DeathTests)
     auto list = domain->get_region_list();
     ASSERT_EQ(list.size(), 1);
 
-    TEST_FAILURE(".*ERROR: Illegal region block xlo: 1 >= xhi: 0.*", command("region reg1 block 1 0 0 1 0 1"););
-    TEST_FAILURE(".*ERROR: Illegal region cone open face: 4.*", command("region reg2 cone x 0 0 2 1 0 1 open 4"););
-    TEST_FAILURE(".*ERROR: Illegal region plane normal vector: 0 0 0.*", command("region reg3 plane 0 0 0 0 0 0 side out"););
-    TEST_FAILURE(".*ERROR: Illegal region prism non-zero xy tilt with infinite x size.*", command("region reg4 prism INF INF 0 1 0 1 0.1 0.2 0.3"););
-    TEST_FAILURE(".*ERROR: Illegal region sphere radius: -1.*", command("region reg5 sphere 0 0 0 -1"););
-    TEST_FAILURE(".*ERROR: Illegal region ellipsoid c: -2.*", command("region reg8 ellipsoid 0 0 0 2 1 -2"););
-    TEST_FAILURE(".*ERROR: Illegal region cylinder axis: xx.*", command("region reg9 cylinder  xx 0 0 1 0 1 open 1 units box"););
+    TEST_FAILURE(".*ERROR: Illegal region block xlo: 1 >= xhi: 0.*",
+                 command("region reg1 block 1 0 0 1 0 1"););
+    TEST_FAILURE(".*ERROR: Illegal region cone open face: 4.*",
+                 command("region reg2 cone x 0 0 2 1 0 1 open 4"););
+    TEST_FAILURE(".*ERROR: Illegal region plane normal vector: 0 0 0.*",
+                 command("region reg3 plane 0 0 0 0 0 0 side out"););
+    TEST_FAILURE(".*ERROR: Illegal region prism non-zero xy tilt with infinite x size.*",
+                 command("region reg4 prism INF INF 0 1 0 1 0.1 0.2 0.3"););
+    TEST_FAILURE(".*ERROR: Illegal region sphere radius: -1.*",
+                 command("region reg5 sphere 0 0 0 -1"););
+    TEST_FAILURE(".*ERROR: Illegal region ellipsoid c: -2.*",
+                 command("region reg8 ellipsoid 0 0 0 2 1 -2"););
+    TEST_FAILURE(".*ERROR: Illegal region cylinder axis: xx.*",
+                 command("region reg9 cylinder  xx 0 0 1 0 1 open 1 units box"););
 
     TEST_FAILURE(".*ERROR: Unrecognized region style 'xxx'.*", command("region new1 xxx"););
-    //TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
-    TEST_FAILURE(".*ERROR: Illegal region command: missing argument\\(s\\).*", command("region new1 block 0 1"););
+    // TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
+    TEST_FAILURE(".*ERROR: Illegal region command: missing argument\\(s\\).*",
+                 command("region new1 block 0 1"););
     TEST_FAILURE(".*ERROR: Delete region new3 does not exist.*", command("region new3 delete"););
 }
 
@@ -223,16 +231,16 @@ TEST_F(RegionTest, Counts)
     command("region reg10 prism 0 5 0 5 -5 5 0.0 0.0 0.0"); // same as block
     END_HIDE_OUTPUT();
 
-    auto x    = atom->x;
-    auto reg1 = domain->get_region_by_id("reg1");
-    auto reg2 = domain->get_region_by_id("reg2");
-    auto reg3 = domain->get_region_by_id("reg3");
-    auto reg4 = domain->get_region_by_id("reg4");
-    auto reg5 = domain->get_region_by_id("reg5");
-    auto reg6 = domain->get_region_by_id("reg6");
-    auto reg7 = domain->get_region_by_id("reg7");
-    auto reg8 = domain->get_region_by_id("reg8");
-    auto reg9 = domain->get_region_by_id("reg9");
+    auto x     = atom->x;
+    auto reg1  = domain->get_region_by_id("reg1");
+    auto reg2  = domain->get_region_by_id("reg2");
+    auto reg3  = domain->get_region_by_id("reg3");
+    auto reg4  = domain->get_region_by_id("reg4");
+    auto reg5  = domain->get_region_by_id("reg5");
+    auto reg6  = domain->get_region_by_id("reg6");
+    auto reg7  = domain->get_region_by_id("reg7");
+    auto reg8  = domain->get_region_by_id("reg8");
+    auto reg9  = domain->get_region_by_id("reg9");
     auto reg10 = domain->get_region_by_id("reg10");
     int count1, count2, count3, count4, count5, count6, count7, count8, count9, count10;
     count1 = count2 = count3 = count4 = count5 = count6 = count7 = count8 = count9 = count10 = 0;

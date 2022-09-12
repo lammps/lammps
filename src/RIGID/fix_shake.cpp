@@ -360,7 +360,7 @@ void FixShake::init()
 
   // error if a fix changing the box comes before shake fix
   bool boxflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
    if (boxflag && utils::strmatch(ifix->style,pattern))
      error->all(FLERR,"Fix {} must come before any box changing fix", style);
     if (ifix->box_change) boxflag = true;
@@ -374,10 +374,10 @@ void FixShake::init()
   if (utils::strmatch(update->integrate_style,"^respa")) {
     if (update->whichflag > 0) {
       auto fixes = modify->get_fix_by_style("^RESPA");
-      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>( fixes.front());
+      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
-    auto respa_style = dynamic_cast<Respa *>( update->integrate);
+    auto respa_style = dynamic_cast<Respa *>(update->integrate);
     nlevels_respa = respa_style->nlevels;
     loop_respa = respa_style->loop;
     step_respa = respa_style->step;
@@ -3177,9 +3177,9 @@ void FixShake::shake_end_of_step(int vflag) {
     // apply correction to all rRESPA levels
 
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
-      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel);
+      (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel);
       FixShake::post_force_respa(vflag,ilevel,loop_respa[ilevel]-1);
-      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel);
+      (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel);
     }
     if (!rattle) dtf_inner = step_respa[0] * force->ftm2v;
   }

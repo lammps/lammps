@@ -96,7 +96,7 @@ void FixRhok::init()
 {
   // RESPA boilerplate
   if (utils::strmatch(update->integrate_style,"^respa"))
-    mNLevelsRESPA = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    mNLevelsRESPA = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // Count the number of affected particles
   int nThisLocal = 0;
@@ -121,9 +121,9 @@ void FixRhok::setup( int inVFlag )
     post_force( inVFlag );
   else
     {
-      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f( mNLevelsRESPA - 1 );
+      (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f( mNLevelsRESPA - 1 );
       post_force_respa( inVFlag, mNLevelsRESPA - 1,0 );
-      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel( mNLevelsRESPA - 1 );
+      (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel( mNLevelsRESPA - 1 );
     }
 }
 

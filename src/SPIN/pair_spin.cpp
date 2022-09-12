@@ -96,7 +96,7 @@ void PairSpin::init_style()
 
   auto fixes = modify->get_fix_by_style("^nve/spin");
   if (fixes.size() == 1)
-    lattice_flag = (dynamic_cast<FixNVESpin *>( fixes.front()))->lattice_flag;
+    lattice_flag = (dynamic_cast<FixNVESpin *>(fixes.front()))->lattice_flag;
   else if (fixes.size() > 1)
     error->warning(FLERR,"Using multiple instances of fix nve/spin or neb/spin");
 

@@ -9,7 +9,15 @@ DEFAULT_STYLE_EXAMPLE_LOG=os.path.join('melt', 'log.*.melt.g++.1')
 MULTI_STYLE_EXAMPLE_LOG=os.path.join('peptide', 'log.27Nov18.peptide.g++.1')
 sys.path.insert(1,PIZZA_DIR)
 
-import dump
+# dump class uses NumPy, so only load and test dump if NumPy is available
+has_numpy = False
+try:
+    import numpy
+    has_numpy = True
+    import dump
+except:
+    pass
+
 import log
 
 class Logfiles(unittest.TestCase):
@@ -112,6 +120,7 @@ class PythonDump(unittest.TestCase):
     def tearDown(self):
         del self.lmp
 
+    @unittest.skipIf(not has_numpy,"Missing the NumPy python module")
     def testDumpCustom(self):
         dumpfile = os.path.join(os.path.abspath('.'), 'dump.custom')
         self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])

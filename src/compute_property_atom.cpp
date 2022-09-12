@@ -400,10 +400,10 @@ ComputePropertyAtom::~ComputePropertyAtom()
 
 void ComputePropertyAtom::init()
 {
-  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
-  avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   // NOTE: could reset custom vector/array indices here, like dump custom does
   //       in case have been deleted

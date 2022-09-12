@@ -1305,7 +1305,7 @@ Compute *Modify::add_compute(const std::string &computecmd, int trysuffix)
 
 void Modify::modify_compute(int narg, char **arg)
 {
-  if (narg < 2) utils::missing_cmd_args(FLERR, "compute_modify",error);
+  if (narg < 2) utils::missing_cmd_args(FLERR, "compute_modify", error);
 
   // lookup Compute ID
 

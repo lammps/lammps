@@ -49,10 +49,12 @@ class FixLatte : public Fix {
   int eflag_caller;
   char *id_pe,*id_exclude;
   int *exclusion_group_ptr;
+  int setupflag, newsystem;
+  bigint natoms_last;
 
   int flags_latte[6];
 
-  int nmax, newsystem;
+  int nmax;
   double *qpotential;
   double **flatte;
   double latte_energy;

@@ -192,18 +192,20 @@ void FixLatte::init_list(int /*id*/, NeighList * /*ptr*/)
 
 void FixLatte::setup(int vflag)
 {
-  newsystem = 1;
+  natoms_last = -1;
+  setupflag = 1;
   post_force(vflag);
-  newsystem = 0;
+  setupflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixLatte::min_setup(int vflag)
 {
-  newsystem = 1;
+  natoms_last = -1;
+  setupflag = 1;
   post_force(vflag);
-  newsystem = 0;
+  setupflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -273,7 +275,15 @@ void FixLatte::post_force(int vflag)
   flags_latte[4] = vflag_atom && thermo_virial;   //   virial, 0 for no
   flags_latte[5] = neighflag;    // 1 to pass neighbor list to LATTE, 0 for no
 
-  // setup arguments for latte() function within LATTE lib and invoke it
+  // newsystem flag determines whether LATTE treats snapshot
+  //   as new system (more work) or increment to last system
+  // if setup or atom count changed then newsystem = 1
+  // else newsystem = 0
+
+  if (setupflag || atom->natoms != natoms_last) newsystem = 1;
+  else newsystem = 0;
+
+  // setup arguments for latte() function and invoke it
   // either for all atoms or excluding some atoms
   // in latter case, need to construct reduced-size per-atom vectors/arrays
 
@@ -296,7 +306,9 @@ void FixLatte::post_force(int vflag)
     else latte_wrapper_exclude();
   }
 
-
+  newsystem = 0;
+  natoms_last = atom->natoms;
+  
   // sum LATTE forces to LAMMPS forces
   // e.g. LAMMPS may compute Coulombics at some point
 
@@ -333,9 +345,6 @@ void FixLatte::latte_wrapper_all()
   latte(flags_latte,&natoms,coords,types,&ntypes,mass,boxlo,boxhi,
         &domain->xy,&domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
-
-  printf("LATTE ALL: step %ld, natoms %d, LATTE eng %g\n",
-         update->ntimestep, natoms, latte_energy);
 
   if (latteerror) error->all(FLERR,"Internal LATTE problem");
 }
@@ -397,9 +406,6 @@ void FixLatte::latte_wrapper_exclude()
   latte(flags_latte,&nlatte,coords,types,&ntypes,mass,boxlo,boxhi,
         &domain->xy,&domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
         &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
-
-  printf("LATTE EXCLUDE: step %ld, natoms %d, LATTE eng %g\n",
-         update->ntimestep, nlatte, latte_energy);
 
   if (latteerror) error->all(FLERR,"Internal LATTE problem");
 

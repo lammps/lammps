@@ -57,6 +57,7 @@ TEST_F(LabelMapTest, Atoms)
     EXPECT_EQ(atom->natoms, 0);
     EXPECT_EQ(domain->box_exist, 0);
     EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->types_style, Atom::NUMERIC);
     ASSERT_EQ(atom->lmap, nullptr);
     TEST_FAILURE(".*ERROR: Labelmap command before simulation box is.*",
                  command("labelmap atom 3 C1"););

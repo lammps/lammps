@@ -73,7 +73,8 @@ void WriteData::command(int narg, char **arg)
   coeffflag = 1;
   fixflag = 1;
   lmapflag = 1;
-  atom->types_style = Atom::NUMERIC;
+  // store current (default) setting since we may change it.
+  int types_style = atom->types_style;
   int noinit = 0;
 
   int iarg = 1;
@@ -134,6 +135,8 @@ void WriteData::command(int narg, char **arg)
   }
 
   write(file);
+  // restore saved setting
+  atom->types_style = types_style;
 }
 
 /* ----------------------------------------------------------------------

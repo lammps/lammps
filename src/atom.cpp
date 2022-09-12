@@ -227,6 +227,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   // type labels
 
   lmap = nullptr;
+  types_style = NUMERIC;
 
   // custom atom arrays
 

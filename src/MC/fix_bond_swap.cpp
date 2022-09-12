@@ -244,6 +244,15 @@ void FixBondSwap::post_integrate()
     memory->create(alist,nmax,"bondswap:alist");
   }
 
+  // use randomized permulation of both I and J atoms in double loop below
+  // this is to avoid any bias in accepted MC swaps based on
+  //   ordering LAMMPS creates on a processor for atoms or their neighbors
+
+  // create a random permutation of list of Neligible atoms
+  // uses one-pass Fisher-Yates shuffle on an initial identity permutation
+  // output: randomized alist[] vector, used in outer loop to select an I atom
+  // similar randomized permulation is created for neighbors of each I atom
+
   int neligible = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -262,6 +271,7 @@ void FixBondSwap::post_integrate()
   // examine ntest of my eligible atoms for potential swaps
   // atom I is randomly selected via atom list
   // look at all J neighbors of atom I
+  //   done in a randomized permutation, via neighbor_permutation()
   // J must be on-processor (J < nlocal)
   // I,J must be in fix group
   // I,J must have same molecule IDs
@@ -283,31 +293,6 @@ void FixBondSwap::post_integrate()
 
     neighbor_permutation(jnum);
 
-    // DEBUG
-
-    int picked[4];
-    int count = 0;
-    printf("BSWAP CANDIDATES nstep %ld itag %d jnum %d jtags",
-           update->ntimestep,atom->tag[i],jnum);
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[permute[jj]];
-      j &= NEIGHMASK;
-      printf(" %d",atom->tag[j]);
-      if (j >= nlocal) continue;
-      if ((mask[j] & groupbit) == 0) continue;
-      if (molecule[i] != molecule[j]) continue;
-      picked[count++] = atom->tag[j];
-    }
-    if (count) {
-      printf(" picked %d",count);
-      for (jj = 0; jj < count; jj++) {
-        printf(" %d",picked[jj]);
-      }
-    }
-    printf("\n");
-
-    // END DEBUG
-
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[permute[jj]];
       j &= NEIGHMASK;
@@ -328,8 +313,6 @@ void FixBondSwap::post_integrate()
       //   already know i != inext, j != jnext
       // all 4 old and new bonds must have length < cutoff
 
-      printf("  SWAP candidate ijtag %d %d\n",atom->tag[i],atom->tag[j]);
-
       for (ibond = 0; ibond < num_bond[i]; ibond++) {
         inext = atom->map(bond_atom[i][ibond]);
         if (inext >= nlocal || inext < 0) continue;
@@ -348,10 +331,6 @@ void FixBondSwap::post_integrate()
           if (dist_rsq(j,jnext) >= cutsq) continue;
           if (dist_rsq(i,jnext) >= cutsq) continue;
           if (dist_rsq(j,inext) >= cutsq) continue;
-
-          printf("    BOND nstep %ld ijtag %d %d ibondtag %d jbondtag %d\n",
-                 update->ntimestep,
-                 atom->tag[i],atom->tag[j],atom->tag[inext],atom->tag[jnext]);
 
           // if angles are enabled:
           // find other atoms i,inext,j,jnext are in angles with
@@ -470,9 +449,6 @@ void FixBondSwap::post_integrate()
             factor = exp(-delta/force->boltz/t_current);
             if (random->uniform() < factor) accept = 1;
           }
-
-          printf("      MC result jtag %d delta %g accept %d\n",
-                 atom->tag[j],delta,accept);
 
           goto done;
         }

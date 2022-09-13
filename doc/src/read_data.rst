@@ -1519,7 +1519,7 @@ To read gzipped data files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
-Labelmaps are currently not supported when using the KOKKOS package.
+Label maps are currently not supported when using the KOKKOS package.
 
 Related commands
 """"""""""""""""

@@ -1621,9 +1621,9 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
-                          const __global numtyp *restrict thetai1,
-                          const __global numtyp *restrict thetai2,
-                          const __global numtyp *restrict thetai3,
+                          const __global numtyp4 *restrict thetai1,
+                          const __global numtyp4 *restrict thetai2,
+                          const __global numtyp4 *restrict thetai3,
                           const __global int *restrict igrid,
                           const __global numtyp *restrict grid,
                           __global numtyp *restrict fdip_phi1,
@@ -1698,11 +1698,12 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       v2 = thetai3[m][kb][2];
       v3 = thetai3[m][kb][3];
       */
-      int i3 = ii*4*bsorder + 4*kb;
-      numtyp v0 = thetai3[i3];
-      numtyp v1 = thetai3[i3+1];
-      numtyp v2 = thetai3[i3+2];
-      numtyp v3 = thetai3[i3+3];
+      int i3 = ii*bsorder + kb;
+      numtyp4 tha3 = thetai3[i3];
+      numtyp v0 = tha3.x;
+      numtyp v1 = tha3.y;
+      numtyp v2 = tha3.z;
+      numtyp v3 = tha3.w;
       numtyp tu00_1 = (numtyp)0.0;
       numtyp tu01_1 = (numtyp)0.0;
       numtyp tu10_1 = (numtyp)0.0;
@@ -1734,11 +1735,12 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         u2 = thetai2[m][jb][2];
         u3 = thetai2[m][jb][3];
         */
-        int i2 = ii*4*bsorder+4*jb;
-        numtyp u0 = thetai2[i2];
-        numtyp u1 = thetai2[i2+1];
-        numtyp u2 = thetai2[i2+2];
-        numtyp u3 = thetai2[i2+3];
+        int i2 = ii*bsorder+jb;
+        numtyp4 tha2 = thetai2[i2];
+        numtyp u0 = tha2.x;
+        numtyp u1 = tha2.y;
+        numtyp u2 = tha2.z;
+        numtyp u3 = tha2.w;
         numtyp t0_1 = (numtyp)0.0;
         numtyp t1_1 = (numtyp)0.0;
         numtyp t2_1 = (numtyp)0.0;
@@ -1760,11 +1762,12 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
           t2_2 += tq_2*thetai1[m][ib][2];
           t3 += (tq_1+tq_2)*thetai1[m][ib][3];
           */
-          int i1 = ii*4*bsorder+4*ib;
-          numtyp w0 = thetai1[i1];
-          numtyp w1 = thetai1[i1+1];
-          numtyp w2 = thetai1[i1+2];
-          numtyp w3 = thetai1[i1+3];
+          int i1 = ii*bsorder+ib;
+          numtyp4 tha1 = thetai1[i1];
+          numtyp w0 = tha1.x;
+          numtyp w1 = tha1.y;
+          numtyp w2 = tha1.z;
+          numtyp w3 = tha1.w;
           int gidx = 2*(k*ngridxy + j*ngridx + i);
           numtyp tq_1 = grid[gidx];
           numtyp tq_2 = grid[gidx+1];

@@ -189,8 +189,6 @@ void BaseAmoebaT::clear_atomic() {
   _fdip_sum_phi.clear();
   _cgrid_brick.clear();
 
-  hview.clear();
-
   dev_nspecial15.clear();
   dev_special15.clear();
   dev_special15_t.clear();
@@ -578,30 +576,25 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
 
   if (_max_thetai_size == 0) {
     _max_thetai_size = static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _thetai1.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
-    _thetai2.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
-    _thetai3.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device),UCL_READ_ONLY);
+    _thetai1.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
+    _thetai2.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
+    _thetai3.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
     _igrid.alloc(_max_thetai_size*4,*(this->ucl_device),UCL_READ_ONLY);
 
     _fdip_phi1.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
     _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
     _fdip_sum_phi.alloc(_max_thetai_size*20,*(this->ucl_device),UCL_READ_WRITE);
-
-    hview.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device));
-
   } else {
     if (inum_full>_max_thetai_size) {
       _max_thetai_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-      _thetai1.resize(_max_thetai_size*bsorder*4);
-      _thetai2.resize(_max_thetai_size*bsorder*4);
-      _thetai3.resize(_max_thetai_size*bsorder*4);
+      _thetai1.resize(_max_thetai_size*bsorder);
+      _thetai2.resize(_max_thetai_size*bsorder);
+      _thetai3.resize(_max_thetai_size*bsorder);
       _igrid.resize(_max_thetai_size*4);
 
       _fdip_phi1.resize(_max_thetai_size*10);
       _fdip_phi2.resize(_max_thetai_size*10);
       _fdip_sum_phi.resize(_max_thetai_size*20);
-
-      hview.resize(_max_thetai_size*bsorder*4);
     }
   }
 
@@ -609,44 +602,47 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
 
   for (int i = 0; i < inum_full; i++)
     for (int j = 0; j < bsorder; j++) {
-      int idx = i*4*bsorder + 4*j;
-      hview[idx+0] = host_thetai1[i][j][0];
-      hview[idx+1] = host_thetai1[i][j][1];
-      hview[idx+2] = host_thetai1[i][j][2];
-      hview[idx+3] = host_thetai1[i][j][3];
+      int idx = i*bsorder + j;
+      numtyp4 v;
+      v.x = host_thetai1[i][j][0];
+      v.y = host_thetai1[i][j][1];
+      v.z = host_thetai1[i][j][2];
+      v.w = host_thetai1[i][j][3];
+      _thetai1[idx] = v;
     }
-  ucl_copy(_thetai1,hview,false);
+  _thetai1.update_device(true);
 
   for (int i = 0; i < inum_full; i++)
     for (int j = 0; j < bsorder; j++) {
-      int idx = i*4*bsorder + 4*j;
-      hview[idx+0] = host_thetai2[i][j][0];
-      hview[idx+1] = host_thetai2[i][j][1];
-      hview[idx+2] = host_thetai2[i][j][2];
-      hview[idx+3] = host_thetai2[i][j][3];
+      int idx = i*bsorder + j;
+      numtyp4 v;
+      v.x = host_thetai2[i][j][0];
+      v.y = host_thetai2[i][j][1];
+      v.z = host_thetai2[i][j][2];
+      v.w = host_thetai2[i][j][3];
+      _thetai2[idx] = v;
     }
-  ucl_copy(_thetai2,hview,false);
+  _thetai2.update_device(true);
 
   for (int i = 0; i < inum_full; i++)
     for (int j = 0; j < bsorder; j++) {
-      int idx = i*4*bsorder + 4*j;
-      hview[idx+0] = host_thetai3[i][j][0];
-      hview[idx+1] = host_thetai3[i][j][1];
-      hview[idx+2] = host_thetai3[i][j][2];
-      hview[idx+3] = host_thetai3[i][j][3];
+      int idx = i*bsorder + j;
+      numtyp4 v;
+      v.x = host_thetai3[i][j][0];
+      v.y = host_thetai3[i][j][1];
+      v.z = host_thetai3[i][j][2];
+      v.w = host_thetai3[i][j][3];
+      _thetai3[idx] = v;
     }
-  ucl_copy(_thetai3,hview,false);
+  _thetai3.update_device(true);
 
-  //UCL_H_Vec<int> dview_int;
-  //dview_int.alloc(_max_thetai_size*4, *(this->ucl_device));
   for (int i = 0; i < inum_full; i++) {
     int idx = i*4;
     _igrid[idx+0] = host_igrid[i][0];
     _igrid[idx+1] = host_igrid[i][1];
     _igrid[idx+2] = host_igrid[i][2];
   }
-  //ucl_copy(_igrid, dview_int, false);
-  _igrid.update_device(false);
+  _igrid.update_device(true);
 
   _nzlo_out = nzlo_out;
   _nzhi_out = nzhi_out;
@@ -694,7 +690,7 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
     first_iteration = false;
   }
 
-  // TODO: find out why this host alloc helps makes the cgrid_brick update_device() work correcly
+  // TODO: find out why this host alloc helps the cgrid_brick update_device() work correcly
   UCL_H_Vec<numtyp> hdummy;
   hdummy.alloc(1, *(this->ucl_device), UCL_READ_ONLY);
 

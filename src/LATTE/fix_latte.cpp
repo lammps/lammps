@@ -55,6 +55,8 @@ extern "C" {
 FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (narg < 3) utils::missing_cmd_args(FLERR, "fix latte", error);
+
   if (strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"Must use units metal with fix latte command");
 
@@ -84,19 +86,19 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         utils::missing_cmd_args(FLERR, "fix latte coulomb", error);
       coulomb = 1;
-      error->all(FLERR,"Fix latte does not yet support a "
-                 "LAMMPS calculation of a Coulomb potential");
+      error->all(FLERR,"Fix latte does not yet support LAMMPS calculation of a Coulomb potential");
+      delete[] id_pe;
       id_pe = utils::strdup(arg[iarg+1]);
       c_pe = modify->get_compute_by_id(id_pe);
       if (!c_pe) error->all(FLERR,"Could not find fix latte compute ID {}", id_pe);
-      if (c_pe->peatomflag == 0)
-        error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
+      if (c_pe->peatomflag == 0) error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"exclude") == 0) {
       if (iarg+2 > narg)
         utils::missing_cmd_args(FLERR, "fix latte exclude", error);
       exclude = 1;
+      delete[] id_exclude;
       id_exclude = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
@@ -147,8 +149,7 @@ void FixLatte::init()
     if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
       error->all(FLERR,"Fix latte cannot compute Coulomb potential");
     c_pe = modify->get_compute_by_id(id_pe);
-    if (!c_pe)
-      error->all(FLERR,"Fix latte could not find Coulomb compute ID {}",id_pe);
+    if (!c_pe) error->all(FLERR,"Fix latte could not find Coulomb compute ID {}",id_pe);
   }
 
   // must be fully periodic or fully non-periodic
@@ -171,13 +172,11 @@ void FixLatte::init()
 
   if (exclude) {
     Fix *f_exclude = modify->get_fix_by_id(id_exclude);
-    if (!f_exclude)
-      error->all(FLERR,"Fix latte could not find exclude fix ID {}", id_exclude);
-    int exclude_group_index,dim;
-    exclusion_group_ptr = (int *) f_exclude->extract("exclusion_group",dim);
+    if (!f_exclude) error->all(FLERR,"Fix latte could not find exclude fix ID {}", id_exclude);
+    int dim;
+    exclusion_group_ptr = (int *) f_exclude->extract("exclusion_group", dim);
     if (!exclusion_group_ptr || dim != 0)
-      error->all(FLERR,"Fix latte could not query exclude_group of fix ID {}",
-                 id_exclude);
+      error->all(FLERR,"Fix latte could not query exclude_group of fix ID {}", id_exclude);
   }
 }
 

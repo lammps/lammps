@@ -114,10 +114,10 @@ FixBondSwap::~FixBondSwap()
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   memory->destroy(alist);
-  delete [] permute;
+  delete[] permute;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -244,14 +244,14 @@ void FixBondSwap::post_integrate()
     memory->create(alist,nmax,"bondswap:alist");
   }
 
-  // use randomized permulation of both I and J atoms in double loop below
+  // use randomized permutation of both I and J atoms in double loop below
   // this is to avoid any bias in accepted MC swaps based on
   //   ordering LAMMPS creates on a processor for atoms or their neighbors
 
   // create a random permutation of list of Neligible atoms
   // uses one-pass Fisher-Yates shuffle on an initial identity permutation
   // output: randomized alist[] vector, used in outer loop to select an I atom
-  // similar randomized permulation is created for neighbors of each I atom
+  // similar randomized permutation is created for neighbors of each I atom
 
   int neligible = 0;
   for (ii = 0; ii < inum; ii++) {
@@ -693,7 +693,7 @@ int FixBondSwap::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
@@ -767,7 +767,7 @@ void FixBondSwap::neighbor_permutation(int n)
   int i,j,tmp;
 
   if (n > maxpermute) {
-    delete [] permute;
+    delete[] permute;
     maxpermute = n + DELTA_PERMUTE;
     permute = new int[maxpermute];
   }

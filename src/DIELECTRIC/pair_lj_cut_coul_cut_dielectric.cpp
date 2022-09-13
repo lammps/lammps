@@ -40,6 +40,7 @@ PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *_lmp) : PairLJCut
   efield = nullptr;
   epot = nullptr;
   nmax = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,15 +94,16 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     qtmp = q[i];
+    etmp = eps[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    etmp = eps[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
@@ -157,7 +159,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) *rinv;
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv;
           } else
             ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {

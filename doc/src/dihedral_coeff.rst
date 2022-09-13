@@ -10,7 +10,7 @@ Syntax
 
    dihedral_coeff N args
 
-* N = dihedral type (see asterisk form below)
+* N = numeric dihedral type (see asterisk form below) or alphanumeric type label
 * args = coefficients for one or more dihedral types
 
 Examples
@@ -22,26 +22,35 @@ Examples
    dihedral_coeff * 80.0 1 3 0.5
    dihedral_coeff 2* 80.0 1 3 0.5
 
+   labelmap dihedral 1 backbone
+   dihedral_coeff backbone 80.0 1 3
+
 Description
 """""""""""
 
-Specify the dihedral force field coefficients for one or more dihedral types.
-The number and meaning of the coefficients depends on the dihedral style.
-Dihedral coefficients can also be set in the data file read by the
-:doc:`read_data <read_data>` command or in a restart file.
+Specify the dihedral force field coefficients for one or more dihedral
+types.  The number and meaning of the coefficients depends on the
+dihedral style.  Dihedral coefficients can also be set in the data file
+read by the :doc:`read_data <read_data>` command or in a restart file.
 
-N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the first example above.  Or a wild-card asterisk can be
-used to set the coefficients for multiple dihedral types.  This takes the
-form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is the number of dihedral
-types, then an asterisk with no numeric values means all types from 1 to
-:math:`N`.  A leading asterisk means all types from 1 to n (inclusive).  A
-trailing asterisk means all types from m to N (inclusive).  A middle asterisk
-means all types from m to n (inclusive).
+:math:`N` can be specified in one of two ways.  An explicit numeric
+value can be used, as in the first example above.  Or :math:`N` can be
+an alphanumeric type label, which is a string defined by the
+:doc:`labelmap <labelmap>` command or in a corresponding section of a
+data file read by the :doc:`read_data <read_data>` command.
+
+For numeric values only, a wild-card asterisk can be used to set the
+coefficients for multiple dihedral types.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If :math:`N` is the number of dihedral types,
+then an asterisk with no numeric values means all types from 1 to
+:math:`N`.  A leading asterisk means all types from 1 to n (inclusive).
+A trailing asterisk means all types from n to :math:`N` (inclusive).  A
+middle asterisk means all types from m to n (inclusive).
 
 Note that using a dihedral_coeff command can override a previous setting
 for the same dihedral type.  For example, these commands set the coeffs
-for all dihedral types, then overwrite the coeffs for just dihedral type 2:
+for all dihedral types, then overwrite the coeffs for just dihedral type
+2:
 
 .. code-block:: LAMMPS
 

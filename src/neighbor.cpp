@@ -467,12 +467,12 @@ void Neighbor::init()
 
   int respa = 0;
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
-    if ((dynamic_cast<Respa *>( update->integrate))->level_inner >= 0) respa = 1;
-    if ((dynamic_cast<Respa *>( update->integrate))->level_middle >= 0) respa = 2;
+    if ((dynamic_cast<Respa *>(update->integrate))->level_inner >= 0) respa = 1;
+    if ((dynamic_cast<Respa *>(update->integrate))->level_middle >= 0) respa = 2;
   }
 
   if (respa) {
-    double *cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
+    double *cut_respa = (dynamic_cast<Respa *>(update->integrate))->cutoff;
     cut_inner_sq = (cut_respa[1] + skin) * (cut_respa[1] + skin);
     cut_middle_sq = (cut_respa[3] + skin) * (cut_respa[3] + skin);
     cut_middle_inside_sq = (cut_respa[0] - skin) * (cut_respa[0] - skin);

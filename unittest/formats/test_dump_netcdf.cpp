@@ -387,7 +387,7 @@ TEST_F(DumpNetCDFTest, run0_mpi)
     }
     delete_file(dump_file);
 }
-}
+} // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {

@@ -125,7 +125,7 @@ Domain::~Domain()
 {
   if (copymode) return;
 
-  for (auto reg : regions) delete reg;
+  for (auto &reg : regions) delete reg;
   regions.clear();
   delete lattice;
   delete region_map;
@@ -182,7 +182,7 @@ void Domain::init()
   for (const auto &fix : fixes)
     if (utils::strmatch(fix->style,"^deform")) {
       deform_flag = 1;
-      if ((dynamic_cast<FixDeform *>( fix))->remapflag == Domain::V_REMAP) {
+      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = fix->groupbit;
       }
@@ -190,7 +190,7 @@ void Domain::init()
 
   // region inits
 
-  for (auto reg : regions) reg->init();
+  for (auto &reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------

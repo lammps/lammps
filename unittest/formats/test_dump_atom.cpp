@@ -699,6 +699,66 @@ TEST_F(DumpAtomTest, binary_write_dump)
     delete_file(dump_file);
 }
 
+TEST_F(DumpAtomTest, frequency)
+{
+    auto dump_file = dump_filename("frequency");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 5 " + dump_file);
+    command("run 15 post no");
+    command("run 12 post no");
+    END_HIDE_OUTPUT();
+
+    // NOTE: must reset to current timestep (27) to avoid unexpected issues with following
+    TEST_FAILURE(".*ERROR: Cannot reset timestep with active dump - must undump first.*",
+                 command("reset_timestep 27"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("run 3 post no");
+    command("undump id");
+    command("reset_timestep 5");
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id append yes");
+    command("run 20 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"0", "5", "10", "15", "20", "25", "30", "10", "20"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 10");
+    command("dump id all atom 10 " + dump_file);
+    command("run 20 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"10", "20", "30"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 0");
+    command("dump id all atom 10 " + dump_file);
+    command("minimize 0.0 0.0 15 30");
+    command("run 20 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"0", "10", "15", "20", "30"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
 //-------------------------------------------------------------------------------------------------
 // dump_modify
 //-------------------------------------------------------------------------------------------------
@@ -730,7 +790,14 @@ TEST_F(DumpAtomTest, colname)
     command("group one id 1");
     command("dump id one atom 10 " + dump_file);
     command("run 5 post no");
-    command("dump_modify id colname id AtomID colname 3 x-scaled colname -1 z-scaled");
+    command("dump_modify id colname id AtomID colname 3 x-scaled colname -4 z-scaled");
+    command("run 10 post no");
+    command("dump_modify id colname default");
+    command("run 10 post no");
+    command("dump_modify id colname id AtomID colname 3 x-scaled colname -4 z-scaled");
+    command("dump_modify id scale no image yes");
+    command("run 10 post no");
+    command("dump_modify id colname id AtomID colname 3 X colname -4 Z colname ix img_x");
     command("run 10 post no");
     command("dump_modify id colname default");
     command("run 10 post no");
@@ -746,6 +813,18 @@ TEST_F(DumpAtomTest, colname)
 
     values   = extract_items(dump_file, "ATOMS AtomID type x-scaled ys z-scaled");
     expected = {"1 1 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS id type x y z ix iy iz");
+    expected = {"1 1 0 0 0 0 0 0", "1 1 0 0 0 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS AtomID type X y Z img_x iy iz");
+    expected = {"1 1 0 0 0 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
     for (int i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));

@@ -116,7 +116,7 @@ void PairHybrid::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    respa = dynamic_cast<Respa *>( update->integrate);
+    respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 

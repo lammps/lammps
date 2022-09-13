@@ -78,7 +78,7 @@ void FixNVTSllodOMP::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (utils::strmatch(modify->fix[i]->style,"^deform")) {
-      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag != Domain::V_REMAP)
+      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix "
                    "deform remap option");
       break;

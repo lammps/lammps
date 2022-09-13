@@ -21,7 +21,6 @@ PairStyle(mesocnt/viscous, PairMesoCNTViscous);
 // clang-format on
 #else
 
-
 #ifndef LMP_PAIR_MESOCNT_VISCOUS_H
 #define LMP_PAIR_MESOCNT_VISCOUS_H
 

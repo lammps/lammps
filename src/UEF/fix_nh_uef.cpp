@@ -274,9 +274,9 @@ void FixNHUef::setup(int j)
     error->all(FLERR,"Initial box is not close enough to the expected uef box");
 
   uefbox->get_rot(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
-  (dynamic_cast<ComputePressureUef*>( pressure))->in_fix = true;
-  (dynamic_cast<ComputePressureUef*>( pressure))->update_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
+  (dynamic_cast<ComputePressureUef*>(pressure))->in_fix = true;
+  (dynamic_cast<ComputePressureUef*>(pressure))->update_rot();
   FixNH::setup(j);
 }
 
@@ -288,12 +288,12 @@ void FixNHUef::initial_integrate(int vflag)
   inv_rotate_x(rot);
   inv_rotate_v(rot);
   inv_rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->no_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->no_rot();
   FixNH::initial_integrate(vflag);
   rotate_x(rot);
   rotate_v(rot);
   rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
 }
 
 /* ----------------------------------------------------------------------
@@ -304,12 +304,12 @@ void FixNHUef::initial_integrate_respa(int vflag, int ilevel, int iloop)
   inv_rotate_x(rot);
   inv_rotate_v(rot);
   inv_rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->no_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->no_rot();
   FixNH::initial_integrate_respa(vflag,ilevel,iloop);
   rotate_x(rot);
   rotate_v(rot);
   rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
 }
 
 /* ----------------------------------------------------------------------
@@ -318,14 +318,14 @@ void FixNHUef::initial_integrate_respa(int vflag, int ilevel, int iloop)
 void FixNHUef::final_integrate()
 {
   // update rot here since it must directly follow the virial calculation
-  (dynamic_cast<ComputePressureUef*>( pressure))->update_rot();
+  (dynamic_cast<ComputePressureUef*>(pressure))->update_rot();
   inv_rotate_v(rot);
   inv_rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->no_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->no_rot();
   FixNH::final_integrate();
   rotate_v(rot);
   rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
 }
 
 /* ----------------------------------------------------------------------

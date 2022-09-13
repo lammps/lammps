@@ -30,8 +30,7 @@ enum { MOLECULE, CHARGE, RMASS, IVEC, DVEC, IARRAY, DARRAY };
 /* ---------------------------------------------------------------------- */
 
 FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  nvalue(0), styles(nullptr), index(nullptr), astyle(nullptr)
+    Fix(lmp, narg, arg), nvalue(0), styles(nullptr), index(nullptr), astyle(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix property/atom command");
 
@@ -300,12 +299,10 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
             atom->dvector[index[j]][m] = values.next_double();
           } else if (styles[j] == IARRAY) {
             ncol = cols[j];
-            for (k = 0; k < ncol; k++)
-              atom->iarray[index[j]][m][k] = values.next_int();
+            for (k = 0; k < ncol; k++) atom->iarray[index[j]][m][k] = values.next_int();
           } else if (styles[j] == DARRAY) {
             ncol = cols[j];
-            for (k = 0; k < ncol; k++)
-              atom->darray[index[j]][m][k] = values.next_double();
+            for (k = 0; k < ncol; k++) atom->darray[index[j]][m][k] = values.next_double();
           }
         }
       }
@@ -566,12 +563,10 @@ void FixPropertyAtom::copy_arrays(int i, int j, int /*delflag*/)
       atom->dvector[index[nv]][j] = atom->dvector[index[nv]][i];
     else if (styles[nv] == IARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-        atom->iarray[index[nv]][j][k] = atom->iarray[index[nv]][i][k];
+      for (k = 0; k < ncol; k++) atom->iarray[index[nv]][j][k] = atom->iarray[index[nv]][i][k];
     } else if (styles[nv] == DARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-        atom->darray[index[nv]][j][k] = atom->darray[index[nv]][i][k];
+      for (k = 0; k < ncol; k++) atom->darray[index[nv]][j][k] = atom->darray[index[nv]][i][k];
     }
   }
 }
@@ -671,8 +666,7 @@ int FixPropertyAtom::unpack_border(int n, int first, double *buf)
       ncol = cols[nv];
       last = first + n;
       for (i = first; i < last; i++)
-        for (k = 0; k < ncol; k++)
-          iarray[i][k] = (int) ubuf(buf[m++]).i;
+        for (k = 0; k < ncol; k++) iarray[i][k] = (int) ubuf(buf[m++]).i;
     } else if (styles[nv] == DARRAY) {
       double **darray = atom->darray[index[nv]];
       ncol = cols[nv];
@@ -739,8 +733,7 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
       atom->dvector[index[nv]][nlocal] = buf[m++];
     else if (styles[nv] == IARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-        atom->iarray[index[nv]][nlocal][k] = (int) ubuf(buf[m++]).i;
+      for (k = 0; k < ncol; k++) atom->iarray[index[nv]][nlocal][k] = (int) ubuf(buf[m++]).i;
     } else if (styles[nv] == DARRAY) {
       ncol = cols[nv];
       for (k = 0; k < ncol; k++) atom->darray[index[nv]][nlocal][k] = buf[m++];
@@ -776,12 +769,10 @@ int FixPropertyAtom::pack_restart(int i, double *buf)
       buf[m++] = atom->dvector[index[nv]][i];
     else if (styles[nv] == IARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-        buf[m++] = ubuf(atom->iarray[index[nv]][i][k]).d;
+      for (k = 0; k < ncol; k++) buf[m++] = ubuf(atom->iarray[index[nv]][i][k]).d;
     } else if (styles[nv] == DARRAY) {
       ncol = cols[nv];
-      for (k = 0; k < ncol; k++)
-        buf[m++] = atom->darray[index[nv]][i][k];
+      for (k = 0; k < ncol; k++) buf[m++] = atom->darray[index[nv]][i][k];
     }
   }
 

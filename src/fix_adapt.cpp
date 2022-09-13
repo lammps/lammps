@@ -380,7 +380,7 @@ void FixAdapt::init()
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
       if (utils::strmatch(force->pair_style,"^hybrid")) {
-        auto pair = dynamic_cast<PairHybrid *>( force->pair);
+        auto pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
             if (!pair->check_ijtype(i,j,pstyle))

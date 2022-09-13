@@ -123,7 +123,7 @@ void FixFlowGauss::init()
   //if respa level specified by fix_modify, then override default (outermost)
   //if specified level too high, set to max level
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0)
       ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -146,9 +146,9 @@ void FixFlowGauss::setup(int vflag)
     error->all(FLERR,"Invalid group mass in fix flow/gauss");
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
   else
     post_force(vflag);

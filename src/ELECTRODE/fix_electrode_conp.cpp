@@ -1058,7 +1058,8 @@ FixElectrodeConp::~FixElectrodeConp()
     try {
       utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
       utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
-    } catch (std::exception &) {}
+    } catch (std::exception &) {
+    }
   }
   if (!modify->get_fix_by_id(id))             // avoid segfault if derived fixes' ctor throws err
     atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms
@@ -1107,7 +1108,7 @@ void FixElectrodeConp::write_to_file(FILE *file, const std::vector<tagint> &tags
 
 /*----------------------------------------------------------------------- */
 
-void FixElectrodeConp::read_from_file(const std::string& input_file, double **array,
+void FixElectrodeConp::read_from_file(const std::string &input_file, double **array,
                                       const std::string &filetype)
 {
   if (comm->me == 0) {

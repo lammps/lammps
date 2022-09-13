@@ -57,6 +57,23 @@ found in examples/latte.
 
 A step-by-step tutorial can be followed at: `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
 
+Currently, LAMMPS must be run in serial or as a single MPI task, to
+use this fix.  This is because the version of the LATTE library LAMMPS
+uses does not support MPI.  On the LAMMPS size, this is typically not
+a bottleneck, since LATTE will be doing 99% or more of the work to
+compute quantum-accurate forces.  On the LATTE side, the LATTE library
+does support threaded parallelism via OpenMP.  You must build the
+LATTE library with OpenMP support, then set the OMP_NUM_THREADS
+environment variable before performing a LAMMPS + LATTE simulation to
+tell LATTE how many threads to invoke.
+
+.. note::
+
+   NEB calculations can be done using this fix using multiple
+   replicas and running LAMMPS in parallel.  However, each replica must
+   be run on a single MPI task.  For details, see the :doc:`neb <neb>`
+   command page and the :doc:`-partition command-line switch <Run_options>`
+
 ----------
 
 The *coulomb* argument is not yet supported by fix latte (as of Sept
@@ -176,18 +193,8 @@ use this fix.
 
 LATTE does not currently compute per-atom energy or per-atom virial
 contributions.  So they will not show up as part of the calculations
-performed by the :doc:`compute pe/atom <compute_pe_atom>` or :doc:`compute stress/atom <compute_stress_atom>` commands.
-
-Currently, LAMMPS must be run in serial or as a single MPI task, to
-use this fix.  This is typically not a bottleneck, since LATTE will be
-doing 99% or more of the work to compute quantum-accurate forces.
-
-.. note::
-
-   NEB calculations can be done using this fix using multiple
-   replicas and running LAMMPS in parallel.  However, each replica must
-   be run on a single MPI task.  For details, see the :doc:`neb <neb>`
-   command page and the :doc:`-partition command-line switch <Run_options>`
+performed by the :doc:`compute pe/atom <compute_pe_atom>` or
+:doc:`compute stress/atom <compute_stress_atom>` commands.
 
 Related commands
 """"""""""""""""

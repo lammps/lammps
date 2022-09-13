@@ -188,7 +188,8 @@ void BaseAmoebaT::clear_atomic() {
   _fdip_phi2.clear();
   _fdip_sum_phi.clear();
   _cgrid_brick.clear();
-  hview_cgrid.clear();
+
+  hview.clear();
 
   dev_nspecial15.clear();
   dev_special15.clear();
@@ -586,6 +587,8 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
     _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
     _fdip_sum_phi.alloc(_max_thetai_size*20,*(this->ucl_device),UCL_READ_WRITE);
 
+    hview.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device));
+
   } else {
     if (inum_full>_max_thetai_size) {
       _max_thetai_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
@@ -597,53 +600,53 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
       _fdip_phi1.resize(_max_thetai_size*10);
       _fdip_phi2.resize(_max_thetai_size*10);
       _fdip_sum_phi.resize(_max_thetai_size*20);
+
+      hview.resize(_max_thetai_size*bsorder*4);
     }
   }
-
-  UCL_H_Vec<double> dview;
-  dview.alloc(_max_thetai_size*bsorder*4,*(this->ucl_device));
 
   // pack host data to device
 
   for (int i = 0; i < inum_full; i++)
     for (int j = 0; j < bsorder; j++) {
       int idx = i*4*bsorder + 4*j;
-      dview[idx+0] = host_thetai1[i][j][0];
-      dview[idx+1] = host_thetai1[i][j][1];
-      dview[idx+2] = host_thetai1[i][j][2];
-      dview[idx+3] = host_thetai1[i][j][3];
+      hview[idx+0] = host_thetai1[i][j][0];
+      hview[idx+1] = host_thetai1[i][j][1];
+      hview[idx+2] = host_thetai1[i][j][2];
+      hview[idx+3] = host_thetai1[i][j][3];
     }
-  ucl_copy(_thetai1,dview,false);
+  ucl_copy(_thetai1,hview,false);
 
   for (int i = 0; i < inum_full; i++)
     for (int j = 0; j < bsorder; j++) {
       int idx = i*4*bsorder + 4*j;
-      dview[idx+0] = host_thetai2[i][j][0];
-      dview[idx+1] = host_thetai2[i][j][1];
-      dview[idx+2] = host_thetai2[i][j][2];
-      dview[idx+3] = host_thetai2[i][j][3];
+      hview[idx+0] = host_thetai2[i][j][0];
+      hview[idx+1] = host_thetai2[i][j][1];
+      hview[idx+2] = host_thetai2[i][j][2];
+      hview[idx+3] = host_thetai2[i][j][3];
     }
-  ucl_copy(_thetai2,dview,false);
+  ucl_copy(_thetai2,hview,false);
 
   for (int i = 0; i < inum_full; i++)
     for (int j = 0; j < bsorder; j++) {
       int idx = i*4*bsorder + 4*j;
-      dview[idx+0] = host_thetai3[i][j][0];
-      dview[idx+1] = host_thetai3[i][j][1];
-      dview[idx+2] = host_thetai3[i][j][2];
-      dview[idx+3] = host_thetai3[i][j][3];
+      hview[idx+0] = host_thetai3[i][j][0];
+      hview[idx+1] = host_thetai3[i][j][1];
+      hview[idx+2] = host_thetai3[i][j][2];
+      hview[idx+3] = host_thetai3[i][j][3];
     }
-  ucl_copy(_thetai3,dview,false);
+  ucl_copy(_thetai3,hview,false);
 
-  UCL_H_Vec<int> dview_int;
-  dview_int.alloc(_max_thetai_size*4, *(this->ucl_device));
+  //UCL_H_Vec<int> dview_int;
+  //dview_int.alloc(_max_thetai_size*4, *(this->ucl_device));
   for (int i = 0; i < inum_full; i++) {
     int idx = i*4;
-    dview_int[idx+0] = host_igrid[i][0];
-    dview_int[idx+1] = host_igrid[i][1];
-    dview_int[idx+2] = host_igrid[i][2];
+    _igrid[idx+0] = host_igrid[i][0];
+    _igrid[idx+1] = host_igrid[i][1];
+    _igrid[idx+2] = host_igrid[i][2];
   }
-  ucl_copy(_igrid, dview_int, false);
+  //ucl_copy(_igrid, dview_int, false);
+  _igrid.update_device(false);
 
   _nzlo_out = nzlo_out;
   _nzhi_out = nzhi_out;
@@ -658,10 +661,8 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
 
   int numel = _num_grid_points*2;
   if (_cgrid_brick.cols() == 0) {
-    hview_cgrid.alloc(numel, *(this->ucl_device), UCL_READ_WRITE);
-    _cgrid_brick.alloc(numel, *(this->ucl_device), UCL_READ_ONLY);
+    _cgrid_brick.alloc(numel, *(this->ucl_device), UCL_READ_WRITE, UCL_READ_ONLY);
   } else if (numel > _cgrid_brick.cols()) {
-    hview_cgrid.resize(numel);
     _cgrid_brick.resize(numel);
   }
 }
@@ -684,10 +685,6 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
                                     const int nxlo_out, const int nxhi_out,
                                     bool& first_iteration)
 {
-  // TODO: find out why this alloc helps makes the cgrid_brick ucl_copy work
-  UCL_H_Vec<numtyp> hview;
-  hview.alloc(1, *(this->ucl_device), UCL_READ_ONLY);
-  
   // allocation/resize and transfers before the first iteration
   
   if (first_iteration) {
@@ -697,15 +694,19 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
     first_iteration = false;
   }
 
+  // TODO: find out why this host alloc helps makes the cgrid_brick update_device() work correcly
+  UCL_H_Vec<numtyp> hdummy;
+  hdummy.alloc(1, *(this->ucl_device), UCL_READ_ONLY);
+
   int n = 0;
-  for (int iz = nzlo_out; iz <= nzhi_out; iz++)
-    for (int iy = nylo_out; iy <= nyhi_out; iy++)
-      for (int ix = nxlo_out; ix <= nxhi_out; ix++) {
-        hview_cgrid[n] = host_grid_brick[iz][iy][ix][0];
-        hview_cgrid[n+1] = host_grid_brick[iz][iy][ix][1];
+  for (int iz = _nzlo_out; iz <= _nzhi_out; iz++)
+    for (int iy = _nylo_out; iy <= _nyhi_out; iy++)
+      for (int ix = _nxlo_out; ix <= _nxhi_out; ix++) {
+        _cgrid_brick[n] = host_grid_brick[iz][iy][ix][0];
+        _cgrid_brick[n+1] = host_grid_brick[iz][iy][ix][1];
         n += 2;
       }
-  ucl_copy(_cgrid_brick, hview_cgrid, false);
+  _cgrid_brick.update_device(false);
 
   const int red_blocks = fphi_uind();
 
@@ -762,7 +763,7 @@ void BaseAmoebaT::compute_polar_real(int *host_amtype, int *host_amgroup,
   int** firstneigh = nullptr;
 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
-  atom->add_extra_data();                          
+  atom->add_extra_data();                    
 
   *tep_ptr=_tep.host.begin();
 

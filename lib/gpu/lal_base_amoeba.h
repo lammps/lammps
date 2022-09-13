@@ -257,13 +257,15 @@ class BaseAmoeba {
 
   int _bsorder;
   UCL_D_Vec<numtyp> _thetai1, _thetai2, _thetai3;
-  UCL_H_Vec<numtyp> hview_cgrid;
-  UCL_D_Vec<numtyp> _cgrid_brick;
-  UCL_D_Vec<int> _igrid;
+  UCL_Vector<int,int> _igrid;
+  UCL_Vector<numtyp,numtyp> _cgrid_brick;
   UCL_Vector<numtyp,numtyp> _fdip_phi1, _fdip_phi2, _fdip_sum_phi;
   int _max_thetai_size;
   int _nzlo_out, _nzhi_out, _nylo_out, _nyhi_out, _nxlo_out, _nxhi_out;
   int _ngridx, _ngridy, _ngridz, _num_grid_points;
+
+  /// buffer
+  UCL_H_Vec<double> hview;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 

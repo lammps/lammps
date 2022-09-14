@@ -92,6 +92,7 @@ class PairAmoeba : public Pair {
   double time_direct_rspace,time_direct_kspace;
   double time_mutual_rspace,time_mutual_kspace;
   double time_polar_rspace,time_polar_kspace;
+  double time_fphi_uind;
 
   // energy/virial components
 

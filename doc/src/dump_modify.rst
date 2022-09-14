@@ -696,7 +696,7 @@ most effective when the typical magnitude of position data is between
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 The *skip* keyword can be used with all dump styles.  It allows a dump
 snapshot to be skipped (not written to the dump file), if a condition

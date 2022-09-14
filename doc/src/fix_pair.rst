@@ -30,7 +30,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 Extract per-atom quantities from a pair style and store them in this
 fix so they can be accessed by other LAMMPS commands, e.g. by a

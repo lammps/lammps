@@ -37,7 +37,7 @@ length 3. This value can be used by any command that uses a global
 vector value from a compute as input. See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
-The vector value calculated by this compute is "extensive." The vector
+The vector value calculated by this compute is "extensive". The vector
 value will be in mass\*velocity :doc:`units <units>`.
 
 Restrictions

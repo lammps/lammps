@@ -49,7 +49,7 @@ accessed by indices 1--3 by any command that uses global vector values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
 
-The vector values are "intensive."  The vector values will be in
+The vector values are "intensive".  The vector values will be in
 distance :doc:`units <units>`.
 
 Restrictions

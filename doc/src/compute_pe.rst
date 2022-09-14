@@ -27,7 +27,7 @@ Description
 """""""""""
 
 Define a computation that calculates the potential energy of the
-entire system of atoms.  The specified group must be "all."  See the
+entire system of atoms.  The specified group must be "all".  See the
 :doc:`compute pe/atom <compute_pe_atom>` command if you want per-atom
 energies.  These per-atom values could be summed for a group of atoms
 via the :doc:`compute reduce <compute_reduce>` command.
@@ -73,7 +73,7 @@ value can be used by any command that uses a global scalar value from
 a compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
-The scalar value calculated by this compute is "extensive."  The
+The scalar value calculated by this compute is "extensive".  The
 scalar value will be in energy :doc:`units <units>`.
 
 Restrictions

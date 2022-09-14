@@ -101,8 +101,8 @@ vector of length 6 (KE tensor), which can be accessed by indices 1--6.
 These values can be used by any command that uses global scalar or
 vector values from a compute as input.
 
-The scalar value calculated by this compute is "intensive."  The
-vector values are "extensive."
+The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".
 
 The scalar value will be in temperature :doc:`units <units>`.  The
 vector values will be in energy :doc:`units <units>`.

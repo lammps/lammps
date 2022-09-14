@@ -166,7 +166,7 @@ by any command that uses a global values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The array values calculated by this compute are all "intensive."
+The array values calculated by this compute are all "intensive".
 
 The first column of array values will be in distance
 :doc:`units <units>`.  The :math:`g(r)` columns of array values are normalized

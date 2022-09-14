@@ -40,7 +40,7 @@ further than the threshold distance.
    If the system is undergoing significant center-of-mass motion,
    due to thermal motion, an external force, or an initial net momentum,
    then this compute will not be able to distinguish that motion from
-   local atom displacements and may generate "false positives."
+   local atom displacements and may generate "false positives".
 
 Output info
 """""""""""
@@ -50,7 +50,7 @@ used by any command that uses a global scalar value from a compute as
 input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
-The scalar value calculated by this compute is "intensive."  The
+The scalar value calculated by this compute is "intensive".  The
 scalar value will be a 0 or 1 as explained above.
 
 Restrictions

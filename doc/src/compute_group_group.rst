@@ -140,7 +140,7 @@ vector values from a compute as input.  See the
 options.
 
 Both the scalar and vector values calculated by this compute are
-"extensive."  The scalar value will be in energy :doc:`units <units>`.
+"extensive".  The scalar value will be in energy :doc:`units <units>`.
 The vector values will be in force :doc:`units <units>`.
 
 Restrictions

@@ -495,7 +495,7 @@ run:
    write_dump group-ID dumpstyle dumpfile arg1 arg2 ...
 
 Note that the specified restartfile and dumpfile names may contain
-wild-card characters ("\*","%") as explained on the
+wild-card characters ("\*" or "%") as explained on the
 :doc:`read_restart <read_restart>` and :doc:`write_dump <write_dump>` doc
 pages.  The use of "%" means that a parallel restart file and/or
 parallel dump file can be read and/or written.  Note that a filename

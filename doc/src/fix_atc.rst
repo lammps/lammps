@@ -135,7 +135,7 @@ fix are listed below.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the energy
-discussed in the previous paragraph.  The scalar value is "extensive."
+discussed in the previous paragraph.  The scalar value is "extensive".
 
 No parameter of this fix can be used with the
 *start/stop* keywords of the :doc:`run <run>` command.  This fix is not

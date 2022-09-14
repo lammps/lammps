@@ -940,8 +940,15 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
   double ****gridpost = (double ****) ic_kspace->post_convolution();
 
   // get potential
+  double time0, time1;
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);
+
+  time1 = MPI_Wtime();
+  time_fphi_uind += (time1 - time0);
 
   // store fractional reciprocal potentials for OPT method
 

@@ -57,8 +57,7 @@ constexpr int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
 constexpr int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
 #endif
 
-class PotentialFileReaderTest : public LAMMPSTest {
-};
+class PotentialFileReaderTest : public LAMMPSTest {};
 
 // open for native units
 TEST_F(PotentialFileReaderTest, Sw_native)
@@ -259,8 +258,7 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     delete reader;
 }
 
-class OpenPotentialTest : public LAMMPSTest {
-};
+class OpenPotentialTest : public LAMMPSTest {};
 
 // open for native units
 TEST_F(OpenPotentialTest, Sw_native)

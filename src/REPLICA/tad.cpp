@@ -844,7 +844,7 @@ void TAD::add_event()
 
   int ievent = n_event_list++;
   fix_event_list[ievent]
-    = dynamic_cast<FixEventTAD *>( modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent)));
+    = dynamic_cast<FixEventTAD *>(modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent)));
 
   // store quenched state for new event
 

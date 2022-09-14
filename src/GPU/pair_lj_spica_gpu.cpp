@@ -33,19 +33,19 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types, double **host_lj1,
-                 double **host_lj2, double **host_lj3, double **host_lj4, double **offset,
-                 double *special_lj, const int nlocal, const int nall, const int max_nbors,
-                 const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen);
+                   double **host_lj2, double **host_lj3, double **host_lj4, double **offset,
+                   double *special_lj, const int nlocal, const int nall, const int max_nbors,
+                   const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen);
 void spica_gpu_clear();
 int **spica_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success);
-void spica_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
+                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                          const bool vatom, int &host_start, int **ilist, int **jnum,
+                          const double cpu_time, bool &success);
+void spica_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
+                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
+                       const double cpu_time, bool &success);
 double spica_gpu_bytes();
 
 #include "lj_spica_common.h"
@@ -98,15 +98,15 @@ void PairLJSPICAGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh =
         spica_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
-                          atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                          host_start, &ilist, &numneigh, cpu_time, success);
+                            atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
+                            host_start, &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     spica_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
+                      eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
@@ -150,8 +150,8 @@ void PairLJSPICAGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = spica_gpu_init(atom->ntypes + 1, cutsq, lj_type, lj1, lj2, lj3, lj4, offset,
-                             force->special_lj, atom->nlocal, atom->nlocal + atom->nghost, mnf,
-                             maxspecial, cell_size, gpu_mode, screen);
+                               force->special_lj, atom->nlocal, atom->nlocal + atom->nghost, mnf,
+                               maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);

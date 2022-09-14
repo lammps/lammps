@@ -180,7 +180,7 @@ void ComputeChunkSpreadAtom::init()
 
 void ComputeChunkSpreadAtom::init_chunk()
 {
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->get_compute_by_id(idchunk));
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
   if (!cchunk)
     error->all(FLERR,"Chunk/atom compute does not exist for compute chunk/spread/atom {}", idchunk);
   if (strcmp(cchunk->style,"chunk/atom") != 0)

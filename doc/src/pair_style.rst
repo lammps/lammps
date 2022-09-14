@@ -81,12 +81,12 @@ only the global settings in that command are reset.  Any previous
 doc:`pair_coeff <pair_coeff>` and :doc:`pair_modify <pair_modify>`
 command settings are preserved.  The only exception is that if the
 global cutoff in the pair_style command is changed, it will override
-the corresponding cutoff in any of the previous doc:`pair_modify
+the corresponding cutoff in any of the previous :doc:`pair_modify
 <pair_coeff>` commands.
 
 Two pair styles which do not follow this rule are the pair_style
 *table* and *hybrid* commands.  A new pair_style command for these
-styles will wipe out all previously specified doc:`pair_coeff
+styles will wipe out all previously specified :doc:`pair_coeff
 <pair_coeff>` and :doc:`pair_modify <pair_modify>` settings, including
 for the sub-styles of the *hybrid* command.
 

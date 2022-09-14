@@ -55,7 +55,7 @@ FixElectrodeThermo::FixElectrodeThermo(LAMMPS *lmp, int narg, char **arg) :
 
 FixElectrodeThermo::~FixElectrodeThermo()
 {
-   delete thermo_random;
+  delete thermo_random;
 }
 
 /* ----------------------------------------------------------------------- */

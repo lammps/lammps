@@ -41,8 +41,7 @@ using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
 
-class SimpleCommandsTest : public LAMMPSTest {
-};
+class SimpleCommandsTest : public LAMMPSTest {};
 
 TEST_F(SimpleCommandsTest, UnknownCommand)
 {

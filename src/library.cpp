@@ -5071,7 +5071,7 @@ void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalF
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style 'external'", id);
 
-    auto fext = dynamic_cast<FixExternal *>( fix);
+    auto fext = dynamic_cast<FixExternal *>(fix);
     fext->set_callback(callback, ptr);
   }
   END_CAPTURE
@@ -5179,7 +5179,7 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto fext = dynamic_cast<FixExternal*>( fix);
+    auto fext = dynamic_cast<FixExternal*>(fix);
     fext->set_energy_global(eng);
   }
   END_CAPTURE
@@ -5227,7 +5227,7 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto  fext = dynamic_cast<FixExternal*>( fix);
+    auto  fext = dynamic_cast<FixExternal*>(fix);
     fext->set_virial_global(virial);
   }
   END_CAPTURE
@@ -5275,7 +5275,7 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto fext = dynamic_cast<FixExternal*>( fix);
+    auto fext = dynamic_cast<FixExternal*>(fix);
     fext->set_energy_peratom(eng);
   }
   END_CAPTURE
@@ -5326,7 +5326,7 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto  fext = dynamic_cast<FixExternal*>( fix);
+    auto  fext = dynamic_cast<FixExternal*>(fix);
     fext->set_virial_peratom(virial);
   }
   END_CAPTURE
@@ -5370,7 +5370,7 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto fext = dynamic_cast<FixExternal*>( fix);
+    auto fext = dynamic_cast<FixExternal*>(fix);
     fext->set_vector_length(len);
   }
   END_CAPTURE
@@ -5424,7 +5424,7 @@ void lammps_fix_external_set_vector(void *handle, const char *id, int idx, doubl
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto  fext = dynamic_cast<FixExternal*>( fix);
+    auto  fext = dynamic_cast<FixExternal*>(fix);
     fext->set_vector(idx, val);
   }
   END_CAPTURE

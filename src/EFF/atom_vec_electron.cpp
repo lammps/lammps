@@ -120,7 +120,7 @@ void AtomVecElectron::data_atom_post(int ilocal)
 int AtomVecElectron::property_atom(const std::string &name)
 {
   if (name == "espin") return 0;
-  if (name == "spin") return 0;  // backward compatibility
+  if (name == "spin") return 0;    // backward compatibility
   if (name == "eradius") return 1;
   if (name == "ervel") return 2;
   if (name == "erforce") return 3;

@@ -8,12 +8,12 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID pair N pairstyle name flag ...
+   fix ID group-ID pair N pstyle name flag ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * pair = style name of this fix command
 * N = invoke this fix once every N timesteps
-* pairstyle = name of pair style to extract info from (e.g. eam)
+* pstyle = name of pair style to extract info from (e.g. eam)
 * one or more name/flag pairs can be listed
 * name = name of quantity the pair style allows extraction of
 * flag = 1 if pair style needs to be triggered to produce data for name, 0 if not
@@ -46,7 +46,7 @@ These are example use cases:
 
 The *N* argument determines how often the fix is invoked.
 
-The *pairstyle* argument is the name of the pair style.  It can be a
+The *pstyle* argument is the name of the pair style.  It can be a
 sub-style used in a :doc:`pair_style hybrid <pair_hybrid>` command.
 
 One or more *name/flag* pairs of arguments follow.  Each *name* is a
@@ -55,11 +55,11 @@ request.  See the doc pages for individual :doc:`pair_styles
 <pair_style>` to see what fix pair requests (if any) they support.
 
 The *flag* setting determines whether this fix will also trigger the
-pair style to compute the named quantity so it can be extracted.  If
-the quantity is always computed by the pair style, no trigger is
-needed; specify *flag* = 0.  If the quantity is not always computed
-(e.g. it is expensive to calculate), then specify *flag* = 1.  This
-will trigger the quantity to be calculated only on timesteps it is
+pair style to compute the named quantity so it can be extracted.  If the
+quantity is always computed by the pair style, no trigger is needed;
+specify *flag* = 0.  If the quantity is not always computed
+(e.g. because it is expensive to calculate), then specify *flag* = 1.
+This will trigger the quantity to be calculated only on timesteps it is
 needed.  Again, see the doc pages for individual :doc:`pair_styles
 <pair_style>` to determine which fix pair requests (if any) need to be
 triggered with a *flag* = 1 setting.
@@ -71,12 +71,16 @@ atom, then this fix stores it as a per-atom vector.  Otherwise a
 per-atom array is created, with its data in the order of the *name*
 arguments.
 
-For example, :doc:`pair_style amoeba <pair_amoeba>` allows extraction
-of two named quantities: "uind" and "uinp", both of which are
-3-vectors for each atom, i.e. dipole moments.  If this fix specifies
-"uind" and "uinp" (in that order), then a 6-column per-atom array will
-be created.  Columns 1-3 will store the "uind" values; columns 4-6
-will store the "uinp" values.
+For example, :doc:`pair_style amoeba <pair_amoeba>` allows extraction of
+two named quantities: "uind" and "uinp", both of which are 3-vectors for
+each atom, i.e. dipole moments. In the example below a 6-column per-atom
+array will be created.  Columns 1-3 will store the "uind" values;
+columns 4-6 will store the "uinp" values.
+
+.. code-block:: LAMMPS
+
+   pair_style amoeba
+   fix ex all pair amoeba 10 uind 0 uinp 0
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

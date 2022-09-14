@@ -702,7 +702,7 @@ The *skip* keyword can be used with all dump styles.  It allows a dump
 snapshot to be skipped (not written to the dump file), if a condition
 is met.  The condition is computed by an :doc:`equal-style variable
 <variable>`, which should be specified as v_name, where name is the
-variable name.  If the variable evaulation returns a non-zero value,
+variable name.  If the variable evaluation returns a non-zero value,
 then the dump snapshot is skipped.  If it returns zero, the dump
 proceeds as usual.  Note that :doc:`equal-style variable <variable>`
 can contain Boolean operators which effectively evaluate as a true
@@ -718,12 +718,12 @@ value.
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the :doc:`atom_modify
-sort <atom_modify>` option is turned on, which it is by default, to
-improve performance.  A sort value of *id* means sort the output by
-atom ID.  A sort value of N or -N means sort the output by the value
-in the Nth column of per-atom info in either ascending or descending
-order.
+parallel.  This is the case even in serial if the :doc:`atom_modify sort
+<atom_modify>` option is turned on, which it is by default, to improve
+performance.  A sort value of *id* means sort the output by atom ID.  A
+sort value of :math:`N` or :math:`-N` means sort the output by the value
+in the :math:`N`\ th column of per-atom info in either ascending or
+descending order.
 
 The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
@@ -766,7 +766,7 @@ attributes that can be tested for are the same as those that can be
 specified in the :doc:`dump custom <dump>` command, with the exception
 of the *element* attribute, since it is not a numeric value.  Note
 that a different attributes can be used than those output by the
-:doc:`dump custom <dump>` command.  E.g. you can output the
+:doc:`dump custom <dump>` command.  For example, you can output the
 coordinates and stress of atoms whose energy is above some threshold.
 
 If an atom-style variable is used as the attribute, then it can

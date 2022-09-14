@@ -24,7 +24,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 The *mesocnt* angle style uses the potential
 

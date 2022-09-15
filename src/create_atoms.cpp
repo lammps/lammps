@@ -976,7 +976,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   area = 0.5 * MathExtra::len3(temp);
   int nparticles = ceil(mesh_density * area);
   // estimate radius from number of particles and area
-  double rad = sqrt(area/MY_PI/nparticles);
+  double rad = sqrt(area / MY_PI / nparticles);
 
   for (int i = 0; i < nparticles; i++) {
     // Define point in unit square

@@ -249,7 +249,7 @@ Style *lj/long/dipole/long* has the same functionality as style
 *lj/cut/dipole/long*, except it also has an option to compute 12/6
 Lennard-Jones interactions for use with a long-range dispersion kspace
 style.  This is done by setting its *flag_lj* argument to *long*.  For
-long-range LJ interactions, the doc:`kspace_style ewald/disp
+long-range LJ interactions, the :doc:`kspace_style ewald/disp
 <kspace_style>` command must be used.
 
 ----------

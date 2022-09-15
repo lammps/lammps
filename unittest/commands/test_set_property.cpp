@@ -46,7 +46,7 @@ protected:
 
     void TearDown() override { LAMMPSTest::TearDown(); }
 
-    void atomic_system(const std::string &atom_style, const std::string units = "real")
+    void atomic_system(const std::string &atom_style, const std::string &units = "real")
     {
         BEGIN_HIDE_OUTPUT();
         command("atom_style " + atom_style);
@@ -313,10 +313,10 @@ TEST_F(SetTest, SpinPackage)
     command("set atom 1*2 spin/atom 0.5 0.1 0.5 -0.1");
     command("set atom 8 spin/atom/random 23974 0.25");
     END_HIDE_OUTPUT();
-    constexpr double vx   = 0.1;
-    constexpr double vy   = 0.5;
-    constexpr double vz   = -0.1;
-    constexpr double norm = 1.0 / sqrt(vx * vx + vy * vy + vz * vz);
+    constexpr double vx = 0.1;
+    constexpr double vy = 0.5;
+    constexpr double vz = -0.1;
+    const double norm   = 1.0 / sqrt(vx * vx + vy * vy + vz * vz);
     ASSERT_EQ(atom->sp[0][0], vx * norm);
     ASSERT_EQ(atom->sp[0][1], vy * norm);
     ASSERT_EQ(atom->sp[0][2], vz * norm);
@@ -365,39 +365,39 @@ TEST_F(SetTest, EffPackage)
     ASSERT_NE(compute, nullptr);
     compute->compute_peratom();
 
-    EXPECT_EQ(atom->spin[0],-1);
-    EXPECT_EQ(atom->spin[1],-1);
-    EXPECT_EQ(atom->spin[2],1);
-    EXPECT_EQ(atom->spin[3],1);
-    EXPECT_EQ(atom->spin[4],0);
-    EXPECT_EQ(atom->spin[5],2);
-    EXPECT_EQ(atom->spin[6],3);
-    EXPECT_EQ(atom->spin[7],3);
-    EXPECT_EQ(atom->eradius[0],0.5);
-    EXPECT_EQ(atom->eradius[1],1.0);
-    EXPECT_EQ(atom->eradius[2],0.5);
-    EXPECT_EQ(atom->eradius[3],1.0);
-    EXPECT_EQ(atom->eradius[4],0.5);
-    EXPECT_EQ(atom->eradius[5],1.0);
-    EXPECT_EQ(atom->eradius[6],0.5);
-    EXPECT_EQ(atom->eradius[7],1.0);
+    EXPECT_EQ(atom->spin[0], -1);
+    EXPECT_EQ(atom->spin[1], -1);
+    EXPECT_EQ(atom->spin[2], 1);
+    EXPECT_EQ(atom->spin[3], 1);
+    EXPECT_EQ(atom->spin[4], 0);
+    EXPECT_EQ(atom->spin[5], 2);
+    EXPECT_EQ(atom->spin[6], 3);
+    EXPECT_EQ(atom->spin[7], 3);
+    EXPECT_EQ(atom->eradius[0], 0.5);
+    EXPECT_EQ(atom->eradius[1], 1.0);
+    EXPECT_EQ(atom->eradius[2], 0.5);
+    EXPECT_EQ(atom->eradius[3], 1.0);
+    EXPECT_EQ(atom->eradius[4], 0.5);
+    EXPECT_EQ(atom->eradius[5], 1.0);
+    EXPECT_EQ(atom->eradius[6], 0.5);
+    EXPECT_EQ(atom->eradius[7], 1.0);
 
-    EXPECT_EQ(compute->array_atom[0][0],-1);
-    EXPECT_EQ(compute->array_atom[1][0],-1);
-    EXPECT_EQ(compute->array_atom[2][0],1);
-    EXPECT_EQ(compute->array_atom[3][0],1);
-    EXPECT_EQ(compute->array_atom[4][0],0);
-    EXPECT_EQ(compute->array_atom[5][0],2);
-    EXPECT_EQ(compute->array_atom[6][0],3);
-    EXPECT_EQ(compute->array_atom[7][0],3);
-    EXPECT_EQ(compute->array_atom[0][1],0.5);
-    EXPECT_EQ(compute->array_atom[1][1],1.0);
-    EXPECT_EQ(compute->array_atom[2][1],0.5);
-    EXPECT_EQ(compute->array_atom[3][1],1.0);
-    EXPECT_EQ(compute->array_atom[4][1],0.5);
-    EXPECT_EQ(compute->array_atom[5][1],1.0);
-    EXPECT_EQ(compute->array_atom[6][1],0.5);
-    EXPECT_EQ(compute->array_atom[7][1],1.0);
+    EXPECT_EQ(compute->array_atom[0][0], -1);
+    EXPECT_EQ(compute->array_atom[1][0], -1);
+    EXPECT_EQ(compute->array_atom[2][0], 1);
+    EXPECT_EQ(compute->array_atom[3][0], 1);
+    EXPECT_EQ(compute->array_atom[4][0], 0);
+    EXPECT_EQ(compute->array_atom[5][0], 2);
+    EXPECT_EQ(compute->array_atom[6][0], 3);
+    EXPECT_EQ(compute->array_atom[7][0], 3);
+    EXPECT_EQ(compute->array_atom[0][1], 0.5);
+    EXPECT_EQ(compute->array_atom[1][1], 1.0);
+    EXPECT_EQ(compute->array_atom[2][1], 0.5);
+    EXPECT_EQ(compute->array_atom[3][1], 1.0);
+    EXPECT_EQ(compute->array_atom[4][1], 0.5);
+    EXPECT_EQ(compute->array_atom[5][1], 1.0);
+    EXPECT_EQ(compute->array_atom[6][1], 0.5);
+    EXPECT_EQ(compute->array_atom[7][1], 1.0);
 
     TEST_FAILURE(".*ERROR on proc 0: Incorrect value for electron spin: 0.5.*",
                  command("set atom * spin/electron 0.5"););

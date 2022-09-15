@@ -142,14 +142,14 @@ command that uses global vector values from a compute as input.
 See the :doc:`Howto output <Howto_output>` documentation for an overview of
 LAMMPS output options.
 
-The vector values calculated by this compute are "extensive," meaning
+The vector values calculated by this compute are "extensive", meaning
 they scale with the number of atoms in the simulation.  They can be
-divided by the appropriate volume to get a flux, which would then be
-an "intensive" value, meaning independent of the number of atoms in
-the simulation.  Note that if the compute is "all," then the
-appropriate volume to divide by is the simulation box volume.
-However, if a sub-group is used, it should be the volume containing
-those atoms.
+divided by the appropriate volume to get a flux, which would then be an
+"intensive" value, meaning independent of the number of atoms in the
+simulation.  Note that if the compute group is "all", then the
+appropriate volume to divide by is the simulation box volume.  However,
+if a group with a subset of atoms is used, it should be the volume
+containing those atoms.
 
 The vector values will be in energy\*velocity :doc:`units <units>`.  Once
 divided by a volume the units will be that of flux, namely

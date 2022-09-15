@@ -36,11 +36,11 @@ using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) :
- PairCoulLong(_lmp), efield(nullptr)
+PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) : PairCoulLong(_lmp), efield(nullptr)
 {
   nmax = 0;
   single_enable = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,7 +176,8 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
             ecoul = scale[itype][jtype] * qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
           }
           if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
-        } else ecoul = 0.0;
+        } else
+          ecoul = 0.0;
 
         if (evflag) ev_tally_full(i, 0.0, ecoul, fpair_i, delx, dely, delz);
       }

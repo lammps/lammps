@@ -299,7 +299,7 @@ These output results can be used by any command that uses a global
 scalar or vector from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options. For example, the computed values can be averaged using :doc:`fix ave/time <fix_ave_time>`.
 
-The values calculated by this compute are "extensive."
+The values calculated by this compute are "extensive".
 
 Restrictions
 """"""""""""

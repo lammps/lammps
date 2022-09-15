@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -35,10 +35,10 @@ Syntax
        *element* args = E1 E2 ... EN, where N = # of atom types
          E1,...,EN = element name (e.g., C or Fe or Ga)
        *every* arg = N
-         N = dump every this many timesteps
+         N = dump on timesteps which are a multiple of N
          N can be a variable (see below)
        *every/time* arg = Delta
-         Delta = dump every this interval in simulation time (time units)
+         Delta = dump once every Delta interval of simulation time (time units)
          Delta can be a variable (see below)
        *fileper* arg = Np
          Np = write one file for every this many processors
@@ -65,6 +65,8 @@ Syntax
        *refresh* arg = c_ID = compute ID that supports a refresh operation
        *scale* arg = *yes* or *no*
        *sfactor* arg = coordinate scaling factor (> 0.0)
+       *skip* arg = v_name
+         v_name = variable with name which evaluates to non-zero (skip) or 0
        *sort* arg = *off* or *id* or N or -N
           off = no sorting of per-atom lines within a snapshot
           id = sort per-atom lines by atom ID
@@ -176,6 +178,31 @@ extra buffering.
 
 ----------
 
+.. versionadded:: 4May2022
+
+The *colname* keyword can be used to change the default header keyword
+for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
+and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
+represents the column number counting from the left, a negative integer
+when it represents the column number from the right (i.e. -1 is the last
+column/keyword), or a custom dump keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+keyword. For *atom* dump styles only the keywords "id", "type", "x",
+"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
+whether scaled or unwrapped coordinates were enabled or disabled, and
+it always assumes 8 columns for indexing regardless of whether image
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default names. Using the *scale* or *image* keyword will also
+reset all header keywords to their default values.
+
+----------
+
 The *delay* keyword applies to all dump styles.  No snapshots will be
 output until the specified *Dstep* timestep or later.  Specifying
 *Dstep* < 0 is the same as turning off the delay setting.  This is a
@@ -207,13 +234,10 @@ will be accepted.
 ----------
 
 The *every* keyword can be used with any dump style except the *dcd*
-and *xtc* styles.  It does two things.  It specifies that the interval
-between dump snapshots will be set in timesteps, which is the default
-if the *every* or *every/time* keywords are not used.  See the
-*every/time* keyword for how to specify the interval in simulation
-time, i.e. in time units of the :doc:`units <units>` command.  The
-*every* keyword also sets the interval value, which overrides the dump
-frequency originally specified by the :doc:`dump <dump>` command.
+and *xtc* styles.  It specifies that the output of dump snapshots will
+now be performed on timesteps which are a multiple of a new :math:`N`
+value, This overrides the dump frequency originally specified by the
+:doc:`dump <dump>` command.
 
 The *every* keyword can be specified in one of two ways.  It can be a
 numeric value in which case it must be > 0.  Or it can be an
@@ -272,6 +296,17 @@ in file tmp.times:
    place of 101.
 
 ----------
+
+The *every/time* keyword can be used with any dump style except the
+*dcd* and *xtc* styles.  It changes the frequency of dump snapshots
+from being based on the current timestep to being determined by
+elapsed simulation time, i.e. in time units of the :doc:`units
+<units>` command, and specifies *Delta* for the interval between
+snapshots.  This can be useful when the timestep size varies during a
+simulation run, e.g. by use of the :doc:`fix dt/reset <fix_dt_reset>`
+command.  The default is to perform output on timesteps which a
+multiples of specified timestep value :math:`N`; see the *every*
+keyword.
 
 The *every/time* keyword can be used with any dump style except the
 *dcd* and *xtc* styles.  It does two things.  It specifies that the
@@ -357,7 +392,7 @@ always occur if the current timestep is a multiple of $N$, the
 frequency specified in the :doc:`dump <dump>` command or
 :doc:`dump_modify every <dump_modify>` command, including timestep 0.
 It will also always occur if the current simulation time is a multiple
-of *Delta*, the time interval specified in the doc:`dump_modify
+of *Delta*, the time interval specified in the :doc:`dump_modify
 every/time <dump_modify>` command.
 
 But if this is not the case, a dump snapshot will only be written if
@@ -365,7 +400,7 @@ the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 Note that if the argument to the :doc:`dump_modify every
-<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
+<dump_modify>` :doc:`dump_modify every/time <dump_modify>` commands is
 a variable and not a numeric value, then specifying *first yes* is the
 only way to write a dump snapshot on the first timestep after the dump
 command is invoked.
@@ -380,6 +415,7 @@ performed with dump style *xtc*\ .
 
 ----------
 
+<<<<<<< HEAD
 .. versionadded:: 4May2022
 
 The *colname* keyword can be used to change the default header keyword
@@ -404,6 +440,8 @@ to their default names.
 
 ----------
 
+=======
+>>>>>>> develop
 The *format* keyword can be used to change the default numeric format output
 by the text-based dump styles: *atom*, *local*, *custom*, *cfg*, and
 *xyz* styles, and their MPIIO variants. Only the *line* or *none*
@@ -490,6 +528,8 @@ boundary twice and is really two box lengths to the left of its
 current coordinate.  Note that for dump style *custom* these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
+Using this keyword will reset all custom header names set with
+*dump_modify colname* to their respective default values.
 
 ----------
 
@@ -663,6 +703,8 @@ value of *yes* means atom coords are written in normalized units from
 (tilted), then all atom coords will still be between 0.0 and 1.0.  A
 value of *no* means they are written in absolute distance units
 (e.g., :math:`\mathrm{\mathring A}` or :math:`\sigma`).
+Using this keyword will reset all custom header names set with
+*dump_modify colname* to their respective default values.
 
 ----------
 
@@ -681,14 +723,33 @@ most effective when the typical magnitude of position data is between
 
 ----------
 
+.. versionadded:: 15Sep2022
+
+The *skip* keyword can be used with all dump styles.  It allows a dump
+snapshot to be skipped (not written to the dump file), if a condition
+is met.  The condition is computed by an :doc:`equal-style variable
+<variable>`, which should be specified as v_name, where name is the
+variable name.  If the variable evaluation returns a non-zero value,
+then the dump snapshot is skipped.  If it returns zero, the dump
+proceeds as usual.  Note that :doc:`equal-style variable <variable>`
+can contain Boolean operators which effectively evaluate as a true
+(non-zero) or false (zero) result.
+
+The *skip* keyword can be useful for debugging purposes, e.g. to dump
+only on a particular timestep.  Or to limit output to conditions of
+interest, e.g. only when the force on some atom exceeds a threshold
+value.
+
+----------
+
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the
-:doc:`atom_modify sort <atom_modify>` option is turned on, which it is by
-default, to improve performance.  A sort value of *id* means sort the output by
-atom ID.  A sort value of :math:`N` or :math:`-N` means sort the output by the
-value in the :math:`N`\ th column of per-atom info in either ascending or
+parallel.  This is the case even in serial if the :doc:`atom_modify sort
+<atom_modify>` option is turned on, which it is by default, to improve
+performance.  A sort value of *id* means sort the output by atom ID.  A
+sort value of :math:`N` or :math:`-N` means sort the output by the value
+in the :math:`N`\ th column of per-atom info in either ascending or
 descending order.
 
 The dump *local* style cannot be sorted by atom ID, since there are
@@ -732,8 +793,8 @@ attributes that can be tested for are the same as those that can be
 specified in the :doc:`dump custom <dump>` command, with the exception
 of the *element* attribute, since it is not a numeric value.  Note
 that a different attributes can be used than those output by the
-:doc:`dump custom <dump>` command.  For example, you can output the coordinates
-and stress of atoms whose energy is above some threshold.
+:doc:`dump custom <dump>` command.  For example, you can output the
+coordinates and stress of atoms whose energy is above some threshold.
 
 If an atom-style variable is used as the attribute, then it can
 produce continuous numeric values or effective Boolean 0/1 values,

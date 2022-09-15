@@ -358,7 +358,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & (group1bit|group2bit))) continue;
+    if (!(mask[i] & (group1bit | group2bit))) continue;
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -370,7 +370,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
-      if (!(mask[j] & (group1bit|group2bit))) continue;
+      if (!(mask[j] & (group1bit | group2bit))) continue;
 
       // if both weighting factors are 0, skip this pair
       // could be 0 and still be in neigh list for long-range Coulombics

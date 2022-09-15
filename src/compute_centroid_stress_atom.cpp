@@ -36,7 +36,8 @@ using namespace LAMMPS_NS;
 enum { NOBIAS, BIAS };
 
 static const char cite_centroid_angle_improper_dihedral[] =
-    "compute centroid/stress/atom for angles, impropers and dihedrals: doi:10.1103/PhysRevE.99.051301\n\n"
+    "compute centroid/stress/atom for angles, impropers and dihedrals: "
+    "doi:10.1103/PhysRevE.99.051301\n\n"
     "@article{Surblys2019,\n"
     " title = {Application of Atomic Stress to Compute Heat Flux via Molecular\n"
     "    Dynamics for Systems With Many-Body Interactions},\n"

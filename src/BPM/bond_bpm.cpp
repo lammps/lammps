@@ -85,9 +85,9 @@ void BondBPM::init_style()
 {
   if (id_fix_store_local) {
     auto ifix = modify->get_fix_by_id(id_fix_store_local);
-    if (!ifix) error->all(FLERR, "Cannot find fix STORE/LOCAL id {}",id_fix_store_local);
+    if (!ifix) error->all(FLERR, "Cannot find fix STORE/LOCAL id {}", id_fix_store_local);
     if (strcmp(ifix->style, "STORE/LOCAL") != 0)
-      error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}",ifix->style);
+      error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
     fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
     fix_store_local->nvalues = nvalues;
   }

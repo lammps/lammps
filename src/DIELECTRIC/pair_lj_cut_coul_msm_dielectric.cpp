@@ -47,6 +47,7 @@ PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) : PairLJCut
   nmax = 0;
   ftmp = nullptr;
   efield = nullptr;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */

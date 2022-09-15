@@ -167,7 +167,7 @@ triangular particles and define the corner points of each triangle.
 In addition, the various per-atom quantities listed above for specific
 packages are only accessible by this command.
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
   The *espin* property was previously called *spin*.
 
@@ -198,8 +198,8 @@ Related commands
 """"""""""""""""
 
 :doc:`dump custom <dump>`, :doc:`compute reduce <compute_reduce>`,
-:doc::doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk
-:doc:<fix_ave_chunk>`, `fix property/atom <fix_property_atom>`
+:doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
+:doc:`fix property/atom <fix_property_atom>`
 
 Default
 """""""

@@ -49,17 +49,10 @@ CPairPOD::~CPairPOD()
     }    
 }
 
-/* ----------------------------------------------------------------------
-   This version is a straightforward implementation
-   ---------------------------------------------------------------------- */
-
 void CPairPOD::compute(int eflag, int vflag)
 {            
     ev_init(eflag,vflag);    
-    //eflag = 1;
     vflag_fdotr = 1;
-    
-    //printf("%d %d %d %d\n", eflag, vflag, vflag_fdotr, eflag_atom);    
     
     if (eflag_atom) {
         eng_vdwl = this->lammpseatom(eatom, atom->x, list->firstneigh, atom->type, list->numneigh, 
@@ -72,51 +65,9 @@ void CPairPOD::compute(int eflag, int vflag)
         eng_vdwl = this->lammpsenergyforce(atom->f, atom->x, list->firstneigh, atom->type, list->numneigh, 
                     list->ilist, list->inum, list->inum + atom->nghost);
     }
-            
-//     podptr->print_matrix("atom->f", 3, list->inum + atom->nghost, atom->f, 3);
-//     podptr->print_matrix("atom->x", 3, list->inum + atom->nghost, atom->x, 3);    
-//     cout<<"Energy: "<< eng_vdwl<<endl;
-//     podptr->print_matrix("virial", 1, 6, virial, 1);
     
-    if (vflag_fdotr) virial_fdotr_compute();
-    
-//     podptr->print_matrix("virial", 1, 6, virial, 1);
-//     
-//     error->all(FLERR, "here");                
-    //this->error_analsysis();     
-    
-//     podptr->print_matrix("x", 3, list->inum, atom->x, 3);    
-//     double e = this->lammpsenergy(atom->x, list->firstneigh, atom->type, list->numneigh, 
-//                     list->ilist, list->inum, list->inum + atom->nghost);
-    
-//     double ea[list->inum];
-//     double **fa;
-//     memory->create(fa,list->inum + atom->nghost,3,"pair:fa");
-//     
-//     podptr->podArraySetValue(ea, 0.0, list->inum);
-//     
-//     double e1 = this->lammpseatom(ea, atom->x, list->firstneigh, atom->type, list->numneigh, 
-//                     list->ilist, list->inum, list->inum + atom->nghost);
-//     
-//     this->lammpsforce(fa, atom->x, list->firstneigh, atom->type, list->numneigh, 
-//                     list->ilist, list->inum, list->inum + atom->nghost);
-// 
-//     double e2 = podptr->podArraySum(ea, list->inum);
-//     
-//     double e3 = 0;
-//     for (int i=0; i <podptr->pod.nd1234; i++)
-//         e3 += energycoeff[i]*gd[i];
-//     
-//     podptr->print_matrix("energycoeff", 1, podptr->pod.nd1234, energycoeff, 1);
-//     podptr->print_matrix("eatom", 1, list->inum, ea, 1);
-
-//     podptr->print_matrix("atom->f", 3, list->inum + atom->nghost, atom->f, 3);
-//     podptr->print_matrix("fa", 3, list->inum + atom->nghost, fa, 3);
-//     
-//     printf("%d %g %g %g %g\n", 1, e, e1, e2, e3);
-//     
-//     cout<<"Lammps energy: "<<e<<endl;
-//     error->all(FLERR, "here");                
+    if (vflag_fdotr) virial_fdotr_compute(); 
+              
 }
 
 /* ----------------------------------------------------------------------
@@ -146,19 +97,9 @@ void CPairPOD::coeff(int narg, char **arg)
             scale[ii][jj] = 1.0;                      
     allocated = 1;
    
-    printf("!!!!! %d\n", narg); 
     if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
-    //if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-    //cout<<"map_element2type"<<endl;
-    //cout<<narg-5<<endl;
-    //cout<<arg[5]<<endl;
-    //printf("^^^^^ %d %d\n", narg-5, &arg[5]);
-    //map_element2type(narg-5,&arg[5]);
-    //std::cout << arg[4] << std::endl;
-    map_element2type(narg-4, &arg[4]); // if not including data file
-//     cout<<map[0]<<endl;
-//     cout<<map[1]<<endl;        
+    map_element2type(narg-4, &arg[4]);  
     
     std::string pod_file = std::string(arg[2]);  // pod input file
     std::string coeff_file = std::string(arg[3]); // coefficient input file       
@@ -349,7 +290,6 @@ std::vector<std::string> CPairPOD::globVector(const std::string& pattern, std::v
     glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
     for(unsigned int i=0;i<glob_result.gl_pathc;++i){
       std::string s = string(glob_result.gl_pathv[i]);
-      //std::cout << s << "\n";
       files.push_back(s);
     }
     globfree(&glob_result);
@@ -949,11 +889,6 @@ void CPairPOD::podNeighPairs(int *atomtypes, int start, int end)
 {
     this->check_tempmemory(start, end);
     
-//    cout<<start<<"  "<<end<<endl;
-//     this->printinfo();        
-//     podptr->print_matrix("atom blocks", 1, numblocks+1, atomblocks, 1);
-//    error->all(FLERR,"here");
-    
     nablock = end - start;    
     int k = 0;
     for (int ii=0; ii<nablock; ii++) {  // for each atom i in the simulation box     
@@ -985,40 +920,38 @@ void CPairPOD::podNeighPairs(int *atomtypes, int start, int end)
 double CPairPOD::podenergy(double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum)
 {           
     // determine computation blocks
-    this->get_atomblocks(inum);
-    //podptr->print_matrix("atom blocks", 1, numblocks+1, atomblocks, 1);        
+
+    this->get_atomblocks(inum);     
     
     // check and allocate memory for atom/pair arrays, and create full neighbor list
+
     this->check_pairmemory(x, a1, a2, a3, inum);
                             
     // initialize global descriptors to zero
+
     int nd1234 = podptr->pod.nd1234;    
     podptr->podArraySetValue(gd, 0.0, nd1234);                    
     
-    for (int i = 0; i< numblocks; i++) { // loop over each computation block
+    for (int i = 0; i< numblocks; i++) {
         
-        // # of atoms in this computation block
+        // number of atoms in this computation block
+
         int nat = atomblocks[i+1] - atomblocks[i];
         
         // get POD neighbor pairs for this computation block
+
         podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);        
     
         // compute global POD descriptors for this computation block
+
         podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum, 
                 typeai, idxi, ti, tj, nat, nij);                                
         
     }
     
     // compute energy and effective coefficients
-    energy = podptr->calculate_energy(energycoeff, forcecoeff, gd, podcoeff);    
 
-//     if (numblocks > 1) {
-//         podptr->print_matrix("podcoeff", 1, nd1234, podcoeff, 1);
-//         podptr->print_matrix("forcecoeff", 1, nd1234, forcecoeff, 1);
-// //         this->printinfo();
-// //         podptr->print_matrix("atom blocks", 1, numblocks+1, atomblocks, 1);
-// //         error->all(FLERR,"here");
-//     }
+    energy = podptr->calculate_energy(energycoeff, forcecoeff, gd, podcoeff);    
         
     return energy;    
 }
@@ -1028,14 +961,17 @@ double CPairPOD::podeatom(double *eatom, double *x, double *a1, double *a2, doub
     int nd1234 = podptr->pod.nd1234;    
     
     // compute energy and effective coefficients
+
     energy = this->podenergy(x, a1, a2, a3, atomtypes, inum);  
     
     // initialize force to zero
+
     podptr->podArraySetValue(eatom, 0.0, inum);    
     
     for (int i = 0; i< numblocks; i++) { // loop over each computation block
         
         // # of atoms in this computation block
+        
         int nat = atomblocks[i+1] - atomblocks[i];
         
         // get POD neighbor pairs for this computation block

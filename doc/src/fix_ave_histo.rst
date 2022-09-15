@@ -193,7 +193,7 @@ inputs to this fix by using the
 :doc:`compute property/atom <compute_property_atom>` command and then
 specifying an input value from that compute.
 
-If a value begins with "c\_," a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
@@ -215,7 +215,7 @@ these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and
 :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_," a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
@@ -232,7 +232,7 @@ which must be compatible with :math:`N_\text{every}`, else an error will
 result.  Users can also write code for their own fix styles and
 :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "v\_," a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  If *mode* = scalar, then
 only equal-style or vector-style variables can be used, which both
 produce global values.  In this mode, a vector-style variable requires

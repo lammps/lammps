@@ -80,7 +80,7 @@ See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
 output options.
 
 The array calculated by this compute is
-"intensive."  The first five columns will be in
+"intensive".  The first five columns will be in
 distance\ :math:`^2` :doc:`units <units>` while the sixth one is dimensionless.
 
 Restrictions

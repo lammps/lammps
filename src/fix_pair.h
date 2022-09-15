@@ -13,57 +13,47 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(latte,FixLatte);
+FixStyle(pair,FixPair);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_LATTE_H
-#define LMP_FIX_LATTE_H
+#ifndef LMP_FIX_PAIR_H
+#define LMP_FIX_PAIR_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixLatte : public Fix {
+class FixPair : public Fix {
  public:
-  FixLatte(class LAMMPS *, int, char **);
-  ~FixLatte() override;
+  FixPair(class LAMMPS *, int, char **);
+  ~FixPair() override;
   int setmask() override;
   void init() override;
-  void init_list(int, class NeighList *) override;
   void setup(int) override;
-  void min_setup(int) override;
-  void setup_pre_reverse(int, int) override;
-  void initial_integrate(int) override;
-  void pre_reverse(int, int) override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
+  void min_pre_force(int) override;
   void post_force(int) override;
   void min_post_force(int) override;
-  void final_integrate() override;
-  void reset_dt() override;
-  double compute_scalar() override;
+
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
   double memory_usage() override;
 
- protected:
-  int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
-  int exclude, excludebit;
-  int eflag_caller;
-  char *id_pe,*id_exclude;
-  int *exclusion_group_ptr;
-  int setupflag, newsystem;
-  bigint natoms_last;
+ private:
+  int nevery,nfield,ncols;
+  char *pairname;
+  char **fieldname,**triggername;
+  int *trigger;
+  int **triggerptr;
 
-  int flags_latte[6];
-
-  int nmax;
-  double *qpotential;
-  double **flatte;
-  double latte_energy;
-
-  class NeighList *list;
-  class Compute *c_pe;
-
-  void latte_wrapper_all();
-  void latte_wrapper_exclude();
+  class Pair *pstyle;
+  double *vector;
+  double **array;
 };
 
 }    // namespace LAMMPS_NS

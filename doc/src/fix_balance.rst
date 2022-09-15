@@ -361,7 +361,7 @@ The "SQUARES" section lists the node IDs of the four vertices in a
 rectangle for each processor (1 to 4).
 
 For a 3d problem, the syntax is similar but with eight vertices listed for
-each processor instead of four, and "SQUARES" replaced by "CUBES."
+each processor instead of four, and "SQUARES" replaced by "CUBES".
 
 ----------
 
@@ -387,7 +387,7 @@ number of particles (or total weight) per processor.
 
 These quantities can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar and vector values calculated
-by this fix are "intensive."
+by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

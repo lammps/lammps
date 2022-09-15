@@ -165,6 +165,7 @@ OPT.
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
+   * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`

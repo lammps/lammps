@@ -134,9 +134,9 @@ These values can be used by any command that uses global scalar or
 vector values from a compute as input.
 See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output options.
 
-The scalar value calculated by this compute is "intensive."  The
-first six elements of vector values are "extensive,"
-and the seventh element of vector values is "intensive."
+The scalar value calculated by this compute is "intensive".  The
+first six elements of vector values are "extensive",
+and the seventh element of vector values is "intensive".
 
 The scalar value will be in temperature :doc:`units <units>`.
 The first six elements of vector values will be in energy :doc:`units <units>`.

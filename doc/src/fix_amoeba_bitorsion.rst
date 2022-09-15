@@ -124,7 +124,7 @@ setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential
 energy discussed above.  The scalar value calculated by this fix is
-"extensive."
+"extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.

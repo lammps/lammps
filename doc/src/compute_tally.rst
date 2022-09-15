@@ -182,7 +182,7 @@ Output info
   from individual atoms in both groups).
 
 Both the scalar and vector values calculated by this compute are
-"extensive."
+"extensive".
 
 Restrictions
 """"""""""""

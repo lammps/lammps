@@ -31,10 +31,10 @@ enum ModelType {
   HEAT = 5
 }; // Relative order matters since some derive coeffs from others
 
-enum WallType {
-  NONE = 0,
-  RWALL = 1,
-  RDUPLICATE = 2
+enum ContactType {
+  PAIR = 0,
+  WALL = 1,
+  WALLREGION = 2
 };
 
 // forward declaration
@@ -52,7 +52,6 @@ class ContactModel : protected Pointers {
   ~ContactModel();
   void init();
   bool check_contact(double = 0);
-  void reset_contact();
   void prep_contact();
   void calculate_forces();
   double pulloff_distance(double, double);
@@ -75,7 +74,7 @@ class ContactModel : protected Pointers {
 
   // Extra options
   int beyond_contact, limit_damping, history_update;
-  WallType wall_type;
+  ContactType contact_type;
 
   // History variables
   int size_history, nondefault_history_transfer;
@@ -98,7 +97,6 @@ class ContactModel : protected Pointers {
 
  protected:
   int rolling_defined, twisting_defined, heat_defined; // Used to quickly skip undefined submodels
-  int prep_flag, check_flag;
 };
 
 }    // namespace Contact

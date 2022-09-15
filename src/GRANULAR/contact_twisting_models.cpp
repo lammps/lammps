@@ -46,15 +46,25 @@ TwistingMarshall::TwistingMarshall(LAMMPS *lmp) : TwistingModel(lmp)
 
 /* ---------------------------------------------------------------------- */
 
+
+void TwistingMarshall::init()
+{
+  k_tang = contact->tangential_model->k;
+  damp_tang = contact->tangential_model->damp;
+  mu_tang = contact->tangential_model->mu;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void TwistingMarshall::calculate_forces()
 {
   double signtwist, Mtcrit;
 
   // Calculate twist coefficients from tangential model & contact geometry
   // eq 32 of Marshall paper
-  double k = 0.5 * contact->tangential_model->k * contact->area * contact->area;
-  double damp = 0.5 * contact->tangential_model->damp * contact->area * contact->area;
-  double mu = TWOTHIRDS * contact->area * contact->tangential_model->mu;
+  double k = 0.5 * k_tang * contact->area * contact->area;
+  double damp = 0.5 * damp_tang * contact->area * contact->area;
+  double mu = TWOTHIRDS * mu_tang * contact->area;
 
   if (contact->history_update) {
     contact->history[history_index] += contact->magtwist * contact->dt;

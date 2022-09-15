@@ -259,7 +259,7 @@ void TangentialMindlin::calculate_forces()
   temp_dbl = -damp;
   scale3(temp_dbl, contact->vtr, contact->fs);
 
-  if (! mindlin_force) {
+  if (!mindlin_force) {
     scale3(k_scaled, history, temp_array);
     add3(contact->fs, temp_array, contact->fs);
   }

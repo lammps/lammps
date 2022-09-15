@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL),
-                         Dan Bolintineanu (SNL)
+                         Dan Bolintineanu (SNL), Joel Clemmer (SNL)
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran.h"
@@ -69,7 +69,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // set interaction style
   // disable bonded/history option for now
   model = new ContactModel(lmp);
-  model->wall_type = RWALL;
+  model->contact_type = WALL;
 
   if (strcmp(arg[3],"granular") == 0)  classic_flag = 0;
   else classic_flag = 1;
@@ -171,6 +171,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // wallstyle args
 
   idregion = nullptr;
+  tstr = nullptr;
 
   if (iarg >= narg) error->all(FLERR, "Illegal fix wall/gran command");
 
@@ -211,7 +212,11 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     iarg += 2;
   } else if (strcmp(arg[iarg],"temperature") == 0) {
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
-    Twall = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    if (utils::strmatch(arg[iarg+1], "^v_")) {
+      tstr = utils::strdup(arg[3] + 2);
+    } else {
+      Twall = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    }
     Twall_defined = 1;
     iarg += 2;
   } else wallstyle = NOSTYLE;
@@ -318,10 +323,10 @@ FixWallGran::~FixWallGran()
   atom->delete_callback(id,Atom::GROW);
   atom->delete_callback(id,Atom::RESTART);
 
-  delete model;
-
   // delete local storage
 
+  delete model;
+  delete [] tstr;
   delete [] idregion;
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
@@ -364,6 +369,13 @@ void FixWallGran::init()
   for (i = 0; i < NSUBMODELS; i++) {
     model->sub_models[i]->history_index = next_index;
     next_index += model->sub_models[i]->size_history;
+  }
+
+  if (tstr) {
+    tvar = input->variable->find(tstr);
+    if (tvar < 0) error->all(FLERR, "Variable {} for fix wall/gran does not exist", tstr);
+    if (! input->variable->equalstyle(tvar))
+      error->all(FLERR, "Variable {} for fix wall/gran must be an equal style variable", tstr);
   }
 }
 
@@ -467,7 +479,11 @@ void FixWallGran::post_force(int /*vflag*/)
   model->radj = 0.0;
   model->vj = vwall;
   model->omegaj = w0;
-  if (heat_flag) model->Tj = Twall;
+  if (heat_flag) {
+    if (tstr)
+      Twall = input->variable->compute_equal(tvar);
+    model->Tj = Twall;
+  }
 
   for (int i = 0; i < nlocal; i++) {
     if (! mask[i] & groupbit) continue;
@@ -509,7 +525,6 @@ void FixWallGran::post_force(int /*vflag*/)
     }
 
     // Reset model and copy initial geometric data
-    model->reset_contact();
     model->dx[0] = dx;
     model->dx[1] = dy;
     model->dx[2] = dz;

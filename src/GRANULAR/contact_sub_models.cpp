@@ -10,12 +10,16 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
--------------------------------------------------------------------------
+-------------------------------------------------------------------------*/
 
-   This class contains a series of tools for DEM contacts
-   Multiple models can be defined and used to calculate forces
+/* ----------------------------------------------------------------------
+   This class contains a framework for normal, damping, tangential,
+   rolling, twisting, and heat models used to calculate forces
    and torques based on contact geometry
-*/
+
+   Contributing authors:
+   Dan Bolintineanu (SNL), Joel Clemmer (SNL)
+----------------------------------------------------------------------- */
 
 #include "contact_sub_models.h"
 #include "error.h"

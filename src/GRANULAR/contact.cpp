@@ -10,12 +10,16 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
--------------------------------------------------------------------------
+------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
    This class contains a series of tools for DEM contacts
    Multiple models can be defined and used to calculate forces
    and torques based on contact geometry
-*/
+
+   Contributing authors:
+   Dan Bolintineanu (SNL), Joel Clemmer (SNL)
+----------------------------------------------------------------------- */
 
 #include "contact.h"
 #include "contact_sub_models.h"
@@ -42,7 +46,7 @@ ContactModel::ContactModel(LAMMPS *lmp) : Pointers(lmp)
   beyond_contact = 0;
   nondefault_history_transfer = 0;
 
-  wall_type = NONE;
+  contact_type = PAIR;
 
   reset_contact();
 
@@ -175,17 +179,19 @@ int ContactModel::init_classic_model(char **arg, int iarg, int narg)
   if (strcmp(arg[iarg],"hooke") == 0) {
     init_model("hooke", NORMAL);
     init_model("linear_nohistory", TANGENTIAL);
+    init_model("mass_velocity", DAMPING);
   } else if (strcmp(arg[iarg],"hooke/history") == 0) {
     init_model("hooke", NORMAL);
     init_model("linear_history", TANGENTIAL);
+    init_model("mass_velocity", DAMPING);
   } else if (strcmp(arg[iarg],"hertz/history") == 0) {
     // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
     kn /= force->nktv2p;
     kt /= force->nktv2p;
     init_model("hertz", NORMAL);
-    init_model("mindlin", TANGENTIAL); // Dan is this right?
+    init_model("mindlin", TANGENTIAL);
+    init_model("viscoelastic", DAMPING);
   } else error->all(FLERR,"Invalid classic gran model");
-  init_model("mass_velocity", DAMPING);
 
   // ensure additional models are undefined
   init_model("none", ROLLING);
@@ -322,25 +328,15 @@ void ContactModel::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-void ContactModel::reset_contact()
-{
-  prep_flag = check_flag = 0;
-  touch = false;
-}
-
-/* ---------------------------------------------------------------------- */
-
 bool ContactModel::check_contact(double rtemp)
 {
-  check_flag = 1;
-
-  if (wall_type == RWALL) {
+  if (contact_type == WALL) {
     // Used by fix_wall_gran.cpp
     rsq = lensq3(dx);
     radsum = radi;
     if (rtemp == 0) Reff = radi;
     else Reff = radi * rtemp/(radi + rtemp);
-  } else if (wall_type == RDUPLICATE) {
+  } else if (contact_type == WALLREGION) {
     // Used by fix_wall_gran_region.cpp
     rsq = rtemp * rtemp;
     radsum = radi + radi;
@@ -361,11 +357,6 @@ bool ContactModel::check_contact(double rtemp)
 
 void ContactModel::prep_contact()
 {
-  prep_flag = 1;
-  // If it hasn't already been done, test if the contact exists
-  if (check_flag != 1) touch = check_contact();
-  if (!touch) return;
-
   double temp[3];
 
   // Standard geometric quantities
@@ -415,16 +406,8 @@ void ContactModel::prep_contact()
 
 void ContactModel::calculate_forces()
 {
-  // If it hasn't already been done, run prep calculations
-  if (prep_flag != 1) prep_contact();
-  if (!touch) {
-    forces[0] = forces[1] = forces[2] = 0.0;
-    return;
-  }
+  // calculate forces/torques
 
-  //**********************************************
-  // calculate forces
-  //**********************************************
   forces[0] = 0.0;
   double Fne, Fdamp;
   area = normal_model->calculate_area();
@@ -442,35 +425,36 @@ void ContactModel::calculate_forces()
   if (rolling_defined) rolling_model->calculate_forces();
   if (twisting_defined) twisting_model->calculate_forces();
 
-  //**********************************************
   // sum contributions
-  //**********************************************
 
   scale3(Fntot, nx, forces);
   add3(forces, fs, forces);
 
-  //May need to rethink this for use with walls (and eventually tris)..
+  //May need to rethink eventually tris..
   cross3(nx, fs, torquesi);
-  copy3(torquesi, torquesj);
 
   double dist_to_contact = radi - 0.5 * delta;
   scale3(dist_to_contact, torquesi);
-  dist_to_contact = radj - 0.5 * delta;
-  scale3(dist_to_contact, torquesj);
+
+  if (contact_type == PAIR) {
+    copy3(torquesi, torquesj);
+    dist_to_contact = radj - 0.5 * delta;
+    scale3(dist_to_contact, torquesj);
+  }
 
   double torroll[3];
   if (rolling_defined) {
     cross3(nx, fr, torroll);
     scale3(Reff, torroll);
     add3(torquesi, torroll, torquesi);
-    sub3(torquesj, torroll, torquesj);
+    if (contact_type == PAIR) sub3(torquesj, torroll, torquesj);
   }
 
   double tortwist[3];
   if (twisting_defined) {
     scale3(magtortwist, nx, tortwist);
     add3(torquesi, tortwist, torquesi);
-    sub3(torquesj, tortwist, torquesj);
+    if (contact_type == PAIR) sub3(torquesj, tortwist, torquesj);
   }
 
   if (heat_defined) {

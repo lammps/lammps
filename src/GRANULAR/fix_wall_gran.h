@@ -67,6 +67,9 @@ class FixWallGran : public Fix {
   int heat_flag;
   int limit_damping;
 
+  int tvar;
+  char *tstr;
+
   // shear history for single contact per particle
 
   double **history_one;

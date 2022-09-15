@@ -14,8 +14,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors:
-   Dan Bolintineanu (SNL), Ishan Srivastava (SNL), Jeremy Lechman(SNL)
-   Leo Silbert (SNL), Gary Grest (SNL)
+   Dan Bolintineanu (SNL), Joel Clemmer (SNL), Ishan Srivastava (SNL),
+   Jeremy Lechman(SNL), Leo Silbert (SNL), Gary Grest (SNL)
 ----------------------------------------------------------------------- */
 
 #include "pair_granular.h"
@@ -196,7 +196,6 @@ void PairGranular::compute(int eflag, int vflag)
       jtype = type[j];
 
       // Reset model and copy initial geometric data
-      models[itype][jtype]->reset_contact();
       models[itype][jtype]->xi = x[i];
       models[itype][jtype]->xj = x[j];
       models[itype][jtype]->radi = radius[i];
@@ -346,31 +345,30 @@ void PairGranular::coeff(int narg, char **arg)
   // Construct new model within vector
   vec_models.emplace_back(lmp);
 
-  //Parse mandatory normal and tangential specifications
+  //Parse mandatory specification
   int iarg = 2;
   vec_models.back().init_model(std::string(arg[iarg++]), NORMAL);
   iarg = vec_models.back().normal_model->parse_coeffs(arg, iarg, narg);
 
-  if (strcmp(arg[iarg++], "tangential") == 0) {
-    if (iarg >= narg)
-      error->all(FLERR,"Illegal pair_coeff command, must specify "
-          "tangential model after tangential keyword");
-    vec_models.back().init_model(std::string(arg[iarg++]), TANGENTIAL);
-    iarg = vec_models.back().tangential_model->parse_coeffs(arg, iarg, narg);
-  } else{
-    error->all(FLERR, "Illegal pair_coeff command, 'tangential' keyword expected");
-  }
-
   //Parse optional arguments
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "damping") == 0) {
+
+    if (strcmp(arg[iarg++], "tangential") == 0) {
+      if (iarg >= narg)
+        error->all(FLERR,"Illegal pair_coeff command, must specify "
+            "tangential model after tangential keyword");
+      vec_models.back().init_model(std::string(arg[iarg++]), TANGENTIAL);
+      iarg = vec_models.back().tangential_model->parse_coeffs(arg, iarg, narg);
+
+    } else if (strcmp(arg[iarg], "damping") == 0) {
       iarg++;
       if (iarg >= narg)
         error->all(FLERR, "Illegal pair_coeff command, must specify "
           "damping model after damping keyword");
       vec_models.back().init_model(std::string(arg[iarg++]), DAMPING);
       iarg = vec_models.back().damping_model->parse_coeffs(arg, iarg, narg);
+
     } else if (strcmp(arg[iarg], "rolling") == 0) {
       iarg++;
       if (iarg >= narg)
@@ -386,6 +384,7 @@ void PairGranular::coeff(int narg, char **arg)
           "twisting model after twisting keyword");
       vec_models.back().init_model(std::string(arg[iarg++]), TWISTING);
       iarg = vec_models.back().twisting_model->parse_coeffs(arg, iarg, narg);
+
     } else if (strcmp(arg[iarg], "heat") == 0) {
       iarg++;
       if (iarg >= narg)
@@ -394,6 +393,7 @@ void PairGranular::coeff(int narg, char **arg)
       vec_models.back().init_model(std::string(arg[iarg++]), HEAT);
       iarg = vec_models.back().heat_model->parse_coeffs(arg, iarg, narg);
       heat_flag = 1;
+
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters for cutoff keyword");
@@ -576,6 +576,8 @@ double PairGranular::init_one(int i, int j)
 
     for (int k = 0; k < NSUBMODELS; k++)
       vec_models.back().sub_models[k]->history_index = models[i][i]->sub_models[k]->history_index;
+
+    cutoff_type[i][j] = cutoff_type[j][i] = MAX(cutoff_type[i][i], cutoff_type[j][j]);
   }
 
   // Check if heat model is defined for all type combinations
@@ -732,7 +734,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double *radius = atom->radius;
 
   // Reset model and copy initial geometric data
-  models[itype][jtype]->reset_contact();
   models[itype][jtype]->xi = x[i];
   models[itype][jtype]->xj = x[j];
   models[itype][jtype]->radi = radius[i];

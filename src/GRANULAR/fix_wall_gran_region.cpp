@@ -12,7 +12,7 @@
    ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Dan Bolintineanu (SNL)
+   Contributing authors: Dan Bolintineanu (SNL), Joel Clemmer (SNL)
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran_region.h"
@@ -50,7 +50,7 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   tmax = region->tmax;
   c2r = new int[tmax];
 
-  model->wall_type = RDUPLICATE;
+  model->contact_type = WALLREGION;
 
   // re-allocate atom-based arrays with nshear
   // do not register with Atom class, since parent class did that
@@ -226,7 +226,6 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
       // Reset model and copy initial geometric data
       // A bit unncessary since region->contact[ic] stores r
-      model->reset_contact();
       model->dx[0] = region->contact[ic].delx;
       model->dx[1] = region->contact[ic].dely;
       model->dx[2] = region->contact[ic].delz;

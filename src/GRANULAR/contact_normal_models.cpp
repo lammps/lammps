@@ -261,7 +261,7 @@ void NormalJKR::coeffs_to_local()
   poiss = coeffs[2];
   cohesion = coeffs[3];
   k = FOURTHIRDS * Emod;
-  Escaled = mix_stiffnessE(Emod, Emod, poiss, poiss); //Dan, not sure why these coefficients are mixed in the regular pair style
+  Escaled = mix_stiffnessE(Emod, Emod, poiss, poiss);
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal JKR normal model");
 }

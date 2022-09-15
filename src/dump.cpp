@@ -20,11 +20,13 @@
 #include "error.h"
 #include "fix.h"
 #include "group.h"
+#include "input.h"
 #include "irregular.h"
 #include "memory.h"
 #include "modify.h"
 #include "output.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
@@ -86,6 +88,9 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   unit_count = 0;
   delay_flag = 0;
   write_header_flag = 1;
+
+  skipflag = 0;
+  skipvar = nullptr;
 
   maxfiles = -1;
   numfiles = 0;
@@ -164,6 +169,7 @@ Dump::~Dump()
   delete[] format_bigint_user;
 
   delete[] refresh;
+  delete[] skipvar;
 
   // format_column_user is deallocated by child classes that use it
 
@@ -298,6 +304,15 @@ void Dump::init()
     else error->all(FLERR,"Dump could not find refresh compute ID");
   }
 
+  // if skipflag, check skip variable
+
+  if (skipflag) {
+    skipindex = input->variable->find(skipvar);
+    if (skipindex < 0) error->all(FLERR,"Dump skip variable not found");
+    if (!input->variable->equalstyle(skipindex))
+      error->all(FLERR,"Variable for dump skip is invalid style");
+  }
+
   // preallocation for PBC copies if requested
 
   if (pbcflag && atom->nlocal > maxpbc) pbc_allocate();
@@ -325,15 +340,6 @@ void Dump::write()
   imageint *imagehold;
   double **xhold,**vhold;
 
-  // if timestep < delaystep, just return
-
-  if (delay_flag && update->ntimestep < delaystep) return;
-
-  // if file per timestep, open new file
-
-  if (multifile) openfile();
-  if (fp) clearerr(fp);
-
   // simulation box bounds
 
   if (domain->triclinic == 0) {
@@ -358,6 +364,24 @@ void Dump::write()
   // nme = # of dump lines this proc contributes to dump
 
   nme = count();
+
+  // if timestep < delaystep, just return
+  // if skip condition is defined and met, just return
+  // must do both these tests after count() b/c it invokes computes,
+  //   this enables caller to trigger future invocation of needed computes
+
+  if (delay_flag && update->ntimestep < delaystep) return;
+
+  if (skipflag) {
+    double value = input->variable->compute_equal(skipindex);
+    if (value != 0.0) return;
+  }
+
+  // if file per timestep, open new file
+  // do this after skip check, so no file is opened if skip occurs
+
+  if (multifile) openfile();
+  if (fp) clearerr(fp);
 
   // ntotal = total # of dump lines in snapshot
   // nmax = max # of dump lines on any proc
@@ -1262,6 +1286,15 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"pbc") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify pbc", error);
       pbcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"skip") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      skipflag = 1;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+        delete[] skipvar;
+        skipvar = utils::strdup(&arg[iarg+1][2]);
+      } else error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"sort") == 0) {

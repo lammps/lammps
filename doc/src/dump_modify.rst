@@ -181,8 +181,8 @@ extra buffering.
 .. versionadded:: 4May2022
 
 The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
+for dump styles: *atom*, *custom*, *cfg*, and *local* and their compressed,
+ADIOS, and MPIIO variants.  The setting for *ID string* replaces the default
 text with the provided string.  *ID* can be a positive integer when it
 represents the column number counting from the left, a negative integer
 when it represents the column number from the right (i.e. -1 is the last
@@ -415,33 +415,6 @@ performed with dump style *xtc*\ .
 
 ----------
 
-<<<<<<< HEAD
-.. versionadded:: 4May2022
-
-The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, *cfg*, and *local* and their compressed,
-ADIOS, and MPIIO variants.  The setting for *ID string* replaces the
-default text with the provided string.  *ID* can be a positive integer when
-it represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
-
-The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.  A
-setting of *default* clears all previous settings, reverting all values
-to their default names.
-
-----------
-
-=======
->>>>>>> develop
 The *format* keyword can be used to change the default numeric format output
 by the text-based dump styles: *atom*, *local*, *custom*, *cfg*, and
 *xyz* styles, and their MPIIO variants. Only the *line* or *none*

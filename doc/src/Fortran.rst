@@ -221,7 +221,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
       communicator, such as in
 
       .. code-block:: Fortran
-       
+
          PROGRAM testmpi
             USE LIBLAMMPS
             USE MPI_F08
@@ -312,7 +312,7 @@ Procedures Bound to the lammps Derived Type
    are optional, though obviously at least one should be present. The
    parameters *pflags* and *boxflag* are stored in LAMMPS as integers, but
    should be declared as ``LOGICAL`` variables when calling from Fortran.
- 
+
    :o real(c_double) boxlo [dimension(3),optional]: vector in which to store
     lower-bounds of simulation box
    :o real(c_double) boxhi [dimension(3),optional]: vector in which to store

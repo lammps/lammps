@@ -10,7 +10,7 @@ Syntax
 
    improper_coeff N args
 
-* N = improper type (see asterisk form below)
+* N = numeric improper type (see asterisk form below), or type label
 * args = coefficients for one or more improper types
 
 Examples
@@ -22,27 +22,34 @@ Examples
    improper_coeff * 80.2 -1 2
    improper_coeff *4 80.2 -1 2
 
+   labelmap improper 1 benzene
+   improper_coeff benzene 300.0 0.0
+
 Description
 """""""""""
 
 Specify the improper force field coefficients for one or more improper
 types.  The number and meaning of the coefficients depends on the
-improper style.  Improper coefficients can also be set in the data
-file read by the :doc:`read_data <read_data>` command or in a restart
-file.
+improper style.  Improper coefficients can also be set in the data file
+read by the :doc:`read_data <read_data>` command or in a restart file.
 
-N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the first example above.  Or a wild-card asterisk can be
-used to set the coefficients for multiple improper types.  This takes
-the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of improper
-types, then an asterisk with no numeric values means all types from 1
-to N.  A leading asterisk means all types from 1 to n (inclusive).  A
-trailing asterisk means all types from n to N (inclusive).  A middle
-asterisk means all types from m to n (inclusive).
+:math:`N` can be specified in one of two ways.  An explicit numeric
+value can be used, as in the first example above.  Or :math:`N` can be a
+type label, which is an alphanumeric string defined by the
+:doc:`labelmap <labelmap>` command or in a section of a data file read
+by the :doc:`read_data <read_data>` command.
+
+For numeric values only, a wild-card asterisk can be used to set the
+coefficients for multiple improper types.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If :math:`N` = the number of improper types,
+then an asterisk with no numeric values means all types from 1 to
+:math:`N`.  A leading asterisk means all types from 1 to n (inclusive).
+A trailing asterisk means all types from n to :math:`N` (inclusive).  A
+middle asterisk means all types from m to n (inclusive).
 
 Note that using an improper_coeff command can override a previous
-setting for the same improper type.  For example, these commands set
-the coeffs for all improper types, then overwrite the coeffs for just
+setting for the same improper type.  For example, these commands set the
+coeffs for all improper types, then overwrite the coeffs for just
 improper type 2:
 
 .. code-block:: LAMMPS
@@ -53,9 +60,9 @@ improper type 2:
 A line in a data file that specifies improper coefficients uses the
 exact same format as the arguments of the improper_coeff command in an
 input script, except that wild-card asterisks should not be used since
-coefficients for all N types must be listed in the file.  For example,
-under the "Improper Coeffs" section of a data file, the line that
-corresponds to the first example above would be listed as
+coefficients for all :math:`N` types must be listed in the file.  For
+example, under the "Improper Coeffs" section of a data file, the line
+that corresponds to the first example above would be listed as
 
 .. parsed-literal::
 

@@ -37,7 +37,7 @@ RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) :
   // enforce unit normal
 
   double rsq = normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2];
-  if (rsq == 0.0) error->all(FLERR,"Illegal region plane command");
+  if (rsq == 0.0) error->all(FLERR,"Illegal region plane normal vector: {} {} {}", normal[0], normal[1], normal[2]);
   normal[0] /= sqrt(rsq);
   normal[1] /= sqrt(rsq);
   normal[2] /= sqrt(rsq);

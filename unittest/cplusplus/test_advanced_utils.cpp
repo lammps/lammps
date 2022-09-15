@@ -16,7 +16,6 @@
 bool verbose = false;
 
 namespace LAMMPS_NS {
-
 class Advanced_utils : public LAMMPSTest {
 protected:
     Error *error;
@@ -218,7 +217,6 @@ TEST_F(Advanced_utils, expand_args)
         delete[] args[i];
     delete[] args;
 }
-
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
@@ -226,12 +224,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

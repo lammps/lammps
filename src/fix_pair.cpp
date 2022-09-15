@@ -37,14 +37,14 @@ using namespace FixConst;
 FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all(FLERR,"Illegal fix pair command");
+  if (narg < 7) utils::missing_cmd_args(FLERR, "fix pair", error);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 1) error->all(FLERR,"Illegal fix pair command");
+  if (nevery < 1) error->all(FLERR,"Illegal fix pair every value: {}", nevery);
 
   pairname = utils::strdup(arg[4]);
   pstyle = force->pair_match(pairname,1,0);
-  if (pstyle == nullptr) error->all(FLERR,"Fix pair pair style not found");
+  if (pstyle == nullptr) error->all(FLERR,"Pair style {} for fix pair not found", pairname);
 
   nfield = (narg-5) / 2;
   fieldname = new char*[nfield];
@@ -54,12 +54,12 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
 
   while (iarg < narg) {
-    if (iarg+2 > narg) error->all(FLERR,"Illegal fix pair command");
+    if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix pair {}", arg[iarg]), error);
     fieldname[nfield] = utils::strdup(arg[iarg]);
     int flag = utils::inumeric(FLERR,arg[iarg+1],true,lmp);
     if (flag == 0) trigger[nfield] = 0;
     else if (flag == 1) trigger[nfield] = 1;
-    else error->all(FLERR,"Illegal fix pair command");
+    else error->all(FLERR,"Illegal fix pair {} command flag: {}", arg[iarg], arg[iarg+1]);
     nfield++;
     iarg += 2;
   }
@@ -70,10 +70,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     if (trigger[ifield] == 0) triggername[ifield] = nullptr;
-    else {
-      auto str = fmt::format("{}_flag", fieldname[ifield]);
-      triggername[ifield] = utils::strdup(str);
-    }
+    else triggername[nfield] = utils::strdup(fmt::format("{}_flag", fieldname[ifield]));
   }
 
   // extract all fields just to get number of per-atom values
@@ -93,16 +90,16 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
     if (trigger[ifield]) {
       int dim;
       triggerptr[ifield] = (int *) pstyle->extract(triggername[ifield],dim);
-      if (!triggerptr[ifield]) 
-        error->all(FLERR,"Fix pair pair style cannot extract {}",
-                   triggername[ifield]);
-      if (dim) error->all(FLERR,"Fix pair pair style {} is not a scalar",
-                          triggername[ifield]);
+      if (!triggerptr[ifield])
+        error->all(FLERR,"Fix pair pair style cannot extract {}", triggername[ifield]);
+      if (dim)
+        error->all(FLERR,"Fix pair pair style {} trigger {} is not a scalar",
+                   pairname, triggername[ifield]);
     }
   }
 
   // if set peratom_freq = Nevery, then cannot access the per-atom
-  //   values as part of thermo output during minimiziation 
+  //   values as part of thermo output during minimiziation
   //   at different frequency or on last step of minimization
   // instead set peratom_freq = 1
   //   ok, since vector/array always have values
@@ -110,7 +107,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   //     since it may be accessed
 
   peratom_flag = 1;
-  if (ncols == 1) size_peratom_cols = 0; // MODIFIED
+  if (ncols == 1) size_peratom_cols = 0;
   else size_peratom_cols = ncols;
   peratom_freq = 1;
 
@@ -145,17 +142,17 @@ FixPair::~FixPair()
 
   atom->delete_callback(id,Atom::GROW);
 
-  delete [] pairname;
+  delete[] pairname;
   for (int ifield = 0; ifield < nfield; ifield++) {
-    delete [] fieldname[ifield];
-    delete [] triggername[ifield];
+    delete[] fieldname[ifield];
+    delete[] triggername[ifield];
   }
 
-  delete [] fieldname;
-  delete [] trigger;
-  delete [] triggername;
-  delete [] triggerptr;
-  
+  delete[] fieldname;
+  delete[] trigger;
+  delete[] triggername;
+  delete[] triggerptr;
+
   if (ncols == 1) memory->destroy(vector);
   else memory->destroy(array);
 }
@@ -179,7 +176,7 @@ void FixPair::init()
   // insure pair style still exists
 
   pstyle = force->pair_match(pairname,1,0);
-  if (pstyle == nullptr) error->all(FLERR,"Fix pair pair style not found");
+  if (pstyle == nullptr) error->all(FLERR,"Pair style {} for fix pair not found", pairname);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -225,7 +222,7 @@ void FixPair::post_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
-  // extract pair style fields one by one 
+  // extract pair style fields one by one
   // store their values in this fix
 
   int nlocal = atom->nlocal;
@@ -235,12 +232,12 @@ void FixPair::post_force(int /*vflag*/)
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
-    if (pvoid == nullptr) 
+    if (pvoid == nullptr)
       error->all(FLERR,"Fix pair pair style cannot extract {}",fieldname[ifield]);
 
     if (columns == 0) {
       double *pvector = (double *) pvoid;
-      if (ncols == 1) { 
+      if (ncols == 1) {
         for (int i = 0; i < nlocal; i++)
           vector[i] = pvector[i];
       } else {

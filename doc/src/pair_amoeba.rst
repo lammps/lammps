@@ -156,15 +156,17 @@ settings.
 
 ----------
 
-The *amoeba* and *hippo* pair styles support extraction of two
-per-atom quantities by the :doc:`fix pair <fix_pair>` command.  This
-allows the quantities to be output to files by the :doc:`dump <dump>`
-or otherwise processed by other LAMMPS commamds.
+.. versionadded:: TBD
 
-The names of the two quantites are "uind" and "uinp" for the induced
-dipole moments for each atom.  Neither quantity needs to be triggered
-by the :doc:`fix pair <fix_pair>` command in order for these pair
-styles to calculate it.
+The *amoeba* and *hippo* pair styles support extraction of two per-atom
+quantities by the :doc:`fix pair <fix_pair>` command.  This allows the
+quantities to be output to files by the :doc:`dump <dump>` or otherwise
+processed by other LAMMPS commands.
+
+The names of the two quantities are "uind" and "uinp" for the induced
+dipole moments for each atom.  Neither quantity needs to be triggered by
+the :doc:`fix pair <fix_pair>` command in order for these pair styles to
+calculate it.
 
 ----------
 

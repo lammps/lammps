@@ -55,14 +55,14 @@ Examples
    delete_atoms random fraction 0.1 yes all cube 482793 bond yes
    delete_atoms random fraction 0.3 no polymer NULL 482793 bond yes
    delete_atoms random count 500 no ions NULL 482793
-   detele_atoms variable checkers
+   delete_atoms variable checkers
 
 Description
 """""""""""
 
 Delete the specified atoms.  This command can be used, for example, to
 carve out voids from a block of material or to delete created atoms
-that are too close to each other (e.g. at a grain boundary).
+that are too close to each other (e.g., at a grain boundary).
 
 For style *group*, all atoms belonging to the group are deleted.
 
@@ -78,7 +78,7 @@ first group specified and the other atom is in the second group are
 considered.  The atom that is in the first group is the one that is
 deleted.
 
-Note that it is OK for the two group IDs to be the same (e.g. group
+Note that it is OK for the two group IDs to be the same (e.g., group
 *all*\ ), or for some atoms to be members of both groups.  In these
 cases, either atom in the pair may be deleted.  Also note that if
 there are atoms which are members of both groups, the only guarantee
@@ -147,7 +147,7 @@ interactions, is one where the topology of the interactions is
 typically defined in the data file read by the :doc:`read_data
 <read_data>` command, and where the interactions themselves are
 defined with the :doc:`bond_style <bond_style>`, :doc:`angle_style
-<angle_style>`, etc commands.  If you delete atoms from such a system,
+<angle_style>`, etc. commands.  If you delete atoms from such a system,
 you must be careful not to end up with bonded interactions that are
 stored by remaining atoms but which include deleted atoms.  This will
 cause LAMMPS to generate a "missing atoms" error when the bonded
@@ -158,7 +158,7 @@ It the *bond* keyword is set to *yes* then any bond or angle or
 dihedral or improper interaction that includes a deleted atom is also
 removed from the lists of such interactions stored by non-deleted
 atoms.  Note that simply deleting interactions due to dangling bonds
-(e.g. at a surface) may result in a inaccurate or invalid model for
+(e.g., at a surface) may result in a inaccurate or invalid model for
 the remaining atoms.
 
 It the *mol* keyword is set to *yes*, then for every atom that is
@@ -169,7 +169,7 @@ part of molecules.
 
 .. note::
 
-   The molecule deletion operation in invoked after all individual
+   The molecule deletion operation is invoked after all individual
    atoms have been deleted using the rules described above for each
    style.  This means additional atoms may be deleted that are not in the
    group or region, that are not required by the overlap cutoff
@@ -182,17 +182,17 @@ Restrictions
 The *overlap* styles requires inter-processor communication to acquire
 ghost atoms and build a neighbor list.  This means that your system
 must be ready to perform a simulation before using this command (force
-fields setup, atom masses set, etc).  Since a neighbor list is used to
+fields setup, atom masses set, etc.).  Since a neighbor list is used to
 find overlapping atom pairs, it also means that you must define a
 :doc:`pair style <pair_style>` with the minimum force cutoff distance
 between any pair of atoms types (plus the :doc:`neighbor <neighbor>`
-skin) >= the specified overlap cutoff.
+skin) :math:`\ge` the specified overlap cutoff.
 
 If the :doc:`special_bonds <special_bonds>` command is used with a
-setting of 0, then a pair of bonded atoms (1-2, 1-3, or 1-4) will not
+setting of 0, then a pair of bonded atoms (1--2, 1--3, or 1--4) will not
 appear in the neighbor list, and thus will not be considered for
-deletion by the *overlap* styles.  You probably don't want to be
-deleting one atom in a bonded pair anyway.
+deletion by the *overlap* styles.  You probably do not want to
+delete one atom in a bonded pair anyway.
 
 The *bond yes* option cannot be used with molecular systems defined
 using molecule template files via the :doc:`molecule <molecule>` and

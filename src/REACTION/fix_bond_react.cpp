@@ -57,10 +57,10 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
-  "fix bond/react: reacter.org\n\n"
+  "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, doi:10.1021/acs.macromol.0c02012\n\n"
   "@Article{Gissinger17,\n"
-  " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
-  " title = {Modeling chemical reactions in classical molecular dynamics simulations},\n"
+  " author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},\n"
+  " title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},\n"
   " journal = {Polymer},\n"
   " year =    2017,\n"
   " volume =  128,\n"
@@ -68,10 +68,11 @@ static const char cite_fix_bond_react[] =
   "}\n\n"
   "@Article{Gissinger20,\n"
   " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
-  " title = {REACTER: A Heuristic Method for Reactive Molecular Dynamics},\n"
+  " title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},\n"
   " journal = {Macromolecules},\n"
   " year =    2020,\n"
   " volume =  53,\n"
+  " number =  22,\n"
   " pages =   {9953--9961}\n"
   "}\n\n";
 
@@ -471,8 +472,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     open(files[i]);
     onemol = atom->molecules[unreacted_mol[i]];
     twomol = atom->molecules[reacted_mol[i]];
-    onemol->check_attributes(0);
-    twomol->check_attributes(0);
+    onemol->check_attributes();
+    twomol->check_attributes();
     get_molxspecials();
     read(i);
     fclose(fp);
@@ -793,7 +794,7 @@ void FixBondReact::init()
 {
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // check cutoff for iatomtype,jatomtype
   for (int i = 0; i < nreacts; i++) {
@@ -1725,7 +1726,7 @@ void FixBondReact::inner_crosscheck_loop()
   int num_choices = 0;
   for (int i = 0; i < nfirst_neighs; i++) {
     if (type[(int)atom->map(xspecial[atom->map(glove[pion][1])][i])] == onemol->type[(int)onemol_xspecial[pion][neigh]-1]) {
-      if (num_choices > 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
+      if (num_choices == 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
         status = GUESSFAIL;
         return;
       }
@@ -2069,8 +2070,8 @@ void FixBondReact::get_IDcoords(int mode, int myID, double *center)
         nfragatoms++;
       }
     }
-    for (int i = 0; i < 3; i++)
-      center[i] /= nfragatoms;
+    if (nfragatoms > 0)
+      for (int i = 0; i < 3; i++) center[i] /= nfragatoms;
   }
 }
 

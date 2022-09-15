@@ -766,7 +766,7 @@ TEST(PairStyle, gpu)
         GTEST_SKIP();
 
     const char *args_neigh[]   = {"PairStyle", "-log",    "none", "-echo",
-                                "screen",    "-nocite", "-sf",  "gpu"};
+                                  "screen",    "-nocite", "-sf",  "gpu"};
     const char *args_noneigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf",
                                   "gpu",       "-pk",  "gpu",  "0",     "neigh",  "no"};
 

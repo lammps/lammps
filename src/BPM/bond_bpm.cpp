@@ -84,9 +84,9 @@ void BondBPM::init_style()
 {
   if (id_fix_store_local) {
     auto ifix = modify->get_fix_by_id(id_fix_store_local);
-    if (!ifix) error->all(FLERR, "Cannot find fix store/local");
-    if (strcmp(ifix->style, "STORE_LOCAL") != 0)
-      error->all(FLERR, "Incorrect fix style matched, not store/local");
+    if (!ifix) error->all(FLERR, "Cannot find fix STORE/LOCAL id {}", id_fix_store_local);
+    if (strcmp(ifix->style, "STORE/LOCAL") != 0)
+      error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
     fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
     fix_store_local->nvalues = nvalues;
   }
@@ -141,7 +141,7 @@ void BondBPM::init_style()
    global settings
    All args before store/local command are saved for potential args
      for specific bond BPM substyles
-   All args after optional store/local command are variables stored
+   All args after optional stode/local command are variables stored
      in the compute store/local
 ------------------------------------------------------------------------- */
 
@@ -202,7 +202,7 @@ void BondBPM::settings(int narg, char **arg)
     auto ifix = modify->get_fix_by_id(id_fix_store_local);
     if (!ifix)
       ifix = modify->add_fix(
-          fmt::format("{} all STORE_LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues));
+          fmt::format("{} all STORE/LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues));
     fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
 
     // Use property/atom to save reference positions as it can transfer to ghost atoms

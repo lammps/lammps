@@ -116,7 +116,7 @@ void FixSRP::init()
   // because this fix's pre_exchange() creates per-atom data structure
   // that data must be current for atom migration to carry it along
 
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (ifix == this) break;
     if (ifix->pre_exchange_migrate)
       error->all(FLERR,"Fix {} comes after a fix which migrates atoms in pre_exchange", style);

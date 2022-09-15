@@ -387,9 +387,7 @@ void MolfileInterface::forget_plugin()
   _dso = nullptr;
 
   delete[] _name;
-    _name = new char[5];
-  strcpy(_name,"none");
-
+  _name = utils::strdup("none");
   _caps = M_NONE;
 }
 

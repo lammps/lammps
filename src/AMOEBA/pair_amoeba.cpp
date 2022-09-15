@@ -21,10 +21,11 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "gridcomm.h"
 #include "group.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "my_page.h"
@@ -39,6 +40,8 @@
 #include <cctype>
 
 using namespace LAMMPS_NS;
+
+using MathSpecial::powint;
 
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP,PVAL};  // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                                   // reverse comm
@@ -130,6 +133,14 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   forcefield = nullptr;
 
   id_pole = id_udalt = id_upalt = nullptr;
+
+  memset(special_hal, 0 , sizeof(special_hal));
+  memset(special_repel, 0 , sizeof(special_repel));
+  memset(special_disp, 0 , sizeof(special_disp));
+  memset(special_mpole, 0 , sizeof(special_mpole));
+  memset(special_polar_pscale, 0 , sizeof(special_polar_pscale));
+  memset(special_polar_piscale, 0 , sizeof(special_polar_piscale));
+  memset(special_polar_wscale, 0 , sizeof(special_polar_wscale));
 
   nualt = 0;
   first_flag = 1;
@@ -780,8 +791,8 @@ void PairAmoeba::init_style()
   Fix *myfix;
   if (first_flag) {
     id_pole = utils::strdup("AMOEBA_pole");
-    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 13",id_pole,group->names[0]));
-    fixpole = dynamic_cast<FixStore *>(myfix);
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 13",id_pole,group->names[0]));
+    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
   }
 
   // creation of per-atom storage
@@ -792,14 +803,14 @@ void PairAmoeba::init_style()
 
   if (first_flag && use_pred) {
     id_udalt = utils::strdup("AMOEBA_udalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
                                         id_udalt, group->names[0], maxualt));
-    fixudalt = dynamic_cast<FixStore *>(myfix);
+    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
 
     id_upalt = utils::strdup("AMOEBA_upalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
                                         id_upalt, group->names[0], maxualt));
-    fixupalt = dynamic_cast<FixStore *>(myfix);
+    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
   }
 
   // create pages for storing pairwise data:
@@ -913,19 +924,22 @@ void PairAmoeba::init_style()
 
   if (id_pole) {
     myfix = modify->get_fix_by_id(id_pole);
-    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_pole);
-    fixpole = dynamic_cast<FixStore *>(myfix);
+    if (!myfix)
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_pole);
+    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
 
   }
 
   if (id_udalt) {
     myfix = modify->get_fix_by_id(id_udalt);
-    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_udalt);
-    fixudalt = dynamic_cast<FixStore *>(myfix);
+    if (!myfix)
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_udalt);
+    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
 
     myfix = modify->get_fix_by_id(id_upalt);
-    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_upalt);
-    fixupalt = dynamic_cast<FixStore *>(myfix);
+    if (!myfix)
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_upalt);
+    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
   }
 
   // assign hydrogen neighbors (redID) to each owned atom
@@ -1956,7 +1970,7 @@ void PairAmoeba::choose(int which)
 
   // taper coeffs
 
-  double denom = pow(off-cut,5.0);
+  double denom = powint(off-cut,5);
   c0 = off*off2 * (off2 - 5.0*off*cut + 10.0*cut2) / denom;
   c1 = -30.0 * off2*cut2 / denom;
   c2 = 30.0 * (off2*cut+off*cut2) / denom;
@@ -2026,7 +2040,7 @@ void PairAmoeba::mix()
       } else if (epsilon_rule == HHG) {
         eij = 4.0 * (ei*ej) / ((sei+sej)*(sei+sej));
       } else if (epsilon_rule == W_H) {
-        eij = 2.0 * (sei*sej) * pow(ri*rj,3.0) / (pow(ri,6.0) + pow(rj,6.0));
+        eij = 2.0 * (sei*sej) * powint(ri*rj,3) / (powint(ri,6) + powint(rj,6));
       } else {
         eij = sei * sej;
       }

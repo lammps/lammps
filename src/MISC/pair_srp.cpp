@@ -52,10 +52,11 @@ using namespace LAMMPS_NS;
 #define ONETWOBIT 0x40000000
 
 static const char cite_srp[] =
+  "pair srp command: doi:10.1063/1.3698476\n\n"
   "@Article{Sirk2012\n"
-  " author = {T. Sirk and Y. Sliozberg and J. Brennan and M. Lisal and J. Andzelm},\n"
-  " title = {An enhanced entangled polymer model for dissipative particle dynamics},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " author = {T. W. Sirk and Y. R. Sliozberg and J. K. Brennan and M. Lisal and J. W. Andzelm},\n"
+  " title = {An Enhanced Entangled Polymer Model for Dissipative Particle Dynamics},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2012,\n"
   " volume =  136,\n"
   " pages =   {134903}\n"

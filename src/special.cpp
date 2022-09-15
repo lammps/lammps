@@ -857,10 +857,10 @@ void Special::combine()
     utils::logmesg(lmp,"{:>6} = max # of special neighbors\n",atom->maxspecial);
 
   if (lmp->kokkos) {
-    auto  atomKK = dynamic_cast<AtomKokkos*>( atom);
+    auto  atomKK = dynamic_cast<AtomKokkos*>(atom);
     atomKK->modified(Host,SPECIAL_MASK);
     atomKK->sync(Device,SPECIAL_MASK);
-    auto  memoryKK = dynamic_cast<MemoryKokkos*>( memory);
+    auto  memoryKK = dynamic_cast<MemoryKokkos*>(memory);
     memoryKK->grow_kokkos(atomKK->k_special,atom->special,
                         atom->nmax,atom->maxspecial,"atom:special");
     atomKK->modified(Device,SPECIAL_MASK);

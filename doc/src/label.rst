@@ -38,7 +38,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-none
+:doc:`jump <jump>`, :doc:`next <next>`
 
 
 Default

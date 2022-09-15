@@ -20,10 +20,11 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "label_map.h"
 #include "library.h"
 #include "lmppython.h"
 #include "math_const.h"
@@ -162,7 +163,7 @@ Variable::~Variable()
 
 void Variable::set(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal variable command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "variable", error);
 
   int replaceflag = 0;
 
@@ -170,7 +171,8 @@ void Variable::set(int narg, char **arg)
   // doesn't matter if variable no longer exists
 
   if (strcmp(arg[1],"delete") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal variable command");
+    if (narg != 2)
+      error->all(FLERR,"Illegal variable delete command: expected 2 arguments but found {}", narg);
     if (find(arg[0]) >= 0) remove(find(arg[0]));
     return;
 
@@ -178,7 +180,7 @@ void Variable::set(int narg, char **arg)
   // num = listed args, which = 1st value, data = copied args
 
   } else if (strcmp(arg[1],"index") == 0) {
-    if (narg < 3) error->all(FLERR,"Illegal variable command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable index", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = INDEX;
@@ -193,6 +195,7 @@ void Variable::set(int narg, char **arg)
   // 2 args + pad: num = N2, which = N1, data = single string
 
   } else if (strcmp(arg[1],"loop") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable loop", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = LOOP;
@@ -200,7 +203,7 @@ void Variable::set(int narg, char **arg)
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
       nlast = utils::inumeric(FLERR,arg[2],false,lmp);
-      if (nlast <= 0) error->all(FLERR,"Illegal variable command");
+      if (nlast <= 0) error->all(FLERR, "Invalid variable loop argument: {}", nlast);
       if (narg == 4 && strcmp(arg[3],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
@@ -208,11 +211,11 @@ void Variable::set(int narg, char **arg)
       nfirst = utils::inumeric(FLERR,arg[2],false,lmp);
       nlast = utils::inumeric(FLERR,arg[3],false,lmp);
       if (nfirst > nlast || nlast < 0)
-        error->all(FLERR,"Illegal variable command");
+        error->all(FLERR,"Illegal variable loop command: {} > {}", nfirst,nlast);
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
-    } else error->all(FLERR,"Illegal variable command");
+    } else error->all(FLERR,"Illegal variable loop command: too much arguments");
     num[nvar] = nlast;
     which[nvar] = nfirst-1;
     data[nvar] = new char*[1];
@@ -223,7 +226,7 @@ void Variable::set(int narg, char **arg)
   // error check that num = # of worlds in universe
 
   } else if (strcmp(arg[1],"world") == 0) {
-    if (narg < 3) error->all(FLERR,"Illegal variable command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable world", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = WORLD;
@@ -244,7 +247,7 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1],"universe") == 0 || strcmp(arg[1],"uloop") == 0) {
     if (strcmp(arg[1],"universe") == 0) {
-      if (narg < 3) error->all(FLERR,"Illegal variable command");
+      if (narg < 3) utils::missing_cmd_args(FLERR, "variable universe", error);
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = UNIVERSE;
@@ -253,8 +256,10 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(num[nvar],&arg[2],data[nvar]);
     } else if (strcmp(arg[1],"uloop") == 0) {
-      if (narg < 3 || narg > 4 || (narg == 4 && strcmp(arg[3],"pad") != 0))
-        error->all(FLERR,"Illegal variable command");
+      if (narg < 3 || narg > 4)
+        error->all(FLERR,"Illegal variable command: expected 3 or 4 arguments but found {}", narg);
+      if (narg == 4 && strcmp(arg[3],"pad") != 0)
+        error->all(FLERR, "Invalid variable uloop argument: {}", arg[3]);
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = ULOOP;
@@ -292,7 +297,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"string") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
 
     int maxcopy = strlen(arg[2]) + 1;
     int maxwork = maxcopy;
@@ -326,7 +331,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"getenv") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (find(arg[0]) >= 0) {
       if (style[find(arg[0])] != GETENV)
         error->all(FLERR,"Cannot redefine variable as a different style");
@@ -346,7 +351,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"file") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = SCALARFILE;
@@ -364,7 +369,7 @@ void Variable::set(int narg, char **arg)
   // data = nullptr
 
   } else if (strcmp(arg[1],"atomfile") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = ATOMFILE;
@@ -384,7 +389,7 @@ void Variable::set(int narg, char **arg)
   //   3rd is filled on retrieval
 
   } else if (strcmp(arg[1],"format") == 0) {
-    if (narg != 4) error->all(FLERR,"Illegal variable command");
+    if (narg != 4) error->all(FLERR,"Illegal variable command: expected 4 arguments but found {}", narg);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = FORMAT;
@@ -404,7 +409,7 @@ void Variable::set(int narg, char **arg)
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != EQUAL)
@@ -430,7 +435,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"atom") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != ATOM)
@@ -454,7 +459,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"vector") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != VECTOR)
@@ -478,7 +483,7 @@ void Variable::set(int narg, char **arg)
   // data = 2 values, 1st is Python func to invoke, 2nd is filled by invoke
 
   } else if (strcmp(arg[1],"python") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (!python->is_enabled())
       error->all(FLERR,"LAMMPS is not built with Python embedded");
     int ivar = find(arg[0]);
@@ -507,7 +512,7 @@ void Variable::set(int narg, char **arg)
   // dvalue = numeric initialization via platform::walltime()
 
   } else if (strcmp(arg[1],"timer") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal variable command");
+    if (narg != 2) error->all(FLERR,"Illegal variable command: expected 2 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != TIMER)
@@ -531,7 +536,7 @@ void Variable::set(int narg, char **arg)
   // dvalue = numeric initialization from 2nd arg, reset by internal_set()
 
   } else if (strcmp(arg[1],"internal") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != INTERNAL)
@@ -551,7 +556,7 @@ void Variable::set(int narg, char **arg)
 
   // unrecognized variable style
 
-  } else error->all(FLERR,"Illegal variable command");
+  } else error->all(FLERR,"Unknown variable keyword: {}", arg[1]);
 
   // set name of variable, if not replacing one flagged with replaceflag
   // name must be all alphanumeric chars or underscores
@@ -1957,7 +1962,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
 
       // ----------------
-      // math/group/special function or atom value/vector or
+      // math/group/special/labelmap function or atom value/vector or
       // constant or thermo keyword
       // ----------------
 
@@ -3942,11 +3947,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
       strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_active") != 0 &&
       strcmp(word,"is_defined") != 0 && strcmp(word,"is_available") != 0 && strcmp(word,"is_file") != 0 &&
-      strcmp(word,"extract_setting") != 0)
+      strcmp(word,"is_os") != 0 && strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
     return 0;
 
   // parse contents for comma-separated args
   // narg = number of args, args = strings between commas
+
+  std::string contents_copy(contents); // for label2type
 
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
@@ -4340,10 +4347,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
 
-  } else if (strcmp(word,"extract_setting") == 0) {
-    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function in variable formula",ivar);
-
-    value = lammps_extract_setting(lmp, args[0]);
+  } else if (strcmp(word,"is_os") == 0) {
+    if (narg != 1) print_var_error(FLERR,"Invalid is_os() function in variable formula",ivar);
+    value = utils::strmatch(platform::os_info(), args[0]) ? 1.0 : 0.0;
 
     // save value in tree or on argstack
 
@@ -4351,6 +4357,65 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       auto newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"extract_setting") == 0) {
+    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function syntax in variable formula",ivar);
+
+    value = lammps_extract_setting(lmp, args[0]);
+    if (value < 0) {
+      auto mesg = fmt::format("Unknown setting {} for extract_setting() function in variable formula",args[0]);
+      print_var_error(FLERR,mesg,ivar);
+    }
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      auto newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"label2type") == 0) {
+    if (!atom->labelmapflag)
+      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+
+    auto pos = contents_copy.find_first_of(',');
+    if (pos == std::string::npos)
+      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                       contents_copy), ivar);
+    std::string typestr = contents_copy.substr(pos+1);
+    std::string kind = contents_copy.substr(0, pos);
+
+    int value = -1;
+    if (kind == "atom") {
+      value = atom->lmap->find(typestr,Atom::ATOM);
+    } else if (kind == "bond") {
+      value = atom->lmap->find(typestr,Atom::BOND);
+    } else if (kind == "angle") {
+      value = atom->lmap->find(typestr,Atom::ANGLE);
+    } else if (kind == "dihedral") {
+      value = atom->lmap->find(typestr,Atom::DIHEDRAL);
+    } else if (kind == "improper") {
+      value = atom->lmap->find(typestr,Atom::IMPROPER);
+    } else {
+      print_var_error(FLERR, fmt::format("Invalid type kind {} in variable formula",kind), ivar);
+    }
+
+    if (value == -1)
+      print_var_error(FLERR, fmt::format("Invalid {} type label {} in variable formula",
+                                         kind, typestr), ivar);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = nullptr;
+      newtree->nextra = 0;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
   }
@@ -4911,7 +4976,8 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       error->all(FLERR,"Cannot use atomfile-style variable unless an atom map exists");
 
     id_fix = utils::strdup(std::string(name) + "_VARIABLE_STORE");
-    fixstore = dynamic_cast<FixStore *>( modify->add_fix(std::string(id_fix) + " all STORE peratom 0 1"));
+    fixstore = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(std::string(id_fix) + " all STORE/PERATOM 0 1"));
     buffer = new char[CHUNK*MAXLINE];
   }
 }

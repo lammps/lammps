@@ -33,12 +33,14 @@ Syntax
        *m* value = one or more mass values
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol*
+* keyword = *mol* or *kbond*
 
   .. parsed-literal::
 
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
+       *kbond* value = force constant
+         force constant = force constant used to apply a restraint force when used during minimization
 
 Examples
 """"""""
@@ -56,7 +58,10 @@ Description
 
 Apply bond and angle constraints to specified bonds and angles in the
 simulation by either the SHAKE or RATTLE algorithms.  This typically
-enables a longer timestep.
+enables a longer timestep.  The SHAKE or RATTLE algorithms, however, can
+*only* be applied during molecular dynamics runs.  When this fix is used
+during a minimization, the constraints are *approximated* by strong
+harmonic restraints.
 
 **SHAKE vs RATTLE:**
 
@@ -90,7 +95,7 @@ The SHAKE algorithm satisfies the first condition, i.e. the sites at
 time *n+1* will have the desired separations Dij immediately after the
 coordinates are integrated.  If we also enforce the second condition,
 the velocity components along the bonds will vanish.  RATTLE satisfies
-both conditions.  As implemented in LAMMPS, fix rattle uses fix shake
+both conditions.  As implemented in LAMMPS, *fix rattle* uses fix shake
 for satisfying the coordinate constraints. Therefore the settings and
 optional keywords are the same for both fixes, and all the information
 below about SHAKE is also relevant for RATTLE.
@@ -139,29 +144,46 @@ for.
 
 .. note::
 
-   This command works by using the current forces on atoms to
-   calculate an additional constraint force which when added will leave
-   the atoms in positions that satisfy the SHAKE constraints (e.g. bond
-   length) after the next time integration step.  If you define fixes
-   (e.g. :doc:`fix efield <fix_efield>`) that add additional force to the
-   atoms after fix shake operates, then this fix will not take them into
-   account and the time integration will typically not satisfy the SHAKE
-   constraints.  The solution for this is to make sure that fix shake is
-   defined in your input script after any other fixes which add or change
-   forces (to atoms that fix shake operates on).
+   This command works by using the current forces on atoms to calculate
+   an additional constraint force which when added will leave the atoms
+   in positions that satisfy the SHAKE constraints (e.g. bond length)
+   after the next time integration step.  If you define fixes
+   (e.g. :doc:`fix efield <fix_efield>`) that add additional force to
+   the atoms after *fix shake* operates, then this fix will not take them
+   into account and the time integration will typically not satisfy the
+   SHAKE constraints.  The solution for this is to make sure that fix
+   shake is defined in your input script after any other fixes which add
+   or change forces (to atoms that *fix shake* operates on).
 
 ----------
 
-The *mol* keyword should be used when other commands, such as :doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>`, add molecules
+The *mol* keyword should be used when other commands, such as :doc:`fix
+deposit <fix_deposit>` or :doc:`fix pour <fix_pour>`, add molecules
 on-the-fly during a simulation, and you wish to constrain the new
 molecules via SHAKE.  You specify a *template-ID* previously defined
 using the :doc:`molecule <molecule>` command, which reads a file that
 defines the molecule.  You must use the same *template-ID* that the
 command adding molecules uses.  The coordinates, atom types, special
-bond restrictions, and SHAKE info can be specified in the molecule
-file.  See the :doc:`molecule <molecule>` command for details.  The only
+bond restrictions, and SHAKE info can be specified in the molecule file.
+See the :doc:`molecule <molecule>` command for details.  The only
 settings required to be in this file (by this command) are the SHAKE
 info of atoms in the molecule.
+
+The *kbond* keyword sets the restraint force constant when *fix shake*
+or fix rattle are used during minimization.  In that case the constraint
+algorithms are *not* applied and restraint forces are used instead to
+maintain the geometries similar to the constraints.  How well the
+geometries are maintained and how quickly a minimization converges,
+depends largely on the force constant *kbond*: larger values will reduce
+the deviation from the desired geometry, but can also lead to slower
+convergence of the minimization or lead to instabilities depending on
+the minimization algorithm requiring to reduce the value of
+:doc:`timestep <timestep>`.  Even though the restraints will not
+preserve the bond lengths and angles as closely as the constraints
+during the MD, they are generally close enough so that the constraints
+will be fulfilled to the desired accuracy within a few MD steps
+following the minimization. The default value for *kbond* depends on the
+:doc:`units <units>` setting and is 1.0e6*k_B.
 
 ----------
 
@@ -177,10 +199,10 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
 
 .. note::
 
-   The fix rattle command modifies forces and velocities and thus
+   The *fix rattle* command modifies forces and velocities and thus
    should be defined after all other integration fixes in your input
    script.  If you define other fixes that modify velocities or forces
-   after fix rattle operates, then fix rattle will not take them into
+   after *fix rattle* operates, then *fix rattle* will not take them into
    account and the overall time integration will typically not satisfy
    the RATTLE constraints.  You can check whether the constraints work
    correctly by setting the value of RATTLE_DEBUG in src/fix_rattle.cpp
@@ -194,19 +216,32 @@ Restart, fix_modify, output, run start/stop, minimize info
 No information about these fixes is written to :doc:`binary restart
 files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-these fixes to add the contribution due to the added forces on atoms
-to both the global pressure and per-atom stress of the system via the
-:doc:`compute pressure <compute_pressure>` and :doc:`compute
-stress/atom <compute_stress_atom>` commands.  The former can be
-accessed by :doc:`thermodynamic output <thermo_style>`.  The default
-setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
+Both fix *shake* and fix *rattle* behave differently during a minimization
+in comparison to a molecular dynamics run:
 
-No global or per-atom quantities are stored by these fixes for access
-by various :doc:`output commands <Howto_output>`.  No parameter of
-these fixes can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  These fixes are not invoked during
-:doc:`energy minimization <minimize>`.
+- When used during a minimization, the SHAKE or RATTLE constraint
+  algorithms themselves are **not** applied.  Instead the constraints
+  are replaced by harmonic restraint forces.  The energy and virial
+  contributions due to the restraint forces are tallied into global and
+  per-atom accumulators. The total restraint energy is also accessible
+  as a global scalar property of the fix.
+
+- During molecular dynamics runs, however, the fixes do apply the
+  requested SHAKE or RATTLE constraint algorithms.
+
+  The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+  these fixes to add the contribution due to the added constraint forces
+  on atoms to both the global pressure and per-atom stress of the system
+  via the :doc:`compute pressure <compute_pressure>` and :doc:`compute
+  stress/atom <compute_stress_atom>` commands.  The former can be
+  accessed by :doc:`thermodynamic output <thermo_style>`.
+
+  The  default  setting  for  this  fix  is  :doc:`fix_modify  virial  yes
+  <fix_modify>`.  No global  or per-atom  quantities are  stored by  these
+  fixes for access by various :doc:`output commands <Howto_output>` during
+  an  MD  run.   No  parameter  of  these  fixes  can  be  used  with  the
+  *start/stop* keywords of the :doc:`run <run>` command.
+
 
 Restrictions
 """"""""""""
@@ -224,21 +259,27 @@ which can lead to poor energy conservation.  You can test for this in
 your system by running a constant NVE simulation with a particular set
 of SHAKE parameters and monitoring the energy versus time.
 
-SHAKE or RATTLE should not be used to constrain an angle at 180
-degrees (e.g. linear CO2 molecule).  This causes numeric difficulties.
-You can use :doc:`fix rigid or fix rigid/small <fix_rigid>` instead to
-make a linear molecule rigid.
+SHAKE or RATTLE should not be used to constrain an angle at 180 degrees
+(e.g. a linear CO2 molecule).  This causes a divergence when solving the
+constraint equations numerically.  You can use :doc:`fix rigid or fix
+rigid/small <fix_rigid>` instead to make a linear molecule rigid.
+
+When used during minimization choosing a too large value of the *kbond*
+can make minimization very inefficient and also cause stability problems
+with some minimization algorithms.  Sometimes those can be avoided by
+reducing the :doc:`timestep <timestep>`.
 
 Related commands
 """"""""""""""""
 
-none
+`fix rigid <fix_rigid>`, `fix ehex <fix_ehex>`,
+`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 
 
 Default
 """""""
 
-none
+kbond = 1.0e9*k_B
 
 ----------
 

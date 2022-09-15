@@ -1,4 +1,4 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
+# Pizza.py toolkit, https://lammps.github.io/pizza
 # Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
@@ -287,7 +287,7 @@ class pdbfile:
     if len(self.files):
       for atom in atoms:
         id = atom[0]
-        if self.atomlines.has_key(id):
+        if id in self.atomlines:
           (begin,end) = self.atomlines[id]
           line = "%s%8.3f%8.3f%8.3f%s" % (begin,atom[2],atom[3],atom[4],end)
           print(line,file=f,end='')

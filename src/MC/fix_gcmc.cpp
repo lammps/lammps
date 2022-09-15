@@ -177,7 +177,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
       error->all(FLERR,"Fix gcmc molecule template ID must be same "
                  "as atom_style template ID");
-    onemols[imol]->check_attributes(0);
+    onemols[imol]->check_attributes();
   }
 
   if (charge_flag && atom->q == nullptr)
@@ -2572,4 +2572,18 @@ void FixGCMC::grow_molecule_arrays(int nmolatoms) {
     molcoords = memory->grow(molcoords,nmaxmolatoms,3,"gcmc:molcoords");
     molq = memory->grow(molq,nmaxmolatoms,"gcmc:molq");
     molimage = memory->grow(molimage,nmaxmolatoms,"gcmc:molimage");
+}
+
+
+/* ----------------------------------------------------------------------
+   extract variable which stores index of exclusion group
+------------------------------------------------------------------------- */
+
+void *FixGCMC::extract(const char *name, int &dim)
+{
+  if (strcmp(name,"exclusion_group") == 0) {
+    dim = 0;
+    return (void *) &exclusion_group;
+  }
+  return nullptr;
 }

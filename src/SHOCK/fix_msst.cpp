@@ -176,8 +176,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   //   and thus its KE/temperature contribution should use group all
 
   std::string fixcmd = std::string(id) + "MSST_temp";
-  id_temp = new char[fixcmd.size()+1];
-  strcpy(id_temp,fixcmd.c_str());
+  id_temp = utils::strdup(fixcmd);
   modify->add_compute(fixcmd + " all temp");
   tflag = 1;
 
@@ -186,8 +185,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   fixcmd = std::string(id) + "MSST_press";
-  id_press = new char[fixcmd.size()+1];
-  strcpy(id_press,fixcmd.c_str());
+  id_press = utils::strdup(fixcmd);
   modify->add_compute(fixcmd + " all pressure " + std::string(id_temp));
   pflag = 1;
 
@@ -195,8 +193,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + "MSST_pe", compute group = all
 
   fixcmd = std::string(id) + "MSST_pe";
-  id_pe = new char[fixcmd.size()+1];
-  strcpy(id_pe,fixcmd.c_str());
+  id_pe = utils::strdup(fixcmd);
   modify->add_compute(fixcmd + " all pe");
   peflag = 1;
 
@@ -302,7 +299,7 @@ void FixMSST::init()
   if (dftb) {
     for (int i = 0; i < modify->nfix; i++)
       if (utils::strmatch(modify->fix[i]->style,"^external$"))
-        fix_external = dynamic_cast<FixExternal *>( modify->fix[i]);
+        fix_external = dynamic_cast<FixExternal *>(modify->fix[i]);
     if (fix_external == nullptr)
       error->all(FLERR,"Fix msst dftb cannot be used w/out fix external");
   }

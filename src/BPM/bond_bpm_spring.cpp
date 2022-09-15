@@ -361,16 +361,6 @@ void BondBPMSpring::read_restart_settings(FILE *fp)
   MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
 }
 
-/* ----------------------------------------------------------------------
-   proc 0 writes to data file
-------------------------------------------------------------------------- */
-
-void BondBPMSpring::write_data(FILE *fp)
-{
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp, "%d %g %g %g\n", i, k[i], ecrit[i], gamma[i]);
-}
-
 /* ---------------------------------------------------------------------- */
 
 double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)

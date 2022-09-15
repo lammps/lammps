@@ -186,9 +186,6 @@ of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.
 
-The accumulated data is not written to restart files and should be
-output before a restart file is written to avoid missing data.
-
 The internal fix calculates a local vector or local array depending on the
 number of input values.  The length of the vector or number of rows in
 the array is the number of recorded, lost interactions.  If a single

@@ -752,17 +752,6 @@ void BondBPMRotational::read_restart_settings(FILE *fp)
   MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
 }
 
-/* ----------------------------------------------------------------------
-   proc 0 writes to data file
-------------------------------------------------------------------------- */
-
-void BondBPMRotational::write_data(FILE *fp)
-{
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp, "%d %g %g %g %g %g %g %g %g %g %g %g %g\n", i, Kr[i], Ks[i], Kt[i], Kb[i], Fcr[i],
-            Fcs[i], Tct[i], Tcb[i], gnorm[i], gslide[i], groll[i], gtwist[i]);
-}
-
 /* ---------------------------------------------------------------------- */
 
 double BondBPMRotational::single(int type, double rsq, int i, int j, double &fforce)

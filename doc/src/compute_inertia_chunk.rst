@@ -84,7 +84,7 @@ by any command that uses global array values from a compute as input.  See the
 :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
-The array values are "intensive."  The array values will be in
+The array values are "intensive".  The array values will be in
 mass\*distance\ :math:`^2` :doc:`units <units>`.
 
 Restrictions

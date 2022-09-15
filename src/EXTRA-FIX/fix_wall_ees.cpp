@@ -50,7 +50,7 @@ void FixWallEES::precompute(int m)
 /* ---------------------------------------------------------------------- */
 void FixWallEES::init()
 {
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec)
     error->all(FLERR,"Fix wall/ees requires atom style ellipsoid");
 
@@ -85,7 +85,7 @@ void FixWallEES::wall_particle(int m, int which, double coord)
   double **f = atom->f;
   double **tor = atom->torque;
 
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;

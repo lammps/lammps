@@ -101,7 +101,7 @@ class FixElectrodeConp : public Fix {
   double potential_energy(int);
   double self_energy(int);
   void write_to_file(FILE *, const std::vector<tagint> &, const std::vector<std::vector<double>> &);
-  void read_from_file(const std::string& input_file, double **, const std::string &);
+  void read_from_file(const std::string &input_file, double **, const std::string &);
   void compute_sd_vectors();
   void compute_sd_vectors_ffield();
   std::vector<int> setvars_types, setvars_groups, setvars_vars;

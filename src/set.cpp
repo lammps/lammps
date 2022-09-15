@@ -818,10 +818,10 @@ void Set::set(int keyword)
 
   // loop over selected atoms
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
-  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
@@ -1153,10 +1153,10 @@ void Set::setrandom(int keyword)
 {
   int i;
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
-  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   double **x = atom->x;
   int seed = ivalue;

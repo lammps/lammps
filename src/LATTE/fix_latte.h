@@ -44,17 +44,26 @@ class FixLatte : public Fix {
   double memory_usage() override;
 
  protected:
-  char *id_pe;
   int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
+  int exclude, excludebit;
   int eflag_caller;
+  char *id_pe,*id_exclude;
+  int *exclusion_group_ptr;
+  int setupflag, newsystem;
+  bigint natoms_last;
 
-  int nmax, newsystem;
+  int flags_latte[6];
+
+  int nmax;
   double *qpotential;
   double **flatte;
   double latte_energy;
 
   class NeighList *list;
   class Compute *c_pe;
+
+  void latte_wrapper_all();
+  void latte_wrapper_exclude();
 };
 
 }    // namespace LAMMPS_NS

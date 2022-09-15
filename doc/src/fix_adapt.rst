@@ -122,7 +122,7 @@ The *pstyle* argument is the name of the pair style.  If
 sub-styles using the same pair style, then *pstyle* should be specified
 as "style:N", where :math:`N` is which instance of the pair style you wish to
 adapt (e.g., the first or second).  For example, *pstyle* could be
-specified as "soft" or "lubricate" or "lj/cut:1" or "lj/cut:2."  The
+specified as "soft" or "lubricate" or "lj/cut:1" or "lj/cut:2".  The
 *pparam* argument is the name of the parameter to change.  This is the
 current list of pair styles and parameters that can be varied by this
 fix.  See the doc pages for individual pair styles and their energy
@@ -245,7 +245,7 @@ the coefficients for the symmetric :math:`J,I` interaction to the same values.
 
 A wild-card asterisk can be used in place of or in conjunction with
 the :math:`I,J` arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n."  If :math:`N`
+types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N`
 is the number of atom types, then an asterisk with no numeric values
 means all types from 1 to :math:`N`.  A leading asterisk means all types from
 1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
@@ -260,17 +260,17 @@ values defined (via the :doc:`pair_coeff <pair_coeff>` command) for
 that sub-style.
 
 The *v_name* argument for keyword *pair* is the name of an
-:doc:`equal-style variable <variable>` which will be evaluated each
-time this fix is invoked to set the parameter to a new value.  It
-should be specified as v_name, where name is the variable name.
-Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo_style <thermo_style>` command
-keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify parameters that change as a function
-of time or span consecutive runs in a continuous fashion.  For the
-latter, see the *start* and *stop* keywords of the :doc:`run <run>`
-command and the *elaplong* keyword of :doc:`thermo_style custom
-<thermo_style>` for details.
+:doc:`equal-style variable <variable>` which will be evaluated each time
+this fix is invoked to set the parameter to a new value.  It should be
+specified as v_name, where name is the variable name.  Equal-style
+variables can specify formulas with various mathematical functions, and
+include :doc:`thermo_style <thermo_style>` command keywords for the
+simulation box parameters and timestep and elapsed time.  Thus it is
+easy to specify parameters that change as a function of time or span
+consecutive runs in a continuous fashion.  For the latter, see the
+*start* and *stop* keywords of the :doc:`run <run>` command and the
+*elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for
+details.
 
 For example, these commands would change the prefactor coefficient of
 the :doc:`pair_style soft <pair_soft>` potential from 10.0 to 30.0 in a
@@ -288,13 +288,14 @@ a bond coefficient over time, very similar to how the *pair* keyword
 operates. The only difference is that now a bond coefficient for a
 given bond type is adapted.
 
-A wild-card asterisk can be used in place of or in conjunction with
-the bond type argument to set the coefficients for multiple bond
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n."  If :math:`N`
-is the number of bond types, then an asterisk with no numeric values
-means all types from 1 to :math:`N`.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
-(inclusive).  A middle asterisk means all types from m to n (inclusive).
+A wild-card asterisk can be used in place of or in conjunction with the
+bond type argument to set the coefficients for multiple bond types.
+This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is
+the number of bond types, then an asterisk with no numeric values means
+all types from 1 to :math:`N`.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from m to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
 
 Currently *bond* does not support bond_style hybrid nor bond_style
 hybrid/overlay as bond styles. The bond styles that currently work
@@ -323,13 +324,14 @@ an angle coefficient over time, very similar to how the *pair* keyword
 operates. The only difference is that now an angle coefficient for a
 given angle type is adapted.
 
-A wild-card asterisk can be used in place of or in conjunction with
-the angle type argument to set the coefficients for multiple angle
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n."  If :math:`N`
-is the number of angle types, then an asterisk with no numeric values
-means all types from 1 to :math:`N`.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
-(inclusive).  A middle asterisk means all types from m to n (inclusive).
+A wild-card asterisk can be used in place of or in conjunction with the
+angle type argument to set the coefficients for multiple angle types.
+This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is
+the number of angle types, then an asterisk with no numeric values means
+all types from 1 to :math:`N`.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from m to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
 
 Currently *angle* does not support angle_style hybrid nor angle_style
 hybrid/overlay as angle styles. The angle styles that currently work

@@ -46,7 +46,7 @@ template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAve
   void operator()(TagComputeAveSphereAtom, const int &) const;
 
  private:
-  double adof,mvv2e,mv2d,boltz;
+  double adof, mvv2e, mv2d, boltz;
 
   typename AT::t_x_array x;
   typename AT::t_v_array v;

@@ -289,7 +289,7 @@ void PairCoulTT::init_style()
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (utils::strmatch(modify->fix[ifix]->style,"^drude")) break;
   if (ifix == modify->nfix) error->all(FLERR, "Pair coul/tt requires fix drude");
-  fix_drude = dynamic_cast<FixDrude *>( modify->fix[ifix]);
+  fix_drude = dynamic_cast<FixDrude *>(modify->fix[ifix]);
 
   neighbor->add_request(this);
 }

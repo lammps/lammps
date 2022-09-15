@@ -159,7 +159,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) *rinv;
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv;
           } else
             ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {

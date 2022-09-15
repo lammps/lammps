@@ -77,7 +77,7 @@ values can be accessed by any command that uses global array values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
 
-The array values are "intensive."  The array values will be in
+The array values are "intensive".  The array values will be in
 distance :doc:`units <units>`.
 
 Restrictions

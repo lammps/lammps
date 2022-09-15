@@ -114,7 +114,7 @@ This array can be output with :doc:`fix ave/time <fix_ave_time>`,
   compute p all stress/cartesian x 0.1
   fix 2 all ave/time 100 1 100 c_p[*] file dump_p.out mode vector
 
-The values calculated by this compute are "intensive."  The stress
+The values calculated by this compute are "intensive".  The stress
 values will be in pressure :doc:`units <units>`. The number density
 values are in inverse volume :doc:`units <units>`.
 

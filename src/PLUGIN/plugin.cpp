@@ -369,7 +369,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
     // must delete all compute instances using this compute style
 
-    for (auto icompute : lmp->modify->get_compute_by_style(name))
+    for (auto &icompute : lmp->modify->get_compute_by_style(name))
       lmp->modify->delete_compute(icompute->id);
 
   } else if (pstyle == "fix") {
@@ -380,7 +380,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
     // must delete all fix instances using this fix style
 
-    for (auto ifix : lmp->modify->get_fix_by_style(name)) lmp->modify->delete_fix(ifix->id);
+    for (auto &ifix : lmp->modify->get_fix_by_style(name)) lmp->modify->delete_fix(ifix->id);
 
   } else if (pstyle == "region") {
 
@@ -388,7 +388,8 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     auto found = region_map->find(name);
     if (found != region_map->end()) region_map->erase(name);
 
-    for (auto iregion : lmp->domain->get_region_by_style(name)) lmp->domain->delete_region(iregion);
+    for (auto &iregion : lmp->domain->get_region_by_style(name))
+      lmp->domain->delete_region(iregion);
 
   } else if (pstyle == "command") {
 

@@ -182,7 +182,7 @@ by any command that uses global values from a compute as input. See
 the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 
-The array values calculated by this compute are all "extensive."
+The array values calculated by this compute are all "extensive".
 
 Restrictions
 """"""""""""

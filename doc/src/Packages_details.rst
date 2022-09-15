@@ -276,7 +276,7 @@ the barostat as outlined in:
 
 N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
-molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
 **Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
 Pennsylvania State University)
@@ -931,6 +931,10 @@ EXTRA-MOLECULE package
 **Contents:**
 
 Additional bond, angle, dihedral, and improper styles that are less commonly used.
+
+**Install:**
+
+To use this package, also the :ref:`MOLECULE <PKG-MOLECULE>` package needs to be installed.
 
 **Supporting info:**
 

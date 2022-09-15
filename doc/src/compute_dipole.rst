@@ -54,7 +54,7 @@ the computed dipole moment and a global vector of length 3 with the
 dipole vector.  See the :doc:`Howto output <Howto_output>` page for
 an overview of LAMMPS output options.
 
-The computed values are "intensive."  The array values will be in
+The computed values are "intensive".  The array values will be in
 dipole units (i.e., charge :doc:`units <units>` times distance
 :doc:`units <units>`).
 

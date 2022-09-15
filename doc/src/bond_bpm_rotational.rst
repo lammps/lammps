@@ -38,8 +38,7 @@ Examples
    bond_style bpm/rotational
    bond_coeff 1 1.0 0.2 0.02 0.02 0.20 0.04 0.04 0.04 0.1 0.02 0.002 0.002
 
-   bond_style bpm/rotational myfix 1000 time id1 id2
-   fix myfix all store/local 1000 3
+   bond_style bpm/rotational store/local myfix 1000 time id1 id2
    dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
 

@@ -6,20 +6,23 @@ compute hma command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID hma temp-ID keyword ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * hma = style name of this compute command
 * temp-ID = ID of fix that specifies the set temperature during canonical simulation
-* keyword = *anharmonic* *u* *p Pharm* *cv*
+* one or more keywords or keyword/argument pairs must be appended
+* keyword = *anharmonic* or *u* or *p* or *cv*
 
 .. parsed-literal::
 
      *anharmonic* = compute will return anharmonic property values
      *u* = compute will return potential energy
-     *p* = compute will return pressure.  the following keyword must be the difference between the harmonic pressure and lattice pressure as described below
+     *p* value = Pharm = compute will return pressure
+        Pharm = difference between the harmonic pressure and lattice pressure
+                as described below
      *cv* = compute will return the heat capacity
 
 Examples
@@ -74,44 +77,48 @@ A detailed description of this method can be found in (:ref:`Moustafa <hma-Moust
 
 .. math::
 
-   \left< U\right>_{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} F\bullet\Delta r \right>
+   \left< U\right>_\text{HMA} = \frac{d}{2} (N-1) k_B T  + \left< U + \frac{1}{2} \vec F\cdot\Delta \vec r \right>
 
 where :math:`N` is the number of atoms in the system, :math:`k_B` is Boltzmann's
-constant, :math:`T` is the temperature, :math:`d` is the
-dimensionality of the system (2 or 3 for 2d/3d), :math:`F\bullet\Delta r` is the sum of dot products of the
-atomic force vectors and displacement (from lattice sites) vectors, and :math:`U` is the sum of
-pair, bond, angle, dihedral, improper, kspace (long-range), and fix energies.
+constant, :math:`T` is the temperature, :math:`d` is the dimensionality of the
+system (2 or 3 for 2d/3d), :math:`\vec F\cdot\Delta\vec r` is the sum of dot
+products of the atomic force vectors and displacement (from lattice sites)
+vectors, and :math:`U` is the sum of pair, bond, angle, dihedral, improper,
+kspace (long-range), and fix energies.
 
 The pressure is computed by the formula:
 
 .. math::
 
-   \left< P\right>_{HMA} = \Delta \hat P + \left< P_{vir} + \frac{\beta \Delta \hat P - \rho}{d(N-1)} F\bullet\Delta r \right>
+   \left< P\right>_{HMA} = \Delta \hat P + \left< P_\text{vir}
+   + \frac{\beta \Delta \hat P - \rho}{d(N-1)} \vec F\cdot\Delta \vec r \right>
 
-where :math:`\rho` is the number density of the system, :math:`\Delta \hat P` is the
-difference between the harmonic and lattice pressure, :math:`P_{vir}` is
-the virial pressure computed as the sum of pair, bond, angle, dihedral,
-improper, kspace (long-range), and fix contributions to the force on each
-atom, and :math:`k_B=1/k_B T`.  Although the method will work for any value of :math:`\Delta \hat P`
+where :math:`\rho` is the number density of the system, :math:`\Delta \hat P`
+is the difference between the harmonic and lattice pressure,
+:math:`P_\text{vir}` is the virial pressure computed as the sum of pair, bond,
+angle, dihedral, improper, kspace (long-range), and fix contributions to the
+force on each atom, and :math:`k_B=1/k_B T`.  Although the method will work for
+any value of :math:`\Delta \hat P`
 specified (use pressure :doc:`units <units>`), the precision of the resultant
 pressure is sensitive to :math:`\Delta \hat P`; the precision tends to be
-best when :math:`\Delta \hat P` is the actual the difference between the lattice
-pressure and harmonic pressure.
+best when :math:`\Delta \hat P` is the actual the difference between the
+lattice pressure and harmonic pressure.
 
 .. math::
 
-   \left<C_V \right>_{HMA} = \frac{d}{2} (N-1) k_B + \frac{1}{k_B T^2} \left( \left<
-   U_{HMA}^2 \right> - \left<U_{HMA}\right>^2 \right) + \frac{1}{4 T}
-   \left< F\bullet\Delta r + \Delta r \bullet \Phi \bullet \Delta r \right>
+   \left<C_V \right>_\text{HMA} = \frac{d}{2} (N-1) k_B
+    + \frac{1}{k_B T^2} \left( \left<U_\text{HMA}^2 \right>
+                         - \left<U_\text{HMA}\right>^2 \right) + \frac{1}{4 T}
+   \left<\vec F\cdot\Delta\vec r + \Delta r \cdot\Phi\cdot \Delta\vec r\right>
 
 where :math:`\Phi` is the Hessian matrix. The compute hma command
 computes the full expression for :math:`C_V` except for the
-:math:`\left<U_{HMA}^2\right>^2` in the variance term, which can be obtained by
-passing the *u* keyword; you must add this extra contribution to the :math:`C_V`
-value reported by this compute.  The variance term can cause significant
-round-off error when computing :math:`C_V`.  To address this, the *anharmonic*
-keyword can be passed and/or the output format can be specified with more
-digits.
+:math:`\left<U_\text{HMA}\right>^2` in the variance term, which can be obtained
+by passing the *u* keyword; you must add this extra contribution to the
+:math:`C_V` value reported by this compute.  The variance term can cause
+significant round-off error when computing :math:`C_V`.  To address this, the
+*anharmonic* keyword can be passed and/or the output format can be specified
+with more digits.
 
 .. code-block:: LAMMPS
 
@@ -124,8 +131,10 @@ When using this keyword, the compute must be first active (it must be included
 via a :doc:`thermo_style custom <thermo_style>` command) while the atoms are
 still at their lattice sites (before equilibration).
 
-The temp-ID specified with compute hma command should be same as the fix-ID of Nose-Hoover (:doc:`fix nvt <fix_nh>`) or
-Berendsen (:doc:`fix temp/berendsen <fix_temp_berendsen>`) thermostat used for the simulation. While using this command, Langevin thermostat
+The temp-ID specified with compute hma command should be same as the fix-ID of
+the Nose--Hoover (:doc:`fix nvt <fix_nh>`) or
+Berendsen (:doc:`fix temp/berendsen <fix_temp_berendsen>`) thermostat used for
+the simulation. While using this command, the Langevin thermostat
 (:doc:`fix langevin <fix_langevin>`)
 should be avoided as its extra forces interfere with the HMA implementation.
 
@@ -160,7 +169,7 @@ Output info
 
 This compute calculates a global vector that includes the n properties
 requested as arguments to the command (the potential energy, pressure and/or heat
-capacity).  The elements of the vector can be accessed by indices 1-n by any
+capacity).  The elements of the vector can be accessed by indices 1--n by any
 command that uses global vector values as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output options.
 
 The vector values calculated by this compute are "extensive".  The
@@ -180,7 +189,7 @@ Related commands
 :doc:`compute pe <compute_pe>`, :doc:`compute pressure <compute_pressure>`
 
 :doc:`dynamical matrix <dynamical_matrix>` provides a finite difference
-formulation of the hessian provided by Pair's single_hessian, which is used by
+formulation of the Hessian provided by Pair's single_hessian, which is used by
 this compute.
 
 Default

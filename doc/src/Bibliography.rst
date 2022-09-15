@@ -1373,7 +1373,7 @@ Bibliography
    Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).
 
 **(Ziegler)**
-   J.F. Ziegler, J. P. Biersack and U. Littmark, "The Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.
+   J.F. Ziegler, J. P. Biersack and U. Littmark, "The Stopping and Range of Ions in Matter", Volume 1, Pergamon, 1985.
 
 **(Zimmerman2004)**
    Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, "Calculation of stress in atomistic simulation." Special Issue of Modelling and Simulation in Materials Science and Engineering (2004),12:S319.

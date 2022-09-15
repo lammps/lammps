@@ -34,12 +34,11 @@ class Input : protected Pointers {
 
   Input(class LAMMPS *, int, char **);
   ~Input() override;
-  void file();                       // process all input
-  void file(const char *);           // process an input script
-  char *one(const std::string &);    // process a single command
-  void substitute(char *&, char *&, int &, int &, int);
-  // substitute for variables in a string
-  void write_echo(const std::string &);    // send text to active echo file pointers
+  void file();                                             // process all input
+  void file(const char *);                                 // process an input script
+  char *one(const std::string &);                          // process a single command
+  void substitute(char *&, char *&, int &, int &, int);    // substitute for variables in a string
+  void write_echo(const std::string &);                    // send text to active echo file pointers
 
  protected:
   char *command;      // ptr to current command
@@ -113,6 +112,7 @@ class Input : protected Pointers {
   void improper_style();
   void kspace_modify();
   void kspace_style();
+  void labelmap();
   void lattice();
   void mass();
   void min_modify();

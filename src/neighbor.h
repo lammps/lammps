@@ -94,7 +94,7 @@ class Neighbor : protected Pointers {
   NeighList **lists;
   NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
   NeighRequest **old_requests;    // copy of requests to compare to
-  int* j_sorted;                  // index of requests sorted by cutoff distance
+  int *j_sorted;                  // index of requests sorted by cutoff distance
 
   // data from topology neighbor lists
 

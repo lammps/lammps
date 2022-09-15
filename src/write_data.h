@@ -35,6 +35,7 @@ class WriteData : public Command {
   int pairflag;
   int coeffflag;
   int fixflag;
+  int lmapflag;
   FILE *fp;
   bigint nbonds_local, nbonds;
   bigint nangles_local, nangles;

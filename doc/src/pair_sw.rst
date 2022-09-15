@@ -75,6 +75,8 @@ where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a `\sigma`.
 
+.. versionadded:: 14Dec2021
+
 The *sw/mod* style is designed for simulations of materials when
 distinguishing three-body angles are necessary, such as borophene and
 transition metal dichalcogenides, which cannot be described by the

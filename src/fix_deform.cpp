@@ -882,7 +882,7 @@ void FixDeform::end_of_step()
       if (mask[i] & groupbit)
         domain->x2lamda(x[i],x[i]);
 
-    for (auto ifix : rfix)
+    for (auto &ifix : rfix)
       ifix->deform(0);
   }
 
@@ -921,7 +921,7 @@ void FixDeform::end_of_step()
       if (mask[i] & groupbit)
         domain->lamda2x(x[i],x[i]);
 
-    for (auto ifix : rfix)
+    for (auto &ifix : rfix)
       ifix->deform(1);
   }
 

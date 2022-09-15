@@ -299,7 +299,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
 
-    onemol->check_attributes(0);
+    onemol->check_attributes();
 
     // use geometric center of molecule for insertion
     // molecule random number generator, different for each proc
@@ -976,7 +976,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   area = 0.5 * MathExtra::len3(temp);
   int nparticles = ceil(mesh_density * area);
   // estimate radius from number of particles and area
-  double rad = sqrt(area/MY_PI/nparticles);
+  double rad = sqrt(area / MY_PI / nparticles);
 
   for (int i = 0; i < nparticles; i++) {
     // Define point in unit square

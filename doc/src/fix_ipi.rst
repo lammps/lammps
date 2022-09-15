@@ -14,8 +14,14 @@ Syntax
 * ipi = style name of this fix command
 * address = internet address (FQDN or IP), or UNIX socket name
 * port = port number (ignored for UNIX sockets)
-* optional keyword = *unix*, if present uses a unix socket
-* optional keyword = *reset*, if present reset electrostatics at each call
+
+* zero or more keywords may be appended
+* keyword = *unix* or *reset*
+
+  .. parsed-literal::
+
+       *unix* args = none = use a unix socket
+       *reset* args = none = reset electrostatics at each call
 
 Examples
 """"""""

@@ -62,14 +62,14 @@ class LAMMPS {
   int suffix_enable;                   // 1 if suffixes are enabled, 0 if disabled
   char *exename;                       // pointer to argv[0]
 
-  char ***packargs;                    // arguments for cmdline package commands
-  int num_package;                     // number of cmdline package commands
+  char ***packargs;    // arguments for cmdline package commands
+  int num_package;     // number of cmdline package commands
 
-  MPI_Comm external_comm;      // MPI comm encompassing external programs
-                               // when multiple programs launched by mpirun
-                               // set by -mpicolor command line arg
+  MPI_Comm external_comm;    // MPI comm encompassing external programs
+                             // when multiple programs launched by mpirun
+                             // set by -mpicolor command line arg
 
-  void *mdicomm;               // for use with MDI code coupling library
+  void *mdicomm;    // for use with MDI code coupling library
 
   const char *match_style(const char *style, const char *name);
   static const char *installed_packages[];

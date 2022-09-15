@@ -6,7 +6,7 @@ fix aveforce command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID aveforce fx fy fz keyword value ...
 
@@ -48,13 +48,13 @@ component.  The actual force on each atom is then set to the average
 value plus the component specified in this command.  This means each
 atom in the group receives the same force.
 
-Any of the fx,fy,fz values can be specified as NULL which means the
-force in that dimension is not changed.  Note that this is not the
+Any of the *fx*, *fy*, or *fz* values can be specified as :code:`NULL`, which
+means the force in that dimension is not changed.  Note that this is not the
 same as specifying a 0.0 value, since that sets all forces to the same
 average value without adding in any additional force.
 
-Any of the 3 quantities defining the force components can be specified
-as an equal-style :doc:`variable <variable>`, namely *fx*, *fy*, *fz*\ .
+Any of the three quantities defining the force components, namely *fx*, *fy*,
+and *fz*, can be specified as an equal-style :doc:`variable <variable>`\ .
 If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be
 evaluated each timestep, and its value used to determine the average
@@ -78,17 +78,17 @@ to it.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to
+:doc:`binary restart files <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
-This fix computes a global 3-vector of forces, which can be accessed
+This fix computes a global three-vector of forces, which can be accessed
 by various :doc:`output commands <Howto_output>`.  This is the total
 force on the group of atoms before the forces on individual atoms are
-changed by the fix.  The vector values calculated by this fix are
-"extensive".
+changed by the fix.  The vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.

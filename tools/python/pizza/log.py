@@ -1,4 +1,4 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
+# Pizza.py toolkit, https://lammps.github.io/pizza
 # Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
@@ -13,25 +13,25 @@ from __future__ import print_function
 oneline = "Read LAMMPS log files and extract thermodynamic data"
 
 docstr = """
-l = log("file1")                     read in one or more log files
-l = log("log1 log2.gz")              can be gzipped
-l = log("file*")                     wildcard expands to multiple files
-l = log("log.lammps",0)              two args = store filename, but don't read
+l = log("file1")                      read in one or more log files
+l = log("log1 log2.gz")               can be gzipped
+l = log("file*")                      wildcard expands to multiple files
+l = log("log.lammps",0)               two args = store filename, but don't read
 
   incomplete and duplicate thermo entries are deleted
 
-time = l.next()                      read new thermo info from file
+time = l.next()                       read new thermo info from file
 
   used with 2-argument constructor to allow reading thermo incrementally
   return time stamp of last thermo read
   return -1 if no new thermo since last read
 
-nvec = l.nvec                        # of vectors of thermo info
-nlen = l.nlen                        length of each vectors
-names = l.names                      list of vector names
-t,pe,... = l.get("Time","KE",...)    return one or more vectors of values
-l.write("file.txt")                  write all vectors to a file
-l.write("file.txt","Time","PE",...)  write listed vectors to a file
+nvec = l.nvec                         # of vectors of thermo info
+nlen = l.nlen                         length of each vectors
+names = l.names                       list of vector names
+t,pe,... = l.get("Time","KE",...)     return one or more vectors of values
+l.write("file.txt",0)                 write all vectors to a file, done write header comment
+l.write("file.txt",1,"Time","PE",...) write listed vectors to a file, include header comment
 
   get and write allow abbreviated (uniquely) vector names
 """
@@ -71,6 +71,7 @@ class log:
     self.names = []
     self.ptr = {}
     self.data = []
+    self.style = -1
 
     # flist = list of all log file names
 
@@ -78,14 +79,14 @@ class log:
     self.flist = []
     for word in words: self.flist += glob.glob(word)
     if len(self.flist) == 0 and len(arglist) == 1:
-      raise Exception("no log file specified")
+      raise ValueError("No log files specified or specified files do not exist")
 
     if len(arglist) == 1:
       self.increment = 0
       self.read_all()
     else:
       if len(self.flist) > 1:
-        raise Exception("can only incrementally read one log file")
+        raise ValueError("Can only read one log file incrementally")
       self.increment = 1
       self.eof = 0
 
@@ -113,7 +114,9 @@ class log:
     if not self.increment: raise Exception("cannot read incrementally")
 
     if self.nvec == 0:
-      try: open(self.flist[0],'r')
+      try:
+        fp = open(self.flist[0],'r')
+        fp.close()
       except: return -1
       self.read_header(self.flist[0])
       if self.nvec == 0: return -1
@@ -125,7 +128,7 @@ class log:
 
   def get(self,*keys):
     if len(keys) == 0:
-      raise Exception( "no log vectors specified" )
+      raise Exception("no log vectors specified" )
 
     colmap = []
     for key in keys:
@@ -140,7 +143,7 @@ class log:
         if count == 1:
           colmap.append(index)
         else:
-          raise Exception( "unique log vector %s not found" % key)
+          raise ValueError("unique log vector %s not found" % key)
 
     vecs = []
     for i in range(len(keys)):
@@ -209,14 +212,16 @@ class log:
 
   # --------------------------------------------------------------------
 
-  def read_header(self,file):
+  def read_header(self, file):
     str_multi = "----- Step"
     str_one = "Step "
 
     if file[-3:] == ".gz":
-      txt = popen("%s -c %s" % (PIZZA_GUNZIP,file),'r').read()
+      fp = popen("%s -c %s" % (PIZZA_GUNZIP,file),'r')
+      txt = fp.read()
     else:
-      txt = open(file).read()
+      fp = open(file)
+      txt = fp.read()
 
     if txt.find(str_multi) >= 0:
       self.firststr = str_multi
@@ -225,6 +230,7 @@ class log:
       self.firststr = str_one
       self.style = 2
     else:
+      fp.close()
       return
 
     if self.style == 1:
@@ -251,6 +257,7 @@ class log:
         self.ptr[words[i]] = i
 
     self.nvec = len(self.names)
+    fp.close()
 
   # --------------------------------------------------------------------
 
@@ -261,9 +268,9 @@ class log:
 
     file = arglist[0]
     if file[-3:] == ".gz":
-      f = popen("%s -c %s" % (PIZZA_GUNZIP,file),'rb')
+      f = popen("%s -c %s" % (PIZZA_GUNZIP,file),'r')
     else:
-      f = open(file,'rb')
+      f = open(file,'r')
 
     if len(arglist) == 2: f.seek(arglist[1])
     txt = f.read()
@@ -281,12 +288,12 @@ class log:
       # set start = position in file to start looking for next chunk
       # rewind eof if final entry is incomplete
 
-      s1 = txt.find(self.firststr.encode('utf-8'),start)
-      s2 = txt.find("Loop time of".encode('utf-8'),start+1)
+      s1 = txt.find(self.firststr,start)
+      s2 = txt.find("Loop time of",start+1)
 
       if s1 >= 0 and s2 >= 0 and s1 < s2:    # found s1,s2 with s1 before s2
         if self.style == 2:
-          s1 = txt.find("\n".encode('utf-8'),s1) + 1
+          s1 = txt.find("\n",s1) + 1
       elif s1 >= 0 and s2 >= 0 and s2 < s1:  # found s1,s2 with s2 before s1
         s1 = 0
       elif s1 == -1 and s2 >= 0:             # found s2, but no s1
@@ -295,25 +302,25 @@ class log:
       elif s1 >= 0 and s2 == -1:             # found s1, but no s2
         last = 1
         if self.style == 1:
-          s2 = txt.rfind("\n--".encode('utf-8'),s1) + 1
+          s2 = txt.rfind("\n--",s1) + 1
         else:
-          s1 = txt.find("\n".encode('utf-8'),s1) + 1
-          s2 = txt.rfind("\n".encode('utf-8'),s1) + 1
+          s1 = txt.find("\n",s1) + 1
+          s2 = txt.rfind("\n",s1) + 1
         eof -= len(txt) - s2
       elif s1 == -1 and s2 == -1:            # found neither
                                              # could be end-of-file section
                                              # or entire read was one chunk
 
-        if txt.find("Loop time of".encode('utf-8'),start) == start:   # end of file, so exit
+        if txt.find("Loop time of",start) == start:   # end of file, so exit
           eof -= len(txt) - start                     # reset eof to "Loop"
           break
 
         last = 1                                      # entire read is a chunk
         s1 = 0
         if self.style == 1:
-          s2 = txt.rfind("\n--".encode('utf-8'),s1) + 1
+          s2 = txt.rfind("\n--",s1) + 1
         else:
-          s2 = txt.rfind("\n".encode('utf-8'),s1) + 1
+          s2 = txt.rfind("\n",s1) + 1
         eof -= len(txt) - s2
         if s1 == s2: break
 
@@ -324,7 +331,7 @@ class log:
       # parse each entry for numeric fields, append to data
 
       if self.style == 1:
-        sections = chunk.split("\n--".encode('utf-8'))
+        sections = chunk.split("\n--")
         pat1 = re.compile("Step\s*(\S*)\s")
         pat2 = re.compile("=\s*(\S*)")
         for section in sections:
@@ -334,7 +341,7 @@ class log:
           self.data.append(list(map(float,words)))
 
       else:
-        lines = chunk.split("\n".encode('utf-8'))
+        lines = chunk.split("\n")
         for line in lines:
           words = line.split()
           self.data.append(list(map(float,words)))

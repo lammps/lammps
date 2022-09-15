@@ -70,7 +70,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     if (trigger[ifield] == 0) triggername[ifield] = nullptr;
-    else triggername[nfield] = utils::strdup(fmt::format("{}_flag", fieldname[ifield]));
+    else triggername[ifield] = utils::strdup(fmt::format("{}_flag", fieldname[ifield]));
   }
 
   // extract all fields just to get number of per-atom values

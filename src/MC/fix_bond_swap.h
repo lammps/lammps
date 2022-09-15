@@ -46,6 +46,9 @@ class FixBondSwap : public Fix {
   int *type;
   double **x;
 
+  int maxpermute;
+  int *permute;
+
   class NeighList *list;
   class Compute *temperature;
   class RanMars *random;
@@ -54,6 +57,8 @@ class FixBondSwap : public Fix {
   double pair_eng(int, int);
   double bond_eng(int, int, int);
   double angle_eng(int, int, int, int);
+
+  void neighbor_permutation(int);
 };
 
 }    // namespace LAMMPS_NS

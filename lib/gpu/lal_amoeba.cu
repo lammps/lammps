@@ -849,7 +849,9 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       if (damp != (numtyp)0.0) {
         numtyp pgamma = MIN(ddi,coeff[jtype].z); // dirdamp[jtype]
         if (pgamma != (numtyp)0.0) {
-          damp = pgamma * ucl_powr(r/damp,(numtyp)1.5);
+          //damp = pgamma * ucl_powr(r/damp,(numtyp)1.5);
+          numtyp tmp = r*ucl_recip(damp);
+          damp = pgamma * ucl_sqrt(tmp*tmp*tmp);
           if (damp < (numtyp)50.0) {
             numtyp expdamp = ucl_exp(-damp) ;
             scale3 = (numtyp)1.0 - expdamp ;
@@ -858,7 +860,9 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
           }
         } else {
           pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-          damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
+          //damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
+          numtyp tmp = r*ucl_recip(damp);
+          damp = pgamma * (tmp*tmp*tmp);
           if (damp < (numtyp)50.0) {
             numtyp expdamp = ucl_exp(-damp);
             scale3 = (numtyp)1.0 - expdamp;
@@ -1314,7 +1318,9 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
         numtyp pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-        damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
+        //damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
+        numtyp tmp = r*ucl_recip(damp);
+        damp = pgamma * (tmp*tmp*tmp);
         if (damp < (numtyp)50.0) {
           numtyp expdamp = ucl_exp(-damp);
           sc3 = (numtyp)1.0 - expdamp;
@@ -1620,8 +1626,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
    fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
 ------------------------------------------------------------------------- */
 
-__kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
-                          const __global numtyp4 *restrict thetai1,
+__kernel void k_fphi_uind(const __global numtyp4 *restrict thetai1,
                           const __global numtyp4 *restrict thetai2,
                           const __global numtyp4 *restrict thetai3,
                           const __global int *restrict igrid,
@@ -1630,10 +1635,9 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
                           __global numtyp *restrict fdip_phi2,
                           __global numtyp *restrict fdip_sum_phi,
                           const int bsorder, const int inum,
-                          const int nzlo_out, const int nzhi_out,
-                          const int nylo_out, const int nyhi_out,
-                          const int nxlo_out, const int nxhi_out,
-                          const int ngridxy, const int ngridx)
+                          const int nzlo_out, const int nylo_out,
+                          const int nxlo_out, const int ngridxy,
+                          const int ngridx)
 {
   //int tid, ii, offset, i, n_stride;
   //atom_info(t_per_atom,ii,tid,offset);
@@ -1643,11 +1647,16 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
   int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
 
   if (ii<inum) {
-    //numtyp4 ix; fetch4(ix,ii,pos_tex); //x_[i];
-    acctyp fdip_buf[32];
 
-    int j,k;    
     int nlpts = (bsorder-1) / 2;
+    
+    int istart = fast_mul(ii,4);
+    int igridx = igrid[istart];
+    int igridy = igrid[istart+1];
+    int igridz = igrid[istart+2];
+    
+    // now istart is used to index thetai1, thetai2 and thetai3
+    istart = fast_mul(ii,bsorder);
 
     // extract the permanent multipole field at each site
 
@@ -1690,7 +1699,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     numtyp tuv012 = (numtyp)0.0;
     numtyp tuv111 = (numtyp)0.0;
 
-    k = igrid[4*ii+2] - nzlo_out - nlpts;
+    int k = (igridz - nzlo_out) - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
       /*
       v0 = thetai3[m][kb][0];
@@ -1698,7 +1707,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       v2 = thetai3[m][kb][2];
       v3 = thetai3[m][kb][3];
       */
-      int i3 = ii*bsorder + kb;
+      int i3 = istart + kb;
       numtyp4 tha3 = thetai3[i3];
       numtyp v0 = tha3.x;
       numtyp v1 = tha3.y;
@@ -1727,7 +1736,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
       numtyp tu12 = (numtyp)0.0;
       numtyp tu03 = (numtyp)0.0;
 
-      j = igrid[4*ii+1] - nylo_out - nlpts;
+      int j = (igridy - nylo_out) - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
         /*
         u0 = thetai2[m][jb][0];
@@ -1735,7 +1744,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         u2 = thetai2[m][jb][2];
         u3 = thetai2[m][jb][3];
         */
-        int i2 = ii*bsorder+jb;
+        int i2 = istart + jb;
         numtyp4 tha2 = thetai2[i2];
         numtyp u0 = tha2.x;
         numtyp u1 = tha2.y;
@@ -1749,7 +1758,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
         numtyp t2_2 = (numtyp)0.0;
         numtyp t3 = (numtyp)0.0;
 
-        int i = igrid[4*ii] - nxlo_out - nlpts;
+        int i = (igridx - nxlo_out) - nlpts;
         for (int ib = 0; ib < bsorder; ib++) {
           /*
           tq_1 = grid[k][j][i][0];
@@ -1762,7 +1771,7 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
           t2_2 += tq_2*thetai1[m][ib][2];
           t3 += (tq_1+tq_2)*thetai1[m][ib][3];
           */
-          int i1 = ii*bsorder+ib;
+          int i1 = istart + ib;
           numtyp4 tha1 = thetai1[i1];
           numtyp w0 = tha1.x;
           numtyp w1 = tha1.y;
@@ -1851,6 +1860,8 @@ __kernel void k_fphi_uind(const __global numtyp4 *restrict x_,
     }
 
     int idx;
+    numtyp fdip_buf[20];
+
     fdip_buf[0] = (numtyp)0.0;
     fdip_buf[1] = tuv100_1;
     fdip_buf[2] = tuv010_1;

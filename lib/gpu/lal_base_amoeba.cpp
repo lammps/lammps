@@ -734,11 +734,9 @@ int BaseAmoebaT::fphi_uind() {
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;
   k_fphi_uind.set_size(GX,BX);
-  k_fphi_uind.run(&atom->x, &_thetai1, &_thetai2, &_thetai3,
-                  &_igrid, &_cgrid_brick, &_fdip_phi1, &_fdip_phi2,
-                  &_fdip_sum_phi, &_bsorder, &ainum, 
-                  &_nzlo_out, &_nzhi_out, &_nylo_out, &_nyhi_out, 
-                  &_nxlo_out, &_nxhi_out, &ngridxy, &_ngridx);
+  k_fphi_uind.run(&_thetai1, &_thetai2, &_thetai3, &_igrid, &_cgrid_brick,
+                  &_fdip_phi1, &_fdip_phi2, &_fdip_sum_phi, &_bsorder, &ainum, 
+                  &_nzlo_out, &_nylo_out, &_nxlo_out, &ngridxy, &_ngridx);
   time_pair.stop();
 
   return GX;

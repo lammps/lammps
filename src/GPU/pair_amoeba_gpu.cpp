@@ -1279,6 +1279,957 @@ void PairAmoebaGPU::polar_real()
 }
 
 /* ----------------------------------------------------------------------
+   polar_kspace = KSpace portion of induced dipole polarization
+   adapted from Tinker eprecip1() routine
+   same as PairAmoeba, except that fphi_uind() is reimplemented here
+ ------------------------------------------------------------------------- */
+
+void PairAmoebaGPU::polar_kspace()
+{
+  int i,j,k,m,n;
+  int nhalf1,nhalf2,nhalf3;
+  int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
+  int j1,j2,j3;
+  int ix,iy,iz;
+  double eterm,felec;
+  double r1,r2,r3;
+  double h1,h2,h3;
+  double f1,f2,f3;
+  double xix,yix,zix;
+  double xiy,yiy,ziy;
+  double xiz,yiz,ziz;
+  double vxx,vyy,vzz;
+  double vxy,vxz,vyz;
+  double volterm,denom;
+  double hsq,expterm;
+  double term,pterm;
+  double vterm,struc2;
+  double tep[3];
+  double fix[3],fiy[3],fiz[3];
+  double cphid[4],cphip[4];
+  double a[3][3];    // indices not flipped vs Fortran
+
+  // indices into the electrostatic field array
+  // decremented by 1 versus Fortran
+
+  int deriv1[10] = {1, 4, 7, 8, 10, 15, 17, 13, 14, 19};
+  int deriv2[10] = {2, 7, 5, 9, 13, 11, 18, 15, 19, 16};
+  int deriv3[10] = {3, 8, 9, 6, 14, 16, 12, 19, 17, 18};
+
+  // return if the Ewald coefficient is zero
+
+  if (aewald < 1.0e-6) return;
+
+  // owned atoms
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+
+  double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
+  pterm = pow((MY_PI/aewald),2.0);
+  volterm = MY_PI * volbox;
+
+  // initialize variables required for the scalar summation
+
+  felec = electric / am_dielectric;
+
+  // remove scalar sum virial from prior multipole FFT
+  // can only do this if multipoles were computed with same aeewald = apewald
+  // else need to re-compute it via new long-range solve
+
+  nfft1 = p_kspace->nx;
+  nfft2 = p_kspace->ny;
+  nfft3 = p_kspace->nz;
+  bsorder = p_kspace->order;
+
+  nhalf1 = (nfft1+1) / 2;
+  nhalf2 = (nfft2+1) / 2;
+  nhalf3 = (nfft3+1) / 2;
+
+  nxlo = p_kspace->nxlo_fft;
+  nxhi = p_kspace->nxhi_fft;
+  nylo = p_kspace->nylo_fft;
+  nyhi = p_kspace->nyhi_fft;
+  nzlo = p_kspace->nzlo_fft;
+  nzhi = p_kspace->nzhi_fft;
+
+  // use previous results or compute new qfac and convolution
+
+  if (aewald == aeewald) {
+    vxx = -vmsave[0];
+    vyy = -vmsave[1];
+    vzz = -vmsave[2];
+    vxy = -vmsave[3];
+    vxz = -vmsave[4];
+    vyz = -vmsave[5];
+
+  } else {
+
+    // setup stencil size and B-spline coefficients
+
+    moduli();
+    bspline_fill();
+
+    // convert Cartesian multipoles to fractional coordinates
+
+    cmp_to_fmp(cmp,fmp);
+
+    // gridpre = my portion of 3d grid in brick decomp w/ ghost values
+
+    double ***gridpre = (double ***) p_kspace->zero();
+
+    // map atoms to grid
+
+    grid_mpole(fmp,gridpre);
+
+    // pre-convolution operations including forward FFT
+    // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
+
+    double *gridfft = p_kspace->pre_convolution();
+
+    // ---------------------
+    // convolution operation
+    // ---------------------
+
+    // zero virial accumulation variables
+
+    vxx = vyy = vzz = vxy = vxz = vyz = 0.0;
+
+    // perform convolution on K-space points I own
+
+    m = n = 0;
+    for (k = nzlo; k <= nzhi; k++) {
+      for (j = nylo; j <= nyhi; j++) {
+        for (i = nxlo; i <= nxhi; i++) {
+          r1 = (i >= nhalf1) ? i-nfft1 : i;
+          r2 = (j >= nhalf2) ? j-nfft2 : j;
+          r3 = (k >= nhalf3) ? k-nfft3 : k;
+          h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+          h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+          h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+          hsq = h1*h1 + h2*h2 + h3*h3;
+          term = -pterm * hsq;
+          expterm = 0.0;
+          if (term > -50.0 && hsq != 0.0) {
+            denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
+            if (hsq) expterm = exp(term) / denom;
+            struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
+            eterm = 0.5 * felec * expterm * struc2;
+            vterm = (2.0/hsq) * (1.0-term) * eterm;
+            vxx -= h1*h1*vterm - eterm;
+            vyy -= h2*h2*vterm - eterm;
+            vzz -= h3*h3*vterm - eterm;
+            vxy -= h1*h2*vterm;
+            vxz -= h1*h3*vterm;
+            vyz -= h2*h3*vterm;
+          }
+
+          expterm = qfac[m++];
+          gridfft[n] *= expterm;
+          gridfft[n+1] *= expterm;
+          n += 2;
+        }
+      }
+    }
+
+    // post-convolution operations including backward FFT
+    // gridppost = my portion of 3d grid in brick decomp w/ ghost values
+
+    double ***gridpost = (double ***) p_kspace->post_convolution();
+
+    // get potential
+
+    fphi_mpole(gridpost,fphi);
+
+    for (i = 0; i < nlocal; i++) {
+      for (k = 0; k < 20; k++)
+        fphi[i][k] *= felec;
+    }
+
+    // convert field from fractional to Cartesian
+
+    fphi_to_cphi(fphi,cphi);
+  }
+
+  // convert Cartesian induced dipoles to fractional coordinates
+
+  for (i = 0; i < 3; i++) {
+    a[0][i] = nfft1 * recip[0][i];
+    a[1][i] = nfft2 * recip[1][i];
+    a[2][i] = nfft3 * recip[2][i];
+  }
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      fuind[i][j] = a[j][0]*uind[i][0] + a[j][1]*uind[i][1] + a[j][2]*uind[i][2];
+      fuinp[i][j] = a[j][0]*uinp[i][0] + a[j][1]*uinp[i][1] + a[j][2]*uinp[i][2];
+    }
+  }
+
+  // gridpre2 = my portion of 4d grid in brick decomp w/ ghost values
+
+  double ****gridpre2 = (double ****) pc_kspace->zero();
+
+  // map 2 values to grid
+
+  grid_uind(fuind,fuinp,gridpre2);
+
+  // pre-convolution operations including forward FFT
+  // gridfft = my portion of complex 3d grid in FFT decomposition
+
+  double *gridfft = pc_kspace->pre_convolution();
+
+  // ---------------------
+  // convolution operation
+  // ---------------------
+
+  // use qfac values from above or from induce()
+
+  m = n = 0;
+  for (k = nzlo; k <= nzhi; k++) {
+    for (j = nylo; j <= nyhi; j++) {
+      for (i = nxlo; i <= nxhi; i++) {
+        term = qfac[m++];
+        gridfft[n] *= term;
+        gridfft[n+1] *= term;
+        n += 2;
+      }
+    }
+  }
+
+  // post-convolution operations including backward FFT
+  // gridppost = my portion of 4d grid in brick decomp w/ ghost values
+
+  double ****gridpost = (double ****) pc_kspace->post_convolution();
+
+  // get potential
+
+  fphi_uind(gridpost,fphid,fphip,fphidp);
+
+  // TODO: port the remaining loops to the GPU
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 1; j < 10; j++) {
+      fphid[i][j] = felec * fphid[i][j];
+      fphip[i][j] = felec * fphip[i][j];
+    }
+    for (j = 0; j < 20; j++)
+      fphidp[i][j] = felec * fphidp[i][j];
+  }
+
+  // increment the dipole polarization gradient contributions
+
+  for (i = 0; i < nlocal; i++) {
+    f1 = 0.0;
+    f2 = 0.0;
+    f3 = 0.0;
+    for (k = 0; k < 3; k++) {
+      j1 = deriv1[k+1];
+      j2 = deriv2[k+1];
+      j3 = deriv3[k+1];
+      f1 += (fuind[i][k]+fuinp[i][k])*fphi[i][j1];
+      f2 += (fuind[i][k]+fuinp[i][k])*fphi[i][j2];
+      f3 += (fuind[i][k]+fuinp[i][k])*fphi[i][j3];
+      if (poltyp == MUTUAL) {
+        f1 += fuind[i][k]*fphip[i][j1] + fuinp[i][k]*fphid[i][j1];
+        f2 += fuind[i][k]*fphip[i][j2] + fuinp[i][k]*fphid[i][j2];
+        f3 += fuind[i][k]*fphip[i][j3] + fuinp[i][k]*fphid[i][j3];
+      }
+    }
+    for (k = 0; k < 10; k++) {
+      f1 += fmp[i][k]*fphidp[i][deriv1[k]];
+      f2 += fmp[i][k]*fphidp[i][deriv2[k]];
+      f3 += fmp[i][k]*fphidp[i][deriv3[k]];
+    }
+    f1 *= 0.5 * nfft1;
+    f2 *= 0.5 * nfft2;
+    f3 *= 0.5 * nfft3;
+    h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
+    h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
+    h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
+    f[i][0] -= h1;
+    f[i][1] -= h2;
+    f[i][2] -= h3;
+  }
+
+  // set the potential to be the induced dipole average
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 10; j++)
+      fphidp[i][j] *= 0.5;
+  }
+
+  fphi_to_cphi(fphidp,cphidp);
+
+  // get the fractional to Cartesian transformation matrix
+
+  //frac_to_cart();
+
+  // increment the dipole polarization virial contributions
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 1; j < 4; j++) {
+      cphid[j] = 0.0;
+      cphip[j] = 0.0;
+      for (k = 1; k < 4; k++) {
+        cphid[j] += ftc[j][k]*fphid[i][k];
+        cphip[j] += ftc[j][k]*fphip[i][k];
+      }
+    }
+
+    vxx -= cmp[i][1]*cphidp[i][1] +
+      0.5*((uind[i][0]+uinp[i][0])*cphi[i][1]);
+    vyy -= cmp[i][2]*cphidp[i][2] +
+      0.5*((uind[i][1]+uinp[i][1])*cphi[i][2]);
+    vzz -= cmp[i][3]*cphidp[i][3] +
+      0.5*((uind[i][2]+uinp[i][2])*cphi[i][3]);
+    vxy -= 0.5*(cphidp[i][1]*cmp[i][2]+cphidp[i][2]*cmp[i][1]) +
+      0.25*((uind[i][1]+uinp[i][1])*cphi[i][1] +
+            (uind[i][0]+uinp[i][0])*cphi[i][2]);
+    vyz -= 0.5*(cphidp[i][2]*cmp[i][3]+cphidp[i][3]*cmp[i][2]) +
+      0.25*((uind[i][2]+uinp[i][2])*cphi[i][2] +
+            (uind[i][1]+uinp[i][1])*cphi[i][3]);
+    vxz -= 0.5*(cphidp[i][1]*cmp[i][3]+cphidp[i][3]*cmp[i][1]) +
+      0.25*((uind[i][2]+uinp[i][2])*cphi[i][1] +
+            (uind[i][0]+uinp[i][0])*cphi[i][3]);
+
+    vxx -= 2.0*cmp[i][4]*cphidp[i][4] + cmp[i][7]*cphidp[i][7] +
+      cmp[i][8]*cphidp[i][8];
+    vyy -= 2.0*cmp[i][5]*cphidp[i][5] + cmp[i][7]*cphidp[i][7] +
+      cmp[i][9]*cphidp[i][9];
+    vzz -= 2.0*cmp[i][6]*cphidp[i][6] + cmp[i][8]*cphidp[i][8] +
+      cmp[i][9]*cphidp[i][9];
+    vxy -= (cmp[i][4]+cmp[i][5])*cphidp[i][7] +
+      0.5*(cmp[i][7]*(cphidp[i][5]+cphidp[i][4]) +
+           cmp[i][8]*cphidp[i][9]+cmp[i][9]*cphidp[i][8]);
+    vyz -= (cmp[i][5]+cmp[i][6])*cphidp[i][9] +
+      0.5*(cmp[i][9]*(cphidp[i][5]+cphidp[i][6]) +
+           cmp[i][7]*cphidp[i][8]+cmp[i][8]*cphidp[i][7]);
+    vxz -= (cmp[i][4]+cmp[i][6])*cphidp[i][8] +
+      0.5*(cmp[i][8]*(cphidp[i][4]+cphidp[i][6]) +
+           cmp[i][7]*cphidp[i][9]+cmp[i][9]*cphidp[i][7]);
+
+    if (poltyp == MUTUAL) {
+      vxx -= 0.5 * (cphid[1]*uinp[i][0]+cphip[1]*uind[i][0]);
+      vyy -= 0.5 * (cphid[2]*uinp[i][1]+cphip[2]*uind[i][1]);
+      vzz -= 0.5 * (cphid[3]*uinp[i][2]+cphip[3]*uind[i][2]);
+      vxy -= 0.25 * (cphid[1]*uinp[i][1]+cphip[1]*uind[i][1] +
+                     cphid[2]*uinp[i][0]+cphip[2]*uind[i][0]);
+      vyz -= 0.25 * (cphid[2]*uinp[i][2]+cphip[2]*uind[i][2] +
+                     cphid[3]*uinp[i][1]+cphip[3]*uind[i][1]);
+      vxz -= 0.25 * (cphid[1]*uinp[i][2]+cphip[1]*uind[i][2] +
+                     cphid[3]*uinp[i][0]+cphip[3]*uind[i][0]);
+    }
+  }
+
+
+  // resolve site torques then increment forces and virial
+
+  for (i = 0; i < nlocal; i++) {
+    tep[0] = cmp[i][3]*cphidp[i][2] - cmp[i][2]*cphidp[i][3] +
+      2.0*(cmp[i][6]-cmp[i][5])*cphidp[i][9] + cmp[i][8]*cphidp[i][7] +
+      cmp[i][9]*cphidp[i][5]- cmp[i][7]*cphidp[i][8] - cmp[i][9]*cphidp[i][6];
+    tep[1] = cmp[i][1]*cphidp[i][3] - cmp[i][3]*cphidp[i][1] +
+      2.0*(cmp[i][4]-cmp[i][6])*cphidp[i][8] + cmp[i][7]*cphidp[i][9] +
+      cmp[i][8]*cphidp[i][6] - cmp[i][8]*cphidp[i][4] - cmp[i][9]*cphidp[i][7];
+    tep[2] = cmp[i][2]*cphidp[i][1] - cmp[i][1]*cphidp[i][2] +
+      2.0*(cmp[i][5]-cmp[i][4])*cphidp[i][7] + cmp[i][7]*cphidp[i][4] +
+      cmp[i][9]*cphidp[i][8] - cmp[i][7]*cphidp[i][5] - cmp[i][8]*cphidp[i][9];
+
+    torque2force(i,tep,fix,fiy,fiz,f);
+
+    iz = zaxis2local[i];
+    ix = xaxis2local[i];
+    iy = yaxis2local[i];
+
+    xiz = x[iz][0] - x[i][0];
+    yiz = x[iz][1] - x[i][1];
+    ziz = x[iz][2] - x[i][2];
+    xix = x[ix][0] - x[i][0];
+    yix = x[ix][1] - x[i][1];
+    zix = x[ix][2] - x[i][2];
+    xiy = x[iy][0] - x[i][0];
+    yiy = x[iy][1] - x[i][1];
+    ziy = x[iy][2] - x[i][2];
+
+    vxx += xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
+    vyy += yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
+    vzz += zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
+    vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
+                xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
+    vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
+                yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
+    vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
+                xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
+  }
+
+  // account for dipole response terms in the OPT method
+
+  if (poltyp == OPT) {
+    for (i = 0; i < nlocal; i++) {
+      for (k = 0; k < optorder; k++) {
+        for (j = 1; j < 10; j++) {
+          fphid[i][j] = felec * fopt[i][k][j];
+          fphip[i][j] = felec * foptp[i][k][j];
+        }
+
+        for (m = 0; m < optorder-k; m++) {
+          for (j = 0; j < 3; j++) {
+            fuind[i][j] = a[0][j]*uopt[i][m][0] + a[1][j]*uopt[i][m][1] +
+              a[2][j]*uopt[i][m][2];
+            fuinp[i][j] = a[0][j]*uoptp[i][m][0] + a[1][j]*uoptp[i][m][1] +
+              a[2][j]*uoptp[i][m][2];
+          }
+
+          f1 = 0.0;
+          f2 = 0.0;
+          f3 = 0.0;
+
+          for (j = 0; j < 3; j++) {
+            j1 = deriv1[j+1];
+            j2 = deriv2[j+1];
+            j3 = deriv3[j+1];
+            f1 += fuind[i][j]*fphip[i][j1] + fuinp[i][j]*fphid[i][j1];
+            f2 += fuind[i][j]*fphip[i][j2] + fuinp[i][j]*fphid[i][j2];
+            f3 += fuind[i][j]*fphip[i][j3] + fuinp[i][j]*fphid[i][j3];
+          }
+
+          f1 *= 0.5 * nfft1;
+          f2 *= 0.5 * nfft2;
+          f3 *= 0.5 * nfft3;
+          h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
+          h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
+          h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
+
+          f[i][0] -= copm[k+m+1]*h1;
+          f[i][1] -= copm[k+m+1]*h2;
+          f[i][2] -= copm[k+m+1]*h3;
+
+          for (j = 1; j < 4; j++) {
+            cphid[j] = 0.0;
+            cphip[j] = 0.0;
+            for (j1 = 1; j1 < 4; j1++) {
+              cphid[j] += ftc[j][j1]*fphid[i][j1];
+              cphip[j] += ftc[j][j1]*fphip[i][j1];
+            }
+          }
+
+          vxx -= 0.5*copm[k+m+1] *
+            (cphid[1]*uoptp[i][m][0] + cphip[1]*uopt[i][m][0]);
+          vyy -= 0.5*copm[k+m+1] *
+            (cphid[2]*uoptp[i][m][1]+ cphip[2]*uopt[i][m][1]);
+          vzz -= 0.5*copm[k+m+1] *
+            (cphid[3]*uoptp[i][m][2]+ cphip[3]*uopt[i][m][2]);
+          vxy -= 0.25*copm[k+m+1] *
+            (cphid[1]*uoptp[i][m][1]+ cphip[1]*uopt[i][m][1]+
+             cphid[2]*uoptp[i][m][0]+ cphip[2]*uopt[i][m][0]);
+          vyz -= 0.25*copm[k+m+1] *
+            (cphid[1]*uoptp[i][m][2]+ cphip[1]*uopt[i][m][2]+
+             cphid[3]*uoptp[i][m][0]+ cphip[3]*uopt[i][m][0]);
+          vxz -= 0.25*copm[k+m+1] *
+            (cphid[2]*uoptp[i][m][2]+ cphip[2]*uopt[i][m][2]+
+             cphid[3]*uoptp[i][m][1]+ cphip[3]*uopt[i][m][1]);
+        }
+      }
+    }
+  }
+
+  // account for dipole response terms in the TCG method
+
+  /*
+  if (poltyp == TCG) {
+
+    for (m = 0; m < tcgnab; m++) {
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          fuind[i][j] = a[0][j]*uad[i][m][0] + a[1][j]*uad[i][m][1] +
+            a[2][j]*uad[i][m][2];
+          fuinp[i][j] = a[0][j]*ubp[i][m][0] + a[1][j]*ubp[i][m][1] +
+            a[2][j]*ubp[i][m][2];
+        }
+      }
+
+      grid_uind(fuind,fuinp);
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
+
+      for (k = 0; k < nfft3; k++) {
+        for (j = 0; j < nfft2; j++) {
+          for (i = 0; i < nfft1; i++) {
+            term = qfac[k][j][i];
+            qgrid[k][j][i][0] *= term;
+            qgrid[k][j][i][1] *= term;
+          }
+        }
+      }
+
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],-1);
+      fphi_uind(fphid,fphip,fphidp);
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 1; j < 10; j++) {
+          fphid[i][j] *= felec;
+          fphip[i][j] *= felec;
+        }
+      }
+
+      for (i = 0; i < nlocal; i++) {
+        f1 = 0.0;
+        f2 = 0.0;
+        f3 = 0.0;
+        for (k = 0; k < 3; k++) {
+          j1 = deriv1[k+1];
+          j2 = deriv2[k+1];
+          j3 = deriv3[k+1];
+          f1 += fuind[i][k]*fphip[i][j1]+fuinp[i][k]*fphid[i][j1];
+          f2 += fuind[i][k]*fphip[i][j2]+fuinp[i][k]*fphid[i][j2];
+          f3 += fuind[i][k]*fphip[i][j3]+fuinp[i][k]*fphid[i][j3];
+        }
+
+        f1 *= 0.5 * nfft1;
+        f2 *= 0.5 * nfft2;
+        f3 *= 0.5 * nfft3;
+        h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
+        h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
+        h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
+        f[i][0] -= h1;
+        f[i][1] -= h2;
+        f[i][2] -= h3;
+
+        for (j = 1; j < 4; j++) {
+          cphid[j] = 0.0;
+          cphip[j] = 0.0;
+          for (k = 1; k < 4; k++) {
+            cphid[j] += ftc[j][k]*fphid[i][k];
+            cphip[j] += ftc[j][k]*fphip[i][k];
+          }
+        }
+
+        vxx -= 0.5*(cphid[1]*ubp[i][m][0] + cphip[1]*uad[i][m][0]);
+        vyy -= 0.5*(cphid[2]*ubp[i][m][1] + cphip[2]*uad[i][m][1]);
+        vzz -= 0.5*(cphid[3]*ubp[i][m][2] + cphip[3]*uad[i][m][2]);
+
+        vxy -= 0.25*(cphid[1]*ubp[i][m][1] + cphip[1]*uad[i][m][1] +
+                        cphid[2]*ubp[i][m][0] + cphip[2]*uad[i][m][0]);
+        vyz -= 0.25*(cphid[1]*ubp[i][m][2] + cphip[1]*uad[i][m][2] +
+                        cphid[3]*ubp[i][m][0] + cphip[3]*uad[i][m][0]);
+        vxz -= 0.25*(cphid[2]*ubp[i][m][2] + cphip[2]*uad[i][m][2] +
+                        cphid[3]*ubp[i][m][1] + cphip[3]*uad[i][m][1]);
+      }
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          fuind[i][j] = a[0][j]*ubd[i][m][0] + a[1][j]*ubd[i][m][1] +
+            a[2][j]*ubd[i][m][2];
+          fuinp[i][j] = a[0][j]*uap[i][m][0] + a[1][j]*uap[i][m][1] +
+            a[2][j]*uap[i][m][2];
+        }
+      }
+
+      grid_uind(fuind,fuinp);
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
+
+      for (k = 0; k < nfft3; k++) {
+        for (j = 0; j < nfft2; j++) {
+          for (i = 0; i < nfft1; i++) {
+            term = qfac[k][j][i];
+            qgrid[k][j][i][0] *= term;
+            qgrid[k][j][i][1] *= term;
+          }
+        }
+      }
+
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],-1);
+      fphi_uind(fphid,fphip,fphidp);
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 1; j < 10; j++) {
+          fphid[i][j] *= felec;
+          fphip[i][j] *= felec;
+        }
+      }
+
+      for (i = 0; i < nlocal; i++) {
+        f1 = 0.0;
+        f2 = 0.0;
+        f3 = 0.0;
+        for (k = 0; k < 3; k++) {
+          j1 = deriv1[k+1];
+          j2 = deriv2[k+1];
+          j3 = deriv3[k+1];
+          f1 += fuind[i][k]*fphip[i][j1]+fuinp[i][k]*fphid[i][j1];
+          f2 += fuind[i][k]*fphip[i][j2]+fuinp[i][k]*fphid[i][j2];
+          f3 += fuind[i][k]*fphip[i][j3]+fuinp[i][k]*fphid[i][j3];
+        }
+
+        f1 *= 0.5 * nfft1;
+        f2 *= 0.5 * nfft2;
+        f3 *= 0.5 * nfft3;
+        h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;  // matvec
+        h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
+        h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
+        f[i][0] -= h1;
+        f[i][1] -= h2;
+        f[i][2] -= h3;
+
+        for (j = 1; j < 4; j++) {
+          cphid[j] = 0.0;
+          cphip[j] = 0.0;
+          for (k = 1; k < 4; k++) {
+            cphid[j] += ftc[j][k]*fphid[i][k];
+            cphip[j] += ftc[j][k]*fphip[i][k];
+          }
+        }
+
+        vxx -= 0.5*(cphid[1]*uap[i][m][0] + cphip[1]*ubd[i][m][0]);
+        vyy -= 0.5*(cphid[2]*uap[i][m][1] + cphip[2]*ubd[i][m][1]);
+        vzz -= 0.5*(cphid[3]*uap[i][m][2] + cphip[3]*ubd[i][m][2]);
+        vxy -= 0.25*(cphid[1]*uap[i][m][1] + cphip[1]*ubd[i][m][1] +
+                     cphid[2]*uap[i][m][0] + cphip[2]*ubd[i][m][0]);
+        vxz -= 0.25*(cphid[1]*uap[i][m][2] + cphip[1]*ubd[i][m][2] +
+                     cphid[3]*uap[i][m][0] + cphip[3]*ubd[i][m][0]);
+        vyz -= 0.25*(cphid[2]*uap[i][m][2] + cphip[2]*ubd[i][m][2] +
+                     cphid[3]*uap[i][m][1] + cphip[3]*ubd[i][m][1]);
+      }
+    }
+  }
+  */
+
+  // assign permanent and induced multipoles to the PME grid
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 1; j < 4; j++)
+      cmp[i][j] += uinp[i][j-1];
+  }
+
+  // convert Cartesian multipoles to fractional multipoles
+
+  cmp_to_fmp(cmp,fmp);
+
+  // gridpre = my portion of 3d grid in brick decomp w/ ghost values
+  // zeroed by zero()
+
+  double ***gridpre = (double ***) p_kspace->zero();
+
+  // map atoms to grid
+
+  grid_mpole(fmp,gridpre);
+
+  // pre-convolution operations including forward FFT
+  // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
+
+  gridfft = p_kspace->pre_convolution();
+
+  // gridfft1 = copy of first FFT
+
+  int nfft_owned = p_kspace->nfft_owned;
+  memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(FFT_SCALAR));
+
+  // assign induced dipoles to the PME grid
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 1; j < 4; j++)
+      cmp[i][j] += uind[i][j-1] - uinp[i][j-1];
+  }
+
+  // convert Cartesian multipoles to fractional multipoles
+
+  cmp_to_fmp(cmp,fmp);
+
+  // gridpre = my portion of 3d grid in brick decomp w/ ghost values
+  // zeroed by zero()
+
+  gridpre = (double ***) p_kspace->zero();
+
+  // map atoms to grid
+
+  grid_mpole(fmp,gridpre);
+
+  // pre-convolution operations including forward FFT
+  // gridfft1/2 = my portions of complex 3d grid in FFT decomp as 1d vectors
+
+  double *gridfft2 = p_kspace->pre_convolution();
+
+  // ---------------------
+  // convolution operation
+  // ---------------------
+
+  m = n = 0;
+  for (k = nzlo; k <= nzhi; k++) {
+    for (j = nylo; j <= nyhi; j++) {
+      for (i = nxlo; i <= nxhi; i++) {
+        r1 = (i >= nhalf1) ? i-nfft1 : i;
+        r2 = (j >= nhalf2) ? j-nfft2 : j;
+        r3 = (k >= nhalf3) ? k-nfft3 : k;
+        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+        hsq = h1*h1 + h2*h2 + h3*h3;
+        term = -pterm * hsq;
+        expterm = 0.0;
+        if (term > -50.0 && hsq != 0.0) {
+          denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
+          expterm = exp(term) / denom;
+          struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
+          eterm = 0.5 * felec * expterm * struc2;
+          vterm = (2.0/hsq) * (1.0-term) * eterm;
+          vxx += h1*h1*vterm - eterm;
+          vyy += h2*h2*vterm - eterm;
+          vzz += h3*h3*vterm - eterm;
+          vxy += h1*h2*vterm;
+          vyz += h2*h3*vterm;
+          vxz += h1*h3*vterm;
+        }
+        n += 2;
+      }
+    }
+  }
+
+  // assign only the induced dipoles to the PME grid
+  // and perform the 3-D FFT forward transformation
+  // NOTE: why is there no inverse FFT in this section?
+
+  if (poltyp == DIRECT || poltyp == TCG) {
+
+    for (i = 0; i < nlocal; i++) {
+      for (j = 0; j < 10; j++)
+        cmp[i][j] = 0.0;
+      for (j = 1; j < 4; j++)
+        cmp[i][j] = uinp[i][j-1];
+    }
+
+    // convert Cartesian multipoles to fractional multipoles
+
+    cmp_to_fmp(cmp,fmp);
+
+    // gridpre = my portion of 3d grid in brick decomp w/ ghost values
+    // zeroed by zero()
+
+    double ***gridpre = (double ***) p_kspace->zero();
+
+    // map atoms to grid
+
+    grid_mpole(fmp,gridpre);
+
+    // pre-convolution operations including forward FFT
+    // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
+
+    double *gridfft = p_kspace->pre_convolution();
+
+    // gridfft1 = copy of first FFT
+
+    int nfft_owned = p_kspace->nfft_owned;
+    memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(double));
+
+    // assign ??? to the PME grid
+
+    for (i = 0; i < nlocal; i++) {
+      for (j = 1; j < 4; j++)
+        cmp[i][j] = uind[i][j-1];
+    }
+
+    // convert Cartesian multipoles to fractional multipoles
+
+    cmp_to_fmp(cmp,fmp);
+
+    // gridpre = my portion of 3d grid in brick decomp w/ ghost values
+
+    gridpre = (double ***) p_kspace->zero();
+
+    // map atoms to grid
+
+    grid_mpole(fmp,gridpre);
+
+    // pre-convolution operations including forward FFT
+    // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
+
+    double *gridfft2 = p_kspace->pre_convolution();
+
+    // ---------------------
+    // convolution operation
+    // ---------------------
+
+    m = n = 0;
+    for (k = nzlo; k <= nzhi; k++) {
+      for (j = nylo; j <= nyhi; j++) {
+        for (i = nxlo; i <= nxhi; i++) {
+          r1 = (i >= nhalf1) ? i-nfft1 : i;
+          r2 = (j >= nhalf2) ? j-nfft2 : j;
+          r3 = (k >= nhalf3) ? k-nfft3 : k;
+          h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+          h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+          h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+          hsq = h1*h1 + h2*h2 + h3*h3;
+          term = -pterm * hsq;
+          expterm = 0.0;
+          if (term > -50.0 && hsq != 0.0) {
+            denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
+            expterm = exp(term) / denom;
+            struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
+            eterm = 0.5 * felec * expterm * struc2;
+            vterm = (2.0/hsq) * (1.0-term) * eterm;
+            vxx += h1*h1*vterm - eterm;
+            vyy += h2*h2*vterm - eterm;
+            vzz += h3*h3*vterm - eterm;
+            vxy += h1*h2*vterm;
+            vyz += h2*h3*vterm;
+            vxz += h1*h3*vterm;
+          }
+          n += 2;
+        }
+      }
+    }
+  }
+
+  // add back missing terms for the TCG polarization method;
+  // first do the term for "UAD" dotted with "UBP"
+
+  /*
+  if (poltyp == TCG) {
+
+    for (m = 0; m < tcgnab; m++) {
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 10; j++)
+          cmp[i][j] = 0.0;
+        for (j = 1; j < 4; j++)
+          cmp[i][j] = ubp[i][m][j-1];
+      }
+
+      cmp_to_fmp(cmp,fmp);
+      grid_mpole(fmp);
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
+
+      for (k = 0; k < nfft3; k++) {
+        for (j = 0; j < nfft2; j++) {
+          for (i = 0; i < nfft1; i++) {
+            qgrip[k][j][i][0] = qgrid[k][j][i][0];
+            qgrip[k][j][i][1] = qgrid[k][j][i][1];
+          }
+        }
+      }
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 1; j < 4; j++)
+          cmp[i][j] = uad[i][m][j-1];
+      }
+
+      cmp_to_fmp(cmp,fmp);
+      grid_mpole(fmp);
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
+
+      // make the scalar summation over reciprocal lattice
+      // NOTE: this loop has to be distributed for parallel
+      // NOTE: why does this one include m = 0 ?
+
+      for (m = 1; m < ntot; m++) {
+        k1 = m % nfft1;
+        k2 = (m % nff) / nfft1;
+        k3 = m/nff;
+        r1 = (k1 >= nf1) ? k1-nfft1 : k1;
+        r2 = (k2 >= nf2) ? k2-nfft2 : k2;
+        r3 = (k3 >= nf3) ? k3-nfft3 : k3;
+        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;
+        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+        hsq = h1*h1 + h2*h2 + h3*h3;
+        term = -pterm * hsq;
+        expterm = 0.0;
+        if (term > -50.0 && hsq != 0.0) {
+          denom = volterm*hsq*bsmod1[k1]*bsmod2[k2]*bsmod3[k3];
+          expterm = exp(term) / denom;
+          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] +
+            qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
+          eterm = 0.5 * felec * expterm * struc2;
+          vterm = (2.0/hsq) * (1.0-term) * eterm;
+          virpolar[0] -= h1*h1*vterm - eterm;
+          virpolar[1] -= h2*h2*vterm - eterm;
+          virpolar[2] -= h3*h3*vterm - eterm;
+          virpolar[3] -= h1*h2*vterm;
+          virpolar[4] -= h1*h3*vterm;
+          virpolar[5] -= h2*h3*vterm;
+        }
+      }
+
+      // now do the TCG terms with "UBD" dotted with "UAP"
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 10; j++)
+          cmp[i][j] = 0.0;
+        for (j = 1; j < 4; j++)
+          cmp[i][j] = uap[i][m][j-1];
+      }
+
+      cmp_to_fmp(cmp,fmp);
+      grid_mpole(fmp);
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
+
+      for (k = 0; k < nfft3; k++) {
+        for (j = 0; j < nfft2; j++) {
+          for (i = 0; i < nfft1; i++) {
+            qgrip[k][j][i][0] = qgrid[k][j][i][0];
+            qgrip[k][j][i][1] = qgrid[k][j][i][1];
+          }
+        }
+      }
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 1; j < 4; j++)
+          cmp[i][j] = ubd[i][m][j-1];
+      }
+
+      cmp_to_fmp(cmp,fmp);
+      grid_mpole(fmp);
+      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
+
+      // make the scalar summation over reciprocal lattice
+      // NOTE: this loop has to be distributed for parallel
+      // NOTE: why does this one include m = 0 ?
+
+      for (m = 1; m < ntot; m++) {
+        k1 = m % nfft1;
+        k2 = (m % nff) / nfft1;
+        k3 = m/nff;
+        r1 = (k1 >= nf1) ? k1-nfft1 : k1;
+        r2 = (k2 >= nf2) ? k2-nfft2 : k2;
+        r3 = (k3 >= nf3) ? k3-nfft3 : k3;
+        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;
+        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+        hsq = h1*h1 + h2*h2 + h3*h3;
+        term = -pterm * hsq;
+        expterm = 0.0;
+        if (term > -50.0 && hsq != 0.0) {
+          denom = volterm*hsq*bsmod1[k1]*bsmod2[k2]*bsmod3[k3];
+          expterm = exp(term) / denom;
+          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] +
+            qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
+          eterm = 0.5 * felec * expterm * struc2;
+          vterm = (2.0/hsq) * (1.0-term) * eterm;
+          virpolar[0] -= h1*h1*vterm - eterm;
+          virpolar[1] -= h2*h2*vterm - eterm;
+          virpolar[2] -= h3*h3*vterm - eterm;
+          virpolar[3] -= h1*h2*vterm;
+          virpolar[4] -= h1*h3*vterm;
+          virpolar[5] -= h2*h3*vterm;
+        }
+      }
+    }
+  }
+  */
+
+  // increment the total internal virial tensor components
+
+  if (vflag_global) {
+    virpolar[0] -= vxx;
+    virpolar[1] -= vyy;
+    virpolar[2] -= vzz;
+    virpolar[3] -= vxy;
+    virpolar[4] -= vxz;
+    virpolar[5] -= vyz;
+  }
+}
+
+/* ----------------------------------------------------------------------
    compute atom forces from torques
 ------------------------------------------------------------------------- */
 

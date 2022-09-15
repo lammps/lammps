@@ -117,7 +117,10 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
 
   _allocated=true;
   this->_max_bytes=coeff_amtype.row_bytes() + coeff_amclass.row_bytes()
-    + sp_amoeba.row_bytes() + this->_tep.row_bytes();
+    + sp_amoeba.row_bytes() + this->_tep.row_bytes()
+    + this->_fieldp.row_bytes() + this->_thetai1.row_bytes()
+    + this->_thetai2.row_bytes()  + this->_thetai3.row_bytes()
+    + this->_igrid.row_bytes() + this->_cgrid_brick.row_bytes();
   return 0;
 }
 

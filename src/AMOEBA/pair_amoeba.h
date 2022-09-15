@@ -374,7 +374,7 @@ class PairAmoeba : public Pair {
   void polar();
   void polar_energy();
   virtual void polar_real();
-  void polar_kspace();
+  virtual void polar_kspace();
   void damppole(double, int, double, double, double *, double *, double *);
 
   virtual void induce();

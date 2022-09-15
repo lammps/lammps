@@ -43,6 +43,7 @@ class PairAmoebaGPU : public PairAmoeba {
   virtual void umutual2b(double **, double **);
   virtual void ufield0c(double **, double **);
   virtual void polar_real();
+  virtual void polar_kspace();
 
  private:
   int gpu_mode;

@@ -185,15 +185,19 @@ void PairMLIAP::settings(int narg, char ** arg)
     } else if (strcmp(arg[iarg], "unified") == 0) {
       if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
-      if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
       MLIAPBuildUnified_t build = build_unified(arg[iarg+1], data, lmp);
-      if (strcmp(arg[iarg+2],"0") == 0) {
+      if (iarg+3 > narg) {
         ghostneigh = 0;
-      } else if (strcmp(arg[iarg+2],"1") == 0) {
-        ghostneigh = 1;
       } else {
-        error->all(FLERR,"Illegal pair_style mliap command");
+        if (strcmp(arg[iarg+2],"0") == 0)
+          ghostneigh = 0;
+        else if (strcmp(arg[iarg+2],"1") == 0)
+          ghostneigh = 1;
+        else
+          error->all(FLERR,"Illegal pair_style mliap command");
       }
+
       iarg += 3;
       model = build.model;
       descriptor = build.descriptor;

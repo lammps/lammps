@@ -20,9 +20,11 @@ region          box block 0 ${nx} 0 ${ny} 0 ${nz}
 create_box      1 box
 create_atoms    1 box
 
+mass 1 26.981
+
 # choose potential
 
-pair_style	mliap unified ../../../hippynn/examples/mliap_unified_hippynn_Al.pt 0
+pair_style	mliap unified mliap_unified_hippynn_Al.pt 0
 pair_coeff	* * Al
 
 # Setup output

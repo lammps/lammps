@@ -20,10 +20,13 @@ region          box block 0 ${nx} 0 ${ny} 0 ${nz}
 create_box      2 box
 create_atoms    1 box basis 5 2 basis 6 2 basis 7 2 basis 8 2
 
+mass 1 114.76
+mass 2 30.98
+
 # choose potential
 
 # Specify MLIAP Unified pair style
-pair_style mliap unified ../../../hippynn/examples/mliap_unified_hippynn_InP.pt 0
+pair_style mliap unified mliap_unified_hippynn_InP.pt 0
 pair_coeff * * In P
 
 #dump 4 all custom 1 forces.xyz fx fy fz

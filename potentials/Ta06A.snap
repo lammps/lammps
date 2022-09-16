@@ -13,5 +13,5 @@ pair_style hybrid/overlay &
 zbl ${zblcutinner} ${zblcutouter} &
 snap
 pair_coeff 1 1 zbl ${zblz} ${zblz}
-pair_coeff * * sn ap Ta06A.snapcoeff Ta06A.snapparam Ta
+pair_coeff * * snap Ta06A.snapcoeff Ta06A.snapparam Ta
 

@@ -506,7 +506,7 @@ void FixElectrodeConp::setup_post_neighbor()
         error->one(FLERR,
                    fmt::format("Cannot open elastance matrix file {}: {}", output_file_mat,
                                utils::getsyserror()));
-      write_to_file(f_mat, taglist_bygroup, order_matrix(group_idx, capacitance));
+      write_to_file(f_mat, taglist_bygroup, order_matrix(group_idx, elastance));
       fclose(f_mat);
     }
     if (algo == Algo::MATRIX_INV) {

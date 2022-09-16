@@ -50,6 +50,7 @@ class PairAmoeba : public Pair {
   void unpack_reverse_grid(int, void *, int, int *) override;
 
   void *extract(const char *, int &) override;
+  void *extract_peratom(const char *, int &) override;
   double memory_usage() override;
 
  protected:

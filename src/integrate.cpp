@@ -179,5 +179,5 @@ void Integrate::ev_set(bigint ntimestep)
 
   if (vflag_global) update->vflag_global = ntimestep;
   if (vflag_atom || cvflag_atom) update->vflag_atom = ntimestep;
-  vflag = vflag_global + vflag_atom + cvflag_atom;  
+  vflag = vflag_global + vflag_atom + cvflag_atom;
 }

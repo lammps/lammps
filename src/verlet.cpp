@@ -136,11 +136,10 @@ void Verlet::setup(int flag)
   ev_set(update->ntimestep);
   force_clear();
   modify->setup_pre_force(vflag);
-  
-      
-  if (pair_compute_flag) force->pair->compute(eflag,vflag);  
+
+  if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
-        
+
   if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
@@ -159,7 +158,7 @@ void Verlet::setup(int flag)
 
   modify->setup(vflag);
   output->setup(flag);
-  update->setupflag = 0;  
+  update->setupflag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -257,7 +256,6 @@ void Verlet::run(int n)
 
     timer->stamp();
     modify->initial_integrate(vflag);
-       
     if (n_post_integrate) modify->post_integrate();
     timer->stamp(Timer::MODIFY);
 
@@ -306,7 +304,7 @@ void Verlet::run(int n)
     // and Pair:ev_tally() needs to be called before any tallying
 
     force_clear();
-    
+
     timer->stamp();
 
     if (n_pre_force) {
@@ -314,7 +312,7 @@ void Verlet::run(int n)
       timer->stamp(Timer::MODIFY);
     }
 
-    if (pair_compute_flag) {        
+    if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);
       timer->stamp(Timer::PAIR);
     }
@@ -352,7 +350,7 @@ void Verlet::run(int n)
     timer->stamp(Timer::MODIFY);
 
     // all output
-    
+
     if (ntimestep == output->next) {
       timer->stamp();
       output->write(ntimestep);

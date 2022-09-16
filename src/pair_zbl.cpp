@@ -39,7 +39,7 @@ using namespace PairZBLConstants;
 
 PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp)
 {
-  writedata = 1;  
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,7 +74,7 @@ void PairZBL::compute(int eflag, int vflag)
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
   double rsq, r, t, fswitch, eswitch;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  
+
   evdwl = 0.0;
   ev_init(eflag, vflag);
 
@@ -90,7 +90,7 @@ void PairZBL::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
-    
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];

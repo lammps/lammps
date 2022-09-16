@@ -127,9 +127,9 @@ fitted potentials. When fitting the same functional form on *Q* different data s
 obtain *Q* different optimized potentials, :math:`E(\boldsymbol R,\boldsymbol Z, \boldsymbol \eta, \boldsymbol \mu_q^*), 1 \le q \le Q`. 
 Consequently, there exist many different sets of optimized parameters for empirical interatomic potentials. 
 
-Instead of optimizing the potential parameters,  inspired by the reduced basis method 
-:ref:`(Thompson) <Thompson20141>` for parametrized partial differential equations, 
-we view the parametrized PES as a parametric manifold of potential energies 
+Instead of optimizing the potential parameters,  inspired by the reduced basis method for 
+parametrized partial differential equations, we view the parametrized PES as a parametric manifold 
+of potential energies.
 
 .. math::
 
@@ -151,8 +151,7 @@ Proper Orthogonal Descriptors
 
 Proper orthogonal descriptors are finger prints characterizing the
 radial and angular distribution of a system of atoms. The detailed
-mathematical definition is given in the paper by Nguyen et
-al. :ref:`(Thompson) <Thompson20141>`
+mathematical definition is given in :ref:`(Nguyen) <Nguyen2022>`
 
 The descriptors for the one-body interaction are used to captured energy of isolated elements and defined as follows
 
@@ -660,18 +659,6 @@ The keyword defaults are also given in the description of the input files.
 
 ----------
 
-.. _Thompson20142:
+.. _Nguyen2022:
 
-**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
-
-.. _Bartok20102:
-
-**(Bartok2010)** Bartok, Payne, Kondor, Csanyi, Phys Rev Lett, 104, 136403 (2010).
-
-.. _Wood20182:
-
-**(Wood)** Wood and Thompson, J Chem Phys, 148, 241721, (2018)
-
-.. _Cusentino20202:
-
-**(Cusentino)** Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)
+**(Nguyen)** Ngueyn, et. al., arxiv (2022).

@@ -21,10 +21,10 @@ Examples
 Description
 """""""""""
 
-Pair style *pod* defines the proper orthogonal descriptor (POD) potential, 
-:ref:`(Thompson) <Thompson20142>`.  The mathematical definition of the POD potential
-is described from :doc:`compute podfit <compute_podfit>`, which is used to fit the POD
-potential to *ab initio* energy and force data.  
+Pair style *pod* defines the proper orthogonal descriptor (POD) potential. The mathematical 
+definition of the POD potential is described from :doc:`compute podfit <compute_podfit>`, which is 
+used to fit the POD potential to *ab initio* energy and force data. More details on the POD potential
+are given in :ref:`(Nguyen) <Nguyen2022>`
 
 Only a single pair_coeff command is used with the *pod* style which
 specifies a POD parameter file followed by a coefficient file.
@@ -64,18 +64,6 @@ none
 
 ----------
 
-.. _Thompson20142:
+.. _Nguyen2022:
 
-**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
-
-.. _Bartok20102:
-
-**(Bartok2010)** Bartok, Payne, Kondor, Csanyi, Phys Rev Lett, 104, 136403 (2010).
-
-.. _Wood20182:
-
-**(Wood)** Wood and Thompson, J Chem Phys, 148, 241721, (2018)
-
-.. _Cusentino20202:
-
-**(Cusentino)** Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)
+**(Nguyen)** Ngueyn, et. al., arxiv (2022).

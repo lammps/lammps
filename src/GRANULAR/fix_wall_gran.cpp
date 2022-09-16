@@ -354,6 +354,15 @@ void FixWallGran::init()
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
+  // check for compatible heat conduction atom style
+
+  if (heat_flag) {
+    if (!atom->temperature_flag)
+      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with temperature property");
+    if (!atom->heatflux_flag)
+      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with heatflux property");
+  }
+
   // check for FixRigid so can extract rigid body masses
 
   fix_rigid = nullptr;
@@ -529,9 +538,10 @@ void FixWallGran::post_force(int /*vflag*/)
     model->dx[1] = dy;
     model->dx[2] = dz;
     model->radi = radius[i];
+    model->radj = rwall;
     if (model->beyond_contact) model->touch = history_one[i][0];
 
-    touchflag = model->check_contact(rwall);
+    touchflag = model->check_contact();
 
     if (!touchflag) {
       if (use_history)

@@ -328,20 +328,24 @@ void ContactModel::read_restart(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-bool ContactModel::check_contact(double rtemp)
+bool ContactModel::check_contact()
 {
   if (contact_type == WALL) {
     // Used by fix_wall_gran.cpp
+    //   radj = radius of wall
+    //   dx already provided
     rsq = lensq3(dx);
     radsum = radi;
-    if (rtemp == 0) Reff = radi;
-    else Reff = radi * rtemp/(radi + rtemp);
+    if (radj == 0) Reff = radi;
+    else Reff = radi * radj / (radi + radj);
   } else if (contact_type == WALLREGION) {
     // Used by fix_wall_gran_region.cpp
-    rsq = rtemp * rtemp;
-    radsum = radi + radi;
-    if (rtemp == 0) Reff = radi;
-    else Reff = radi * rtemp/(radi + rtemp);
+    //   radj = radius of wall
+    //   dx and r already provided
+    rsq = r * r;
+    radsum = radi;
+    if (radj == 0) Reff = radi;
+    else Reff = radi * radj / (radi + radj);
   } else {
     sub3(xi, xj, dx);
     rsq = lensq3(dx);

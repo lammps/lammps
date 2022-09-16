@@ -442,6 +442,13 @@ void PairGranular::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
+  if (heat_flag) {
+    if (!atom->temperature_flag)
+      error->all(FLERR,"Heat conduction in pair granular requires atom style with temperature property");
+    if (!atom->heatflux_flag)
+      error->all(FLERR,"Heat conduction in pair granular requires atom style with heatflux property");
+  }
+
   // allocate history and initialize models
   int size_max[NSUBMODELS] = {0};
 

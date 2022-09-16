@@ -230,6 +230,8 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       model->dx[1] = region->contact[ic].dely;
       model->dx[2] = region->contact[ic].delz;
       model->radi = radius[i];
+      model->radj = region->contact[ic].radius;
+      model->r = region->contact[ic].r;
       if (model->beyond_contact) model->touch = history_many[i][c2r[ic]][0];
 
       touchflag = model->check_contact(region->contact[ic].r);

@@ -51,7 +51,7 @@ class ContactModel : protected Pointers {
   ContactModel(class LAMMPS *);
   ~ContactModel();
   void init();
-  bool check_contact(double = 0);
+  bool check_contact();
   void prep_contact();
   void calculate_forces();
   double pulloff_distance(double, double);
@@ -84,7 +84,7 @@ class ContactModel : protected Pointers {
   // Contact properties/output
   double forces[3], torquesi[3], torquesj[3], dq;
 
-  double radi, radj, rwall, meff, dt, Ti, Tj, area;
+  double radi, radj, meff, dt, Ti, Tj, area;
   double Fntot, magtortwist;
 
   double *xi, *xj, *vi, *vj, *omegai, *omegaj;

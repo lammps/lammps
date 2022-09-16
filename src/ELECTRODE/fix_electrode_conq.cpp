@@ -19,15 +19,12 @@
 
 #include "error.h"
 #include "fix_electrode_conp.h"
+#include "group.h"
 #include "input.h"
 #include "variable.h"
 
 using namespace LAMMPS_NS;
 
-#define SMALL 0.00001
-
-//     0        1      2              3    4
-// fix fxupdate group1 electrode/conp pot1 eta couple group2 pot2
 FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
     FixElectrodeConp(lmp, narg, arg)
 {
@@ -35,25 +32,59 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
   group_q = group_psi;
 
   if (symm) error->all(FLERR, "Keyword symm on not allowed in electrode/conq");
-  if (algo != Algo::MATRIX_INV) error->all(FLERR, "Algorithm not allowed in electrode/conq");
 }
 
 void FixElectrodeConq::update_psi()
 {
-  // don't need MPI_Barrier because always preceded by MPI_Allreduce
   for (int g = 0; g < num_of_groups; g++) {
     if (group_psi_var_styles[g] == VarStyle::CONST) continue;
     group_q[g] = input->variable->compute_equal(group_psi_var_ids[g]);
   }
+  if (algo == Algo::MATRIX_INV) {
+    std::vector<double> group_remainder_q(num_of_groups);
+    for (int g = 0; g < num_of_groups; g++) { group_remainder_q[g] = group_q[g] - sb_charges[g]; }
 
-  std::vector<double> group_remainder_q(num_of_groups);
-  for (int g = 0; g < num_of_groups; g++) { group_remainder_q[g] = group_q[g] - sb_charges[g]; }
-
-  for (int g = 0; g < num_of_groups; g++) {
-    double vtmp = 0;
-    for (int h = 0; h < num_of_groups; h++) {
-      vtmp += macro_elastance[g][h] * group_remainder_q[h];
+    for (int g = 0; g < num_of_groups; g++) {
+      double vtmp = 0;
+      for (int h = 0; h < num_of_groups; h++) {
+        vtmp += macro_elastance[g][h] * group_remainder_q[h];
+      }
+      group_psi[g] = vtmp;
     }
-    group_psi[g] = vtmp;
+  } else {
+    for (double &g : group_psi) g = 0;
   }
+}
+
+/* ----------------------------------------------------------------------
+   Correct charge of each electrode to target charge by adding a homogeneous charge
+------------------------------------------------------------------------- */
+
+std::vector<double> FixElectrodeConq::constraint_correction(std::vector<double> x)
+{
+  int const n = x.size();
+  auto sums = std::vector<double>(num_of_groups, 0);
+  for (int i = 0; i < n; i++) sums[iele_to_group_local[i]] += x[i];
+  MPI_Allreduce(MPI_IN_PLACE, &sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  for (int g = 0; g < num_of_groups; g++) {
+    sums[g] -= group_q[g];
+    sums[g] /= group->count(groups[g]);
+  }
+  for (int i = 0; i < n; i++) x[i] -= sums[iele_to_group_local[i]];
+  return x;
+}
+
+/* ----------------------------------------------------------------------
+   Project into direction that conserves charge of each electrode (cf. M. Shariff (1995))
+------------------------------------------------------------------------- */
+
+std::vector<double> FixElectrodeConq::constraint_projection(std::vector<double> x)
+{
+  int const n = x.size();
+  auto sums = std::vector<double>(num_of_groups, 0);
+  for (int i = 0; i < n; i++) sums[iele_to_group_local[i]] += x[i];
+  MPI_Allreduce(MPI_IN_PLACE, &sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
+  for (int g = 0; g < num_of_groups; g++) sums[g] /= group->count(groups[g]);
+  for (int i = 0; i < n; i++) x[i] -= sums[iele_to_group_local[i]];
+  return x;
 }

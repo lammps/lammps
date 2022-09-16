@@ -40,13 +40,15 @@ Syntax
 
 .. parsed-literal::
 
+    *algo mat_inv/mat_cg value/cg value*
+        specify the algorithm used to compute the electrode charges
     *symm(etry) on/off*
         turn on/off charge neutrality constraint for the electrodes
     *couple group-ID value*
         group-ID = group of atoms treated as additional electrode
         value = electric potential or charge on this electrode
-    *etypes values = atom types*
-        specify atom types exclusive to the electrode for optimized neighbor lists
+    *etypes*
+        construct optimized neighbor lists (types of the electrode must be exclusive to them)
     *ffield on/off*
         turn on/off finite-field implementation
     *write_mat filename*
@@ -75,8 +77,13 @@ fix electrode/conp mode implements a constant potential method (CPM)
 via group-ID and optionally with the `couple` keyword are adapted to meet their respective
 potential at every time step.  An arbitrary number of electrodes can be set but
 the respective groups may not overlap. Electrode charges have a Gaussian charge
-distribution with reciprocal width eta. The energy minimization is achieved via
-matrix inversion :ref:`(Wang) <Wang5>`.
+distribution with reciprocal width eta.
+
+Three algorithms are available to minimize the energy:
+via matrix inversion (*algo mat_inv*) :ref:`(Wang) <Wang5>`, or with the conjugate gradient
+method either using a matrix for the electrode-electrode interaction (*algo
+mat_cg value*) or computing the interaction directly (*algo cg value*). This
+method requires a threshold value to set the accuracy.
 
 fix electrode/conq enforces a total charge specified in the input on each electrode. The energy is
 minimized w.r.t. the charge distribution within the electrode.
@@ -84,7 +91,7 @@ minimized w.r.t. the charge distribution within the electrode.
 fix electrode/thermo implements a thermo-potentiostat :ref:`(Deissenbeck)
 <Deissenbeck>`. Temperature and time constant of the thermo-potentiostat need
 to be specified using the temp keyword. Currently, only two electrodes are possible with
-this style.
+this style. This fix is not compatible with the conjugate gradient algorithms.
 
 For all three fixes, any potential (or charge for *conq*) can be specified as an
 equal-style variable prefixed with "v\_". For example, the following code will
@@ -208,7 +215,8 @@ use *pppm/electrode* :ref:`(Ahrens-Iwers) <Ahrens-Iwers>`.
 Restrictions
 """"""""""""
 
-Positions of electrode particles have to be immobilized at all times.
+For algorithms that use a matrix for the electrode-electrode interactions,
+positions of electrode particles have to be immobilized at all times.
 
 The parallelization for the fix works best if electrode atoms are evenly
 distributed across processors. For a system with two electrodes at the bottom

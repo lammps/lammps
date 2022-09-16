@@ -454,9 +454,10 @@ void PPPMElectrode::compute(int eflag, int vflag)
 
   start_compute();
 
-  if (compute_vector_called) {
-    // electrolyte_density_brick is filled, so we can
-    // grab only electrode atoms
+  if (compute_vector_called && last_invert_source) {
+    // electrolyte_density_brick is filled, so we can grab only electrode atoms.
+    // Does not work for direct cg algorithm because electrode charges change after compute_vector.
+    // Therefore, only when last_invert_source true.
     // TODO: this is dangerous now that compute_vector's interface has been
     // changed since a compute could call an arbitrary source, needs tightening
     make_rho_in_brick(last_source_grpbit, density_brick, !last_invert_source);
@@ -486,9 +487,6 @@ void PPPMElectrode::compute(int eflag, int vflag)
   // also performs per-atom calculations via poisson_peratom()
 
   poisson();
-  // cout << "###" << endl
-  //<< "POISSON ENERGY: " << energy * 0.5 * volume << endl
-  //<< "###" << endl;
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks

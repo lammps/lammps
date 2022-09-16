@@ -63,15 +63,20 @@ class FixElectrodeConp : public Fix {
 
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   enum class Algo { MATRIX_INV, MATRIX_CG, CG };
   enum class VarStyle { CONST, EQUAL };
   virtual void update_psi();
   virtual void pre_update(){};
+  virtual std::vector<double> constraint_projection(std::vector<double>);
+  virtual std::vector<double> constraint_correction(std::vector<double>);
   virtual void compute_macro_matrices();
   std::vector<double> group_psi;
   std::vector<int> group_bits;
+  std::vector<int> groups;
   int num_of_groups;
   bigint ngroup;
   std::vector<std::vector<double>> sd_vectors;
@@ -79,6 +84,7 @@ class FixElectrodeConp : public Fix {
   std::vector<int> group_psi_var_ids;
   std::vector<VarStyle> group_psi_var_styles;
   std::vector<std::string> group_psi_var_names;
+  std::vector<int> iele_to_group_local;
   bool symm;    // symmetrize elastance for charge neutrality
   Algo algo;
   std::vector<std::vector<double>> macro_elastance;      // used by conq
@@ -93,13 +99,13 @@ class FixElectrodeConp : public Fix {
  private:
   std::string output_file_inv, output_file_mat, output_file_vec;
   std::string input_file_inv, input_file_mat;
-  class ElectrodeVector *ele_vector;
-  std::vector<int> groups;
+  class ElectrodeVector *elyt_vector, *elec_vector;
   double **capacitance, **elastance;
   bool read_inv, read_mat, write_inv, write_mat, write_vec;
-  bool matrix_algo, need_array_compute;
-  double eta;
+  bool matrix_algo, need_array_compute, need_elec_vector;
+  double eta, cg_threshold;
   double update_time, mult_time;
+  int n_cg_step, n_call;
   void create_taglist();
   void invert();
   void symmetrize();
@@ -124,12 +130,22 @@ class FixElectrodeConp : public Fix {
   bool tfflag;
   bool timer_flag;
   std::map<int, double> tf_types;
+  // cg
+  std::vector<double> ele_ele_interaction(std::vector<double>);
+  std::vector<double> scale_vector(double, std::vector<double>);
+  std::vector<double> add_nlocalele(std::vector<double>, std::vector<double>);
+  double dot_nlocalele(std::vector<double>, std::vector<double>);
+  std::vector<double> times_elastance(std::vector<double>);
+  std::vector<double> gather_ngroup(std::vector<double>);
+  std::vector<double> gather_elevec_local(ElectrodeVector *);
+  void set_charges(std::vector<double>);
 
   // fix-specific electrode ID storage system:
 
-  std::vector<tagint> taglist;            // global list: all tags in combined electrode group
-  std::vector<tagint> taglist_bygroup;    // taglist sorted by group
-  std::vector<tagint> group_idx;          // permutation taglist<->taglist_bygroup
+  std::vector<tagint> taglist;    // global list: all tags in combined electrode group
+  std::vector<tagint> taglist_local;
+  std::vector<tagint> taglist_bygroup;            // taglist sorted by group
+  std::vector<tagint> group_idx;                  // permutation taglist<->taglist_bygroup
   std::unordered_map<tagint, int> tag_to_iele;    // inverse of taglist:
   std::vector<int> iele_to_group;
   // tag_to_iele[taglist[iele]] = iele
@@ -143,7 +159,6 @@ class FixElectrodeConp : public Fix {
   double *buf_gathered;            // buffer for MPIgathered buf_iele (NOT YET iele-ordered)
   double *potential_i;             // potentials, i-indexed (0 for non-electrode atoms)
   double *potential_iele;          // potentials ordered by iele
-  double *charge_iele;             // charges ordered by iele
 
   void gather_list_iele();                       // build iele_gathered
   void gather_elevec(double *);                  // gather buf_iele and rearrange into iele-order

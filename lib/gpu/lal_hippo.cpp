@@ -67,7 +67,8 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
                             cell_size,gpu_split,_screen,hippo,
                             "k_hippo_multipole", "k_hippo_udirect2b",
                             "k_hippo_umutual2b", "k_hippo_polar",
-                            "k_hippo_short_nbor", "k_hippo_special15");
+                            "k_hippo_fphi_uind", "k_hippo_short_nbor",
+                            "k_hippo_special15");
   if (success!=0)
     return success;
 

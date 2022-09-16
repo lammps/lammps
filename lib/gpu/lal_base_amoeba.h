@@ -62,9 +62,10 @@ class BaseAmoeba {
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15, const double cell_size,
                   const double gpu_split, FILE *screen, const void *pair_program,
-                  const char *kname_multipole,
-                  const char *kname_udirect2b, const char *kname_umutual2b,
-                  const char *kname_polar, const char *kname_short_nbor, const char* kname_special15);
+                  const char *kname_multipole, const char *kname_udirect2b,
+                  const char *kname_umutual2b, const char *kname_polar,
+                  const char *kname_fphi_uind, const char *kname_short_nbor,
+                  const char* kname_special15);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead(const int add_kernels=0);
@@ -309,7 +310,8 @@ class BaseAmoeba {
   void compile_kernels(UCL_Device &dev, const void *pair_string,
      const char *kname_multipole, const char *kname_udirect2b,
      const char *kname_umutual2b, const char *kname_polar,
-     const char *kname_short_nbor, const char* kname_special15);
+     const char *kname_fphi_uind, const char *kname_short_nbor,
+     const char* kname_special15);
 
   virtual int multipole_real(const int eflag, const int vflag) = 0;
   virtual int udirect2b(const int eflag, const int vflag) = 0;

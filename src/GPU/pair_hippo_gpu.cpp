@@ -18,7 +18,7 @@
 
 #include "pair_hippo_gpu.h"
 
-#include "amoeba_convolution.h"
+#include "amoeba_convolution_gpu.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -45,6 +45,9 @@ enum{MUTUAL,OPT,TCG,DIRECT};
 enum{GEAR,ASPC,LSQR};
 enum{BUILD,APPLY};
 enum{GORDON1,GORDON2};
+
+// same as in pair_amoeba.cpp
+enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 
 #define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
 
@@ -102,6 +105,16 @@ void hippo_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
 
 void hippo_gpu_update_fieldp(void **fieldp_ptr);
 
+void hippo_gpu_fphi_uind(const int inum_full, const int bsorder,
+                          double ***host_thetai1, double ***host_thetai2,
+                          double ***host_thetai3, int** igrid,
+                          double ****host_grid_brick, void **host_fdip_phi1,
+                          void **host_fdip_phi2, void **host_fdip_sum_phi,
+                          const int nzlo_out, const int nzhi_out,
+                          const int nylo_out, const int nyhi_out,
+                          const int nxlo_out, const int nxhi_out,
+                          bool& first_iteration);
+
 void hippo_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -129,8 +142,10 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_dispersion_real_ready = true;
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;
+  gpu_umutual1_ready = true;
+  gpu_fphi_uind_ready = true;
   gpu_umutual2b_ready = true;
-  gpu_polar_real_ready = true;
+  gpu_polar_real_ready = true;         // need to be true for copying data from device back to host
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -198,6 +213,16 @@ void PairHippoGPU::init_style()
     tq_single = false;
   else
     tq_single = true;
+
+  // replace with the gpu counterpart
+
+  if (gpu_umutual1_ready) {
+    if (use_ewald && ic_kspace) {
+      delete ic_kspace;
+      ic_kspace =
+        new AmoebaConvolutionGPU(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRIDC);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -392,6 +417,8 @@ void PairHippoGPU::induce()
 
   int debug = 1;
 
+  first_induce_iteration  = true;
+
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()
 
@@ -403,8 +430,6 @@ void PairHippoGPU::induce()
 
   // owned atoms
 
-  double **x = atom->x;
-  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // zero out the induced dipoles at each site
@@ -996,37 +1021,60 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
   int i,j;
   double term;
 
+  double time0,time1,time2;
+
   // zero field,fieldp for owned and ghost atoms
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  for (i = 0; i < nall; i++) {
-    for (j = 0; j < 3; j++) {
+  memset(&field[0][0], 0, 3*nall *sizeof(double));
+  memset(&fieldp[0][0], 0, 3*nall *sizeof(double));
+
+/*  
+  for (int i = 0; i < nall; i++) {
+    for (int j = 0; j < 3; j++) {
       field[i][j] = 0.0;
       fieldp[i][j] = 0.0;
     }
   }
-
+*/
+  
   // get the real space portion of the mutual field first
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   if (polar_rspace_flag) umutual2b(field,fieldp);
+  time1 = MPI_Wtime();
 
   // get the reciprocal space part of the mutual field
 
   if (polar_kspace_flag) umutual1(field,fieldp);
+  time2 = MPI_Wtime();
 
   // add the self-energy portion of the mutual field
 
   term = (4.0/3.0) * aewald*aewald*aewald / MY_PIS;
+  for (int i = 0; i < nlocal; i++) {
+    field[i][0] += term*uind[i][0];
+    field[i][1] += term*uind[i][1];
+    field[i][2] += term*uind[i][2];
+  }
+  for (int i = 0; i < nlocal; i++) {
+    fieldp[i][0] += term*uinp[i][0];
+    fieldp[i][1] += term*uinp[i][1];
+    fieldp[i][2] += term*uinp[i][2];
+  }
+/*  
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
       field[i][j] += term*uind[i][j];
       fieldp[i][j] += term*uinp[i][j];
     }
   }
-
-  // accumulate the field and fieldp values from real-space portion from umutual2b() on the GPU
+*/
+  // accumulate the field and fieldp values from the real-space portion from umutual2b() on the GPU
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
   hippo_gpu_update_fieldp(&fieldp_pinned);
@@ -1048,6 +1096,228 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
     fieldp[i][0] += fieldp_ptr[idx];
     fieldp[i][1] += fieldp_ptr[idx+1];
     fieldp[i][2] += fieldp_ptr[idx+2];
+  }
+
+  // accumulate timing information
+
+  time_mutual_rspace += time1 - time0;
+  time_mutual_kspace += time2 - time1;
+}
+
+/* ----------------------------------------------------------------------
+   umutual1 = Ewald recip mutual induced field
+   umutual1 computes the reciprocal space contribution of the
+   induced atomic dipole moments to the field
+------------------------------------------------------------------------- */
+
+void PairHippoGPU::umutual1(double **field, double **fieldp)
+{
+  int m,n;
+  int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
+  double term;
+  double a[3][3];  // indices not flipped vs Fortran
+
+  // return if the Ewald coefficient is zero
+
+  if (aewald < 1.0e-6) return;
+
+  // convert Cartesian dipoles to fractional coordinates
+
+  for (int j = 0; j < 3; j++) {
+    a[0][j] = nfft1 * recip[0][j];
+    a[1][j] = nfft2 * recip[1][j];
+    a[2][j] = nfft3 * recip[2][j];
+  }
+
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    fuind[i][0] = a[0][0]*uind[i][0] + a[0][1]*uind[i][1] + a[0][2]*uind[i][2];
+    fuind[i][1] = a[1][0]*uind[i][0] + a[1][1]*uind[i][1] + a[1][2]*uind[i][2];
+    fuind[i][2] = a[2][0]*uind[i][0] + a[2][1]*uind[i][1] + a[2][2]*uind[i][2];
+  }
+    
+  for (int i = 0; i < nlocal; i++) {      
+    fuinp[i][0] = a[0][0]*uinp[i][0] + a[0][1]*uinp[i][1] + a[0][2]*uinp[i][2];
+    fuinp[i][1] = a[1][0]*uinp[i][0] + a[1][1]*uinp[i][1] + a[1][2]*uinp[i][2];
+    fuinp[i][2] = a[2][0]*uinp[i][0] + a[2][1]*uinp[i][1] + a[2][2]*uinp[i][2];
+  }
+/*
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      fuind[i][j] = a[j][0]*uind[i][0] + a[j][1]*uind[i][1] + a[j][2]*uind[i][2];
+      fuinp[i][j] = a[j][0]*uinp[i][0] + a[j][1]*uinp[i][1] + a[j][2]*uinp[i][2];
+    }
+  }
+*/
+  // gridpre = my portion of 4d grid in brick decomp w/ ghost values
+
+  double ****gridpre = (double ****) ic_kspace->zero();
+
+  // map 2 values to grid
+
+  grid_uind(fuind,fuinp,gridpre);
+
+  // pre-convolution operations including forward FFT
+  // gridfft = my portion of complex 3d grid in FFT decomposition
+
+  double *gridfft = ic_kspace->pre_convolution();
+
+  // ---------------------
+  // convolution operation
+  // ---------------------
+
+  nxlo = ic_kspace->nxlo_fft;
+  nxhi = ic_kspace->nxhi_fft;
+  nylo = ic_kspace->nylo_fft;
+  nyhi = ic_kspace->nyhi_fft;
+  nzlo = ic_kspace->nzlo_fft;
+  nzhi = ic_kspace->nzhi_fft;
+
+  // use qfac values stored in udirect1()
+
+  m = n = 0;
+  for (int k = nzlo; k <= nzhi; k++) {
+    for (int j = nylo; j <= nyhi; j++) {
+      for (int i = nxlo; i <= nxhi; i++) {
+        term = qfac[m++];
+        gridfft[n] *= term;
+        gridfft[n+1] *= term;
+        n += 2;
+      }
+    }
+  }
+
+  // post-convolution operations including backward FFT
+  // gridppost = my portion of 4d grid in brick decomp w/ ghost values
+
+  double ****gridpost = (double ****) ic_kspace->post_convolution();
+
+  // get potential
+  double time0, time1;
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
+  fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);
+
+  time1 = MPI_Wtime();
+  time_fphi_uind += (time1 - time0);
+
+  // store fractional reciprocal potentials for OPT method
+
+  if (poltyp == OPT) {
+    for (int i = 0; i < nlocal; i++) {
+      for (int j = 0; j < 10; j++) {
+        fopt[i][optlevel][j] = fdip_phi1[i][j];
+        foptp[i][optlevel][j] = fdip_phi2[i][j];
+      }
+    }
+  }
+
+  // convert the dipole fields from fractional to Cartesian
+
+  for (int i = 0; i < 3; i++) {
+    a[0][i] = nfft1 * recip[0][i];
+    a[1][i] = nfft2 * recip[1][i];
+    a[2][i] = nfft3 * recip[2][i];
+  }
+
+  for (int i = 0; i < nlocal; i++) {
+    double dfx = a[0][0]*fdip_phi1[i][1] +
+      a[0][1]*fdip_phi1[i][2] + a[0][2]*fdip_phi1[i][3];
+    double dfy = a[1][0]*fdip_phi1[i][1] +
+      a[1][1]*fdip_phi1[i][2] + a[1][2]*fdip_phi1[i][3];
+    double dfz = a[2][0]*fdip_phi1[i][1] +
+      a[2][1]*fdip_phi1[i][2] + a[2][2]*fdip_phi1[i][3];
+    field[i][0] -= dfx;
+    field[i][1] -= dfy;
+    field[i][2] -= dfz;
+  }
+
+  for (int i = 0; i < nlocal; i++) {
+    double dfx = a[0][0]*fdip_phi2[i][1] +
+      a[0][1]*fdip_phi2[i][2] + a[0][2]*fdip_phi2[i][3];
+    double dfy = a[1][0]*fdip_phi2[i][1] +
+      a[1][1]*fdip_phi2[i][2] + a[1][2]*fdip_phi2[i][3];
+    double dfz = a[2][0]*fdip_phi2[i][1] +
+      a[2][1]*fdip_phi2[i][2] + a[2][2]*fdip_phi2[i][3];
+    fieldp[i][0] -= dfx;
+    fieldp[i][1] -= dfy;
+    fieldp[i][2] -= dfz;
+  }
+/*
+  for (int i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      dipfield1[i][j] = a[j][0]*fdip_phi1[i][1] +
+        a[j][1]*fdip_phi1[i][2] + a[j][2]*fdip_phi1[i][3];
+      dipfield2[i][j] = a[j][0]*fdip_phi2[i][1] +
+        a[j][1]*fdip_phi2[i][2] + a[j][2]*fdip_phi2[i][3];
+    }
+  }
+
+  // increment the field at each multipole site
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      field[i][j] -= dipfield1[i][j];
+      fieldp[i][j] -= dipfield2[i][j];
+    }
+  }
+*/
+}
+
+/* ----------------------------------------------------------------------
+   fphi_uind = induced potential from grid
+   fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
+------------------------------------------------------------------------- */
+
+void PairHippoGPU::fphi_uind(double ****grid, double **fdip_phi1,
+                              double **fdip_phi2, double **fdip_sum_phi)
+{
+  if (!gpu_fphi_uind_ready) {
+    PairAmoeba::fphi_uind(grid, fdip_phi1, fdip_phi2, fdip_sum_phi);
+    return;
+  }
+
+  void* fdip_phi1_pinned = nullptr;
+  void* fdip_phi2_pinned = nullptr;
+  void* fdip_sum_phi_pinned = nullptr;
+  hippo_gpu_fphi_uind(atom->nlocal, bsorder, thetai1,
+                       thetai2, thetai3, igrid, grid,
+                       &fdip_phi1_pinned, &fdip_phi2_pinned,
+                       &fdip_sum_phi_pinned,
+                       ic_kspace->nzlo_out, ic_kspace->nzhi_out,
+                       ic_kspace->nylo_out, ic_kspace->nyhi_out,
+                       ic_kspace->nxlo_out, ic_kspace->nxhi_out,
+                       first_induce_iteration);
+  
+  int nlocal = atom->nlocal;
+  double *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
+  for (int i = 0; i < nlocal; i++) {
+    int n = i;
+    for (int m = 0; m < 10; m++) {
+      fdip_phi1[i][m] = _fdip_phi1_ptr[n];
+      n += nlocal;
+    }
+  }
+
+  double *_fdip_phi2_ptr = (double *)fdip_phi2_pinned;
+  for (int i = 0; i < nlocal; i++) {
+    int n = i;
+    for (int m = 0; m < 10; m++) {
+      fdip_phi2[i][m] = _fdip_phi2_ptr[n];
+      n += nlocal;
+    }
+  }
+
+  double *_fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
+  for (int i = 0; i < nlocal; i++) {
+    int n = i;
+    for (int m = 0; m < 20; m++) {
+      fdip_sum_phi[i][m] = _fdip_sum_phi_ptr[n];
+      n += nlocal;
+    }
   }
 }
 
@@ -1089,29 +1359,6 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   double *pval = atom->dvector[index_pval];
   hippo_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp, pval,
                               aewald, off2, &fieldp_pinned);
-/*
-  // accumulate the field and fieldp values from the GPU lib
-  //   field and fieldp may already have some nonzero values from kspace (umutual1)
-
-  int nlocal = atom->nlocal;
-  double *field_ptr = (double *)fieldp_pinned;
-
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    field[i][0] += field_ptr[idx];
-    field[i][1] += field_ptr[idx+1];
-    field[i][2] += field_ptr[idx+2];
-  }
-
-  double* fieldp_ptr = (double *)fieldp_pinned;
-  fieldp_ptr += 4*inum;
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    fieldp[i][0] += fieldp_ptr[idx];
-    fieldp[i][1] += fieldp_ptr[idx+1];
-    fieldp[i][2] += fieldp_ptr[idx+2];
-  }
-*/
 }
 
 /* ----------------------------------------------------------------------

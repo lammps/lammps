@@ -2046,6 +2046,307 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 }
 
 /* ----------------------------------------------------------------------
+   fphi_uind = induced potential from grid
+   fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
+------------------------------------------------------------------------- */
+
+__kernel void k_hippo_fphi_uind(const __global numtyp4 *restrict thetai1,
+                          const __global numtyp4 *restrict thetai2,
+                          const __global numtyp4 *restrict thetai3,
+                          const __global int *restrict igrid,
+                          const __global numtyp *restrict grid,
+                          __global numtyp *restrict fdip_phi1,
+                          __global numtyp *restrict fdip_phi2,
+                          __global numtyp *restrict fdip_sum_phi,
+                          const int bsorder, const int inum,
+                          const int nzlo_out, const int nylo_out,
+                          const int nxlo_out, const int ngridxy,
+                          const int ngridx)
+{
+  //int tid, ii, offset, i, n_stride;
+  //atom_info(t_per_atom,ii,tid,offset);
+  
+
+  int tid=THREAD_ID_X;
+  int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
+
+  if (ii<inum) {
+
+    int nlpts = (bsorder-1) / 2;
+    
+    int istart = fast_mul(ii,4);
+    int igridx = igrid[istart];
+    int igridy = igrid[istart+1];
+    int igridz = igrid[istart+2];
+    
+    // now istart is used to index thetai1, thetai2 and thetai3
+    istart = fast_mul(ii,bsorder);
+
+    // extract the permanent multipole field at each site
+
+    numtyp tuv100_1 = (numtyp)0.0;
+    numtyp tuv010_1 = (numtyp)0.0;
+    numtyp tuv001_1 = (numtyp)0.0;
+    numtyp tuv200_1 = (numtyp)0.0;
+    numtyp tuv020_1 = (numtyp)0.0;
+    numtyp tuv002_1 = (numtyp)0.0;
+    numtyp tuv110_1 = (numtyp)0.0;
+    numtyp tuv101_1 = (numtyp)0.0;
+    numtyp tuv011_1 = (numtyp)0.0;
+    numtyp tuv100_2 = (numtyp)0.0;
+    numtyp tuv010_2 = (numtyp)0.0;
+    numtyp tuv001_2 = (numtyp)0.0;
+    numtyp tuv200_2 = (numtyp)0.0;
+    numtyp tuv020_2 = (numtyp)0.0;
+    numtyp tuv002_2 = (numtyp)0.0;
+    numtyp tuv110_2 = (numtyp)0.0;
+    numtyp tuv101_2 = (numtyp)0.0;
+    numtyp tuv011_2 = (numtyp)0.0;
+    numtyp tuv000 = (numtyp)0.0;
+    numtyp tuv001 = (numtyp)0.0;
+    numtyp tuv010 = (numtyp)0.0;
+    numtyp tuv100 = (numtyp)0.0;
+    numtyp tuv200 = (numtyp)0.0;
+    numtyp tuv020 = (numtyp)0.0;
+    numtyp tuv002 = (numtyp)0.0;
+    numtyp tuv110 = (numtyp)0.0;
+    numtyp tuv101 = (numtyp)0.0;
+    numtyp tuv011 = (numtyp)0.0;
+    numtyp tuv300 = (numtyp)0.0;
+    numtyp tuv030 = (numtyp)0.0;
+    numtyp tuv003 = (numtyp)0.0;
+    numtyp tuv210 = (numtyp)0.0;
+    numtyp tuv201 = (numtyp)0.0;
+    numtyp tuv120 = (numtyp)0.0;
+    numtyp tuv021 = (numtyp)0.0;
+    numtyp tuv102 = (numtyp)0.0;
+    numtyp tuv012 = (numtyp)0.0;
+    numtyp tuv111 = (numtyp)0.0;
+
+    int k = (igridz - nzlo_out) - nlpts;
+    for (int kb = 0; kb < bsorder; kb++) {
+      /*
+      v0 = thetai3[m][kb][0];
+      v1 = thetai3[m][kb][1];
+      v2 = thetai3[m][kb][2];
+      v3 = thetai3[m][kb][3];
+      */
+      int i3 = istart + kb;
+      numtyp4 tha3 = thetai3[i3];
+      numtyp v0 = tha3.x;
+      numtyp v1 = tha3.y;
+      numtyp v2 = tha3.z;
+      numtyp v3 = tha3.w;
+      numtyp tu00_1 = (numtyp)0.0;
+      numtyp tu01_1 = (numtyp)0.0;
+      numtyp tu10_1 = (numtyp)0.0;
+      numtyp tu20_1 = (numtyp)0.0;
+      numtyp tu11_1 = (numtyp)0.0;
+      numtyp tu02_1 = (numtyp)0.0;
+      numtyp tu00_2 = (numtyp)0.0;
+      numtyp tu01_2 = (numtyp)0.0;
+      numtyp tu10_2 = (numtyp)0.0;
+      numtyp tu20_2 = (numtyp)0.0;
+      numtyp tu11_2 = (numtyp)0.0;
+      numtyp tu02_2 = (numtyp)0.0;
+      numtyp tu00 = (numtyp)0.0;
+      numtyp tu10 = (numtyp)0.0;
+      numtyp tu01 = (numtyp)0.0;
+      numtyp tu20 = (numtyp)0.0;
+      numtyp tu11 = (numtyp)0.0;
+      numtyp tu02 = (numtyp)0.0;
+      numtyp tu30 = (numtyp)0.0;
+      numtyp tu21 = (numtyp)0.0;
+      numtyp tu12 = (numtyp)0.0;
+      numtyp tu03 = (numtyp)0.0;
+
+      int j = (igridy - nylo_out) - nlpts;
+      for (int jb = 0; jb < bsorder; jb++) {
+        /*
+        u0 = thetai2[m][jb][0];
+        u1 = thetai2[m][jb][1];
+        u2 = thetai2[m][jb][2];
+        u3 = thetai2[m][jb][3];
+        */
+        int i2 = istart + jb;
+        numtyp4 tha2 = thetai2[i2];
+        numtyp u0 = tha2.x;
+        numtyp u1 = tha2.y;
+        numtyp u2 = tha2.z;
+        numtyp u3 = tha2.w;
+        numtyp t0_1 = (numtyp)0.0;
+        numtyp t1_1 = (numtyp)0.0;
+        numtyp t2_1 = (numtyp)0.0;
+        numtyp t0_2 = (numtyp)0.0;
+        numtyp t1_2 = (numtyp)0.0;
+        numtyp t2_2 = (numtyp)0.0;
+        numtyp t3 = (numtyp)0.0;
+
+        int i = (igridx - nxlo_out) - nlpts;
+        for (int ib = 0; ib < bsorder; ib++) {
+          /*
+          tq_1 = grid[k][j][i][0];
+          tq_2 = grid[k][j][i][1];
+          t0_1 += tq_1*thetai1[m][ib][0];
+          t1_1 += tq_1*thetai1[m][ib][1];
+          t2_1 += tq_1*thetai1[m][ib][2];
+          t0_2 += tq_2*thetai1[m][ib][0];
+          t1_2 += tq_2*thetai1[m][ib][1];
+          t2_2 += tq_2*thetai1[m][ib][2];
+          t3 += (tq_1+tq_2)*thetai1[m][ib][3];
+          */
+          int i1 = istart + ib;
+          numtyp4 tha1 = thetai1[i1];
+          numtyp w0 = tha1.x;
+          numtyp w1 = tha1.y;
+          numtyp w2 = tha1.z;
+          numtyp w3 = tha1.w;
+          int gidx = 2*(k*ngridxy + j*ngridx + i);
+          numtyp tq_1 = grid[gidx];
+          numtyp tq_2 = grid[gidx+1];
+          t0_1 += tq_1*w0;
+          t1_1 += tq_1*w1;
+          t2_1 += tq_1*w2;
+          t0_2 += tq_2*w0;
+          t1_2 += tq_2*w1;
+          t2_2 += tq_2*w2;
+          t3 += (tq_1+tq_2)*w3;
+          i++;
+        }
+
+        tu00_1 += t0_1*u0;
+        tu10_1 += t1_1*u0;
+        tu01_1 += t0_1*u1;
+        tu20_1 += t2_1*u0;
+        tu11_1 += t1_1*u1;
+        tu02_1 += t0_1*u2;
+        tu00_2 += t0_2*u0;
+        tu10_2 += t1_2*u0;
+        tu01_2 += t0_2*u1;
+        tu20_2 += t2_2*u0;
+        tu11_2 += t1_2*u1;
+        tu02_2 += t0_2*u2;
+        numtyp t0 = t0_1 + t0_2;
+        numtyp t1 = t1_1 + t1_2;
+        numtyp t2 = t2_1 + t2_2;
+        tu00 += t0*u0;
+        tu10 += t1*u0;
+        tu01 += t0*u1;
+        tu20 += t2*u0;
+        tu11 += t1*u1;
+        tu02 += t0*u2;
+        tu30 += t3*u0;
+        tu21 += t2*u1;
+        tu12 += t1*u2;
+        tu03 += t0*u3;
+        j++;
+      }
+
+      tuv100_1 += tu10_1*v0;
+      tuv010_1 += tu01_1*v0;
+      tuv001_1 += tu00_1*v1;
+      tuv200_1 += tu20_1*v0;
+      tuv020_1 += tu02_1*v0;
+      tuv002_1 += tu00_1*v2;
+      tuv110_1 += tu11_1*v0;
+      tuv101_1 += tu10_1*v1;
+      tuv011_1 += tu01_1*v1;
+      tuv100_2 += tu10_2*v0;
+      tuv010_2 += tu01_2*v0;
+      tuv001_2 += tu00_2*v1;
+      tuv200_2 += tu20_2*v0;
+      tuv020_2 += tu02_2*v0;
+      tuv002_2 += tu00_2*v2;
+      tuv110_2 += tu11_2*v0;
+      tuv101_2 += tu10_2*v1;
+      tuv011_2 += tu01_2*v1;
+      tuv000 += tu00*v0;
+      tuv100 += tu10*v0;
+      tuv010 += tu01*v0;
+      tuv001 += tu00*v1;
+      tuv200 += tu20*v0;
+      tuv020 += tu02*v0;
+      tuv002 += tu00*v2;
+      tuv110 += tu11*v0;
+      tuv101 += tu10*v1;
+      tuv011 += tu01*v1;
+      tuv300 += tu30*v0;
+      tuv030 += tu03*v0;
+      tuv003 += tu00*v3;
+      tuv210 += tu21*v0;
+      tuv201 += tu20*v1;
+      tuv120 += tu12*v0;
+      tuv021 += tu02*v1;
+      tuv102 += tu10*v2;
+      tuv012 += tu01*v2;
+      tuv111 += tu11*v1;
+      k++;
+    }
+
+    int idx;
+    numtyp fdip_buf[20];
+
+    fdip_buf[0] = (numtyp)0.0;
+    fdip_buf[1] = tuv100_1;
+    fdip_buf[2] = tuv010_1;
+    fdip_buf[3] = tuv001_1;
+    fdip_buf[4] = tuv200_1;
+    fdip_buf[5] = tuv020_1;
+    fdip_buf[6] = tuv002_1;
+    fdip_buf[7] = tuv110_1;
+    fdip_buf[8] = tuv101_1;
+    fdip_buf[9] = tuv011_1;
+    idx = ii;    
+    for (int m = 0; m < 10; m++) {
+      fdip_phi1[idx] = fdip_buf[m];
+      idx += inum;
+    }
+
+    fdip_buf[0] = (numtyp)0.0;
+    fdip_buf[1] = tuv100_2;
+    fdip_buf[2] = tuv010_2;
+    fdip_buf[3] = tuv001_2;
+    fdip_buf[4] = tuv200_2;
+    fdip_buf[5] = tuv020_2;
+    fdip_buf[6] = tuv002_2;
+    fdip_buf[7] = tuv110_2;
+    fdip_buf[8] = tuv101_2;
+    fdip_buf[9] = tuv011_2;
+    idx = ii;    
+    for (int m = 0; m < 10; m++) {
+      fdip_phi2[idx] = fdip_buf[m];
+      idx += inum;
+    }
+
+    fdip_buf[0] = tuv000;
+    fdip_buf[1] = tuv100;
+    fdip_buf[2] = tuv010;
+    fdip_buf[3] = tuv001;
+    fdip_buf[4] = tuv200;
+    fdip_buf[5] = tuv020;
+    fdip_buf[6] = tuv002;
+    fdip_buf[7] = tuv110;
+    fdip_buf[8] = tuv101;
+    fdip_buf[9] = tuv011;
+    fdip_buf[10] = tuv300;
+    fdip_buf[11] = tuv030;
+    fdip_buf[12] = tuv003;
+    fdip_buf[13] = tuv210;
+    fdip_buf[14] = tuv201;
+    fdip_buf[15] = tuv120;
+    fdip_buf[16] = tuv021;
+    fdip_buf[17] = tuv102;
+    fdip_buf[18] = tuv012;
+    fdip_buf[19] = tuv111;
+    idx = ii;    
+    for (int m = 0; m < 20; m++) {
+      fdip_sum_phi[idx] = fdip_buf[m];
+      idx += inum;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    scan standard neighbor list and make it compatible with 1-5 neighbors
    if IJ entry is a 1-2,1-3,1-4 neighbor then adjust offset to SBBITS15
    else scan special15 to see if a 1-5 neighbor and adjust offset to SBBITS15

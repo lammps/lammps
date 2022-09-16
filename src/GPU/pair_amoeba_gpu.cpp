@@ -938,7 +938,7 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
     }
   }
 */
-  // accumulate the field and fieldp values from the real space portion from umutual2b() on the GPU
+  // accumulate the field and fieldp values from the real-space portion from umutual2b() on the GPU
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
   amoeba_gpu_update_fieldp(&fieldp_pinned);

@@ -1626,7 +1626,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
    fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
 ------------------------------------------------------------------------- */
 
-__kernel void k_fphi_uind(const __global numtyp4 *restrict thetai1,
+__kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
                           const __global numtyp4 *restrict thetai2,
                           const __global numtyp4 *restrict thetai3,
                           const __global int *restrict igrid,

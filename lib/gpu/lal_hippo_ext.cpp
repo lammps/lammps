@@ -193,6 +193,20 @@ void hippo_gpu_compute_polar_real(int *host_amtype, int *host_amgroup, double **
                              eflag_in, vflag_in, eatom, vatom, aewald, felec, off2, tep_ptr);
 }
 
+void hippo_gpu_fphi_uind(const int inum_full, const int bsorder,
+                          double ***host_thetai1, double ***host_thetai2,
+                          double ***host_thetai3, int** igrid, double ****host_grid_brick,
+                          void **host_fdip_phi1, void **host_fdip_phi2, void **host_fdip_sum_phi,
+                          const int nzlo_out, const int nzhi_out,
+                          const int nylo_out, const int nyhi_out,
+                          const int nxlo_out, const int nxhi_out,
+                          bool& first_iteration) {
+   HIPPOMF.compute_fphi_uind(inum_full, bsorder, host_thetai1, host_thetai2,
+                             host_thetai3, igrid, host_grid_brick, host_fdip_phi1,
+                             host_fdip_phi2, host_fdip_sum_phi, nzlo_out, nzhi_out,
+                             nylo_out, nyhi_out, nxlo_out, nxhi_out, first_iteration);
+}
+
 double hippo_gpu_bytes() {
   return HIPPOMF.host_memory_usage();
 }

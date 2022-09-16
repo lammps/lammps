@@ -171,21 +171,17 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       }
     } else if ((strncmp(arg[iarg], "write", 5) == 0)) {
       if (iarg + 2 > narg) error->all(FLERR, "Need one argument after write command");
-      if (comm->me == 0) {
-        if ((strcmp(arg[iarg], "write_inv") == 0)) {    // capacitance matrix
-          write_inv = true;
-          output_file_inv = arg[++iarg];
-        } else if ((strcmp(arg[iarg], "write_mat") == 0)) {    // elastance matrix
-          write_mat = true;
-          output_file_mat = arg[++iarg];
-        } else if ((strcmp(arg[iarg], "write_vec") == 0)) {    // b vector
-          write_vec = true;
-          output_file_vec = arg[++iarg];
-        } else {
-          error->all(FLERR, "Illegal fix electrode/conp command with write");
-        }
+      if ((strcmp(arg[iarg], "write_inv") == 0)) {    // capacitance matrix
+        write_inv = true;
+        output_file_inv = arg[++iarg];
+      } else if ((strcmp(arg[iarg], "write_mat") == 0)) {    // elastance matrix
+        write_mat = true;
+        output_file_mat = arg[++iarg];
+      } else if ((strcmp(arg[iarg], "write_vec") == 0)) {    // b vector
+        write_vec = true;
+        output_file_vec = arg[++iarg];
       } else {
-        iarg++;
+        error->all(FLERR, "Illegal fix electrode/conp command with write");
       }
     } else if ((strncmp(arg[iarg], "read", 4) == 0)) {
       if (iarg + 2 > narg) error->all(FLERR, "Need one argument after read command");
@@ -495,40 +491,30 @@ void FixElectrodeConp::setup_post_neighbor()
 
   if (matrix_algo) {
     memory->create(elastance, ngroup, ngroup, "fix_electrode:matrix");
-    // reading capacitance?
-    // Y:  assert MATRIX_INV; read capacitance
-    if (read_inv) {
-      assert(algo == Algo::MATRIX_INV);
-      capacitance = elastance;
-      elastance = nullptr;
-      read_from_file(input_file_inv, capacitance, "capacitance");
-    } else {
-    // N:  reading elastance?
-      if (read_mat)   //     Y:  read elastance
-        read_from_file(input_file_mat, elastance, "elastance");
-      else { //     N:  compute elastance
-        if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
-        auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
-        array_compute->setup(tag_to_iele, pair, mat_neighlist);
-        if (tfflag) { array_compute->setup_tf(tf_types); }
-        array_compute->compute_array(elastance, timer_flag);
-      }
-      if (comm->me == 0 && write_mat) {  //         writing elastance?    Y: write elastance
-        auto f_mat = fopen(output_file_mat.c_str(), "w");
-        if (f_mat == nullptr)
-          error->one(FLERR,
-                     fmt::format("Cannot open elastance matrix file {}: {}", output_file_mat,
-                                 utils::getsyserror()));
-        write_to_file(f_mat, taglist_bygroup, order_matrix(group_idx, capacitance));
-        fclose(f_mat);
-      }
+    if (read_mat)
+      read_from_file(input_file_mat, elastance, "elastance");
+    else {
+      if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
+      auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
+      array_compute->setup(tag_to_iele, pair, mat_neighlist);
+      if (tfflag) { array_compute->setup_tf(tf_types); }
+      array_compute->compute_array(elastance, timer_flag);
+    } // write_mat before proceeding
+    if (comm->me == 0 && write_mat) {
+      auto f_mat = fopen(output_file_mat.c_str(), "w");
+      if (f_mat == nullptr)
+        error->one(FLERR,
+                   fmt::format("Cannot open elastance matrix file {}: {}", output_file_mat,
+                               utils::getsyserror()));
+      write_to_file(f_mat, taglist_bygroup, order_matrix(group_idx, capacitance));
+      fclose(f_mat);
     }
     if (algo == Algo::MATRIX_INV) {
-      if (!read_inv) {
-        capacitance = elastance;
-        elastance = nullptr;
-        invert();
-      }
+      capacitance = elastance;
+      elastance = nullptr;
+      if (read_inv)
+        read_from_file(input_file_inv, capacitance, "capacitance");
+      else invert();
       if (symm) symmetrize(); // TODO: is this safe with read_inv?
       // build sd vectors and macro matrices
       MPI_Barrier(world);

@@ -68,7 +68,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
       pstyle[nvalues++] = DZ;
     else if (arg[iarg][0] == 'p') {
       int n = atoi(&arg[iarg][1]);
-      if (n <= 0) error->all(FLERR, "Invalid keyword in compute pair/local command");
+      if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute pair/local command", arg[iarg]);
       pstyle[nvalues] = PN;
       pindex[nvalues++] = n - 1;
 

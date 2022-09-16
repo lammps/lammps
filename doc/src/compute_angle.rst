@@ -6,7 +6,7 @@ compute angle command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID angle
 
@@ -35,12 +35,12 @@ the hybrid sub-styles.
 Output info
 """""""""""
 
-This compute calculates a global vector of length N where N is the number of
-sub_styles defined by the :doc:`angle_style hybrid <angle_style>` command,
-which can be accessed by indices 1-N.  These values can be used by any command
-that uses global scalar or vector values from a compute as input.  See the
-:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+This compute calculates a global vector of length *N*, where *N* is the number
+of sub_styles defined by the :doc:`angle_style hybrid <angle_style>` command,
+which can be accessed by indices 1 through *N*.  These values can be used by
+any command that uses global scalar or vector values from a compute as input.
+See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 The vector values are "extensive" and will be in energy
 :doc:`units <units>`.

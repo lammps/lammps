@@ -66,7 +66,7 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), extract_setting(name)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
          feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
@@ -505,7 +505,7 @@ references, and references to other variables.
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                    |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x)                                                                                                                                                                                                                                                          |
+| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x),  label2type(kind,label)                                                                                                                                                                                                                                 |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                            |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -939,6 +939,20 @@ The is_file(name) function is a test whether *name* is a (readable) file
 and returns 1 in this case, otherwise it returns 0.  For that *name*
 is taken as a literal string and must not have any blanks in it.
 
+The is_os(name) function is a test whether *name* is part of the OS
+information that LAMMPS collects and provides in the
+:cpp:func:`platform::os_info() <LAMMPS_NS::platform::os_info>` function.
+The argument *name* is interpreted as a regular expression as documented
+for the :cpp:func:`utils::strmatch() <LAMMPS_NS::utils::strmatch>`
+function. This allows to adapt LAMMPS inputs to the OS it runs on:
+
+.. code-block:: LAMMPS
+
+   if $(is_os(^Windows)) then &
+     "shell copy ${input_dir}\some_file.txt ." &
+   else &
+     "shell cp ${input_dir}/some_file.txt ."
+
 The extract_setting(name) function enables access to basic settings for
 the LAMMPS executable and the running simulation via calling the
 :cpp:func:`lammps_extract_setting` library function.  For example, the
@@ -947,6 +961,12 @@ process ID (for this processor) can be queried, or the number of atom
 types, bond types and so on. For the full list of available keywords
 *name* and their meaning, see the documentation for extract_setting()
 via the link in this paragraph.
+
+The label2type() function converts type labels into numeric types, using label
+maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
+commands.  The first argument is the label map kind (atom, bond, angle,
+dihedral, or improper) and the second argument is the label.  The function
+returns the corresponding numeric type.
 
 ----------
 
@@ -1002,7 +1022,7 @@ step
 
 .. code-block:: LAMMPS
 
-   timestep $(2.0*(1.0+2.0*is_active(pair,respa))
+   timestep $(2.0*(1.0+2.0*is_active(pair,respa)))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
 The *is_available(category,name)* function allows to query whether

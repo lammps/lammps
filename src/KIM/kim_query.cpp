@@ -158,7 +158,7 @@ void KimQuery::command(int narg, char **arg)
       // check if we had a kim init command by finding fix STORE/KIM
       const int ifix = modify->find_fix("KIM_MODEL_STORE");
       if (ifix >= 0) {
-        auto fix_store = dynamic_cast<FixStoreKIM *>( modify->fix[ifix]);
+        auto fix_store = dynamic_cast<FixStoreKIM *>(modify->fix[ifix]);
         char *model_name_c = (char *) fix_store->getptr("model_name");
         model_name = model_name_c;
       } else {

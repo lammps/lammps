@@ -20,6 +20,7 @@
 #include "fix.h"
 #include "fmt/chrono.h"
 #include "input.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
@@ -766,6 +767,34 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
   return newarg;
 }
 
+static const char *labeltypes[] = {"Atom", "Bond", "Angle", "Dihedral", "Improper"};
+
+/* -------------------------------------------------------------------------
+   Expand type string to numeric string from labelmap.
+   Return copy of expanded type or null pointer.
+------------------------------------------------------------------------- */
+
+char *utils::expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
+{
+  if (!lmp) return nullptr;
+  if (!lmp->atom->labelmapflag) return nullptr;
+
+  const std::string typestr = utils::utf8_subst(utils::trim(str));
+  if (is_type(typestr) == 1) {
+    if (!lmp->atom->labelmapflag)
+      lmp->error->all(file, line, "{} type string {} cannot be used without a labelmap",
+                      labeltypes[mode], typestr);
+
+    int type = lmp->atom->lmap->find(typestr, mode);
+    if (type == -1)
+      lmp->error->all(file, line, "{} type string {} not found in labelmap", labeltypes[mode],
+                      typestr);
+
+    return utils::strdup(std::to_string(type));
+  } else
+    return nullptr;
+}
+
 /* ----------------------------------------------------------------------
    Make copy of string in new storage. Works like the (non-portable)
    C-style strdup() but also accepts a C++ string as argument.
@@ -1100,7 +1129,7 @@ bool utils::is_integer(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (auto c : str) {
+  for (const auto &c : str) {
     if (isdigit(c) || c == '-' || c == '+') continue;
     return false;
   }
@@ -1115,7 +1144,7 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (auto c : str) {
+  for (const auto &c : str) {
     if (isdigit(c)) continue;
     if (c == '-' || c == '+' || c == '.') continue;
     if (c == 'e' || c == 'E') continue;
@@ -1132,11 +1161,41 @@ bool utils::is_id(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (auto c : str) {
+  for (const auto &c : str) {
     if (isalnum(c) || (c == '_')) continue;
     return false;
   }
   return true;
+}
+
+/* ----------------------------------------------------------------------
+   Check whether string is a valid type or type label string
+------------------------------------------------------------------------- */
+
+int utils::is_type(const std::string &str)
+{
+  if (str.empty()) return -1;
+
+  bool numeric = true;
+  int nstar = 0;
+  for (const auto &c : str) {
+    if (isdigit(c)) continue;
+    if (c == '*') {
+      ++nstar;
+      continue;
+    }
+    numeric = false;
+  }
+  if (numeric && (nstar < 2)) return 0;
+
+  // TODO: the first two checks below are not really needed with this function.
+  // If a type label has at least one character that is not a digit or '*'
+  // it can be identified by this function as type label due to the check above.
+  // Whitespace and multi-byte characters are not allowed.
+  if (isdigit(str[0]) || (str[0] == '*') || (str[0] == '#')) return -1;
+  if (str.find_first_of(" \t\r\n\f") != std::string::npos) return -1;
+  if (has_utf8(utf8_subst(str))) return -1;
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1516,8 +1575,8 @@ static int re_matchp(const char *text, re_t pattern, int *matchlen);
 
 /* Definitions: */
 
-#define MAX_REGEXP_OBJECTS 30 /* Max number of regex symbols in expression. */
-#define MAX_CHAR_CLASS_LEN 40 /* Max length of character-class buffer in.   */
+#define MAX_REGEXP_OBJECTS 256 /* Max number of regex symbols in expression. */
+#define MAX_CHAR_CLASS_LEN 256 /* Max length of character-class buffer in.   */
 
 enum {
   RX_UNUSED,

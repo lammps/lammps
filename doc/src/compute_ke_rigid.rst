@@ -6,7 +6,7 @@ compute ke/rigid command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID ke/rigid fix-ID
 
@@ -25,11 +25,13 @@ Description
 """""""""""
 
 Define a computation that calculates the translational kinetic energy
-of a collection of rigid bodies, as defined by one of the :doc:`fix rigid <fix_rigid>` command variants.
+of a collection of rigid bodies, as defined by one of the
+:doc:`fix rigid <fix_rigid>` command variants.
 
-The kinetic energy of each rigid body is computed as 1/2 M Vcm\^2,
-where M is the total mass of the rigid body, and Vcm is its
-center-of-mass velocity.
+The kinetic energy of each rigid body is computed as
+:math:`\frac12 M V_\text{cm}^2`,
+where :math:`M` is the total mass of the rigid body, and :math:`V_\text{cm}`
+is its center-of-mass velocity.
 
 The *fix-ID* should be the ID of one of the :doc:`fix rigid <fix_rigid>`
 commands which defines the rigid bodies.  The group specified in the
@@ -42,7 +44,8 @@ Output info
 
 This compute calculates a global scalar (the summed KE of all the
 rigid bodies).  This value can be used by any command that uses a
-global scalar value from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
+global scalar value from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The scalar value calculated by this compute is "extensive".  The

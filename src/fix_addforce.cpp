@@ -38,7 +38,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
     idregion(nullptr), region(nullptr), sforce(nullptr)
 {
-  if (narg < 6) error->all(FLERR, "Illegal fix addforce command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix addforce", error);
 
   dynamic_group_allow = 1;
   scalar_flag = 1;
@@ -77,25 +77,25 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "every") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix addforce command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce every", error);
       nevery = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (nevery <= 0) error->all(FLERR, "Illegal fix addforce command");
+      if (nevery <= 0) error->all(FLERR, "Invalid fix addforce every argument: {}", nevery);
       iarg += 2;
     } else if (strcmp(arg[iarg], "region") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix addforce command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce region", error);
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix addforce does not exist", arg[iarg + 1]);
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "energy") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix addforce command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce energy", error);
       if (utils::strmatch(arg[iarg + 1], "^v_")) {
         estr = utils::strdup(arg[iarg + 1] + 2);
       } else
-        error->all(FLERR, "Illegal fix addforce command");
+        error->all(FLERR, "Invalid fix addforce energy argument: {}", arg[iarg + 1]);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal fix addforce command");
+      error->all(FLERR, "Unknown fix addforce keyword: {}", arg[iarg]);
   }
 
   force_flag = 0;

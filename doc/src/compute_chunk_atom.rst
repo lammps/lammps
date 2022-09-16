@@ -6,7 +6,7 @@ compute chunk/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID chunk/atom style args keyword values ...
 
@@ -15,7 +15,7 @@ Syntax
 
   .. parsed-literal::
 
-     style = *bin/1d* or *bin/2d* or *bin/3d* or *bin/sphere* or *type* or *molecule* or c_ID, c_ID[I], f_ID, f_ID[I], v_name
+     style = *bin/1d* or *bin/2d* or *bin/3d* or *bin/sphere* or *bin/cylinder* or *type* or *molecule* or c_ID, c_ID[I], f_ID, f_ID[I], v_name
        *bin/1d* args = dim origin delta
          dim = *x* or *y* or *z*
          origin = *lower* or *center* or *upper* or coordinate value (distance units)
@@ -49,7 +49,7 @@ Syntax
          v_name = per-atom vector calculated by an atom-style variable with name
 
 * zero or more keyword/values pairs may be appended
-* keyword = *region* or *nchunk* or *static* or *compress* or *bound* or *discard* or *pbc* or *units*
+* keyword = *region* or *nchunk* or *limit* or *ids* or *compress* or *discard* or *bound* or *pbc* or *units*
 
   .. parsed-literal::
 
@@ -74,7 +74,7 @@ Syntax
          no = keep atoms with out-of-range chunk IDs by assigning a valid chunk ID
          mixed = keep or discard such atoms according to spatial binning rule
        *bound* values = x/y/z lo hi
-         x/y/z = *x* or *y* or *z* to bound sptial bins in this dimension
+         x/y/z = *x* or *y* or *z* to bound spatial bins in this dimension
          lo = *lower* or coordinate value (distance units)
          hi = *upper* or coordinate value (distance units)
        *pbc* value = *no* or *yes*
@@ -150,14 +150,14 @@ The *binning* styles perform a spatial binning of atoms, and assign an
 atom the chunk ID corresponding to the bin number it is in.  *Nchunk*
 is set to the number of bins, which can change if the simulation box
 size changes.  This also depends on the setting of the *units*
-keyword; e.g. for *reduced* units the number of chunks may not change
-even if the box size does.
+keyword (e.g., for *reduced* units the number of chunks may not change
+even if the box size does).
 
 The *bin/1d*, *bin/2d*, and *bin/3d* styles define bins as 1d layers
 (slabs), 2d pencils, or 3d boxes.  The *dim*, *origin*, and *delta*
 settings are specified 1, 2, or 3 times.  For 2d or 3d bins, there is
-no restriction on specifying dim = x before dim = y or z, or dim = y
-before dim = z.  Bins in a particular *dim* have a bin size in that
+no restriction on specifying dim = *x* before dim = *y* or *z*, or dim = *y*
+before dim = *z*.  Bins in a particular *dim* have a bin size in that
 dimension given by *delta*\ .  In each dimension, bins are defined
 relative to a specified *origin*, which may be the lower/upper edge of
 the simulation box (in that dimension), or its center point, or a
@@ -170,10 +170,11 @@ boxes aligned with the xyz coordinate axes.  For triclinic
 (non-orthogonal) simulation boxes, the bin faces are parallel to the
 tilted faces of the simulation box.  See the :doc:`Howto triclinic <Howto_triclinic>` page for a discussion of the
 geometry of triclinic boxes in LAMMPS.  As described there, a tilted
-simulation box has edge vectors a,b,c.  In that nomenclature, bins in
-the x dimension have faces with normals in the "b" cross "c"
-direction.  Bins in y have faces normal to the "a" cross "c"
-direction.  And bins in z have faces normal to the "a" cross "b"
+simulation box has edge vectors :math:`\vec a`, :math:`\vec b`, and
+:math:`\vec c`.  In that nomenclature, bins in
+the *x* dimension have faces with normals in the :math:`\vec b \times \vec c`
+direction, bins in *y* have faces normal to the :math:`\vec a \times \vec c`
+direction, and bins in *z* have faces normal to the :math:`\vec a \times \vec b`
 direction.  Note that in order to define the size and position of
 these bins in an unambiguous fashion, the *units* option must be set
 to *reduced* when using a triclinic simulation box, as noted below.
@@ -181,46 +182,46 @@ to *reduced* when using a triclinic simulation box, as noted below.
 The meaning of *origin* and *delta* for triclinic boxes is as follows.
 Consider a triclinic box with bins that are 1d layers or slabs in the
 x dimension.  No matter how the box is tilted, an *origin* of 0.0
-means start layers at the lower "b" cross "c" plane of the simulation
-box and an *origin* of 1.0 means to start layers at the upper "b"
-cross "c" face of the box.  A *delta* value of 0.1 in *reduced* units
-means there will be 10 layers from 0.0 to 1.0, regardless of the
-current size or shape of the simulation box.
+means start layers at the lower :math:`\vec b \times \vec c` plane of the
+simulation box and an *origin* of 1.0 means to start layers at the upper
+:math:`\vec b \times \vec c` face of the box.  A *delta* value of 0.1 in
+*reduced* units means there will be 10 layers from 0.0 to 1.0, regardless of
+the current size or shape of the simulation box.
 
 The *bin/sphere* style defines a set of spherical shell bins around
 the origin (\ *xorig*,\ *yorig*,\ *zorig*\ ), using *nsbin* bins with radii
 equally spaced between *srmin* and *srmax*\ .  This is effectively a 1d
 vector of bins.  For example, if *srmin* = 1.0 and *srmax* = 10.0 and
-*nsbin* = 9, then the first bin spans 1.0 < r < 2.0, and the last bin
-spans 9.0 < r 10.0.  The geometry of the bins is the same whether the
-simulation box is orthogonal or triclinic; i.e. the spherical shells
+*nsbin* = 9, then the first bin spans :math:`1.0 < r < 2.0`, and the last bin
+spans :math:`9.0 < r < 10.0`.  The geometry of the bins is the same whether the
+simulation box is orthogonal or triclinic (i.e., the spherical shells
 are not tilted or scaled differently in different dimensions to
-transform them into ellipsoidal shells.
+transform them into ellipsoidal shells).
 
 The *bin/cylinder* style defines bins for a cylinder oriented along
 the axis *dim* with the axis coordinates in the other two radial
-dimensions at (\ *c1*,\ *c2*\ ).  For dim = x, c1/c2 = y/z; for dim = y,
-c1/c2 = x/z; for dim = z, c1/c2 = x/y.  This is effectively a 2d array
-of bins.  The first dimension is along the cylinder axis, the second
-dimension is radially outward from the cylinder axis.  The bin size
-and positions along the cylinder axis are specified by the *origin*
-and *delta* values, the same as for the *bin/1d*, *bin/2d*, and
-*bin/3d* styles.  There are *ncbin* concentric circle bins in the
+dimensions at (\ *c1*,\ *c2*\ ).  For dim = *x*, :math:`c_1/c_2 = y/z`;
+for dim = *y*, :math:`c_1/c_2 = x/z`; for dim = *z*,
+:math:`c_1/c_2 = x/y`.  This is effectively a 2d array of bins.  The first
+dimension is along the cylinder axis, the second dimension is radially outward
+from the cylinder axis.  The bin size and positions along the cylinder axis are
+specified by the *origin* and *delta* values, the same as for the *bin/1d*,
+*bin/2d*, and *bin/3d* styles.  There are *ncbin* concentric circle bins in the
 radial direction from the cylinder axis with radii equally spaced
 between *crmin* and *crmax*\ .  For example, if *crmin* = 1.0 and
-*crmax* = 10.0 and *ncbin* = 9, then the first bin spans 1.0 < r <
-2.0, and the last bin spans 9.0 < r 10.0.  The geometry of the bins in
+*crmax* = 10.0 and *ncbin* = 9, then the first bin spans :math:`1.0 < r < 2.0`
+and the last bin spans :math:`9.0 < r < 10.0`.  The geometry of the bins in
 the radial dimensions is the same whether the simulation box is
-orthogonal or triclinic; i.e. the concentric circles are not tilted or
+orthogonal or triclinic (i.e., the concentric circles are not tilted or
 scaled differently in the two different dimensions to transform them
-into ellipses.
+into ellipses).
 
 The created bins (and hence the chunk IDs) are numbered consecutively
 from 1 to the number of bins = *Nchunk*\ .  For *bin2d* and *bin3d*, the
 numbering varies most rapidly in the first dimension (which could be
-x, y, or z), next rapidly in the second dimension, and most slowly in the
+*x*, *y*, or *z*), next rapidly in the second dimension, and most slowly in the
 third dimension.  For *bin/sphere*, the bin with smallest radii is chunk
-1 and the bni with largest radii is chunk Nchunk = *ncbin*\ .  For
+1 and the bin with largest radii is chunk Nchunk = *ncbin*\ .  For
 *bin/cylinder*, the numbering varies most rapidly in the dimension
 along the cylinder axis and most slowly in the radial direction.
 
@@ -236,8 +237,8 @@ assigned to the atom.
 ----------
 
 The *type* style uses the atom type as the chunk ID.  *Nchunk* is set
-to the number of atom types defined for the simulation, e.g. via the
-:doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
+to the number of atom types defined for the simulation (e.g., via the
+:doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands).
 
 ----------
 
@@ -264,8 +265,8 @@ on a quantity calculated and stored by a compute, fix, or variable.
 In each case, it must be a per-atom quantity.  In each case the
 referenced floating point values are converted to an integer chunk ID
 as follows.  The floating point value is truncated (rounded down) to
-an integer value.  If the integer value is <= 0, then a chunk ID of 0
-is assigned to the atom.  If the integer value is > 0, it becomes the
+an integer value.  If the integer value is :math:`\le 0`, then a chunk ID of 0
+is assigned to the atom.  If the integer value is :math:`> 0`, it becomes the
 chunk ID to the atom.  *Nchunk* is set to the largest chunk ID.  Note
 that this excludes atoms which are not in the specified group or
 optional region.
@@ -362,7 +363,7 @@ If *limit* is set to *Nc* = 0, then no limit is imposed on *Nchunk*,
 though the *compress* keyword can still be used to reduce *Nchunk*, as
 described below.
 
-If *Nc* > 0, then the effect of the *limit* keyword depends on whether
+If *Nc* :math:`>` 0, then the effect of the *limit* keyword depends on whether
 the *compress* keyword is also used with a setting of *yes*, and
 whether the *compress* keyword is specified before the *limit* keyword
 or after.
@@ -374,7 +375,7 @@ First, here is what occurs if *compress yes* is not set.  If *limit*
 is set to *Nc max*, then *Nchunk* is reset to the smaller of *Nchunk*
 and *Nc*\ .  If *limit* is set to *Nc exact*, then *Nchunk* is reset to
 *Nc*, whether the original *Nchunk* was larger or smaller than *Nc*\ .
-If *Nchunk* shrank due to the *limit* setting, then atom chunk IDs >
+If *Nchunk* shrank due to the *limit* setting, then atom chunk IDs :math:`>`
 *Nchunk* will be reset to 0 or *Nchunk*, depending on the setting of
 the *discard* keyword.  If *Nchunk* grew, there will simply be some
 chunks with no atoms assigned to them.
@@ -384,22 +385,22 @@ If *compress yes* is set, and the *compress* keyword comes before the
 described below, which resets *Nchunk*\ .  The *limit* keyword is then
 applied to the new *Nchunk* value, exactly as described in the
 preceding paragraph.  Note that in this case, all atoms will end up
-with chunk IDs <= *Nc*, but their original values (e.g. molecule ID or
-compute/fix/variable) may have been > *Nc*, because of the compression
-operation.
+with chunk IDs :math:`\le` *Nc*, but their original values (e.g., molecule ID
+or compute/fix/variable) may have been :math:`>` *Nc*, because of the
+compression operation.
 
 If *compress yes* is set, and the *compress* keyword comes after the
 *limit* keyword, then the *limit* value of *Nc* is applied first to
-the uncompressed value of *Nchunk*, but only if *Nc* < *Nchunk*
+the uncompressed value of *Nchunk*, but only if *Nc* :math:`<` *Nchunk*
 (whether *Nc max* or *Nc exact* is used).  This effectively means all
-atoms with chunk IDs > *Nc* have their chunk IDs reset to 0 or *Nc*,
+atoms with chunk IDs :math:`>` *Nc* have their chunk IDs reset to 0 or *Nc*,
 depending on the setting of the *discard* keyword.  The compression
 operation is then performed, which may shrink *Nchunk* further.  If
-the new *Nchunk* < *Nc* and *limit* = *Nc exact* is specified, then
+the new *Nchunk* :math:`<` *Nc* and *limit* = *Nc exact* is specified, then
 *Nchunk* is reset to *Nc*, which results in extra chunks with no atoms
 assigned to them.  Note that in this case, all atoms will end up with
-chunk IDs <= *Nc*, and their original values (e.g. molecule ID or
-compute/fix/variable value) will also have been <= *Nc*\ .
+chunk IDs :math:`\le` *Nc*, and their original values (e.g., molecule ID or
+compute/fix/variable value) will also have been :math:`\le` *Nc*\ .
 
 ----------
 
@@ -601,7 +602,8 @@ be used.  For non-orthogonal (triclinic) simulation boxes, only the
 *reduced* option may be used.
 
 A *box* value selects standard distance units as defined by the
-:doc:`units <units>` command, e.g. Angstroms for units = real or metal.
+:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring A}`
+for units = *real* or *metal*).
 A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacing.  A *reduced* value means normalized
@@ -615,8 +617,8 @@ scaled by the lattice spacing or reduced value of the *x* dimension.
 
 Note that for the *bin/cylinder* style, the radii *crmin* and *crmax*
 are scaled by the lattice spacing or reduced value of the first
-dimension perpendicular to the cylinder axis.  E.g. y for an x-axis
-cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
+dimension perpendicular to the cylinder axis (e.g., *y* for an *x*-axis
+cylinder, *x* for a *y*-axis cylinder, and *x* for a *z*-axis cylinder).
 
 ----------
 

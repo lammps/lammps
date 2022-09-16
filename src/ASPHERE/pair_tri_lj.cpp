@@ -467,7 +467,7 @@ void PairTriLJ::coeff(int narg, char **arg)
 
 void PairTriLJ::init_style()
 {
-  avec = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  avec = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
   if (!avec) error->all(FLERR,"Pair tri/lj requires atom style tri");
 
   neighbor->add_request(this,NeighConst::REQ_DEFAULT);

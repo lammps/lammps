@@ -34,7 +34,7 @@ class PairSRPREACT : public PairSRP {
  private:
   char *idbreak;
   char *idcreate;
-  bool bond_create, bond_break;
+  bool bond_break, bond_create;
 };
 }    // namespace LAMMPS_NS
 #endif

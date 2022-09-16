@@ -6,7 +6,7 @@ compute global/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style index input1 input2 ...
 
@@ -55,18 +55,20 @@ reference a global vector or array from a :doc:`compute <compute>` or
 :doc:`fix <fix>` or the evaluation of an vector-style
 :doc:`variable <variable>`.  Details are given below.
 
-The *index* value for an atom is used as a index I (from 1 to N) into
-the vector associated with each of the input values.  The Ith value
+The *index* value for an atom is used as an index :math:`I` (from 1 to
+:math:`N`, where :math:`N` is the number of atoms) into the vector
+associated with each of the input values.  The :math:`I`\ th value
 from the input vector becomes one output value for that atom.  If the
-atom is not in the specified group, or the index I < 1 or I > M, where
-M is the actual length of the input vector, then an output value of
-0.0 is assigned to the atom.
+atom is not in the specified group, or the index :math:`I < 1` or
+:math:`I > M`, where :math:`M` is the actual length of the input vector,
+then an output value of 0.0 is assigned to the atom.
 
 An example of how this command is useful, is in the context of
 "chunks" which are static or dynamic subsets of atoms.  The :doc:`compute chunk/atom <compute_chunk_atom>` command assigns unique chunk IDs
-to each atom.  It's output can be used as the *index* parameter for
+to each atom.  Its output can be used as the *index* parameter for
 this command.  Various other computes with "chunk" in their style
-name, such as :doc:`compute com/chunk <compute_com_chunk>` or :doc:`compute msd/chunk <compute_msd_chunk>`, calculate properties for each
+name, such as :doc:`compute com/chunk <compute_com_chunk>` or
+:doc:`compute msd/chunk <compute_msd_chunk>`, calculate properties for each
 chunk.  The output of these commands are global vectors or arrays,
 with one or more values per chunk, and can be used as input values for
 this command.  This command will then assign the global chunk value to
@@ -102,17 +104,18 @@ they work.
 Note that for input values from a compute or fix, the bracketed index
 I can be specified using a wildcard asterisk with the index to
 effectively specify multiple values.  This takes the form "\*" or "\*n"
-or "n\*" or "m\*n".  If N = the size of the vector (for *mode* = scalar)
+or "m\*" or "m\*n".  If :math:`N` is the size of the vector
+(for *mode* = scalar)
 or the number of columns in the array (for *mode* = vector), then an
-asterisk with no numeric values means all indices from 1 to N.  A
-leading asterisk means all indices from 1 to n (inclusive).  A
-trailing asterisk means all indices from n to N (inclusive).  A middle
-asterisk means all indices from m to n (inclusive).
+asterisk with no numeric values means all indices from 1 to :math:`N`.
+A leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from m to :math:`N` (inclusive).
+A middle asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
-had been listed one by one.  E.g. these 2 compute global/atom commands
-are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>`
-command creates a global array with 3 columns:
+had been listed one by one. For example, the following two compute global/atom
+commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>`
+command creates a global array with three columns:
 
 .. code-block:: LAMMPS
 
@@ -124,14 +127,14 @@ command creates a global array with 3 columns:
 ----------
 
 This section explains the *index* parameter.  Note that it must
-reference per-atom values, as contrasted with the *input* values which
+reference per-atom values, as contrasted with the *input* values, which
 must reference global values.
 
 Note that all of these options generate floating point values.  When
 they are used as an index into the specified input vectors, they
 simple rounded down to convert the value to integer indices.  The
-final values should range from 1 to N (inclusive), since they are used
-to access values from N-length vectors.
+final values should range from 1 to :math:`N` (inclusive), since they are used
+to access values from :math:`N`-length vectors.
 
 If *index* begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  The compute must generate
@@ -177,7 +180,8 @@ global vector or array.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the vector
 calculated by the compute is used.  If a bracketed integer is
 appended, the Ith column of the array calculated by the compute is
-used.  Users can also write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.  See the discussion above for how
+used.  Users can also write code for their own compute styles and
+:doc:`add them to LAMMPS <Modify>`.  See the discussion above for how
 I can be specified with a wildcard asterisk to effectively specify
 multiple values.
 

@@ -6,15 +6,14 @@ compute voronoi/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID voronoi/atom keyword arg ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * voronoi/atom = style name of this compute command
 * zero or more keyword/value pairs may be appended
-* keyword = *only_group* or *surface* or *radius* or *edge_histo* or *edge_threshold*
-  or *face_threshold* or *neighbors* or *peratom*
+* keyword = *only_group* or *surface* or *radius* or *edge_histo* or *edge_threshold* or *face_threshold* or *neighbors* or *peratom*
 
   .. parsed-literal::
 
@@ -80,7 +79,7 @@ In the example above, a precipitate embedded in a matrix, only atoms
 at the surface of the precipitate will have non-zero surface area, and
 only the outward facing facets of the Voronoi cells are counted (the
 hull of the precipitate). The total surface area of the precipitate
-can be obtained by running a "reduce sum" compute on c_2[3]
+can be obtained by running a "reduce sum" compute on c_2[3].
 
 If the *radius* keyword is specified with an atom style variable as
 the argument, a poly-disperse Voronoi tessellation is
@@ -149,7 +148,8 @@ with areas greater than the threshold are stored.
 
 ----------
 
-The Voronoi calculation is performed by the freely available `Voro++ package <voronoi_>`_, written by Chris Rycroft at UC Berkeley and LBL,
+The Voronoi calculation is performed by the freely available
+`Voro++ package <voronoi_>`_, written by Chris Rycroft at UC Berkeley and LBL,
 which must be installed on your system when building LAMMPS for use
 with this compute.  See instructions on obtaining and installing the
 Voro++ software in the src/VORONOI/README file.
@@ -169,29 +169,30 @@ Voro++ software in the src/VORONOI/README file.
    :doc:`pair_style <pair_style>` interactions.  The cutoff can be set
    explicitly via the :doc:`comm_modify cutoff <comm_modify>` command.  The
    Voronoi cells for atoms adjacent to empty regions will extend into
-   those regions up to the communication cutoff in x, y, or z.  In that
-   situation, an exterior face is created at the cutoff distance normal
-   to the x, y, or z direction.  For triclinic systems, the exterior face
-   is parallel to the corresponding reciprocal lattice vector.
+   those regions up to the communication cutoff in :math:`x`, :math:`y`, or
+   :math:`z`.  In that situation, an exterior face is created at the cutoff
+   distance normal to the :math:`x`, :math:`y`, or :math:`z` direction.
+   For triclinic systems, the exterior face is parallel to the corresponding
+   reciprocal lattice vector.
 
 .. note::
 
    The Voro++ package performs its calculation in 3d.  This will
    still work for a 2d LAMMPS simulation, provided all the atoms have the
-   same z coordinate. The Voronoi cell of each atom will be a columnar
-   polyhedron with constant cross-sectional area along the z direction
+   same :math:`z`-coordinate. The Voronoi cell of each atom will be a columnar
+   polyhedron with constant cross-sectional area along the :math:`z`-direction
    and two exterior faces at the top and bottom of the simulation box. If
-   the atoms do not all have the same z coordinate, then the columnar
+   the atoms do not all have the same :math:`z`-coordinate, then the columnar
    cells will be accordingly distorted. The cross-sectional area of each
-   Voronoi cell can be obtained by dividing its volume by the z extent of
-   the simulation box.  Note that you define the z extent of the
+   Voronoi cell can be obtained by dividing its volume by the :math:`z` extent
+   of the simulation box.  Note that you define the :math:`z` extent of the
    simulation box for 2d simulations when using the
    :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
 
 Output info
 """""""""""
 
-By default, this compute calculates a per-atom array with 2
+By default, this compute calculates a per-atom array with two
 columns. In regular dynamic tessellation mode the first column is the
 Voronoi volume, the second is the neighbor count, as described above
 (read above for the output data in case the *occupation* keyword is
@@ -204,14 +205,15 @@ If the *edge_histo* keyword is used, then this compute generates a
 global vector of length *maxedge*\ +1, containing a histogram of the
 number of edges per face.
 
-If the *neighbors* value is set to yes, then this compute calculates a
-local array with 3 columns. There is one row for each face of each
+If the *neighbors* value is set to *yes*, then this compute calculates a
+local array with three columns. There is one row for each face of each
 Voronoi cell.
 
 .. note::
 
-   Some LAMMPS commands such as the :doc:`compute reduce <compute_reduce>` command can accept either a per-atom or
-   local quantity. If this compute produces both quantities, the command
+   Some LAMMPS commands such as the :doc:`compute reduce <compute_reduce>`
+   command can accept either a per-atom or local quantity. If this compute
+   produces both quantities, the command
    may access the per-atom quantity, even if you want to access the local
    quantity.  This effect can be eliminated by using the *peratom*
    keyword to turn off the production of the per-atom quantities.  For

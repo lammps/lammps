@@ -541,18 +541,18 @@ void ComputeSnap::compute_array()
         for (int icoeff = 0; icoeff < ncoeff; icoeff++)
           snap[irow][k++] += snaptr->blist[icoeff];
 
-          // quadratic contributions
+        // quadratic contributions
 
-          if (quadraticflag) {
-            for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-              double bveci = snaptr->blist[icoeff];
-              snap[irow][k++] += 0.5*bveci*bveci;
-              for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-                double bvecj = snaptr->blist[jcoeff];
-                snap[irow][k++] += bveci*bvecj;
-              }
+        if (quadraticflag) {
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bveci = snaptr->blist[icoeff];
+            snap[irow][k++] += 0.5*bveci*bveci;
+            for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+              double bvecj = snaptr->blist[jcoeff];
+              snap[irow][k++] += bveci*bvecj;
             }
           }
+        }
 
       } else {
           int k = 3;

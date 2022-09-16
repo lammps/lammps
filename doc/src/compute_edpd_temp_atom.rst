@@ -6,7 +6,7 @@ compute edpd/temp/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID edpd/temp/atom
 

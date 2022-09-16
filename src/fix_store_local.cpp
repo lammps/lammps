@@ -29,16 +29,16 @@ using namespace FixConst;
 FixStoreLocal::FixStoreLocal(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), nvalues(0), vector(nullptr), array(nullptr)
 {
-  if (narg != 5) error->all(FLERR, "Illegal fix store/local command");
+  if (narg != 5) error->all(FLERR, "Illegal fix STORE/LOCAL command");
   local_flag = 1;
 
   nreset = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (nreset <= 0) error->all(FLERR, "Illegal fix store/local command");
+  if (nreset <= 0) error->all(FLERR, "Illegal fix STORE/LOCAL command");
   local_freq = nreset;
 
   nvalues = utils::inumeric(FLERR, arg[4], false, lmp);
 
-  if (nvalues <= 0) error->all(FLERR, "Illegal fix store/local command");
+  if (nvalues <= 0) error->all(FLERR, "Illegal fix STORE/LOCAL command");
   if (nvalues == 1)
     size_local_cols = 0;
   else

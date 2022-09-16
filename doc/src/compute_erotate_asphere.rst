@@ -6,7 +6,7 @@ compute erotate/asphere command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID erotate/asphere
 
@@ -30,9 +30,9 @@ ellipsoids, or line segments, or triangles.  See the
 for descriptions of these options.
 
 For all 3 types of particles, the rotational kinetic energy is
-computed as 1/2 I w\^2, where I is the inertia tensor for the
-aspherical particle and w is its angular velocity, which is computed
-from its angular momentum if needed.
+computed as :math:`\frac12 I \omega^2`, where :math:`I` is the inertia tensor
+for the aspherical particle and :math:`\omega` is its angular velocity, which
+is computed from its angular momentum if needed.
 
 .. note::
 
@@ -65,7 +65,7 @@ This compute requires that triangular particles atoms store a size and
 shape and quaternion orientation and angular momentum as defined by
 the :doc:`atom_style tri <atom_style>` command.
 
-All particles in the group must be finite-size.  They cannot be point
+All particles in the group must be of finite size.  They cannot be point
 particles.
 
 Related commands

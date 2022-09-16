@@ -6,7 +6,7 @@ compute temp/cs command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID temp/cs group1 group2
 
@@ -29,14 +29,15 @@ Description
 Define a computation that calculates the temperature of a system based
 on the center-of-mass velocity of atom pairs that are bonded to each
 other.  This compute is designed to be used with the adiabatic
-core/shell model of :ref:`(Mitchell and Finchham) <MitchellFinchham1>`.  See
-the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of
+core/shell model of :ref:`(Mitchell and Finchham) <MitchellFinchham1>`.
+See the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of
 the model as implemented in LAMMPS.  Specifically, this compute
 enables correct temperature calculation and thermostatting of
 core/shell pairs where it is desirable for the internal degrees of
 freedom of the core/shell pairs to not be influenced by a thermostat.
 A compute of this style can be used by any command that computes a
-temperature via :doc:`fix_modify <fix_modify>` e.g. :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+temperature via :doc:`fix_modify <fix_modify>`
+(e.g., :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`).
 
 Note that this compute does not require all ions to be polarized,
 hence defined as core/shell pairs.  One can mix core/shell pairs and
@@ -52,43 +53,51 @@ included in the treated system should not be included into either of
 these groups, they are taken into account by the *group-ID* (second
 argument) of the compute.
 
-The temperature is calculated by the formula KE = dim/2 N k T, where
-KE = total kinetic energy of the group of atoms (sum of 1/2 m v\^2),
-dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
-in the group, k = Boltzmann constant, and T = temperature.  Note that
+The temperature is calculated by the formula
+
+.. math::
+
+   \text{KE} = \frac{\text{dim}}{2} N k_B T,
+
+where KE is the total kinetic energy of the group of atoms (sum of
+:math:`\frac12 m v^2`), dim = 2 or 3 is the dimensionality of the simulation,
+:math:`N` is the number of atoms in the group, :math:`k_B` is the Boltzmann
+constant, and :math:`T` is the absolute temperature.  Note that
 the velocity of each core or shell atom used in the KE calculation is
 the velocity of the center-of-mass (COM) of the core/shell pair the
 atom is part of.
 
-A kinetic energy tensor, stored as a 6-element vector, is also
-calculated by this compute for use in the computation of a pressure
-tensor.  The formula for the components of the tensor is the same as
-the above formula, except that v\^2 is replaced by vx\*vy for the xy
-component, etc.  The 6 components of the vector are ordered xx, yy,
-zz, xy, xz, yz.  In contrast to the temperature, the velocity of
-each core or shell atom is taken individually.
+A kinetic energy tensor, stored as a six-element vector, is also calculated by
+this compute for use in the computation of a pressure tensor.  The formula for
+the components of the tensor is the same as the above formula, except that
+:math:`v^2` is replaced by :math:`v_x v_y` for the :math:`xy` component, and so
+on. The six components of the vector are ordered :math:`xx`, :math:`yy`,
+:math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`. In contrast to the temperature,
+the velocity of each core or shell atom is taken individually.
 
 The change this fix makes to core/shell atom velocities is essentially
-computing the temperature after a "bias" has been removed from the
-velocity of the atoms.  This "bias" is the velocity of the atom
-relative to the COM velocity of the core/shell pair.  If this compute
-is used with a fix command that performs thermostatting then this bias
-will be subtracted from each atom, thermostatting of the remaining COM
-velocity will be performed, and the bias will be added back in.  This
-means the thermostatting will effectively be performed on the
-core/shell pairs, instead of on the individual core and shell atoms.
-Thermostatting fixes that work in this way include :doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix temp/berendsen <fix_temp_berendsen>`, and :doc:`fix langevin <fix_langevin>`.
+computing the temperature after a "bias" has been removed from the velocity of
+the atoms.  This "bias" is the velocity of the atom relative to the
+center-of-mass velocity of the core/shell pair.  If this compute is used with a
+fix command that performs thermostatting then this bias will be subtracted from
+each atom, thermostatting of the remaining center-of-mass velocity will be
+performed, and the bias will be added back in.  This means the thermostatting
+will effectively be performed on the core/shell pairs, instead of on the
+individual core and shell atoms.  Thermostatting fixes that work in this way
+include :doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`,
+:doc:`fix temp/berendsen <fix_temp_berendsen>`, and
+:doc:`fix langevin <fix_langevin>`.
 
 The internal energy of core/shell pairs can be calculated by the
-:doc:`compute temp/chunk <compute_temp_chunk>` command, if chunks are
-defined as core/shell pairs.  See the :doc:`Howto coreshell <Howto_coreshell>` page doc page for more discussion
-on how to do this.
+:doc:`compute temp/chunk <compute_temp_chunk>` command, if chunks are defined
+as core/shell pairs.  See the :doc:`Howto coreshell <Howto_coreshell>` doc
+page for more discussion on how to do this.
 
 Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+vector of length 6 (KE tensor), which can be accessed by indices 1--6.
 These values can be used by any command that uses global scalar or
 vector values from a compute as input.
 
@@ -108,7 +117,8 @@ be used which generate new molecules or atoms during a simulation.
 Related commands
 """"""""""""""""
 
-:doc:`compute temp <compute_temp>`, :doc:`compute temp/chunk <compute_temp_chunk>`
+:doc:`compute temp <compute_temp>`,
+:doc:`compute temp/chunk <compute_temp_chunk>`
 
 Default
 """""""

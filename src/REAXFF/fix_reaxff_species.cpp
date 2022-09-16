@@ -26,6 +26,7 @@
 #include "error.h"
 #include "fix_ave_atom.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -68,6 +69,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   nrepeat = utils::inumeric(FLERR, arg[4], false, lmp);
   global_freq = nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
+  if (nrepeat == 1) dynamic_group_allow = 1;
 
   comm_forward = 4;
 
@@ -187,42 +189,43 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       iarg += ntypes + 1;
 
       // delete species
-    } else if (strcmp(arg[iarg],"delete") == 0) {
+    } else if (strcmp(arg[iarg], "delete") == 0) {
       delflag = 1;
-      filedel = new char[255];
-      strcpy(filedel,arg[iarg+1]);
+      delete[] filedel;
+      filedel = utils::strdup(arg[iarg + 1]);
       if (me == 0) {
         fdel = fopen(filedel, "w");
-        if (fdel == nullptr) error->one(FLERR,"Cannot open fix reaxff/species delete file");
+        if (!fdel)
+          error->one(FLERR, "Cannot open fix reaxff/species delete file {}: {}", filedel,
+                     utils::getsyserror());
       }
 
       del_opened = 1;
 
-      if (strcmp(arg[iarg+2],"masslimit") == 0) {
-        if (iarg+5 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
+      if (strcmp(arg[iarg + 2], "masslimit") == 0) {
+        if (iarg + 5 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
         masslimitflag = 1;
-        massmin = atof(arg[iarg+3]);
-        massmax = atof(arg[iarg+4]);
+        massmin = atof(arg[iarg + 3]);
+        massmax = atof(arg[iarg + 4]);
         iarg += 5;
-      } else if (strcmp(arg[iarg+2],"specieslist") == 0) {
+      } else if (strcmp(arg[iarg + 2], "specieslist") == 0) {
         specieslistflag = 1;
-        ndelspec = atoi(arg[iarg+3]);
-        if (iarg+ndelspec+4 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
+        ndelspec = atoi(arg[iarg + 3]);
+        if (iarg + ndelspec + 4 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
 
         del_species.resize(ndelspec);
-        for (int i = 0; i < ndelspec; i ++)
-          del_species[i] = arg[iarg+4+i];
+        for (int i = 0; i < ndelspec; i++) del_species[i] = arg[iarg + 4 + i];
 
         if (me == 0) {
-          fprintf(fdel,"Timestep");
-          for (i = 0; i < ndelspec; i++)
-            fprintf(fdel,"\t%s",del_species[i].c_str());
-          fprintf(fdel,"\n");
+          fprintf(fdel, "Timestep");
+          for (i = 0; i < ndelspec; i++) fprintf(fdel, "\t%s", del_species[i].c_str());
+          fprintf(fdel, "\n");
           fflush(fdel);
         }
 
         iarg += ndelspec + 4;
-      } else error->all(FLERR, "Illegal fix reaxff/species command");
+      } else
+        error->all(FLERR, "Illegal fix reaxff/species command");
 
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
@@ -281,6 +284,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(MolName);
 
   delete[] filepos;
+  delete[] filedel;
 
   if (me == 0) {
     if (compressed)
@@ -288,6 +292,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     else
       fclose(fp);
     if (posflag && multipos_opened) fclose(pos);
+    if (fdel) fclose(fdel);
   }
 
   try {
@@ -391,9 +396,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   Nmole = Nspec = 0;
 
   FindMolecule();
-
   SortMolecule(Nmole);
-
   FindSpecies(Nmole, Nspec);
 
   vector_nmole = Nmole;
@@ -518,16 +521,23 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
     hi = MAX(hi, nint(clusterID[n]));
   }
   int flagall;
-  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-  if (flagall && me == 0)
-    error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group");
   MPI_Allreduce(&lo, &idlo, 1, MPI_INT, MPI_MIN, world);
   MPI_Allreduce(&hi, &idhi, 1, MPI_INT, MPI_MAX, world);
+  int nlen = idhi - idlo + 1;
+  if (nlen <= 0) {    // no atoms in group
+    Nmole = 0;
+    return;
+  }
   if (idlo == ntotal)
     if (me == 0)
-      error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group");
+      error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group {}",
+                     group->names[igroup]);
 
-  int nlen = idhi - idlo + 1;
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+  if (flagall && me == 0)
+    error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group {}",
+                   group->names[igroup]);
+
   memory->create(molmap, nlen, "reaxff/species:molmap");
   for (n = 0; n < nlen; n++) molmap[n] = 0;
 
@@ -620,13 +630,13 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
           if (MolName[ntypes * k + l] != Name[l]) flag_spec = 1;
         if (flag_spec == 0) {
           NMol[k]++;
-          Mol2Spec[m-1] = k;
+          Mol2Spec[m - 1] = k;
         }
         flag_identity *= flag_spec;
       }
       if (Nspec == 0 || flag_identity == 1) {
         for (l = 0; l < ntypes; l++) MolName[ntypes * Nspec + l] = Name[l];
-        Mol2Spec[m-1] = Nspec;
+        Mol2Spec[m - 1] = Nspec;
         Nspec++;
       }
     }
@@ -819,12 +829,11 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
 void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 {
-  int i, j, m, n, k, itype, cid;
+  int i, j, m, n, itype, cid;
   int ndel, ndelone, count, count_tmp;
   int *Nameall;
   int *mask = atom->mask;
   double localmass, totalmass;
-  double **spec_atom = f_SPECBOND->array_atom;
   std::string species_str;
 
   AtomVec *avec = atom->avec;
@@ -837,8 +846,10 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   memory->create(Nameall, ntypes, "reaxff/species:Nameall");
 
   int ndelcomm;
-  if (masslimitflag) ndelcomm = Nspec;
-  else ndelcomm = ndelspec;
+  if (masslimitflag)
+    ndelcomm = Nspec;
+  else
+    ndelcomm = ndelspec;
 
   double *deletecount;
   memory->create(deletecount, ndelcomm, "reaxff/species:deletecount");
@@ -856,7 +867,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       if (!(mask[i] & groupbit)) continue;
       cid = nint(clusterID[i]);
       if (cid == m) {
-        itype = atom->type[i]-1;
+        itype = atom->type[i] - 1;
         Name[itype]++;
         count++;
         marklist[nmarklist++] = i;
@@ -870,14 +881,16 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     MPI_Allreduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, world);
     for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
 
-    MPI_Allreduce(&localmass, &totalmass, 1 , MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&localmass, &totalmass, 1, MPI_DOUBLE, MPI_SUM, world);
 
     species_str = "";
     for (j = 0; j < ntypes; j++) {
       if (Name[j] != 0) {
-        if (eletype) species_str += eletype[j];
-        else species_str += ele[j];
-        if (Name[j] != 1) species_str += fmt::format("{}",Name[j]);
+        if (eletype)
+          species_str += eletype[j];
+        else
+          species_str += ele[j];
+        if (Name[j] != 1) species_str += fmt::format("{}", Name[j]);
       }
     }
 
@@ -888,7 +901,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       if (totalmass > massmin && totalmass < massmax) {
         for (j = 0; j < nmarklist; j++) {
           mark[marklist[j]] = 1;
-          deletecount[Mol2Spec[m-1]] += 1.0 / (double) count;
+          deletecount[Mol2Spec[m - 1]] += 1.0 / (double) count;
         }
       }
     } else {
@@ -909,9 +922,9 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   // delete atoms. loop in reverse order to avoid copying marked atoms
 
   ndel = ndelone = 0;
-  for (i = atom->nlocal-1; i >= 0; i--) {
+  for (i = atom->nlocal - 1; i >= 0; i--) {
     if (mark[i] == 1) {
-      avec->copy(atom->nlocal-1,i,1);
+      avec->copy(atom->nlocal - 1, i, 1);
       atom->nlocal--;
       ndelone++;
     }
@@ -921,8 +934,10 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 
   atom->natoms -= ndel;
 
-  if (me == 0) MPI_Reduce(MPI_IN_PLACE, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
-  else MPI_Reduce(deletecount, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
+  if (me == 0)
+    MPI_Reduce(MPI_IN_PLACE, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
+  else
+    MPI_Reduce(deletecount, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (me == 0) {
     if (masslimitflag) {
@@ -930,15 +945,17 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       for (int m = 0; m < Nspec; m++) {
         if (deletecount[m] > 0) {
           if (printflag == 0) {
-            fprintf(fdel, "Timestep %lld", update->ntimestep);
+            fmt::print(fdel, "Timestep {}", update->ntimestep);
             printflag = 1;
           }
           fprintf(fdel, " %g ", deletecount[m]);
-          for (j = 0; j < ntypes; j ++) {
+          for (j = 0; j < ntypes; j++) {
             int itemp = MolName[ntypes * m + j];
             if (itemp != 0) {
-              if (eletype) fprintf(fdel, "%s", eletype[j]);
-              else fprintf(fdel, "%c", ele[j]);
+              if (eletype)
+                fprintf(fdel, "%s", eletype[j]);
+              else
+                fprintf(fdel, "%c", ele[j]);
               if (itemp != 1) fprintf(fdel, "%d", itemp);
             }
           }
@@ -954,10 +971,8 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
         if (deletecount[i]) writeflag = 1;
 
       if (writeflag) {
-        fprintf(fdel, "%lld", update->ntimestep);
-        for (i = 0; i < ndelspec; i++) {
-          fprintf(fdel, "\t%g", deletecount[i]);
-        }
+        fmt::print(fdel, "{}", update->ntimestep);
+        for (i = 0; i < ndelspec; i++) { fprintf(fdel, "\t%g", deletecount[i]); }
         fprintf(fdel, "\n");
         fflush(fdel);
       }

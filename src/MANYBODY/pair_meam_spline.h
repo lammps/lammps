@@ -197,10 +197,16 @@ class PairMEAMSpline : public Pair {
     }
 
     /// Returns the number of bytes used by this function object.
-    double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
+    double memory_usage() const
+    {
+      return sizeof(*this) + sizeof(X[0]) * N * 3;
+    }
 
     /// Returns the cutoff radius of this function.
-    double cutoff() const { return X[N - 1]; }
+    double cutoff() const
+    {
+      return X[N - 1];
+    }
 
     /// Writes a Gnuplot script that plots the spline function.
     void writeGnuplot(const char *filename, const char *title = nullptr) const;

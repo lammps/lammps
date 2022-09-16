@@ -65,6 +65,7 @@ void CPairPOD::compute(int eflag, int vflag)
   int nall = inum + atom->nghost;
 
   // initialize global descriptors to zero
+  
   int nd1234 = podptr->pod.nd1234;
   podptr->podArraySetValue(gd, 0.0, nd1234);
 
@@ -73,6 +74,7 @@ void CPairPOD::compute(int eflag, int vflag)
     int jnum = numneigh[i];
 
     // allocate temporary memory
+    
     if (nijmax < jnum) {
       nijmax = PODMAX(nijmax, jnum);
       nablockmax = 1;
@@ -82,23 +84,28 @@ void CPairPOD::compute(int eflag, int vflag)
     }
 
     // get neighbor pairs for atom i
+    
     this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
 
     // compute global POD descriptors for atom i
+    
     podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nd1234], numneighsum,
       typeai, idxi, ti, tj, 1, nij);
   }
 
   // compute energy and effective coefficients
+  
   eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, podcoeff);
 
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
 
     // get neighbor pairs for atom i
+    
     this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
 
     // compute atomic force for atom i
+    
     podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum,
       typeai, idxi, ai, aj, ti, tj, 1, nij);
   }

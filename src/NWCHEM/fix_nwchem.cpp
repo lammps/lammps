@@ -58,7 +58,7 @@ extern int c_lammps_pspw_qmmm_minimizer_filename(MPI_Comm, double *, double *,
 // unit conversion factors
 // NOTE: set all to 1.0 for dummy test
 
-#define ANGSTROM_TO_BOHR 1.88973
+#define ANGSTROM_TO_BOHR 1.88972687777
 #define HARTREE_TO_EV 27.2114
 #define HARTREE_TO_KCAL_MOLE 627.5
 
@@ -497,14 +497,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
 
   // unit conversion from LAMMPS to NWChem
 
-  /*
-  printf("PSPW XQM: x1 %g %g %g x2 %g %g %g x3 %g %g %g\n",
-         xqm[0][0],xqm[0][1],xqm[0][2],
-         xqm[1][0],xqm[1][1],xqm[1][2],
-         xqm[2][0],xqm[2][1],xqm[2][2]);
-  printf("PSPW QPOT: qpot %g %g %g\n",qpotential[0],qpotential[1],qpotential[2]);
-  */
-
   for (int i = 0; i < nqm; i++) {
     xqm[i][0] *= lmp2qm_distance;
     xqm[i][1] *= lmp2qm_distance;
@@ -551,15 +543,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
     fqm[i][2] *= qm2lmp_force;
   }
 
-  /*
-  printf("PSPW FQM: f1 %g %g %g f2 %g %g %g f3 %g %g %g\n",
-         fqm[0][0],fqm[0][1],fqm[0][2],
-         fqm[1][0],fqm[1][1],fqm[1][2],
-         fqm[2][0],fqm[2][1],fqm[2][2]);
-  printf("PSPW QQM: qpot %g %g %g\n",qqm[0],qqm[1],qqm[2]);
-  printf("PSPW ENG: %g\n",qmenergy);
-  */
-
   // reset owned charges to QM values
   // communicate changes to ghost atoms
 
@@ -573,8 +556,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
   // reset LAMMPS forces to zero
   // NOTE: what about check in force_clear() for external_force_clear = OPENMP ?
   // NOTE: what will whichflag be for single snapshot compute of QM forces?
-
-  // printf("UPDATE WHICHFLAG %d\n",update->whichflag);
 
   if (update->whichflag == 1) 
     update->integrate->force_clear();  
@@ -740,12 +721,6 @@ void FixNWChem::post_force_qmmm(int vflag)
 
   double **f = atom->f;
 
-  /*
-  for (int i = 0; i < atom->nlocal; i++)
-    printf("PRE POST FORCE: f%d %g %g %g\n",atom->tag[i],
-           f[i][0],f[i][1],f[i][2]);
-  */
-
   int ilocal;
 
   for (int i = 0; i < nqm; i++) {
@@ -756,12 +731,6 @@ void FixNWChem::post_force_qmmm(int vflag)
       f[ilocal][2] += fqm[i][2];
     }
   }
-
-  /*
-  for (int i = 0; i < atom->nlocal; i++)
-    printf("POST POST FORCE: f%d %g %g %g\n",atom->tag[i],
-           f[i][0],f[i][1],f[i][2]);
-  */
 
   // trigger per-atom energy computation on next step by pair/kspace
   // NOTE: is this needed ?

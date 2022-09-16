@@ -6,7 +6,7 @@ atom_style	full
 bond_style      harmonic
 angle_style     harmonic
 
-read_data       data.water.dimer
+read_data       data.water.dimer.mm
 
 group           mm molecule 1
 group           qm molecule 2

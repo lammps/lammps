@@ -6,7 +6,7 @@ atom_style	full
 bond_style      harmonic
 angle_style     harmonic
 
-read_data       data.water.dimer
+read_data       data.water.dimer.qmmm
 
 group           qm molecule 1
 group           mm molecule 2
@@ -16,10 +16,25 @@ group           mm molecule 2
 delete_bonds    qm multi remove special
 
 # pair style must define stand-alone short-range Coulombics
+# must specify mixing explicitly b/c hybrid/overlay
+# QM O,H = types 1,2
+# MM O,H = types 3,4
+# QM O,H atoms do not LJ interact with each other
+# only MM O atoms LJ interact with other b/c MM H is zero
+# MM/QM O do LJ interact with each other, same as pair of MM O atoms
+# MM O and QM H do LJ interact with each other with non-zero H epsilon = 0.044
+#   geometric mixing for epsilon, arithmetic for sigma
+#   this is to provide stability for QM H atoms
+
+# mixing only for MM-O/QM-O and MM-O/QM-H
 
 pair_style      hybrid/overlay lj/cut 6.0 coul/cut 6.0
-pair_coeff      1 1 lj/cut 0.155394 3.165558         
-pair_coeff      2 2 lj/cut 0.044 0.7         
+pair_coeff      1 1 lj/cut 0.0 3.165558         
+pair_coeff      2 2 lj/cut 0.0 0.7   
+pair_coeff      3 3 lj/cut 0.155394 3.165558         
+pair_coeff      4 4 lj/cut 0.0 0.7         
+pair_coeff      1 3 lj/cut 0.155394 3.165558         
+pair_coeff      2 3 lj/cut 0.08268818537130924 1.932779
 pair_coeff      * * coul/cut
 
 #velocity        all create 300.0 458732
@@ -30,26 +45,25 @@ neigh_modify	delay 0 every 1 check yes
 fix		1 all nve
 
 fix             2 qm nwchem template.water.nw water.dimer.nw &
-                log.pwdft.water.dimer O H
+                log.pwdft.water.dimer O H O H
 fix_modify      2 energy yes
 
-compute         1 all pair/local dist
-compute         2 all reduce max c_1
+# convert dump file forces to Hartree/Bohr for comparison to NWChem
 
-variable        fxabs atom abs(fx)
-variable        fyabs atom abs(fy)
-variable        fzabs atom abs(fz)
-variable        qabs atom abs(q)
-compute         3 all reduce max v_fxabs v_fyabs v_fzabs v_qabs
+variable        fx atom fx/1185.8
+variable        fy atom fy/1185.8
+variable        fz atom fz/1185.8
 
-dump            1 all custom 1 dump.water.dimer.qmmm id x y z q fx fy fz
+dump            1 all custom 1 dump.water.dimer.qmmm id x y z q v_fx v_fy v_fz
 dump_modify     1 sort id format float "%20.16g"
 
-timestep        1.0
+# small timestep for QMMM
+
+timestep        0.1
 
 thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
-                f_2 pe etotal press c_2 c_3[*]
+                f_2 pe etotal press
 
 thermo          1
 
-run		0
+run		20

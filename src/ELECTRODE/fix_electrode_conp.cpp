@@ -68,7 +68,7 @@ static const char cite_fix_electrode[] =
 //     0        1      2              3    4
 // fix fxupdate group1 electrode/conp pot1 eta couple group2 pot2
 FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), elec_vector(nullptr), elyt_vector(nullptr), 
+    Fix(lmp, narg, arg), elec_vector(nullptr), elyt_vector(nullptr),
     capacitance(nullptr), elastance(nullptr), pair(nullptr),
     mat_neighlist(nullptr), vec_neighlist(nullptr), recvcounts(nullptr), displs(nullptr),
     iele_gathered(nullptr), buf_gathered(nullptr), potential_i(nullptr), potential_iele(nullptr)

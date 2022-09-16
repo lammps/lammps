@@ -1,22 +1,21 @@
-# Compile LAMMPS/POD 
+### Compile LAMMPS/POD 
 
-  1. go to lammps directory
-  2. mkdir build
-  3. cd build
-  4. cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-POD=on ../cmake
-  5. cmake --build .
+Go to `lammps` directory and build with the POD package:
 
-# Run an example to fit a POD potential for Tantalum element
+    cd path/to/lammps
+    mkdir build-pod
+    cd build-pod
+    cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-POD=on ../cmake
+    cmake --build .
 
-  1. Go to lammps/examples/pod/Ta directory
-  2.  ../../../build/lmp -in in.podfit -sc tmp
+### Run an example to fit a POD potential for Tantalum element
 
-# Run an example to fit a POD potential for InP compound 
+Go to lammps/examples/pod/Ta directory and run 
 
-  1. Go to lammps/examples/pod/InP directory
-  2.  ../../../build/lmp -in in.podfit -sc tmp
+    ../../../build-pod/lmp -in in.podfit -sc tmp
 
-# Run an example to fit a POD potential for GaN compound 
+Also see the README in this directory for instructions on how to run MD with the potential.
 
-  1. Go to lammps/examples/pod/GaN directory
-  2.  ../../../build/lmp -in in.podfit -sc tmp
+### Examples for other materials
+
+See [https://github.com/cesmix-mit/pod_examples](https://github.com/cesmix-mit/pod_examples)

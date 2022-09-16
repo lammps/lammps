@@ -94,8 +94,8 @@ void PairHybrid::compute(int eflag, int vflag)
   // check if no_virial_fdotr_compute is set and global component of
   //   incoming vflag = VIRIAL_FDOTR
   // if so, reset vflag as if global component were VIRIAL_PAIR
-  // necessary since one or more sub-styles cannot compute virial as F dot r 
-  
+  // necessary since one or more sub-styles cannot compute virial as F dot r
+
   if (no_virial_fdotr_compute && (vflag & VIRIAL_FDOTR))
     vflag = VIRIAL_PAIR | (vflag & ~VIRIAL_FDOTR);
 
@@ -112,7 +112,7 @@ void PairHybrid::compute(int eflag, int vflag)
   double *saved_special = save_special();
 
   // check if we are running with r-RESPA using the hybrid keyword
-  
+
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style,"^respa")) {
@@ -134,7 +134,7 @@ void PairHybrid::compute(int eflag, int vflag)
         styles[m]->compute_outer(eflag,vflag_substyle);
       else styles[m]->compute(eflag,vflag_substyle);
     }
-    
+
     restore_special(saved_special);
 
     // jump to next sub-style if r-RESPA does not want global accumulated data
@@ -189,16 +189,8 @@ void PairHybrid::compute(int eflag, int vflag)
   }
 
   delete[] saved_special;
-      
-//   for(int j = 0; j < 6; j++ ) printf( " %6.12f", virial[j] );
-//   printf( "\n" );
-        
-  if (vflag_fdotr) virial_fdotr_compute();    
-  
-//   for(int j = 0; j < 6; j++ ) printf( " %6.12f", virial[j] );
-//   printf( "\n" );
-//   
-//   error->all(FLERR, "here");     
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ---------------------------------------------------------------------- */

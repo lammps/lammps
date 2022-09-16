@@ -42,6 +42,7 @@ class SNA : protected Pointers {
   double memory_usage();
 
   int ncoeff;
+
   // functions for bispectrum coefficients
 
   void compute_ui(int, int);

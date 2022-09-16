@@ -244,7 +244,7 @@ ComputeSnap::~ComputeSnap()
 /* ---------------------------------------------------------------------- */
 
 void ComputeSnap::init()
-{  
+{
   if (force->pair == nullptr)
     error->all(FLERR,"Compute snap requires a pair style be defined");
 
@@ -300,8 +300,6 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeSnap::compute_array()
 {
-  printf(" COMPUTE SNAP ARRAY \n");   
-  
   int ntotal = atom->nlocal + atom->nghost;
 
   invoked_array = update->ntimestep;

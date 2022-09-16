@@ -129,7 +129,6 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   kokkosable = 0;
   reverse_comm_device = 0;
   copymode = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -823,14 +822,14 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
 
   if (narg != ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
- 
+
   if (elements) {
     for (i = 0; i < nelements; i++) delete[] elements[i];
     delete[] elements;
   }
   elements = new char*[ntypes];
-  for (i = 0; i < ntypes; i++) elements[i] = nullptr; 
- 
+  for (i = 0; i < ntypes; i++) elements[i] = nullptr;
+
   nelements = 0;
   map[0] = -1;
   for (i = 1; i <= narg; i++) {
@@ -847,10 +846,10 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
       nelements++;
     }
   }
- 
+
   // if requested, clear setflag[i][j] and set it for type pairs
   // where both are mapped to elements in map.
-  
+
   if (update_setflag) {
 
     int count = 0;
@@ -863,7 +862,7 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
         }
       }
     }
-    
+
     if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
   }
 }
@@ -894,7 +893,7 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
 void Pair::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
-      
+
   eflag_either = eflag;
   eflag_global = eflag & ENERGY_GLOBAL;
   eflag_atom = eflag & ENERGY_ATOM;
@@ -982,7 +981,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
       Compute *c = list_tally_compute[k];
       c->pair_setup_callback(eflag,vflag);
     }
-  }    
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1014,7 +1013,7 @@ void Pair::ev_unset()
 void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
                     double evdwl, double ecoul, double fpair,
                     double delx, double dely, double delz)
-{    
+{
   double evdwlhalf,ecoulhalf,epairhalf,v[6];
 
   if (eflag_either) {
@@ -1733,12 +1732,12 @@ void Pair::v_tally_tensor(int i, int j, int nlocal, int newton_pair,
 ------------------------------------------------------------------------- */
 
 void Pair::virial_fdotr_compute()
-{   
+{
   double **x = atom->x;
   double **f = atom->f;
 
   // sum over force on all particles including ghosts
- 
+
   if (neighbor->includegroup == 0) {
     int nall = atom->nlocal + atom->nghost;
     for (int i = 0; i < nall; i++) {

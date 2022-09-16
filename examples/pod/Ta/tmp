@@ -1,4 +1,4 @@
-LAMMPS (2 Jun 2022)
+LAMMPS (23 Jun 2022)
 Lattice spacing in x,y,z = 2 2 2
 Created orthogonal box = (0 0 0) to (2 2 2)
   1 by 1 by 1 MPI processor grid
@@ -31,9 +31,9 @@ Setting up Verlet run ...
 Per MPI rank memory allocation (min/avg/max) = 4.093 | 4.093 | 4.093 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press     
          0   0              0              0              0              0            
-Loop time of 9.05e-07 on 1 procs for 0 steps with 2 atoms
+Loop time of 1.058e-06 on 1 procs for 0 steps with 2 atoms
 
-221.0% CPU use with 1 MPI tasks x no OpenMP threads
+189.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -43,7 +43,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 9.05e-07   |            |       |100.00
+Other   |            | 1.058e-06  |            |       |100.00
 
 Nlocal:              2 ave           2 max           2 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -58,4 +58,4 @@ Total # of neighbors = 26
 Ave neighs/atom = 13
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:04
+Total wall time: 0:00:02

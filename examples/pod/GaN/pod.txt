@@ -30,15 +30,15 @@ threebody_number_radial_basis_functions 5
 threebody_number_angular_basis_functions 5
 
 # four-body linear potential
-fourbody_snap_twojmax 6 
-fourbody_snap_chemflag 1
+fourbody_snap_twojmax 0 
+fourbody_snap_chemflag 0
 
 # make three-body quadratic potential by combining two-body linear potential and two-body linear potential
 quadratic22_number_twobody_basis_functions 0 
 
 # make four-body quadratic potential by combining two-body linear potential and three-body linear potential
-quadratic23_number_twobody_basis_functions 6 
-quadratic23_number_threebody_basis_functions 25
+quadratic23_number_twobody_basis_functions 0 
+quadratic23_number_threebody_basis_functions 0
 
 # make five-body quadratic potential by combining two-body linear potential and four-body linear potential
 quadratic24_number_twobody_basis_functions 0

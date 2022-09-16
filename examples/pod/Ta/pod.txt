@@ -8,11 +8,11 @@ pbc 1 1 1
 rin 1.0
 
 # outer cut-off radius
-rcut 5.0
+rcut 4.67
 
 # polynomial degrees for radial basis functions
-bessel_polynomial_degree 3 
-inverse_polynomial_degree 6
+bessel_polynomial_degree 4 
+inverse_polynomial_degree 8
 
 # Bessel scaling parameters
 bessel_scaling_parameter1 0.0 
@@ -23,11 +23,11 @@ bessel_scaling_parameter3 4.0
 onebody 1
 
 # two-body linear POD potential
-twobody_number_radial_basis_functions 6
+twobody_number_radial_basis_functions 8
 
 # three-body linear POD potential
-threebody_number_radial_basis_functions 5
-threebody_number_angular_basis_functions 5
+threebody_number_radial_basis_functions 6
+threebody_number_angular_basis_functions 6
 
 # four-body linear SNAP potential
 fourbody_snap_twojmax 6 
@@ -36,19 +36,19 @@ fourbody_snap_twojmax 6
 quadratic22_number_twobody_basis_functions 0 
 
 # make four-body quadratic potential by combining two-body linear potential and three-body linear potential
-quadratic23_number_twobody_basis_functions 6 
-quadratic23_number_threebody_basis_functions 25
+quadratic23_number_twobody_basis_functions 0 
+quadratic23_number_threebody_basis_functions 0
 
 # make five-body quadratic potential by combining two-body linear potential and four-body linear potential
-quadratic24_number_twobody_basis_functions 6
-quadratic24_number_fourbody_basis_functions 30 
+quadratic24_number_twobody_basis_functions 0
+quadratic24_number_fourbody_basis_functions 0 
 
 # make five-body quadratic potential by combining three-body linear potential and three-body linear potential
 quadratic33_number_threebody_basis_functions 0
 
 # make six-body quadratic potential by combining three-body linear potential and four-body linear potential
-quadratic34_number_threebody_basis_functions 25
-quadratic34_number_fourbody_basis_functions 30 
+quadratic34_number_threebody_basis_functions 0
+quadratic34_number_fourbody_basis_functions 0 
 
 # make seven-body quadratic potential by combining four-body linear potential and four-body linear potential
 quadratic44_number_fourbody_basis_functions 0 

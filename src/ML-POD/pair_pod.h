@@ -168,6 +168,8 @@ private:
     void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *numneigh, 
             int *ilist, int istart, int iend);
             
+    void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *numneigh, int i);
+    
     double podenergy(double *x, double *a1, double *a2, double *a3, int *atomtype, int inum);    
     double podeatom(double *eatom, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum);
     void podforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum);

@@ -129,7 +129,20 @@ private:
             int ncoeff, int ntype);
     
     void pod4body_force(double *force, double *rij, double *coeff4, double *tmpmem, int *atomtype, 
-        int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);                    
+        int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);           
+    
+    void pod2body_force(double **force, double *fij, double *coeff2, int *ai, int *aj, 
+        int *ti, int *tj, int *elemindex, int nelements, int nbf, int natom, int Nij);
+    
+    void pod3body_force(double **force, double *yij, double *e2ij, double *f2ij, double *coeff3, double *tmpmem, 
+             int *elemindex, int *pairnumsum, int *ai, int *aj, int *ti, int *tj, int nrbf, int nabf, 
+             int nelements, int natom, int Nij);
+        
+    void snapTallyForce(double **force, double *dbdr, double *coeff4, int *ai, int *aj, int *ti, int ijnum, 
+            int ncoeff, int ntype);
+    
+    void pod4body_force(double **force, double *rij, double *coeff4, double *tmpmem, int *atomtype, 
+        int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);                        
     // ******************************************************************************/    
     
 public:          
@@ -374,7 +387,10 @@ public:
     
     void calculate_force(double *force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
             int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);    
-  
+
+    void calculate_force(double **force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
+            int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);    
+    
     double energyforce_calculation(double *force, double *podcoeff, double *effectivecoeff, double *gd, double *rij, 
         double *tmpmem, int *pairnumsum, int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);            
     // ******************************************************************************/

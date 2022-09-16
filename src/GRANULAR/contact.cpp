@@ -45,10 +45,8 @@ ContactModel::ContactModel(LAMMPS *lmp) : Pointers(lmp)
   limit_damping = 0;
   beyond_contact = 0;
   nondefault_history_transfer = 0;
-
+  classic_model = 0;
   contact_type = PAIR;
-
-  reset_contact();
 
   normal_model = nullptr;
   damping_model = nullptr;
@@ -95,6 +93,7 @@ void ContactModel::init_model(std::string model_name, ModelType model_type)
     if (model_name == "none") tangential_model = new TangentialNone(lmp);
     else if (model_name == "linear_nohistory") tangential_model = new TangentialLinearNoHistory(lmp);
     else if (model_name == "linear_history") tangential_model = new TangentialLinearHistory(lmp);
+    else if (model_name == "linear_history_classic") tangential_model = new TangentialLinearHistoryClassic(lmp);
     else if (model_name == "mindlin") tangential_model = new TangentialMindlin(lmp);
     else if (model_name == "mindlin/force") tangential_model = new TangentialMindlinForce(lmp);
     else if (model_name == "mindlin_rescale") tangential_model = new TangentialMindlinRescale(lmp);
@@ -157,6 +156,8 @@ int ContactModel::init_classic_model(char **arg, int iarg, int narg)
 {
   double kn, kt, gamman, gammat, xmu;
 
+  classic_model = 1;
+
   if (iarg + 6 >= narg)
     error->all(FLERR,"Insufficient arguments provided for classic gran model command");
 
@@ -182,7 +183,7 @@ int ContactModel::init_classic_model(char **arg, int iarg, int narg)
     init_model("mass_velocity", DAMPING);
   } else if (strcmp(arg[iarg],"hooke/history") == 0) {
     init_model("hooke", NORMAL);
-    init_model("linear_history", TANGENTIAL);
+    init_model("linear_history_classic", TANGENTIAL);
     init_model("mass_velocity", DAMPING);
   } else if (strcmp(arg[iarg],"hertz/history") == 0) {
     // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
@@ -435,13 +436,18 @@ void ContactModel::calculate_forces()
   //May need to rethink eventually tris..
   cross3(nx, fs, torquesi);
 
-  double dist_to_contact = radi - 0.5 * delta;
-  scale3(dist_to_contact, torquesi);
+  double dist_to_contact;
+  if (!classic_model) {
+    dist_to_contact = radi - 0.5 * delta;
+    scale3(dist_to_contact, torquesi);
+  }
 
   if (contact_type == PAIR) {
     copy3(torquesi, torquesj);
-    dist_to_contact = radj - 0.5 * delta;
-    scale3(dist_to_contact, torquesj);
+    if (!classic_model) {
+      dist_to_contact = radj - 0.5 * delta;
+      scale3(dist_to_contact, torquesj);
+    }
   }
 
   double torroll[3];

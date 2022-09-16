@@ -97,6 +97,7 @@ class ContactModel : protected Pointers {
 
  protected:
   int rolling_defined, twisting_defined, heat_defined; // Used to quickly skip undefined submodels
+  int classic_model;
 };
 
 }    // namespace Contact

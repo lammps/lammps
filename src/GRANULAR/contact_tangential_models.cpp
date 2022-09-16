@@ -73,6 +73,7 @@ void TangentialLinearNoHistory::calculate_forces()
   else Ft = 0.0;
 
   scale3(-Ft, contact->vtr, contact->fs);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -101,7 +102,8 @@ void TangentialLinearHistory::coeffs_to_local()
 
 void TangentialLinearHistory::calculate_forces()
 {
-  double magfs, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
+  // Note: this is the same as the base Mindlin calculation except k isn't scaled by area
+  double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
   int frame_update = 0;
 
   damp = xt * contact->damping_model->damp_prefactor;
@@ -117,8 +119,11 @@ void TangentialLinearHistory::calculate_forces()
 
     if (frame_update) {
       shrmag = len3(history);
+
       // projection
-      scale3(rsht, contact->nx, history);
+      scale3(rsht, contact->nx, temp_array);
+      sub3(history, temp_array, history);
+
       // also rescale to preserve magnitude
       prjmag = len3(history);
       if (prjmag > 0) temp_dbl = shrmag / prjmag;
@@ -126,32 +131,109 @@ void TangentialLinearHistory::calculate_forces()
       scale3(temp_dbl, history);
     }
 
-    // update history
-    // tangential force
+    // update history, tangential force
     // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
-    temp_dbl = k * contact->dt;
-    scale3(temp_dbl, contact->vtr, temp_array);
-    sub3(history, temp_array, history);
+    scale3(contact->dt, contact->vtr, temp_array);
+    add3(history, temp_array, history);
   }
 
   // tangential forces = history + tangential velocity damping
-  scale3(-damp, contact->vtr, contact->fs);
+  scale3(-k, history, contact->fs);
+  scale3(damp, contact->vtr, temp_array);
+  sub3(contact->fs, temp_array, contact->fs);
 
   // rescale frictional displacements and forces if needed
   magfs = len3(contact->fs);
   if (magfs > Fscrit) {
     shrmag = len3(history);
     if (shrmag != 0.0) {
-      temp_dbl = Fscrit / magfs;
+      magfs_inv = 1.0 / magfs;
+      temp_dbl = Fscrit * magfs_inv;
       scale3(temp_dbl, contact->fs, history);
       scale3(damp, contact->vtr, temp_array);
       add3(history, temp_array, history);
-      temp_dbl = Fscrit / magfs;
+      temp_dbl = -1.0 / k;
+      scale3(temp_dbl, history);
+      temp_dbl = Fscrit * magfs_inv;
       scale3(temp_dbl, contact->fs);
     } else {
       zero3(contact->fs);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   Linear model with history from pair gran/hooke/history
+------------------------------------------------------------------------- */
+
+TangentialLinearHistoryClassic::TangentialLinearHistoryClassic(LAMMPS *lmp) : TangentialLinearHistory(lmp)
+{
+  scale_area = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void TangentialLinearHistoryClassic::calculate_forces()
+{
+  double k_scaled, magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
+  double temp_array[3];
+  int frame_update = 0;
+
+  k_scaled = k;
+  if (scale_area) k_scaled *= contact->area;
+
+  damp = xt * contact->damping_model->damp_prefactor;
+
+  double Fscrit = contact->normal_model->Fncrit * mu;
+  double *history = & contact->history[history_index];
+
+  // update history
+  if (contact->history_update) {
+    scale3(contact->dt, contact->vtr, temp_array);
+    add3(history, temp_array, history);
+  }
+
+  shrmag = len3(history);
+
+  // rotate shear displacements
+  if (contact->history_update) {
+    rsht = dot3(history, contact->nx);
+    scale3(rsht, contact->nx, temp_array);
+    sub3(history, temp_array, history);
+  }
+
+  // tangential forces = history + tangential velocity damping
+  scale3(-k_scaled, history, contact->fs);
+  scale3(damp, contact->vtr, temp_array);
+  sub3(contact->fs, temp_array, contact->fs);
+
+  // rescale frictional displacements and forces if needed
+  magfs = len3(contact->fs);
+  if (magfs > Fscrit) {
+    if (shrmag != 0.0) {
+      magfs_inv = 1.0 / magfs;
+      temp_dbl = Fscrit * magfs_inv;
+      scale3(temp_dbl, contact->fs, history);
+      scale3(damp, contact->vtr, temp_array);
+      add3(history, temp_array, history);
+      temp_dbl = -1.0 / k_scaled;
+      if (scale_area) temp_dbl /= contact->area;
+      scale3(temp_dbl, history);
+      temp_dbl = Fscrit * magfs_inv;
+      scale3(temp_dbl, contact->fs);
+    } else {
+      zero3(contact->fs);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Mindlin from pair gran/hertz/history
+------------------------------------------------------------------------- */
+
+TangentialMindlinClassic::TangentialMindlinClassic(LAMMPS *lmp) : TangentialLinearHistoryClassic(lmp)
+{
+  scale_area = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -199,7 +281,7 @@ void TangentialMindlin::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 void TangentialMindlin::calculate_forces()
 {
-  double k_scaled, magfs, rsht, shrmag, prjmag, temp_dbl;
+  double k_scaled, magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
   double temp_array[3];
   int frame_update = 0;
 
@@ -229,7 +311,8 @@ void TangentialMindlin::calculate_forces()
     if (frame_update) {
       shrmag = len3(history);
       // projection
-      scale3(rsht, contact->nx, history);
+      scale3(rsht, contact->nx, temp_array);
+      sub3(history, temp_array, history);
       // also rescale to preserve magnitude
       prjmag = len3(history);
       if (prjmag > 0) temp_dbl = shrmag / prjmag;
@@ -256,7 +339,7 @@ void TangentialMindlin::calculate_forces()
 
   if (!mindlin_force) {
     scale3(k_scaled, history, temp_array);
-    add3(contact->fs, temp_array, contact->fs);
+    sub3(contact->fs, temp_array, contact->fs);
   }
 
   // rescale frictional displacements and forces if needed
@@ -264,15 +347,16 @@ void TangentialMindlin::calculate_forces()
   if (magfs > Fscrit) {
     shrmag = len3(history);
     if (shrmag != 0.0) {
-      temp_dbl = Fscrit / magfs;
+      magfs_inv = 1.0 / magfs;
+      temp_dbl = Fscrit * magfs_inv;
       scale3(temp_dbl, contact->fs, history);
       scale3(damp, contact->vtr, temp_array);
       add3(history, temp_array, history);
-      if (! mindlin_force) {
+      if (!mindlin_force) {
         temp_dbl = -1.0 / k_scaled;
         scale3(temp_dbl, history);
       }
-      temp_dbl = Fscrit / magfs;
+      temp_dbl = Fscrit * magfs_inv;
       scale3(temp_dbl, contact->fs);
     } else {
       zero3(contact->fs);

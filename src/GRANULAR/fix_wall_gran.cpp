@@ -30,6 +30,7 @@
 #include "contact_heat_models.h"
 #include "domain.h"
 #include "error.h"
+#include "input.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
@@ -37,6 +38,7 @@
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 

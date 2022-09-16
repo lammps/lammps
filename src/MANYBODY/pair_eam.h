@@ -53,6 +53,7 @@ class PairEAM : public Pair {
   double init_one(int, int) override;
   double single(int, int, int, int, double, double, double, double &) override;
   void *extract(const char *, int &) override;
+  void *extract_peratom(const char *, int &) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;

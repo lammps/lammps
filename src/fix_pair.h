@@ -13,52 +13,47 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(bond/swap,FixBondSwap);
+FixStyle(pair,FixPair);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_BONDSWAP_H
-#define LMP_FIX_BONDSWAP_H
+#ifndef LMP_FIX_PAIR_H
+#define LMP_FIX_PAIR_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixBondSwap : public Fix {
+class FixPair : public Fix {
  public:
-  FixBondSwap(class LAMMPS *, int, char **);
-  ~FixBondSwap() override;
+  FixPair(class LAMMPS *, int, char **);
+  ~FixPair() override;
   int setmask() override;
   void init() override;
-  void init_list(int, class NeighList *) override;
-  void post_integrate() override;
-  int modify_param(int, char **) override;
-  double compute_vector(int) override;
+  void setup(int) override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
+  void min_pre_force(int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
   double memory_usage() override;
 
  private:
-  double fraction, cutsq;
-  int nmax, tflag;
-  int *alist;
-  int naccept, foursome;
-  int angleflag;
-  char *id_temp;
-  int *type;
-  double **x;
+  int nevery,nfield,ncols;
+  char *pairname;
+  char **fieldname,**triggername;
+  int *trigger;
+  int **triggerptr;
 
-  int maxpermute;
-  int *permute;
-
-  class NeighList *list;
-  class Compute *temperature;
-  class RanMars *random;
-
-  double dist_rsq(int, int);
-  double pair_eng(int, int);
-  double bond_eng(int, int, int);
-  double angle_eng(int, int, int, int);
-
-  void neighbor_permutation(int);
+  class Pair *pstyle;
+  double *vector;
+  double **array;
 };
 
 }    // namespace LAMMPS_NS

@@ -43,89 +43,89 @@ CPairPOD::~CPairPOD()
   delete podptr;
 
   if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
-    memory->destroy(scale);
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
+  memory->destroy(scale);
   }
 }
 
 void CPairPOD::compute(int eflag, int vflag)
 {
-    ev_init(eflag,vflag);
-    vflag_fdotr = 1;
+  ev_init(eflag,vflag);
+  vflag_fdotr = 1;
 
-    double **x = atom->x;
-    double **f = atom->f;
-    int **firstneigh = list->firstneigh;
-    int *numneigh = list->numneigh;
-    int *type = atom->type;
-    int *ilist = list->ilist;
-    int nlocal = atom->nlocal;
-    int inum = list->inum;
-    int nall = inum + atom->nghost;
+  double **x = atom->x;
+  double **f = atom->f;
+  int **firstneigh = list->firstneigh;
+  int *numneigh = list->numneigh;
+  int *type = atom->type;
+  int *ilist = list->ilist;
+  int nlocal = atom->nlocal;
+  int inum = list->inum;
+  int nall = inum + atom->nghost;
 
-    // initialize global descriptors to zero
-    int nd1234 = podptr->pod.nd1234;
-    podptr->podArraySetValue(gd, 0.0, nd1234);
+  // initialize global descriptors to zero
+  int nd1234 = podptr->pod.nd1234;
+  podptr->podArraySetValue(gd, 0.0, nd1234);
 
-    for (int ii = 0; ii < inum; ii++) {
-        int i = ilist[ii];
-        int jnum = numneigh[i];
+  for (int ii = 0; ii < inum; ii++) {
+    int i = ilist[ii];
+    int jnum = numneigh[i];
 
-        // allocate temporary memory
-        if (nijmax < jnum) {
-            nijmax = PODMAX(nijmax, jnum);
-            nablockmax = 1;
-            this->free_tempmemory();
-            this->estimate_tempmemory();
-            this->allocate_tempmemory();
-        }
-
-        // get neighbor pairs for atom i
-        this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
-
-        // compute global POD descriptors for atom i
-        podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nd1234], numneighsum,
-                typeai, idxi, ti, tj, 1, nij);
+    // allocate temporary memory
+    if (nijmax < jnum) {
+      nijmax = PODMAX(nijmax, jnum);
+      nablockmax = 1;
+      this->free_tempmemory();
+      this->estimate_tempmemory();
+      this->allocate_tempmemory();
     }
 
-    // compute energy and effective coefficients
-    eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, podcoeff);
+    // get neighbor pairs for atom i
+    this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
 
-    for (int ii = 0; ii < inum; ii++) {
-        int i = ilist[ii];
+    // compute global POD descriptors for atom i
+    podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nd1234], numneighsum,
+      typeai, idxi, ti, tj, 1, nij);
+  }
 
-        // get neighbor pairs for atom i
-        this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
+  // compute energy and effective coefficients
+  eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, podcoeff);
 
-        // compute atomic force for atom i
-        podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum,
-                typeai, idxi, ai, aj, ti, tj, 1, nij);
-    }
+  for (int ii = 0; ii < inum; ii++) {
+    int i = ilist[ii];
 
-    if (vflag_fdotr) virial_fdotr_compute();
+    // get neighbor pairs for atom i
+    this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
+
+    // compute atomic force for atom i
+    podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum,
+      typeai, idxi, ai, aj, ti, tj, 1, nij);
+  }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 
 
 //  printf("%d %d %d %d\n", eflag, vflag, vflag_fdotr, eflag_atom);
 //
-//     if (eflag_atom) {
-//         eng_vdwl = this->lammpseatom(eatom, atom->x, list->firstneigh, atom->type, list->numneigh,
-//                         list->ilist, list->inum, list->inum + atom->nghost);
+//   if (eflag_atom) {
+//     eng_vdwl = this->lammpseatom(eatom, atom->x, list->firstneigh, atom->type, list->numneigh,
+//             list->ilist, list->inum, list->inum + atom->nghost);
 //
-//         this->lammpsforce(atom->f, atom->x, list->firstneigh, atom->type, list->numneigh,
-//                         list->ilist, list->inum, list->inum + atom->nghost);
-//     }
-//     else {
-//         eng_vdwl = this->lammpsenergyforce(atom->f, atom->x, list->firstneigh, atom->type, list->numneigh,
-//                     list->ilist, list->inum, list->inum + atom->nghost);
-//     }
+//     this->lammpsforce(atom->f, atom->x, list->firstneigh, atom->type, list->numneigh,
+//             list->ilist, list->inum, list->inum + atom->nghost);
+//   }
+//   else {
+//     eng_vdwl = this->lammpsenergyforce(atom->f, atom->x, list->firstneigh, atom->type, list->numneigh,
+//           list->ilist, list->inum, list->inum + atom->nghost);
+//   }
 //
-// //     podptr->print_matrix("atom->f", 3, list->inum + atom->nghost, atom->f, 3);
-// //     podptr->print_matrix("atom->x", 3, list->inum + atom->nghost, atom->x, 3);
-// //     cout<<"Energy: "<< eng_vdwl<<endl;
-// //     podptr->print_matrix("virial", 1, 6, virial, 1);
+// //   podptr->print_matrix("atom->f", 3, list->inum + atom->nghost, atom->f, 3);
+// //   podptr->print_matrix("atom->x", 3, list->inum + atom->nghost, atom->x, 3);
+// //   cout<<"Energy: "<< eng_vdwl<<endl;
+// //   podptr->print_matrix("virial", 1, 6, virial, 1);
 //
-//     if (vflag_fdotr) virial_fdotr_compute();
+//   if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -144,37 +144,37 @@ void CPairPOD::settings(int narg, char ** /* arg */)
 
 void CPairPOD::coeff(int narg, char **arg)
 {
-    // set default scaling    
-    int n = atom->ntypes;
-    memory->create(setflag,n+1,n+1,"pair:setflag");
-    memory->create(cutsq,n+1,n+1,"pair:cutsq");
-    memory->create(scale,n+1,n+1,"pair:scale");
-    map = new int[n+1];
-    for (int ii = 0; ii < n+1; ii++)
-        for (int jj = 0; jj < n+1; jj++)
-            scale[ii][jj] = 1.0;
-    allocated = 1;
+  // set default scaling  
+  int n = atom->ntypes;
+  memory->create(setflag,n+1,n+1,"pair:setflag");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(scale,n+1,n+1,"pair:scale");
+  map = new int[n+1];
+  for (int ii = 0; ii < n+1; ii++)
+    for (int jj = 0; jj < n+1; jj++)
+      scale[ii][jj] = 1.0;
+  allocated = 1;
 
-    if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-//    if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
+//  if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-    map_element2type(narg-4,&arg[4]);
-//     cout<<map[0]<<endl;
-//     cout<<map[1]<<endl;
+  map_element2type(narg-4,&arg[4]);
+//   cout<<map[0]<<endl;
+//   cout<<map[1]<<endl;
 
-    std::string pod_file = std::string(arg[2]);  // pod input file
-    std::string coeff_file = std::string(arg[3]); // coefficient input file
-    std::string data_file;                       // data input file
+  std::string pod_file = std::string(arg[2]);  // pod input file
+  std::string coeff_file = std::string(arg[3]); // coefficient input file
+  std::string data_file;             // data input file
 
-//     if (narg>4) data_file = std::string(arg[4]); // data input file
-//     else data_file = "";
+//   if (narg>4) data_file = std::string(arg[4]); // data input file
+//   else data_file = "";
 
-    data_file = "";
-    this->InitPairPOD(pod_file, coeff_file, data_file);
+  data_file = "";
+  this->InitPairPOD(pod_file, coeff_file, data_file);
 
-    for (int ii = 0; ii < n+1; ii++)
-        for (int jj = 0; jj < n+1; jj++)
-            cutsq[ii][jj] = podptr->pod.rcut*podptr->pod.rcut;
+  for (int ii = 0; ii < n+1; ii++)
+    for (int jj = 0; jj < n+1; jj++)
+      cutsq[ii][jj] = podptr->pod.rcut*podptr->pod.rcut;
 }
 
 /* ----------------------------------------------------------------------
@@ -221,30 +221,31 @@ void *CPairPOD::extract(const char *str, int &dim)
 
 void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file, std::string data_file)
 {
-    podptr = new CPOD(lmp, pod_file, coeff_file);
+  podptr = new CPOD(lmp, pod_file, coeff_file);
 
-    if (data_file != "")
-        this->read_data_files(data_file, podptr->pod.species);
-    //else
-    //    error->all(FLERR,"\n Error: Data filename is empty");
+  if (data_file != "")
+    this->read_data_files(data_file, podptr->pod.species);
+  //else
+  //  error->all(FLERR,"\n Error: Data filename is empty");
 
-    if ((int) data.data_path.size() > 1) {
-        podpairlist = 1;
-        lammpspairlist = 0;
-    }
-    else {
-        podpairlist = 0;
-        lammpspairlist = 1;
-    }
+  if ((int) data.data_path.size() > 1) {
+    podpairlist = 1;
+    lammpspairlist = 0;
+  }
+  else {
+    podpairlist = 0;
+    lammpspairlist = 1;
+  }
 
-    // get POD coefficients from an input file
-    if (coeff_file != "") {
-        TemplateMalloc(&podcoeff, podptr->pod.nd, backend);
-        TemplateMalloc(&energycoeff, podptr->pod.nd1234, backend);
-        TemplateMalloc(&forcecoeff, podptr->pod.nd1234, backend);
-        TemplateMalloc(&gd, podptr->pod.nd1234, backend);
-        podptr->podArrayCopy(podcoeff, podptr->pod.coeff, podptr->pod.nd);
-    }
+  // get POD coefficients from an input file
+
+  if (coeff_file != "") {
+    TemplateMalloc(&podcoeff, podptr->pod.nd, backend);
+    TemplateMalloc(&energycoeff, podptr->pod.nd1234, backend);
+    TemplateMalloc(&forcecoeff, podptr->pod.nd1234, backend);
+    TemplateMalloc(&gd, podptr->pod.nd1234, backend);
+    podptr->podArrayCopy(podcoeff, podptr->pod.coeff, podptr->pod.nd);
+  }
 }
 
 bool CPairPOD::is_a_number(std::string line)
@@ -253,60 +254,63 @@ bool CPairPOD::is_a_number(std::string line)
 }
 
 void CPairPOD::read_data_file(double *inputs, std::string &file_format, std::string &file_extension,
-    std::string &data_path, std::string data_file)
+  std::string &data_path, std::string data_file)
 {
   std::ifstream file_in(data_file);
   if (!file_in) error->all(FLERR,"Error: Data input file is not found");
 
   std::string line;
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
+
+  // Read next line to `line`, stop if no more lines
+
+  while (std::getline(file_in, line))
   {
-    if (line != "") {
-      std::string s, s2;
-      double d;
+  if (line != "") {
+    std::string s, s2;
+    double d;
 
-      std::istringstream ss_line(line);
-      ss_line >> s;
+    std::istringstream ss_line(line);
+    ss_line >> s;
 
-      if (s == "error_analysis_for_data_set") {
-        ss_line >> d;
-        inputs[0] = d;
-      }
-      else if (s == "save_calculation_in_binary_files") {
-        ss_line >> d;
-        inputs[1] = d;
-      }
-      else if (s == "save_frequency") {
-        ss_line >> d;
-        inputs[2] = d;
-      }
-      else if (s == "run_molecular_dynamics_simulation") {
-        ss_line >> d;
-        inputs[3] = d;
-      }
-      else if (s == "number_of_atoms_per_computation_block") {
-        ss_line >> d;
-        inputs[4] = d;
-      }
-      else if (s == "random_rotation") {
-        ss_line >> d;
-        inputs[5] = d;
-      }
-      else if (s != "#") {
-        ss_line >> s2;
-        if (s == "file_format") file_format = s2;
-        if (s == "file_extension") file_extension = s2;
-        if (s == "path_to_data_set") {
-          data_path = s2;
-          while(ss_line >> s2){
-            data_path = data_path + " " + s2;
-          }
-          //data_path.erase(std::remove(data_path.begin(), data_path.end(), '"'), data_path.end());
-          data_path.erase(data_path.begin());
-          data_path.erase(data_path.end()-1);
-        }
-      }
+    if (s == "error_analysis_for_data_set") {
+    ss_line >> d;
+    inputs[0] = d;
     }
+    else if (s == "save_calculation_in_binary_files") {
+    ss_line >> d;
+    inputs[1] = d;
+    }
+    else if (s == "save_frequency") {
+    ss_line >> d;
+    inputs[2] = d;
+    }
+    else if (s == "run_molecular_dynamics_simulation") {
+    ss_line >> d;
+    inputs[3] = d;
+    }
+    else if (s == "number_of_atoms_per_computation_block") {
+    ss_line >> d;
+    inputs[4] = d;
+    }
+    else if (s == "random_rotation") {
+    ss_line >> d;
+    inputs[5] = d;
+    }
+    else if (s != "#") {
+    ss_line >> s2;
+    if (s == "file_format") file_format = s2;
+    if (s == "file_extension") file_extension = s2;
+    if (s == "path_to_data_set") {
+      data_path = s2;
+      while(ss_line >> s2){
+      data_path = data_path + " " + s2;
+      }
+      //data_path.erase(std::remove(data_path.begin(), data_path.end(), '"'), data_path.end());
+      data_path.erase(data_path.begin());
+      data_path.erase(data_path.end()-1);
+    }
+    }
+  }
   }
   file_in.close();
 
@@ -330,8 +334,8 @@ std::vector<std::string> CPairPOD::globVector(const std::string& pattern, std::v
   glob_t glob_result;
   glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
   for(unsigned int i=0;i<glob_result.gl_pathc;++i){
-    std::string s = string(glob_result.gl_pathv[i]);
-    files.push_back(s);
+  std::string s = string(glob_result.gl_pathv[i]);
+  files.push_back(s);
   }
   globfree(&glob_result);
   return files;
@@ -350,15 +354,18 @@ int CPairPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum
   std::string line;
   int num_configs = 0;
   num_atom_sum = 0;
-  while (std::getline(datafile, line)) // Read next line to `line`, stop if no more lines.
+
+  // Read next line to `line`, stop if no more lines
+
+  while (std::getline(datafile, line))
   {
-    int d;
-    if (this->is_a_number(line)) {
-      d = std::stoi(line);
-      num_atom.push_back(d);
-      num_configs += 1;
-      num_atom_sum += d;
-    }
+  int d;
+  if (this->is_a_number(line)) {
+    d = std::stoi(line);
+    num_atom.push_back(d);
+    num_configs += 1;
+    num_atom_sum += d;
+  }
   }
   datafile.close();
 
@@ -371,20 +378,20 @@ int CPairPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num
   int d, n;
 
   for (int i=0; i<nfiles; i++) {
-    d = this->get_number_atom_exyz(num_atom, n, training_files[i]);
-    num_config.push_back(d);
-    num_atom_sum.push_back(n);
+  d = this->get_number_atom_exyz(num_atom, n, training_files[i]);
+  num_config.push_back(d);
+  num_atom_sum.push_back(n);
   }
 
   int num_atom_all = 0;
   for (int i=0; i< (int) num_atom.size(); i++)
-    num_atom_all += num_atom[i];
+  num_atom_all += num_atom[i];
 
   return num_atom_all;
 }
 
 void CPairPOD::read_exyz_file(double *lattice, double *stress, double *energy, double *pos,
-    double *vel, double *forces, int *atomtype, std::string file, std::vector<std::string> species)
+  double *vel, double *forces, int *atomtype, std::string file, std::vector<std::string> species)
 {
   std::ifstream datafile(file);
   if (!datafile) {/*error*/}
@@ -396,60 +403,63 @@ void CPairPOD::read_exyz_file(double *lattice, double *stress, double *energy, d
   double d;
 
   std::string line;
-  while (std::getline(datafile, line)) // Read next line to `line`, stop if no more lines.
+
+  // Read next line to `line`, stop if no more lines
+
+  while (std::getline(datafile, line))
   {
+  if (line.substr(1,6) == "attice") {
+    int index1 = line.find(substr1);
+    int index3 = line.find(substr3);
+
+    if (line.substr(index1,6) == "nergy=") {
+    std::string s1 = line.substr(index1+6,-1);
+    int ind = s1.find(" ");
+    energy[cfi] = stod(line.substr(index1+6,ind));
+    }
+
     if (line.substr(1,6) == "attice") {
-      int index1 = line.find(substr1);
-      int index3 = line.find(substr3);
-
-      if (line.substr(index1,6) == "nergy=") {
-        std::string s1 = line.substr(index1+6,-1);
-        int ind = s1.find(" ");
-        energy[cfi] = stod(line.substr(index1+6,ind));
-      }
-
-      if (line.substr(1,6) == "attice") {
-        int ind1 = line.find("\"");
-        int ind2 = line.find("\"",ind1+1);
-        std::istringstream ss(line.substr(ind1+1,ind2-ind1));
-        k = 0;
-        while(ss >> d){
-          lattice[k + 9*cfi] = d;
-          k += 1;
-        }
-      }
-
-      if (line.substr(index3,6) == "tress=") {
-        std::string s1 = line.substr(index3+7,-1);
-        int ind = s1.find("\"");
-        std::istringstream ss(line.substr(index3+7,ind));
-        k = 0;
-        while(ss >> d){
-          stress[k + 9*cfi] = d;
-          k += 1;
-        }
-      }
-
-      cfi += 1;
+    int ind1 = line.find("\"");
+    int ind2 = line.find("\"",ind1+1);
+    std::istringstream ss(line.substr(ind1+1,ind2-ind1));
+    k = 0;
+    while(ss >> d){
+      lattice[k + 9*cfi] = d;
+      k += 1;
     }
-    else if (!this->is_a_number(line)) {
-      std::string s0;
-      std::istringstream ss(line);
-      ss >> s0;
-
-      for (int ii=0; ii<ns; ii++)
-        if (species[ii] == s0)
-          atomtype[nat] = ii+1;
-
-      k = 0;
-      while(ss >> d){
-        if (k >= 0 && k <=2) pos[k + 3*nat] = d;
-        if (k >= 3 && k <=5) forces[k-3 + 3*nat] = d;
-        if (k >= 6 && k <=8) vel[k-6 + 3*nat] = d;
-        k += 1;
-      }
-      nat += 1;
     }
+
+    if (line.substr(index3,6) == "tress=") {
+    std::string s1 = line.substr(index3+7,-1);
+    int ind = s1.find("\"");
+    std::istringstream ss(line.substr(index3+7,ind));
+    k = 0;
+    while(ss >> d){
+      stress[k + 9*cfi] = d;
+      k += 1;
+    }
+    }
+
+    cfi += 1;
+  }
+  else if (!this->is_a_number(line)) {
+    std::string s0;
+    std::istringstream ss(line);
+    ss >> s0;
+
+    for (int ii=0; ii<ns; ii++)
+    if (species[ii] == s0)
+      atomtype[nat] = ii+1;
+
+    k = 0;
+    while(ss >> d){
+    if (k >= 0 && k <=2) pos[k + 3*nat] = d;
+    if (k >= 3 && k <=5) forces[k-3 + 3*nat] = d;
+    if (k >= 6 && k <=8) vel[k-6 + 3*nat] = d;
+    k += 1;
+    }
+    nat += 1;
+  }
   }
   datafile.close();
 }
@@ -462,10 +472,10 @@ void CPairPOD::get_data(std::vector<std::string> species)
 
   std::cout<<"data file   |  number of configurations   |   number of atoms "<<std::endl;
   for (int i=0; i< (int) data.data_files.size(); i++) {
-    string filename = data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size());
-    data.filenames.push_back(filename.c_str());
-    std::cout<<data.filenames[i]<<"   |   "<<data.num_config[i]<<"   |   "<<data.num_atom_each_file[i]<< std::endl;
-    //std::cout<<data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size())<<std::endl;
+  string filename = data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size());
+  data.filenames.push_back(filename.c_str());
+  std::cout<<data.filenames[i]<<"   |   "<<data.num_config[i]<<"   |   "<<data.num_atom_each_file[i]<< std::endl;
+  //std::cout<<data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size())<<std::endl;
   }
   std::cout << "number of files: " <<data.data_files.size() << std::endl;
   std::cout << "number of configurations in all files: " <<data.num_config_sum << std::endl;
@@ -485,11 +495,11 @@ void CPairPOD::get_data(std::vector<std::string> species)
   int nconfigs = 0;
   int natoms = 0;
   for (int i=0; i<nfiles; i++) {
-    this->read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs],
-        &data.position[3*natoms], &data.velocity[3*natoms], &data.force[3*natoms], &data.atomtype[natoms],
-        data.data_files[i], species);
-    nconfigs += data.num_config[i];
-    natoms += data.num_atom_each_file[i];
+  this->read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs],
+    &data.position[3*natoms], &data.velocity[3*natoms], &data.force[3*natoms], &data.atomtype[natoms],
+    data.data_files[i], species);
+  nconfigs += data.num_config[i];
+  natoms += data.num_atom_each_file[i];
   }
 
   int len = data.num_atom.size();
@@ -511,6 +521,7 @@ void CPairPOD::read_data_files(std::string data_file, std::vector<std::string> s
   for (int i=0; i<100; i++) inputs[i] = 0;
 
   // read data input file to datastruct
+
   this->read_data_file(inputs, data.file_format, data.file_extension, data.data_path, data_file);
 
   analysis = (int) inputs[0];
@@ -521,25 +532,25 @@ void CPairPOD::read_data_files(std::string data_file, std::vector<std::string> s
   randomrotation = (int) inputs[5];
 
   if ((int) data.data_path.size() > 1)
-    this->get_data(species);
+  this->get_data(species);
   else
-    error->all(FLERR,"data set is not found");
+  error->all(FLERR,"data set is not found");
 }
 
 void CPairPOD::get_atomblocks(int natom)
 {
   if (blocksize >= natom) {
-    numblocks = 1;
-    atomblocks[0] = 0;
-    atomblocks[1] = natom;
+  numblocks = 1;
+  atomblocks[0] = 0;
+  atomblocks[1] = natom;
   }
   else {
-    numblocks = (int) ceil( ((double) natom)/((double) blocksize) );
+  numblocks = (int) ceil( ((double) natom)/((double) blocksize) );
 
-    double delta = ((double) natom) / ((double) numblocks);
-    for(int i=0; i < numblocks; ++i)
-      atomblocks[i]= (int) delta * i;
-    atomblocks[numblocks] = natom;
+  double delta = ((double) natom) / ((double) numblocks);
+  for(int i=0; i < numblocks; ++i)
+    atomblocks[i]= (int) delta * i;
+  atomblocks[numblocks] = natom;
   }
   if (numblocks > 1000) error->all(FLERR,"number of computation blocks can not be more than 1000. This error can be fixed by increasing the number of atoms per computation block.");
 }
@@ -552,37 +563,41 @@ int CPairPOD::latticecoords(double *y, int *alist, double *x, double *a1, double
   if (pbc[2] == 1) p = (int) ceil(rcut/a3[2]);
 
   // index for the center lattice
+
   int ind = m + (2*m+1)*(n) + (2*m+1)*(2*n+1)*(p);
 
   // number of lattices
+
   int nl = (2*m+1)*(2*n+1)*(2*p+1);
 
   //y = zeros(3, nx*nl)
+
   for (int j=0; j<3*nx; j++)
-    y[j] = x[j];
+  y[j] = x[j];
   int q = nx;
 
   for (int i = 0; i < (2*p+1); i++)
-    for (int j = 0; j < (2*n+1); j++)
-      for (int k = 0; k < (2*m+1); k++) {
-        int ii = k + (2*m+1)*j + (2*m+1)*(2*n+1)*i;
-        if (ii != ind) {
-          double x0 = a1[0]*(k - m) + a2[0]*(j - n) + a3[0]*(i - p);
-          double x1 = a1[1]*(k - m) + a2[1]*(j - n) + a3[1]*(i - p);
-          double x2 = a1[2]*(k - m) + a2[2]*(j - n) + a3[2]*(i - p);
-          for (int jj=0; jj<nx; jj++) {
-            y[0+3*q] = x0 + x[0+3*jj];
-            y[1+3*q] = x1 + x[1+3*jj];
-            y[2+3*q] = x2 + x[2+3*jj];
-            q = q + 1;
-          }
-        }
+  for (int j = 0; j < (2*n+1); j++)
+    for (int k = 0; k < (2*m+1); k++) {
+    int ii = k + (2*m+1)*j + (2*m+1)*(2*n+1)*i;
+    if (ii != ind) {
+      double x0 = a1[0]*(k - m) + a2[0]*(j - n) + a3[0]*(i - p);
+      double x1 = a1[1]*(k - m) + a2[1]*(j - n) + a3[1]*(i - p);
+      double x2 = a1[2]*(k - m) + a2[2]*(j - n) + a3[2]*(i - p);
+      for (int jj=0; jj<nx; jj++) {
+      y[0+3*q] = x0 + x[0+3*jj];
+      y[1+3*q] = x1 + x[1+3*jj];
+      y[2+3*q] = x2 + x[2+3*jj];
+      q = q + 1;
       }
+    }
+    }
 
   //alist = zeros(Int32,nx*nl)
+
   for (int i=0; i <nl; i++)
-    for (int j=0; j<nx; j++)
-      alist[j + nx*i] = j;
+  for (int j=0; j<nx; j++)
+    alist[j + nx*i] = j;
 
   return nl;
 }
@@ -591,12 +606,12 @@ int CPairPOD::podneighborcount(double *r, double rcutsq, int nx, int N, int dim)
 {
   int k = 0;
   for (int i = 0; i<nx; i++) {
-    double *ri = &r[i*dim];
-    for (int j=0; j<N; j++) {
-      double *rj = &r[dim*j];
-      double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
-      if  ((rijsq > 1e-12) && (rijsq <= rcutsq)) k += 1;
-    }
+  double *ri = &r[i*dim];
+  for (int j=0; j<N; j++) {
+    double *rj = &r[dim*j];
+    double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
+    if  ((rijsq > 1e-12) && (rijsq <= rcutsq)) k += 1;
+  }
   }
   return k;
 }
@@ -605,24 +620,24 @@ int CPairPOD::podneighborlist(int *neighlist, int *numneigh, double *r, double r
 {
   int k = 0;
   for (int i = 0; i<nx; i++) {
-    double *ri = &r[i*dim];
-    int inc = 0;
-    for (int j=0; j<N; j++) {
-      double *rj = &r[dim*j];
-      double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
-      if  ((rijsq > 1e-12) && (rijsq <= rcutsq))  {
-        inc += 1;
-        neighlist[k] = j;
-        k += 1;
-      }
+  double *ri = &r[i*dim];
+  int inc = 0;
+  for (int j=0; j<N; j++) {
+    double *rj = &r[dim*j];
+    double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
+    if  ((rijsq > 1e-12) && (rijsq <= rcutsq))  {
+    inc += 1;
+    neighlist[k] = j;
+    k += 1;
     }
-    numneigh[i] = inc;
+  }
+  numneigh[i] = inc;
   }
   return k;
 }
 
 int CPairPOD::podfullneighborlist(double *xy, int *alist, int *neighlist, int *numneigh, int *numneighsum,
-    double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
+  double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
 {
   double rcutsq = rcut*rcut;
   int dim = 3, nl = 0, nn = 0;
@@ -664,21 +679,21 @@ void CPairPOD::estimate_memory(datastruct data)
 
   for (int ci=0; ci<(int) data.num_atom.size(); ci++)
   {
-    int natom = data.num_atom[ci];
-    double *lattice = &data.lattice[9*ci];
-    double *a1 = &lattice[0];
-    double *a2 = &lattice[3];
-    double *a3 = &lattice[6];
-    if (pbc[0] == 1) m = (int) ceil(rcut/a1[0]);
-    if (pbc[1] == 1) n = (int) ceil(rcut/a2[1]);
-    if (pbc[2] == 1) p = (int) ceil(rcut/a3[2]);
+  int natom = data.num_atom[ci];
+  double *lattice = &data.lattice[9*ci];
+  double *a1 = &lattice[0];
+  double *a2 = &lattice[3];
+  double *a3 = &lattice[6];
+  if (pbc[0] == 1) m = (int) ceil(rcut/a1[0]);
+  if (pbc[1] == 1) n = (int) ceil(rcut/a2[1]);
+  if (pbc[2] == 1) p = (int) ceil(rcut/a3[2]);
 
-    // number of lattices
+  // number of lattices
 
-    nl = (2*m+1)*(2*n+1)*(2*p+1);
-    ny = PODMAX(ny,dim*natom*nl);
-    na = PODMAX(na, natom*nl);
-    np = PODMAX(np, natom*natom*nl);
+  nl = (2*m+1)*(2*n+1)*(2*p+1);
+  ny = PODMAX(ny,dim*natom*nl);
+  na = PODMAX(na, natom*nl);
+  np = PODMAX(np, natom*natom*nl);
   }
 
   double *y = (double*) malloc (sizeof (double)*(ny));
@@ -691,33 +706,33 @@ void CPairPOD::estimate_memory(datastruct data)
   int szsnap=0;
   for (int ci=0; ci<(int) data.num_atom.size(); ci++)
   {
-    int natom = data.num_atom[ci];
-    int natom_cumsum = data.num_atom_cumsum[ci];
-    double *x = &data.position[dim*natom_cumsum];
-    double *lattice = &data.lattice[9*ci];
-    double *a1 = &lattice[0];
-    double *a2 = &lattice[3];
-    double *a3 = &lattice[6];
+  int natom = data.num_atom[ci];
+  int natom_cumsum = data.num_atom_cumsum[ci];
+  double *x = &data.position[dim*natom_cumsum];
+  double *lattice = &data.lattice[9*ci];
+  double *a1 = &lattice[0];
+  double *a2 = &lattice[3];
+  double *a3 = &lattice[6];
 
-    // neighbor list
+  // neighbor list
 
-    Nij = podfullneighborlist(y, atomID, pairlist, pairnum, pairnumsum, x, a1, a2, a3, rcut, pbc, natom);
+  Nij = podfullneighborlist(y, atomID, pairlist, pairnum, pairnumsum, x, a1, a2, a3, rcut, pbc, natom);
 
-    int ns2 = pdegree2[0]*nbesselpars + pdegree2[1];
-    int ns3 = pdegree3[0]*nbesselpars + pdegree3[1];
+  int ns2 = pdegree2[0]*nbesselpars + pdegree2[1];
+  int ns3 = pdegree3[0]*nbesselpars + pdegree3[1];
 
-    int szd1 = 3*Nij+ (1+dim)*Nij*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
-    szd = PODMAX(szd, szd1);
-    nijmax = PODMAX(nijmax, Nij);
+  int szd1 = 3*Nij+ (1+dim)*Nij*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
+  szd = PODMAX(szd, szd1);
+  nijmax = PODMAX(nijmax, Nij);
 
-    if (podptr->sna.twojmax>0) {
-      szd1 = 0;
-      szd1 += Nij*dim; // rij
-      szd1 += PODMAX(2*podptr->sna.idxu_max*Nij, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*natom); // (Ur, Ui) and (Zr, Zi)
-      szd1 += 2*podptr->sna.idxu_max*dim*Nij; // dUr, dUi
-      szd1 += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*Nij, 2*podptr->sna.idxu_max*podptr->sna.nelements*natom); // dblist and (Utotr, Utoti)
-      szsnap = PODMAX(szsnap, szd1);
-    }
+  if (podptr->sna.twojmax>0) {
+    szd1 = 0;
+    szd1 += Nij*dim; // rij
+    szd1 += PODMAX(2*podptr->sna.idxu_max*Nij, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*natom); // (Ur, Ui) and (Zr, Zi)
+    szd1 += 2*podptr->sna.idxu_max*dim*Nij; // dUr, dUi
+    szd1 += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*Nij, 2*podptr->sna.idxu_max*podptr->sna.nelements*natom); // dblist and (Utotr, Utoti)
+    szsnap = PODMAX(szsnap, szd1);
+  }
   }
 
   szd = PODMAX(szsnap, szd);
@@ -746,20 +761,20 @@ void CPairPOD::free_atommemory()
   TemplateFree(forces, backend);
   TemplateFree(stress, backend);
   if (atommemory) {
-    TemplateFree(atomtype, backend);
-    TemplateFree(pos, backend);
-    TemplateFree(vel, backend);
+  TemplateFree(atomtype, backend);
+  TemplateFree(pos, backend);
+  TemplateFree(vel, backend);
   }
 }
 
 void CPairPOD::free_pairmemory()
 {
   if (podpairlist) {
-    TemplateFree(y, backend);
-    TemplateFree(pairlist, backend);
-    TemplateFree(pairnum, backend);
-    TemplateFree(pairnumsum, backend);
-    TemplateFree(atomID, backend);
+  TemplateFree(y, backend);
+  TemplateFree(pairlist, backend);
+  TemplateFree(pairnum, backend);
+  TemplateFree(pairnumsum, backend);
+  TemplateFree(atomID, backend);
   }
 }
 
@@ -788,20 +803,20 @@ void CPairPOD::allocate_atommemory()
   TemplateMalloc(&forces, dim*nmaxatom, backend);
   TemplateMalloc(&stress, 9, backend);
   if (atommemory) {
-    TemplateMalloc(&atomtype, nmaxatom, backend);
-    TemplateMalloc(&pos, dim*nmaxatom, backend);
-    TemplateMalloc(&vel, dim*nmaxatom, backend);
+  TemplateMalloc(&atomtype, nmaxatom, backend);
+  TemplateMalloc(&pos, dim*nmaxatom, backend);
+  TemplateMalloc(&vel, dim*nmaxatom, backend);
   }
 }
 
 void CPairPOD::allocate_pairmemory()
 {
   if (podpairlist) {
-    TemplateMalloc(&y, dim*nmaxatom, backend);
-    TemplateMalloc(&atomID, nmaxatom, backend);
-    TemplateMalloc(&pairnum, nlocalmax, backend);
-    TemplateMalloc(&pairnumsum, nlocalmax+1, backend);
-    TemplateMalloc(&pairlist, nmaxpairs, backend);
+  TemplateMalloc(&y, dim*nmaxatom, backend);
+  TemplateMalloc(&atomID, nmaxatom, backend);
+  TemplateMalloc(&pairnum, nlocalmax, backend);
+  TemplateMalloc(&pairnumsum, nlocalmax+1, backend);
+  TemplateMalloc(&pairlist, nmaxpairs, backend);
   }
 }
 
@@ -815,9 +830,9 @@ void CPairPOD::allocate_memory()
 void CPairPOD::check_atommemory(int inum, int nall)
 {
   if (nmaxatom < nall) {
-    nmaxatom = nall;
-    this->free_atommemory();
-    this->allocate_atommemory();
+  nmaxatom = nall;
+  this->free_atommemory();
+  this->allocate_atommemory();
   }
   nlocalatom = inum;
   nghostatom = nall - inum;
@@ -843,26 +858,26 @@ void CPairPOD::check_pairmemory(double *x, double *a1, double *a2, double *a3, i
   ntotalatom = nall;
 
   if (nlocalmax < natom) {
-    nlocalmax = natom;
-    printf("reallocate memory for pairnum and pairnumsum arrays\n");
-    TemplateFree(pairnum, backend);
-    TemplateFree(pairnumsum, backend);
-    TemplateMalloc(&pairnum, nlocalmax, backend);
-    TemplateMalloc(&pairnumsum, nlocalmax+1, backend);
+  nlocalmax = natom;
+  printf("reallocate memory for pairnum and pairnumsum arrays\n");
+  TemplateFree(pairnum, backend);
+  TemplateFree(pairnumsum, backend);
+  TemplateMalloc(&pairnum, nlocalmax, backend);
+  TemplateMalloc(&pairnumsum, nlocalmax+1, backend);
   }
 
   if (nmaxatom < nall) {
-    nmaxatom = nall;
-    printf("reallocate memory for y and atomID arrays\n");
-    TemplateFree(y, backend);
-    TemplateFree(atomID, backend);
-    TemplateMalloc(&y, dim*nmaxatom, backend);
-    TemplateMalloc(&atomID, nmaxatom, backend);
+  nmaxatom = nall;
+  printf("reallocate memory for y and atomID arrays\n");
+  TemplateFree(y, backend);
+  TemplateFree(atomID, backend);
+  TemplateMalloc(&y, dim*nmaxatom, backend);
+  TemplateMalloc(&atomID, nmaxatom, backend);
 
-    // allocate memory for atom arrays
+  // allocate memory for atom arrays
 
-    this->free_atommemory();
-    this->allocate_atommemory();
+  this->free_atommemory();
+  this->allocate_atommemory();
   }
 
   double rcutsq = rcut*rcut;
@@ -870,10 +885,10 @@ void CPairPOD::check_pairmemory(double *x, double *a1, double *a2, double *a3, i
 
   natompairs = this->podneighborcount(y, rcutsq, natom, nall, dim);
   if (nmaxpairs < natompairs) {
-    nmaxpairs = natompairs;
-    printf("reallocate memory for pairlist arrays\n");
-    TemplateFree(pairlist, backend);
-    TemplateMalloc(&pairlist, nmaxpairs, backend);
+  nmaxpairs = natompairs;
+  printf("reallocate memory for pairlist arrays\n");
+  TemplateFree(pairlist, backend);
+  TemplateMalloc(&pairlist, nmaxpairs, backend);
   }
 
   // total number of neighbors
@@ -893,10 +908,10 @@ void CPairPOD::estimate_tempmemory()
   szd = dim*nijmax+ (1+dim)*nijmax*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
   int szsnap = 0;
   if (podptr->sna.twojmax>0) {
-    szsnap += nijmax*dim;
-    szsnap += PODMAX(2*podptr->sna.idxu_max*nijmax, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*nablockmax); // (Ur, Ui) and (Zr, Zi)
-    szsnap += 2*podptr->sna.idxu_max*dim*nijmax; // dUr, dUi
-    szsnap += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*nijmax, 2*podptr->sna.idxu_max*podptr->sna.nelements*nablockmax); // dblist and (Utotr, Utoti)
+  szsnap += nijmax*dim;
+  szsnap += PODMAX(2*podptr->sna.idxu_max*nijmax, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*nablockmax); // (Ur, Ui) and (Zr, Zi)
+  szsnap += 2*podptr->sna.idxu_max*dim*nijmax; // dUr, dUi
+  szsnap += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*nijmax, 2*podptr->sna.idxu_max*podptr->sna.nelements*nablockmax); // dblist and (Utotr, Utoti)
   }
 
   szd = PODMAX(szsnap, szd);
@@ -908,16 +923,16 @@ void CPairPOD::check_tempmemory(int start, int end)
   nablock = end - start;
   nij = 0;
   for (int ii=0; ii<nablock; ii++) {
-    int gi = start + ii;
-    nij += pairnumsum[gi+1] - pairnumsum[gi];
+  int gi = start + ii;
+  nij += pairnumsum[gi+1] - pairnumsum[gi];
   }
 
   if ( (nij > nijmax) || (nablock > nablockmax) ) {
-    nijmax = PODMAX(nijmax, nij);
-    nablockmax = PODMAX(nablockmax, nablock);
-    this->estimate_tempmemory();
-    this->free_tempmemory();
-    this->allocate_tempmemory();
+  nijmax = PODMAX(nijmax, nij);
+  nablockmax = PODMAX(nablockmax, nablock);
+  this->estimate_tempmemory();
+  this->free_tempmemory();
+  this->allocate_tempmemory();
   }
 }
 
@@ -927,20 +942,23 @@ void CPairPOD::podNeighPairs(int *atomtypes, int start, int end)
 
   nablock = end - start;
   int k = 0;
-  for (int ii=0; ii<nablock; ii++) {  // for each atom i in the simulation box
-    int gi = start + ii;     // atom i
+
+  // loop over atoms ini a simulation block, used for GPU
+
+  for (int ii=0; ii<nablock; ii++) {  
+    int gi = start + ii; // atom i
     int itype = atomtypes[gi];
     int s = pairnumsum[gi];
     int m = pairnumsum[gi+1] - s;
     typeai[ii] = itype;
     numneighsum[ii+1] = m;
-    for (int l=0; l<m ; l++) {   // loop over each atom around atom i
-      int gj = pairlist[s + l];  // atom j
-      idxi[k]    = ii;
-      ai[k]    = atomID[gi];
-      aj[k]    = atomID[gj];
-      ti[k]    = itype;
-      tj[k]    = atomtypes[aj[k]];
+    for (int l=0; l<m ; l++) {
+      int gj = pairlist[s + l]; // atom j
+      idxi[k]  = ii;
+      ai[k]  = atomID[gi];
+      aj[k]  = atomID[gj];
+      ti[k]  = itype;
+      tj[k]  = atomtypes[aj[k]];
       rij[k*3+0]   = y[gj*3+0] -  y[gi*3+0];  // xj - xi
       rij[k*3+1]   = y[gj*3+1] -  y[gi*3+1];  // xj - xi
       rij[k*3+2]   = y[gj*3+2] -  y[gi*3+2];  // xj - xi
@@ -970,18 +988,18 @@ double CPairPOD::podenergy(double *x, double *a1, double *a2, double *a3, int *a
 
   for (int i = 0; i< numblocks; i++) {
 
-    // number of atoms in this computation block
+  // number of atoms in this computation block
 
-    int nat = atomblocks[i+1] - atomblocks[i];
+  int nat = atomblocks[i+1] - atomblocks[i];
 
-    // get POD neighbor pairs for this computation block
+  // get POD neighbor pairs for this computation block
 
-    podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
+  podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
 
-    // compute global POD descriptors for this computation block
+  // compute global POD descriptors for this computation block
 
-    podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
-        typeai, idxi, ti, tj, nat, nij);
+  podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
+    typeai, idxi, ti, tj, nat, nij);
 
   }
 
@@ -1017,7 +1035,7 @@ double CPairPOD::podeatom(double *eatom, double *x, double *a1, double *a2, doub
     // compute global POD descriptors for this computation block
 
     podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
-        typeai, idxi, ti, tj, nat, nij);
+      typeai, idxi, ti, tj, nat, nij);
 
     // calculate eatom = ld * energycoeff
 
@@ -1049,8 +1067,8 @@ void CPairPOD::podforce(double *f, double *x, double *a1, double *a2, double *a3
     // compute atomic force for this computation block
 
     podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum,
-        typeai, idxi, ai, aj, ti, tj, nat, nij);
-  }
+      typeai, idxi, ai, aj, ti, tj, nat, nij);
+    }
 }
 
 double CPairPOD::podenergyforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum)
@@ -1076,41 +1094,41 @@ double CPairPOD::podenergyforce(double *f, double *x, double *a1, double *a2, do
     // compute atomic force for this computation block
 
     podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum,
-        typeai, idxi, ai, aj, ti, tj, nat, nij);
-  }
+      typeai, idxi, ai, aj, ti, tj, nat, nij);
+    }
 
   return energy;
 }
 
 void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *numneigh, int gi)
 {
-    double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
+  double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
 
-    nij = 0;
-    int itype = atomtypes[gi];
-    int m = numneigh[gi];
-    typeai[0] = itype;
-    for (int l=0; l<m ; l++) {   // loop over each atom around atom i
-        int gj = firstneigh[gi][l];  // atom j
-        double delx   = x[gj][0] -  x[gi][0];  // xj - xi
-        double dely   = x[gj][1] -  x[gi][1];  // xj - xi
-        double delz   = x[gj][2] -  x[gi][2];  // xj - xi
-        double rsq = delx*delx + dely*dely + delz*delz;
-        if (rsq < rcutsq && rsq > 1e-20) {
-            rij[nij*3 + 0] = delx;
-            rij[nij*3 + 1] = dely;
-            rij[nij*3 + 2] = delz;
-            idxi[nij]      = 0;
-            ai[nij]        = gi;
-            aj[nij]        = gj;
-            ti[nij]        = itype;
-            tj[nij]        = atomtypes[gj];
-            nij++;
-        }
+  nij = 0;
+  int itype = atomtypes[gi];
+  int m = numneigh[gi];
+  typeai[0] = itype;
+  for (int l=0; l<m ; l++) {   // loop over each atom around atom i
+    int gj = firstneigh[gi][l];  // atom j
+    double delx   = x[gj][0] -  x[gi][0];  // xj - xi
+    double dely   = x[gj][1] -  x[gi][1];  // xj - xi
+    double delz   = x[gj][2] -  x[gi][2];  // xj - xi
+    double rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq < rcutsq && rsq > 1e-20) {
+      rij[nij*3 + 0] = delx;
+      rij[nij*3 + 1] = dely;
+      rij[nij*3 + 2] = delz;
+      idxi[nij]    = 0;
+      ai[nij]    = gi;
+      aj[nij]    = gj;
+      ti[nij]    = itype;
+      tj[nij]    = atomtypes[gj];
+      nij++;
     }
+  }
 
-    numneighsum[0] = 0;
-    numneighsum[1] = nij;
+  numneighsum[0] = 0;
+  numneighsum[1] = nij;
 }
 
 void CPairPOD::check_tempmemory(double **x, int **firstneigh, int *numneigh, int *ilist, int start, int end)
@@ -1119,7 +1137,7 @@ void CPairPOD::check_tempmemory(double **x, int **firstneigh, int *numneigh, int
   nablock = end - start;
   nij = 0;
   for (int ii=0; ii<nablock; ii++) {  // for each atom i in the simulation box
-    int gi = ilist[start+ii];     // atom i
+    int gi = ilist[start+ii];   // atom i
     int m = numneigh[gi];
     for (int l=0; l<m ; l++) {   // loop over each atom around atom i
       int gj = firstneigh[gi][l];  // atom j
@@ -1141,7 +1159,7 @@ void CPairPOD::check_tempmemory(double **x, int **firstneigh, int *numneigh, int
 }
 
 void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *numneigh,
-    int *ilist, int start, int end)
+  int *ilist, int start, int end)
 {
   this->check_tempmemory(x, firstneigh, numneigh, ilist, start, end);
 
@@ -1150,7 +1168,7 @@ void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, in
 
   nij = 0;
   for (int ii=0; ii<nablock; ii++) {  // for each atom i in the simulation box
-    int gi = ilist[start+ii];     // atom i
+    int gi = ilist[start+ii];   // atom i
     int itype = atomtypes[gi];
     int m = numneigh[gi];
     numneighsum[ii+1] = 0;
@@ -1165,11 +1183,11 @@ void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, in
         rij[nij*3 + 0] = delx;
         rij[nij*3 + 1] = dely;
         rij[nij*3 + 2] = delz;
-        idxi[nij]    = ii;
-        ai[nij]    = gi;
-        aj[nij]    = gj;
-        ti[nij]    = itype;
-        tj[nij]    = atomtypes[gj];
+        idxi[nij]  = ii;
+        ai[nij]  = gi;
+        aj[nij]  = gj;
+        ti[nij]  = itype;
+        tj[nij]  = atomtypes[gj];
         nij++;
         numneighsum[ii+1] += 1;
       }
@@ -1182,7 +1200,7 @@ void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, in
 }
 
 double CPairPOD::lammpsenergy(double **x, int **firstneigh, int *atomtypes, int *numneigh,
-    int *ilist, int inum, int nall)
+  int *ilist, int inum, int nall)
 {
   // determine computation blocks
 
@@ -1195,7 +1213,9 @@ double CPairPOD::lammpsenergy(double **x, int **firstneigh, int *atomtypes, int 
   int nd1234 = podptr->pod.nd1234;
   podptr->podArraySetValue(gd, 0.0, nd1234);
 
-  for (int i = 0; i< numblocks; i++) { // loop over each computation block
+  // loop over computation blocks
+
+  for (int i = 0; i< numblocks; i++) {
 
     // # of atoms in this computation block
 
@@ -1208,7 +1228,7 @@ double CPairPOD::lammpsenergy(double **x, int **firstneigh, int *atomtypes, int 
     // compute global POD descriptors for this computation block
 
     podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
-        typeai, idxi, ti, tj, nat, nij);
+      typeai, idxi, ti, tj, nat, nij);
   }
 
   // compute energy and effective coefficients
@@ -1219,7 +1239,7 @@ double CPairPOD::lammpsenergy(double **x, int **firstneigh, int *atomtypes, int 
 }
 
 double CPairPOD::lammpseatom(double *eatom, double **x, int **firstneigh, int *atomtypes, int *numneigh,
-    int *ilist, int inum, int nall)
+  int *ilist, int inum, int nall)
 {
   // compute energy and effective coefficients
 
@@ -1244,7 +1264,7 @@ double CPairPOD::lammpseatom(double *eatom, double **x, int **firstneigh, int *a
     // compute global POD descriptors for this computation block
 
     podptr->linear_descriptors_ij(gd, localdesc, rij, ea, numneighsum,
-        typeai, idxi, ti, tj, nat, nij);
+      typeai, idxi, ti, tj, nat, nij);
 
     // calculate eatom = localdesc * energycoeff
 
@@ -1262,10 +1282,13 @@ double CPairPOD::lammpseatom(double *eatom, double **x, int **firstneigh, int *a
 }
 
 void CPairPOD::lammpsforce(double **f, double **x, int **firstneigh, int *atomtypes,
-    int *numneigh, int *ilist, int inum, int nall)
+  int *numneigh, int *ilist, int inum, int nall)
 {
   podptr->podArraySetValue(forces, 0.0, dim*nall);
-  for (int i = 0; i< numblocks; i++) { // loop over each computation block
+
+  // loop over computation blocks
+
+  for (int i = 0; i< numblocks; i++) {
 
     // # of atoms in this computation block
 
@@ -1278,7 +1301,7 @@ void CPairPOD::lammpsforce(double **f, double **x, int **firstneigh, int *atomty
     // compute atomic force for this computation block
 
     podptr->calculate_force(forces, forcecoeff, rij, tmpmem, numneighsum,
-        typeai, idxi, ai, aj, ti, tj, nat, nij);
+      typeai, idxi, ai, aj, ti, tj, nat, nij);
   }
 
   // copy force to lammps force array
@@ -1291,7 +1314,7 @@ void CPairPOD::lammpsforce(double **f, double **x, int **firstneigh, int *atomty
 }
 
 double CPairPOD::lammpsenergyforce(double **f, double **x, int **firstneigh, int *atomtypes,
-    int *numneigh, int *ilist, int inum, int nall)
+  int *numneigh, int *ilist, int inum, int nall)
 {
 
   // compute energy and effective coefficients
@@ -1299,7 +1322,10 @@ double CPairPOD::lammpsenergyforce(double **f, double **x, int **firstneigh, int
   energy = this->lammpsenergy(x, firstneigh, atomtypes, numneigh, ilist, inum, nall);
 
   podptr->podArraySetValue(forces, 0.0, dim*nall);
-  for (int i = 0; i< numblocks; i++) { // loop over each computation block
+
+  // loop over computation blocks
+
+  for (int i = 0; i< numblocks; i++) {
 
     // # of atoms in this computation block
 
@@ -1312,7 +1338,7 @@ double CPairPOD::lammpsenergyforce(double **f, double **x, int **firstneigh, int
     // compute atomic force for this computation block
 
     podptr->calculate_force(forces, forcecoeff, rij, tmpmem, numneighsum,
-        typeai, idxi, ai, aj, ti, tj, nat, nij);
+      typeai, idxi, ai, aj, ti, tj, nat, nij);
   }
 
   // copy force to lammps force array
@@ -1346,7 +1372,7 @@ void CPairPOD::error_analsysis()
   double invmat[dim*dim];
   double Qmat[dim*dim];
 
-  int nfiles = data.data_files.size();    // number of files
+  int nfiles = data.data_files.size();  // number of files
   int num_configs = data.num_atom.size(); // number of configurations in all files
 
   int m = 8;
@@ -1359,13 +1385,19 @@ void CPairPOD::error_analsysis()
 
   int ci = 0; // configuration counter
   int nc = 0, nf = 0;
-  for (int file = 0; file < nfiles; file++) { // loop over each file in the training data set
+
+  // loop over files in training set
+
+  for (int file = 0; file < nfiles; file++) {
     double emae=0.0, essr=0.0, fmae=0.0, fssr=0.0;
     int nforceall = 0;
 
     int nconfigs = data.num_config[file];
     nc += nconfigs;
-    for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
+
+    // loop over configurations in a file
+
+    for (int ii=0; ii < nconfigs; ii++) {
       if ((ci % 100)==0) std::cout<<"Configuration: # "<<ci+1<<std::endl;
 
       int natom = data.num_atom[ci];
@@ -1475,25 +1507,25 @@ void CPairPOD::print_analysis(double *outarray, double *errors)
   myfile <<mystr+"\n";
 
   sa = "----------------------------------------------------------------------------------------\n";
-  std::string sb = "  File    | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
+  std::string sb = "  File  | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
   std::cout<<sa; myfile <<sa;
   std::cout<<sb; myfile <<sb;
   std::cout<<sa; myfile <<sa;
 
   int ci=0, m=8, nc=0, nf=0;
   for (int file = 0; file < nfiles; file++) {
-    mfile<<"# " + data.filenames[file] + "\n";
-    sb = "|  config  |  # atoms  |  energy  | DFT energy | energy error |  force  | DFT force | force error |\n";
-    mfile <<sb;
+  mfile<<"# " + data.filenames[file] + "\n";
+  sb = "|  config  |  # atoms  |  energy  | DFT energy | energy error |  force  | DFT force | force error |\n";
+  mfile <<sb;
 
-    int nforceall = 0;
-    int nconfigs = data.num_config[file];
-    nc += nconfigs;
-    for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
+  int nforceall = 0;
+  int nconfigs = data.num_config[file];
+  nc += nconfigs;
+  for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
 
       mfile <<"   ";
       for(int count = 0; count < m; count ++)
-        mfile << outarray[count + m*ci] << "    ";
+        mfile << outarray[count + m*ci] << "  ";
       mfile<<std::endl;
 
       nforceall += 3*data.num_atom[ci];

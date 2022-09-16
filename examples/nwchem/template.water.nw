@@ -7,11 +7,11 @@ echo
 GEOMINSERT
 
 nwpw
+  xc pbe
+  cutoff 30.0
   2d-hcurve
-  initialize_wavefunction on
-  cutoff 50.0
-  mult 1
-  xc pbe96
+  tolerances 1.0e-9 1.0-9
+  apc on
 end
 
 task pspw gradient

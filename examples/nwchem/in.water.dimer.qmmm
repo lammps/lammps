@@ -19,7 +19,7 @@ delete_bonds    qm multi remove special
 
 pair_style      hybrid/overlay lj/cut 6.0 coul/cut 6.0
 pair_coeff      1 1 lj/cut 0.155394 3.165558         
-pair_coeff      2 2 lj/cut 0.0 0.7         
+pair_coeff      2 2 lj/cut 0.044 0.7         
 pair_coeff      * * coul/cut
 
 #velocity        all create 300.0 458732
@@ -52,4 +52,4 @@ thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
 
 thermo          1
 
-run		10
+run		0

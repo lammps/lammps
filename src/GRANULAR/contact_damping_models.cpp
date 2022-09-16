@@ -56,7 +56,8 @@ DampingVelocity::DampingVelocity(LAMMPS *lmp) : DampingModel(lmp) {}
 
 double DampingVelocity::calculate_forces()
 {
-  return -damp * contact->vnnr;
+  damp_prefactor = damp;
+  return -damp_prefactor * contact->vnnr;
 }
 
 /* ----------------------------------------------------------------------
@@ -69,7 +70,8 @@ DampingMassVelocity::DampingMassVelocity(LAMMPS *lmp) : DampingModel(lmp) {}
 
 double DampingMassVelocity::calculate_forces()
 {
-  return -damp * contact->meff * contact->vnnr;
+  damp_prefactor = damp * contact->meff;
+  return -damp_prefactor * contact->vnnr;
 }
 
 /* ----------------------------------------------------------------------
@@ -82,7 +84,8 @@ DampingViscoelastic::DampingViscoelastic(LAMMPS *lmp) : DampingModel(lmp) {}
 
 double DampingViscoelastic::calculate_forces()
 {
-  return -damp * contact->meff * contact->area * contact->vnnr;
+  damp_prefactor = damp * contact->meff * contact->area;
+  return -damp_prefactor * contact->vnnr;
 }
 
 /* ----------------------------------------------------------------------
@@ -105,5 +108,6 @@ void DampingTsuji::init()
 
 double DampingTsuji::calculate_forces()
 {
-  return -damp * sqrt(contact->meff * contact->normal_model->knfac) * contact->vnnr;
+  damp_prefactor = damp * sqrt(contact->meff * contact->normal_model->knfac);
+  return -damp_prefactor * contact->vnnr;
 }

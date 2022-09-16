@@ -45,12 +45,11 @@ bool NormalModel::touch()
   return touchflag;
 }
 
-/* ----------------------------------------------------------------------
-  called outside of compute(), do not assume geometry defined in contact
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 double NormalModel::pulloff_distance(double radi, double radj)
 {
+  //called outside of compute(), do not assume correct geometry defined in contact
   return radi + radj;
 }
 
@@ -112,7 +111,7 @@ double NormalHooke::calculate_forces()
 
 void NormalHooke::set_knfac()
 {
-  knfac = k * contact->area;
+  knfac = k;
 }
 
 /* ----------------------------------------------------------------------

@@ -28,8 +28,8 @@ class NormalModel : public SubModel {
   virtual bool touch();
   virtual double pulloff_distance(double, double);
   virtual double calculate_area();
-  virtual double calculate_forces() = 0;
   virtual void set_knfac() = 0;
+  virtual double calculate_forces() = 0;
   virtual void set_fncrit();
   double damp;  // Vestigial argument needed by damping
   double Emod, poiss;
@@ -42,8 +42,8 @@ class NormalModel : public SubModel {
 class NormalNone : public NormalModel {
  public:
   NormalNone(class LAMMPS *);
-  double calculate_forces();
   void set_knfac() {};
+  double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
@@ -52,8 +52,8 @@ class NormalHooke : public NormalModel {
  public:
   NormalHooke(class LAMMPS *);
   void coeffs_to_local() override;
-  double calculate_forces();
   void set_knfac();
+  double calculate_forces();
  protected:
   double k;
 };
@@ -64,8 +64,8 @@ class NormalHertz : public NormalModel {
  public:
   NormalHertz(class LAMMPS *);
   void coeffs_to_local() override;
-  double calculate_forces();
   void set_knfac();
+  double calculate_forces();
  protected:
   double k;
 };
@@ -86,8 +86,8 @@ class NormalDMT : public NormalModel {
   NormalDMT(class LAMMPS *);
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
-  double calculate_forces();
   void set_knfac();
+  double calculate_forces();
   void set_fncrit() override;
  protected:
   double k, cohesion;
@@ -104,8 +104,8 @@ class NormalJKR : public NormalModel {
   bool touch() override;
   double pulloff_distance(double, double) override;
   double calculate_area() override;
-  double calculate_forces() override;
-  void set_knfac() override;
+  void set_knfac();
+  double calculate_forces();
   void set_fncrit() override;
  protected:
   double k, cohesion;

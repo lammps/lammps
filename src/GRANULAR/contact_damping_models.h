@@ -28,7 +28,7 @@ class DampingModel : public SubModel {
   virtual void mix_coeffs(double*, double*) {};
   virtual void init();
   virtual double calculate_forces() = 0;
-  double damp;
+  double damp, damp_prefactor;
 };
 
 /* ---------------------------------------------------------------------- */

@@ -50,7 +50,7 @@ TwistingMarshall::TwistingMarshall(LAMMPS *lmp) : TwistingModel(lmp)
 void TwistingMarshall::init()
 {
   k_tang = contact->tangential_model->k;
-  damp_tang = contact->tangential_model->damp;
+  damp_tang = contact->tangential_model->damp_tangential;
   mu_tang = contact->tangential_model->mu;
 }
 

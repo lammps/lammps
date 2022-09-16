@@ -202,7 +202,7 @@ int ContactModel::init_classic_model(char **arg, int iarg, int narg)
   normal_model->coeffs[0] = kn;
   normal_model->coeffs[1] = gamman;
   tangential_model->coeffs[0] = kt;
-  tangential_model->coeffs[1] = gammat;
+  tangential_model->coeffs[1] = gammat / gamman;
   tangential_model->coeffs[2] = xmu;
 
   normal_model->coeffs_to_local();
@@ -364,7 +364,7 @@ void ContactModel::prep_contact()
   double temp[3];
 
   // Standard geometric quantities
-  r = sqrt(rsq);
+  if (contact_type != WALLREGION) r = sqrt(rsq);
   rinv = 1.0 / r;
   delta = radsum - r;
   dR = delta * Reff;
@@ -420,11 +420,9 @@ void ContactModel::calculate_forces()
 
   Fdamp = damping_model->calculate_forces();
   Fntot = Fne + Fdamp;
-
-  normal_model->set_fncrit(); // Needed for tangential, rolling, twisting
-
   if (limit_damping && Fntot < 0.0) Fntot = 0.0;
 
+  normal_model->set_fncrit(); // Needed for tangential, rolling, twisting
   tangential_model->calculate_forces();
   if (rolling_defined) rolling_model->calculate_forces();
   if (twisting_defined) twisting_model->calculate_forces();

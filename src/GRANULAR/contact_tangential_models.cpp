@@ -30,13 +30,6 @@ using namespace MathExtra;
 
 TangentialModel::TangentialModel(LAMMPS *lmp) : SubModel(lmp) {}
 
-/* ---------------------------------------------------------------------- */
-
-void TangentialModel::init()
-{
-  damp = xt * contact->damping_model->damp;
-}
-
 /* ----------------------------------------------------------------------
    No model
 ------------------------------------------------------------------------- */
@@ -69,16 +62,17 @@ void TangentialLinearNoHistory::coeffs_to_local()
 
 void TangentialLinearNoHistory::calculate_forces()
 {
-  double Fscrit, fsmag, Ft;
-
   // classic pair gran/hooke (no history)
-  Fscrit = mu * contact->normal_model->Fncrit;
-  fsmag = damp * contact->vrel;
+  damp = xt * contact->damping_model->damp_prefactor;
+
+  double Fscrit = mu * contact->normal_model->Fncrit;
+  double fsmag = damp * contact->vrel;
+
+  double Ft;
   if (contact->vrel != 0.0) Ft = MIN(Fscrit, fsmag) / contact->vrel;
   else Ft = 0.0;
 
-  Ft = -Ft;
-  scale3(Ft, contact->vtr, contact->fs);
+  scale3(-Ft, contact->vtr, contact->fs);
 }
 
 /* ----------------------------------------------------------------------
@@ -107,11 +101,12 @@ void TangentialLinearHistory::coeffs_to_local()
 
 void TangentialLinearHistory::calculate_forces()
 {
-  double Fscrit, magfs, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
+  double magfs, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
   int frame_update = 0;
 
-  Fscrit = contact->normal_model->Fncrit * mu;
+  damp = xt * contact->damping_model->damp_prefactor;
 
+  double Fscrit = contact->normal_model->Fncrit * mu;
   double *history = & contact->history[history_index];
 
   // rotate and update displacements / force.
@@ -140,8 +135,7 @@ void TangentialLinearHistory::calculate_forces()
   }
 
   // tangential forces = history + tangential velocity damping
-  temp_dbl = -damp;
-  scale3(temp_dbl, contact->vtr, contact->fs);
+  scale3(-damp, contact->vtr, contact->fs);
 
   // rescale frictional displacements and forces if needed
   magfs = len3(contact->fs);
@@ -205,12 +199,14 @@ void TangentialMindlin::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 void TangentialMindlin::calculate_forces()
 {
-  double Fscrit, k_scaled, magfs, rsht, shrmag, prjmag, temp_dbl;
+  double k_scaled, magfs, rsht, shrmag, prjmag, temp_dbl;
   double temp_array[3];
   int frame_update = 0;
 
+  damp = xt * contact->damping_model->damp_prefactor;
+
   double *history = & contact->history[history_index];
-  Fscrit = contact->normal_model->Fncrit * mu;
+  double Fscrit = contact->normal_model->Fncrit * mu;
 
   k_scaled = k * contact->area;
   if (mindlin_rescale) {
@@ -256,8 +252,7 @@ void TangentialMindlin::calculate_forces()
   }
 
   // tangential forces = history + tangential velocity damping
-  temp_dbl = -damp;
-  scale3(temp_dbl, contact->vtr, contact->fs);
+  scale3(-damp, contact->vtr, contact->fs);
 
   if (!mindlin_force) {
     scale3(k_scaled, history, temp_array);

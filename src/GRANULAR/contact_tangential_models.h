@@ -24,7 +24,6 @@ class TangentialModel : public SubModel {
   TangentialModel(class LAMMPS *);
   virtual ~TangentialModel() {};
   virtual void coeffs_to_local() {};
-  virtual void init();
   virtual void calculate_forces() = 0;
   int rescale_flag;
   double k, damp, mu; // Used by Marshall twisting model

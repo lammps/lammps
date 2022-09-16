@@ -288,7 +288,7 @@ together as one set of atoms to calculate their temperature.  The
 compute allows the center-of-mass velocity of each chunk to be
 subtracted before calculating the temperature; this fix does not.
 
-If a value begins with "c\_," a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -297,7 +297,7 @@ their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 See the discussion above for how I can be specified with a wildcard
 asterisk to effectively specify multiple values.
 
-If a value begins with "f\_," a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -308,7 +308,7 @@ their own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If a value begins with "v\_," a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  Variables of style
 *atom* can reference thermodynamic keywords and various per-atom
 attributes, or invoke other computes, fixes, or variables when they
@@ -348,7 +348,7 @@ at each sampling step.
 
 If the *norm* setting is *none*, a similar computation as for the
 *sample* setting is done, except the individual "average sample
-values" are "summed sample values."  A summed sample value is simply
+values" are "summed sample values".  A summed sample value is simply
 the chunk value summed over atoms in the sample, without dividing by
 the number of atoms in the sample.  The output value for the chunk on
 the :math:`N_\text{freq}` timesteps is the average of the
@@ -494,21 +494,21 @@ relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
 various :doc:`output commands <Howto_output>`.  The values can only be
-accessed on timesteps that are multiples of :math:`N_\text{freq}`, since that
-is when averaging is performed.  The global array has # of rows = the number
-of chunks :math:`N_\text{chunk}`, as calculated by the specified
-:doc:`compute chunk/atom <compute_chunk_atom>` command.  The # of columns is
-:math:`M+1+N_\text{values}`, where :math:`M \in \{1,\dotsc,4\}`,
-depending on whether the optional
-columns for OrigID and CoordN are used, as explained above.  Following
-the optional columns, the next column contains the count of atoms in
-the chunk, and the remaining columns are the Nvalue quantities.  When
-the array is accessed with a row :math:`I` that exceeds the current number of
-chunks, than a 0.0 is returned by the fix instead of an error, since
-the number of chunks can vary as a simulation runs depending on how
-that value is computed by the compute chunk/atom command.
+accessed on timesteps that are multiples of :math:`N_\text{freq}`, since
+that is when averaging is performed.  The global array has # of rows =
+the number of chunks :math:`N_\text{chunk}`, as calculated by the
+specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The #
+of columns is :math:`M+1+N_\text{values}`, where :math:`M \in
+\{1,\dotsc,4\}`, depending on whether the optional columns for OrigID
+and CoordN are used, as explained above.  Following the optional
+columns, the next column contains the count of atoms in the chunk, and
+the remaining columns are the Nvalue quantities.  When the array is
+accessed with a row :math:`I` that exceeds the current number of chunks,
+than a 0.0 is returned by the fix instead of an error, since the number
+of chunks can vary as a simulation runs depending on how that value is
+computed by the compute chunk/atom command.
 
-The array values calculated by this fix are treated as "intensive,"
+The array values calculated by this fix are treated as "intensive",
 since they are typically already normalized by the count of atoms in
 each chunk.
 

@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 Define alphanumeric type labels to associate with one or more numeric
 atom, bond, angle, dihedral or improper types.  A collection of type
@@ -69,13 +69,13 @@ there is a label defined for *every* numeric type within a given
 type-kind in order to write out the type label section for that
 type-kind.
 
-The *clear* option resets the labelmap and thus discards all previous
+The *clear* option resets the label map and thus discards all previous
 settings.
 
 The *write* option takes a filename as argument and writes the current
-label mappings to a file as labelmap commands, so the file can be copied
-into a new LAMMPS input file or read in using the :doc:`include
-<include>` command.
+label mappings to a file as a sequence of *labelmap* commands, so the
+file can be copied into a new LAMMPS input file or read in using the
+:doc:`include <include>` command.
 
 ----------
 

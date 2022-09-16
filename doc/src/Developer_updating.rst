@@ -328,7 +328,7 @@ removed so this update is **required** to avoid compilation failure.
 Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
 This change splits the GLOBAL and PERATOM modes of fix STORE into two
 separate fixes STORE/GLOBAL and STORE/PERATOM.  There was very little
@@ -387,7 +387,7 @@ This change is **required** or else the code will not compile.
 Use Output::get_dump_by_id() instead of Output::find_dump()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
 The accessor function to individual dump style instances has been changed
 from ``Output::find_dump()`` returning the index of the dump instance in

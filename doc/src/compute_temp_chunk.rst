@@ -242,8 +242,8 @@ can be accessed by any command that uses global array values from a
 compute as input.  Again, see the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
 
-The scalar value calculated by this compute is "intensive."  The
-vector values are "extensive."  The array values are "intensive."
+The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".  The array values are "intensive".
 
 The scalar value will be in temperature :doc:`units <units>`.  The
 vector values will be in energy :doc:`units <units>`.  The array values

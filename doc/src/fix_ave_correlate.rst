@@ -189,7 +189,7 @@ Also, if the *ave* keyword is set to *one* which is the default, then
 
 ----------
 
-If a value begins with "c\_," a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the :math:`I^\text{th}` element of the global
@@ -206,7 +206,7 @@ or :doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
 these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_," a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the :math:`I^\text{th}` element of the global
@@ -219,7 +219,7 @@ which must be compatible with :math:`N_\text{every}`, else an error will
 result.  Users can also write code for their own fix styles and
 :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "v\_," a variable name must follow which has been
+If a value begins with "v\_", a variable name must follow which has been
 previously defined in the input script.  Only equal-style or vector-style
 variables can be referenced; the latter requires a bracketed term to specify
 the :math:`I^\text{th}` element of the vector calculated by the variable.

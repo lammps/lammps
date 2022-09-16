@@ -282,25 +282,25 @@ the orientation of a particular atom is the same, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
 Keyword *spin/atom* uses the specified g value to set the magnitude of the
 magnetic spin vectors, and the x,y,z values as components of a vector
 to set as the orientation of the magnetic spin vectors of the selected
 atoms.  This keyword was previously called *spin*.
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
 Keyword *spin/atom/random* randomizes the orientation of the magnetic spin
 vectors for the selected atoms and sets the magnitude of each to the
 specified *Dlen* value.  This keyword was previously called *spin/random*.
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 Keyword *radius/electron* uses the specified value to set the radius of
 electrons or fixed cores.
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 Keyword *spin/electron* sets the spin of an electron (+/- 1) or indicates
 nuclei (=0), fixed-cores (=2), or pseudo-cores (= 3).

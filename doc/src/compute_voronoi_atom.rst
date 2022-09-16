@@ -198,7 +198,7 @@ Voronoi volume, the second is the neighbor count, as described above
 (read above for the output data in case the *occupation* keyword is
 specified).  These values can be accessed by any command that uses
 per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options. If the *peratom* keyword is set to "no," the per-atom array
+options. If the *peratom* keyword is set to "no", the per-atom array
 is still created, but it is not accessible.
 
 If the *edge_histo* keyword is used, then this compute generates a

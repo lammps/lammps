@@ -128,7 +128,7 @@ inputs to this fix by using the
 :doc:`compute property/atom <compute_property_atom>` command and then specifying
 an input value from that compute.
 
-If a value begins with "c\_," a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  Computes can generate
 per-atom or local quantities.  See the individual
 :doc:`compute <compute>` page for details.  If no bracketed integer
@@ -139,7 +139,7 @@ compute styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how :math:`I` can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If a value begins with "f\_," a fix ID must follow which has been
+If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  Fixes can generate per-atom
 or local quantities.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
@@ -152,7 +152,7 @@ is used.  Users can also write code for their own fix style and
 :math:`I` can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-If a value begins with "v\_," a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  It must be an
 :doc:`atom-style variable <variable>`.  Atom-style variables can
 reference thermodynamic keywords and various per-atom attributes, or
@@ -197,7 +197,7 @@ global vector of values, the length of which is equal to the number of
 inputs specified.
 
 As discussed below, for the *sum*, *sumabs*, and *sumsq* modes, the value(s)
-produced by this compute are all "extensive," meaning their value
+produced by this compute are all "extensive", meaning their value
 scales linearly with the number of atoms involved.  If normalized
 values are desired, this compute can be accessed by the
 :doc:`thermo_style custom <thermo_style>` command with
@@ -218,9 +218,9 @@ compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
 All the scalar or vector values calculated by this compute are
-"intensive," except when the *sum*, *sumabs*, or *sumsq* modes are used on
+"intensive", except when the *sum*, *sumabs*, or *sumsq* modes are used on
 per-atom or local vectors, in which case the calculated values are
-"extensive."
+"extensive".
 
 The scalar or vector values will be in whatever :doc:`units <units>` the
 quantities being reduced are in.

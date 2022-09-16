@@ -164,7 +164,7 @@ the type of the bond, from 1 to Nbtypes = # of bond types.  The number
 of bond types is defined in the data file read by the
 :doc:`read_data <read_data>` command.
 
-The attributes that start with "a," "d," and "i" refer to similar values
+The attributes that start with "a", "d", and "i" refer to similar values
 for :doc:`angles <angle_style>`, :doc:`dihedrals <dihedral_style>`, and
 :doc:`impropers <improper_style>`.
 

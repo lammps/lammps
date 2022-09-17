@@ -70,7 +70,7 @@ Next, we describe all the keywords that can be assigned in the second input file
 * file_extension xyz (STRING): extension of the data files 
 * path_to_training_data_set (STRING): specifies the path to training data files in double quotes
 * path_to_test_data_set "" (STRING): specifies the path to test data files in double quotes
-* percentage_training_data_set 1.0 (REAL): a real number (<= 1.0) speciefies the percentage of the training set used to fit POD 
+* percentage_training_data_set 1.0 (REAL): a real number (<= 1.0) specifies the percentage of the training set used to fit POD 
 * randomize_training_data_set 0 (BOOL): turns on/off randomization of the training set
 * fitting_weight_energy 100.0 (REAL): a real constant specifies the weight for energy in the least-squares fit
 * fitting_weight_force 1.0 (REAL): a real constant specifies the weight for force in the least-squares fit
@@ -89,8 +89,7 @@ On successful training, it produces a number of output files:
 * coefficents.txt contains the coeffcients of the POD potential 
  
 After training the POD potential, pod.txt and coefficents.txt are two files needed to use the 
-POD potential in LAMMPS. See :doc:`pair_style pod <pair_pod>` for using the POD potential. Several 
-examples about training and using POD potentials are found in the diectory lammps/examples/pod.
+POD potential in LAMMPS. See :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples about training and using POD potentials are found in the directory lammps/examples/pod.
 
 Parametrized Potential Energy Surface
 """""""""""""""""""""""""""""""""""""
@@ -128,7 +127,7 @@ obtain *Q* different optimized potentials, :math:`E(\boldsymbol R,\boldsymbol Z,
 Consequently, there exist many different sets of optimized parameters for empirical interatomic potentials. 
 
 Instead of optimizing the potential parameters,  inspired by the reduced basis method 
-:ref:`(Thompson) <Thompson20141>` for parametrized partial differential equations, 
+:ref:`(Grepl) <Grepl20072>` for parametrized partial differential equations, 
 we view the parametrized PES as a parametric manifold of potential energies 
 
 .. math::
@@ -142,7 +141,7 @@ and  more transferable atomic representation than any particular individual PES
 :math:`E(\boldsymbol R, \boldsymbol Z, \boldsymbol \eta, \boldsymbol \mu^*)`.
 
 We propose specific forms of the parametrized potentials for one-body, two-body, 
-and three-body interactions. We apply the Karhunen-Lo\`eve expansion to snapshots of the parametrized potentials 
+and three-body interactions. We apply the Karhunen-Loeve expansion to snapshots of the parametrized potentials 
 to obtain sets of orthogonal basis functions. These basis functions are aggregated  
 according to the chemical elements of atoms, thus leading to multi-element proper orthogonal descriptors.
 
@@ -151,10 +150,10 @@ Proper Orthogonal Descriptors
 
 Proper orthogonal descriptors are finger prints characterizing the
 radial and angular distribution of a system of atoms. The detailed
-mathematical definition is given in the paper by Nguyen et
-al. :ref:`(Thompson) <Thompson20141>`
+mathematical definition is given in the paper by Nguyen and Rohskopf
+:ref:`(Nguyen) <Nguyen20222>`.
 
-The descriptors for the one-body interaction are used to captured energy of isolated elements and defined as follows
+The descriptors for the one-body interaction are used to capture energy of isolated elements and defined as follows
 
 .. math::
 
@@ -236,8 +235,7 @@ and *inverse_polynomial_degree*, respectively. Furthermore, *bessel_scaling_para
 *bessel_scaling_parameter2*, and *bessel_scaling_parameter3* are three different 
 values of :math:`\beta`.
 
-We employ the Karhunen-Lo\`eve (KL) expansion~\cite{sirovich87:_turbul_dynam_coher_struc_part} 
-to generate an orthogonal basis set which is known to be optimal for representation of 
+We employ the Karhunen-Loeve (KL) expansion to generate an orthogonal basis set which is known to be optimal for representation of 
 the snapshot family :math:`\{\xi_\ell\}_{\ell=1}^{N_{\rm s}}`. The two-body  orthogonal basis 
 functions are computed as follows
 
@@ -383,7 +381,7 @@ the computational complexity of the three-body PODs is independent of the number
 Four-Body SNAP Descriptors 
 """"""""""""""""""""""""""
 
-In addtion to the proper othogonal descriptors described above, we also employ
+In addition to the proper orthogonal descriptors described above, we also employ
 the spectral neighbor analysis potential (SNAP) descriptors. SNAP uses bispectrum components
 to characterize the local neighborhood of each atom in a very general way. The mathematical definition 
 of the bispectrum calculation and its derivatives w.r.t. atom positions is described in
@@ -412,7 +410,7 @@ bispectrum components :math:`N_{\rm 4b}` depends on the value of *fourbody_snap_
 and *fourbody_snap_chemflag*. If *fourbody_snap_chemflag* = 0 
 then :math:`N_{\rm 4b} = (J_{\rm max}+1)(J_{\rm max}+2)(J_{\rm max}+1.5)/3`. 
 If *fourbody_snap_chemflag* = 1 then :math:`N_{\rm 4b} = N_{\rm e}^3 (J_{\rm max}+1)(J_{\rm max}+2)(J_{\rm max}+1.5)/3`. 
-The bispectrum calculation is described in more detai in :doc:`compute sna/atom <compute_sna_atom>`. 
+The bispectrum calculation is described in more detail in :doc:`compute sna/atom <compute_sna_atom>`. 
 
 Linear Proper Orthogonal Descriptor Potentials
 """"""""""""""""""""""""""""""""""""""""""""""
@@ -552,7 +550,7 @@ The calculation of the atomic forces for the (2*3) quadratic  potential
 only requires the extra calculation of :math:`b_k^{(2)}` and :math:`b_m^{(3)}` which can be negligible. 
 As a result, the (2*3) quadratic  potential does not increase the computational complexity.
 
-A similar procefure can be used to form other quadratic potentials. 
+A similar procedure can be used to form other quadratic potentials. 
 For instance, we may combine the three-body descriptors with the four-body 
 descriptors to generate the (3*4) quadratic potential. We can also combine 
 the three-body descriptors with themselves to generate the (3*3) quadratic potential. 
@@ -624,7 +622,7 @@ the following least-squares problem
 
     {\min}_{\boldsymbol c \in \mathbb{R}^{M}} \ w_E \|\boldsymbol A(\boldsymbol \eta) \boldsymbol c - \bar{\boldsymbol E}^{\star} \|^2 + w_F \|\boldsymbol B(\boldsymbol \eta) \boldsymbol c + \boldsymbol F^{\star} \|^2, 
 
-where :math:`w_E` and :math:`w_F` are weights the energy (*fitting_weight_energy*) and 
+where :math:`w_E` and :math:`w_F` are weights for the energy (*fitting_weight_energy*) and 
 force (*fitting_weight_force*), respectively. 
 Here :math:`\bar{\boldsymbol E}^{\star} \in \mathbb{R}^{J}` is a vector of with entries 
 :math:`\bar{E}^{\star}_j = E^{\star}_j/N_j` and :math:`\boldsymbol F^{\star}` is a vector of :math:`\mathcal{N}` 
@@ -644,7 +642,7 @@ PODs for constructing the new descriptors.
 Restrictions
 """"""""""""
 
-These computes are part of the ML-POD package.  They are only enabled
+This compute is part of the ML-POD package.  It is only enabled
 if LAMMPS was built with that package by setting -D PKG_ML-POD=on. See the :doc:`Build package
 <Build_package>` page for more info. 
 
@@ -660,18 +658,13 @@ The keyword defaults are also given in the description of the input files.
 
 ----------
 
-.. _Thompson20142:
+.. _Grepl20072:
 
-**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
+**(Grepl)** Grepl, Maday, Nguyen, and Patera, ESAIM: Mathematical Modelling and Numerical Analysis 41(3), 575-605, (2007).
 
-.. _Bartok20102:
+.. _Nguyen20222:
 
-**(Bartok2010)** Bartok, Payne, Kondor, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+**(Nguyen)** Nguyen and Rohskopf, arXiv preprint arXiv:2209.02362 (2022).
 
-.. _Wood20182:
 
-**(Wood)** Wood and Thompson, J Chem Phys, 148, 241721, (2018)
 
-.. _Cusentino20202:
-
-**(Cusentino)** Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)

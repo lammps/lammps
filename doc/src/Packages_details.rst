@@ -80,6 +80,7 @@ page gives those details.
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
+   * :ref:`ML-POD <PKG-ML-POD>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
@@ -1776,6 +1777,43 @@ This package has :ref:`specific installation instructions <ml-pace>` on the
 * src/ML-PACE: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
 * examples/PACKAGES/pace
+
+----------
+
+.. _PKG-ML-POD:
+
+ML-POD package
+-------------------
+
+**Contents:**
+
+A pair style and compute for Proper Orthogonal Descriptors (POD). POD
+is a methodology for deriving descriptors based on the Karhuen-Loeve
+expansion. The ML-POD package provides an efficient implementation for 
+running simulations with POD potentials, along with fitting the potentials
+natively in LAMMPS.
+
+**Authors:**
+
+Ngoc Cuong Nguyen (MIT), Dionysios Sema (MIT), 
+Andrew Rohskopf (Sandia)
+
+**Install:**
+
+Go to the `lammps` directory and build with the POD package::
+
+    cd path/to/lammps
+    mkdir build-pod
+    cd build-pod
+    cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-POD=on ../cmake
+    cmake --build .
+
+**Supporting info:**
+
+* src/ML-POD: filenames -> commands
+* :doc:`pair_style pod <pair_pod>`
+* :doc:`compute_style podfit <compute_podfit>`
+* examples/pod
 
 ----------
 

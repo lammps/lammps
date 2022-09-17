@@ -298,6 +298,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair pace <pair_pace>`
      - PACKAGES/pace
      - ext
+   * - :ref:`ML-POD <PKG-ML-POD>`
+     - Proper orthogonal decomposition potentials
+     - :doc:`pair pod <pair_pod>`
+     - pod
+     - no
    * - :ref:`ML-QUIP <PKG-ML-QUIP>`
      - QUIP/libatoms interface
      - :doc:`pair_style quip <pair_quip>`

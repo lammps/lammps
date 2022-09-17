@@ -1795,8 +1795,7 @@ natively in LAMMPS.
 
 **Authors:**
 
-Ngoc Cuong Nguyen (MIT), Dionysios Sema (MIT), 
-Andrew Rohskopf (Sandia)
+Ngoc Cuong Nguyen (MIT), Andrew Rohskopf (Sandia)
 
 **Install:**
 

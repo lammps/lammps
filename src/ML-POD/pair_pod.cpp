@@ -43,9 +43,9 @@ CPairPOD::~CPairPOD()
   delete podptr;
 
   if (allocated) {
-  memory->destroy(setflag);
-  memory->destroy(cutsq);
-  memory->destroy(scale);
+    memory->destroy(setflag);
+    memory->destroy(cutsq);
+    memory->destroy(scale);
   }
 }
 
@@ -205,7 +205,7 @@ void CPairPOD::init_style()
 double CPairPOD::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  scale[j][i] = scale[i][j];
+    scale[j][i] = scale[i][j];
   return podptr->pod.rcut;
 }
 
@@ -280,42 +280,42 @@ void CPairPOD::read_data_file(double *inputs, std::string &file_format, std::str
     ss_line >> s;
 
     if (s == "error_analysis_for_data_set") {
-    ss_line >> d;
-    inputs[0] = d;
+      ss_line >> d;
+      inputs[0] = d;
     }
     else if (s == "save_calculation_in_binary_files") {
-    ss_line >> d;
-    inputs[1] = d;
+      ss_line >> d;
+      inputs[1] = d;
     }
     else if (s == "save_frequency") {
-    ss_line >> d;
-    inputs[2] = d;
+      ss_line >> d;
+      inputs[2] = d;
     }
     else if (s == "run_molecular_dynamics_simulation") {
-    ss_line >> d;
-    inputs[3] = d;
+      ss_line >> d;
+      inputs[3] = d;
     }
     else if (s == "number_of_atoms_per_computation_block") {
-    ss_line >> d;
-    inputs[4] = d;
+      ss_line >> d;
+      inputs[4] = d;
     }
     else if (s == "random_rotation") {
-    ss_line >> d;
-    inputs[5] = d;
+      ss_line >> d;
+      inputs[5] = d;
     }
     else if (s != "#") {
-    ss_line >> s2;
-    if (s == "file_format") file_format = s2;
-    if (s == "file_extension") file_extension = s2;
-    if (s == "path_to_data_set") {
-      data_path = s2;
-      while(ss_line >> s2){
-      data_path = data_path + " " + s2;
+      ss_line >> s2;
+      if (s == "file_format") file_format = s2;
+      if (s == "file_extension") file_extension = s2;
+      if (s == "path_to_data_set") {
+        data_path = s2;
+        while(ss_line >> s2){
+        data_path = data_path + " " + s2;
+        }
+        //data_path.erase(std::remove(data_path.begin(), data_path.end(), '"'), data_path.end());
+        data_path.erase(data_path.begin());
+        data_path.erase(data_path.end()-1);
       }
-      //data_path.erase(std::remove(data_path.begin(), data_path.end(), '"'), data_path.end());
-      data_path.erase(data_path.begin());
-      data_path.erase(data_path.end()-1);
-    }
     }
   }
   }
@@ -341,8 +341,8 @@ std::vector<std::string> CPairPOD::globVector(const std::string& pattern, std::v
   glob_t glob_result;
   glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
   for(unsigned int i=0;i<glob_result.gl_pathc;++i){
-  std::string s = string(glob_result.gl_pathv[i]);
-  files.push_back(s);
+    std::string s = string(glob_result.gl_pathv[i]);
+    files.push_back(s);
   }
   globfree(&glob_result);
   return files;
@@ -366,13 +366,13 @@ int CPairPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum
 
   while (std::getline(datafile, line))
   {
-  int d;
-  if (this->is_a_number(line)) {
-    d = std::stoi(line);
-    num_atom.push_back(d);
-    num_configs += 1;
-    num_atom_sum += d;
-  }
+    int d;
+    if (this->is_a_number(line)) {
+      d = std::stoi(line);
+      num_atom.push_back(d);
+      num_configs += 1;
+      num_atom_sum += d;
+    }
   }
   datafile.close();
 
@@ -385,14 +385,14 @@ int CPairPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num
   int d, n;
 
   for (int i=0; i<nfiles; i++) {
-  d = this->get_number_atom_exyz(num_atom, n, training_files[i]);
-  num_config.push_back(d);
-  num_atom_sum.push_back(n);
+    d = this->get_number_atom_exyz(num_atom, n, training_files[i]);
+    num_config.push_back(d);
+    num_atom_sum.push_back(n);
   }
 
   int num_atom_all = 0;
   for (int i=0; i< (int) num_atom.size(); i++)
-  num_atom_all += num_atom[i];
+    num_atom_all += num_atom[i];
 
   return num_atom_all;
 }
@@ -420,31 +420,31 @@ void CPairPOD::read_exyz_file(double *lattice, double *stress, double *energy, d
     int index3 = line.find(substr3);
 
     if (line.substr(index1,6) == "nergy=") {
-    std::string s1 = line.substr(index1+6,-1);
-    int ind = s1.find(" ");
-    energy[cfi] = stod(line.substr(index1+6,ind));
+      std::string s1 = line.substr(index1+6,-1);
+      int ind = s1.find(" ");
+      energy[cfi] = stod(line.substr(index1+6,ind));
     }
 
     if (line.substr(1,6) == "attice") {
-    int ind1 = line.find("\"");
-    int ind2 = line.find("\"",ind1+1);
-    std::istringstream ss(line.substr(ind1+1,ind2-ind1));
-    k = 0;
-    while(ss >> d){
-      lattice[k + 9*cfi] = d;
-      k += 1;
-    }
+      int ind1 = line.find("\"");
+      int ind2 = line.find("\"",ind1+1);
+      std::istringstream ss(line.substr(ind1+1,ind2-ind1));
+      k = 0;
+      while(ss >> d){
+        lattice[k + 9*cfi] = d;
+        k += 1;
+      }
     }
 
     if (line.substr(index3,6) == "tress=") {
-    std::string s1 = line.substr(index3+7,-1);
-    int ind = s1.find("\"");
-    std::istringstream ss(line.substr(index3+7,ind));
-    k = 0;
-    while(ss >> d){
-      stress[k + 9*cfi] = d;
-      k += 1;
-    }
+      std::string s1 = line.substr(index3+7,-1);
+      int ind = s1.find("\"");
+      std::istringstream ss(line.substr(index3+7,ind));
+      k = 0;
+      while(ss >> d){
+        stress[k + 9*cfi] = d;
+        k += 1;
+      }
     }
 
     cfi += 1;
@@ -455,15 +455,15 @@ void CPairPOD::read_exyz_file(double *lattice, double *stress, double *energy, d
     ss >> s0;
 
     for (int ii=0; ii<ns; ii++)
-    if (species[ii] == s0)
-      atomtype[nat] = ii+1;
+      if (species[ii] == s0)
+        atomtype[nat] = ii+1;
 
     k = 0;
     while(ss >> d){
-    if (k >= 0 && k <=2) pos[k + 3*nat] = d;
-    if (k >= 3 && k <=5) forces[k-3 + 3*nat] = d;
-    if (k >= 6 && k <=8) vel[k-6 + 3*nat] = d;
-    k += 1;
+      if (k >= 0 && k <=2) pos[k + 3*nat] = d;
+      if (k >= 3 && k <=5) forces[k-3 + 3*nat] = d;
+      if (k >= 6 && k <=8) vel[k-6 + 3*nat] = d;
+      k += 1;
     }
     nat += 1;
   }
@@ -479,10 +479,10 @@ void CPairPOD::get_data(std::vector<std::string> species)
 
   std::cout<<"data file   |  number of configurations   |   number of atoms "<<std::endl;
   for (int i=0; i< (int) data.data_files.size(); i++) {
-  string filename = data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size());
-  data.filenames.push_back(filename.c_str());
-  std::cout<<data.filenames[i]<<"   |   "<<data.num_config[i]<<"   |   "<<data.num_atom_each_file[i]<< std::endl;
-  //std::cout<<data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size())<<std::endl;
+    string filename = data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size());
+    data.filenames.push_back(filename.c_str());
+    std::cout<<data.filenames[i]<<"   |   "<<data.num_config[i]<<"   |   "<<data.num_atom_each_file[i]<< std::endl;
+    //std::cout<<data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size())<<std::endl;
   }
   std::cout << "number of files: " <<data.data_files.size() << std::endl;
   std::cout << "number of configurations in all files: " <<data.num_config_sum << std::endl;
@@ -502,11 +502,11 @@ void CPairPOD::get_data(std::vector<std::string> species)
   int nconfigs = 0;
   int natoms = 0;
   for (int i=0; i<nfiles; i++) {
-  this->read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs],
-    &data.position[3*natoms], &data.velocity[3*natoms], &data.force[3*natoms], &data.atomtype[natoms],
-    data.data_files[i], species);
-  nconfigs += data.num_config[i];
-  natoms += data.num_atom_each_file[i];
+    this->read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs],
+      &data.position[3*natoms], &data.velocity[3*natoms], &data.force[3*natoms], &data.atomtype[natoms],
+      data.data_files[i], species);
+    nconfigs += data.num_config[i];
+    natoms += data.num_atom_each_file[i];
   }
 
   int len = data.num_atom.size();
@@ -539,17 +539,17 @@ void CPairPOD::read_data_files(std::string data_file, std::vector<std::string> s
   randomrotation = (int) inputs[5];
 
   if ((int) data.data_path.size() > 1)
-  this->get_data(species);
+    this->get_data(species);
   else
-  error->all(FLERR,"data set is not found");
+    error->all(FLERR,"data set is not found");
 }
 
 void CPairPOD::get_atomblocks(int natom)
 {
   if (blocksize >= natom) {
-  numblocks = 1;
-  atomblocks[0] = 0;
-  atomblocks[1] = natom;
+    numblocks = 1;
+    atomblocks[0] = 0;
+    atomblocks[1] = natom;
   }
   else {
   numblocks = (int) ceil( ((double) natom)/((double) blocksize) );
@@ -580,31 +580,31 @@ int CPairPOD::latticecoords(double *y, int *alist, double *x, double *a1, double
   //y = zeros(3, nx*nl)
 
   for (int j=0; j<3*nx; j++)
-  y[j] = x[j];
+    y[j] = x[j];
   int q = nx;
 
   for (int i = 0; i < (2*p+1); i++)
-  for (int j = 0; j < (2*n+1); j++)
-    for (int k = 0; k < (2*m+1); k++) {
-    int ii = k + (2*m+1)*j + (2*m+1)*(2*n+1)*i;
-    if (ii != ind) {
-      double x0 = a1[0]*(k - m) + a2[0]*(j - n) + a3[0]*(i - p);
-      double x1 = a1[1]*(k - m) + a2[1]*(j - n) + a3[1]*(i - p);
-      double x2 = a1[2]*(k - m) + a2[2]*(j - n) + a3[2]*(i - p);
-      for (int jj=0; jj<nx; jj++) {
-      y[0+3*q] = x0 + x[0+3*jj];
-      y[1+3*q] = x1 + x[1+3*jj];
-      y[2+3*q] = x2 + x[2+3*jj];
-      q = q + 1;
-      }
-    }
+    for (int j = 0; j < (2*n+1); j++)
+      for (int k = 0; k < (2*m+1); k++) {
+        int ii = k + (2*m+1)*j + (2*m+1)*(2*n+1)*i;
+        if (ii != ind) {
+          double x0 = a1[0]*(k - m) + a2[0]*(j - n) + a3[0]*(i - p);
+          double x1 = a1[1]*(k - m) + a2[1]*(j - n) + a3[1]*(i - p);
+          double x2 = a1[2]*(k - m) + a2[2]*(j - n) + a3[2]*(i - p);
+          for (int jj=0; jj<nx; jj++) {
+          y[0+3*q] = x0 + x[0+3*jj];
+          y[1+3*q] = x1 + x[1+3*jj];
+          y[2+3*q] = x2 + x[2+3*jj];
+          q = q + 1;
+          }
+        }
     }
 
   //alist = zeros(Int32,nx*nl)
 
   for (int i=0; i <nl; i++)
-  for (int j=0; j<nx; j++)
-    alist[j + nx*i] = j;
+    for (int j=0; j<nx; j++)
+      alist[j + nx*i] = j;
 
   return nl;
 }
@@ -613,12 +613,12 @@ int CPairPOD::podneighborcount(double *r, double rcutsq, int nx, int N, int dim)
 {
   int k = 0;
   for (int i = 0; i<nx; i++) {
-  double *ri = &r[i*dim];
-  for (int j=0; j<N; j++) {
-    double *rj = &r[dim*j];
-    double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
-    if  ((rijsq > 1e-12) && (rijsq <= rcutsq)) k += 1;
-  }
+    double *ri = &r[i*dim];
+    for (int j=0; j<N; j++) {
+      double *rj = &r[dim*j];
+      double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
+      if  ((rijsq > 1e-12) && (rijsq <= rcutsq)) k += 1;
+    }
   }
   return k;
 }
@@ -633,9 +633,9 @@ int CPairPOD::podneighborlist(int *neighlist, int *numneigh, double *r, double r
     double *rj = &r[dim*j];
     double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
     if  ((rijsq > 1e-12) && (rijsq <= rcutsq))  {
-    inc += 1;
-    neighlist[k] = j;
-    k += 1;
+      inc += 1;
+      neighlist[k] = j;
+      k += 1;
     }
   }
   numneigh[i] = inc;
@@ -686,21 +686,21 @@ void CPairPOD::estimate_memory(datastruct data)
 
   for (int ci=0; ci<(int) data.num_atom.size(); ci++)
   {
-  int natom = data.num_atom[ci];
-  double *lattice = &data.lattice[9*ci];
-  double *a1 = &lattice[0];
-  double *a2 = &lattice[3];
-  double *a3 = &lattice[6];
-  if (pbc[0] == 1) m = (int) ceil(rcut/a1[0]);
-  if (pbc[1] == 1) n = (int) ceil(rcut/a2[1]);
-  if (pbc[2] == 1) p = (int) ceil(rcut/a3[2]);
+    int natom = data.num_atom[ci];
+    double *lattice = &data.lattice[9*ci];
+    double *a1 = &lattice[0];
+    double *a2 = &lattice[3];
+    double *a3 = &lattice[6];
+    if (pbc[0] == 1) m = (int) ceil(rcut/a1[0]);
+    if (pbc[1] == 1) n = (int) ceil(rcut/a2[1]);
+    if (pbc[2] == 1) p = (int) ceil(rcut/a3[2]);
 
-  // number of lattices
+    // number of lattices
 
-  nl = (2*m+1)*(2*n+1)*(2*p+1);
-  ny = PODMAX(ny,dim*natom*nl);
-  na = PODMAX(na, natom*nl);
-  np = PODMAX(np, natom*natom*nl);
+    nl = (2*m+1)*(2*n+1)*(2*p+1);
+    ny = PODMAX(ny,dim*natom*nl);
+    na = PODMAX(na, natom*nl);
+    np = PODMAX(np, natom*natom*nl);
   }
 
   double *y = (double*) malloc (sizeof (double)*(ny));
@@ -713,33 +713,33 @@ void CPairPOD::estimate_memory(datastruct data)
   int szsnap=0;
   for (int ci=0; ci<(int) data.num_atom.size(); ci++)
   {
-  int natom = data.num_atom[ci];
-  int natom_cumsum = data.num_atom_cumsum[ci];
-  double *x = &data.position[dim*natom_cumsum];
-  double *lattice = &data.lattice[9*ci];
-  double *a1 = &lattice[0];
-  double *a2 = &lattice[3];
-  double *a3 = &lattice[6];
+    int natom = data.num_atom[ci];
+    int natom_cumsum = data.num_atom_cumsum[ci];
+    double *x = &data.position[dim*natom_cumsum];
+    double *lattice = &data.lattice[9*ci];
+    double *a1 = &lattice[0];
+    double *a2 = &lattice[3];
+    double *a3 = &lattice[6];
 
-  // neighbor list
+    // neighbor list
 
-  Nij = podfullneighborlist(y, atomID, pairlist, pairnum, pairnumsum, x, a1, a2, a3, rcut, pbc, natom);
+    Nij = podfullneighborlist(y, atomID, pairlist, pairnum, pairnumsum, x, a1, a2, a3, rcut, pbc, natom);
 
-  int ns2 = pdegree2[0]*nbesselpars + pdegree2[1];
-  int ns3 = pdegree3[0]*nbesselpars + pdegree3[1];
+    int ns2 = pdegree2[0]*nbesselpars + pdegree2[1];
+    int ns3 = pdegree3[0]*nbesselpars + pdegree3[1];
 
-  int szd1 = 3*Nij+ (1+dim)*Nij*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
-  szd = PODMAX(szd, szd1);
-  nijmax = PODMAX(nijmax, Nij);
+    int szd1 = 3*Nij+ (1+dim)*Nij*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
+    szd = PODMAX(szd, szd1);
+    nijmax = PODMAX(nijmax, Nij);
 
-  if (podptr->sna.twojmax>0) {
-    szd1 = 0;
-    szd1 += Nij*dim; // rij
-    szd1 += PODMAX(2*podptr->sna.idxu_max*Nij, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*natom); // (Ur, Ui) and (Zr, Zi)
-    szd1 += 2*podptr->sna.idxu_max*dim*Nij; // dUr, dUi
-    szd1 += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*Nij, 2*podptr->sna.idxu_max*podptr->sna.nelements*natom); // dblist and (Utotr, Utoti)
-    szsnap = PODMAX(szsnap, szd1);
-  }
+    if (podptr->sna.twojmax>0) {
+      szd1 = 0;
+      szd1 += Nij*dim; // rij
+      szd1 += PODMAX(2*podptr->sna.idxu_max*Nij, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*natom); // (Ur, Ui) and (Zr, Zi)
+      szd1 += 2*podptr->sna.idxu_max*dim*Nij; // dUr, dUi
+      szd1 += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*Nij, 2*podptr->sna.idxu_max*podptr->sna.nelements*natom); // dblist and (Utotr, Utoti)
+      szsnap = PODMAX(szsnap, szd1);
+    }
   }
 
   szd = PODMAX(szsnap, szd);
@@ -995,18 +995,18 @@ double CPairPOD::podenergy(double *x, double *a1, double *a2, double *a3, int *a
 
   for (int i = 0; i< numblocks; i++) {
 
-  // number of atoms in this computation block
+    // number of atoms in this computation block
 
-  int nat = atomblocks[i+1] - atomblocks[i];
+    int nat = atomblocks[i+1] - atomblocks[i];
 
-  // get POD neighbor pairs for this computation block
+    // get POD neighbor pairs for this computation block
 
-  podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
+    podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
 
-  // compute global POD descriptors for this computation block
+    // compute global POD descriptors for this computation block
 
-  podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
-    typeai, idxi, ti, tj, nat, nij);
+    podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
+      typeai, idxi, ti, tj, nat, nij);
 
   }
 

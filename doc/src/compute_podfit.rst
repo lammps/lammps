@@ -601,7 +601,7 @@ As a result, the (2*3*4) cubic  potential does not increase the computational co
 Similarly, other cubic potentials can be formed by combining three sets of descriptors. 
 
 Training
-""""""""""""
+""""""""
 
 POD potentials are trained using the least-squares regression against density functional theory (DFT) data. 
 Let :math:`J` be the number of training configurations, with :math:`N_j` being the number of 

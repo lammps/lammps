@@ -24,7 +24,7 @@ Description
 Pair style *pod* defines the proper orthogonal descriptor (POD) potential. The mathematical 
 definition of the POD potential is described from :doc:`compute podfit <compute_podfit>`, which is 
 used to fit the POD potential to *ab initio* energy and force data. More details on the POD potential
-are given in :ref:`(Nguyen) <Nguyen2022>`
+are given in :ref:`(Nguyen) <Nguyen2022_2>`
 
 Only a single pair_coeff command is used with the *pod* style which
 specifies a POD parameter file followed by a coefficient file.
@@ -64,6 +64,6 @@ none
 
 ----------
 
-.. _Nguyen2022:
+.. _Nguyen2022_2:
 
 **(Nguyen)** Ngueyn, et. al., arxiv (2022).

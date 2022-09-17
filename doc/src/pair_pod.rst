@@ -21,27 +21,27 @@ Examples
 Description
 """""""""""
 
-Pair style *pod* defines the proper orthogonal descriptor (POD) potential 
+Pair style *pod* defines the proper orthogonal descriptor (POD) potential
 :ref:`(Nguyen) <Nguyen20221>`.  The mathematical definition of the POD potential
 is described from :doc:`compute podfit <compute_podfit>`, which is used to fit the POD
-potential to *ab initio* energy and force data.  
+potential to *ab initio* energy and force data.
 
 Only a single pair_coeff command is used with the *pod* style which
 specifies a POD parameter file followed by a coefficient file.
 
-The coefficient file (coefficient.txt) contains coefficients for the POD potential. The top of the coefficient 
-file can contain any number of blank and comment lines (start with #), but follows a 
+The coefficient file (coefficient.txt) contains coefficients for the POD potential. The top of the coefficient
+file can contain any number of blank and comment lines (start with #), but follows a
 strict format after that. The first non-blank non-comment line must contain:
 
 * POD_coefficients: *ncoeff*
 
 This is followed by *ncoeff* coefficients, one per line. The coefficient file
-is generated after training the POD potential using :doc:`compute podfit <compute_podfit>`.  
+is generated after training the POD potential using :doc:`compute podfit <compute_podfit>`.
 
 The POD parameter file (pod.txt) can contain blank and comment lines (start
 with #) anywhere. Each non-blank non-comment line must contain one
-keyword/value pair. See :doc:`compute podfit <compute_podfit>` for the description 
-of all the keywords that can be assigned in the parameter file. 
+keyword/value pair. See :doc:`compute podfit <compute_podfit>` for the description
+of all the keywords that can be assigned in the parameter file.
 
 ----------
 

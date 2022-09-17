@@ -1804,7 +1804,7 @@ Go to the `lammps` directory and build with the POD package::
     cd path/to/lammps
     mkdir build-pod
     cd build-pod
-    cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-POD=on ../cmake
+    cmake -C ../cmake/presets/basic.cmake -D PKG_ML-POD=on ../cmake
     cmake --build .
 
 **Supporting info:**

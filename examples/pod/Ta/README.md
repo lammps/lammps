@@ -8,6 +8,6 @@ Fit POD with
 
 This creates `coefficients.txt`, which we can use to run MD with
 
-    lmp < in.run
+    lmp < in.pod
 
 

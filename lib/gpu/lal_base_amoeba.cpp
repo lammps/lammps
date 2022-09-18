@@ -580,7 +580,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
     _thetai1.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
     _thetai2.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
     _thetai3.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
-    _igrid.alloc(_max_thetai_size*4,*(this->ucl_device),UCL_READ_ONLY);
+    _igrid.alloc(_max_thetai_size*4,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
 
     _fdip_phi1.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
     _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
@@ -674,7 +674,7 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
                                     double ***host_thetai1, double ***host_thetai2,
                                     double ***host_thetai3, int** host_igrid,
                                     double ****host_grid_brick,
-                                    void** host_fdip_phi1,
+                                    void **host_fdip_phi1,
                                     void **host_fdip_phi2,
                                     void **host_fdip_sum_phi,
                                     const int nzlo_out, const int nzhi_out,
@@ -682,16 +682,7 @@ void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
                                     const int nxlo_out, const int nxhi_out,
                                     bool& first_iteration)
 {
-  // allocation/resize and transfers before the first iteration
-  
-  if (first_iteration) {
-    precompute_induce(inum_full, bsorder, host_thetai1, host_thetai2,
-                      host_thetai3, host_igrid, nzlo_out, nzhi_out,
-                      nylo_out,  nyhi_out, nxlo_out, nxhi_out);
-    first_iteration = false;
-  }
-
-  // TODO: find out why this host alloc helps the cgrid_brick update_device() work correcly
+  // TODO: find out why this (dummy) host alloc helps the cgrid_brick update_device() work correcly
   UCL_H_Vec<numtyp> hdummy;
   hdummy.alloc(1, *(this->ucl_device), UCL_READ_ONLY);
 

@@ -105,6 +105,13 @@ void hippo_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
 
 void hippo_gpu_update_fieldp(void **fieldp_ptr);
 
+void hippo_gpu_precompute_induce(const int inum_full, const int bsorder,
+                          double ***host_thetai1, double ***host_thetai2,
+                          double ***host_thetai3, int** igrid,
+                          const int nzlo_out, const int nzhi_out,
+                          const int nylo_out, const int nyhi_out,
+                          const int nxlo_out, const int nxhi_out);
+
 void hippo_gpu_fphi_uind(const int inum_full, const int bsorder,
                           double ***host_thetai1, double ***host_thetai2,
                           double ***host_thetai3, int** igrid,
@@ -418,6 +425,12 @@ void PairHippoGPU::induce()
   int debug = 1;
 
   first_induce_iteration  = true;
+
+  hippo_gpu_precompute_induce(atom->nlocal, bsorder, thetai1,
+                       thetai2, thetai3, igrid,
+                       ic_kspace->nzlo_out, ic_kspace->nzhi_out,
+                       ic_kspace->nylo_out, ic_kspace->nyhi_out,
+                       ic_kspace->nxlo_out, ic_kspace->nxhi_out);
 
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()

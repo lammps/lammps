@@ -112,15 +112,8 @@ void hippo_gpu_precompute_induce(const int inum_full, const int bsorder,
                           const int nylo_out, const int nyhi_out,
                           const int nxlo_out, const int nxhi_out);
 
-void hippo_gpu_fphi_uind(const int inum_full, const int bsorder,
-                          double ***host_thetai1, double ***host_thetai2,
-                          double ***host_thetai3, int** igrid,
-                          double ****host_grid_brick, void **host_fdip_phi1,
-                          void **host_fdip_phi2, void **host_fdip_sum_phi,
-                          const int nzlo_out, const int nzhi_out,
-                          const int nylo_out, const int nyhi_out,
-                          const int nxlo_out, const int nxhi_out,
-                          bool& first_iteration);
+void hippo_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
+                          void **host_fdip_phi2, void **host_fdip_sum_phi);
 
 void hippo_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
@@ -424,14 +417,6 @@ void PairHippoGPU::induce()
 
   int debug = 1;
 
-  first_induce_iteration  = true;
-
-  hippo_gpu_precompute_induce(atom->nlocal, bsorder, thetai1,
-                       thetai2, thetai3, igrid,
-                       ic_kspace->nzlo_out, ic_kspace->nzhi_out,
-                       ic_kspace->nylo_out, ic_kspace->nyhi_out,
-                       ic_kspace->nxlo_out, ic_kspace->nxhi_out);
-
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()
 
@@ -486,6 +471,16 @@ void PairHippoGPU::induce()
       udirp[i][0], udirp[i][1], udirp[i][2]);
   }
 */
+
+  // allocate memory and make early host-device transfers
+  // must be done before the first ufield0c
+
+  hippo_gpu_precompute_induce(atom->nlocal, bsorder, thetai1, thetai2,
+                              thetai3, igrid,
+                              ic_kspace->nzlo_out, ic_kspace->nzhi_out,
+                              ic_kspace->nylo_out, ic_kspace->nyhi_out,
+                              ic_kspace->nxlo_out, ic_kspace->nxhi_out);
+
   // get induced dipoles via the OPT extrapolation method
   // NOTE: any way to rewrite these loops to avoid allocating
   //       uopt,uoptp with a optorder+1 dimension, just optorder ??
@@ -1296,14 +1291,8 @@ void PairHippoGPU::fphi_uind(double ****grid, double **fdip_phi1,
   void* fdip_phi1_pinned = nullptr;
   void* fdip_phi2_pinned = nullptr;
   void* fdip_sum_phi_pinned = nullptr;
-  hippo_gpu_fphi_uind(atom->nlocal, bsorder, thetai1,
-                       thetai2, thetai3, igrid, grid,
-                       &fdip_phi1_pinned, &fdip_phi2_pinned,
-                       &fdip_sum_phi_pinned,
-                       ic_kspace->nzlo_out, ic_kspace->nzhi_out,
-                       ic_kspace->nylo_out, ic_kspace->nyhi_out,
-                       ic_kspace->nxlo_out, ic_kspace->nxhi_out,
-                       first_induce_iteration);
+  hippo_gpu_fphi_uind(grid, &fdip_phi1_pinned, &fdip_phi2_pinned,
+                      &fdip_sum_phi_pinned);
   
   int nlocal = atom->nlocal;
   double *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;

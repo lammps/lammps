@@ -670,17 +670,10 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_fphi_uind(const int inum_full, const int bsorder,
-                                    double ***host_thetai1, double ***host_thetai2,
-                                    double ***host_thetai3, int** host_igrid,
-                                    double ****host_grid_brick,
+void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
                                     void **host_fdip_phi1,
                                     void **host_fdip_phi2,
-                                    void **host_fdip_sum_phi,
-                                    const int nzlo_out, const int nzhi_out,
-                                    const int nylo_out, const int nyhi_out,
-                                    const int nxlo_out, const int nxhi_out,
-                                    bool& first_iteration)
+                                    void **host_fdip_sum_phi)
 {
   // TODO: find out why this (dummy) host alloc helps the cgrid_brick update_device() work correcly
   UCL_H_Vec<numtyp> hdummy;

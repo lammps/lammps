@@ -62,8 +62,6 @@ class PairHippoGPU : public PairAmoeba {
   bool gpu_umutual2b_ready;
   bool gpu_polar_real_ready;
 
-  bool first_induce_iteration;
-
   void udirect2b_cpu();
 
   template<class numtyp>

@@ -173,18 +173,10 @@ void amoeba_gpu_precompute_induce(const int inum_full, const int bsorder,
                               nylo_out, nyhi_out, nxlo_out, nxhi_out);
 }
 
-void amoeba_gpu_fphi_uind(const int inum_full, const int bsorder,
-                          double ***host_thetai1, double ***host_thetai2,
-                          double ***host_thetai3, int** igrid, double ****host_grid_brick,
-                          void **host_fdip_phi1, void **host_fdip_phi2, void **host_fdip_sum_phi,
-                          const int nzlo_out, const int nzhi_out,
-                          const int nylo_out, const int nyhi_out,
-                          const int nxlo_out, const int nxhi_out,
-                          bool& first_iteration) {
-   AMOEBAMF.compute_fphi_uind(inum_full, bsorder, host_thetai1, host_thetai2,
-                              host_thetai3, igrid, host_grid_brick, host_fdip_phi1,
-                              host_fdip_phi2, host_fdip_sum_phi, nzlo_out, nzhi_out,
-                              nylo_out, nyhi_out, nxlo_out, nxhi_out, first_iteration);
+void amoeba_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
+                          void **host_fdip_phi2, void **host_fdip_sum_phi) {
+   AMOEBAMF.compute_fphi_uind(host_grid_brick, host_fdip_phi1,
+                              host_fdip_phi2, host_fdip_sum_phi);
 }
 
 void amoeba_setup_fft(const int numel, const int element_type) {

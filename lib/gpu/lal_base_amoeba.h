@@ -151,13 +151,6 @@ class BaseAmoeba {
                 int **&ilist, int **&numj, const double cpu_time, bool &success,
                 double *charge, double *boxlo, double *prd);
 
-  virtual void precompute_induce(const int inum_full, const int bsorder,
-                                 double ***host_thetai1, double ***host_thetai2,
-                                 double ***host_thetai3, int** igrid,
-                                 const int nzlo_out, const int nzhi_out,
-                                 const int nylo_out, const int nyhi_out,
-                                 const int nxlo_out, const int nxhi_out);
-
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
@@ -180,15 +173,17 @@ class BaseAmoeba {
                 double **host_uind, double **host_uinp, double *host_pval,
                 const double aewald, const double off2_polar, void **fieldp_ptr);
 
-  virtual void compute_fphi_uind(const int inum_full, const int bsorder,
+  /// Allocate/resize per-atom arrays before induce()
+  virtual void precompute_induce(const int inum_full, const int bsorder,
                                  double ***host_thetai1, double ***host_thetai2,
                                  double ***host_thetai3, int** igrid,
-                                 double ****host_grid_brick,
-                                 void **host_fdip_phi1, void **host_fdip_phi2, void **host_fdip_sum_phi,
                                  const int nzlo_out, const int nzhi_out,
                                  const int nylo_out, const int nyhi_out,
-                                 const int nxlo_out, const int nxhi_out,
-                                 bool& first_iteration);
+                                 const int nxlo_out, const int nxhi_out);
+
+  virtual void compute_fphi_uind(double ****host_grid_brick,
+                                 void **host_fdip_phi1, void **host_fdip_phi2,
+                                 void **host_fdip_sum_phi);
 
   /// Compute polar real-space with device neighboring
   virtual void compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,

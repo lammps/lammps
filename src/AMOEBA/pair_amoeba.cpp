@@ -68,67 +68,71 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   // force field settings
 
   nmax = 0;
-  xaxis2local = yaxis2local = zaxis2local = NULL;
-  rpole = NULL;
-  tq = NULL;
+  xaxis2local = yaxis2local = zaxis2local = nullptr;
+  rpole = nullptr;
+  tq = nullptr;
 
-  red2local = NULL;
-  xred = NULL;
+  red2local = nullptr;
+  xred = nullptr;
 
-  uind = uinp = udirp = NULL;
-  uopt = uoptp = NULL;
-  fopt = foptp = NULL;
-  field = fieldp = NULL;
-  ufld = dufld = NULL;
-  rsd = rsdp = NULL;
-  zrsd = zrsdp = NULL;
+  uind = uinp = udirp = nullptr;
+  uopt = uoptp = nullptr;
+  fopt = foptp = nullptr;
+  field = fieldp = nullptr;
+  ufld = dufld = nullptr;
+  rsd = rsdp = nullptr;
+  zrsd = zrsdp = nullptr;
 
-  cmp = fmp = NULL;
-  cphi = fphi = NULL;
+  cmp = fmp = nullptr;
+  cphi = fphi = nullptr;
 
-  poli = NULL;
-  conj = conjp = NULL;
-  vec = vecp = NULL;
-  udir = usum = usump = NULL;
+  _moduli_array = nullptr;
+  _moduli_bsarray = nullptr;
+  _nfft_max = 0;
 
-  fuind = fuinp = NULL;
-  fdip_phi1 = fdip_phi2 = fdip_sum_phi = NULL;
-  dipfield1 = dipfield2 = NULL;
+  poli = nullptr;
+  conj = conjp = nullptr;
+  vec = vecp = nullptr;
+  udir = usum = usump = nullptr;
 
-  fphid = fphip = NULL;
-  fphidp = cphidp = NULL;
+  fuind = fuinp = nullptr;
+  fdip_phi1 = fdip_phi2 = fdip_sum_phi = nullptr;
+  dipfield1 = dipfield2 = nullptr;
+
+  fphid = fphip = nullptr;
+  fphidp = cphidp = nullptr;
 
   bsordermax = 0;
-  thetai1 = thetai2 = thetai3 = NULL;
-  bsmod1 = bsmod2 = bsmod3 = NULL;
-  bsbuild = NULL;
-  igrid = NULL;
-  m_kspace = p_kspace = pc_kspace = d_kspace = NULL;
-  i_kspace = ic_kspace = NULL;
+  thetai1 = thetai2 = thetai3 = nullptr;
+  bsmod1 = bsmod2 = bsmod3 = nullptr;
+  bsbuild = nullptr;
+  igrid = nullptr;
+  m_kspace = p_kspace = pc_kspace = d_kspace = nullptr;
+  i_kspace = ic_kspace = nullptr;
 
-  numneigh_dipole = NULL;
-  firstneigh_dipole = NULL;
-  firstneigh_dipdip = NULL;
-  ipage_dipole = NULL;
-  dpage_dipdip = NULL;
+  numneigh_dipole = nullptr;
+  firstneigh_dipole = nullptr;
+  firstneigh_dipdip = nullptr;
+  ipage_dipole = nullptr;
+  dpage_dipdip = nullptr;
 
-  numneigh_precond = NULL;
-  firstneigh_precond = NULL;
-  ipage_precond = NULL;
+  numneigh_precond = nullptr;
+  firstneigh_precond = nullptr;
+  ipage_precond = nullptr;
 
-  firstneigh_pcpc = NULL;
-  dpage_pcpc = NULL;
+  firstneigh_pcpc = nullptr;
+  dpage_pcpc = nullptr;
 
-  qfac = NULL;
-  gridfft1 = NULL;
+  qfac = nullptr;
+  gridfft1 = nullptr;
 
   initialize_type_class();
   initialize_vdwl();
   initialize_smallsize();
 
-  forcefield = NULL;
+  forcefield = nullptr;
 
-  id_pole = id_udalt = id_upalt = NULL;
+  id_pole = id_udalt = id_upalt = nullptr;
 
   nualt = 0;
   first_flag = 1;
@@ -219,6 +223,9 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(fphip);
   memory->destroy(fphidp);
   memory->destroy(cphidp);
+
+  memory->destroy(_moduli_array);
+  memory->destroy(_moduli_bsarray);
 
   memory->destroy(thetai1);
   memory->destroy(thetai2);
@@ -2312,6 +2319,8 @@ void PairAmoeba::grow_local()
     firstneigh_pcpc = (double **)
       memory->smalloc(nmax*sizeof(double *),"induce:firstneigh_pcpc");
   }
+
+  memory->create(_moduli_array,bsordermax,"amoeba:_moduli_array");
 }
 
 /* ----------------------------------------------------------------------

@@ -62,25 +62,31 @@ void PairAmoeba::moduli()
   int maxfft = MAX(nfft1,nfft2);
   maxfft = MAX(maxfft,nfft3);
 
-  double *array = new double[bsorder];
-  double *bsarray = new double[maxfft];
-
+  //double *array = new double[bsorder];
+  //double *bsarray = new double[maxfft];
+  if (maxfft > _nfft_max) {
+    memory->destroy(_moduli_bsarray);
+    _nfft_max = maxfft;
+    memory->create(_moduli_bsarray,_nfft_max,"amoeba:_moduli_bsarray");
+  }
+  
   // compute and load the moduli values
 
   double x = 0.0;
-  bspline(x,bsorder,array);
+  //bspline(x,bsorder,array);
+  bspline(x,bsorder,_moduli_array);
 
-  for (i = 0; i < maxfft; i++) bsarray[i] = 0.0;
-  for (i = 0; i < bsorder; i++) bsarray[i+1] = array[i];
+  for (i = 0; i < maxfft; i++) _moduli_bsarray[i] = 0.0;
+  for (i = 0; i < bsorder; i++) _moduli_bsarray[i+1] = _moduli_array[i];
 
-  dftmod(bsmod1,bsarray,nfft1,bsorder);
-  dftmod(bsmod2,bsarray,nfft2,bsorder);
-  dftmod(bsmod3,bsarray,nfft3,bsorder);
+  dftmod(bsmod1,_moduli_bsarray,nfft1,bsorder);
+  dftmod(bsmod2,_moduli_bsarray,nfft2,bsorder);
+  dftmod(bsmod3,_moduli_bsarray,nfft3,bsorder);
 
   // perform deallocation of local arrays
 
-  delete[] array;
-  delete[] bsarray;
+  //delete[] array;
+  //delete[] bsarray;
 }
 
 /* ----------------------------------------------------------------------

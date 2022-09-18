@@ -337,7 +337,11 @@ class PairAmoeba : public Pair {
   double *gridfft1;                // copy of p_kspace FFT grid
 
   double **cmp,**fmp;              // Cartesian and fractional multipoles
-  double **cphi,**fphi;     
+  double **cphi,**fphi;
+
+  double *_moduli_array;           // buffers for moduli
+  double *_moduli_bsarray;
+  int _nfft_max;
 
   // params for current KSpace solve and FFT being worked on
 
@@ -347,8 +351,12 @@ class PairAmoeba : public Pair {
   double ctf[10][10];      // indices NOT flipped vs Fortran
   double ftc[10][10];      // indices NOT flipped vs Fortran
 
-  class AmoebaConvolution *m_kspace,*p_kspace,*pc_kspace,*d_kspace;
-  class AmoebaConvolution *i_kspace,*ic_kspace;
+  class AmoebaConvolution *m_kspace;   // multipole KSpace
+  class AmoebaConvolution *p_kspace;   // polar KSpace
+  class AmoebaConvolution *pc_kspace;  
+  class AmoebaConvolution *d_kspace;   // dispersion KSpace 
+  class AmoebaConvolution *i_kspace;   // induce KSpace
+  class AmoebaConvolution *ic_kspace;
 
   // FFT grid size factors
 

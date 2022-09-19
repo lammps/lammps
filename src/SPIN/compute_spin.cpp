@@ -69,6 +69,7 @@ ComputeSpin::~ComputeSpin()
 {
   memory->destroy(vector);
   delete [] spin_pairs;
+  delete [] lockprecessionspin;
 }
 
 /* ---------------------------------------------------------------------- */

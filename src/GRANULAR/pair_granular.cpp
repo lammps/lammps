@@ -354,7 +354,8 @@ void PairGranular::coeff(int narg, char **arg)
 
   while (iarg < narg) {
 
-    if (strcmp(arg[iarg++], "tangential") == 0) {
+    if (strcmp(arg[iarg], "tangential") == 0) {
+      iarg++;
       if (iarg >= narg)
         error->all(FLERR,"Illegal pair_coeff command, must specify "
             "tangential model after tangential keyword");

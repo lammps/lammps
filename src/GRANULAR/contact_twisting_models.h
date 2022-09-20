@@ -44,7 +44,7 @@ class TwistingMarshall : public TwistingModel {
   void calculate_forces();
   void init();
  protected:
-  double k_tang, damp_tang, mu_tang;
+  double k_tang, mu_tang;
 };
 
 /* ---------------------------------------------------------------------- */

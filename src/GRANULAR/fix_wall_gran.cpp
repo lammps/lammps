@@ -83,8 +83,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg;
   if (classic_flag) {
-    iarg = 4;
-    iarg = model->init_classic_model(arg, iarg, narg);
+    iarg = model->init_classic_model(arg, 3, narg);
 
     if (iarg < narg) {
       if (strcmp(arg[iarg],"limit_damping") == 0) {

@@ -168,7 +168,7 @@ void TangentialLinearHistory::calculate_forces()
 
 TangentialLinearHistoryClassic::TangentialLinearHistoryClassic(LAMMPS *lmp) : TangentialLinearHistory(lmp)
 {
-  scale_area = 0;
+  scale_area = 0; // Sets gran/hooke/history behavior
 }
 
 /* ---------------------------------------------------------------------- */
@@ -233,7 +233,7 @@ void TangentialLinearHistoryClassic::calculate_forces()
 
 TangentialMindlinClassic::TangentialMindlinClassic(LAMMPS *lmp) : TangentialLinearHistoryClassic(lmp)
 {
-  scale_area = 1;
+  scale_area = 1; // Sets gran/hertz/history behavior
 }
 
 /* ----------------------------------------------------------------------

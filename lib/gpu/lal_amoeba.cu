@@ -2026,7 +2026,7 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
         for (int ib = 0; ib < bsorder; ib++) {
           int i1 = istart + ib;
           numtyp4 tha1 = thetai1[i1];
-          int gidx = 2*(k*ngridxy + j*ngridx + i);
+          int gidx = k*ngridxy + j*ngridx + i;
           numtyp tq = grid[gidx];
           t0 += tq*tha1.x;
           t1 += tq*tha1.y;

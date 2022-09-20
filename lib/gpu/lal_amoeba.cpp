@@ -64,8 +64,8 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
                             cell_size,gpu_split,_screen,amoeba,
                             "k_amoeba_multipole", "k_amoeba_udirect2b",
                             "k_amoeba_umutual2b", "k_amoeba_polar",
-                            "k_amoeba_fphi_uind", "k_amoeba_short_nbor",
-                            "k_amoeba_special15");
+                            "k_amoeba_fphi_uind", "k_amoeba_fphi_mpole",
+                            "k_amoeba_short_nbor", "k_amoeba_special15");
   if (success!=0)
     return success;
 

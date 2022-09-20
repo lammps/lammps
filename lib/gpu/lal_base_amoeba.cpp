@@ -38,6 +38,7 @@ BaseAmoebaT::~BaseAmoeba() {
   k_udirect2b.clear();
   k_umutual2b.clear();
   k_fphi_uind.clear();
+  k_fphi_mpole.clear();
   k_polar.clear();
   k_special15.clear();
   k_short_nbor.clear();
@@ -66,6 +67,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                              const char *k_name_umutual2b,
                              const char *k_name_polar,
                              const char *k_name_fphi_uind,
+                             const char *k_name_fphi_mpole,
                              const char *k_name_short_nbor,
                              const char* k_name_special15) {
   screen=_screen;
@@ -100,8 +102,9 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   _block_size=device->pair_block_size();
   _block_bio_size=device->block_bio_pair();
   compile_kernels(*ucl_device,pair_program,k_name_multipole,
-                  k_name_udirect2b, k_name_umutual2b,k_name_polar,
-                  k_name_fphi_uind, k_name_short_nbor, k_name_special15);
+                   k_name_udirect2b, k_name_umutual2b,k_name_polar,
+                   k_name_fphi_uind, k_name_fphi_mpole,
+                   k_name_short_nbor, k_name_special15);
 
   if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
@@ -559,6 +562,7 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
 //     host_thetai1, host_thetai2, host_thetai3 are allocated with nmax by bsordermax by 4
 //     host_igrid is allocated with nmax by 4
 //   - transfer extra data from host to device
+// NOTE: can be re-used for fphi_mpole() (already allocate 2x grid points)
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
@@ -568,7 +572,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
                                     const int nzlo_out, const int nzhi_out,
                                     const int nylo_out, const int nyhi_out,
                                     const int nxlo_out, const int nxhi_out) {
-  
+  // update bsorder with that of the kspace solver
   _bsorder = bsorder;
 
   // allocate or resize per-atom arrays
@@ -586,7 +590,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
     _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
     _fdip_sum_phi.alloc(_max_thetai_size*20,*(this->ucl_device),UCL_READ_WRITE);
   } else {
-    if (inum_full>_max_thetai_size) {
+    if (_thetai1.cols()<_max_thetai_size*bsorder) {
       _max_thetai_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
       _thetai1.resize(_max_thetai_size*bsorder);
       _thetai2.resize(_max_thetai_size*bsorder);
@@ -667,6 +671,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
 // ---------------------------------------------------------------------------
 // fphi_uind = induced potential from grid
 // fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
+// NOTE: host_grid_brick is from ic_kspace post_convolution()
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
@@ -687,7 +692,7 @@ void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
         _cgrid_brick[n+1] = host_grid_brick[iz][iy][ix][1];
         n += 2;
       }
-  _cgrid_brick.update_device(false);
+  _cgrid_brick.update_device(_num_grid_points*2, false);
 
   const int red_blocks = fphi_uind();
 
@@ -721,6 +726,63 @@ int BaseAmoebaT::fphi_uind() {
   k_fphi_uind.set_size(GX,BX);
   k_fphi_uind.run(&_thetai1, &_thetai2, &_thetai3, &_igrid, &_cgrid_brick,
                   &_fdip_phi1, &_fdip_phi2, &_fdip_sum_phi, &_bsorder, &ainum, 
+                  &_nzlo_out, &_nylo_out, &_nxlo_out, &ngridxy, &_ngridx);
+  time_pair.stop();
+
+  return GX;
+}
+
+// ---------------------------------------------------------------------------
+// fphi_mpole = multipole potential from grid (limited to polar_kspace for now)
+// fphi_mpole extracts the permanent multipole potential from
+//   the particle mesh Ewald grid
+// NOTE: host_grid_brick is from p_kspace post_convolution()
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+void BaseAmoebaT::compute_fphi_mpole(double ***host_grid_brick, void **host_fphi)
+{
+  // TODO: grid brick[k][j][i] is a scalar
+  UCL_H_Vec<numtyp> hdummy;
+  hdummy.alloc(1, *(this->ucl_device), UCL_READ_ONLY);
+
+  int n = 0;
+  for (int iz = _nzlo_out; iz <= _nzhi_out; iz++)
+    for (int iy = _nylo_out; iy <= _nyhi_out; iy++)
+      for (int ix = _nxlo_out; ix <= _nxhi_out; ix++) {
+        _cgrid_brick[n] = host_grid_brick[iz][iy][ix];
+        n++;
+      }
+  _cgrid_brick.update_device(_num_grid_points, false);
+
+  const int red_blocks = fphi_mpole();
+
+  _fdip_sum_phi.update_host(_max_thetai_size*20);
+
+  *host_fphi = _fdip_sum_phi.host.begin();
+}
+
+// ---------------------------------------------------------------------------
+// Interpolate the potential from the PME grid
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int BaseAmoebaT::fphi_mpole() {
+  int ainum=ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=atom->nall();
+  int nbor_pitch=nbor->nbor_pitch();
+
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
+
+  time_pair.start();
+  int ngridxy = _ngridx * _ngridy;
+  k_fphi_mpole.set_size(GX,BX);
+  k_fphi_mpole.run(&_thetai1, &_thetai2, &_thetai3, &_igrid, &_cgrid_brick,
+                  &_fdip_sum_phi, &_bsorder, &ainum,
                   &_nzlo_out, &_nylo_out, &_nxlo_out, &ngridxy, &_ngridx);
   time_pair.stop();
 
@@ -920,6 +982,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
                                   const char *kname_umutual2b,
                                   const char *kname_polar,
                                   const char *kname_fphi_uind,
+                                  const char *kname_fphi_mpole,
                                   const char *kname_short_nbor,
                                   const char* kname_special15) {
   if (_compiled)
@@ -935,6 +998,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_umutual2b.set_function(*pair_program, kname_umutual2b);
   k_polar.set_function(*pair_program, kname_polar);
   k_fphi_uind.set_function(*pair_program, kname_fphi_uind);
+  k_fphi_mpole.set_function(*pair_program, kname_fphi_mpole);
   k_short_nbor.set_function(*pair_program, kname_short_nbor);
   k_special15.set_function(*pair_program, kname_special15);
   pos_tex.get_texture(*pair_program, "pos_tex");

@@ -64,8 +64,8 @@ class BaseAmoeba {
                   const double gpu_split, FILE *screen, const void *pair_program,
                   const char *kname_multipole, const char *kname_udirect2b,
                   const char *kname_umutual2b, const char *kname_polar,
-                  const char *kname_fphi_uind, const char *kname_short_nbor,
-                  const char* kname_special15);
+                  const char *kname_fphi_uind, const char *kname_fphi_mpole,
+                  const char *kname_short_nbor, const char* kname_special15);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead(const int add_kernels=0);
@@ -185,6 +185,8 @@ class BaseAmoeba {
                                  void **host_fdip_phi1, void **host_fdip_phi2,
                                  void **host_fdip_sum_phi);
 
+  virtual void compute_fphi_mpole(double ***host_grid_brick, void **host_fphi);
+
   /// Compute polar real-space with device neighboring
   virtual void compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
                 double **host_uind, double **host_uinp, double *host_pval,
@@ -279,7 +281,8 @@ class BaseAmoeba {
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pair_program;
-  UCL_Kernel k_multipole, k_udirect2b, k_umutual2b, k_polar, k_fphi_uind;
+  UCL_Kernel k_multipole, k_udirect2b, k_umutual2b, k_polar;
+  UCL_Kernel k_fphi_uind, k_fphi_mpole;
   UCL_Kernel k_special15, k_short_nbor;
   inline int block_size() { return _block_size; }
   inline void set_kernel(const int eflag, const int vflag) {}
@@ -305,13 +308,14 @@ class BaseAmoeba {
   void compile_kernels(UCL_Device &dev, const void *pair_string,
      const char *kname_multipole, const char *kname_udirect2b,
      const char *kname_umutual2b, const char *kname_polar,
-     const char *kname_fphi_uind, const char *kname_short_nbor,
-     const char* kname_special15);
+     const char *kname_fphi_uind, const char *kname_fphi_mpole,
+     const char *kname_short_nbor, const char* kname_special15);
 
   virtual int multipole_real(const int eflag, const int vflag) = 0;
   virtual int udirect2b(const int eflag, const int vflag) = 0;
   virtual int umutual2b(const int eflag, const int vflag) = 0;
   virtual int fphi_uind();
+  virtual int fphi_mpole();
   virtual int polar_real(const int eflag, const int vflag) = 0;
   
 

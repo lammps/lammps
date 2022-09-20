@@ -98,6 +98,8 @@ void amoeba_gpu_precompute_induce(const int inum_full, const int bsorder,
 void amoeba_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
                           void **host_fdip_phi2, void **host_fdip_sum_phi);
 
+void amoeba_gpu_fphi_mpole(double ***host_grid_brick, void **host_fdip_sum_phi);
+
 void amoeba_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -339,6 +341,7 @@ void PairAmoebaGPU::induce()
 
   // allocate memory and make early host-device transfers
   // must be done before the first ufield0c
+  // NOTE: this is for ic_kspace, and thetai[1-3]
 
   amoeba_gpu_precompute_induce(atom->nlocal, bsorder, thetai1, thetai2,
                                thetai3, igrid,
@@ -1311,6 +1314,8 @@ void PairAmoebaGPU::polar_kspace()
   double cphid[4],cphip[4];
   double a[3][3];    // indices not flipped vs Fortran
 
+  bool gpu_fphi_mpole_ready = true;
+
   // indices into the electrostatic field array
   // decremented by 1 versus Fortran
 
@@ -1372,6 +1377,18 @@ void PairAmoebaGPU::polar_kspace()
 
     moduli();
     bspline_fill();
+
+    // allocate memory and make early host-device transfers
+  
+    // NOTE: this is for p_kspace, and igrid and thetai[1-3] are filled by bpsline_fill
+    if (gpu_fphi_mpole_ready) {
+       amoeba_gpu_precompute_induce(atom->nlocal, bsorder, thetai1, thetai2,
+                                    thetai3, igrid, p_kspace->nzlo_out,
+                                    p_kspace->nzhi_out, p_kspace->nylo_out,
+                                    p_kspace->nyhi_out, p_kspace->nxlo_out,
+                                    p_kspace->nxhi_out);
+    }
+      
 
     // convert Cartesian multipoles to fractional coordinates
 
@@ -1441,8 +1458,24 @@ void PairAmoebaGPU::polar_kspace()
     double ***gridpost = (double ***) p_kspace->post_convolution();
 
     // get potential
-
-    fphi_mpole(gridpost,fphi);
+    
+    if (!gpu_fphi_mpole_ready) {
+      fphi_mpole(gridpost,fphi);
+      //printf("cpu phi = %f %f %f\n", fphi[0][0],fphi[0][1],fphi[0][2]);
+    } else {
+      void* fphi_pinned = nullptr;
+      amoeba_gpu_fphi_mpole(gridpost, &fphi_pinned);
+    
+      double *_fphi_ptr = (double *)fphi_pinned;
+      for (int i = 0; i < nlocal; i++) {
+        int idx = i;
+        for (int m = 0; m < 20; m++) {
+          fphi[i][m] = _fphi_ptr[idx];
+          idx += nlocal;
+        }
+      }
+      //printf("gpu phi = %f %f %f\n", fphi[0][0],fphi[0][1],fphi[0][2]);
+    }
 
     for (i = 0; i < nlocal; i++) {
       for (k = 0; k < 20; k++)

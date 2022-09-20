@@ -179,6 +179,10 @@ void amoeba_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
                               host_fdip_phi2, host_fdip_sum_phi);
 }
 
+void amoeba_gpu_fphi_mpole(double ***host_grid_brick, void **host_fphi) {
+   AMOEBAMF.compute_fphi_mpole(host_grid_brick, host_fphi);
+}
+
 void amoeba_setup_fft(const int numel, const int element_type) {
   AMOEBAMF.setup_fft(numel, element_type);
 }

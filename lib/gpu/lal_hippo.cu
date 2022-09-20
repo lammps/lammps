@@ -2347,6 +2347,184 @@ __kernel void k_hippo_fphi_uind(const __global numtyp4 *restrict thetai1,
 }
 
 /* ----------------------------------------------------------------------
+   fphi_mpole = multipole potential from grid
+   fphi_mpole extracts the permanent multipole potential from
+   the particle mesh Ewald grid
+------------------------------------------------------------------------- */
+
+__kernel void k_hippo_fphi_mpole(const __global numtyp4 *restrict thetai1,
+                          const __global numtyp4 *restrict thetai2,
+                          const __global numtyp4 *restrict thetai3,
+                          const __global int *restrict igrid,
+                          const __global numtyp *restrict grid,
+                          __global numtyp *restrict fphi,
+                          const int bsorder, const int inum,
+                          const int nzlo_out, const int nylo_out,
+                          const int nxlo_out, const int ngridxy,
+                          const int ngridx)
+{
+  int tid=THREAD_ID_X;
+  int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
+
+  if (ii<inum) {
+
+    int nlpts = (bsorder-1) / 2;
+    
+    int istart = fast_mul(ii,4);
+    int igridx = igrid[istart];
+    int igridy = igrid[istart+1];
+    int igridz = igrid[istart+2];
+    
+    // now istart is used to index thetai1, thetai2 and thetai3
+    istart = fast_mul(ii,bsorder);
+
+    // extract the permanent multipole field at each site
+
+    numtyp tuv000 = (numtyp)0.0;
+    numtyp tuv001 = (numtyp)0.0;
+    numtyp tuv010 = (numtyp)0.0;
+    numtyp tuv100 = (numtyp)0.0;
+    numtyp tuv200 = (numtyp)0.0;
+    numtyp tuv020 = (numtyp)0.0;
+    numtyp tuv002 = (numtyp)0.0;
+    numtyp tuv110 = (numtyp)0.0;
+    numtyp tuv101 = (numtyp)0.0;
+    numtyp tuv011 = (numtyp)0.0;
+    numtyp tuv300 = (numtyp)0.0;
+    numtyp tuv030 = (numtyp)0.0;
+    numtyp tuv003 = (numtyp)0.0;
+    numtyp tuv210 = (numtyp)0.0;
+    numtyp tuv201 = (numtyp)0.0;
+    numtyp tuv120 = (numtyp)0.0;
+    numtyp tuv021 = (numtyp)0.0;
+    numtyp tuv102 = (numtyp)0.0;
+    numtyp tuv012 = (numtyp)0.0;
+    numtyp tuv111 = (numtyp)0.0;
+
+    int k = (igridz - nzlo_out) - nlpts;
+    for (int kb = 0; kb < bsorder; kb++) {
+      /*
+      v0 = thetai3[m][kb][0];
+      v1 = thetai3[m][kb][1];
+      v2 = thetai3[m][kb][2];
+      v3 = thetai3[m][kb][3];
+      */
+      int i3 = istart + kb;
+      numtyp4 tha3 = thetai3[i3];
+      numtyp v0 = tha3.x;
+      numtyp v1 = tha3.y;
+      numtyp v2 = tha3.z;
+      numtyp v3 = tha3.w;
+      numtyp tu00 = (numtyp)0.0;
+      numtyp tu10 = (numtyp)0.0;
+      numtyp tu01 = (numtyp)0.0;
+      numtyp tu20 = (numtyp)0.0;
+      numtyp tu11 = (numtyp)0.0;
+      numtyp tu02 = (numtyp)0.0;
+      numtyp tu30 = (numtyp)0.0;
+      numtyp tu21 = (numtyp)0.0;
+      numtyp tu12 = (numtyp)0.0;
+      numtyp tu03 = (numtyp)0.0;
+
+      int j = (igridy - nylo_out) - nlpts;
+      for (int jb = 0; jb < bsorder; jb++) {
+        /*
+        u0 = thetai2[m][jb][0];
+        u1 = thetai2[m][jb][1];
+        u2 = thetai2[m][jb][2];
+        u3 = thetai2[m][jb][3];
+        */
+        int i2 = istart + jb;
+        numtyp4 tha2 = thetai2[i2];
+        numtyp u0 = tha2.x;
+        numtyp u1 = tha2.y;
+        numtyp u2 = tha2.z;
+        numtyp u3 = tha2.w;
+        numtyp t0 = (numtyp)0.0;
+        numtyp t1 = (numtyp)0.0;
+        numtyp t2 = (numtyp)0.0;
+        numtyp t3 = (numtyp)0.0;
+
+        int i = (igridx - nxlo_out) - nlpts;
+        for (int ib = 0; ib < bsorder; ib++) {
+          int i1 = istart + ib;
+          numtyp4 tha1 = thetai1[i1];
+          int gidx = k*ngridxy + j*ngridx + i;
+          numtyp tq = grid[gidx];
+          t0 += tq*tha1.x;
+          t1 += tq*tha1.y;
+          t2 += tq*tha1.z;
+          t3 += tq*tha1.w;
+          i++;
+        }
+
+        tu00 += t0*u0;
+        tu10 += t1*u0;
+        tu01 += t0*u1;
+        tu20 += t2*u0;
+        tu11 += t1*u1;
+        tu02 += t0*u2;
+        tu30 += t3*u0;
+        tu21 += t2*u1;
+        tu12 += t1*u2;
+        tu03 += t0*u3;
+        j++;
+      }
+
+      tuv000 += tu00*v0;
+      tuv100 += tu10*v0;
+      tuv010 += tu01*v0;
+      tuv001 += tu00*v1;
+      tuv200 += tu20*v0;
+      tuv020 += tu02*v0;
+      tuv002 += tu00*v2;
+      tuv110 += tu11*v0;
+      tuv101 += tu10*v1;
+      tuv011 += tu01*v1;
+      tuv300 += tu30*v0;
+      tuv030 += tu03*v0;
+      tuv003 += tu00*v3;
+      tuv210 += tu21*v0;
+      tuv201 += tu20*v1;
+      tuv120 += tu12*v0;
+      tuv021 += tu02*v1;
+      tuv102 += tu10*v2;
+      tuv012 += tu01*v2;
+      tuv111 += tu11*v1;
+      k++;
+    }
+
+    numtyp buf[20];
+    buf[0] = tuv000;
+    buf[1] = tuv100;
+    buf[2] = tuv010;
+    buf[3] = tuv001;
+    buf[4] = tuv200;
+    buf[5] = tuv020;
+    buf[6] = tuv002;
+    buf[7] = tuv110;
+    buf[8] = tuv101;
+    buf[9] = tuv011;
+    buf[10] = tuv300;
+    buf[11] = tuv030;
+    buf[12] = tuv003;
+    buf[13] = tuv210;
+    buf[14] = tuv201;
+    buf[15] = tuv120;
+    buf[16] = tuv021;
+    buf[17] = tuv102;
+    buf[18] = tuv012;
+    buf[19] = tuv111;
+
+    int idx = ii;    
+    for (int m = 0; m < 20; m++) {
+      fphi[idx] = buf[m];
+      idx += inum;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    scan standard neighbor list and make it compatible with 1-5 neighbors
    if IJ entry is a 1-2,1-3,1-4 neighbor then adjust offset to SBBITS15
    else scan special15 to see if a 1-5 neighbor and adjust offset to SBBITS15

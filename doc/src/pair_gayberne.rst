@@ -129,7 +129,7 @@ that type. e.g. in a "pair_coeff I J" command.
 
 .. note::
 
-   If the :math:`\epsilon` a = b = c for an atom type, and if the shape
+   If the :math:`\epsilon_{a}` = :math:`\epsilon_{b}` = :math:`\epsilon_{c}` for an atom type, and if the shape
    of the particle itself is spherical, meaning its 3 shape parameters
    are all the same, then the particle is treated as an LJ sphere by the
    Gay-Berne potential.  This is significant because if two LJ spheres
@@ -137,7 +137,7 @@ that type. e.g. in a "pair_coeff I J" command.
    their interaction energy/force using the specified epsilon and sigma
    as the standard LJ parameters.  This is much cheaper to compute than
    the full Gay-Berne formula.  To treat the particle as a LJ sphere
-   with sigma = D, you should normally set :math:`\epsilon` a = b = c =
+   with sigma = D, you should normally set :math:`\epsilon_{a}` = :math:`\epsilon_{b}` = :math:`\epsilon_{c}` =
    1.0, set the pair_coeff :math:`\sigma = D`, and also set the 3 shape
    parameters for the particle to D.  The one exception is that if the 3
    shape parameters are set to 0.0, which is a valid way in LAMMPS to

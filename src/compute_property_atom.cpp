@@ -152,7 +152,6 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       pack_choice[i] = &ComputePropertyAtom::pack_spx;
     } else if (strcmp(arg[iarg],"spy") == 0) {
-        // error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       if (!atom->sp_flag)
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       pack_choice[i] = &ComputePropertyAtom::pack_spy;

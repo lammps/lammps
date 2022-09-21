@@ -210,7 +210,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i1];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        if (j >> SBBITS & 3 != 0) continue;                  // Skip bonded pairs
+        if (((j >> SBBITS) & 3) != 0) continue;              // Skip bonded pairs
         if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);   // Add 1-2 special bond bits
       }
     }
@@ -220,7 +220,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i2];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        if (j >> SBBITS & 3 != 0) continue;                  // Skip bonded pairs
+        if (((j >> SBBITS) & 3) != 0) continue;              // Skip bonded pairs
         if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);   // Add 1-2 special bond bits
       }
     }

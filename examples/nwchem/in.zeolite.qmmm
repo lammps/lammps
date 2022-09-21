@@ -13,22 +13,23 @@ group           qm type 3 4
 
 # pair style must define stand-alone short-range Coulombics
 # must specify mixing explicitly b/c hybrid/overlay
-# arithmetic mixing for now
+# MM Si,O = types 1,2
+# QM C,H = types 3,4
+# MM Si,O atoms do not LJ interact with each other (just via Buckingham)
+# QM C,H atoms do not LJ interact with each other
+# MM Si,O and QM C,H do LJ interact with each other
 
 pair_style      hybrid/overlay buck 6.5 lj/cut 6.5 coul/cut 6.5
 
 pair_coeff      1 1 buck 3150.462646 0.35032282 626.7519553
 pair_coeff      2 2 buck 659.595398 0.38609055 26.836679
 pair_coeff      1 2 buck 27029.419922 0.19385082 148.099091
-pair_coeff      1 2 buck 27029.419922 0.19385082 148.099091
 pair_coeff      1 3 lj/cut 0.009087 3.613
 pair_coeff      1 4 lj/cut 0.00344258 3.238
 pair_coeff      2 3 lj/cut 0.01419429 3.1
-pair_coeff      2 4 lj/cut 0.00537724 2.725
+pair_coeff      2 4 lj/cut 0.0035857762359063315 1.932779  # same as water dimer
 pair_coeff      3 3 lj/cut 0.0 3.4
 pair_coeff      4 4 lj/cut 0.0 2.65
-#pair_coeff      3 3 lj/cut 0.004746 3.4        # this should be zero eps
-#pair_coeff      4 4 lj/cut 0.00068111 2.65     # ditto - just enable MM interact
 pair_coeff      * * coul/cut
 
 bond_style      harmonic
@@ -41,7 +42,7 @@ angle_coeff     1 0.172325 109.5
 
 delete_bonds    qm multi remove special
 
-#velocity        all create 300.0 458732
+velocity        all create 300.0 458732
 
 neighbor	1.0 bin
 neigh_modify	delay 0 every 1 check yes
@@ -66,11 +67,11 @@ dump_modify     1 sort id format float "%20.16g"
 
 # small timestep for QMMM
 
-timestep        0.1
+timestep        0.0001
 
 thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
                 f_2 pe etotal press
 
 thermo          1
 
-run		3
+run		20

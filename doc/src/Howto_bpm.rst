@@ -58,11 +58,11 @@ velocity damping as its sister bond style.
 
 ----------
 
-Bond data can be output using a combination of standard LAMMPS comamnds.
+Bond data can be output using a combination of standard LAMMPS commands.
 A list of IDs for bonded atoms can be generated using the
 :doc:`compute property/local <compute_property_local>` command.
 Various properties of bonds can be computed using the
-:doc:`compute property/bond <compute_property_bond>` command. This
+:doc:`compute bond/local <compute_bond_local>` command. This
 command allows one to access data saved to the bond's history
 such as the reference length of the bond. More information on
 bond history data can be found on the documentation pages for the specific

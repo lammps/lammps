@@ -279,8 +279,7 @@ double BondBPM::equilibrium_distance(int /*i*/)
       }
     } else {
       int type, j;
-      double delx, dely, delz, r;
-      double **x = atom->x;
+      double r;
       for (int i = 0; i < atom->nlocal; i++) {
         for (int m = 0; m < atom->num_bond[i]; m++) {
           type = atom->bond_type[i][m];

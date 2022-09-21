@@ -40,6 +40,7 @@
 #include "pointers.h"
 #include "text_file_reader.h"
 #include "variable.h"
+
 #include <cassert>
 #include <numeric>
 
@@ -68,10 +69,10 @@ static const char cite_fix_electrode[] =
 //     0        1      2              3    4
 // fix fxupdate group1 electrode/conp pot1 eta couple group2 pot2
 FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), elec_vector(nullptr), elyt_vector(nullptr),
-    capacitance(nullptr), elastance(nullptr), pair(nullptr),
-    mat_neighlist(nullptr), vec_neighlist(nullptr), recvcounts(nullptr), displs(nullptr),
-    iele_gathered(nullptr), buf_gathered(nullptr), potential_i(nullptr), potential_iele(nullptr)
+    Fix(lmp, narg, arg), elyt_vector(nullptr), elec_vector(nullptr), capacitance(nullptr),
+    elastance(nullptr), pair(nullptr), mat_neighlist(nullptr), vec_neighlist(nullptr),
+    recvcounts(nullptr), displs(nullptr), iele_gathered(nullptr), buf_gathered(nullptr),
+    potential_i(nullptr), potential_iele(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_electrode);
   // fix.h output flags
@@ -490,6 +491,17 @@ void FixElectrodeConp::setup_post_neighbor()
   };
 
   if (matrix_algo) {
+
+    sd_vectors = std::vector<std::vector<double>>(num_of_groups, std::vector<double>(ngroup));
+    sb_charges = std::vector<double>(num_of_groups);
+    iele_to_group = std::vector<int>(ngroup, -1);
+    for (int i = 0; i < nlocal; i++) {
+      for (int g = 0; g < num_of_groups; g++) {
+        if (mask[i] & group_bits[g]) { iele_to_group[tag_to_iele[tag[i]]] = g; }
+      }
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &iele_to_group.front(), ngroup, MPI_INT, MPI_MAX, world);
+
     memory->create(elastance, ngroup, ngroup, "fix_electrode:matrix");
     if (read_mat)
       read_from_file(input_file_mat, elastance, "elastance");
@@ -499,7 +511,7 @@ void FixElectrodeConp::setup_post_neighbor()
       array_compute->setup(tag_to_iele, pair, mat_neighlist);
       if (tfflag) { array_compute->setup_tf(tf_types); }
       array_compute->compute_array(elastance, timer_flag);
-    } // write_mat before proceeding
+    }    // write_mat before proceeding
     if (comm->me == 0 && write_mat) {
       auto f_mat = fopen(output_file_mat.c_str(), "w");
       if (f_mat == nullptr)
@@ -514,8 +526,9 @@ void FixElectrodeConp::setup_post_neighbor()
       elastance = nullptr;
       if (read_inv)
         read_from_file(input_file_inv, capacitance, "capacitance");
-      else invert();
-      if (symm) symmetrize(); // TODO: is this safe with read_inv?
+      else
+        invert();
+      if (symm) symmetrize();    // TODO: is this safe with read_inv?
       // build sd vectors and macro matrices
       MPI_Barrier(world);
       double start = MPI_Wtime();
@@ -554,7 +567,7 @@ void FixElectrodeConp::setup_post_neighbor()
   }
 
   if (write_inv) {
-      if (comm->me == 0) {
+    if (comm->me == 0) {
       auto f_inv = fopen(output_file_inv.c_str(), "w");
       if (f_inv == nullptr)
         error->one(FLERR,

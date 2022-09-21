@@ -111,6 +111,26 @@ double SubModel::mix_stiffnessG(double E1, double E2,
 }
 
 /* ----------------------------------------------------------------------
+   mixing of Young's modulus (E) for walls
+------------------------------------------------------------------------- */
+
+double SubModel::mix_stiffnessE_wall(double E, double pois)
+{
+  double factor = 2 * (1 - pois);
+  return E / factor;
+}
+
+/* ----------------------------------------------------------------------
+   mixing of shear modulus (G) for walls
+------------------------------------------------------------------------ */
+
+double SubModel::mix_stiffnessG_wall(double E, double pois)
+{
+  double factor = 32.0 * (2 - pois) * (1 + pois);
+  return E / factor;
+}
+
+/* ----------------------------------------------------------------------
    mixing of everything else
 ------------------------------------------------------------------------- */
 

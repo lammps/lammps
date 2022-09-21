@@ -95,8 +95,8 @@ TwistingSDS::TwistingSDS(LAMMPS *lmp) : TwistingModel(lmp)
 void TwistingSDS::coeffs_to_local()
 {
   k = coeffs[0];
-  mu = coeffs[1];
-  damp = coeffs[2];
+  damp = coeffs[1];
+  mu = coeffs[2];
 
   if (k < 0.0 || mu < 0.0 || damp < 0.0)
     error->all(FLERR, "Illegal SDS twisting model");

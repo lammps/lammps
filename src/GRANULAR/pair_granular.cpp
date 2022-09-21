@@ -196,6 +196,8 @@ void PairGranular::compute(int eflag, int vflag)
       jtype = type[j];
 
       // Reset model and copy initial geometric data
+      models[itype][jtype]->i = i;
+      models[itype][jtype]->j = j;
       models[itype][jtype]->xi = x[i];
       models[itype][jtype]->xj = x[j];
       models[itype][jtype]->radi = radius[i];
@@ -214,9 +216,9 @@ void PairGranular::compute(int eflag, int vflag)
         continue;
       }
 
-      if (use_history) {
+      // if any history is needed
+      if (use_history || models[itype][jtype]->beyond_contact) {
         touch[jj] = 1;
-        history = &allhistory[size_history*jj];
       }
 
       // meff = effective mass of pair of particles
@@ -239,18 +241,16 @@ void PairGranular::compute(int eflag, int vflag)
       models[itype][jtype]->omegai = omega[i];
       models[itype][jtype]->omegaj = omega[j];
       models[itype][jtype]->history_update = history_update;
-      if (use_history) models[itype][jtype]->history = history;
+      if (use_history) {
+        history = &allhistory[size_history*jj];
+        models[itype][jtype]->history = history;
+      }
+;
       if (heat_flag) {
         models[itype][jtype]->Ti = temperature[i];
         models[itype][jtype]->Tj = temperature[j];
       }
       models[itype][jtype]->prep_contact();
-
-      // if any history is needed
-      if (use_history) {
-        touch[jj] = 1;
-        history = &allhistory[size_history*jj];
-      }
 
       models[itype][jtype]->calculate_forces();
 
@@ -455,6 +455,7 @@ void PairGranular::init_style()
 
   for (auto &model : vec_models) {
     model.init();
+    if (model.beyond_contact) beyond_contact = 1;
     if (model.size_history != 0) use_history = 1;
 
     for (i = 0; i < NSUBMODELS; i++)
@@ -742,6 +743,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double *radius = atom->radius;
 
   // Reset model and copy initial geometric data
+  models[itype][jtype]->i = i;
+  models[itype][jtype]->j = j;
   models[itype][jtype]->xi = x[i];
   models[itype][jtype]->xj = x[j];
   models[itype][jtype]->radi = radius[i];

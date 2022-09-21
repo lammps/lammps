@@ -109,7 +109,7 @@ class NormalJKR : public NormalModel {
   void set_fncrit() override;
  protected:
   double k, cohesion;
-  double Escaled, F_pulloff;
+  double Emix, F_pulloff;
 };
 
 }    // namespace Contact

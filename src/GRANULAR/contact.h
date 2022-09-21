@@ -87,6 +87,7 @@ class ContactModel : protected Pointers {
   double radi, radj, meff, dt, Ti, Tj, area;
   double Fntot, magtortwist;
 
+  int i, j;
   double *xi, *xj, *vi, *vj, *omegai, *omegaj;
   double fs[3], fr[3], ft[3];
 

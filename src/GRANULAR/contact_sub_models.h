@@ -51,6 +51,8 @@ class SubModel : protected Pointers {
 
   double mix_stiffnessE(double, double, double, double);
   double mix_stiffnessG(double, double, double, double);
+  double mix_stiffnessE_wall(double, double);
+  double mix_stiffnessG_wall(double, double);
   double mix_geom(double, double);
 };
 

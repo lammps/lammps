@@ -225,7 +225,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     for (int ic = 0; ic < nc; ic++) {
 
       // Reset model and copy initial geometric data
-      // A bit unncessary since region->contact[ic] stores r
+      model->i = i;
       model->dx[0] = region->contact[ic].delx;
       model->dx[1] = region->contact[ic].dely;
       model->dx[2] = region->contact[ic].delz;

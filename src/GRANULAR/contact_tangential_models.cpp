@@ -73,7 +73,6 @@ void TangentialLinearNoHistory::calculate_forces()
   else Ft = 0.0;
 
   scale3(-Ft, contact->vtr, contact->fs);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -115,7 +114,7 @@ void TangentialLinearHistory::calculate_forces()
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
   if (contact->history_update) {
     rsht = dot3(history, contact->nx);
-    frame_update = fabs(rsht) * k > EPSILON * Fscrit;
+    frame_update = (fabs(rsht) * k) > (EPSILON * Fscrit);
 
     if (frame_update) {
       shrmag = len3(history);
@@ -137,6 +136,7 @@ void TangentialLinearHistory::calculate_forces()
     add3(history, temp_array, history);
   }
 
+
   // tangential forces = history + tangential velocity damping
   scale3(-k, history, contact->fs);
   scale3(damp, contact->vtr, temp_array);
@@ -148,14 +148,11 @@ void TangentialLinearHistory::calculate_forces()
     shrmag = len3(history);
     if (shrmag != 0.0) {
       magfs_inv = 1.0 / magfs;
-      temp_dbl = Fscrit * magfs_inv;
-      scale3(temp_dbl, contact->fs, history);
+      scale3(Fscrit * magfs_inv, contact->fs, history);
       scale3(damp, contact->vtr, temp_array);
       add3(history, temp_array, history);
-      temp_dbl = -1.0 / k;
-      scale3(temp_dbl, history);
-      temp_dbl = Fscrit * magfs_inv;
-      scale3(temp_dbl, contact->fs);
+      scale3(-1.0 / k, history);
+      scale3(Fscrit * magfs_inv, contact->fs);
     } else {
       zero3(contact->fs);
     }
@@ -212,15 +209,13 @@ void TangentialLinearHistoryClassic::calculate_forces()
   if (magfs > Fscrit) {
     if (shrmag != 0.0) {
       magfs_inv = 1.0 / magfs;
-      temp_dbl = Fscrit * magfs_inv;
-      scale3(temp_dbl, contact->fs, history);
+      scale3(Fscrit * magfs_inv, contact->fs, history);
       scale3(damp, contact->vtr, temp_array);
       add3(history, temp_array, history);
       temp_dbl = -1.0 / k_scaled;
       if (scale_area) temp_dbl /= contact->area;
       scale3(temp_dbl, history);
-      temp_dbl = Fscrit * magfs_inv;
-      scale3(temp_dbl, contact->fs);
+      scale3(Fscrit * magfs_inv, contact->fs);
     } else {
       zero3(contact->fs);
     }
@@ -259,7 +254,15 @@ void TangentialMindlin::coeffs_to_local()
   if (k == -1) {
     if (!contact->normal_model->material_properties)
       error->all(FLERR, "Must either specify tangential stiffness or material properties for normal model for the Mindlin tangential style");
-    k = 8.0 * mix_stiffnessG(contact->normal_model->Emod, contact->normal_model->Emod, contact->normal_model->poiss, contact->normal_model->poiss);
+
+    double Emod = contact->normal_model->Emod;
+    double poiss = contact->normal_model->poiss;
+
+    if (contact->contact_type == PAIR) {
+      k = 8.0 * mix_stiffnessG(Emod, Emod, poiss, poiss);
+    } else {
+      k = 8.0 * mix_stiffnessG_wall(Emod, poiss);
+    }
   }
 
   if (k < 0.0 || xt < 0.0 || mu < 0.0)
@@ -291,22 +294,21 @@ void TangentialMindlin::calculate_forces()
   double Fscrit = contact->normal_model->Fncrit * mu;
 
   k_scaled = k * contact->area;
-  if (mindlin_rescale) {
-    // on unloading, rescale the shear displacements/force
-    if (contact->area < history[3]) {
-      temp_dbl = contact->area / history[3];
-      scale3(temp_dbl, history);
-    }
-  }
+
+  // on unloading, rescale the shear displacements/force
+  if (mindlin_rescale)
+    if (contact->area < history[3])
+      scale3(contact->area / history[3], history);
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
   if (contact->history_update) {
     rsht = dot3(history, contact->nx);
-    if (mindlin_force)
-      frame_update = fabs(rsht) > EPSILON * Fscrit;
-    else
-      frame_update = fabs(rsht) * k_scaled > EPSILON * Fscrit;
+    if (mindlin_force) {
+      frame_update = fabs(rsht) > (EPSILON * Fscrit);
+    } else {
+      frame_update = (fabs(rsht) * k_scaled) > (EPSILON * Fscrit);
+    }
 
     if (frame_update) {
       shrmag = len3(history);
@@ -324,8 +326,7 @@ void TangentialMindlin::calculate_forces()
     if (mindlin_force) {
       // tangential force
       // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
-      temp_dbl = -k_scaled * contact->dt;
-      scale3(temp_dbl, contact->vtr, temp_array);
+      scale3(-k_scaled * contact->dt, contact->vtr, temp_array);
     } else {
       scale3(contact->dt, contact->vtr, temp_array);
     }
@@ -340,6 +341,8 @@ void TangentialMindlin::calculate_forces()
   if (!mindlin_force) {
     scale3(k_scaled, history, temp_array);
     sub3(contact->fs, temp_array, contact->fs);
+  } else {
+    add3(contact->fs, history, contact->fs);
   }
 
   // rescale frictional displacements and forces if needed
@@ -348,16 +351,14 @@ void TangentialMindlin::calculate_forces()
     shrmag = len3(history);
     if (shrmag != 0.0) {
       magfs_inv = 1.0 / magfs;
-      temp_dbl = Fscrit * magfs_inv;
-      scale3(temp_dbl, contact->fs, history);
+      scale3(Fscrit * magfs_inv, contact->fs, history);
       scale3(damp, contact->vtr, temp_array);
       add3(history, temp_array, history);
-      if (!mindlin_force) {
-        temp_dbl = -1.0 / k_scaled;
-        scale3(temp_dbl, history);
-      }
-      temp_dbl = Fscrit * magfs_inv;
-      scale3(temp_dbl, contact->fs);
+
+      if (!mindlin_force)
+        scale3(-1.0 / k_scaled, history);
+
+      scale3(Fscrit * magfs_inv, contact->fs);
     } else {
       zero3(contact->fs);
     }

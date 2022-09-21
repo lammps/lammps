@@ -414,7 +414,7 @@ void ContactModel::calculate_forces()
   // calculate forces/torques
 
   forces[0] = 0.0;
-  double Fne, Fdamp;
+  double Fne, Fdamp, dist_to_contact;
   area = normal_model->calculate_area();
   normal_model->set_knfac();
   Fne = normal_model->calculate_forces();
@@ -435,18 +435,18 @@ void ContactModel::calculate_forces()
 
   //May need to rethink eventually tris..
   cross3(nx, fs, torquesi);
+  scale3(-1, torquesi);
+  if (contact_type == PAIR) copy3(torquesi, torquesj);
 
-  double dist_to_contact;
   if (!classic_model) {
-    dist_to_contact = radi - 0.5 * delta;
-    scale3(dist_to_contact, torquesi);
-  }
-
-  if (contact_type == PAIR) {
-    copy3(torquesi, torquesj);
-    if (!classic_model) {
+    if (contact_type == PAIR) {
+      dist_to_contact = radi - 0.5 * delta;
+      scale3(dist_to_contact, torquesi);
       dist_to_contact = radj - 0.5 * delta;
       scale3(dist_to_contact, torquesj);
+    } else {
+      dist_to_contact = radi;
+      scale3(dist_to_contact, torquesi);
     }
   }
 

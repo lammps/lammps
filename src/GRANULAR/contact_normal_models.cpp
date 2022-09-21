@@ -165,7 +165,11 @@ void NormalHertzMaterial::coeffs_to_local()
   Emod = coeffs[0];
   damp = coeffs[1];
   poiss = coeffs[2];
-  k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+  if (contact->contact_type == PAIR) {
+    k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+  } else {
+    k = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+  }
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hertz material normal model");
 }
@@ -199,7 +203,11 @@ void NormalDMT::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   cohesion = coeffs[3];
-  k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+  if (contact->contact_type == PAIR) {
+    k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+  } else {
+    k = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+  }
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal DMT normal model");
 }
@@ -259,8 +267,14 @@ void NormalJKR::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   cohesion = coeffs[3];
-  k = FOURTHIRDS * Emod;
-  Escaled = mix_stiffnessE(Emod, Emod, poiss, poiss);
+
+  if (contact->contact_type == PAIR) {
+    Emix = mix_stiffnessE(Emod, Emod, poiss, poiss);
+  } else {
+    Emix = mix_stiffnessE_wall(Emod, poiss);
+  }
+
+  k = FOURTHIRDS * Emix;
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal JKR normal model");
 }
@@ -285,8 +299,8 @@ bool NormalJKR::touch()
 
   if (contact->touch) {
     R2 = contact->Reff * contact->Reff;
-    area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * R2 / (4.0 * Escaled));
-    delta_pulloff = area_at_pulloff * area_at_pulloff / contact->Reff - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff /Escaled);
+    area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * R2 / (4.0 * Emix));
+    delta_pulloff = area_at_pulloff * area_at_pulloff / contact->Reff - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff / Emix);
     dist_pulloff = contact->radsum - delta_pulloff;
     touchflag = contact->rsq < (dist_pulloff * dist_pulloff);
   } else {
@@ -307,8 +321,8 @@ double NormalJKR::pulloff_distance(double radi, double radj)
   Reff_tmp = radi * radj / (radi + radj); // May not be defined
   if (Reff_tmp <= 0) return 0;
 
-  area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * Reff_tmp * Reff_tmp / (4.0 * Escaled));
-  return area_at_pulloff * area_at_pulloff / Reff_tmp - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff / Escaled);
+  area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * Reff_tmp * Reff_tmp / (4.0 * Emix));
+  return area_at_pulloff * area_at_pulloff / Reff_tmp - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff / Emix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -320,18 +334,18 @@ double NormalJKR::calculate_area()
 
   R2 = contact->Reff * contact->Reff;
   dR2 = contact->dR * contact->dR;
-  t0 = cohesion * cohesion * R2 * R2 * Escaled;
+  t0 = cohesion * cohesion * R2 * R2 * Emix;
   t1 = PI27SQ * t0;
-  t2 = 8.0 * contact->dR * dR2 * Escaled * Escaled * Escaled;
-  t3 = 4.0 * dR2 * Escaled;
+  t2 = 8.0 * contact->dR * dR2 * Emix * Emix * Emix;
+  t3 = 4.0 * dR2 * Emix;
 
   // in case sqrt(0) < 0 due to precision issues
   sqrt1 = MAX(0, t0 * (t1 + 2.0 * t2));
   t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
-  t5 = t3 / t4 + t4 / Escaled;
+  t5 = t3 / t4 + t4 / Emix;
   sqrt2 = MAX(0, 2.0 * contact->dR + t5);
   t6 = sqrt(sqrt2);
-  sqrt3 = MAX(0, 4.0 * contact->dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Escaled * t6));
+  sqrt3 = MAX(0, 4.0 * contact->dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Emix * t6));
 
   return INVROOT6 * (t6 + sqrt(sqrt3));
 }
@@ -341,9 +355,8 @@ double NormalJKR::calculate_area()
 double NormalJKR::calculate_forces()
 {
   double a2;
-
   a2 = contact->area * contact->area;
-  Fne = Escaled * contact->area * a2 / contact->Reff - MY_2PI * a2 * sqrt(4.0 * cohesion * Escaled / (MY_PI * contact->area));
+  Fne = knfac * a2 / contact->Reff - MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * contact->area));
   F_pulloff = 3.0 * MY_PI * cohesion * contact->Reff;
 
   return Fne;
@@ -353,7 +366,7 @@ double NormalJKR::calculate_forces()
 
 void NormalJKR::set_knfac()
 {
-  knfac = Escaled * contact->area;
+  knfac = k * contact->area;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -50,8 +50,8 @@ RollingSDS::RollingSDS(LAMMPS *lmp) : RollingModel(lmp)
 void RollingSDS::coeffs_to_local()
 {
   k = coeffs[0];
-  mu = coeffs[1];
-  gamma = coeffs[2];
+  gamma = coeffs[1];
+  mu = coeffs[2];
 
   if (k < 0.0 || mu < 0.0 || gamma < 0.0)
     error->all(FLERR, "Illegal SDS rolling model");
@@ -62,7 +62,8 @@ void RollingSDS::coeffs_to_local()
 void RollingSDS::calculate_forces()
 {
   int rhist0, rhist1, rhist2, frameupdate;
-  double Frcrit, rolldotn, rollmag, prjmag, magfr, hist_temp[3], temp_dbl, temp_array[3];
+  double Frcrit, rolldotn, rollmag, prjmag, magfr, hist_temp[3], scalefac, temp_array[3];
+  double k_inv, magfr_inv;
 
   rhist0 = history_index;
   rhist1 = rhist0 + 1;
@@ -76,49 +77,45 @@ void RollingSDS::calculate_forces()
     hist_temp[2] = contact->history[rhist2];
     rolldotn = dot3(hist_temp, contact->nx);
 
-    frameupdate = fabs(rolldotn) * k  > EPSILON * Frcrit;
+    frameupdate = (fabs(rolldotn) * k)  > (EPSILON * Frcrit);
     if (frameupdate) { // rotate into tangential plane
       rollmag = len3(hist_temp);
       // projection
-      temp_dbl = -rolldotn;
-      scale3(temp_dbl, contact->nx, temp_array);
+      scale3(rolldotn, contact->nx, temp_array);
       sub3(hist_temp, temp_array, hist_temp);
 
       // also rescale to preserve magnitude
       prjmag = len3(hist_temp);
-      if (prjmag > 0) temp_dbl = rollmag / prjmag;
-      else temp_dbl = 0;
-      scale3(temp_dbl, hist_temp);
+      if (prjmag > 0) scalefac = rollmag / prjmag;
+      else scalefac = 0;
+      scale3(scalefac, hist_temp);
     }
     scale3(contact->dt, contact->vrl, temp_array);
     add3(hist_temp, temp_array, hist_temp);
   }
 
-  scaleadd3(k, hist_temp, gamma, contact->vrl, contact->fr);
-  negate3(contact->fr);
+  scaleadd3(-k, hist_temp, -gamma, contact->vrl, contact->fr);
 
   // rescale frictional displacements and forces if needed
-
   magfr = len3(contact->fr);
   if (magfr > Frcrit) {
     rollmag = len3(hist_temp);
     if (rollmag != 0.0) {
-      temp_dbl = -Frcrit / (magfr * k);
-      scale3(temp_dbl, contact->fr, temp_array);
+      k_inv = 1.0 / k;
+      magfr_inv = 1.0 / magfr;
+      scale3(-Frcrit * k_inv * magfr_inv, contact->fr, hist_temp);
+      scale3(-gamma * k_inv, contact->vrl, temp_array);
       add3(hist_temp, temp_array, hist_temp);
 
-      temp_dbl = -gamma/k;
-      scale3(temp_dbl, contact->vrl, temp_array);
-      add3(hist_temp, temp_array, hist_temp);
-
-      temp_dbl = Frcrit / magfr;
-      scale3(temp_dbl, contact->fr);
+      scale3(Frcrit * magfr_inv, contact->fr);
     } else {
       zero3(contact->fr);
     }
   }
 
-  contact->history[rhist0] = hist_temp[0];
-  contact->history[rhist1] = hist_temp[1];
-  contact->history[rhist2] = hist_temp[2];
+  if (contact->history_update) {
+    contact->history[rhist0] = hist_temp[0];
+    contact->history[rhist1] = hist_temp[1];
+    contact->history[rhist2] = hist_temp[2];
+  }
 }

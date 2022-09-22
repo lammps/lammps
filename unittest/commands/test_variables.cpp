@@ -32,10 +32,8 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-using LAMMPS_NS::MathConst::MY_PI;
-using LAMMPS_NS::utils::split_words;
-
 namespace LAMMPS_NS {
+using MathConst::MY_PI;
 using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
@@ -198,8 +196,10 @@ TEST_F(VariableTest, CreateDelete)
 
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
     TEST_FAILURE(".*ERROR: Illegal variable index command.*", command("variable dummy index"););
-    TEST_FAILURE(".*ERROR: Illegal variable delete command: expected 2 arguments but found 3.*", command("variable dummy delete xxx"););
-    TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*", command("variable dummy loop -1"););
+    TEST_FAILURE(".*ERROR: Illegal variable delete command: expected 2 arguments but found 3.*",
+                 command("variable dummy delete xxx"););
+    TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*",
+                 command("variable dummy loop -1"););
     TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
     TEST_FAILURE(".*ERROR: Unknown variable keyword: xxx.*", command("variable dummy xxxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -404,8 +404,9 @@ TEST_F(VariableTest, Functions)
                  command("print \"$(extract_setting()\""););
     TEST_FAILURE(".*ERROR: Invalid extract_setting.. function syntax in variable formula.*",
                  command("print \"$(extract_setting(one,two))\""););
-    TEST_FAILURE(".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
-                 command("print \"$(extract_setting(nprocs))\""););
+    TEST_FAILURE(
+        ".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
+        command("print \"$(extract_setting(nprocs))\""););
 }
 
 TEST_F(VariableTest, IfCommand)
@@ -578,6 +579,65 @@ TEST_F(VariableTest, NextCommand)
     TEST_FAILURE(".*ERROR: All variables in next command must have same style.*",
                  command("next five four"););
 }
+
+TEST_F(VariableTest, Label2TypeAtomic)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box");
+    command("labelmap atom 2 N1");
+    command("labelmap atom 3 O1 4 H1");
+    command("variable t1 equal label2type(atom,C1)");
+    command("variable t2 equal label2type(atom,N1)");
+    command("variable t3 equal label2type(atom,O1)");
+    command("variable t4 equal label2type(atom,H1)");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(variable->retrieve("t2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("t3"), StrEq("3"));
+    ASSERT_THAT(variable->retrieve("t4"), StrEq("4"));
+    ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,N1)"), 2.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,O1)"), 3.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,H1)"), 4.0);
+
+    TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in variable formula.*",
+                 command("print \"${t1}\""););
+    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in variable formula.*",
+                 variable->compute_equal("label2type(bond,H1)"););
+}
+
+TEST_F(VariableTest, Label2TypeMolecular)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 2 box bond/types 3 angle/types 2 dihedral/types 1 improper/types 1");
+    command("labelmap atom 1 C1");
+    command("labelmap atom 2 \"N2'\"");
+    command("labelmap bond 1 C1-N2 2 [C1][C1] 3 N2=N2");
+    command("labelmap angle 1 C1-N2-C1 2 \"\"\" N2'-C1\"-N2' \"\"\"");
+    command("labelmap dihedral 1 'C1-N2-C1-N2'");
+    command("labelmap improper 1 \"C1-N2-C1-N2\"");
+    command("variable t1 equal label2type(atom,C1)");
+    command("variable t2 equal \"label2type(atom,N2')\"");
+    command("variable b1 equal label2type(bond,C1-N2)");
+    command("variable b2 equal label2type(bond,[C1][C1])");
+    command("variable a1 equal label2type(angle,C1-N2-C1)");
+    command("variable a2 equal \"\"\"label2type(angle,N2'-C1\"-N2')\"\"\"");
+    command("variable d1 equal label2type(dihedral,C1-N2-C1-N2)");
+    command("variable i1 equal label2type(improper,C1-N2-C1-N2)");
+    END_HIDE_OUTPUT();
+
+    ASSERT_THAT(variable->retrieve("t1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("t2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("b1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("b2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("a1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("a2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("d1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("i1"), StrEq("1"));
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
@@ -585,12 +645,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

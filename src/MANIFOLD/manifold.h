@@ -83,7 +83,10 @@ namespace user_manifold {
     return largest;
   }
 
-  inline double dot(double *a, double *b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  inline double dot(double *a, double *b)
+  {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  }
 
 }    // namespace user_manifold
 

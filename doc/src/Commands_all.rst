@@ -61,6 +61,7 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`kspace_modify <kspace_modify>`
    * :doc:`kspace_style <kspace_style>`
    * :doc:`label <label>`
+   * :doc:`labelmap <labelmap>`
    * :doc:`lattice <lattice>`
    * :doc:`log <log>`
    * :doc:`mass <mass>`

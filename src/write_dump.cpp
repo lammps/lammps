@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 void WriteDump::command(int narg, char **arg)
 {
-  if (narg < 3) error->all(FLERR, "Illegal write_dump command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "write_dump", error);
 
   // modindex = index in args of "modify" keyword
   // will be narg if "modify" is not present
@@ -46,10 +46,10 @@ void WriteDump::command(int narg, char **arg)
   // create dump command line with extra required args
 
   auto dumpargs = new char *[modindex + 2];
-  dumpargs[0] = (char *) "WRITE_DUMP";    // dump id
-  dumpargs[1] = arg[0];                   // group
-  dumpargs[2] = arg[1];                   // dump style
-  dumpargs[3] = utils::strdup(std::to_string(MAX(update->ntimestep, 1)));   // dump frequency
+  dumpargs[0] = (char *) "WRITE_DUMP";                                       // dump id
+  dumpargs[1] = arg[0];                                                      // group
+  dumpargs[2] = arg[1];                                                      // dump style
+  dumpargs[3] = utils::strdup(std::to_string(MAX(update->ntimestep, 1)));    // dump frequency
 
   for (int i = 2; i < modindex; ++i) dumpargs[i + 2] = arg[i];
 

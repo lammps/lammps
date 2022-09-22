@@ -9,7 +9,7 @@ Accelerator Variants: *acks2/reaxff/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID acks2/reaxff Nevery cutlo cuthi tolerance params args
 
@@ -37,10 +37,10 @@ Examples
 Description
 """""""""""
 
-Perform the atom-condensed Kohn-Sham DFT to second order (ACKS2) charge
+Perform the atom-condensed Kohn--Sham DFT to second order (ACKS2) charge
 equilibration method as described in :ref:`(Verstraelen) <Verstraelen>`.
 ACKS2 impedes unphysical long-range charge transfer sometimes seen with
-QEq (e.g. for dissociation of molecules), at increased computational
+QEq (e.g., for dissociation of molecules), at increased computational
 cost.  It is typically used in conjunction with the ReaxFF force field
 model as implemented in the :doc:`pair_style reaxff <pair_reaxff>`
 command, but it can be used with any potential in LAMMPS, so long as it
@@ -71,7 +71,8 @@ potential in eV, *gamma*, the valence orbital exponent, and *bcut*, the
 bond cutoff distance.  Note that these 4 quantities are also in the
 ReaxFF potential file, except that eta is defined here as twice the eta
 value in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
-of this fix are hard-coded to be A, eV, and electronic charge.
+of this fix are hard-coded to be :math:`\mathrm{\mathring{A}}`, eV, and
+electronic charge.
 
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.
@@ -110,7 +111,7 @@ LAMMPS was built with that package. See the :doc:`Build package
 
 This fix does not correctly handle interactions involving multiple
 periodic images of the same atom.  Hence, it should not be used for
-periodic cell dimensions less than 10 angstroms.
+periodic cell dimensions less than :math:`10~\mathrm{\mathring{A}}`.
 
 This fix may be used in combination with :doc:`fix efield <fix_efield>`
 and will apply the external electric field during charge equilibration,
@@ -132,7 +133,7 @@ maxiter 200
 
 .. _O'Hearn:
 
-**(O'Hearn)** O'Hearn, Alperen, Aktulga, SIAM J. Sci. Comput., 42(1), C1-C22 (2020).
+**(O'Hearn)** O'Hearn, Alperen, Aktulga, SIAM J. Sci. Comput., 42(1), C1--C22 (2020).
 
 .. _Verstraelen:
 

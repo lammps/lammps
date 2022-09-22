@@ -24,6 +24,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "suffix.h"
 
 #include <cmath>
 
@@ -39,6 +40,7 @@ static constexpr double EPSILON = 1.0e-6;
 PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *_lmp) :
     PairLJCutCoulLongDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -229,10 +231,10 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
         if (EFLAG) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor * (etmp + eps[j]) * erfc;
+              ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
             else {
               table = etable[itable] + fraction * detable[itable];
-              ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
+              ecoul = qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
             }
             if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
           } else

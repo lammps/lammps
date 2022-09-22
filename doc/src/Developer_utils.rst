@@ -175,6 +175,12 @@ and parsing files or arguments.
 .. doxygenfunction:: is_double
    :project: progguide
 
+.. doxygenfunction:: is_id
+   :project: progguide
+
+.. doxygenfunction:: is_type
+   :project: progguide
+
 Potential file functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -206,6 +212,9 @@ Argument processing
    :project: progguide
 
 .. doxygenfunction:: parse_gridid
+   :project: progguide
+
+.. doxygenfunction:: expand_type
    :project: progguide
 
 Convenience functions

@@ -26,7 +26,9 @@
 #include <string>
 #include <vector>
 
-using namespace LAMMPS_NS;
+using LAMMPS_NS::Info;
+using LAMMPS_NS::LAMMPS;
+using LAMMPS_NS::LAMMPSException;
 
 using ::testing::ContainsRegex;
 
@@ -37,7 +39,7 @@ using ::testing::ContainsRegex;
         auto mesg = ::testing::internal::GetCapturedStdout();                                   \
         ASSERT_THAT(mesg, ContainsRegex(errmsg));                                               \
     } else {                                                                                    \
-        if (platform::mpi_vendor() != "Open MPI") {                                             \
+        if (LAMMPS_NS::platform::mpi_vendor() != "Open MPI") {                                             \
             ::testing::internal::CaptureStdout();                                               \
             ASSERT_DEATH({__VA_ARGS__}, "");                                                    \
             auto mesg = ::testing::internal::GetCapturedStdout();                               \
@@ -101,7 +103,7 @@ public:
 
     double get_variable_value(const std::string &name)
     {
-        char *str    = utils::strdup(fmt::format("v_{}", name));
+        char *str    = LAMMPS_NS::utils::strdup(fmt::format("v_{}", name));
         double value = lmp->input->variable->compute_equal(str);
         delete[] str;
         return value;
@@ -122,9 +124,9 @@ protected:
     {
         int argc    = args.size() + 1;
         char **argv = new char *[argc];
-        argv[0]     = utils::strdup(testbinary);
+        argv[0]     = LAMMPS_NS::utils::strdup(testbinary);
         for (int i = 1; i < argc; i++) {
-            argv[i] = utils::strdup(args[i - 1]);
+            argv[i] = LAMMPS_NS::utils::strdup(args[i - 1]);
         }
 
         HIDE_OUTPUT([&] {

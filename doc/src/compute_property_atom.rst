@@ -31,7 +31,7 @@ Syntax
                              corner2x, corner2y, corner2z,
                              corner3x, corner3y, corner3z,
                              i_name, d_name, i2_name[I], d2_name[I],
-                             vfrac, s0, spin, eradius, ervel, erforce,
+                             vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
 
   .. parsed-literal::
@@ -76,7 +76,7 @@ Syntax
   .. parsed-literal::
 
            EFF and AWPMD package per-atom properties:
-           spin = electron spin
+           espin = electron spin
            eradius = electron radius
            ervel = electron radial velocity
            erforce = electron radial force
@@ -167,6 +167,10 @@ triangular particles and define the corner points of each triangle.
 In addition, the various per-atom quantities listed above for specific
 packages are only accessible by this command.
 
+.. versionchanged:: TBD
+
+  The *espin* property was previously called *spin*.
+
 Output info
 """""""""""
 
@@ -194,8 +198,8 @@ Related commands
 """"""""""""""""
 
 :doc:`dump custom <dump>`, :doc:`compute reduce <compute_reduce>`,
-:doc::doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk
-:doc:<fix_ave_chunk>`, `fix property/atom <fix_property_atom>`
+:doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
+:doc:`fix property/atom <fix_property_atom>`
 
 Default
 """""""

@@ -38,7 +38,7 @@ FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   idchunk(nullptr), idcom(nullptr), com0(nullptr), fcom(nullptr)
 {
-  if (narg != 6) error->all(FLERR,"Illegal fix spring/chunk command");
+  if (narg != 6) utils::missing_cmd_args(FLERR, "fix spring/chunk", error);
 
   restart_global = 1;
   scalar_flag = 1;
@@ -66,15 +66,14 @@ FixSpringChunk::~FixSpringChunk()
 
   // decrement lock counter in compute chunk/atom, it if still exists
 
-  int icompute = modify->find_compute(idchunk);
-  if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (cchunk) {
     cchunk->unlock(this);
     cchunk->lockcount--;
   }
 
-  delete [] idchunk;
-  delete [] idcom;
+  delete[] idchunk;
+  delete[] idcom;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,27 +93,22 @@ void FixSpringChunk::init()
 {
   // current indices for idchunk and idcom
 
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for fix spring/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
-  if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Fix spring/chunk does not use chunk/atom compute");
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (!cchunk)
+    error->all(FLERR,"Chunk/atom compute {} does not exist or is not chunk/atom style", idchunk);
 
-  icompute = modify->find_compute(idcom);
-  if (icompute < 0)
-    error->all(FLERR,"Com/chunk compute does not exist for fix spring/chunk");
-  ccom = dynamic_cast<ComputeCOMChunk *>( modify->compute[icompute]);
-  if (strcmp(ccom->style,"com/chunk") != 0)
-    error->all(FLERR,"Fix spring/chunk does not use com/chunk compute");
+  ccom = dynamic_cast<ComputeCOMChunk *>(modify->get_compute_by_id(idcom));
+  if (!ccom)
+    error->all(FLERR,"Com/chunk compute {} does not exist or is not com/chunk style", idcom);
 
   // check that idchunk is consistent with ccom->idchunk
 
-  if (strcmp(idchunk,ccom->idchunk) != 0)
-    error->all(FLERR,"Fix spring chunk chunkID not same as comID chunkID");
+  if (ccom && (strcmp(idchunk,ccom->idchunk) != 0))
+    error->all(FLERR,"Fix spring/chunk chunk ID {} not the same as compute com/chunk chunk ID {}",
+               idchunk, ccom->idchunk);
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -126,9 +120,9 @@ void FixSpringChunk::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -268,21 +262,18 @@ void FixSpringChunk::restart(char *buf)
   memory->destroy(com0);
   memory->destroy(fcom);
 
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for fix spring/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
-  if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Fix spring/chunk does not use chunk/atom compute");
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (!cchunk)
+    error->all(FLERR,"Chunk/atom compute {} does not exist or is not chunk/atom style", idchunk);
+
   nchunk = cchunk->setup_chunks();
   cchunk->compute_ichunk();
   memory->create(com0,nchunk,3,"spring/chunk:com0");
   memory->create(fcom,nchunk,3,"spring/chunk:fcom");
-  printf("restart chunks:%d  computed chunks: %d\n",n,nchunk);
 
   if (n != nchunk) {
     if (comm->me == 0)
-      error->warning(FLERR,"Number of chunks has changed. Cannot use restart");
+      error->warning(FLERR,"Number of chunks changed from {} to {}. Cannot use restart", n, nchunk);
     memory->destroy(com0);
     memory->destroy(fcom);
     nchunk = 1;

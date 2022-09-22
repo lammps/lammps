@@ -184,7 +184,7 @@ density (mass/volume).  See the :doc:`units <units>` command page for
 the definition of density for each choice of units, e.g. gram/cm\^3.
 
 The *temp* value means the temperature is computed for each grid cell,
-by the formula 
+by the formula
 
 .. math::
 
@@ -307,7 +307,7 @@ range of grid cells on a particular timestep.  If *discard* is set to
 *yes* (the default), then the atom will be assigned to the closest
 grid cell (lowest or highest) in that dimension.  If *discard* is set
 to *no* the atom will be ignored.
- 
+
 ----------
 
 The *norm* keyword is only applicable to per-atom mode.  In per-grid

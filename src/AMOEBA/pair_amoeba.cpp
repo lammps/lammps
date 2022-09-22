@@ -133,6 +133,14 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
   id_pole = id_udalt = id_upalt = nullptr;
 
+  memset(special_hal, 0 , sizeof(special_hal));
+  memset(special_repel, 0 , sizeof(special_repel));
+  memset(special_disp, 0 , sizeof(special_disp));
+  memset(special_mpole, 0 , sizeof(special_mpole));
+  memset(special_polar_pscale, 0 , sizeof(special_polar_pscale));
+  memset(special_polar_piscale, 0 , sizeof(special_polar_piscale));
+  memset(special_polar_wscale, 0 , sizeof(special_polar_wscale));
+
   nualt = 0;
   first_flag = 1;
   first_flag_compute = 1;

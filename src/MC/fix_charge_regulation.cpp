@@ -376,7 +376,7 @@ void FixChargeRegulation::forward_acid() {
 
   double energy_before = energy_stored;
   double factor;
-  double dummyp[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
   double pos[3] = {0.0, 0.0, 0.0}; // acid/base particle position
   double pos_all[3] = {0.0, 0.0, 0.0};
   int m1 = -1, m2 = -1;

@@ -41,6 +41,8 @@ class FixTTMGrid : public FixTTM {
   void unpack_forward_grid(int, void *, int, int *) override;
   void pack_reverse_grid(int, void *, int, int *) override;
   void unpack_reverse_grid(int, void *, int, int *) override;
+  void pack_remap_grid(int, void *, int, int *) override;
+  void unpack_remap_grid(int, void *, int, int *) override;
   void pack_gather_grid(int, void *) override;
   void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int) override;
 
@@ -64,6 +66,8 @@ class FixTTMGrid : public FixTTM {
   FILE *FPout;
 
   class Grid3d *grid;
+  class Grid3d *grid_previous;
+  double ***T_electron_previous;
   int ngrid_buf1, ngrid_buf2;
   double *grid_buf1, *grid_buf2;
 

@@ -1319,6 +1319,57 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
+   remap from old grid decomposition to this grid decomposition
+   pack/unpack operations are performed by caller via callbacks
+------------------------------------------------------------------------- */
+
+void Grid3d::remap_init(Grid3d *old, int &ngrid1_buf, int &ngrid_buf2)
+{
+
+  // perform remap
+
+
+  /*
+  // post all recvs into scratch space
+
+    for (irecv = 0; irecv < plan->nrecv; irecv++)
+      MPI_Irecv(&scratch[plan->recv_bufloc[irecv]],plan->recv_size[irecv],
+                MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
+                plan->comm,&plan->request[irecv]);
+
+    // send all messages to other procs
+
+    for (isend = 0; isend < plan->nsend; isend++) {
+      plan->pack(&in[plan->send_offset[isend]],
+                 plan->sendbuf,&plan->packplan[isend]);
+      MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
+               plan->send_proc[isend],0,plan->comm);
+    }
+
+    // copy in -> scratch -> out for self data
+
+    if (plan->self) {
+      isend = plan->nsend;
+      irecv = plan->nrecv;
+      plan->pack(&in[plan->send_offset[isend]],
+                 &scratch[plan->recv_bufloc[irecv]],
+                 &plan->packplan[isend]);
+      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
+                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
+    }
+
+    // unpack all messages from scratch -> out
+
+    for (i = 0; i < plan->nrecv; i++) {
+      MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
+      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
+                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
+    }
+
+  */
+}
+
+/* ----------------------------------------------------------------------
    gather global grid values to proc 0, one grid chunk at a time
    proc 0 pings each proc for its grid chunk
    pack/unpack operations are performed by caller via callbacks
@@ -1326,7 +1377,7 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 ------------------------------------------------------------------------- */
 
 void Grid3d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
-                      int which, void *buf, MPI_Datatype datatype)
+                    int which, void *buf, MPI_Datatype datatype)
 {
   int me = comm->me;
   Fix *fptr = (Fix *) ptr;

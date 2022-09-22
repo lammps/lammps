@@ -370,6 +370,44 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 void FixTTMGrid::reset_grid()
 {
   error->all(FLERR,"Fix ttm/grid does not support load balancing (yet)");
+
+  // delete grid data which doesn't need to persist from previous to new decomp
+
+  memory->destroy(grid_buf1);
+  memory->destroy(grid_buf2);
+  memory->destroy3d_offset(T_electron_old, nzlo_out, nylo_out, nxlo_out);
+  memory->destroy3d_offset(net_energy_transfer, nzlo_out, nylo_out, nxlo_out);
+
+  // make copy of ptrs to grid data which does need to persist
+
+  grid_previous = grid;
+  T_electron_previous = T_electron;
+
+  // allocate new per-grid data for new decomposition
+
+  allocate_grid();
+
+  // perform remap from previous decomp to new decomp
+
+  int nremap_buf1,nremap_buf2;
+  grid->remap_init(grid_previous,nremap_buf1,nremap_buf2);
+
+  double *remap_buf1,*remap_buf2;
+  memory->create(remap_buf1, nremap_buf1, "ttm/grid:remap_buf1");
+  memory->create(remap_buf2, nremap_buf2, "ttm/grid:remap_buf2");
+
+  grid->remap_perform(Grid3d::FIX,this,grid_previous);
+
+  memory->destroy(remap_buf1);
+  memory->destroy(remap_buf2);
+
+  // delete grid data and grid for previous decomposition
+  // NOTE: need to set offsets
+
+  int nxlo_out_prev,nylo_out_prev,nzlo_out_prev;
+  memory->destroy3d_offset(T_electron_previous, 
+                           nzlo_out_prev, nylo_out_prev, nxlo_out_prev);
+  delete grid_previous;
 }
 
 /* ----------------------------------------------------------------------
@@ -418,6 +456,30 @@ void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
   double *dest = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) dest[list[i]] += buf[i];
+}
+
+/* ----------------------------------------------------------------------
+   pack old grid  values to buf to send to another proc
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::pack_remap_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+{
+  auto buf = (double *) vbuf;
+  double *src = &T_electron_previous[nzlo_out][nylo_out][nxlo_out];
+
+  for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
+}
+
+/* ----------------------------------------------------------------------
+   unpack another proc's own values from buf and set own ghost values
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::unpack_remap_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+{
+  auto buf = (double *) vbuf;
+  double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
+
+  for (int i = 0; i < nlist; i++) dest[list[i]] = buf[i];
 }
 
 /* ----------------------------------------------------------------------

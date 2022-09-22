@@ -217,6 +217,8 @@ class Fix : protected Pointers {
   virtual void unpack_forward_grid(int, void *, int, int *){};
   virtual void pack_reverse_grid(int, void *, int, int *){};
   virtual void unpack_reverse_grid(int, void *, int, int *){};
+  virtual void pack_remap_grid(int, void *, int, int *){};
+  virtual void unpack_remap_grid(int, void *, int, int *){};
   virtual void pack_gather_grid(int, void *){};
   virtual void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int){};
 

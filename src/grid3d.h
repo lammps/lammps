@@ -37,6 +37,8 @@ class Grid3d : protected Pointers {
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
+  void remap_init(Grid3d *, int &, int &);
+  void remap_perform(int, void *, Grid3d *) {}
   void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
  protected:

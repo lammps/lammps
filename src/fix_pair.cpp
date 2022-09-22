@@ -120,7 +120,8 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
 
   // zero the vector/array since dump may access it on timestep 0
-  // zero the vector/array since a variable may access it before first run
+  // zero the vector/array since a variable may access it before first ru
+  // initialize lasttime so step 0 will trigger/extract
 
   int nlocal = atom->nlocal;
 
@@ -132,6 +133,8 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
       for (int m = 0; m < ncols; m++)
         array[i][m] = 0.0;
   }
+
+  lasttime = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,6 +191,13 @@ void FixPair::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixPair::min_setup(int vflag)
+{
+  setup(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPair::setup_pre_force(int vflag)
 {
   pre_force(vflag);
@@ -195,11 +205,13 @@ void FixPair::setup_pre_force(int vflag)
 
 /* ----------------------------------------------------------------------
    trigger pair style computation on steps which are multiples of Nevery
+   lasttime prevents mulitiple triggers by min linesearch on same iteration
 ------------------------------------------------------------------------- */
 
 void FixPair::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
+  if (update->ntimestep == lasttime) return;
 
   // set pair style triggers
 
@@ -215,12 +227,15 @@ void FixPair::min_pre_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   extract results from pair style
+   extract results from pair style on steps which are multiples of Nevery
+   lasttime prevents mulitiple extracts by min linesearch on same iteration
 ------------------------------------------------------------------------- */
 
 void FixPair::post_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
+  if (update->ntimestep == lasttime) return;
+  lasttime = update->ntimestep;
 
   // extract pair style fields one by one
   // store their values in this fix

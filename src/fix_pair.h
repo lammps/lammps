@@ -11,44 +11,49 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 // clang-format off
-ComputeStyle(bond/local,ComputeBondLocal);
+FixStyle(pair,FixPair);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_BOND_LOCAL_H
-#define LMP_COMPUTE_BOND_LOCAL_H
+#ifndef LMP_FIX_PAIR_H
+#define LMP_FIX_PAIR_H
 
-#include "compute.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeBondLocal : public Compute {
+class FixPair : public Fix {
  public:
-  ComputeBondLocal(class LAMMPS *, int, char **);
-  ~ComputeBondLocal() override;
+  FixPair(class LAMMPS *, int, char **);
+  ~FixPair() override;
+  int setmask() override;
   void init() override;
-  void compute_local() override;
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
+  void setup(int) override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
+  void min_pre_force(int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
   double memory_usage() override;
 
  private:
-  int nvalues, nvar, ncount, setflag;
+  int nevery,nfield,ncols;
+  char *pairname;
+  char **fieldname,**triggername;
+  int *trigger;
+  int **triggerptr;
 
-  int singleflag, velflag, ghostvelflag, initflag;
-  int dvar;
-  int *bstyle, *bindex, *vvar;
-  char *dstr;
-  char **vstr;
-
-  int nmax;
-  double *vlocal;
-  double **alocal;
-
-  int compute_bonds(int);
-  void reallocate(int);
+  class Pair *pstyle;
+  double *vector;
+  double **array;
 };
 
 }    // namespace LAMMPS_NS

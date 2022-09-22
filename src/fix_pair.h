@@ -31,6 +31,7 @@ class FixPair : public Fix {
   int setmask() override;
   void init() override;
   void setup(int) override;
+  void min_setup(int) override;
   void setup_pre_force(int) override;
   void pre_force(int) override;
   void min_pre_force(int) override;
@@ -48,6 +49,7 @@ class FixPair : public Fix {
 
  private:
   int nevery,nfield,ncols;
+  bigint lasttime;
   char *pairname;
   char **fieldname,**triggername;
   int *trigger;

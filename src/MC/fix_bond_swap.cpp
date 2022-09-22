@@ -50,6 +50,8 @@ static const char cite_fix_bond_swap[] =
   " pages =   {12718--12728}\n"
   "}\n\n";
 
+#define DELTA_PERMUTE 100
+
 /* ---------------------------------------------------------------------- */
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
@@ -92,10 +94,13 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(fmt::format("{} all temp",id_temp));
   tflag = 1;
 
-  // initialize atom list
+  // initialize two permutation lists
 
   nmax = 0;
   alist = nullptr;
+
+  maxpermute = 0;
+  permute = nullptr;
 
   naccept = foursome = 0;
 }
@@ -109,9 +114,10 @@ FixBondSwap::~FixBondSwap()
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   memory->destroy(alist);
+  delete[] permute;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -238,6 +244,15 @@ void FixBondSwap::post_integrate()
     memory->create(alist,nmax,"bondswap:alist");
   }
 
+  // use randomized permutation of both I and J atoms in double loop below
+  // this is to avoid any bias in accepted MC swaps based on
+  //   ordering LAMMPS creates on a processor for atoms or their neighbors
+
+  // create a random permutation of list of Neligible atoms
+  // uses one-pass Fisher-Yates shuffle on an initial identity permutation
+  // output: randomized alist[] vector, used in outer loop to select an I atom
+  // similar randomized permutation is created for neighbors of each I atom
+
   int neligible = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -246,8 +261,8 @@ void FixBondSwap::post_integrate()
   }
 
   int tmp;
-  for (i = 0; i < neligible; i++) {
-    j = static_cast<int> (random->uniform() * neligible);
+  for (i = 0; i < neligible-1; i++) {
+    j = i + static_cast<int> (random->uniform() * (neligible-i));
     tmp = alist[i];
     alist[i] = alist[j];
     alist[j] = tmp;
@@ -256,6 +271,7 @@ void FixBondSwap::post_integrate()
   // examine ntest of my eligible atoms for potential swaps
   // atom I is randomly selected via atom list
   // look at all J neighbors of atom I
+  //   done in a randomized permutation, via neighbor_permutation()
   // J must be on-processor (J < nlocal)
   // I,J must be in fix group
   // I,J must have same molecule IDs
@@ -275,8 +291,10 @@ void FixBondSwap::post_integrate()
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    neighbor_permutation(jnum);
+
     for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+      j = jlist[permute[jj]];
       j &= NEIGHMASK;
       if (j >= nlocal) continue;
       if ((mask[j] & groupbit) == 0) continue;
@@ -431,6 +449,7 @@ void FixBondSwap::post_integrate()
             factor = exp(-delta/force->boltz/t_current);
             if (random->uniform() < factor) accept = 1;
           }
+
           goto done;
         }
       }
@@ -674,7 +693,7 @@ int FixBondSwap::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
@@ -735,6 +754,34 @@ double FixBondSwap::angle_eng(int atype, int i, int j, int k)
 
   if (i == -1 || k == -1) return 0.0;
   return force->angle->single(atype,i,j,k);
+}
+
+/* ----------------------------------------------------------------------
+   create a random permutation of one atom's N neighbor list atoms
+   uses one-pass Fisher-Yates shuffle on an initial identity permutation
+   output: randomized permute[] vector, used to index neighbors
+------------------------------------------------------------------------- */
+
+void FixBondSwap::neighbor_permutation(int n)
+{
+  int i,j,tmp;
+
+  if (n > maxpermute) {
+    delete[] permute;
+    maxpermute = n + DELTA_PERMUTE;
+    permute = new int[maxpermute];
+  }
+
+  // Fisher-Yates shuffle
+
+  for (i = 0; i < n; i++) permute[i] = i;
+
+  for (i = 0; i < n-1; i++) {
+    j = i + static_cast<int> (random->uniform() * (n-i));
+    tmp = permute[i];
+    permute[i] = permute[j];
+    permute[j] = tmp;
+  }
 }
 
 /* ----------------------------------------------------------------------

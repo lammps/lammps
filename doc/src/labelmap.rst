@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 Define alphanumeric type labels to associate with one or more numeric
 atom, bond, angle, dihedral or improper types.  A collection of type

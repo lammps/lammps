@@ -48,7 +48,7 @@ in LAMMPS. For the exact functional form of the potential and
 implementation details, the reader is referred to the original papers
 :ref:`(Volkov1) <Volkov1>` and :ref:`(Volkov2) <Volkov2>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
 The potential supports two modes, *segment* and *chain*. By default,
 *chain* mode is enabled.  In *segment* mode, interactions are
@@ -84,7 +84,7 @@ is faster and is enabled by default.
   IDs. If this is not possible (e.g. in simulations of CNT rings),
   *topology* mode needs to be enabled in the pair_style command.
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 In addition to the LJ interactions described above, style
 *mesocnt/viscous* explicitly models friction between neighboring

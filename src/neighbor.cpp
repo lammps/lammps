@@ -2163,13 +2163,13 @@ int Neighbor::request(void *requestor, int instance)
       memory->srealloc(requests,maxrequest*sizeof(NeighRequest *), "neighbor:requests");
   }
 
-  requests[nrequest] = new NeighRequest(lmp, nrequest, requestor, instance);
+  requests[nrequest] = new NeighRequest(lmp, requestor, instance);
   nrequest++;
   return nrequest-1;
 }
 
 /* ----------------------------------------------------------------------
-   called by other classes to request a pairwise neighbor list
+  add_request() is called by other classes to request a pairwise neighbor list
 ------------------------------------------------------------------------- */
 
 NeighRequest *Neighbor::add_request(Pair *requestor, int flags)

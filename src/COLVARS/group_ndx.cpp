@@ -47,7 +47,7 @@ static int cmptagint(const void *p1, const void *p2)
 
 void Group2Ndx::command(int narg, char **arg)
 {
-  FILE *fp;
+  FILE *fp = nullptr;
 
   if (narg < 1) error->all(FLERR,"Illegal group2ndx command");
 
@@ -57,8 +57,7 @@ void Group2Ndx::command(int narg, char **arg)
   if (comm->me == 0) {
     fp = fopen(arg[0], "w");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open index file for writing: {}",
-                                   utils::getsyserror());
+      error->one(FLERR,"Cannot open index file for writing: {}", utils::getsyserror());
     utils::logmesg(lmp,"Writing groups to index file {}:\n",arg[0]);
   }
 

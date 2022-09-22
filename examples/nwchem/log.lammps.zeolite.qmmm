@@ -1,0 +1,234 @@
+LAMMPS (4 May 2022)
+# QMMM for SiO2 zeolite with one methane molecule
+
+units		metal
+atom_style	full
+
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.zeolite
+Reading data file ...
+  orthogonal box = (-5.9266 -5.9266 -5.9266) to (5.9926 5.9926 5.9926)
+  2 by 4 by 4 MPI processor grid
+  reading atoms ...
+  77 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  reading bonds ...
+  4 bonds
+  reading angles ...
+  6 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     3 = max # of 1-3 neighbors
+     3 = max # of 1-4 neighbors
+     4 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  read_data CPU = 0.021 seconds
+
+group           mm type 1 2
+72 atoms in group mm
+group           qm type 3 4
+5 atoms in group qm
+
+# pair style must define stand-alone short-range Coulombics
+# must specify mixing explicitly b/c hybrid/overlay
+# MM Si,O = types 1,2
+# QM C,H = types 3,4
+# MM Si,O atoms do not LJ interact with each other (just via Buckingham)
+# QM C,H atoms do not LJ interact with each other
+# MM Si,O and QM C,H do LJ interact with each other
+
+pair_style      hybrid/overlay buck 6.5 lj/cut 6.5 coul/cut 6.5
+
+pair_coeff      1 1 buck 3150.462646 0.35032282 626.7519553
+pair_coeff      2 2 buck 659.595398 0.38609055 26.836679
+pair_coeff      1 2 buck 27029.419922 0.19385082 148.099091
+pair_coeff      1 3 lj/cut 0.009087 3.613
+pair_coeff      1 4 lj/cut 0.00344258 3.238
+pair_coeff      2 3 lj/cut 0.01419429 3.1
+pair_coeff      2 4 lj/cut 0.0035857762359063315 1.932779  # same as water dimer
+pair_coeff      3 3 lj/cut 0.0 3.4
+pair_coeff      4 4 lj/cut 0.0 2.65
+pair_coeff      * * coul/cut
+
+bond_style      harmonic
+bond_coeff      1 29.40 1.09
+
+angle_style     harmonic
+angle_coeff     1 0.172325 109.5
+
+# remove bonds/angles in QM methane molecule
+
+delete_bonds    qm multi remove special
+System init for delete_bonds ...
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.5
+  ghost atom cutoff = 8.5
+  binsize = 4.25, bins = 3 3 3
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair buck, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair lj/cut, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) pair coul/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Deleting bonds ...
+  0 total bonds, 0 turned on, 0 turned off
+  0 total angles, 0 turned on, 0 turned off
+  0 total dihedrals, 0 turned on, 0 turned off
+  0 total impropers, 0 turned on, 0 turned off
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     4 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+
+velocity        all create 300.0 458732
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+# dynamic or frozen zeolite
+
+#fix		1 all nve
+fix		1 qm nve
+
+fix             2 qm nwchem template.methane.nw methane.nw                 log.pwdft.zeolite Si O C H
+fix_modify      2 energy yes
+
+# convert dump file forces to Hartree/Bohr for comparison to NWChem
+
+variable        fx atom fx/1185.8
+variable        fy atom fy/1185.8
+variable        fz atom fz/1185.8
+
+dump            1 all custom 1 dump.zeolite.qmmm id x y z q v_fx v_fy v_fz
+dump_modify     1 sort id format float "%20.16g"
+
+# small timestep for QMMM
+
+timestep        0.0001
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong                 f_2 pe etotal press
+
+thermo          1
+
+run		20
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Calling pspw_input() in NWChem ...
+  time = 4.968 seconds
+Calling pspw_qmmm() in NWChem ...
+  time = 6.503 seconds
+Per MPI rank memory allocation (min/avg/max) = 11.26 | 11.26 | 11.26 Mbytes
+   Step          CPU            Temp          KinEng         E_vdwl         E_coul         E_pair         E_mol          E_long          f_2           PotEng         TotEng         Press     
+         0   0              300            2.9471313     -102.3998      -1065.0369     -1167.4367      0              0             -198.9818      -1366.4185     -1363.4714      5517.5432    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.868 seconds
+         1   3.8686158      299.95086      2.9466486     -102.39975     -1065.1059     -1167.5057      0              0             -198.90989     -1366.4156     -1363.4689      5495.4255    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.839 seconds
+         2   7.7086679      299.89221      2.9460724     -102.39971     -1065.1824     -1167.5821      0              0             -198.83094     -1366.413      -1363.4669      5470.9047    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.828 seconds
+         3   11.53711       299.8247       2.9454092     -102.39967     -1065.2698     -1167.6695      0              0             -198.74163     -1366.4111     -1363.4657      5442.8579    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.874 seconds
+         4   15.411604      299.74946      2.94467       -102.39963     -1065.3685     -1167.7681      0              0             -198.64174     -1366.4099     -1363.4652      5411.2193    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.867 seconds
+         5   19.279369      299.66809      2.9438707     -102.39959     -1065.4787     -1167.8782      0              0             -198.53108     -1366.4093     -1363.4655      5375.9224    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.884 seconds
+         6   23.164177      299.58269      2.9430317     -102.39955     -1065.6006     -1168.0001      0              0             -198.4094      -1366.4095     -1363.4665      5336.8881    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.931 seconds
+         7   27.095936      299.49578      2.9421779     -102.39951     -1065.7347     -1168.1342      0              0             -198.27641     -1366.4106     -1363.4684      5294.0245    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.995 seconds
+         8   31.091727      299.41036      2.9413388     -102.39947     -1065.8812     -1168.2807      0              0             -198.13177     -1366.4125     -1363.4711      5247.225     
+Calling pspw_qmmm() in NWChem ...
+  time = 3.917 seconds
+         9   35.008957      299.32983      2.9405477     -102.39943     -1066.0408     -1168.4402      0              0             -197.9751      -1366.4153     -1363.4748      5196.3675    
+Calling pspw_qmmm() in NWChem ...
+  time = 3.938 seconds
+        10   38.948036      299.25799      2.9398419     -102.39939     -1066.2138     -1168.6132      0              0             -197.80594     -1366.4191     -1363.4793      5141.3097    
+Calling pspw_qmmm() in NWChem ...
+  time = 5.938 seconds
+        11   44.886417      300.13711      2.9484783     -102.3987      -1112.1634     -1214.5621      0              0             -163.28337     -1377.8455     -1374.897      -9344.0882    
+Calling pspw_qmmm() in NWChem ...
+  time = 4.213 seconds
+        12   49.100354      302.20838      2.9688259     -102.39866     -1113.0737     -1215.4724      0              0             -162.44687     -1377.9192     -1374.9504     -9618.386     
+Calling pspw_qmmm() in NWChem ...
+  time = 4.522 seconds
+        13   53.622594      304.73496      2.9936465     -102.39862     -1114.1542     -1216.5529      0              0             -161.45551     -1378.0084     -1375.0147     -9943.5638    
+Calling pspw_qmmm() in NWChem ...
+  time = 4.301 seconds
+        14   57.924103      307.82384      3.0239909     -102.39858     -1115.4521     -1217.8506      0              0             -160.26631     -1378.1169     -1375.093      -10333.782    
+Calling pspw_qmmm() in NWChem ...
+  time = 4.587 seconds
+        15   62.511538      311.60627      3.0611487     -102.39853     -1117.0209     -1219.4194      0              0             -158.83006     -1378.2495     -1375.1883     -10805.182    
+Calling pspw_qmmm() in NWChem ...
+  time = 6.373 seconds
+        16   68.884983      321.46762      3.1580243     -102.39783     -1190.4155     -1292.8133      0              0             -103.41532     -1396.2286     -1393.0706     -33890.787    
+Calling pspw_qmmm() in NWChem ...
+  time = 7.227 seconds
+        17   76.112329      354.58063      3.4833189     -102.39711     -1297.586      -1399.9831      0              0             -21.400411     -1421.3835     -1417.9002     -67484.92     
+Calling pspw_qmmm() in NWChem ...
+  time = 5.903 seconds
+        18   82.015607      426.41585      4.1890116     -102.39703     -1319.896      -1422.293       0              0             -1.3910438     -1423.6841     -1419.4951     -74076.209    
+Calling pspw_qmmm() in NWChem ...
+  time = 6.612 seconds
+        19   88.628069      543.11841      5.3354708     -102.39692     -1357.8053     -1460.2022      0              0              32.790891     -1427.4114     -1422.0759     -85309.358    
+Calling pspw_qmmm() in NWChem ...
+  time = 7.909 seconds
+        20   96.537191      722.72131      7.0998486     -102.39678     -1420.4861     -1522.8829      0              0              89.745396     -1433.1375     -1426.0376     -103965.42    
+Loop time of 96.5372 on 32 procs for 20 steps with 77 atoms
+
+Performance: 0.002 ns/day, 13407.950 hours/ns, 0.207 timesteps/s
+99.8% CPU use with 32 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00030032 | 0.00063124 | 0.00098374 |   0.0 |  0.00
+Bond    | 4.4281e-05 | 7.7957e-05 | 0.00012963 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0016224  | 0.0018103  | 0.0021141  |   0.3 |  0.00
+Output  | 0.0050295  | 0.0052005  | 0.0057519  |   0.2 |  0.01
+Modify  | 96.528     | 96.528     | 96.529     |   0.0 | 99.99
+Other   |            | 0.001124   |            |       |  0.00
+
+Nlocal:        2.40625 ave           7 max           0 min
+Histogram: 4 10 3 0 6 6 0 0 2 1
+Nghost:        313.344 ave         405 max         225 min
+Histogram: 7 1 0 0 12 4 0 0 0 8
+Neighs:        98.3125 ave         324 max           0 min
+Histogram: 5 10 2 5 5 2 0 0 2 1
+
+Total # of neighbors = 3146
+Ave neighs/atom = 40.857143
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:01:48

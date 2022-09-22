@@ -361,11 +361,18 @@ double FixPair::memory_usage()
   return bytes;
 }
 
-//TODO: generalize to another arguments
-int FixPair::modify_param(int narg, char **arg)
-{
-    nevery = utils::inumeric(FLERR,arg[0],false,lmp);
-    if (nevery < 1) error->all(FLERR,"Illegal fix_modify pair command");
+int FixPair::modify_param(int narg, char **arg) {
+    int processed_args=0;
+    int iarg = 0;
+    while (iarg < narg) {
+        if (strcmp(arg[iarg], "every") == 0) {
+            nevery = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+            if (nevery < 1) error->all(FLERR, "Illegal fix_modify pair command");
+            iarg += 2;
+            processed_args+=2;
+        } else
+            iarg +=1;
+    }
 
-    return 1; // how many arguments were processed
+    return processed_args; // how many arguments were processed
 }

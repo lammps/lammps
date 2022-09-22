@@ -28,6 +28,7 @@ class NTopo : protected Pointers {
 
   virtual void build() = 0;
 
+  void add_temporary_bond(int, int, int);
   double memory_usage();
 
  protected:

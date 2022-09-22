@@ -84,7 +84,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     int columns = 0;         // set in case fieldname not recognized by pstyle
-    void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
+    pstyle->extract_peratom(fieldname[ifield],columns);
     if (columns) ncols += columns;
     else ncols++;
     if (trigger[ifield]) {

@@ -215,7 +215,7 @@ void FixPair::pre_force(int /*vflag*/)
 
   // set pair style triggers
 
-  printf("FPAIR preforce: set trigger %ld\n",update->ntimestep);
+//  printf("FPAIR preforce: set trigger %ld\n",update->ntimestep);
 
   for (int ifield = 0; ifield < nfield; ifield++)
     if (trigger[ifield]) *(triggerptr[ifield]) = 1;
@@ -247,7 +247,7 @@ void FixPair::post_force(int /*vflag*/)
   int icol = 0;
   int columns;
 
-  printf("FPAIR postforce: extract %ld\n",update->ntimestep);
+//  printf("FPAIR postforce: extract %ld\n",update->ntimestep);
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
@@ -361,6 +361,7 @@ double FixPair::memory_usage()
   return bytes;
 }
 
+//TODO: generalize to another arguments
 int FixPair::modify_param(int narg, char **arg)
 {
     nevery = utils::inumeric(FLERR,arg[0],false,lmp);

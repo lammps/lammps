@@ -76,7 +76,6 @@ the optional logical argument set to ``.true.``. Here is a simple example:
      PRINT*, 'LAMMPS Version: ', lmp%version()
      ! delete LAMMPS instance (and shuts down MPI)
      CALL lmp%close(.true.)
-
    END PROGRAM testlib
 
 It is also possible to pass command line flags from Fortran to C/C++ and
@@ -111,7 +110,6 @@ version of the previous example:
      ! delete LAMMPS instance (and shuts down MPI)
      CALL lmp%close(.TRUE.)
      DEALLOCATE(command_args)
-
    END PROGRAM testlib2
 
 --------------------
@@ -160,7 +158,6 @@ Below is a small demonstration of the uses of the different functions:
          'create_atoms 1 single 1.0 1.0 ${zpos}'
      CALL lmp%commands_string(cmds)
      CALL lmp%close(.TRUE.)
-
    END PROGRAM testcmd
 
 ---------------
@@ -430,21 +427,21 @@ Procedures Bound to the lammps Derived Type
    .. code-block:: fortran
 
       PROGRAM demo
-       USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int, C_int64_t, C_double
-       USE LIBLAMMPS
-       TYPE(lammps) :: lmp
-       INTEGER(C_int), POINTER :: nlocal
-       INTEGER(C_int64_t), POINTER :: ntimestep
-       CHARACTER(LEN=10) :: units
-       REAL(C_double), POINTER :: dt
-       lmp = lammps()
-       ! other commands
-       nlocal = lmp%extract_global('nlocal')
-       ntimestep = lmp%extract_global('ntimestep')
-       dt = lmp%extract_global('dt')
-       units = lmp%extract_global('units')
-       ! more commands
-       lmp.close(.TRUE.)
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
+        USE LIBLAMMPS
+        TYPE(lammps) :: lmp
+        INTEGER(C_int), POINTER :: nlocal
+        INTEGER(C_int64_t), POINTER :: ntimestep
+        CHARACTER(LEN=10) :: units
+        REAL(C_double), POINTER :: dt
+        lmp = lammps()
+        ! other commands
+        nlocal = lmp%extract_global('nlocal')
+        ntimestep = lmp%extract_global('ntimestep')
+        dt = lmp%extract_global('dt')
+        units = lmp%extract_global('units')
+        ! more commands
+        lmp.close(.TRUE.)
       END PROGRAM demo
 
    would extract the number of atoms on this processor, the current time step,
@@ -468,11 +465,11 @@ Procedures Bound to the lammps Derived Type
     .. warning::
 
        Modifying the data in the location pointed to by the returned pointer
-       may lead to inconsistent internal data and thus may cause failures or
-       crashes or bogus simulations.  In general it is thus usually better
+       may lead to inconsistent internal data and thus may cause failures,
+       crashes, or bogus simulations.  In general, it is much better
        to use a LAMMPS input command that sets or changes these parameters.
-       Those will take care of all side effects and necessary updates of
-       settings derived from such settings.
+       Using an input command will take care of all side effects and necessary
+       updates of settings derived from such settings.
 
 --------
 
@@ -485,9 +482,9 @@ Procedures Bound to the lammps Derived Type
    Note that this function actually does not return a pointer, but rather
    associates the pointer on the left side of the assignment to point
    to internal LAMMPS data. Pointers must be of the correct type, kind, and
-   rank (e.g., integer(C_int), dimension(:) for "type" or "mask";
-   integer(C_int64_t), dimension(:) for "tag", assuming LAMMPS was not compiled
-   with the -DLAMMPS_SMALL_SMALL flag; real(C_double), dimension(:,:) for "x"
+   rank (e.g., integer(C_int), dimension(:) for "type", "mask", or "tag";
+   integer(C_int64_t), dimension(:) for "tag" if LAMMPS was compiled
+   with the -DLAMMPS_BIGBIG flag; real(C_double), dimension(:,:) for "x", "v",
    or "f"; and so forth). The pointer being associated with LAMMPS data is
    type-, kind-, and rank-checked at run-time. Pointers returned by this
    function are generally persistent; therefore, it is not necessary to call
@@ -496,8 +493,8 @@ Procedures Bound to the lammps Derived Type
 
    :p character(len=\*) name: string with the name of the property to extract
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
-    should be a C-interoperable pointer
-    (e.g., ``INTEGER (c_int), POINTER :: mask``) to the extracted
+    should be a C-interoperable pointer of appropriate kind and rank
+    (e.g., ``INTEGER (c_int), POINTER :: mask(:)``) to the extracted
     property. If expecting vector data, the pointer should have dimension ":";
     if expecting matrix data, the pointer should have dimension ":,:".
 
@@ -541,8 +538,8 @@ Procedures Bound to the lammps Derived Type
           x = lmp%extract_atom("x")
           x0(0:,0:) => x
   
-       The above would cause the dimensions of *x* to be (1:3, 1:nlocal)
-       and those of *x0* to be (0:2, 0:nlocal-1).
+       The above would cause the dimensions of *x* to be (1:3, 1:nmax)
+       and those of *x0* to be (0:2, 0:nmax-1).
 
 --------
 
@@ -552,4 +549,3 @@ Procedures Bound to the lammps Derived Type
    :cpp:func:`lammps_version` does.
 
    :r integer: LAMMPS version
-

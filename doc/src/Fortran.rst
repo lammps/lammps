@@ -179,7 +179,6 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
    :f c_ptr handle: reference to the LAMMPS class
    :f subroutine close: :f:func:`close`
-   :f function version: :f:func:`version`
    :f subroutine file: :f:func:`file`
    :f subroutine command: :f:func:`command`
    :f subroutine commands_list: :f:func:`commands_list`
@@ -191,6 +190,8 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f subroutine memory_usage: :f:func:`memory_usage`
    :f function extract_setting: :f:func:`extract_setting`
    :f function extract_global: :f:func:`extract_global`
+   :f function version: :f:func:`version`
+   :f function is_running: :f:func:`is_running`
 
 --------
 
@@ -223,10 +224,10 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
       .. code-block:: Fortran
 
          PROGRAM testmpi
-            USE LIBLAMMPS
-            USE MPI_F08
-            TYPE(lammps) :: lmp
-            lmp = lammps(MPI_COMM_SELF%MPI_VAL)
+           USE LIBLAMMPS
+           USE MPI_F08
+           TYPE(lammps) :: lmp
+           lmp = lammps(MPI_COMM_SELF%MPI_VAL)
          END PROGRAM testmpi
 
 Procedures Bound to the lammps Derived Type
@@ -236,18 +237,11 @@ Procedures Bound to the lammps Derived Type
 
    This method will close down the LAMMPS instance through calling
    :cpp:func:`lammps_close`.  If the *finalize* argument is present and
-   has a value of ``.true.``, then this subroutine also calls
+   has a value of ``.TRUE.``, then this subroutine also calls
    :cpp:func:`lammps_mpi_finalize`.
 
-   :o logical finalize [optional]: shut down the MPI environment of the LAMMPS library if true.
-
---------
-
-.. f:function:: version()
-
-   This method returns the numeric LAMMPS version like :cpp:func:`lammps_version`
-
-   :r integer: LAMMPS version
+   :o logical finalize [optional]: shut down the MPI environment of the LAMMPS
+    library if true.
 
 --------
 
@@ -422,8 +416,8 @@ Procedures Bound to the lammps Derived Type
    associates the pointer on the left side of the assignment to point
    to internal LAMMPS data (with the exception of string data, which are
    copied and returned as ordinary Fortran strings). Pointers must be of the
-   correct data type to point to said data (typically INTEGER(c_int),
-   INTEGER(c_int64_t), or REAL(c_double)) and have compatible kind and rank.
+   correct data type to point to said data (typically integer(C_int),
+   integer(C_int64_t), or real(C_double)) and have compatible kind and rank.
    The pointer being associated with LAMMPS data is type-, kind-, and
    rank-checked at run-time via an overloaded assignment operator.
    The pointers returned by this function are generally persistent; therefore
@@ -436,7 +430,7 @@ Procedures Bound to the lammps Derived Type
    .. code-block:: fortran
 
       PROGRAM demo
-       USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
+       USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int, C_int64_t, C_double
        USE LIBLAMMPS
        TYPE(lammps) :: lmp
        INTEGER(C_int), POINTER :: nlocal
@@ -457,13 +451,15 @@ Procedures Bound to the lammps Derived Type
    the size of the current time step, and the units being used into the
    variables *nlocal*, *ntimestep*, *dt*, and *units*, respectively.
 
-   *Note*: if this function returns a string, the string must have
-   length greater than or equal to the length of the string (not including the
-   terminal NULL character) that LAMMPS returns. If the variable's length is
-   too short, the string will be truncated. As usual in Fortran, strings
-   are padded with spaces at the end.
+   .. note::
 
-   :p character(len=\*) name: string with the name of the extracted property
+      If :f:func:`extract_global` returns a string, the string must have length
+      greater than or equal to the length of the string (not including the
+      terminal ``NULL`` character) that LAMMPS returns. If the variable's
+      length is too short, the string will be truncated. As usual in Fortran,
+      strings are padded with spaces at the end.
+
+   :p character(len=\*) name: string with the name of the property to extract
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
     should be either a string (if expecting string data) or a C-interoperable
     pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted
@@ -477,3 +473,83 @@ Procedures Bound to the lammps Derived Type
        to use a LAMMPS input command that sets or changes these parameters.
        Those will take care of all side effects and necessary updates of
        settings derived from such settings.
+
+--------
+
+.. f:function:: extract_atom(name)
+
+   This function calls :c:func:`lammps_extract_atom` and returns a pointer to
+   LAMMPS data tied to the :cpp:class:`Atom` class, depending on the data
+   requested through *name*.
+
+   Note that this function actually does not return a pointer, but rather
+   associates the pointer on the left side of the assignment to point
+   to internal LAMMPS data. Pointers must be of the correct type, kind, and
+   rank (e.g., integer(C_int), dimension(:) for "type" or "mask";
+   integer(C_int64_t), dimension(:) for "tag", assuming LAMMPS was not compiled
+   with the -DLAMMPS_SMALL_SMALL flag; real(C_double), dimension(:,:) for "x"
+   or "f"; and so forth). The pointer being associated with LAMMPS data is
+   type-, kind-, and rank-checked at run-time. Pointers returned by this
+   function are generally persistent; therefore, it is not necessary to call
+   the function again unless the underlying LAMMPS data are destroyed, such as
+   through the :doc:`clear` command.
+
+   :p character(len=\*) name: string with the name of the property to extract
+   :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
+    should be a C-interoperable pointer
+    (e.g., ``INTEGER (c_int), POINTER :: mask``) to the extracted
+    property. If expecting vector data, the pointer should have dimension ":";
+    if expecting matrix data, the pointer should have dimension ":,:".
+
+    .. note::
+
+       Two-dimensional arrays returned from :f:func:`extract_atom` will be
+       **transposed** from equivalent arrays in C, and they will be indexed
+       from 1 instead of 0. For example, in C,
+       
+       .. code-block:: C
+
+          void *lmp;
+          double **x;
+          /* more code to setup, etc. */
+          x = lammps_extract_atom(lmp, "x");
+          printf("%f\n", x[5][1]);
+
+       will print the *y*-coordinate of the sixth atom on this processor.
+       Conversely,
+
+       .. code-block:: Fortran
+
+          TYPE(lammps) :: lmp
+          REAL(C_double), DIMENSION(:,:), POINTER :: x
+          ! more code to setup, etc.
+          x = lmp%extract_atom("x")
+          print '(f0.6)', x(2,6)
+
+       will print the *y*-coordinate of the third atom on this processor
+       (note the transposition of the two indices). This is not a choice, but
+       rather a consequence of the different conventions adopted by the Fortran
+       and C standards decades ago.
+
+       If you would like the indices to start at 0 instead of 1 (which follows
+       typical notation in C and C++, but not Fortran), you can create another
+       pointer and associate it thus:
+       
+       .. code-block:: Fortran
+
+          REAL(C_double), DIMENSION(:,:), POINTER :: x, x0
+          x = lmp%extract_atom("x")
+          x0(0:,0:) => x
+  
+       The above would cause the dimensions of *x* to be (1:3, 1:nlocal)
+       and those of *x0* to be (0:2, 0:nlocal-1).
+
+--------
+
+.. f:function:: version()
+
+   This method returns the numeric LAMMPS version like
+   :cpp:func:`lammps_version` does.
+
+   :r integer: LAMMPS version
+

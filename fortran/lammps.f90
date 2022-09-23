@@ -68,6 +68,7 @@ MODULE LIBLAMMPS
       PROCEDURE :: get_mpi_comm       => lmp_get_mpi_comm
       PROCEDURE :: extract_setting    => lmp_extract_setting
       PROCEDURE :: extract_global     => lmp_extract_global
+      PROCEDURE :: extract_atom       => lmp_extract_atom
       PROCEDURE :: version            => lmp_version
       PROCEDURE :: is_running         => lmp_is_running
   END TYPE lammps
@@ -94,6 +95,7 @@ MODULE LIBLAMMPS
     INTEGER(c_int64_t), DIMENSION(:), POINTER :: i64_vec
     REAL(c_double), POINTER :: r64
     REAL(c_double), DIMENSION(:), POINTER :: r64_vec
+    REAL(c_double), DIMENSION(:,:), POINTER :: r64_mat
     CHARACTER(LEN=:), ALLOCATABLE :: str
   END TYPE lammps_data
 
@@ -105,8 +107,9 @@ MODULE LIBLAMMPS
   ! LAMMPS data (after checking type-compatibility)
   INTERFACE ASSIGNMENT(=)
     MODULE PROCEDURE assign_int_to_lammps_data, assign_int64_to_lammps_data, &
-      assign_intvec_to_lammps_data, &
+      assign_intvec_to_lammps_data, assign_int64vec_to_lammps_data, &
       assign_double_to_lammps_data, assign_doublevec_to_lammps_data, &
+      assign_doublemat_to_lammps_data, &
       assign_string_to_lammps_data
   END INTERFACE
 
@@ -246,9 +249,19 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: lammps_extract_global
     END FUNCTION lammps_extract_global
 
-    !INTEGER (c_int) FUNCTION lammps_extract_atom_datatype
+    FUNCTION lammps_extract_atom_datatype(handle, name) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name
+      INTEGER(c_int) :: lammps_extract_atom_datatype
+    END FUNCTION lammps_extract_atom_datatype
 
-    !(generic) lammps_extract_atom
+    FUNCTION lammps_extract_atom(handle, name) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name
+      TYPE(c_ptr) :: lammps_extract_atom
+    END FUNCTION lammps_extract_atom
 
     !(generic) lammps_extract_compute
 
@@ -632,6 +645,72 @@ CONTAINS
     END SELECT
   END FUNCTION
 
+  ! equivalent function to lammps_extract_atom
+  ! the assignment is actually overloaded so as to bind the pointers to
+  ! lammps data based on the information available from LAMMPS
+  FUNCTION lmp_extract_atom (self, name) RESULT (peratom_data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    TYPE(lammps_data) :: peratom_data
+
+    INTEGER(c_int) :: datatype
+    TYPE(c_ptr) :: Cname, Cptr
+    INTEGER(c_int) :: ntypes, nmax
+    INTEGER :: nrows, ncols
+    REAL(c_double), DIMENSION(:), POINTER :: dummy
+    TYPE(c_ptr), DIMENSION(:), POINTER :: Catomptr
+
+    nmax = lmp_extract_setting(self, 'nmax')
+    ntypes = lmp_extract_setting(self, 'ntypes')
+    Cname = f2c_string(name)
+    datatype = lammps_extract_atom_datatype(self%handle, Cname)
+    Cptr = lammps_extract_atom(self%handle, Cname)
+    CALL lammps_free(Cname)
+
+    SELECT CASE (name)
+      CASE ('mass')
+        ncols = ntypes + 1
+        nrows = 1
+      CASE ('x','v','f','mu','omega','torque','angmom')
+        ncols = nmax
+        nrows = 3
+      CASE DEFAULT
+        ncols = nmax
+        nrows = 1
+    END SELECT
+
+    SELECT CASE (datatype)
+      CASE (LAMMPS_INT)
+        peratom_data%datatype = DATA_INT_1D
+        CALL C_F_POINTER(Cptr, peratom_data%i32_vec, [ncols])
+      CASE (LAMMPS_INT64)
+        peratom_data%datatype = DATA_INT64_1D
+        CALL C_F_POINTER(Cptr, peratom_data%i64_vec, [ncols])
+      CASE (LAMMPS_DOUBLE)
+        peratom_data%datatype = DATA_DOUBLE_1D
+        IF ( name == 'mass' ) THEN
+          CALL C_F_POINTER(Cptr, dummy, [ncols])
+          peratom_data%r64_vec(0:) => dummy
+        ELSE
+          CALL C_F_POINTER(Cptr, peratom_data%r64_vec, [ncols])
+        END IF
+      CASE (LAMMPS_DOUBLE_2D)
+        peratom_data%datatype = DATA_DOUBLE_2D
+        ! First, we dereference the void** pointer to point to the void*
+        CALL C_F_POINTER(Cptr, Catomptr, [ncols])
+        ! Catomptr(1) now points to the first element of the array
+        CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [nrows,ncols])
+      CASE (-1)
+        WRITE(ERROR_UNIT,'(A)') 'ERROR: per-atom property "' // name // &
+          '" not found.'
+        STOP 2
+      CASE DEFAULT
+        WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: return value ', datatype, &
+          ' from lammps_extract_atom_datatype not known'
+        STOP 1
+    END SELECT
+  END FUNCTION lmp_extract_atom
+
   ! equivalent function to lammps_version()
   INTEGER FUNCTION lmp_version(self)
     CLASS(lammps) :: self
@@ -682,6 +761,17 @@ CONTAINS
     END IF
   END SUBROUTINE assign_intvec_to_lammps_data
 
+  SUBROUTINE assign_int64vec_to_lammps_data (lhs, rhs)
+    INTEGER(c_int64_t), DIMENSION(:), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_INT64_1D ) THEN
+      lhs => rhs%i64_vec
+    ELSE
+      CALL assignment_error(rhs%datatype, 'vector of long ints')
+    END IF
+  END SUBROUTINE assign_int64vec_to_lammps_data
+
   SUBROUTINE assign_double_to_lammps_data (lhs, rhs)
     REAL(c_double), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
@@ -703,6 +793,17 @@ CONTAINS
       CALL assignment_error(rhs%datatype, 'vector of doubles')
     END IF
   END SUBROUTINE assign_doublevec_to_lammps_data
+
+  SUBROUTINE assign_doublemat_to_lammps_data (lhs, rhs)
+    REAL(c_double), DIMENSION(:,:), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE_2D ) THEN
+      lhs => rhs%r64_mat
+    ELSE
+      CALL assignment_error(rhs%datatype, 'matrix of doubles')
+    END IF
+  END SUBROUTINE assign_doublemat_to_lammps_data
 
   SUBROUTINE assign_string_to_lammps_data (lhs, rhs)
     CHARACTER(LEN=*), INTENT(OUT) :: lhs
@@ -743,7 +844,8 @@ CONTAINS
       CASE DEFAULT
         str1 = 'that type'
     END SELECT
-    WRITE (ERROR_UNIT,'(A)') 'Cannot associate ' // str1 // ' with ' // type2
+    WRITE (ERROR_UNIT,'(A)') 'ERROR (Fortran API): cannot associate ' &
+      // str1 // ' with ' // type2
     STOP ERROR_CODE
   END SUBROUTINE assignment_error
 

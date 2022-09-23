@@ -57,6 +57,10 @@ if(CMAKE_Fortran_COMPILER)
   target_link_libraries(test_fortran_extract_global PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
   add_test(NAME FortranExtractGlobal COMMAND test_fortran_extract_global)
 
+  add_executable(test_fortran_extract_atom wrap_extract_atom.cpp test_fortran_extract_atom.f90)
+  target_link_libraries(test_fortran_extract_atom PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  add_test(NAME FortranExtractAtom COMMAND test_fortran_extract_atom)
+
 else()
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran compiler")
 endif()

@@ -99,9 +99,8 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
 
 /* ---------------------------------------------------------------------- */
 
-NeighRequest::NeighRequest(LAMMPS *_lmp, int idx, void *ptr, int num) : NeighRequest(_lmp)
+NeighRequest::NeighRequest(LAMMPS *_lmp, void *ptr, int num) : NeighRequest(_lmp)
 {
-  index = idx;
   requestor = ptr;
   requestor_instance = num;
 }

@@ -33,7 +33,19 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondBPMRotational::BondBPMRotational(LAMMPS *_lmp) : BondBPM(_lmp)
+static double acos_limit(double c)
+{
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+  return acos(c);
+}
+
+/* ---------------------------------------------------------------------- */
+
+BondBPMRotational::BondBPMRotational(LAMMPS *_lmp) :
+    BondBPM(_lmp), Kr(nullptr), Ks(nullptr), Kt(nullptr), Kb(nullptr), gnorm(nullptr),
+    gslide(nullptr), groll(nullptr), gtwist(nullptr), Fcr(nullptr), Fcs(nullptr), Tct(nullptr),
+    Tcb(nullptr)
 {
   partial_flag = 1;
   smooth_flag = 1;
@@ -63,15 +75,6 @@ BondBPMRotational::~BondBPMRotational()
     memory->destroy(groll);
     memory->destroy(gtwist);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-double BondBPMRotational::acos_limit(double c)
-{
-  if (c > 1.0) c = 1.0;
-  if (c < -1.0) c = -1.0;
-  return acos(c);
 }
 
 /* ----------------------------------------------------------------------
@@ -183,10 +186,9 @@ void BondBPMRotational::store_data()
     2) P. Mora & Y. Wang Advances in Geomcomputing 2009
 ---------------------------------------------------------------------- */
 
-double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
-                                         double r0_mag, double r_mag_inv, double * /*rhat*/,
-                                         double *r, double *r0, double *force1on2,
-                                         double *torque1on2, double *torque2on1)
+double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag, double r0_mag,
+                                         double r_mag_inv, double * /*rhat*/, double *r, double *r0,
+                                         double *force1on2, double *torque1on2, double *torque2on1)
 {
   double breaking, temp, r0_dot_rb, c, gamma;
   double psi, theta, cos_phi, sin_phi;
@@ -365,9 +367,8 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
   Note: n points towards 1 vs pointing towards 2
 ---------------------------------------------------------------------- */
 
-void BondBPMRotational::damping_forces(int i1, int i2, int type, double *rhat,
-                                       double *r, double *force1on2, double *torque1on2,
-                                       double *torque2on1)
+void BondBPMRotational::damping_forces(int i1, int i2, int type, double *rhat, double *r,
+                                       double *force1on2, double *torque1on2, double *torque2on1)
 {
   double v1dotr, v2dotr, w1dotr, w2dotr;
   double s1[3], s2[3], tdamp[3], tmp[3];
@@ -549,7 +550,9 @@ void BondBPMRotational::compute(int eflag, int vflag)
       torque[i2][2] += torque1on2[2] * smooth;
     }
 
-    if (evflag) ev_tally_xyz(i1, i2, nlocal, newton_bond, 0.0, -force1on2[0] * smooth, -force1on2[1] * smooth, -force1on2[2] * smooth, r[0], r[1], r[2]);
+    if (evflag)
+      ev_tally_xyz(i1, i2, nlocal, newton_bond, 0.0, -force1on2[0] * smooth, -force1on2[1] * smooth,
+                   -force1on2[2] * smooth, r[0], r[1], r[2]);
   }
 }
 
@@ -747,8 +750,7 @@ void BondBPMRotational::write_restart_settings(FILE *fp)
 
 void BondBPMRotational::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0)
-    utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
+  if (comm->me == 0) utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
 }
 
@@ -788,7 +790,7 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
 
   double force1on2[3], torque1on2[3], torque2on1[3];
   double breaking = elastic_forces(i, j, type, r_mag, r0_mag, r_mag_inv, rhat, r, r0, force1on2,
-                            torque1on2, torque2on1);
+                                   torque1on2, torque2on1);
   damping_forces(i, j, type, rhat, r, force1on2, torque1on2, torque2on1);
   fforce = MathExtra::dot3(force1on2, r);
   fforce *= -1;
@@ -818,7 +820,6 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
     svector[5] = -force1on2[1] * smooth;
     svector[6] = -force1on2[2] * smooth;
   }
-
 
   return 0.0;
 }

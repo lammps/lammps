@@ -42,7 +42,7 @@ MODULE LIBLAMMPS
   ! Must be kept in sync with the equivalent declarations in
   ! src/library.h and python/lammps/constants.py
   !
-  ! NOT part of the API (the part the user sees)
+  ! These are NOT part of the API (the part the user sees)
   INTEGER (c_int), PARAMETER :: &
     LAMMPS_INT = 0, &       ! 32-bit integer (array)
     LAMMPS_INT_2D = 1, &    ! two-dimensional 32-bit integer array
@@ -50,10 +50,30 @@ MODULE LIBLAMMPS
     LAMMPS_DOUBLE_2D = 3, & ! two-dimensional 64-bit double array
     LAMMPS_INT64 = 4, &     ! 64-bit integer (array)
     LAMMPS_INT64_2D = 5, &  ! two-dimensional 64-bit integer array
-    LAMMPS_STRING = 6       ! C-String
+    LAMMPS_STRING = 6, &    ! C-String
+    LMP_STYLE_GLOBAL = 0, & ! request global compute/fix/etc. data
+    LMP_STYLE_ATOM = 1, &   ! request per-atom compute/fix/etc. data
+    LMP_STYLE_LOCAL = 2, &  ! request local compute/fix/etc. data
+    LMP_TYPE_SCALAR = 0, &  ! request scalar
+    LMP_TYPE_VECTOR = 1, &  ! request vector
+    LMP_TYPE_ARRAY = 2, &   ! request array
+    LMP_SIZE_VECTOR = 3, &  ! request size of vector
+    LMP_SIZE_ROWS = 4, &    ! request rows (actually columns)
+    LMP_SIZE_COLS = 5       ! request colums (actually rows)
+
+  ! "Constants" to use with extract_compute and friends
+  TYPE lammps_style
+    INTEGER(c_int) :: global, atom, local
+  END TYPE lammps_style
+
+  TYPE lammps_type
+    INTEGER(c_int) :: scalar, vector, array
+  END TYPE lammps_type
 
   TYPE lammps
       TYPE(c_ptr) :: handle
+      TYPE(lammps_style) :: style
+      TYPE(lammps_type) :: type
     CONTAINS
       PROCEDURE :: close              => lmp_close
       PROCEDURE :: file               => lmp_file
@@ -69,6 +89,8 @@ MODULE LIBLAMMPS
       PROCEDURE :: extract_setting    => lmp_extract_setting
       PROCEDURE :: extract_global     => lmp_extract_global
       PROCEDURE :: extract_atom       => lmp_extract_atom
+      PROCEDURE :: extract_compute    => lmp_extract_compute
+!
       PROCEDURE :: version            => lmp_version
       PROCEDURE :: is_running         => lmp_is_running
   END TYPE lammps
@@ -104,7 +126,7 @@ MODULE LIBLAMMPS
   !    nlocal = extract_global('nlocal')
   ! which are of the form "pointer to double = type(lammps_data)" result in
   ! re-associating the pointer on the left with the appropriate piece of
-  ! LAMMPS data (after checking type-compatibility)
+  ! LAMMPS data (after checking type-kind-rank compatibility)
   INTERFACE ASSIGNMENT(=)
     MODULE PROCEDURE assign_int_to_lammps_data, assign_int64_to_lammps_data, &
       assign_intvec_to_lammps_data, assign_int64vec_to_lammps_data, &
@@ -157,29 +179,29 @@ MODULE LIBLAMMPS
     SUBROUTINE lammps_command(handle, cmd) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle
-      TYPE(c_ptr), VALUE :: cmd
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
+      TYPE(c_ptr), INTENT(IN), VALUE :: cmd
     END SUBROUTINE lammps_command
 
     SUBROUTINE lammps_commands_list(handle, ncmd, cmds) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle
-      INTEGER(c_int), VALUE, INTENT(IN)     :: ncmd
+      TYPE(c_ptr), INTENT(IN), VALUE        :: handle
+      INTEGER(c_int), INTENT(IN), VALUE     :: ncmd
       TYPE(c_ptr), DIMENSION(*), INTENT(IN) :: cmds
     END SUBROUTINE lammps_commands_list
 
     SUBROUTINE lammps_commands_string(handle, str) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle
-      TYPE(c_ptr), VALUE :: str
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
+      TYPE(c_ptr), INTENT(IN), VALUE :: str
     END SUBROUTINE lammps_commands_string
 
     FUNCTION lammps_get_natoms(handle) BIND(C)
       IMPORT :: c_ptr, c_double
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
       REAL(c_double) :: lammps_get_natoms
     END FUNCTION lammps_get_natoms
 
@@ -187,83 +209,89 @@ MODULE LIBLAMMPS
       IMPORT :: c_ptr, c_double
       IMPLICIT NONE
       REAL(c_double) :: lammps_get_thermo
-      TYPE(c_ptr), VALUE :: handle
-      TYPE(c_ptr), VALUE :: name
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
+      TYPE(c_ptr), INTENT(IN), VALUE :: name
     END FUNCTION lammps_get_thermo
 
     SUBROUTINE lammps_extract_box(handle,boxlo,boxhi,xy,yz,xz,pflags, &
         boxflag) BIND(C)
       IMPORT :: c_ptr, c_double, c_int
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle, boxlo, boxhi, xy, yz, xz, pflags, &
-        boxflag
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, boxlo, boxhi, xy, yz, xz, &
+        pflags, boxflag
     END SUBROUTINE lammps_extract_box
 
     SUBROUTINE lammps_reset_box(handle,boxlo,boxhi,xy,yz,xz) BIND(C)
       IMPORT :: c_ptr, c_double
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle
-      REAL(c_double), DIMENSION(3) :: boxlo, boxhi
-      REAL(c_double), VALUE :: xy, yz, xz
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
+      REAL(c_double), DIMENSION(3), INTENT(IN) :: boxlo, boxhi
+      REAL(c_double), INTENT(IN), VALUE :: xy, yz, xz
     END SUBROUTINE lammps_reset_box
 
     SUBROUTINE lammps_memory_usage(handle,meminfo) BIND(C)
       IMPORT :: c_ptr, c_double
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle
-      REAL(c_double), DIMENSION(*) :: meminfo
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
+      REAL(c_double), DIMENSION(*), INTENT(OUT) :: meminfo
     END SUBROUTINE lammps_memory_usage
 
     FUNCTION lammps_get_mpi_comm(handle) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
       INTEGER(c_int) :: lammps_get_mpi_comm
     END FUNCTION lammps_get_mpi_comm
 
     FUNCTION lammps_extract_setting(handle,keyword) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle, keyword
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, keyword
       INTEGER(c_int) :: lammps_extract_setting
     END FUNCTION lammps_extract_setting
 
     FUNCTION lammps_extract_global_datatype(handle,name) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle, name
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
       INTEGER(c_int) :: lammps_extract_global_datatype
     END FUNCTION lammps_extract_global_datatype
 
     FUNCTION c_strlen (str) BIND(C,name='strlen')
       IMPORT :: c_ptr, c_size_t
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: str
+      TYPE(c_ptr), INTENT(IN), VALUE :: str
       INTEGER(c_size_t) :: c_strlen
     END FUNCTION c_strlen
 
     FUNCTION lammps_extract_global(handle, name) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle, name
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
       TYPE(c_ptr) :: lammps_extract_global
     END FUNCTION lammps_extract_global
 
     FUNCTION lammps_extract_atom_datatype(handle, name) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle, name
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
       INTEGER(c_int) :: lammps_extract_atom_datatype
     END FUNCTION lammps_extract_atom_datatype
 
     FUNCTION lammps_extract_atom(handle, name) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
-      TYPE(c_ptr), VALUE :: handle, name
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
       TYPE(c_ptr) :: lammps_extract_atom
     END FUNCTION lammps_extract_atom
 
-    !(generic) lammps_extract_compute
+    FUNCTION lammps_extract_compute(handle, id, style, type) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, id
+      INTEGER(c_int), INTENT(IN), VALUE :: style, type
+      TYPE(c_ptr) :: lammps_extract_compute
+    END FUNCTION lammps_extract_compute
 
     !(generic) lammps_extract_fix
 
@@ -413,11 +441,19 @@ CONTAINS
         CALL lammps_free(argv(i))
     END DO
     DEALLOCATE(argv)
+
+    ! Assign style and type members so lmp_open%style%global and such work
+    lmp_open%style%global = LMP_STYLE_GLOBAL
+    lmp_open%style%atom = LMP_STYLE_ATOM
+    lmp_open%style%local = LMP_STYLE_LOCAL
+    lmp_open%type%scalar = LMP_TYPE_SCALAR
+    lmp_open%type%vector = LMP_TYPE_VECTOR
+    lmp_open%type%array = LMP_TYPE_ARRAY
   END FUNCTION lmp_open
 
   ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
   SUBROUTINE lmp_close(self, finalize)
-    CLASS(lammps) :: self
+    CLASS(lammps), INTENT(IN) :: self
     LOGICAL, INTENT(IN), OPTIONAL :: finalize
 
     CALL lammps_close(self%handle)
@@ -432,7 +468,7 @@ CONTAINS
 
   ! equivalent function to lammps_file()
   SUBROUTINE lmp_file(self, filename)
-    CLASS(lammps) :: self
+    CLASS(lammps), INTENT(IN) :: self
     CHARACTER(len=*) :: filename
     TYPE(c_ptr) :: str
 
@@ -443,7 +479,7 @@ CONTAINS
 
   ! equivalent function to lammps_command()
   SUBROUTINE lmp_command(self, cmd)
-    CLASS(lammps) :: self
+    CLASS(lammps), INTENT(IN) :: self
     CHARACTER(len=*) :: cmd
     TYPE(c_ptr) :: str
 
@@ -454,7 +490,7 @@ CONTAINS
 
   ! equivalent function to lammps_commands_list()
   SUBROUTINE lmp_commands_list(self, cmds)
-    CLASS(lammps) :: self
+    CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: cmds(:)
     TYPE(c_ptr), ALLOCATABLE     :: cmdv(:)
     INTEGER :: i, ncmd
@@ -477,7 +513,7 @@ CONTAINS
 
   ! equivalent function to lammps_commands_string()
   SUBROUTINE lmp_commands_string(self, str)
-    CLASS(lammps) :: self
+    CLASS(lammps), INTENT(IN) :: self
     CHARACTER(len=*) :: str
     TYPE(c_ptr) :: tmp
 
@@ -711,16 +747,72 @@ CONTAINS
     END SELECT
   END FUNCTION lmp_extract_atom
 
+  ! equivalent function to lammps_extract_compute
+  ! the assignment operator is overloaded so as to bind the pointers to
+  ! lammps data based on the information available from LAMMPS
+  FUNCTION lmp_extract_compute (self, id, style, type) RESULT (compute_data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: style, type
+    TYPE(lammps_data) :: compute_data
+
+    INTEGER(c_int) :: datatype
+    TYPE(c_ptr) :: Cid, Cptr, Ctemp
+    INTEGER :: nrows, ncols, length
+    INTEGER(c_int), POINTER :: temp
+
+    Cid = f2c_string(id)
+    Cptr = lammps_extract_compute(self%handle, Cid, style, type)
+
+    ! Remember that rows and columns in C are transposed in Fortran!
+    SELECT CASE (type)
+      CASE (LMP_TYPE_SCALAR)
+        length = 1
+        nrows = 1
+        ncols = 1
+        CALL C_F_POINTER(Cptr, compute_data%r64)
+      CASE (LMP_TYPE_VECTOR)
+        IF (style == LMP_STYLE_ATOM) THEN
+          length = self%extract_setting('nmax')
+        ELSE
+          Ctemp = lammps_extract_compute(self%handle,Cid,style,LMP_SIZE_VECTOR)
+          CALL C_F_POINTER(Ctemp, temp)
+          length = temp
+        END IF
+        CALL C_F_POINTER(Cptr, compute_data%r64_vec, [length])
+      CASE (LMP_TYPE_ARRAY)
+        IF (style == LMP_STYLE_ATOM) THEN
+          nrows = self%extract_setting('nmax')
+          Ctemp = lammps_extract_compute(self%handle,Cid,style,LMP_SIZE_ROWS)
+          CALL C_F_POINTER(Ctemp, temp)
+          ncols = temp
+        ELSE
+          Ctemp = lammps_extract_compute(self%handle,Cid,style,LMP_SIZE_ROWS)
+          CALL C_F_POINTER(Ctemp, temp)
+          ncols = temp
+          Ctemp = lammps_extract_compute(self%handle,Cid,style,LMP_SIZE_COLS)
+          CALL C_F_POINTER(Ctemp, temp)
+          nrows = temp
+        END IF
+        CALL C_F_POINTER(Cptr, compute_data%r64_mat, [nrows, ncols])
+      CASE DEFAULT
+        WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: unknown type value ', type, &
+          'passed to extract_compute'
+        STOP 1
+    END SELECT
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_extract_compute
+
   ! equivalent function to lammps_version()
   INTEGER FUNCTION lmp_version(self)
-    CLASS(lammps) :: self
+    CLASS(lammps), INTENT(IN) :: self
 
     lmp_version = lammps_version(self%handle)
   END FUNCTION lmp_version
 
   ! equivalent function to lammps_is_running
   LOGICAL FUNCTION lmp_is_running(self)
-    CLASS(lammps) :: self
+    CLASS(lammps), INTENT(IN) :: self
 
     lmp_is_running = ( lammps_is_running(self%handle) /= 0_C_int )
   END FUNCTION lmp_is_running

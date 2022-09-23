@@ -158,7 +158,7 @@ _texture( q_tex,int2);
     fieldp[ii+inum] = fp;                                                   \
   }
 
-#define store_answers_acc(f,energy,e_coul, virial, ii, inum, tid, t_per_atom  \
+#define store_answers_acc(f,energy,e_coul, virial, ii, inum, tid, t_per_atom, \
                         offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1) {                                                       \
     simd_reduce_add3(t_per_atom, red_acc, offset, tid, f.x, f.y, f.z);      \

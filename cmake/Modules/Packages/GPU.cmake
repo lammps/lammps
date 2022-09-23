@@ -3,7 +3,9 @@ set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h
                 ${GPU_SOURCES_DIR}/fix_gpu.cpp
                 ${GPU_SOURCES_DIR}/fix_nh_gpu.h
-                ${GPU_SOURCES_DIR}/fix_nh_gpu.cpp)
+                ${GPU_SOURCES_DIR}/fix_nh_gpu.cpp
+                ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.h
+                ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.cpp)
 target_compile_definitions(lammps PRIVATE -DLMP_GPU)
 
 set(GPU_API "opencl" CACHE STRING "API used by GPU package")

@@ -128,7 +128,7 @@ version of the previous example:
 --------------------
 
 Executing LAMMPS commands
-=========================
+*************************
 
 Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
 simulation by telling LAMMPS to read commands from a file or to pass
@@ -177,7 +177,7 @@ Below is a small demonstration of the uses of the different functions:
 ---------------
 
 Accessing system properties
-===========================
+***************************
 
 The C-library interface allows the :doc:`extraction of different kinds
 of information <Library_properties>` about the active simulation
@@ -241,6 +241,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
    :f c_ptr handle: reference to the LAMMPS class
    :f subroutine close: :f:func:`close`
+   :f subroutine error: :f:func:`error`
    :f function version: :f:func:`version`
    :f subroutine file: :f:func:`file`
    :f subroutine command: :f:func:`command`
@@ -302,6 +303,18 @@ Procedures Bound to the lammps Derived Type
    :cpp:func:`lammps_mpi_finalize`.
 
    :o logical finalize [optional]: shut down the MPI environment of the LAMMPS library if true.
+
+--------
+
+.. f:subroutine:: error(error_type, error_text)
+
+   This method is a wrapper around the :cpp:func:`lammps_error` function and will dispatch
+   an error through the LAMMPS Error class.
+
+   .. versionadded:: TBD
+
+   :p integer error_type: constant to select which Error class function to call
+   :p character(len=\*) error_text: error message
 
 --------
 

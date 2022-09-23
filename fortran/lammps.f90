@@ -56,6 +56,7 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: handle
     CONTAINS
       PROCEDURE :: close              => lmp_close
+      PROCEDURE :: error              => lmp_error
       PROCEDURE :: file               => lmp_file
       PROCEDURE :: command            => lmp_command
       PROCEDURE :: commands_list      => lmp_commands_list
@@ -143,6 +144,14 @@ MODULE LIBLAMMPS
 
     SUBROUTINE lammps_kokkos_finalize() BIND(C)
     END SUBROUTINE lammps_kokkos_finalize
+
+    SUBROUTINE lammps_error(handle, error_type, error_text) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle
+      INTEGER(c_int), VALUE :: error_type
+      TYPE(c_ptr), VALUE :: error_text
+    END SUBROUTINE lammps_error
 
     SUBROUTINE lammps_file(handle, filename) BIND(C)
       IMPORT :: c_ptr
@@ -417,6 +426,18 @@ CONTAINS
     END IF
   END SUBROUTINE lmp_close
 
+  ! equivalent function to lammps_error()
+  SUBROUTINE lmp_error(self, error_type, error_text)
+    CLASS(lammps) :: self
+    INTEGER :: error_type
+    CHARACTER(len=*) :: error_text
+    TYPE(c_ptr) :: str
+
+    str = f2c_string(error_text)
+    CALL lammps_error(self%handle, error_type, str)
+    CALL lammps_free(str)
+  END SUBROUTINE lmp_error
+
   ! equivalent function to lammps_file()
   SUBROUTINE lmp_file(self, filename)
     CLASS(lammps) :: self
@@ -492,7 +513,7 @@ CONTAINS
   END FUNCTION lmp_get_thermo
 
   ! equivalent subroutine to lammps_extract_box
-  SUBROUTINE lmp_extract_box (self, boxlo, boxhi, xy, yz, xz, pflags, boxflag)
+  SUBROUTINE lmp_extract_box(self, boxlo, boxhi, xy, yz, xz, pflags, boxflag)
     CLASS(lammps), INTENT(IN) :: self
     REAL(c_double), INTENT(OUT), TARGET, OPTIONAL :: boxlo(3), boxhi(3)
     REAL(c_double), INTENT(OUT), TARGET, OPTIONAL :: xy, yz, xz
@@ -515,11 +536,11 @@ CONTAINS
   END SUBROUTINE lmp_extract_box
 
   ! equivalent function to lammps_reset_box
-  SUBROUTINE lmp_reset_box (self, boxlo, boxhi, xy, yz, xz)
+  SUBROUTINE lmp_reset_box(self, boxlo, boxhi, xy, yz, xz)
     CLASS(lammps), INTENT(IN) :: self
     REAL(C_double), INTENT(IN) :: boxlo(3), boxhi(3), xy, yz, xz
 
-    CALL lammps_reset_box (self%handle, boxlo, boxhi, xy, yz, xz)
+    CALL lammps_reset_box(self%handle, boxlo, boxhi, xy, yz, xz)
   END SUBROUTINE lmp_reset_box
 
   ! equivalent function to lammps_memory_usage
@@ -532,14 +553,14 @@ CONTAINS
   END SUBROUTINE lmp_memory_usage
 
   ! equivalent function to lammps_get_mpi_comm
-  INTEGER FUNCTION lmp_get_mpi_comm (self)
+  INTEGER FUNCTION lmp_get_mpi_comm(self)
     CLASS(lammps), INTENT(IN) :: self
 
     lmp_get_mpi_comm = lammps_get_mpi_comm(self%handle)
   END FUNCTION lmp_get_mpi_comm
 
   ! equivalent function to lammps_extract_setting
-  INTEGER (c_int) FUNCTION lmp_extract_setting (self, keyword)
+  INTEGER (c_int) FUNCTION lmp_extract_setting(self, keyword)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: keyword
     TYPE(c_ptr) :: Ckeyword
@@ -549,22 +570,10 @@ CONTAINS
     CALL lammps_free(Ckeyword)
   END FUNCTION lmp_extract_setting
 
-! FIXME Do we need this to be visible to the user?
-!  ! equivalent function to lammps_extract_global_datatype
-!  INTEGER (c_int) FUNCTION lmp_extract_global_datatype (name)
-!    CHARACTER(LEN=*), INTENT(IN) :: name
-!    TYPE(c_ptr) :: Cname
-!
-!    Cname = f2c_string(name)
-!    lmp_extract_global_datatype 
-!      = lammps_extract_global_datatype(c_null_ptr, Cname)
-!    CALL lammps_free(Cname)
-!  END FUNCTION lmp_extract_global_datatype
-
   ! equivalent function to lammps_extract_global
   ! the assignment is actually overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
-  FUNCTION lmp_extract_global (self, name) RESULT (global_data)
+  FUNCTION lmp_extract_global(self, name) RESULT (global_data)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(lammps_data) :: global_data
@@ -625,10 +634,9 @@ CONTAINS
         FORALL ( I=1:length )
           global_data%str(i:i) = Fptr(i)
         END FORALL
-      CASE DEFAULT
-        WRITE(ERROR_UNIT,'(A)') 'ERROR: Unknown pointer type in&
-          & extract_global'
-        STOP 2
+    CASE DEFAULT
+        ! FIXME convert to use symbolic constants later
+        CALL lmp_error(self, 6, 'Unknown pointer type in extract_global')
     END SELECT
   END FUNCTION
 

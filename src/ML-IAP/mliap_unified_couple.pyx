@@ -106,6 +106,8 @@ def write_only_property(fset):
     return property(fget=None, fset=fset)
 
 
+# Cython implementation of MLIAPData
+# Automatically converts between C arrays and numpy when needed
 cdef class MLIAPDataPy:
     cdef MLIAPData * data
 
@@ -296,6 +298,7 @@ cdef class MLIAPDataPy:
         return self.data.vflag
 
 
+# Interface between C and Python compute functions
 cdef class MLIAPUnifiedInterface:
     cdef MLIAPDummyModel * model
     cdef MLIAPDummyDescriptor * descriptor
@@ -334,6 +337,7 @@ cdef public void compute_forces_python(unified_int, MLIAPData *data) except * wi
     unified_int.compute_forces(pydata)
 
 
+# Create a MLIAPUnifiedInterface and connect it to the dummy model, descriptor
 cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
                                          MLIAPDummyDescriptor * descriptor) with gil:
     str_fname = fname.decode('utf-8')
@@ -383,6 +387,7 @@ cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
     return unified_int
 
 
+# For pre-loading a Python model
 def load_from_python(unified):
     global LOADED_MODEL
     LOADED_MODEL = unified

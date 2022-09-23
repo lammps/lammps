@@ -10,7 +10,7 @@ Syntax
 
    pair_style mliap ... keyword values ...
 
-* two keyword/value pairs must be appended
+* one or two keyword/value pairs must be appended
 * keyword = *model* or *descriptor* or *unified*
 
   .. parsed-literal::
@@ -122,10 +122,10 @@ The detail of *nn* module implementation can be found at :ref:`(Yanxon) <Yanxon2
    will be loaded using pytorch; otherwise, it will be loaded as a pickle file.To load
    a model from memory (i.e. an existing python object), specify the filename as
    "LATER", and then call `lammps.mliap.load_model(model)` from python
-   before using the pair style. When using lammps via the library mode, you
+   before using the pair style. When using LAMMPS via the library mode, you
    will need to call `lammps.mliappy.activate_mliappy(lmp)` on the active
-   lammps object before the pair style is defined. This call locates and
-   loads the mliap-specific python module that is built into lammps.
+   LAMMPS object before the pair style is defined. This call locates and
+   loads the mliap-specific python module that is built into LAMMPS.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently two descriptor styles are available: *sna* and *so3*.

@@ -33,7 +33,7 @@ class MLIAPDummyDescriptor : public MLIAPDescriptor {
   virtual void init();
   void set_elements(char **, int);
 
-  PyObject *unified_interface;
+  PyObject *unified_interface;  // MLIAPUnifiedInterface
   double rcutfac;
 };
 

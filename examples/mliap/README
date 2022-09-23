@@ -109,4 +109,70 @@ in.mliap.nn.cu
 -------------------------
 Run a neural network potential for Cu, a combination of SNAP descriptors and the "nn" model style
 
+in.mliap.unified.lj.Ar
+-----------------------
+This reproduces the output of examples/melt/in.melt,
+but using the ``unified`` keyword and 
+the Python coupling to PyTorch.
 
+This example can be run in two different ways:
+
+1: Running a LAMMPS executable: in.mliap.unified.lj.Ar
+
+First run ``python ./pickle_mliap_unified_lj_Ar.py``. It creates
+an MLIAP unified model that replicates the ``lj/cut`` pair
+style defined in examples/melt/in/melt
+and saves it in the file "mliap_unified_lj_Ar.pkl".
+
+You can then run the example as follows
+
+`lmp -in in.mliap.unified.lj.Ar -echo both`
+
+The resultant log.lammps output should be identical to that generated
+by in.melt.
+
+If this fails, see the instructions for building the MLIAP package
+with Python support enabled. Also, confirm that the
+LAMMPS Python embedded Python interpreter is
+working by running ../examples/in.python.
+
+2: Running a Python script: mliap_unified_lj_Ar.py
+
+Before testing this, ensure that the previous method
+(running a LAMMPS executable) works.
+
+You can run the example in serial: 
+
+`python mliap_unified_lj_Ar.py`
+
+or in parallel:
+
+`mpirun -np 4 python mliap_unified_lj_Ar.py`
+
+The resultant log.lammps output should be identical to that generated
+by in.melt and in.mliap.unified.lj.Ar.
+
+in.mliap.unified.hippynn.Al
+---------------------------
+
+Demonstrate MLIAP interface to HIPNN Al potential. Requires the HIPNN code.
+
+in.mliap.unified.hippynn.Al.ghostneigh
+--------------------------------------
+
+Demonstrate MLIAP interface to HIPNN Al potential with ghost neighbors. Requires the HIPNN code.
+
+in.mliap.unified.hippynn.InP
+----------------------------
+
+Demonstrate MLIAP interface to HIPNN InP potential. Requires the HIPNN code.
+
+in.mliap.so3.Ni_Mo
+------------------
+
+Example of linear model with SO3 descriptors for Ni/Mo
+
+in.mliap.so3.nn.Si
+------------------
+
+Example of NN model with SO3 descriptors for Si

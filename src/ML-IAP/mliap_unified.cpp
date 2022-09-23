@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Steven Ray Anaya (LANL)
 ------------------------------------------------------------------------- */
+
 #ifdef MLIAP_PYTHON
 
 #include <Python.h>
@@ -38,8 +39,13 @@ MLIAPDummyDescriptor::MLIAPDummyDescriptor(LAMMPS *lmp) :
 MLIAPDummyDescriptor::~MLIAPDummyDescriptor() {
   memory->destroy(radelem);
   memory->destroy(cutsq);
+  // manually decrement borrowed reference from Python
   Py_DECREF(unified_interface);
 }
+
+/* ----------------------------------------------------------------------
+   invoke compute_descriptors from Cython interface
+   ---------------------------------------------------------------------- */
 
 void MLIAPDummyDescriptor::compute_descriptors(class MLIAPData *data) {
   PyGILState_STATE gstate = PyGILState_Ensure();
@@ -53,6 +59,10 @@ void MLIAPDummyDescriptor::compute_descriptors(class MLIAPData *data) {
   PyGILState_Release(gstate);
 }
 
+/* ----------------------------------------------------------------------
+   invoke compute_forces from Cython interface
+   ---------------------------------------------------------------------- */
+
 void MLIAPDummyDescriptor::compute_forces(class MLIAPData *data) {
   PyGILState_STATE gstate = PyGILState_Ensure();
   compute_forces_python(unified_interface, data);
@@ -65,10 +75,12 @@ void MLIAPDummyDescriptor::compute_forces(class MLIAPData *data) {
   PyGILState_Release(gstate);
 }
 
+// not implemented
 void MLIAPDummyDescriptor::compute_force_gradients(class MLIAPData *) {
   error->all(FLERR, "compute_force_gradients not implemented");
 }
 
+// not implemented
 void MLIAPDummyDescriptor::compute_descriptor_gradients(class MLIAPData *) {
   error->all(FLERR, "compute_descriptor_gradients not implemented");
 }
@@ -113,7 +125,7 @@ MLIAPDummyModel::MLIAPDummyModel(LAMMPS *lmp, char *coefffilename) :
 }
 
 MLIAPDummyModel::~MLIAPDummyModel() {
-  // MLIAPPY_unload_model(this);
+  // manually decrement borrowed reference from Python
   Py_DECREF(unified_interface);
 }
 
@@ -125,6 +137,10 @@ int MLIAPDummyModel::get_gamma_nnz(class MLIAPData *) {
   // TODO: get_gamma_nnz
   return 0;
 }
+
+/* ----------------------------------------------------------------------
+   invoke compute_gradients from Cython interface
+   ---------------------------------------------------------------------- */
 
 void MLIAPDummyModel::compute_gradients(class MLIAPData *data) {
   PyGILState_STATE gstate = PyGILState_Ensure();
@@ -138,24 +154,33 @@ void MLIAPDummyModel::compute_gradients(class MLIAPData *data) {
   PyGILState_Release(gstate);
 }
 
+// not implemented
 void MLIAPDummyModel::compute_gradgrads(class MLIAPData *) {
   error->all(FLERR, "compute_gradgrads not implemented");
 }
 
+// not implemented
 void MLIAPDummyModel::compute_force_gradients(class MLIAPData *) {
   error->all(FLERR, "compute_force_gradients not implemented");
 }
+
+/* ----------------------------------------------------------------------
+   memory usage unclear due to Cython/Python implementation
+   ---------------------------------------------------------------------- */
 
 double MLIAPDummyModel::memory_usage() {
   // TODO: implement memory usage in Cython(?)
   return 0;
 }
 
+// not implemented
 void MLIAPDummyModel::read_coeffs(char *) {
   error->all(FLERR, "read_coeffs not implemented");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   build the unified interface object, connect to dummy model and descriptor
+   ---------------------------------------------------------------------- */
 
 MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *data, LAMMPS *lmp,
     char *coefffilename) {
@@ -190,6 +215,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
     lmp->error->all(FLERR, "Running mliappy unified module failure.");
   }
 
+  // Borrowed references must be manually incremented
   model->unified_interface = unified_interface;
   Py_INCREF(unified_interface);
   descriptor->unified_interface = unified_interface;
@@ -202,6 +228,10 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
 }
 
 /* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   set energy for ij atom pairs
+   ---------------------------------------------------------------------- */
 
 void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij) {
     double e_total = 0;
@@ -217,6 +247,10 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij) {
     }
     data->energy = e_total;
 }
+
+/* ----------------------------------------------------------------------
+   set forces for ij atom pairs
+   ---------------------------------------------------------------------- */
 
 void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij) {
     double **f = data->f;

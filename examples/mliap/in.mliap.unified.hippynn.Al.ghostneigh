@@ -1,4 +1,5 @@
 # Demonstrate MLIAP interface to HIPNN Al potential
+# Example taken from https://github.com/lanl/hippynn
 
 # Initialize simulation
 

@@ -3,7 +3,6 @@
 
 #include "lammps.h"
 #include "library.h"
-#include "lmptype.h"
 #include <mpi.h>
 #include <string>
 #include <cstdlib>
@@ -22,6 +21,7 @@ int64_t f_lammps_extract_atom_tag_int64(int64_t);
 int f_lammps_extract_atom_type(int);
 int f_lammps_extract_atom_mask(int);
 void f_lammps_extract_atom_x(int,double*);
+void f_lammps_extract_atom_v(int,double*);
 }
 
 class LAMMPS_extract_atom : public ::testing::Test {
@@ -96,4 +96,25 @@ TEST_F(LAMMPS_extract_atom, x)
    EXPECT_DOUBLE_EQ(x2[0], 0.2);
    EXPECT_DOUBLE_EQ(x2[1], 0.1);
    EXPECT_DOUBLE_EQ(x2[2], 0.1);
+}
+
+TEST_F(LAMMPS_extract_atom, v)
+{
+   f_lammps_setup_extract_atom();
+   double v1[3];
+   double v2[3];
+   f_lammps_extract_atom_v(1, v1);
+   EXPECT_DOUBLE_EQ(v1[0], 0.0);
+   EXPECT_DOUBLE_EQ(v1[1], 0.0);
+   EXPECT_DOUBLE_EQ(v1[2], 0.0);
+   f_lammps_extract_atom_v(2, v2);
+   EXPECT_DOUBLE_EQ(v2[0], 0.0);
+   EXPECT_DOUBLE_EQ(v2[1], 0.0);
+   EXPECT_DOUBLE_EQ(v2[2], 0.0);
+   lammps_command(lmp, "group one id 1");
+   lammps_command(lmp, "velocity one set 1 2 3");
+   f_lammps_extract_atom_v(1, v1);
+   EXPECT_DOUBLE_EQ(v1[0], 1.0);
+   EXPECT_DOUBLE_EQ(v1[1], 2.0);
+   EXPECT_DOUBLE_EQ(v1[2], 3.0);
 }

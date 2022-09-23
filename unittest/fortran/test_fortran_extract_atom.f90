@@ -58,7 +58,7 @@ FUNCTION f_lammps_extract_atom_mass () BIND(C)
    USE keepatom, ONLY : lmp
    IMPLICIT NONE
    REAL(C_double) :: f_lammps_extract_atom_mass
-   REAL(C_double), DIMENSION(:), POINTER :: mass
+   REAL(C_double), DIMENSION(:), POINTER :: mass => NULL()
 
    mass = lmp%extract_atom('mass')
    f_lammps_extract_atom_mass = mass(1)
@@ -71,7 +71,7 @@ FUNCTION f_lammps_extract_atom_tag_int (i) BIND(C)
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i
    INTEGER(C_int) :: f_lammps_extract_atom_tag_int
-   INTEGER(C_int), DIMENSION(:), POINTER :: tag
+   INTEGER(C_int), DIMENSION(:), POINTER :: tag => NULL()
 
    tag = lmp%extract_atom('id')
    f_lammps_extract_atom_tag_int = tag(i)
@@ -84,7 +84,7 @@ FUNCTION f_lammps_extract_atom_tag_int64 (i) BIND(C)
    IMPLICIT NONE
    INTEGER(C_int64_t), INTENT(IN), VALUE :: i
    INTEGER(C_int64_t) :: f_lammps_extract_atom_tag_int64
-   INTEGER(C_int64_t), DIMENSION(:), POINTER :: tag
+   INTEGER(C_int64_t), DIMENSION(:), POINTER :: tag => NULL()
 
    tag = lmp%extract_atom('id')
    f_lammps_extract_atom_tag_int64 = tag(i)
@@ -97,7 +97,7 @@ FUNCTION f_lammps_extract_atom_type(i) BIND(C)
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i
    INTEGER(C_int) :: f_lammps_extract_atom_type
-   INTEGER(C_int), DIMENSION(:), POINTER :: atype
+   INTEGER(C_int), DIMENSION(:), POINTER :: atype => NULL()
 
    atype = lmp%extract_atom('type')
    f_lammps_extract_atom_type = atype(i)
@@ -110,7 +110,7 @@ FUNCTION f_lammps_extract_atom_mask(i) BIND(C)
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i
    INTEGER(C_int) :: f_lammps_extract_atom_mask
-   INTEGER(C_int), DIMENSION(:), POINTER :: mask
+   INTEGER(C_int), DIMENSION(:), POINTER :: mask => NULL()
 
    mask = lmp%extract_atom('mask')
    f_lammps_extract_atom_mask = mask(i)
@@ -123,8 +123,21 @@ SUBROUTINE f_lammps_extract_atom_x (i, x) BIND(C)
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i
    REAL(C_double), DIMENSION(3) :: x
-   REAL(C_double), DIMENSION(:,:), POINTER :: xptr
+   REAL(C_double), DIMENSION(:,:), POINTER :: xptr => NULL()
 
    xptr = lmp%extract_atom('x')
    x = xptr(:,i)
 END SUBROUTINE f_lammps_extract_atom_x
+
+SUBROUTINE f_lammps_extract_atom_v (i, v) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+   USE LIBLAMMPS
+   USE keepatom, ONLY : lmp
+   IMPLICIT NONE
+   INTEGER(C_int), INTENT(IN), VALUE :: i
+   REAL(C_double), DIMENSION(3) :: v
+   REAL(C_double), DIMENSION(:,:), POINTER :: vptr => NULL()
+
+   vptr = lmp%extract_atom('v')
+   v = vptr(:,i)
+END SUBROUTINE f_lammps_extract_atom_v

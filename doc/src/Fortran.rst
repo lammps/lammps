@@ -330,7 +330,7 @@ Procedures Bound to the lammps Derived Type
 
    Note that a frequent use case of this function is to extract only one or
    more of the options rather than all seven. For example, assuming "lmp"
-   represents a properly-initalized LAMMPS instance, the following code will
+   represents a properly-initialized LAMMPS instance, the following code will
    extract the periodic box settings into the variable "periodic":
 
    .. code-block:: Fortran
@@ -378,7 +378,7 @@ Procedures Bound to the lammps Derived Type
    .. note::
 
        The C library interface currently returns type "int" instead of type
-       "MPI_Fint", which is the C type correspending to Fortran "INTEGER"
+       "MPI_Fint", which is the C type corresponding to Fortran "INTEGER"
        types of the default kind. On most compilers, these are the same anyway,
        but this interface exchanges values this way to avoid warning messages.
 
@@ -465,7 +465,7 @@ Procedures Bound to the lammps Derived Type
 
    :p character(len=\*) name: string with the name of the extracted property
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
-    should be either a string (if expecting string data) or a C-interoperable
+    should be either a string (if expecting string data) or a C-compatible
     pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted
     property. If expecting vector data, the pointer should have dimension ":".
 

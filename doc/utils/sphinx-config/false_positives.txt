@@ -1094,6 +1094,7 @@ flagHI
 flaglog
 flagN
 flagVF
+flang
 fld
 floralwhite
 Florez

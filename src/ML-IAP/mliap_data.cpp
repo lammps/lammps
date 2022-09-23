@@ -147,7 +147,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
     memory->grow(eatoms,nlistatoms,"MLIAPData:eatoms");
     nlistatoms_max = nlistatoms;
   }
-  
+
   // grow gamma arrays if necessary
 
   if (gradgradflag == 1) {

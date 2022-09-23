@@ -171,7 +171,7 @@ to specify the path for these *model* and *descriptor* files.
    These can consume a significant amount of RAM for simulations of
    larger systems since their size depends on the total number of
    neighbors per MPI process.
- 
+
 The *unified* keyword is followed by an argument specifying the
 filename containing the serialized unified Python object and the "ghostneigh" toggle
 (0/1) to disable/enable the construction of neighbors lists including

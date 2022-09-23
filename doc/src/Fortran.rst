@@ -122,8 +122,8 @@ Executing LAMMPS commands
 Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
 simulation by telling LAMMPS to read commands from a file or to pass
 individual or multiple commands from strings or lists of strings.  This
-is done similarly to how it is implemented in the `C-library
-<pg_lib_execute>` interface. Before handing off the calls to the
+is done similarly to how it is implemented in the :doc:`C-library
+interface <Library_execute>`. Before handing off the calls to the
 C-library interface, the corresponding Fortran versions of the calls
 (:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
 :f:func:`commands_string`) have to make a copy of the strings passed as

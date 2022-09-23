@@ -733,8 +733,8 @@ Bibliography
 **(Mishin)**
    Mishin, Mehl, and Papaconstantopoulos, Acta Mater, 53, 4029 (2005).
 
-**(Mitchell and Finchham)**
-   Mitchell, Finchham, J Phys Condensed Matter, 5, 1031-1038 (1993).
+**(Mitchell and Fincham)**
+   Mitchell, Fincham, J Phys Condensed Matter, 5, 1031-1038 (1993).
 
 **(Mitchell2011)**
    Mitchell. A non-local, ordinary-state-based viscoelasticity model for peridynamics. Sandia National Lab Report, 8064:1-28 (2011).

@@ -508,10 +508,10 @@ Procedures Bound to the lammps Derived Type
         USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int64_t
         USE LIBLAMMPS
         TYPE(lammps) :: lmp
-        INTEGER(C_int), POINTER :: nlocal
-        INTEGER(C_int64_t), POINTER :: ntimestep
+        INTEGER(C_int), POINTER :: nlocal => NULL()
+        INTEGER(C_int64_t), POINTER :: ntimestep => NULL()
+        REAL(C_double), POINTER :: dt => NULL()
         CHARACTER(LEN=10) :: units
-        REAL(C_double), POINTER :: dt
         lmp = lammps()
         ! other commands
         nlocal = lmp%extract_global('nlocal')

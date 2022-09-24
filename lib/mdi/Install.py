@@ -32,12 +32,13 @@ make lib-mdi args="-m mpi" # build MDI lib with same settings as in the mpi Make
 
 # settings
 
-version = "1.4.11"
+version = "1.4.12"
 url = "https://github.com/MolSSI-MDI/MDI_Library/archive/v%s.tar.gz" % version
 
 # known checksums for different MDI versions. used to validate the download.
 checksums = { \
               '1.4.11' : '3791fe5081405c14aac07d4687f1cc58', \
+              '1.4.12' : '7a222353ae8e03961d5365e6cd48baee', \
               }
 
 # print error message or help

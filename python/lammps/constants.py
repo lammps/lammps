@@ -13,29 +13,35 @@
 
 # various symbolic constants to be used
 # in certain calls to select data formats
-LAMMPS_AUTODETECT = None
-LAMMPS_INT    = 0
-LAMMPS_INT_2D  = 1
-LAMMPS_DOUBLE = 2
-LAMMPS_DOUBLE_2D = 3
-LAMMPS_INT64 = 4
-LAMMPS_INT64_2D = 5
-LAMMPS_STRING = 6
+LAMMPS_AUTODETECT  = None
+LAMMPS_INT         = 0
+LAMMPS_INT_2D      = 1
+LAMMPS_DOUBLE      = 2
+LAMMPS_DOUBLE_2D   = 3
+LAMMPS_INT64       = 4
+LAMMPS_INT64_2D    = 5
+LAMMPS_STRING      = 6
 
 # these must be kept in sync with the enums in library.h
-LMP_STYLE_GLOBAL = 0
-LMP_STYLE_ATOM   = 1
-LMP_STYLE_LOCAL  = 2
+LMP_STYLE_GLOBAL   = 0
+LMP_STYLE_ATOM     = 1
+LMP_STYLE_LOCAL    = 2
 
-LMP_TYPE_SCALAR  = 0
-LMP_TYPE_VECTOR  = 1
-LMP_TYPE_ARRAY   = 2
-LMP_SIZE_VECTOR  = 3
-LMP_SIZE_ROWS    = 4
-LMP_SIZE_COLS    = 5
+LMP_TYPE_SCALAR    = 0
+LMP_TYPE_VECTOR    = 1
+LMP_TYPE_ARRAY     = 2
+LMP_SIZE_VECTOR    = 3
+LMP_SIZE_ROWS      = 4
+LMP_SIZE_COLS      = 5
 
-LMP_VAR_EQUAL = 0
-LMP_VAR_ATOM  = 1
+LMP_ERROR_WARNING  = 0
+LMP_ERROR_ONE      = 1
+LMP_ERROR_ALL      = 2
+LMP_ERROR_WORLD    = 4
+LMP_ERROR_UNIVERSE = 8
+
+LMP_VAR_EQUAL      = 0
+LMP_VAR_ATOM       = 1
 
 # -------------------------------------------------------------------------
 

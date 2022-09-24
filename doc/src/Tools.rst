@@ -397,7 +397,7 @@ ipp tool
 ------------------
 
 The tools/ipp directory contains a Perl script ipp which can be used
-to facilitate the creation of a complicated file (say, a lammps input
+to facilitate the creation of a complicated file (say, a LAMMPS input
 script or tools/createatoms input file) using a template file.
 
 ipp was created and is maintained by Reese Jones (Sandia), rjones at

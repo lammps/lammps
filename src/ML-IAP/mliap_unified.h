@@ -25,12 +25,12 @@ namespace LAMMPS_NS {
 class MLIAPDummyDescriptor : public MLIAPDescriptor {
  public:
   MLIAPDummyDescriptor(LAMMPS *);
-  ~MLIAPDummyDescriptor();
-  virtual void compute_descriptors(class MLIAPData *);
-  virtual void compute_forces(class MLIAPData *);
-  virtual void compute_force_gradients(class MLIAPData *);
-  virtual void compute_descriptor_gradients(class MLIAPData *);
-  virtual void init();
+  ~MLIAPDummyDescriptor() override;
+  void compute_descriptors(class MLIAPData *) override;
+  void compute_forces(class MLIAPData *) override;
+  void compute_force_gradients(class MLIAPData *) override;
+  void compute_descriptor_gradients(class MLIAPData *) override;
+  void init() override;
   void set_elements(char **, int);
 
   PyObject *unified_interface;    // MLIAPUnifiedInterface
@@ -39,19 +39,19 @@ class MLIAPDummyDescriptor : public MLIAPDescriptor {
 
 class MLIAPDummyModel : public MLIAPModel {
  public:
-  MLIAPDummyModel(LAMMPS *, char * = NULL);
-  ~MLIAPDummyModel();
-  virtual int get_nparams();
-  virtual int get_gamma_nnz(class MLIAPData *);
-  virtual void compute_gradients(class MLIAPData *);
-  virtual void compute_gradgrads(class MLIAPData *);
-  virtual void compute_force_gradients(class MLIAPData *);
-  virtual double memory_usage();
+  MLIAPDummyModel(LAMMPS *, char * = nullptr);
+  ~MLIAPDummyModel() override;
+  int get_nparams() override;
+  int get_gamma_nnz(class MLIAPData *) override;
+  void compute_gradients(class MLIAPData *) override;
+  void compute_gradgrads(class MLIAPData *) override;
+  void compute_force_gradients(class MLIAPData *) override;
+  double memory_usage() override;
 
   PyObject *unified_interface;
 
  protected:
-  virtual void read_coeffs(char *);
+  void read_coeffs(char *) override;
 };
 
 struct MLIAPBuildUnified_t {

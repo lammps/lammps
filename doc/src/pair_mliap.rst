@@ -66,11 +66,11 @@ basis :ref:`(Bartok) <Bartok2013>` and :ref:`(Zagaceta) <Zagaceta2020>`.
 The available models are *linear* and *nn*.
 
 The pair_style *mliap* command must be followed by two keywords *model*
-and *descriptor* in either order, or the one keyword *unified*. A single
-*pair_coeff* command is also required. The first 2 arguments must be
-\* \* so as to span all LAMMPS atom types.  This is followed by a list
-of N arguments that specify the mapping of MLIAP element names to LAMMPS
-atom types, where N is the number of LAMMPS atom types.
+and *descriptor* in either order, or the one keyword *unified*.  A
+single *pair_coeff* command is also required.  The first 2 arguments
+must be \* \* so as to span all LAMMPS atom types.  This is followed by
+a list of N arguments that specify the mapping of MLIAP element names to
+LAMMPS atom types, where N is the number of LAMMPS atom types.
 
 The *model* keyword is followed by the model style. This is followed by
 a single argument specifying the model filename containing the
@@ -118,14 +118,15 @@ The detail of *nn* module implementation can be found at :ref:`(Yanxon) <Yanxon2
 
 .. admonition:: Notes on mliappy models
 
-   When the *model* keyword is *mliappy*, if the filename ends in '.pt', or '.pth', it
-   will be loaded using pytorch; otherwise, it will be loaded as a pickle file.To load
-   a model from memory (i.e. an existing python object), specify the filename as
-   "LATER", and then call `lammps.mliap.load_model(model)` from python
-   before using the pair style. When using LAMMPS via the library mode, you
-   will need to call `lammps.mliappy.activate_mliappy(lmp)` on the active
-   LAMMPS object before the pair style is defined. This call locates and
-   loads the mliap-specific python module that is built into LAMMPS.
+   When the *model* keyword is *mliappy*, if the filename ends in '.pt',
+   or '.pth', it will be loaded using pytorch; otherwise, it will be
+   loaded as a pickle file.  To load a model from memory (i.e. an
+   existing python object), specify the filename as "LATER", and then
+   call `lammps.mliap.load_model(model)` from python before using the
+   pair style.  When using LAMMPS via the library mode, you will need to
+   call `lammps.mliappy.activate_mliappy(lmp)` on the active LAMMPS
+   object before the pair style is defined.  This call locates and loads
+   the mliap-specific python module that is built into LAMMPS.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently two descriptor styles are available: *sna* and *so3*.
@@ -195,10 +196,10 @@ cutoff manually, such as in the following example.
 
   To load a model from memory
   (i.e. an existing python object), call `lammps.mliap.load_unified(unified)`
-  from python, and then specify the filename as "EXISTS". When using lammps via
+  from python, and then specify the filename as "EXISTS". When using LAMMPS via
   the library mode, you will need to call `lammps.mliappy.activate_mliappy(lmp)`
-  on the active lammps object before the pair style is defined. This call locates
-  and loads the mliap-specific python module that is built into lammps.
+  on the active LAMMPS object before the pair style is defined. This call locates
+  and loads the mliap-specific python module that is built into LAMMPS.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

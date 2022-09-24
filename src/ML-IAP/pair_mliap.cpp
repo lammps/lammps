@@ -82,10 +82,12 @@ void PairMLIAP::compute(int eflag, int vflag)
   // consistency checks
 
   if (data->ndescriptors != model->ndescriptors)
-    error->all(FLERR, "Incompatible model and descriptor descriptor count");
+    error->all(FLERR, "Inconsistent model and descriptor descriptor count: {} vs {}",
+               model->ndescriptors, data->ndescriptors);
 
   if (data->nelements != model->nelements)
-    error->all(FLERR, "Incompatible model and descriptor element count");
+    error->all(FLERR, "Inconsistent model and descriptor element count: {} vs {}",
+               model->nelements, data->nelements);
 
   ev_init(eflag, vflag);
   data->generate_neighdata(list, eflag, vflag);
@@ -129,8 +131,7 @@ void PairMLIAP::allocate()
 
 void PairMLIAP::settings(int narg, char ** arg)
 {
-  if (narg < 2)
-    error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style mliap", error);
 
   // set flags for required keywords
 
@@ -145,39 +146,39 @@ void PairMLIAP::settings(int narg, char ** arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model", error);
       if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (strcmp(arg[iarg+1],"linear") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model linear", error);
         model = new MLIAPModelLinear(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model quadratic", error);
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"nn") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model nn", error);
         model = new MLIAPModelNN(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
 #ifdef MLIAP_PYTHON
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap mliappy", error);
         model = new MLIAPModelPython(lmp,arg[iarg+2]);
         iarg += 3;
 #else
-        error->all(FLERR,"Using pair_style mliap mliappy requires ML-IAP with python support");
+        error->all(FLERR,"Using pair_style mliap model mliappy requires ML-IAP with python support");
 #endif
-      } else error->all(FLERR,"Illegal pair_style mliap command");
+      } else error->all(FLERR,"Unknown pair_style mliap model keyword: {}", arg[iarg]);
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor", error);
       if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (strcmp(arg[iarg+1],"sna") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor sna", error);
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"so3") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor so3", error);
         descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
 
@@ -185,19 +186,14 @@ void PairMLIAP::settings(int narg, char ** arg)
       descriptorflag = 1;
     } else if (strcmp(arg[iarg], "unified") == 0) {
 #ifdef MLIAP_PYTHON
-      if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
-      if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
+      if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);
       MLIAPBuildUnified_t build = build_unified(arg[iarg+1], data, lmp);
       if (iarg+3 > narg) {
         ghostneigh = 0;
       } else {
-        if (strcmp(arg[iarg+2],"0") == 0)
-          ghostneigh = 0;
-        else if (strcmp(arg[iarg+2],"1") == 0)
-          ghostneigh = 1;
-        else
-          error->all(FLERR,"Illegal pair_style mliap command");
+        ghostneigh = utils::logical(FLERR, arg[iarg+2], false, lmp);
       }
 
       iarg += 3;
@@ -209,12 +205,11 @@ void PairMLIAP::settings(int narg, char ** arg)
       error->all(FLERR,"Using pair_style mliap unified requires ML-IAP with python support");
 #endif
     } else
-      error->all(FLERR,"Illegal pair_style mliap command");
+      error->all(FLERR,"Unknown pair_style mliap keyword: {}", arg[iarg]);
   }
 
   if (modelflag == 0 || descriptorflag == 0)
-    error->all(FLERR,"Illegal pair_style command");
-
+    error->all(FLERR,"Incomplete pair_style mliap setup: need model and descriptor, or unified");
 }
 
 /* ----------------------------------------------------------------------
@@ -230,12 +225,7 @@ void PairMLIAP::coeff(int narg, char **arg)
   char* type2 = arg[1];
   char** elemtypes = &arg[2];
 
-  // insure I,J args are * *
-
-  if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements
+q  // read args that map atom types to elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
 

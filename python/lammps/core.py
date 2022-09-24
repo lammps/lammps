@@ -1622,8 +1622,8 @@ class lammps(object):
     """Return a string with detailed information about any devices that are
     usable by the GPU package.
 
-    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info` 
-    function of the C-library interface. 
+    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info`
+    function of the C-library interface.
 
     :return: GPU device info string
     :rtype:  string

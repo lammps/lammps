@@ -19,16 +19,16 @@ class MLIAPUnifiedLJ(MLIAPUnified):
 
     def compute_gradients(self, data):
         """Test compute_gradients."""
-    
+
     def compute_descriptors(self, data):
         """Test compute_descriptors."""
-    
+
     def compute_forces(self, data):
         """Test compute_forces."""
         eij, fij = self.compute_pair_ef(data)
         data.update_pair_energy(eij)
         data.update_pair_forces(fij)
- 
+
     def compute_pair_ef(self, data):
         rij = data.rij
 

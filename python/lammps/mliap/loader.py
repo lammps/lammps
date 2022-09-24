@@ -29,7 +29,7 @@ from ctypes import pythonapi, c_int, c_void_p, py_object
 class DynamicLoader(importlib.abc.Loader):
     def __init__(self,module_name,library,api_version=1013):
         self.api_version = api_version
-        
+
         attr = "PyInit_"+module_name
         initfunc = getattr(library,attr)
         # c_void_p is standin for PyModuleDef *
@@ -44,7 +44,7 @@ class DynamicLoader(importlib.abc.Loader):
         createfunc.restype = py_object
         module = createfunc(self.module_def, spec, self.api_version)
         return module
-    
+
     def exec_module(self, module):
         execfunc = pythonapi.PyModule_ExecDef
         # c_void_p is standin for PyModuleDef *
@@ -59,12 +59,12 @@ def activate_mliappy(lmp):
         library = lmp.lib
         module_names = ["mliap_model_python_couple", "mliap_unified_couple"]
         api_version = library.lammps_python_api_version()
-        
+
         for module_name in module_names:
             # Make Machinery
             loader = DynamicLoader(module_name,library,api_version)
             spec = importlib.util.spec_from_loader(module_name,loader)
-            
+
             # Do the import
             module = importlib.util.module_from_spec(spec)
             sys.modules[module_name] = module

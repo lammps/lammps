@@ -397,4 +397,4 @@ Default
 The option defaults are box = yes, timestep = yes, replace = yes, purge = no,
 trim = no, add = no, scaled = no, wrapped = yes, and format = native.
 
-.. _vmd: http://www.ks.uiuc.edu/Research/vmd
+.. _vmd: https://www.ks.uiuc.edu/Research/vmd

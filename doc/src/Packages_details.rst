@@ -1071,7 +1071,7 @@ H5MD is a format for molecular simulations, built on top of HDF5.
 This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
-.. _HDF5: http://www.hdfgroup.org/HDF5
+.. _HDF5: https://www.hdfgroup.org/solutions/hdf5
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1954,7 +1954,7 @@ support for new file formats can be added to LAMMPS (or VMD or other
 programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
-`http://www.ks.uiuc.edu/Research/vmd/plugins/molfile <http://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
+`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
 
 **Author:** Axel Kohlmeyer (Temple U).
 
@@ -2045,7 +2045,7 @@ NETCDF package
 Dump styles for writing NetCDF formatted dump files.  NetCDF is a
 portable, binary, self-describing file format developed on top of
 HDF5. The file contents follow the AMBER NetCDF trajectory conventions
-(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
+(https://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
 
 To use this package you must have the NetCDF library available on your
 system.
@@ -2056,7 +2056,7 @@ tools:
 * `Ovito <ovito_>`_ (Ovito supports the AMBER convention and the extensions mentioned above)
 * `VMD <vmd-home_>`_
 
-.. _ovito: http://www.ovito.org
+.. _ovito: https://www.ovito.org
 
 .. _vmd-home: https://www.ks.uiuc.edu/Research/vmd/
 
@@ -2417,7 +2417,7 @@ A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used as
 the MM code in a QM/MM simulation.  This is currently only available
 in combination with the `Quantum ESPRESSO <espresso_>`_ package.
 
-.. _espresso: http://www.quantum-espresso.org
+.. _espresso: https://www.quantum-espresso.org
 
 To use this package you must have Quantum ESPRESSO (QE) available on
 your system and include its coupling library in the compilation and
@@ -2829,7 +2829,7 @@ collection of atoms by wrapping the `Voro++ library <voro-home_>`_.  This
 can be used to calculate the local volume or each atoms or its near
 neighbors.
 
-.. _voro-home: http://math.lbl.gov/voro++
+.. _voro-home: https://math.lbl.gov/voro++
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -2863,9 +2863,9 @@ A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
 `VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
 other visualization packages.
 
-.. _vtk: http://www.vtk.org
+.. _vtk: https://www.vtk.org
 
-.. _paraview: http://www.paraview.org
+.. _paraview: https://www.paraview.org
 
 To use this package you must have VTK library available on your
 system.
@@ -2902,7 +2902,7 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 .. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
 .. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
-.. _quickff: http://molmod.github.io/QuickFF
+.. _quickff: https://molmod.github.io/QuickFF
 .. _yaff: https://github.com/molmod/yaff
 
 **Author:** Steven Vandenbrande.

@@ -134,7 +134,7 @@ for other systems, *nasr* = 10 is typically sufficient.
 The *map_file* contains the mapping information between the lattice
 indices and the atom IDs, which tells the code which atom sits at
 which lattice point; the lattice indices start from 0. An auxiliary
-code, `latgen <http://code.google.com/p/latgen>`_, can be employed to
+code, `latgen <https://code.google.com/p/latgen>`_, can be employed to
 generate the compatible map file for various crystals.
 
 In case one simulates a non-periodic system, where the whole simulation

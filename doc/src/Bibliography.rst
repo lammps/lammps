@@ -368,7 +368,7 @@ Bibliography
    Frenkel and Smit, Understanding Molecular Simulation, Academic Press, London, 2002.
 
 **(GLE4MD)**
-   `http://gle4md.org/ <http://gle4md.org/>`_
+   `https://gle4md.org/ <https://gle4md.org/>`_
 
 **(Gao)**
    Gao and Weber, Nuclear Instruments and Methods in Physics Research B 191 (2012) 504.
@@ -461,7 +461,7 @@ Bibliography
    Hunt, Mol Simul, 42, 347 (2016).
 
 **(IPI)**
-   `http://epfl-cosmo.github.io/gle4md/index.html?page=ipi <http://epfl-cosmo.github.io/gle4md/index.html?page=ipi>`_
+   `https://ipi-code.org/ <https://ipi-code.org/>`
 
 **(IPI-CPC)**
    Ceriotti, More and Manolopoulos, Comp Phys Comm, 185, 1019-1026 (2014).
@@ -875,7 +875,7 @@ Bibliography
    G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
 
 **(Paquay)**
-   Paquay and Kusters, Biophys. J., 110, 6, (2016). preprint available at `arXiv:1411.3019 <http://arxiv.org/abs/1411.3019/>`_.
+   Paquay and Kusters, Biophys. J., 110, 6, (2016). preprint available at `arXiv:1411.3019 <https://arxiv.org/abs/1411.3019/>`_.
 
 **(Park)**
    Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)

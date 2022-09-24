@@ -66,10 +66,14 @@ peridynamic viscoelastic solid (VES) model.
 Style *peri/eps* implements the Peridynamic state-based elastic-plastic
 solid (EPS) model.
 
-The canonical papers on Peridynamics are :ref:`(Silling 2000) <Silling2000>`
-and :ref:`(Silling 2007) <Silling2007>`.  The implementation of Peridynamics
-in LAMMPS is described in :ref:`(Parks) <Parks>`.  Also see the `PDLAMMPS user guide <http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf>`_ for
-more details about its implementation.
+.. TODO the following URL is not valid
+
+The canonical papers on Peridynamics are :ref:`(Silling 2000)
+<Silling2000>` and :ref:`(Silling 2007) <Silling2007>`.  The
+implementation of Peridynamics in LAMMPS is described in :ref:`(Parks)
+<Parks>`.  Also see the `PDLAMMPS user guide
+<http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf>`_ for more details
+about its implementation.
 
 The peridynamic VES and EPS models in PDLAMMPS were implemented by
 R. Rahman and J. T. Foster at University of Texas at San Antonio.  The

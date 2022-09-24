@@ -110,7 +110,7 @@ These pair styles compute Lennard Jones (LJ) and Coulombic
 interactions with additional switching or shifting functions that ramp
 the energy and/or force smoothly to zero between an inner and outer
 cutoff.  They are implementations of the widely used CHARMM force
-field used in the `CHARMM <http://www.scripps.edu/brooks>`_ MD code (and
+field used in the `CHARMM <https://www.charmm.org>`_ MD code (and
 others).  See :ref:`(MacKerell) <pair-MacKerell>` for a description of the
 CHARMM force field.
 

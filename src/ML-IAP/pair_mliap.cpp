@@ -225,7 +225,7 @@ void PairMLIAP::coeff(int narg, char **arg)
   char* type2 = arg[1];
   char** elemtypes = &arg[2];
 
-q  // read args that map atom types to elements
+  // read args that map atom types to elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
 

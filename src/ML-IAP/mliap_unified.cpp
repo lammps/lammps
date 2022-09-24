@@ -17,12 +17,12 @@
 
 #ifdef MLIAP_PYTHON
 
-#include <Python.h>
 #include "mliap_unified.h"
+#include <Python.h>
 
 #include "error.h"
-#include "memory.h"
 #include "lmppython.h"
+#include "memory.h"
 #include "mliap_data.h"
 #include "mliap_unified_couple.h"
 #include "pair_mliap.h"
@@ -33,10 +33,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDummyDescriptor::MLIAPDummyDescriptor(LAMMPS *lmp) :
-    MLIAPDescriptor(lmp) {}
+MLIAPDummyDescriptor::MLIAPDummyDescriptor(LAMMPS *lmp) : MLIAPDescriptor(lmp) {}
 
-MLIAPDummyDescriptor::~MLIAPDummyDescriptor() {
+MLIAPDummyDescriptor::~MLIAPDummyDescriptor()
+{
   memory->destroy(radelem);
   memory->destroy(cutsq);
   // manually decrement borrowed reference from Python
@@ -47,7 +47,8 @@ MLIAPDummyDescriptor::~MLIAPDummyDescriptor() {
    invoke compute_descriptors from Cython interface
    ---------------------------------------------------------------------- */
 
-void MLIAPDummyDescriptor::compute_descriptors(class MLIAPData *data) {
+void MLIAPDummyDescriptor::compute_descriptors(class MLIAPData *data)
+{
   PyGILState_STATE gstate = PyGILState_Ensure();
   compute_descriptors_python(unified_interface, data);
   if (PyErr_Occurred()) {
@@ -63,7 +64,8 @@ void MLIAPDummyDescriptor::compute_descriptors(class MLIAPData *data) {
    invoke compute_forces from Cython interface
    ---------------------------------------------------------------------- */
 
-void MLIAPDummyDescriptor::compute_forces(class MLIAPData *data) {
+void MLIAPDummyDescriptor::compute_forces(class MLIAPData *data)
+{
   PyGILState_STATE gstate = PyGILState_Ensure();
   compute_forces_python(unified_interface, data);
   if (PyErr_Occurred()) {
@@ -76,20 +78,21 @@ void MLIAPDummyDescriptor::compute_forces(class MLIAPData *data) {
 }
 
 // not implemented
-void MLIAPDummyDescriptor::compute_force_gradients(class MLIAPData *) {
+void MLIAPDummyDescriptor::compute_force_gradients(class MLIAPData *)
+{
   error->all(FLERR, "compute_force_gradients not implemented");
 }
 
 // not implemented
-void MLIAPDummyDescriptor::compute_descriptor_gradients(class MLIAPData *) {
+void MLIAPDummyDescriptor::compute_descriptor_gradients(class MLIAPData *)
+{
   error->all(FLERR, "compute_descriptor_gradients not implemented");
 }
 
-void MLIAPDummyDescriptor::init() {
+void MLIAPDummyDescriptor::init()
+{
   memory->create(radelem, nelements, "mliap_dummy_descriptor:radelem");
-  for (int ielem = 0; ielem < nelements; ielem++) {
-    radelem[ielem] = 1;
-  }
+  for (int ielem = 0; ielem < nelements; ielem++) { radelem[ielem] = 1; }
 
   double cut;
   cutmax = 0.0;
@@ -97,43 +100,45 @@ void MLIAPDummyDescriptor::init() {
   memory->create(cutghost, nelements, nelements, "mliap/descriptor/dummy:cutghost");
   for (int ielem = 0; ielem < nelements; ielem++) {
     // rcutfac set from python, is global cutoff for all elements
-    cut = 2.0*radelem[ielem]*rcutfac;
+    cut = 2.0 * radelem[ielem] * rcutfac;
     if (cut > cutmax) cutmax = cut;
-    cutsq[ielem][ielem] = cut*cut;
-    cutghost[ielem][ielem] = cut*cut;
-    for (int jelem = ielem+1; jelem < nelements; jelem++) {
-      cut = (radelem[ielem]+radelem[jelem])*rcutfac;
-      cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut*cut;
-      cutghost[ielem][jelem] = cutghost[jelem][ielem] = cut*cut;
+    cutsq[ielem][ielem] = cut * cut;
+    cutghost[ielem][ielem] = cut * cut;
+    for (int jelem = ielem + 1; jelem < nelements; jelem++) {
+      cut = (radelem[ielem] + radelem[jelem]) * rcutfac;
+      cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut * cut;
+      cutghost[ielem][jelem] = cutghost[jelem][ielem] = cut * cut;
     }
   }
 }
 
-void MLIAPDummyDescriptor::set_elements(char **elems, int nelems) {
+void MLIAPDummyDescriptor::set_elements(char **elems, int nelems)
+{
   nelements = nelems;
-  elements = new char*[nelems];
-  for (int i = 0; i < nelems; i++) {
-    elements[i] = utils::strdup(elems[i]);
-  }
+  elements = new char *[nelems];
+  for (int i = 0; i < nelems; i++) { elements[i] = utils::strdup(elems[i]); }
 }
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDummyModel::MLIAPDummyModel(LAMMPS *lmp, char *coefffilename) :
-    MLIAPModel(lmp, coefffilename) {
+MLIAPDummyModel::MLIAPDummyModel(LAMMPS *lmp, char *coefffilename) : MLIAPModel(lmp, coefffilename)
+{
   nonlinearflag = 1;
 }
 
-MLIAPDummyModel::~MLIAPDummyModel() {
+MLIAPDummyModel::~MLIAPDummyModel()
+{
   // manually decrement borrowed reference from Python
   Py_DECREF(unified_interface);
 }
 
-int MLIAPDummyModel::get_nparams() {
+int MLIAPDummyModel::get_nparams()
+{
   return nparams;
 }
 
-int MLIAPDummyModel::get_gamma_nnz(class MLIAPData *) {
+int MLIAPDummyModel::get_gamma_nnz(class MLIAPData *)
+{
   // TODO: get_gamma_nnz
   return 0;
 }
@@ -142,7 +147,8 @@ int MLIAPDummyModel::get_gamma_nnz(class MLIAPData *) {
    invoke compute_gradients from Cython interface
    ---------------------------------------------------------------------- */
 
-void MLIAPDummyModel::compute_gradients(class MLIAPData *data) {
+void MLIAPDummyModel::compute_gradients(class MLIAPData *data)
+{
   PyGILState_STATE gstate = PyGILState_Ensure();
   compute_gradients_python(unified_interface, data);
   if (PyErr_Occurred()) {
@@ -155,12 +161,14 @@ void MLIAPDummyModel::compute_gradients(class MLIAPData *data) {
 }
 
 // not implemented
-void MLIAPDummyModel::compute_gradgrads(class MLIAPData *) {
+void MLIAPDummyModel::compute_gradgrads(class MLIAPData *)
+{
   error->all(FLERR, "compute_gradgrads not implemented");
 }
 
 // not implemented
-void MLIAPDummyModel::compute_force_gradients(class MLIAPData *) {
+void MLIAPDummyModel::compute_force_gradients(class MLIAPData *)
+{
   error->all(FLERR, "compute_force_gradients not implemented");
 }
 
@@ -168,13 +176,15 @@ void MLIAPDummyModel::compute_force_gradients(class MLIAPData *) {
    memory usage unclear due to Cython/Python implementation
    ---------------------------------------------------------------------- */
 
-double MLIAPDummyModel::memory_usage() {
+double MLIAPDummyModel::memory_usage()
+{
   // TODO: implement memory usage in Cython(?)
   return 0;
 }
 
 // not implemented
-void MLIAPDummyModel::read_coeffs(char *) {
+void MLIAPDummyModel::read_coeffs(char *)
+{
   error->all(FLERR, "read_coeffs not implemented");
 }
 
@@ -183,7 +193,8 @@ void MLIAPDummyModel::read_coeffs(char *) {
    ---------------------------------------------------------------------- */
 
 MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *data, LAMMPS *lmp,
-    char *coefffilename) {
+                                             char *coefffilename)
+{
   lmp->python->init();
   PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -233,41 +244,42 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
    set energy for ij atom pairs
    ---------------------------------------------------------------------- */
 
-void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij) {
-    double e_total = 0;
-    for (int ii = 0; ii < data->nlistatoms; ii++)
-        data->eatoms[ii] = 0;
+void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
+{
+  double e_total = 0;
+  for (int ii = 0; ii < data->nlistatoms; ii++) data->eatoms[ii] = 0;
 
-    for (int ii = 0; ii < data->npairs; ii++) {
-        int i = data->pair_i[ii];
-        double e = 0.5 * eij[ii];
+  for (int ii = 0; ii < data->npairs; ii++) {
+    int i = data->pair_i[ii];
+    double e = 0.5 * eij[ii];
 
-        data->eatoms[i] += e;
-        e_total += e;
-    }
-    data->energy = e_total;
+    data->eatoms[i] += e;
+    e_total += e;
+  }
+  data->energy = e_total;
 }
 
 /* ----------------------------------------------------------------------
    set forces for ij atom pairs
    ---------------------------------------------------------------------- */
 
-void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij) {
-    double **f = data->f;
-    for (int ii = 0; ii < data->npairs; ii++) {
-        int ii3 = ii * 3;
-        int i = data->pair_i[ii];
-        int j = data->jatoms[ii];
+void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
+{
+  double **f = data->f;
+  for (int ii = 0; ii < data->npairs; ii++) {
+    int ii3 = ii * 3;
+    int i = data->pair_i[ii];
+    int j = data->jatoms[ii];
 
-        f[i][0] += fij[ii3];
-        f[i][1] += fij[ii3 + 1];
-        f[i][2] += fij[ii3 + 2];
-        f[j][0] -= fij[ii3];
-        f[j][1] -= fij[ii3 + 1];
-        f[j][2] -= fij[ii3 + 2];
+    f[i][0] += fij[ii3];
+    f[i][1] += fij[ii3 + 1];
+    f[i][2] += fij[ii3 + 2];
+    f[j][0] -= fij[ii3];
+    f[j][1] -= fij[ii3 + 1];
+    f[j][2] -= fij[ii3 + 2];
 
-        if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
-    }
+    if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
+  }
 }
 
 #endif

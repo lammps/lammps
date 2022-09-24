@@ -29,14 +29,14 @@ class MLIAPDescriptor : protected Pointers {
   virtual void init() = 0;
   virtual double memory_usage();
 
-  int ndescriptors;    // number of descriptors
-  int nelements;       // # of unique elements
-  char **elements;     // names of unique elements
-  double **cutsq;      // nelem x nelem rcutsq values
-  double **cutghost;   // cutoff for each ghost pair
-  double cutmax;       // maximum cutoff needed
-  double *radelem;     // element radii
-  double *wjelem;      // elements weights
+  int ndescriptors;     // number of descriptors
+  int nelements;        // # of unique elements
+  char **elements;      // names of unique elements
+  double **cutsq;       // nelem x nelem rcutsq values
+  double **cutghost;    // cutoff for each ghost pair
+  double cutmax;        // maximum cutoff needed
+  double *radelem;      // element radii
+  double *wjelem;       // elements weights
  protected:
 };
 

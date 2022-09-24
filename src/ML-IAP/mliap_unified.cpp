@@ -33,12 +33,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDummyDescriptor::MLIAPDummyDescriptor(LAMMPS *lmp) : MLIAPDescriptor(lmp) {}
+MLIAPDummyDescriptor::MLIAPDummyDescriptor(LAMMPS *_lmp) : MLIAPDescriptor(_lmp) {}
 
 MLIAPDummyDescriptor::~MLIAPDummyDescriptor()
 {
-  memory->destroy(radelem);
-  memory->destroy(cutsq);
   // manually decrement borrowed reference from Python
   Py_DECREF(unified_interface);
 }

@@ -57,6 +57,10 @@
 #include "exceptions.h"
 #endif
 
+#if defined(LMP_PYTHON)
+#include <Python.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 // for printing the non-null pointer argument warning only once
@@ -5571,12 +5575,28 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
   return 0;
 }
 
-#ifdef LMP_PYTHON
-#include <Python.h>
-int lammps_PYTHON_API_VERSION(){
+/* ---------------------------------------------------------------------- */
+
+/** Return API version of embedded Python interpreter
+
+\verbatim embed:rst
+This function is used by the ML-IAP python code (mliappy) to verify
+the API version of the embedded python interpreter of the PYTHON
+package.  It returns -1 if the PYTHON package is not enabled.
+
+.. versionadded:: TBD
+
+\endverbatim
+ *
+ * \return   PYTHON_API_VERSION constant of the python interpreter or -1 */
+
+int lammps_python_api_version() {
+#if defined(LMP_PYTHON)
   return PYTHON_API_VERSION;
-}
+#else
+  return -1;
 #endif
+}
 
 // Local Variables:
 // fill-column: 72

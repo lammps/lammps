@@ -58,7 +58,7 @@ def activate_mliappy(lmp):
     try:
         library = lmp.lib
         module_names = ["mliap_model_python_couple", "mliap_unified_couple"]
-        api_version = library.lammps_PYTHON_API_VERSION()
+        api_version = library.lammps_python_api_version()
         
         for module_name in module_names:
             # Make Machinery

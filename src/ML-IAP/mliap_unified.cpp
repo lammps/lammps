@@ -245,14 +245,18 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
 void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 {
   double e_total = 0;
-  for (int ii = 0; ii < data->nlistatoms; ii++) data->eatoms[ii] = 0;
+  const auto nlistatoms = data->nlistatoms;
+  for (int ii = 0; ii < nlistatoms; ii++) data->eatoms[ii] = 0;
 
   for (int ii = 0; ii < data->npairs; ii++) {
     int i = data->pair_i[ii];
     double e = 0.5 * eij[ii];
 
-    data->eatoms[i] += e;
-    e_total += e;
+    // TODO: the if avoids memory corruption with ghostneigh_flag = 1,
+    if (i < nlistatoms) {
+      data->eatoms[i] += e;
+      e_total += e;
+    }
   }
   data->energy = e_total;
 }

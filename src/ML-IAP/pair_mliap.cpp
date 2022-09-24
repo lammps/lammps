@@ -159,11 +159,13 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelNN(lmp,arg[iarg+2]);
         iarg += 3;
-#ifdef MLIAP_PYTHON
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+#ifdef MLIAP_PYTHON
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelPython(lmp,arg[iarg+2]);
         iarg += 3;
+#else
+        error->all(FLERR,"Using pair_style mliap mliappy requires ML-IAP with python support");
 #endif
       } else error->all(FLERR,"Illegal pair_style mliap command");
       modelflag = 1;
@@ -181,8 +183,8 @@ void PairMLIAP::settings(int narg, char ** arg)
 
       } else error->all(FLERR,"Illegal pair_style mliap command");
       descriptorflag = 1;
-#ifdef MLIAP_PYTHON
     } else if (strcmp(arg[iarg], "unified") == 0) {
+#ifdef MLIAP_PYTHON
       if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
@@ -203,6 +205,8 @@ void PairMLIAP::settings(int narg, char ** arg)
       descriptor = build.descriptor;
       modelflag = 1;
       descriptorflag = 1;
+#else
+      error->all(FLERR,"Using pair_style mliap unified requires ML-IAP with python support");
 #endif
     } else
       error->all(FLERR,"Illegal pair_style mliap command");

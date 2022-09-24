@@ -40,15 +40,17 @@ Description
 """""""""""
 
 Pair style *mliap* provides a general interface to families of
-machine-learning interatomic potentials. It allows separate definitions
+machine-learning interatomic potentials.  It allows separate definitions
 of the interatomic potential functional form (*model*) and the geometric
-quantities that characterize the atomic positions (*descriptor*). By
-defining *model* and *descriptor* separately, it is possible to use many
-different models with a given descriptor, or many different descriptors
-with a given model. The pair style currently supports only *sna* and *so3*
-descriptor styles, but it is straightforward to add new descriptor
-styles. By using the *unified* pair style, it is possible to define a
-Python model that combines functionalities of both *model* and *descriptor*.
+quantities that characterize the atomic positions (*descriptor*).
+
+By defining *model* and *descriptor* separately, it is possible to use
+many different models with a given descriptor, or many different
+descriptors with a given model.  The pair style currently supports only
+*sna* and *so3* descriptor styles, but it is straightforward to add new
+descriptor styles.  By using the *unified* keyword, it is possible to
+define a Python model that combines functionalities of both *model* and
+*descriptor*.
 
 The SNAP descriptor style *sna* is the same as that used by
 :doc:`pair_style snap <pair_snap>`, including the linear, quadratic, and
@@ -172,6 +174,8 @@ to specify the path for these *model* and *descriptor* files.
    These can consume a significant amount of RAM for simulations of
    larger systems since their size depends on the total number of
    neighbors per MPI process.
+
+.. versionadded:: TBD
 
 The *unified* keyword is followed by an argument specifying the
 filename containing the serialized unified Python object and the "ghostneigh" toggle

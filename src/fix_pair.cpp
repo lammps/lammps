@@ -84,7 +84,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     int columns = 0;         // set in case fieldname not recognized by pstyle
-    void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
+    pstyle->extract_peratom(fieldname[ifield],columns);
     if (columns) ncols += columns;
     else ncols++;
     if (trigger[ifield]) {
@@ -215,8 +215,6 @@ void FixPair::pre_force(int /*vflag*/)
 
   // set pair style triggers
 
-//  printf("FPAIR preforce: set trigger %ld\n",update->ntimestep);
-
   for (int ifield = 0; ifield < nfield; ifield++)
     if (trigger[ifield]) *(triggerptr[ifield]) = 1;
 }
@@ -246,8 +244,6 @@ void FixPair::post_force(int /*vflag*/)
 
   int icol = 0;
   int columns;
-
-//  printf("FPAIR postforce: extract %ld\n",update->ntimestep);
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);

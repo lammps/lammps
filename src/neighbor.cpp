@@ -2163,13 +2163,13 @@ int Neighbor::request(void *requestor, int instance)
       memory->srealloc(requests,maxrequest*sizeof(NeighRequest *), "neighbor:requests");
   }
 
-  requests[nrequest] = new NeighRequest(lmp, nrequest, requestor, instance);
+  requests[nrequest] = new NeighRequest(lmp, requestor, instance);
   nrequest++;
   return nrequest-1;
 }
 
 /* ----------------------------------------------------------------------
-   called by other classes to request a pairwise neighbor list
+  add_request() is called by other classes to request a pairwise neighbor list
 ------------------------------------------------------------------------- */
 
 NeighRequest *Neighbor::add_request(Pair *requestor, int flags)
@@ -2918,6 +2918,16 @@ bigint Neighbor::get_nneigh_half()
     } else if (lmp->kokkos) nneighhalf = lmp->kokkos->neigh_count(m);
   }
   return nneighhalf;
+}
+
+/* ----------------------------------------------------------------------
+   add pair of atoms to bondlist array
+   will only persist until the next neighbor build
+------------------------------------------------------------------------- */
+
+void Neighbor::add_temporary_bond(int i1, int i2, int btype)
+{
+  neigh_bond->add_temporary_bond(i1, i2, btype);
 }
 
 /* ----------------------------------------------------------------------

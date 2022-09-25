@@ -239,7 +239,7 @@ void PairPACE::allocate()
 
 void PairPACE::settings(int narg, char **arg)
 {
-  if (narg > 3) error->all(FLERR, "Illegal pair_style command.");
+  if (narg > 3) utils::missing_cmd_args(FLERR, "pair_style pace", error);
 
   // ACE potentials are parameterized in metal units
   if (strcmp("metal", update->unit_style) != 0)
@@ -259,7 +259,7 @@ void PairPACE::settings(int narg, char **arg)
       chunksize = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal pair_style command");
+      error->all(FLERR, "Unknown pair_style pace keyword: {}", arg[iarg]);
   }
 
   if (comm->me == 0) {
@@ -350,8 +350,8 @@ void PairPACE::coeff(int narg, char **arg)
 
 void PairPACE::init_style()
 {
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style PACE requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style PACE requires newton pair on");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pace requires atom IDs");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style pace requires newton pair on");
 
   // request a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL);

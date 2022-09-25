@@ -363,7 +363,7 @@ int FixPair::modify_param(int narg, char **arg) {
     while (iarg < narg) {
         if (strcmp(arg[iarg], "every") == 0) {
             nevery = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
-            if (nevery < 1) error->all(FLERR, "Illegal fix_modify pair command");
+            if (nevery < 1) error->all(FLERR, "Illegal fix_modify pair every value: {}", nevery);
             iarg += 2;
             processed_args+=2;
         } else

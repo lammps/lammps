@@ -270,12 +270,12 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
 void PairPACEExtrapolation::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag, n + 1, n + 1, "pair:setflag");
-  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
-  memory->create(map, n + 1, "pair:map");
-  memory->create(scale, n + 1, n + 1, "pair:scale");
+  memory->create(setflag, np1, np1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(map, np1, "pair:map");
+  memory->create(scale, np1, np1, "pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -284,14 +284,10 @@ void PairPACEExtrapolation::allocate()
 
 void PairPACEExtrapolation::settings(int narg, char **arg)
 {
-  if (narg > 0) {
-    error->all(FLERR,
-               "Illegal pair_style command. Correct form:\n\tpair_style pace/extrapolation ");
-  }
+  if (narg > 0) error->all(FLERR, "Pair style pace/extrapolation supports no keywords");
 
-  if (comm->me == 0) {
+  if (comm->me == 0)
     utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -301,10 +297,7 @@ void PairPACEExtrapolation::settings(int narg, char **arg)
 void PairPACEExtrapolation::coeff(int narg, char **arg)
 {
 
-  if (narg < 5)
-    error->all(FLERR,
-               "Incorrect args for pair coefficients. Correct form:\npair_coeff * * "
-               "<potential.yaml> <potential.asi> elem1 elem2 ...");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "pair_coeff", error);
 
   if (!allocated) allocate();
 
@@ -401,8 +394,9 @@ void PairPACEExtrapolation::coeff(int narg, char **arg)
 
 void PairPACEExtrapolation::init_style()
 {
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style PACE requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style PACE requires newton pair on");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pace/extrapolation requires atom IDs");
+  if (force->newton_pair == 0)
+    error->all(FLERR, "Pair style pace/extrapolation requires newton pair on");
 
   // request a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL);

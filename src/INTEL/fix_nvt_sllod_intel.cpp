@@ -51,6 +51,7 @@ FixNVTSllodIntel::FixNVTSllodIntel(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(fmt::format("{} {} temp/deform",
                                   id_temp,group->names[igroup]));
   tcomputeflag = 1;
+  nondeformbias = 0;
 }
 
 /* ---------------------------------------------------------------------- */

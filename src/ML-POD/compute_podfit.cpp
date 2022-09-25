@@ -1041,6 +1041,14 @@ void CPODFIT::quadratic_descriptors(datastruct data, int ci)
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23+nd24+nd33+nd34], &desc.gdd[dim*natom*(nd1234+nd22+nd23+nd24+nd33+nd34)], 
         &desc.gd[nd1+nd2+nd3], fatom4, nq4, dim*natom);                
   }      
+  
+  // normalize quadratic descriptors
+  
+  for (int i=0; i<(nd22+nd23+nd24+nd33+nd34+nd44); i++) 
+    desc.gd[nd1234+i] = desc.gd[nd1234+i]/(natom);
+
+  for (int i=0; i<dim*natom*(nd22+nd23+nd24+nd33+nd34+nd44); i++) 
+    desc.gdd[dim*natom*nd1234+i] = desc.gdd[dim*natom*nd1234+i]/(natom);  
 }
 
 void CPODFIT::cubic_descriptors(datastruct data, int ci)
@@ -1100,6 +1108,14 @@ void CPODFIT::cubic_descriptors(datastruct data, int ci)
     podptr->cubic_descriptors(&desc.gd[np4], &desc.gdd[dim*natom*(np4)], 
         eatom4, fatom4, nq4, dim*natom);        
   }      
+  
+  // normalize cubic descriptors
+  int nd = podptr->pod.nd;    
+  for (int i=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); i<nd; i++) 
+    desc.gd[i] = desc.gd[i]/(natom*natom);
+
+  for (int i=dim*natom*(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); i<dim*natom*nd; i++) 
+    desc.gdd[i] = desc.gdd[i]/(natom*natom);  
 }
 
 void CPODFIT::least_squares_matrix(datastruct data, int ci)
@@ -1370,6 +1386,23 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
   for (int i=0; i<4*(nfiles+1); i++)
     errors[i] = 0.0;
           
+  int nd1 = podptr->pod.nd1;
+  int nd2 = podptr->pod.nd2;
+  int nd3 = podptr->pod.nd3;
+  int nd4 = podptr->pod.nd4;
+  int nd22 = podptr->pod.nd22;
+  int nd23 = podptr->pod.nd23;
+  int nd24 = podptr->pod.nd24;
+  int nd33 = podptr->pod.nd33;
+  int nd34 = podptr->pod.nd34;
+  int nd44 = podptr->pod.nd44;    
+  int nd1234 = nd1+nd2+nd3+nd4;    
+  int nd = podptr->pod.nd;
+    
+  double newcoeff[nd];
+  for (int j=0; j<nd; j++)
+    newcoeff[j] = coeff[j];
+  
   std::cout<<"**************** Begin of Error Calculation ****************"<<std::endl;
   
   int ci = 0; // configuration counter  
@@ -1386,8 +1419,13 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
 
+      for (int j=nd1234; j<(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j++)
+        newcoeff[j] = coeff[j]/(natom);
+
+      for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
+        newcoeff[j] = coeff[j]/(natom*natom);
                   
-      energy = this->energyforce_calculation(force, coeff, data, ci);
+      energy = this->energyforce_calculation(force, newcoeff, data, ci);
       
       double DFTenergy = data.energy[ci];   
       int natom_cumsum = data.num_atom_cumsum[ci];  

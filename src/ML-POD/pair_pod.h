@@ -122,6 +122,7 @@ namespace LAMMPS_NS {
       
       double *gd=NULL;         // global linear descriptors 
       double *podcoeff=NULL;   // POD coefficients  
+      double *newpodcoeff=NULL;// normalized POD coefficients  
       double *energycoeff=NULL; // energy coefficients
       double *forcecoeff=NULL; // force coefficients
       

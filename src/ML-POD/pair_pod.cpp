@@ -39,6 +39,7 @@ CPairPOD::~CPairPOD()
   TemplateFree(energycoeff, backend);
   TemplateFree(forcecoeff, backend);
   TemplateFree(podcoeff, backend);
+  TemplateFree(newpodcoeff, backend);
 
   delete podptr;
 
@@ -63,7 +64,7 @@ void CPairPOD::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int inum = list->inum;
   int nall = inum + atom->nghost;
-
+  
   // initialize global descriptors to zero
   
   int nd1234 = podptr->pod.nd1234;
@@ -93,9 +94,28 @@ void CPairPOD::compute(int eflag, int vflag)
       typeai, idxi, ti, tj, 1, nij);
   }
 
+  int nd1 = podptr->pod.nd1;
+  int nd2 = podptr->pod.nd2;
+  int nd3 = podptr->pod.nd3;
+  int nd4 = podptr->pod.nd4;
+  int nd22 = podptr->pod.nd22;
+  int nd23 = podptr->pod.nd23;
+  int nd24 = podptr->pod.nd24;
+  int nd33 = podptr->pod.nd33;
+  int nd34 = podptr->pod.nd34;
+  int nd44 = podptr->pod.nd44;    
+  int nd = podptr->pod.nd;  
+  bigint natom = atom->natoms;
+  
+  for (int j=nd1234; j<(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j++)
+    newpodcoeff[j] = podcoeff[j]/(natom);
+
+  for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
+    newpodcoeff[j] = podcoeff[j]/(natom*natom);
+  
   // compute energy and effective coefficients
   
-  eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, podcoeff);
+  eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, newpodcoeff);
 
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
@@ -248,10 +268,12 @@ void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file, std::st
 
   if (coeff_file != "") {
     TemplateMalloc(&podcoeff, podptr->pod.nd, backend);
+    TemplateMalloc(&newpodcoeff, podptr->pod.nd, backend);
     TemplateMalloc(&energycoeff, podptr->pod.nd1234, backend);
     TemplateMalloc(&forcecoeff, podptr->pod.nd1234, backend);
     TemplateMalloc(&gd, podptr->pod.nd1234, backend);
     podptr->podArrayCopy(podcoeff, podptr->pod.coeff, podptr->pod.nd);
+    podptr->podArrayCopy(newpodcoeff, podptr->pod.coeff, podptr->pod.nd);
   }
 }
 

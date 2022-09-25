@@ -390,6 +390,10 @@ void CPOD::read_pod(std::string pod_file)
   pod.besselparams = (double *) malloc(3*sizeof(double));
   pod.pbc = (int *) malloc(3*sizeof(int));
   
+  pod.besselparams[0] = 0.0;
+  pod.besselparams[1] = 2.0;
+  pod.besselparams[2] = 4.0;
+  
   std::ifstream file_in(pod_file);
   if (!file_in) {error->all(FLERR,"Error: POD input file is not found");}
     
@@ -447,6 +451,7 @@ void CPOD::read_pod(std::string pod_file)
         if (s == "fourbody_snap_neighbor_weight4") pod.snapelementweight[3] = d;
         if (s == "fourbody_snap_neighbor_weight5") pod.snapelementweight[4] = d;
         //if (s == "fourbody_number_spherical_harmonic_basis_functions") pod.fourbody[3] = (int) d;
+        if (s == "quadratic_pod_potential") pod.quadraticpod = (int) d;
         if (s == "quadratic22_number_twobody_basis_functions") pod.quadratic22[0] = (int) d;
         if (s == "quadratic22_number_twobody_basis_functions") pod.quadratic22[1] = (int) d;
         if (s == "quadratic23_number_twobody_basis_functions") pod.quadratic23[0] = (int) d;
@@ -552,7 +557,12 @@ void CPOD::read_pod(std::string pod_file)
   }
   pod.nbf4 = idxb_count;
   pod.nd4 = pod.nbf4*pod.nc4;
-    
+  
+  if (pod.quadraticpod==1) {
+    pod.quadratic23[0] = pod.nbf2;
+    pod.quadratic23[1] = pod.nbf3;
+  }
+  
   pod.quadratic22[0] = PODMIN(pod.quadratic22[0], pod.nbf2);
   pod.quadratic22[1] = PODMIN(pod.quadratic22[1], pod.nbf2);
   pod.quadratic23[0] = PODMIN(pod.quadratic23[0], pod.nbf2);
@@ -621,25 +631,26 @@ void CPOD::read_pod(std::string pod_file)
   std::cout<<"periodic boundary conditions:  "<<pod.pbc[0]<<"  "<<pod.pbc[1]<<"  "<<pod.pbc[2]<<std::endl;
   std::cout<<"inner cut-off radius: "<<pod.rin<<std::endl;
   std::cout<<"outer cut-off radius: "<<pod.rcut<<std::endl;
-  std::cout<<"bessel parameters: "<<pod.besselparams[0]<<"  "<<pod.besselparams[1]<<"  "<<pod.besselparams[2]<<std::endl;
+  //std::cout<<"bessel parameters: "<<pod.besselparams[0]<<"  "<<pod.besselparams[1]<<"  "<<pod.besselparams[2]<<std::endl;
   std::cout<<"bessel polynomial degree: "<<pod.besseldegree<<std::endl;
   std::cout<<"inverse polynomial degree: "<<pod.inversedegree<<std::endl;
   std::cout<<"one-body potential: "<<pod.onebody<<std::endl;
   std::cout<<"two-body potential: "<<pod.twobody[0]<<"  "<<pod.twobody[1]<<"  "<<pod.twobody[2]<<std::endl;
   std::cout<<"three-body potential: "<<pod.threebody[0]<<"  "<<pod.threebody[1]<<"  "<<pod.threebody[2]<<"  "<<pod.threebody[3]+1<<std::endl;
   std::cout<<"four-body SNAP potential: "<<pod.snaptwojmax<<"  "<<pod.snapchemflag<<std::endl;
-  std::cout<<"three-body quadratic22 potential: "<<pod.quadratic22[0]<<"  "<<pod.quadratic22[1]<<std::endl;
-  std::cout<<"four-body quadratic23 potential: "<<pod.quadratic23[0]<<"  "<<pod.quadratic23[1]<<std::endl;
-  std::cout<<"five-body quadratic24 potential: "<<pod.quadratic24[0]<<"  "<<pod.quadratic24[1]<<std::endl;
-  std::cout<<"five-body quadratic33 potential: "<<pod.quadratic33[0]<<"  "<<pod.quadratic33[1]<<std::endl;
-  std::cout<<"six-body quadratic34 potential: "<<pod.quadratic34[0]<<"  "<<pod.quadratic34[1]<<std::endl;
-  std::cout<<"seven-body quadratic44 potential: "<<pod.quadratic44[0]<<"  "<<pod.quadratic44[1]<<std::endl;  
-  std::cout<<"seven-body cubic234 potential: "<<pod.cubic234[0]<<"  "<<pod.cubic234[1]<<"  "<<pod.cubic234[2]<<std::endl;
-  std::cout<<"seven-body cubic333 potential: "<<pod.cubic333[0]<<"  "<<pod.cubic333[1]<<"  "<<pod.cubic333[2]<<std::endl;  
-  std::cout<<"ten-body cubic444 potential: "<<pod.cubic444[0]<<"  "<<pod.cubic444[1]<<"  "<<pod.cubic444[2]<<std::endl;  
-  std::cout<<"number of snapshots for two-body potential: "<<pod.ns2<<std::endl;
-  std::cout<<"number of snapshots for three-body potential: "<<pod.ns3<<std::endl;
-  std::cout<<"number of snapshots for four-body potential: "<<pod.ns4<<std::endl;  
+  std::cout<<"quadratic POD potential: "<<pod.quadraticpod<<std::endl;
+//   std::cout<<"three-body quadratic22 potential: "<<pod.quadratic22[0]<<"  "<<pod.quadratic22[1]<<std::endl;
+//   std::cout<<"four-body quadratic23 potential: "<<pod.quadratic23[0]<<"  "<<pod.quadratic23[1]<<std::endl;
+//   std::cout<<"five-body quadratic24 potential: "<<pod.quadratic24[0]<<"  "<<pod.quadratic24[1]<<std::endl;
+//   std::cout<<"five-body quadratic33 potential: "<<pod.quadratic33[0]<<"  "<<pod.quadratic33[1]<<std::endl;
+//   std::cout<<"six-body quadratic34 potential: "<<pod.quadratic34[0]<<"  "<<pod.quadratic34[1]<<std::endl;
+//   std::cout<<"seven-body quadratic44 potential: "<<pod.quadratic44[0]<<"  "<<pod.quadratic44[1]<<std::endl;  
+//   std::cout<<"seven-body cubic234 potential: "<<pod.cubic234[0]<<"  "<<pod.cubic234[1]<<"  "<<pod.cubic234[2]<<std::endl;
+//   std::cout<<"seven-body cubic333 potential: "<<pod.cubic333[0]<<"  "<<pod.cubic333[1]<<"  "<<pod.cubic333[2]<<std::endl;  
+//   std::cout<<"ten-body cubic444 potential: "<<pod.cubic444[0]<<"  "<<pod.cubic444[1]<<"  "<<pod.cubic444[2]<<std::endl;  
+//   std::cout<<"number of snapshots for two-body potential: "<<pod.ns2<<std::endl;
+//   std::cout<<"number of snapshots for three-body potential: "<<pod.ns3<<std::endl;
+//   std::cout<<"number of snapshots for four-body potential: "<<pod.ns4<<std::endl;  
   std::cout<<"number of basis functions for one-body potential: "<<pod.nbf1<<std::endl;
   std::cout<<"number of basis functions for two-body potential: "<<pod.nbf2<<std::endl;
   std::cout<<"number of basis functions for three-body potential: "<<pod.nbf3<<std::endl;
@@ -648,16 +659,17 @@ void CPOD::read_pod(std::string pod_file)
   std::cout<<"number of descriptors for two-body potential: "<<pod.nd2<<std::endl;
   std::cout<<"number of descriptors for three-body potential: "<<pod.nd3<<std::endl;
   std::cout<<"number of descriptors for four-body potential: "<<pod.nd4<<std::endl;
-  std::cout<<"number of descriptors for three-body quadratic22 potential: "<<pod.nd22<<std::endl;
-  std::cout<<"number of descriptors for four-body quadratic23 potential: "<<pod.nd23<<std::endl;
-  std::cout<<"number of descriptors for five-body quadratic24 potential: "<<pod.nd24<<std::endl;
-  std::cout<<"number of descriptors for five-body quadratic33 potential: "<<pod.nd33<<std::endl;
-  std::cout<<"number of descriptors for six-body quadratic34 potential: "<<pod.nd34<<std::endl;
-  std::cout<<"number of descriptors for seven-body quadratic44 potential: "<<pod.nd44<<std::endl;
-  std::cout<<"number of descriptors for seven-body cubic234 potential: "<<pod.nd333<<std::endl;
-  std::cout<<"number of descriptors for seven-body cubic333 potential: "<<pod.nd234<<std::endl;
-  std::cout<<"number of descriptors for ten-body cubic444 potential: "<<pod.nd444<<std::endl;
-  std::cout<<"total number of descriptors for all POD potentials: "<<pod.nd<<std::endl;  
+  std::cout<<"number of descriptors for quadratic POD potential: "<<pod.nd23<<std::endl;
+//   std::cout<<"number of descriptors for three-body quadratic22 potential: "<<pod.nd22<<std::endl;
+//   std::cout<<"number of descriptors for four-body quadratic23 potential: "<<pod.nd23<<std::endl;
+//   std::cout<<"number of descriptors for five-body quadratic24 potential: "<<pod.nd24<<std::endl;
+//   std::cout<<"number of descriptors for five-body quadratic33 potential: "<<pod.nd33<<std::endl;
+//   std::cout<<"number of descriptors for six-body quadratic34 potential: "<<pod.nd34<<std::endl;
+//   std::cout<<"number of descriptors for seven-body quadratic44 potential: "<<pod.nd44<<std::endl;
+//   std::cout<<"number of descriptors for seven-body cubic234 potential: "<<pod.nd333<<std::endl;
+//   std::cout<<"number of descriptors for seven-body cubic333 potential: "<<pod.nd234<<std::endl;
+//   std::cout<<"number of descriptors for ten-body cubic444 potential: "<<pod.nd444<<std::endl;
+  std::cout<<"total number of descriptors for all potentials: "<<pod.nd<<std::endl;  
   std::cout<<"**************** End of POD Potentials ****************"<<std::endl<<std::endl;
 }
 

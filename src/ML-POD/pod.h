@@ -159,6 +159,7 @@ public:
         int threebody[4] = {4,8,8,5}; 
         int fourbody[4] = {0,0,0,0};    
 
+        int quadraticpod = 0;
         int quadratic22[2] = {0,0};
         int quadratic23[2] = {0,0};
         int quadratic24[2] = {0,0};

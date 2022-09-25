@@ -15,23 +15,9 @@ execute_process(
 )
 get_newest_file(${CMAKE_BINARY_DIR}/lammps-user-pace-* lib-pace)
 
-
-# enforce building libyaml-cpp as static library and turn off optional features
-set(YAML_BUILD_SHARED_LIBS OFF)
-set(YAML_CPP_BUILD_CONTRIB OFF)
-set(YAML_CPP_BUILD_TOOLS OFF)
-add_subdirectory(${lib-pace}/yaml-cpp build-yaml-cpp)
-set(YAML_CPP_INCLUDE_DIR ${lib-pace}/yaml-cpp/include)
-
-set(PACE_INCLUDE_DIRS "${lib-pace}/ML-PACE/ace" "${lib-pace}/ML-PACE/ace-evaluator" "${lib-pace}/wigner-cpp/include/wigner")
-file(GLOB PACE_SOURCES ${lib-pace}/ML-PACE/ace/*.cpp ${lib-pace}/ML-PACE/ace-evaluator/*.cpp)
-list(FILTER PACE_SOURCES EXCLUDE REGEX pair_pace.cpp)
-
-add_library(pace STATIC ${PACE_SOURCES} ${lib-pace}/cnpy/cnpy.cpp)
+add_subdirectory(${lib-pace} build-pace)
 set_target_properties(pace PROPERTIES CXX_EXTENSIONS ON OUTPUT_NAME lammps_pace${LAMMPS_MACHINE})
-target_include_directories(pace PUBLIC ${PACE_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIR} ${lib-pace}/cnpy)
 
-target_link_libraries(pace PRIVATE yaml-cpp-pace)
 if(CMAKE_PROJECT_NAME STREQUAL "lammps")
   target_link_libraries(lammps PRIVATE pace)
 endif()

@@ -212,10 +212,8 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
     }
     // 'compute_atom' will update the `ace->e_atom` and `ace->neighbours_forces(jj, alpha)` arrays and max_gamma_grade
 
-    if (flag_compute_extrapolation_grade) {
-      //FIXME: need an updated PACE library URL since this currently fails compiling
-      // extrapolation_grade_gamma[i] = aceimpl->ace->max_gamma_grade;
-    }
+    if (flag_compute_extrapolation_grade)
+      extrapolation_grade_gamma[i] = aceimpl->ace->max_gamma_grade;
 
     Array2D<DOUBLE_TYPE> &neighbours_forces =
         (flag_compute_extrapolation_grade ? aceimpl->ace->neighbours_forces

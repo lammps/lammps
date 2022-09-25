@@ -433,8 +433,7 @@ if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_LATTE OR
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
     set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
   else()
-    #set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
-    list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})    
+    list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
 endif()
 
@@ -626,7 +625,7 @@ if(PKG_ELECTRODE)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 
-if(PKG_ML-POD)
+if(PKG_ELECTRODE OR PKG_ML-POD)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 

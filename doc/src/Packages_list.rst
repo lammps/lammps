@@ -302,7 +302,7 @@ whether an extra library is needed to build and use the package:
      - Proper orthogonal decomposition potentials
      - :doc:`pair pod <pair_pod>`
      - pod
-     - no
+     - ext
    * - :ref:`ML-QUIP <PKG-ML-QUIP>`
      - QUIP/libatoms interface
      - :doc:`pair_style quip <pair_quip>`

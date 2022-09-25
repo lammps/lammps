@@ -251,3 +251,11 @@ foreach(TEST ${IMPROPER_TESTS})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
   set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
 endforeach()
+
+if(MLIAP_ENABLE_PYTHON AND (NOT WIN32))
+  add_executable(test_mliappy_unified test_mliappy_unified.cpp)
+  target_link_libraries(test_mliappy_unified PRIVATE lammps GTest::GMockMain)
+  add_test(NAME TestMliapPyUnified COMMAND test_mliappy_unified)
+  set_tests_properties(TestMliapPyUnified PROPERTIES ENVIRONMENT "PYTHONPATH=${LAMMPS_PYTHON_DIR}:${LAMMPS_LIB_DIR}/cython")
+endif()
+

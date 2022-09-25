@@ -244,7 +244,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
 
 void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 {
-  double e_total = 0;
+  double e_total = 0.0;
   const auto nlistatoms = data->nlistatoms;
   for (int ii = 0; ii < nlistatoms; ii++) data->eatoms[ii] = 0;
 
@@ -252,7 +252,7 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
     int i = data->pair_i[ii];
     double e = 0.5 * eij[ii];
 
-    // TODO: the if avoids memory corruption with ghostneigh_flag = 1,
+    // must not count any contribution where i is not a local atom
     if (i < nlistatoms) {
       data->eatoms[i] += e;
       e_total += e;
@@ -267,20 +267,24 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 
 void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
 {
+  const auto nlistatoms = data->nlistatoms;
   double **f = data->f;
   for (int ii = 0; ii < data->npairs; ii++) {
     int ii3 = ii * 3;
     int i = data->pair_i[ii];
     int j = data->jatoms[ii];
 
-    f[i][0] += fij[ii3];
-    f[i][1] += fij[ii3 + 1];
-    f[i][2] += fij[ii3 + 2];
-    f[j][0] -= fij[ii3];
-    f[j][1] -= fij[ii3 + 1];
-    f[j][2] -= fij[ii3 + 2];
+    // must not count any contribution where i is not a local atom
+    if (i < nlistatoms) {
+      f[i][0] += fij[ii3];
+      f[i][1] += fij[ii3 + 1];
+      f[i][2] += fij[ii3 + 2];
+      f[j][0] -= fij[ii3];
+      f[j][1] -= fij[ii3 + 1];
+      f[j][2] -= fij[ii3 + 2];
 
-    if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
+      if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
+    }
   }
 }
 

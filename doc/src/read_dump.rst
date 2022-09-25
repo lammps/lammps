@@ -266,6 +266,8 @@ replace properties of the current system.  There are various options
 for how this is done, determined by the specified fields and optional
 keywords.
 
+.. versionchanged:: 3Aug2022
+
 The timestep of the snapshot becomes the current timestep for the
 simulation unless the *timestep* keyword is specified with a *no* value
 (default setting is *yes*).  See the :doc:`reset_timestep <reset_timestep>`

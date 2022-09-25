@@ -132,6 +132,8 @@ at the cutoff distance :math:`r_c`.
 
 ----------
 
+.. versionadded:: 3Aug2022
+
 Pair style *srp/react* interfaces the pair style *srp* with the
 bond breaking and formation mechanisms provided by fix *bond/break*
 and fix *bond/create*, respectively. When using this pair style, whenever a

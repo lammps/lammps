@@ -90,7 +90,7 @@ def check_folder(directory, config, verbose=False):
         for lineno in result['pending_tags']:
             print("[Error] Pending version tag @ {}:{}".format(path, lineno))
             success = False
-     
+
         if result['encoding'] == 'unknown':
             print("[Error] Unknown text encoding @ {}".format(path))
             success = False

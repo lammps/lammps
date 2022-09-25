@@ -33,17 +33,17 @@ AtomVecSphereTemp::AtomVecSphereTemp(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->sphere_flag = 1;
   atom->radius_flag = atom->rmass_flag = atom->omega_flag = atom->torque_flag = 1;
-  atom->temperature_flag = atom->heatflux_flag = 1;
+  atom->temperature_flag = atom->heatflow_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"radius", "rmass", "omega", "torque", "temperature", "heatflux"};
+  fields_grow = {"radius", "rmass", "omega", "torque", "temperature", "heatflow"};
   fields_copy = {"radius", "rmass", "omega", "temperature"};
   fields_comm_vel = {"omega", "temperature"};
-  fields_reverse = {"torque", "heatflux"};
+  fields_reverse = {"torque", "heatflow"};
   fields_border = {"radius", "rmass", "temperature"};
   fields_border_vel = {"radius", "rmass", "omega", "temperature"};
   fields_exchange = {"radius", "rmass", "omega", "temperature"};
@@ -107,7 +107,7 @@ void AtomVecSphereTemp::grow_pointers()
   rmass = atom->rmass;
   omega = atom->omega;
   temperature = atom->temperature;
-  heatflux = atom->heatflux;
+  heatflow = atom->heatflow;
 }
 
 /* ----------------------------------------------------------------------
@@ -117,7 +117,7 @@ void AtomVecSphereTemp::grow_pointers()
 
 void AtomVecSphereTemp::force_clear(int n, size_t nbytes)
 {
-  memset(&heatflux[n], 0, nbytes);
+  memset(&heatflow[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------

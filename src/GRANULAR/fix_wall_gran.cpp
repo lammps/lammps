@@ -125,7 +125,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Illegal fix wall/gran command, must specify "
           "twisting model after twisting keyword");
         model->init_model(std::string(arg[iarg++]), TWISTING);
-        iarg += 1;
         iarg = model->twisting_model->parse_coeffs(arg, iarg, narg);
       } else if (strcmp(arg[iarg], "heat") == 0) {
         iarg++;
@@ -133,7 +132,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Illegal fix wall/gran command, must specify "
           "heat model after heat keyword");
         model->init_model(std::string(arg[iarg++]), HEAT);
-        iarg += 1;
         iarg = model->heat_model->parse_coeffs(arg, iarg, narg);
         heat_flag = 1;
       } else if (strcmp(arg[iarg], "xplane") == 0 ||
@@ -211,19 +209,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     wallstyle = REGION;
     idregion = utils::strdup(arg[iarg+1]);
     iarg += 2;
-  } else if (strcmp(arg[iarg],"temperature") == 0) {
-    if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
-    if (utils::strmatch(arg[iarg+1], "^v_")) {
-      tstr = utils::strdup(arg[3] + 2);
-    } else {
-      Twall = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-    }
-    Twall_defined = 1;
-    iarg += 2;
   } else wallstyle = NOSTYLE;
-
-  if (heat_flag != Twall_defined)
-    error->all(FLERR, "To model conduction, must define both heat model and wall temperature");
 
   // optional args
 
@@ -256,8 +242,20 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       size_peratom_cols = 8;
       peratom_freq = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/gran command");
+      if (utils::strmatch(arg[iarg+1], "^v_")) {
+        tstr = utils::strdup(arg[iarg+1] + 2);
+      } else {
+        Twall = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      }
+      Twall_defined = 1;
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
+
+  if (heat_flag != Twall_defined)
+    error->all(FLERR, "To model conduction, must define both heat model and wall temperature");
 
   if (wallstyle == NOSTYLE)
     error->all(FLERR,"No wall style defined");
@@ -360,8 +358,8 @@ void FixWallGran::init()
   if (heat_flag) {
     if (!atom->temperature_flag)
       error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with temperature property");
-    if (!atom->heatflux_flag)
-      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with heatflux property");
+    if (!atom->heatflow_flag)
+      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with heatflow property");
   }
 
   // check for FixRigid so can extract rigid body masses
@@ -408,7 +406,7 @@ void FixWallGran::post_force(int /*vflag*/)
 {
   int i,j;
   double dx,dy,dz,del1,del2,delxy,delr,rwall,meff;
-  double *forces, *torquesi, dq;
+  double *forces, *torquesi;
   double vwall[3];
   double w0[3] = {0.0};
   bool touchflag = false;
@@ -471,11 +469,7 @@ void FixWallGran::post_force(int /*vflag*/)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *temperature, *heatflux;
-  if (heat_flag) {
-    temperature = atom->temperature;
-    heatflux = atom->heatflux;
-  }
+  double *temperature, *heatflow;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -490,6 +484,8 @@ void FixWallGran::post_force(int /*vflag*/)
   model->vj = vwall;
   model->omegaj = w0;
   if (heat_flag) {
+    temperature = atom->temperature;
+    heatflow = atom->heatflow;
     if (tstr)
       Twall = input->variable->compute_equal(tvar);
     model->Tj = Twall;
@@ -574,13 +570,12 @@ void FixWallGran::post_force(int /*vflag*/)
 
     forces = model->forces;
     torquesi = model->torquesi;
-    if (heat_flag) dq = model->dq;
 
     // apply forces & torques
     add3(f[i], forces, f[i]);
 
     add3(torque[i], torquesi, torque[i]);
-    if (heat_flag) heatflux[i] += dq;
+    if (heat_flag) heatflow[i] += model->dq;
 
     // store contact info
     if (peratom_flag) {

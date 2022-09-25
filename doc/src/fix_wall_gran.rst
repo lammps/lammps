@@ -186,7 +186,7 @@ specified as v_name, where name is the variable name.  In this case, the
 variable will be evaluated each timestep, and its value used to determine
 the temperature. This option must be used in conjunction with a heat
 conduction model defined in :doc:`pair_style granular <pair_granular>`
-and a compatible atom style which stores temperature and a heat flux
+and a compatible atom style which stores temperature and a heat flow
 as defined by the :doc:`atom_style sphere/temp <atom_style>` command.
 
 Restart, fix_modify, output, run start/stop, minimize info

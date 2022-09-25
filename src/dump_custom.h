@@ -193,7 +193,7 @@ class DumpCustom : public Dump {
   void pack_mu(int);
   void pack_radius(int);
   void pack_diameter(int);
-  void pack_heatflux(int);
+  void pack_heatflow(int);
   void pack_temperature(int);
 
   void pack_omegax(int);

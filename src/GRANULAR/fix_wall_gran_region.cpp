@@ -22,11 +22,13 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "input.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "math_extra.h"
 #include "region.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
@@ -124,7 +126,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 {
   int i, m, nc, iwall;
   double dx, dy, dz, meff;
-  double *forces, *torquesi, dq;
+  double *forces, *torquesi;
   double vwall[3];
   double w0[3] = {0.0};
   bool touchflag = false;
@@ -167,11 +169,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *temperature, *heatflux;
-  if (heat_flag) {
-    temperature = atom->temperature;
-    heatflux = atom->heatflux;
-  }
+  double *temperature, *heatflow;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -188,7 +186,13 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   // Define constant wall properties (atom j)
   model->radj = 0.0;
   model->omegaj = w0;
-  if (heat_flag) model->Tj = Twall;
+  if (heat_flag) {
+    temperature = atom->temperature;
+    heatflow = atom->heatflow;
+    if (tstr)
+      Twall = input->variable->compute_equal(tvar);
+    model->Tj = Twall;
+  }
 
   for (i = 0; i < nlocal; i++) {
     if (! mask[i] & groupbit) continue;
@@ -269,13 +273,12 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
       forces = model->forces;
       torquesi = model->torquesi;
-      if (heat_flag) dq = model->dq;
 
       // apply forces & torques
       add3(f[i], forces, f[i]);
 
       add3(torque[i], torquesi, torque[i]);
-      if (heat_flag) heatflux[i] += dq;
+      if (heat_flag) heatflow[i] += model->dq;
 
       // store contact info
       if (peratom_flag) {

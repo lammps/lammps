@@ -161,9 +161,9 @@ void PairGranular::compute(int eflag, int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
-  double *heatflux, *temperature;
+  double *heatflow, *temperature;
   if (heat_flag) {
-    heatflux = atom->heatflux;
+    heatflow = atom->heatflow;
     temperature = atom->temperature;
   }
 
@@ -265,13 +265,13 @@ void PairGranular::compute(int eflag, int vflag)
 
       scale3(factor_lj, torquesi);
       add3(torque[i], torquesi, torque[i]);
-      if (heat_flag) heatflux[i] += dq;
+      if (heat_flag) heatflow[i] += dq;
 
       if (force->newton_pair || j < nlocal) {
         sub3(f[j], forces, f[j]);
         scale3(factor_lj, torquesj);
         add3(torque[j], torquesj, torque[j]);
-        if (heat_flag) heatflux[j] -= dq;
+        if (heat_flag) heatflow[j] -= dq;
       }
 
       if (evflag) {
@@ -446,8 +446,8 @@ void PairGranular::init_style()
   if (heat_flag) {
     if (!atom->temperature_flag)
       error->all(FLERR,"Heat conduction in pair granular requires atom style with temperature property");
-    if (!atom->heatflux_flag)
-      error->all(FLERR,"Heat conduction in pair granular requires atom style with heatflux property");
+    if (!atom->heatflow_flag)
+      error->all(FLERR,"Heat conduction in pair granular requires atom style with heatflow property");
   }
 
   // allocate history and initialize models

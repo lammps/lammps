@@ -62,7 +62,7 @@ not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix requires that atoms store temperature and a heat flux
+This fix requires that atoms store temperature and heat flow
 as defined by the :doc:`atom_style sphere/temp <atom_style>` command.
 
 Related commands

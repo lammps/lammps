@@ -95,7 +95,7 @@ Syntax
          value can be an atom-style variable (see below)
        *density/disc* value = particle density for a 2d disc or ellipse (mass/distance\^2 units)
          value can be an atom-style variable (see below)
-       *temperature* value = particle temperature for a finite-size particle particle (temperature units)s
+       *temperature* value = temperature for finite-size particles (temperature units)
          value can be an atom-style variable (see below)
        *volume* value = particle volume for Peridynamic particle (distance\^3 units)
          value can be an atom-style variable (see below)

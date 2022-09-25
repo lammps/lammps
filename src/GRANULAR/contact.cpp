@@ -438,16 +438,14 @@ void ContactModel::calculate_forces()
   scale3(-1, torquesi);
   if (contact_type == PAIR) copy3(torquesi, torquesj);
 
-  if (!classic_model) {
-    if (contact_type == PAIR) {
-      dist_to_contact = radi - 0.5 * delta;
-      scale3(dist_to_contact, torquesi);
-      dist_to_contact = radj - 0.5 * delta;
-      scale3(dist_to_contact, torquesj);
-    } else {
-      dist_to_contact = radi;
-      scale3(dist_to_contact, torquesi);
-    }
+  if (!classic_model && contact_type == PAIR) {
+    dist_to_contact = radi - 0.5 * delta;
+    scale3(dist_to_contact, torquesi);
+    dist_to_contact = radj - 0.5 * delta;
+    scale3(dist_to_contact, torquesj);
+  } else {
+    dist_to_contact = radi;
+    scale3(dist_to_contact, torquesi);
   }
 
   double torroll[3];

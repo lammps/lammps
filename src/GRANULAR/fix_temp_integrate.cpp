@@ -77,8 +77,8 @@ void FixTempIntegrate::init()
 
   if (!atom->temperature_flag)
     error->all(FLERR,"Fix temp/integrate requires atom style with temperature property");
-  if (!atom->heatflux_flag)
-    error->all(FLERR,"Fix temp/integrate requires atom style with heatflux property");
+  if (!atom->heatflow_flag)
+    error->all(FLERR,"Fix temp/integrate requires atom style with heatflow property");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +88,7 @@ void FixTempIntegrate::final_integrate()
   // update temperature of atoms in group
 
   double *temperature = atom->temperature;
-  double *heatflux = atom->heatflux;
+  double *heatflow = atom->heatflow;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
@@ -99,12 +99,12 @@ void FixTempIntegrate::final_integrate()
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        temperature[i] += dt * heatflux[i] / (calc_cp(i) * rmass[i]);
+        temperature[i] += dt * heatflow[i] / (calc_cp(i) * rmass[i]);
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        temperature[i] += dt * heatflux[i] / (calc_cp(i) * mass[type[i]]);
+        temperature[i] += dt * heatflow[i] / (calc_cp(i) * mass[type[i]]);
       }
   }
 }

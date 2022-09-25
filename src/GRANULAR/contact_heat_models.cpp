@@ -59,5 +59,5 @@ void HeatArea::coeffs_to_local()
 
 double HeatArea::calculate_heat()
 {
-  return conductivity * contact->area * (contact->Ti - contact->Tj);
+  return conductivity * contact->area * (contact->Tj - contact->Ti);
 }

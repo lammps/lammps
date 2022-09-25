@@ -40,7 +40,7 @@ class AtomVecSphereTemp : public AtomVec {
  private:
   double *radius, *rmass;
   double **omega;
-  double *temperature, *heatflux;
+  double *temperature, *heatflow;
 
   int radvary;
   double radius_one, rmass_one;

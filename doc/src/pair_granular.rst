@@ -634,7 +634,7 @@ attractive force. This keyword cannot be used with the JKR or DMT models.
 
 ----------
 
-The optional *heat* keyword enables heat conduction . The options currently
+The optional *heat* keyword enables heat conduction. The options currently
 supported are:
 
 1. *none*
@@ -643,7 +643,7 @@ supported are:
 If the *heat* keyword is not specified, the model defaults to *none*.
 
 For *heat* *area*, the heat
-:math:`Q` conducted across an interface is given by
+:math:`Q` conducted between two particles is given by
 
 .. math::
 

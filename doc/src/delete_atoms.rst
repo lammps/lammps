@@ -116,6 +116,8 @@ must be in both the specified group and region.  If *group-ID* = all,
 there is effectively no group criterion.  If *region-ID* is specified
 as NULL, no region criterion is imposed.
 
+.. versionadded:: 4May2022
+
 For style *variable*, all atoms for which the atom-style variable with
 the given name evaluates to non-zero will be deleted. Additional atoms
 can be deleted if they are in a molecule for which one or more atoms

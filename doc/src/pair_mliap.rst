@@ -55,6 +55,8 @@ useful to know the gradient or derivative of energy, force, and stress
 w.r.t. model parameters. This information can be accessed using the
 related :doc:`compute mliap <compute_mliap>` command.
 
+.. versionadded:: 2Jun2022
+
 The descriptor style *so3* is a descriptor that is derived from the
 the smooth SO(3) power spectrum with the explicit inclusion of a radial
 basis :ref:`(Bartok) <Bartok2013>` and :ref:`(Zagaceta) <Zagaceta2020>`.

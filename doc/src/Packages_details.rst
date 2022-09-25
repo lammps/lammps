@@ -134,6 +134,8 @@ commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
+.. versionadded:: 28Feb2019
+
 **Install:**
 
 This package has :ref:`specific installation instructions <adios>` on the :doc:`Build extras <Build_extras>` page.
@@ -364,6 +366,8 @@ and also support self-propelled particles.
 **Authors:** Sam Cameron (University of Bristol),
 Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
 
+.. versionadded:: 14May2021
+
 Example inputs are in the examples/PACKAGES/brownian folder.
 
 ----------
@@ -591,6 +595,8 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>` packages need to be installed.
 
 **Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
+
+.. versionadded:: 2Jul2021
 
 **Supporting info:**
 
@@ -1512,6 +1518,8 @@ workflows via the `MolSSI Driver Interface
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+.. versionadded:: 14May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <mdi>` on
@@ -1595,6 +1603,8 @@ of Alabama), Leonid V. Zhigilei (University of Virginia)
 
 **Author of the *mesocnt* styles:**
 Philipp Kloza (U Cambridge)
+
+.. versionadded:: 15Jun2020
 
 **Supporting info:**
 
@@ -1688,6 +1698,8 @@ compiled on your system.
 
 **Author:** Andreas Singraber
 
+.. versionadded:: 27May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-hdnnp>` on the
@@ -1721,6 +1733,10 @@ of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
 must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
+
+.. versionadded:: 30Jun2020
+
+   .. versionadded:: 30Jun2020
 
 **Supporting info:**
 
@@ -1765,6 +1781,8 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
  ^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
 
  ^4: University of British Columbia, Vancouver, BC, Canada
+
+.. versionadded:: 14May2021
 
 **Install:**
 
@@ -1828,6 +1846,8 @@ of a neural network.
 
 This package was written by Christopher Barrett
 with contributions by Doyl Dickel, Mississippi State University.
+
+.. versionadded:: 27May2021
 
 **Supporting info:**
 
@@ -2263,6 +2283,8 @@ with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
 try to load the contained plugins automatically at start-up.
 
 **Authors:** Axel Kohlmeyer (Temple U)
+
+.. versionadded:: 8Apr2021
 
 **Supporting info:**
 
@@ -2906,6 +2928,8 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 .. _yaff: https://github.com/molmod/yaff
 
 **Author:** Steven Vandenbrande.
+
+.. versionadded:: 1Feb2019
 
 **Supporting info:**
 

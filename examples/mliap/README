@@ -123,13 +123,12 @@ You can run the example as follows
 
 `lmp -in in.mliap.unified.lj.Ar -echo both`
 
-The resultant log.lammps output should be identical to that generated
+The resultant thermo output should be identical to that generated
 by in.melt.
 
-The input first runs ``python pickle_mliap_unified_lj_Ar.py`` and
-thus creates an ML-IAP unified model that replicates the ``lj/cut``
-pair style defined in examples/melt/in/melt and saves it in the
-file "mliap_unified_lj_Ar.pkl".
+The input first runs some python code that creates an ML-IAP unified model
+that replicates the ``lj/cut`` pair style with parameters as defined in
+examples/melt/in/melt and saves it in the file "mliap_unified_lj_Ar.pkl".
 
 If this fails, see the instructions for building the ML-IAP package
 with Python support enabled. Also, confirm that the LAMMPS Python

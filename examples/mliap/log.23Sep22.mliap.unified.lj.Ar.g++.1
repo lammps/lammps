@@ -1,45 +1,58 @@
-LAMMPS (3 Aug 2022)
+LAMMPS (15 Sep 2022)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
+
+# create pickle of unified model
+
+python create_pickle here """
+import lammps
+import lammps.mliap
+from lammps.mliap.mliap_unified_lj import MLIAPUnifiedLJ
+def create_pickle():
+    unified = MLIAPUnifiedLJ(["Ar"])
+    unified.pickle('mliap_unified_lj_Ar.pkl')
+"""
+python create_pickle invoke
+
 # 3d Lennard-Jones melt
 
-units		lj
-atom_style	atomic
+units           lj
+atom_style      atomic
 
-lattice		fcc 0.8442
+lattice         fcc 0.8442
 Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
-region		box block 0 10 0 10 0 10
-create_box	1 box
+region          box block 0 10 0 10 0 10
+create_box      1 box
 Created orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
   1 by 1 by 1 MPI processor grid
-create_atoms	1 box
+create_atoms    1 box
 Created 4000 atoms
   using lattice units in orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
-  create_atoms CPU = 0.000 seconds
-mass		1 1.0
+  create_atoms CPU = 0.001 seconds
+mass            1 1.0
 
-velocity	all create 3.0 87287 loop geom
+velocity        all create 3.0 87287 loop geom
 
-pair_style	mliap unified mliap_unified_lj_Ar.pkl 0
-pair_coeff	* * Ar
+pair_style      mliap unified mliap_unified_lj_Ar.pkl 0
+pair_coeff      * * Ar
 
-neighbor	0.3 bin
-neigh_modify	every 20 delay 0 check no
+neighbor        0.3 bin
+neigh_modify    every 20 delay 0 check no
 
-fix		1 all nve
+fix             1 all nve
 
-#dump		id all atom 50 dump.melt
+#dump           id all atom 50 dump.melt
 
-#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	2 pad 3
+#dump           2 all image 25 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 3
 
-#dump		3 all movie 1 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
-#dump_modify	3 pad 3
+#dump           3 all movie 1 movie.mpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 3
 
 #dump 4 all custom 1 forces.xyz fx fy fz
 
-thermo		50
-run		250
+thermo          50
+run             250
 Neighbor list info ...
   update: every = 20 steps, delay = 0 steps, check = no
   max neighbors/atom: 2000, page size: 100000
@@ -60,20 +73,20 @@ Per MPI rank memory allocation (min/avg/max) = 12.7 | 12.7 | 12.7 Mbytes
        150   1.6444751     -4.7471034      0             -2.2810074      5.8614211    
        200   1.6471542     -4.7509053      0             -2.2807916      5.8805431    
        250   1.6645597     -4.7774327      0             -2.2812174      5.7526089    
-Loop time of 2.3513 on 1 procs for 250 steps with 4000 atoms
+Loop time of 3.48563 on 1 procs for 250 steps with 4000 atoms
 
-Performance: 45932.056 tau/day, 106.324 timesteps/s
-86.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 30984.374 tau/day, 71.723 timesteps/s
+79.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.2271     | 2.2271     | 2.2271     |   0.0 | 94.72
-Neigh   | 0.11085    | 0.11085    | 0.11085    |   0.0 |  4.71
-Comm    | 0.0062017  | 0.0062017  | 0.0062017  |   0.0 |  0.26
-Output  | 0.00015504 | 0.00015504 | 0.00015504 |   0.0 |  0.01
-Modify  | 0.0056096  | 0.0056096  | 0.0056096  |   0.0 |  0.24
-Other   |            | 0.001392   |            |       |  0.06
+Pair    | 3.3348     | 3.3348     | 3.3348     |   0.0 | 95.67
+Neigh   | 0.13055    | 0.13055    | 0.13055    |   0.0 |  3.75
+Comm    | 0.0089845  | 0.0089845  | 0.0089845  |   0.0 |  0.26
+Output  | 0.00018194 | 0.00018194 | 0.00018194 |   0.0 |  0.01
+Modify  | 0.0090026  | 0.0090026  | 0.0090026  |   0.0 |  0.26
+Other   |            | 0.002151   |            |       |  0.06
 
 Nlocal:           4000 ave        4000 max        4000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -88,4 +101,7 @@ Total # of neighbors = 303576
 Ave neighs/atom = 75.894
 Neighbor list builds = 12
 Dangerous builds not checked
-Total wall time: 0:00:08
+
+# clean up
+shell rm -f mliap_unified_lj_Ar.pkl
+Total wall time: 0:00:03

@@ -1,8 +1,17 @@
 
 # create pickle of unified model
 
-shell rm -f mliap_unified_lj_Ar.pkl
-shell python pickle_mliap_unified_lj_Ar.py
+python create_pickle here """
+import lammps
+import lammps.mliap
+
+from lammps.mliap.mliap_unified_lj import MLIAPUnifiedLJ
+
+def create_pickle():
+    unified = MLIAPUnifiedLJ(["Ar"])
+    unified.pickle('mliap_unified_lj_Ar.pkl')
+"""
+python create_pickle invoke
 
 # 3d Lennard-Jones melt
 
@@ -41,4 +50,4 @@ thermo          50
 run             250
 
 # clean up
-shell rm mliap_unified_lj_Ar.pkl
+shell rm -f mliap_unified_lj_Ar.pkl

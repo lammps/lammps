@@ -205,6 +205,7 @@ scripts are available:
    whitespace.py    # detects TAB characters and trailing whitespace
    homepage.py      # detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
    errordocs.py     # detects deprecated error docs in header files
+   versiontags.py   # detects .. versionadded:: or .. versionchanged:: with pending version date
 
 The tools need to be given the main folder of the LAMMPS distribution
 or individual file names as argument and will by default check them

@@ -237,12 +237,10 @@ void Output::setup(int memflag)
         last_dump[idump] = ntimestep;
       }
 
-      // calculate timestep and/or time for next dump
-      // set next_dump and next_time_dump, 0 arg for setup()
-      // only do this if dump written or dump has not been written yet
+      // calculate timestep or time for next dump
+      // set next_dump and next_time_dump
 
-      if (writeflag || last_dump[idump] < 0)
-        calculate_next_dump(SETUP,idump,ntimestep);
+      calculate_next_dump(SETUP,idump,ntimestep);
 
       // if dump not written now, use addstep_compute_all()
       // since don't know what computes the dump will invoke

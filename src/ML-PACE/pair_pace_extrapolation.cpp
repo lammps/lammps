@@ -25,7 +25,6 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 
 #include "atom.h"
 #include "comm.h"
-#include "dump_custom.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -44,7 +43,6 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include "ace_b_evaluator.h"
 #include "ace_recursive.h"
 #include "ace_version.h"
-//#include "compute_pace_extrapolation.h"
 
 namespace LAMMPS_NS {
 struct ACEALImpl {

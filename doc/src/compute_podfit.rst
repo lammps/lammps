@@ -39,29 +39,13 @@ first input file (pod.txt):
 * rcut 5.0 (REAL): a real number specifies the outer cut-off radius
 * bessel_polynomial_degree 3 (INT): the maximum degree of Bessel polynomials
 * inverse_polynomial_degree 6 (INT): the maximum degree of inverse radial basis functions
-* bessel_scaling_parameter1 0.0 (REAL): the 1st value of the Bessel scaling parameter
-* bessel_scaling_parameter2 2.0 (REAL): the 2nd value of the Bessel scaling parameter
-* bessel_scaling_parameter3 4.0 (REAL): the 3rd value of the Bessel scaling parameter
 * onebody 1 (BOOL): turns on/off one-body potential
 * twobody_number_radial_basis_functions 6 (INT): number of radial basis functions for two-body potential
 * threebody_number_radial_basis_functions 5 (INT): number of radial basis functions for three-body potential
 * threebody_number_angular_basis_functions 5 (INT): number of angular basis functions for three-body potential
 * fourbody_snap_twojmax 0 (INT): band limit for SNAP bispectrum components (0,2,4,6,8... allowed)
 * fourbody_snap_chemflag 0 (BOOL): turns on/off the explicit multi-element variant of the SNAP bispectrum components
-* quadratic22_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*2) quadratic potential
-* quadratic23_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*3) quadratic potential
-* quadratic23_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (2*3) quadratic potential
-* quadratic24_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*4) quadratic potential
-* quadratic24_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (2*4) quadratic potential
-* quadratic33_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (3*3) quadratic potential
-* quadratic34_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (3*4) quadratic potential
-* quadratic34_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (3*4) quadratic potential
-* quadratic44_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (4*4) quadratic potential
-* cubic234_number_twobody_basis_functions 0 (INT): number of two-body basis functions for the (2*3*4) cubic potential
-* cubic234_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (2*3*4) cubic potential
-* cubic234_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (2*3*4) cubic potential
-* cubic333_number_threebody_basis_functions 0 (INT): number of three-body basis functions for the (3*3*3) cubic potential
-* cubic444_number_fourbody_basis_functions 0 (INT): number of four-body basis functions for the (4*4*4) cubic potential
+* quadratic_pod_potential 0 (BOOL): turns on/off quadratic POD potential
 
 All keywords except species have default values. If keywords are not set in the input file, their defaults are used.
 Next, we describe all the keywords that can be assigned in the second input file (data.txt):
@@ -76,8 +60,6 @@ Next, we describe all the keywords that can be assigned in the second input file
 * fitting_weight_force 1.0 (REAL): a real constant specifies the weight for force in the least-squares fit
 * error_analysis_for_training_data_set 0 (BOOL): turns on/off error analysis for the training data set
 * error_analysis_for_test_data_set 0 (BOOL): turns on/off error analysis for the test data set
-* energy_force_calculation_for_training_data_set 0 (BOOL): turns on/off energy and force calculation for the training data set
-* energy_force_calculation_for_test_data_set 0 (BOOL): turns on/off energy and force calculation for the test data set
 
 All keywords except path_to_training_data_set have default values. If keywords are not set in the input file, their defaults are used.
 On successful training, it produces a number of output files:
@@ -231,9 +213,7 @@ Hence, the total number of parameter points is :math:`N_{\rm s} = N_\alpha N_\be
 Although  :math:`N_\alpha, N_\beta, N_\gamma` can be chosen conservatively large,
 we find that :math:`N_\alpha = 6, N_\beta = 3, N_\gamma = 8` are adequate for most problems.
 Note that :math:`N_\alpha` and :math:`N_\gamma` correspond to *bessel_polynomial_degree*
-and *inverse_polynomial_degree*, respectively. Furthermore, *bessel_scaling_parameter1*,
-*bessel_scaling_parameter2*, and *bessel_scaling_parameter3* are three different
-values of :math:`\beta`.
+and *inverse_polynomial_degree*, respectively. 
 
 We employ the Karhunen-Loeve (KL) expansion to generate an orthogonal basis set which is known to be optimal for representation of
 the snapshot family :math:`\{\xi_\ell\}_{\ell=1}^{N_{\rm s}}`. The two-body  orthogonal basis
@@ -479,7 +459,7 @@ respectively. We employ them to define a new set of atomic descriptors as follow
 
 .. math::
 
-    D^{(2*3)}_{ikm} = \frac{1}{2}\left( D^{(2)}_{ik} \sum_{j=1}^N D^{(3)}_{jm} + D^{(3)}_{im} \sum_{j=1}^N D^{(2)}_{jk}  \right)
+    D^{(2*3)}_{ikm} = \frac{1}{2N}\left( D^{(2)}_{ik} \sum_{j=1}^N D^{(3)}_{jm} + D^{(3)}_{im} \sum_{j=1}^N D^{(2)}_{jk}  \right)
 
 for :math:`1 \le i \le N, 1 \le k \le N_{\rm d}^{(2)}, 1 \le m \le N_{\rm d}^{(3)}`.
 The new descriptors are four-body because they involve central atom :math:`i` together
@@ -502,13 +482,7 @@ of the new global descriptors with respect to atom positions is calculated as
 
     \nabla d^{(2*3)}_{km} = d^{(3)}_m \nabla d^{(2)}_{k}  +  d^{(2)}_{k} \nabla d^{(3)}_m, \quad 1 \le k \le N_{\rm d}^{(2)}, 1 \le m \le N_{\rm d}^{(3)} .
 
-Instead of using all the new descriptors, we allow the user to choose a subset as :math:`{N}_{\rm 2d}^{(2*3)} = N_{\rm 2b}^{2*3} N_{\rm e} (N_{\rm e}+1)/2` and
-:math:`{N}_{\rm 3d}^{(2*3)} = N^{2*3}_{\rm 3b} N_{\rm e}^2 (N_{\rm e}+1)/2`. Here
-:math:`N_{\rm 2b}^{2*3}` and :math:`N_{\rm 3b}^{2*3}` correspond to *quadratic23_number_twobody_basis_functions* and
-*quadratic23_number_threebody_basis_functions*, respectively.
-
-
-The (2*3) quadratic  potential is defined as a linear combination of the
+The quadratic  POD potential is defined as a linear combination of the
 original and new global descriptors as follows
 
 .. math::
@@ -534,7 +508,7 @@ where
     b_k^{(2)} & = \sum_{m=1}^{N_{\rm 3d}^{(2*3)}} c^{(2*3)}_{km} d_m^{(3)}, \quad k = 1,\ldots, N_{\rm 2d}^{(2*3)}, \\
     b_m^{(3)} & = \sum_{k=1}^{N_{\rm 2d}^{(2*3)}} c^{(2*3)}_{km} d_k^{(2)}, \quad m = 1,\ldots, N_{\rm 3d}^{(2*3)} .
 
-The (2*3) quadratic  potential results in the following atomic forces
+The quadratic POD potential results in the following atomic forces
 
 .. math::
 
@@ -546,58 +520,10 @@ It can be shown that
 
     \boldsymbol F^{(2*3)} = - \sum_{k=1}^{N_{\rm 2d}^{(2*3)}}   b^{(2)}_k \nabla d_k^{(2)} - \sum_{m=1}^{N_{\rm 3d}^{(2*3)}}  b^{(3)}_m  \nabla d_m^{(3)} .
 
-The calculation of the atomic forces for the (2*3) quadratic  potential
+The calculation of the atomic forces for the quadratic POD  potential
 only requires the extra calculation of :math:`b_k^{(2)}` and :math:`b_m^{(3)}` which can be negligible.
-As a result, the (2*3) quadratic  potential does not increase the computational complexity.
+As a result, the quadratic  POD potential does not increase the computational complexity.
 
-A similar procedure can be used to form other quadratic potentials.
-For instance, we may combine the three-body descriptors with the four-body
-descriptors to generate the (3*4) quadratic potential. We can also combine
-the three-body descriptors with themselves to generate the (3*3) quadratic potential.
-It is important to know that because quadratic potentials have a large number of coefficients
-they require large training data set in order to avoid overfitting.
-
-Cubic Proper Orthogonal Descriptor Potentials
-"""""""""""""""""""""""""""""""""""""""""""""
-
-The (2*3*4) cubic  potential is defined as follows
-
-.. math::
-
-    E^{(2*3*4)} = \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}} \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d^{(2)}_{k} d^{(3)}_{m} d^{(4)}_{n} .
-
-It thus follows that
-
-.. math::
-
-    E^{(2*3*4)} =  \frac13 \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} b_k^{(2)} d_k^{(2)} +  \frac13 \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}}   b_m^{(3)} d_m^{(3)}  +  \frac13 \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}}  b_n^{(4)} d_n^{(4)}
-
-where
-
-.. math::
-
-    b_k^{(2)} & = \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}} \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d_m^{(3)} d_n^{(4)}, \quad k = 1,\ldots, N_{\rm 2d}^{(2*3*4)} \\
-    b_m^{(3)} & = \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d_k^{(2)} d_n^{(4)}, \quad m = 1,\ldots, N_{\rm 3d}^{(2*3*4)} \\
-    b_n^{(4)} & = \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}} c^{(2*3*4)}_{kmn} d_k^{(2)} d_m^{(3)}, \quad n = 1,\ldots, N_{\rm 4d}^{(2*3*4)}
-
-The (2*3*4) cubic  potential results in the following atomic forces
-
-.. math::
-
-    \boldsymbol F^{(2*3*4)} = - \sum_{k=1}^{N_{\rm 2d}^{(2*3*4)}} b^{(2)}_k \nabla d_k^{(2)} - \sum_{m=1}^{N_{\rm 3d}^{(2*3*4)}}  b^{(3)}_m  \nabla d_m^{(3)} - \sum_{n=1}^{N_{\rm 4d}^{(2*3*4)}}  b^{(4)}_n  \nabla d_n^{(4)} .
-
-Note that :math:`{N}_{\rm 2d}^{(2*3*4)} = N_{\rm 2b}^{2*3*4} N_{\rm e} (N_{\rm e}+1)/2`,
-:math:`{N}_{\rm 3d}^{(2*3*4)} = N^{2*3*4}_{\rm 3b} N_{\rm e}^2 (N_{\rm e}+1)/2`, and
-:math:`{N}_{\rm 4d}^{(2*3*4)} = N^{2*3*4}_{\rm 4b} N_{\rm e}`. Here
-:math:`N_{\rm 2b}^{2*3*4}`, :math:`N_{\rm 3b}^{2*3*4}`, and :math:`N_{\rm 4b}^{2*3*4}` correspond to
-*cubic234_number_twobody_basis_functions*,
-*cubic234_number_threebody_basis_functions*, and
-*cubic234_number_fourbody_basis_functions*, respectively.
-
-The calculation of the atomic forces for the (2*3*4) cubic  potential
-only requires the extra calculation of :math:`b_k^{(2)}`, :math:`b_m^{(3)}`, and :math:`b_n^{(4)}` which can be negligible.
-As a result, the (2*3*4) cubic  potential does not increase the computational complexity.
-Similarly, other cubic potentials can be formed by combining three sets of descriptors.
 
 Training
 """"""""

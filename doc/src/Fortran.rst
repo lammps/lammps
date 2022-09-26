@@ -3,7 +3,9 @@ The ``LIBLAMMPS`` Fortran Module
 
 The ``LIBLAMMPS`` module provides an interface to call LAMMPS from a
 Fortran code.  It is based on the LAMMPS C-library interface and
-requires a Fortran 2003 compatible compiler to be compiled.
+requires a Fortran 2003 compatible compiler to be compiled.  It is
+designed to be self-contained and not require any support functions
+written in C, C++, or Fortran.
 
 While C libraries have a defined binary interface (ABI) and can thus be
 used from multiple compiler versions from different vendors for as long
@@ -19,12 +21,20 @@ for a simple program using the Fortran interface would be:
    mpifort -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
 
 Please note, that the MPI compiler wrapper is only required when the
-calling the library from an MPI parallel code.  Please also note the
-order of the source files: the ``lammps.f90`` file needs to be compiled
-first, since it provides the ``LIBLAMMPS`` module that is imported by
-the Fortran code using the interface.  A working example code can be
-found together with equivalent examples in C and C++ in the
-``examples/COUPLE/simple`` folder of the LAMMPS distribution.
+calling the library from an MPI parallel code.  Otherwise, using the
+fortran compiler (gfortran, ifort, flang, etc.) will suffice.  It may be
+necessary to link to additional libraries depending on how LAMMPS was
+configured and whether the LAMMPS library :doc:`was compiled as a static
+or shared library <Build_link>`.
+
+If the LAMMPS library itself has been compiled with MPI support, the
+resulting executable will still be able to run LAMMPS in parallel with
+``mpirun`` or equivalent.  Please also note that the order of the source
+files matters: the ``lammps.f90`` file needs to be compiled first, since
+it provides the ``LIBLAMMPS`` module that is imported by the Fortran
+code using the interface.  A working example code can be found together
+with equivalent examples in C and C++ in the ``examples/COUPLE/simple``
+folder of the LAMMPS distribution.
 
 .. versionadded:: 9Oct2020
 
@@ -49,17 +59,18 @@ found together with equivalent examples in C and C++ in the
 Creating or deleting a LAMMPS object
 ************************************
 
-With the Fortran interface the creation of a :cpp:class:`LAMMPS
+With the Fortran interface, the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructor for
 creating the :f:func:`lammps` derived type.  To import the definition of
-that type and its type bound procedures you need to add a ``USE
+that type and its type bound procedures, you need to add a ``USE
 LIBLAMMPS`` statement.  Internally it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are
 optional and :cpp:func:`lammps_mpi_init` will be called automatically,
-if it is needed.  Similarly, a possible call to :cpp:func:`lammps_finalize`
-is integrated into the :f:func:`close` function and triggered with
-the optional logical argument set to ``.true.``. Here is a simple example:
+if it is needed.  Similarly, a possible call to
+:cpp:func:`lammps_mpi_finalize` is integrated into the :f:func:`close`
+function and triggered with the optional logical argument set to
+``.true.``. Here is a simple example:
 
 .. code-block:: fortran
 
@@ -80,11 +91,11 @@ the optional logical argument set to ``.true.``. Here is a simple example:
    END PROGRAM testlib
 
 It is also possible to pass command line flags from Fortran to C/C++ and
-thus make the resulting executable behave similar to the standalone
-executable (it will ignore the `-in/-i` flag, though).  This allows to
-use the command line to configure accelerator and suffix settings,
+thus make the resulting executable behave similarly to the standalone
+executable (it will ignore the `-in/-i` flag, though).  This allows
+using the command line to configure accelerator and suffix settings,
 configure screen and logfile output, or to set index style variables
-from the command line and more. Here is a correspondingly adapted
+from the command line and more.  Here is a correspondingly adapted
 version of the previous example:
 
 .. code-block:: fortran
@@ -117,13 +128,13 @@ version of the previous example:
 --------------------
 
 Executing LAMMPS commands
-=========================
+*************************
 
 Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
-simulation by telling LAMMPS to read commands from a file, or pass
+simulation by telling LAMMPS to read commands from a file or to pass
 individual or multiple commands from strings or lists of strings.  This
-is done similar to how it is implemented in the `C-library
-<pg_lib_execute>` interface. Before handing off the calls to the
+is done similarly to how it is implemented in the :doc:`C-library
+interface <Library_execute>`. Before handing off the calls to the
 C-library interface, the corresponding Fortran versions of the calls
 (:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
 :f:func:`commands_string`) have to make a copy of the strings passed as
@@ -165,6 +176,57 @@ Below is a small demonstration of the uses of the different functions:
 
 ---------------
 
+Accessing system properties
+***************************
+
+The C-library interface allows the :doc:`extraction of different kinds
+of information <Library_properties>` about the active simulation
+instance and also - in some cases - to apply modifications to it.  In
+some cases, the C-library interface makes pointers to internal data
+structures accessible, thus when accessing them from Fortran, special
+care is needed to avoid data corruption and crashes.  Thus please see
+the documentation of the individual type bound procedures for details.
+
+Below is an example demonstrating some of the possible uses.
+
+.. code-block:: fortran
+
+  PROGRAM testprop
+    USE LIBLAMMPS
+    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int64_t
+    TYPE(lammps)     :: lmp
+    INTEGER(kind=8)  :: natoms
+    REAL(c_double), POINTER :: dt
+    INTEGER(c_int64_t), POINTER :: ntimestep
+    REAL(kind=8) :: pe, ke
+
+    lmp = lammps()
+    CALL lmp%file('in.sysinit')
+    natoms = INT(lmp%get_natoms(),8)
+    WRITE(6,'(A,I8,A)') 'Running a simulation with', natoms, ' atoms'
+    WRITE(6,'(I8,A,I8,A,I3,A)') lmp%extract_setting('nlocal'), ' local and', &
+        lmp%extract_setting('nghost'), ' ghost atom. ',                      &
+        lmp%extract_setting('ntypes'), ' atom types'
+
+    CALL lmp%command('run 2 post no')
+    dt = lmp%extract_global('dt')
+    ntimestep = lmp%extract_global('ntimestep')
+    WRITE(6,'(A,I4,A,F4.1,A)') 'At step:', ntimestep, '  Changing timestep from', dt, ' to 0.5'
+    dt = 0.5
+    CALL lmp%command('run 2 post no')
+
+    WRITE(6,'(A,I4)') 'At step:', ntimestep
+    pe = lmp%get_thermo('pe')
+    ke = lmp%get_thermo('ke')
+    PRINT*, 'PE = ', pe
+    PRINT*, 'KE = ', ke
+
+    CALL lmp%close(.TRUE.)
+
+  END PROGRAM testprop
+
+---------------
+
 The ``LIBLAMMPS`` module API
 ****************************
 
@@ -178,14 +240,24 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    class instance that any of the included calls are forwarded to.
 
    :f c_ptr handle: reference to the LAMMPS class
-   :f close: :f:func:`close`
-   :f version: :f:func:`version`
-   :f file: :f:func:`file`
-   :f command: :f:func:`command`
-   :f commands_list: :f:func:`commands_list`
-   :f commands_string: :f:func:`commands_string`
+   :f subroutine close: :f:func:`close`
+   :f subroutine error: :f:func:`error`
+   :f function version: :f:func:`version`
+   :f subroutine file: :f:func:`file`
+   :f subroutine command: :f:func:`command`
+   :f subroutine commands_list: :f:func:`commands_list`
+   :f subroutine commands_string: :f:func:`commands_string`
+   :f function get_natoms: :f:func:`get_natoms`
+   :f function get_thermo: :f:func:`get_thermo`
+   :f subroutine extract_box: :f:func:`extract_box`
+   :f subroutine reset_box: :f:func:`reset_box`
+   :f subroutine memory_usage: :f:func:`memory_usage`
+   :f function extract_setting: :f:func:`extract_setting`
+   :f function extract_global: :f:func:`extract_global`
 
-.. f:function:: lammps(args[,comm])
+--------
+
+.. f:function:: lammps([args][,comm])
 
    This is the constructor for the Fortran class and will forward
    the arguments to a call to either :cpp:func:`lammps_open_fortran`
@@ -198,9 +270,30 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
 
-   :p character(len=*) args(*) [optional]: arguments as list of strings
+   :o character(len=\*) args(\*) [optional]: arguments as list of strings
    :o integer comm [optional]: MPI communicator
    :r lammps: an instance of the :f:type:`lammps` derived type
+
+   .. note::
+
+      The ``MPI_F08`` module, which defines Fortran 2008 bindings for MPI,
+      is not directly supported by this interface due to the complexities of
+      supporting both the ``MPI_F08`` and ``MPI`` modules at the same time.
+      However, you should be able to use the ``MPI_VAL`` member of the
+      ``MPI_comm`` derived type to access the integer value of the
+      communicator, such as in
+
+      .. code-block:: Fortran
+
+         PROGRAM testmpi
+            USE LIBLAMMPS
+            USE MPI_F08
+            TYPE(lammps) :: lmp
+            lmp = lammps(MPI_COMM_SELF%MPI_VAL)
+         END PROGRAM testmpi
+
+Procedures Bound to the lammps Derived Type
+===========================================
 
 .. f:subroutine:: close([finalize])
 
@@ -210,6 +303,20 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :cpp:func:`lammps_mpi_finalize`.
 
    :o logical finalize [optional]: shut down the MPI environment of the LAMMPS library if true.
+
+--------
+
+.. f:subroutine:: error(error_type, error_text)
+
+   This method is a wrapper around the :cpp:func:`lammps_error` function and will dispatch
+   an error through the LAMMPS Error class.
+
+   .. versionadded:: TBD
+
+   :p integer error_type: constant to select which Error class function to call
+   :p character(len=\*) error_text: error message
+
+--------
 
 .. f:function:: version()
 
@@ -224,25 +331,243 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    This method will call :cpp:func:`lammps_file` to have LAMMPS read
    and process commands from a file.
 
-   :p character(len=*) filename: name of file with LAMMPS commands
+   :p character(len=\*) filename: name of file with LAMMPS commands
+
+--------
 
 .. f:subroutine:: command(cmd)
 
    This method will call :cpp:func:`lammps_command` to have LAMMPS
    execute a single command.
 
-   :p character(len=*) cmd: single LAMMPS command
+   :p character(len=\*) cmd: single LAMMPS command
+
+--------
 
 .. f:subroutine:: commands_list(cmds)
 
    This method will call :cpp:func:`lammps_commands_list` to have LAMMPS
    execute a list of input lines.
 
-   :p character(len=*) cmd(:): list of LAMMPS input lines
+   :p character(len=\*) cmd(:): list of LAMMPS input lines
+
+--------
 
 .. f:subroutine:: commands_string(str)
 
    This method will call :cpp:func:`lammps_commands_string` to have LAMMPS
    execute a block of commands from a string.
 
-   :p character(len=*) str: LAMMPS input in string
+   :p character(len=\*) str: LAMMPS input in string
+
+--------
+
+.. f:function:: get_natoms()
+
+   This function will call :cpp:func:`lammps_get_natoms` and return the number
+   of atoms in the system.
+
+   :r real(c_double): number of atoms
+
+--------
+
+.. f:function:: get_thermo(name)
+
+   This function will call :cpp:func:`lammps_get_thermo` and return the value
+   of the corresponding thermodynamic keyword.
+
+   .. versionadded:: TBD
+
+   :p character(len=\*) name: string with the name of the thermo keyword
+   :r real(c_double): value of the requested thermo property or `0.0_c_double`
+
+--------
+
+.. f:subroutine:: extract_box([boxlo][, boxhi][, xy][, yz][, xz][, pflags][, boxflag])
+
+   This subroutine will call :cpp:func:`lammps_extract_box`. All
+   parameters are optional, though obviously at least one should be
+   present. The parameters *pflags* and *boxflag* are stored in LAMMPS
+   as integers, but should be declared as ``LOGICAL`` variables when
+   calling from Fortran.
+
+   .. versionadded:: TBD
+
+   :o real(c_double) boxlo [dimension(3),optional]: vector in which to store
+    lower-bounds of simulation box
+   :o real(c_double) boxhi [dimension(3),optional]: vector in which to store
+    upper-bounds of simulation box
+   :o real(c_double) xy [optional]: variable in which to store *xy* tilt factor
+   :o real(c_double) yz [optional]: variable in which to store *yz* tilt factor
+   :o real(c_double) xz [optional]: variable in which to store *xz* tilt factor
+   :o logical pflags [dimension(3),optional]: vector in which to store
+    periodicity flags (``.TRUE.`` means periodic in that dimension)
+   :o logical boxflag [optional]: variable in which to store boolean denoting
+    whether the box will change during a simulation
+    (``.TRUE.`` means box will change)
+
+.. note::
+
+   Note that a frequent use case of this function is to extract only one or
+   more of the options rather than all seven. For example, assuming "lmp"
+   represents a properly-initialized LAMMPS instance, the following code will
+   extract the periodic box settings into the variable "periodic":
+
+   .. code-block:: Fortran
+
+      ! code to start up
+      logical :: periodic(3)
+      ! code to initialize LAMMPS / run things / etc.
+      call lmp%extract_box(pflags = periodic)
+
+--------
+
+.. f:subroutine:: reset_box(boxlo, boxhi, xy, yz, xz)
+
+   This subroutine will call :cpp:func:`lammps_reset_box`. All parameters
+   are required.
+
+   .. versionadded:: TBD
+
+   :p real(c_double) boxlo [dimension(3)]: vector of three doubles containing
+    the lower box boundary
+   :p real(c_double) boxhi [dimension(3)]: vector of three doubles containing
+    the upper box boundary
+   :p real(c_double) xy: *x--y* tilt factor
+   :p real(c_double) yz: *y--z* tilt factor
+   :p real(c_double) xz: *x--z* tilt factor
+
+--------
+
+.. f:subroutine:: memory_usage(meminfo)
+
+   This subroutine will call :cpp:func:`lammps_memory_usage` and store the
+   result in the three-element array *meminfo*.
+
+   .. versionadded:: TBD
+
+   :p real(c_double) meminfo [dimension(3)]: vector of three doubles in which
+    to store memory usage data
+
+--------
+
+.. f:function:: get_mpi_comm()
+
+   This function returns a Fortran representation of the LAMMPS "world"
+   communicator.
+
+   .. versionadded:: TBD
+
+   :r integer: Fortran integer equivalent to the MPI communicator LAMMPS is
+    using
+
+   .. note::
+
+       The C library interface currently returns type ``int`` instead of
+       type ``MPI_Fint``, which is the C type corresponding to Fortran
+       ``INTEGER`` types of the default kind.  On most compilers, these
+       are the same anyway, but this interface exchanges values this way
+       to avoid warning messages.
+
+   .. note::
+
+      The `MPI_F08` module, which defines Fortran 2008 bindings for MPI,
+      is not directly supported by this function.  However, you should be
+      able to convert between the two using the `MPI_VAL` member of the
+      communicator.  For example,
+
+      .. code-block:: fortran
+
+         USE MPI_F08
+         USE LIBLAMMPS
+         TYPE (LAMMPS) :: lmp
+         TYPE (MPI_Comm) :: comm
+         ! ... [commands to set up LAMMPS/etc.]
+         comm%MPI_VAL = lmp%get_mpi_comm()
+
+      should assign an `MPI_F08` communicator properly.
+
+--------
+
+.. f:function:: extract_setting(keyword)
+
+   Query LAMMPS about global settings. See the documentation for the
+   :cpp:func:`lammps_extract_setting` function from the C library.
+
+   .. versionadded:: TBD
+
+   :p character(len=\*) keyword: string containing the name of the thermo keyword
+   :r integer(c_int): value of the queried setting or :math:`-1` if unknown
+
+--------
+
+.. f:function:: extract_global(name)
+
+   This function calls :cpp:func:`lammps_extract_global` and returns
+   either a string or a pointer to internal global LAMMPS data,
+   depending on the data requested through *name*.
+
+   .. versionadded:: TBD
+
+   Note that this function actually does not return a value, but rather
+   associates the pointer on the left side of the assignment to point to
+   internal LAMMPS data (with the exception of string data, which are
+   copied and returned as ordinary Fortran strings). Pointers must be of
+   the correct data type to point to said data (typically
+   ``INTEGER(c_int)``, ``INTEGER(c_int64_t)``, or ``REAL(c_double)``)
+   and have compatible kind and rank.  The pointer being associated with
+   LAMMPS data is type-, kind-, and rank-checked at run-time via an
+   overloaded assignment operator.  The pointers returned by this
+   function are generally persistent; therefore it is not necessary to
+   call the function again, unless a :doc:`clear` command has been
+   issued, which wipes out and recreates the contents of the
+   :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class.
+
+   For example,
+
+   .. code-block:: fortran
+
+      PROGRAM demo
+       USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int64_t
+       USE LIBLAMMPS
+       TYPE(lammps) :: lmp
+       INTEGER(c_int), POINTER :: nlocal
+       INTEGER(c_int64_t), POINTER :: ntimestep
+       CHARACTER(LEN=10) :: units
+       REAL(c_double), POINTER :: dt
+       lmp = lammps()
+       ! other commands
+       nlocal = lmp%extract_global('nlocal')
+       ntimestep = lmp%extract_global('ntimestep')
+       dt = lmp%extract_global('dt')
+       units = lmp%extract_global('units')
+       ! more commands
+       lmp.close(.TRUE.)
+      END PROGRAM demo
+
+   would extract the number of atoms on this processor, the current time step,
+   the size of the current time step, and the units being used into the
+   variables *nlocal*, *ntimestep*, *dt*, and *units*, respectively.
+
+   .. note::
+
+      if this function returns a string, the string must have
+      length greater than or equal to the length of the string (not including the
+      terminal NULL character) that LAMMPS returns. If the variable's length is
+      too short, the string will be truncated. As usual in Fortran, strings
+      are padded with spaces at the end.
+
+   :p character(len=\*) name: string with the name of the extracted property
+   :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
+    should be either a string (if expecting string data) or a C-compatible
+    pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted
+    property. If expecting vector data, the pointer should have dimension ":".
+
+.. warning::
+
+   Modifying the data in the location pointed to by the returned pointer
+   may lead to inconsistent internal data and thus may cause failures or
+   crashes or bogus simulations.  In general it is thus usually better
+   to use a LAMMPS input command that sets or changes these parameters.
+   Those will take care of all side effects and necessary updates of
+   settings derived from such settings.

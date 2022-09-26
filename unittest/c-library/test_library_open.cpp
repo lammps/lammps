@@ -198,3 +198,32 @@ TEST(lammps_open_fortran, no_args)
     if (verbose) std::cout << output;
     MPI_Comm_free(&mycomm);
 }
+
+TEST(lammps_open_no_mpi, lammps_error)
+{
+    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    void *alt_ptr;
+    void *handle       = lammps_open_no_mpi(argc, argv, &alt_ptr);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(handle, alt_ptr);
+    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+
+    EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
+    EXPECT_EQ(lmp->infile, stdin);
+    EXPECT_NE(lmp->screen, nullptr);
+    EXPECT_EQ(lmp->logfile, nullptr);
+    EXPECT_EQ(lmp->citeme, nullptr);
+    EXPECT_EQ(lmp->suffix_enable, 0);
+
+    EXPECT_STREQ(lmp->exename, "liblammps");
+    EXPECT_EQ(lmp->num_package, 0);
+    ::testing::internal::CaptureStdout();
+    lammps_error(handle, 0, "test_warning");
+    output = ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(output, HasSubstr("WARNING: test_warning"));
+}
+

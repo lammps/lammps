@@ -416,6 +416,89 @@ void lammps_python_finalize()
   Python::finalize();
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+/** Call a LAMMPS Error class function
+ *
+\verbatim embed:rst
+
+This function is a wrapper around functions in the ``Error`` to print an
+error message and then stop LAMMPS.
+
+The *error_type* parameter selects which function to call.  It is a sum
+of constants from :cpp:enum:`_LMP_ERROR_CONST`.  If the value does not
+match any valid combination of constants a warning is printed and the
+function returns.
+
+.. versionadded:: TBD
+
+\endverbatim
+ *
+ * \param  handle       pointer to a previously created LAMMPS instance
+ * \param  error_type   parameter to select function in the Error class
+ * \param  error_text   error message */
+
+void lammps_error(void *handle, int error_type, const char *error_text)
+{
+  auto lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    switch (error_type) {
+    case LMP_ERROR_WARNING:
+      lmp->error->warning("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ONE:
+      lmp->error->one("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ALL:
+      lmp->error->all("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_WARNING|LMP_ERROR_WORLD:
+      lmp->error->warning("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ONE|LMP_ERROR_WORLD:
+      lmp->error->one("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ALL|LMP_ERROR_WORLD:
+      lmp->error->all("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_WARNING|LMP_ERROR_UNIVERSE:
+      lmp->error->universe_warn("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ONE|LMP_ERROR_UNIVERSE:
+      lmp->error->universe_one("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ALL|LMP_ERROR_UNIVERSE:
+      lmp->error->universe_all("(library)", 0, error_text);
+      break;
+    default:
+      auto mesg = fmt::format("Unknown error type {} for message: {}", error_type, error_text);
+      lmp->error->warning("(library)", 0, mesg);
+    }
+  }
+  END_CAPTURE
+
+#if defined(LAMMPS_EXCEPTIONS)
+    // with enabled exceptions the above code will simply throw an
+    // exception and record the error message. So we have to explicitly
+    // stop here like we do in main.cpp
+  if (lammps_has_error(handle)) {
+    if (error_type & 1) {
+      lammps_kokkos_finalize();
+      lammps_python_finalize();
+      MPI_Abort(lmp->universe->uworld, 1);
+    } else if (error_type & 2) {
+      lammps_kokkos_finalize();
+      lammps_python_finalize();
+      lammps_mpi_finalize();
+      exit(1);
+    }
+  }
+#endif
+}
+
 // ----------------------------------------------------------------------
 // Library functions to process commands
 // ----------------------------------------------------------------------
@@ -1156,8 +1239,8 @@ Please also see :cpp:func:`lammps_extract_setting`,
    may lead to inconsistent internal data and thus may cause failures or
    crashes or bogus simulations.  In general it is thus usually better
    to use a LAMMPS input command that sets or changes these parameters.
-   Those will takes care of all side effects and necessary updates of
-   settings derived from such settings.  Where possible a reference to
+   Those will take care of all side effects and necessary updates of
+   settings derived from such settings.  Where possible, a reference to
    such a command or a relevant section of the manual is given below.
 
 The following tables list the supported names, their data types, length

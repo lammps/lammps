@@ -587,7 +587,7 @@ void PairKIM::init_style()
   // make sure comm_reverse expects (at most) 9 values when newton is off
   if (!lmps_using_newton) comm_reverse_off = 9;
 
-  // request full neighbor
+  // request full neighbor list
   for (int i = 0; i < kim_number_of_neighbor_lists; ++i) {
     int neighflags = NeighConst::REQ_FULL | NeighConst::REQ_NEWTON_OFF;
     if (!modelWillNotRequestNeighborsOfNoncontributingParticles[i])
@@ -597,7 +597,8 @@ void PairKIM::init_style()
 
     // set cutoff
     if (kim_cutoff_values[i] <= neighbor->skin)
-      error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
+      error->all(FLERR,"Illegal neighbor request (force cutoff {:.3} <= skin {:.3})",
+                 kim_cutoff_values[i], neighbor->skin);
     req->set_cutoff(kim_cutoff_values[i] + neighbor->skin);
   }
   // increment instance_me in case of need to change the neighbor list

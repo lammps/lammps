@@ -43,8 +43,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), pair(nullptr), spin_pairs(nullptr),
-  lockprecessionspin(nullptr)
+  Compute(lmp, narg, arg), lockprecessionspin(nullptr), pair(nullptr), spin_pairs(nullptr)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
@@ -69,8 +68,8 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
 ComputeSpin::~ComputeSpin()
 {
   memory->destroy(vector);
-  delete [] spin_pairs;
-  delete [] lockprecessionspin;
+  delete[] spin_pairs;
+  delete[] lockprecessionspin;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,7 +97,7 @@ void ComputeSpin::init()
     else npairs = hybrid->nstyles;
     for (int i = 0; i<npairs; i++) {
       if (force->pair_match("^spin",0,i)) {
-        npairspin ++;
+        npairspin++;
       }
     }
   }
@@ -139,47 +138,17 @@ void ComputeSpin::init()
 
   // set ptrs for fix precession/spin styles
 
-  // loop 1: obtain # of fix precession/spin styles
-
-  int iforce;
-  nprecspin = 0;
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-      nprecspin++;
-    }
-  }
-
-  // init length of vector of ptrs to precession/spin styles
+  auto precfixes = modify->get_fix_by_style("^precession/spin");
+  nprecspin = precfixes.size();
 
   if (nprecspin > 0) {
-    lockprecessionspin = new FixPrecessionSpin*[nprecspin];
+    lockprecessionspin = new FixPrecessionSpin *[nprecspin];
+    precession_spin_flag = 1;
+
+    int i = 0;
+    for (auto &ifix : precfixes)
+      lockprecessionspin[i++] = dynamic_cast<FixPrecessionSpin *>(ifix);
   }
-
-  // loop 2: fill vector with ptrs to precession/spin styles
-
-  int count2 = 0;
-  if (nprecspin > 0) {
-    for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-        precession_spin_flag = 1;
-        lockprecessionspin[count2] = dynamic_cast<FixPrecessionSpin *>(modify->fix[iforce]);
-        count2++;
-      }
-    }
-  }
-
-  if (count2 != nprecspin)
-    error->all(FLERR,"Incorrect number of precession/spin fixes");
-
-  // // ptrs FixPrecessionSpin classes
-
-  // int iforce;
-  // for (iforce = 0; iforce < modify->nfix; iforce++) {
-  //   if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-  //     precession_spin_flag = 1;
-  //     lockprecessionspin = dynamic_cast<FixPrecessionSpin *>(modify->fix[iforce]);
-  //   }
-  // }
 }
 
 /* ---------------------------------------------------------------------- */

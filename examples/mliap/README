@@ -151,21 +151,6 @@ or in parallel:
 The resultant log.lammps output should be identical to that generated
 by in.melt and in.mliap.unified.lj.Ar.
 
-in.mliap.unified.hippynn.Al
----------------------------
-
-Demonstrate ML-IAP interface to HIPNN Al potential. Requires the HIPNN code.
-
-in.mliap.unified.hippynn.Al.ghostneigh
---------------------------------------
-
-Demonstrate ML-IAP interface to HIPNN Al potential with ghost neighbors. Requires the HIPNN code.
-
-in.mliap.unified.hippynn.InP
-----------------------------
-
-Demonstrate ML-IAP interface to HIPNN InP potential. Requires the HIPNN code.
-
 in.mliap.so3.Ni_Mo
 ------------------
 

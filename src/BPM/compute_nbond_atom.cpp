@@ -33,8 +33,6 @@ ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
 
   peratom_flag = 1;
   size_peratom_cols = 0;
-  peatomflag = 1;
-  timeflag = 1;
   comm_reverse = 1;
 
   nmax = 0;
@@ -51,11 +49,6 @@ ComputeNBondAtom::~ComputeNBondAtom()
 
 void ComputeNBondAtom::compute_peratom()
 {
-
-  invoked_peratom = update->ntimestep;
-  if (update->eflag_atom != invoked_peratom)
-    error->all(FLERR, "Per-atom nbond was not tallied on needed timestep");
-
   // grow local nbond array if necessary
   // needs to be atom->nmax in length
 

@@ -314,7 +314,7 @@ Bibliography
    Espanol, Revenga, Physical Review E, 67, 026705 (2003).
 
 **(Espanol1997)**
-   Espanol, Europhys Lett, 40(6): 631-636 (1997).  DOI: 10.1209/epl/i1997-00515-8
+   Espanol, Europhys Lett, 40(6): 631-636 (1997).  DOI:10.1209/epl/i1997-00515-8
 
 **(Evans and Morriss)**
    Evans and Morriss, Phys Rev A, 30, 1528 (1984).
@@ -401,13 +401,13 @@ Bibliography
    Hayre, and Farago, Comp Phys Comm, 185, 524 (2014)
 
 **(Groot)**
-   Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI: 10.1063/1.474784
+   Groot and Warren, J Chem Phys, 107: 4423-4435 (1997).  DOI:10.1063/1.474784
 
 **(Guenole)**
    Guenole, Noehring, Vaid, Houlle, Xie, Prakash, Bitzek, Comput Mater Sci, 175, 109584 (2020).
 
 **(Gullet)**
-   Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
+   Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003). DOI:10.2172/918395
 
 **(Guo)**
    Guo and Thirumalai, Journal of Molecular Biology, 263, 323-43 (1996).
@@ -605,16 +605,16 @@ Bibliography
    I.\  Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 **(Li2013_POF)**
-   Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013). DOI: 10.1063/1.4812366.
+   Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013). DOI:10.1063/1.4812366.
 
 **(Li2014_JCP)**
-   Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys, 265: 113-127 (2014).  DOI: 10.1016/j.jcp.2014.02.003.
+   Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys, 265: 113-127 (2014).  DOI:10.1016/j.jcp.2014.02.003.
 
 **(Li2015_CC)**
-   Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040 (2015).  DOI: 10.1039/C5CC01684C.
+   Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040 (2015).  DOI:10.1039/C5CC01684C.
 
 **(Li2015_JCP)**
-   Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143: 014101 (2015).  DOI: 10.1063/1.4923254.
+   Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143: 014101 (2015).  DOI:10.1063/1.4923254.
 
 **(Lisal)**
    M.\  Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative particle dynamics at isothermal, isobaric, isoenergetic, and isoenthalpic conditions using Shardlow-like splitting algorithms.",

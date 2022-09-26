@@ -452,7 +452,7 @@ Procedures Bound to the lammps Derived Type
 
    .. note::
 
-      The `MPI_F08` module, which defines Fortran 2008 bindings for MPI,
+      The ``MPI_F08`` module, which defines Fortran 2008 bindings for MPI,
       is not directly supported by this function.  However, you should be
       able to convert between the two using the `MPI_VAL` member of the
       communicator.  For example,
@@ -461,12 +461,12 @@ Procedures Bound to the lammps Derived Type
 
          USE MPI_F08
          USE LIBLAMMPS
-         TYPE (LAMMPS) :: lmp
+         TYPE (lammps) :: lmp
          TYPE (MPI_Comm) :: comm
          ! ... [commands to set up LAMMPS/etc.]
          comm%MPI_VAL = lmp%get_mpi_comm()
 
-      should assign an `MPI_F08` communicator properly.
+      should assign an ``MPI_F08`` communicator properly.
 
 --------
 
@@ -505,12 +505,12 @@ Procedures Bound to the lammps Derived Type
    .. code-block:: fortran
 
       PROGRAM demo
-        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int64_t
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int64_t, c_int, c_double
         USE LIBLAMMPS
         TYPE(lammps) :: lmp
-        INTEGER(C_int), POINTER :: nlocal => NULL()
-        INTEGER(C_int64_t), POINTER :: ntimestep => NULL()
-        REAL(C_double), POINTER :: dt => NULL()
+        INTEGER(c_int), POINTER :: nlocal => NULL()
+        INTEGER(c_int64_t), POINTER :: ntimestep => NULL()
+        REAL(c_double), POINTER :: dt => NULL()
         CHARACTER(LEN=10) :: units
         lmp = lammps()
         ! other commands
@@ -540,7 +540,7 @@ Procedures Bound to the lammps Derived Type
     pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted
     property. If expecting vector data, the pointer should have dimension ":".
 
-.. warning::
+   .. warning::
 
        Modifying the data in the location pointed to by the returned pointer
        may lead to inconsistent internal data and thus may cause failures,
@@ -560,14 +560,14 @@ Procedures Bound to the lammps Derived Type
    Note that this function actually does not return a pointer, but rather
    associates the pointer on the left side of the assignment to point
    to internal LAMMPS data. Pointers must be of the correct type, kind, and
-   rank (e.g., integer(C_int), dimension(:) for "type", "mask", or "tag";
-   integer(C_int64_t), dimension(:) for "tag" if LAMMPS was compiled
-   with the -DLAMMPS_BIGBIG flag; real(C_double), dimension(:,:) for "x", "v",
-   or "f"; and so forth). The pointer being associated with LAMMPS data is
-   type-, kind-, and rank-checked at run-time. Pointers returned by this
-   function are generally persistent; therefore, it is not necessary to call
-   the function again unless the underlying LAMMPS data are destroyed, such as
-   through the :doc:`clear` command.
+   rank (e.g., ``INTEGER(c_int), DIMENSION(:)`` for "type", "mask", or "tag";
+   ``INTEGER(c_int64_t), DIMENSION(:)`` for "tag" if LAMMPS was compiled
+   with the ``-DLAMMPS_BIGBIG`` flag; ``REAL(c_double), DIMENSION(:,:)`` for
+   "x", "v", or "f"; and so forth). The pointer being associated with LAMMPS
+   data is type-, kind-, and rank-checked at run-time. Pointers returned by
+   this function are generally persistent; therefore, it is not necessary to
+   call the function again unless the underlying LAMMPS data are destroyed,
+   such as through the :doc:`clear` command.
 
    :p character(len=\*) name: string with the name of the property to extract
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
@@ -576,7 +576,7 @@ Procedures Bound to the lammps Derived Type
     property. If expecting vector data, the pointer should have dimension ":";
     if expecting matrix data, the pointer should have dimension ":,:".
 
-    .. note::
+    .. admonition:: Array index order
 
        Two-dimensional arrays returned from :f:func:`extract_atom` will be
        **transposed** from equivalent arrays in C, and they will be indexed
@@ -596,12 +596,12 @@ Procedures Bound to the lammps Derived Type
        .. code-block:: Fortran
 
           TYPE(lammps) :: lmp
-          REAL(C_double), DIMENSION(:,:), POINTER :: x
+          REAL(c_double), DIMENSION(:,:), POINTER :: x => NULL()
           ! more code to setup, etc.
           x = lmp%extract_atom("x")
           print '(f0.6)', x(2,6)
 
-       will print the *y*-coordinate of the third atom on this processor
+       will print the *y*-coordinate of the sixth atom on this processor
        (note the transposition of the two indices). This is not a choice, but
        rather a consequence of the different conventions adopted by the Fortran
        and C standards decades ago.
@@ -612,12 +612,115 @@ Procedures Bound to the lammps Derived Type
        
        .. code-block:: Fortran
 
-          REAL(C_double), DIMENSION(:,:), POINTER :: x, x0
+          REAL(c_double), DIMENSION(:,:), POINTER :: x, x0
           x = lmp%extract_atom("x")
           x0(0:,0:) => x
   
        The above would cause the dimensions of *x* to be (1:3, 1:nmax)
        and those of *x0* to be (0:2, 0:nmax-1).
+
+--------
+
+.. f:function:: extract_compute(id, style, type)
+
+   This function calls :c:func:`lammps_extract_compute` and returns a pointer
+   to LAMMPS data tied to the :cpp:class:`Compute` class, specifically data
+   provided by the compute identified by *id*. Computes may provide global,
+   per-atom, or local data, and those data may be a scalar, a vector, or an
+   array. Since computes may provide multiple kinds of data, the user is
+   required to specify which set of data is to be returned through the
+   *style* and *type* variables.
+
+   Note that this function actually does not return a value, but rather
+   associates the pointer on the left side of the assignment to point to
+   internal LAMMPS data. Pointers must be of the correct data type to point to
+   said data (i.e., ``REAL(c_double)``) and have compatible rank.  The pointer
+   being associated with LAMMPS data is type-, kind-, and rank-checked at
+   run-time via an overloaded assignment operator.
+
+   For example,
+
+   .. code-block:: Fortran
+
+      TYPE(lammps) :: lmp
+      REAL(c_double), DIMENSION(:), POINTER :: COM
+      ! code to setup, create atoms, etc.
+      CALL lmp%compute('compute COM all com')
+      COM = lmp%extract_compute('COM', lmp%style%global, lmp%style%type)
+
+   will bind the variable *COM* to the center of mass of the atoms created in
+   your simulation. The vector in this case has length 3; the length (or, in
+   the case of array data, the number of rows and columns) is determined for
+   you based on data from the :cpp:class:`Compute` class.
+
+   .. admonition:: Array index order
+
+      Two-dimensional arrays returned from :f:func:`extract_compute` will be
+      **transposed** from equivalent arrays in C, and they will be indexed
+      from 1 instead of 0. See the similar note under
+      :f:func:`extract_atom` for further details.
+
+   The following combinations are possible (assuming ``lmp`` is the name of
+   your LAMMPS instance):
+
+   .. list-table::
+      :header-rows: 1
+      :widths: auto
+
+      * - Style
+        - Type
+        - Pointer type to assign to
+        - Returned data
+      * - ``lmp%style%global``
+        - ``lmp%type%scalar``
+        - ``REAL(c_double), POINTER``
+        - Global scalar
+      * - ``lmp%style%global``
+        - ``lmp%type%vector``
+        - ``REAL(c_double), DIMENSION(:), POINTER``
+        - Global vector
+      * - ``lmp%style%global``
+        - ``lmp%type%array``
+        - ``REAL(c_double), DIMENSION(:,:), POINTER``
+        - Global array
+      * - ``lmp%style%atom``
+        - ``lmp%type%vector``
+        - ``REAL(c_double), DIMENSION(:), POINTER``
+        - Per-atom vector
+      * - ``lmp%style%atom``
+        - ``lmp%type%array``
+        - ``REAL(c_double), DIMENSION(:,:), POINTER``
+        - Per-atom array
+      * - ``lmp%style%local``
+        - ``lmp%type%vector``
+        - ``REAL(c_double), DIMENSION(:), POINTER``
+        - Local vector
+      * - ``lmp%style%local``
+        - ``lmp%type%array``
+        - ``REAL(c_double), DIMENSION(:,:), POINTER``
+        - Local array
+
+   :p character(len=\*) id: compute ID from which to extract data
+   :p integer(c_int) style: value indicating the style of data to extract
+    (global, per-atom, or local)
+   :p integer(c_int) type: value indicating the type of data to extract
+    (scalar, vector, or array)
+
+   .. note::
+
+      If the compute's data are not already computed for the current step, the
+      compute will be invoked. LAMMPS cannot easily check at that time if it is
+      valid to invoke a compute, so it may fail with an error. The caller has
+      to check to avoid such an error.
+
+   .. warning::
+
+      The pointers returned by this function are generally not persistent,
+      since the computed data may be re-distributed, re-allocated, and
+      re-ordered at every invocation. It is advisable to re-invoke this
+      function before the data are accessed or make a copy if the data are to
+      be used after other LAMMPS commands have been issued. Do **not** modify
+      the data returned by this function.
 
 --------
 

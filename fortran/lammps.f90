@@ -29,8 +29,9 @@
 !
 MODULE LIBLAMMPS
 
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_loc, &
-      c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, c_f_pointer
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_associated, &
+    c_loc, c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, &
+    c_f_pointer
   USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : ERROR_UNIT
 
   IMPLICIT NONE
@@ -44,22 +45,27 @@ MODULE LIBLAMMPS
   !
   ! These are NOT part of the API (the part the user sees)
   INTEGER (c_int), PARAMETER :: &
-    LAMMPS_INT = 0, &       ! 32-bit integer (array)
-    LAMMPS_INT_2D = 1, &    ! two-dimensional 32-bit integer array
-    LAMMPS_DOUBLE = 2, &    ! 64-bit double (array)
-    LAMMPS_DOUBLE_2D = 3, & ! two-dimensional 64-bit double array
-    LAMMPS_INT64 = 4, &     ! 64-bit integer (array)
-    LAMMPS_INT64_2D = 5, &  ! two-dimensional 64-bit integer array
-    LAMMPS_STRING = 6, &    ! C-String
-    LMP_STYLE_GLOBAL = 0, & ! request global compute/fix/etc. data
-    LMP_STYLE_ATOM = 1, &   ! request per-atom compute/fix/etc. data
-    LMP_STYLE_LOCAL = 2, &  ! request local compute/fix/etc. data
-    LMP_TYPE_SCALAR = 0, &  ! request scalar
-    LMP_TYPE_VECTOR = 1, &  ! request vector
-    LMP_TYPE_ARRAY = 2, &   ! request array
-    LMP_SIZE_VECTOR = 3, &  ! request size of vector
-    LMP_SIZE_ROWS = 4, &    ! request rows (actually columns)
-    LMP_SIZE_COLS = 5       ! request colums (actually rows)
+    LAMMPS_INT = 0, &         ! 32-bit integer (array)
+    LAMMPS_INT_2D = 1, &      ! two-dimensional 32-bit integer array
+    LAMMPS_DOUBLE = 2, &      ! 64-bit double (array)
+    LAMMPS_DOUBLE_2D = 3, &   ! two-dimensional 64-bit double array
+    LAMMPS_INT64 = 4, &       ! 64-bit integer (array)
+    LAMMPS_INT64_2D = 5, &    ! two-dimensional 64-bit integer array
+    LAMMPS_STRING = 6, &      ! C-String
+    LMP_STYLE_GLOBAL = 0, &   ! request global compute/fix/etc. data
+    LMP_STYLE_ATOM = 1, &     ! request per-atom compute/fix/etc. data
+    LMP_STYLE_LOCAL = 2, &    ! request local compute/fix/etc. data
+    LMP_TYPE_SCALAR = 0, &    ! request scalar
+    LMP_TYPE_VECTOR = 1, &    ! request vector
+    LMP_TYPE_ARRAY = 2, &     ! request array
+    LMP_SIZE_VECTOR = 3, &    ! request size of vector
+    LMP_SIZE_ROWS = 4, &      ! request rows (actually columns)
+    LMP_SIZE_COLS = 5, &      ! request colums (actually rows)
+    LMP_ERROR_WARNING = 0, &  ! call Error::warning()
+    LMP_ERROR_ONE = 1, &      ! call Error::one() (from this MPI rank)
+    LMP_ERROR_ALL = 2, &      ! call Error::all() (from all MPI ranks)
+    LMP_ERROR_WORLD = 4, &    ! error on comm->world
+    LMP_ERROR_UNIVERSE = 8    ! error on comm->universe
 
   ! "Constants" to use with extract_compute and friends
   TYPE lammps_style
@@ -112,13 +118,13 @@ MODULE LIBLAMMPS
   ! pointers)
   TYPE lammps_data
     INTEGER(c_int) :: datatype
-    INTEGER(c_int), POINTER :: i32
-    INTEGER(c_int), DIMENSION(:), POINTER :: i32_vec
-    INTEGER(c_int64_t), POINTER :: i64
-    INTEGER(c_int64_t), DIMENSION(:), POINTER :: i64_vec
-    REAL(c_double), POINTER :: r64
-    REAL(c_double), DIMENSION(:), POINTER :: r64_vec
-    REAL(c_double), DIMENSION(:,:), POINTER :: r64_mat
+    INTEGER(c_int), POINTER :: i32 => NULL()
+    INTEGER(c_int), DIMENSION(:), POINTER :: i32_vec => NULL()
+    INTEGER(c_int64_t), POINTER :: i64 => NULL()
+    INTEGER(c_int64_t), DIMENSION(:), POINTER :: i64_vec => NULL()
+    REAL(c_double), POINTER :: r64 => NULL()
+    REAL(c_double), DIMENSION(:), POINTER :: r64_vec => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: r64_mat => NULL()
     CHARACTER(LEN=:), ALLOCATABLE :: str
   END TYPE lammps_data
 
@@ -683,9 +689,9 @@ CONTAINS
         FORALL ( I=1:length )
           global_data%str(i:i) = Fptr(i)
         END FORALL
-    CASE DEFAULT
-        ! FIXME convert to use symbolic constants later
-        CALL lmp_error(self, 6, 'Unknown pointer type in extract_global')
+      CASE DEFAULT
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'Unknown pointer type in extract_global')
     END SELECT
   END FUNCTION
 
@@ -703,6 +709,7 @@ CONTAINS
     INTEGER :: nrows, ncols
     REAL(c_double), DIMENSION(:), POINTER :: dummy
     TYPE(c_ptr), DIMENSION(:), POINTER :: Catomptr
+    CHARACTER(LEN=:), ALLOCATABLE :: error_msg
 
     nmax = lmp_extract_setting(self, 'nmax')
     ntypes = lmp_extract_setting(self, 'ntypes')
@@ -745,13 +752,18 @@ CONTAINS
         ! Catomptr(1) now points to the first element of the array
         CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [nrows,ncols])
       CASE (-1)
-        WRITE(ERROR_UNIT,'(A)') 'ERROR: per-atom property "' // name // &
-          '" not found.'
-        STOP 2
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'per-atom property ' // name // 'not found in extract_setting')
+!        WRITE(ERROR_UNIT,'(A)') 'ERROR: per-atom property "' // name // &
+!          '" not found.'
+!        STOP 2
       CASE DEFAULT
-        WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: return value ', datatype, &
-          ' from lammps_extract_atom_datatype not known'
-        STOP 1
+        WRITE(error_msg,'(A,I0,A)') 'return value ', datatype, &
+          ' from lammps_extract_atom_datatype not known [Fortran/extract_atom]'
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+!        WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: return value ', datatype, &
+!          ' from lammps_extract_atom_datatype not known'
+!        STOP 1
     END SELECT
   END FUNCTION lmp_extract_atom
 
@@ -768,18 +780,26 @@ CONTAINS
     TYPE(c_ptr) :: Cid, Cptr, Ctemp
     INTEGER :: nrows, ncols, length
     INTEGER(c_int), POINTER :: temp
+    TYPE(c_ptr), DIMENSION(:), POINTER :: Ccomputeptr
 
     Cid = f2c_string(id)
     Cptr = lammps_extract_compute(self%handle, Cid, style, type)
 
+    IF ( .NOT. C_ASSOCIATED(Cptr) ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Pointer from LAMMPS is NULL [Fortran/extract_compute]')
+    END IF
+
     ! Remember that rows and columns in C are transposed in Fortran!
     SELECT CASE (type)
       CASE (LMP_TYPE_SCALAR)
+        compute_data%datatype = DATA_DOUBLE
         length = 1
         nrows = 1
         ncols = 1
         CALL C_F_POINTER(Cptr, compute_data%r64)
       CASE (LMP_TYPE_VECTOR)
+        compute_data%datatype = DATA_DOUBLE_1D
         IF (style == LMP_STYLE_ATOM) THEN
           length = self%extract_setting('nmax')
         ELSE
@@ -789,11 +809,12 @@ CONTAINS
         END IF
         CALL C_F_POINTER(Cptr, compute_data%r64_vec, [length])
       CASE (LMP_TYPE_ARRAY)
+        compute_data%datatype = DATA_DOUBLE_2D
         IF (style == LMP_STYLE_ATOM) THEN
-          nrows = self%extract_setting('nmax')
-          Ctemp = lammps_extract_compute(self%handle,Cid,style,LMP_SIZE_ROWS)
+          ncols = self%extract_setting('nmax')
+          Ctemp = lammps_extract_compute(self%handle,Cid,style,LMP_SIZE_COLS)
           CALL C_F_POINTER(Ctemp, temp)
-          ncols = temp
+          nrows = temp
         ELSE
           Ctemp = lammps_extract_compute(self%handle,Cid,style,LMP_SIZE_ROWS)
           CALL C_F_POINTER(Ctemp, temp)
@@ -802,11 +823,16 @@ CONTAINS
           CALL C_F_POINTER(Ctemp, temp)
           nrows = temp
         END IF
-        CALL C_F_POINTER(Cptr, compute_data%r64_mat, [nrows, ncols])
+        ! First, we dereference the void** pointer to point to a void* pointer
+        CALL C_F_POINTER(Cptr, Ccomputeptr, [ncols])
+        ! Ccomputeptr(1) now points to the first element of the array
+        CALL C_F_POINTER(Ccomputeptr(1), compute_data%r64_mat, [nrows, ncols])
       CASE DEFAULT
-        WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: unknown type value ', type, &
-          'passed to extract_compute'
-        STOP 1
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'unknown type value passed to extract_compute')
+        !WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: unknown type value ', type, &
+        !  'passed to extract_compute'
+        !STOP 1
     END SELECT
     CALL lammps_free(Cid)
   END FUNCTION lmp_extract_compute
@@ -944,6 +970,8 @@ CONTAINS
       CASE DEFAULT
         str1 = 'that type'
     END SELECT
+    !CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'cannot associate ' &
+    !  // str1 // ' with ' // type2 // ' [Fortran API]')
     WRITE (ERROR_UNIT,'(A)') 'ERROR (Fortran API): cannot associate ' &
       // str1 // ' with ' // type2
     STOP ERROR_CODE

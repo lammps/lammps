@@ -109,8 +109,8 @@ norm is replaced by the spin-torque norm.
 
 Keywords *alpha_damp* and *discrete_factor* only make sense when
 a :doc:`min_spin <min_spin>` command is declared.
-Keyword *alpha_damp* defines an analog of a magnetic damping. 
-It defines a relaxation rate toward an equilibrium for a given 
+Keyword *alpha_damp* defines an analog of a magnetic damping.
+It defines a relaxation rate toward an equilibrium for a given
 magnetic system.
 Keyword *discrete_factor* defines a discretization factor for the
 adaptive timestep used in the *spin* minimization.

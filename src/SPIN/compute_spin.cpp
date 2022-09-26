@@ -43,7 +43,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), pair(nullptr), spin_pairs(nullptr), 
+  Compute(lmp, narg, arg), pair(nullptr), spin_pairs(nullptr),
   lockprecessionspin(nullptr)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");

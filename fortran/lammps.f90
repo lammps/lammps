@@ -414,7 +414,11 @@ MODULE LIBLAMMPS
 
     !SUBROUTINE lammps_force_timeout
 
-    !LOGICAL FUNCTION lammps_has_error
+    INTEGER (C_int) FUNCTION lammps_has_error (handle) BIND(C)
+      IMPORT :: C_ptr, C_int
+      IMPLICIT NONE
+      TYPE(C_ptr), VALUE :: handle
+    END FUNCTION lammps_has_error
 
     !INTEGER (c_int) FUNCTION lammps_get_last_error_message
 
@@ -843,6 +847,15 @@ CONTAINS
 
     lmp_version = lammps_version(self%handle)
   END FUNCTION lmp_version
+
+  ! equivalent function to lammps_has_error
+  LOGICAL FUNCTION lmp_has_error(self)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(C_int) :: has_error
+
+    has_error = lammps_has_error(self%handle)
+    lmp_has_error = (has_error /= 0_C_int)
+  END FUNCTION lmp_has_error
 
   ! equivalent function to lammps_is_running
   LOGICAL FUNCTION lmp_is_running(self)

@@ -114,7 +114,7 @@ Description
 """""""""""
 
 These pair styles are designed to be used with the adiabatic
-core/shell model of :ref:`(Mitchell and Fincham) <MitchellFincham2>`.  See
+core/shell model of :ref:`(Mitchell and Fincham) <MitchellFincham3>`.  See
 the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of
 the model as implemented in LAMMPS.
 
@@ -196,7 +196,7 @@ none
 
 ----------
 
-.. _MitchellFincham2:
+.. _MitchellFincham3:
 
 **(Mitchell and Fincham)** Mitchell, Fincham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

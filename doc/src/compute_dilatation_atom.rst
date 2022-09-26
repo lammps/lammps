@@ -31,15 +31,13 @@ for an overview of LAMMPS commands for Peridynamics modeling.
 For small deformation, dilatation of is the measure of the volumetric
 strain.
 
-.. TODO the link below is broken
-
 The dilatation :math:`\theta` for each peridynamic particle :math:`i` is
 calculated as a sum over its neighbors with unbroken bonds, where the
-contribution of the :math:`ij` pair is a function of the change in bond length
-(versus the initial length in the reference state), the volume
-fraction of the particles and an influence function.  See the
-`PDLAMMPS user guide <http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf>`_ for
-a formal definition of dilatation.
+contribution of the :math:`ij` pair is a function of the change in bond
+length (versus the initial length in the reference state), the volume
+fraction of the particles and an influence function.  See the `PDLAMMPS
+user guide <https://download.lammps.org/pdfs/PDLAMMPS_user_guide.pdf>`_
+for a formal definition of dilatation.
 
 This command can only be used with a subset of the Peridynamic
 :doc:`pair styles <pair_peri>`: peri/lps, peri/ves and peri/eps.

@@ -16,6 +16,7 @@ int f_lammps_version();
 void f_lammps_memory_usage(double*);
 int f_lammps_get_mpi_comm();
 int f_lammps_extract_setting(const char*);
+int f_lammps_has_error();
 }
 
 class LAMMPS_properties : public ::testing::Test {
@@ -106,4 +107,9 @@ TEST_F(LAMMPS_properties, extract_setting)
     EXPECT_EQ(f_lammps_extract_setting("rmass_flag"), 0);
     EXPECT_EQ(f_lammps_extract_setting("UNKNOWN"), -1);
 
+};
+
+TEST_F(LAMMPS_properties, has_error)
+{
+   EXPECT_EQ(f_lammps_has_error(), 0);
 };

@@ -50,3 +50,17 @@ FUNCTION f_lammps_extract_setting (Cstr) BIND(C)
    f_lammps_extract_setting = lmp%extract_setting(Fstr)
    deallocate (Fstr)
 END FUNCTION f_lammps_extract_setting
+
+FUNCTION f_lammps_has_error () BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
+   USE keepcmds, ONLY : lmp
+   USE LIBLAMMPS
+   IMPLICIT NONE
+   INTEGER(C_int) :: f_lammps_has_error
+
+   IF ( lmp%has_error() ) THEN
+      f_lammps_has_error = 1_C_int
+   ELSE
+      f_lammps_has_error = 0_C_int
+   END IF
+END FUNCTION f_lammps_has_error

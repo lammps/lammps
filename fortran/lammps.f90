@@ -100,6 +100,7 @@ MODULE LIBLAMMPS
 !
       PROCEDURE :: version            => lmp_version
       PROCEDURE :: is_running         => lmp_is_running
+      PROCEDURE :: has_error          => lmp_has_error
   END TYPE lammps
 
   INTERFACE lammps

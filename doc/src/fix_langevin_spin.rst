@@ -40,7 +40,7 @@ the following stochastic differential equation:
   \times\left( \vec{\omega}_{i} \times\vec{s}_{i} \right) \right)
 
 with :math:`\lambda` the transverse damping, and :math:`\eta` a random vector.
-This equation is referred to as the stochastic Landau-Lifshitz-Gilbert (sLLG)
+This equation is referred to as the stochastic Landau-Lifshitz (sLL)
 equation.
 
 The components of :math:`\eta` are drawn from a Gaussian probability
@@ -49,7 +49,7 @@ the external thermostat T (in K in metal units).
 
 More details about this implementation are reported in :ref:`(Tranchida) <Tranchida2>`.
 
-Note: due to the form of the sLLG equation, this fix has to be defined just
+Note: due to the form of the sLL equation, this fix has to be defined just
 before the nve/spin fix (and after all other magnetic fixes).
 As an example:
 

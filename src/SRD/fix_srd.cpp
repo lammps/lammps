@@ -60,17 +60,18 @@ enum { SHIFT_NO, SHIFT_YES, SHIFT_POSSIBLE };
 #define TOLERANCE 0.00001
 #define MAXITER 20
 
-static const char cite_fix_srd[] = "fix srd command:\n\n"
-                                   "@Article{Petersen10,\n"
-                                   " author = {M. K. Petersen, J. B. Lechman, S. J. Plimpton, G. "
-                                   "S. Grest, P. J. in 't Veld, P. R. Schunk},\n"
-                                   " title =   {Mesoscale Hydrodynamics via Stochastic Rotation "
-                                   "Dynamics: Comparison with Lennard-Jones Fluid},"
-                                   " journal = {J.~Chem.~Phys.},\n"
-                                   " year =    2010,\n"
-                                   " volume =  132,\n"
-                                   " pages =   {174106}\n"
-                                   "}\n\n";
+static const char cite_fix_srd[] =
+    "fix srd command: doi:10.1063/1.3419070\n\n"
+    "@Article{Petersen10,\n"
+    " author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and\n"
+    " G. S. Grest and in 't Veld, P. J. and P. R. Schunk},\n"
+    " title =   {Mesoscale Hydrodynamics via Stochastic Rotation\n"
+    "    Dynamics: Comparison with {L}ennard-{J}ones Fluid},\n"
+    " journal = {J.~Chem.\\ Phys.},\n"
+    " year =    2010,\n"
+    " volume =  132,\n"
+    " pages =   174106\n"
+    "}\n\n";
 
 //#define SRD_DEBUG 1
 //#define SRD_DEBUG_ATOMID 58
@@ -142,7 +143,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      overlap = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      overlap = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "inside") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -157,7 +158,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "exact") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      exactflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      exactflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -196,7 +197,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg], "tstat") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      tstat = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      tstat = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "rescale") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -289,9 +290,9 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
 
   // atom style pointers to particles that store bonus info
 
-  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
 
   // fix parameters
 
@@ -369,7 +370,7 @@ void FixSRD::init()
     if (strcmp(modify->fix[m]->style, "wall/srd") == 0) {
       if (wallexist) error->all(FLERR, "Cannot use fix wall/srd more than once");
       wallexist = 1;
-      wallfix = dynamic_cast<FixWallSRD *>( modify->fix[m]);
+      wallfix = dynamic_cast<FixWallSRD *>(modify->fix[m]);
       nwall = wallfix->nwall;
       wallvarflag = wallfix->varflag;
       wallwhich = wallfix->wallwhich;
@@ -394,7 +395,7 @@ void FixSRD::init()
     if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
     if (strcmp(fixes[i]->style, "deform") == 0) {
       deformflag = 1;
-      auto deform = dynamic_cast<FixDeform *>( modify->fix[i]);
+      auto deform = dynamic_cast<FixDeform *>(modify->fix[i]);
       if ((deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR, "Using fix srd with inconsistent fix deform remap option");
     }

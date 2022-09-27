@@ -37,7 +37,3 @@ class NPairFullNsqOmp : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

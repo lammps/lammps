@@ -65,11 +65,14 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
 
   mu_flag = 0;
 
+  // no warnings about non-neutral systems from qsum_qsq()
+  warn_nonneutral = 2;
+
   efield = nullptr;
   phi = nullptr;
   potflag = 0;
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 
@@ -836,26 +839,4 @@ double PPPMDispDielectric::memory_usage()
   bytes += nmax*3 * sizeof(double);
   bytes += nmax * sizeof(double);
   return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
-   called initially, when particle count changes, when charges are changed
-------------------------------------------------------------------------- */
-
-void PPPMDispDielectric::qsum_qsq()
-{
-  const double * const q = atom->q;
-  const int nlocal = atom->nlocal;
-  double qsum_local(0.0), qsqsum_local(0.0);
-
-  for (int i = 0; i < nlocal; i++) {
-    qsum_local += q[i];
-    qsqsum_local += q[i]*q[i];
-  }
-
-  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
-
-  q2 = qsqsum * force->qqrd2e;
 }

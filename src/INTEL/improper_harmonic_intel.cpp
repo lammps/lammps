@@ -54,12 +54,6 @@ ImproperHarmonicIntel::ImproperHarmonicIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHarmonicIntel::~ImproperHarmonicIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ImproperHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -176,11 +170,11 @@ void ImproperHarmonicIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = improperlist[n].a;
-      const int i2 = improperlist[n].b;
-      const int i3 = improperlist[n].c;
-      const int i4 = improperlist[n].d;
-      const int type = improperlist[n].t;
+      const int i1 = IP_PRE_dword_index(improperlist[n].a);
+      const int i2 = IP_PRE_dword_index(improperlist[n].b);
+      const int i3 = IP_PRE_dword_index(improperlist[n].c);
+      const int i4 = IP_PRE_dword_index(improperlist[n].d);
+      const int type = IP_PRE_dword_index(improperlist[n].t);
 
       // geometry of 4-body
 

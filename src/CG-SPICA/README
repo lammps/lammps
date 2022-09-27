@@ -1,0 +1,55 @@
+This package implements 4 commands which can be used in a LAMMPS input
+script:
+
+pair_style lj/spica
+pair_style lj/spica/coul/long
+pair_style lj/spica/coul/msm
+angle_style spica
+
+These styles allow coarse grained MD simulations with the
+parametrization of the SPICA (formerly called SDK) and the pSPICA
+force fields, to simulate biological or soft material systems.
+For details about the force fields using this implementation,
+see the following papers:
+  SDK    - Shinoda, DeVane, Klein, Mol Sim, 33, 27-36 (2007).
+  SPICA  - Seo, Shinoda, J Chem Theory Comput, 15, 762-774 (2019).
+  pSPICA - Miyazaki, Okazaki, Shinoda, J Chem Theory Comput, 16, 782-793 (2020).
+Summary information on these force fields can be found at this web site:
+https://www.spica-ff.org
+
+See the doc pages for these commands for details.
+
+There are example scripts for using this package in
+examples/PACKAGES/cgspica
+
+This is the third generation implementation (version 2.0) changing style
+names and adding a new function type. The following pair and angle styles
+are available for backward compatibility:
+  pair_style lj/sdk
+  pair_style lj/sdk/coul/long
+  pair_style lj/sdk/coul/msm
+  angle_style sdk
+
+The second generation implementation (version 1.0) is to reduce the clutter
+of the previous version. For many systems with long range
+electrostatics, it will be faster to use pair_style hybrid/overlay
+with lj/spica and coul/long instead of the combined lj/spica/coul/long
+style, since the number of charged atom types is usually small.
+To exploit this property, the use of the kspace_style pppm/cg is
+recommended over regular pppm.
+
+Original Author: Axel Kohlmeyer (akohlmey at gmail.com) at Temple U .
+Maintainers    : Yusuke Miyazaki (ymiyazaki93 at gmail.com) and
+                 Wataru Shinoda (shinoda at okayama-u.ac.jp) at Okayama U.
+Contact them if you have questions.
+
+---------------------------------
+
+Thanks for contributions, support and testing goes to
+
+Russell DeVane (Procter & Gamble)
+Michael L. Klein (Temple University, Philadelphia)
+Balasubramanian Sundaram (JNCASR, Bangalore)
+
+version: 1.0 / 2017-04-26
+version: 2.0 / 2022-07-08

@@ -137,7 +137,7 @@ class NPairKokkos : public NPair {
 
   // data from NStencil class
 
-  int nstencil;
+  int nstencil,last_stencil_old;
   DAT::tdual_int_1d k_stencil;  // # of J neighs for each I
   DAT::tdual_int_1d_3 k_stencilxyz;
 };
@@ -513,6 +513,3 @@ struct NPairKokkosBuildFunctorSize<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

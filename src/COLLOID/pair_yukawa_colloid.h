@@ -38,15 +38,3 @@ class PairYukawaColloid : public PairYukawa {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair yukawa/colloid requires atom style sphere
-
-Self-explanatory.
-
-E: Pair yukawa/colloid requires atoms with same type have same radius
-
-Self-explanatory.
-
-*/

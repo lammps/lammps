@@ -41,11 +41,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpCustomMPIIO::DumpCustomMPIIO(LAMMPS *lmp, int narg, char **arg)
-  : DumpCustom(lmp, narg, arg)
+DumpCustomMPIIO::DumpCustomMPIIO(LAMMPS *lmp, int narg, char **arg) : DumpCustom(lmp, narg, arg)
 {
   if (me == 0)
-    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+    error->warning(FLERR, "MPI-IO output is unmaintained and unreliable. Use with caution.");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +58,7 @@ DumpCustomMPIIO::~DumpCustomMPIIO()
 
 void DumpCustomMPIIO::openfile()
 {
-  if (singlefile_opened) { // single file already opened, so just return after resetting filesize
+  if (singlefile_opened) {    // single file already opened, so just return after resetting filesize
     mpifo = currentFileSize;
     MPI_File_set_size(mpifh, mpifo + headerSize + sumFileSize);
     currentFileSize = mpifo + headerSize + sumFileSize;
@@ -75,14 +74,12 @@ void DumpCustomMPIIO::openfile()
     filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent) + 1];
-        strcpy(nameslist[numfiles], filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent) + 1];
-        strcpy(nameslist[fileidx], filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -210,10 +207,12 @@ void DumpCustomMPIIO::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
-    if (keyword_user[icol].size()) combined += keyword_user[icol];
-    else combined += item;
+    if (keyword_user[icol].size())
+      combined += keyword_user[icol];
+    else
+      combined += item;
     ++icol;
   }
   columns = utils::strdup(combined);
@@ -221,8 +220,10 @@ void DumpCustomMPIIO::init_style()
   // format = copy of default or user-specified line format
 
   delete[] format;
-  if (format_line_user) format = utils::strdup(format_line_user);
-  else format = utils::strdup(format_default);
+  if (format_line_user)
+    format = utils::strdup(format_line_user);
+  else
+    format = utils::strdup(format_default);
 
   // tokenize the format string and add space at end of each format element
   // if user-specified int/float format exists, use it instead
@@ -231,10 +232,11 @@ void DumpCustomMPIIO::init_style()
 
   auto words = utils::split_words(format);
   if ((int) words.size() < nfield)
-    error->all(FLERR,"Dump_modify format line is too short");
+    error->all(FLERR, "Dump_modify format line is too short: {}", format);
 
-  int i=0;
+  int i = 0;
   for (const auto &word : words) {
+    if (i >= nfield) break;
     delete[] vformat[i];
 
     if (format_column_user[i])
@@ -245,10 +247,11 @@ void DumpCustomMPIIO::init_style()
       vformat[i] = utils::strdup(std::string(format_float_user) + " ");
     else if (vtype[i] == Dump::BIGINT && format_bigint_user)
       vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
-    else vformat[i] = utils::strdup(word + " ");
+    else
+      vformat[i] = utils::strdup(word + " ");
 
     // remove trailing blank on last column's format
-    if (i == nfield-1) vformat[i][strlen(vformat[i])-1] = '\0';
+    if (i == nfield - 1) vformat[i][strlen(vformat[i]) - 1] = '\0';
 
     ++i;
   }
@@ -278,29 +281,28 @@ void DumpCustomMPIIO::init_style()
 
   for (i = 0; i < ncompute; i++) {
     compute[i] = modify->get_compute_by_id(id_compute[i]);
-    if (!compute[i]) error->all(FLERR,"Could not find dump custom compute ID {}",id_compute[i]);
+    if (!compute[i])
+      error->all(FLERR, "Could not find dump custom/mpiio compute ID {}", id_compute[i]);
   }
 
   for (i = 0; i < nfix; i++) {
     fix[i] = modify->get_fix_by_id(id_fix[i]);
-    if (!fix[i]) error->all(FLERR,"Could not find dump custom fix ID {}", id_fix[i]);
+    if (!fix[i]) error->all(FLERR, "Could not find dump custom/mpiio fix ID {}", id_fix[i]);
     if (nevery % fix[i]->peratom_freq)
-      error->all(FLERR,"Dump custom and fix not computed at compatible times");
+      error->all(FLERR, "dump custom/mpiio and fix not computed at compatible times");
   }
 
   for (i = 0; i < nvariable; i++) {
     int ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0)
-      error->all(FLERR,"Could not find dump custom variable name {}", id_variable[i]);
+      error->all(FLERR, "Could not find dump custom/mpiio variable name {}", id_variable[i]);
     variable[i] = ivariable;
   }
 
   // set index and check validity of region
 
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all(FLERR, "Region ID for dump custom does not exist");
-  }
+  if (idregion && !domain->get_region_by_id(idregion))
+    error->all(FLERR, "Region {} for dump custom/mpiio does not exist", idregion);
 }
 
 /* ---------------------------------------------------------------------- */

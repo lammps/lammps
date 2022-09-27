@@ -121,7 +121,8 @@ SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
 #endif
           reinterpret_cast<SharedAllocationHeader *>(arg_space.allocate(
               sizeof(SharedAllocationHeader) + arg_alloc_size)),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
       m_space(arg_space) {
   SharedAllocationHeader header;
 
@@ -131,6 +132,10 @@ SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
   // DeepCopy
   Kokkos::Impl::DeepCopy<Experimental::OpenMPTargetSpace, HostSpace>(
       RecordBase::m_alloc_ptr, &header, sizeof(SharedAllocationHeader));
+  Kokkos::fence(
+      "SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, "
+      "void>::SharedAllocationRecord(): fence after copying header from "
+      "HostSpace");
 }
 
 //----------------------------------------------------------------------------

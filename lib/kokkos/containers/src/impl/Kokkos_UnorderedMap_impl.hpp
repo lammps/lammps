@@ -45,7 +45,7 @@
 #ifndef KOKKOS_UNORDERED_MAP_IMPL_HPP
 #define KOKKOS_UNORDERED_MAP_IMPL_HPP
 
-#include <Kokkos_Core_fwd.hpp>
+#include <Kokkos_Core.hpp>
 #include <cstdint>
 
 #include <cstdio>
@@ -144,7 +144,7 @@ struct UnorderedMapHistogram {
   using execution_space = typename map_type::execution_space;
   using size_type       = typename map_type::size_type;
 
-  using histogram_view      = View<int[100], execution_space>;
+  using histogram_view      = View<int[100], typename map_type::device_type>;
   using host_histogram_view = typename histogram_view::HostMirror;
 
   map_type m_map;
@@ -170,8 +170,8 @@ struct UnorderedMapHistogram {
   }
 
   void print_length(std::ostream& out) {
-    host_histogram_view host_copy = create_mirror_view(m_length);
-    Kokkos::deep_copy(host_copy, m_length);
+    host_histogram_view host_copy =
+        create_mirror_view_and_copy(Kokkos::HostSpace{}, m_length);
 
     for (int i = 0, size = host_copy.extent(0); i < size; ++i) {
       out << host_copy[i] << " , ";
@@ -180,8 +180,8 @@ struct UnorderedMapHistogram {
   }
 
   void print_distance(std::ostream& out) {
-    host_histogram_view host_copy = create_mirror_view(m_distance);
-    Kokkos::deep_copy(host_copy, m_distance);
+    host_histogram_view host_copy =
+        create_mirror_view_and_copy(Kokkos::HostSpace{}, m_distance);
 
     for (int i = 0, size = host_copy.extent(0); i < size; ++i) {
       out << host_copy[i] << " , ";
@@ -190,8 +190,8 @@ struct UnorderedMapHistogram {
   }
 
   void print_block_distance(std::ostream& out) {
-    host_histogram_view host_copy = create_mirror_view(m_block_distance);
-    Kokkos::deep_copy(host_copy, m_block_distance);
+    host_histogram_view host_copy =
+        create_mirror_view_and_copy(Kokkos::HostSpace{}, m_block_distance);
 
     for (int i = 0, size = host_copy.extent(0); i < size; ++i) {
       out << host_copy[i] << " , ";

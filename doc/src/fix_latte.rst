@@ -8,18 +8,27 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID latte peID
+   fix ID group-ID latte keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * latte = style name of this fix command
-* peID = NULL or ID of compute used to calculate per-atom energy
+* zero or more keyword/value pairs may be appended
+
+  .. parsed-literal::
+
+     keyword = *coulomb* or *exclude*
+       *coulomb* value = peID
+         peID = ID of compute used to calculate per-atom energy
+       *exclude* value = fixID
+         fixID = ID of fix which potentially excludes atoms before calling LATTE
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix dftb all latte NULL
+   fix dftb all latte
+   fix dftb all exclude GCMC
 
 Description
 """""""""""
@@ -48,10 +57,41 @@ found in examples/latte.
 
 A step-by-step tutorial can be followed at: `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
 
-The *peID* argument is not yet supported by fix latte, so it must be
-specified as NULL.  Eventually it will be used to enable LAMMPS to
-calculate a Coulomb potential as an alternative to LATTE performing
-the calculation.
+Currently, LAMMPS must be run in serial or as a single MPI task, to
+use this fix.  This is because the version of the LATTE library LAMMPS
+uses does not support MPI.  On the LAMMPS size, this is typically not
+a bottleneck, since LATTE will be doing 99% or more of the work to
+compute quantum-accurate forces.  On the LATTE side, the LATTE library
+does support threaded parallelism via OpenMP.  You must build the
+LATTE library with OpenMP support, then set the OMP_NUM_THREADS
+environment variable before performing a LAMMPS + LATTE simulation to
+tell LATTE how many threads to invoke.
+
+.. note::
+
+   NEB calculations can be done using this fix using multiple
+   replicas and running LAMMPS in parallel.  However, each replica must
+   be run on a single MPI task.  For details, see the :doc:`neb <neb>`
+   command page and the :doc:`-partition command-line switch <Run_options>`
+
+----------
+
+The *coulomb* argument is not yet supported by fix latte (as of Sept
+2022).  Eventually it will be used to enable LAMMPS to calculate a
+Coulomb potential as an alternative to LATTE performing the
+calculation.
+
+The *exclude* argument allows this fix to work in tandem with another
+fix which may decide to delete one or more atoms of molecules.  The
+specified fixID is the ID of the other fix.
+
+The one current example of such a fix is the :doc:`fix gcmc
+<fix_gcmc>` command which performs Monte Carlo insertions and
+deletions.  If a trial deletion is performed, then LAMMPS needs to
+only pass LATTE the atoms which remain.  Fix gcmc does not actually
+remove any atoms until after the new energy is computed (in this case
+by LATTE), and a Monte Carlo accept/reject decision is made for the
+trial deletion.
 
 ----------
 
@@ -117,13 +157,6 @@ potential energy of the system as part of :doc:`thermodynamic output
 energy yes <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-this fix to add the contribution compute by LATTE to the global
-pressure of the system via the :doc:`compute pressure
-<compute_pressure>` command.  This can be accessed by
-:doc:`thermodynamic output <thermo_style>`.  The default setting for
-this fix is :doc:`fix_modify virial yes <fix_modify>`.
-
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by
 this fix to add the contribution computed by LATTE to the global
 pressure of the system as part of :doc:`thermodynamic output
 <thermo_style>`.  The default setting for this fix is :doc:`fix_modify
@@ -137,7 +170,7 @@ energy discussed above.  The scalar value calculated by this fix is
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
-The DFTB forces computed by LATTE via this fix are imposed during an
+The DFTB forces computed by LATTE via this fix are used during an
 energy minimization, invoked by the :doc:`minimize <minimize>`
 command.
 
@@ -160,18 +193,8 @@ use this fix.
 
 LATTE does not currently compute per-atom energy or per-atom virial
 contributions.  So they will not show up as part of the calculations
-performed by the :doc:`compute pe/atom <compute_pe_atom>` or :doc:`compute stress/atom <compute_stress_atom>` commands.
-
-Currently, LAMMPS must be run in serial or as a single MPI task, to
-use this fix.  This is typically not a bottleneck, since LATTE will be
-doing 99% or more of the work to compute quantum-accurate forces.
-
-.. note::
-
-   NEB calculations can be done using this fix using multiple
-   replicas and running LAMMPS in parallel.  However, each replica must
-   be run on a single MPI task.  For details, see the :doc:`neb <neb>`
-   command page and the :doc:`-partition command-line switch <Run_options>`
+performed by the :doc:`compute pe/atom <compute_pe_atom>` or
+:doc:`compute stress/atom <compute_stress_atom>` commands.
 
 Related commands
 """"""""""""""""

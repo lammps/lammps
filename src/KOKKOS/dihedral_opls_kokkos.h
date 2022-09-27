@@ -98,11 +98,3 @@ class DihedralOPLSKokkos : public DihedralOPLS {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-W: Dihedral problem
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-*/

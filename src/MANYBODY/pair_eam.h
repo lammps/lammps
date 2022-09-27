@@ -53,6 +53,7 @@ class PairEAM : public Pair {
   double init_one(int, int) override;
   double single(int, int, int, int, double, double, double, double &) override;
   void *extract(const char *, int &) override;
+  void *extract_peratom(const char *, int &) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -113,26 +114,3 @@ class PairEAM : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Cannot open EAM potential file %s
-
-The specified EAM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Invalid EAM potential file
-
-UNDOCUMENTED
-
-*/

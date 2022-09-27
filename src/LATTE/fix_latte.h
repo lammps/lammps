@@ -44,74 +44,29 @@ class FixLatte : public Fix {
   double memory_usage() override;
 
  protected:
-  char *id_pe;
   int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
+  int exclude, excludebit;
   int eflag_caller;
+  char *id_pe,*id_exclude;
+  int *exclusion_group_ptr;
+  int setupflag, newsystem;
+  bigint natoms_last;
 
-  int nmax, newsystem;
+  int flags_latte[6];
+
+  int nmax;
   double *qpotential;
   double **flatte;
   double latte_energy;
 
   class NeighList *list;
   class Compute *c_pe;
+
+  void latte_wrapper_all();
+  void latte_wrapper_exclude();
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use units metal with fix latte command
-
-UNDOCUMENTED
-
-E: Fix latte currently runs only in serial
-
-UNDOCUMENTED
-
-E: LAMMPS is linked against incompatible LATTE library
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix latte does not yet support a LAMMPS calculation of a Coulomb potential
-
-UNDOCUMENTED
-
-E: Could not find fix latte compute ID
-
-UNDOCUMENTED
-
-E: Fix latte compute ID does not compute pe/atom
-
-UNDOCUMENTED
-
-E: Fix latte requires 3d problem
-
-UNDOCUMENTED
-
-E: Fix latte cannot compute Coulomb potential
-
-UNDOCUMENTED
-
-E: Fix latte requires 3d simulation
-
-UNDOCUMENTED
-
-W: Fix latte should come after all other integration fixes
-
-UNDOCUMENTED
-
-E: Internal LATTE problem
-
-UNDOCUMENTED
-
-*/

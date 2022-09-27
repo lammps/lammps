@@ -31,31 +31,31 @@ class Error : protected Pointers {
   void universe_warn(const std::string &, int, const std::string &);
 
   [[noreturn]] void all(const std::string &, int, const std::string &);
-  template <typename S, typename... Args>
-  void all(const std::string &file, int line, const S &format, Args &&...args)
+  template <typename... Args>
+  void all(const std::string &file, int line, const std::string &format, Args &&...args)
   {
-    _all(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+    _all(file, line, format, fmt::make_format_args(args...));
   }
 
   [[noreturn]] void one(const std::string &, int, const std::string &);
-  template <typename S, typename... Args>
-  void one(const std::string &file, int line, const S &format, Args &&...args)
+  template <typename... Args>
+  void one(const std::string &file, int line, const std::string &format, Args &&...args)
   {
-    _one(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+    _one(file, line, format, fmt::make_format_args(args...));
   }
 
   void warning(const std::string &, int, const std::string &);
-  template <typename S, typename... Args>
-  void warning(const std::string &file, int line, const S &format, Args &&...args)
+  template <typename... Args>
+  void warning(const std::string &file, int line, const std::string &format, Args &&...args)
   {
-    _warning(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+    _warning(file, line, format, fmt::make_format_args(args...));
   }
 
   void message(const std::string &, int, const std::string &);
-  template <typename S, typename... Args>
-  void message(const std::string &file, int line, const S &format, Args &&...args)
+  template <typename... Args>
+  void message(const std::string &file, int line, const std::string &format, Args &&...args)
   {
-    _message(file, line, format, fmt::make_args_checked<Args...>(format, args...));
+    _message(file, line, format, fmt::make_format_args(args...));
   }
   [[noreturn]] void done(int = 0);    // 1 would be fully backwards compatible
 
@@ -87,7 +87,3 @@ class Error : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

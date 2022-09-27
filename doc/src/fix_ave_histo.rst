@@ -10,7 +10,7 @@ fix ave/histo/weight command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style Nevery Nrepeat Nfreq lo hi Nbin value1 value2 ... keyword args ...
 
@@ -22,7 +22,7 @@ Syntax
 * lo,hi = lo/hi bounds within which to histogram
 * Nbin = # of histogram bins
 * one or more input values can be listed
-* value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name
+* value = *x*, *y*, *z*, *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
   .. parsed-literal::
 
@@ -32,7 +32,7 @@ Syntax
        f_ID = scalar or vector calculated by a fix with ID
        f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID, I can include wildcard (see below)
        v_name = value(s) calculated by an equal-style or vector-style or atom-style variable with name
-       v_name[I] = value calculated by a vector-style variable with name
+       v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *mode* or *file* or *ave* or *start* or *beyond* or *overwrite* or *title1* or *title2* or *title3*
@@ -120,20 +120,34 @@ If *mode* = vector, then the input values must be vectors, or arrays
 with a bracketed term appended, indicating the Ith column of the array
 is used.
 
-Note that for values from a compute or fix, the bracketed index I can
-be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*" or
-"m\*n".  If N = the size of the vector (for *mode* = scalar) or the
-number of columns in the array (for *mode* = vector), then an asterisk
-with no numeric values means all indices from 1 to N.  A leading
-asterisk means all indices from 1 to n (inclusive).  A trailing
-asterisk means all indices from n to N (inclusive).  A middle asterisk
-means all indices from m to n (inclusive).
+If the fix ave/histo/weight command is used, exactly two values must
+be specified.  If the values are vectors, they must be the same
+length.  The first value (a scalar or vector) is what is histogrammed
+into bins, in the same manner the fix ave/histo command operates.  The
+second value (a scalar or vector) is used as a "weight".  This means
+that instead of each value tallying a "1" to its bin, the
+corresponding weight is tallied.  For example, the :math:`N^\text{th}` entry
+(weight) in the second vector is tallied to the bin corresponding to the
+:math:`N^\text{th}` entry in the first vector.
+
+----------
+
+For input values from a compute or fix or variable, the bracketed
+index I can be specified using a wildcard asterisk with the index to
+effectively specify multiple values.  This takes the form "\*" or
+"\*n" or "m\*" or "m\*n".  If :math:`N` is the size of the vector
+(for *mode* = scalar) or the number of columns in the array
+(for *mode* = vector), then an asterisk with no numeric values means all
+indices from 1 to :math:`N`\ .
+A leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from m to :math:`N` (inclusive).  A middle
+asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual elements of the
-vector or columns of the array had been listed one by one.  E.g. these
-2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array with
-3 columns:
+vector or columns of the array had been listed one by one.  For example, the
+following two fix ave/histo commands are equivalent, since the :doc:`compute
+com/chunk <compute_com_chunk>` command creates a global array with three
+columns:
 
 .. code-block:: LAMMPS
 
@@ -141,41 +155,43 @@ vector or columns of the array had been listed one by one.  E.g. these
    fix 1 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[*] file tmp1.com mode vector
    fix 2 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
 
-If the fix ave/histo/weight command is used, exactly two values must
-be specified.  If the values are vectors, they must be the same
-length.  The first value (a scalar or vector) is what is histogrammed
-into bins, in the same manner the fix ave/histo command operates.  The
-second value (a scalar or vector) is used as a "weight".  This means
-that instead of each value tallying a "1" to its bin, the
-corresponding weight is tallied.  E.g. The Nth entry (weight) in the
-second vector is tallied to the bin corresponding to the Nth entry in
-the first vector.
+.. note::
+
+   For a vector-style variable, only the wildcard forms "\*n" or
+   "m\*n" are allowed.  You must specify the upper bound, because
+   vector-style variable lengths are not determined until the variable
+   is evaluated.  If n is specified larger than the vector length
+   turns out to be, zeroes are output for missing vector values.
 
 ----------
 
-The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
-timesteps the input values will be used in order to contribute to the
-histogram.  The final histogram is generated on timesteps that are
-multiple of *Nfreq*\ .  It is averaged over *Nrepeat* histograms,
-computed in the preceding portion of the simulation every *Nevery*
-timesteps.  *Nfreq* must be a multiple of *Nevery* and *Nevery* must
-be non-zero even if *Nrepeat* is 1.  Also, the timesteps
-contributing to the histogram value cannot overlap,
-i.e. Nrepeat\*Nevery can not exceed Nfreq.
+The :math:`N_\text{every}`, :math:`N_\text{repeat}`, and :math:`N_\text{freq}`
+arguments specify on what time steps the input values will be used in order to
+contribute to the histogram.  The final histogram is generated on time steps
+that are multiple of :math:`N_\text{freq}`\ .  It is averaged over
+:math:`N_\text{repeat}` histograms, computed in the preceding portion of the
+simulation every :math:`N_\text{every}` time steps.
+:math:`N_\text{freq}` must be a multiple of :math:`N_\text{every}` and
+:math:`N_\text{every}` must be non-zero even if :math:`N_\text{repeat}` is 1.
+Also, the time steps contributing to the histogram value cannot overlap
+(i.e., :math:`N_\text{repeat}\times N_\text{every}` cannot exceed
+:math:`N_\text{freq}`).
 
-For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then input values
-on timesteps 90,92,94,96,98,100 will be used to compute the final
-histogram on timestep 100.  Similarly for timesteps
-190,192,194,196,198,200 on timestep 200, etc.  If Nrepeat=1 and Nfreq
-= 100, then no time averaging of the histogram is done; a histogram is
-simply generated on timesteps 100,200,etc.
+For example, if :math:`N_\text{every}=2`, :math:`N_\text{repeat}=6`, and
+:math:`N_\text{freq}=100`, then input values on time steps 90, 92, 94, 96, 98,
+and 100 will be used to compute the final histogram on timestep 100.
+Similarly for timesteps 190, 192, 194, 196, 198, and 200 on timestep 200, etc.
+If :math:`N_\text{repeat}=1` and :math:`N_\text{freq} = 100`, then no time
+averaging of the histogram is done; a histogram is simply generated on
+timesteps 100, 200, etc.
 
 ----------
 
-The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.  Note that other atom attributes can be used as
-inputs to this fix by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
-an input value from that compute.
+The atom attribute values (*x*, *y*, *z*, *vx*, *vy*, *vz*, *fx*, *fy*, and
+*fz*) are self-explanatory.  Note that other atom attributes can be used as
+inputs to this fix by using the
+:doc:`compute property/atom <compute_property_atom>` command and then
+specifying an input value from that compute.
 
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
@@ -190,12 +206,14 @@ how I can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
 Note that there is a :doc:`compute reduce <compute_reduce>` command
-which can sum per-atom quantities into a global scalar or vector which
-can thus be accessed by fix ave/histo.  Or it can be a compute defined
-not in your input script, but by :doc:`thermodynamic output <thermo_style>` or other fixes such as :doc:`fix nvt <fix_nh>`
+that can sum per-atom quantities into a global scalar or vector, which
+can then be accessed by fix ave/histo.  It can also be a compute defined
+not in your input script, but by :doc:`thermodynamic output <thermo_style>`
+or other fixes such as :doc:`fix nvt <fix_nh>`
 or :doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
 these commands which give the IDs of these computes.  Users can also
-write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
+write code for their own compute styles and
+:doc:`add them to LAMMPS <Modify>`.
 
 If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
@@ -204,21 +222,22 @@ is used.  If a bracketed term is appended, the Ith element of the
 global vector calculated by the fix is used.  If *mode* = vector, then
 if no bracketed term is appended, the global or per-atom or local
 vector calculated by the fix is used.  If a bracketed term is
-appended, the Ith column of the global or per-atom or local array
-calculated by the fix is used.  See the discussion above for how I can
-be specified with a wildcard asterisk to effectively specify multiple
-values.
+appended, the :math:`I^\text{th}` column of the global or per-atom or local
+array calculated by the fix is used.  See the discussion above for how
+:math:`I` can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
 Note that some fixes only produce their values on certain timesteps,
-which must be compatible with *Nevery*, else an error will result.
-Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
+which must be compatible with :math:`N_\text{every}`, else an error will
+result.  Users can also write code for their own fix styles and
+:doc:`add them to LAMMPS <Modify>`.
 
 If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  If *mode* = scalar, then
 only equal-style or vector-style variables can be used, which both
 produce global values.  In this mode, a vector-style variable requires
-a bracketed term to specify the Ith element of the vector calculated
-by the variable.  If *mode* = vector, then only vector-style or
+a bracketed term to specify the :math:`I^\text{th}` element of the vector
+calculated by the variable.  If *mode* = vector, then only vector-style or
 atom-style variables can be used, which produce a global or per-atom
 vector respectively.  The vector-style variable must be used without a
 bracketed term.  See the :doc:`variable <variable>` command for details.
@@ -248,44 +267,44 @@ keyword should be used to specify which output will be used.  The
 remaining input arguments must still be consistent.
 
 The *beyond* keyword determines how input values that fall outside the
-*lo* to *hi* bounds are treated.  Values such that *lo* <= value <=
-*hi* are assigned to one bin.  Values on a bin boundary are assigned
-to the lower of the 2 bins.  If *beyond* is set to *ignore* then
-values < *lo* and values > *hi* are ignored, i.e. they are not binned.
-If *beyond* is set to *end* then values < *lo* are counted in the
-first bin and values > *hi* are counted in the last bin.  If *beyond*
-is set to *extend* then two extra bins are created, so that there are
-Nbins+2 total bins.  Values < *lo* are counted in the first bin and
-values > *hi* are counted in the last bin (Nbins+2).  Values between
-*lo* and *hi* (inclusive) are counted in bins 2 through Nbins+1.  The
-"coordinate" stored and printed for these two extra bins is *lo* and
-*hi*\ .
+*lo* to *hi* bounds are treated.  Values such that *lo* :math:`\le` value
+:math:`\le` *hi* are assigned to one bin.  Values on a bin boundary are
+assigned to the lower of the two bins.  If *beyond* is set to *ignore* then
+values :math:`<` *lo* and values :math:`>` *hi* are ignored (i.e., they are not
+binned). If *beyond* is set to *end*, then values :math:`<` *lo* are counted in
+the first bin and values :math:`>` *hi* are counted in the last bin.
+If *beyond* is set to *extend*, then two extra bins are created so that there
+are :math:`N_\text{bins}+2` total bins.  Values :math:`<` *lo* are counted in
+the first bin and values :math:`>` *hi* are counted in the last bin
+:math:`(N_\text{bins}+2)`\ .  Values between
+*lo* and *hi* (inclusive) are counted in bins 2 through
+:math:`N_\text{bins}+1`\ .  The "coordinate" stored and printed for these two
+extra bins is *lo* and *hi*\ .
 
-The *ave* keyword determines how the histogram produced every *Nfreq*
-steps are averaged with histograms produced on previous steps that
-were multiples of *Nfreq*, before they are accessed by another output
-command or written to a file.
+The *ave* keyword determines how the histogram produced every
+:math:`N_\text{freq}` steps are averaged with histograms produced on previous
+steps that were multiples of :math:`N_\text{freq}`, before they are accessed by
+another output command or written to a file.
 
 If the *ave* setting is *one*, then the histograms produced on
-timesteps that are multiples of *Nfreq* are independent of each other;
-they are output as-is without further averaging.
+timesteps that are multiples of :math:`N_\text{freq}` are independent of each
+other; they are output as-is without further averaging.
 
 If the *ave* setting is *running*, then the histograms produced on
-timesteps that are multiples of *Nfreq* are summed and averaged in a
-cumulative sense before being output.  Each bin value in the histogram
-is thus the average of the bin value produced on that timestep with
-all preceding values for the same bin.  This running average begins
-when the fix is defined; it can only be restarted by deleting the fix
-via the :doc:`unfix <unfix>` command, or by re-defining the fix by
-re-specifying it.
+timesteps that are multiples of :math:`N_\text{freq}` are summed and averaged
+in a cumulative sense before being output.  Each bin value in the histogram
+is thus the average of the bin value produced on that timestep with all
+preceding values for the same bin.  This running average begins when the fix is
+defined; it can only be restarted by deleting the fix via the
+:doc:`unfix <unfix>` command, or by re-defining the fix by re-specifying it.
 
 If the *ave* setting is *window*, then the histograms produced on
-timesteps that are multiples of *Nfreq* are summed within a moving
-"window" of time, so that the last M histograms are used to produce
-the output.  E.g. if M = 3 and Nfreq = 1000, then the output on step
-10000 will be the combined histogram of the individual histograms on
-steps 8000,9000,10000.  Outputs on early steps will be sums over less
-than M histograms if they are not available.
+timesteps that are multiples of :math:`N_\text{freq}` are summed within a
+moving "window" of time, so that the last :math:`M` histograms are used to
+produce the output (e.g., if :math:`M = 3` and :math:`N_\text{freq} = 1000`,
+then the output on step 10000 will be the combined histogram of the individual
+histograms on steps 8000, 9000, and 10000.  Outputs on early steps will be sums
+over less than :math:`M` histograms if they are not available.
 
 The *start* keyword specifies what timestep histogramming will begin
 on.  The default is step 0.  Often input values can be 0.0 at time 0,
@@ -310,8 +329,8 @@ The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the *ave running* setting.
 
-The *title1* and *title2* and *title3* keywords allow specification of
-the strings that will be printed as the first 3 lines of the output
+The *title1*, *title2*, and *title3* keywords allow specification of
+the strings that will be printed as the first three lines of the output
 file, assuming the *file* keyword was used.  LAMMPS uses default
 values for each of these, so they do not need to be specified.
 
@@ -325,7 +344,7 @@ By default, these header lines are as follows:
 
 In the first line, ID is replaced with the fix-ID.  The second line
 describes the six values that are printed at the first of each section
-of output.  The third describes the 4 values printed for each bin in
+of output.  The third describes the four values printed for each bin in
 the histogram.
 
 ----------
@@ -333,13 +352,14 @@ the histogram.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to
+:doc:`binary restart files <restart>`.
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
 
 This fix produces a global vector and global array which can be
 accessed by various :doc:`output commands <Howto_output>`.  The values
-can only be accessed on timesteps that are multiples of *Nfreq* since
-that is when a histogram is generated.  The global vector has 4
+can only be accessed on timesteps that are multiples of :math:`N_\text{freq}`
+since that is when a histogram is generated.  The global vector has four
 values:
 
 * 1 = total counts in the histogram
@@ -347,19 +367,20 @@ values:
 * 3 = min value of all input values, including ones not histogrammed
 * 4 = max value of all input values, including ones not histogrammed
 
-The global array has # of rows = Nbins and # of columns = 3.  The
+The global array has :math:`N_\text{bins}` rows and three columns.  The
 first column has the bin coordinate, the second column has the count of
 values in that histogram bin, and the third column has the bin count
 divided by the total count (not including missing counts), so that the
 values in the third column sum to 1.0.
 
 The vector and array values calculated by this fix are all treated as
-intensive.  If this is not the case, e.g. due to histogramming
-per-atom input values, then you will need to account for that when
+intensive.  If this is not the case (e.g., due to histogramming
+per-atom input values), then you will need to account for that when
 interpreting the values produced by this fix.
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.
+This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -368,7 +389,8 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
+:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`,
+:doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`,
 
 Default

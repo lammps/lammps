@@ -24,13 +24,16 @@ Syntax
    pair_style style keyword values
 
 * style = *sw* or *sw/mod*
-* keyword = *maxdelcs*
+* keyword = *maxdelcs* or *threebody*
 
   .. parsed-literal::
 
-       *maxdelcs* value = delta1 delta2 (optional)
+       *maxdelcs* value = delta1 delta2 (optional, sw/mod only)
          delta1 = The minimum thershold for the variation of cosine of three-body angle
          delta2 = The maximum threshold for the variation of cosine of three-body angle
+       *threebody* value = *on* or *off* (optional, sw only)
+         on (default) = Compute both the three-body and two-body terms of the potential
+         off = Compute only the two-body term of the potential
 
 Examples
 """"""""
@@ -43,6 +46,11 @@ Examples
 
    pair_style sw/mod maxdelcs 0.25 0.35
    pair_coeff * * tmd.sw.mod Mo S S
+
+   pair_style hybrid sw threebody on sw threebody off
+   pair_coeff * * sw 1 mW_xL.sw mW NULL
+   pair_coeff 1 2 sw 2 mW_xL.sw mW xL
+   pair_coeff 2 2 sw 2 mW_xL.sw mW xL
 
 Description
 """""""""""
@@ -67,23 +75,28 @@ where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a `\sigma`.
 
+.. versionadded:: 14Dec2021
+
 The *sw/mod* style is designed for simulations of materials when
-distinguishing three-body angles are necessary, such as borophene
-and transition metal dichalcogenides, which cannot be described
-by the original code for the Stillinger-Weber potential.
-For instance, there are several types of angles around each Mo atom in `MoS_2`,
-and some unnecessary angle types should be excluded in the three-body interaction.
-Such exclusion may be realized by selecting proper angle types directly.
-The exclusion of unnecessary angles is achieved here by the cut-off function (`f_C(\delta)`),
-which induces only minimum modifications for LAMMPS.
+distinguishing three-body angles are necessary, such as borophene and
+transition metal dichalcogenides, which cannot be described by the
+original code for the Stillinger-Weber potential.  For instance, there
+are several types of angles around each Mo atom in `MoS_2`, and some
+unnecessary angle types should be excluded in the three-body
+interaction.  Such exclusion may be realized by selecting proper angle
+types directly.  The exclusion of unnecessary angles is achieved here by
+the cut-off function (`f_C(\delta)`), which induces only minimum
+modifications for LAMMPS.
 
 Validation, benchmark tests, and applications of the *sw/mod* style
 can be found in :ref:`(Jiang2) <Jiang2>` and :ref:`(Jiang3) <Jiang3>`.
 
-The *sw/mod* style computes the energy E of a system of atoms, whose potential
-function is mostly the same as the Stillinger-Weber potential. The only modification
-is in the three-body term, where the value of :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
-used in the original energy and force expression is scaled by a switching factor :math:`f_C(\delta)`:
+The *sw/mod* style computes the energy E of a system of atoms, whose
+potential function is mostly the same as the Stillinger-Weber
+potential. The only modification is in the three-body term, where the
+value of :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}` used in
+the original energy and force expression is scaled by a switching factor
+:math:`f_C(\delta)`:
 
 .. math::
 
@@ -94,28 +107,46 @@ used in the original energy and force expression is scaled by a switching factor
     0 & \left| \delta \right| > \delta_2
     \end{array} \right. \\
 
-This cut-off function decreases smoothly from 1 to 0 over the range :math:`[\delta_1, \delta_2]`.
-This smoothly turns off the energy and force contributions for :math:`\left| \delta \right| > \delta_2`.
-It is suggested that :math:`\delta 1` and :math:`\delta_2` to be the value around
-:math:`0.5 \left| \cos \theta_1 - \cos \theta_2 \right|`, with
-:math:`\theta_1` and :math:`\theta_2` as the different types of angles around an atom.
-For borophene and transition metal dichalcogenides, :math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.
-This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
+This cut-off function decreases smoothly from 1 to 0 over the range
+:math:`[\delta_1, \delta_2]`.  This smoothly turns off the energy and
+force contributions for :math:`\left| \delta \right| > \delta_2`.  It is
+suggested that :math:`\delta 1` and :math:`\delta_2` to be the value
+around :math:`0.5 \left| \cos \theta_1 - \cos \theta_2 \right|`, with
+:math:`\theta_1` and :math:`\theta_2` as the different types of angles
+around an atom.  For borophene and transition metal dichalcogenides,
+:math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.  This value enables
+the cut-off function to exclude unnecessary angles in the three-body SW
+terms.
 
 .. note::
 
-   The cut-off function is just to be used as a technique to exclude some unnecessary angles,
-   and it has no physical meaning. It should be noted that the force and potential are inconsistent
-   with each other in the decaying range of the cut-off function, as the angle dependence for the
-   cut-off function is not implemented in the force (first derivation of potential).
-   However, the angle variation is much smaller than the given threshold value for actual simulations,
-   so the inconsistency between potential and force can be neglected in actual simulations.
+   The cut-off function is just to be used as a technique to exclude
+   some unnecessary angles, and it has no physical meaning. It should be
+   noted that the force and potential are inconsistent with each other
+   in the decaying range of the cut-off function, as the angle
+   dependence for the cut-off function is not implemented in the force
+   (first derivation of potential).  However, the angle variation is
+   much smaller than the given threshold value for actual simulations,
+   so the inconsistency between potential and force can be neglected in
+   actual simulations.
 
-Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
-which specifies a Stillinger-Weber potential file with parameters for all
-needed elements.  These are mapped to LAMMPS atom types by specifying
-N additional arguments after the filename in the pair_coeff command,
-where N is the number of LAMMPS atom types:
+The *threebody* keyword is optional and determines whether or not the
+three-body term of the potential is calculated.  The default value is
+"on" and it is only available for the plain *sw* pair style variants,
+but not available for the *sw/mod* and :doc:`sw/angle/table
+<pair_sw_angle_table>` pair style variants.  To turn off the threebody
+contributions all :math:`\lambda_{ijk}` parameters from the potential
+file are forcibly set to 0.  In addition the pair style implementation
+may employ code optimizations for the *threebody off* setting that can
+result in significant speedups versus the default.  These code optimizations
+are currently only available for the MANYBODY and OPENMP packages.
+
+Only a single pair_coeff command is used with the *sw* and *sw/mod*
+styles which specifies a Stillinger-Weber potential file with parameters
+for all needed elements, except for when the *threebody off* setting is
+used (see note below).  These are mapped to LAMMPS atom types by
+specifying N additional arguments after the filename in the pair_coeff
+command, where N is the number of LAMMPS atom types:
 
 * filename
 * N element names = mapping of SW elements to atom types
@@ -130,16 +161,22 @@ pair_coeff command:
 
 .. code-block:: LAMMPS
 
+   pair_style sw
    pair_coeff * * SiC.sw Si Si Si C
 
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
-The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
-element in the SW file.  The final C argument maps LAMMPS atom type 4
-to the C element in the SW file.  If a mapping value is specified as
-NULL, the mapping is not performed.  This can be used when a *sw*
+The first three Si arguments map LAMMPS atom types 1, 2, and 3 to the Si
+element in the SW file.  The final C argument maps LAMMPS atom type 4 to
+the C element in the SW file.  If an argument value is specified as
+NULL, the mapping is not performed.  This can be used when an *sw*
 potential is used as part of the *hybrid* pair style.  The NULL values
-are placeholders for atom types that will be used with other
-potentials.
+are placeholders for atom types that will be used with other potentials.
+
+.. note::
+
+   When the *threebody off* keyword is used, multiple pair_coeff commands may
+   be used to specific the pairs of atoms which don't require three-body term.
+   In these cases, the first 2 arguments are not required to be \* \*.
 
 Stillinger-Weber files in the *potentials* directory of the LAMMPS
 distribution have a ".sw" suffix.  Lines that are not blank or
@@ -243,30 +280,39 @@ described above from values in the potential file.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart
+files <restart>`, since it is stored in potential files.  Thus, you need
+to re-specify the pair_style and pair_coeff commands in an input script
+that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
+
+The single() function of the *sw* pair style is only enabled and
+supported for the case of the *threebody off* setting.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This pair style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 The Stillinger-Weber potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
-You can use the SW potential with any LAMMPS units, but you would need
-to create your own SW potential file with coefficients listed in the
-appropriate units if your simulation does not use "metal" units.
+You can use the sw or sw/mod pair styles with any LAMMPS units, but you
+would need to create your own SW potential file with coefficients listed
+in the appropriate units if your simulation does not use "metal" units.
+If the potential file contains a 'UNITS:' metadata tag in the first line
+of the potential file, then LAMMPS can convert it transparently between
+"metal" and "real" units.
+
 
 Related commands
 """"""""""""""""
@@ -276,8 +322,9 @@ Related commands
 Default
 """""""
 
-The default values for the *maxdelcs* setting of the *sw/mod* pair
-style are *delta1* = 0.25 and *delta2* = 0.35`.
+The default value for the *threebody* setting of the "sw" pair style is
+"on", the default values for the "*maxdelcs* setting of the *sw/mod*
+pair style are *delta1* = 0.25 and *delta2* = 0.35`.
 
 ----------
 

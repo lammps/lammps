@@ -58,6 +58,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  born_matrix_enable = 0;
   single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
@@ -96,6 +97,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   tabinner_disp = sqrt(2.0);
   ftable = nullptr;
   fdisptable = nullptr;
+  trim_flag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -125,6 +127,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   datamask_modify = ALL_MASK;
 
   kokkosable = 0;
+  reverse_comm_device = 0;
   copymode = 0;
 }
 
@@ -156,53 +159,57 @@ Pair::~Pair()
 
 void Pair::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR,"Illegal pair_modify command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "pair_modify", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mix") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify mix", error);
       if (strcmp(arg[iarg+1],"geometric") == 0) mix_flag = GEOMETRIC;
       else if (strcmp(arg[iarg+1],"arithmetic") == 0) mix_flag = ARITHMETIC;
       else if (strcmp(arg[iarg+1],"sixthpower") == 0) mix_flag = SIXTHPOWER;
-      else error->all(FLERR,"Illegal pair_modify command");
+      else error->all(FLERR,"Unknown pair_modify mix argument: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"shift") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify shift", error);
       offset_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify table", error);
       ncoultablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncoultablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table/disp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify table/disp", error);
       ndisptablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ndisptablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify tabinner", error);
       tabinner = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner/disp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify tabinner/disp", error);
       tabinner_disp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify tail", error);
       tail_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"compute") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify compute", error);
       compute_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nofdotr") == 0) {
       no_virial_fdotr_compute = 1;
       ++iarg;
-    } else error->all(FLERR,"Illegal pair_modify command");
+    } else if (strcmp(arg[iarg],"neigh/trim") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_modify neigh/trim", error);
+      trim_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else error->all(FLERR,"Unknown pair_modify keyword: {}", arg[iarg]);
   }
 }
 
@@ -283,8 +290,13 @@ void Pair::init()
 
   if (!manybody_flag && (comm->me == 0)) {
     const int num_mixed_pairs = atom->ntypes * (atom->ntypes - 1) / 2;
-    utils::logmesg(lmp,"  generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
-                   mixed_count, num_mixed_pairs, mixing_rule_names[mix_flag]);
+    // CLASS2 always applies sixthpower mixing to epsilon/sigma
+    if (utils::strmatch(force->pair_style,"^lj/class2"))
+      utils::logmesg(lmp,"Generated {} of {} mixed pair_coeff terms from {}/{} mixing rule\n",
+                     mixed_count, num_mixed_pairs, "sixthpower", mixing_rule_names[mix_flag]);
+    else
+      utils::logmesg(lmp,"Generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
+                     mixed_count, num_mixed_pairs, mixing_rule_names[mix_flag]);
   }
 }
 

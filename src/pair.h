@@ -19,8 +19,8 @@
 namespace LAMMPS_NS {
 
 class Pair : protected Pointers {
-  friend class AngleSDK;
-  friend class AngleSDKOMP;
+  friend class AngleSPICA;
+  friend class AngleSPICAOMP;
   friend class BondQuartic;
   friend class BondQuarticOMP;
   friend class DihedralCharmm;
@@ -52,6 +52,7 @@ class Pair : protected Pointers {
   int comm_reverse_off;    // size of reverse comm even if newton off
 
   int single_enable;              // 1 if single() routine exists
+  int born_matrix_enable;         // 1 if born_matrix() routine exists
   int single_hessian_enable;      // 1 if single_hessian() routine exists
   int restartinfo;                // 1 if pair style writes restart info
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
@@ -81,6 +82,7 @@ class Pair : protected Pointers {
   int tail_flag;          // pair_modify flag for LJ tail correction
   double etail, ptail;    // energy/pressure tail corrections
   double etail_ij, ptail_ij;
+  int trim_flag;    // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
   int eflag_either, eflag_global, eflag_atom;
@@ -121,7 +123,8 @@ class Pair : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int kokkosable;    // 1 if Kokkos pair
+  int kokkosable;             // 1 if Kokkos pair
+  int reverse_comm_device;    // 1 if reverse comm on Device
 
   Pair(class LAMMPS *);
   ~Pair() override;
@@ -169,6 +172,13 @@ class Pair : protected Pointers {
     return 0.0;
   }
 
+  virtual void born_matrix(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
+                           double /*factor_coul*/, double /*factor_lj*/, double &du, double &du2)
+  {
+    du = du2 = 0.0;
+  }
+
+  virtual void finish() {}
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 
@@ -192,6 +202,12 @@ class Pair : protected Pointers {
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void pack_forward_grid(int, void *, int, int *) {}
+  virtual void unpack_forward_grid(int, void *, int, int *) {}
+  virtual void pack_reverse_grid(int, void *, int, int *) {}
+  virtual void unpack_reverse_grid(int, void *, int, int *) {}
+
   virtual double memory_usage();
 
   void set_copymode(int value) { copymode = value; }
@@ -199,6 +215,7 @@ class Pair : protected Pointers {
   // specific child-class methods for certain Pair styles
 
   virtual void *extract(const char *, int &) { return nullptr; }
+  virtual void *extract_peratom(const char *, int &) { return nullptr; }
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}
@@ -286,116 +303,3 @@ class Pair : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Too many total bits for bitmapped lookup table
-
-Table size specified via pair_modify command is too large.  Note that
-a value of N generates a 2^N size table.
-
-E: Cannot have both pair_modify shift and tail set to yes
-
-These 2 options are contradictory.
-
-E: Cannot use pair tail corrections with 2d simulations
-
-The correction factors are only currently defined for 3d systems.
-
-W: Using pair tail corrections with non-periodic system
-
-This is probably a bogus thing to do, since tail corrections are
-computed by integrating the density of a periodic system out to
-infinity.
-
-W: Using pair tail corrections with pair_modify compute no
-
-The tail corrections will thus not be computed.
-
-W: Using pair potential shift with pair_modify compute no
-
-The shift effects will thus not be computed.
-
-W: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions
-
-This is likely not what you want to do.  The exclusion settings will
-eliminate neighbors in the neighbor list, which the manybody potential
-needs to calculated its terms correctly.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Fix adapt interface to this pair style not supported
-
-New coding for the pair style would need to be done.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-E: BUG: restartinfo=1 but no restart support in pair style
-
-The pair style has a bug, where it does not support reading
-and writing information to a restart file, but does not set
-the member variable restartinfo to 0 as required in that case.
-
-E: Cannot yet use compute tally with Kokkos
-
-This feature is not yet supported.
-
-E: Pair style does not support pair_write
-
-The pair style does not have a single() function, so it can
-not be invoked by pair write.
-
-E: Invalid atom types in pair_write command
-
-Atom types must range from 1 to Ntypes inclusive.
-
-E: Invalid style in pair_write command
-
-Self-explanatory.  Check the input script.
-
-E: Invalid cutoffs in pair_write command
-
-Inner cutoff must be larger than 0.0 and less than outer cutoff.
-
-E: Cannot open pair_write file
-
-The specified output file for pair energies and forces cannot be
-opened.  Check that the path and name are correct.
-
-E: Bitmapped lookup tables require int/float be same size
-
-Cannot use pair tables on this machine, because of word sizes.  Use
-the pair_modify command with table 0 instead.
-
-W: Table inner cutoff >= outer cutoff
-
-You specified an inner cutoff for a Coulombic table that is longer
-than the global cutoff.  Probably not what you wanted.
-
-E: Too many exponent bits for lookup table
-
-Table size specified via pair_modify command does not work with your
-machine's floating point representation.
-
-E: Too many mantissa bits for lookup table
-
-Table size specified via pair_modify command does not work with your
-machine's floating point representation.
-
-E: Too few bits for lookup table
-
-Table size specified via pair_modify command does not work with your
-machine's floating point representation.
-
-*/

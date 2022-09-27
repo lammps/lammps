@@ -29,9 +29,8 @@ class BondBPM : public Bond {
   void init_style() override;
   void settings(int, char **) override;
   double equilibrium_distance(int) override;
-  void write_restart(FILE *) override{};
-  void read_restart(FILE *) override{};
-  void write_data(FILE *) override{};
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
   double single(int, double, int, int, double &) override = 0;
 
  protected:
@@ -70,29 +69,3 @@ class BondBPM : public Bond {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot find fix store/local
-
-Fix id cannot be found.
-
-E: Illegal bond_style command
-
-Self-explanatory.
-
-E: Bond style bpm must include at least one value to output
-
-Must include at least one bond property to store in fix store/local
-
-E: Bond style bpm cannot be used with 3,4-body interactions
-
-No angle, dihedral, or improper styles can be defined when using
-bond style bpm.
-
-E: Bond style bpm cannot be used with atom style template
-
-This bond style can change the bond topology which is not
-allowed with this atom style.
-
-*/

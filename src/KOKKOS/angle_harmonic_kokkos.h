@@ -89,6 +89,3 @@ class AngleHarmonicKokkos : public AngleHarmonic {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

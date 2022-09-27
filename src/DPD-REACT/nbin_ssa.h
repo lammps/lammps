@@ -95,7 +95,3 @@ class NBinSSA : public NBinStandard {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

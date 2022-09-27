@@ -40,8 +40,8 @@ class FixAtomSwap : public Fix {
 
  private:
   int nevery, seed;
-  int ke_flag;              // yes = conserve ke, no = do not conserve ke
-  int semi_grand_flag;     // yes = semi-grand canonical, no = constant composition
+  int ke_flag;            // yes = conserve ke, no = do not conserve ke
+  int semi_grand_flag;    // yes = semi-grand canonical, no = constant composition
   int ncycles;
   int niswap, njswap;                  // # of i,j swap atoms on all procs
   int niswap_local, njswap_local;      // # of swap atoms on this proc
@@ -49,8 +49,7 @@ class FixAtomSwap : public Fix {
   int nswap;                           // # of swap atoms on all procs
   int nswap_local;                     // # of swap atoms on this proc
   int nswap_before;                    // # of swap atoms on procs < this proc
-  int regionflag;                      // 0 = anywhere in box, 1 = specific region
-  int iregion;                         // swap region
+  class Region *region;                // swap region
   char *idregion;                      // swap region id
 
   int nswaptypes, nmutypes;
@@ -91,54 +90,3 @@ class FixAtomSwap : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix atom/swap does not exist
-
-Self-explanatory.
-
-E: Must specify at least 2 types in fix atom/swap command
-
-Self-explanatory.
-
-E: Need nswaptypes mu values in fix atom/swap command
-
-Self-explanatory.
-
-E: Only 2 types allowed when not using semi-grand in fix atom/swap command
-
-Self-explanatory.
-
-E: Mu not allowed when not using semi-grand in fix atom/swap command
-
-Self-explanatory.
-
-E: Invalid atom type in fix atom/swap command
-
-The atom type specified in the atom/swap command does not exist.
-
-E: All atoms of a swapped type must have the same charge.
-
-Self-explanatory.
-
-E: At least one atom of each swapped type must be present to define charges.
-
-Self-explanatory.
-
-E: All atoms of a swapped type must have same charge.
-
-Self-explanatory.
-
-E: Cannot do atom/swap on atoms in atom_modify first group
-
-This is a restriction due to the way atoms are organized in a list to
-enable the atom_modify first command.
-
-*/

@@ -51,7 +51,7 @@ class AtomVecAngleKokkos : public AtomVecKokkos {
   int pack_restart(int, double *) override;
   int unpack_restart(double *) override;
   void create_atom(int, double *) override;
-  void data_atom(double *, imageint, const std::vector<std::string> &) override;
+  void data_atom(double *, imageint, const std::vector<std::string> &, std::string &) override;
   int data_atom_hybrid(int, const std::vector<std::string> &, int) override;
   void pack_data(double **) override;
   int pack_data_hybrid(int, double *) override;
@@ -152,15 +152,3 @@ class AtomVecAngleKokkos : public AtomVecKokkos {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

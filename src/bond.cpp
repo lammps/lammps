@@ -43,12 +43,17 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
+  reinitflag = 1;
 
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_matrix_enable = 0;
   partial_flag = 0;
+
+  single_extra = 0;
+  svector = nullptr;
 
   maxeatom = maxvatom = 0;
   eatom = nullptr;
@@ -82,6 +87,15 @@ void Bond::init()
   for (int i = 1; i <= atom->nbondtypes; i++)
     if (setflag[i] == 0) error->all(FLERR, "All bond coeffs are not set");
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Bond::settings(int narg, char **args)
+{
+  if (narg > 0) error->all(FLERR, "Illegal bond_style {} argument: {}", force->bond_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -237,6 +251,91 @@ void Bond::ev_tally(int i, int j, int nlocal, int newton_bond, double ebond, dou
 }
 
 /* ----------------------------------------------------------------------
+   tally energy and virial into global or per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+------------------------------------------------------------------------- */
+
+void Bond::ev_tally_xyz(int i, int j, int nlocal, int newton_bond,
+                        double ebond, double fx, double fy, double fz,
+                        double delx, double dely, double delz)
+{
+  double ebondhalf,v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) {
+        energy += ebond;
+      } else {
+        ebondhalf = 0.5 * ebond;
+        if (i < nlocal) energy += ebondhalf;
+        if (j < nlocal) energy += ebondhalf;
+      }
+    }
+    if (eflag_atom) {
+      ebondhalf = 0.5 * ebond;
+      if (newton_bond || i < nlocal) eatom[i] += ebondhalf;
+      if (newton_bond || j < nlocal) eatom[j] += ebondhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx * fx;
+    v[1] = dely * fy;
+    v[2] = delz * fz;
+    v[3] = delx * fy;
+    v[4] = delx * fz;
+    v[5] = dely * fz;
+
+    if (vflag_global) {
+      if (newton_bond) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+        vatom[i][0] += 0.5 * v[0];
+        vatom[i][1] += 0.5 * v[1];
+        vatom[i][2] += 0.5 * v[2];
+        vatom[i][3] += 0.5 * v[3];
+        vatom[i][4] += 0.5 * v[4];
+        vatom[i][5] += 0.5 * v[5];
+      }
+      if (newton_bond || j < nlocal) {
+        vatom[j][0] += 0.5 * v[0];
+        vatom[j][1] += 0.5 * v[1];
+        vatom[j][2] += 0.5 * v[2];
+        vatom[j][3] += 0.5 * v[3];
+        vatom[j][4] += 0.5 * v[4];
+        vatom[j][5] += 0.5 * v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    write a table of bond potential energy/force vs distance to a file
 ------------------------------------------------------------------------- */
 
@@ -336,8 +435,9 @@ double Bond::memory_usage()
 }
 
 /* -----------------------------------------------------------------------
-   Reset all type-based bond params via init.
+   reset all type-based bond params via init()
 -------------------------------------------------------------------------- */
+
 void Bond::reinit()
 {
   if (!reinitflag) error->all(FLERR, "Fix adapt interface to this bond style not supported");

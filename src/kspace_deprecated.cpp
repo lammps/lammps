@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,8 +18,8 @@
 #include "kspace_deprecated.h"
 
 #include "comm.h"
-#include "force.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -31,11 +30,8 @@ void KSpaceDeprecated::settings(int, char **)
   std::string my_style = force->kspace_style;
 
   if (my_style == "DEPRECATED") {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp,"\nKSpace style 'DEPRECATED' is a dummy style\n\n");
+    if (lmp->comm->me == 0) utils::logmesg(lmp, "\nKSpace style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR,"This kspace style is no longer available");
+  error->all(FLERR, "This kspace style is no longer available");
 }
-
-

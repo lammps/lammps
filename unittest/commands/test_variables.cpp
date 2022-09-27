@@ -32,10 +32,8 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-using LAMMPS_NS::MathConst::MY_PI;
-using LAMMPS_NS::utils::split_words;
-
 namespace LAMMPS_NS {
+using MathConst::MY_PI;
 using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
@@ -144,12 +142,14 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten3   uloop     4 pad");
     command("variable dummy  index     0");
     command("variable file   equal     is_file(MYFILE)");
+    command("variable iswin  equal     is_os(^Windows)");
+    command("variable islin  equal     is_os(^Linux)");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 18);
+    ASSERT_EQ(variable->nvar, 20);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 17);
+    ASSERT_EQ(variable->nvar, 19);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
@@ -168,6 +168,17 @@ TEST_F(VariableTest, CreateDelete)
     platform::unlink("MYFILE");
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
 
+#if defined(_WIN32)
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("0"));
+#elif defined(__linux__)
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("1"));
+#else
+    ASSERT_THAT(variable->retrieve("iswin"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("islin"), StrEq("0"));
+#endif
+
     BEGIN_HIDE_OUTPUT();
     command("variable seven delete");
     command("variable seven getenv TEST_VARIABLE");
@@ -184,11 +195,13 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_EQ(variable->internalstyle(variable->find("ten")), 1);
 
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy index"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy delete xxx"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop -1"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop 10 1"););
-    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy xxxx"););
+    TEST_FAILURE(".*ERROR: Illegal variable index command.*", command("variable dummy index"););
+    TEST_FAILURE(".*ERROR: Illegal variable delete command: expected 2 arguments but found 3.*",
+                 command("variable dummy delete xxx"););
+    TEST_FAILURE(".*ERROR: Invalid variable loop argument: -1.*",
+                 command("variable dummy loop -1"););
+    TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
+    TEST_FAILURE(".*ERROR: Unknown variable keyword: xxx.*", command("variable dummy xxxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable two string xxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -367,6 +380,7 @@ TEST_F(VariableTest, Functions)
     command("variable ten1   equal     tan(v_eight/2.0)");
     command("variable ten2   equal     asin(-1.0)+acos(0.0)");
     command("variable ten3   equal     floor(100*random(0.2,0.8,v_seed)+1)");
+    command("variable ten4   equal     extract_setting(world_size)");
     END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
@@ -380,15 +394,27 @@ TEST_F(VariableTest, Functions)
     ASSERT_FLOAT_EQ(variable->compute_equal(variable->find("ten1")), 1);
     ASSERT_GT(variable->compute_equal(variable->find("ten3")), 19);
     ASSERT_LT(variable->compute_equal(variable->find("ten3")), 81);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten4")), 1);
 
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););
+    TEST_FAILURE(".*ERROR on proc 0: Invalid immediate variable.*",
+                 command("print \"$(extract_setting()\""););
+    TEST_FAILURE(".*ERROR on proc 0: Invalid immediate variable.*",
+                 command("print \"$(extract_setting()\""););
+    TEST_FAILURE(".*ERROR: Invalid extract_setting.. function syntax in variable formula.*",
+                 command("print \"$(extract_setting(one,two))\""););
+    TEST_FAILURE(
+        ".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
+        command("print \"$(extract_setting(nprocs))\""););
 }
 
 TEST_F(VariableTest, IfCommand)
 {
     BEGIN_HIDE_OUTPUT();
     command("variable one index 1");
+    command("variable two string xx");
+    command("variable three equal 1");
     END_HIDE_OUTPUT();
 
     BEGIN_CAPTURE_OUTPUT();
@@ -402,9 +428,34 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
+    command("if 0<1 then 'print \"bingo!\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if 2<1 then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
     command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (0<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (0>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (1>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (-1.0e-1<0.0E+0)|^(1<0) then 'print \"bingo!\"'");
@@ -444,7 +495,11 @@ TEST_F(VariableTest, IfCommand)
     BEGIN_CAPTURE_OUTPUT();
     command("if x!=x|^a!=b then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
+    BEGIN_CAPTURE_OUTPUT();
+    command("if (${three}) then 'print \"bingo!\"'");
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
@@ -455,8 +510,16 @@ TEST_F(VariableTest, IfCommand)
                  command("if 1a then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if 1=<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
                  command("if 1!=a then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a<b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a>b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a<=b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+                 command("if a<=b then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if 1&<2 then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
@@ -465,8 +528,14 @@ TEST_F(VariableTest, IfCommand)
                  command("if (1)( then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if (1)1 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
                  command("if (v_one==1.0)&&(2>=1) then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+                 command("if (something) then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+                 command("if (v_one) then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+                 command("if (${two}) then 'print \"bingo!\"'"););
 }
 
 TEST_F(VariableTest, NextCommand)
@@ -510,6 +579,65 @@ TEST_F(VariableTest, NextCommand)
     TEST_FAILURE(".*ERROR: All variables in next command must have same style.*",
                  command("next five four"););
 }
+
+TEST_F(VariableTest, Label2TypeAtomic)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box");
+    command("labelmap atom 2 N1");
+    command("labelmap atom 3 O1 4 H1");
+    command("variable t1 equal label2type(atom,C1)");
+    command("variable t2 equal label2type(atom,N1)");
+    command("variable t3 equal label2type(atom,O1)");
+    command("variable t4 equal label2type(atom,H1)");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(variable->retrieve("t2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("t3"), StrEq("3"));
+    ASSERT_THAT(variable->retrieve("t4"), StrEq("4"));
+    ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,N1)"), 2.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,O1)"), 3.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,H1)"), 4.0);
+
+    TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in variable formula.*",
+                 command("print \"${t1}\""););
+    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in variable formula.*",
+                 variable->compute_equal("label2type(bond,H1)"););
+}
+
+TEST_F(VariableTest, Label2TypeMolecular)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 2 box bond/types 3 angle/types 2 dihedral/types 1 improper/types 1");
+    command("labelmap atom 1 C1");
+    command("labelmap atom 2 \"N2'\"");
+    command("labelmap bond 1 C1-N2 2 [C1][C1] 3 N2=N2");
+    command("labelmap angle 1 C1-N2-C1 2 \"\"\" N2'-C1\"-N2' \"\"\"");
+    command("labelmap dihedral 1 'C1-N2-C1-N2'");
+    command("labelmap improper 1 \"C1-N2-C1-N2\"");
+    command("variable t1 equal label2type(atom,C1)");
+    command("variable t2 equal \"label2type(atom,N2')\"");
+    command("variable b1 equal label2type(bond,C1-N2)");
+    command("variable b2 equal label2type(bond,[C1][C1])");
+    command("variable a1 equal label2type(angle,C1-N2-C1)");
+    command("variable a2 equal \"\"\"label2type(angle,N2'-C1\"-N2')\"\"\"");
+    command("variable d1 equal label2type(dihedral,C1-N2-C1-N2)");
+    command("variable i1 equal label2type(improper,C1-N2-C1-N2)");
+    END_HIDE_OUTPUT();
+
+    ASSERT_THAT(variable->retrieve("t1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("t2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("b1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("b2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("a1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("a2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("d1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("i1"), StrEq("1"));
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
@@ -517,13 +645,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

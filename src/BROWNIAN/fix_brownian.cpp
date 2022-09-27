@@ -70,7 +70,6 @@ void FixBrownian::initial_integrate(int /*vflag */)
       initial_integrate_templated<1, 0, 0>();
     }
   }
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,5 +126,4 @@ template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void FixBrownian::initial_int
       v[i][2] = dz / dt;
     }
   }
-  return;
 }

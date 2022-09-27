@@ -147,14 +147,12 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, true> {
     scalar_intra_block_reduction(functor, value, true,
                                  my_global_team_buffer_element, shared_elements,
                                  shared_team_buffer_elements);
-    __threadfence();
     __syncthreads();
 
     // Use the last block that is done to do the do the reduction across the
     // block
     __shared__ unsigned int num_teams_done;
     if (threadIdx.x + threadIdx.y == 0) {
-      __threadfence();
       num_teams_done = Kokkos::atomic_fetch_add(global_flags, 1) + 1;
     }
     bool is_last_block = false;
@@ -263,7 +261,6 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, false> {
     // block
     __shared__ unsigned int num_teams_done;
     if (threadIdx.x + threadIdx.y == 0) {
-      __threadfence();
       num_teams_done = Kokkos::atomic_fetch_add(global_flags, 1) + 1;
     }
     bool is_last_block = false;
@@ -450,7 +447,6 @@ __device__ bool hip_single_inter_block_reduce_scan_impl(
   n_done = 0;
   __syncthreads();
   if (threadIdx.y == 0) {
-    __threadfence();
     n_done = 1 + atomicInc(global_flags, block_count - 1);
   }
   __syncthreads();

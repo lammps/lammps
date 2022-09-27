@@ -45,11 +45,11 @@ using namespace FixConst;
 static const char cite_fix_lbfluid[] =
     "fix lb/fluid command: doi:10.1016/j.cpc.2022.108318\n\n"
     "@Article{Denniston et al.,\n"
-    " author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,"
-    "F.E. Mackay, S.T.T. Ollila, T. Whitehead},\n"
-    " title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic "
-    "Forces Implemented into LAMMPS through a lattice-Boltzmann fluid},"
-    " journal = {Comp.~Phys.~Comm.},\n"
+    "  author = {C. Denniston and N. Afrasiabian and M. G. Cole-Andre,"
+    "    F. E. Mackay and S. T. T. Ollila and T. Whitehead},\n"
+    " title =   {{LAMMPS} lb/fluid fix version 2: Improved Hydrodynamic "
+    "    Forces Implemented into {LAMMPS} Through a Lattice-{B}oltzmann Fluid},"
+    " journal = {Comput.\\ Phys.\\ Commun.},\n"
     " year =    2022,\n"
     " volume =  275,\n"
     " pages =   {108318}\n"
@@ -715,7 +715,7 @@ int FixLbFluid::setmask()
       FixConst::END_OF_STEP;
 }
 
-void FixLbFluid::init(void)
+void FixLbFluid::init()
 {
   if (modify->get_fix_by_style("lb/fluid").size() > 1)
     error->all(FLERR, "Only one fix lb/fluid at a time is supported");
@@ -909,7 +909,7 @@ int FixLbFluid::unpack_exchange(int nlocal, double *buf)
 // This assumes that all the simulation parameters have been given in
 // terms of distance, time and mass units.
 //==========================================================================
-void FixLbFluid::rescale(void)
+void FixLbFluid::rescale()
 {
 
   densityinit = densityinit_real * dx_lb * dx_lb * dx_lb;
@@ -970,7 +970,7 @@ satisfy the Courant condition.\n");
   }
 }
 
-void FixLbFluid::InitializeFirstRun(void)
+void FixLbFluid::InitializeFirstRun()
 {
 
   // Define geometry for pits
@@ -1020,7 +1020,7 @@ void FixLbFluid::InitializeFirstRun(void)
 // Initialize the fluid velocity and density.
 //==========================================================================
 
-void FixLbFluid::initializeLB(void)
+void FixLbFluid::initializeLB()
 {
   for (int i = 0; i < subNbx + 3; i++) {
 
@@ -1077,7 +1077,7 @@ void FixLbFluid::initializeLB(void)
 //==========================================================================
 //   calculate the force from the local atoms acting on the fluid.
 //==========================================================================
-void FixLbFluid::calc_fluidforceI(void)
+void FixLbFluid::calc_fluidforceI()
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1184,7 +1184,7 @@ void FixLbFluid::calc_fluidforceI(void)
   }
 }
 
-void FixLbFluid::calc_fluidforceII(void)
+void FixLbFluid::calc_fluidforceII()
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1201,7 +1201,7 @@ void FixLbFluid::calc_fluidforceII(void)
 //==========================================================================
 //   calculate the force weight from the local atoms acting on the fluid.
 //==========================================================================
-void FixLbFluid::calc_fluidforceweight(void)
+void FixLbFluid::calc_fluidforceweight()
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -2295,7 +2295,7 @@ static MPI_Datatype mpiTypeDumpGlobal(const int *local_size, const int *global_o
 //==========================================================================
 // Creates various buffers for output.
 //==========================================================================
-void FixLbFluid::SetupBuffers(void)
+void FixLbFluid::SetupBuffers()
 {
   fluid_global_n0[0] = Nbx + 1;    // Both domain boundaries -- this unifies the seperate periodic
   fluid_global_n0[1] = Nby + 1;    // and non-periodic sizes of the original code
@@ -2387,8 +2387,8 @@ void FixLbFluid::dump(const bigint step)
                  "          </DataItem>\n"
                  "        </Attribute>\n\n",
                  dm_lb / (dx_lb * dx_lb * dx_lb), fluid_global_n0[2], fluid_global_n0[1],
-                 fluid_global_n0[0], sizeof(double), offset, fluid_global_n0[2],
-                 fluid_global_n0[1], fluid_global_n0[0], dump_file_name_raw.c_str());
+                 fluid_global_n0[0], sizeof(double), offset, fluid_global_n0[2], fluid_global_n0[1],
+                 fluid_global_n0[0], dump_file_name_raw.c_str());
       fmt::print(dump_file_handle_xdmf,
                  "        <Attribute Name=\"velocity\" AttributeType=\"Vector\">\n"
                  "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "
@@ -2441,7 +2441,7 @@ void FixLbFluid::dump(const bigint step)
 // read in a fluid restart file.  This is only used to restart the
 // fluid portion of a LAMMPS simulation.
 //==========================================================================
-void FixLbFluid::read_restartfile(void)
+void FixLbFluid::read_restartfile()
 {
   MPI_Status status;
   MPI_Datatype realtype;
@@ -2475,7 +2475,7 @@ void FixLbFluid::read_restartfile(void)
 //==========================================================================
 // write a fluid restart file.
 //==========================================================================
-void FixLbFluid::write_restartfile(void)
+void FixLbFluid::write_restartfile()
 {
   // We first create the distribution with the correct momentum on the full step instead
   // of the 1/2 step that is used in the algorithm.  The main difference is the velocity
@@ -2841,7 +2841,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 // Calculate the fluid density and velocity over the entire simulation
 // domain.
 //==========================================================================
-void FixLbFluid::parametercalc_full(void)
+void FixLbFluid::parametercalc_full()
 {
   MPI_Request requests[4];
   MPI_Request requests2[12];
@@ -3015,7 +3015,7 @@ void FixLbFluid::parametercalc_part(int xstart, int xend, int ystart, int yend, 
 // Add force contribution to fluid velocity over the entire simulation
 // domain.
 //==========================================================================
-void FixLbFluid::correctu_full(void)
+void FixLbFluid::correctu_full()
 {
   MPI_Request requests2[12];
   int numrequests;
@@ -3262,7 +3262,7 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 // Update the distribution functions over the entire simulation domain for
 // the D3Q15 model.
 //==========================================================================
-void FixLbFluid::update_full15(void)
+void FixLbFluid::update_full15()
 {
   MPI_Request requests[8];
   int numrequests = 4;
@@ -3394,7 +3394,7 @@ void FixLbFluid::update_full15(void)
 // Update the distribution functions over the entire simulation domain for
 // the D3Q19 model.
 //==========================================================================
-void FixLbFluid::update_full19(void)
+void FixLbFluid::update_full19()
 {
 
   MPI_Request req_send15, req_recv15;

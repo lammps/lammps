@@ -20,10 +20,11 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "label_map.h"
 #include "library.h"
 #include "lmppython.h"
 #include "math_const.h"
@@ -51,7 +52,7 @@ using namespace MathConst;
 #define CHUNK 1024
 #define MAXFUNCARG 6
 
-#define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
+#define MYROUND(a) (( (a)-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
 enum{ARG,OP};
 
@@ -162,7 +163,7 @@ Variable::~Variable()
 
 void Variable::set(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal variable command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "variable", error);
 
   int replaceflag = 0;
 
@@ -170,7 +171,8 @@ void Variable::set(int narg, char **arg)
   // doesn't matter if variable no longer exists
 
   if (strcmp(arg[1],"delete") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal variable command");
+    if (narg != 2)
+      error->all(FLERR,"Illegal variable delete command: expected 2 arguments but found {}", narg);
     if (find(arg[0]) >= 0) remove(find(arg[0]));
     return;
 
@@ -178,7 +180,7 @@ void Variable::set(int narg, char **arg)
   // num = listed args, which = 1st value, data = copied args
 
   } else if (strcmp(arg[1],"index") == 0) {
-    if (narg < 3) error->all(FLERR,"Illegal variable command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable index", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = INDEX;
@@ -193,6 +195,7 @@ void Variable::set(int narg, char **arg)
   // 2 args + pad: num = N2, which = N1, data = single string
 
   } else if (strcmp(arg[1],"loop") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable loop", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = LOOP;
@@ -200,7 +203,7 @@ void Variable::set(int narg, char **arg)
     if (narg == 3 || (narg == 4 && strcmp(arg[3],"pad") == 0)) {
       nfirst = 1;
       nlast = utils::inumeric(FLERR,arg[2],false,lmp);
-      if (nlast <= 0) error->all(FLERR,"Illegal variable command");
+      if (nlast <= 0) error->all(FLERR, "Invalid variable loop argument: {}", nlast);
       if (narg == 4 && strcmp(arg[3],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
@@ -208,11 +211,11 @@ void Variable::set(int narg, char **arg)
       nfirst = utils::inumeric(FLERR,arg[2],false,lmp);
       nlast = utils::inumeric(FLERR,arg[3],false,lmp);
       if (nfirst > nlast || nlast < 0)
-        error->all(FLERR,"Illegal variable command");
+        error->all(FLERR,"Illegal variable loop command: {} > {}", nfirst,nlast);
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
-    } else error->all(FLERR,"Illegal variable command");
+    } else error->all(FLERR,"Illegal variable loop command: too much arguments");
     num[nvar] = nlast;
     which[nvar] = nfirst-1;
     data[nvar] = new char*[1];
@@ -223,7 +226,7 @@ void Variable::set(int narg, char **arg)
   // error check that num = # of worlds in universe
 
   } else if (strcmp(arg[1],"world") == 0) {
-    if (narg < 3) error->all(FLERR,"Illegal variable command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "variable world", error);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = WORLD;
@@ -244,7 +247,7 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1],"universe") == 0 || strcmp(arg[1],"uloop") == 0) {
     if (strcmp(arg[1],"universe") == 0) {
-      if (narg < 3) error->all(FLERR,"Illegal variable command");
+      if (narg < 3) utils::missing_cmd_args(FLERR, "variable universe", error);
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = UNIVERSE;
@@ -253,8 +256,10 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(num[nvar],&arg[2],data[nvar]);
     } else if (strcmp(arg[1],"uloop") == 0) {
-      if (narg < 3 || narg > 4 || (narg == 4 && strcmp(arg[3],"pad") != 0))
-        error->all(FLERR,"Illegal variable command");
+      if (narg < 3 || narg > 4)
+        error->all(FLERR,"Illegal variable command: expected 3 or 4 arguments but found {}", narg);
+      if (narg == 4 && strcmp(arg[3],"pad") != 0)
+        error->all(FLERR, "Invalid variable uloop argument: {}", arg[3]);
       if (find(arg[0]) >= 0) return;
       if (nvar == maxvar) grow();
       style[nvar] = ULOOP;
@@ -292,7 +297,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"string") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
 
     int maxcopy = strlen(arg[2]) + 1;
     int maxwork = maxcopy;
@@ -326,7 +331,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"getenv") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (find(arg[0]) >= 0) {
       if (style[find(arg[0])] != GETENV)
         error->all(FLERR,"Cannot redefine variable as a different style");
@@ -346,7 +351,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"file") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = SCALARFILE;
@@ -364,7 +369,7 @@ void Variable::set(int narg, char **arg)
   // data = nullptr
 
   } else if (strcmp(arg[1],"atomfile") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = ATOMFILE;
@@ -384,7 +389,7 @@ void Variable::set(int narg, char **arg)
   //   3rd is filled on retrieval
 
   } else if (strcmp(arg[1],"format") == 0) {
-    if (narg != 4) error->all(FLERR,"Illegal variable command");
+    if (narg != 4) error->all(FLERR,"Illegal variable command: expected 4 arguments but found {}", narg);
     if (find(arg[0]) >= 0) return;
     if (nvar == maxvar) grow();
     style[nvar] = FORMAT;
@@ -404,7 +409,7 @@ void Variable::set(int narg, char **arg)
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != EQUAL)
@@ -430,7 +435,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"atom") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != ATOM)
@@ -454,7 +459,7 @@ void Variable::set(int narg, char **arg)
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"vector") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != VECTOR)
@@ -478,7 +483,7 @@ void Variable::set(int narg, char **arg)
   // data = 2 values, 1st is Python func to invoke, 2nd is filled by invoke
 
   } else if (strcmp(arg[1],"python") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     if (!python->is_enabled())
       error->all(FLERR,"LAMMPS is not built with Python embedded");
     int ivar = find(arg[0]);
@@ -500,13 +505,38 @@ void Variable::set(int narg, char **arg)
       strcpy(data[nvar][1],"(undefined)");
     }
 
+  // TIMER
+  // stores current walltime as a timestamp in seconds
+  // replace pre-existing var if also style TIMER (allows reset with current time)
+  // num = 1, for string representation of dvalue, set by retrieve()
+  // dvalue = numeric initialization via platform::walltime()
+
+  } else if (strcmp(arg[1],"timer") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal variable command: expected 2 arguments but found {}", narg);
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != TIMER)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      dvalue[ivar] = platform::walltime();
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = TIMER;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      data[nvar][0] = new char[VALUELENGTH];
+      dvalue[nvar] = platform::walltime();
+    }
+
   // INTERNAL
   // replace pre-existing var if also style INTERNAL (allows it to be reset)
   // num = 1, for string representation of dvalue, set by retrieve()
   // dvalue = numeric initialization from 2nd arg, reset by internal_set()
 
   } else if (strcmp(arg[1],"internal") == 0) {
-    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != INTERNAL)
@@ -524,7 +554,9 @@ void Variable::set(int narg, char **arg)
       dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
     }
 
-  } else error->all(FLERR,"Illegal variable command");
+  // unrecognized variable style
+
+  } else error->all(FLERR,"Unknown variable keyword: {}", arg[1]);
 
   // set name of variable, if not replacing one flagged with replaceflag
   // name must be all alphanumeric chars or underscores
@@ -610,13 +642,14 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must have same style");
   }
 
-  // invalid styles: STRING, EQUAL, WORLD, ATOM, VECTOR, GETENV,
-  //                 FORMAT, PYTHON, INTERNAL
+  // invalid styles: STRING, EQUAL, WORLD, GETENV, ATOM, VECTOR,
+  //                 FORMAT, PYTHON, TIMER, INTERNAL
 
   int istyle = style[find(arg[0])];
-  if (istyle == STRING || istyle == EQUAL || istyle == WORLD ||
-      istyle == GETENV || istyle == ATOM || istyle == VECTOR ||
-      istyle == FORMAT || istyle == PYTHON || istyle == INTERNAL)
+  if (istyle == STRING || istyle == EQUAL ||
+      istyle == WORLD || istyle == GETENV || istyle == ATOM ||
+      istyle == VECTOR || istyle == FORMAT || istyle == PYTHON ||
+      istyle == TIMER || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
   // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
@@ -794,13 +827,15 @@ void Variable::python_command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if variable is EQUAL or INTERNAL or PYTHON numeric style, 0 if not
+   return 1 if variable is EQUAL style, 0 if not
+   TIMER, INTERNAL, PYTHON qualify as EQUAL style
    this is checked before call to compute_equal() to return a double
 ------------------------------------------------------------------------- */
 
 int Variable::equalstyle(int ivar)
 {
-  if (style[ivar] == EQUAL || style[ivar] == INTERNAL) return 1;
+  if (style[ivar] == EQUAL || style[ivar] == TIMER ||
+      style[ivar] == INTERNAL) return 1;
   if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],names[ivar],1);
     if (ifunc < 0) return 0;
@@ -925,7 +960,7 @@ char *Variable::retrieve(const char *name)
     // then the Python class stores the result, query it via long_string()
     char *strlong = python->long_string(ifunc);
     if (strlong) str = strlong;
-  } else if (style[ivar] == INTERNAL) {
+  } else if (style[ivar] == TIMER || style[ivar] == INTERNAL) {
     sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
     str = data[ivar][0];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
@@ -938,7 +973,7 @@ char *Variable::retrieve(const char *name)
 
 /* ----------------------------------------------------------------------
    return result of equal-style variable evaluation
-   can be EQUAL or INTERNAL style or PYTHON numeric style
+   can be EQUAL or TIMER or INTERNAL style or PYTHON numeric style
    for PYTHON, don't need to check python->variable_match() error return,
      since caller will have already checked via equalstyle()
 ------------------------------------------------------------------------- */
@@ -952,6 +987,7 @@ double Variable::compute_equal(int ivar)
 
   double value = 0.0;
   if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],nullptr,ivar);
+  else if (style[ivar] == TIMER) value = dvalue[ivar];
   else if (style[ivar] == INTERNAL) value = dvalue[ivar];
   else if (style[ivar] == PYTHON) {
     int ifunc = python->find(data[ivar][0]);
@@ -1926,7 +1962,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
 
       // ----------------
-      // math/group/special function or atom value/vector or
+      // math/group/special/labelmap function or atom value/vector or
       // constant or thermo keyword
       // ----------------
 
@@ -2530,9 +2566,14 @@ double Variable::collapse_tree(Tree *tree)
     arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    tree->value = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      tree->value = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      tree->value = arg1 + delta*(arg2-arg1);
+    }
     return tree->value;
   }
 
@@ -2699,7 +2740,7 @@ double Variable::collapse_tree(Tree *tree)
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*sin(omega*delta*update->dt);
@@ -2714,7 +2755,7 @@ double Variable::collapse_tree(Tree *tree)
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     tree->value = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
@@ -2904,9 +2945,14 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == RAMP) {
     arg1 = eval_tree(tree->first,i);
     arg2 = eval_tree(tree->second,i);
-    double delta = update->ntimestep - update->beginstep;
-    if (delta != 0.0) delta /= update->endstep - update->beginstep;
-    arg = arg1 + delta*(arg2-arg1);
+    if (update->whichflag == 0) {
+      arg = arg1;
+    } else {
+      double delta = update->ntimestep - update->beginstep;
+      if ((delta != 0.0) && (update->beginstep != update->endstep))
+        delta /= update->endstep - update->beginstep;
+      arg = arg1 + delta*(arg2-arg1);
+    }
     return arg;
   }
 
@@ -3023,7 +3069,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg2 = eval_tree(tree->second,i);
     arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*sin(omega*delta*update->dt);
@@ -3035,7 +3081,7 @@ double Variable::eval_tree(Tree *tree, int i)
     arg2 = eval_tree(tree->second,i);
     arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
-      error->one(FLERR,"Invalid math function in variable formula");
+      error->one(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0");
     double delta = update->ntimestep - update->beginstep;
     double omega = 2.0*MY_PI/arg3;
     arg = arg1 + arg2*(1.0-cos(omega*delta*update->dt));
@@ -3043,18 +3089,18 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == GMASK) {
-    if (atom->mask[i] & tree->ivalue1) return 1.0;
+    if (atom->mask[i] & tree->ivalue) return 1.0;
     else return 0.0;
   }
 
   if (tree->type == RMASK) {
-    if (domain->regions[tree->ivalue1]->match(atom->x[i][0], atom->x[i][1], atom->x[i][2])) return 1.0;
+    if (tree->region->match(atom->x[i][0], atom->x[i][1], atom->x[i][2])) return 1.0;
     else return 0.0;
   }
 
   if (tree->type == GRMASK) {
-    if ((atom->mask[i] & tree->ivalue1) &&
-        (domain->regions[tree->ivalue2]->match(atom->x[i][0], atom->x[i][1], atom->x[i][2]))) return 1.0;
+    if ((atom->mask[i] & tree->ivalue) &&
+        (tree->region->match(atom->x[i][0], atom->x[i][1], atom->x[i][2]))) return 1.0;
     else return 0.0;
   }
 
@@ -3221,20 +3267,20 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") && strcmp(word,"exp") &&
-      strcmp(word,"ln") && strcmp(word,"log") &&
-      strcmp(word,"abs") &&
-      strcmp(word,"sin") && strcmp(word,"cos") &&
-      strcmp(word,"tan") && strcmp(word,"asin") &&
-      strcmp(word,"acos") && strcmp(word,"atan") &&
-      strcmp(word,"atan2") && strcmp(word,"random") &&
-      strcmp(word,"normal") && strcmp(word,"ceil") &&
-      strcmp(word,"floor") && strcmp(word,"round") &&
-      strcmp(word,"ramp") && strcmp(word,"stagger") &&
-      strcmp(word,"logfreq") && strcmp(word,"logfreq2") &&
-      strcmp(word,"logfreq3") && strcmp(word,"stride") &&
-      strcmp(word,"stride2") && strcmp(word,"vdisplace") &&
-      strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
+  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") &&
+      strcmp(word,"ln") != 0 && strcmp(word,"log") != 0 &&
+      strcmp(word,"abs") != 0 &&
+      strcmp(word,"sin") != 0 && strcmp(word,"cos") != 0 &&
+      strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
+      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 &&
+      strcmp(word,"atan2") != 0 && strcmp(word,"random") != 0 &&
+      strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
+      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 &&
+      strcmp(word,"ramp") != 0 && strcmp(word,"stagger") != 0 &&
+      strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
+      strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
+      strcmp(word,"stride2") != 0 && strcmp(word,"vdisplace") != 0 &&
+      strcmp(word,"swiggle") != 0 && strcmp(word,"cwiggle") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -3414,14 +3460,17 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"ramp") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use ramp in variable formula between runs",ivar);
     if (tree) newtree->type = RAMP;
     else {
-      double delta = update->ntimestep - update->beginstep;
-      if (delta != 0.0) delta /= update->endstep - update->beginstep;
-      double value = value1 + delta*(value2-value1);
-      argstack[nargstack++] = value;
+      if (update->whichflag == 0) {
+        argstack[nargstack++] = value1;
+      } else {
+        double delta = update->ntimestep - update->beginstep;
+        if ((delta != 0.0) && (update->beginstep != update->endstep))
+          delta /= update->endstep - update->beginstep;
+        double value = value1 + delta*(value2-value1);
+        argstack[nargstack++] = value;
+      }
     }
 
   } else if (strcmp(word,"stagger") == 0) {
@@ -3579,9 +3628,9 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"vdisplace") == 0) {
     if (narg != 2)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use vdisplace in variable formula between runs",ivar);
+      print_var_error(FLERR,"Invalid vdisplace function in variable formula: must have 2 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use vdisplace(x,y) function with fix dt/reset",ivar);
     if (tree) newtree->type = VDISPLACE;
     else {
       double delta = update->ntimestep - update->beginstep;
@@ -3591,13 +3640,13 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"swiggle") == 0) {
     if (narg != 3)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use swiggle in variable formula between runs",ivar);
-    if (tree) newtree->type = CWIGGLE;
+      print_var_error(FLERR,"Invalid swiggle function in variable formula: must have 3 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use swiggle(x,y,z) function with fix dt/reset",ivar);
+    if (tree) newtree->type = SWIGGLE;
     else {
       if (values[0] == 0.0)
-        print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+        print_var_error(FLERR,"Invalid swiggle(x,y,z) function in variable formula: z must be > 0",ivar);
       double delta = update->ntimestep - update->beginstep;
       double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*sin(omega*delta*update->dt);
@@ -3606,13 +3655,13 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else if (strcmp(word,"cwiggle") == 0) {
     if (narg != 3)
-      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
-    if (update->whichflag == 0)
-      print_var_error(FLERR,"Cannot use cwiggle in variable formula between runs",ivar);
+      print_var_error(FLERR,"Invalid cwiggle function in variable formula: must have 3 arguments",ivar);
+    if (modify->get_fix_by_style("dt/reset").size() > 0)
+      print_var_error(FLERR,"Must not use cwiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = CWIGGLE;
     else {
       if (values[0] == 0.0)
-        print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+        print_var_error(FLERR,"Invalid cwiggle(x,y,z) function in variable formula: z must be > 0",ivar);
       double delta = update->ntimestep - update->beginstep;
       double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*(1.0-cos(omega*delta*update->dt));
@@ -3645,13 +3694,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 {
   // word not a match to any group function
 
-  if (strcmp(word,"count") && strcmp(word,"mass") &&
-      strcmp(word,"charge") && strcmp(word,"xcm") &&
-      strcmp(word,"vcm") && strcmp(word,"fcm") &&
-      strcmp(word,"bound") && strcmp(word,"gyration") &&
-      strcmp(word,"ke") && strcmp(word,"angmom") &&
-      strcmp(word,"torque") && strcmp(word,"inertia") &&
-      strcmp(word,"omega"))
+  if (strcmp(word,"count") != 0 && strcmp(word,"mass") &&
+      strcmp(word,"charge") != 0 && strcmp(word,"xcm") != 0 &&
+      strcmp(word,"vcm") != 0 && strcmp(word,"fcm") != 0 &&
+      strcmp(word,"bound") != 0 && strcmp(word,"gyration") != 0 &&
+      strcmp(word,"ke") != 0 && strcmp(word,"angmom") != 0 &&
+      strcmp(word,"torque") != 0 && strcmp(word,"inertia") != 0 &&
+      strcmp(word,"omega") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -3664,32 +3713,31 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 
   int igroup = group->find(args[0]);
   if (igroup == -1) {
-    std::string mesg = "Group ID '";
-    mesg += args[0];
-    mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg,ivar);
+    const auto errmesg = fmt::format("Group {} in variable formula does not exist", args[0]);
+    print_var_error(FLERR, errmesg, ivar);
   }
 
   // match word to group function
 
   double value = 0.0;
+  const auto group_errmesg = fmt::format("Invalid {}() function in variable formula", word);
 
   if (strcmp(word,"count") == 0) {
     if (narg == 1) value = group->count(igroup);
     else if (narg == 2)
       value = group->count(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"mass") == 0) {
     if (narg == 1) value = group->mass(igroup);
     else if (narg == 2) value = group->mass(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"charge") == 0) {
     if (narg == 1) value = group->charge(igroup);
     else if (narg == 2)
       value = group->charge(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"xcm") == 0) {
     atom->check_mass(FLERR);
@@ -3698,14 +3746,14 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = xcm[0];
     else if (strcmp(args[1],"y") == 0) value = xcm[1];
     else if (strcmp(args[1],"z") == 0) value = xcm[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"vcm") == 0) {
     atom->check_mass(FLERR);
@@ -3714,38 +3762,38 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->vcm(igroup,masstotal,vcm);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->vcm(igroup,masstotal,vcm,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->vcm(igroup,masstotal,vcm,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = vcm[0];
     else if (strcmp(args[1],"y") == 0) value = vcm[1];
     else if (strcmp(args[1],"z") == 0) value = vcm[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"fcm") == 0) {
     double fcm[3];
     if (narg == 2) group->fcm(igroup,fcm);
     else if (narg == 3) group->fcm(igroup,fcm,region_function(args[2],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = fcm[0];
     else if (strcmp(args[1],"y") == 0) value = fcm[1];
     else if (strcmp(args[1],"z") == 0) value = fcm[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"bound") == 0) {
     double minmax[6];
     if (narg == 2) group->bounds(igroup,minmax);
     else if (narg == 3)
       group->bounds(igroup,minmax,region_function(args[2],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"xmin") == 0) value = minmax[0];
     else if (strcmp(args[1],"xmax") == 0) value = minmax[1];
     else if (strcmp(args[1],"ymin") == 0) value = minmax[2];
     else if (strcmp(args[1],"ymax") == 0) value = minmax[3];
     else if (strcmp(args[1],"zmin") == 0) value = minmax[4];
     else if (strcmp(args[1],"zmax") == 0) value = minmax[5];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"gyration") == 0) {
     atom->check_mass(FLERR);
@@ -3755,16 +3803,16 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       value = group->gyration(igroup,masstotal,xcm);
     } else if (narg == 2) {
-      int iregion = region_function(args[1],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      value = group->gyration(igroup,masstotal,xcm,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[1],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      value = group->gyration(igroup,masstotal,xcm,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"ke") == 0) {
     if (narg == 1) value = group->ke(igroup);
     else if (narg == 2) value = group->ke(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"angmom") == 0) {
     atom->check_mass(FLERR);
@@ -3774,15 +3822,15 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->angmom(igroup,xcm,lmom);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->angmom(igroup,xcm,lmom,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->angmom(igroup,xcm,lmom,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = lmom[0];
     else if (strcmp(args[1],"y") == 0) value = lmom[1];
     else if (strcmp(args[1],"z") == 0) value = lmom[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"torque") == 0) {
     atom->check_mass(FLERR);
@@ -3792,15 +3840,15 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->torque(igroup,xcm,tq);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->torque(igroup,xcm,tq,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->torque(igroup,xcm,tq,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = tq[0];
     else if (strcmp(args[1],"y") == 0) value = tq[1];
     else if (strcmp(args[1],"z") == 0) value = tq[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"inertia") == 0) {
     atom->check_mass(FLERR);
@@ -3810,18 +3858,18 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->inertia(igroup,xcm,inertia);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->inertia(igroup,xcm,inertia,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->inertia(igroup,xcm,inertia,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"xx") == 0) value = inertia[0][0];
     else if (strcmp(args[1],"yy") == 0) value = inertia[1][1];
     else if (strcmp(args[1],"zz") == 0) value = inertia[2][2];
     else if (strcmp(args[1],"xy") == 0) value = inertia[0][1];
     else if (strcmp(args[1],"yz") == 0) value = inertia[1][2];
     else if (strcmp(args[1],"xz") == 0) value = inertia[0][2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"omega") == 0) {
     atom->check_mass(FLERR);
@@ -3833,17 +3881,17 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->inertia(igroup,xcm,inertia);
       group->omega(angmom,inertia,omega);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->angmom(igroup,xcm,angmom,iregion);
-      group->inertia(igroup,xcm,inertia,iregion);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->angmom(igroup,xcm,angmom,region);
+      group->inertia(igroup,xcm,inertia,region);
       group->omega(angmom,inertia,omega);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = omega[0];
     else if (strcmp(args[1],"y") == 0) value = omega[1];
     else if (strcmp(args[1],"z") == 0) value = omega[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
   }
 
   // delete stored args
@@ -3864,21 +3912,16 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 
 /* ---------------------------------------------------------------------- */
 
-int Variable::region_function(char *id, int ivar)
+Region *Variable::region_function(char *id, int ivar)
 {
-  int iregion = domain->find_region(id);
-  if (iregion == -1) {
-    std::string mesg = "Region ID '";
-    mesg += id;
-    mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg,ivar);
-  }
+  auto region = domain->get_region_by_id(id);
+  if (!region)
+    print_var_error(FLERR, fmt::format("Region {} in variable formula does not exist", id), ivar);
 
   // init region in case sub-regions have been deleted
 
-  domain->regions[iregion]->init();
-
-  return iregion;
+  region->init();
+  return region;
 }
 
 /* ----------------------------------------------------------------------
@@ -3900,15 +3943,17 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // word not a match to any special function
 
-  if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") && strcmp(word,"ave") &&
-      strcmp(word,"trap") && strcmp(word,"slope") && strcmp(word,"gmask") && strcmp(word,"rmask") &&
-      strcmp(word,"grmask") && strcmp(word,"next") && strcmp(word,"is_active") &&
-      strcmp(word,"is_defined") && strcmp(word,"is_available") && strcmp(word,"is_file") &&
-      strcmp(word,"extract_setting"))
+  if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 && strcmp(word,"ave") != 0 &&
+      strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
+      strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_active") != 0 &&
+      strcmp(word,"is_defined") != 0 && strcmp(word,"is_available") != 0 && strcmp(word,"is_file") != 0 &&
+      strcmp(word,"is_os") != 0 && strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
     return 0;
 
   // parse contents for comma-separated args
   // narg = number of args, args = strings between commas
+
+  std::string contents_copy(contents); // for label2type
 
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
@@ -4149,7 +4194,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
     auto newtree = new Tree();
     newtree->type = GMASK;
-    newtree->ivalue1 = group->bitmask[igroup];
+    newtree->ivalue = group->bitmask[igroup];
     treestack[ntreestack++] = newtree;
 
   } else if (strcmp(word,"rmask") == 0) {
@@ -4158,12 +4203,12 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     if (narg != 1)
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
-    int iregion = region_function(args[0],ivar);
-    domain->regions[iregion]->prematch();
+    auto region = region_function(args[0],ivar);
+    region->prematch();
 
     auto newtree = new Tree();
     newtree->type = RMASK;
-    newtree->ivalue1 = iregion;
+    newtree->region = region;
     treestack[ntreestack++] = newtree;
 
   } else if (strcmp(word,"grmask") == 0) {
@@ -4175,13 +4220,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     int igroup = group->find(args[0]);
     if (igroup == -1)
       print_var_error(FLERR,"Group ID in variable formula does not exist",ivar);
-    int iregion = region_function(args[1],ivar);
-    domain->regions[iregion]->prematch();
+    auto region = region_function(args[1],ivar);
+    region->prematch();
 
     auto newtree = new Tree();
     newtree->type = GRMASK;
-    newtree->ivalue1 = group->bitmask[igroup];
-    newtree->ivalue2 = iregion;
+    newtree->ivalue = group->bitmask[igroup];
+    newtree->region = region;
     treestack[ntreestack++] = newtree;
 
   // special function for file-style or atomfile-style variables
@@ -4302,10 +4347,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
 
-  } else if (strcmp(word,"extract_setting") == 0) {
-    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function in variable formula",ivar);
-
-    value = lammps_extract_setting(lmp, args[0]);
+  } else if (strcmp(word,"is_os") == 0) {
+    if (narg != 1) print_var_error(FLERR,"Invalid is_os() function in variable formula",ivar);
+    value = utils::strmatch(platform::os_info(), args[0]) ? 1.0 : 0.0;
 
     // save value in tree or on argstack
 
@@ -4313,6 +4357,65 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       auto newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"extract_setting") == 0) {
+    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function syntax in variable formula",ivar);
+
+    value = lammps_extract_setting(lmp, args[0]);
+    if (value < 0) {
+      auto mesg = fmt::format("Unknown setting {} for extract_setting() function in variable formula",args[0]);
+      print_var_error(FLERR,mesg,ivar);
+    }
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      auto newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"label2type") == 0) {
+    if (!atom->labelmapflag)
+      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+
+    auto pos = contents_copy.find_first_of(',');
+    if (pos == std::string::npos)
+      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                       contents_copy), ivar);
+    std::string typestr = contents_copy.substr(pos+1);
+    std::string kind = contents_copy.substr(0, pos);
+
+    int value = -1;
+    if (kind == "atom") {
+      value = atom->lmap->find(typestr,Atom::ATOM);
+    } else if (kind == "bond") {
+      value = atom->lmap->find(typestr,Atom::BOND);
+    } else if (kind == "angle") {
+      value = atom->lmap->find(typestr,Atom::ANGLE);
+    } else if (kind == "dihedral") {
+      value = atom->lmap->find(typestr,Atom::DIHEDRAL);
+    } else if (kind == "improper") {
+      value = atom->lmap->find(typestr,Atom::IMPROPER);
+    } else {
+      print_var_error(FLERR, fmt::format("Invalid type kind {} in variable formula",kind), ivar);
+    }
+
+    if (value == -1)
+      print_var_error(FLERR, fmt::format("Invalid {} type label {} in variable formula",
+                                         kind, typestr), ivar);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = nullptr;
+      newtree->nextra = 0;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
   }
@@ -4569,7 +4672,6 @@ void Variable::print_tree(Tree *tree, int level)
   if (tree->second) print_tree(tree->second,level+1);
   if (tree->nextra)
     for (int i = 0; i < tree->nextra; i++) print_tree(tree->extra[i],level+1);
-  return;
 }
 
 /* ----------------------------------------------------------------------
@@ -4746,12 +4848,14 @@ double Variable::evaluate_boolean(char *str)
         }
 
         if (opprevious == NOT) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag2)
+            error->all(FLERR,"If command boolean not cannot operate on string");
           if (value2 == 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
+
         } else if (opprevious == EQ) {
           if (flag1 != flag2)
-            error->all(FLERR,"Invalid Boolean syntax in if command");
+            error->all(FLERR,"If command boolean is comparing string to number");
           if (flag2 == 0) {
             if (value1 == value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -4763,7 +4867,7 @@ double Variable::evaluate_boolean(char *str)
           }
         } else if (opprevious == NE) {
           if (flag1 != flag2)
-            error->all(FLERR,"Invalid Boolean syntax in if command");
+            error->all(FLERR,"If command boolean is comparing string to number");
           if (flag2 == 0) {
             if (value1 != value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -4773,32 +4877,41 @@ double Variable::evaluate_boolean(char *str)
             delete[] str1;
             delete[] str2;
           }
+
         } else if (opprevious == LT) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 < value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == LE) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 <= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GT) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 > value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GE) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 >= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
+
         } else if (opprevious == AND) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 != 0.0 && value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == OR) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == XOR) {
-          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag1 || flag2)
+            error->all(FLERR,"If command boolean can only operate on numbers");
           if ((value1 == 0.0 && value2 != 0.0) ||
               (value1 != 0.0 && value2 == 0.0))
             argstack[nargstack].value = 1.0;
@@ -4821,6 +4934,13 @@ double Variable::evaluate_boolean(char *str)
 
   if (nopstack) error->all(FLERR,"Invalid Boolean syntax in if command");
   if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
+
+  // if flag == 1, Boolean expression was a single string with no operator
+  // error b/c invalid, only single number with no operator is allowed
+
+  if (argstack[0].flag == 1)
+    error->all(FLERR,"If command boolean cannot be single string");
+
   return argstack[0].value;
 }
 
@@ -4856,7 +4976,8 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       error->all(FLERR,"Cannot use atomfile-style variable unless an atom map exists");
 
     id_fix = utils::strdup(std::string(name) + "_VARIABLE_STORE");
-    fixstore = dynamic_cast<FixStore *>( modify->add_fix(std::string(id_fix) + " all STORE peratom 0 1"));
+    fixstore = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(std::string(id_fix) + " all STORE/PERATOM 0 1"));
     buffer = new char[CHUNK*MAXLINE];
   }
 }

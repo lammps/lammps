@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -24,10 +23,9 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVENoforce::FixNVENoforce(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixNVENoforce::FixNVENoforce(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal fix nve/noforce command");
+  if (narg != 3) utils::missing_cmd_args(FLERR, "fix nve/noforce", error);
 
   time_integrate = 1;
 }
@@ -48,8 +46,8 @@ void FixNVENoforce::init()
 {
   dtv = update->dt;
 
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,7 +73,7 @@ void FixNVENoforce::initial_integrate(int /*vflag*/)
 
 void FixNVENoforce::initial_integrate_respa(int vflag, int ilevel, int flag)
 {
-  if (flag) return;             // only used by NPT,NPH
+  if (flag) return;    // only used by NPT,NPH
 
   dtv = step_respa[ilevel];
 

@@ -108,7 +108,7 @@ From: ubuntu:18.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.7.3
+    export PLUMED_PKG_VERSION=2.8.0
 
     mkdir plumed
     cd plumed

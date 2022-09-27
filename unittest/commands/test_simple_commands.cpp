@@ -36,15 +36,12 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-using LAMMPS_NS::utils::split_words;
-
 namespace LAMMPS_NS {
 using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
 
-class SimpleCommandsTest : public LAMMPSTest {
-};
+class SimpleCommandsTest : public LAMMPSTest {};
 
 TEST_F(SimpleCommandsTest, UnknownCommand)
 {
@@ -81,7 +78,7 @@ TEST_F(SimpleCommandsTest, Echo)
     ASSERT_EQ(lmp->input->echo_log, 1);
 
     TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo"););
-    TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo xxx"););
+    TEST_FAILURE(".*ERROR: Unknown echo keyword: xxx.*", command("echo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Log)
@@ -224,20 +221,35 @@ TEST_F(SimpleCommandsTest, Quit)
 TEST_F(SimpleCommandsTest, ResetTimestep)
 {
     ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->update->atimestep, 0);
+    ASSERT_DOUBLE_EQ(lmp->update->atime, 0.0);
 
     BEGIN_HIDE_OUTPUT();
     command("reset_timestep 10");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->update->ntimestep, 10);
+    ASSERT_EQ(lmp->update->atimestep, 10);
+    ASSERT_DOUBLE_EQ(lmp->update->atime, lmp->update->dt * 10);
 
     BEGIN_HIDE_OUTPUT();
     command("reset_timestep 0");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->update->atimestep, 0);
+    ASSERT_DOUBLE_EQ(lmp->update->atime, 0.0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 10 time 100.0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->update->ntimestep, 10);
+    ASSERT_EQ(lmp->update->atimestep, 10);
+    ASSERT_DOUBLE_EQ(lmp->update->atime, 100.0);
 
     TEST_FAILURE(".*ERROR: Timestep must be >= 0.*", command("reset_timestep -10"););
     TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep"););
-    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep 10 10"););
+    TEST_FAILURE(".*ERROR: Unknown reset_timestep option 10.*", command("reset_timestep 10 10"););
+    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep 10 time"););
+    TEST_FAILURE(".*ERROR: Expected floating .*", command("reset_timestep 10 time xxx"););
     TEST_FAILURE(".*ERROR: Expected integer .*", command("reset_timestep xxx"););
 }
 
@@ -325,7 +337,7 @@ TEST_F(SimpleCommandsTest, Thermo)
     ASSERT_EQ(lmp->output->var_thermo, nullptr);
 
     TEST_FAILURE(".*ERROR: Illegal thermo command.*", command("thermo"););
-    TEST_FAILURE(".*ERROR: Illegal thermo command.*", command("thermo -1"););
+    TEST_FAILURE(".*ERROR: Illegal thermo output frequency.*", command("thermo -1"););
     TEST_FAILURE(".*ERROR: Expected integer.*", command("thermo xxx"););
 }
 
@@ -537,13 +549,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

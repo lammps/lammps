@@ -46,6 +46,9 @@ class FixBondSwap : public Fix {
   int *type;
   double **x;
 
+  int maxpermute;
+  int *permute;
+
   class NeighList *list;
   class Compute *temperature;
   class RanMars *random;
@@ -54,68 +57,11 @@ class FixBondSwap : public Fix {
   double pair_eng(int, int);
   double bond_eng(int, int, int);
   double angle_eng(int, int, int, int);
+
+  void neighbor_permutation(int);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use fix bond/swap with non-molecular systems
-
-Only systems with bonds that can be changed can be used.  Atom_style
-template does not qualify.
-
-E: Must use atom style with molecule IDs with fix bond/swap
-
-Self-explanatory.
-
-E: Temperature ID for fix bond/swap does not exist
-
-Self-explanatory.
-
-E: Fix bond/swap requires pair and bond styles
-
-Self-explanatory.
-
-E: Pair style does not support fix bond/swap
-
-The pair style does not have a single() function, so it can
-not be invoked by fix bond/swap.
-
-W: Fix bond/swap will ignore defined angles
-
-See the doc page for fix bond/swap for more info on this
-restriction.
-
-E: Fix bond/swap cannot use dihedral or improper styles
-
-These styles cannot be defined when using this fix.
-
-E: Fix bond/swap requires special_bonds = 0,1,1
-
-Self-explanatory.
-
-E: Could not find fix_modify temperature ID
-
-The compute ID for computing temperature does not exist.
-
-E: Fix_modify temperature ID does not compute temperature
-
-The compute ID assigned to the fix must compute temperature.
-
-W: Group for fix_modify temp != fix group
-
-The fix_modify command is specifying a temperature computation that
-computes a temperature on a different group of atoms than the fix
-itself operates on.  This is probably not what you want to do.
-
-*/

@@ -672,7 +672,7 @@ void PairLJClass2CoulLong::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>( update->integrate);
+    auto respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -683,8 +683,8 @@ void PairLJClass2CoulLong::init_style()
   // set rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style, "^respa") &&
-      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0)
-    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
+      (dynamic_cast<Respa *>(update->integrate))->level_inner >= 0)
+    cut_respa = (dynamic_cast<Respa *>(update->integrate))->cutoff;
   else
     cut_respa = nullptr;
 
@@ -711,6 +711,7 @@ double PairLJClass2CoulLong::init_one(int i, int j)
         pow(sigma[j][j], 3.0) / (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0));
     sigma[i][j] = pow((0.5 * (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0))), 1.0 / 6.0);
     cut_lj[i][j] = mix_distance(cut_lj[i][i], cut_lj[j][j]);
+    did_mix = true;
   }
 
   double cut = MAX(cut_lj[i][j], cut_coul);

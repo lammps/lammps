@@ -56,6 +56,3 @@ class FixWallReflectKokkos : public FixWallReflect {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

@@ -1,0 +1,21 @@
+# NOTE: This script can be modified for different pair styles 
+# See in.elastic for more info.
+
+reset_timestep 0
+
+# Choose potential
+pair_style	sw
+pair_coeff * * Si.sw Si
+
+# Setup neighbor style
+neighbor 1.0 nsq
+neigh_modify once no every 1 delay 0 check yes
+
+# Setup MD
+
+timestep ${timestep}
+fix 4 all nve
+if "${thermostat} == 1" then &
+   "fix 5 all langevin ${temp} ${temp} ${tdamp} ${seed}"
+
+

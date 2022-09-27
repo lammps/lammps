@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,20 +22,20 @@
 #include "error.h"
 
 #include <cfloat>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
 static const char cite_peri_package[] =
-  "PERI package for Peridynamics:\n\n"
-  "@Article{Parks08,\n"
-  " author = {M. L. Parks, R. B. Lehoucq, S. J. Plimpton, S. A. Silling},\n"
-  " title = {Implementing peridynamics within a molecular dynamics code},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
-  " year =    2008,\n"
-  " volume =  179,\n"
-  " pages =   {777--783}\n"
-  "}\n\n";
+    "PERI package for Peridynamics: doi:10.1016/j.cpc.2008.06.011\n\n"
+    "@Article{Parks08,\n"
+    " author = {M. L. Parks and R. B. Lehoucq and S. J. Plimpton and S. A. Silling},\n"
+    " title = {Implementing Peridynamics Within a Molecular Dynamics Code},\n"
+    " journal = {Comput.\\ Phys.\\ Commun.},\n"
+    " year =    2008,\n"
+    " volume =  179,\n"
+    " number =  11,\n"
+    " pages =   {777--783}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,18 +54,17 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "rmass vfrac s0 x0";
-  fields_copy = (char *) "rmass vfrac s0 x0";
-  fields_comm = (char *) "s0";
-  fields_comm_vel = (char *) "s0";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "rmass vfrac s0 x0";
-  fields_border_vel = (char *) "rmass vfrac s0 x0";
-  fields_exchange = (char *) "rmass vfrac s0 x0";
-  fields_restart = (char *) "rmass vfrac s0 x0";
-  fields_create = (char *) "rmass vfrac s0 x0";
-  fields_data_atom = (char *) "id type vfrac rmass x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"rmass", "vfrac", "s0", "x0"};
+  fields_copy = {"rmass", "vfrac", "s0", "x0"};
+  fields_comm = {"s0"};
+  fields_comm_vel = {"s0"};
+  fields_border = {"rmass", "vfrac", "s0", "x0"};
+  fields_border_vel = {"rmass", "vfrac", "s0", "x0"};
+  fields_exchange = {"rmass", "vfrac", "s0", "x0"};
+  fields_restart = {"rmass", "vfrac", "s0", "x0"};
+  fields_create = {"rmass", "vfrac", "s0", "x0"};
+  fields_data_atom = {"id", "type", "vfrac", "rmass", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }
@@ -110,8 +108,7 @@ void AtomVecPeri::data_atom_post(int ilocal)
   x0[ilocal][1] = x[ilocal][1];
   x0[ilocal][2] = x[ilocal][2];
 
-  if (rmass[ilocal] <= 0.0)
-    error->one(FLERR,"Invalid mass in Atoms section of data file");
+  if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid mass in Atoms section of data file");
 }
 
 /* ----------------------------------------------------------------------
@@ -119,10 +116,10 @@ void AtomVecPeri::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecPeri::property_atom(char *name)
+int AtomVecPeri::property_atom(const std::string &name)
 {
-  if (strcmp(name,"vfrac") == 0) return 0;
-  if (strcmp(name,"s0") == 0) return 1;
+  if (name == "vfrac") return 0;
+  if (name == "s0") return 1;
   return -1;
 }
 
@@ -131,8 +128,7 @@ int AtomVecPeri::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecPeri::pack_property_atom(int index, double *buf,
-                                     int nvalues, int groupbit)
+void AtomVecPeri::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -140,14 +136,18 @@ void AtomVecPeri::pack_property_atom(int index, double *buf,
 
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = vfrac[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = vfrac[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = s0[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = s0[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   }

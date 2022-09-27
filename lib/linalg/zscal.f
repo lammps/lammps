@@ -61,8 +61,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup complex16_blas_level1
 *
 *> \par Further Details:
@@ -78,10 +76,9 @@
 *  =====================================================================
       SUBROUTINE ZSCAL(N,ZA,ZX,INCX)
 *
-*  -- Reference BLAS level1 routine (version 3.7.0) --
+*  -- Reference BLAS level1 routine --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       COMPLEX*16 ZA
@@ -114,4 +111,7 @@
          END DO
       END IF
       RETURN
+*
+*     End of ZSCAL
+*
       END

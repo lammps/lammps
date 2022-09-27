@@ -143,11 +143,11 @@ void PairTlsph::PreCompute() {
   int nlocal = atom->nlocal;
   int jnum, jj, i, j, itype, idim;
 
-  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->partner;
-  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->npartner;
-  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wfd_list;
-  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wf_list;
-  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->degradation_ij;
+  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->partner;
+  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->npartner;
+  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wfd_list;
+  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wf_list;
+  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->degradation_ij;
   double r0, r0Sq, wf, wfd, h, irad, voli, volj, scale, shepardWeight;
   Vector3d dx, dx0, dv, g;
   Matrix3d Ktmp, Ftmp, Fdottmp, L, U, eye;
@@ -421,12 +421,12 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
   Vector3d xi, xj, vi, vj, f_visc, sumForces, f_spring;
   int periodic = (domain->xperiodic || domain->yperiodic || domain->zperiodic);
 
-  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->partner;
-  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->npartner;
-  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wfd_list;
-  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->wf_list;
-  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->degradation_ij;
-  float **energy_per_bond = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[ifix_tlsph]))->energy_per_bond;
+  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->partner;
+  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->npartner;
+  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wfd_list;
+  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wf_list;
+  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->degradation_ij;
+  float **energy_per_bond = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->energy_per_bond;
   Matrix3d eye;
   eye.setIdentity();
 
@@ -1612,7 +1612,7 @@ void PairTlsph::init_style() {
     fixarg[2] = (char *) "SMD_TLSPH_NEIGHBORS";
     modify->add_fix(3, fixarg);
     delete[] fixarg;
-    fix_tlsph_reference_configuration = dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>( modify->fix[modify->nfix - 1]);
+    fix_tlsph_reference_configuration = dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[modify->nfix - 1]);
     fix_tlsph_reference_configuration->pair = this;
   }
 
@@ -1770,7 +1770,7 @@ void PairTlsph::unpack_forward_comm(int n, int first, double *buf) {
  ------------------------------------------------------------------------- */
 
 void PairTlsph::effective_longitudinal_modulus(const int itype, const double dt, const double d_iso, const double p_rate,
-                                               const Matrix3d d_dev, const Matrix3d sigma_dev_rate, const double /*damage*/, double &K_eff, double &mu_eff, double &M_eff) {
+                                               const Matrix3d& d_dev, const Matrix3d& sigma_dev_rate, const double /*damage*/, double &K_eff, double &mu_eff, double &M_eff) {
   double M0; // initial longitudinal modulus
   double shear_rate_sq;
 
@@ -1859,7 +1859,7 @@ void PairTlsph::ComputePressure(const int i, const double rho, const double mass
 /* ----------------------------------------------------------------------
  Compute stress deviator. Called from AssembleStress().
  ------------------------------------------------------------------------- */
-void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, Matrix3d &sigmaFinal_dev,
+void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d& sigmaInitial_dev, const Matrix3d& d_dev, Matrix3d &sigmaFinal_dev,
                                       Matrix3d &sigma_dev_rate, double &plastic_strain_increment) {
   double *eff_plastic_strain = atom->eff_plastic_strain;
   double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
@@ -1915,7 +1915,7 @@ void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_d
 /* ----------------------------------------------------------------------
  Compute damage. Called from AssembleStress().
  ------------------------------------------------------------------------- */
-void PairTlsph::ComputeDamage(const int i, const Matrix3d strain, const Matrix3d stress, Matrix3d &/*stress_damaged*/) {
+void PairTlsph::ComputeDamage(const int i, const Matrix3d& strain, const Matrix3d& stress, Matrix3d &/*stress_damaged*/) {
   double *eff_plastic_strain = atom->eff_plastic_strain;
   double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
   double *radius = atom->radius;

@@ -335,10 +335,8 @@ void Thermo::header()
         hdr += fmt::format("{:^14} ", head);
       else if ((vtype[i] == INT) || (vtype[i] == BIGINT))
         hdr += fmt::format("{:^11} ", head);
-    } else if (lineflag == YAMLLINE) {
-      hdr += keyword[i];
-      hdr += ", ";
-    }
+    } else if (lineflag == YAMLLINE)
+      hdr += fmt::format("'{}', ", head);
   }
   if (lineflag == YAMLLINE)
     hdr += "]\ndata:";
@@ -500,14 +498,14 @@ bigint Thermo::lost_check()
 
 void Thermo::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR, "Illegal thermo_modify command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "thermo_modify", error);
 
   modified = 1;
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "temp") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify temp", error);
       if (index_temp < 0) error->all(FLERR, "Thermo style does not use temp");
       delete[] id_compute[index_temp];
       id_compute[index_temp] = utils::strdup(arg[iarg + 1]);
@@ -542,7 +540,7 @@ void Thermo::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "press") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify press", error);
       if (index_press_scalar < 0 && index_press_vector < 0)
         error->all(FLERR, "Thermo style does not use press");
 
@@ -565,7 +563,7 @@ void Thermo::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "lost") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify lost", error);
       if (strcmp(arg[iarg + 1], "ignore") == 0)
         lostflag = Thermo::IGNORE;
       else if (strcmp(arg[iarg + 1], "warn") == 0)
@@ -573,11 +571,11 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "error") == 0)
         lostflag = Thermo::ERROR;
       else
-        error->all(FLERR, "Illegal thermo_modify command");
+        error->all(FLERR, "Unknown thermo_modify lost argument: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "lost/bond") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify lost/bond", error);
       if (strcmp(arg[iarg + 1], "ignore") == 0)
         lostbond = Thermo::IGNORE;
       else if (strcmp(arg[iarg + 1], "warn") == 0)
@@ -585,11 +583,11 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "error") == 0)
         lostbond = Thermo::ERROR;
       else
-        error->all(FLERR, "Illegal thermo_modify command");
+        error->all(FLERR, "Unknown thermo_modify lost/bond argument: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "warn") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify warn", error);
       if (strcmp(arg[iarg + 1], "ignore") == 0)
         error->set_maxwarn(-1);
       else if (strcmp(arg[iarg + 1], "always") == 0)
@@ -606,18 +604,18 @@ void Thermo::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "norm") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify norm", error);
       normuserflag = 1;
       normuser = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "flush") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify flush", error);
       flushflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "line") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify line", error);
       if (strcmp(arg[iarg + 1], "one") == 0)
         lineflag = ONELINE;
       else if (strcmp(arg[iarg + 1], "multi") == 0)
@@ -625,19 +623,19 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "yaml") == 0)
         lineflag = YAMLLINE;
       else
-        error->all(FLERR, "Illegal thermo_modify command");
+        error->all(FLERR, "Unknown thermo_modify line argument: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "colname") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
       if (strcmp(arg[iarg + 1], "default") == 0) {
-        for (auto item : keyword_user) item.clear();
+        for (auto &item : keyword_user) item.clear();
         iarg += 2;
       } else {
-        if (iarg + 3 > narg) error->all(FLERR, "Illegal thermo_modify command");
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
-          icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
+          icol = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
           if (icol < 0) icol = nfield_initial + icol + 1;
           icol--;
         } else {
@@ -647,24 +645,25 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if ((icol < 0) || (icol >= nfield_initial)) error->all(FLERR, "Illegal thermo_modify command");
-        keyword_user[icol] = arg[iarg+2];
+        if ((icol < 0) || (icol >= nfield_initial))
+          error->all(FLERR, "Invalid thermo_modify colname argument: {}", arg[iarg + 1]);
+        keyword_user[icol] = arg[iarg + 2];
         iarg += 3;
       }
     } else if (strcmp(arg[iarg], "format") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify format", error);
 
       if (strcmp(arg[iarg + 1], "none") == 0) {
         format_line_user.clear();
         format_int_user.clear();
         format_bigint_user.clear();
         format_float_user.clear();
-        for (auto item : format_column_user) item.clear();
+        for (auto &item : format_column_user) item.clear();
         iarg += 2;
         continue;
       }
 
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify format", error);
 
       if (strcmp(arg[iarg + 1], "line") == 0) {
         format_line_user = arg[iarg + 2];
@@ -675,7 +674,8 @@ void Thermo::modify_params(int narg, char **arg)
         found = format_int_user.find('d', found);
         if (found == std::string::npos)
           error->all(FLERR, "Thermo_modify int format does not contain a d conversion character");
-        format_bigint_user = format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+        format_bigint_user =
+            format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
       } else {
@@ -691,13 +691,14 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if (icol < 0 || icol >= nfield_initial + 1) error->all(FLERR, "Illegal thermo_modify command");
+        if (icol < 0 || icol >= nfield_initial + 1)
+          error->all(FLERR, "Invalid thermo_modify format argument: {}", arg[iarg + 1]);
         format_column_user[icol] = arg[iarg + 2];
       }
       iarg += 3;
 
     } else
-      error->all(FLERR, "Illegal thermo_modify command");
+      error->all(FLERR, "Unknown thermo_modify keyword: {}", arg[iarg]);
   }
 }
 
@@ -746,9 +747,7 @@ void Thermo::allocate()
 
   int i = 0;
   key2col.clear();
-  for (auto item : utils::split_words(line)) {
-    key2col[item] = i++;
-  }
+  for (const auto &item : utils::split_words(line)) { key2col[item] = i++; }
 }
 
 /* ----------------------------------------------------------------------

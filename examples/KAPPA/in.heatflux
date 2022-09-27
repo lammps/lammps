@@ -3,17 +3,17 @@
 
 # settings
 
-variable	x equal 10
-variable	y equal 10
-variable	z equal 10
+variable        x equal 10
+variable        y equal 10
+variable        z equal 10
 
-variable	rho equal 0.6
+variable        rho equal 0.6
 variable        t equal 1.35
-variable	rc equal 2.5
+variable        rc equal 2.5
 
-#variable	rho equal 0.85
+#variable       rho equal 0.85
 #variable        t equal 0.7
-#variable	rc equal 3.0
+#variable       rc equal 3.0
 
 variable    p equal 200     # correlation length
 variable    s equal 10      # sample interval
@@ -21,32 +21,32 @@ variable    d equal $p*$s   # dump interval
 
 # setup problem
 
-units		lj
-atom_style	atomic
+units           lj
+atom_style      atomic
 
-lattice		fcc ${rho}
-region		box block 0 $x 0 $y 0 $z
-create_box	1 box
-create_atoms	1 box
-mass		1 1.0
+lattice         fcc ${rho}
+region          box block 0 $x 0 $y 0 $z
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
 
-velocity	all create $t 87287
+velocity        all create $t 87287
 
-pair_style	lj/cut ${rc}
-pair_coeff	1 1 1.0 1.0
+pair_style      lj/cut ${rc}
+pair_coeff      1 1 1.0 1.0
 
-neighbor	0.3 bin
-neigh_modify	delay 0 every 1
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1
 
 # 1st equilibration run
 
-fix		1 all nvt temp $t $t 0.5
-thermo		100
-run		1000
+fix             1 all nvt temp $t $t 0.5
+thermo          100
+run             1000
 
-velocity	all scale $t
+velocity        all scale $t
 
-unfix		1
+unfix           1
 
 # thermal conductivity calculation
 
@@ -60,20 +60,23 @@ variable        Jx equal c_flux[1]/vol
 variable        Jy equal c_flux[2]/vol
 variable        Jz equal c_flux[3]/vol
 
-fix	        1 all nve
+fix             1 all nve
 fix             JJ all ave/correlate $s $p $d &
                 c_flux[1] c_flux[2] c_flux[3] type auto &
-	        file profile.heatflux ave running
+                file profile.heatflux ave running
 
 variable        scale equal $s*dt/$t/$t/vol
 variable        k11 equal trap(f_JJ[3])*${scale}
 variable        k22 equal trap(f_JJ[4])*${scale}
 variable        k33 equal trap(f_JJ[5])*${scale}
+variable        kappa equal (v_k11+v_k22+v_k33)/3.0
 
-thermo	        $d
-thermo_style    custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
+thermo          $d
+thermo_style    custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33 v_kappa
+thermo_modify   colname v_Jx Jx colname v_Jy Jy colname v_Jz Jz &
+                colname v_k11 kappa_11 colname v_k22 kappa_22 &
+                colname v_k33 kappa_33 colname v_kappa kappa
 
 run             100000
 
-variable        kappa equal (v_k11+v_k22+v_k33)/3.0
-print           "running average conductivity: ${kappa}"
+print           "Running average thermal conductivity: $(v_kappa:%.2f)"

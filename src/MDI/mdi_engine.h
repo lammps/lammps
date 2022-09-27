@@ -22,8 +22,6 @@ namespace LAMMPS_NS {
 class MDIEngine : protected Pointers {
  public:
   MDIEngine(class LAMMPS *, int, char **);
-
-  int execute_command(const char *command, MDI_Comm mdicomm);
   void engine_node(const char *node);
 
  private:
@@ -70,6 +68,8 @@ class MDIEngine : protected Pointers {
 
   int actionflag;    // 1 if MD or OPTG just completed, else 0
 
+  int *elements;
+
   // buffers for MDI comm
 
   int maxatom;
@@ -85,9 +85,13 @@ class MDIEngine : protected Pointers {
   class Irregular *irregular;    // irregular comm if new COORDS
                                  // are highly displaced
 
+  // static method for MDI to callback to, when LAMMPS used as plugin engine
+
+  static int execute_command_plugin_wrapper(const char *, MDI_Comm, void *);
+
   // class methods
 
-  void mdi_engine(int, char **);
+  int execute_command(const char *, MDI_Comm);
   void mdi_commands();
 
   void mdi_md();
@@ -106,6 +110,7 @@ class MDIEngine : protected Pointers {
   void receive_cell_displ();
   void receive_charges();
   void receive_coords();
+  void receive_elements();
   void receive_natoms();
   void receive_nsteps();
   void receive_tolerance();
@@ -141,13 +146,3 @@ class MDIEngine : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

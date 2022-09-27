@@ -74,6 +74,3 @@ class ComputeCoordAtomKokkos : public ComputeCoordAtom {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

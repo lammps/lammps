@@ -63,7 +63,8 @@ class ReadDump : public Command {
   int dimension;    // same as in Domain
   int triclinic;
 
-  int boxflag;                 // overwrite simulation with dump file box params
+  int boxflag;                 // overwrite simulation box with dump file box params
+  int timestepflag;            // overwrite simulation timestep with dump file timestep
   int replaceflag, addflag;    // flags for processing dump snapshot atoms
   int trimflag, purgeflag;
   int scaleflag;        // user 0/1 if dump file coords are unscaled/scaled
@@ -115,78 +116,3 @@ class ReadDump : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Read_dump command before simulation box is defined
-
-The read_dump command cannot be used before a read_data, read_restart,
-or create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Dump file does not contain requested snapshot
-
-Self-explanatory.
-
-E: Unrecognized dump reader style
-
-The choice of dump reader style via the format keyword is unknown.
-
-E: No box information in dump, must use 'box no'
-
-UNDOCUMENTED
-
-E: Read_dump triclinic status does not match simulation
-
-Both the dump snapshot and the current LAMMPS simulation must
-be using either an orthogonal or triclinic box.
-
-E: Read_dump field not found in dump file
-
-Self-explanatory.
-
-E: Read_dump xyz fields do not have consistent scaling/wrapping
-
-Self-explanatory.
-
-E: All read_dump x,y,z fields must be specified for scaled, triclinic coords
-
-For triclinic boxes and scaled coordinates you must specify all 3 of
-the x,y,z fields, else LAMMPS cannot reconstruct the unscaled
-coordinates.
-
-E: Too many total atoms
-
-See the setting for bigint in the src/lmptype.h file.
-
-E: Read dump of atom property that isn't allocated
-
-Self-explanatory.
-
-E: Duplicate fields in read_dump command
-
-Self-explanatory.
-
-E: If read_dump purges it cannot replace or trim
-
-These operations are not compatible.  See the read_dump doc
-page for details.
-
-E: Read_dump cannot use 'add keep' without atom IDs
-
-UNDOCUMENTED
-
-E: Cannot add atoms if dump file does not store atom type
-
-UNDOCUMENTED
-
-U: No box information in dump. You have to use 'box no'
-
-Self-explanatory.
-
-*/

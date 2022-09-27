@@ -38,11 +38,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpAtomMPIIO::DumpAtomMPIIO(LAMMPS *lmp, int narg, char **arg)
-  : DumpAtom(lmp, narg, arg)
+DumpAtomMPIIO::DumpAtomMPIIO(LAMMPS *lmp, int narg, char **arg) : DumpAtom(lmp, narg, arg)
 {
   if (me == 0)
-    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+    error->warning(FLERR, "MPI-IO output is unmaintained and unreliable. Use with caution.");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,22 +71,20 @@ void DumpAtomMPIIO::openfile()
     filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent) + 1];
-        strcpy(nameslist[numfiles], filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent) + 1];
-        strcpy(nameslist[fileidx], filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
   }
 
   if (append_flag) {    // append open
-    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND |
-                            MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifh);
+    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY,
+                            MPI_INFO_NULL, &mpifh);
     if (err != MPI_SUCCESS)
       error->one(FLERR, "Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
 
@@ -100,8 +97,8 @@ void DumpAtomMPIIO::openfile()
 
   } else {    // replace open
 
-    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY,
-                            MPI_INFO_NULL, &mpifh);
+    int err =
+        MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifh);
     if (err != MPI_SUCCESS)
       error->one(FLERR, "Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
 
@@ -214,8 +211,10 @@ void DumpAtomMPIIO::init_style()
   if (format_line_user) {
     format = utils::strdup(std::string(format_line_user) + "\n");
   } else {
-    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
-    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
+    if (image_flag == 0)
+      format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
+    else
+      format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
   }
 
   // setup boundary string
@@ -237,10 +236,12 @@ void DumpAtomMPIIO::init_style()
 
   int icol = 0;
   columns.clear();
-  for (auto item : utils::split_words(default_columns)) {
+  for (const auto &item : utils::split_words(default_columns)) {
     if (columns.size()) columns += " ";
-    if (keyword_user[icol].size()) columns += keyword_user[icol];
-    else columns += item;
+    if (keyword_user[icol].size())
+      columns += keyword_user[icol];
+    else
+      columns += item;
     ++icol;
   }
 

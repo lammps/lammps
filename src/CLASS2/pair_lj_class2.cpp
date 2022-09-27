@@ -484,7 +484,7 @@ void PairLJClass2::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>( update->integrate);
+    auto respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -493,8 +493,8 @@ void PairLJClass2::init_style()
   // set rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style, "^respa") &&
-      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0)
-    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
+      (dynamic_cast<Respa *>(update->integrate))->level_inner >= 0)
+    cut_respa = (dynamic_cast<Respa *>(update->integrate))->cutoff;
   else
     cut_respa = nullptr;
 }
@@ -513,6 +513,7 @@ double PairLJClass2::init_one(int i, int j)
         pow(sigma[j][j], 3.0) / (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0));
     sigma[i][j] = pow((0.5 * (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0))), 1.0 / 6.0);
     cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
+    did_mix = true;
   }
 
   lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j], 9.0);

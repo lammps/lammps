@@ -26,7 +26,7 @@ colvardeps::~colvardeps() {
   if (parents.size()) {
     cvm::log("Warning: destroying \"" + description + "\" before its parents objects:");
     for (i=0; i<parents.size(); i++) {
-      cvm::log(parents[i]->description);
+      cvm::log(parents[i]->description + "\n");
     }
   }
 
@@ -157,10 +157,10 @@ int colvardeps::enable(int feature_id,
     if (!dry_run) {
       if (toplevel) {
         cvm::error("Error: " + feature_type_descr + " feature unavailable: \""
-          + f->description + "\" in " + description + ".");
+          + f->description + "\" in " + description + ".\n");
       } else {
         cvm::log(feature_type_descr + " feature unavailable: \""
-          + f->description + "\" in " + description + ".");
+          + f->description + "\" in " + description + ".\n");
       }
     }
     return COLVARS_ERROR;
@@ -169,7 +169,7 @@ int colvardeps::enable(int feature_id,
   if (!toplevel && !is_dynamic(feature_id)) {
     if (!dry_run) {
       cvm::log(feature_type_descr + " feature \"" + f->description
-        + "\" cannot be enabled automatically in " + description + ".");
+        + "\" cannot be enabled automatically in " + description + ".\n");
       if (is_user(feature_id)) {
         cvm::log("Try setting it manually.\n");
       }
@@ -182,13 +182,13 @@ int colvardeps::enable(int feature_id,
   for (i=0; i<f->requires_exclude.size(); i++) {
     feature *g = features()[f->requires_exclude[i]];
     if (cvm::debug())
-      cvm::log(f->description + " requires exclude " + g->description);
+      cvm::log(f->description + " requires exclude " + g->description + "\n");
     if (is_enabled(f->requires_exclude[i])) {
       if (!dry_run) {
         cvm::log("Feature \"" + f->description + "\" is incompatible with \""
-        + g->description + "\" in " + description + ".");
+        + g->description + "\" in " + description + ".\n");
         if (toplevel) {
-          cvm::error("Error: Failed dependency in " + description + ".");
+          cvm::error("Error: Failed dependency in " + description + ".\n");
         }
       }
       return COLVARS_ERROR;
@@ -198,13 +198,13 @@ int colvardeps::enable(int feature_id,
   // 2) solve internal deps (self)
   for (i=0; i<f->requires_self.size(); i++) {
     if (cvm::debug())
-      cvm::log(f->description + " requires self " + features()[f->requires_self[i]]->description);
+      cvm::log(f->description + " requires self " + features()[f->requires_self[i]]->description + "\n");
     res = enable(f->requires_self[i], dry_run, false);
     if (res != COLVARS_OK) {
       if (!dry_run) {
-        cvm::log("...required by \"" + f->description + "\" in " + description);
+        cvm::log("...required by \"" + f->description + "\" in " + description + "\n");
         if (toplevel) {
-          cvm::error("Error: Failed dependency in " + description + ".");
+          cvm::error("Error: Failed dependency in " + description + ".\n");
         }
       }
       return res;
@@ -219,7 +219,7 @@ int colvardeps::enable(int feature_id,
     for (j=0; j<f->requires_alt[i].size(); j++) {
       int g = f->requires_alt[i][j];
       if (cvm::debug())
-        cvm::log(f->description + " requires alt " + features()[g]->description);
+        cvm::log(f->description + " requires alt " + features()[g]->description + "\n");
       res = enable(g, true, false);  // see if available
       if (res == COLVARS_OK) {
         ok = true;
@@ -239,13 +239,13 @@ int colvardeps::enable(int feature_id,
         cvm::increase_depth();
         for (j=0; j<f->requires_alt[i].size(); j++) {
           int g = f->requires_alt[i][j];
-          cvm::log(cvm::to_str(j+1) + ". " + features()[g]->description);
+          cvm::log(cvm::to_str(j+1) + ". " + features()[g]->description + "\n");
           enable(g, false, false); // Just for printing error output
         }
         cvm::decrease_depth();
         cvm::log("-----------------------------------------\n");
         if (toplevel) {
-          cvm::error("Error: Failed dependency in " + description + ".");
+          cvm::error("Error: Failed dependency in " + description + ".\n");
         }
       }
       return COLVARS_ERROR;
@@ -262,9 +262,9 @@ int colvardeps::enable(int feature_id,
       res = children[j]->enable(g, dry_run || !is_enabled(), false);
       if (res != COLVARS_OK) {
         if (!dry_run) {
-          cvm::log("...required by \"" + f->description + "\" in " + description);
+          cvm::log("...required by \"" + f->description + "\" in " + description + "\n");
           if (toplevel) {
-            cvm::error("Error: Failed dependency in " + description + ".");
+            cvm::error("Error: Failed dependency in " + description + ".\n");
           }
         }
         return res;

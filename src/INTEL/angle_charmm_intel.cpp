@@ -49,12 +49,6 @@ AngleCharmmIntel::AngleCharmmIntel(LAMMPS *lmp) : AngleCharmm(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-AngleCharmmIntel::~AngleCharmmIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AngleCharmmIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -172,10 +166,10 @@ void AngleCharmmIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = anglelist[n].a;
-      const int i2 = anglelist[n].b;
-      const int i3 = anglelist[n].c;
-      const int type = anglelist[n].t;
+      const int i1 = IP_PRE_dword_index(anglelist[n].a);
+      const int i2 = IP_PRE_dword_index(anglelist[n].b);
+      const int i3 = IP_PRE_dword_index(anglelist[n].c);
+      const int type = IP_PRE_dword_index(anglelist[n].t);
 
       // 1st bond
 

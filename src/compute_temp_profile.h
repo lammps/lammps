@@ -34,6 +34,7 @@ class ComputeTempProfile : public Compute {
   void compute_vector() override;
   void compute_array() override;
 
+  void reset_extra_dof() override;
   void remove_bias(int, double *) override;
   void remove_bias_thr(int, double *, double *) override;
   void remove_bias_all() override;
@@ -47,6 +48,7 @@ class ComputeTempProfile : public Compute {
   int nbinx, nbiny, nbinz, nbins;
   int ivx, ivy, ivz;
   double tfactor;
+  double nstreaming;
 
   int box_change, triclinic;
   int *periodicity;
@@ -68,26 +70,3 @@ class ComputeTempProfile : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute temp/profile cannot use vz for 2d systemx
-
-Self-explanatory.
-
-E: Compute temp/profile cannot bin z for 2d systems
-
-Self-explanatory.
-
-E: Temperature compute degrees of freedom < 0
-
-This should not happen if you are calculating the temperature
-on a valid set of atoms.
-
-*/

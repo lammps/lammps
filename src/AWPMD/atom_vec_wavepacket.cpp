@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,8 +19,6 @@
 
 #include "atom.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -32,33 +29,29 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
   molecular = Atom::ATOMIC;
   forceclearflag = 1;
 
-  atom->wavepacket_flag = 1;
-
   atom->electron_flag = 1;    // compatible with eff
-  atom->q_flag = atom->spin_flag = atom->eradius_flag =
-    atom->ervel_flag = atom->erforce_flag = 1;
-  atom->cs_flag = atom->csforce_flag =
-    atom->vforce_flag = atom->ervelforce_flag = atom->etag_flag = 1;
+  atom->wavepacket_flag = atom->q_flag = atom->spin_flag = atom->eradius_flag = 1;
+  atom->ervel_flag = atom->erforce_flag = atom->cs_flag = atom->csforce_flag = 1;
+  atom->vforce_flag = atom->ervelforce_flag = atom->etag_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *)
-    "q spin eradius ervel erforce cs csforce "
-    "vforce ervelforce etag";
-  fields_copy = (char *) "q spin eradius ervel cs etag";
-  fields_comm = (char *) "eradius";
-  fields_comm_vel = (char *) "eradius ervel cs";
-  fields_reverse = (char *) "erforce ervelforce vforce csforce";
-  fields_border = (char *) "q spin eradius etag";
-  fields_border_vel = (char *) "q spin eradius etag ervel cs";
-  fields_exchange = (char *) "q spin eradius ervel etag cs";
-  fields_restart = (char *) "q spin eradius ervel etag cs";
-  fields_create = (char *) "q spin eradius ervel etag cs";
-  fields_data_atom = (char *) "id type q spin eradius etag cs x";
-  fields_data_vel = (char *) "id v ervel";
+  fields_grow = {"q",  "espin",   "eradius", "ervel",      "erforce",
+                 "cs", "csforce", "vforce",  "ervelforce", "etag"};
+  fields_copy = {"q", "espin", "eradius", "ervel", "cs", "etag"};
+  fields_comm = {"eradius"};
+  fields_comm_vel = {"eradius", "ervel", "cs"};
+  fields_reverse = {"erforce", "ervelforce", "vforce", "csforce"};
+  fields_border = {"q", "espin", "eradius", "etag"};
+  fields_border_vel = {"q", "espin", "eradius", "etag", "ervel", "cs"};
+  fields_exchange = {"q", "espin", "eradius", "ervel", "etag", "cs"};
+  fields_restart = {"q", "espin", "eradius", "ervel", "etag", "cs"};
+  fields_create = {"q", "espin", "eradius", "ervel", "etag", "cs"};
+  fields_data_atom = {"id", "type", "q", "espin", "eradius", "etag", "cs", "x"};
+  fields_data_vel = {"id", "v", "ervel"};
 
   setup_fields();
 }
@@ -84,7 +77,7 @@ void AtomVecWavepacket::grow_pointers()
 
 void AtomVecWavepacket::force_clear(int n, size_t nbytes)
 {
-  memset(&erforce[n],0,nbytes);
+  memset(&erforce[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -112,12 +105,13 @@ void AtomVecWavepacket::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecWavepacket::property_atom(char *name)
+int AtomVecWavepacket::property_atom(const std::string &name)
 {
-  if (strcmp(name,"spin") == 0) return 0;
-  if (strcmp(name,"eradius") == 0) return 1;
-  if (strcmp(name,"ervel") == 0) return 2;
-  if (strcmp(name,"erforce") == 0) return 3;
+  if (name == "espin") return 0;
+  if (name == "spin") return 0;    // backward compatibility
+  if (name == "eradius") return 1;
+  if (name == "ervel") return 2;
+  if (name == "erforce") return 3;
   return -1;
 }
 
@@ -126,34 +120,41 @@ int AtomVecWavepacket::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecWavepacket::pack_property_atom(int index, double *buf,
-                                           int nvalues, int groupbit)
+void AtomVecWavepacket::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
   int nlocal = atom->nlocal;
 
   int n = 0;
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = spin[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = spin[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = eradius[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = eradius[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = ervel[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = ervel[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = erforce[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = erforce[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   }

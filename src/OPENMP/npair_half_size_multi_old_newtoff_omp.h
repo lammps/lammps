@@ -37,7 +37,3 @@ class NPairHalfSizeMultiOldNewtoffOmp : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

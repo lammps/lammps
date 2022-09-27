@@ -1,0 +1,24 @@
+Data files in this directory were created using the
+tools/tinker/tinker2lmp.py script as follows:
+
+** water_dimer:
+
+% python tinker2lmp.py -xyz water_dimer.xyz -amoeba amoeba_water.prm -data data.water_dimer.amoeba
+
+% python tinker2lmp.py -xyz water_dimer.xyz -hippo hippo_water.prm -data data.water_dimer.hippo
+
+** water_hexamer:
+
+% python tinker2lmp.py -xyz water_hexamer.xyz -amoeba amoeba_water.prm -data data.water_hexamer.amoeba
+
+% python tinker2lmp.py -xyz water_hexamer.xyz -hippo hippo_water.prm -data data.water_hexamer.hippo
+
+** water_box:
+
+% python tinker2lmp.py -xyz water_box.xyz -amoeba amoeba_water.prm -data data.water_box.amoeba -pbc 18.643 18.643 18.643
+
+% python tinker2lmp.py -xyz water_box.xyz -hippo hippo_water.prm -data data.water_box.hippo -pbc 18.643 18.643 18.643
+
+** ubiquitin:
+
+% python tinker2lmp.py -xyz ubiquitin.xyz -amoeba amoeba_ubiquitin.prm -data data.ubiquitin -pbc 54.99 41.91 41.91 -bitorsion bitorsion.ubiquitin.data

@@ -27,7 +27,7 @@ class Update : protected Pointers {
   bigint ntimestep;              // current step (dynamics or min iterations)
   int nsteps;                    // # of steps to run (dynamics or min iter)
   int whichflag;                 // 0 for unset, 1 for dynamics, 2 for min
-  double atime;                  // simulation time at atime_step
+  double atime;                  // simulation time at atimestep
   bigint atimestep;              // last timestep atime was updated
   bigint firststep, laststep;    // 1st & last step of this run
   bigint beginstep, endstep;     // 1st and last step of multiple runs
@@ -35,7 +35,6 @@ class Update : protected Pointers {
   int max_eval;                  // max force evaluations for minimizer
   int restrict_output;           // 1 if output should not write dump/restart
   int setupflag;                 // set when setup() is computing forces
-  int post_integrate;            // 1 if now at post_integrate() in timestep
   int multireplica;              // 1 if min across replicas, else 0
   int dt_default;                // 1 if dt is at default value, else 0
 
@@ -78,32 +77,3 @@ class Update : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Illegal integrate style
-
-Self-explanatory.
-
-E: Timestep must be >= 0
-
-Specified timestep is invalid.
-
-E: Cannot reset timestep with a time-dependent fix defined
-
-You cannot reset the timestep when a fix that keeps track of elapsed
-time is in place.
-
-E: Cannot reset timestep with a dynamic region defined
-
-Dynamic regions (see the region command) have a time dependence.
-Thus you cannot change the timestep when one or more of these
-are defined.
-
-*/

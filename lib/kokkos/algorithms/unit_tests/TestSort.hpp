@@ -164,8 +164,8 @@ void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
   unsigned int equal_sum =
       (ratio > (1.0 - epsilon)) && (ratio < (1.0 + epsilon)) ? 1 : 0;
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 template <class ExecutionSpace, typename KeyType>
@@ -215,8 +215,8 @@ void test_3D_sort_impl(unsigned int n) {
   if (sort_fails)
     printf("3D Sort Sum: %f %f Fails: %u\n", sum_before, sum_after, sort_fails);
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 //----------------------------------------------------------------------------
@@ -279,8 +279,8 @@ void test_dynamic_view_sort_impl(unsigned int n) {
               << std::endl;
   }
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 //----------------------------------------------------------------------------
@@ -353,6 +353,55 @@ void test_issue_1160_impl() {
   }
 }
 
+template <class ExecutionSpace>
+void test_issue_4978_impl() {
+  Kokkos::View<long long*, ExecutionSpace> element_("element", 9);
+
+  auto h_element = Kokkos::create_mirror_view(element_);
+
+  h_element(0) = LLONG_MIN;
+  h_element(1) = 0;
+  h_element(2) = 3;
+  h_element(3) = 2;
+  h_element(4) = 1;
+  h_element(5) = 3;
+  h_element(6) = 6;
+  h_element(7) = 4;
+  h_element(8) = 3;
+
+  ExecutionSpace exec;
+  Kokkos::deep_copy(exec, element_, h_element);
+
+  Kokkos::sort(exec, element_);
+
+  Kokkos::deep_copy(exec, h_element, element_);
+  exec.fence();
+
+  ASSERT_EQ(h_element(0), LLONG_MIN);
+  ASSERT_EQ(h_element(1), 0);
+  ASSERT_EQ(h_element(2), 1);
+  ASSERT_EQ(h_element(3), 2);
+  ASSERT_EQ(h_element(4), 3);
+  ASSERT_EQ(h_element(5), 3);
+  ASSERT_EQ(h_element(6), 3);
+  ASSERT_EQ(h_element(7), 4);
+  ASSERT_EQ(h_element(8), 6);
+}
+
+template <class ExecutionSpace, class T>
+void test_sort_integer_overflow() {
+  // array with two extrema in reverse order to expose integer overflow bug in
+  // bin calculation
+  T a[2]  = {Kokkos::Experimental::finite_max<T>::value,
+            Kokkos::Experimental::finite_min<T>::value};
+  auto vd = Kokkos::create_mirror_view_and_copy(
+      ExecutionSpace(), Kokkos::View<T[2], Kokkos::HostSpace>(a));
+  Kokkos::sort(vd, /*force using Kokkos bin sort*/ true);
+  auto vh = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), vd);
+  EXPECT_TRUE(std::is_sorted(vh.data(), vh.data() + 2))
+      << "view (" << vh[0] << ", " << vh[1] << ") is not sorted";
+}
+
 //----------------------------------------------------------------------------
 
 template <class ExecutionSpace, typename KeyType>
@@ -376,6 +425,11 @@ void test_issue_1160_sort() {
   test_issue_1160_impl<ExecutionSpace>();
 }
 
+template <class ExecutionSpace>
+void test_issue_4978_sort() {
+  test_issue_4978_impl<ExecutionSpace>();
+}
+
 template <class ExecutionSpace, typename KeyType>
 void test_sort(unsigned int N) {
   test_1D_sort<ExecutionSpace, KeyType>(N);
@@ -385,6 +439,10 @@ void test_sort(unsigned int N) {
   test_dynamic_view_sort<ExecutionSpace, KeyType>(N);
 #endif
   test_issue_1160_sort<ExecutionSpace>();
+  test_issue_4978_sort<ExecutionSpace>();
+  test_sort_integer_overflow<ExecutionSpace, long long>();
+  test_sort_integer_overflow<ExecutionSpace, unsigned long long>();
+  test_sort_integer_overflow<ExecutionSpace, int>();
 }
 }  // namespace Impl
 }  // namespace Test

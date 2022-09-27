@@ -25,7 +25,7 @@ FixStyle(drude/transform/inverse,FixDrudeTransform<true>);
 
 namespace LAMMPS_NS {
 
-template <bool inverse> class FixDrudeTransform: public Fix {
+template <bool inverse> class FixDrudeTransform : public Fix {
  public:
   FixDrudeTransform(class LAMMPS *, int, char **);
   ~FixDrudeTransform() override;

@@ -139,6 +139,24 @@ TEST(Utils, count_words_with_extra_spaces)
     ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
 }
 
+TEST(Utils, join_words)
+{
+    std::vector<std::string> words = {"one", "two", "three"};
+    auto combined                  = utils::join_words(words, " ");
+    ASSERT_THAT(combined, StrEq("one two three"));
+    combined = utils::join_words(words, "");
+    ASSERT_THAT(combined, StrEq("onetwothree"));
+    words[1] = "two ";
+    combined = utils::join_words(words, "__");
+    ASSERT_THAT(combined, StrEq("one__two __three"));
+    words.resize(1);
+    combined = utils::join_words(words, "/");
+    ASSERT_THAT(combined, StrEq("one"));
+    words.emplace_back("");
+    combined = utils::join_words(words, "1");
+    ASSERT_THAT(combined, StrEq("one1"));
+}
+
 TEST(Utils, split_words_simple)
 {
     auto list = utils::split_words("one two three");
@@ -422,6 +440,53 @@ TEST(Utils, invalid_id4)
     ASSERT_FALSE(utils::is_id("a$12"));
 }
 
+TEST(Utils, valid_numeric)
+{
+    ASSERT_EQ(utils::is_type("1"), 0);
+    ASSERT_EQ(utils::is_type("21"), 0);
+    ASSERT_EQ(utils::is_type("05"), 0);
+    ASSERT_EQ(utils::is_type("1*"), 0);
+    ASSERT_EQ(utils::is_type("*2"), 0);
+    ASSERT_EQ(utils::is_type("1*4"), 0);
+}
+
+TEST(Utils, invalid_numeric)
+{
+    ASSERT_EQ(utils::is_type("1*2*"), -1);
+    ASSERT_EQ(utils::is_type("**2"), -1);
+    ASSERT_EQ(utils::is_type("*4*"), -1);
+    ASSERT_EQ(utils::is_type("30**"), -1);
+}
+
+TEST(Utils, valid_label)
+{
+    ASSERT_EQ(utils::is_type("A"), 1);
+    ASSERT_EQ(utils::is_type("c1"), 1);
+    ASSERT_EQ(utils::is_type("o1_"), 1);
+    ASSERT_EQ(utils::is_type("C1'"), 1);
+    ASSERT_EQ(utils::is_type("N2\"-C1'"), 1);
+    ASSERT_EQ(utils::is_type("[N2\"][C1']"), 1);
+    ASSERT_EQ(utils::is_type("@X2=&X1"), 1);
+    ASSERT_EQ(utils::is_type("|Na|Cl|H2O|"), 1);
+    ASSERT_EQ(utils::is_type("CA(1)/CB(1)"), 1);
+    ASSERT_EQ(utils::is_type("A-B"), 1); // ASCII
+    ASSERT_EQ(utils::is_type("A−B"), 1); // UTF-8
+}
+
+TEST(Utils, invalid_label)
+{
+    ASSERT_EQ(utils::is_type("1A"), -1);
+    ASSERT_EQ(utils::is_type("#c"), -1);
+    ASSERT_EQ(utils::is_type("*B"), -1);
+    ASSERT_EQ(utils::is_type(" B"), -1);
+    ASSERT_EQ(utils::is_type("A "), -1);
+    ASSERT_EQ(utils::is_type("A B"), -1);
+    ASSERT_EQ(utils::is_type("\tB"), -1);
+    ASSERT_EQ(utils::is_type("C\n"), -1);
+    ASSERT_EQ(utils::is_type("d\r"), -1);
+    ASSERT_EQ(utils::is_type(""), -1);
+}
+
 TEST(Utils, strmatch_beg)
 {
     ASSERT_TRUE(utils::strmatch("rigid/small/omp", "^rigid"));
@@ -517,6 +582,27 @@ TEST(Utils, strmatch_opt_char)
     ASSERT_FALSE(utils::strmatch("i1_name", "^[cfvid]2?_name"));
     ASSERT_FALSE(utils::strmatch("V_name", "^[cfvid]2?_name"));
     ASSERT_FALSE(utils::strmatch("x_name", "^[cfvid]2?_name"));
+}
+
+TEST(Utils, strmatch_yaml_suffix)
+{
+    ASSERT_TRUE(utils::strmatch("test.yaml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("test.yml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("TEST.YAML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_TRUE(utils::strmatch("TEST.YML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test.yamlx", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test.ymlx", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TEST.YAMLX", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TEST.YMLX", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("testyaml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("testyml", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TESTYAML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("TESTYML", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("yaml.test", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("yml.test", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("YAML.TEST", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("YML.TEST", "\\.[yY][aA]?[mM][lL]$"));
+    ASSERT_FALSE(utils::strmatch("test", "\\.[yY][aA]?[mM][lL]$"));
 }
 
 TEST(Utils, strmatch_dot)
@@ -744,6 +830,12 @@ TEST(Utils, boundsbig_case3)
     utils::bounds(FLERR, "3*:2", -10, 5, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, -1);
     ASSERT_EQ(nhi, -1);
+}
+
+TEST(Utils, errorurl)
+{
+    auto errmesg = utils::errorurl(10);
+    ASSERT_THAT(errmesg, Eq("\nFor more information see https://docs.lammps.org/err0010"));
 }
 
 TEST(Utils, getsyserror)

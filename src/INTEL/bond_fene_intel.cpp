@@ -49,12 +49,6 @@ BondFENEIntel::BondFENEIntel(LAMMPS *lmp) : BondFENE(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-BondFENEIntel::~BondFENEIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void BondFENEIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -169,9 +163,9 @@ void BondFENEIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = bondlist[n].a;
-      const int i2 = bondlist[n].b;
-      const int type = bondlist[n].t;
+      const int i1 = IP_PRE_dword_index(bondlist[n].a);
+      const int i2 = IP_PRE_dword_index(bondlist[n].b);
+      const int type = IP_PRE_dword_index(bondlist[n].t);
 
       const flt_t ir0sq = fc.fc[type].ir0sq;
       const flt_t k = fc.fc[type].k;

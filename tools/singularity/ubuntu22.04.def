@@ -1,0 +1,148 @@
+BootStrap: docker
+From: ubuntu:22.04
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install --no-install-recommends -y software-properties-common gpg gpg-agent
+    add-apt-repository ppa:openkim/latest
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+    apt-get install --no-install-recommends -y \
+        bc \
+        build-essential \
+        ccache \
+        clang \
+        cmake \
+        cmake-curses-gui \
+        curl \
+        doxygen \
+        enchant-2 \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hdf5-tools \
+        less \
+        libblas-dev \
+        libeigen3-dev \
+        libenchant-2-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        libhdf5-serial-dev \
+        libhwloc-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libnetcdf-dev \
+        libomp-dev \
+        libopenblas-dev \
+        libnuma-dev \
+        libpng-dev \
+        libproj-dev \
+        libreadline-dev \
+        libvtk9-dev \
+        libyaml-dev \
+        libzstd-dev \
+        make \
+        mpi-default-bin \
+        mpi-default-dev \
+        ninja-build \
+        python3-dev \
+        python3-pip \
+        python3-pkg-resources \
+        python3-setuptools \
+        python3-virtualenv \
+        python3-venv \
+        rsync \
+        ssh \
+        texlive \
+        texlive-latex-recommended \
+        texlive-formats-extra \
+        texlive-pictures \
+        texlive-publishers \
+        texlive-science \
+        dvipng \
+        latexmk \
+        xindy \
+        vim-nox \
+        virtualenv \
+        voro++-dev \
+        wget \
+        xxd \
+        valgrind \
+        gdb \
+        zstd \
+        libyaml-cpp-dev \
+        libkim-api-dev \
+        openkim-models
+
+    ###########################################################################
+    # KIM-API
+    ###########################################################################
+
+    # workaround for installing files in /usr/share/doc inside of a container
+    sed -i 's/path-exclude=\/usr\/share\/doc/#path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+    apt-get install -y libkim-api-doc
+    sed -i 's/#path-exclude=\/usr\/share\/doc/path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+
+    # install KIM models
+    KIM_API_EXAMPLES=/usr/share/doc/libkim-api-dev/examples
+#    gunzip $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003/LennardJones612_UniversalShifted.params.gz
+#    gunzip $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ/ex_model_driver_P_LJ.f90.gz
+
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/LennardJones612__MD_414112407348_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones_Ar
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/ex_model_Ar_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/simulator-models/Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu
+
+
+    ###########################################################################
+    # Plumed
+    ###########################################################################
+
+    export PLUMED_PKG_VERSION=2.8.0
+
+    mkdir plumed
+    cd plumed
+    curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${PLUMED_PKG_VERSION}/plumed-src-${PLUMED_PKG_VERSION}.tgz
+    tar -xzf plumed.tar.gz
+    cd plumed-${PLUMED_PKG_VERSION}
+    ./configure --disable-doc --prefix=/usr
+    make
+    make install
+    cd ../../
+    rm -rvf plumed
+
+    ###########################################################################
+    # Customizations
+    ###########################################################################
+
+    # set custom prompt indicating the container name
+    CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+    cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[ubuntu22.04:\u@\h] \W> "
+EOF
+    chmod 755 $CUSTOM_PROMPT_ENV
+
+
+    ###########################################################################
+    # Cleanup
+    ###########################################################################
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
+
+%environment
+    LC_ALL=C
+    export LC_ALL
+    export PATH=/usr/lib/ccache:$PATH
+    # tell OpenMPI to not try using Infiniband
+    OMPI_MCA_btl="^openib"
+    # do not warn about unused components as this messes up testing
+    OMPI_MCA_btl_base_warn_component_unused="0"
+    export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
+
+%labels
+    Author akohlmey, rbberger

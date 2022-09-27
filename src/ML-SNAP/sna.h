@@ -56,11 +56,8 @@ class SNA : protected Pointers {
   void compute_duidrj(int);
   void compute_dbidrj();
   void compute_deidrj(double *);
-  double compute_sfac(double, double);
-  double compute_dsfac(double, double);
-
-  double compute_sfac_inner(double, double, double);
-  double compute_dsfac_inner(double, double, double);
+  double compute_sfac(double, double, double, double);
+  double compute_dsfac(double, double, double, double);
 
   // public bispectrum data
 
@@ -71,21 +68,21 @@ class SNA : protected Pointers {
   // short neighbor list data
 
   void grow_rij(int);
-  int nmax;         // allocated size of short lists
+  int nmax;    // allocated size of short lists
 
-  double **rij;     // short rij list
-  int *inside;      // short neighbor list
-  double *wj;       // short weight list
-  double *rcutij;   // short cutoff list
+  double **rij;      // short rij list
+  int *inside;       // short neighbor list
+  double *wj;        // short weight list
+  double *rcutij;    // short cutoff list
 
   // only allocated for switch_inner_flag=1
 
-  double *rinnerij; // short inner cutoff list
-  double *drinnerij;// short inner range list
+  double *sinnerij;    // short inner cutoff midpoint list
+  double *dinnerij;    // short inner half-width list
 
   // only allocated for chem_flag=1
 
-  int *element;     // short element list [0,nelements)
+  int *element;    // short element list [0,nelements)
 
  private:
   double rmin0, rfac0;
@@ -100,7 +97,7 @@ class SNA : protected Pointers {
   int ***idxcg_block;
 
   double *ulisttot_r, *ulisttot_i;
-  double **ulist_r_ij, **ulist_i_ij; // short u list
+  double **ulist_r_ij, **ulist_i_ij;    // short u list
   int *idxu_block;
 
   double *zlist_r, *zlist_i;
@@ -124,8 +121,7 @@ class SNA : protected Pointers {
   void compute_uarray(double, double, double, double, double, int);
   double deltacg(int, int, int);
   void compute_ncoeff();
-  void compute_duarray(double, double, double, double, double, double,
-                       double, double, int);
+  void compute_duarray(double, double, double, double, double, double, double, double, int);
 
   // Sets the style for the switching function
   // 0 = none
@@ -153,12 +149,3 @@ class SNA : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid argument to factorial %d
-
-N must be >= 0 and <= 167, otherwise the factorial result is too
-large.
-
-*/

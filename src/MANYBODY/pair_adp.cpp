@@ -76,6 +76,8 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
 
 PairADP::~PairADP()
 {
+  if (copymode) return;
+
   memory->destroy(rho);
   memory->destroy(fp);
   memory->destroy(mu);
@@ -556,14 +558,8 @@ void PairADP::read_file(char *filename)
         error->one(FLERR,"Incorrect element names in ADP potential file");
 
       file->elements = new char*[file->nelements];
-      for (int i = 0; i < file->nelements; i++) {
-        const std::string word = values.next_string();
-        const int n = word.length() + 1;
-        file->elements[i] = new char[n];
-        strcpy(file->elements[i], word.c_str());
-      }
-
-      //
+      for (int i = 0; i < file->nelements; i++)
+        file->elements[i] = utils::strdup(values.next_string());
 
       values = reader.next_values(5);
       file->nrho = values.next_int();

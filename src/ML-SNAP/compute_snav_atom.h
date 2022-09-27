@@ -37,7 +37,7 @@ class ComputeSNAVAtom : public Compute {
 
  private:
   int nmax;
-  int ncoeff, nperdim;
+  int ncoeff, nvalues;
   double **cutsq;
   class NeighList *list;
   double **snav;
@@ -47,9 +47,10 @@ class ComputeSNAVAtom : public Compute {
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
   int switchinnerflag;
-  double *rinnerelem;
-  double *drinnerelem;
+  double *sinnerelem;
+  double *dinnerelem;
   class SNA *snaptr;
+  double cutmax;
   int quadraticflag;
 };
 
@@ -57,25 +58,3 @@ class ComputeSNAVAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute snav/atom requires a pair style be defined
-
-Self-explanatory.
-
-E: Compute snav/atom cutoff is longer than pairwise cutoff
-
-Self-explanatory.
-
-W: More than one compute snav/atom
-
-Self-explanatory.
-
-*/

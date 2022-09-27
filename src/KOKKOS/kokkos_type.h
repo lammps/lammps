@@ -21,7 +21,6 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
 #include <Kokkos_Timer.hpp>
-#include <Kokkos_Vectorization.hpp>
 #include <Kokkos_ScatterView.hpp>
 #include <Kokkos_UnorderedMap.hpp>
 
@@ -1284,13 +1283,28 @@ struct alignas(2*sizeof(real_type_)) SNAComplex
   static constexpr complex one() { return complex(static_cast<real_type>(1.), static_cast<real_type>(0.)); }
 
   KOKKOS_INLINE_FUNCTION
-  const complex conj() { return complex(re, -im); }
+  const complex conj() const { return complex(re, -im); }
 
+  KOKKOS_INLINE_FUNCTION
+  const real_type real_part_product(const complex &cm2) { return re * cm2.re - im * cm2.im; }
+
+  KOKKOS_INLINE_FUNCTION
+  const real_type real_part_product(const real_type &r) const { return re * r; }
 };
 
 template <typename real_type>
 KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real_type> operator*(const real_type& r, const SNAComplex<real_type>& self) {
   return SNAComplex<real_type>(r*self.re, r*self.im);
+}
+
+template <typename real_type>
+KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real_type> operator*(const SNAComplex<real_type>& self, const real_type& r) {
+  return SNAComplex<real_type>(r*self.re, r*self.im);
+}
+
+template <typename real_type>
+KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real_type> operator*(const SNAComplex<real_type>& self, const SNAComplex<real_type>& cm2) {
+  return SNAComplex<real_type>(self.re*cm2.re - self.im*cm2.im, self.re*cm2.im + self.im*cm2.re);
 }
 
 typedef SNAComplex<SNAreal> SNAcomplex;

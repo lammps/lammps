@@ -98,11 +98,3 @@ class CommBrick : public Comm {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot change to comm_style brick from tiled layout
-
-Self-explanatory.
-
-*/

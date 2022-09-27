@@ -83,6 +83,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   int expand = 0;
   char **earg;
   nvalues = utils::expand_args(FLERR,nvalues,&arg[6],mode,earg,lmp);
+  keyword.resize(nvalues);
+  key2col.clear();
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;
@@ -98,6 +100,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < nvalues; i++) {
     ArgInfo argi(arg[i]);
+    keyword[i] = arg[i];
+    key2col[arg[i]] = i;
 
     if ((argi.get_type() == ArgInfo::NONE)
         || (argi.get_type() == ArgInfo::UNKNOWN)
@@ -269,9 +273,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       for (int i = 0; i < nvalues; i++) fprintf(fp," %s",earg[i]);
       fprintf(fp,"\n");
     }
-    if (ferror(fp))
-      error->one(FLERR,"Error writing file header");
-
+    if (yaml_flag) fputs("---\n",fp);
+    if (ferror(fp)) error->one(FLERR,"Error writing file header: {}", utils::getsyserror());
     filepos = platform::ftell(fp);
   }
 
@@ -456,8 +459,10 @@ FixAveTime::~FixAveTime()
 
   delete[] extlist;
 
-  if (fp && me == 0) fclose(fp);
-
+  if (fp && me == 0) {
+    if (yaml_flag) fputs("...\n", fp);
+    fclose(fp);
+  }
   memory->destroy(column);
 
   delete[] vector;
@@ -669,11 +674,22 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   if (fp && me == 0) {
     clearerr(fp);
     if (overwrite) platform::fseek(fp,filepos);
-    fmt::print(fp,"{}",ntimestep);
-    for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
-    fprintf(fp,"\n");
-    if (ferror(fp)) error->one(FLERR,"Error writing out time averaged data");
-
+    if (yaml_flag) {
+      if (!yaml_header || overwrite) {
+        yaml_header = true;
+        fputs("keywords: ['Step', ", fp);
+        for (const auto &k : keyword) fmt::print(fp, "'{}', ", k);
+        fputs("]\ndata:\n", fp);
+      }
+      fmt::print(fp, "  - [{}, ", ntimestep);
+      for (i = 0; i < nvalues; i++) fmt::print(fp,"{}, ",vector_total[i]/norm);
+      fputs("]\n", fp);
+    } else {
+      fmt::print(fp,"{}",ntimestep);
+      for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
+      fprintf(fp,"\n");
+      if (ferror(fp)) error->one(FLERR,"Error writing out time averaged data");
+    }
     fflush(fp);
 
     if (overwrite) {
@@ -880,11 +896,26 @@ void FixAveTime::invoke_vector(bigint ntimestep)
 
   if (fp && me == 0) {
     if (overwrite) platform::fseek(fp,filepos);
-    fmt::print(fp,"{} {}\n",ntimestep,nrows);
-    for (i = 0; i < nrows; i++) {
-      fprintf(fp,"%d",i+1);
-      for (j = 0; j < nvalues; j++) fprintf(fp,format,array_total[i][j]/norm);
-      fprintf(fp,"\n");
+    if (yaml_flag) {
+      if (!yaml_header || overwrite) {
+        yaml_header = true;
+        fputs("keywords: [", fp);
+        for (const auto &k : keyword) fmt::print(fp, "'{}', ", k);
+        fputs("]\ndata:\n", fp);
+      }
+      fmt::print(fp, "  {}:\n", ntimestep);
+      for (i = 0; i < nrows; i++) {
+        fputs("  - [", fp);
+        for (j = 0; j < nvalues; j++) fmt::print(fp,"{}, ",array_total[i][j]/norm);
+        fputs("]\n", fp);
+      }
+    } else {
+      fmt::print(fp,"{} {}\n",ntimestep,nrows);
+      for (i = 0; i < nrows; i++) {
+        fprintf(fp,"%d",i+1);
+        for (j = 0; j < nvalues; j++) fprintf(fp,format,array_total[i][j]/norm);
+        fprintf(fp,"\n");
+      }
     }
     fflush(fp);
     if (overwrite) {
@@ -995,6 +1026,34 @@ double FixAveTime::compute_array(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
+   modify settings
+------------------------------------------------------------------------- */
+
+int FixAveTime::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0], "colname") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "fix_modify colname", error);
+    int icol = -1;
+    if (utils::is_integer(arg[1])) {
+      icol = utils::inumeric(FLERR, arg[1], false, lmp);
+      if (icol < 0) icol = keyword.size() + icol + 1;
+      icol--;
+    } else {
+      try {
+        icol = key2col.at(arg[1]);
+      } catch (std::out_of_range &) {
+        icol = -1;
+      }
+    }
+    if ((icol < 0) || (icol >= (int) keyword.size()))
+      error->all(FLERR, "Thermo_modify colname column {} invalid", arg[1]);
+    keyword[icol] = arg[2];
+    return 3;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    parse optional args
 ------------------------------------------------------------------------- */
 
@@ -1009,6 +1068,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   noff = 0;
   offlist = nullptr;
   overwrite = 0;
+  yaml_flag = yaml_header = false;
   format_user = nullptr;
   format = (char *) " %g";
   title1 = nullptr;
@@ -1020,11 +1080,12 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      yaml_flag = utils::strmatch(arg[iarg+1],"\\.[yY][aA]?[mM][lL]$");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
           error->one(FLERR,"Cannot open fix ave/time file {}: {}",
-                                       arg[iarg+1], utils::getsyserror());
+                     arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {

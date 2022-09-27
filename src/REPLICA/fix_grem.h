@@ -50,35 +50,3 @@ class FixGrem : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix grem does not exist
-
-Self-explanatory.
-
-E: Variable name for fix grem does not exist
-
-Self-explanatory.
-
-E: Variable for fix grem is invalid style
-
-Self-explanatory.
-
-E: Cannot use variable energy with constant force in fix grem
-
-This is because for constant force, LAMMPS can compute the change
-in energy directly.
-
-E: Must use variable energy with fix grem
-
-Must define an energy variable when applying a dynamic
-force during minimization.
-
-*/

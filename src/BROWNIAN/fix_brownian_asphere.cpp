@@ -56,7 +56,7 @@ FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 void FixBrownianAsphere::init()
 {
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR, "Compute brownian/asphere requires atom style ellipsoid");
 
   // check that all particles are finite-size ellipsoids
@@ -157,7 +157,6 @@ void FixBrownianAsphere::initial_integrate(int /*vflag */)
       }
     }
   }
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -297,6 +296,4 @@ void FixBrownianAsphere::initial_integrate_templated()
       }
     }
   }
-
-  return;
 }

@@ -8,8 +8,8 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.3.2.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "836f5da400d8cff0f0e4435640f9454f" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.12.tar.gz" CACHE STRING "URL for MDI tarball")
+  set(MDI_MD5 "7a222353ae8e03961d5365e6cd48baee" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
   enable_language(C)
@@ -26,8 +26,21 @@ if(DOWNLOAD_MDI)
   # detect if we have python development support and thus can enable python plugins
   set(MDI_USE_PYTHON_PLUGINS OFF)
   if(CMAKE_VERSION VERSION_LESS 3.12)
+    if(NOT PYTHON_VERSION_STRING)
+      set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
+      # search for interpreter first, so we have a consistent library
+      find_package(PythonInterp) # Deprecated since version 3.12
+      if(PYTHONINTERP_FOUND)
+        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+      endif()
+    endif()
+    # search for the library matching the selected interpreter
+    set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
     find_package(PythonLibs QUIET) # Deprecated since version 3.12
     if(PYTHONLIBS_FOUND)
+      if(NOT (PYTHON_VERSION_STRING STREQUAL PYTHONLIBS_VERSION_STRING))
+        message(FATAL_ERROR "Python Library version ${PYTHONLIBS_VERSION_STRING} does not match Interpreter version ${PYTHON_VERSION_STRING}")
+      endif()
       set(MDI_USE_PYTHON_PLUGINS ON)
     endif()
   else()
@@ -44,15 +57,17 @@ if(DOWNLOAD_MDI)
   ExternalProject_Add(mdi_build
     URL     ${MDI_URL}
     URL_MD5 ${MDI_MD5}
-    CMAKE_ARGS ${CMAKE_REQUEST_PIC}
+    CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     -Dlanguage=C
     -Dlibtype=STATIC
     -Dmpi=${MDI_USE_MPI}
+    -Dplugins=ON
     -Dpython_plugins=${MDI_USE_PYTHON_PLUGINS}
     UPDATE_COMMAND ""
     INSTALL_COMMAND ""

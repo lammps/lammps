@@ -26,6 +26,7 @@
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "mpiio.h"
@@ -60,7 +61,7 @@ void WriteRestart::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Write_restart command before simulation box is defined");
-  if (narg < 1) error->all(FLERR,"Illegal write_restart command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "write_restart", error);
 
   // if filename contains a "*", replace with current timestep
 
@@ -118,8 +119,7 @@ void WriteRestart::command(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
-                                     int narg, char **arg)
+void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller, int narg, char **arg)
 {
   multiproc = multiproc_caller;
   mpiioflag = mpiioflag_caller;
@@ -127,14 +127,12 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
   // error checks
 
   if (multiproc && mpiioflag)
-    error->all(FLERR,
-               "Restart file MPI-IO output not allowed with % in filename");
+    error->all(FLERR,"Restart file MPI-IO output not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);
     if (!mpiio->mpiio_exists)
-      error->all(FLERR,"Writing to MPI-IO filename when "
-                 "MPIIO package is not installed");
+      error->all(FLERR,"Writing to MPI-IO filename when MPIIO package is not installed");
   }
 
   // defaults for multiproc file writing
@@ -156,12 +154,11 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"fileper") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "write_restart", error);
       if (!multiproc)
-        error->all(FLERR,"Cannot use write_restart fileper "
-                   "without % in restart file name");
+        error->all(FLERR,"Cannot use write_restart fileper without % in restart file name");
       int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
+      if (nper <= 0) error->all(FLERR,"Invalue write_restart fileper value {}:", nper);
 
       multiproc = nprocs/nper;
       if (nprocs % nper) multiproc++;
@@ -174,12 +171,11 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"nfile") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal write_restart command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "write_restart nfile", error);
       if (!multiproc)
-        error->all(FLERR,"Cannot use write_restart nfile "
-                   "without % in restart file name");
+        error->all(FLERR,"Cannot use write_restart nfile without % in restart file name");
       int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
+      if (nfile <= 0) error->all(FLERR,"Invalid write_restart nfile value {}", nfile);
       nfile = MIN(nfile,nprocs);
 
       multiproc = nfile;
@@ -199,7 +195,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
     } else if (strcmp(arg[iarg],"noinit") == 0) {
       noinit = 1;
       iarg++;
-    } else error->all(FLERR,"Illegal write_restart command");
+    } else error->all(FLERR,"Unknown write_restart keyword: {}", arg[iarg]);
   }
 }
 
@@ -225,7 +221,8 @@ void WriteRestart::write(const std::string &file)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && output->thermo->lostflag == Thermo::ERROR)
-    error->all(FLERR,"Atom count is inconsistent, cannot write restart file");
+    error->all(FLERR,"Atom count is inconsistent: {} vs {}, cannot write restart file",
+               natoms, atom->natoms);
 
   // open single restart file or base file for multiproc case
 
@@ -235,8 +232,7 @@ void WriteRestart::write(const std::string &file)
 
     fp = fopen(base.c_str(),"wb");
     if (fp == nullptr)
-      error->one(FLERR, "Cannot open restart file {}: {}",
-                                    base, utils::getsyserror());
+      error->one(FLERR, "Cannot open restart file {}: {}", base, utils::getsyserror());
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -298,8 +294,7 @@ void WriteRestart::write(const std::string &file)
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
       if (fp == nullptr)
-        error->one(FLERR, "Cannot open restart file {}: {}",
-                                      multiname, utils::getsyserror());
+        error->one(FLERR, "Cannot open restart file {}: {}", multiname, utils::getsyserror());
       write_int(PROCSPERFILE,nclusterprocs);
     }
   }
@@ -510,6 +505,11 @@ void WriteRestart::header()
   write_bigint(NTRIS,atom->ntris);
   write_bigint(NBODIES,atom->nbodies);
 
+  // write out current simulation time. added 3 May 2022
+
+  write_bigint(ATIMESTEP,update->atimestep);
+  write_double(ATIME,update->atime);
+
   // -1 flag signals end of header
 
   int flag = -1;
@@ -523,6 +523,10 @@ void WriteRestart::header()
 void WriteRestart::type_arrays()
 {
   if (atom->mass) write_double_vec(MASS,atom->ntypes,&atom->mass[1]);
+  if (atom->labelmapflag) {
+    write_int(LABELMAP,atom->labelmapflag);
+    atom->lmap->write_restart(fp);
+  }
 
   // -1 flag signals end of type arrays
 

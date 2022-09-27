@@ -184,7 +184,7 @@ void PerfectGasEOS(const double gamma, const double vol, const double mass, cons
  input: dt: time-step
  output:  sigmaFinal_dev, sigmaFinal_dev_rate__: final stress deviator and its rate.
  ------------------------------------------------------------------------- */
-void LinearStrength(const double mu, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, const double dt,
+void LinearStrength(const double mu, const Matrix3d& sigmaInitial_dev, const Matrix3d& d_dev, const double dt,
                 Matrix3d &sigmaFinal_dev__, Matrix3d &sigma_dev_rate__) {
 
         /*
@@ -242,7 +242,7 @@ void LinearStrength(const double mu, const Matrix3d sigmaInitial_dev, const Matr
  input: dt: time-step
  output:  sigmaFinal_dev, sigmaFinal_dev_rate__: final stress deviator and its rate.
  ------------------------------------------------------------------------- */
-void LinearPlasticStrength(const double G, const double yieldStress, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev,
+void LinearPlasticStrength(const double G, const double yieldStress, const Matrix3d& sigmaInitial_dev, const Matrix3d& d_dev,
                 const double dt, Matrix3d &sigmaFinal_dev__, Matrix3d &sigma_dev_rate__, double &plastic_strain_increment) {
 
         Matrix3d sigmaTrial_dev, dev_rate;
@@ -314,7 +314,7 @@ void LinearPlasticStrength(const double G, const double yieldStress, const Matri
  ------------------------------------------------------------------------- */
 void JohnsonCookStrength(const double G, const double cp, const double espec, const double A, const double B, const double a,
                 const double C, const double epdot0, const double T0, const double Tmelt, const double /*M*/, const double dt, const double ep,
-                const double epdot, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, Matrix3d &sigmaFinal_dev__,
+                const double epdot, const Matrix3d& sigmaInitial_dev, const Matrix3d& d_dev, Matrix3d &sigmaFinal_dev__,
                 Matrix3d &sigma_dev_rate__, double &plastic_strain_increment) {
 
         Matrix3d sigmaTrial_dev, dev_rate;
@@ -386,7 +386,7 @@ void JohnsonCookStrength(const double G, const double cp, const double espec, co
 
  ------------------------------------------------------------------------- */
 
-bool IsotropicMaxStrainDamage(const Matrix3d E, const double maxStrain) {
+bool IsotropicMaxStrainDamage(const Matrix3d& E, const double maxStrain) {
 
         /*
          * compute Eigenvalues of strain matrix
@@ -396,11 +396,7 @@ bool IsotropicMaxStrainDamage(const Matrix3d E, const double maxStrain) {
 
         double max_eigenvalue = es.eigenvalues().maxCoeff();
 
-        if (max_eigenvalue > maxStrain) {
-                return true;
-        } else {
-                return false;
-        }
+        return max_eigenvalue > maxStrain;
 }
 
 /* ----------------------------------------------------------------------
@@ -414,7 +410,7 @@ bool IsotropicMaxStrainDamage(const Matrix3d E, const double maxStrain) {
 
  ------------------------------------------------------------------------- */
 
-bool IsotropicMaxStressDamage(const Matrix3d S, const double maxStress) {
+bool IsotropicMaxStressDamage(const Matrix3d& S, const double maxStress) {
 
         /*
          * compute Eigenvalues of strain matrix
@@ -424,11 +420,7 @@ bool IsotropicMaxStressDamage(const Matrix3d S, const double maxStress) {
 
         double max_eigenvalue = es.eigenvalues().maxCoeff();
 
-        if (max_eigenvalue > maxStress) {
-                return true;
-        } else {
-                return false;
-        }
+        return max_eigenvalue > maxStress;
 }
 
 /* ----------------------------------------------------------------------
@@ -441,7 +433,7 @@ bool IsotropicMaxStressDamage(const Matrix3d S, const double maxStress) {
 
  ------------------------------------------------------------------------- */
 
-double JohnsonCookFailureStrain(const double p, const Matrix3d Sdev, const double d1, const double d2, const double d3,
+double JohnsonCookFailureStrain(const double p, const Matrix3d& Sdev, const double d1, const double d2, const double d3,
                 const double d4, const double epdot0, const double epdot) {
 
 

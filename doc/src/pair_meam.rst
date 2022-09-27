@@ -1,7 +1,10 @@
 .. index:: pair_style meam
+.. index:: pair_style meam/kk
 
 pair_style meam command
 =========================
+
+Accelerator Variants: *meam/kk*
 
 Syntax
 """"""
@@ -235,6 +238,7 @@ The recognized keywords for the parameter file are as follows:
                    lin = linear structure (180 degree angle)
                    zig = zigzag structure with a uniform angle
                    tri = H2O-like structure that has an angle
+                   sc  = simple cubic
    nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
                  I-J pair (see for example :ref:`(Lee) <Lee>`).
                    0 = second-nearest neighbor formulation off
@@ -346,6 +350,12 @@ this function is:
 Most published MEAM parameter sets use the default values *attrac* = *repulse* = 0.
 Setting *repuls* = *attrac* = *delta* corresponds to the form used in several
 recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 .. note::
 

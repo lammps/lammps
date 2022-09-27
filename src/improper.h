@@ -25,7 +25,8 @@ class Improper : protected Pointers {
  public:
   int allocated;
   int *setflag;
-  int writedata;             // 1 if writes coeffs to data file
+  int writedata;    // 1 if writes coeffs to data file
+  int born_matrix_enable;
   double energy;             // accumulated energies
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
@@ -47,7 +48,7 @@ class Improper : protected Pointers {
   virtual void init();
   virtual void init_style() {}
   virtual void compute(int, int) = 0;
-  virtual void settings(int, char **) {}
+  virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
@@ -55,6 +56,12 @@ class Improper : protected Pointers {
   virtual void read_restart_settings(FILE *){};
   virtual void write_data(FILE *) {}
   virtual double memory_usage();
+  virtual void born_matrix(int /*dtype*/, int /*at1*/, int /*at2*/, int /*at3*/, int /*at4*/,
+                           double &du, double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
 
  protected:
   int suffix_flag;    // suffix compatibility flag
@@ -81,17 +88,3 @@ class Improper : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Improper coeffs are not set
-
-No improper coefficients have been assigned in the data file or via
-the improper_coeff command.
-
-E: All improper coeffs are not set
-
-All improper coefficients must be set in the data file or by the
-improper_coeff command before running a simulation.
-
-*/

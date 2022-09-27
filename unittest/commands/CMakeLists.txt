@@ -21,6 +21,23 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
+add_executable(test_regions test_regions.cpp)
+target_link_libraries(test_regions PRIVATE lammps GTest::GMock)
+add_test(NAME Regions COMMAND test_regions)
+
+add_executable(test_delete_atoms test_delete_atoms.cpp)
+target_link_libraries(test_delete_atoms PRIVATE lammps GTest::GMock)
+add_test(NAME DeleteAtoms COMMAND test_delete_atoms)
+
+add_executable(test_set_property test_set_property.cpp)
+target_link_libraries(test_set_property PRIVATE lammps GTest::GMock)
+add_test(NAME SetProperty COMMAND test_set_property)
+
+add_executable(test_labelmap test_labelmap.cpp)
+target_compile_definitions(test_labelmap PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_labelmap PRIVATE lammps GTest::GMock)
+add_test(NAME Labelmap COMMAND test_labelmap)
+
 add_executable(test_variables test_variables.cpp)
 target_link_libraries(test_variables PRIVATE lammps GTest::GMock)
 add_test(NAME Variables COMMAND test_variables)

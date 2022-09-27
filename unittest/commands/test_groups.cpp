@@ -122,13 +122,13 @@ TEST_F(GroupTest, EmptyDelete)
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new2 delete xxx"););
     TEST_FAILURE(".*ERROR: Cannot delete group all.*", command("group all delete"););
     TEST_FAILURE(".*ERROR: Could not find group delete.*", command("group new0 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a fix.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new2 currently used by fix.*",
                  command("group new2 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a compute.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new3 currently used by compute.*",
                  command("group new3 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a dump.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new4 currently used by dump.*",
                  command("group new4 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by atom_modify.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new5 currently used by atom_modify.*",
                  command("group new5 delete"););
 }
 
@@ -151,7 +151,8 @@ TEST_F(GroupTest, RegionClear)
     ASSERT_EQ(group->count_all(), lmp->atom->natoms);
 
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three region left xxx"););
-    TEST_FAILURE(".*ERROR: Group region ID does not exist.*", command("group four region dummy"););
+    TEST_FAILURE(".*ERROR: Group region dummy does not exist.*",
+                 command("group four region dummy"););
 
     BEGIN_HIDE_OUTPUT();
     command("group one clear");
@@ -196,8 +197,8 @@ TEST_F(GroupTest, SelectRestart)
     ASSERT_EQ(group->count(group->find("four")), 32);
     ASSERT_EQ(group->count(group->find("five")), 16);
     ASSERT_EQ(group->count(group->find("six")), 8);
-    ASSERT_EQ(group->count(group->find("half"), domain->find_region("top")), 8);
-    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 8.0);
+    ASSERT_EQ(group->count(group->find("half"), domain->get_region_by_id("top")), 8);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->get_region_by_id("top")), 8.0);
 
     BEGIN_HIDE_OUTPUT();
     command("write_restart group.restart");
@@ -243,9 +244,9 @@ TEST_F(GroupTest, Molecular)
     ASSERT_EQ(group->count(group->find("two")), 16);
     ASSERT_EQ(group->count(group->find("three")), 15);
     ASSERT_DOUBLE_EQ(group->mass(group->find("half")), 40);
-    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 10);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->get_region_by_id("top")), 10);
     ASSERT_NEAR(group->charge(group->find("top")), 0, 1.0e-14);
-    ASSERT_NEAR(group->charge(group->find("right"), domain->find_region("top")), 0, 1.0e-14);
+    ASSERT_NEAR(group->charge(group->find("right"), domain->get_region_by_id("top")), 0, 1.0e-14);
 
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three include xxx"););
 }
@@ -315,13 +316,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

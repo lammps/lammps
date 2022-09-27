@@ -49,6 +49,8 @@ int MinCGKokkos::iterate(int maxiter)
   fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
   fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
 
+  atomKK->sync(Device,F_MASK);
+
   // nlimit = max # of CG iterations before restarting
   // set to ndoftotal unless too big
 

@@ -2,11 +2,11 @@ BootStrap: docker
 From: ubuntu:18.04
 
 %environment
-    export PATH=/usr/lib/ccache:/usr/local/cuda-11.5/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    export CUDADIR=/usr/local/cuda-11.5
-    export CUDA_PATH=/usr/local/cuda-11.5
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.5/lib64:/opt/rocm/lib:/opt/rocm-4.5.0/llvm/lib
-    export LIBRARY_PATH=/usr/local/cuda-11.5/lib64/stubs
+    export PATH=/usr/lib/ccache:/usr/local/cuda-11.7/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export CUDADIR=/usr/local/cuda-11.7
+    export CUDA_PATH=/usr/local/cuda-11.7
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.7/lib64:/opt/rocm/lib:/opt/rocm-5.1.3/llvm/lib
+    export LIBRARY_PATH=/usr/local/cuda-11.7/lib64/stubs
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
@@ -27,8 +27,8 @@ From: ubuntu:18.04
     ###########################################################################
     # ROCm 4.5
     ###########################################################################
-    wget https://repo.radeon.com/amdgpu-install/21.40/ubuntu/focal/amdgpu-install-21.40.40500-1_all.deb
-    apt-get install -y ./amdgpu-install-21.40.40500-1_all.deb
+    wget https://repo.radeon.com/amdgpu-install/22.10.3/ubuntu/focal/amdgpu-install_22.10.3.50103-1_all.deb
+    apt-get install -y ./amdgpu-install_22.10.3.50103-1_all.deb
 
     apt-get update
     apt-get install --no-install-recommends -y \
@@ -122,11 +122,11 @@ From: ubuntu:18.04
 
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
     mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub
     add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
     apt-get update
 
-    export CUDA_PKG_VERSION=11.5
+    export CUDA_PKG_VERSION=11.7
 
     apt-get install -y --no-install-recommends \
         cuda-libraries-${CUDA_PKG_VERSION} \
@@ -174,7 +174,7 @@ From: ubuntu:18.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.7.3
+    export PLUMED_PKG_VERSION=2.8.0
 
     mkdir plumed
     cd plumed

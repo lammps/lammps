@@ -381,7 +381,7 @@ static int *buf = nullptr;
  | with some routines to assist in this task (those are marked
  | static and cannot be called from user programs)
 */
-#define MAXABS INT_MAX-2
+#define MAXABS (float)(INT_MAX-2)
 
 #ifndef SQR
 #define SQR(x) ((x)*(x))
@@ -433,10 +433,10 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
     return 0;
   }
   if (*type == 'w' || *type == 'W') {
-    type = (char *) "w+";
+    type = (char *) "wb+";
     lmode = XDR_ENCODE;
   } else {
-    type = (char *) "r";
+    type = (char *) "rb";
     lmode = XDR_DECODE;
   }
   xdrfiles[xdrid] = fopen(filename, type);

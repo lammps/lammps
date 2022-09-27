@@ -24,7 +24,7 @@
 using namespace LAMMPS_NS;
 
 ZstdFileWriter::ZstdFileWriter() :
-    FileWriter(), compression_level(0), checksum_flag(1), cctx(nullptr), fp(nullptr)
+    compression_level(0), checksum_flag(1), cctx(nullptr), fp(nullptr)
 {
   out_buffer_size = ZSTD_CStreamOutSize();
   out_buffer = new char[out_buffer_size];

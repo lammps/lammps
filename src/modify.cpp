@@ -51,20 +51,22 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   nfix = maxfix = 0;
   n_initial_integrate = n_post_integrate = 0;
   n_pre_exchange = n_pre_neighbor = n_post_neighbor = 0;
-  n_pre_force = n_pre_reverse = n_post_force = 0;
+  n_pre_force = n_pre_reverse = n_post_force_any = 0;
   n_final_integrate = n_end_of_step = 0;
   n_energy_couple = n_energy_global = n_energy_atom = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
-  n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
+  n_pre_force_respa = n_post_force_respa_any = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
   n_min_post_force = n_min_energy = 0;
+
   n_timeflag = -1;
 
   fix = nullptr;
   fmask = nullptr;
   list_initial_integrate = list_post_integrate = nullptr;
   list_pre_exchange = list_pre_neighbor = list_post_neighbor = nullptr;
-  list_pre_force = list_pre_reverse = list_post_force = nullptr;
+  list_pre_force = list_pre_reverse = nullptr;
+  list_post_force = list_post_force_group = nullptr;
   list_final_integrate = list_end_of_step = nullptr;
   list_energy_couple = list_energy_global = list_energy_atom = nullptr;
   list_initial_integrate_respa = list_post_integrate_respa = nullptr;
@@ -139,6 +141,7 @@ Modify::~Modify()
   delete[] list_pre_force;
   delete[] list_pre_reverse;
   delete[] list_post_force;
+  delete[] list_post_force_group;
   delete[] list_final_integrate;
   delete[] list_end_of_step;
   delete[] list_energy_couple;
@@ -221,6 +224,7 @@ void Modify::init()
   list_init(PRE_FORCE, n_pre_force, list_pre_force);
   list_init(PRE_REVERSE, n_pre_reverse, list_pre_reverse);
   list_init(POST_FORCE, n_post_force, list_post_force);
+  list_init_post_force_group(n_post_force_group, list_post_force_group);
   list_init(FINAL_INTEGRATE, n_final_integrate, list_final_integrate);
   list_init_end_of_step(END_OF_STEP, n_end_of_step, list_end_of_step);
   list_init_energy_couple(n_energy_couple, list_energy_couple);
@@ -240,6 +244,11 @@ void Modify::init()
   list_init(MIN_PRE_REVERSE, n_min_pre_reverse, list_min_pre_reverse);
   list_init(MIN_POST_FORCE, n_min_post_force, list_min_post_force);
   list_init(MIN_ENERGY, n_min_energy, list_min_energy);
+
+  // two post_force_any counters used by integrators add in post_force_group
+
+  n_post_force_any = n_post_force + n_post_force_group;
+  n_post_force_respa_any = n_post_force_respa + n_post_force_group;
 
   // create list of computes that store invocation times
 
@@ -441,11 +450,19 @@ void Modify::pre_reverse(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    post_force call, only for relevant fixes
+   first call any instances of fix GROUP if they exist
+     they are not in n_post_force count
 ------------------------------------------------------------------------- */
 
 void Modify::post_force(int vflag)
 {
-  for (int i = 0; i < n_post_force; i++) fix[list_post_force[i]]->post_force(vflag);
+  if (n_post_force_group) {
+    for (int i = 0; i < n_post_force_group; i++) fix[list_post_force_group[i]]->post_force(vflag);
+  }
+
+  if (n_post_force) {
+    for (int i = 0; i < n_post_force; i++) fix[list_post_force[i]]->post_force(vflag);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -585,12 +602,20 @@ void Modify::pre_force_respa(int vflag, int ilevel, int iloop)
 
 /* ----------------------------------------------------------------------
    rRESPA post_force call, only for relevant fixes
+   first call any instances of fix GROUP if they exist
 ------------------------------------------------------------------------- */
 
 void Modify::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  for (int i = 0; i < n_post_force_respa; i++)
-    fix[list_post_force_respa[i]]->post_force_respa(vflag, ilevel, iloop);
+  if (n_post_force_group) {
+    for (int i = 0; i < n_post_force_group; i++)
+      fix[list_post_force_group[i]]->post_force_respa(vflag, ilevel, iloop);
+  }
+
+  if (n_post_force_respa) {
+    for (int i = 0; i < n_post_force_respa; i++)
+      fix[list_post_force_respa[i]]->post_force_respa(vflag, ilevel, iloop);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -772,7 +797,7 @@ int Modify::min_reset_ref()
 
 Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 {
-  if (narg < 3) error->all(FLERR, "Illegal fix command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "fix", error);
 
   // cannot define fix before box exists unless style is in exception list
   // don't like this way of checking for exceptions by adding fixes to list,
@@ -781,8 +806,10 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   //   since some fixes access domain settings in their constructor
   // nullptr must be last entry in this list
 
-  const char *exceptions[] = {"GPU",   "OMP", "INTEL",      "property/atom", "cmap",
-                              "cmap3", "rx",  "deprecated", "STORE/KIM",     nullptr};
+  const char *exceptions[] =
+    {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
+     "deprecated", "STORE/KIM", "amoeba/pitorsion", "amoeba/bitorsion",
+     nullptr};
 
   if (domain->box_exist == 0) {
     int m;
@@ -859,7 +886,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         fix[ifix]->style = utils::strdup(estyle);
       }
     }
-    if (fix[ifix] == nullptr && lmp->suffix2) {
+    if ((fix[ifix] == nullptr) && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator &fix_creator = (*fix_map)[estyle];
@@ -870,7 +897,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     }
   }
 
-  if (fix[ifix] == nullptr && fix_map->find(arg[2]) != fix_map->end()) {
+  if ((fix[ifix] == nullptr) && (fix_map->find(arg[2]) != fix_map->end())) {
     FixCreator &fix_creator = (*fix_map)[arg[2]];
     fix[ifix] = fix_creator(lmp, narg, arg);
   }
@@ -961,7 +988,7 @@ Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuf
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
 
-  if (narg < 3) error->all(FLERR, "Illegal replace_fix invocation");
+  if (narg < 3) error->all(FLERR, "Not enough arguments for replace_fix invocation");
   if (get_fix_by_id(arg[0])) error->all(FLERR, "Replace_fix ID {} is already in use", arg[0]);
 
   delete[] oldfix->id;
@@ -999,16 +1026,11 @@ Fix *Modify::replace_fix(const std::string &oldfix, const std::string &fixcmd, i
 
 void Modify::modify_fix(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal fix_modify command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify", error);
 
-  // lookup Fix ID
-
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(arg[0], fix[ifix]->id) == 0) break;
-  if (ifix == nfix) error->all(FLERR, "Could not find fix_modify ID {}", arg[0]);
-
-  fix[ifix]->modify_params(narg - 1, &arg[1]);
+  auto ifix = get_fix_by_id(arg[0]);
+  if (!ifix) error->all(FLERR, "Could not find fix_modify ID {}", arg[0]);
+  ifix->modify_params(narg - 1, &arg[1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1199,13 +1221,11 @@ int Modify::check_rigid_list_overlap(int *select)
 
 Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute", error);
 
   // error check
 
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(arg[0], compute[icompute]->id) == 0)
-      error->all(FLERR, "Reuse of compute ID '{}'", arg[0]);
+  if (get_compute_by_id(arg[0])) error->all(FLERR, "Reuse of compute ID '{}'", arg[0]);
 
   // extend Compute list if necessary
 
@@ -1272,16 +1292,13 @@ Compute *Modify::add_compute(const std::string &computecmd, int trysuffix)
 
 void Modify::modify_compute(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal compute_modify command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "compute_modify", error);
 
   // lookup Compute ID
 
-  int icompute;
-  for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(arg[0], compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) error->all(FLERR, "Could not find compute_modify ID {}", arg[0]);
-
-  compute[icompute]->modify_params(narg - 1, &arg[1]);
+  auto icompute = get_compute_by_id(arg[0]);
+  if (!icompute) error->all(FLERR, "Could not find compute_modify ID {}", arg[0]);
+  icompute->modify_params(narg - 1, &arg[1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1714,6 +1731,25 @@ void Modify::list_init_energy_atom(int &n, int *&list)
   n = 0;
   for (int i = 0; i < nfix; i++)
     if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) list[n++] = i;
+}
+
+/* ----------------------------------------------------------------------
+   create list of fix indices for fix GROUP
+   are invoked first in post_force() or post_force_respa()
+------------------------------------------------------------------------- */
+
+void Modify::list_init_post_force_group(int &n, int *&list)
+{
+  delete[] list;
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (strcmp(fix[i]->style, "GROUP") == 0) n++;
+  list = new int[n];
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (strcmp(fix[i]->style, "GROUP") == 0) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------

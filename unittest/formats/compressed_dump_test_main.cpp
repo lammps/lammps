@@ -22,7 +22,7 @@
 
 const char *COMPRESS_SUFFIX    = nullptr;
 const char *COMPRESS_EXTENSION = nullptr;
-char *COMPRESS_BINARY          = nullptr;
+char *COMPRESS_EXECUTABLE      = nullptr;
 bool verbose                   = false;
 
 int main(int argc, char **argv)
@@ -46,11 +46,11 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    COMPRESS_BINARY = getenv("COMPRESS_BINARY");
+    COMPRESS_EXECUTABLE = getenv("COMPRESS_EXECUTABLE");
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

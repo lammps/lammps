@@ -27,6 +27,7 @@ page gives those details.
    :columns: 6
 
    * :ref:`ADIOS <PKG-ADIOS>`
+   * :ref:`AMOEBA <PKG-AMOEBA>`
    * :ref:`ASPHERE <PKG-ASPHERE>`
    * :ref:`ATC <PKG-ATC>`
    * :ref:`AWPMD <PKG-AWPMD>`
@@ -35,7 +36,7 @@ page gives those details.
    * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
-   * :ref:`CG-SDK <PKG-CG-SDK>`
+   * :ref:`CG-SPICA <PKG-CG-SPICA>`
    * :ref:`CLASS2 <PKG-CLASS2>`
    * :ref:`COLLOID <PKG-COLLOID>`
    * :ref:`COLVARS <PKG-COLVARS>`
@@ -50,6 +51,7 @@ page gives those details.
    * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
    * :ref:`DRUDE <PKG-DRUDE>`
    * :ref:`EFF <PKG-EFF>`
+   * :ref:`ELECTRODE <PKG-ELECTRODE>`
    * :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
    * :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
    * :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
@@ -148,6 +150,38 @@ This package has :ref:`specific installation instructions <adios>` on the :doc:`
 
 ----------
 
+.. _PKG-AMOEBA:
+
+AMOEBA package
+---------------
+
+**Contents:**
+
+Implementation of the AMOEBA and HIPPO polarized force fields
+originally developed by Jay Ponder's group at the U Washington at St
+Louis.  The LAMMPS implementation is based on Fortran 90 code
+provided by the Ponder group in their
+`Tinker MD software <https://dasher.wustl.edu/tinker/>`_.
+
+**Authors:** Josh Rackers and Steve Plimpton (Sandia), Trung Nguyen (U
+ Chicago)
+
+**Supporting info:**
+
+* src/AMOEBA: filenames -> commands
+* :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+* :doc:`pair_style amoeba <pair_amoeba>`
+* :doc:`pair_style hippo <pair_amoeba>`
+* :doc:`atom_style amoeba <atom_style>`
+* :doc:`angle_style amoeba <angle_amoeba>`
+* :doc:`improper_style amoeba <improper_amoeba>`
+* :doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`
+* :doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`
+* tools/tinker/tinker2lmp.py
+* examples/amoeba
+
+----------
+
 .. _PKG-ASPHERE:
 
 ASPHERE package
@@ -180,9 +214,10 @@ ATC package
 
 **Contents:**
 
-ATC stands for atoms-to-continuum.  This package implements a :doc:`fix atc <fix_atc>` command to either couple molecular dynamics with
-continuum finite element equations or perform on-the-fly conversion of
-atomic information to continuum fields.
+ATC stands for atoms-to-continuum.  This package implements a
+:doc:`fix atc <fix_atc>` command to either couple molecular dynamics
+with continuum finite element equations or perform on-the-fly
+conversion of atomic information to continuum fields.
 
 **Authors:** Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
 
@@ -241,7 +276,7 @@ the barostat as outlined in:
 
 N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
-molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
 **Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
 Pennsylvania State University)
@@ -296,6 +331,8 @@ models for mesoscale simulations of solids and fracture.  See the
 :doc:`Howto bpm <Howto_bpm>` page for an overview.
 
 **Authors:** Joel T. Clemmer (Sandia National Labs)
+
+.. versionadded:: 4May2022
 
 **Supporting info:**
 
@@ -364,28 +401,30 @@ The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
 
 ----------
 
-.. _PKG-CG-SDK:
+.. _PKG-CG-SPICA:
 
-CG-SDK package
+CG-SPICA package
 ------------------
 
 **Contents:**
 
 Several pair styles and an angle style which implement the
-coarse-grained SDK model of Shinoda, DeVane, and Klein which enables
-simulation of ionic liquids, electrolytes, lipids and charged amino
-acids.
+coarse-grained SPICA (formerly called SDK) model which enables
+simulation of biological or soft material systems.
 
-**Author:** Axel Kohlmeyer (Temple U).
+**Original Author:** Axel Kohlmeyer (Temple U).
+
+**Maintainers:** Yusuke Miyazaki and Wataru Shinoda (Okayama U).
 
 **Supporting info:**
 
-* src/CG-SDK: filenames -> commands
-* src/CG-SDK/README
-* :doc:`pair_style lj/sdk/\* <pair_sdk>`
-* :doc:`angle_style sdk <angle_sdk>`
-* examples/PACKAGES/cgsdk
+* src/CG-SPICA: filenames -> commands
+* src/CG-SPICA/README
+* :doc:`pair_style lj/spica/\* <pair_spica>`
+* :doc:`angle_style spica <angle_spica>`
+* examples/PACKAGES/cgspica
 * https://www.lammps.org/pictures.html#cg
+* https://www.spica-ff.org/
 
 ----------
 
@@ -613,7 +652,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
-* :doc: `angle_style dipole <angle_dipole>`
+* :doc:`angle_style dipole <angle_dipole>`
 * examples/dipole
 
 ----------
@@ -656,7 +695,7 @@ advection-diffusion-reaction systems. The equations of motion of these
 DPD extensions are integrated through a modified velocity-Verlet (MVV)
 algorithm.
 
-**Author:** Zhen Li (Division of Applied Mathematics, Brown University)
+**Author:** Zhen Li (Department of Mechanical Engineering, Clemson University)
 
 **Supporting info:**
 
@@ -809,6 +848,33 @@ tools/eff; see its README file.
 
 -------------------
 
+.. _PKG-ELECTRODE:
+
+ELECTRODE package
+-----------------
+
+**Contents:**
+
+The ELECTRODE package allows the user to enforce a constant potential method for
+groups of atoms that interact with the remaining atoms as electrolyte.
+
+**Authors:** The ELECTRODE library is written and maintained by Ludwig
+Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
+Robert Meissner (TUHH, Hamburg, Germany).
+
+.. versionadded:: 4May2022
+
+**Install:**
+
+This package has :ref:`specific installation instructions <electrode>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* :doc:`fix electrode/conp <fix_electrode_conp>`
+
+----------
+
 .. _PKG-EXTRA-COMPUTE:
 
 EXTRA-COMPUTE package
@@ -865,6 +931,10 @@ EXTRA-MOLECULE package
 **Contents:**
 
 Additional bond, angle, dihedral, and improper styles that are less commonly used.
+
+**Install:**
+
+To use this package, also the :ref:`MOLECULE <PKG-MOLECULE>` package needs to be installed.
 
 **Supporting info:**
 
@@ -1338,7 +1408,7 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 * src/MACHDYN: filenames -> commands
 * src/MACHDYN/README
-* doc/PDF/MACHDYN_LAMMPS_userguide.pdf
+* `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/machdyn
 * https://www.lammps.org/movies.html#smd
 
@@ -1453,7 +1523,7 @@ the :doc:`Build extras <Build_extras>` page.
 * lib/mdi/README
 * :doc:`Howto MDI <Howto_mdi>`
 * :doc:`mdi <mdi>`
-* :doc:`fix mdi/aimd <fix_mdi_aimd>`
+* :doc:`fix mdi/qm <fix_mdi_qm>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1490,31 +1560,40 @@ MESONT package
 
 **Contents:**
 
-MESONT is a LAMMPS package for simulation of nanomechanics of
-nanotubes (NTs). The model is based on a coarse-grained representation
-of NTs as "flexible cylinders" consisting of a variable number of
+MESONT is a LAMMPS package for simulation of nanomechanics of nanotubes
+(NTs). The model is based on a coarse-grained representation of NTs as
+"flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below. This package contains two
-independent implementations of this model: :doc:`pair_style mesocnt
-<pair_mesocnt>` is a (minimal) C++ implementation, and :doc:`pair_style
-mesont/tpm <pair_mesont_tpm>` is a more general and feature rich
-implementation based on a Fortran library in the ``lib/mesont`` folder.
+provided in the papers listed below.
+
+This package contains two independent implementations of this model:
+:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original
+implementation of the model based on a Fortran library in the
+``lib/mesont`` folder. The second implementation is provided by the
+mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
+:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt
+<pair_mesocnt>`).  The mesocnt implementation has the same features as
+the original implementation with the addition of friction, but is
+directly implemented in C++, interfaces more cleanly with general LAMMPS
+functionality, and is typically faster. It also does not require its own
+atom style and can be installed without any external libraries.
 
 **Download of potential files:**
 
-The potential files for these pair styles are *very* large and thus
-are not included in the regular downloaded packages of LAMMPS or the
-git repositories.  Instead, they will be automatically downloaded
-from a web server when the package is installed for the first time.
+The potential files for these pair styles are *very* large and thus are
+not included in the regular downloaded packages of LAMMPS or the git
+repositories.  Instead, they will be automatically downloaded from a web
+server when the package is installed for the first time.
 
 **Authors of the *mesont* styles:**
 
-Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
+Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
+of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-**Author of the *mesocnt* pair style:**
+**Author of the *mesocnt* styles:**
 Philipp Kloza (U Cambridge)
 
 **Supporting info:**
@@ -1524,6 +1603,8 @@ Philipp Kloza (U Cambridge)
 * :doc:`atom_style mesont <atom_style>`
 * :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
 * :doc:`compute mesont <compute_mesont>`
+* :doc:`bond_style mesocnt <bond_mesocnt>`
+* :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
 * tools/mesont
@@ -1775,6 +1856,8 @@ computes which analyze attributes of the potential.
 * src/ML-SNAP: filenames -> commands
 * :doc:`pair_style snap <pair_snap>`
 * :doc:`compute sna/atom <compute_sna_atom>`
+* :doc:`compute sna/grid <compute_sna_atom>`
+* :doc:`compute sna/grid/local <compute_sna_atom>`
 * :doc:`compute snad/atom <compute_sna_atom>`
 * :doc:`compute snav/atom <compute_sna_atom>`
 * examples/snap
@@ -2578,18 +2661,20 @@ SMTBQ package
 
 **Contents:**
 
-A pair style which implements a Second Moment Tight Binding model with
-QEq charge equilibration (SMTBQ) potential for the description of
-ionocovalent bonds in oxides.
+Pair styles which implement Second Moment Tight Binding models.
+One with QEq charge equilibration (SMTBQ) for the description of
+ionocovalent bonds in oxides, and two more as plain SMATB models.
 
-**Authors:** Nicolas Salles, Emile Maras, Olivier Politano, and Robert
-Tetot (LAAS-CNRS, France).
+**Authors:** SMTBQ: Nicolas Salles, Emile Maras, Olivier Politano, and Robert
+Tetot (LAAS-CNRS, France);
+SMATB: Daniele Rapetti (Politecnico di Torino)
 
 **Supporting info:**
 
 * src/SMTBQ: filenames -> commands
 * src/SMTBQ/README
 * :doc:`pair_style smtbq <pair_smtbq>`
+* :doc:`pair_style smatb <pair_smatb>`, :doc:`pair_style smatb/single <pair_smatb>`
 * examples/PACKAGES/smtbq
 
 ----------
@@ -2622,7 +2707,7 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * src/SPH: filenames -> commands
 * src/SPH/README
-* doc/PDF/SPH_LAMMPS_userguide.pdf
+* `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/sph
 * https://www.lammps.org/movies.html#sph
 

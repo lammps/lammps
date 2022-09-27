@@ -78,37 +78,3 @@ class PairLubricateU : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: Cannot include log terms without 1/r terms; setting flagHI to 1.
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair lubricateU requires atom style sphere
-
-Self-explanatory.
-
-E: Pair lubricateU requires ghost atoms store velocity
-
-Use the comm_modify vel yes command to enable this.
-
-E: Pair lubricateU requires monodisperse particles
-
-All particles must be the same finite size.
-
-E: Cannot use multiple fix wall commands with pair lubricateU
-
-Self-explanatory.
-
-*/

@@ -39,6 +39,7 @@ colvarbias_abf::colvarbias_abf(char const *key)
 int colvarbias_abf::init(std::string const &conf)
 {
   colvarbias::init(conf);
+  cvm::main()->cite_feature("ABF colvar bias implementation");
 
   colvarproxy *proxy = cvm::main()->proxy;
 
@@ -81,11 +82,11 @@ int colvarbias_abf::init(std::string const &conf)
   if (history_freq != 0) {
     if (output_freq == 0) {
       cvm::error("Error: historyFreq must be a multiple of outputFreq.\n",
-                 INPUT_ERROR);
+                 COLVARS_INPUT_ERROR);
     } else {
       if ((history_freq % output_freq) != 0) {
         cvm::error("Error: historyFreq must be a multiple of outputFreq.\n",
-                   INPUT_ERROR);
+                   COLVARS_INPUT_ERROR);
       }
     }
   }
@@ -94,10 +95,11 @@ int colvarbias_abf::init(std::string const &conf)
   // shared ABF
   get_keyval(conf, "shared", shared_on, false);
   if (shared_on) {
+    cvm::main()->cite_feature("Multiple-walker ABF implementation");
     if ((proxy->replica_enabled() != COLVARS_OK) ||
         (proxy->num_replicas() <= 1)) {
       return cvm::error("Error: shared ABF requires more than one replica.",
-                        INPUT_ERROR);
+                        COLVARS_INPUT_ERROR);
     }
     cvm::log("shared ABF will be applied among "+
              cvm::to_str(proxy->num_replicas()) + " replicas.\n");
@@ -156,6 +158,12 @@ int colvarbias_abf::init(std::string const &conf)
     // and make it just a warning if some parameter is set?
   }
 
+  if (b_extended) {
+    cvm::main()->cite_feature("eABF implementation");
+  } else {
+    cvm::main()->cite_feature("Internal-forces free energy estimator");
+  }
+
   if (get_keyval(conf, "maxForce", max_force)) {
     if (max_force.size() != num_variables()) {
       cvm::error("Error: Number of parameters to maxForce does not match number of colvars.");
@@ -188,6 +196,9 @@ int colvarbias_abf::init(std::string const &conf)
   // Data for eAB F z-based estimator
   if ( b_extended ) {
     get_keyval(conf, "CZARestimator", b_CZAR_estimator, true);
+    if ( b_CZAR_estimator ) {
+      cvm::main()->cite_feature("CZAR eABF estimator");
+    }
     // CZAR output files for stratified eABF
     get_keyval(conf, "writeCZARwindowFile", b_czar_window_file, false,
                colvarparse::parse_silent);
@@ -214,7 +225,7 @@ int colvarbias_abf::init(std::string const &conf)
       czar_pmf = new integrate_potential(colvars, czar_gradients);
     }
     // Parameters for integrating initial (and final) gradient data
-    get_keyval(conf, "integrateMaxIterations", integrate_iterations, 1e4, colvarparse::parse_silent);
+    get_keyval(conf, "integrateMaxIterations", integrate_iterations, 10000, colvarparse::parse_silent);
     get_keyval(conf, "integrateTol", integrate_tol, 1e-6, colvarparse::parse_silent);
     // Projected ABF, updating the integrated PMF on the fly
     get_keyval(conf, "pABFintegrateFreq", pabf_freq, 0, colvarparse::parse_silent);
@@ -243,20 +254,21 @@ int colvarbias_abf::init(std::string const &conf)
     get_keyval(conf, "UIestimator", b_UI_estimator, false);
 
     if (b_UI_estimator) {
-    std::vector<double> UI_lowerboundary;
-    std::vector<double> UI_upperboundary;
-    std::vector<double> UI_width;
-    std::vector<double> UI_krestr;
 
-    bool UI_restart = (input_prefix.size() > 0);
+      cvm::main()->cite_feature("Umbrella-integration eABF estimator");
+      std::vector<double> UI_lowerboundary;
+      std::vector<double> UI_upperboundary;
+      std::vector<double> UI_width;
+      std::vector<double> UI_krestr;
 
-    for (i = 0; i < num_variables(); i++)
-    {
-      UI_lowerboundary.push_back(colvars[i]->lower_boundary);
-      UI_upperboundary.push_back(colvars[i]->upper_boundary);
-      UI_width.push_back(colvars[i]->width);
-      UI_krestr.push_back(colvars[i]->force_constant());
-    }
+      bool UI_restart = (input_prefix.size() > 0);
+
+      for (i = 0; i < num_variables(); i++) {
+        UI_lowerboundary.push_back(colvars[i]->lower_boundary);
+        UI_upperboundary.push_back(colvars[i]->upper_boundary);
+        UI_width.push_back(colvars[i]->width);
+        UI_krestr.push_back(colvars[i]->force_constant());
+      }
       eabf_UI = UIestimator::UIestimator(UI_lowerboundary,
                                          UI_upperboundary,
                                          UI_width,
@@ -412,7 +424,7 @@ int colvarbias_abf::update()
   // Compute and apply the new bias, if applicable
   if (is_enabled(f_cvb_apply_force) && samples->index_ok(bin)) {
 
-    cvm::real count = samples->value(bin);
+    cvm::real count = cvm::real(samples->value(bin));
     cvm::real fact = 1.0;
 
     // Factor that ensures smooth introduction of the force
@@ -442,13 +454,13 @@ int colvarbias_abf::update()
         // This is enforced naturally if using integrated PMF
         colvar_forces[0].real_value = fact * (grad[0] - gradients->average ());
       } else {
-        for (size_t i = 0; i < num_variables(); i++) {
+        for (i = 0; i < num_variables(); i++) {
           // subtracting the mean force (opposite of the FE gradient) means adding the gradient
           colvar_forces[i].real_value = fact * grad[i];
         }
       }
       if (cap_force) {
-        for (size_t i = 0; i < num_variables(); i++) {
+        for (i = 0; i < num_variables(); i++) {
           if ( colvar_forces[i].real_value * colvar_forces[i].real_value > max_force[i] * max_force[i] ) {
             colvar_forces[i].real_value = (colvar_forces[i].real_value > 0 ? max_force[i] : -1.0 * max_force[i]);
           }
@@ -484,7 +496,7 @@ int colvarbias_abf::update()
   {
     std::vector<double> x(num_variables(),0);
     std::vector<double> y(num_variables(),0);
-    for (size_t i = 0; i < num_variables(); i++)
+    for (i = 0; i < num_variables(); i++)
     {
       x[i] = colvars[i]->actual_value();
       y[i] = colvars[i]->value();
@@ -589,7 +601,7 @@ template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
                                                           bool close) {
   std::ostream *os = cvm::proxy->output_stream(filename);
   if (!os) {
-    return cvm::error("Error opening file " + filename + " for writing.\n", COLVARS_ERROR | FILE_ERROR);
+    return cvm::error("Error opening file " + filename + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
   }
   grid->write_multicol(*os);
   if (close) {
@@ -607,7 +619,7 @@ template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
     std::string  dx = filename + ".dx";
     std::ostream *dx_os = cvm::proxy->output_stream(dx);
     if (!dx_os)  {
-      return cvm::error("Error opening file " + dx + " for writing.\n", COLVARS_ERROR | FILE_ERROR);
+      return cvm::error("Error opening file " + dx + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
     }
     grid->write_opendx(*dx_os);
     // if (close) {
@@ -709,7 +721,7 @@ void colvarbias_abf::read_gradients_samples()
     is.open(gradients_in_name.c_str());
     if (!is.is_open()) {
       cvm::error("Error opening ABF gradient file " +
-                 gradients_in_name + " for reading", INPUT_ERROR);
+                 gradients_in_name + " for reading", COLVARS_INPUT_ERROR);
     } else {
       gradients->read_multicol(is, true);
       is.close();
@@ -765,7 +777,7 @@ std::ostream & colvarbias_abf::write_state_data(std::ostream& os)
 std::istream & colvarbias_abf::read_state_data(std::istream& is)
 {
   if ( input_prefix.size() > 0 ) {
-    cvm::error("ERROR: cannot provide both inputPrefix and a colvars state file.\n", INPUT_ERROR);
+    cvm::error("ERROR: cannot provide both inputPrefix and a colvars state file.\n", COLVARS_INPUT_ERROR);
   }
 
   if (! read_state_data_key(is, "samples")) {

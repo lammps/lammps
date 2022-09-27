@@ -58,7 +58,10 @@ PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp)
   phi = nullptr;
   potflag = 0;
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  // no warnings about non-neutral systems from qsum_qsq()
+  warn_nonneutral = 2;
+
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 
@@ -462,26 +465,4 @@ void PPPMDielectric::slabcorr()
     f[i][2] += ffact * eps[i]*q[i]*(dipole_all - qsum*x[i][2]);
     efield[i][2] += ffact * eps[i]*(dipole_all - qsum*x[i][2]);
   }
-}
-
-/* ----------------------------------------------------------------------
-   compute qsum,qsqsum,q2 and ignore error/warning if not charge neutral
-   called whenever charges are changed
-------------------------------------------------------------------------- */
-
-void PPPMDielectric::qsum_qsq()
-{
-  const double * const q = atom->q;
-  const int nlocal = atom->nlocal;
-  double qsum_local(0.0), qsqsum_local(0.0);
-
-  for (int i = 0; i < nlocal; i++) {
-    qsum_local += q[i];
-    qsqsum_local += q[i]*q[i];
-  }
-
-  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
-
-  q2 = qsqsum * force->qqrd2e;
 }

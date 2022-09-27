@@ -1,0 +1,38 @@
+# -*- lammps -*-
+
+units           metal
+atom_style      atomic
+boundary	p p p
+
+read_data	AgCuPancake.data
+
+pair_style	smatb
+#   	         NN     p	    q	    a  	    qsi	    cutOff_Start	cutOff_End
+pair_coeff	1 1 2.89	10.85	3.18	0.1031	1.1895	4.08707719	5.0056268338740553
+pair_coeff	1 2 2.725	10.70	2.805	0.0977	1.2275	4.08707719	4.4340500673763259
+pair_coeff	2 2 2.56	10.55	2.43	0.0894	1.2799	3.62038672	4.4340500673763259
+
+
+neighbor	8.0 bin
+neigh_modify	every 1 delay 0 check yes
+
+thermo          1
+minimize       1.0e-8 1.0e-10 10000 100000
+
+velocity            all create 600.0 761341 rot yes mom yes
+
+fix		1 all nve
+thermo		10
+timestep	0.005
+
+#dump		1 all atom 50 dump.smatb
+
+#dump		2 all image 10 image.*.jpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3 element Ag Cu
+
+#dump		3 all movie 10 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Ag Cu
+
+run		10000

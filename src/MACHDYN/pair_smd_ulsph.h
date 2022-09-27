@@ -53,12 +53,13 @@ class PairULSPH : public Pair {
   void *extract(const char *, int &) override;
   void PreCompute();
   void PreCompute_DensitySummation();
-  double effective_shear_modulus(const Eigen::Matrix3d d_dev, const Eigen::Matrix3d deltaStressDev,
-                                 const double dt, const int itype);
+  double effective_shear_modulus(const Eigen::Matrix3d &d_dev,
+                                 const Eigen::Matrix3d &deltaStressDev, const double dt,
+                                 const int itype);
 
   Eigen::Vector3d ComputeHourglassForce(const int i, const int itype, const int j, const int jtype,
-                                        const Eigen::Vector3d dv, const Eigen::Vector3d xij,
-                                        const Eigen::Vector3d g, const double c_ij,
+                                        const Eigen::Vector3d &dv, const Eigen::Vector3d &xij,
+                                        const Eigen::Vector3d &g, const double c_ij,
                                         const double mu_ij, const double rho_ij);
 
  protected:

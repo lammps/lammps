@@ -42,11 +42,12 @@ done
 
 # Install cython pyx file only if also Python is available
 action mliap_model_python_couple.pyx python_impl.cpp
+action mliap_unified_couple.pyx python_impl.cpp
 
 # edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
-  if (test "$(type cythonize 2> /dev/null)" != "" && test -e ../python_impl.cpp) then
+  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
     if (test -e ../Makefile.package) then
       sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_PYTHON |' ../Makefile.package
     fi
@@ -57,7 +58,7 @@ if (test $1 = 1) then
 include ..\/..\/lib\/python\/Makefile.mliap_python
 ' ../Makefile.package.settings
     fi
-    cythonize -3 ../mliap_model_python_couple.pyx
+    cythonize -3 ../mliap_model_python_couple.pyx ../mliap_unified_couple.pyx
   fi
 
 elif (test $1 = 0) then
@@ -65,15 +66,17 @@ elif (test $1 = 0) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*-DMLIAP_PYTHON[^ \t]* //g' ../Makefile.package
   fi
-  rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h
+  rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h \
+    ../mliap_unified_couple.cpp ../mliap_unified_couple.h
   sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
 
 elif (test $1 = 2) then
-  if (type cythonize 2>&1 > /dev/null && test -e ../python_impl.cpp) then
+  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
     if (test -e ../Makefile.package) then
       sed -i -e 's/[^ \t]*-DMLIAP_PYTHON[^ \t]* //g' ../Makefile.package
     fi
-    rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h
+    rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h \
+      ../mliap_unified_couple.cpp ../mliap_unified_couple.h
     sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
     if (test -e ../Makefile.package) then
       sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_PYTHON |' ../Makefile.package
@@ -85,8 +88,9 @@ elif (test $1 = 2) then
 include ..\/..\/lib\/python\/Makefile.mliap_python
 ' ../Makefile.package.settings
     fi
-    cythonize -3 ../mliap_model_python_couple.pyx
+    cythonize -3 ../mliap_model_python_couple.pyx ../mliap_unified_couple.pyx
   else
-    rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h
+    rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h \
+      ../mliap_unified_couple.cpp ../mliap_unified_couple.h
   fi
 fi

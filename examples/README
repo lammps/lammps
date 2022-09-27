@@ -59,6 +59,7 @@ sub-directories:
 
 accelerate: use of all the various accelerator packages
 airebo:   polyethylene with AIREBO potential
+amoeba:   small water and bio models with AMOEBA and HIPPO potentials
 atm:      Axilrod-Teller-Muto potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
@@ -86,6 +87,7 @@ mc:       MC package models: GCMC, Widom, fix mol/swap
 mdi:      use of the MDI package and MolSSI MDI code coupling library
 meam:     MEAM test for SiC and shear (same as shear examples)
 melt:     rapid melt of 3d LJ system
+mesh:     create_atoms mesh command
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:      energy minimization of 2d LJ melt
 mliap:    examples for using several bundled MLIAP potentials
@@ -94,7 +96,7 @@ msst:     MSST shock dynamics
 nb3b:     use of nonbonded 3-body harmonic pair style
 neb:      nudged elastic band (NEB) calculation for barrier finding
 nemd:     non-equilibrium MD of 2d sheared system
-numdiff:  numerical difference computation of forces and virial
+numdiff:  numerical difference computation of forces, virial, and Born matrix
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:     Peridynamic model of cylinder impacted by indenter
@@ -153,12 +155,19 @@ either by itself or in tandem with another code or library.  See the
 COUPLE/README file to get started.
 
 The ELASTIC directory has an example script for computing elastic
-constants at zero temperature, using an Si example.  See the
+stiffness tensor (elastic constants)
+at zero temperature, using an Si example.  See the
 ELASTIC/in.elastic file for more info.
 
-The ELASTIC_T directory has an example script for computing elastic
-constants at finite temperature, using an Si example.  See the
-ELASTIC_T/in.elastic file for more info.
+The ELASTIC_T directory has example scripts for the computing elastic
+stiffness tensor at finite temperature. Two different methods are
+demonstrated. DEFORMATION estimates the change in the average
+stress tensor between multiple simulations
+in which small finite deformations are made to the simulation cell.
+BORN_MATRIX runs a single simulation in which the Born matrix and stress
+fluctuations are averaged. The second method
+is newer in LAMMPS and is generally more efficient and
+more reliable.
 
 The HEAT directory has example scripts for heat exchange algorithms
 (e.g. used for establishing a thermal gradient), using two different
@@ -179,6 +188,9 @@ See the README files in those directories (if available) or the
 corresponding doc page in the manual for more info.  See the
 https://docs.lammps.org/Build_package.html page for more info about
 installing and building packages.
+
+The QM directory has examples of how to use LAMMPS in tandem with
+several quantum codes.
 
 The TIP4P directory has an example for testing forces computed on a
 GPU.

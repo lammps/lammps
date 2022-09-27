@@ -111,27 +111,27 @@ class TaskExec<Kokkos::Experimental::OpenMPTarget> {
   void team_barrier_impl() const;
 
  public:
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  void* team_shared() const {
-    return m_team_exec ? m_team_exec->scratch_thread() : nullptr;
+  KOKKOS_FUNCTION void* team_shared() const {
+    KOKKOS_IF_ON_HOST(
+        (return m_team_exec ? m_team_exec->scratch_thread() : nullptr;))
+
+    KOKKOS_IF_ON_DEVICE((return nullptr;))
   }
 
-  int team_shared_size() const {
-    return m_team_exec ? m_team_exec->scratch_thread_size() : 0;
+  KOKKOS_FUNCTION int team_shared_size() const {
+    KOKKOS_IF_ON_HOST(
+        (return m_team_exec ? m_team_exec->scratch_thread_size() : 0;))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
   }
 
   /**\brief  Whole team enters this function call
    *         before any teeam member returns from
    *         this function call.
    */
-  void team_barrier() const {
-    if (1 < m_team_size) team_barrier_impl();
+  KOKKOS_FUNCTION void team_barrier() const {
+    KOKKOS_IF_ON_HOST((if (1 < m_team_size) { team_barrier_impl(); }))
   }
-#else
-  KOKKOS_INLINE_FUNCTION void team_barrier() const {}
-  KOKKOS_INLINE_FUNCTION void* team_shared() const { return 0; }
-  KOKKOS_INLINE_FUNCTION int team_shared_size() const { return 0; }
-#endif
 
   KOKKOS_INLINE_FUNCTION
   int team_rank() const { return m_team_rank; }

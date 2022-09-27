@@ -36,12 +36,13 @@ using namespace LAMMPS_NS;
 enum { NOBIAS, BIAS };
 
 static const char cite_centroid_angle_improper_dihedral[] =
-    "compute centroid/stress/atom for angles, impropers and dihedrals:\n\n"
-    "@article{PhysRevE.99.051301,\n"
-    " title = {Application of atomic stress to compute heat flux via molecular dynamics for "
-    "systems with many-body interactions},\n"
+    "compute centroid/stress/atom for angles, impropers and dihedrals: "
+    "doi:10.1103/PhysRevE.99.051301\n\n"
+    "@article{Surblys2019,\n"
+    " title = {Application of Atomic Stress to Compute Heat Flux via Molecular\n"
+    "    Dynamics for Systems With Many-Body Interactions},\n"
     " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
-    " journal = {Physical Review E},\n"
+    " journal = {Physical Review~E},\n"
     " volume = {99},\n"
     " issue = {5},\n"
     " pages = {051301},\n"
@@ -51,12 +52,12 @@ static const char cite_centroid_angle_improper_dihedral[] =
     "}\n\n";
 
 static const char cite_centroid_shake_rigid[] =
-    "compute centroid/stress/atom for constrained dynamics:\n\n"
-    "@article{doi:10.1063/5.0070930,\n"
+    "compute centroid/stress/atom for constrained dynamics: doi:10.1063/5.0070930\n\n"
+    "@article{Surblys2021,\n"
     " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
     " journal = {Journal of Applied Physics},\n"
-    " title = {Methodology and meaning of computing heat flux via atomic stress in systems with "
-    "constraint dynamics},\n"
+    " title = {Methodology and Meaning of Computing Heat Flux via Atomic Stress in Systems with\n"
+    "    Constraint Dynamics},\n"
     " volume = {130},\n"
     " number = {21},\n"
     " pages = {215104},\n"
@@ -162,7 +163,7 @@ void ComputeCentroidStressAtom::init()
   if (id_temp) {
     temperature = modify->get_compute_by_id(id_temp);
     if (!temperature)
-      error->all(FLERR, "Could not find compute centroid/stress/atom temperature ID {}",id_temp);
+      error->all(FLERR, "Could not find compute centroid/stress/atom temperature ID {}", id_temp);
     if (temperature->tempbias)
       biasflag = BIAS;
     else

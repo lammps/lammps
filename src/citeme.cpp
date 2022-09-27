@@ -131,6 +131,5 @@ void CiteMe::flush()
       logbuffer.clear();
     }
   }
-  return;
 }
 

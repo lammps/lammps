@@ -44,18 +44,18 @@ void PerfectGasEOS(const double gamma, const double vol, const double mass, cons
 /*
  * Material strength models
  */
-void LinearStrength(const double mu, const Eigen::Matrix3d sigmaInitial_dev,
-                    const Eigen::Matrix3d d_dev, const double dt, Eigen::Matrix3d &sigmaFinal_dev__,
-                    Eigen::Matrix3d &sigma_dev_rate__);
+void LinearStrength(const double mu, const Eigen::Matrix3d &sigmaInitial_dev,
+                    const Eigen::Matrix3d &d_dev, const double dt,
+                    Eigen::Matrix3d &sigmaFinal_dev__, Eigen::Matrix3d &sigma_dev_rate__);
 void LinearPlasticStrength(const double G, const double yieldStress,
-                           const Eigen::Matrix3d sigmaInitial_dev, const Eigen::Matrix3d d_dev,
+                           const Eigen::Matrix3d &sigmaInitial_dev, const Eigen::Matrix3d &d_dev,
                            const double dt, Eigen::Matrix3d &sigmaFinal_dev__,
                            Eigen::Matrix3d &sigma_dev_rate__, double &plastic_strain_increment);
 void JohnsonCookStrength(const double G, const double cp, const double espec, const double A,
                          const double B, const double a, const double C, const double epdot0,
                          const double T0, const double Tmelt, const double M, const double dt,
                          const double ep, const double epdot,
-                         const Eigen::Matrix3d sigmaInitial_dev, const Eigen::Matrix3d d_dev,
+                         const Eigen::Matrix3d &sigmaInitial_dev, const Eigen::Matrix3d &d_dev,
                          Eigen::Matrix3d &sigmaFinal_dev__, Eigen::Matrix3d &sigma_dev_rate__,
                          double &plastic_strain_increment);
 
@@ -63,9 +63,9 @@ void JohnsonCookStrength(const double G, const double cp, const double espec, co
  * Damage models
  */
 
-bool IsotropicMaxStrainDamage(const Eigen::Matrix3d E, const double maxStrain);
-bool IsotropicMaxStressDamage(const Eigen::Matrix3d E, const double maxStrain);
-double JohnsonCookFailureStrain(const double p, const Eigen::Matrix3d Sdev, const double d1,
+bool IsotropicMaxStrainDamage(const Eigen::Matrix3d &E, const double maxStrain);
+bool IsotropicMaxStressDamage(const Eigen::Matrix3d &E, const double maxStrain);
+double JohnsonCookFailureStrain(const double p, const Eigen::Matrix3d &Sdev, const double d1,
                                 const double d2, const double d3, const double d4,
                                 const double epdot0, const double epdot);
 

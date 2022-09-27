@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,20 +20,20 @@
 #include "atom.h"
 #include "citeme.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 static const char cite_user_eff_package[] =
-  "EFF package:\n\n"
-  "@Article{Jaramillo-Botero11,\n"
-  " author = {A. Jaramillo-Botero, J. Su, A. Qi, W. A. Goddard III},\n"
-  " title = {Large-Scale, Long-Term Nonadiabatic Electron Molecular Dynamics for Describing Material Properties and Phenomena in Extreme Environments},\n"
-  " journal = {J.~Comp.~Chem.},\n"
-  " year =    2011,\n"
-  " volume =  32,\n"
-  " pages =   {497--512}\n"
-  "}\n\n";
+    "EFF package: doi:10.1002/jcc.21637\n\n"
+    "@Article{Jaramillo-Botero11,\n"
+    " author = {A. Jaramillo-Botero and J. Su and A. Qi and Goddard, III, W. A.},\n"
+    " title = {Large-Scale, Long-Term Nonadiabatic Electron Molecular Dynamics for Describing "
+    "Material Properties and Phenomena in Extreme Environments},\n"
+    " journal = {J.~Comp.\\ Chem.},\n"
+    " year =    2011,\n"
+    " volume =  32,\n"
+    " number =  3,\n"
+    " pages =   {497--512}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,26 +46,25 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
   forceclearflag = 1;
 
   atom->electron_flag = 1;
-  atom->q_flag = atom->spin_flag = atom->eradius_flag =
-    atom->ervel_flag = atom->erforce_flag = 1;
+  atom->q_flag = atom->spin_flag = atom->eradius_flag = atom->ervel_flag = atom->erforce_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "q spin eradius ervel erforce";
-  fields_copy = (char *) "q spin eradius ervel";
-  fields_comm = (char *) "eradius";
-  fields_comm_vel = (char *) "eradius";
-  fields_reverse = (char *) "erforce";
-  fields_border = (char *) "q spin eradius";
-  fields_border_vel = (char *) "q spin eradius";
-  fields_exchange = (char *) "q spin eradius ervel";
-  fields_restart = (char *) "q spin eradius ervel";
-  fields_create = (char *) "q spin eradius ervel";
-  fields_data_atom = (char *) "id type q spin eradius x";
-  fields_data_vel = (char *) "id v ervel";
+  fields_grow = {"q", "espin", "eradius", "ervel", "erforce"};
+  fields_copy = {"q", "espin", "eradius", "ervel"};
+  fields_comm = {"eradius"};
+  fields_comm_vel = {"eradius"};
+  fields_reverse = {"erforce"};
+  fields_border = {"q", "espin", "eradius"};
+  fields_border_vel = {"q", "espin", "eradius"};
+  fields_exchange = {"q", "espin", "eradius", "ervel"};
+  fields_restart = {"q", "espin", "eradius", "ervel"};
+  fields_create = {"q", "espin", "eradius", "ervel"};
+  fields_data_atom = {"id", "type", "q", "espin", "eradius", "x"};
+  fields_data_vel = {"id", "v", "ervel"};
 
   setup_fields();
 }
@@ -91,7 +89,7 @@ void AtomVecElectron::grow_pointers()
 
 void AtomVecElectron::force_clear(int n, size_t nbytes)
 {
-  memset(&erforce[n],0,nbytes);
+  memset(&erforce[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -119,12 +117,13 @@ void AtomVecElectron::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecElectron::property_atom(char *name)
+int AtomVecElectron::property_atom(const std::string &name)
 {
-  if (strcmp(name,"spin") == 0) return 0;
-  if (strcmp(name,"eradius") == 0) return 1;
-  if (strcmp(name,"ervel") == 0) return 2;
-  if (strcmp(name,"erforce") == 0) return 3;
+  if (name == "espin") return 0;
+  if (name == "spin") return 0;    // backward compatibility
+  if (name == "eradius") return 1;
+  if (name == "ervel") return 2;
+  if (name == "erforce") return 3;
   return -1;
 }
 
@@ -133,8 +132,7 @@ int AtomVecElectron::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecElectron::pack_property_atom(int index, double *buf,
-                                         int nvalues, int groupbit)
+void AtomVecElectron::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -142,26 +140,34 @@ void AtomVecElectron::pack_property_atom(int index, double *buf,
 
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = spin[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = spin[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = eradius[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = eradius[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = ervel[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = ervel[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = erforce[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = erforce[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   }

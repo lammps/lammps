@@ -30,7 +30,7 @@ scripts expose, so if you want to do something beyond what these
 scripts perform, you should learn about Pizza.py.  See this WWW page
 for details and download info:
 
-www.sandia.gov/~sjplimp/pizza.html
+https://lammps.github.io/pizza
 
 The tools in the Pizza.py src directory are identical to those in the
 pizza sub-directory of lammps/tools/python.  The header section of

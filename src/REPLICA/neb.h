@@ -30,7 +30,7 @@ class NEB : public Command {
   NEB(class LAMMPS *, double, double, int, int, int, double *, double *);
   ~NEB() override;
   void command(int, char **) override;    // process neb command
-  void run();                    // run NEB
+  void run();                             // run NEB
 
   double ebf, ebr;    // forward and reverse energy barriers
 
@@ -64,73 +64,3 @@ class NEB : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: NEB command before simulation box is defined
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use NEB with a single replica
-
-Self-explanatory.
-
-E: Cannot use NEB unless atom map exists
-
-Use the atom_modify command to create an atom map.
-
-E: NEB requires use of fix neb
-
-Self-explanatory.
-
-E: NEB requires damped dynamics minimizer
-
-Use a different minimization style.
-
-E: Too many timesteps for NEB
-
-You must use a number of timesteps that fit in a 32-bit integer
-for NEB.
-
-E: Too many timesteps
-
-The cumulative timesteps must fit in a 64-bit integer.
-
-E: Unexpected end of neb file
-
-A read operation from the file failed.
-
-E: Incorrect atom format in neb file
-
-The number of fields per line is not what expected.
-
-E: Invalid atom IDs in neb file
-
-An ID in the file was not found in the system.
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-U: Can only use NEB with 1-processor replicas
-
-This is current restriction for NEB as implemented in LAMMPS.
-
-U: Cannot use NEB with atom_modify sort enabled
-
-This is current restriction for NEB implemented in LAMMPS.
-
-*/

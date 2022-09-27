@@ -41,8 +41,8 @@ MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *_lmp, char *paramfilename) : ML
   radelem = nullptr;
   wjelem = nullptr;
   snaptr = nullptr;
-  rinnerelem = nullptr;
-  drinnerelem = nullptr;
+  sinnerelem = nullptr;
+  dinnerelem = nullptr;
 
   read_paramfile(paramfilename);
 
@@ -59,11 +59,8 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   delete snaptr;
-
-  if (switchinnerflag) {
-    memory->destroy(rinnerelem);
-    memory->destroy(drinnerelem);
-  }
+  memory->destroy(sinnerelem);
+  memory->destroy(dinnerelem);
 }
 
 /* ----------------------------------------------------------------------
@@ -94,8 +91,8 @@ void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData *data)
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
       if (switchinnerflag) {
-        snaptr->rinnerij[ninside] = 0.5 * (rinnerelem[ielem] + rinnerelem[jelem]);
-        snaptr->drinnerij[ninside] = 0.5 * (drinnerelem[ielem] + drinnerelem[jelem]);
+        snaptr->sinnerij[ninside] = 0.5 * (sinnerelem[ielem] + sinnerelem[jelem]);
+        snaptr->dinnerij[ninside] = 0.5 * (dinnerelem[ielem] + dinnerelem[jelem]);
       }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
@@ -150,8 +147,8 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData *data)
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
       if (switchinnerflag) {
-        snaptr->rinnerij[ninside] = 0.5 * (rinnerelem[ielem] + rinnerelem[jelem]);
-        snaptr->drinnerij[ninside] = 0.5 * (drinnerelem[ielem] + drinnerelem[jelem]);
+        snaptr->sinnerij[ninside] = 0.5 * (sinnerelem[ielem] + sinnerelem[jelem]);
+        snaptr->dinnerij[ninside] = 0.5 * (dinnerelem[ielem] + dinnerelem[jelem]);
       }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
@@ -222,8 +219,8 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData *data)
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
       if (switchinnerflag) {
-        snaptr->rinnerij[ninside] = 0.5 * (rinnerelem[ielem] + rinnerelem[jelem]);
-        snaptr->drinnerij[ninside] = 0.5 * (drinnerelem[ielem] + drinnerelem[jelem]);
+        snaptr->sinnerij[ninside] = 0.5 * (sinnerelem[ielem] + sinnerelem[jelem]);
+        snaptr->dinnerij[ninside] = 0.5 * (dinnerelem[ielem] + dinnerelem[jelem]);
       }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
@@ -292,8 +289,8 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData *data)
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
       if (switchinnerflag) {
-        snaptr->rinnerij[ninside] = 0.5 * (rinnerelem[ielem] + rinnerelem[jelem]);
-        snaptr->drinnerij[ninside] = 0.5 * (drinnerelem[ielem] + drinnerelem[jelem]);
+        snaptr->sinnerij[ninside] = 0.5 * (sinnerelem[ielem] + sinnerelem[jelem]);
+        snaptr->dinnerij[ninside] = 0.5 * (dinnerelem[ielem] + dinnerelem[jelem]);
       }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
@@ -364,8 +361,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
   // set local input checks
 
-  int rinnerflag = 0;
-  int drinnerflag = 0;
+  int sinnerflag = 0;
+  int dinnerflag = 0;
 
   for (int i = 0; i < nelements; i++) delete[] elements[i];
   delete[] elements;
@@ -414,9 +411,9 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     // check for keywords with one value per element
 
     if ((keywd == "elems") || (keywd == "radelems") || (keywd == "welems") ||
-        (keywd == "rinnerelems") || (keywd == "drinnerelems")) {
+        (keywd == "sinnerelems") || (keywd == "dinnerelems")) {
 
-      if ((nelementsflag == 0) || ((int)words.count() != nelements + 1))
+      if ((nelementsflag == 0) || ((int) words.count() != nelements + 1))
         error->all(FLERR, "Incorrect SNAP parameter file");
 
       if (comm->me == 0) utils::logmesg(lmp, "SNAP keyword {} \n", utils::trim(line));
@@ -433,14 +430,14 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
         for (int ielem = 0; ielem < nelements; ielem++)
           wjelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
         wjelemflag = 1;
-      } else if (keywd == "rinnerelems") {
+      } else if (keywd == "sinnerelems") {
         for (int ielem = 0; ielem < nelements; ielem++)
-          rinnerelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
-        rinnerflag = 1;
-      } else if (keywd == "drinnerelems") {
+          sinnerelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
+        sinnerflag = 1;
+      } else if (keywd == "dinnerelems") {
         for (int ielem = 0; ielem < nelements; ielem++)
-          drinnerelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
-        rinnerflag = 1;
+          dinnerelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
+        dinnerflag = 1;
       }
 
     } else {
@@ -457,8 +454,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
         elements = new char *[nelements];
         memory->create(radelem, nelements, "mliap_snap_descriptor:radelem");
         memory->create(wjelem, nelements, "mliap_snap_descriptor:wjelem");
-        memory->create(rinnerelem, nelements, "mliap_snap_descriptor:rinner");
-        memory->create(drinnerelem, nelements, "mliap_snap_descriptor:drinner");
+        memory->create(sinnerelem, nelements, "mliap_snap_descriptor:sinner");
+        memory->create(dinnerelem, nelements, "mliap_snap_descriptor:dinner");
         nelementsflag = 1;
       } else if (keywd == "rcutfac") {
         rcutfac = utils::numeric(FLERR, keyval, false, lmp);
@@ -491,10 +488,10 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
       !wjelemflag)
     error->all(FLERR, "Incorrect SNAP parameter file");
 
-  if (switchinnerflag && !(rinnerflag && drinnerflag))
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
     error->all(FLERR, "Incorrect SNAP parameter file");
 
-  if (!switchinnerflag && (rinnerflag || drinnerflag))
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(FLERR, "Incorrect SNAP parameter file");
 
   // construct cutsq

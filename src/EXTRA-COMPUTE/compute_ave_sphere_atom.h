@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ave/sphere/atom,ComputeAveSphereAtom)
-
+// clang-format off
+ComputeStyle(ave/sphere/atom,ComputeAveSphereAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_AVE_SPHERE_ATOM_H
@@ -37,31 +37,13 @@ class ComputeAveSphereAtom : public Compute {
 
  protected:
   int nmax;
-  double cutoff,cutsq,sphere_vol;
+  double cutoff, cutsq, volume;
   class NeighList *list;
 
   double **result;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute ave/sphere/atom requires a cutoff be specified or a pair style be defined
-
-Self-explanatory.
-
-E: Compute ave/sphere/atom cutoff exceeds ghost atom range - use comm_modify cutoff command
-
-Self-explanatory.
-
-*/

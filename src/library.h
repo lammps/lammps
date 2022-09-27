@@ -75,6 +75,18 @@ enum _LMP_TYPE_CONST {
   LMP_SIZE_COLS = 5    /*!< return number of columns */
 };
 
+/** Error codes to select the suitable function in the Error class
+ *
+ * Must be kept in sync with the equivalent constants in lammps/constants.py */
+
+enum _LMP_ERROR_CONST {
+  LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
+  LMP_ERROR_ONE = 1,     /*!< called from one MPI rank */
+  LMP_ERROR_ALL = 2,     /*!< called from all MPI ranks */
+  LMP_ERROR_WORLD = 4,   /*!< error on Comm::world */
+  LMP_ERROR_UNIVERSE = 8 /*!< error on Comm::universe */
+};
+
 /* Ifdefs to allow this file to be included in C and C++ programs */
 
 #ifdef __cplusplus
@@ -96,6 +108,8 @@ void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
 void lammps_python_finalize();
+
+void lammps_error(void *handle, int error_type, const char *error_text);
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
@@ -256,62 +270,13 @@ void lammps_force_timeout(void *handle);
 int lammps_has_error(void *handle);
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
+int lammps_python_api_version();
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* LAMMPS_LIBRARY_H */
-
-/* ERROR/WARNING messages:
-
-E: Library error: issuing LAMMPS command during run
-
-UNDOCUMENTED
-
-W: Library error in lammps_gather_atoms
-
-This library function cannot be used if atom IDs are not defined
-or are not consecutively numbered.
-
-W: lammps_gather_atoms: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_gather_atoms_subset
-
-UNDOCUMENTED
-
-W: lammps_gather_atoms_subset: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_scatter_atoms
-
-This library function cannot be used if atom IDs are not defined or
-are not consecutively numbered, or if no atom map is defined.  See the
-atom_modify command for details about atom maps.
-
-W: lammps_scatter_atoms: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_scatter_atoms_subset
-
-UNDOCUMENTED
-
-W: lammps_scatter_atoms_subset: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_create_atoms
-
-UNDOCUMENTED
-
-W: Library warning in lammps_create_atoms, invalid total atoms %ld %ld
-
-UNDOCUMENTED
-
-*/
 
 /* Local Variables:
  * fill-column: 72

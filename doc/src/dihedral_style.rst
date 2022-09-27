@@ -10,7 +10,7 @@ Syntax
 
    dihedral_style style
 
-* style = *none* or *hybrid* or *charmm* or *class2* or *harmonic* or *helix* or         *multi/harmonic* or *opls*
+* style = *none* or *zero* or *hybrid* or *charmm* or *charmmfsw* or *class2* or *osine/shift/exp* or *fourier* or *harmonic* or *helix* or *multi/harmonic* or *nharmonic* or *opls* or *spherical* or *table* or *table/cut*
 
 Examples
 """"""""
@@ -51,7 +51,7 @@ to be re-specified.
    When both a dihedral and pair style is defined, the
    :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
-   exist between 4 bonded atoms.
+   exist between four bonded atoms.
 
 In the formulas listed for each dihedral style, *phi* is the torsional
 angle defined by the quadruplet of atoms.  This angle has a sign
@@ -60,11 +60,11 @@ convention as shown in this diagram:
 .. image:: JPG/dihedral_sign.jpg
    :align: center
 
-where the I,J,K,L ordering of the 4 atoms that define the dihedral
+where the :math:`I,J,K,L` ordering of the four atoms that define the dihedral
 is from left to right.
 
 This sign convention effects several of the dihedral styles listed
-below (e.g. charmm, helix) in the sense that the energy formula
+below (e.g., charmm, helix) in the sense that the energy formula
 depends on the sign of phi, which may be reflected in the value of the
 coefficients you specify.
 
@@ -73,10 +73,10 @@ coefficients you specify.
    When comparing the formulas and coefficients for various LAMMPS
    dihedral styles with dihedral equations defined by other force fields,
    note that some force field implementations divide/multiply the energy
-   prefactor *K* by the multiple number of torsions that contain the J-K
-   bond in an I-J-K-L torsion.  LAMMPS does not do this, i.e. the listed
-   dihedral equation applies to each individual dihedral.  Thus you need
-   to define *K* appropriately via the
+   prefactor *K* by the multiple number of torsions that contain the
+   *J*\ --\ *K* bond in an *I*\ --\ *J*\ --\ *K*\ --\ *L* torsion.  LAMMPS does
+   not do this (i.e., the listed dihedral equation applies to each individual
+   dihedral).  Thus, you need to define *K* appropriately via the
    :doc:`dihedral_coeff <dihedral_coeff>` command to account for this
    difference if necessary.
 
@@ -93,8 +93,9 @@ command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
-The individual style names on the :ref:`Commands dihedral <dihedral>` page are followed by one or
-more of (g,i,k,o,t) to indicate which accelerated styles exist.
+The individual style names on the :ref:`Commands dihedral <dihedral>` page are
+followed by one or more of (g,i,k,o,t) to indicate which accelerated styles
+exist.
 
 * :doc:`none <dihedral_none>` - turn off dihedral interactions
 * :doc:`zero <dihedral_zero>` - topology but no interactions

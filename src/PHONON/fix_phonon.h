@@ -32,15 +32,9 @@ FixStyle(phonon,FixPhonon);
 #ifndef FIX_PHONON_H
 #define FIX_PHONON_H
 
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-typedef double FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
-
 #include "fix.h"
+#include "lmpfftsettings.h"
+
 #include <complex>
 #include <map>
 
@@ -122,72 +116,3 @@ class FixPhonon : public Fix {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix phonon command...
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: No atom found for fix phonon!
-
-Self-explanatory. Number of atoms in the group that was passed to
-fix-phonon is less than 1.
-
-E: Can not open output file %s"
-
-Self-explanatory.
-
-E: Illegal fix_modify command
-
-Self-explanatory.
-
-E: Could not find fix_modify temp ID
-
-Self-explanatory.
-
-E: Fix_modify temp ID does not compute temperature
-
-Self-explanatory.
-
-E: Cannot open input map file %s
-
-Self-explanatory.
-
-E: Error while reading header of mapping file!
-
-Self-explanatory. The first line of the map file is expected to
-contain 4 positive integer numbers.
-
-E: FFT mesh and number of atoms in group mismatch!
-
-Self-explanatory. The product of the 4 numbers should be exactly the
-total number of atoms in the group that was passed to fix-phonon.
-
-E: Error while reading comment of mapping file!
-
-Self-explanatory. The second line of the map file should be a comment line.
-
-E: The mapping is incomplete!
-
-Self-explanatory.
-
-E: Error while reading mapping file!
-
-Self-explanatory.
-
-E: The mapping info read is incorrect!
-
-Self-explanatory.
-
-E: Singular matrix in complex GaussJordan!
-
-Self-explanatory.
-
-W: More than one fix phonon defined
-
-Self-explanatory. Just to warn that more than one fix-phonon is defined, but allowed.
-
-*/

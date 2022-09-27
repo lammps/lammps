@@ -369,7 +369,7 @@ void PairEDIP::compute(int eflag, int vflag)
         directorCos_ik_z = invR_ik * dr_ik[2];
 
         cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y +
-          directorCos_ij_z * directorCos_ik_z;
+            directorCos_ij_z * directorCos_ik_z;
 
         cosTetaDiff = cosTeta + tauFunction;
         cosTetaDiffCosTetaDiff = cosTetaDiff * cosTetaDiff;
@@ -377,33 +377,33 @@ void PairEDIP::compute(int eflag, int vflag)
         expMinusQFunctionCosTetaDiffCosTetaDiff = exp(-qFunctionCosTetaDiffCosTetaDiff);
 
         potentia3B_factor = lambda *
-          ((1.0 - expMinusQFunctionCosTetaDiffCosTetaDiff) +
-           eta * qFunctionCosTetaDiffCosTetaDiff);
+            ((1.0 - expMinusQFunctionCosTetaDiffCosTetaDiff) +
+             eta * qFunctionCosTetaDiffCosTetaDiff);
 
         exp3B_ik = preExp3B_ij[neighbor_k];
         exp3BDerived_ik = preExp3BDerived_ij[neighbor_k];
 
         forceMod3B_factor1_ij = -exp3BDerived_ij * exp3B_ik * potentia3B_factor;
         forceMod3B_factor2 = 2.0 * lambda * exp3B_ij * exp3B_ik * qFunction * cosTetaDiff *
-          (eta + expMinusQFunctionCosTetaDiffCosTetaDiff);
+            (eta + expMinusQFunctionCosTetaDiffCosTetaDiff);
         forceMod3B_factor2_ij = forceMod3B_factor2 * invR_ij;
 
         f_ij[0] = forceMod3B_factor1_ij * directorCos_ij_x +
-          forceMod3B_factor2_ij * (cosTeta * directorCos_ij_x - directorCos_ik_x);
+            forceMod3B_factor2_ij * (cosTeta * directorCos_ij_x - directorCos_ik_x);
         f_ij[1] = forceMod3B_factor1_ij * directorCos_ij_y +
-          forceMod3B_factor2_ij * (cosTeta * directorCos_ij_y - directorCos_ik_y);
+            forceMod3B_factor2_ij * (cosTeta * directorCos_ij_y - directorCos_ik_y);
         f_ij[2] = forceMod3B_factor1_ij * directorCos_ij_z +
-          forceMod3B_factor2_ij * (cosTeta * directorCos_ij_z - directorCos_ik_z);
+            forceMod3B_factor2_ij * (cosTeta * directorCos_ij_z - directorCos_ik_z);
 
         forceMod3B_factor1_ik = -exp3BDerived_ik * exp3B_ij * potentia3B_factor;
         forceMod3B_factor2_ik = forceMod3B_factor2 * invR_ik;
 
         f_ik[0] = forceMod3B_factor1_ik * directorCos_ik_x +
-          forceMod3B_factor2_ik * (cosTeta * directorCos_ik_x - directorCos_ij_x);
+            forceMod3B_factor2_ik * (cosTeta * directorCos_ik_x - directorCos_ij_x);
         f_ik[1] = forceMod3B_factor1_ik * directorCos_ik_y +
-          forceMod3B_factor2_ik * (cosTeta * directorCos_ik_y - directorCos_ij_y);
+            forceMod3B_factor2_ik * (cosTeta * directorCos_ik_y - directorCos_ij_y);
         f_ik[2] = forceMod3B_factor1_ik * directorCos_ik_z +
-          forceMod3B_factor2_ik * (cosTeta * directorCos_ik_z - directorCos_ij_z);
+            forceMod3B_factor2_ik * (cosTeta * directorCos_ik_z - directorCos_ij_z);
 
         forceModCoord += (forceMod3B_factor2 * (tauFunctionDerived - 0.5 * mu * cosTetaDiff));
 
@@ -800,13 +800,12 @@ void PairEDIP::read_file(char *file)
 
         if (nparams == maxparam) {
           maxparam += DELTA;
-          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                              "pair:params");
+          params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
 
           // make certain all addional allocated storage is initialized
           // to avoid false positives when checking with valgrind
 
-          memset(params + nparams, 0, DELTA*sizeof(Param));
+          memset(params + nparams, 0, DELTA * sizeof(Param));
         }
 
         params[nparams].ielement = ielement;
@@ -847,9 +846,9 @@ void PairEDIP::read_file(char *file)
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
   if (comm->me != 0)
-    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+    params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
 
-  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
+  MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -872,11 +871,15 @@ void PairEDIP::setup_params()
         n = -1;
         for (m = 0; m < nparams; m++) {
           if (i == params[m].ielement && j == params[m].jelement && k == params[m].kelement) {
-            if (n >= 0) error->all(FLERR, "Potential file has duplicate entry");
+            if (n >= 0)
+              error->all(FLERR, "Potential file has a duplicate entry for: {} {} {}", elements[i],
+                         elements[j], elements[k]);
             n = m;
           }
         }
-        if (n < 0) error->all(FLERR, "Potential file is missing an entry");
+        if (n < 0)
+          error->all(FLERR, "Potential file is missing an entry for: {} {} {}", elements[i],
+                     elements[j], elements[k]);
         elem3param[i][j][k] = n;
       }
 

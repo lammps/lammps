@@ -47,7 +47,7 @@ using namespace MathSpecial;
 #define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
 #define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
 #define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
-#define FOURTHIRDS 4.0/3.0                 // 4/3
+#define FOURTHIRDS (4.0/3.0)                 // 4/3
 #define THREEQUARTERS 0.75                 // 3/4
 
 #define EPSILON 1e-10
@@ -102,7 +102,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  fix_dummy = dynamic_cast<FixDummy *>( modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY"));
+  fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,7 +188,7 @@ void PairGranular::compute(int eflag, int vflag)
   double *history,*allhistory,**firsthistory;
 
   bool touchflag = false;
-  const bool historyupdate = update->setupflag != 0;
+  const bool historyupdate = update->setupflag == 0;
 
   ev_init(eflag,vflag);
 
@@ -1130,7 +1130,7 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    fix_history = dynamic_cast<FixNeighHistory *>( modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
                                                           "NEIGH_HISTORY_GRANULAR"
                                                           " all NEIGH_HISTORY "
                                                           + std::to_string(size_history),1));
@@ -1199,7 +1199,7 @@ void PairGranular::init_style()
   // set fix which stores history info
 
   if (size_history > 0) {
-    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
     if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 }

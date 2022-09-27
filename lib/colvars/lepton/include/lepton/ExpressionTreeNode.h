@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009 Stanford University and the Authors.           *
+ * Portions copyright (c) 2009-2021 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -39,6 +39,7 @@
 namespace Lepton {
 
 class Operation;
+class ParsedExpression;
 
 /**
  * This class represents a node in the abstract syntax tree representation of an expression.
@@ -82,11 +83,13 @@ public:
      */
     ExpressionTreeNode(Operation* operation);
     ExpressionTreeNode(const ExpressionTreeNode& node);
+    ExpressionTreeNode(ExpressionTreeNode&& node);
     ExpressionTreeNode();
     ~ExpressionTreeNode();
     bool operator==(const ExpressionTreeNode& node) const;
     bool operator!=(const ExpressionTreeNode& node) const;
     ExpressionTreeNode& operator=(const ExpressionTreeNode& node);
+    ExpressionTreeNode& operator=(ExpressionTreeNode&& node);
     /**
      * Get the Operation performed by this node.
      */
@@ -96,8 +99,11 @@ public:
      */
     const std::vector<ExpressionTreeNode>& getChildren() const;
 private:
+    friend class ParsedExpression;
+    void assignTags(std::vector<const ExpressionTreeNode*>& examples) const;
     Operation* operation;
     std::vector<ExpressionTreeNode> children;
+    mutable int tag;
 };
 
 } // namespace Lepton

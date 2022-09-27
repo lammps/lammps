@@ -48,25 +48,3 @@ class ComputeImproperLocal : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute improper/local used when impropers are not allowed
-
-The atom style does not support impropers.
-
-E: Invalid keyword in compute improper/local command
-
-Self-explanatory.
-
-E: No improper style is defined for compute improper/local
-
-Self-explanatory.
-
-*/

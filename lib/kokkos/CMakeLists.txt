@@ -1,7 +1,7 @@
 
 # Disable in-source builds to prevent source tree corruption.
 if( "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" )
-  message( FATAL_ERROR "FATAL: In-source builds are not allowed. You should create a separate directory for build files." )
+  message( FATAL_ERROR "FATAL: In-source builds are not allowed. You should create a separate directory for build files and delete CMakeCache.txt." )
 endif()
 
 # We want to determine if options are given with the wrong case
@@ -75,7 +75,31 @@ IF(NOT KOKKOS_HAS_TRILINOS)
   cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
   set(CMAKE_DISABLE_SOURCE_CHANGES ON)
   set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+
+  # What language are we compiling Kokkos as
+  # downstream dependencies need to match this!
+  SET(KOKKOS_COMPILE_LANGUAGE CXX)
+  # use lower case here since we didn't parse options yet
+  IF (Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+
+    # Without this as a language for the package we would get a C++ compiler enabled.
+    # but we still need a C++ compiler even if we build all our cpp files as CUDA only
+    # because otherwise the C++ features don't work etc.
+    # This is just the rather odd way CMake does this, since CUDA doesn't imply C++ even
+    # though it is a C++ extension ... (but I guess it didn't use to be back in CUDA 4 or 5
+    # days.
+    SET(KOKKOS_INTERNAL_EXTRA_COMPILE_LANGUAGE CXX)
+
+    IF (Kokkos_ENABLE_CUDA)
+      SET(KOKKOS_COMPILE_LANGUAGE CUDA)
+    ENDIF()
+  ENDIF()
+
   IF (Spack_WORKAROUND)
+    IF (Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+      MESSAGE(FATAL_ERROR "Can't currently use Kokkos_ENABLE_COMPILER_AS_CMAKE_LANGUAGE in a spack installation!")
+    ENDIF()
+
     #if we are explicitly using Spack for development,
     #nuke the Spack compiler
     SET(SPACK_CXX $ENV{SPACK_CXX})
@@ -86,7 +110,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
   ENDIF()
   # Always call the project command to define Kokkos_ variables
   # and to make sure that C++ is an enabled language
-  PROJECT(Kokkos CXX)
+  PROJECT(Kokkos ${KOKKOS_COMPILE_LANGUAGE} ${KOKKOS_INTERNAL_EXTRA_COMPILE_LANGUAGE})
   IF(NOT HAS_PARENT)
     IF (NOT CMAKE_BUILD_TYPE)
       SET(DEFAULT_BUILD_TYPE "RelWithDebInfo")
@@ -111,8 +135,8 @@ ENDIF()
 
 
 set(Kokkos_VERSION_MAJOR 3)
-set(Kokkos_VERSION_MINOR 5)
-set(Kokkos_VERSION_PATCH 00)
+set(Kokkos_VERSION_MINOR 6)
+set(Kokkos_VERSION_PATCH 01)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
 
@@ -151,6 +175,10 @@ IF(NOT MSVC)
     GLOBAL_APPEND(KOKKOS_LINK_OPTIONS -DKOKKOS_DEPENDENCE)
 ENDIF()
 
+IF(Kokkos_ENABLE_TESTS AND NOT KOKKOS_HAS_TRILINOS)
+  find_package(GTest)
+ENDIF()
+
 # Include a set of Kokkos-specific wrapper functions that
 # will either call raw CMake or TriBITS
 # These are functions like KOKKOS_INCLUDE_DIRECTORIES
@@ -174,10 +202,6 @@ KOKKOS_SETUP_BUILD_ENVIRONMENT()
 # 7) Export and install targets
 
 OPTION(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-# Workaround for building position independent code.
-IF(BUILD_SHARED_LIBS)
-  SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
-ENDIF()
 
 SET(KOKKOS_EXT_LIBRARIES Kokkos::kokkos Kokkos::kokkoscore Kokkos::kokkoscontainers Kokkos::kokkosalgorithms)
 SET(KOKKOS_INT_LIBRARIES kokkos kokkoscore kokkoscontainers kokkosalgorithms)

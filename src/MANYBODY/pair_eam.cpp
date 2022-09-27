@@ -319,8 +319,7 @@ void PairEAM::compute(int eflag, int vflag)
         }
 
         if (eflag) evdwl = scale[itype][jtype]*phi;
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -934,5 +933,28 @@ void *PairEAM::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
+
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+
+void *PairEAM::extract_peratom(const char *str, int &ncol)
+{
+  if (strcmp(str,"rho") == 0) {
+    ncol = 0;
+    return (void *) rho;
+  } else if (strcmp(str,"fp") == 0) {
+    ncol = 0;
+    return (void *) fp;
+  }
+
   return nullptr;
 }

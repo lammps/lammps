@@ -55,6 +55,9 @@ JSON
 YAML format thermo_style output
 ===============================
 
+Extracting data from log file
+-----------------------------
+
 .. versionadded:: 24Mar2022
 
 LAMMPS supports the thermo style "yaml" and for "custom" style
@@ -66,7 +69,7 @@ the following style:
 .. code-block:: yaml
 
    ---
-   keywords: [Step, Temp, E_pair, E_mol, TotEng, Press, ]
+   keywords: ['Step', 'Temp', 'E_pair', 'E_mol', 'TotEng', 'Press', ]
    data:
      - [100, 0.757453103239935, -5.7585054860159, 0, -4.62236133677021, 0.207261053624721, ]
      - [110, 0.759322359337036, -5.7614668389562, 0, -4.62251889318624, 0.194314975399602, ]
@@ -80,9 +83,9 @@ This data can be extracted and parsed from a log file using python with:
 
    import re, yaml
    try:
-       from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
+       from yaml import CSafeLoader as Loader
    except ImportError:
-       from yaml import SafeLoader as Loader, SafeDumper as Dumper
+       from yaml import SafeLoader as Loader
 
    docs = ""
    with open("log.lammps") as f:
@@ -108,6 +111,135 @@ of that run:
 
    Number of runs:  2
    TotEng  =  -4.62140097780047
+
+.. versionadded:: 4May2022
+
+YAML format output has been added to multiple commands in LAMMPS,
+for example :doc:`dump yaml <dump>` or :doc:`fix ave/time <fix_ave_time>`
+Depending on the kind of data being written, organization of the data
+or the specific syntax used may change, but the principles are very
+similar and all files should be readable with a suitable YAML parser.
+
+Processing scalar data with Python
+----------------------------------
+
+.. figure:: JPG/thermo_bondeng.png
+            :figwidth: 33%
+            :align: right
+
+After reading and parsing the YAML format data, it can be easily
+imported for further processing and visualization with the `pandas
+<https://pandas.pydata.org/>`_ and `matplotlib
+<https://matplotlib.org/>`_ Python modules.  Because of the organization
+of the data in the YAML format thermo output, it needs to be told to
+process only the 'data' part of the imported data to create a pandas
+data frame, and one needs to set the column names from the 'keywords'
+entry.  The following Python script code example demonstrates this, and
+creates the image shown on the right of a simple plot of various bonded
+energy contributions versus the timestep from a run of the 'peptide'
+example input after changing the :doc:`thermo style <thermo_style>` to
+'yaml'.  The properties to be used for x and y values can be
+conveniently selected through the keywords.  Please note that those
+keywords can be changed to custom strings with the :doc:`thermo_modify
+colname <thermo_modify>` command.
+
+.. code-block:: python
+
+   import re, yaml
+   import pandas as pd
+   import matplotlib.pyplot as plt
+
+   try:
+       from yaml import CSafeLoader as Loader
+   except ImportError:
+       from yaml import SafeLoader as Loader
+
+   docs = ""
+   with open("log.lammps") as f:
+       for line in f:
+           m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
+           if m: docs += m.group(0) + '\n'
+
+   thermo = list(yaml.load_all(docs, Loader=Loader))
+
+   df = pd.DataFrame(data=thermo[0]['data'], columns=thermo[0]['keywords'])
+   fig = df.plot(x='Step', y=['E_bond', 'E_angle', 'E_dihed', 'E_impro'], ylabel='Energy in kcal/mol')
+   plt.savefig('thermo_bondeng.png')
+
+Processing vector data with Python
+----------------------------------
+
+Global *vector* data as produced by :doc:`fix ave/time <fix_ave_time>`
+uses a slightly different organization of the data. You still have the
+dictionary keys 'keywords' and 'data' for the column headers and the
+data.  But the data is a dictionary indexed by the time step and for
+each step there are multiple rows of values each with a list of the
+averaged properties.  This requires a slightly different processing,
+since the entire data cannot be directly imported into a single pandas
+DataFrame class instance.  The following Python script example
+demonstrates how to read such data.  The result will combine the data
+for the different steps into one large "multi-index" table.  The pandas
+IndexSlice class can then be used to select data from this combined data
+frame.
+
+.. code-block:: python
+
+   import yaml
+   import pandas as pd
+
+   try:
+       from yaml import CSafeLoader as Loader
+   except ImportError:
+       from yaml import SafeLoader as Loader
+
+   with open("ave.yaml") as f:
+       ave = yaml.load(f, Loader=Loader)
+
+   keys = ave['keywords']
+   df = {}
+   for k in ave['data'].keys():
+       df[k] = pd.DataFrame(data=ave['data'][k], columns=keys)
+
+   # create multi-index data frame
+   df = pd.concat(df)
+
+   # output only the first 3 value for steps 200 to 300 of the column Pressure
+   idx = pd.IndexSlice
+   print(df['Pressure'].loc[idx[200:300, 0:2]])
+
+
+Processing scalar data with Perl
+--------------------------------
+
+The ease of processing YAML data is not limited to Python. Here is an
+example for extracting and processing a LAMMPS log file with Perl instead.
+
+.. code-block:: perl
+
+   use YAML::XS;
+
+   open(LOG, "log.lammps") or die("could not open log.lammps: $!");
+   my $file = "";
+   while(my $line = <LOG>) {
+       if ($line =~ /^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)/) {
+           $file .= $line;
+       }
+   }
+   close(LOG);
+
+   # convert YAML to perl as nested hash and array references
+   my $thermo = Load $file;
+
+   # convert references to real arrays
+   my @keywords = @{$thermo->{'keywords'}};
+   my @data = @{$thermo->{'data'}};
+
+   # print first two columns
+   print("$keywords[0] $keywords[1]\n");
+   foreach (@data) {
+       print("${$_}[0]  ${$_}[1]\n");
+   }
+
 
 Writing continuous data during a simulation
 ===========================================

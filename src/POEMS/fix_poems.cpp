@@ -47,14 +47,15 @@ using namespace FixConst;
 #define EPSILON 1.0e-7
 
 static const char cite_fix_poems[] =
-    "fix poems command:\n\n"
+    "fix poems command: doi:10.1016/j.ijnonlinmec.2008.04.003\n\n"
     "@Article{Mukherjee08,\n"
-    " author = {R. M. Mukherjee, P. S. Crozier, S. J. Plimpton, K. S. Anderson},\n"
-    " title = {Substructured molecular dynamics using multibody dynamics algorithms},\n"
-    " journal = {Intl.~J.~Non-linear Mechanics},\n"
+    " author = {R. M. Mukherjee and P. S. Crozier and S. J. Plimpton and K. S. Anderson},\n"
+    " title = {Substructured Molecular Dynamics Using Multibody Dynamics Algorithms},\n"
+    " journal = {Intl.\\ J.\\ Non-Linear Mechanics},\n"
     " year =    2008,\n"
     " volume =  43,\n"
-    " pages =   {1045--1055}\n"
+    " number =  10,\n"
+    " pages =   {1040--1055}\n"
     "}\n\n";
 
 /* ----------------------------------------------------------------------
@@ -353,18 +354,18 @@ void FixPOEMS::init()
 
   if (earlyflag) {
     bool pflag = false;
-    for (auto ifix : modify->get_fix_list()) {
+    for (auto &ifix : modify->get_fix_list()) {
       if (utils::strmatch(ifix->style, "^poems")) pflag = true;
       if (pflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         if (comm->me == 0)
-          error->warning(FLERR,"Fix {} with ID {} alters forces after fix poems",
-                         ifix->style, ifix->id);
+          error->warning(FLERR, "Fix {} with ID {} alters forces after fix poems", ifix->style,
+                         ifix->id);
     }
   }
 
   // error if npt,nph fix comes before rigid fix
   bool pflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (!pflag && utils::strmatch(ifix->style, "np[th]"))
       error->all(FLERR, "POEMS fix must come before NPT/NPH fix");
     if (utils::strmatch(ifix->style, "^poems")) pflag = true;

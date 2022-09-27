@@ -21,12 +21,16 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <fstream>
 #include <string>
+#include <vector>
 
 using ::testing::Eq;
 
-char *BINARY2TXT_BINARY = nullptr;
-bool verbose            = false;
+char *BINARY2TXT_EXECUTABLE = nullptr;
+bool verbose                = false;
+
+namespace LAMMPS_NS {
 
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
@@ -39,22 +43,23 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string dump_filename(std::string ident)
+    std::string dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_{}.melt", dump_style, ident);
     }
 
-    std::string text_dump_filename(std::string ident)
+    std::string text_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_text_{}.melt", dump_style, ident);
     }
 
-    std::string binary_dump_filename(std::string ident)
+    std::string binary_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_binary_{}.melt.bin", dump_style, ident);
     }
 
-    void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &dump_modify_options,
+                       int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {}", dump_style, dump_file));
@@ -81,8 +86,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
-                                       std::string dump_modify_options, int ntimesteps)
+    void generate_text_and_binary_dump(const std::string &text_file, const std::string &binary_file,
+                                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
@@ -97,13 +102,29 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string convert_binary_to_text(std::string binary_file)
+    std::string convert_binary_to_text(const std::string &binary_file)
     {
         BEGIN_HIDE_OUTPUT();
-        std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
+        std::string cmdline = fmt::format("\"{}\" {}", BINARY2TXT_EXECUTABLE, binary_file);
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
+    }
+
+    std::vector<std::string> extract_items(const std::string &file, const std::string &item)
+    {
+        std::string match = fmt::format("^ITEM: {}$", item);
+        std::vector<std::string> values;
+
+        std::ifstream dump(file);
+        for (std::string buffer; std::getline(dump, buffer); /* */) {
+            buffer = utils::trim(buffer);
+            if (utils::strmatch(buffer, match)) {
+                std::getline(dump, buffer);
+                values.push_back(buffer);
+            }
+        }
+        return values;
     }
 };
 
@@ -328,7 +349,7 @@ TEST_F(DumpAtomTest, triclinic_with_image_run0)
 
 TEST_F(DumpAtomTest, binary_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("run0");
     auto binary_file = binary_dump_filename("run0");
@@ -349,7 +370,7 @@ TEST_F(DumpAtomTest, binary_run0)
 
 TEST_F(DumpAtomTest, binary_with_units_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("with_units_run0");
     auto binary_file = binary_dump_filename("with_units_run0");
@@ -370,7 +391,7 @@ TEST_F(DumpAtomTest, binary_with_units_run0)
 
 TEST_F(DumpAtomTest, binary_with_time_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("with_time_run0");
     auto binary_file = binary_dump_filename("with_time_run0");
@@ -391,7 +412,7 @@ TEST_F(DumpAtomTest, binary_with_time_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_run0");
     auto binary_file = binary_dump_filename("tri_run0");
@@ -413,7 +434,7 @@ TEST_F(DumpAtomTest, binary_triclinic_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_with_units_run0");
     auto binary_file = binary_dump_filename("tri_with_units_run0");
@@ -435,7 +456,7 @@ TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_with_time_run0");
     auto binary_file = binary_dump_filename("tri_with_time_run0");
@@ -457,7 +478,7 @@ TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_with_image_run0");
     auto binary_file = binary_dump_filename("tri_with_image_run0");
@@ -623,7 +644,7 @@ TEST_F(DumpAtomTest, dump_modify_invalid)
     command("dump id all atom 1 dump.txt");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id true"););
+    TEST_FAILURE(".*Unknown dump_modify keyword: true.*", command("dump_modify id true"););
 }
 
 TEST_F(DumpAtomTest, write_dump)
@@ -649,7 +670,7 @@ TEST_F(DumpAtomTest, write_dump)
 
 TEST_F(DumpAtomTest, binary_write_dump)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto reference = binary_dump_filename("write_run0_ref");
     auto dump_file = fmt::format("write_{}", binary_dump_filename("write_dump_atom_run*_p%"));
@@ -678,6 +699,263 @@ TEST_F(DumpAtomTest, binary_write_dump)
     delete_file(dump_file);
 }
 
+TEST_F(DumpAtomTest, frequency)
+{
+    auto dump_file = dump_filename("frequency");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 5 " + dump_file);
+    command("run 15 post no");
+    command("run 12 post no");
+    END_HIDE_OUTPUT();
+
+    // NOTE: must reset to current timestep (27) to avoid unexpected issues with following
+    TEST_FAILURE(".*ERROR: Cannot reset timestep with active dump - must undump first.*",
+                 command("reset_timestep 27"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("run 3 post no");
+    command("undump id");
+    command("reset_timestep 5");
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id append yes");
+    command("run 20 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"0", "5", "10", "15", "20", "25", "30", "10", "20"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 10");
+    command("dump id all atom 10 " + dump_file);
+    command("run 20 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"10", "20", "30"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 0");
+    command("dump id all atom 10 " + dump_file);
+    command("minimize 0.0 0.0 15 30");
+    command("run 20 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"0", "10", "15", "20", "30"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
+//-------------------------------------------------------------------------------------------------
+// dump_modify
+//-------------------------------------------------------------------------------------------------
+
+TEST_F(DumpAtomTest, delay)
+{
+    auto dump_file = dump_filename("delay");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id delay 20");
+    command("run 50 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"20", "30", "40", "50"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, colname)
+{
+    auto dump_file = dump_filename("colname");
+    BEGIN_HIDE_OUTPUT();
+    command("group one id 1");
+    command("dump id one atom 10 " + dump_file);
+    command("run 5 post no");
+    command("dump_modify id colname id AtomID colname 3 x-scaled colname -4 z-scaled");
+    command("run 10 post no");
+    command("dump_modify id colname default");
+    command("run 10 post no");
+    command("dump_modify id colname id AtomID colname 3 x-scaled colname -4 z-scaled");
+    command("dump_modify id scale no image yes");
+    command("run 10 post no");
+    command("dump_modify id colname id AtomID colname 3 X colname -4 Z colname ix img_x");
+    command("run 10 post no");
+    command("dump_modify id colname default");
+    command("run 10 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "ATOMS id type xs ys zs");
+    expected = {"1 1 0 0 0", "1 1 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS AtomID type x-scaled ys z-scaled");
+    expected = {"1 1 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS id type x y z ix iy iz");
+    expected = {"1 1 0 0 0 0 0 0", "1 1 0 0 0 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "ATOMS AtomID type X y Z img_x iy iz");
+    expected = {"1 1 0 0 0 0 0 0"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, units_time)
+{
+    auto dump_file = dump_filename("units_time");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id units yes time yes");
+    command("run 30 post no");
+    command("timestep 0.01");
+    command("run 30 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIME");
+    expected = {"0", "0.05", "0.1", "0.15", "0.25", "0.35", "0.45"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    values   = extract_items(dump_file, "UNITS");
+    expected = {"lj"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, every)
+{
+    auto dump_file = dump_filename("every");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 10 " + dump_file);
+    command("run 20 post no");
+    command("dump_modify id every 5");
+    command("run 15 post no");
+    command("dump_modify id every 10");
+    command("run 25 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"0", "10", "20", "25", "30", "35", "40", "50", "60"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 0");
+    command("dump id all atom 1 " + dump_file);
+    command("variable next equal (step+1)*(step+1)");
+    command("dump_modify id every v_next");
+    command("run 50 post no");
+    command("variable next equal logfreq(10,7,10)");
+    command("dump_modify id every v_next");
+    command("run 100 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"1", "4", "25", "60", "70", "100"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, every_time)
+{
+    auto dump_file = dump_filename("every_time");
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id every/time 0.1");
+    command("run 40 post no");
+    command("timestep 0.01");
+    command("run 20 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"0", "20", "40", "50", "60"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, header)
+{
+    auto dump_file = dump_filename("header");
+    BEGIN_HIDE_OUTPUT();
+    command("reset_timestep 5");
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id first no header yes");
+    command("run 40 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    std::vector<std::string> expected, values;
+    values   = extract_items(dump_file, "TIMESTEP");
+    expected = {"10", "20", "30", "40"};
+    ASSERT_EQ(values.size(), expected.size());
+    for (int i = 0; i < expected.size(); ++i)
+        ASSERT_THAT(values[i], Eq(expected[i]));
+
+    BEGIN_HIDE_OUTPUT();
+    command("dump id all atom 10 " + dump_file);
+    command("dump_modify id header no");
+    command("run 40 post no");
+    command("undump id");
+    END_HIDE_OUTPUT();
+
+    values = extract_items(dump_file, "TIMESTEP");
+    ASSERT_EQ(values.size(), 0);
+    delete_file(dump_file);
+}
+} // namespace LAMMPS_NS
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
@@ -685,7 +963,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;
@@ -693,7 +971,7 @@ int main(int argc, char **argv)
         }
     }
 
-    BINARY2TXT_BINARY = getenv("BINARY2TXT_BINARY");
+    BINARY2TXT_EXECUTABLE = getenv("BINARY2TXT_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

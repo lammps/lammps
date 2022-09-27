@@ -37,7 +37,7 @@ FixNVEDot::FixNVEDot(LAMMPS *lmp, int narg, char **arg) :
 
 void FixNVEDot::init()
 {
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec)
     error->all(FLERR,"Compute nve/dot requires atom style ellipsoid");
 

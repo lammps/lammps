@@ -154,6 +154,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_and_count_words
    :project: progguide
 
+.. doxygenfunction:: join_words
+   :project: progguide
+
 .. doxygenfunction:: split_words
    :project: progguide
 
@@ -170,6 +173,12 @@ and parsing files or arguments.
    :project: progguide
 
 .. doxygenfunction:: is_double
+   :project: progguide
+
+.. doxygenfunction:: is_id
+   :project: progguide
+
+.. doxygenfunction:: is_type
    :project: progguide
 
 Potential file functions
@@ -202,13 +211,22 @@ Argument processing
 .. doxygenfunction:: expand_args
    :project: progguide
 
+.. doxygenfunction:: expand_type
+   :project: progguide
+
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: logmesg(LAMMPS *lmp, const S &format, Args&&... args)
+.. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &format, Args&&... args)
    :project: progguide
 
 .. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
+   :project: progguide
+
+.. doxygenfunction:: errorurl
+   :project: progguide
+
+.. doxygenfunction:: missing_cmd_args
    :project: progguide
 
 .. doxygenfunction:: flush_buffers(LAMMPS *lmp)
@@ -236,6 +254,44 @@ Customized standard functions
    :project: progguide
 
 .. doxygenfunction:: merge_sort
+   :project: progguide
+
+---------------------------
+
+Special Math functions
+----------------------
+
+The ``MathSpecial`` namespace implements a selection of custom and optimized
+mathematical functions for a variety of applications.
+
+.. doxygenfunction:: factorial
+   :project: progguide
+
+.. doxygenfunction:: exp2_x86
+   :project: progguide
+
+.. doxygenfunction:: fm_exp
+   :project: progguide
+
+.. doxygenfunction:: my_erfcx
+   :project: progguide
+
+.. doxygenfunction:: expmsq
+   :project: progguide
+
+.. doxygenfunction:: square
+   :project: progguide
+
+.. doxygenfunction:: cube
+   :project: progguide
+
+.. doxygenfunction:: powsign
+   :project: progguide
+
+.. doxygenfunction:: powint
+   :project: progguide
+
+.. doxygenfunction:: powsinxx
    :project: progguide
 
 ---------------------------

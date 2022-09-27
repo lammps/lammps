@@ -390,13 +390,13 @@ void PairBodyRoundedPolyhedron::coeff(int narg, char **arg)
 
 void PairBodyRoundedPolyhedron::init_style()
 {
-  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  avec = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
   if (!avec) error->all(FLERR,"Pair body/rounded/polyhedron requires "
                         "atom style body");
   if (strcmp(avec->bptr->style,"rounded/polyhedron") != 0)
     error->all(FLERR,"Pair body/rounded/polyhedron requires "
                "body style rounded/polyhedron");
-  bptr = dynamic_cast<BodyRoundedPolyhedron *>( avec->bptr);
+  bptr = dynamic_cast<BodyRoundedPolyhedron *>(avec->bptr);
 
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style body/rounded/polyhedron requires "

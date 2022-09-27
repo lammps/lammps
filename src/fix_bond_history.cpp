@@ -82,10 +82,12 @@ int FixBondHistory::setmask()
 void FixBondHistory::post_constructor()
 {
   // Store saved bond quantities for each atom using fix property atom
+  // Don't copy history to data files because this fix is typically
+  // not yet instantiated - history is only preserved across restarts
 
   id_fix = utils::strdup(id + std::string("_FIX_PROP_ATOM"));
   id_array = utils::strdup(std::string("d2_") + id);
-  modify->add_fix(fmt::format("{} {} property/atom {} {}", id_fix, group->names[igroup], id_array,
+  modify->add_fix(fmt::format("{} {} property/atom {} {} writedata no", id_fix, group->names[igroup], id_array,
                               nbond * ndata));
   int tmp1, tmp2;
   index = atom->find_custom(&id_array[3], tmp1, tmp2);
@@ -251,7 +253,7 @@ void FixBondHistory::post_neighbor()
 
 double FixBondHistory::memory_usage()
 {
-  return maxbond * ndata * sizeof(double);
+  return (double) maxbond * ndata * sizeof(double);
 }
 
 /* ---------------------------------------------------------------------- */

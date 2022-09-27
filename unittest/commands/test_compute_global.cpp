@@ -26,8 +26,6 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-using LAMMPS_NS::utils::split_words;
-
 namespace LAMMPS_NS {
 
 #define STRINGIFY(val) XSTR(val)
@@ -102,24 +100,24 @@ TEST_F(ComputeGlobalTest, Energy)
     EXPECT_DOUBLE_EQ(get_scalar("pe1"), 24155.155261642241);
     EXPECT_DOUBLE_EQ(get_scalar("pe2"), 361.37528652881286);
     EXPECT_DOUBLE_EQ(get_scalar("pe3"), 0.0);
-    EXPECT_DOUBLE_EQ(get_scalar("pr1"), 1956948.4735454607);
-    EXPECT_DOUBLE_EQ(get_scalar("pr2"), 1956916.7725807722);
+    EXPECT_NEAR(get_scalar("pr1"), 1956948.4735454607, 0.0000000005);
+    EXPECT_NEAR(get_scalar("pr2"), 1956916.7725807722, 0.0000000005);
     EXPECT_DOUBLE_EQ(get_scalar("pr3"), 0.0);
     auto pr1 = get_vector("pr1");
     auto pr2 = get_vector("pr2");
     auto pr3 = get_vector("pr3");
-    EXPECT_DOUBLE_EQ(pr1[0], 2150600.9207200543);
-    EXPECT_DOUBLE_EQ(pr1[1], 1466949.7512112649);
-    EXPECT_DOUBLE_EQ(pr1[2], 2253294.7487050635);
-    EXPECT_DOUBLE_EQ(pr1[3], 856643.16926486336);
-    EXPECT_DOUBLE_EQ(pr1[4], 692710.86929464422);
-    EXPECT_DOUBLE_EQ(pr1[5], -44403.909298603547);
-    EXPECT_DOUBLE_EQ(pr2[0], 2150575.6989334146);
-    EXPECT_DOUBLE_EQ(pr2[1], 1466911.3911461537);
-    EXPECT_DOUBLE_EQ(pr2[2], 2253263.2276627473);
-    EXPECT_DOUBLE_EQ(pr2[3], 856632.34707690508);
-    EXPECT_DOUBLE_EQ(pr2[4], 692712.89222328411);
-    EXPECT_DOUBLE_EQ(pr2[5], -44399.277068014424);
+    EXPECT_NEAR(pr1[0], 2150600.9207200543, 0.0000000005);
+    EXPECT_NEAR(pr1[1], 1466949.7512112649, 0.0000000005);
+    EXPECT_NEAR(pr1[2], 2253294.7487050635, 0.0000000005);
+    EXPECT_NEAR(pr1[3], 856643.16926486336, 0.0000000005);
+    EXPECT_NEAR(pr1[4], 692710.86929464422, 0.0000000005);
+    EXPECT_NEAR(pr1[5], -44403.909298603547, 0.0000000005);
+    EXPECT_NEAR(pr2[0], 2150575.6989334146, 0.0000000005);
+    EXPECT_NEAR(pr2[1], 1466911.3911461537, 0.0000000005);
+    EXPECT_NEAR(pr2[2], 2253263.2276627473, 0.0000000005);
+    EXPECT_NEAR(pr2[3], 856632.34707690508, 0.0000000005);
+    EXPECT_NEAR(pr2[4], 692712.89222328411, 0.0000000005);
+    EXPECT_NEAR(pr2[5], -44399.277068014424, 0.0000000005);
     EXPECT_DOUBLE_EQ(pr3[0], 0.0);
     EXPECT_DOUBLE_EQ(pr3[1], 0.0);
     EXPECT_DOUBLE_EQ(pr3[2], 0.0);
@@ -296,7 +294,6 @@ TEST_F(ComputeGlobalTest, Reduction)
     EXPECT_DOUBLE_EQ(rep[2], 26);
     EXPECT_DOUBLE_EQ(rep[3], max[0]);
 }
-
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
@@ -304,12 +301,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

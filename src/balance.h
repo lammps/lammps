@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class Balance : public Command {
  public:
   class RCB *rcb;
-  class FixStore *fixstore;    // per-atom weights stored in FixStore
-  int wtflag;                  // 1 if particle weighting is used
-  int varflag;                 // 1 if weight style var(iable) is used
-  int outflag;                 // 1 for output of balance results to file
+  class FixStorePeratom *fixstore;    // per-atom weights stored in FixStorePeratom
+  int wtflag;                         // 1 if particle weighting is used
+  int varflag;                        // 1 if weight style var(iable) is used
+  int outflag;                        // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
   ~Balance() override;
@@ -46,6 +46,7 @@ class Balance : public Command {
   void dumpout(bigint);
 
   static constexpr int BSTR_SIZE = 3;
+
  private:
   int me, nprocs;
 
@@ -57,7 +58,7 @@ class Balance : public Command {
 
   int nitermax;    // params for shift LB
   double stopthresh;
-  char bstr[BSTR_SIZE+1];
+  char bstr[BSTR_SIZE + 1];
 
   int shift_allocate;       // 1 if SHIFT vectors have been allocated
   int ndim;                 // length of balance string bstr
@@ -89,57 +90,6 @@ class Balance : public Command {
   void debug_shift_output(int, int, int, double *);
 #endif
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Balance command before simulation box is defined
-
-The balance command cannot be used before a read_data, read_restart,
-or create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot balance in z dimension for 2d simulation
-
-Self-explanatory.
-
-E: Balance shift string is invalid
-
-The string can only contain the characters "x", "y", or "z".
-
-E: Balance rcb cannot be used with comm_style brick
-
-Comm_style tiled must be used instead.
-
-E: Lost atoms via balance: original %ld current %ld
-
-This should not occur.  Report the problem to the developers.
-
-E: Unknown (fix) balance weight method
-
-UNDOCUMENTED
-
-E: Cannot open (fix) balance output file
-
-UNDOCUMENTED
-
-E: Balance produced bad splits
-
-This should not occur.  It means two or more cutting plane locations
-are on top of each other or out of order.  Report the problem to the
-developers.
-
-U: Cannot open balance output file
-
-Self-explanatory.
-
-*/

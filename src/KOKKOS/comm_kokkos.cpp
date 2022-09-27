@@ -109,6 +109,7 @@ void CommKokkos::init()
   exchange_comm_classic = lmp->kokkos->exchange_comm_classic;
   forward_comm_classic = lmp->kokkos->forward_comm_classic;
   forward_pair_comm_classic = lmp->kokkos->forward_pair_comm_classic;
+  reverse_pair_comm_classic = lmp->kokkos->reverse_pair_comm_classic;
   forward_fix_comm_classic = lmp->kokkos->forward_fix_comm_classic;
   reverse_comm_classic = lmp->kokkos->reverse_comm_classic;
   exchange_comm_on_host = lmp->kokkos->exchange_comm_on_host;
@@ -124,19 +125,19 @@ void CommKokkos::init()
   if (force->pair && (force->pair->execution_space == Host))
     check_reverse += force->pair->comm_reverse;
 
-  for (int i = 0; i < modify->nfix; i++) {
-    check_forward += modify->fix[i]->comm_forward;
-    check_reverse += modify->fix[i]->comm_reverse;
+  for (const auto &fix : modify->get_fix_list()) {
+    check_forward += fix->comm_forward;
+    check_reverse += fix->comm_reverse;
   }
 
-  for (int i = 0; i < modify->ncompute; i++) {
-    check_forward += modify->compute[i]->comm_forward;
-    check_reverse += modify->compute[i]->comm_reverse;
+  for (const auto &compute : modify->get_compute_list()) {
+    check_forward += compute->comm_forward;
+    check_reverse += compute->comm_reverse;
   }
 
-  for (int i = 0; i < output->ndump; i++) {
-    check_forward += output->dump[i]->comm_forward;
-    check_reverse += output->dump[i]->comm_reverse;
+  for (const auto &dump : output->get_dump_list()) {
+    check_forward += dump->comm_forward;
+    check_reverse += dump->comm_reverse;
   }
 
   if (force->newton == 0) check_reverse = 0;
@@ -478,12 +479,13 @@ void CommKokkos::forward_comm_device(Pair *pair)
   int nsize = pair->comm_forward;
   KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 
+  int nmax = max_buf_pair;
   for (iswap = 0; iswap < nswap; iswap++) {
-    int n = MAX(max_buf_pair,nsize*sendnum[iswap]);
-    n = MAX(n,nsize*recvnum[iswap]);
-    if (n > max_buf_pair)
-      grow_buf_pair(n);
+    nmax = MAX(nmax,nsize*sendnum[iswap]);
+    nmax = MAX(nmax,nsize*recvnum[iswap]);
   }
+  if (nmax > max_buf_pair)
+    grow_buf_pair(nmax);
 
   for (iswap = 0; iswap < nswap; iswap++) {
 
@@ -545,8 +547,76 @@ void CommKokkos::grow_buf_fix(int n) {
 
 void CommKokkos::reverse_comm(Pair *pair)
 {
-  k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm(pair);
+  if (pair->execution_space == Host || !pair->reverse_comm_device || reverse_pair_comm_classic) {
+    k_sendlist.sync<LMPHostType>();
+    CommBrick::reverse_comm(pair);
+  } else {
+    k_sendlist.sync<LMPDeviceType>();
+    reverse_comm_device<LMPDeviceType>(pair);
+  }
+}
+
+template<class DeviceType>
+void CommKokkos::reverse_comm_device(Pair *pair)
+{
+  int iswap,n;
+  MPI_Request request;
+  DAT::tdual_xfloat_1d k_buf_tmp;
+
+  KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
+
+  int nsize = MAX(pair->comm_reverse,pair->comm_reverse_off);
+
+  int nmax = max_buf_pair;
+  for (iswap = 0; iswap < nswap; iswap++) {
+    nmax = MAX(nmax,nsize*sendnum[iswap]);
+    nmax = MAX(nmax,nsize*recvnum[iswap]);
+  }
+  if (nmax > max_buf_pair)
+    grow_buf_pair(nmax);
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    n = pairKKBase->pack_reverse_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send_pair);
+    DeviceType().fence();
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    double* buf_send_pair;
+    double* buf_recv_pair;
+    if (lmp->kokkos->gpu_aware_flag) {
+      buf_send_pair = k_buf_send_pair.view<DeviceType>().data();
+      buf_recv_pair = k_buf_recv_pair.view<DeviceType>().data();
+    } else {
+      k_buf_send_pair.modify<DeviceType>();
+      k_buf_send_pair.sync<LMPHostType>();
+      buf_send_pair = k_buf_send_pair.h_view.data();
+      buf_recv_pair = k_buf_recv_pair.h_view.data();
+    }
+
+    if (sendproc[iswap] != me) {
+      if (sendnum[iswap])
+        MPI_Irecv(buf_recv_pair,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
+      if (recvnum[iswap])
+        MPI_Send(buf_send_pair,n,MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+      if (!lmp->kokkos->gpu_aware_flag) {
+        k_buf_recv_pair.modify<LMPHostType>();
+        k_buf_recv_pair.sync<DeviceType>();
+      }
+      k_buf_tmp = k_buf_recv_pair;
+    } else k_buf_tmp = k_buf_send_pair;
+
+    // unpack buffer
+
+    pairKKBase->unpack_reverse_comm_kokkos(sendnum[iswap],k_sendlist,
+                                       iswap,k_buf_tmp);
+    DeviceType().fence();
+  }
 }
 
 void CommKokkos::forward_comm(Dump *dump)

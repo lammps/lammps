@@ -971,7 +971,7 @@ void AtomVecHybridKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp,
-                                    const std::vector<std::string> &values)
+                                    const std::vector<std::string> &values, std::string &extract)
 {
   atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
@@ -980,6 +980,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp,
 
   h_tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
   h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
+  extract = values[1];
   if (h_type[nlocal] <= 0 || h_type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom h_type in Atoms section of data file");
 
@@ -1073,17 +1074,14 @@ void AtomVecHybridKokkos::write_data(FILE *fp, int n, double **buf)
   int k,m;
 
   for (int i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT " %d %-1.16e %-1.16e %-1.16e",
-            (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
-            buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {:.16e} {:.16e} {:.16e}", ubuf(buf[i][0]).i, ubuf(buf[i][1]).i,
+               buf[i][2], buf[i][3], buf[i][4]);
 
     m = 5;
     for (k = 0; k < nstyles; k++)
       m += styles[k]->write_data_hybrid(fp,&buf[i][m]);
 
-    fprintf(fp," %d %d %d\n",
-            (int) ubuf(buf[i][m]).i,(int) ubuf(buf[i][m+1]).i,
-            (int) ubuf(buf[i][m+2]).i);
+    fmt::print(fp," {} {} {}\n", ubuf(buf[i][m]).i, ubuf(buf[i][m+1]).i, ubuf(buf[i][m+2]).i);
   }
 }
 
@@ -1119,8 +1117,7 @@ void AtomVecHybridKokkos::write_vel(FILE *fp, int n, double **buf)
   int k,m;
 
   for (int i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT " %g %g %g",
-            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
+    fmt::print(fp,"{} {} {} {}", (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
 
     m = 4;
     for (k = 0; k < nstyles; k++)
@@ -1136,7 +1133,7 @@ void AtomVecHybridKokkos::write_vel(FILE *fp, int n, double **buf)
    return -1 if name is unknown to any sub-styles
 ------------------------------------------------------------------------- */
 
-int AtomVecHybridKokkos::property_atom(char *name)
+int AtomVecHybridKokkos::property_atom(const std::string &name)
 {
   for (int k = 0; k < nstyles; k++) {
     int index = styles[k]->property_atom(name);
@@ -1150,8 +1147,7 @@ int AtomVecHybridKokkos::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::pack_property_atom(int multiindex, double *buf,
-                                       int nvalues, int groupbit)
+void AtomVecHybridKokkos::pack_property_atom(int multiindex, double *buf, int nvalues, int groupbit)
 {
   int k = multiindex % nstyles;
   int index = multiindex/nstyles;

@@ -84,14 +84,12 @@ void DumpCFGMPIIO::openfile()
     filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -252,7 +250,7 @@ void DumpCFGMPIIO::init_style()
   if (multifile == 0 && !multifile_override)
     error->all(FLERR,"Dump cfg requires one snapshot per file");
 
-  DumpCustom::init_style();
+  DumpCFG::init_style();
 
   // setup function ptrs
 

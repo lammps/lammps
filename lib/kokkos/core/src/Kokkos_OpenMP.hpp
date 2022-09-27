@@ -129,14 +129,17 @@ class OpenMP {
   /// This is a no-op on OpenMP since a non default instance cannot be created
   static OpenMP create_instance(...);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   /// \brief Partition the default instance and call 'f' on each new 'master'
   /// thread
   ///
   /// Func is a functor with the following signiture
   ///   void( int partition_id, int num_partitions )
   template <typename F>
-  static void partition_master(F const& f, int requested_num_partitions = 0,
-                               int requested_partition_size = 0);
+  KOKKOS_DEPRECATED static void partition_master(
+      F const& f, int requested_num_partitions = 0,
+      int requested_partition_size = 0);
+#endif
 
   // use UniqueToken
   static int concurrency();
@@ -176,6 +179,7 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<OpenMP> {
   static constexpr DeviceType id = DeviceType::OpenMP;
+  static int device_id(const OpenMP&) { return 0; }
 };
 }  // namespace Experimental
 }  // namespace Tools

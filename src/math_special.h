@@ -20,21 +20,61 @@ namespace LAMMPS_NS {
 
 namespace MathSpecial {
 
-  // tabulated factorial function
+  /*! Fast tabulated factorial function
+   *
+   *  This function looks up pre-computed factorial values for arguments of n = 0
+   *  to a maximum of 167, which is the maximal value representable by a double
+   *  precision floating point number.  For other values of n a NaN value is returned.
+   *
+   *  \param   n  argument (valid: 0 <= n <= 167)
+   *  \return  value of n! as double precision number or NaN */
 
-  extern double factorial(const int);
+  extern double factorial(const int n);
+
+  /*! Fast implementation of 2^x without argument checks for little endian CPUs
+   *
+   *  This function implements an optimized version of pow(2.0, x) that does not
+   *  check for valid arguments and thus may only be used where arguments are well
+   *  behaved.  The implementation makes assumptions about the layout of double
+   *  precision floating point numbers in memory and thus will only work on little
+   *  endian CPUs.  If little endian cannot be safely detected, the result of
+   *  calling pow(2.0, x) will be returned.  This function also is the basis for
+   *  the fast exponential fm_exp(x).
+   *
+   *  \param   x argument
+   *  \return  value of 2^x as double precision number */
+
+  extern double exp2_x86(double x);
+
+  /*! Fast implementation of exp(x) for little endian CPUs
+   *
+   *  This function implements an optimized version of exp(x) for little endian CPUs.
+   *  It calls the exp2_x86(x) function with a suitable prefactor to x to return exp(x).
+   *  The implementation makes assumptions about the layout of double
+   *  precision floating point numbers in memory and thus will only work on little
+   *  endian CPUs.  If little endian cannot be safely detected, the result of
+   *  calling the exp(x) implementation in the standard math library will be returned.
+   *
+   *  \param   x argument
+   *  \return  value of e^x as double precision number */
+
+  extern double fm_exp(double x);
 
   // support function for scaled error function complement
 
   extern double erfcx_y100(const double y100);
 
-  // fast 2**x function without argument checks for little endian CPUs
-  extern double exp2_x86(double x);
-
-  // fast e**x function for little endian CPUs, falls back to libc on other platforms
-  extern double fm_exp(double x);
-
-  // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+  /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+   *
+   *  This is a portable fast implementation of exp(x*x)*erfc(x) that can be used
+   *  in coul/long pair styles as a replacement for the polynomial expansion that
+   *  is/was widely used.  Unlike the polynomial expansion, that is only accurate
+   *  at the level of single precision floating point it provides full double precision
+   *  accuracy, but at comparable speed (unlike the erfc() implementation shipped
+   *  with GNU standard math library).
+   *
+   *  \param   x argument
+   *  \return  value of e^(x*x)*erfc(x) */
 
   static inline double my_erfcx(const double x)
   {
@@ -44,7 +84,15 @@ namespace MathSpecial {
       return 2.0 * exp(x * x) - erfcx_y100(400.0 / (4.0 - x));
   }
 
-  // exp(-x*x) for coul/long styles
+  /*! Fast implementation of exp(-x*x) for little endian CPUs for coul/long styles
+   *
+   *  This function implements an optimized version of exp(-x*x) based on exp2_x86()
+   *  for use with little endian CPUs. If little endian cannot be safely detected,
+   *  the result of calling the exp(-x*x) implementation in the standard math
+   *  library will be returned.
+   *
+   *  \param   x argument
+   *  \return  value of e^(-x*x) as double precision number */
 
   static inline double expmsq(double x)
   {
@@ -57,23 +105,49 @@ namespace MathSpecial {
 #endif
   }
 
-  // x**2, use instead of pow(x,2.0)
+  /*! Fast inline version of pow(x, 2.0)
+   *
+   *  \param   x argument
+   *  \return  x*x */
 
-  static inline double square(const double &x) { return x * x; }
+  static inline double square(const double &x)
+  {
+    return x * x;
+  }
 
-  // x**3, use instead of pow(x,3.0)
-  static inline double cube(const double &x) { return x * x * x; }
+  /*! Fast inline version of pow(x, 3.0)
+   *
+   *  \param   x argument
+   *  \return  x*x */
 
-  // return -1.0 for odd n, 1.0 for even n, like pow(-1.0,n)
-  static inline double powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
+  static inline double cube(const double &x)
+  {
+    return x * x * x;
+  }
 
-  // optimized version of pow(x,n) with n being integer
-  // up to 10x faster than pow(x,y)
+  /* Fast inline version of pow(-1.0, n)
+   *
+   *  \param   n argument (integer)
+   *  \return  -1 if n is odd, 1.0 if n is even */
+
+  static inline double powsign(const int n)
+  {
+    return (n & 1) ? -1.0 : 1.0;
+  }
+
+  /* Fast inline version of pow(x,n) for integer n
+   *
+   * This is a version of pow(x,n) optimized for n being integer.
+   * Speedups of up to 10x faster than pow(x,y) have been measured.
+   *
+   *  \param   n argument (integer)
+   *  \return  value of x^n */
 
   static inline double powint(const double &x, const int n)
   {
     double yy, ww;
 
+    if (n == 0) return 1.0;
     if (x == 0.0) return 0.0;
     int nn = (n > 0) ? n : -n;
     ww = x;
@@ -84,7 +158,12 @@ namespace MathSpecial {
     return (n > 0) ? yy : 1.0 / yy;
   }
 
-  // optimized version of (sin(x)/x)**n with n being a _positive_ integer
+  /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
+   *
+   * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.
+   *
+   *  \param   n argument (integer). Expected to be positive.
+   *  \return  value of (sin(x)/x)^n */
 
   static inline double powsinxx(const double &x, int n)
   {

@@ -7,7 +7,7 @@
 # Dielectric constants can be set to be different from the input data file
 
 variable epsilon1 index 20
-variable epsilon2 index 8
+variable epsilon2 index 10 # must be the same as the local epsilon defined in data.confined
 
 variable    data index data.confined
 

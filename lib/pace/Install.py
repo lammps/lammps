@@ -18,12 +18,11 @@ from install_helpers import fullpath, geturl, checkmd5sum
 # settings
 
 thisdir = fullpath('.')
-version ='v.2022.06.27'
+version ='v.2022.09.27'
 
 # known checksums for different PACE versions. used to validate the download.
 checksums = { \
-    'v.2021.10.25.fix2': '32394d799bc282bb57696c78c456e64f',
-    'v.2022.06.27': '400f0a4b44c1ce64ae47796e6de4bba8'
+    'v.2022.09.27': 'ad6c8597076479bd55059f5947d51acc'
 }
 
 parser = ArgumentParser(prog='Install.py',

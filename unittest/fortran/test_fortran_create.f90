@@ -1,11 +1,3 @@
-include 'lammps.f90'
-
-MODULE keepcreate
-  USE liblammps
-  TYPE(LAMMPS) :: lmp
-  INTEGER :: mycomm
-END MODULE keepcreate
-
 FUNCTION f_lammps_no_mpi_no_args() BIND(C, name="f_lammps_no_mpi_no_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps

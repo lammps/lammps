@@ -1,18 +1,3 @@
-MODULE keepcmds
-  USE liblammps
-  IMPLICIT NONE
-  TYPE(LAMMPS) :: lmp
-  CHARACTER(len=40), DIMENSION(3), PARAMETER :: demo_input = &
-      [ CHARACTER(len=40) ::                                &
-      'region       box block 0 $x 0 2 0 2',                &
-      'create_box 1 box',                                   &
-      'create_atoms 1 single 1.0 1.0 ${zpos}' ]
-  CHARACTER(len=40), DIMENSION(2), PARAMETER :: cont_input = &
-      [ CHARACTER(len=40) ::                                &
-      'create_atoms 1 single &',                            &
-      ' 0.2 0.1 0.1' ]
-END MODULE keepcmds
-
 FUNCTION f_lammps_with_args() BIND(C, name="f_lammps_with_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps

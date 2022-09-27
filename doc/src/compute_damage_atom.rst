@@ -6,7 +6,7 @@ compute damage/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID damage/atom
 
@@ -24,16 +24,18 @@ Description
 """""""""""
 
 Define a computation that calculates the per-atom damage for each atom
-in a group.  This is a quantity relevant for :doc:`Peridynamics models <pair_peri>`.  See `this document <PDF/PDLammps_overview.pdf>`_
-for an overview of LAMMPS commands for Peridynamics modeling.
+in a group.  This is a quantity relevant for :doc:`Peridynamics models
+<pair_peri>`.  See `this document <PDF/PDLammps_overview.pdf>`_ for an
+overview of LAMMPS commands for Peridynamics modeling.
 
 The "damage" of a Peridynamics particles is based on the bond breakage
 between the particle and its neighbors.  If all the bonds are broken
 the particle is considered to be fully damaged.
 
-See the `PDLAMMPS user guide <http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf>`_ for a formal
-definition of "damage" and more details about Peridynamics as it is
-implemented in LAMMPS.
+See the `PDLAMMPS user guide
+<https://download.lammps.org/pdfs/PDLAMMPS_user_guide.pdf>`_ for a
+formal definition of "damage" and more details about Peridynamics as it
+is implemented in LAMMPS.
 
 This command can be used with all the Peridynamic pair styles.
 

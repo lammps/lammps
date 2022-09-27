@@ -413,10 +413,8 @@ none
 
 .. _Gullet:
 
-**(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
-This report may be accessed on-line via `this link <sandreport_>`_.
-
-.. _sandreport: http://infoserve.sandia.gov/sand_doc/2003/038782.pdf
+**(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003). DOI:10.2172/918395
+This report may be accessed on-line via `this link <https://download.lammps.org/pdfs/MEAM_report_2003.pdf>`_.
 
 .. _Lee:
 

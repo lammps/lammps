@@ -51,8 +51,9 @@ Description
 """""""""""
 
 The peridynamic pair styles implement material models that can be used
-at the mesoscopic and macroscopic scales.  See `this document <PDF/PDLammps_overview.pdf>`_ for an overview of LAMMPS commands
-for Peridynamics modeling.
+at the mesoscopic and macroscopic scales.  See `this document
+<PDF/PDLammps_overview.pdf>`_ for an overview of LAMMPS commands for
+Peridynamics modeling.
 
 Style *peri/pmb* implements the Peridynamic bond-based prototype
 microelastic brittle (PMB) model.
@@ -66,10 +67,12 @@ peridynamic viscoelastic solid (VES) model.
 Style *peri/eps* implements the Peridynamic state-based elastic-plastic
 solid (EPS) model.
 
-The canonical papers on Peridynamics are :ref:`(Silling 2000) <Silling2000>`
-and :ref:`(Silling 2007) <Silling2007>`.  The implementation of Peridynamics
-in LAMMPS is described in :ref:`(Parks) <Parks>`.  Also see the `PDLAMMPS user guide <http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf>`_ for
-more details about its implementation.
+The canonical papers on Peridynamics are :ref:`(Silling 2000)
+<Silling2000>` and :ref:`(Silling 2007) <Silling2007>`.  The
+implementation of Peridynamics in LAMMPS is described in :ref:`(Parks)
+<Parks>`.  Also see the `PDLAMMPS user guide
+<https://download.lammps.org/pdfs/PDLAMMPS_user_guide.pdf>`_ for more
+details about its implementation.
 
 The peridynamic VES and EPS models in PDLAMMPS were implemented by
 R. Rahman and J. T. Foster at University of Texas at San Antonio.  The
@@ -165,8 +168,9 @@ shift option.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for these pair styles.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
+These pair styles write their information to :doc:`binary restart files
+<restart>`, so pair_style and pair_coeff commands do not need to be
+specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
@@ -177,8 +181,9 @@ These pair styles can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-All of these styles are part of the PERI package. They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+All of these styles are part of the PERI package. They are only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

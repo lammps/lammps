@@ -1080,6 +1080,7 @@ filesystem
 filesystems
 Fily
 Fincham
+Fint
 fingerprintconstants
 fingerprintsperelement
 Finnis
@@ -1092,6 +1093,7 @@ flagHI
 flaglog
 flagN
 flagVF
+flang
 fld
 floralwhite
 Florez
@@ -1203,6 +1205,7 @@ gewald
 Gezelter
 Gflop
 gfortran
+ghostneigh
 ghostwhite
 Giacomo
 gif

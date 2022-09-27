@@ -111,5 +111,6 @@ TEST_F(LAMMPS_properties, extract_setting)
 
 TEST_F(LAMMPS_properties, has_error)
 {
-   EXPECT_EQ(f_lammps_has_error(), 0);
+   EXPECT_EQ(f_lammps_has_error(), lammps_has_error(lmp));
+   // TODO: How to test the error message itself?
 };

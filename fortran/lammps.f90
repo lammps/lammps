@@ -81,26 +81,27 @@ MODULE LIBLAMMPS
       TYPE(lammps_style) :: style
       TYPE(lammps_type) :: type
     CONTAINS
-      PROCEDURE :: close              => lmp_close
-      PROCEDURE :: error              => lmp_error
-      PROCEDURE :: file               => lmp_file
-      PROCEDURE :: command            => lmp_command
-      PROCEDURE :: commands_list      => lmp_commands_list
-      PROCEDURE :: commands_string    => lmp_commands_string
-      PROCEDURE :: get_natoms         => lmp_get_natoms
-      PROCEDURE :: get_thermo         => lmp_get_thermo
-      PROCEDURE :: extract_box        => lmp_extract_box
-      PROCEDURE :: reset_box          => lmp_reset_box
-      PROCEDURE :: memory_usage       => lmp_memory_usage
-      PROCEDURE :: get_mpi_comm       => lmp_get_mpi_comm
-      PROCEDURE :: extract_setting    => lmp_extract_setting
-      PROCEDURE :: extract_global     => lmp_extract_global
-      PROCEDURE :: extract_atom       => lmp_extract_atom
-      PROCEDURE :: extract_compute    => lmp_extract_compute
-!
-      PROCEDURE :: version            => lmp_version
-      PROCEDURE :: is_running         => lmp_is_running
-      PROCEDURE :: has_error          => lmp_has_error
+      PROCEDURE :: close                  => lmp_close
+      PROCEDURE :: error                  => lmp_error
+      PROCEDURE :: file                   => lmp_file
+      PROCEDURE :: command                => lmp_command
+      PROCEDURE :: commands_list          => lmp_commands_list
+      PROCEDURE :: commands_string        => lmp_commands_string
+      PROCEDURE :: get_natoms             => lmp_get_natoms
+      PROCEDURE :: get_thermo             => lmp_get_thermo
+      PROCEDURE :: extract_box            => lmp_extract_box
+      PROCEDURE :: reset_box              => lmp_reset_box
+      PROCEDURE :: memory_usage           => lmp_memory_usage
+      PROCEDURE :: get_mpi_comm           => lmp_get_mpi_comm
+      PROCEDURE :: extract_setting        => lmp_extract_setting
+      PROCEDURE :: extract_global         => lmp_extract_global
+      PROCEDURE :: extract_atom           => lmp_extract_atom
+      PROCEDURE :: extract_compute        => lmp_extract_compute
+!                                         
+      PROCEDURE :: version                => lmp_version
+      PROCEDURE :: is_running             => lmp_is_running
+      PROCEDURE :: has_error              => lmp_has_error
+      PROCEDURE :: get_last_error_message => lmp_get_last_error_message
   END TYPE lammps
 
   INTERFACE lammps
@@ -416,12 +417,18 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_force_timeout
 
     INTEGER (C_int) FUNCTION lammps_has_error (handle) BIND(C)
-      IMPORT :: C_ptr, C_int
+      IMPORT :: c_ptr, c_int
       IMPLICIT NONE
-      TYPE(C_ptr), VALUE :: handle
+      TYPE(c_ptr), VALUE :: handle
     END FUNCTION lammps_has_error
 
-    !INTEGER (c_int) FUNCTION lammps_get_last_error_message
+    INTEGER (c_int) FUNCTION lammps_get_last_error_message &
+        (handle, buffer, buf_size) BIND(C)
+      IMPORT :: c_ptr, c_int, c_char
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, buffer
+      INTEGER(c_int), VALUE :: buf_size
+    END FUNCTION lammps_get_last_error_message
 
   END INTERFACE
 
@@ -852,11 +859,39 @@ CONTAINS
   ! equivalent function to lammps_has_error
   LOGICAL FUNCTION lmp_has_error(self)
     CLASS(lammps), INTENT(IN) :: self
-    INTEGER(C_int) :: has_error
+    INTEGER(c_int) :: has_error
 
     has_error = lammps_has_error(self%handle)
-    lmp_has_error = (has_error /= 0_C_int)
+    lmp_has_error = (has_error /= 0_c_int)
   END FUNCTION lmp_has_error
+
+  ! equivalent function to lammps_get_last_error_message
+  SUBROUTINE lmp_get_last_error_message(self, buffer, status)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER, INTENT(OUT), OPTIONAL :: status
+    INTEGER(c_int) :: length, Cstatus, i
+    TYPE(c_ptr) :: Cbuffer
+
+    buffer = ''
+    IF ( lmp_has_error(self) ) THEN
+      length = LEN(buffer)
+      Cbuffer = f2cstring(buffer)
+      Cstatus = lammps_get_last_error_message(self%handle, Cbuffer, length)
+      length = MIN(LEN(buffer), c_strlen(Cbuffer))
+      FORALL ( i=1:length )
+        buffer(i:i) = Cbuffer(i)
+      END FORALL
+      IF ( PRESENT(status) ) THEN
+        status = Cstatus
+      END IF
+    ELSE
+      buffer = ''
+      IF ( PRESENT(status) ) THEN
+        status = 0
+      END IF
+    END IF
+  END SUBROUTINE lmp_get_last_error_message
 
   ! equivalent function to lammps_is_running
   LOGICAL FUNCTION lmp_is_running(self)

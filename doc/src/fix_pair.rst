@@ -86,8 +86,9 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
-<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
-relevant to this fix.
+<restart>`.
+The timesteps on which fix pair will extract per-atom quantities from a pair
+style can be modified by *every* option of :doc:`fix_modify <fix_modify>`.
 
 As explained above, this fix produces a per-atom vector or array which
 can be accessed by various :doc:`output commands <Howto_output>`.  If
@@ -103,6 +104,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute pair <compute_pair>`
+:doc:`fix_modify <fix_modify>`
 
 Default
 """""""

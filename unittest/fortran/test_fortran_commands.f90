@@ -1,5 +1,6 @@
 MODULE keepcmds
   USE liblammps
+  IMPLICIT NONE
   TYPE(LAMMPS) :: lmp
   CHARACTER(len=40), DIMENSION(3), PARAMETER :: demo_input = &
       [ CHARACTER(len=40) ::                                &

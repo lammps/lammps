@@ -380,6 +380,13 @@ void PairPACEExtrapolation::coeff(int narg, char **arg)
 
   if (comm->me == 0) utils::logmesg(lmp, "Loading ASI {}\n", active_set_inv_filename);
   aceimpl->ace->load_active_set(active_set_inv_filename);
+  bool is_linear_extrapolation_grade = aceimpl->ace->get_is_linear_extrapolation_grade();
+  if (comm->me == 0) {
+        if (is_linear_extrapolation_grade)
+            utils::logmesg(lmp, "LINEAR ASI is loaded\n");
+        else
+            utils::logmesg(lmp, "FULL ASI is loaded\n");
+  }
 
   // clear setflag since coeff() called once with I,J = * *
   for (int i = 1; i <= n; i++)

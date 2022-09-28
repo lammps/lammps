@@ -32,17 +32,16 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  contact(nullptr)
+    Compute(lmp, narg, arg), group2(nullptr), contact(nullptr)
 {
-  if (narg != 3 && narg != 4) error->all(FLERR,"Illegal compute contact/atom command");
+  if ((narg != 3) && (narg != 4)) error->all(FLERR, "Illegal compute contact/atom command");
 
   jgroup = group->find("all");
   jgroupbit = group->bitmask[jgroup];
   if (narg == 4) {
     group2 = utils::strdup(arg[3]);
     jgroup = group->find(group2);
-    if (jgroup == -1) error->all(FLERR, "Compute contact/atom group2 ID does not exist");
+    if (jgroup == -1) error->all(FLERR, "Compute contact/atom group2 ID {} does not exist", group2);
     jgroupbit = group->bitmask[jgroup];
   }
 
@@ -54,8 +53,7 @@ ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Compute contact/atom requires atom style sphere");
+  if (!atom->sphere_flag) error->all(FLERR, "Compute contact/atom requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,6 +61,7 @@ ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
 ComputeContactAtom::~ComputeContactAtom()
 {
   memory->destroy(contact);
+  delete[] group2;
 }
 
 /* ---------------------------------------------------------------------- */

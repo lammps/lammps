@@ -52,6 +52,7 @@ int main(int argc, char **argv)
         printf("Error reading binary STL header: %s\n", strerror(errno));
         return 4;
     }
+    title[79] = '\0'; // ensure null termination of title string
     count = strlen(title);
     if (count == 0) snprintf(title, 80, "STL object from file %s", argv[1]);
 

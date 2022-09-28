@@ -6,7 +6,7 @@ fix ave/chunk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ave/chunk Nevery Nrepeat Nfreq chunkID value1 value2 ... keyword args ...
 
@@ -17,12 +17,12 @@ Syntax
 * Nfreq = calculate averages every this many timesteps
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * one or more input values can be listed
-* value = vx, vy, vz, fx, fy, fz, density/mass, density/number, temp, c_ID, c_ID[I], f_ID, f_ID[I], v_name
+* value = *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, *density/mass*, *density/number*, *mass*, *temp*, c_ID, c_ID[I], f_ID, f_ID[I], v_name
 
   .. parsed-literal::
 
-       vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
-       density/number, density/mass = number or mass density
+       vx,vy,vz,fx,fy,fz,mass = atom attribute (velocity, force component, mass)
+       density/number, density/mass = number or mass density (per volume)
        temp = temperature
        c_ID = per-atom vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
@@ -71,23 +71,27 @@ Examples
    fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
    fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
 
-**NOTE:**
 
-If you are trying to replace a deprecated fix ave/spatial command
-with the newer, more flexible fix ave/chunk and :doc:`compute chunk/atom <compute_chunk_atom>` commands, you simply need to split
-the fix ave/spatial arguments across the two new commands.  For
-example, this command:
+.. note::
 
-.. code-block:: LAMMPS
+   .. versionchanged:: 31May2016
 
-   fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
+   If you are trying to replace a deprecated fix ave/spatial command
+   with the newer, more flexible fix ave/chunk and :doc:`compute
+   chunk/atom <compute_chunk_atom>` commands, you simply need to split
+   the fix ave/spatial arguments across the two new commands.  For
+   example, this command:
 
-could be replaced by:
+   .. code-block:: LAMMPS
 
-.. code-block:: LAMMPS
+      fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
 
-   compute cc1 flow chunk/atom bin/1d y 0.0 1.0
-   fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile
+   could be replaced by:
+
+   .. code-block:: LAMMPS
+
+      compute cc1 flow chunk/atom bin/1d y 0.0 1.0
+      fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile
 
 Description
 """""""""""
@@ -99,29 +103,33 @@ averages can be used by other :doc:`output commands <Howto_output>` such
 as :doc:`thermo_style custom <thermo_style>`, and can also be written to
 a file.
 
-In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
-to a single chunk (or no chunk).  The ID for this command is specified
-as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>` page and the :doc:`Howto chunk <Howto_chunk>` page for details of how chunks can be
-defined and examples of how they can be used to measure properties of
-a system.
+In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
+chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
+single chunk (or no chunk).  The ID for this command is specified as
+chunkID.  For example, a single chunk could be the atoms in a molecule
+or atoms in a spatial bin.  See the :doc:`compute chunk/atom
+<compute_chunk_atom>` page and the :doc:`Howto chunk <Howto_chunk>`
+page for details of how chunks can be defined and examples of how they
+can be used to measure properties of a system.
 
 Note that only atoms in the specified group contribute to the summing
-and averaging calculations.  The :doc:`compute chunk/atom <compute_chunk_atom>` command defines its own group as
-well as an optional region.  Atoms will have a chunk ID = 0, meaning
-they belong to no chunk, if they are not in that group or region.
-Thus you can specify the "all" group for this command if you simply
-want to use the chunk definitions provided by chunkID.
+and averaging calculations.  The :doc:`compute chunk/atom
+<compute_chunk_atom>` command defines its own group as well as an
+optional region.  Atoms will have a chunk ID = 0, meaning they belong
+to no chunk, if they are not in that group or region.  Thus you can
+specify the "all" group for this command if you simply want to use the
+chunk definitions provided by chunkID.
 
 Each specified per-atom value can be an atom attribute (position,
-velocity, force component), a mass or number density, or the result of
-a :doc:`compute <compute>` or :doc:`fix <fix>` or the evaluation of an
-atom-style :doc:`variable <variable>`.  In the latter cases, the
-compute, fix, or variable must produce a per-atom quantity, not a
-global quantity.  Note that the :doc:`compute property/atom <compute_property_atom>` command provides access to
-any attribute defined and stored by atoms.  If you wish to
-time-average global quantities from a compute, fix, or variable, then
-see the :doc:`fix ave/time <fix_ave_time>` command.
+velocity, force component), a number or mass density, a mass or
+temperature, or the result of a :doc:`compute <compute>` or :doc:`fix
+<fix>` or the evaluation of an atom-style :doc:`variable <variable>`.
+In the latter cases, the compute, fix, or variable must produce a
+per-atom quantity, not a global quantity.  Note that the :doc:`compute
+property/atom <compute_property_atom>` command provides access to any
+attribute defined and stored by atoms.  If you wish to time-average
+global quantities from a compute, fix, or variable, then see the
+:doc:`fix ave/time <fix_ave_time>` command.
 
 The per-atom values of each input vector are summed and averaged
 independently of the per-atom values in other input vectors.
@@ -135,18 +143,19 @@ produce global quantities.
 
 Note that for values from a compute or fix, the bracketed index I can
 be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*" or
-"m\*n".  If N = the size of the vector (for *mode* = scalar) or the
+specify multiple values.  This takes the form "\*" or "\*n" or "m\*" or
+"m\*n".  If :math:`N` is the size of the vector (for *mode* = scalar) or the
 number of columns in the array (for *mode* = vector), then an asterisk
-with no numeric values means all indices from 1 to N.  A leading
+with no numeric values means all indices from 1 to :math:`N`.  A leading
 asterisk means all indices from 1 to n (inclusive).  A trailing
-asterisk means all indices from n to N (inclusive).  A middle asterisk
+asterisk means all indices from m to :math:`N` (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
-had been listed one by one.  E.g. these 2 fix ave/chunk commands are
-equivalent, since the :doc:`compute property/atom <compute_property_atom>` command creates, in this
-case, a per-atom array with 3 columns:
+had been listed one by one.  For example, these two fix ave/chunk commands are
+equivalent, since the :doc:`compute property/atom
+<compute_property_atom>` command creates, in this case, a per-atom
+array with three columns:
 
 .. code-block:: LAMMPS
 
@@ -156,99 +165,113 @@ case, a per-atom array with 3 columns:
 
 .. note::
 
-   This fix works by creating an array of size *Nchunk* by Nvalues
-   on each processor.  *Nchunk* is the number of chunks which is defined
-   by the :doc:`compute chunk/atom <compute_chunk_atom>` command.
-   Nvalues is the number of input values specified.  Each processor loops
-   over its atoms, tallying its values to the appropriate chunk.  Then
-   the entire array is summed across all processors.  This means that
-   using a large number of chunks will incur an overhead in memory and
+   This fix works by creating an array of size
+   :math:`N_\text{chunk} \times N_\text{values}` on each processor.
+   :math:`N_\text{chunk}` is the number of chunks, which is defined by the
+   :doc:`compute chunk/atom <compute_chunk_atom>` command.
+   :math:`N_\text{values}` is the number of input values specified.
+   Each processor loops over its atoms, tallying its values to the appropriate
+   chunk.  Then the entire array is summed across all processors.  This means
+   that using a large number of chunks will incur an overhead in memory and
    computational cost (summing across processors), so be careful to
    define a reasonable number of chunks.
 
 ----------
 
-The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
-timesteps the input values will be accessed and contribute to the
-average.  The final averaged quantities are generated on timesteps
-that are a multiples of *Nfreq*\ .  The average is over *Nrepeat*
-quantities, computed in the preceding portion of the simulation every
-*Nevery* timesteps.  *Nfreq* must be a multiple of *Nevery* and
-*Nevery* must be non-zero even if *Nrepeat* is 1.  Also, the timesteps
-contributing to the average value cannot overlap, i.e. Nrepeat\*Nevery
-can not exceed Nfreq.
+The :math:`N_\text{every}`, :math:`N_\text{repeat}`, and :math:`N_\text{freq}`
+arguments specify on what time steps the input values will be accessed and
+contribute to the average.  The final averaged quantities are generated on time
+steps that are a multiples of :math:`N_\text{freq}`\ .  The average is over
+:math:`N_\text{repeat}` quantities, computed in the preceding portion of the
+simulation every :math:`N_\text{every}` time steps.  :math:`N_\text{freq}`
+must be a multiple of :math:`N_\text{every}` and :math:`N_\text{every}` must be
+non-zero even if :math:`N_\text{repeat} = 1`\ .  Also, the time steps
+contributing to the average value cannot overlap (i.e.,
+:math:`N_\text{repeat}N_\text{every}` cannot exceed :math:`N_\text{freq}`).
 
-For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
-timesteps 90,92,94,96,98,100 will be used to compute the final average
-on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
-timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
-averaging is done; values are simply generated on timesteps
-100,200,etc.
+For example, if :math:`N_\text{every}=2`, :math:`N_\text{repeat}=6`, and
+:math:`N_\text{freq}=100`, then values on
+time steps 90, 92, 94, 96, 98, 100 will be used to compute the final average
+on time step 100.  Similarly for time steps 190, 192, 194, 196, 198, 200 on
+time step 200, etc.  If :math:`N_\text{repeat}=1` and
+:math:`N_\text{freq} = 100`, then no time averaging is done; values are simply
+generated on time steps 100, 200, etc.
 
 Each input value can also be averaged over the atoms in each chunk.
-The way the averaging is done across the *Nrepeat* timesteps to
-produce output on the *Nfreq* timesteps, and across multiple *Nfreq*
-outputs, is determined by the *norm* and *ave* keyword settings, as
-discussed below.
+The way the averaging is done across the :math:`N_\text{repeat}` time steps to
+produce output on the :math:`N_\text{freq}` time steps, and across multiple
+:math:`N_\text{freq}` outputs, is determined by the *norm* and *ave* keyword
+settings, as discussed below.
 
 .. note::
 
-   To perform per-chunk averaging within a *Nfreq* time window, the
-   number of chunks *Nchunk* defined by the :doc:`compute chunk/atom <compute_chunk_atom>` command must remain constant.  If
-   the *ave* keyword is set to *running* or *window* then *Nchunk* must
-   remain constant for the duration of the simulation.  This fix forces
-   the chunk/atom compute specified by chunkID to hold *Nchunk* constant
-   for the appropriate time windows, by not allowing it to re-calculate
-   *Nchunk*, which can also affect how it assigns chunk IDs to atoms.
-   This is particularly important to understand if the chunks defined by
-   the :doc:`compute chunk/atom <compute_chunk_atom>` command are spatial
-   bins.  If its *units* keyword is set to *box* or *lattice*, then the
-   number of bins *Nchunk* and size of each bin will be fixed over the
-   *Nfreq* time window, which can affect which atoms are discarded if the
-   simulation box size changes.  If its *units* keyword is set to
-   *reduced*, then the number of bins *Nchunk* will still be fixed, but
-   the size of each bin can vary at each timestep if the simulation box
-   size changes, e.g. for an NPT simulation.
+   To perform per-chunk averaging within a :math:`N_\text{freq}` time window,
+   the number of chunks :math:`N_\text{chunk}` defined by the
+   :doc:`compute chunk/atom <compute_chunk_atom>` command must remain
+   constant.  If the *ave* keyword is set to *running* or *window* then
+   :math:`N_\text{chunk}` must remain constant for the duration of the
+   simulation.  This fix forces the chunk/atom compute specified by chunkID to
+   hold :math:`N_\text{chunk}` constant for the appropriate time windows,
+   by not allowing it to re-calculate :math:`N_\text{chunk}`, which can also
+   affect how it assigns chunk IDs to atoms.  This is particularly important to
+   understand if the chunks defined by the :doc:`compute chunk/atom
+   <compute_chunk_atom>` command are spatial bins.  If its *units*
+   keyword is set to *box* or *lattice*, then the number of bins
+   :math:`N_\text{chunk}` and size of each bin will be fixed over the
+   :math:`N_\text{freq}` time window, which can affect which atoms are
+   discarded if the simulation box size changes.  If its *units* keyword is set
+   to *reduced*, then the number of bins :math:`N_\text{chunk}` will still be
+   fixed, but the size of each bin can vary at each time step if the
+   simulation box size changes (e.g., for an NPT simulation).
 
 ----------
 
-The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
-As noted above, any other atom attributes can be used as input values
-to this fix by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
-an input value from that compute.
+The atom attribute values (*vx*, *vy*, *vz*, *fx*, *fy*, *fz*, *mass*) are
+self-explanatory.  As noted above, any other atom attributes can be
+used as input values to this fix by using the :doc:`compute
+property/atom <compute_property_atom>` command and then specifying an
+input value from that compute.
 
 The *density/number* value means the number density is computed for
-each chunk, i.e. number/volume.  The *density/mass* value means the
-mass density is computed for each chunk, i.e. total-mass/volume.  The
-output values are in units of 1/volume or density (mass/volume).  See
+each chunk (i.e., number/volume).  The *density/mass* value means the
+mass density is computed for each chunk (i.e., total-mass/volume).  The
+output values are in units of 1/volume or mass density (mass/volume).  See
 the :doc:`units <units>` command page for the definition of density
-for each choice of units, e.g. gram/cm\^3.  If the chunks defined by
+for each choice of units (e.g., g/cm\ :math:`^3`).  If the chunks defined by
 the :doc:`compute chunk/atom <compute_chunk_atom>` command are spatial
-bins, the volume is the bin volume.  Otherwise it is the volume of the
+bins, the volume is the bin volume.  Otherwise, it is the volume of the
 entire simulation box.
 
-The *temp* value means the temperature is computed for each chunk, by
-the formula KE = DOF/2 k T, where KE = total kinetic energy of the
-chunk of atoms (sum of 1/2 m v\^2), DOF = the total number of degrees
-of freedom for all atoms in the chunk, k = Boltzmann constant, and T =
-temperature.
+The *temp* value means the temperature is computed for each chunk,
+by the formula
 
-The DOF is calculated as N\*adof + cdof, where N = number of atoms in
-the chunk, adof = degrees of freedom per atom, and cdof = degrees of
-freedom per chunk.  By default adof = 2 or 3 = dimensionality of
-system, as set via the :doc:`dimension <dimension>` command, and cdof =
-0.0.  This gives the usual formula for temperature.
+.. math::
+
+   \text{KE} = \frac{\text{DOF}}{2} k_B T,
+
+where KE is the total kinetic energy of the chunk of atoms (sum of
+:math:`\frac{1}{2} m v^2`), DOF is the the total number of degrees of freedom
+for all atoms in the chunk, :math:`k_B` is the Boltzmann constant, and
+:math:`T` is the absolute temperature.
+
+The DOF is calculated as :math:`N`\ \*adof + cdof, where :math:`N` is the
+number of atoms in the chunk, adof is the number of degrees of freedom per
+atom, and cdof is the number of degrees of freedom per chunk.  By default,
+adof = 2 or 3 = dimensionality of system,
+as set via the :doc:`dimension <dimension>` command, and cdof = 0.0.
+This gives the usual formula for temperature.
 
 Note that currently this temperature only includes translational
 degrees of freedom for each atom.  No rotational degrees of freedom
-are included for finite-size particles.  Also no degrees of freedom
+are included for finite-size particles.  Also, no degrees of freedom
 are subtracted for any velocity bias or constraints that are applied,
-such as :doc:`compute temp/partial <compute_temp_partial>`, or :doc:`fix shake <fix_shake>` or :doc:`fix rigid <fix_rigid>`.  This is because
-those degrees of freedom (e.g. a constrained bond) could apply to sets
-of atoms that are both included and excluded from a specific chunk,
-and hence the concept is somewhat ill-defined.  In some cases, you can
-use the *adof* and *cdof* keywords to adjust the calculated degrees of
-freedom appropriately, as explained below.
+such as :doc:`compute temp/partial <compute_temp_partial>`,
+:doc:`fix shake <fix_shake>`, or :doc:`fix rigid <fix_rigid>`.  This is
+because those degrees of freedom (e.g., a constrained bond) could apply
+to sets of atoms that are both included and excluded from a specific
+chunk, and hence the concept is somewhat ill-defined.  In some cases,
+you can use the *adof* and *cdof* keywords to adjust the calculated
+degrees of freedom appropriately, as explained below.
 
 Also note that a bias can be subtracted from atom velocities before
 they are used in the above formula for KE, by using the *bias*
@@ -256,14 +279,14 @@ keyword.  This allows, for example, a thermal temperature to be
 computed after removal of a flow velocity profile.
 
 Note that the per-chunk temperature calculated by this fix and the
-:doc:`compute temp/chunk <compute_temp_chunk>` command can be different.
-The compute calculates the temperature for each chunk for a single
-snapshot.  This fix can do that but can also time average those values
-over many snapshots, or it can compute a temperature as if the atoms
-in the chunk on different timesteps were collected together as one set
-of atoms to calculate their temperature.  The compute allows the
-center-of-mass velocity of each chunk to be subtracted before
-calculating the temperature; this fix does not.
+:doc:`compute temp/chunk <compute_temp_chunk>` command can be
+different.  The compute calculates the temperature for each chunk for
+a single snapshot.  This fix can do that but can also time average
+those values over many snapshots, or it can compute a temperature as
+if the atoms in the chunk on different time steps were collected
+together as one set of atoms to calculate their temperature.  The
+compute allows the center-of-mass velocity of each chunk to be
+subtracted before calculating the temperature; this fix does not.
 
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
@@ -279,9 +302,9 @@ previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce
-their values on certain timesteps, which must be compatible with
-*Nevery*, else an error results.  Users can also write code for their
-own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the
+their values on certain time steps, which must be compatible with
+:math:`N_\text{every}`, else an error results.  Users can also write code for
+their own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
@@ -298,106 +321,107 @@ Additional optional keywords also affect the operation of this fix
 and its outputs.
 
 The *norm* keyword affects how averaging is done for the per-chunk
-values that are output every *Nfreq* timesteps.
+values that are output every :math:`N_\text{freq}` time steps.
 
-It the *norm* setting is *all*, which is the default, a chunk value is
-summed over all atoms in all *Nrepeat* samples, as is the count of
+It the *norm* setting is *all*, which is the default, a chunk value is summed
+over all atoms in all :math:`N_\text{repeat}` samples, as is the count of
 atoms in the chunk.  The averaged output value for the chunk on the
-*Nfreq* timesteps is Total-sum / Total-count.  In other words it is an
-average over atoms across the entire *Nfreq* timescale.  For the
-*density/number* and *density/mass* values, the volume (bin volume or
+:math:`N_\text{freq}` time steps is Total-sum / Total-count.  In other words it
+is an average over atoms across the entire :math:`N_\text{freq}` timescale.
+For the *density/number* and *density/mass* values, the volume (bin volume or
 system volume) used in the final normalization will be the volume at
-the final *Nfreq* timestep. For the *temp* values, degrees of freedom and
-kinetic energy are summed separately across the entire *Nfreq* timescale, and
-the output value is calculated by dividing those two sums.
+the final :math:`N_\text{freq}` time step. For the *temp* values, degrees of
+freedom and kinetic energy are summed separately across the entire
+:math:`N_\text{freq}` timescale, and the output value is calculated by dividing
+those two sums.
 
 If the *norm* setting is *sample*, the chunk value is summed over
 atoms for each sample, as is the count, and an "average sample value"
-is computed for each sample, i.e. Sample-sum / Sample-count.  The
-output value for the chunk on the *Nfreq* timesteps is the average of
-the *Nrepeat* "average sample values", i.e. the sum of *Nrepeat*
-"average sample values" divided by *Nrepeat*\ .  In other words it is an
-average of an average.  For the *density/number* and *density/mass*
-values, the volume (bin volume or system volume) used in the
-per-sample normalization will be the current volume at each sampling
-step.
+is computed for each sample (i.e., Sample-sum / Sample-count).  The
+output value for the chunk on the :math:`N_\text{freq}` time steps is the
+average of the :math:`N_\text{repeat}` "average sample values" (i.e., the sum
+of :math:`N_\text{repeat}` "average sample values" divided by
+:math:`N_\text{repeat}`\ ).  In other words, it is an average of an average.
+For the *density/number* and *density/mass* values, the volume (bin volume or
+system volume) used in the per-sample normalization will be the current volume
+at each sampling step.
 
 If the *norm* setting is *none*, a similar computation as for the
 *sample* setting is done, except the individual "average sample
 values" are "summed sample values".  A summed sample value is simply
 the chunk value summed over atoms in the sample, without dividing by
 the number of atoms in the sample.  The output value for the chunk on
-the *Nfreq* timesteps is the average of the *Nrepeat* "summed sample
-values", i.e. the sum of *Nrepeat* "summed sample values" divided by
-*Nrepeat*\ .  For the *density/number* and *density/mass* values, the
+the :math:`N_\text{freq}` timesteps is the average of the
+:math:`N_\text{repeat}` "summed sample values" (i.e., the sum of
+:math:`N_\text{repeat}` "summed sample values" divided by
+:math:`N_\text{repeat}`\ ).
+For the *density/number* and *density/mass* values, the
 volume (bin volume or system volume) used in the per-sample sum
 normalization will be the current volume at each sampling step.
 
 The *ave* keyword determines how the per-chunk values produced every
-*Nfreq* steps are averaged with values produced on previous steps that
-were multiples of *Nfreq*, before they are accessed by another output
-command or written to a file.
+:math:`N_\text{freq}` steps are averaged with values produced on previous steps
+that were multiples of :math:`N_\text{freq}`, before they are accessed by
+another output command or written to a file.
 
 If the *ave* setting is *one*, which is the default, then the chunk
-values produced on timesteps that are multiples of *Nfreq* are
-independent of each other; they are output as-is without further
-averaging.
+values produced on timesteps that are multiples of :math:`N_\text{freq}` are
+independent of each other; they are output as-is without further averaging.
 
 If the *ave* setting is *running*, then the chunk values produced on
-timesteps that are multiples of *Nfreq* are summed and averaged in a
-cumulative sense before being output.  Each output chunk value is thus
+timesteps that are multiples of :math:`N_\text{freq}` are summed and averaged
+in a cumulative sense before being output.  Each output chunk value is thus
 the average of the chunk value produced on that timestep with all
 preceding values for the same chunk.  This running average begins when
 the fix is defined; it can only be restarted by deleting the fix via
-the :doc:`unfix <unfix>` command, or re-defining the fix by
-re-specifying it.
+the :doc:`unfix <unfix>` command, or re-defining the fix by re-specifying it.
 
 If the *ave* setting is *window*, then the chunk values produced on
-timesteps that are multiples of *Nfreq* are summed and averaged within
-a moving "window" of time, so that the last M values for the same
-chunk are used to produce the output.  E.g. if M = 3 and Nfreq = 1000,
-then the output on step 10000 will be the average of the individual
-chunk values on steps 8000,9000,10000.  Outputs on early steps will
-average over less than M values if they are not available.
+timesteps that are multiples of :math:`N_\text{freq}` are summed and averaged
+within a moving "window" of time, so that the last :math:`M` values for the
+same chunk are used to produce the output.  For example, if :math:`M = 3` and
+:math:`N_\text{freq} = 1000`, then the output on step 10000 will be the average
+of the individual chunk values on time steps 8000, 9000, and 10000.  Outputs on
+early steps will average over less than :math:`M` values if they are not
+available.
 
 The *bias* keyword specifies the ID of a temperature compute that
-removes a "bias" velocity from each atom, specified as *bias-ID*\ .  It
-is only used when the *temp* value is calculated, to compute the
+removes a "bias" velocity from each atom, specified as *bias-ID*\ .
+It is only used when the *temp* value is calculated, to compute the
 thermal temperature of each chunk after the translational kinetic
-energy components have been altered in a prescribed way, e.g.  to
-remove a flow velocity profile.  See the doc pages for individual
-computes that calculate a temperature to see which ones implement a
-bias.
+energy components have been altered in a prescribed way (e.g., to
+remove a flow velocity profile).  See the doc pages for individual
+computes that calculate a temperature to see which ones implement a bias.
 
 The *adof* and *cdof* keywords define the values used in the degree of
 freedom (DOF) formula described above for temperature calculation
 for each chunk.  They are only used when the *temp* value is
 calculated.  They can be used to calculate a more appropriate
-temperature for some kinds of chunks.  Here are 3 examples:
+temperature for some kinds of chunks.  Here are three examples:
 
 If spatially binned chunks contain some number of water molecules and
 :doc:`fix shake <fix_shake>` is used to make each molecule rigid, then
-you could calculate a temperature with 6 degrees of freedom (DOF) (3
-translational, 3 rotational) per molecule by setting *adof* to 2.0.
+you could calculate a temperature with six degrees of freedom (DOF) (three
+translational, three rotational) per molecule by setting *adof* to 2.0.
 
 If :doc:`compute temp/partial <compute_temp_partial>` is used with the
-*bias* keyword to only allow the x component of velocity to contribute
+*bias* keyword to only allow the :math:`x` component of velocity to contribute
 to the temperature, then *adof* = 1.0 would be appropriate.
 
 If each chunk consists of a large molecule, with some number of its
 bonds constrained by :doc:`fix shake <fix_shake>` or the entire molecule
 by :doc:`fix rigid/small <fix_rigid>`, *adof* = 0.0 and *cdof* could be
 set to the remaining degrees of freedom for the entire molecule
-(entire chunk in this case), e.g. 6 for 3d, or 3 for 2d, for a rigid
+(entire chunk in this case), that is, 6 for 3d or 3 for 2d for a rigid
 molecule.
 
-The *file* keyword allows a filename to be specified.  Every *Nfreq*
-timesteps, a section of chunk info will be written to a text file in
-the following format.  A line with the timestep and number of chunks
-is written.  Then one line per chunk is written, containing the chunk
-ID (1-Nchunk), an optional original ID value, optional coordinate
-values for chunks that represent spatial bins, the number of atoms in
-the chunk, and one or more calculated values.  More explanation of the
+The *file* keyword allows a filename to be specified.  Every
+:math:`N_\text{freq}` timesteps, a section of chunk info will be written to a
+text file in the following format.  A line with the timestep and number of
+chunks is written.  Then one line per chunk is written, containing the chunk
+ID :math:`(1-N_\text{chunk}),` an optional original ID value, optional
+coordinate values for chunks that represent spatial bins, the number of atoms
+in the chunk, and one or more calculated values.  More explanation of the
 optional values is given below.  The number of values in each line
 corresponds to the number of values specified in the fix ave/chunk
 command.  The number of atoms and the value(s) are summed or average
@@ -410,10 +434,10 @@ output.  This option can only be used with the *ave running* setting.
 The *format* keyword sets the numeric format of each value when it is
 printed to a file via the *file* keyword.  Note that all values are
 floating point quantities.  The default format is %g.  You can specify
-a higher precision if desired, e.g. %20.16g.
+a higher precision if desired (e.g., %20.16g).
 
 The *title1* and *title2* and *title3* keywords allow specification of
-the strings that will be printed as the first 3 lines of the output
+the strings that will be printed as the first three lines of the output
 file, assuming the *file* keyword was used.  LAMMPS uses default
 values for each of these, so they do not need to be specified.
 
@@ -428,16 +452,17 @@ By default, these header lines are as follows:
 In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
 the first of each section of output.  In the third line the values are
-replaced with the appropriate value names, e.g. fx or c_myCompute[2].
+replaced with the appropriate value names (e.g., *fx* or c_myCompute[2]).
 
 The words in parenthesis only appear with corresponding columns if the
-chunk style specified for the :doc:`compute chunk/atom <compute_chunk_atom>` command supports them.  The OrigID
-column is only used if the *compress* keyword was set to *yes* for the
-:doc:`compute chunk/atom <compute_chunk_atom>` command.  This means that
-the original chunk IDs (e.g. molecule IDs) will have been compressed
-to remove chunk IDs with no atoms assigned to them.  Thus a compressed
-chunk ID of 3 may correspond to an original chunk ID or molecule ID of
-415.  The OrigID column will list 415 for the third chunk.
+chunk style specified for the :doc:`compute chunk/atom
+<compute_chunk_atom>` command supports them.  The OrigID column is
+only used if the *compress* keyword was set to *yes* for the
+:doc:`compute chunk/atom <compute_chunk_atom>` command.  This means
+that the original chunk IDs (e.g., molecule IDs) will have been
+compressed to remove chunk IDs with no atoms assigned to them.  Thus a
+compressed chunk ID of 3 may correspond to an original chunk ID or
+molecule ID of 415.  The OrigID column will list 415 for the third chunk.
 
 The CoordN columns only appear if a *binning* style was used in the
 :doc:`compute chunk/atom <compute_chunk_atom>` command.  For *bin/1d*,
@@ -449,41 +474,47 @@ coordinate.  For *bin/cylinder*, Coord1 and Coord2 are used.  Coord1
 is the radial coordinate (away from the cylinder axis), and coord2 is
 the coordinate along the cylinder axis.
 
-Note that if the value of the *units* keyword used in the :doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or *lattice*, the
-coordinate values will be in distance :doc:`units <units>`.  If the
-value of the *units* keyword is *reduced*, the coordinate values will
-be in unitless reduced units (0-1).  This is not true for the Coord1 value
-of style *bin/sphere* or *bin/cylinder* which both represent radial
-dimensions.  Those values are always in distance :doc:`units <units>`.
+Note that if the value of the *units* keyword used in the
+:doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or
+*lattice*, the coordinate values will be in distance :doc:`units <units>`.
+If the value of the *units* keyword is *reduced*, the
+coordinate values will be in unitless reduced units (0--1).  This is
+not true for the Coord1 value of style *bin/sphere* or *bin/cylinder*
+which both represent radial dimensions.  Those values are always in
+distance :doc:`units <units>`.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.
 
 This fix computes a global array of values which can be accessed by
 various :doc:`output commands <Howto_output>`.  The values can only be
-accessed on timesteps that are multiples of *Nfreq* since that is when
-averaging is performed.  The global array has # of rows = the number
-of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The # of columns =
-M+1+Nvalues, where M = 1 to 4, depending on whether the optional
-columns for OrigID and CoordN are used, as explained above.  Following
-the optional columns, the next column contains the count of atoms in
-the chunk, and the remaining columns are the Nvalue quantities.  When
-the array is accessed with a row I that exceeds the current number of
-chunks, than a 0.0 is returned by the fix instead of an error, since
-the number of chunks can vary as a simulation runs depending on how
-that value is computed by the compute chunk/atom command.
+accessed on timesteps that are multiples of :math:`N_\text{freq}`, since
+that is when averaging is performed.  The global array has # of rows =
+the number of chunks :math:`N_\text{chunk}`, as calculated by the
+specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The #
+of columns is :math:`M+1+N_\text{values}`, where :math:`M \in
+\{1,\dotsc,4\}`, depending on whether the optional columns for OrigID
+and CoordN are used, as explained above.  Following the optional
+columns, the next column contains the count of atoms in the chunk, and
+the remaining columns are the Nvalue quantities.  When the array is
+accessed with a row :math:`I` that exceeds the current number of chunks,
+than a 0.0 is returned by the fix instead of an error, since the number
+of chunks can vary as a simulation runs depending on how that value is
+computed by the compute chunk/atom command.
 
 The array values calculated by this fix are treated as "intensive",
 since they are typically already normalized by the count of atoms in
 each chunk.
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -492,7 +523,8 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/time <fix_ave_time>`,
+:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`,
+:doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`
 
 Default

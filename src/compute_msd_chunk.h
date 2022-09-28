@@ -45,7 +45,7 @@ class ComputeMSDChunk : public Compute {
   char *idchunk;
   class ComputeChunkAtom *cchunk;
   char *id_fix;
-  class FixStore *fix;
+  class FixStoreGlobal *fix;
   int firstflag;
 
   double *massproc, *masstotal;
@@ -54,8 +54,6 @@ class ComputeMSDChunk : public Compute {
 
   void allocate();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

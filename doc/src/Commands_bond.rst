@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 .. _bond:
 
@@ -43,6 +44,7 @@ OPT.
    * :doc:`harmonic (iko) <bond_harmonic>`
    * :doc:`harmonic/shift (o) <bond_harmonic_shift>`
    * :doc:`harmonic/shift/cut (o) <bond_harmonic_shift_cut>`
+   * :doc:`mesocnt <bond_mesocnt>`
    * :doc:`mm3 <bond_mm3>`
    * :doc:`morse (o) <bond_morse>`
    * :doc:`nonlinear (o) <bond_nonlinear>`
@@ -91,6 +93,7 @@ OPT.
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
    * :doc:`gaussian <angle_gaussian>`
    * :doc:`harmonic (iko) <angle_harmonic>`
+   * :doc:`mesocnt <angle_mesocnt>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
    * :doc:`spica (o) <angle_spica>`

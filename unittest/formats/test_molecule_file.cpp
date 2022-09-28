@@ -17,6 +17,7 @@
 #include "input.h"
 #include "lammps.h"
 #include "molecule.h"
+#include "platform.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -70,17 +71,61 @@ static void create_molecule_files(const std::string &h2o_filename, const std::st
     }
 }
 
+static void create_labelmap_files(const std::string &h2o_filename, const std::string &co2_filename)
+{
+    // create molecule files
+    const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
+                            "Coords\n\n1 1.12456 0.09298 1.27452\n"
+                            "2 1.53683 0.75606 1.89928\n3 0.49482 0.56390 0.65678\n\n"
+                            "Types\n\n1 OW\n2 HO\n3 HO\n\n"
+                            "Charges\n\n1 -0.8472\n2 0.4236\n3 0.4236\n\n"
+                            "Bonds\n\n1 OW-HO 1 2\n2 OW-HO 1 3\n\n"
+                            "Angles\n\n1 HO-OW-HO 2 1 3\n\n"
+                            "Shake Flags\n\n1 1\n2 1\n3 1\n\n"
+                            "Shake Atoms\n\n1 1 2 3\n2 1 2 3\n3 1 2 3\n\n"
+                            "Shake Bond Types\n\n1 OW-HO OW-HO HO-OW-HO\n2 OW-HO OW-HO HO-OW-HO\n3 "
+                            "OW-HO OW-HO HO-OW-HO\n\n"
+                            "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+                            "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+    const char co2_file[] = "# CO2 molecule file. TraPPE model.\n\n"
+                            "3 atoms\n2 bonds\n1 angles\n\n"
+                            "Coords\n\n1 0.0 0.0 0.0\n2 -1.16 0.0 0.0\n3 1.16 0.0 0.0\n\n"
+                            "Types\n\n1 C\n2 O\n3 O\n\n"
+                            "Charges\n\n1 0.7\n2 -0.35\n3 -0.35\n\n"
+                            "Bonds\n\n1 C=O 1 2\n2 C=O 1 3\n\n"
+                            "Angles\n\n1 O=C=O 2 1 3\n\n"
+                            "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+                            "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
+    if (fp) {
+        fputs(h2o_file, fp);
+        fclose(fp);
+    }
+    fp = fopen(co2_filename.c_str(), "w");
+    if (fp) {
+        fputs(co2_file, fp);
+        fclose(fp);
+    }
+}
+
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
 class MoleculeFileTest : public LAMMPSTest {
 protected:
-    static void SetUpTestSuite() { create_molecule_files("moltest.h2o.mol", "moltest.co2.mol"); }
+    static void SetUpTestSuite()
+    {
+        create_molecule_files("moltest.h2o.mol", "moltest.co2.mol");
+        create_labelmap_files("labelmap.h2o.mol", "labelmap.co2.mol");
+    }
 
     static void TearDownTestSuite()
     {
-        remove("moltest.h2o.mol");
-        remove("moltest.co2.mol");
+        platform::unlink("moltest.h2o.mol");
+        platform::unlink("moltest.co2.mol");
+        platform::unlink("labelmap.h2o.mol");
+        platform::unlink("labelmap.co2.mol");
     }
 
     void SetUp() override
@@ -216,6 +261,9 @@ TEST_F(MoleculeFileTest, twomols)
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*2 molecules.*\n"
                                       ".*0 fragments.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
+    ASSERT_EQ(lmp->atom->nmolecule, 1);
+    auto mols = lmp->atom->get_molecule_by_id(test_name);
+    ASSERT_EQ(mols.size(), 1);
 }
 
 TEST_F(MoleculeFileTest, twofiles)
@@ -231,6 +279,78 @@ TEST_F(MoleculeFileTest, twofiles)
                       ".*Read molecule template twomols:.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule h2o moltest.h2o.mol");
+    command("molecule co2 moltest.co2.mol");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_EQ(lmp->atom->nmolecule, 4);
+    auto mols = lmp->atom->get_molecule_by_id("twomols");
+    ASSERT_EQ(mols.size(), 2);
+    mols = lmp->atom->get_molecule_by_id("h2o");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("co2");
+    ASSERT_EQ(mols.size(), 1);
+}
+
+TEST_F(MoleculeFileTest, labelmap)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box bond/types 2 angle/types 2");
+    command("labelmap atom 1 HO 2 OW 3 C 4 O");
+    command("labelmap bond 1 OW-HO 2 C=O");
+    command("labelmap angle 1 HO-OW-HO 2 O=C=O");
+    command("molecule h2olabel labelmap.h2o.mol");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(
+        output,
+        ContainsRegex(".*Read molecule template h2olabel:.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule co2label labelmap.co2.mol");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(
+        output,
+        ContainsRegex(".*Read molecule template co2label:.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule h2onum moltest.h2o.mol");
+    command("molecule co2num moltest.co2.mol offset 2 1 1 0 0");
+    output = END_CAPTURE_OUTPUT();
+
+    auto mark   = output.find("WARNING");
+    auto first  = output.substr(0, mark);
+    mark        = output.find("Read molecule", mark);
+    auto second = output.substr(mark);
+    ASSERT_THAT(
+        first,
+        ContainsRegex(".*Read molecule template h2onum:.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"));
+    ASSERT_THAT(
+        second,
+        ContainsRegex(".*Read molecule template co2num:.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
+    ASSERT_EQ(lmp->atom->nmolecule, 4);
+    auto mols = lmp->atom->get_molecule_by_id("h2onum");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("co2num");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("h2olabel");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("co2label");
+    ASSERT_EQ(mols.size(), 1);
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("labelmap atom 1 A 2 B");
+    END_CAPTURE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Unknown atom type OW in Types section of molecule file: 1 OW.*",
+                 command("molecule fail labelmap.h2o.mol"););
 }
 
 TEST_F(MoleculeFileTest, bonds)
@@ -289,9 +409,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

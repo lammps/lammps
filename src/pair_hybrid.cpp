@@ -33,9 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
-  styles(nullptr), keywords(nullptr), multiple(nullptr), nmap(nullptr),
-  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr), cutmax_style(nullptr)
+PairHybrid::PairHybrid(LAMMPS *lmp) :
+    Pair(lmp), styles(nullptr), cutmax_style(nullptr), keywords(nullptr), multiple(nullptr),
+    nmap(nullptr), map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
 {
   nstyles = 0;
 
@@ -116,7 +116,7 @@ void PairHybrid::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    respa = dynamic_cast<Respa *>( update->integrate);
+    respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 

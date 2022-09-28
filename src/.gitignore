@@ -268,6 +268,15 @@
 /pair_mesont_tpm.cpp
 /pair_mesont_tpm.h
 
+/bond_mesocnt.cpp
+/bond_mesocnt.h
+/angle_mesocnt.cpp
+/angle_mesocnt.h
+/pair_mesocnt.cpp
+/pair_mesocnt.h
+/pair_mesocnt_viscous.cpp
+/pair_mesocnt_viscous.h
+
 /atom_vec_bpm_sphere.cpp
 /atom_vec_bpm_sphere.h
 /bond_bpm.cpp
@@ -1240,8 +1249,6 @@
 /pair_meam_spline.h
 /pair_meam_sw_spline.cpp
 /pair_meam_sw_spline.h
-/pair_mesocnt.cpp
-/pair_mesocnt.h
 /pair_mm3_switch3_coulgauss_long.cpp
 /pair_mm3_switch3_coulgauss_long.h
 /pair_morse_soft.cpp
@@ -1522,6 +1529,8 @@
 /fix_smd_wall_surface.h
 /fix_srp.cpp
 /fix_srp.h
+/fix_srp_react.cpp
+/fix_srp_react.h
 /fix_tfmc.cpp
 /fix_tfmc.h
 /fix_ttm.cpp
@@ -1562,6 +1571,8 @@
 /pair_smd_ulsph.h
 /pair_srp.cpp
 /pair_srp.h
+/pair_srp_react.cpp
+/pair_srp_react.h
 /pair_thole.cpp
 /pair_thole.h
 /pair_buck_mdf.cpp

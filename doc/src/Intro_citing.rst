@@ -33,9 +33,9 @@ initial versions of LAMMPS is:
 DOI for the LAMMPS source code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS developers use the `Zenodo service at CERN <https://zenodo.org/>`_
-to create digital object identifies (DOI) for stable releases of the
-LAMMPS source code. There are two types of DOIs for the LAMMPS source code.
+The LAMMPS developers use the `Zenodo service at CERN <https://zenodo.org/>`_
+to create digital object identifiers (DOI) for stable releases of the
+LAMMPS source code.  There are two types of DOIs for the LAMMPS source code.
 
 The canonical DOI for **all** versions of LAMMPS, which will always
 point to the **latest** stable release version is:

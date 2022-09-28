@@ -53,6 +53,9 @@ AngleAmoeba::AngleAmoeba(LAMMPS *lmp) : Angle(lmp)
 
   ub_k = nullptr;
   ub_r0 = nullptr;
+
+  setflag_a = setflag_ba = setflag_ub = nullptr;
+  enable_angle = enable_urey = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -264,6 +267,7 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   }
 
   i4 = atom->map(i4tag);
+  if (i4 < 0) error->one(FLERR,"Amoeba angle 4th atom {} out of range", i4tag);
   i4 = domain->closest_image(i2,i4);
 
   // anglep out-of-plane calculation from Tinker

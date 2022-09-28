@@ -253,11 +253,11 @@ void PairCoulStreitz::setup_params()
     n = -1;
     for (m = 0; m < nparams; m++) {
       if (i == params[m].ielement) {
-        if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+        if (n >= 0) error->all(FLERR,"Potential file has duplicate entry for: {}", elements[i]);
         n = m;
       }
     }
-    if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+    if (n < 0) error->all(FLERR,"Potential file is missing an entry for: {}", elements[i]);
     elem1param[i] = n;
   }
 

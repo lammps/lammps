@@ -16,10 +16,16 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
+
 #ifdef __INTEL_LLVM_COMPILER
 #define USE_OMP_SIMD
 #define __INTEL_COMPILER __INTEL_LLVM_COMPILER
 #define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER
+// Indicate to vectorizer that it is safe to use dword indexed gather
+#define IP_PRE_dword_index(i) ((i) & NEIGHMASK)
+#else
+#define IP_PRE_dword_index(i) i
 #endif
 
 #ifdef __INTEL_COMPILER

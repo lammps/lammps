@@ -39,18 +39,18 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"q",  "spin",    "eradius", "ervel",      "erforce",
+  fields_grow = {"q",  "espin",   "eradius", "ervel",      "erforce",
                  "cs", "csforce", "vforce",  "ervelforce", "etag"};
-  fields_copy = {"q", "spin", "eradius", "ervel", "cs", "etag"};
+  fields_copy = {"q", "espin", "eradius", "ervel", "cs", "etag"};
   fields_comm = {"eradius"};
   fields_comm_vel = {"eradius", "ervel", "cs"};
   fields_reverse = {"erforce", "ervelforce", "vforce", "csforce"};
-  fields_border = {"q", "spin", "eradius", "etag"};
-  fields_border_vel = {"q", "spin", "eradius", "etag", "ervel", "cs"};
-  fields_exchange = {"q", "spin", "eradius", "ervel", "etag", "cs"};
-  fields_restart = {"q", "spin", "eradius", "ervel", "etag", "cs"};
-  fields_create = {"q", "spin", "eradius", "ervel", "etag", "cs"};
-  fields_data_atom = {"id", "type", "q", "spin", "eradius", "etag", "cs", "x"};
+  fields_border = {"q", "espin", "eradius", "etag"};
+  fields_border_vel = {"q", "espin", "eradius", "etag", "ervel", "cs"};
+  fields_exchange = {"q", "espin", "eradius", "ervel", "etag", "cs"};
+  fields_restart = {"q", "espin", "eradius", "ervel", "etag", "cs"};
+  fields_create = {"q", "espin", "eradius", "ervel", "etag", "cs"};
+  fields_data_atom = {"id", "type", "q", "espin", "eradius", "etag", "cs", "x"};
   fields_data_vel = {"id", "v", "ervel"};
 
   setup_fields();
@@ -107,7 +107,8 @@ void AtomVecWavepacket::data_atom_post(int ilocal)
 
 int AtomVecWavepacket::property_atom(const std::string &name)
 {
-  if (name == "spin") return 0;
+  if (name == "espin") return 0;
+  if (name == "spin") return 0;    // backward compatibility
   if (name == "eradius") return 1;
   if (name == "ervel") return 2;
   if (name == "erforce") return 3;

@@ -31,6 +31,8 @@ Used in example input script:
 Description
 """""""""""
 
+.. versionadded:: 2Jun2022
+
 The *sw/angle/table* style is a modification of the original
 :doc:`pair_style sw <pair_sw>`. It has been developed for coarse-grained
 simulations (of water) (:ref:`Scherer1 <Scherer1>`), but can be employed

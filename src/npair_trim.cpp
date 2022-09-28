@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_trim.h"
-#include "neigh_list.h"
 #include "atom.h"
 #include "error.h"
 #include "my_page.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -33,10 +33,10 @@ void NPairTrim::build(NeighList *list)
 
   double cutsq_custom = cutoff_custom * cutoff_custom;
 
-  int i,j,ii,jj,n,jnum,joriginal;
-  int *neighptr,*jlist;
-  double xtmp,ytmp,ztmp;
-  double delx,dely,delz,rsq;
+  int ii, jj, n, jnum, joriginal;
+  int *neighptr, *jlist;
+  double xtmp, ytmp, ztmp;
+  double delx, dely, delz, rsq;
 
   double **x = atom->x;
 
@@ -71,7 +71,7 @@ void NPairTrim::build(NeighList *list)
 
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
-      j = joriginal & NEIGHMASK;
+      const int j = joriginal & NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -86,7 +86,6 @@ void NPairTrim::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
 }

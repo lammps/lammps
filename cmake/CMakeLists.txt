@@ -135,13 +135,11 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
 # and prints lots of pointless warnings about "unsafe" functions
 if(MSVC)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Intel"))
     add_compile_options(/Zc:__cplusplus)
     add_compile_options(/wd4244)
     add_compile_options(/wd4267)
-    if(LAMMPS_EXCEPTIONS)
-      add_compile_options(/EHsc)
-    endif()
+    add_compile_options(/EHsc)
   endif()
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
@@ -154,6 +152,19 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
+# set path to python interpreter and thus enforcing python version if
+# when in a virtual environment and PYTHON_EXECUTABLE is not set on command line
+if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
+  else()
+    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
+  endif()
+  set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
+  message(STATUS "Running in virtual environment: $ENV{VIRTUAL_ENV}\n"
+    "   Setting Python interpreter to: ${PYTHON_EXECUTABLE}")
+endif()
+
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary (WON'T enable any features automatically")
 mark_as_advanced(LAMMPS_MACHINE)
 if(LAMMPS_MACHINE)
@@ -365,6 +376,7 @@ pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
 pkg_depends(ELECTRODE KSPACE)
+pkg_depends(EXTRA-MOLECULE MOLECULE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -404,9 +416,11 @@ endif()
 
 if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE)
   enable_language(C)
-  find_package(LAPACK)
-  find_package(BLAS)
-  if(NOT LAPACK_FOUND OR NOT BLAS_FOUND)
+  if (NOT USE_INTERNAL_LINALG)
+    find_package(LAPACK)
+    find_package(BLAS)
+  endif()
+  if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
     include(CheckGeneratorSupport)
     if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
       status(FATAL_ERROR "Cannot build internal linear algebra library as CMake build tool lacks Fortran support")
@@ -635,7 +649,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -782,9 +796,13 @@ if(BUILD_SHARED_LIBS)
     set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
     find_package(PythonInterp) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
-        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
     endif()
   else()
+    # backward compatibility
+    if(PYTHON_EXECUTABLE)
+      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+    endif()
     find_package(Python COMPONENTS Interpreter)
   endif()
   if(BUILD_IS_MULTI_CONFIG)
@@ -817,11 +835,17 @@ endif()
 ###############################################################################
 if(BUILD_SHARED_LIBS OR PKG_PYTHON)
   if(CMAKE_VERSION VERSION_LESS 3.12)
+    # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
+    set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
     find_package(PythonInterp) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
-        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
     endif()
   else()
+    # backward compatibility
+    if(PYTHON_EXECUTABLE)
+      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+    endif()
     find_package(Python COMPONENTS Interpreter)
   endif()
   if(Python_EXECUTABLE)

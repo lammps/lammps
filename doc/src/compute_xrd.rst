@@ -6,7 +6,7 @@ compute xrd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID xrd lambda type1 type2 ... typeN keyword value ...
 
@@ -45,30 +45,31 @@ Examples
 Description
 """""""""""
 
-Define a computation that calculates x-ray diffraction intensity as described
+Define a computation that calculates X-ray diffraction intensity as described
 in :ref:`(Coleman) <xrd-Coleman>` on a mesh of reciprocal lattice nodes defined
 by the entire simulation domain (or manually) using a simulated radiation
-of wavelength lambda.
+of wavelength *lambda*.
 
-The x-ray diffraction intensity, I, at each reciprocal lattice point, k,
-is computed from the structure factor, F, using the equations:
+The X-ray diffraction intensity, :math:`I`, at each reciprocal lattice point,
+:math:`k`, is computed from the structure factor, :math:`F`, using the
+equations:
 
 .. math::
 
-   I =             & Lp(\theta)\frac{F^{*}F}{N} \\
-   F(\mathbf{k}) = & \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j) \\
-   Lp(\theta)    = & \frac{1+cos^{2}(2\theta)}{cos(\theta)sin^{2}(\theta)} \\
-   \frac{sin(\theta)}{\lambda} = & \frac{\left | \mathbf{k} \right |}{2}
+   I &= L_p(\theta)\frac{F^{*}F}{N} \\
+   F(\mathbf{k}) &= \sum_{j=1}^{N}f_j(\theta)exp(2\pi i \mathbf{k}\cdot \mathbf{r}_j) \\
+   L_p(\theta) &= \frac{1+\cos^2(2\theta)}{\cos(\theta)\sin^2(\theta)} \\
+   \frac{\sin(\theta)}{\lambda} &= \frac{\left\lVert\mathbf{k}\right\rVert}{2}
 
-Here, K is the location of the reciprocal lattice node, :math:`r_j` is the
-position of each atom, :math:`f_j` are atomic scattering factors, *Lp* is the
-Lorentz-polarization factor, and :math:`\theta` is the scattering angle of
-diffraction.  The Lorentz-polarization factor can be turned off using
-the optional *LP* keyword.
+Here, :math:`\mathbf{k}` is the location of the reciprocal lattice node,
+:math:`r_j` is the position of each atom, :math:`f_j` are atomic scattering
+factors, *Lp* is the Lorentz-polarization factor, and :math:`\theta` is the
+scattering angle of diffraction.  The Lorentz-polarization factor can be turned
+off using the optional *LP* keyword.
 
 Diffraction intensities are calculated on a three-dimensional mesh of
-reciprocal lattice nodes. The mesh spacing is defined either (a)
-by the entire simulation domain or (b) manually using selected values as
+reciprocal lattice nodes. The mesh spacing is defined either (a) by the entire
+simulation domain or (b) manually using selected values as
 shown in the 2D diagram below.
 
 .. image:: img/xrd_mesh.jpg
@@ -76,29 +77,29 @@ shown in the 2D diagram below.
    :align: center
 
 For a mesh defined by the simulation domain, a rectilinear grid is
-constructed with spacing *c*\ \*inv(A) along each reciprocal lattice
-axis. Where A are the vectors corresponding to the edges of the
-simulation cell. If one or two directions has non-periodic boundary
-conditions, then the spacing in these directions is defined from the
+constructed with spacing :math:`c A^{-1}` along each reciprocal lattice
+axis, where :math:`A` is a matrix containing the vectors corresponding to the
+edges of the simulation cell. If one or two directions has non-periodic
+boundary conditions, then the spacing in these directions is defined from the
 average of the (inversed) box lengths with periodic boundary conditions.
 Meshes defined by the simulation domain must contain at least one periodic
 boundary.
 
 If the *manual* flag is included, the mesh of reciprocal lattice nodes
-will defined using the *c* values for the spacing along each
+will be defined using the *c* values for the spacing along each
 reciprocal lattice axis. Note that manual mapping of the reciprocal
 space mesh is good for comparing diffraction results from multiple
-simulations; however it can reduce the likelihood that Bragg
-reflections will be satisfied unless small spacing parameters (< 0.05
-Angstrom\^(-1)) are implemented.  Meshes with manual spacing do not
-require a periodic boundary.
+simulations; however, it can reduce the likelihood that Bragg
+reflections will be satisfied unless small spacing parameters
+(:math:`< 0.05~\mathrm{\mathring{A}}^{-1}`) are implemented.
+Meshes with manual spacing do not require a periodic boundary.
 
 The limits of the reciprocal lattice mesh are determined by range of
-scattering angles explored.  The *2Theta* parameters allows the user
+scattering angles explored.  The *2Theta* parameter allows the user
 to reduce the scattering angle range to only the region of interest
 which reduces the cost of the computation.
 
-The atomic scattering factors, fj, accounts for the reduction in
+The atomic scattering factor, :math:`f_j`, accounts for the reduction in
 diffraction intensity due to Compton scattering.  Compute xrd uses
 analytical approximations of the atomic scattering factors that vary
 for each atom type (type1 type2 ... typeN) and angle of diffraction.
@@ -107,8 +108,8 @@ The analytic approximation is computed using the formula
 
 .. math::
 
-   f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{4}
-   a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )+c
+   f_j\left ( \frac{\sin(\theta)}{\lambda} \right )=\sum_{i=1}^{4}
+   a_i \exp\left ( -b_i \frac{\sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
 Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
@@ -208,7 +209,7 @@ Output info
 
 This compute calculates a global array.  The number of rows in the
 array is the number of reciprocal lattice nodes that are explored
-which by the mesh.  The global array has 2 columns.
+which by the mesh.  The global array has two columns.
 
 The first column contains the diffraction angle in the units (radians
 or degrees) provided with the *2Theta* values. The second column contains
@@ -237,7 +238,7 @@ Related commands
 Default
 """""""
 
-The option defaults are 2Theta = 1 179 (degrees), c = 1 1 1, LP = 1,
+The option defaults are *2Theta* = 1 179 (degrees), *c* = 1 1 1, *LP* = 1,
 no manual flag, no echo flag.
 
 ----------

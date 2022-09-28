@@ -101,7 +101,9 @@ RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (a < 0.0 || b < 0.0 || c < 0.0) error->all(FLERR, "Illegal region ellipsoid command");
+  if (a < 0.0) error->all(FLERR, "Illegal region ellipsoid a: {}", a);
+  if (b < 0.0) error->all(FLERR, "Illegal region ellipsoid b: {}", b);
+  if (c < 0.0) error->all(FLERR, "Illegal region ellipsoid c: {}", c);
 
   // extent of ellipsoid
   // for variable axes, uses initial axes and origin for variable center

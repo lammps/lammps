@@ -6,7 +6,7 @@ box command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    box keyword value ...
 

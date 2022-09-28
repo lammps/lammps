@@ -6,9 +6,9 @@ compute fabric command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   compute ID group-ID fabric cutoff attribute1 attribute2 ... keyword values ...
+   compute ID group-ID fabric cutoff attribute ... keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * fabric = style name of this compute command
@@ -20,6 +20,7 @@ Syntax
        *radius* = cutoffs determined based on atom diameters (atom style sphere)
 
 * one or more attributes may be appended
+* attribute = *contact* or *branch* or *force/normal* or *force/tangential*
 
   .. parsed-literal::
 
@@ -63,7 +64,7 @@ tangential force tensor. The contact tensor is calculated as
 
 .. math::
 
-   C_{ab}  =  \frac{15}{2} (\phi_{ab} - \mathrm{tr}(\phi) \delta_{ab})
+   C_{ab}  =  \frac{15}{2} (\phi_{ab} - \mathrm{Tr}(\phi) \delta_{ab})
 
 where :math:`a` and :math:`b` are the :math:`x`, :math:`y`, :math:`z`
 directions, :math:`\delta_{ab}` is the Kronecker delta function, and
@@ -75,13 +76,14 @@ the tensor :math:`\phi` is defined as
 
 where :math:`n` loops over the :math:`N_p` pair interactions in the simulation,
 :math:`r_{a}` is the :math:`a` component of the radial vector between the
-two pairwise interacting particles, and :math:`r` is the magnitude of the radial vector.
+two pairwise interacting particles, and :math:`r` is the magnitude of the
+radial vector.
 
 The branch tensor is calculated as
 
 .. math::
 
-   B_{ab}  =  \frac{15}{6 \mathrm{tr}(D)} (D_{ab} - \mathrm{tr}(D) \delta_{ab})
+   B_{ab}  =  \frac{15}{6 \mathrm{Tr}(D)} (D_{ab} - \mathrm{Tr}(D) \delta_{ab})
 
 where the tensor :math:`D` is defined as
 
@@ -91,14 +93,15 @@ where the tensor :math:`D` is defined as
                 \frac{1}{N_c (r^2 + C_{cd} r_c r_d)}
                 \frac{r_{a} r_{b}}{r}
 
-where :math:`N_c` is the total number of contacts in the system and the subscripts
-:math:`c` and :math:`d` indices are summed according to Einstein notation.
+where :math:`N_c` is the total number of contacts in the system and the
+subscripts :math:`c` and :math:`d` indices are summed according to Einstein
+notation.
 
 The normal force fabric tensor is calculated as
 
 .. math::
 
-   F^n_{ab}  =  \frac{15}{6 \mathrm{tr}(N)} (N_{ab} - \mathrm{tr}(N) \delta_{ab})
+   F^n_{ab}  =  \frac{15}{6\, \mathrm{Tr}(N)} (N_{ab} - \mathrm{Tr}(N) \delta_{ab})
 
 where the tensor :math:`N` is defined as
 
@@ -116,7 +119,7 @@ as
 
 .. math::
 
-   F^t_{ab}  =  \frac{15}{9 \mathrm{tr}(N)} (T_{ab} - \mathrm{tr}(T) \delta_{ab})
+   F^t_{ab}  =  \frac{15}{9\, \mathrm{Tr}(N)} (T_{ab} - \mathrm{Tr}(T) \delta_{ab})
 
 where the tensor :math:`T` is defined as
 
@@ -133,21 +136,23 @@ Interactions between two atoms are only included in calculations if the atom typ
 are in the two lists. Each list consists of a series of type
 ranges separated by commas. The range can be specified as a
 single numeric value, or a wildcard asterisk can be used to specify a range
-of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
-example, if M = the number of atom types, then an asterisk with no numeric
-values means all types from 1 to M.  A leading asterisk means all types
-from 1 to n (inclusive).  A trailing asterisk means all types from n to M
-(inclusive).  A middle asterisk means all types from m to n (inclusive).
-Multiple *type/include* keywords may be added.
+of values.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  For
+example, if :math:`M` is the number of atom types, then an asterisk with no
+numeric values means all types from 1 to :math:`M`.  A leading asterisk means
+all types from 1 to n (inclusive).  A trailing asterisk means all types from
+m to :math:`M` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).  Multiple *type/include* keywords may be added.
 
 Output info
 """""""""""
 
-This compute calculates a local vector of doubles and a scalar. The vector stores the
-unique components of the first requested tensor in the order xx, yy, zz, xy, xz, yz
-followed by the same components for all subsequent tensors. The length of the vector
-is therefore six times the number of requested tensors. The scalar output is the
-number of pairwise interactions included in the calculation of the fabric tensor.
+This compute calculates a local vector of doubles and a scalar. The vector
+stores the unique components of the first requested tensor in the order
+:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`
+followed by the same components for all subsequent tensors.
+The length of the vector is therefore six times the number of requested
+tensors. The scalar output is the number of pairwise interactions included in
+the calculation of the fabric tensor.
 
 Restrictions
 """"""""""""
@@ -164,7 +169,7 @@ following fixes which add rigid-body constraints: :doc:`fix shake
 <fix_shake>`, :doc:`fix rattle <fix_shake>`, :doc:`fix rigid
 <fix_rigid>`, :doc:`fix rigid/small <fix_rigid>`. It does not support
 granular pair styles that extend beyond the contact of atomic radii
-(e.g. JKR and DMT).
+(e.g., JKR and DMT).
 
 Related commands
 """"""""""""""""

@@ -355,18 +355,6 @@ void PairKIM::coeff(int narg, char **arg)
   if (narg < 2 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
-
-  const std::string arg_0_str(arg[0]);
-  const std::string arg_1_str(arg[1]);
-  if ((arg_0_str != "*") || (arg_1_str != "*"))
-    error->all(FLERR,"Incorrect args for pair coefficients.\nThe first two arguments of "
-               "pair_coeff command must be * * to span all LAMMPS atom types");
-
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg_0_str,1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg_1_str,1,atom->ntypes,jlo,jhi,error);
-
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
   // which element the Ith atom type is
@@ -398,8 +386,8 @@ void PairKIM::coeff(int narg, char **arg)
   }
 
   int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
       if (lmps_map_species_to_unique[i] >= 0 &&
           lmps_map_species_to_unique[j] >= 0) {
         setflag[i][j] = 1;

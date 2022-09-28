@@ -308,12 +308,12 @@ void PairKIM::settings(int narg, char **arg)
   init_style_call_count = 0;
 
   // arg[0] is the KIM Model name
-  if (narg == 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "pair_style kim", error);
   if (narg > 1) {
     const std::string arg_str(arg[1]);
     if ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial")) {
       error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with kim-api");
-    } else error->all(FLERR,"Illegal pair_style command");
+    } else error->all(FLERR,"Unknown pair_style kim keyword: {}", arg_str);
   }
 
   lmps_using_molecular = (atom->molecular > 0);
@@ -462,8 +462,7 @@ void PairKIM::coeff(int narg, char **arg)
 
       if (param_index >= numberOfParameters)
         error->all(FLERR,"Wrong argument for pair coefficients.\n"
-                   "This Model does not have the requested "
-                   "'{}' parameter", paramname);
+                   "This Model does not have the requested '{}' parameter", paramname);
 
       // Get the index_range for the requested parameter
       int nlbound(0);

@@ -105,12 +105,12 @@ void hippo_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
 
 void hippo_gpu_update_fieldp(void **fieldp_ptr);
 
-void hippo_gpu_precompute_induce(const int inum_full, const int bsorder,
-                          double ***host_thetai1, double ***host_thetai2,
-                          double ***host_thetai3, int** igrid,
-                          const int nzlo_out, const int nzhi_out,
-                          const int nylo_out, const int nyhi_out,
-                          const int nxlo_out, const int nxhi_out);
+void hippo_gpu_precompute_kspace(const int inum_full, const int bsorder,
+              double ***host_thetai1, double ***host_thetai2,
+              double ***host_thetai3, int** igrid,
+              const int nzlo_out, const int nzhi_out,
+              const int nylo_out, const int nyhi_out,
+              const int nxlo_out, const int nxhi_out);
 
 void hippo_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
                           void **host_fdip_phi2, void **host_fdip_sum_phi);
@@ -475,7 +475,7 @@ void PairHippoGPU::induce()
   // allocate memory and make early host-device transfers
   // must be done before the first ufield0c
 
-  hippo_gpu_precompute_induce(atom->nlocal, bsorder, thetai1, thetai2,
+  hippo_gpu_precompute_kspace(atom->nlocal, bsorder, thetai1, thetai2,
                               thetai3, igrid,
                               ic_kspace->nzlo_out, ic_kspace->nzhi_out,
                               ic_kspace->nylo_out, ic_kspace->nyhi_out,

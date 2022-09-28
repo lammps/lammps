@@ -88,17 +88,18 @@ void amoeba_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
 
 void amoeba_gpu_update_fieldp(void **fieldp_ptr);
 
-void amoeba_gpu_precompute_induce(const int inum_full, const int bsorder,
-                          double ***host_thetai1, double ***host_thetai2,
-                          double ***host_thetai3, int** igrid,
-                          const int nzlo_out, const int nzhi_out,
-                          const int nylo_out, const int nyhi_out,
-                          const int nxlo_out, const int nxhi_out);
+void amoeba_gpu_precompute_kspace(const int inum_full, const int bsorder,
+              double ***host_thetai1, double ***host_thetai2,
+              double ***host_thetai3, int** igrid,
+              const int nzlo_out, const int nzhi_out,
+              const int nylo_out, const int nyhi_out,
+              const int nxlo_out, const int nxhi_out);
 
 void amoeba_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
                           void **host_fdip_phi2, void **host_fdip_sum_phi);
 
-void amoeba_gpu_fphi_mpole(double ***host_grid_brick, void **host_fdip_sum_phi);
+void amoeba_gpu_fphi_mpole(double ***host_grid_brick, void **host_fdip_sum_phi,
+                           const double felec);
 
 void amoeba_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
@@ -343,7 +344,7 @@ void PairAmoebaGPU::induce()
   // must be done before the first ufield0c
   // NOTE: this is for ic_kspace, and thetai[1-3]
 
-  amoeba_gpu_precompute_induce(atom->nlocal, bsorder, thetai1, thetai2,
+  amoeba_gpu_precompute_kspace(atom->nlocal, bsorder, thetai1, thetai2,
                                thetai3, igrid,
                                ic_kspace->nzlo_out, ic_kspace->nzhi_out,
                                ic_kspace->nylo_out, ic_kspace->nyhi_out,
@@ -1382,11 +1383,11 @@ void PairAmoebaGPU::polar_kspace()
   
     // NOTE: this is for p_kspace, and igrid and thetai[1-3] are filled by bpsline_fill
     if (gpu_fphi_mpole_ready) {
-       amoeba_gpu_precompute_induce(atom->nlocal, bsorder, thetai1, thetai2,
-                                    thetai3, igrid, p_kspace->nzlo_out,
-                                    p_kspace->nzhi_out, p_kspace->nylo_out,
-                                    p_kspace->nyhi_out, p_kspace->nxlo_out,
-                                    p_kspace->nxhi_out);
+       amoeba_gpu_precompute_kspace(atom->nlocal, bsorder,
+                                    thetai1, thetai2, thetai3, igrid,
+                                    p_kspace->nzlo_out, p_kspace->nzhi_out,
+                                    p_kspace->nylo_out, p_kspace->nyhi_out,
+                                    p_kspace->nxlo_out, p_kspace->nxhi_out);
     }
       
 
@@ -1461,10 +1462,15 @@ void PairAmoebaGPU::polar_kspace()
     
     if (!gpu_fphi_mpole_ready) {
       fphi_mpole(gridpost,fphi);
-      //printf("cpu phi = %f %f %f\n", fphi[0][0],fphi[0][1],fphi[0][2]);
+
+      for (i = 0; i < nlocal; i++) {
+        for (k = 0; k < 20; k++)
+          fphi[i][k] *= felec;
+      }
+
     } else {
       void* fphi_pinned = nullptr;
-      amoeba_gpu_fphi_mpole(gridpost, &fphi_pinned);
+      amoeba_gpu_fphi_mpole(gridpost, &fphi_pinned, felec);
     
       double *_fphi_ptr = (double *)fphi_pinned;
       for (int i = 0; i < nlocal; i++) {
@@ -1474,13 +1480,8 @@ void PairAmoebaGPU::polar_kspace()
           idx += nlocal;
         }
       }
-      //printf("gpu phi = %f %f %f\n", fphi[0][0],fphi[0][1],fphi[0][2]);
-    }
 
-    for (i = 0; i < nlocal; i++) {
-      for (k = 0; k < 20; k++)
-        fphi[i][k] *= felec;
-    }
+    }   
 
     // convert field from fractional to Cartesian
 

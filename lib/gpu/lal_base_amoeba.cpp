@@ -566,7 +566,7 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
+void BaseAmoebaT::precompute_kspace(const int inum_full, const int bsorder,
                                     double ***host_thetai1, double ***host_thetai2,
                                     double ***host_thetai3, int** host_igrid,
                                     const int nzlo_out, const int nzhi_out,
@@ -660,7 +660,7 @@ void BaseAmoebaT::precompute_induce(const int inum_full, const int bsorder,
   _ngridx = nxhi_out - nxlo_out + 1;
   _num_grid_points = _ngridx * _ngridy * _ngridz;
 
-  int numel = _num_grid_points*2;
+  int numel = _num_grid_points;
   if (_cgrid_brick.cols() == 0) {
     _cgrid_brick.alloc(numel, *(this->ucl_device), UCL_READ_WRITE, UCL_READ_ONLY);
   } else if (numel > _cgrid_brick.cols()) {
@@ -688,11 +688,13 @@ void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
   for (int iz = _nzlo_out; iz <= _nzhi_out; iz++)
     for (int iy = _nylo_out; iy <= _nyhi_out; iy++)
       for (int ix = _nxlo_out; ix <= _nxhi_out; ix++) {
-        _cgrid_brick[n] = host_grid_brick[iz][iy][ix][0];
-        _cgrid_brick[n+1] = host_grid_brick[iz][iy][ix][1];
-        n += 2;
+        numtyp2 v;
+        v.x = host_grid_brick[iz][iy][ix][0];
+        v.y = host_grid_brick[iz][iy][ix][1];
+        _cgrid_brick[n] = v;
+        n++;
       }
-  _cgrid_brick.update_device(_num_grid_points*2, false);
+  _cgrid_brick.update_device(_num_grid_points, false);
 
   const int red_blocks = fphi_uind();
 
@@ -740,7 +742,7 @@ int BaseAmoebaT::fphi_uind() {
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_fphi_mpole(double ***host_grid_brick, void **host_fphi)
+void BaseAmoebaT::compute_fphi_mpole(double ***host_grid_brick, void **host_fphi, const double felec)
 {
   // TODO: grid brick[k][j][i] is a scalar
   UCL_H_Vec<numtyp> hdummy;
@@ -750,11 +752,15 @@ void BaseAmoebaT::compute_fphi_mpole(double ***host_grid_brick, void **host_fphi
   for (int iz = _nzlo_out; iz <= _nzhi_out; iz++)
     for (int iy = _nylo_out; iy <= _nyhi_out; iy++)
       for (int ix = _nxlo_out; ix <= _nxhi_out; ix++) {
-        _cgrid_brick[n] = host_grid_brick[iz][iy][ix];
+        numtyp2 v;
+        v.x = host_grid_brick[iz][iy][ix];
+        v.y = (numtyp)0;
+        _cgrid_brick[n] = v;
         n++;
       }
   _cgrid_brick.update_device(_num_grid_points, false);
 
+  _felec = felec;
   const int red_blocks = fphi_mpole();
 
   _fdip_sum_phi.update_host(_max_thetai_size*20);
@@ -776,13 +782,14 @@ int BaseAmoebaT::fphi_mpole() {
 
   // Compute the block size and grid size to keep all cores busy
   const int BX=block_size();
+  //printf("BX = %d; pppm block size = %d\n", BX, PPPM_BLOCK_1D);
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;
   k_fphi_mpole.set_size(GX,BX);
   k_fphi_mpole.run(&_thetai1, &_thetai2, &_thetai3, &_igrid, &_cgrid_brick,
-                  &_fdip_sum_phi, &_bsorder, &ainum,
+                  &_fdip_sum_phi, &_bsorder, &ainum, &_felec,
                   &_nzlo_out, &_nylo_out, &_nxlo_out, &ngridxy, &_ngridx);
   time_pair.stop();
 

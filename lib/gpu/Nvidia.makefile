@@ -68,7 +68,34 @@ $(OBJ_DIR)/%_cubin.h: lal_%.cu $(PRE1_H)
 
 # host code compilation
 
-$(OBJ_DIR)/lal_%.o: lal_%.cpp $(CUHS) $(HOST_H)
+$(OBJ_DIR)/lal_answer.o: lal_answer.cpp $(HOST_H)
+	$(CUDR) -o $@ -c lal_answer.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dpd_tstat_ext.o: lal_dpd_tstat_ext.cpp lal_dpd.h $(HOST_H)
+	$(CUDR) -o $@ -c lal_dpd_tstat_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_alloy_ext.o: lal_eam_alloy_ext.cpp lal_eam.h $(HOST_H)
+	$(CUDR) -o $@ -c lal_eam_alloy_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_fs_ext.o: lal_eam_fs_ext.cpp lal_eam.h $(HOST_H)
+	$(CUDR) -o $@ -c lal_eam_fs_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_neighbor.o: lal_neighbor.cpp $(HOST_H)
+	$(CUDR) -o $@ -c lal_neighbor.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_neighbor_shared.o: lal_neighbor_shared.cpp $(HOST_H)
+	$(CUDR) -o $@ -c lal_neighbor_shared.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_pppm.o: lal_pppm.cpp pppm_f_cubin.h pppm_d_cubin.h $(HOST_H)
+	$(CUDR) -o $@ -c lal_pppm.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_%_ext.o: lal_%_ext.cpp lal_%.h $(HOST_H)
+	$(CUDR) -o $@ -c $< -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_base_%.o: lal_base_%.cpp $(HOST_H)
+	$(CUDR) -o $@ -c $< -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_%.o: lal_%.cpp %_cubin.h $(HOST_H)
 	$(CUDR) -o $@ -c $< -I$(OBJ_DIR)
 
 #ifdef CUDPP_OPT

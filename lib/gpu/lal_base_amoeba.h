@@ -173,8 +173,8 @@ class BaseAmoeba {
                 double **host_uind, double **host_uinp, double *host_pval,
                 const double aewald, const double off2_polar, void **fieldp_ptr);
 
-  /// Allocate/resize per-atom arrays before induce()
-  virtual void precompute_induce(const int inum_full, const int bsorder,
+  /// Allocate/resize per-atom arrays before the kspace parts in induce() and polar
+  virtual void precompute_kspace(const int inum_full, const int bsorder,
                                  double ***host_thetai1, double ***host_thetai2,
                                  double ***host_thetai3, int** igrid,
                                  const int nzlo_out, const int nzhi_out,
@@ -185,7 +185,8 @@ class BaseAmoeba {
                                  void **host_fdip_phi1, void **host_fdip_phi2,
                                  void **host_fdip_sum_phi);
 
-  virtual void compute_fphi_mpole(double ***host_grid_brick, void **host_fphi);
+  virtual void compute_fphi_mpole(double ***host_grid_brick, void **host_fphi,
+                                  const double felec);
 
   /// Compute polar real-space with device neighboring
   virtual void compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -256,7 +257,7 @@ class BaseAmoeba {
   int _bsorder;
   UCL_Vector<numtyp4,numtyp4> _thetai1, _thetai2, _thetai3;
   UCL_Vector<int,int> _igrid;
-  UCL_Vector<numtyp,numtyp> _cgrid_brick;
+  UCL_Vector<numtyp2,numtyp2> _cgrid_brick;
   UCL_Vector<numtyp,numtyp> _fdip_phi1, _fdip_phi2, _fdip_sum_phi;
   int _max_thetai_size;
   int _nzlo_out, _nzhi_out, _nylo_out, _nyhi_out, _nxlo_out, _nxhi_out;

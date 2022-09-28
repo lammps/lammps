@@ -1630,7 +1630,7 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
                           const __global numtyp4 *restrict thetai2,
                           const __global numtyp4 *restrict thetai3,
                           const __global int *restrict igrid,
-                          const __global numtyp *restrict grid,
+                          const __global numtyp2 *restrict grid,
                           __global numtyp *restrict fdip_phi1,
                           __global numtyp *restrict fdip_phi2,
                           __global numtyp *restrict fdip_sum_phi,
@@ -1648,12 +1648,12 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
 
   if (ii<inum) {
 
-    int nlpts = (bsorder-1) / 2;
+    const int nlpts = (bsorder-1) / 2;
     
     int istart = fast_mul(ii,4);
-    int igridx = igrid[istart];
-    int igridy = igrid[istart+1];
-    int igridz = igrid[istart+2];
+    const int igridx = igrid[istart];
+    const int igridy = igrid[istart+1];
+    const int igridz = igrid[istart+2];
     
     // now istart is used to index thetai1, thetai2 and thetai3
     istart = fast_mul(ii,bsorder);
@@ -1701,18 +1701,13 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
 
     int k = (igridz - nzlo_out) - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
-      /*
-      v0 = thetai3[m][kb][0];
-      v1 = thetai3[m][kb][1];
-      v2 = thetai3[m][kb][2];
-      v3 = thetai3[m][kb][3];
-      */
-      int i3 = istart + kb;
-      numtyp4 tha3 = thetai3[i3];
-      numtyp v0 = tha3.x;
-      numtyp v1 = tha3.y;
-      numtyp v2 = tha3.z;
-      numtyp v3 = tha3.w;
+      const int mz = fast_mul(k, ngridxy);
+      const int i3 = istart + kb;
+      const numtyp4 tha3 = thetai3[i3];
+      const numtyp v0 = tha3.x; // thetai3[m][kb][0];
+      const numtyp v1 = tha3.y; // thetai3[m][kb][1];
+      const numtyp v2 = tha3.z; // thetai3[m][kb][2];
+      const numtyp v3 = tha3.w; // thetai3[m][kb][3];
       numtyp tu00_1 = (numtyp)0.0;
       numtyp tu01_1 = (numtyp)0.0;
       numtyp tu10_1 = (numtyp)0.0;
@@ -1738,18 +1733,13 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
 
       int j = (igridy - nylo_out) - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
-        /*
-        u0 = thetai2[m][jb][0];
-        u1 = thetai2[m][jb][1];
-        u2 = thetai2[m][jb][2];
-        u3 = thetai2[m][jb][3];
-        */
-        int i2 = istart + jb;
-        numtyp4 tha2 = thetai2[i2];
-        numtyp u0 = tha2.x;
-        numtyp u1 = tha2.y;
-        numtyp u2 = tha2.z;
-        numtyp u3 = tha2.w;
+        const int my = mz + fast_mul(j, ngridx);
+        const int i2 = istart + jb;
+        const numtyp4 tha2 = thetai2[i2];
+        const numtyp u0 = tha2.x; // thetai2[m][jb][0];
+        const numtyp u1 = tha2.y; // thetai2[m][jb][1];
+        const numtyp u2 = tha2.z; // thetai2[m][jb][2];
+        const numtyp u3 = tha2.w; // thetai2[m][jb][3];
         numtyp t0_1 = (numtyp)0.0;
         numtyp t1_1 = (numtyp)0.0;
         numtyp t2_1 = (numtyp)0.0;
@@ -1771,22 +1761,25 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
           t2_2 += tq_2*thetai1[m][ib][2];
           t3 += (tq_1+tq_2)*thetai1[m][ib][3];
           */
-          int i1 = istart + ib;
-          numtyp4 tha1 = thetai1[i1];
-          numtyp w0 = tha1.x;
-          numtyp w1 = tha1.y;
-          numtyp w2 = tha1.z;
-          numtyp w3 = tha1.w;
-          int gidx = 2*(k*ngridxy + j*ngridx + i);
-          numtyp tq_1 = grid[gidx];
-          numtyp tq_2 = grid[gidx+1];
-          t0_1 += tq_1*w0;
-          t1_1 += tq_1*w1;
-          t2_1 += tq_1*w2;
-          t0_2 += tq_2*w0;
-          t1_2 += tq_2*w1;
-          t2_2 += tq_2*w2;
-          t3 += (tq_1+tq_2)*w3;
+          const int i1 = istart + ib;
+          const numtyp4 tha1 = thetai1[i1];
+          /*
+          const numtyp w0 = tha1.x;
+          const numtyp w1 = tha1.y;
+          const numtyp w2 = tha1.z;
+          const numtyp w3 = tha1.w;
+          */
+          const int gidx = my + i; // k*ngridxy + j*ngridx + i;
+          const numtyp2 tq = grid[gidx];
+          const numtyp tq_1 = tq.x; //grid[gidx];
+          const numtyp tq_2 = tq.y; //grid[gidx+1];
+          t0_1 += tq_1*tha1.x; // w0
+          t1_1 += tq_1*tha1.y; // w1
+          t2_1 += tq_1*tha1.z; // w2
+          t0_2 += tq_2*tha1.x; // w0
+          t1_2 += tq_2*tha1.y; // w1
+          t2_2 += tq_2*tha1.z; // w2
+          t3 += (tq_1+tq_2)*tha1.w; // w3
           i++;
         }
 
@@ -1933,9 +1926,9 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
                           const __global numtyp4 *restrict thetai2,
                           const __global numtyp4 *restrict thetai3,
                           const __global int *restrict igrid,
-                          const __global numtyp *restrict grid,
+                          const __global numtyp2 *restrict grid,
                           __global numtyp *restrict fphi,
-                          const int bsorder, const int inum,
+                          const int bsorder, const int inum, const numtyp felec,
                           const int nzlo_out, const int nylo_out,
                           const int nxlo_out, const int ngridxy,
                           const int ngridx)
@@ -2027,7 +2020,7 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
           int i1 = istart + ib;
           numtyp4 tha1 = thetai1[i1];
           int gidx = k*ngridxy + j*ngridx + i;
-          numtyp tq = grid[gidx];
+          numtyp tq = grid[gidx].x;
           t0 += tq*tha1.x;
           t1 += tq*tha1.y;
           t2 += tq*tha1.z;
@@ -2095,7 +2088,7 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
 
     int idx = ii;    
     for (int m = 0; m < 20; m++) {
-      fphi[idx] = buf[m];
+      fphi[idx] = felec * buf[m];
       idx += inum;
     }
   }

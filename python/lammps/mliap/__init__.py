@@ -5,6 +5,7 @@
 import sysconfig
 import ctypes
 import platform
+import warnings
 
 py_ver = sysconfig.get_config_vars('VERSION')[0]
 OS_name = platform.system()
@@ -25,8 +26,10 @@ except Exception as e:
     raise OSError("Unable to locate python shared library") from e
 
 if not pylib.Py_IsInitialized():
-    raise RuntimeError("This interpreter is not compatible with python-based mliap for LAMMPS.")
+    warnings.warn("This interpreter is not compatible with python-based MLIAP for LAMMPS. "
+                  "Attempting to activate the MLIAP-python coupling from python may result "
+                  "in undefined behavior.")
+else:
+    from .loader import load_model, load_unified, activate_mliappy
 
 del sysconfig, ctypes, library, pylib
-
-from .loader import load_model, activate_mliappy

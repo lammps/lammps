@@ -367,6 +367,8 @@ Procedures Bound to the lammps Derived Type
    This function will call :cpp:func:`lammps_get_thermo` and return the value
    of the corresponding thermodynamic keyword.
 
+   .. versionadded:: TBD
+
    :p character(len=\*) name: string with the name of the thermo keyword
    :r real(c_double): value of the requested thermo property or `0.0_c_double`
 
@@ -379,6 +381,8 @@ Procedures Bound to the lammps Derived Type
    present. The parameters *pflags* and *boxflag* are stored in LAMMPS
    as integers, but should be declared as ``LOGICAL`` variables when
    calling from Fortran.
+
+   .. versionadded:: TBD
 
    :o real(c_double) boxlo [dimension(3),optional]: vector in which to store
     lower-bounds of simulation box
@@ -414,6 +418,8 @@ Procedures Bound to the lammps Derived Type
    This subroutine will call :cpp:func:`lammps_reset_box`. All parameters
    are required.
 
+   .. versionadded:: TBD
+
    :p real(c_double) boxlo [dimension(3)]: vector of three doubles containing
     the lower box boundary
    :p real(c_double) boxhi [dimension(3)]: vector of three doubles containing
@@ -429,6 +435,8 @@ Procedures Bound to the lammps Derived Type
    This subroutine will call :cpp:func:`lammps_memory_usage` and store the
    result in the three-element array *meminfo*.
 
+   .. versionadded:: TBD
+
    :p real(c_double) meminfo [dimension(3)]: vector of three doubles in which
     to store memory usage data
 
@@ -438,6 +446,8 @@ Procedures Bound to the lammps Derived Type
 
    This function returns a Fortran representation of the LAMMPS "world"
    communicator.
+
+   .. versionadded:: TBD
 
    :r integer: Fortran integer equivalent to the MPI communicator LAMMPS is
     using
@@ -475,6 +485,8 @@ Procedures Bound to the lammps Derived Type
    Query LAMMPS about global settings. See the documentation for the
    :cpp:func:`lammps_extract_setting` function from the C library.
 
+   .. versionadded:: TBD
+
    :p character(len=\*) keyword: string containing the name of the thermo keyword
    :r integer(c_int): value of the queried setting or :math:`-1` if unknown
 
@@ -485,6 +497,8 @@ Procedures Bound to the lammps Derived Type
    This function calls :cpp:func:`lammps_extract_global` and returns
    either a string or a pointer to internal global LAMMPS data,
    depending on the data requested through *name*.
+
+   .. versionadded:: TBD
 
    Note that this function actually does not return a value, but rather
    associates the pointer on the left side of the assignment to point to

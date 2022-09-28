@@ -39,7 +39,7 @@ timestep, according to:
 
    \frac{d \vec{s}_{i}}{dt} = \lambda\, \vec{s}_{i} \times\left( \vec{\omega}_{i} \times\vec{s}_{i} \right)
 
-with :math:`\lambda` a damping coefficient (similar to a Gilbert
+with :math:`\lambda` a damping coefficient (similar to a magnetic
 damping). :math:`\lambda` can be defined by setting the
 *alpha_damp* keyword with the :doc:`min_modify <min_modify>` command.
 

@@ -100,6 +100,8 @@ MODULE LIBLAMMPS
 !                                         
       PROCEDURE :: version                => lmp_version
       PROCEDURE :: is_running             => lmp_is_running
+!
+      PROCEDURE :: flush_buffers          => lmp_flush_buffers
       PROCEDURE :: has_error              => lmp_has_error
       PROCEDURE :: get_last_error_message => lmp_get_last_error_message
   END TYPE lammps
@@ -393,7 +395,11 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_fix_external_set_vector_length
     !SUBROUTINE lammps_fix_external_set_vector
 
-    !SUBROUTINE lammps_flush_buffers
+    SUBROUTINE lammps_flush_buffers (handle) BIND(C)
+      IMPORT :: C_ptr
+      IMPLICIT NONE
+      TYPE(C_ptr), VALUE :: handle
+    END SUBROUTINE lammps_flush_buffers
 
     FUNCTION lammps_malloc(size) BIND(C, name='malloc')
       IMPORT :: c_ptr, c_size_t
@@ -856,6 +862,20 @@ CONTAINS
     lmp_version = lammps_version(self%handle)
   END FUNCTION lmp_version
 
+  ! equivalent function to lammps_is_running
+  LOGICAL FUNCTION lmp_is_running(self)
+    CLASS(lammps), INTENT(IN) :: self
+
+    lmp_is_running = ( lammps_is_running(self%handle) /= 0_C_int )
+  END FUNCTION lmp_is_running
+
+  ! equivalent function to lammps_flush_buffers
+  SUBROUTINE lmp_flush_buffers(self)
+    CLASS(lammps), INTENT(IN) :: self
+
+    call lammps_flush_buffers(self%handle)
+  END SUBROUTINE lmp_flush_buffers
+
   ! equivalent function to lammps_has_error
   LOGICAL FUNCTION lmp_has_error(self)
     CLASS(lammps), INTENT(IN) :: self
@@ -892,13 +912,6 @@ CONTAINS
       END IF
     END IF
   END SUBROUTINE lmp_get_last_error_message
-
-  ! equivalent function to lammps_is_running
-  LOGICAL FUNCTION lmp_is_running(self)
-    CLASS(lammps), INTENT(IN) :: self
-
-    lmp_is_running = ( lammps_is_running(self%handle) /= 0_C_int )
-  END FUNCTION lmp_is_running
 
   ! ----------------------------------------------------------------------
   ! functions to assign user-space pointers to LAMMPS data

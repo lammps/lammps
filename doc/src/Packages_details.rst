@@ -276,7 +276,7 @@ the barostat as outlined in:
 
 N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
-molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
 **Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
 Pennsylvania State University)
@@ -652,7 +652,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
-* :doc: `angle_style dipole <angle_dipole>`
+* :doc:`angle_style dipole <angle_dipole>`
 * examples/dipole
 
 ----------
@@ -931,6 +931,10 @@ EXTRA-MOLECULE package
 **Contents:**
 
 Additional bond, angle, dihedral, and improper styles that are less commonly used.
+
+**Install:**
+
+To use this package, also the :ref:`MOLECULE <PKG-MOLECULE>` package needs to be installed.
 
 **Supporting info:**
 
@@ -1404,7 +1408,7 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 * src/MACHDYN: filenames -> commands
 * src/MACHDYN/README
-* doc/PDF/MACHDYN_LAMMPS_userguide.pdf
+* `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/machdyn
 * https://www.lammps.org/movies.html#smd
 
@@ -1556,31 +1560,40 @@ MESONT package
 
 **Contents:**
 
-MESONT is a LAMMPS package for simulation of nanomechanics of
-nanotubes (NTs). The model is based on a coarse-grained representation
-of NTs as "flexible cylinders" consisting of a variable number of
+MESONT is a LAMMPS package for simulation of nanomechanics of nanotubes
+(NTs). The model is based on a coarse-grained representation of NTs as
+"flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below. This package contains two
-independent implementations of this model: :doc:`pair_style mesocnt
-<pair_mesocnt>` is a (minimal) C++ implementation, and :doc:`pair_style
-mesont/tpm <pair_mesont_tpm>` is a more general and feature rich
-implementation based on a Fortran library in the ``lib/mesont`` folder.
+provided in the papers listed below.
+
+This package contains two independent implementations of this model:
+:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original
+implementation of the model based on a Fortran library in the
+``lib/mesont`` folder. The second implementation is provided by the
+mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
+:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt
+<pair_mesocnt>`).  The mesocnt implementation has the same features as
+the original implementation with the addition of friction, but is
+directly implemented in C++, interfaces more cleanly with general LAMMPS
+functionality, and is typically faster. It also does not require its own
+atom style and can be installed without any external libraries.
 
 **Download of potential files:**
 
-The potential files for these pair styles are *very* large and thus
-are not included in the regular downloaded packages of LAMMPS or the
-git repositories.  Instead, they will be automatically downloaded
-from a web server when the package is installed for the first time.
+The potential files for these pair styles are *very* large and thus are
+not included in the regular downloaded packages of LAMMPS or the git
+repositories.  Instead, they will be automatically downloaded from a web
+server when the package is installed for the first time.
 
 **Authors of the *mesont* styles:**
 
-Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
+Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
+of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-**Author of the *mesocnt* pair style:**
+**Author of the *mesocnt* styles:**
 Philipp Kloza (U Cambridge)
 
 **Supporting info:**
@@ -1590,6 +1603,8 @@ Philipp Kloza (U Cambridge)
 * :doc:`atom_style mesont <atom_style>`
 * :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
 * :doc:`compute mesont <compute_mesont>`
+* :doc:`bond_style mesocnt <bond_mesocnt>`
+* :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
 * tools/mesont
@@ -2692,7 +2707,7 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * src/SPH: filenames -> commands
 * src/SPH/README
-* doc/PDF/SPH_LAMMPS_userguide.pdf
+* `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/sph
 * https://www.lammps.org/movies.html#sph
 

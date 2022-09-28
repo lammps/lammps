@@ -80,8 +80,8 @@ the corresponding cutoff, :math:`w_{\alpha} ( r ) = ( 1 - r / \bar{r}_c
 )^{s_{\alpha}}`, :math:`\alpha \equiv ( \parallel, \perp )`, are weight
 functions with coefficients :math:`s_\alpha` that vary between 0 and 1,
 :math:`\bar{r}_c` is the corresponding cutoff, :math:`\mathbf{I}` is the
-unit matrix, :math:`\sigma_{\alpha} = \sqrt{2 k T \gamma_{\alpha}}`,
-where :math:`k` is the Boltzmann constant and :math:`T` is the
+unit matrix, :math:`\sigma_{\alpha} = \sqrt{2 k_B T \gamma_{\alpha}}`,
+where :math:`k_B` is the Boltzmann constant and :math:`T` is the
 temperature in the pair\_style command.
 
 For the style *dpd/ext/tstat*, the force on atom I due to atom J is
@@ -121,7 +121,7 @@ as in the examples above:
 
 The last coefficient is optional. If not specified, the global DPD
 cutoff is used. Note that :math:`\sigma`'s are set equal to
-:math:`\sqrt{2 k T \gamma}`, where :math:`T` is the temperature set by
+:math:`\sqrt{2 k_B T \gamma}`, where :math:`T` is the temperature set by
 the :doc:`pair_style <pair_style>` command so it does not need to be
 specified.
 

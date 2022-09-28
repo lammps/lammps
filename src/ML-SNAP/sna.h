@@ -77,8 +77,8 @@ class SNA : protected Pointers {
 
   // only allocated for switch_inner_flag=1
 
-  double *sinnerij; // short inner cutoff midpoint list
-  double *dinnerij; // short inner half-width list
+  double *sinnerij;    // short inner cutoff midpoint list
+  double *dinnerij;    // short inner half-width list
 
   // only allocated for chem_flag=1
 

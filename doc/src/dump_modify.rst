@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -33,12 +33,12 @@ Syntax
        *delay* arg = Dstep
          Dstep = delay output until this timestep
        *element* args = E1 E2 ... EN, where N = # of atom types
-         E1,...,EN = element name, e.g. C or Fe or Ga
+         E1,...,EN = element name (e.g., C or Fe or Ga)
        *every* arg = N
-         N = dump every this many timesteps
+         N = dump on timesteps which are a multiple of N
          N can be a variable (see below)
        *every/time* arg = Delta
-         Delta = dump every this interval in simulation time (time units)
+         Delta = dump once every Delta interval of simulation time (time units)
          Delta can be a variable (see below)
        *fileper* arg = Np
          Np = write one file for every this many processors
@@ -53,7 +53,7 @@ Syntax
          *no* to not write the header
        *image* arg = *yes* or *no*
        *label* arg = string
-         string = character string (e.g. BONDS) to use in header of dump local file
+         string = character string (e.g., BONDS) to use in header of dump local file
        *maxfiles* arg = Fmax
          Fmax = keep only the most recent *Fmax* snapshots (one snapshot per file)
        *nfile* arg = Nf
@@ -65,6 +65,8 @@ Syntax
        *refresh* arg = c_ID = compute ID that supports a refresh operation
        *scale* arg = *yes* or *no*
        *sfactor* arg = coordinate scaling factor (> 0.0)
+       *skip* arg = v_name
+         v_name = variable with name which evaluates to non-zero (skip) or 0
        *sort* arg = *off* or *id* or N or -N
           off = no sorting of per-atom lines within a snapshot
           id = sort per-atom lines by atom ID
@@ -111,7 +113,7 @@ Examples
    dump_modify 1 format line "%d %d %20.15g %g %g" scale yes
    dump_modify 1 format float %20.15g scale yes
    dump_modify myDump image yes scale no flush yes
-   dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
+   dump_modify 1 region mySphere thresh x < 0.0 thresh fx >= 3.2
    dump_modify xtcdump precision 10000 sfactor 0.1
    dump_modify 1 every 1000 nfile 20
    dump_modify 1 every v_myVar
@@ -153,8 +155,8 @@ be used if the *append yes* keyword is also used.  The *N* argument is
 the index of which frame to append to.  A negative value can be
 specified for *N*, which means a frame counted from the end of the
 file.  The *at* keyword can only be used if the dump_modify command is
-before the first command that causes dump snapshots to be output,
-e.g. a :doc:`run <run>` or :doc:`minimize <minimize>` command.  Once the
+before the first command that causes dump snapshots to be output
+(e.g., a :doc:`run <run>` or :doc:`minimize <minimize>` command).  Once the
 dump file has been opened, this keyword has no further effect.
 
 ----------
@@ -176,6 +178,31 @@ extra buffering.
 
 ----------
 
+.. versionadded:: 4May2022
+
+The *colname* keyword can be used to change the default header keyword
+for dump styles: *atom*, *custom*, *cfg*, and *local* and their compressed,
+ADIOS, and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
+represents the column number counting from the left, a negative integer
+when it represents the column number from the right (i.e. -1 is the last
+column/keyword), or a custom dump keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+keyword. For *atom* dump styles only the keywords "id", "type", "x",
+"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
+whether scaled or unwrapped coordinates were enabled or disabled, and
+it always assumes 8 columns for indexing regardless of whether image
+flags are enabled or not.  For dump style *cfg* only changes to the
+"auxiliary" keywords (6th or later keyword) will become visible.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default names. Using the *scale* or *image* keyword will also
+reset all header keywords to their default values.
+
+----------
+
 The *delay* keyword applies to all dump styles.  No snapshots will be
 output until the specified *Dstep* timestep or later.  Specifying
 *Dstep* < 0 is the same as turning off the delay setting.  This is a
@@ -185,7 +212,7 @@ during an equilibration phase.
 ----------
 
 The *element* keyword applies only to the dump *cfg*, *xyz*, and
-*image* styles.  It associates element names (e.g. H, C, Fe) with
+*image* styles.  It associates element names (e.g., H, C, Fe) with
 LAMMPS atom types.  See the list of element names at the bottom of
 this page.
 
@@ -207,13 +234,10 @@ will be accepted.
 ----------
 
 The *every* keyword can be used with any dump style except the *dcd*
-and *xtc* styles.  It does two things.  It specifies that the interval
-between dump snapshots will be set in timesteps, which is the default
-if the *every* or *every/time* keywords are not used.  See the
-*every/time* keyword for how to specify the interval in simulation
-time, i.e. in time units of the :doc:`units <units>` command.  The
-*every* keyword also sets the interval value, which overrides the dump
-frequency originally specified by the :doc:`dump <dump>` command.
+and *xtc* styles.  It specifies that the output of dump snapshots will
+now be performed on timesteps which are a multiple of a new :math:`N`
+value, This overrides the dump frequency originally specified by the
+:doc:`dump <dump>` command.
 
 The *every* keyword can be specified in one of two ways.  It can be a
 numeric value in which case it must be > 0.  Or it can be an
@@ -262,7 +286,7 @@ in file tmp.times:
 
    When using a file-style variable with the *every* keyword, the
    file of timesteps must list a first timestep that is beyond the
-   current timestep (e.g. it cannot be 0).  And it must list one or more
+   current timestep (e.g., it cannot be 0).  And it must list one or more
    timesteps beyond the length of the run you perform.  This is because
    the dump command will generate an error if the next timestep it reads
    from the file is not a value greater than the current timestep.  Thus
@@ -274,11 +298,22 @@ in file tmp.times:
 ----------
 
 The *every/time* keyword can be used with any dump style except the
+*dcd* and *xtc* styles.  It changes the frequency of dump snapshots
+from being based on the current timestep to being determined by
+elapsed simulation time, i.e. in time units of the :doc:`units
+<units>` command, and specifies *Delta* for the interval between
+snapshots.  This can be useful when the timestep size varies during a
+simulation run, e.g. by use of the :doc:`fix dt/reset <fix_dt_reset>`
+command.  The default is to perform output on timesteps which a
+multiples of specified timestep value :math:`N`; see the *every*
+keyword.
+
+The *every/time* keyword can be used with any dump style except the
 *dcd* and *xtc* styles.  It does two things.  It specifies that the
-interval between dump snapshots will be set in simulation time,
-i.e. in time units of the :doc:`units <units>` command.  This can be
-useful when the timestep size varies during a simulation run, e.g. by
-use of the :doc:`fix dt/reset <fix_dt_reset>` command.  The default is
+interval between dump snapshots will be set in simulation time
+(i.e. in time units of the :doc:`units <units>` command).  This can be
+useful when the timestep size varies during a simulation run (e.g., by
+use of the :doc:`fix dt/reset <fix_dt_reset>` command).  The default is
 to specify the interval in timesteps; see the *every* keyword.  The
 *every/time* command also sets the interval value.
 
@@ -340,7 +375,7 @@ file tmp.times:
 
    When using a file-style variable with the *every/time* keyword, the
    file of timesteps must list a first time that is beyond the time
-   associated with the current timestep (e.g. it cannot be 0.0).  And
+   associated with the current timestep (e.g., it cannot be 0.0).  And
    it must list one or more times beyond the length of the run you
    perform.  This is because the dump command will generate an error
    if the next time it reads from the file is not a value greater than
@@ -357,7 +392,7 @@ always occur if the current timestep is a multiple of $N$, the
 frequency specified in the :doc:`dump <dump>` command or
 :doc:`dump_modify every <dump_modify>` command, including timestep 0.
 It will also always occur if the current simulation time is a multiple
-of *Delta*, the time interval specified in the doc:`dump_modify
+of *Delta*, the time interval specified in the :doc:`dump_modify
 every/time <dump_modify>` command.
 
 But if this is not the case, a dump snapshot will only be written if
@@ -365,7 +400,7 @@ the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
 
 Note that if the argument to the :doc:`dump_modify every
-<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
+<dump_modify>` :doc:`dump_modify every/time <dump_modify>` commands is
 a variable and not a numeric value, then specifying *first yes* is the
 only way to write a dump snapshot on the first timestep after the dump
 command is invoked.
@@ -380,45 +415,21 @@ performed with dump style *xtc*\ .
 
 ----------
 
-.. versionadded:: 4May2022
-
-The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
-
-The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.  A
-setting of *default* clears all previous settings, reverting all values
-to their default names.
-
-----------
-
 The *format* keyword can be used to change the default numeric format output
 by the text-based dump styles: *atom*, *local*, *custom*, *cfg*, and
 *xyz* styles, and their MPIIO variants. Only the *line* or *none*
 options can be used with the *atom* and *xyz* styles.
 
-All the specified format strings are C-style formats, e.g. as used by
+All the specified format strings are C-style formats, such as used by
 the C/C++ printf() command.  The *line* keyword takes a single
 argument which is the format string for an entire line of output for
-each atom (do not include a trailing "\n"), with N fields, which you
-must enclose in quotes if it is more than one field.  The *int* and
+each atom (do not include a trailing "\n"), with :math:`N` fields, which you
+must enclose in quotes if there is more than one field.  The *int* and
 *float* keywords take a single format argument and are applied to all
-integer or floating-point quantities output.  The setting for *M
-string* also takes a single format argument which is used for the Mth
-value output in each line, e.g. the fifth column is output in high
-precision for "format 5 %20.15g".
+integer or floating-point quantities output.  The setting for *M string*
+also takes a single format argument which is used for the :math:`M`\ th
+value output in each line (e.g., the fifth column is output in high
+precision by "format 5 %20.15g").
 
 .. note::
 
@@ -442,7 +453,7 @@ settings, reverting all values to their default format.
    corresponding 8-byte form if it is needed when outputting those
    values.  However, when specifying the *line* option or *format M
    string* option for those values, you should specify a format string
-   appropriate for an 8-byte signed integer, e.g. one with "%ld", if
+   appropriate for an 8-byte signed integer (e.g., one with "%ld") if
    LAMMPS was compiled with the -DLAMMPS_BIGBIG option for 8-byte IDs.
 
 .. note::
@@ -462,7 +473,7 @@ settings, reverting all values to their default format.
 
 will output the two atom IDs for atoms in each bond as integers.  If
 the dump_modify command were omitted, they would appear as
-floating-point values, assuming they were large integers (more than 6
+floating-point values, assuming they were large integers (more than six
 digits).  The "index" keyword should use the "%d" format since it is
 not generated by a compute or fix, and is stored internally as an
 integer.
@@ -482,43 +493,45 @@ information typically written to the header.
 ----------
 
 The *image* keyword applies only to the dump *atom* style.  If the
-image value is *yes*, 3 flags are appended to each atom's coords which
+image value is *yes*, three flags are appended to each atom's coords which
 are the absolute box image of the atom in each dimension.  For
-example, an x image flag of -2 with a normalized coord of 0.5 means
-the atom is in the center of the box, but has passed through the box
-boundary 2 times and is really 2 box lengths to the left of its
+example, an :math:`x` image flag of :math:`-2` with a normalized coord of 0.5
+means the atom is in the center of the box, but has passed through the box
+boundary twice and is really two box lengths to the left of its
 current coordinate.  Note that for dump style *custom* these various
 values can be printed in the dump file by using the appropriate atom
 attributes in the dump command itself.
+Using this keyword will reset all custom header names set with
+*dump_modify colname* to their respective default values.
 
 ----------
 
-The *label* keyword applies only to the dump *local* style.  When
-it writes local information, such as bond or angle topology
-to a dump file, it will use the specified *label* to format
-the header.  By default this includes 2 lines:
+The *label* keyword applies only to the dump *local* style.
+When it writes local information, such as bond or angle topology
+to a dump file, it will use the specified *label* to format the header.
+By default this includes two lines:
 
 .. parsed-literal::
 
    ITEM: NUMBER OF ENTRIES
    ITEM: ENTRIES ...
 
-The word "ENTRIES" will be replaced with the string specified,
-e.g. BONDS or ANGLES.
+The word "ENTRIES" will be replaced with the string specified
+(e.g., BONDS or ANGLES).
 
 ----------
 
 The *maxfiles* keyword can only be used when a '\*' wildcard is
-included in the dump file name, i.e. when writing a new file(s) for
-each snapshot.  The specified *Fmax* is how many snapshots will be
+included in the dump file name (i.e., when writing a new file(s) for
+each snapshot).  The specified *Fmax* is how many snapshots will be
 kept.  Once this number is reached, the file(s) containing the oldest
 snapshot is deleted before a new dump file is written.  If the
-specified *Fmax* <= 0, then all files are retained.
+specified :math:`\text{Fmax} \le 0`, then all files are retained.
 
-This can be useful for debugging, especially if you don't know on what
-timestep something bad will happen, e.g. when LAMMPS will exit with an
-error.  You can dump every timestep, and limit the number of dump
-files produced, even if you run for 1000s of steps.
+This can be useful for debugging, especially if you do not know on what
+timestep something bad will happen (e.g., when LAMMPS will exit with an
+error).  You can dump every time step and limit the number of dump
+files produced, even if you run for thousands of steps.
 
 ----------
 
@@ -527,28 +540,29 @@ The *nfile* or *fileper* keywords can be used in conjunction with the
 styles except the *dcd*, *image*, *movie*, *xtc*, and *xyz* styles
 (for which "%" is not allowed).  As explained on the :doc:`dump <dump>`
 command doc page, the "%" character causes the dump file to be written
-in pieces, one piece for each of P processors.  By default P = the
-number of processors the simulation is running on.  The *nfile* or
-*fileper* keyword can be used to set P to a smaller value, which can
+in pieces, one piece for each of :math:`P` processors.  By default, :math:`P`
+is the number of processors the simulation is running on.  The *nfile* or
+*fileper* keyword can be used to set :math:`P` to a smaller value, which can
 be more efficient when running on a large number of processors.
 
-The *nfile* keyword sets P to the specified Nf value.  For example, if
-Nf = 4, and the simulation is running on 100 processors, 4 files will
-be written, by processors 0,25,50,75.  Each will collect information
-from itself and the next 24 processors and write it to a dump file.
+The *nfile* keyword sets :math:`P` to the specified :math:`N_f` value.
+For example, if :math:`N_f = 4`, and the simulation is running on 100
+processors, four files will be written by processors 0, 25, 50, and 75.
+Each will collect information from itself and the next 24 processors and write
+it to a dump file.
 
-For the *fileper* keyword, the specified value of Np means write one
-file for every Np processors.  For example, if Np = 4, every fourth
-processor (0,4,8,12,etc) will collect information from itself and the
-next 3 processors and write it to a dump file.
+For the *fileper* keyword, the specified value of :math:`N_p` means write one
+file for every :math:`N_p` processors.  For example, if :math:`N_p = 4`,
+every fourth processor (0, 4, 8, 12, etc.) will collect information from itself
+and the next three processors and write it to a dump file.
 
 ----------
 
 The *pad* keyword only applies when the dump filename is specified
 with a wildcard "\*" character which becomes the timestep.  If *pad* is
 0, which is the default, the timestep is converted into a string of
-unpadded length, e.g. 100 or 12000 or 2000000.  When *pad* is
-specified with *Nchar* > 0, the string is padded with leading zeroes
+unpadded length (e.g., 100 or 12000 or 2000000).  When *pad* is
+specified with *Nchar* :math:`>` 0, the string is padded with leading zeroes
 so they are all the same length = *Nchar*\ .  For example, pad 7 would
 yield 0000100, 0012000, 2000000.  This can be useful so that
 post-processing programs can easily read the files in ascending
@@ -570,9 +584,9 @@ because it requires no extra computation.
 ----------
 
 The *precision* keyword only applies to the dump *xtc* style.  A
-specified value of N means that coordinates are stored to 1/N
-nanometer accuracy, e.g. for N = 1000, the coordinates are written to
-1/1000 nanometer accuracy.
+specified value of :math:`N` means that coordinates are stored to :math:`1/N`
+nanometer accuracy (e.g., for :math:`N = 1000`, the coordinates are written to
+:math:`1/1000` nanometer accuracy).
 
 ----------
 
@@ -582,7 +596,7 @@ be written, by refreshing a compute that is used as a threshold for
 determining which atoms are included in a dump snapshot.  The
 specified *c_ID* gives the ID of the compute.  It is prefixed by "c\_"
 to indicate a compute, which is the only current option.  At some
-point, other options may be added, e.g. fixes or variables.
+point, other options may be added (e.g., fixes or variables).
 
 .. note::
 
@@ -615,19 +629,19 @@ commands:
 
 The :doc:`compute displace/atom <compute_displace_atom>` command
 calculates the displacement of each atom from its reference position.
-The "4" index is the scalar displacement; 1,2,3 are the xyz components
-of the displacement.  The :doc:`dump_modify thresh <dump_modify>`
-command will cause only atoms that have displaced more than 0.6
-Angstroms to be output on a given snapshot (assuming metal units).
-However, note that when an atom is output, we also need to update the
-reference position for that atom to its new coordinates.  So that it
-will not be output in every snapshot thereafter.  That reference
-position is stored by :doc:`compute displace/atom <compute_displace_atom>`.  So the dump_modify
-*refresh* option triggers a call to compute displace/atom at the end
-of every dump to perform that update.  The *refresh check* option
-shown as part of the :doc:`compute displace/atom <compute_displace_atom>` command enables the compute
-to respond to the call from the dump command, and update the
-appropriate reference positions.  This is done be defining an
+The "4" index is the scalar displacement; 1, 2, and 3 are the :math:`xyz`
+components of the displacement.  The :doc:`dump_modify thresh <dump_modify>`
+command will cause only atoms that have displaced more than
+:math:`0.6~\mathrm{\mathring A}` to be output on a given snapshot (assuming
+metal units).  However, note that when an atom is output, we also need to
+update the reference position for that atom to its new coordinates.  So that it
+will not be output in every snapshot thereafter.  That reference position is
+stored by :doc:`compute displace/atom <compute_displace_atom>`.  So the
+dump_modify *refresh* option triggers a call to compute displace/atom at the
+end of every dump to perform that update.  The *refresh check* option
+shown as part of the :doc:`compute displace/atom <compute_displace_atom>`
+command enables the compute to respond to the call from the dump command, and
+update the appropriate reference positions.  This is done be defining an
 :doc:`atom-style variable <variable>`, *check* in this example, which
 calculates a Boolean value (0 or 1) for each atom, based on the same
 criterion used by dump_modify thresh.
@@ -661,18 +675,20 @@ value of *yes* means atom coords are written in normalized units from
 0.0 to 1.0 in each box dimension.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.  A
 value of *no* means they are written in absolute distance units
-(e.g. Angstroms or sigma).
+(e.g., :math:`\mathrm{\mathring A}` or :math:`\sigma`).
+Using this keyword will reset all custom header names set with
+*dump_modify colname* to their respective default values.
 
 ----------
 
 The *sfactor* and *tfactor* keywords only apply to the dump *xtc*
 style.  They allow customization of the unit conversion factors used
-when writing to XTC files.  By default they are initialized for
+when writing to XTC files.  By default, they are initialized for
 whatever :doc:`units <units>` style is being used, to write out
-coordinates in nanometers and time in picoseconds.  I.e. for *real*
+coordinates in nanometers and time in picoseconds.  For example, for *real*
 units, LAMMPS defines *sfactor* = 0.1 and *tfactor* = 0.001, since the
-Angstroms and fs used by *real* units are 0.1 nm and 0.001 ps
-respectively.  If you are using a units system with distance and time
+:math:`\mathrm{\mathring A}` and fs used by *real* units are 0.1 nm and
+0.001 ps, respectively.  If you are using a units system with distance and time
 units far from nm and ps, you may wish to write XTC files with
 different units, since the compression algorithm used in XTC files is
 most effective when the typical magnitude of position data is between
@@ -680,21 +696,41 @@ most effective when the typical magnitude of position data is between
 
 ----------
 
+.. versionadded:: 15Sep2022
+
+The *skip* keyword can be used with all dump styles.  It allows a dump
+snapshot to be skipped (not written to the dump file), if a condition
+is met.  The condition is computed by an :doc:`equal-style variable
+<variable>`, which should be specified as v_name, where name is the
+variable name.  If the variable evaluation returns a non-zero value,
+then the dump snapshot is skipped.  If it returns zero, the dump
+proceeds as usual.  Note that :doc:`equal-style variable <variable>`
+can contain Boolean operators which effectively evaluate as a true
+(non-zero) or false (zero) result.
+
+The *skip* keyword can be useful for debugging purposes, e.g. to dump
+only on a particular timestep.  Or to limit output to conditions of
+interest, e.g. only when the force on some atom exceeds a threshold
+value.
+
+----------
+
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the :doc:`atom_modify sort <atom_modify>` option is turned on, which it is by default, to
-improve performance.  A sort value of *id* means sort the output by
-atom ID.  A sort value of N or -N means sort the output by the value
-in the Nth column of per-atom info in either ascending or descending
-order.
+parallel.  This is the case even in serial if the :doc:`atom_modify sort
+<atom_modify>` option is turned on, which it is by default, to improve
+performance.  A sort value of *id* means sort the output by atom ID.  A
+sort value of :math:`N` or :math:`-N` means sort the output by the value
+in the :math:`N`\ th column of per-atom info in either ascending or
+descending order.
 
 The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
 as *dcd* and *xtc*, require sorting by atom ID to format the output
 file correctly.  If multiple processors are writing the dump file, via
 the "%" wildcard in the dump filename and the *nfile* or *fileper*
-keywords are set to non-default values (i.e. the number of dump file
+keywords are set to non-default values (i.e., the number of dump file
 pieces is not equal to the number of procs), then sorting cannot be
 performed.
 
@@ -729,11 +765,12 @@ are written to the dump file or included in the image.  The possible
 attributes that can be tested for are the same as those that can be
 specified in the :doc:`dump custom <dump>` command, with the exception
 of the *element* attribute, since it is not a numeric value.  Note
-that a different attributes can be used than those output by the :doc:`dump custom <dump>` command.  E.g. you can output the coordinates and
-stress of atoms whose energy is above some threshold.
+that a different attributes can be used than those output by the
+:doc:`dump custom <dump>` command.  For example, you can output the
+coordinates and stress of atoms whose energy is above some threshold.
 
 If an atom-style variable is used as the attribute, then it can
-produce continuous numeric values or effective Boolean 0/1 values
+produce continuous numeric values or effective Boolean 0/1 values,
 which may be useful for the comparison operator.  Boolean values can
 be generated by variable formulas that use comparison or Boolean math
 operators or special functions like gmask() and rmask() and grmask().
@@ -749,7 +786,7 @@ Three examples follow.
 
    dump_modify ... thresh ix != LAST
 
-This will dump atoms which have crossed the periodic x boundary of the
+This will dump atoms which have crossed the periodic :math:`x` boundary of the
 simulation box since the last dump.  (Note that atoms that crossed
 once and then crossed back between the two dump timesteps would not be
 included.)
@@ -769,9 +806,8 @@ region since the last dump.
    dump_modify ... thresh v_charge |^ LAST
 
 This will dump atoms whose charge has changed from an absolute value
-less than 1/2 to greater than 1/2 (or vice versa) since the last dump.
-E.g. due to reactions and subsequent charge equilibration in a
-reactive force field.
+less than :math:`\frac12` to greater than :math:`\frac12` (or vice versa) since the last dump (e.g., due to reactions and subsequent charge equilibration in a
+reactive force field).
 
 The choice of operators listed above are the usual comparison
 operators.  The XOR operation (exclusive or) is also included as "\|\^".
@@ -783,7 +819,7 @@ threshold criterion is met.  Otherwise it is not met.
 
 The *time* keyword only applies to the dump *atom*, *custom*, *local*,
 and *xyz* styles (and their COMPRESS package versions *atom/gz*,
-*custom/gz* and *local/gz*\ ).  For the first 3 styles, if set to
+*custom/gz* and *local/gz*\ ).  For the first three styles, if set to
 *yes*, each frame will will contain two extra lines before the "ITEM:
 TIMESTEP" entry:
 
@@ -798,7 +834,7 @@ as the timestep value.
 This will output the current elapsed simulation time in current
 time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .
 This is to simplify post-processing of trajectories using a variable time
-step, e.g. when using :doc:`fix dt/reset <fix_dt_reset>`.
+step (e.g., when using :doc:`fix dt/reset <fix_dt_reset>`).
 The default setting is *no*\ .
 
 ----------
@@ -836,9 +872,8 @@ compression level can be controlled by the :code:`compression_level`
 keyword. File names with these styles have to end in either
 :code:`.gz` or :code:`.zst`.
 
-GZ supports compression levels from -1 (default), 0 (no compression),
-and 1 to
-9. 9 being the best compression. The COMPRESS :code:`/gz` styles use 9
+GZ supports compression levels from :math:`-1` (default), 0 (no compression),
+and 1 to 9, 9 being the best compression. The COMPRESS :code:`/gz` styles use 9
 as default compression level.
 
 Zstd offers a wider range of compression levels, including negative

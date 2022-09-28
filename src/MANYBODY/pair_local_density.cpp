@@ -37,20 +37,20 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 
 static const char cite_pair_local_density[] =
-  "pair_style  local/density  command:\n\n"
+  "pair_style local/density command: doi:10.1063/1.4958629, doi:10.1021/acs.jpcb.7b12446\n\n"
   "@Article{Sanyal16,\n"
-  " author =  {T.Sanyal and M.Scott Shell},\n"
-  " title =   {Coarse-grained models using local-density potentials optimized with the relative entropy: Application to implicit solvation},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " author =  {T. Sanyal and M. Scott Shell},\n"
+  " title =   {Coarse-Grained Models Using Local-Density Potentials Optimized With the Relative Entropy: {A}pplication to Implicit Solvation},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2016,\n"
-  " DOI = doi.org/10.1063/1.4958629"
+  " DOI = {10.1063/1.4958629}"
   "}\n\n"
   "@Article{Sanyal18,\n"
-  " author =  {T.Sanyal and M.Scott Shell},\n"
-  " title =   {Transferable coarse-grained models of liquid-liquid equilibrium using local density potentials optimized with the relative entropy},\n"
-  " journal = {J.~Phys.~Chem. B},\n"
+  " author =  {T. Sanyal and M. Scott Shell},\n"
+  " title =   {Transferable Coarse-Grained Models of Liquid-Liquid Equilibrium Using Local Density Potentials Optimized with the Relative Entropy},\n"
+  " journal = {J.~Phys.\\ Chem.~B},\n"
   " year =    2018,\n"
-  " DOI = doi.org/10.1021/acs.jpcb.7b12446"
+  " DOI = {10.1021/acs.jpcb.7b12446}"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */

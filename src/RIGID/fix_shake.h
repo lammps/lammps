@@ -34,9 +34,14 @@ class FixShake : public Fix {
   int setmask() override;
   void init() override;
   void setup(int) override;
+  void setup_pre_reverse(int, int) override;
+  void min_setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
+  void min_pre_reverse(int, int) override;
+  void min_post_force(int) override;
+  void post_run() override;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -57,16 +62,17 @@ class FixShake : public Fix {
   int dof(int) override;
   void reset_dt() override;
   void *extract(const char *, int &) override;
+  double compute_scalar() override;
 
  protected:
-  int vflag_post_force;    // store the vflag of last post_force call
-  int respa;               // 0 = vel. Verlet, 1 = respa
-  int me, nprocs;
-  int rattle;            // 0 = SHAKE, 1 = RATTLE
-  double tolerance;      // SHAKE tolerance
-  int max_iter;          // max # of SHAKE iterations
-  int output_every;      // SHAKE stat output every so often
-  bigint next_output;    // timestep for next output
+  int vflag_post_force;     // store the vflag of last post_force call
+  int eflag_pre_reverse;    // store the eflag of last pre_reverse call
+  int respa;                // 0 = vel. Verlet, 1 = respa
+  int rattle;               // 0 = SHAKE, 1 = RATTLE
+  double tolerance;         // SHAKE tolerance
+  int max_iter;             // max # of SHAKE iterations
+  int output_every;         // SHAKE stat output every so often
+  bigint next_output;       // timestep for next output
 
   // settings from input command
   int *bond_flag, *angle_flag;    // bond/angle types to constrain
@@ -76,6 +82,8 @@ class FixShake : public Fix {
 
   int molecular;                             // copy of atom->molecular
   double *bond_distance, *angle_distance;    // constraint distances
+  double kbond;                              // force constant for restraint
+  double ebond;                              // energy of bond restraints
 
   class FixRespa *fix_respa;    // rRESPA fix needed by SHAKE
   int nlevels_respa;            // copies of needed rRESPA variables
@@ -108,8 +116,7 @@ class FixShake : public Fix {
   int nlist, maxlist;    // size and max-size of list
 
   // stat quantities
-  int *b_count, *b_count_all, *b_atom,
-      *b_atom_all;                              // counts for each bond type, atoms in bond cluster
+  int *b_count, *b_count_all;                   // counts for each bond type, atoms in bond cluster
   double *b_ave, *b_max, *b_min;                // ave/max/min dist for each bond type
   double *b_ave_all, *b_max_all, *b_min_all;    // MPI summing arrays
   int *a_count, *a_count_all;                   // ditto for angle types
@@ -133,6 +140,7 @@ class FixShake : public Fix {
   void shake3(int);
   void shake4(int);
   void shake3angle(int);
+  void bond_force(tagint, tagint, double);
   void stats();
   int bondtype_findset(int, tagint, tagint, int);
   int angletype_findset(int, tagint, tagint, int);

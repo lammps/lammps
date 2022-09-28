@@ -45,14 +45,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_nve_spin[] =
-  "fix nve/spin command:\n\n"
+  "fix nve/spin command: doi:10.1016/j.jcp.2018.06.042\n\n"
   "@article{tranchida2018massively,\n"
-  "title={Massively parallel symplectic algorithm for coupled magnetic spin "
-  "dynamics and molecular dynamics},\n"
-  "author={Tranchida, J and Plimpton, SJ and Thibaudeau, P and Thompson, AP},\n"
+  "title={Massively Parallel Symplectic Algorithm for Coupled Magnetic Spin "
+  "   Dynamics and Molecular Dynamics},\n"
+  "author={Tranchida, J and Plimpton, S J and Thibaudeau, P and Thompson, A P},\n"
   "journal={Journal of Computational Physics},\n"
   "volume={372},\n"
-  "pages={406-425},\n"
+  "pages={406--425},\n"
   "year={2018},\n"
   "publisher={Elsevier}\n"
   "doi={10.1016/j.jcp.2018.06.042}\n"
@@ -206,11 +206,11 @@ void FixNVESpin::init()
   int count1 = 0;
   if (npairspin == 1) {
     count1 = 1;
-    spin_pairs[0] = dynamic_cast<PairSpin *>( force->pair_match("^spin",0,0));
+    spin_pairs[0] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,0));
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
       if (force->pair_match("^spin",0,i)) {
-        spin_pairs[count1] = dynamic_cast<PairSpin *>( force->pair_match("^spin",0,i));
+        spin_pairs[count1] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,i));
         count1++;
       }
     }
@@ -254,7 +254,7 @@ void FixNVESpin::init()
     for (iforce = 0; iforce < modify->nfix; iforce++) {
       if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
         precession_spin_flag = 1;
-        lockprecessionspin[count2] = dynamic_cast<FixPrecessionSpin *>( modify->fix[iforce]);
+        lockprecessionspin[count2] = dynamic_cast<FixPrecessionSpin *>(modify->fix[iforce]);
         count2++;
       }
     }
@@ -287,7 +287,7 @@ void FixNVESpin::init()
     for (iforce = 0; iforce < modify->nfix; iforce++) {
       if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
         maglangevin_flag = 1;
-        locklangevinspin[count2] = dynamic_cast<FixLangevinSpin *>( modify->fix[iforce]);
+        locklangevinspin[count2] = dynamic_cast<FixLangevinSpin *>(modify->fix[iforce]);
         count2++;
       }
     }
@@ -301,7 +301,7 @@ void FixNVESpin::init()
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (utils::strmatch(modify->fix[iforce]->style,"^setforce/spin")) {
       setforce_spin_flag = 1;
-      locksetforcespin = dynamic_cast<FixSetForceSpin *>( modify->fix[iforce]);
+      locksetforcespin = dynamic_cast<FixSetForceSpin *>(modify->fix[iforce]);
     }
   }
 
@@ -431,22 +431,21 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
         }
       }
     }
-  } else if (sector_flag == 0) {                // serial seq. update
+  } else {                                      // serial seq. update
     comm->forward_comm();                       // comm. positions of ghost atoms
-    for (int i = 0; i < nlocal; i++) {           // advance quarter s for nlocal-1
+    for (int i = 0; i < nlocal; i++) {          // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i);
       }
     }
-    for (int i = nlocal-1; i >= 0; i--) {        // advance quarter s for nlocal-1
+    for (int i = nlocal-1; i >= 0; i--) {       // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
         ComputeInteractionsSpin(i);
         AdvanceSingleSpin(i);
       }
     }
-  } else error->all(FLERR,"Illegal fix nve/spin command");
-
+  }
 }
 
 /* ----------------------------------------------------------------------

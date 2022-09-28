@@ -48,11 +48,11 @@ using namespace MathConst;
 //   to spatially average consistent with the TTM grid
 
 static const char cite_fix_ttm_mod[] =
-  "fix ttm/mod command:\n\n"
+  "fix ttm/mod command: doi:10.1088/0953-8984/26/47/475401, doi:10.1002/ctpp.201310025\n\n"
   "@article{Pisarev2014,\n"
   "author = {Pisarev, V. V. and Starikov, S. V.},\n"
-  "title = {{Atomistic simulation of ion track formation in UO2.}},\n"
-  "journal = {J.~Phys.:~Condens.~Matter},\n"
+  "title = {Atomistic Simulation of Ion Track Formation in {UO$_2$}.},\n"
+  "journal = {J.~Phys.\\ Condens.\\ Matter},\n"
   "volume = {26},\n"
   "number = {47},\n"
   "pages = {475401},\n"
@@ -60,8 +60,8 @@ static const char cite_fix_ttm_mod[] =
   "}\n\n"
   "@article{Norman2013,\n"
   "author = {Norman, G. E. and Starikov, S. V. and Stegailov, V. V. and Saitov, I. M. and Zhilyaev, P. A.},\n"
-  "title = {{Atomistic Modeling of Warm Dense Matter in the Two-Temperature State}},\n"
-  "journal = {Contrib.~Plasm.~Phys.},\n"
+  "title = {Atomistic Modeling of Warm Dense Matter in the Two-Temperature State},\n"
+  "journal = {Contrib.\\ Plasma Phys.},\n"
   "number = {2},\n"
   "volume = {53},\n"
   "pages = {129--139},\n"
@@ -271,7 +271,7 @@ void FixTTMMod::init()
         net_energy_transfer_all[ix][iy][iz] = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,9 +281,9 @@ void FixTTMMod::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet")) {
     post_force_setup(vflag);
   } else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 

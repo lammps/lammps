@@ -207,7 +207,7 @@ void DumpCustomMPIIO::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
     if (keyword_user[icol].size())
       combined += keyword_user[icol];
@@ -231,10 +231,12 @@ void DumpCustomMPIIO::init_style()
   // lo priority = line, medium priority = int/float, hi priority = column
 
   auto words = utils::split_words(format);
-  if ((int) words.size() < nfield) error->all(FLERR, "Dump_modify format line is too short");
+  if ((int) words.size() < nfield)
+    error->all(FLERR, "Dump_modify format line is too short: {}", format);
 
   int i = 0;
   for (const auto &word : words) {
+    if (i >= nfield) break;
     delete[] vformat[i];
 
     if (format_column_user[i])

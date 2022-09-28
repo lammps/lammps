@@ -6,7 +6,7 @@ compute group/group command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID group/group group2-ID keyword value ...
 
@@ -102,19 +102,20 @@ frequently.
 
    If you have a bonded system, then the settings of
    :doc:`special_bonds <special_bonds>` command can remove pairwise
-   interactions between atoms in the same bond, angle, or dihedral.  This
-   is the default setting for the :doc:`special_bonds <special_bonds>`
-   command, and means those pairwise interactions do not appear in the
-   neighbor list.  Because this compute uses a neighbor list, it also
-   means those pairs will not be included in the group/group interaction.
-   This does not apply when using long-range coulomb interactions
-   (\ *coul/long*, *coul/msm*, *coul/wolf* or similar.  One way to get
-   around this would be to set special_bond scaling factors to very tiny
-   numbers that are not exactly zero (e.g. 1.0e-50). Another workaround
-   is to write a dump file, and use the :doc:`rerun <rerun>` command to
-   compute the group/group interactions for snapshots in the dump file.
-   The rerun script can use a :doc:`special_bonds <special_bonds>` command
-   that includes all pairs in the neighbor list.
+   interactions between atoms in the same bond, angle, or dihedral.  This is
+   the default setting for the :doc:`special_bonds <special_bonds>` command,
+   and means those pairwise interactions do not appear in the neighbor list.
+   Because this compute uses a neighbor list, it also means those pairs will
+   not be included in the group/group interaction.  This does not apply when
+   using long-range Coulomb interactions
+   (\ *coul/long*, *coul/msm*, *coul/wolf* or similar).  One way to get
+   around this would be to set *special_bond* scaling factors to very tiny
+   numbers that are not exactly zero (e.g., :math:`1.0 \times 10^{-50}`).
+   Another workaround would be to write a dump file and use the
+   :doc:`rerun <rerun>` command to compute the group/group interactions for
+   snapshots in the dump file. The rerun script can use a
+   :doc:`special_bonds <special_bonds>` command that includes all pairs in the
+   neighbor list.
 
 If you desire a breakdown of the interactions into a pairwise and
 Kspace component, simply invoke the compute twice with the appropriate
@@ -132,9 +133,10 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the energy) and a global
-vector of length 3 (force), which can be accessed by indices 1-3.
+vector of length 3 (force), which can be accessed by indices 1--3.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
+vector values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 Both the scalar and vector values calculated by this compute are
@@ -145,7 +147,7 @@ Restrictions
 """"""""""""
 
 Not all pair styles can be evaluated in a pairwise mode as required by
-this compute.  For example, 3-body and other many-body potentials,
+this compute.  For example, three-body and other many-body potentials,
 such as :doc:`Tersoff <pair_tersoff>` and
 :doc:`Stillinger-Weber <pair_sw>` cannot be used.  :doc:`EAM <pair_eam>`
 potentials will re-use previously computed embedding term contributions,

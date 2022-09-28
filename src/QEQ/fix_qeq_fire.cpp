@@ -81,8 +81,8 @@ void FixQEqFire::init()
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/fire tolerance may be too small for damped fires");
 
-  comb3 = dynamic_cast<PairComb3 *>( force->pair_match("^comb3",0));
-  if (!comb3) comb = dynamic_cast<PairComb *>( force->pair_match("^comb",0));
+  comb3 = dynamic_cast<PairComb3 *>(force->pair_match("^comb3",0));
+  if (!comb3) comb = dynamic_cast<PairComb *>(force->pair_match("^comb",0));
 }
 
 /* ---------------------------------------------------------------------- */

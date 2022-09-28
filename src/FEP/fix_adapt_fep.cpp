@@ -294,7 +294,7 @@ void FixAdaptFEP::init()
 
       if (ad->pdim == 2 && (strcmp(force->pair_style,"hybrid") == 0 ||
                             strcmp(force->pair_style,"hybrid/overlay") == 0)) {
-        auto pair = dynamic_cast<PairHybrid *>( force->pair);
+        auto pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
             if (!pair->check_ijtype(i,j,ad->pstyle))

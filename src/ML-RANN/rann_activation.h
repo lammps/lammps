@@ -53,11 +53,20 @@ namespace RANN {
   Activation::~Activation() {}
 
   //default is linear activation (no change).
-  double Activation::activation_function(double A) { return A; }
+  double Activation::activation_function(double A)
+  {
+    return A;
+  }
 
-  double Activation::dactivation_function(double) { return 1.0; }
+  double Activation::dactivation_function(double)
+  {
+    return 1.0;
+  }
 
-  double Activation::ddactivation_function(double) { return 0.0; }
+  double Activation::ddactivation_function(double)
+  {
+    return 0.0;
+  }
 }    // namespace RANN
 }    // namespace LAMMPS_NS
 

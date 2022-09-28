@@ -125,7 +125,7 @@ Domain::~Domain()
 {
   if (copymode) return;
 
-  for (auto reg : regions) delete reg;
+  for (auto &reg : regions) delete reg;
   regions.clear();
   delete lattice;
   delete region_map;
@@ -182,7 +182,7 @@ void Domain::init()
   for (const auto &fix : fixes)
     if (utils::strmatch(fix->style,"^deform")) {
       deform_flag = 1;
-      if ((dynamic_cast<FixDeform *>( fix))->remapflag == Domain::V_REMAP) {
+      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = fix->groupbit;
       }
@@ -190,7 +190,7 @@ void Domain::init()
 
   // region inits
 
-  for (auto reg : regions) reg->init();
+  for (auto &reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -209,7 +209,7 @@ void Domain::set_initial_box(int expandflag)
   if (boxlo[0] >= boxhi[0] || boxlo[1] >= boxhi[1] || boxlo[2] >= boxhi[2])
     error->one(FLERR,"Box bounds are invalid or missing");
 
-  if (domain->dimension == 2 && (xz != 0.0 || yz != 0.0))
+  if (dimension == 2 && (xz != 0.0 || yz != 0.0))
     error->all(FLERR,"Cannot skew triclinic box in z for 2d simulation");
 
   // error check or warning on triclinic tilt factors
@@ -1744,7 +1744,7 @@ void Domain::set_lattice(int narg, char **arg)
 
 void Domain::add_region(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal region command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "region", error);
 
   if (strcmp(arg[1],"delete") == 0) {
     delete_region(arg[0]);
@@ -1856,7 +1856,7 @@ const std::vector<Region *> Domain::get_region_list()
 
 void Domain::set_boundary(int narg, char **arg, int flag)
 {
-  if (narg != 3) error->all(FLERR,"Illegal boundary command");
+  if (narg != 3) error->all(FLERR,"Illegal boundary command: expected 3 arguments but found {}", narg);
 
   char c;
   for (int idim = 0; idim < 3; idim++)
@@ -1870,8 +1870,8 @@ void Domain::set_boundary(int narg, char **arg, int flag)
       else if (c == 's') boundary[idim][iside] = 2;
       else if (c == 'm') boundary[idim][iside] = 3;
       else {
-        if (flag == 0) error->all(FLERR,"Illegal boundary command");
-        if (flag == 1) error->all(FLERR,"Illegal change_box command");
+        if (flag == 0) error->all(FLERR,"Unknown boundary keyword: {}", c);
+        if (flag == 1) error->all(FLERR,"Unknown change_box keyword: {}", c);
       }
     }
 
@@ -1935,17 +1935,17 @@ void Domain::set_boundary(int narg, char **arg, int flag)
 
 void Domain::set_box(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal box command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "box", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"tilt") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal box command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "box tilt", error);
       if (strcmp(arg[iarg+1],"small") == 0) tiltsmall = 1;
       else if (strcmp(arg[iarg+1],"large") == 0) tiltsmall = 0;
-      else error->all(FLERR,"Illegal box command");
+      else error->all(FLERR,"Unknown box tilt argument: {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal box command");
+    } else error->all(FLERR,"Unknown box keyword: {}", arg[iarg]);
   }
 }
 

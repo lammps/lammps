@@ -6,7 +6,7 @@ compute vacf command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID vacf
 
@@ -29,13 +29,14 @@ function (VACF), averaged over a group of atoms.  Each atom's
 contribution to the VACF is its current velocity vector dotted into
 its initial velocity vector at the time the compute was specified.
 
-A vector of four quantities is calculated by this compute.  The first 3
-elements of the vector are vx \* vx0 (and similarly for the y and z
-components), summed and averaged over atoms in the group.  Vx is the
-current x-component of velocity for the atom, vx0 is the initial
-x-component of velocity for the atom.  The fourth element of the vector
-is the total VACF, i.e. (vx\*vx0 + vy\*vy0 + vz\*vz0), summed and
-averaged over atoms in the group.
+A vector of four quantities is calculated by this compute.  The first three
+elements of the vector are :math:`v_x v_{x,0}` (and similar for the
+:math:`y` and :math:`z` components), summed and averaged over atoms in the
+group, where :math:`v_x` is the current :math:`x`-component of the velocity of
+the atom and :math:`v_{x,0}` is the initial :math:`x`-component of the velocity
+of the atom.  The fourth element of the vector is the total VACF
+(i.e., :math:`(v_x v_{x,0} + v_y v_{y,0} + v_z v_{z,0})`),
+summed and averaged over atoms in the group.
 
 The integral of the VACF versus time is proportional to the diffusion
 coefficient of the diffusing atoms.  This can be computed in the
@@ -61,12 +62,12 @@ Output info
 """""""""""
 
 This compute calculates a global vector of length 4, which can be
-accessed by indices 1-4 by any command that uses global vector values
+accessed by indices 1--4 by any command that uses global vector values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The vector values will be in
-velocity\^2 :doc:`units <units>`.
+velocity\ :math:`^2` :doc:`units <units>`.
 
 Restrictions
 """"""""""""

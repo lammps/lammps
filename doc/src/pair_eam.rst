@@ -444,6 +444,20 @@ identical to the FS EAM files (see above).
 
 ----------
 
+.. versionadded:: TBD
+
+The *eam*, *eam/alloy*, *eam/fs*, and *eam/he* pair styles support
+extraction of two per-atom quantities by the :doc:`fix pair <fix_pair>`
+command.  This allows the quantities to be output to files by the
+:doc:`dump <dump>` or otherwise processed by other LAMMPS commands.
+
+The names of the two quantities are "rho" and "fp" for the density and
+derivative of the embedding energy for each atom.  Neither quantity
+needs to be triggered by the :doc:`fix pair <fix_pair>` command in order
+for these pair styles to calculate it.
+
+----------
+
 .. include:: accel_styles.rst
 
 ----------
@@ -459,13 +473,17 @@ a pair_coeff command with I != J arguments for the eam styles.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-The eam pair styles do not write their information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
-Thus, you need to re-specify the pair_style and pair_coeff commands in
-an input script that reads a restart file.
+The eam pair styles do not write their information to :doc:`binary
+restart files <restart>`, since it is stored in tabulated potential
+files.  Thus, you need to re-specify the pair_style and pair_coeff
+commands in an input script that reads a restart file.
 
 The eam pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*, *middle*, *outer* keywords.
+
+
+
 
 ----------
 
@@ -473,7 +491,8 @@ Restrictions
 """"""""""""
 
 All of these styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build
+package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

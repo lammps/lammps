@@ -89,21 +89,21 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == ArgInfo::COMPUTE) {
-      int icompute = modify->find_compute(ids[i]);
-      if (icompute < 0)
-        error->all(FLERR,"Compute ID for compute chunk/spread/atom does not exist");
+      auto icompute = modify->get_compute_by_id(ids[i]);
+      if (!icompute)
+        error->all(FLERR,"Compute ID {} for compute chunk/spread/atom does not exist", ids[i]);
 
-      if (!utils::strmatch(modify->compute[icompute]->style,"/chunk$"))
+      if (!utils::strmatch(icompute->style,"/chunk$"))
         error->all(FLERR,"Compute for compute chunk/spread/atom "
                    "does not calculate per-chunk values");
 
       if (argindex[i] == 0) {
-        if (!modify->compute[icompute]->vector_flag)
+        if (!icompute->vector_flag)
           error->all(FLERR,"Compute chunk/spread/atom compute does not calculate global vector");
       } else {
-        if (!modify->compute[icompute]->array_flag)
+        if (!icompute->array_flag)
           error->all(FLERR,"Compute chunk/spread/atom compute does not calculate global array");
-        if (argindex[i] > modify->compute[icompute]->size_array_cols)
+        if (argindex[i] > icompute->size_array_cols)
           error->all(FLERR,"Compute chunk/spread/atom compute array is accessed out-of-range");
       }
 
@@ -164,14 +164,13 @@ void ComputeChunkSpreadAtom::init()
     if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
-        error->all(FLERR,"Compute ID for compute chunk/spread/atom "
-                   "does not exist");
+        error->all(FLERR,"Compute ID {} for compute chunk/spread/atom does not exist", ids[m]);
       value2index[m] = icompute;
 
     } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
-        error->all(FLERR,"Fix ID for compute chunk/spread/atom does not exist");
+        error->all(FLERR,"Fix ID {} for compute chunk/spread/atom does not exist", ids[m]);
       value2index[m] = ifix;
     }
   }
@@ -181,12 +180,11 @@ void ComputeChunkSpreadAtom::init()
 
 void ComputeChunkSpreadAtom::init_chunk()
 {
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for compute chunk/spread/atom");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (!cchunk)
+    error->all(FLERR,"Chunk/atom compute does not exist for compute chunk/spread/atom {}", idchunk);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Compute chunk/spread/atom does not use chunk/atom compute");
+    error->all(FLERR,"Compute chunk/spread/atom {} does not use chunk/atom compute", idchunk);
 }
 
 /* ---------------------------------------------------------------------- */

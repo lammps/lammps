@@ -37,8 +37,8 @@ void NPairHalffullNewtoffTrim::build(NeighList *list)
 {
   int i, j, ii, jj, n, jnum, joriginal;
   int *neighptr, *jlist;
-  double xtmp,ytmp,ztmp;
-  double delx,dely,delz,rsq;
+  double xtmp, ytmp, ztmp;
+  double delx, dely, delz, rsq;
 
   double **x = atom->x;
 

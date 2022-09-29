@@ -56,9 +56,11 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
   memory->create(map,ntypes+1,"pace:map");
+  /*
   for (int i=0; i<ntypes; i++){
     map[i+1] = i+1;
   }
+  */
 
   //read in file with CG coefficients or c_tilde coefficients
   basis_set = new ACECTildeBasisSet(arg[3]);

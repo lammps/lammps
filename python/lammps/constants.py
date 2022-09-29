@@ -42,6 +42,7 @@ LMP_ERROR_UNIVERSE = 8
 
 LMP_VAR_EQUAL      = 0
 LMP_VAR_ATOM       = 1
+LMP_VAR_STRING     = 2
 
 # -------------------------------------------------------------------------
 

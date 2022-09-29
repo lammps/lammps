@@ -65,7 +65,10 @@ MODULE LIBLAMMPS
     LMP_ERROR_ONE = 1, &      ! call Error::one() (from this MPI rank)
     LMP_ERROR_ALL = 2, &      ! call Error::all() (from all MPI ranks)
     LMP_ERROR_WORLD = 4, &    ! error on comm->world
-    LMP_ERROR_UNIVERSE = 8    ! error on comm->universe
+    LMP_ERROR_UNIVERSE = 8, & ! error on comm->universe
+    LMP_VAR_EQUAL = 0, &      ! equal-style variables (and compatible)
+    LMP_VAR_ATOM = 1, &       ! atom-style variables (and compatible)
+    LMP_VAR_STRING = 2        ! string variables (and compatible)
 
   ! "Constants" to use with extract_compute and friends
   TYPE lammps_style
@@ -97,11 +100,14 @@ MODULE LIBLAMMPS
       PROCEDURE :: extract_global         => lmp_extract_global
       PROCEDURE :: extract_atom           => lmp_extract_atom
       PROCEDURE :: extract_compute        => lmp_extract_compute
-!                                         
+      PROCEDURE :: extract_fix            => lmp_extract_fix
+      PROCEDURE :: extract_variable       => lmp_extract_variable
+!
       PROCEDURE :: version                => lmp_version
-      PROCEDURE :: is_running             => lmp_is_running
 !
       PROCEDURE :: flush_buffers          => lmp_flush_buffers
+      PROCEDURE :: is_running             => lmp_is_running
+! force_timeout
       PROCEDURE :: has_error              => lmp_has_error
       PROCEDURE :: get_last_error_message => lmp_get_last_error_message
   END TYPE lammps
@@ -118,10 +124,16 @@ MODULE LIBLAMMPS
     ENUMERATOR :: DATA_STRING
   END ENUM
 
+  ! Base class for receiving LAMMPS data (to reduce code duplication)
+  TYPE lammps_data_baseclass
+    INTEGER(c_int) :: datatype = -1_c_int
+    ! in case we need to call the Error class in an assignment
+    CLASS(lammps), POINTER, PRIVATE :: lammps_instance => NULL()
+  END TYPE lammps_data_baseclass
+
   ! Derived type for receiving LAMMPS data (in lieu of the ability to type cast
-  ! pointers)
-  TYPE lammps_data
-    INTEGER(c_int) :: datatype
+  ! pointers). Used for extract_compute, extract_atom
+  TYPE, EXTENDS(lammps_data_baseclass) :: lammps_data
     INTEGER(c_int), POINTER :: i32 => NULL()
     INTEGER(c_int), DIMENSION(:), POINTER :: i32_vec => NULL()
     INTEGER(c_int64_t), POINTER :: i64 => NULL()
@@ -131,6 +143,26 @@ MODULE LIBLAMMPS
     REAL(c_double), DIMENSION(:,:), POINTER :: r64_mat => NULL()
     CHARACTER(LEN=:), ALLOCATABLE :: str
   END TYPE lammps_data
+
+  ! Derived type for holding LAMMPS fix data
+  ! Done this way because fix global data are not pointers, but computed
+  ! on-the-fly, whereas per-atom and local data are pointers to the actual
+  ! array. Doing it this way saves the user from having to explicitly
+  ! deallocate all of the pointers.
+  TYPE, EXTENDS(lammps_data_baseclass) :: lammps_fix_data
+    REAL(c_double) :: r64
+    REAL(c_double), DIMENSION(:), POINTER :: r64_vec => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: r64_mat => NULL()
+  END TYPE lammps_fix_data
+
+  ! Derived type for holding LAMMPS variable data
+  ! Done this way because extract_variable calculates variable values, it does
+  ! not return pointers to LAMMPS data.
+  TYPE, EXTENDS(lammps_data_baseclass) :: lammps_variable_data
+    REAL(c_double) :: r64
+    REAL(c_double), DIMENSION(:), ALLOCATABLE :: r64_vec
+    CHARACTER(LEN=:), ALLOCATABLE :: str
+  END TYPE lammps_variable_data
 
   ! This overloads the assignment operator (=) so that assignments of the
   ! form
@@ -144,6 +176,10 @@ MODULE LIBLAMMPS
       assign_double_to_lammps_data, assign_doublevec_to_lammps_data, &
       assign_doublemat_to_lammps_data, &
       assign_string_to_lammps_data
+    ! We handle fix data (slightly) differently
+    MODULE PROCEDURE assign_double_to_lammps_fix_data, &
+      assign_doublevec_to_lammps_fix_data, &
+      assign_doublemat_to_lammps_fix_data
   END INTERFACE
 
   ! interface definitions for calling functions in library.cpp
@@ -312,9 +348,27 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: lammps_extract_compute
     END FUNCTION lammps_extract_compute
 
-    !(generic) lammps_extract_fix
+    FUNCTION lammps_extract_fix(handle, id, style, type, nrow, ncol) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, id
+      INTEGER(c_int), INTENT(IN), VALUE :: style, type, nrow, ncol
+      TYPE(c_ptr) :: lammps_extract_fix
+    END FUNCTION lammps_extract_fix
 
-    !(generic) lammps_extract_variable
+    FUNCTION lammps_extract_variable_datatype(handle,name) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
+      INTEGER(c_int) :: lammps_extract_variable_datatype
+    END FUNCTION lammps_extract_variable_datatype
+
+    FUNCTION lammps_extract_variable(handle, name, group) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, name, group
+      TYPE(c_ptr) :: lammps_extract_variable
+    END FUNCTION lammps_extract_variable
 
     !INTEGER (c_int) lammps_set_variable
 
@@ -647,7 +701,7 @@ CONTAINS
   ! the assignment is actually overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
   FUNCTION lmp_extract_global(self, name) RESULT (global_data)
-    CLASS(lammps), INTENT(IN) :: self
+    CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(lammps_data) :: global_data
 
@@ -674,6 +728,7 @@ CONTAINS
     Cptr = lammps_extract_global(self%handle, Cname)
     CALL lammps_free(Cname)
 
+    global_data%lammps_instance => self
     SELECT CASE (datatype)
       CASE (LAMMPS_INT)
         IF ( length == 1 ) THEN
@@ -704,7 +759,7 @@ CONTAINS
         length = c_strlen(Cptr)
         CALL C_F_POINTER(Cptr, Fptr, [length])
         ALLOCATE ( CHARACTER(LEN=length) :: global_data%str )
-        FORALL ( I=1:length )
+        FORALL ( i=1:length )
           global_data%str(i:i) = Fptr(i)
         END FORALL
       CASE DEFAULT
@@ -717,7 +772,7 @@ CONTAINS
   ! the assignment is actually overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
   FUNCTION lmp_extract_atom (self, name) RESULT (peratom_data)
-    CLASS(lammps), INTENT(IN) :: self
+    CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(lammps_data) :: peratom_data
 
@@ -748,6 +803,7 @@ CONTAINS
         nrows = 1
     END SELECT
 
+    peratom_data%lammps_instance => self
     SELECT CASE (datatype)
       CASE (LAMMPS_INT)
         peratom_data%datatype = DATA_INT_1D
@@ -772,16 +828,10 @@ CONTAINS
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'per-atom property ' // name // 'not found in extract_setting')
-!        WRITE(ERROR_UNIT,'(A)') 'ERROR: per-atom property "' // name // &
-!          '" not found.'
-!        STOP 2
       CASE DEFAULT
         WRITE(error_msg,'(A,I0,A)') 'return value ', datatype, &
           ' from lammps_extract_atom_datatype not known [Fortran/extract_atom]'
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
-!        WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: return value ', datatype, &
-!          ' from lammps_extract_atom_datatype not known'
-!        STOP 1
     END SELECT
   END FUNCTION lmp_extract_atom
 
@@ -789,12 +839,11 @@ CONTAINS
   ! the assignment operator is overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
   FUNCTION lmp_extract_compute (self, id, style, type) RESULT (compute_data)
-    CLASS(lammps), INTENT(IN) :: self
+    CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: id
     INTEGER(c_int), INTENT(IN) :: style, type
     TYPE(lammps_data) :: compute_data
 
-    INTEGER(c_int) :: datatype
     TYPE(c_ptr) :: Cid, Cptr, Ctemp
     INTEGER :: nrows, ncols, length
     INTEGER(c_int), POINTER :: temp
@@ -809,6 +858,7 @@ CONTAINS
     END IF
 
     ! Remember that rows and columns in C are transposed in Fortran!
+    compute_data%lammps_instance => self
     SELECT CASE (type)
       CASE (LMP_TYPE_SCALAR)
         compute_data%datatype = DATA_DOUBLE
@@ -847,13 +897,160 @@ CONTAINS
         CALL C_F_POINTER(Ccomputeptr(1), compute_data%r64_mat, [nrows, ncols])
       CASE DEFAULT
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-          'unknown type value passed to extract_compute')
-        !WRITE(ERROR_UNIT,'(A,I0,A)') 'ERROR: unknown type value ', type, &
-        !  'passed to extract_compute'
-        !STOP 1
+          'unknown type value passed to extract_compute [Fortran API]')
     END SELECT
     CALL lammps_free(Cid)
   END FUNCTION lmp_extract_compute
+
+  FUNCTION lmp_extract_fix(self, id, style, type, nrow, ncol) RESULT (fix_data)
+    CLASS(lammps), INTENT(IN), TARGET :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: style, type
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: nrow, ncol
+    TYPE(lammps_fix_data) :: fix_data
+
+    TYPE(c_ptr) :: Cid, Cptr, Ctemp
+    TYPE(c_ptr), DIMENSION(:), POINTER :: Cfixptr
+    INTEGER(c_int) :: Cnrow, Cncol
+    REAL(c_double), POINTER :: Fptr
+    INTEGER :: nrows, ncols
+    INTEGER(c_int), POINTER :: temp
+
+    ! We transpose ncol and nrow so the array appears to be transposed for
+    ! global data, as it would be if we could access the C++ array directly
+    Cnrow = -1
+    Cncol = -1
+    IF ( PRESENT(nrow) ) THEN
+      IF ( .NOT. PRESENT(ncol) ) THEN
+        ! Presumably the argument that's there is the vector length
+        Cnrow = nrow - 1_c_int
+        Cncol = -1_c_int
+      ELSE
+        ! Otherwise, the array is transposed, so...reverse the indices
+        Cncol = nrow - 1_c_int
+      END IF
+    END IF
+
+    IF ( PRESENT(ncol) ) Cnrow = ncol - 1_c_int
+
+    Cid = f2c_string(id)
+    Cptr = lammps_extract_fix(self%handle, Cid, style, type, Cnrow, Cncol)
+    IF ( .NOT. C_ASSOCIATED(Cptr) ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Pointer from LAMMPS is NULL for fix id "' // id &
+        // '" [Fortran/extract_fix]')
+    END IF
+
+    fix_data%lammps_instance => self
+    SELECT CASE (style)
+      CASE (LMP_STYLE_GLOBAL)
+        fix_data%datatype = DATA_DOUBLE
+        CALL C_F_POINTER(Cptr, Fptr)
+        fix_data%r64 = Fptr
+        CALL lammps_free(Cptr)
+      CASE (LMP_STYLE_ATOM, LMP_STYLE_LOCAL)
+        SELECT CASE (type)
+          CASE (LMP_TYPE_SCALAR)
+            CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+              'There is no such thing as a per-atom or local scalar&
+              & [Fortran/extract_fix]')
+          CASE (LMP_TYPE_VECTOR)
+            fix_data%datatype = DATA_DOUBLE_1D
+            IF ( STYLE == LMP_STYLE_ATOM ) THEN
+              nrows = self%extract_setting('nmax')
+            ELSE
+              Ctemp = lammps_extract_fix(self%handle, Cid, style, &
+                  LMP_SIZE_VECTOR, 0_c_int,0_c_int)
+              CALL C_F_POINTER(Ctemp, temp)
+              nrows = temp
+            END IF
+            CALL C_F_POINTER(Cptr, fix_data%r64_vec, [nrows])
+          CASE (LMP_TYPE_ARRAY)
+            fix_data%datatype = DATA_DOUBLE_2D
+            IF ( STYLE == LMP_STYLE_ATOM ) THEN
+              ! Fortran array is transposed relative to C
+              ncols = self%extract_setting('nmax')
+              Ctemp = lammps_extract_fix(self%handle, Cid, style, &
+                  LMP_SIZE_COLS, 0_c_int,0_c_int)
+              CALL C_F_POINTER(Ctemp, temp)
+              nrows = temp
+            ELSE
+              ! Fortran array is transposed relative to C
+              Ctemp = lammps_extract_fix(self%handle, Cid, style, &
+                  LMP_SIZE_COLS, 0_c_int,0_c_int)
+              CALL C_F_POINTER(Ctemp, temp)
+              nrows = temp
+              Ctemp = lammps_extract_fix(self%handle, Cid, style, &
+                  LMP_SIZE_ROWS, 0_c_int,0_c_int)
+              CALL C_F_POINTER(Ctemp, temp)
+              ncols = temp
+            END IF
+            ! First, we dereference the void** to point to a void* pointer
+            CALL C_F_POINTER(Cptr, Cfixptr, [ncols])
+            ! Cfixptr(1) now points to the first element of the array
+            CALL C_F_POINTER(Cfixptr(1), fix_data%r64_mat, [nrows, ncols])
+          CASE DEFAULT
+            CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+              'unknown type value passed to extract_fix [Fortran API]')
+        END SELECT
+      CASE DEFAULT
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'unknown style value passed to extract_fix [Fortran API]')
+    END SELECT
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_extract_fix
+
+  ! equivalent function to lammps_extract_variable
+  FUNCTION lmp_extract_variable(self, name, group) RESULT (variable_data)
+    CLASS(lammps), INTENT(IN), TARGET :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: group
+    TYPE(lammps_variable_data) :: variable_data
+
+    TYPE(c_ptr) :: Cptr, Cname, Cgroup
+    INTEGER :: length, i
+    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cstring
+    INTEGER(c_int) :: datatype
+    REAL(c_double), POINTER :: double
+    REAL(c_double), DIMENSION(:), POINTER :: double_vec
+
+    Cname = f2c_string(name)
+    IF ( PRESENT(group) ) THEN
+      Cgroup = f2c_string(group)
+    ELSE
+      Cgroup = c_null_ptr
+    END IF
+    datatype = lammps_extract_variable_datatype(self%handle, Cname)
+    Cptr = lammps_extract_variable(self%handle, Cname, Cgroup)
+    CALL lammps_free(Cname)
+    CALL lammps_free(Cgroup)
+
+    SELECT CASE (datatype)
+      CASE (LMP_VAR_EQUAL)
+        variable_data%datatype = DATA_DOUBLE
+        CALL C_F_POINTER(Cptr, double)
+        variable_data%r64 = double
+        CALL lammps_free(Cptr)
+      CASE (LMP_VAR_ATOM)
+        variable_data%datatype = DATA_DOUBLE_1D
+        length = lmp_extract_setting(self, 'nlocal')
+        CALL C_F_POINTER(Cptr, double_vec, [length])
+        variable_data%r64_vec = double_vec
+        CALL lammps_free(Cptr)
+      CASE (LMP_VAR_STRING)
+        variable_data%datatype = DATA_STRING
+        length = c_strlen(Cptr)
+        CALL C_F_POINTER(Cptr, Cstring, [length])
+        ALLOCATE ( CHARACTER(LEN=length) :: variable_data%str )
+        FORALL ( i=1:length )
+          variable_data%str(i:i) = Cstring(i)
+        END FORALL
+      CASE DEFAULT
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'Unknown variable type returned from &
+          &lammps_extract_variable_datatype [Fortran/extract_variable]')
+    END SELECT
+  END FUNCTION lmp_extract_variable
 
   ! equivalent function to lammps_version()
   INTEGER FUNCTION lmp_version(self)
@@ -873,7 +1070,7 @@ CONTAINS
   SUBROUTINE lmp_flush_buffers(self)
     CLASS(lammps), INTENT(IN) :: self
 
-    call lammps_flush_buffers(self%handle)
+    CALL lammps_flush_buffers(self%handle)
   END SUBROUTINE lmp_flush_buffers
 
   ! equivalent function to lammps_has_error
@@ -891,14 +1088,16 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER, INTENT(OUT), OPTIONAL :: status
     INTEGER(c_int) :: length, Cstatus, i
-    TYPE(c_ptr) :: Cbuffer
+    TYPE(c_ptr) :: Cptr
+    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cbuffer
 
     buffer = ''
     IF ( lmp_has_error(self) ) THEN
       length = LEN(buffer)
-      Cbuffer = f2cstring(buffer)
-      Cstatus = lammps_get_last_error_message(self%handle, Cbuffer, length)
-      length = MIN(LEN(buffer), c_strlen(Cbuffer))
+      Cptr = f2c_string(buffer)
+      Cstatus = lammps_get_last_error_message(self%handle, Cptr, length)
+      length = MIN(LEN(buffer), c_strlen(Cptr))
+      CALL C_F_POINTER(Cptr, Cbuffer, [length])
       FORALL ( i=1:length )
         buffer(i:i) = Cbuffer(i)
       END FORALL
@@ -923,7 +1122,7 @@ CONTAINS
     IF ( rhs%datatype == DATA_INT ) THEN
       lhs => rhs%i32
     ELSE
-      CALL assignment_error(rhs%datatype, 'scalar int')
+      CALL assignment_error(rhs, 'scalar int')
     END IF
   END SUBROUTINE assign_int_to_lammps_data
 
@@ -934,7 +1133,7 @@ CONTAINS
     IF ( rhs%datatype == DATA_INT64 ) THEN
       lhs => rhs%i64
     ELSE
-      CALL assignment_error(rhs%datatype, 'scalar long int')
+      CALL assignment_error(rhs, 'scalar long int')
     END IF
   END SUBROUTINE assign_int64_to_lammps_data
 
@@ -945,7 +1144,7 @@ CONTAINS
     IF ( rhs%datatype == DATA_INT_1D ) THEN
       lhs => rhs%i32_vec
     ELSE
-      CALL assignment_error(rhs%datatype, 'vector of ints')
+      CALL assignment_error(rhs, 'vector of ints')
     END IF
   END SUBROUTINE assign_intvec_to_lammps_data
 
@@ -956,7 +1155,7 @@ CONTAINS
     IF ( rhs%datatype == DATA_INT64_1D ) THEN
       lhs => rhs%i64_vec
     ELSE
-      CALL assignment_error(rhs%datatype, 'vector of long ints')
+      CALL assignment_error(rhs, 'vector of long ints')
     END IF
   END SUBROUTINE assign_int64vec_to_lammps_data
 
@@ -967,7 +1166,7 @@ CONTAINS
     IF ( rhs%datatype == DATA_DOUBLE ) THEN
       lhs => rhs%r64
     ELSE
-      CALL assignment_error(rhs%datatype, 'scalar double')
+      CALL assignment_error(rhs, 'scalar double')
     END IF
   END SUBROUTINE assign_double_to_lammps_data
 
@@ -978,7 +1177,7 @@ CONTAINS
     IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
       lhs => rhs%r64_vec
     ELSE
-      CALL assignment_error(rhs%datatype, 'vector of doubles')
+      CALL assignment_error(rhs, 'vector of doubles')
     END IF
   END SUBROUTINE assign_doublevec_to_lammps_data
 
@@ -989,7 +1188,7 @@ CONTAINS
     IF ( rhs%datatype == DATA_DOUBLE_2D ) THEN
       lhs => rhs%r64_mat
     ELSE
-      CALL assignment_error(rhs%datatype, 'matrix of doubles')
+      CALL assignment_error(rhs, 'matrix of doubles')
     END IF
   END SUBROUTINE assign_doublemat_to_lammps_data
 
@@ -1000,17 +1199,81 @@ CONTAINS
     IF ( rhs%datatype == DATA_STRING ) THEN
       lhs = rhs%str
     ELSE
-      CALL assignment_error(rhs%datatype, 'string')
+      CALL assignment_error(rhs, 'string')
     END IF
   END SUBROUTINE assign_string_to_lammps_data
 
-  SUBROUTINE assignment_error (type1, type2)
-    INTEGER (c_int) :: type1
-    CHARACTER (LEN=*) :: type2
-    INTEGER, PARAMETER :: ERROR_CODE = 1
+  ! ----------------------------------------------------------------------
+  ! functions to assign user-space pointers to LAMMPS *fix* data
+  ! ----------------------------------------------------------------------
+  SUBROUTINE assign_double_to_lammps_fix_data (lhs, rhs)
+    REAL(c_double), INTENT(OUT) :: lhs
+    CLASS(lammps_fix_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE ) THEN
+      lhs = rhs%r64
+    ELSE
+      CALL assignment_error(rhs, 'scalar double')
+    END IF
+  END SUBROUTINE assign_double_to_lammps_fix_data
+
+  SUBROUTINE assign_doublevec_to_lammps_fix_data (lhs, rhs)
+    REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_fix_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
+      lhs => rhs%r64_vec
+    ELSE
+      CALL assignment_error(rhs, 'vector of doubles')
+    END IF
+  END SUBROUTINE assign_doublevec_to_lammps_fix_data
+
+  SUBROUTINE assign_doublemat_to_lammps_fix_data (lhs, rhs)
+    REAL(c_double), DIMENSION(:,:), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_fix_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE_2D ) THEN
+      lhs => rhs%r64_mat
+    ELSE
+      CALL assignment_error(rhs, 'matrix of doubles')
+    END IF
+  END SUBROUTINE assign_doublemat_to_lammps_fix_data
+
+  ! ----------------------------------------------------------------------
+  ! functions to assign user-space pointers to LAMMPS *variable* data
+  ! ----------------------------------------------------------------------
+  SUBROUTINE assign_double_to_lammps_variable_data (lhs, rhs)
+    REAL(c_double), INTENT(OUT) :: lhs
+    CLASS(lammps_variable_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE ) THEN
+      lhs = rhs%r64
+    ELSE
+      CALL assignment_error(rhs, 'scalar double')
+    END IF
+  END SUBROUTINE assign_double_to_lammps_variable_data
+
+  SUBROUTINE assign_doublevec_to_lammps_variable_data (lhs, rhs)
+    REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
+    CLASS(lammps_variable_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
+      lhs = rhs%r64_vec
+    ELSE
+      CALL assignment_error(rhs, 'vector of doubles')
+    END IF
+  END SUBROUTINE assign_doublevec_to_lammps_variable_data
+
+  ! ----------------------------------------------------------------------
+  ! Generic function to catch all errors in assignments of LAMMPS data to
+  ! user-space variables/pointers
+  ! ----------------------------------------------------------------------
+  SUBROUTINE assignment_error (type1, str2)
+    CLASS(lammps_data_baseclass), INTENT(IN) :: type1
+    CHARACTER (LEN=*), INTENT(IN) :: str2
     CHARACTER (LEN=:), ALLOCATABLE :: str1
 
-    SELECT CASE (type1)
+    SELECT CASE (type1%datatype)
       CASE (DATA_INT)
         str1 = 'scalar int'
       CASE (DATA_INT_1D)
@@ -1032,11 +1295,8 @@ CONTAINS
       CASE DEFAULT
         str1 = 'that type'
     END SELECT
-    !CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'cannot associate ' &
-    !  // str1 // ' with ' // type2 // ' [Fortran API]')
-    WRITE (ERROR_UNIT,'(A)') 'ERROR (Fortran API): cannot associate ' &
-      // str1 // ' with ' // type2
-    STOP ERROR_CODE
+    CALL lmp_error(type1%lammps_instance, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+      'cannot associate ' // str1 // ' with ' // str2 // ' [Fortran API]')
   END SUBROUTINE assignment_error
 
   ! ----------------------------------------------------------------------

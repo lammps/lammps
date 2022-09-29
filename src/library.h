@@ -40,7 +40,8 @@
 
 /** Data type constants for extracting data from atoms, computes and fixes
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py */
+ * Must be kept in sync with the equivalent constants in lammps/constants.py
+ * and fortran/lammps.f90 */
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
@@ -54,7 +55,8 @@ enum _LMP_DATATYPE_CONST {
 
 /** Style constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py */
+ * Must be kept in sync with the equivalent constants in lammps/constants.py
+ * and fortran/lammps.f90 */
 
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL = 0, /*!< return global data */
@@ -64,7 +66,8 @@ enum _LMP_STYLE_CONST {
 
 /** Type and size constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py */
+ * Must be kept in sync with the equivalent constants in lammps/constants.py
+ * and fortran/lammps.f90 */
 
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR = 0, /*!< return scalar */
@@ -77,7 +80,8 @@ enum _LMP_TYPE_CONST {
 
 /** Error codes to select the suitable function in the Error class
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py */
+ * Must be kept in sync with the equivalent constants in lammps/constants.py
+ * and fortran/lammps.f90 */
 
 enum _LMP_ERROR_CONST {
   LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
@@ -85,6 +89,17 @@ enum _LMP_ERROR_CONST {
   LMP_ERROR_ALL = 2,     /*!< called from all MPI ranks */
   LMP_ERROR_WORLD = 4,   /*!< error on Comm::world */
   LMP_ERROR_UNIVERSE = 8 /*!< error on Comm::universe */
+};
+
+/** Variable style constants for extracting data from variables
+ *
+ * Must be kept in sync with the equivalent constants in lammps/constants.py
+ * and fortran/lammps.f90 */
+
+enum _LMP_VAR_CONST {
+  LMP_VAR_EQUAL = 0, /*!< compatible with equal-style variables */
+  LMP_VAR_ATOM = 1,  /*!< compatible with atom-style variables */
+  LMP_VAR_STRING = 2 /*!< return value will be a string (catch-all) */
 };
 
 /* Ifdefs to allow this file to be included in C and C++ programs */
@@ -153,6 +168,7 @@ void *lammps_extract_atom(void *handle, const char *name);
 void *lammps_extract_compute(void *handle, const char *, int, int);
 void *lammps_extract_fix(void *handle, const char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, const char *, const char *);
+int lammps_extract_variable_datatype(void *handle, const char *name);
 int lammps_set_variable(void *, char *, char *);
 
 /* ----------------------------------------------------------------------

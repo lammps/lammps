@@ -2130,6 +2130,47 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
 
 /* ---------------------------------------------------------------------- */
 
+/** Get data type of a LAMMPS variable
+ *
+\verbatim embed:rst
+
+This function returns an integer that encodes the data type of the variable
+with the specified name. See :cpp:enum:`_LMP_VAR_CONST` for valid values.
+Callers of :cpp:func:`lammps_extract_variable` can use this information to
+decide how to cast the (void*) pointer and access the data.
+
+..versionadded:: TBD
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  name    string with the name of the extracted variable
+ * \return         integer constant encoding the data type of the property
+ *                 or -1 if not found.
+ **/
+
+int lammps_extract_variable_datatype(void *handle, const char *name)
+{
+  auto lmp = (LAMMPS*) handle;
+
+  BEGIN_CAPTURE
+  {
+    int ivar = lmp->input->variable->find(name);
+    if ( ivar < 0 ) return -1;
+
+    if (lmp->input->variable->equalstyle(ivar))
+      return LMP_VAR_EQUAL;
+    else if (lmp->input->variable->atomstyle(ivar))
+      return LMP_VAR_ATOM;
+    else
+      return LMP_VAR_STRING;
+  }
+  END_CAPTURE
+  return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
 /** Set the value of a string-style variable.
  *
  * This function assigns a new value from the string str to the

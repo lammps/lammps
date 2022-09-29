@@ -1,7 +1,7 @@
 FUNCTION f_lammps_version () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
    USE liblammps
-   USE keepcmds, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER (C_int) :: f_lammps_version
 
@@ -11,7 +11,7 @@ END FUNCTION f_lammps_version
 SUBROUTINE f_lammps_memory_usage (meminfo) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
    USE liblammps
-   USE keepcmds, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (C_double), DIMENSION(3), INTENT(OUT) :: meminfo
 
@@ -21,7 +21,7 @@ END SUBROUTINE f_lammps_memory_usage
 FUNCTION f_lammps_get_mpi_comm () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
    USE liblammps
-   USE keepcmds, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER (C_int) :: f_lammps_get_mpi_comm
 
@@ -30,7 +30,7 @@ END FUNCTION f_lammps_get_mpi_comm
 
 FUNCTION f_lammps_extract_setting (Cstr) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int, C_char
-   USE keepcmds, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int) :: f_lammps_extract_setting

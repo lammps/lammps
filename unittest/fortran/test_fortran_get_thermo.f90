@@ -1,7 +1,7 @@
 FUNCTION f_lammps_with_args() BIND(C)
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
-  USE keepglobal, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_with_args
 
@@ -16,7 +16,7 @@ END FUNCTION f_lammps_with_args
 SUBROUTINE f_lammps_close() BIND(C)
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepglobal, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
 
   CALL lmp%close()
@@ -25,10 +25,10 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_get_thermo_setup () BIND(C)
    USE liblammps
-   USE keepglobal, ONLY : lmp, demo_input, cont_input, pair_input
+   USE keepstuff, ONLY : lmp, big_input, cont_input, pair_input
    IMPLICIT NONE
 
-   CALL lmp%commands_list(demo_input)
+   CALL lmp%commands_list(big_input)
    CALL lmp%commands_list(cont_input)
    CALL lmp%commands_list(pair_input)
 END SUBROUTINE f_lammps_get_thermo_setup
@@ -36,7 +36,7 @@ END SUBROUTINE f_lammps_get_thermo_setup
 FUNCTION f_lammps_get_thermo_natoms () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_natoms
 
@@ -46,7 +46,7 @@ END FUNCTION f_lammps_get_thermo_natoms
 FUNCTION f_lammps_get_thermo_dt () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_dt
 
@@ -56,7 +56,7 @@ END FUNCTION f_lammps_get_thermo_dt
 FUNCTION f_lammps_get_thermo_vol () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_vol
 
@@ -66,7 +66,7 @@ END FUNCTION f_lammps_get_thermo_vol
 FUNCTION f_lammps_get_thermo_lx () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_lx
 
@@ -76,7 +76,7 @@ END FUNCTION f_lammps_get_thermo_lx
 FUNCTION f_lammps_get_thermo_ly () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_ly
 
@@ -86,7 +86,7 @@ END FUNCTION f_lammps_get_thermo_ly
 FUNCTION f_lammps_get_thermo_lz () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_lz
 
@@ -96,7 +96,7 @@ END FUNCTION f_lammps_get_thermo_lz
 FUNCTION f_lammps_get_thermo_xlo () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_xlo
 
@@ -106,7 +106,7 @@ END FUNCTION f_lammps_get_thermo_xlo
 FUNCTION f_lammps_get_thermo_xhi () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_xhi
 
@@ -116,7 +116,7 @@ END FUNCTION f_lammps_get_thermo_xhi
 FUNCTION f_lammps_get_thermo_ylo () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_ylo
 
@@ -126,7 +126,7 @@ END FUNCTION f_lammps_get_thermo_ylo
 FUNCTION f_lammps_get_thermo_yhi () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_yhi
 
@@ -136,7 +136,7 @@ END FUNCTION f_lammps_get_thermo_yhi
 FUNCTION f_lammps_get_thermo_zlo () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_zlo
 
@@ -146,7 +146,7 @@ END FUNCTION f_lammps_get_thermo_zlo
 FUNCTION f_lammps_get_thermo_zhi () BIND (C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double
    USE liblammps
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_get_thermo_zhi
 

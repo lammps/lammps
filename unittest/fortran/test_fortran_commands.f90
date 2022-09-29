@@ -1,7 +1,7 @@
 FUNCTION f_lammps_with_args() BIND(C, name="f_lammps_with_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
-  USE keepcmds,      ONLY: lmp
+  USE keepstuff,      ONLY: lmp
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_with_args
 
@@ -16,7 +16,7 @@ END FUNCTION f_lammps_with_args
 SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepcmds, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
 
   CALL lmp%close()
@@ -26,7 +26,7 @@ END SUBROUTINE f_lammps_close
 FUNCTION f_lammps_get_natoms() BIND(C, name="f_lammps_get_natoms")
   USE ISO_C_BINDING, ONLY: c_null_ptr, c_double
   USE liblammps
-  USE keepcmds, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
   REAL(c_double) :: f_lammps_get_natoms
 
@@ -36,7 +36,7 @@ END FUNCTION f_lammps_get_natoms
 SUBROUTINE f_lammps_file() BIND(C, name="f_lammps_file")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepcmds, ONLY: lmp, demo_input, cont_input
+  USE keepstuff, ONLY: lmp, demo_input, cont_input
   IMPLICIT NONE
   INTEGER :: i
   CHARACTER(len=*), PARAMETER :: demo_file = 'in.test', cont_file = 'in.cont'
@@ -58,7 +58,7 @@ END SUBROUTINE f_lammps_file
 SUBROUTINE f_lammps_command() BIND(C, name="f_lammps_command")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepcmds, ONLY: lmp, demo_input
+  USE keepstuff, ONLY: lmp, demo_input
   IMPLICIT NONE
   INTEGER :: i
 
@@ -70,7 +70,7 @@ END SUBROUTINE f_lammps_command
 SUBROUTINE f_lammps_commands_list() BIND(C, name="f_lammps_commands_list")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepcmds, ONLY: lmp, demo_input, cont_input
+  USE keepstuff, ONLY: lmp, demo_input, cont_input
   IMPLICIT NONE
 
   CALL lmp%commands_list(demo_input)
@@ -80,7 +80,7 @@ END SUBROUTINE f_lammps_commands_list
 SUBROUTINE f_lammps_commands_string() BIND(C, name="f_lammps_commands_string")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepcmds, ONLY: lmp, demo_input, cont_input
+  USE keepstuff, ONLY: lmp, demo_input, cont_input
   IMPLICIT NONE
   INTEGER :: i
   CHARACTER(len=512) :: cmds

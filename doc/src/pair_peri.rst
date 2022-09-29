@@ -70,25 +70,24 @@ solid (EPS) model.
 The canonical papers on Peridynamics are :ref:`(Silling 2000)
 <Silling2000>` and :ref:`(Silling 2007) <Silling2007>`.  The
 implementation of Peridynamics in LAMMPS is described in :ref:`(Parks)
-<Parks>`.  Also see the `PDLAMMPS user guide
-<https://download.lammps.org/pdfs/PDLAMMPS_user_guide.pdf>`_ for more
+<Parks>`.  Also see the :doc:`Peridynamics Howto <Howto_peri>` for more
 details about its implementation.
 
 The peridynamic VES and EPS models in PDLAMMPS were implemented by
 R. Rahman and J. T. Foster at University of Texas at San Antonio.  The
 original VES formulation is described in "(Mitchell2011)" and the
 original EPS formulation is in "(Mitchell2011a)".  Additional PDF docs
-that describe the VES and EPS implementations are include in the
-LAMMPS distribution in `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_ and
+that describe the VES and EPS implementations are include in the LAMMPS
+distribution in `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_ and
 `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_.  For questions
 regarding the VES and EPS models in LAMMPS you can contact R. Rahman
 (rezwanur.rahman at utsa.edu).
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
-or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands, or by mixing as described below.
+or in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands, or by
+mixing as described below.
 
 For the *peri/pmb* style:
 
@@ -99,8 +98,8 @@ For the *peri/pmb* style:
 
 C is the effectively a spring constant for Peridynamic bonds, the
 horizon is a cutoff distance for truncating interactions, and s00 and
-:math:`\alpha` are used as a bond breaking criteria.  The units of c are such
-that c/distance = stiffness/volume\^2, where stiffness is
+:math:`\alpha` are used as a bond breaking criteria.  The units of c are
+such that c/distance = stiffness/volume\^2, where stiffness is
 energy/distance\^2 and volume is distance\^3.  See the users guide for
 more details.
 
@@ -113,8 +112,8 @@ For the *peri/lps* style:
 * :math:`\alpha` (unitless)
 
 K is the bulk modulus and G is the shear modulus.  The horizon is a
-cutoff distance for truncating interactions, and s00 and :math:`\alpha` are
-used as a bond breaking criteria. See the users guide for more
+cutoff distance for truncating interactions, and s00 and :math:`\alpha`
+are used as a bond breaking criteria. See the users guide for more
 details.
 
 For the *peri/ves* style:
@@ -128,12 +127,12 @@ For the *peri/ves* style:
 * m_taubi (unitless)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
-cutoff distance for truncating interactions, and s00 and :math:`\alpha` are
-used as a bond breaking criteria. m_lambdai and m_taubi are the
+cutoff distance for truncating interactions, and s00 and :math:`\alpha`
+are used as a bond breaking criteria. m_lambdai and m_taubi are the
 viscoelastic relaxation parameter and time constant,
-respectively. m_lambdai varies within zero to one. For very small
-values of m_lambdai the viscoelastic model responds very similar to a
-linear elastic model. For details please see the description in
+respectively. m_lambdai varies within zero to one. For very small values
+of m_lambdai the viscoelastic model responds very similar to a linear
+elastic model. For details please see the description in
 "(Mitchell2011)".
 
 For the *peri/eps* style:

@@ -35,12 +35,12 @@ The dilatation :math:`\theta` for each peridynamic particle :math:`i` is
 calculated as a sum over its neighbors with unbroken bonds, where the
 contribution of the :math:`ij` pair is a function of the change in bond
 length (versus the initial length in the reference state), the volume
-fraction of the particles and an influence function.  See the `PDLAMMPS
-user guide <https://download.lammps.org/pdfs/PDLAMMPS_user_guide.pdf>`_
-for a formal definition of dilatation.
+fraction of the particles and an influence function.  See the
+:doc:`Peridynamics Howto <Howto_peri>` for a formal definition of
+dilatation.
 
 This command can only be used with a subset of the Peridynamic
-:doc:`pair styles <pair_peri>`: peri/lps, peri/ves and peri/eps.
+:doc:`pair styles <pair_peri>`: *peri/lps*, *peri/ves*, and *peri/eps*.
 
 The dilatation value will be 0.0 for atoms not in the specified
 compute group.

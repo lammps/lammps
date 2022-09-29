@@ -89,7 +89,7 @@ void FixNVEDotcLangevin::init()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
 
   if (!avec)
     error->all(FLERR,"Fix nve/dotc/langevin requires atom style ellipsoid");

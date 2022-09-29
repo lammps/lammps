@@ -167,11 +167,11 @@ void DihedralOPLSIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = dihedrallist[n].a;
-      const int i2 = dihedrallist[n].b;
-      const int i3 = dihedrallist[n].c;
-      const int i4 = dihedrallist[n].d;
-      const int type = dihedrallist[n].t;
+      const int i1 = IP_PRE_dword_index(dihedrallist[n].a);
+      const int i2 = IP_PRE_dword_index(dihedrallist[n].b);
+      const int i3 = IP_PRE_dword_index(dihedrallist[n].c);
+      const int i4 = IP_PRE_dword_index(dihedrallist[n].d);
+      const int type = IP_PRE_dword_index(dihedrallist[n].t);
 
       // 1st bond
 

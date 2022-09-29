@@ -13,7 +13,7 @@
 
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
+sys.path.insert(1,path)
 from dump import dump
 from pdbfile import pdbfile
 

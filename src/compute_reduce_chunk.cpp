@@ -229,7 +229,7 @@ void ComputeReduceChunk::init_chunk()
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for "
                "compute reduce/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute reduce/chunk does not use chunk/atom compute");
 }
@@ -323,7 +323,7 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
 {
   // initialize per-chunk values in accumulation vector
 
-  for (int i = 0; i < nchunk; i += nstride) vchunk[i] = initvalue;
+  for (int i = 0; i < nvalues*nchunk; i += nstride) vchunk[i] = initvalue;
 
   // loop over my atoms
   // use peratom input and chunk ID of each atom to update vector
@@ -451,7 +451,7 @@ void ComputeReduceChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

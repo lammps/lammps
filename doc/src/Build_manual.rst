@@ -176,7 +176,7 @@ math expressions transparently into embedded images.
 For converting the generated ePUB file to a MOBI format file (for e-book
 readers, like Kindle, that cannot read ePUB), you also need to have the
 ``ebook-convert`` tool from the "calibre" software
-installed. `http://calibre-ebook.com/ <http://calibre-ebook.com/>`_
+installed. `https://calibre-ebook.com/ <https://calibre-ebook.com/>`_
 Typing ``make mobi`` will first create the ePUB file and then convert
 it.  On the Kindle readers in particular, you also have support for PDF
 files, so you could download and view the PDF version as an alternative.

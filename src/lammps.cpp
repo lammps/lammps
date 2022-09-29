@@ -196,6 +196,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int citelogfile = CiteMe::VERBOSE;
   char *citefile = nullptr;
   int helpflag = 0;
+  int nonbufflag = 0;
 
   suffix = suffix2 = suffixp = nullptr;
   suffix_enable = 0;
@@ -296,6 +297,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     } else if (strcmp(arg[iarg],"-nocite") == 0 ||
                strcmp(arg[iarg],"-nc") == 0) {
       citeflag = 0;
+      iarg++;
+
+    } else if (strcmp(arg[iarg],"-nonbuf") == 0 ||
+               strcmp(arg[iarg],"-nb") == 0) {
+      nonbufflag = 1;
       iarg++;
 
     } else if (strcmp(arg[iarg],"-package") == 0 ||
@@ -520,7 +526,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       utils::flush_buffers(this);
     }
 
-
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
   // set world screen, logfile, communicator, infile
@@ -585,6 +590,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         if (infile == nullptr)
           error->one(FLERR,"Cannot open input script {}: {}",arg[inflag], utils::getsyserror());
       }
+    }
+
+    // make all screen and logfile output unbuffered for debugging crashes
+
+    if (nonbufflag) {
+      if (universe->uscreen) setbuf(universe->uscreen, nullptr);
+      if (universe->ulogfile) setbuf(universe->ulogfile, nullptr);
+      if (screen) setbuf(screen, nullptr);
+      if (logfile) setbuf(logfile, nullptr);
     }
 
     // screen and logfile messages for universe and world

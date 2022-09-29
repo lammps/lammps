@@ -51,16 +51,11 @@ from the main execution thread and potentially lower the inferred
 latencies for slow communication links. This feature has only been
 tested under linux.
 
-There are example scripts for using this package with LAMMPS in
-examples/PACKAGES/imd. Additional examples and a driver for use with the
-Novint Falcon game controller as haptic device can be found at:
-http://sites.google.com/site/akohlmey/software/vrpn-icms.
-
-The source code for this fix includes code developed by the
-Theoretical and Computational Biophysics Group in the Beckman
-Institute for Advanced Science and Technology at the University of
-Illinois at Urbana-Champaign.  We thank them for providing a software
-interface that allows codes like LAMMPS to hook to `VMD <VMD_>`_.
+The source code for this fix includes code developed by the Theoretical
+and Computational Biophysics Group in the Beckman Institute for Advanced
+Science and Technology at the University of Illinois at
+Urbana-Champaign.  We thank them for providing a software interface that
+allows codes like LAMMPS to hook to `VMD <VMD_>`_.
 
 Upon initialization of the fix, it will open a communication port on
 the node with MPI task 0 and wait for an incoming connection.  As soon
@@ -117,40 +112,40 @@ VMD are the following:
 In the Mouse menu of the VMD Main window, select "Mouse -> Force ->
 Atom".  You may alternately select "Residue", or "Fragment" to apply
 forces to whole residues or fragments. Your mouse can now be used to
-apply forces to your simulation. Click on an atom, residue, or
-fragment and drag to apply a force. Click quickly without moving the
-mouse to turn the force off. You can also use a variety of 3D position
-trackers to apply forces to your simulation. Game controllers or haptic
-devices with force-feedback such as the Novint Falcon or Sensable
-PHANTOM allow you to feel the resistance due to inertia or interactions
-with neighbors that the atoms experience you are trying to move, as if
-they were real objects. See the `VMD IMD Homepage <imdvmd_>`_ and the
-`VRPN-ICMS Homepage <vrpnicms_>`_ for more details.
+apply forces to your simulation. Click on an atom, residue, or fragment
+and drag to apply a force. Click quickly without moving the mouse to
+turn the force off. You can also use a variety of 3D position trackers
+to apply forces to your simulation. Game controllers or haptic devices
+with force-feedback such as the Novint Falcon or Sensable PHANTOM allow
+you to feel the resistance due to inertia or interactions with neighbors
+that the atoms experience you are trying to move, as if they were real
+objects. See the `VMD IMD Homepage <imdvmd_>`_ for more details.
 
 If IMD control messages are received, a line of text describing the
 message and its effect will be printed to the LAMMPS output screen, if
 screen output is active.
 
-.. _VMD: http://www.ks.uiuc.edu/Research/vmd
+.. _VMD: https://www.ks.uiuc.edu/Research/vmd
 
-.. _imdvmd: http://www.ks.uiuc.edu/Research/vmd/imd/
-
-.. _vrpnicms: http://sites.google.com/site/akohlmey/software/vrpn-icms
+.. _imdvmd: https://www.ks.uiuc.edu/Research/vmd/imd/
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various :doc:`output commands <Howto_output>`.  No parameter of this fix can be used
-with the *start/stop* keywords of the :doc:`run <run>` command.  This
-fix is not invoked during :doc:`energy minimization <minimize>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.  No global scalar or vector or per-atom quantities
+are stored by this fix for access by various :doc:`output commands
+<Howto_output>`.  No parameter of this fix can be used with the
+*start/stop* keywords of the :doc:`run <run>` command.  This fix is not
+invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This fix is part of the MISC package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 When used in combination with VMD, a topology or coordinate file has
 to be loaded, which matches (in number and ordering of atoms) the

@@ -167,6 +167,8 @@ class lammps(object):
     self.lib.lammps_flush_buffers.argtypes = [c_void_p]
     self.lib.lammps_free.argtypes = [c_void_p]
 
+    self.lib.lammps_error.argtypes = [c_void_p, c_int, c_char_p]
+
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_file.restype = None
 
@@ -483,6 +485,26 @@ class lammps(object):
     self.close()
     self.lib.lammps_kokkos_finalize()
     self.lib.lammps_mpi_finalize()
+
+  # -------------------------------------------------------------------------
+
+  def error(self, error_type, error_text):
+    """Forward error to the LAMMPS Error class.
+
+    This is a wrapper around the :cpp:func:`lammps_error` function of the C-library interface.
+
+    .. versionadded:: TBD
+
+    :param error_type:
+    :type error_type:  int
+    :param error_text:
+    :type error_text:  string
+    """
+    if error_text: error_text = error_text.encode()
+    else: error_text = "(unknown error)".encode()
+
+    with ExceptionCheck(self):
+      self.lib.lammps_error(self.lmp, error_type, error_text)
 
   # -------------------------------------------------------------------------
 
@@ -1622,8 +1644,8 @@ class lammps(object):
     """Return a string with detailed information about any devices that are
     usable by the GPU package.
 
-    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info` 
-    function of the C-library interface. 
+    This is a wrapper around the :cpp:func:`lammps_get_gpu_device_info`
+    function of the C-library interface.
 
     :return: GPU device info string
     :rtype:  string

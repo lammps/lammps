@@ -6,7 +6,7 @@ compute displace/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID displace/atom
 
@@ -35,9 +35,9 @@ atom in the group from its original (reference) coordinates, including
 all effects due to atoms passing through periodic boundaries.
 
 A vector of four quantities per atom is calculated by this compute.
-The first 3 elements of the vector are the dx,dy,dz displacements.
-The fourth component is the total displacement, i.e. sqrt(dx\*dx + dy\*dy +
-dz\*dz).
+The first three elements of the vector are the :math:`(dx,dy,dz)`
+displacements.  The fourth component is the total displacement
+(i.e., :math:`\sqrt{dx^2 + dy^2 + dz^2}`).
 
 The displacement of an atom is from its original position at the time
 the compute command was issued.  The value of the displacement will be
@@ -50,7 +50,7 @@ the compute command was issued.  The value of the displacement will be
    <dump>` command for a discussion of "unwrapped" coordinates.  See
    the Atoms section of the :doc:`read_data <read_data>` command for a
    discussion of image flags and how they are set for each atom.  You
-   can reset the image flags (e.g. to 0) before invoking this compute
+   can reset the image flags (e.g., to 0) before invoking this compute
    by using the :doc:`set image <set>` command.
 
 .. note::
@@ -60,7 +60,7 @@ the compute command was issued.  The value of the displacement will be
    you should use the same ID for this compute, as in the original run.
    This is so that the fix this compute creates to store per-atom
    quantities will also have the same ID, and thus be initialized
-   correctly with time=0 atom coordinates from the restart file.
+   correctly with time = 0 atom coordinates from the restart file.
 
 ----------
 
@@ -95,14 +95,15 @@ something like the following commands:
                    refresh c_dsp delay 100
 
 The :doc:`dump_modify thresh <dump_modify>` command will only output
-atoms that have displaced more than 0.6 Angstroms on each snapshot
-(assuming metal units).  The dump_modify *refresh* option triggers a
+atoms that have displaced more than :math:`0.6~\mathrm{\mathring A}` on each
+snapshot (assuming metal units).  The dump_modify *refresh* option triggers a
 call to this compute at the end of every dump.
 
-The *refresh* argument for this compute is the ID of an :doc:`atom-style variable <variable>` which calculates a Boolean value (0 or 1)
+The *refresh* argument for this compute is the ID of an
+:doc:`atom-style variable <variable>` which calculates a Boolean value (0 or 1)
 based on the same criterion used by dump_modify thresh.  This compute
-evaluates the atom-style variable.  For each atom that returns 1
-(true), the original (reference) coordinates of the atom (stored by
+evaluates the atom-style variable.  For each atom that returns 1 (true),
+the original (reference) coordinates of the atom (stored by
 this compute) are updated.
 
 The effect of these commands is that a particular atom will only be
@@ -125,8 +126,8 @@ would be empty.
 Output info
 """""""""""
 
-This compute calculates a per-atom array with 4 columns, which can be
-accessed by indices 1-4 by any command that uses per-atom values from
+This compute calculates a per-atom array with four columns, which can be
+accessed by indices 1--4 by any command that uses per-atom values from
 a compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 

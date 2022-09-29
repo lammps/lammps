@@ -42,6 +42,9 @@ class Bond : protected Pointers {
   int reinitflag;    // 0 if not compatible with fix adapt
                      // extract() method may still need to be added
 
+  int single_extra;    // number of extra single values calculated
+  double *svector;     // vector of extra single quantities
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -99,6 +102,7 @@ class Bond : protected Pointers {
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, double, double, double, double, double);
+  void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double);
 };
 
 }    // namespace LAMMPS_NS

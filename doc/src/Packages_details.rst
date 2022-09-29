@@ -134,6 +134,8 @@ commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
+.. versionadded:: 28Feb2019
+
 **Install:**
 
 This package has :ref:`specific installation instructions <adios>` on the :doc:`Build extras <Build_extras>` page.
@@ -158,7 +160,7 @@ AMOEBA package
 **Contents:**
 
 Implementation of the AMOEBA and HIPPO polarized force fields
-orginally developed by Jay Ponder's group at the U Washington at St
+originally developed by Jay Ponder's group at the U Washington at St
 Louis.  The LAMMPS implementation is based on Fortran 90 code
 provided by the Ponder group in their
 `Tinker MD software <https://dasher.wustl.edu/tinker/>`_.
@@ -276,7 +278,7 @@ the barostat as outlined in:
 
 N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
-molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
 **Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
 Pennsylvania State University)
@@ -363,6 +365,8 @@ and also support self-propelled particles.
 
 **Authors:** Sam Cameron (University of Bristol),
 Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+
+.. versionadded:: 14May2021
 
 Example inputs are in the examples/PACKAGES/brownian folder.
 
@@ -592,6 +596,8 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 
 **Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
 
+.. versionadded:: 2Jul2021
+
 **Supporting info:**
 
 * src/DIELECTRIC: filenames -> commands
@@ -652,7 +658,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
-* :doc: `angle_style dipole <angle_dipole>`
+* :doc:`angle_style dipole <angle_dipole>`
 * examples/dipole
 
 ----------
@@ -932,6 +938,10 @@ EXTRA-MOLECULE package
 
 Additional bond, angle, dihedral, and improper styles that are less commonly used.
 
+**Install:**
+
+To use this package, also the :ref:`MOLECULE <PKG-MOLECULE>` package needs to be installed.
+
 **Supporting info:**
 
 * src/EXTRA-MOLECULE: filenames -> commands
@@ -1067,7 +1077,7 @@ H5MD is a format for molecular simulations, built on top of HDF5.
 This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
-.. _HDF5: http://www.hdfgroup.org/HDF5
+.. _HDF5: https://www.hdfgroup.org/solutions/hdf5
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1404,7 +1414,7 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 * src/MACHDYN: filenames -> commands
 * src/MACHDYN/README
-* doc/PDF/MACHDYN_LAMMPS_userguide.pdf
+* `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/machdyn
 * https://www.lammps.org/movies.html#smd
 
@@ -1508,6 +1518,8 @@ workflows via the `MolSSI Driver Interface
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+.. versionadded:: 14May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <mdi>` on
@@ -1556,32 +1568,43 @@ MESONT package
 
 **Contents:**
 
-MESONT is a LAMMPS package for simulation of nanomechanics of
-nanotubes (NTs). The model is based on a coarse-grained representation
-of NTs as "flexible cylinders" consisting of a variable number of
+MESONT is a LAMMPS package for simulation of nanomechanics of nanotubes
+(NTs). The model is based on a coarse-grained representation of NTs as
+"flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below. This package contains two
-independent implementations of this model: :doc:`pair_style mesocnt
-<pair_mesocnt>` is a (minimal) C++ implementation, and :doc:`pair_style
-mesont/tpm <pair_mesont_tpm>` is a more general and feature rich
-implementation based on a Fortran library in the ``lib/mesont`` folder.
+provided in the papers listed below.
+
+This package contains two independent implementations of this model:
+:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original
+implementation of the model based on a Fortran library in the
+``lib/mesont`` folder. The second implementation is provided by the
+mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
+:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt
+<pair_mesocnt>`).  The mesocnt implementation has the same features as
+the original implementation with the addition of friction, but is
+directly implemented in C++, interfaces more cleanly with general LAMMPS
+functionality, and is typically faster. It also does not require its own
+atom style and can be installed without any external libraries.
 
 **Download of potential files:**
 
-The potential files for these pair styles are *very* large and thus
-are not included in the regular downloaded packages of LAMMPS or the
-git repositories.  Instead, they will be automatically downloaded
-from a web server when the package is installed for the first time.
+The potential files for these pair styles are *very* large and thus are
+not included in the regular downloaded packages of LAMMPS or the git
+repositories.  Instead, they will be automatically downloaded from a web
+server when the package is installed for the first time.
 
 **Authors of the *mesont* styles:**
 
-Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alabama), Leonid V. Zhigilei (University of Virginia)
+Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
+of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-**Author of the *mesocnt* pair style:**
+**Author of the *mesocnt* styles:**
 Philipp Kloza (U Cambridge)
+
+.. versionadded:: 15Jun2020
 
 **Supporting info:**
 
@@ -1590,6 +1613,8 @@ Philipp Kloza (U Cambridge)
 * :doc:`atom_style mesont <atom_style>`
 * :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
 * :doc:`compute mesont <compute_mesont>`
+* :doc:`bond_style mesocnt <bond_mesocnt>`
+* :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
 * tools/mesont
@@ -1673,6 +1698,8 @@ compiled on your system.
 
 **Author:** Andreas Singraber
 
+.. versionadded:: 27May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-hdnnp>` on the
@@ -1706,6 +1733,10 @@ of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
 must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
+
+.. versionadded:: 30Jun2020
+
+   .. versionadded:: 30Jun2020
 
 **Supporting info:**
 
@@ -1750,6 +1781,8 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
  ^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
 
  ^4: University of British Columbia, Vancouver, BC, Canada
+
+.. versionadded:: 14May2021
 
 **Install:**
 
@@ -1813,6 +1846,8 @@ of a neural network.
 
 This package was written by Christopher Barrett
 with contributions by Doyl Dickel, Mississippi State University.
+
+.. versionadded:: 27May2021
 
 **Supporting info:**
 
@@ -1939,7 +1974,7 @@ support for new file formats can be added to LAMMPS (or VMD or other
 programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
-`http://www.ks.uiuc.edu/Research/vmd/plugins/molfile <http://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
+`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
 
 **Author:** Axel Kohlmeyer (Temple U).
 
@@ -2030,7 +2065,7 @@ NETCDF package
 Dump styles for writing NetCDF formatted dump files.  NetCDF is a
 portable, binary, self-describing file format developed on top of
 HDF5. The file contents follow the AMBER NetCDF trajectory conventions
-(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
+(https://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
 
 To use this package you must have the NetCDF library available on your
 system.
@@ -2041,7 +2076,7 @@ tools:
 * `Ovito <ovito_>`_ (Ovito supports the AMBER convention and the extensions mentioned above)
 * `VMD <vmd-home_>`_
 
-.. _ovito: http://www.ovito.org
+.. _ovito: https://www.ovito.org
 
 .. _vmd-home: https://www.ks.uiuc.edu/Research/vmd/
 
@@ -2249,6 +2284,8 @@ try to load the contained plugins automatically at start-up.
 
 **Authors:** Axel Kohlmeyer (Temple U)
 
+.. versionadded:: 8Apr2021
+
 **Supporting info:**
 
 * src/PLUGIN: filenames -> commands
@@ -2402,7 +2439,7 @@ A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used as
 the MM code in a QM/MM simulation.  This is currently only available
 in combination with the `Quantum ESPRESSO <espresso_>`_ package.
 
-.. _espresso: http://www.quantum-espresso.org
+.. _espresso: https://www.quantum-espresso.org
 
 To use this package you must have Quantum ESPRESSO (QE) available on
 your system and include its coupling library in the compilation and
@@ -2692,7 +2729,7 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * src/SPH: filenames -> commands
 * src/SPH/README
-* doc/PDF/SPH_LAMMPS_userguide.pdf
+* `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/sph
 * https://www.lammps.org/movies.html#sph
 
@@ -2814,7 +2851,7 @@ collection of atoms by wrapping the `Voro++ library <voro-home_>`_.  This
 can be used to calculate the local volume or each atoms or its near
 neighbors.
 
-.. _voro-home: http://math.lbl.gov/voro++
+.. _voro-home: https://math.lbl.gov/voro++
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -2848,9 +2885,9 @@ A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
 `VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
 other visualization packages.
 
-.. _vtk: http://www.vtk.org
+.. _vtk: https://www.vtk.org
 
-.. _paraview: http://www.paraview.org
+.. _paraview: https://www.paraview.org
 
 To use this package you must have VTK library available on your
 system.
@@ -2887,10 +2924,12 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 .. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
 .. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
-.. _quickff: http://molmod.github.io/QuickFF
+.. _quickff: https://molmod.github.io/QuickFF
 .. _yaff: https://github.com/molmod/yaff
 
 **Author:** Steven Vandenbrande.
+
+.. versionadded:: 1Feb2019
 
 **Supporting info:**
 

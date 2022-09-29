@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fft3d_wrap.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -53,8 +53,7 @@ enum{GORDON1,GORDON2};
 void PairAmoeba::induce()
 {
   bool done;
-  int i,j,m,itype;
-  int iter,maxiter;
+  int i,j,m,itype,iter;
   double polmin;
   double eps,epsold;
   double epsd,epsp;
@@ -159,7 +158,6 @@ void PairAmoeba::induce()
 
   if (poltyp == MUTUAL) {
     done = false;
-    maxiter = 100;
     iter = 0;
     polmin = 0.00000001;
     eps = 100.0;
@@ -369,7 +367,8 @@ void PairAmoeba::induce()
       eps = DEBYE * sqrt(eps/atom->natoms);
 
       if (eps < poleps) done = true;
-      if (eps > epsold) done = true;
+      // also commented out in induce.f of Tinker
+      // if (eps > epsold) done = true;
       if (iter >= politer) done = true;
 
       //  apply a "peek" iteration to the mutual induced dipoles
@@ -390,7 +389,7 @@ void PairAmoeba::induce()
     // terminate the calculation if dipoles failed to converge
     // NOTE: could make this an error
 
-    if (iter >= maxiter || eps > epsold)
+    if (iter >= politer || eps > epsold)
       if (comm->me == 0)
         error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }

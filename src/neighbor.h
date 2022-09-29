@@ -94,7 +94,7 @@ class Neighbor : protected Pointers {
   NeighList **lists;
   NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
   NeighRequest **old_requests;    // copy of requests to compare to
-  int* j_sorted;                  // index of requests sorted by cutoff distance
+  int *j_sorted;                  // index of requests sorted by cutoff distance
 
   // data from topology neighbor lists
 
@@ -166,6 +166,7 @@ class Neighbor : protected Pointers {
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
   bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
+  void add_temporary_bond(int, int, int);    // add temporary bond to bondlist array
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call

@@ -50,6 +50,7 @@ class PairAmoeba : public Pair {
   void unpack_reverse_grid(int, void *, int, int *) override;
 
   void *extract(const char *, int &) override;
+  void *extract_peratom(const char *, int &) override;
   double memory_usage() override;
 
  protected:
@@ -99,13 +100,13 @@ class PairAmoeba : public Pair {
 
   int poltyp;
 
-  double special_hal[5];
-  double special_repel[5];
-  double special_disp[5];
-  double special_mpole[5];
-  double special_polar_pscale[5];
-  double special_polar_piscale[5];
-  double special_polar_wscale[5];
+  double special_hal[8];
+  double special_repel[8];
+  double special_disp[8];
+  double special_mpole[8];
+  double special_polar_pscale[8];
+  double special_polar_piscale[8];
+  double special_polar_wscale[8];
 
   double polar_dscale, polar_uscale;
 
@@ -157,9 +158,9 @@ class PairAmoeba : public Pair {
   int *amgroup;    // AMOEBA polarization group, 1 to Ngroup
 
   char *id_pole, *id_udalt, *id_upalt;
-  class FixStore *fixpole;     // stores pole = multipole components
-  class FixStore *fixudalt;    // stores udalt = induced dipole history
-  class FixStore *fixupalt;    // stores upalt = induced dipole history
+  class FixStorePeratom *fixpole;     // stores pole = multipole components
+  class FixStorePeratom *fixudalt;    // stores udalt = induced dipole history
+  class FixStorePeratom *fixupalt;    // stores upalt = induced dipole history
 
   // static per-type properties defined in force-field file
 

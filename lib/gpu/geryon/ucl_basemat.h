@@ -75,13 +75,21 @@ class UCL_BaseMat {
   inline enum UCL_MEMOPT kind() const { return _kind; }
 
   inline bool shared_mem_device() {
-    #ifdef _OCL_MAT
+    #ifndef _OCL_MAT
+    return false;
+    #else
+
+    #if defined(GERYON_FORCE_SHARED_MAIN_MEM_ON)
+    return true;
+    #elif defined(GERYON_FORCE_SHARED_MAIN_MEM_OFF)
+    return false;
+    #else
     cl_device_id device;
     CL_SAFE_CALL(clGetCommandQueueInfo(_cq,CL_QUEUE_DEVICE,
                                        sizeof(cl_device_id),&device,NULL));
     return _shared_mem_device(device);
-    #else
-    return false;
+    #endif
+
     #endif
   }
 

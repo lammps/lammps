@@ -40,7 +40,8 @@ class ComputeSpin : public Compute {
 
   // pointers to magnetic fixes
 
-  class FixPrecessionSpin *lockprecessionspin;
+  int nprecspin;
+  class FixPrecessionSpin **lockprecessionspin;
 
   // pointers to magnetic pair styles
 

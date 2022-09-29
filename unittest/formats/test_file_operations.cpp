@@ -245,16 +245,17 @@ TEST_F(FileOperationsTest, logmesg)
     command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
     utils::logmesg(lmp, "three={}\n", 3);
-    utils::logmesg(lmp, "four {}\n");
+    utils::logmesg(lmp, "four {} {}\n", 4);
     utils::logmesg(lmp, "five\n", 5);
+    utils::logmesg(lmp, "six {}\n");
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
     memset(buf, 0, 64);
     FILE *fp = fopen("test_logmesg.log", "r");
     fread(buf, 1, 64, fp);
     fclose(fp);
-    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\n"));
-    ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\n"));
+    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\nsix {}\n"));
+    ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\nsix {}\n"));
     remove("test_logmesg.log");
 }
 
@@ -347,7 +348,7 @@ TEST_F(FileOperationsTest, write_restart)
     }
 
     TEST_FAILURE(".*ERROR: Illegal write_restart command.*", command("write_restart"););
-    TEST_FAILURE(".*ERROR: Illegal write_restart command.*",
+    TEST_FAILURE(".*ERROR: Unknown write_restart keyword: xxxx.*",
                  command("write_restart test.restart xxxx"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open restart file some_crazy_dir/test.restart:"
                  " No such file or directory.*",
@@ -438,9 +439,17 @@ TEST_F(FileOperationsTest, write_data)
     ASSERT_FILE_EXISTS("charge.data");
     ASSERT_EQ(count_lines("charge.data"), 30);
 
-    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data"););
-    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data test.data xxxx"););
-    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data test.data pair xx"););
+    TEST_FAILURE(".*ERROR: Illegal write_data command: missing argument.*", command("write_data"););
+    TEST_FAILURE(".*ERROR: Unknown write_data keyword: xxxx.*",
+                 command("write_data test.data xxxx"););
+    TEST_FAILURE(".*ERROR: Illegal write_data pair command: missing argument.*",
+                 command("write_data test.data pair"););
+    TEST_FAILURE(".*ERROR: Unknown write_data pair option: xx.*",
+                 command("write_data test.data pair xx"););
+    TEST_FAILURE(".*ERROR: Illegal write_data types command: missing argument.*",
+                 command("write_data test.data types"););
+    TEST_FAILURE(".*ERROR: Unknown write_data types option: xx.*",
+                 command("write_data test.data types xx"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open data file some_crazy_dir/test.data:"
                  " No such file or directory.*",
                  command("write_data some_crazy_dir/test.data"););
@@ -493,8 +502,7 @@ int main(int argc, char **argv)
     ::testing::InitGoogleMock(&argc, argv);
 
     if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

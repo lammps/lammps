@@ -32,7 +32,7 @@ using namespace FixConst;
 FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix nve/limit command");
+  if (narg != 4) utils::missing_cmd_args(FLERR, "fix nve/limit", error);
 
   time_integrate = 1;
   scalar_flag = 1;
@@ -67,7 +67,7 @@ void FixNVELimit::init()
   ncount = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
 
   // warn if using fix shake, which will lead to invalid constraint forces
 

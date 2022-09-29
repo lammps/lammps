@@ -23,6 +23,8 @@ Available topics in mostly chronological order are:
 - `Simplify customized error messages`_
 - `Use of "override" instead of "virtual"`_
 - `Simplified and more compact neighbor list requests`_
+- `Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM`_
+- `Use Output::get_dump_by_id() instead of Output::find_dump()`_
 
 ----
 
@@ -287,7 +289,7 @@ New:
    comm->forward_comm(this);
    comm->reverse_comm(this);
 
-This change is required or else the code will not compile.
+This change is **required** or else the code will not compile.
 
 Simplified and more compact neighbor list requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -321,4 +323,103 @@ New:
    if (cutflag) req->set_cutoff(mycutneigh);
 
 Public access to the ``NeighRequest`` class data members has been
-removed so this update is *required* to avoid compilation failure.
+removed so this update is **required** to avoid compilation failure.
+
+Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 15Sep2022
+
+This change splits the GLOBAL and PERATOM modes of fix STORE into two
+separate fixes STORE/GLOBAL and STORE/PERATOM.  There was very little
+shared code between the two fix STORE modes and the two different code
+paths had to be prefixed with if statements.  Furthermore, some flags
+were used differently in the two modes leading to confusion.  Splitting
+the code into two fix styles, makes it more easily maintainable.  Since
+these are internal fixes, there is no user visible change.
+
+Old:
+
+.. code-block:: C++
+
+   #include "fix_store.h"
+
+   FixStore *fix = dynamic_cast<FixStore *>(
+      modify->add_fix(fmt::format("{} {} STORE peratom 1 13",id_pole,group->names[0]));
+
+   FixStore *fix = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_pole));
+
+New:
+
+.. code-block:: C++
+
+   #include "fix_store_peratom.h"
+
+   FixStorePeratom *fix = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 13",id_pole,group->names[0]));
+
+   FixStorePeratom *fix = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_pole));
+
+Old:
+
+.. code-block:: C++
+
+   #include "fix_store.h"
+
+   FixStore *fix = dynamic_cast<FixStore *>(
+      modify->add_fix(fmt::format("{} {} STORE global 1 1",id_fix,group->names[igroup]));
+
+   FixStore *fix = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix));
+
+New:
+
+.. code-block:: C++
+
+   #include "fix_store_global.h"
+
+   FixStoreGlobal *fix = dynamic_cast<FixStoreGlobal *>(
+      modify->add_fix(fmt::format("{} {} STORE/GLOBAL 1 1",id_fix,group->names[igroup]));
+
+   FixStoreGlobal *fix = dynamic_cast<FixStoreGlobal *>(modify->get_fix_by_id(id_fix));
+
+This change is **required** or else the code will not compile.
+
+Use Output::get_dump_by_id() instead of Output::find_dump()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 15Sep2022
+
+The accessor function to individual dump style instances has been changed
+from ``Output::find_dump()`` returning the index of the dump instance in
+the list of dumps to ``Output::get_dump_by_id()`` returning a pointer to
+the dump directly.  Example:
+
+Old:
+
+.. code-block:: C++
+
+   int idump = output->find_dump(arg[iarg+1]);
+   if (idump < 0)
+     error->all(FLERR,"Dump ID in hyper command does not exist");
+   memory->grow(dumplist,ndump+1,"hyper:dumplist");
+   dumplist[ndump++] = idump;
+
+   [...]
+
+   if (dumpflag)
+     for (int idump = 0; idump < ndump; idump++)
+       output->dump[dumplist[idump]]->write();
+
+New:
+
+.. code-block:: C++
+
+   auto idump = output->get_dump_by_id(arg[iarg+1]);
+   if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
+   dumplist.emplace_back(idump);
+
+   [...]
+
+   if (dumpflag) for (auto idump : dumplist) idump->write();
+
+This change is **required** or else the code will not compile.

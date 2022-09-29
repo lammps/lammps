@@ -241,7 +241,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   MemKK::realloc_kokkos(idxz_block,"SNAKokkos::idxz_block", jdim,jdim,jdim);
   auto h_idxz_block = Kokkos::create_mirror_view(idxz_block);
 
+  // fused table for idxz and idxcg_block
   idxz_count = 0;
+  idxcg_count = 0;
   for (int j1 = 0; j1 <= twojmax; j1++)
     for (int j2 = 0; j2 <= j1; j2++)
       for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
@@ -251,7 +253,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
         // multiply and divide by j+1 factors
         // account for multiplicity of 1, 2, or 3
 
-        for (int mb = 0; 2*mb <= j; mb++)
+        for (int mb = 0; 2*mb <= j; mb++) {
           for (int ma = 0; ma <= j; ma++) {
             int ma1min = MAX(0, (2 * ma - j - j2 + j1) / 2);
             int ma2max = (2 * ma - j - (2 * ma1min - j1) + j2) / 2;
@@ -266,11 +268,18 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
             const int jju_half = h_idxu_half_block[j] + (j+1)*mb + ma;
 
             // idxz_struct's constructor handles all of the data packing
-            h_idxz(idxz_count) = idxz_struct(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half);
+            h_idxz(idxz_count) = idxz_struct(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg_count);
 
             idxz_count++;
           }
+        }
+
+        // there are different loop bounds for idxcg_count
+        for (int m1 = 0; m1 <= j1; m1++)
+          for (int m2 = 0; m2 <= j2; m2++)
+            idxcg_count++;
       }
+
   Kokkos::deep_copy(idxz,h_idxz);
   Kokkos::deep_copy(idxz_block,h_idxz_block);
 
@@ -662,10 +671,10 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi(const int& iatom_mod, const int& jjz, const int& iatom_div)
 {
 
-  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb;
-  idxz(jjz).get_zi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg;
+  idxz(jjz).get_zi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg);
 
-  const real_type* cgblock = cglist.data() + idxcg_block(j1, j2, j);
+  const real_type* cgblock = cglist.data() + idxcg;
 
   int idouble = 0;
 
@@ -784,10 +793,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi(int iatom_mod, 
  const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
 {
 
-  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half;
-  idxz(jjz).get_yi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg;
+  idxz(jjz).get_yi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg);
 
-  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg;
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
@@ -1242,10 +1251,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi_cpu(const int& 
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
-  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb;
-  idxz(jjz).get_zi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg;
+  idxz(jjz).get_zi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg);
 
-  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg;
 
   int idouble = 0;
 
@@ -1405,10 +1414,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi_cpu(int iter,
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
-  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half;
-  idxz(jjz).get_yi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg;
+  idxz(jjz).get_yi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg);
 
-  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg;
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 

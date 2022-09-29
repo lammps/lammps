@@ -67,19 +67,19 @@ struct alignas(8) FullHalfMapper {
 struct alignas(16) idxz_struct {
   reax_int4 j1_j2_j_jjuhalf;
   reax_int4 mabminmax;
-  reax_int4 nanb;
+  reax_int4 nanb_idxcg;
 
   idxz_struct() = default;
 
   KOKKOS_INLINE_FUNCTION
-  idxz_struct(int j1, int j2, int j, int ma1min, int ma2max, int mb1min, int mb2max, int na, int nb, int jju_half)
+  idxz_struct(int j1, int j2, int j, int ma1min, int ma2max, int mb1min, int mb2max, int na, int nb, int jju_half, int idxcg)
     : j1_j2_j_jjuhalf{j1, j2, j, jju_half},
       mabminmax{ma1min, ma2max, mb1min, mb2max},
-      nanb{na, nb, 0, 0}
+      nanb_idxcg{na, nb, idxcg, 0}
   { }
 
   KOKKOS_INLINE_FUNCTION
-  void get_zi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb) {
+  void get_zi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb, int &idxcg) {
     reax_int4 pack1 = this->j1_j2_j_jjuhalf;
     j1 = pack1.i0;
     j2 = pack1.i1;
@@ -89,13 +89,14 @@ struct alignas(16) idxz_struct {
     ma2max = pack2.i1;
     mb1min = pack2.i2;
     mb2max = pack2.i3;
-    reax_int4 pack3 = this->nanb;
+    reax_int4 pack3 = this->nanb_idxcg;
     na = pack3.i0;
     nb = pack3.i1;
+    idxcg = pack3.i2;
   }
 
   KOKKOS_INLINE_FUNCTION
-  void get_yi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb, int& jju_half) {
+  void get_yi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb, int& jju_half, int& idxcg) {
     reax_int4 pack1 = this->j1_j2_j_jjuhalf;
     j1 = pack1.i0;
     j2 = pack1.i1;
@@ -106,9 +107,10 @@ struct alignas(16) idxz_struct {
     ma2max = pack2.i1;
     mb1min = pack2.i2;
     mb2max = pack2.i3;
-    reax_int4 pack3 = this->nanb;
+    reax_int4 pack3 = this->nanb_idxcg;
     na = pack3.i0;
     nb = pack3.i1;
+    idxcg = pack3.i2;
   }
 
   KOKKOS_INLINE_FUNCTION

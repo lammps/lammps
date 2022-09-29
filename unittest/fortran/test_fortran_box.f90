@@ -1,22 +1,7 @@
-MODULE keepbox
-  USE liblammps
-  IMPLICIT NONE
-  TYPE(LAMMPS) :: lmp
-  CHARACTER(len=40), DIMENSION(3), PARAMETER :: demo_input = &
-      [ CHARACTER(len=40) ::                                &
-      'region       box block 0 $x 0 2 0 2',                &
-      'create_box 1 box',                                   &
-      'create_atoms 1 single 1.0 1.0 ${zpos}' ]
-  CHARACTER(len=40), DIMENSION(2), PARAMETER :: cont_input = &
-      [ CHARACTER(len=40) ::                                &
-      'create_atoms 1 single &',                            &
-      ' 0.2 0.1 0.1' ]
-END MODULE keepbox
-
 FUNCTION f_lammps_with_args() BIND(C, name="f_lammps_with_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
-  USE keepbox,      ONLY: lmp
+  USE keepstuff,      ONLY: lmp
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_with_args
 
@@ -31,7 +16,7 @@ END FUNCTION f_lammps_with_args
 SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepbox, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
 
   CALL lmp%close()
@@ -40,7 +25,7 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_box_setup () BIND(C)
    USE liblammps
-   USE keepbox, ONLY : lmp, demo_input
+   USE keepstuff, ONLY : lmp, demo_input
    IMPLICIT NONE
 
    CALL lmp%commands_list(demo_input)
@@ -48,7 +33,7 @@ END SUBROUTINE f_lammps_box_setup
 
 SUBROUTINE f_lammps_delete_everything() BIND(C)
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
 
    CALL lmp%command("delete_atoms group all");
@@ -57,7 +42,7 @@ END SUBROUTINE f_lammps_delete_everything
 FUNCTION f_lammps_extract_box_xlo () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_extract_box_xlo
    REAL (c_double) :: boxdim(3)
@@ -69,7 +54,7 @@ END FUNCTION f_lammps_extract_box_xlo
 FUNCTION f_lammps_extract_box_xhi () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_extract_box_xhi
    REAL (c_double) :: boxdim(3)
@@ -81,7 +66,7 @@ END FUNCTION f_lammps_extract_box_xhi
 FUNCTION f_lammps_extract_box_ylo () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_extract_box_ylo
    REAL (c_double) :: boxdim(3)
@@ -93,7 +78,7 @@ END FUNCTION f_lammps_extract_box_ylo
 FUNCTION f_lammps_extract_box_yhi () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_extract_box_yhi
    REAL (c_double) :: boxdim(3)
@@ -105,7 +90,7 @@ END FUNCTION f_lammps_extract_box_yhi
 FUNCTION f_lammps_extract_box_zlo () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_extract_box_zlo
    REAL (c_double) :: boxdim(3)
@@ -117,7 +102,7 @@ END FUNCTION f_lammps_extract_box_zlo
 FUNCTION f_lammps_extract_box_zhi () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: f_lammps_extract_box_zhi
    REAL (c_double) :: boxdim(3)
@@ -129,7 +114,7 @@ END FUNCTION f_lammps_extract_box_zhi
 SUBROUTINE f_lammps_reset_box_2x () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps
-   USE keepbox, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL (c_double) :: newlo(3), newhi(3), xy, yz, xz
 

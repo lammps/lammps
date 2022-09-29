@@ -122,15 +122,11 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
    EAM potential files list atomic masses; thus you do not need to use
    the :doc:`mass <mass>` command to specify them.
 
-There are several WWW sites that distribute and document EAM
-potentials stored in DYNAMO or other formats:
+There are web sites that distribute and document EAM potentials stored
+in DYNAMO or other formats:
 
-.. parsed-literal::
-
-   http://www.ctcms.nist.gov/potentials
-   http://cst-www.nrl.navy.mil/ccm6/ap
-   http://enpub.fulton.asu.edu/cms/potentials/main/main.htm
-   https://openkim.org
+* https://www.ctcms.nist.gov/potentials
+* https://openkim.org
 
 These potentials should be usable with LAMMPS, though the alternate
 formats would need to be converted to the DYNAMO format used by LAMMPS

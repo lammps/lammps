@@ -881,7 +881,7 @@ levels that sacrifice compression for performance. 0 is the default,
 positive levels are 1 to 22, with 22 being the most expensive
 compression. Zstd promises higher compression/decompression speeds for
 similar compression ratios. For more details see
-`http://facebook.github.io/zstd/`.
+`https://facebook.github.io/zstd/`.
 
 In addition, Zstd compressed files can include a checksum of the
 entire contents. The Zstd enabled dump styles enable this feature by

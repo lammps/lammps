@@ -129,8 +129,9 @@ collectively on all points interacting with that point. Using the
 notation of :ref:`(Silling 2007) <Silling2007_2>`, we write the
 peridynamic equation of motion as
 
+.. _periNewtonII:
+
 .. math::
-   :label: periNewtonII
 
    \rho(\mathbf{x}) \ddot{\mathbf{u}}(\mathbf{x},t) =
    \int_{\mathcal{H}_{\mathbf{x}}} \left\{
@@ -138,7 +139,7 @@ peridynamic equation of motion as
    \right]\left<\mathbf{x}^{\prime}-\mathbf{x} \right> -
    \underline{\mathbf{T}}\left[\mathbf{x}^{\prime},t
    \right]\left<\mathbf{x}-\mathbf{x}^{\prime} \right> \right\}
-   {d}V_{\mathbf{x}^\prime} + \mathbf{b}(\mathbf{x},t),
+   {d}V_{\mathbf{x}^\prime} + \mathbf{b}(\mathbf{x},t), \qquad\qquad\textrm{(1)}
 
 where :math:`\rho` represents the mass density,
 :math:`\underline{\mathbf{T}}` the force vector state, and
@@ -149,7 +150,7 @@ where :math:`\rho` represents the mass density,
 radius :math:`\delta>0` centered at :math:`\mathbf{x}`. :math:`\delta`
 is called the *horizon*, and is analogous to the cutoff radius used in
 molecular dynamics. Conditions on :math:`\underline{\mathbf{T}}` for
-which :math:numref:`periNewtonII` satisfies the balance of linear and angular
+which :ref:`(1) <periNewtonII>` satisfies the balance of linear and angular
 momentum are given in :ref:`(Silling 2007) <Silling2007_2>`.
 
 We consider only force vector states that can be written as
@@ -163,7 +164,6 @@ with :math:`\underline{t}` a *scalar force state* and
 state*, defined by
 
 .. math::
-   :label: periM
 
    \underline{\mathbf{M}}\left< \boldsymbol{\xi} \right> =
    \left\{ \begin{array}{cl}
@@ -172,7 +172,7 @@ state*, defined by
    } & \left\Vert \boldsymbol{\xi} + \boldsymbol{\eta} \right\Vert \neq 0 \\
    \boldsymbol{0}  & \textrm{otherwise}
    \end{array}
-   \right. .
+   \right. . \qquad\qquad\textrm{(2)}
 
 Such force states correspond to so-called *ordinary* materials
 :ref:`(Silling 2007) <Silling2007_2>`. These are the materials for which
@@ -195,10 +195,9 @@ along with the horizon :math:`\delta`.
 The LPS model has a force scalar state
 
 .. math::
-   :label: periLPSState
 
    \underline{t} = \frac{3K\theta}{m}\underline{\omega}\,\underline{x} +
-   \alpha \underline{\omega}\,\underline{e}^{\rm d},
+   \alpha \underline{\omega}\,\underline{e}^{\rm d}, \qquad\qquad\textrm{(3)}
 
 with :math:`K` the bulk modulus and :math:`\alpha` related to the shear
 modulus :math:`G` as
@@ -214,12 +213,11 @@ the reference position scalar state :math:`\underline{x}` so that
 defined as
 
 .. math::
-   :label: periWeightedVolume
 
    m\left[ \mathbf{x} \right] = \int_{\mathcal{H}_\mathbf{x}}
    \underline{\omega} \left<\boldsymbol{\xi}\right>
    \underline{x}\left<\boldsymbol{\xi} \right>
-   \underline{x}\left<\boldsymbol{\xi} \right>{d}V_{\boldsymbol{\xi} }.
+   \underline{x}\left<\boldsymbol{\xi} \right>{d}V_{\boldsymbol{\xi} }.  \qquad\qquad\textrm{(4)}
 
 Let
 
@@ -295,10 +293,11 @@ and the horizon :math:`\delta`.
 
 The PMB model is expressed using the scalar force state field
 
-.. math::
-   :label: periPMBState
+.. _periPMBState:
 
-   \underline{t}\left[ \mathbf{x},t \right]\left< \boldsymbol{\xi} \right> = \frac{1}{2} f\left( \boldsymbol{\eta} ,\boldsymbol{\xi} \right),
+.. math::
+
+   \underline{t}\left[ \mathbf{x},t \right]\left< \boldsymbol{\xi} \right> = \frac{1}{2} f\left( \boldsymbol{\eta} ,\boldsymbol{\xi} \right), \qquad\qquad\textrm{(5)}
 
 with :math:`f` a scalar-valued function. We assume that :math:`f` takes
 the form
@@ -309,16 +308,16 @@ the form
 
 where
 
-.. math::
-   :label: peric
+.. _peric:
 
-   c = \frac{18K}{\pi \delta^4},
+.. math::
+
+   c = \frac{18K}{\pi \delta^4}, \qquad\qquad\textrm{(6)}
 
 with :math:`K` the bulk modulus and :math:`\delta` the horizon, and
 :math:`s` the bond stretch, defined as
 
 .. math::
-   :label: peristretch
 
    s(t,\mathbf{\eta},\mathbf{\xi}) = \frac{ \left\Vert {\mathbf{\eta}+\mathbf{\xi}} \right\Vert - \left\Vert {\mathbf{\xi}} \right\Vert }{\left\Vert {\mathbf{\xi}} \right\Vert}.
 
@@ -330,12 +329,11 @@ appropriate for 3D models only. For more on the origins of the constant
 :math:`c`, see :ref:`(Silling 2005) <Silling2005>`. For the derivation
 of :math:`c` for 1D and 2D models, see :ref:`(Emmrich) <Emmrich2007>`.
 
-Given :math:numref:`periPMBState`, :math:numref:`periNewtonII` reduces to
+Given :ref:`(5) <periPMBState>`, :ref:`(1) <periNewtonII>` reduces to
 
 .. math::
-   :label: periPMBEOM
 
-   \rho(\mathbf{x}) \ddot{\mathbf{u}}(\mathbf{x},t) = \int_{\mathcal{H}_\mathbf{x}} \mathbf{f} \left( \boldsymbol{\eta},\boldsymbol{\xi} \right){d}V_{\boldsymbol{\xi}} + \mathbf{b}(\mathbf{x},t),
+   \rho(\mathbf{x}) \ddot{\mathbf{u}}(\mathbf{x},t) = \int_{\mathcal{H}_\mathbf{x}} \mathbf{f} \left( \boldsymbol{\eta},\boldsymbol{\xi} \right){d}V_{\boldsymbol{\xi}} + \mathbf{b}(\mathbf{x},t), \qquad\qquad\textrm{(7)}
 
 with
 
@@ -362,14 +360,15 @@ the *critical stretch* criterion.
 Define :math:`\mu` to be the history-dependent scalar
 boolean function
 
+.. _perimu:
+
 .. math::
-   :label: perimu
 
    \mu(t,\mathbf{\eta},\mathbf{\xi}) = \left\{
    \begin{array}{cl}
    1 & \mbox{if $s(t^\prime,\mathbf{\eta},\mathbf{\xi})< \min \left(s_0(t^\prime,\mathbf{\eta},\mathbf{\xi}) , s_0(t^\prime,\mathbf{\eta}^\prime,\mathbf{\xi}^\prime) \right)$ for all $0 \leq t^\prime \leq t$} \\
    0 & \mbox{otherwise}
-   \end{array}\right\}.
+   \end{array}\right\}.  \qquad\qquad\textrm{(8)}
 
 where :math:`\mathbf{\eta}^\prime = \textbf{u}(\textbf{x}^{\prime
 \prime},t) - \textbf{u}(\textbf{x}^\prime,t)` and
@@ -377,10 +376,11 @@ where :math:`\mathbf{\eta}^\prime = \textbf{u}(\textbf{x}^{\prime
 \textbf{x}^\prime`. Here, :math:`s_0(t,\mathbf{\eta},\mathbf{\xi})` is a
 critical stretch defined as
 
-.. math::
-   :label: peris0
+.. _peris0:
 
-   s_0(t,\mathbf{\eta},\mathbf{\xi}) = s_{00} - \alpha s_{\min}(t,\mathbf{\eta},\mathbf{\xi}), \qquad s_{\min}(t) = \min_{\mathbf{\xi}} s(t,\mathbf{\eta},\mathbf{\xi}),
+.. math::
+
+   s_0(t,\mathbf{\eta},\mathbf{\xi}) = s_{00} - \alpha s_{\min}(t,\mathbf{\eta},\mathbf{\xi}), \qquad s_{\min}(t) = \min_{\mathbf{\xi}} s(t,\mathbf{\eta},\mathbf{\xi}), \qquad\qquad\textrm{(9)}
 
 where :math:`s_{00}` and :math:`\alpha` are material-dependent
 constants. The history function :math:`\mu` breaks bonds when the
@@ -400,16 +400,17 @@ should be broken.
 Following :ref:`(Silling) <Silling2005>`, we can define the damage at a
 point :math:`\textbf{x}` as
 
+.. _peridamageeq:
+
 .. math::
-   :label: peridamage
 
    \varphi(\textbf{x}, t) = 1 - \frac{\int_{\mathcal{H}_{\textbf{x}}} \mu(t,\mathbf{\eta},\mathbf{\xi}) dV_{\textbf{x}^\prime}
-   }{ \int_{\mathcal{H}_{\textbf{x}}} dV_{\textbf{x}^\prime} }.
+   }{ \int_{\mathcal{H}_{\textbf{x}}} dV_{\textbf{x}^\prime} }.  \qquad\qquad\textrm{(10)}
 
 Discrete Peridynamic Model and LAMMPS Implementation
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-In LAMMPS, instead of :math:numref:`periNewtonII`, we model this equation of
+In LAMMPS, instead of :ref:`(1) <periNewtonII>`, we model this equation of
 motion:
 
 .. math::
@@ -423,7 +424,7 @@ where we explicitly track and store at each timestep the positions and
 not the displacements of the particles. We observe that
 :math:`\ddot{\textbf{y}}(\textbf{x}, t) = \ddot{\textbf{x}} +
 \ddot{\textbf{u}}(\textbf{x}, t) = \ddot{\textbf{u}}(\textbf{x}, t)`, so
-that this is equivalent to :math:numref:`periNewtonII`.
+that this is equivalent to :ref:`(1) <periNewtonII>`.
 
 Spatial Discretization
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -435,21 +436,23 @@ where each particle :math:`i` is associated with some volume fraction
 denote the family of particles for which particle :math:`i` shares a
 bond in the reference configuration.  That is,
 
-.. math::
-   :label: periBondFamily
-
-   \mathcal{F}_i = \{ p ~ | ~ \left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert \leq \delta \}.
-
-The discretized equation of motion replaces :math:numref:`periNewtonII` with
+.. _periBondFamily:
 
 .. math::
-   :label: peridiscreteNewtonII
+
+   \mathcal{F}_i = \{ p ~ | ~ \left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert \leq \delta \}. \qquad\qquad\textrm{(11)}
+
+The discretized equation of motion replaces :ref:`(1) <periNewtonII>` with
+
+.. _peridiscreteNewtonII:
+
+.. math::
 
    \rho \ddot{\textbf{y}}_i^n =
    \sum_{p \in \mathcal{F}_i}
    \left\{ \underline{\mathbf{T}}\left[ \textbf{x}_i,t \right]\left<\textbf{x}_p^{\prime}-\textbf{x}_i \right>
    - \underline{\mathbf{T}}\left[\textbf{x}_p,t \right]\left<\textbf{x}_i-\textbf{x}_p \right> \right\}
-     V_{p} + \textbf{b}_i^n,
+     V_{p} + \textbf{b}_i^n, \qquad\qquad\textrm{(12)}
 
 where :math:`n` is the timestep number and subscripts denote the particle number.
 
@@ -460,31 +463,30 @@ In the model discussed so far, particles interact only through their
 bond forces. A particle with no bonds becomes a free non-interacting
 particle. To account for contact forces, short-range forces are
 introduced :ref:`(Silling 2007) <Silling2007_2>`. We add to the force in
-:math:numref:`peridiscreteNewtonII` the following force
+:ref:`(12) <peridiscreteNewtonII>` the following force
 
 .. math::
-   :label: perifS
 
    \textbf{f}_S(\textbf{y}_p,\textbf{y}_i) = \min \left\{ 0, \frac{c_S}{\delta}(\left\Vert {\textbf{y}_p-\textbf{y}_i} \right\Vert - d_{pi}) \right\}
-   \frac{\textbf{y}_p-\textbf{y}_i}{\left\Vert {\textbf{y}_p-\textbf{y}_i} \right\Vert},
+   \frac{\textbf{y}_p-\textbf{y}_i}{\left\Vert {\textbf{y}_p-\textbf{y}_i} \right\Vert}, \qquad\qquad\textrm{(13)}
 
 where :math:`d_{pi}` is the short-range interaction distance between
 particles :math:`p` and :math:`i`, and :math:`c_S` is a multiple of the
-constant :math:`c` from :math:numref:`peric`. Note that the short-range force
+constant :math:`c` from :ref:`(6) <peric>`. Note that the short-range force
 is always repulsive, never attractive. In practice, we choose
 
-.. math::
-   :label: pericS
+.. _pericS:
 
-   c_S = 15 \frac{18K}{\pi \delta^4}.
+.. math::
+
+   c_S = 15 \frac{18K}{\pi \delta^4}. \qquad\qquad\textrm{(14)}
 
 For the short-range interaction distance, we choose :ref:`(Silling 2007)
 <Silling2007_2>`
 
 .. math::
-   :label: perid
 
-   d_{pi} = \min \left\{ 0.9 \left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert, 1.35 (r_p + r_i) \right\},
+   d_{pi} = \min \left\{ 0.9 \left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert, 1.35 (r_p + r_i) \right\}, \qquad\qquad\textrm{(15)}
 
 where :math:`r_i` is called the *node radius* of particle
 :math:`i`. Given a discrete lattice, we choose :math:`r_i` to be half
@@ -508,16 +510,16 @@ short-range family of particles
 Modification to the Particle Volume
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The right-hand side of :math:numref:`peridiscreteNewtonII` may be thought of as
-a midpoint quadrature of :math:numref:`periNewtonII`. To slightly improve the
+The right-hand side of :ref:`(12) <peridiscreteNewtonII>` may be thought of as
+a midpoint quadrature of :ref:`(1) <periNewtonII>`. To slightly improve the
 accuracy of this quadrature, we discuss a modification to the particle
-volume used in :math:numref:`peridiscreteNewtonII`. In a situation where two
+volume used in :ref:`(12) <peridiscreteNewtonII>`. In a situation where two
 particles share a bond with :math:`\left\Vert { \textbf{x}_p -
 \textbf{x}_i }\right\Vert = \delta`, for example, we suppose that only
 approximately half the volume of each particle is "seen" by the other
 :ref:`(Silling 2007) <Silling2007>`. When computing the force of each
 particle on the other we use :math:`V_p / 2` rather than :math:`V_p` in
-:math:numref:`peridiscreteNewtonII`. As such, we introduce a nodal volume
+:ref:`(12) <peridiscreteNewtonII>`. As such, we introduce a nodal volume
 scaling function for all bonded particles where :math:`\delta - r_i \leq
 \left\Vert { \textbf{x}_p - \textbf{x}_i } \right\Vert \leq \delta` (see
 the Figure below).
@@ -575,12 +577,12 @@ Breaking Bonds
 During the course of simulation, it may be necessary to break bonds, as
 described in the :ref:`Damage section <peridamage>`. Bonds are recorded
 as broken in a simulation by removing them from the bond family
-:math:`\mathcal{F}_i` (see :math:numref:`periBondFamily`).
+:math:`\mathcal{F}_i` (see :ref:`(11) <periBondFamily>`).
 
 A naive implementation would have us first loop over all bonds and
-compute :math:`s_{min}` in :math:numref:`peris0`, then loop over all bonds
+compute :math:`s_{min}` in :ref:`(9) <peris0>`, then loop over all bonds
 again and break bonds with a stretch :math:`s > s0` as in
-:math:numref:`perimu`, and finally loop over all particles and compute forces
+:ref:`(8) <perimu>`, and finally loop over all particles and compute forces
 for the next step of :ref:`Algorithm 1 <algvelverlet>`. For reasons of
 computational efficiency, we will utilize the values of :math:`s_0` from
 the *previous* timestep when deciding to break a bond.
@@ -622,7 +624,7 @@ routines in :ref:`Algorithm 3 <algperilpsm>` and :ref:`Algorithm 4
       |         **for all** particles :math:`j \in \mathcal{F}^S_i` (the short-range family of nodes for particle :math:`i`) **do**
       |             :math:`r = \left\Vert {\textbf{y}_j - \textbf{y}_i} \right\Vert`
       |             :math:`dr = \min \{ 0, r - d \}` {*Short-range forces are only repulsive, never attractive*}
-      |             :math:`k = \frac{c_S}{\delta} V_k dr` {:math:`c_S` *defined in :math:numref:`pericS`*}
+      |             :math:`k = \frac{c_S}{\delta} V_k dr` {:math:`c_S` *defined in :ref:`(14) <pericS>`*}
       |             :math:`\textbf{f} = \textbf{f} + k \frac{\textbf{y}_j-\textbf{y}_i}{\left\Vert {\textbf{y}_j-\textbf{y}_i} \right\Vert}`
       |         **end for**
       |     **end for**
@@ -695,7 +697,7 @@ A sketch of the PMB model implementation in the PERI package appears in
       |         **for all** particles :math:`j \in \mathcal{F}^S_i` (the short-range family of nodes for particle :math:`i`) **do**
       |             :math:`r = \left\Vert {\textbf{y}_j - \textbf{y}_i} \right\Vert`
       |             :math:`dr = \min \{ 0, r - d \}` {*Short-range forces are only repulsive, never attractive*}
-      |             :math:`k = \frac{c_S}{\delta} V_k dr` {:math:`c_S` *defined in :math:numref:`pericS`*}
+      |             :math:`k = \frac{c_S}{\delta} V_k dr` {:math:`c_S` *defined in :ref:`(14) <pericS>`*}
       |             :math:`\textbf{f} = \textbf{f} + k \frac{\textbf{y}_j-\textbf{y}_i}{\left\Vert {\textbf{y}_j-\textbf{y}_i} \right\Vert}`
       |         **end for**
       |     **end for**
@@ -704,7 +706,7 @@ A sketch of the PMB model implementation in the PERI package appears in
       |         **for all** particles :math:`j` sharing an unbroken bond with particle :math:`i` **do**
       |             :math:`r = \left\Vert {\textbf{y}_j - \textbf{y}_i} \right\Vert`
       |             :math:`dr = r - \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert`
-      |             :math:`k = \frac{c}{\left\Vert {\textbf{x}_i - \textbf{x}_j} \right\Vert} \nu(\textbf{x}_i - \textbf{x}_j) V_j dr` {:math:`c` *defined in :math:numref:`peric`*}
+      |             :math:`k = \frac{c}{\left\Vert {\textbf{x}_i - \textbf{x}_j} \right\Vert} \nu(\textbf{x}_i - \textbf{x}_j) V_j dr` {:math:`c` *defined in :ref:`(6) <peric>`*}
       |             :math:`\textbf{f} = \textbf{f} + k \frac{\textbf{y}_j-\textbf{y}_i}{\left\Vert {\textbf{y}_j-\textbf{y}_i} \right\Vert}`
       |             **if** :math:`(dr / \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert) > \min(s_0(i), s_0(j))` **then**
       |                 Break :math:`i`'s bond with :math:`j` {:math:`j`\ *'s bond with* :math:`i` *will be broken when this loop iterates on* :math:`j`}
@@ -719,7 +721,7 @@ A sketch of the PMB model implementation in the PERI package appears in
 Damage
 ^^^^^^
 
-The damage associated with every particle (see :math:numref:`peridamage`) can
+The damage associated with every particle (see :ref:`(10) <peridamageeq>`) can
 optionally be computed and output with a LAMMPS data dump. To do this,
 your input script must contain the command :doc:`compute damage/atom
 <compute_damage_atom>` This enables a LAMMPS per-atom compute to
@@ -900,9 +902,10 @@ three times the lattice constant.) The target is a cylinder of diameter
 lattice contains 103,110 particles. Each particle :math:`i` has volume
 fraction :math:`V_i = 1.25 \times 10^{-10} \textrm{m}^3`.
 
-The spring constant in the PMB material model is (see :math:numref:`peric`)
+The spring constant in the PMB material model is (see :ref:`(6) <peric>`)
 
 .. math::
+
    c = \frac{18k}{\pi \delta^4} = \frac{18 (14.9 \times 10^9)}{ \pi (1.5 \times 10^{-3})^4} \approx 1.6863 \times 10^{22}.
 
 The CFL analysis from :ref:`(Silling2005) <Silling2005>` shows that a
@@ -947,7 +950,7 @@ the distance from the atom to the center of the indenter, and :math:`R`
 is the radius of the projectile. The force is repulsive and :math:`F(r) =
 0` for :math:`r > R`. For our problem, the projectile radius :math:`R =
 0.05` m, and we have chosen :math:`k_s = 1.0 \times 10^{17}` (compare
-with :math:numref:`peric` above).
+with :ref:`(6) <peric>` above).
 
 Writing the LAMMPS Input File
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

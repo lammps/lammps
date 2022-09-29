@@ -50,11 +50,15 @@ class UCL_Timer {
   /** \note init() must be called to reuse timer after a clear() **/
   inline void clear() {
     if (_initialized) {
+      if (has_measured_time) {
+        clReleaseEvent(start_event);
+        clReleaseEvent(stop_event);
+        has_measured_time = false;
+      }
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
       _initialized=false;
       _total_time=0.0;
     }
-    has_measured_time = false;
   }
 
   /// Initialize default command queue for timing
@@ -71,8 +75,12 @@ class UCL_Timer {
 
   /// Start timing on default command queue
   inline void start() {
+    if (has_measured_time) {
+      clReleaseEvent(start_event);
+      clReleaseEvent(stop_event);
+      has_measured_time = false;
+    }
     UCL_OCL_MARKER(_cq,&start_event);
-    has_measured_time = false;
   }
 
   /// Stop timing on default command queue
@@ -83,8 +91,12 @@ class UCL_Timer {
 
   /// Block until the start event has been reached on device
   inline void sync_start() {
+    if (has_measured_time) {
+      clReleaseEvent(start_event);
+      clReleaseEvent(stop_event);
+      has_measured_time = false;
+    }
     CL_SAFE_CALL(clWaitForEvents(1,&start_event));
-    has_measured_time = false;
   }
 
   /// Block until the stop event has been reached on device

@@ -649,7 +649,40 @@ Procedures Bound to the lammps Derived Type
        will print the *y*-coordinate of the sixth atom on this processor
        (note the transposition of the two indices). This is not a choice, but
        rather a consequence of the different conventions adopted by the Fortran
-       and C standards decades ago.
+       and C standards decades ago: in C, the block of data
+
+       .. parsed-literal::
+
+          1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+       interpreted as a :math:`4\times4` matrix would be
+
+       .. math::
+
+          \begin{bmatrix}
+            1 & 2 & 3 & 4 \\
+            5 & 6 & 7 & 8 \\
+            9 & 10 & 11 & 12 \\
+            13 & 14 & 15 & 16
+          \end{bmatrix},
+
+       that is, in row-major order. In Fortran, the same block of data is
+       interpreted in column-major order, namely,
+
+       .. math::
+
+          \begin{bmatrix}
+            1 & 5 & 9  & 13 \\
+            2 & 6 & 10 & 14 \\
+            3 & 7 & 11 & 15 \\
+            4 & 8 & 12 & 16
+          \end{bmatrix}.
+
+       This difference in interpretation of the same block of data by the two
+       languages means, in effect, that matrices from C or C++ will be
+       transposed when interpreted in Fortran.
+
+    .. note::
 
        If you would like the indices to start at 0 instead of 1 (which follows
        typical notation in C and C++, but not Fortran), you can create another
@@ -776,7 +809,7 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
-.. f:function:: extract_fix(id, style, type, [nrow,] [ncol])
+.. f:function:: extract_fix(id, style, type[, nrow][, ncol])
 
    This function calls :c:func:`lammps_extract_fix` and returns a pointer to
    LAMMPS data tied to the :cpp:class:`Fix` class, specifically data provided
@@ -884,7 +917,9 @@ Procedures Bound to the lammps Derived Type
     be of type ``REAL(C_double)`` and have appropriate rank (i.e.,
     ``DIMENSION(:)`` if expecting per-atom or local vector data and
     ``DIMENSION(:,:)`` if expecting per-atom or local array data). If expecting
-    global or per-atom data, it should have the ``POINTER`` attribute.
+    local or per-atom data, it should have the ``POINTER`` attribute, but
+    if expecting global data, it should be an ordinary (non-``POINTER``)
+    variable.
 
    .. admonition:: Array index order
 
@@ -970,26 +1005,72 @@ Procedures Bound to the lammps Derived Type
 
 .. f:subroutine:: flush_buffers
 
-..
-    TODO
+   This function calls :cpp:func:`lammps_flush_buffers`, which flushes buffered
+   output to be written to screen and logfile. This can simplify capturing
+   output from LAMMPS library calls.
+
+   .. versionadded:: TBD
 
 --------
 
 .. f:function:: is_running
 
-..
-    TODO
+   Check if LAMMPS is currently inside a run or minimization.
+
+   .. versionadded:: TBD
+
+   This function can be used from signal handlers or multi-threaded
+   applications to determine if the LAMMPS instance is currently active.
+  
+   :r logical: ``.FALSE.`` if idle or ``.TRUE.`` if active
 
 --------
 
 .. f:function:: has_error
 
-..
-    TODO
+   Check if there is a (new) error message available.
+
+   .. versionadded:: TBD
+
+   This function can be used to query if an error inside of LAMMPS
+   has thrown a :ref:`C++ exception <exceptions>`.
+
+   .. note::
+
+      This function will always report "no error" when the LAMMPS library
+      has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
+      errors aborting LAMMPS into C++ exceptions. You can use the library
+      function :cpp:func:`lammps_config_has_exceptions` to check if this is
+      the case.
+  
+   :r logical: ``.TRUE.`` if there is an error.
 
 --------
 
-.. f:subroutine:: get_last_error_message
+.. f:subroutine:: get_last_error_message(buffer[,status])
 
-..
-    TODO
+   Copy the last error message into the provided buffer.
+
+   .. versionadded:: TBD
+
+   This function can be used to retrieve the error message that was set
+   in the event of an error inside of LAMMPS that resulted in a
+   :ref:`C++ exception <exceptions>`.  A suitable buffer for a string has
+   to be provided.  If the internally-stored error message is longer than the
+   string and the string does not have ``ALLOCATABLE`` length, it will be
+   truncated accordingly.  The optional argument *status* indicates the
+   kind of error: a "1" indicates an error that occurred on all MPI ranks and
+   is often recoverable, while a "2" indicates an abort that would happen only
+   in a single MPI rank and thus may not be recoverable, as other MPI ranks may
+   be waiting on the failing MPI rank(s) to send messages.
+
+   .. note::
+
+      This function will do nothing when the LAMMPS library has been
+      compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
+      LAMMPS into C++ exceptions.  You can use the function
+      :f:func:`config_has_exceptions` to check whethher this is the case.
+
+   :p character(len=\*) buffer: string buffer to copy the error message into
+   :o integer(C_int) status [optional]: 1 when all ranks had the error,
+    2 on a single-rank error.

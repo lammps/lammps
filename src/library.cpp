@@ -2139,7 +2139,7 @@ with the specified name. See :cpp:enum:`_LMP_VAR_CONST` for valid values.
 Callers of :cpp:func:`lammps_extract_variable` can use this information to
 decide how to cast the (void*) pointer and access the data.
 
-..versionadded:: TBD
+.. versionadded:: TBD
 
 \endverbatim
  *
@@ -5635,9 +5635,9 @@ has thrown a :ref:`C++ exception <exceptions>`.
 .. note::
 
    This function will always report "no error" when the LAMMPS library
-   has been compiled without ``-DLAMMPS_EXCEPTIONS`` which turns fatal
-   errors aborting LAMMPS into a C++ exceptions. You can use the library
-   function :cpp:func:`lammps_config_has_exceptions` to check if this is
+   has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
+   errors aborting LAMMPS into C++ exceptions. You can use the library
+   function :cpp:func:`lammps_config_has_exceptions` to check whether this is
    the case.
 \endverbatim
  *
@@ -5667,15 +5667,15 @@ error message is longer, it will be truncated accordingly.  The return
 value of the function corresponds to the kind of error: a "1" indicates
 an error that occurred on all MPI ranks and is often recoverable, while
 a "2" indicates an abort that would happen only in a single MPI rank
-and thus may not be recoverable as other MPI ranks may be waiting on
+and thus may not be recoverable, as other MPI ranks may be waiting on
 the failing MPI ranks to send messages.
 
 .. note::
 
    This function will do nothing when the LAMMPS library has been
-   compiled without ``-DLAMMPS_EXCEPTIONS`` which turns errors aborting
-   LAMMPS into a C++ exceptions.  You can use the library function
-   :cpp:func:`lammps_config_has_exceptions` to check if this is the case.
+   compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
+   LAMMPS into C++ exceptions.  You can use the library function
+   :cpp:func:`lammps_config_has_exceptions` to check whether this is the case.
 \endverbatim
  *
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.

@@ -19,6 +19,8 @@ def run_struct(f):
     cmds = ["-screen", "none", "-log", "none"]
     lmp = lammps(cmdargs = cmds)
 
+    print("Made LAMMPS instance")
+
     def run_lammps(dgradflag):
 
         # simulation settings
@@ -68,15 +70,15 @@ def run_struct(f):
     nd = 91
 
     dgradflag = 0
+    
     run_lammps(dgradflag)
-
+    
     lmp_pace = lmp.numpy.extract_compute("pace", LMP_STYLE_GLOBAL, LMP_TYPE_ARRAY)
     print ('global shape',np.shape(lmp_pace))
     np.save('%s_chi_i.npy' % file_prefix,lmp_pace)
     lmp.close()
     del lmp
     return None
-
 
 import glob
 for f in sorted(glob.glob('*.xyz')):

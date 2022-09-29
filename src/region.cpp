@@ -322,7 +322,7 @@ void Region::options(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "lattice") == 0)
         scaleflag = 1;
       else
-        error->all(FLERR, "Illegal region units: {}", arg[iarg+1]);
+        error->all(FLERR, "Illegal region units: {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "side") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region side", error);
@@ -331,24 +331,24 @@ void Region::options(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "out") == 0)
         interior = 0;
       else
-        error->all(FLERR, "Illegal region side: {}", arg[iarg+1]);
+        error->all(FLERR, "Illegal region side: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "move") == 0) {
       if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "region move", error);
       if (strcmp(arg[iarg + 1], "NULL") != 0) {
         if (strstr(arg[iarg + 1], "v_") != arg[iarg + 1])
-          error->all(FLERR, "Illegal region move x displacement variable: {}", arg[iarg+1]);
+          error->all(FLERR, "Illegal region move x displacement variable: {}", arg[iarg + 1]);
         xstr = utils::strdup(&arg[iarg + 1][2]);
       }
       if (strcmp(arg[iarg + 2], "NULL") != 0) {
         if (strstr(arg[iarg + 2], "v_") != arg[iarg + 2])
-          error->all(FLERR, "Illegal region move y displacement variable: {}", arg[iarg+2]);
+          error->all(FLERR, "Illegal region move y displacement variable: {}", arg[iarg + 2]);
         ystr = utils::strdup(&arg[iarg + 2][2]);
       }
       if (strcmp(arg[iarg + 3], "NULL") != 0) {
         if (strstr(arg[iarg + 3], "v_") != arg[iarg + 3])
-          error->all(FLERR, "Illegal region move z displacement variable: {}", arg[iarg+3]);
+          error->all(FLERR, "Illegal region move z displacement variable: {}", arg[iarg + 3]);
         zstr = utils::strdup(&arg[iarg + 3][2]);
       }
       moveflag = 1;
@@ -375,7 +375,8 @@ void Region::options(int narg, char **arg)
       open_faces[iface - 1] = 1;
       openflag = 1;
       iarg += 2;
-    } else error->all(FLERR, "Illegal region command argument: {}", arg[iarg]);
+    } else
+      error->all(FLERR, "Illegal region command argument: {}", arg[iarg]);
   }
 
   // error check

@@ -67,8 +67,8 @@ vector values from a compute as input.  See the
 options.
 
 Both the scalar value and the first two values of the vector
-calculated by this compute are "intensive."  The other four vector values
-are "extensive."
+calculated by this compute are "intensive".  The other four vector values
+are "extensive".
 
 Restrictions
 """"""""""""

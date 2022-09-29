@@ -35,6 +35,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 7Jan2022
+
 Define a computation that calculates the local mass density and
 temperature for each atom based on its neighbors inside a spherical
 cutoff.  If an atom has :math:`M` neighbors, then its local mass density is

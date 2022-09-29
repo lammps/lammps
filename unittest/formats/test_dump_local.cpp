@@ -238,7 +238,7 @@ TEST_F(DumpLocalTest, triclinic_run0)
     ASSERT_EQ(utils::split_words(lines[7]).size(), 3);
     delete_file(dump_file);
 }
-}
+} // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {

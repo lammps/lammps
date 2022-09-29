@@ -88,9 +88,9 @@ thermostatting.
 Output info
 """""""""""
 
-The scalar value calculated by this compute is "intensive," meaning it
+The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.  The vector
-values are "extensive," meaning they scale with the number of atoms in
+values are "extensive", meaning they scale with the number of atoms in
 the simulation.
 
 Restrictions

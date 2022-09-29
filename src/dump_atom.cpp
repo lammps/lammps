@@ -131,10 +131,12 @@ int DumpAtom::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"scale") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     scale_flag = utils::logical(FLERR,arg[1],false,lmp);
+    for (auto &item : keyword_user) item.clear();
     return 2;
   } else if (strcmp(arg[0],"image") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     image_flag = utils::logical(FLERR,arg[1],false,lmp);
+    for (auto &item : keyword_user) item.clear();
     return 2;
   }
   return 0;

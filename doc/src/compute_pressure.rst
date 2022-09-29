@@ -29,7 +29,7 @@ Description
 """""""""""
 
 Define a computation that calculates the pressure of the entire system
-of atoms.  The specified group must be "all."  See the
+of atoms.  The specified group must be "all".  See the
 :doc:`compute stress/atom <compute_stress_atom>` command if you want per-atom
 pressure (stress).  These per-atom values could be summed for a group
 of atoms via the :doc:`compute reduce <compute_reduce>` command.
@@ -115,7 +115,7 @@ LAMMPS starts up, as if this command were in the input script:
    compute thermo_press all pressure thermo_temp
 
 where thermo_temp is the ID of a similarly defined compute of style
-"temp."  See the :doc:`thermo_style <thermo_style>` command for more details.
+"temp".  See the :doc:`thermo_style <thermo_style>` command for more details.
 
 ----------
 
@@ -137,7 +137,7 @@ The ordering of values in the symmetric pressure tensor is as follows:
 :math:`p_{xz},` :math:`p_{yz}.`
 
 The scalar and vector values calculated by this compute are
-"intensive."  The scalar and vector values will be in pressure
+"intensive".  The scalar and vector values will be in pressure
 :doc:`units <units>`.
 
 Restrictions

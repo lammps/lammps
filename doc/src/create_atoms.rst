@@ -95,7 +95,7 @@ typically created via the :doc:`create_box <create_box>` command.
 Before using this command, a lattice must also be defined using the
 :doc:`lattice <lattice>` command, unless you specify the *single* style
 with units = box or the *random* style.  For the remainder of this doc
-page, a created atom or molecule is referred to as a "particle."
+page, a created atom or molecule is referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
@@ -188,6 +188,10 @@ to the area of that triangle.
    pressure and potential energy due to close contacts, it is usually
    beneficial to exclude computing interactions between the created
    particles using :doc:`neigh_modify exclude <neigh_modify>`.
+
+.. versionchanged:: 2Jun2022
+
+The *porosity* style has been renamed to *random* with added functionality.
 
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
@@ -352,7 +356,7 @@ As an example, these commands can be used in a 2d simulation, to
 create a sinusoidal surface.  Note that the surface is "rough" due to
 individual lattice points being "above" or "below" the mathematical
 expression for the sinusoidal curve.  If a finer lattice were used,
-the sinusoid would appear to be "smoother."  Also note the use of the
+the sinusoid would appear to be "smoother".  Also note the use of the
 "xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords, which
 converts lattice spacings to distance.
 

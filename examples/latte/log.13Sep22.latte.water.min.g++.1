@@ -1,0 +1,122 @@
+LAMMPS (3 Aug 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# simple water model with LATTE
+
+units           metal
+atom_style      full
+atom_modify     sort 0 0.0    # turn off sorting of the coordinates
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0 0 0) to (6.267 6.267 6.267)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  24 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.001 seconds
+
+# replicate system if requested
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+variable        nrep equal v_x*v_y*v_z
+if              "${nrep} > 1" then "replicate $x $y $z"
+
+# initialize system
+
+velocity        all create 0.0 87287 loop geom
+
+pair_style      zero 1.0
+pair_coeff      * *
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix             1 all nve
+
+fix             2 all latte
+fix_modify      2 energy yes
+
+thermo_style    custom step temp pe etotal press
+
+# minimization
+
+thermo          10
+
+min_style       fire
+minimize        1.0e-4 1.0e-4 500 500
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  Parameters for fire: 
+    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin    integrator halfstepback 
+     0.1        20    1.1      0.5   0.25        0.99   10 0.02 eulerimplicit          yes 
+Per MPI rank memory allocation (min/avg/max) = 5.88 | 5.88 | 5.88 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   0             -104.95596     -104.95596      48235.442    
+        10   853.69689     -106.31143     -103.7734       79191.444    
+        20   1112.0893     -107.2723      -103.96607      82675.468    
+        30   1897.6249     -108.36769     -102.72608      71447.508    
+        40   3068.3491     -110.06452     -100.94237      47627.967    
+        50   3.730935      -110.16042     -110.14932      5913.0643    
+        60   28.603141     -110.18885     -110.10381      5778.8586    
+        66   54.717686     -110.21503     -110.05236      5739.5831    
+Loop time of 2.48723 on 1 procs for 66 steps with 24 atoms
+
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -104.955957263186  -110.209885831179  -110.215033825672
+  Force two-norm initial, final = 19.119006 0.51695213
+  Force max component initial, final = 11.775801 0.1663917
+  Final line search alpha, max atom move = 0 0
+  Iterations, force evaluations = 66 69
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.7159e-05 | 2.7159e-05 | 2.7159e-05 |   0.0 |  0.00
+Bond    | 3.124e-06  | 3.124e-06  | 3.124e-06  |   0.0 |  0.00
+Neigh   | 1.0201e-05 | 1.0201e-05 | 1.0201e-05 |   0.0 |  0.00
+Comm    | 0.000109   | 0.000109   | 0.000109   |   0.0 |  0.00
+Output  | 0.00010568 | 0.00010568 | 0.00010568 |   0.0 |  0.00
+Modify  | 2.4866     | 2.4866     | 2.4866     |   0.0 | 99.98
+Other   |            | 0.0003552  |            |       |  0.01
+
+Nlocal:             24 ave          24 max          24 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             75 ave          75 max          75 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             33 ave          33 max          33 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33
+Ave neighs/atom = 1.375
+Ave special neighs/atom = 0
+Neighbor list builds = 1
+Dangerous builds = 0
+Total wall time: 0:00:02

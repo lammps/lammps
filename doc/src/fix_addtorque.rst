@@ -75,7 +75,7 @@ accessed by various :doc:`output commands <Howto_output>`.  The scalar
 is the potential energy discussed above.  The vector is the total
 torque on the group of atoms before the forces on individual atoms are
 changed by the fix.  The scalar and vector values calculated by this
-fix are "extensive."
+fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.

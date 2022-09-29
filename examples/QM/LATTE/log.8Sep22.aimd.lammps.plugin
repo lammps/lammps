@@ -1,0 +1,103 @@
+LAMMPS (23 Jun 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# AIMD test of two UO2 molecules with LATTE in MDI plugin mode
+
+units           metal
+atom_style      full
+atom_modify     sort 0 0.0
+
+read_data       2uo2.lmp
+Reading data file ...
+  triclinic box = (0 0 0) to (10.8 5.4 5.4) with tilt (3.3065464e-16 3.3065464e-16 3.3065464e-16)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  6 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+
+velocity        all create 300.0 87287 loop geom
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix             1 all nve
+
+fix             2 all mdi/qm virial yes elements 92 8
+
+thermo_style    custom step temp pe etotal press
+thermo          1
+
+dump            1 all custom 1 dump.aimd.plugin                 id type x y z vx vy vz fx fy fz
+
+mdi             plugin latte_mdi mdi "-role ENGINE -name LATTE -method LINK"                 command "run 20"
+run 20
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0
+  ghost atom cutoff = 0
+  binsize = 10.8, bins = 1 1 1
+  0 neighbor lists, perpetual/occasional/extra = 0 0 0
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:210)
+Per MPI rank memory allocation (min/avg/max) = 6.489 | 6.489 | 6.489 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   300           -50.539035     -50.345145     -120197.6     
+         1   307.57345     -50.544722     -50.345937     -120123.27    
+         2   316.3757      -50.551342     -50.346868     -120035.12    
+         3   326.39203     -50.558885     -50.347938     -119933.11    
+         4   337.60559     -50.567341     -50.349146     -119817.17    
+         5   349.99734     -50.576697     -50.350493     -119687.24    
+         6   363.54606     -50.586939     -50.351979     -119543.23    
+         7   378.22834     -50.598054     -50.353605     -119385.07    
+         8   394.0186      -50.610024     -50.355369     -119212.67    
+         9   410.88903     -50.622831     -50.357273     -119025.94    
+        10   428.80963     -50.636457     -50.359317     -118824.77    
+        11   447.74819     -50.65088      -50.3615       -118609.06    
+        12   467.67027     -50.666079     -50.363823     -118378.7     
+        13   488.53922     -50.68203      -50.366287     -118133.58    
+        14   510.31617     -50.698708     -50.36889      -117873.58    
+        15   532.96002     -50.716086     -50.371633     -117598.57    
+        16   556.42747     -50.734137     -50.374517     -117308.44    
+        17   580.67298     -50.75283      -50.377541     -117003.05    
+        18   605.64879     -50.772136     -50.380705     -116682.27    
+        19   631.30497     -50.792023     -50.38401      -116345.95    
+        20   657.58937     -50.812455     -50.387454     -115993.97    
+Loop time of 2.74435 on 1 procs for 20 steps with 6 atoms
+
+Performance: 0.157 ns/day, 152.464 hours/ns, 7.288 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 1.299e-05  | 1.299e-05  | 1.299e-05  |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 7.9198e-05 | 7.9198e-05 | 7.9198e-05 |   0.0 |  0.00
+Output  | 0.001118   | 0.001118   | 0.001118   |   0.0 |  0.04
+Modify  | 2.743      | 2.743      | 2.743      |   0.0 | 99.95
+Other   |            | 0.0001456  |            |       |  0.01
+
+Nlocal:              6 ave           6 max           6 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              2 ave           2 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:03

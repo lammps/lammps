@@ -167,7 +167,7 @@ triangular particles and define the corner points of each triangle.
 In addition, the various per-atom quantities listed above for specific
 packages are only accessible by this command.
 
-.. versionchanged:: TBD
+.. versionchanged:: 15Sep2022
 
   The *espin* property was previously called *spin*.
 

@@ -152,7 +152,6 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       pack_choice[i] = &ComputePropertyAtom::pack_spx;
     } else if (strcmp(arg[iarg],"spy") == 0) {
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       if (!atom->sp_flag)
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       pack_choice[i] = &ComputePropertyAtom::pack_spy;
@@ -400,10 +399,10 @@ ComputePropertyAtom::~ComputePropertyAtom()
 
 void ComputePropertyAtom::init()
 {
-  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
-  avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   // NOTE: could reset custom vector/array indices here, like dump custom does
   //       in case have been deleted

@@ -22,8 +22,6 @@ namespace LAMMPS_NS {
 class MDIEngine : protected Pointers {
  public:
   MDIEngine(class LAMMPS *, int, char **);
-
-  int execute_command(const char *command, MDI_Comm mdicomm);
   void engine_node(const char *node);
 
  private:
@@ -87,9 +85,13 @@ class MDIEngine : protected Pointers {
   class Irregular *irregular;    // irregular comm if new COORDS
                                  // are highly displaced
 
+  // static method for MDI to callback to, when LAMMPS used as plugin engine
+
+  static int execute_command_plugin_wrapper(const char *, MDI_Comm, void *);
+
   // class methods
 
-  void mdi_engine(int, char **);
+  int execute_command(const char *, MDI_Comm);
   void mdi_commands();
 
   void mdi_md();

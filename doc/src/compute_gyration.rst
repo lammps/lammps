@@ -69,7 +69,7 @@ vector values from a compute as input.  See the :doc:`Howto output <Howto_output
 options.
 
 The scalar and vector values calculated by this compute are
-"intensive."  The scalar and vector values will be in distance and
+"intensive".  The scalar and vector values will be in distance and
 distance\ :math:`^2` :doc:`units <units>`, respectively.
 
 Restrictions

@@ -47,7 +47,7 @@ static int cmptagint(const void *p1, const void *p2)
 
 void Group2Ndx::command(int narg, char **arg)
 {
-  FILE *fp;
+  FILE *fp = nullptr;
 
   if (narg < 1) error->all(FLERR,"Illegal group2ndx command");
 
@@ -57,8 +57,7 @@ void Group2Ndx::command(int narg, char **arg)
   if (comm->me == 0) {
     fp = fopen(arg[0], "w");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open index file for writing: {}",
-                                   utils::getsyserror());
+      error->one(FLERR,"Cannot open index file for writing: {}", utils::getsyserror());
     utils::logmesg(lmp,"Writing groups to index file {}:\n",arg[0]);
   }
 
@@ -78,7 +77,7 @@ void Group2Ndx::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-  write out one group to a Gromacs style index file
+  write out one group to a Gromacs style index file, fp is non-null only on MPI rank 0
    ---------------------------------------------------------------------- */
 void Group2Ndx::write_group(FILE *fp, int gid)
 {
@@ -86,7 +85,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
   bigint gcount = group->count(gid);
   int lnum, width, cols;
 
-  if (comm->me == 0) {
+  if (fp) {
     utils::logmesg(lmp," writing group {}...",group->names[gid]);
 
     // the "all" group in LAMMPS is called "System" in Gromacs
@@ -139,7 +138,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
     delete [] sendlist;
   }
 
-  if (comm->me == 0) {
+  if (fp) {
     int i, j;
     for (i=0, j=0; i < gcount; ++i) {
       fmt::print(fp,"{:>{}}",recvlist[i],width);

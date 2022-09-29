@@ -78,7 +78,7 @@ class UCL_BaseMat {
     #ifndef _OCL_MAT
     return false;
     #else
-    
+
     #if defined(GERYON_FORCE_SHARED_MAIN_MEM_ON)
     return true;
     #elif defined(GERYON_FORCE_SHARED_MAIN_MEM_OFF)
@@ -89,7 +89,7 @@ class UCL_BaseMat {
                                        sizeof(cl_device_id),&device,NULL));
     return _shared_mem_device(device);
     #endif
-    
+
     #endif
   }
 

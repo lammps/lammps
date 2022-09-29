@@ -388,7 +388,7 @@ class UCL_Device {
   cl_platform_id _cl_platforms[20]; // OpenCL IDs for all platforms
   cl_context _context;              // Context used for accessing the device
   std::vector<cl_command_queue> _cq;// The default command queue for this device
-  bool _cq_profiling;               // True=create command queues w/ profiling support 
+  bool _cq_profiling;               // True=create command queues w/ profiling support
   int _device;                            // UCL_Device ID for current device
   cl_device_id _cl_device;                // OpenCL ID for current device
   std::vector<cl_device_id> _cl_devices;  // OpenCL IDs for all devices

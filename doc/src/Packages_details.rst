@@ -2200,6 +2200,7 @@ Foster (UTSA).
 **Supporting info:**
 
 * src/PERI: filenames -> commands
+* :doc:`Peridynamics Howto <Howto_peri>`
 * `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
 * `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
 * `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_

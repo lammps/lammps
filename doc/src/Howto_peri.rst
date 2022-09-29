@@ -16,8 +16,8 @@ model is discretized within LAMMPS as described in the original article
 :ref:`(Parks) <Parks2>`.  An example problem with comments is also
 included.
 
-Quickstart
-""""""""""
+Quick Start
+"""""""""""
 
 The peridynamics styles are included in the optional :ref:`PERI package
 <PKG-PERI>`.  If your LAMMPS executable does not already include the
@@ -54,7 +54,7 @@ Some notes on this input example:
 - particles must be created on a :doc:`simple cubic lattice <lattice>`
 - using the :doc:`atom style peri <atom_style>` is required
 - an :doc:`atom map <atom_modify>` is required for indexing particles
-- The :doc:`skin distance <neighbor>` used when computing neighborlists
+- The :doc:`skin distance <neighbor>` used when computing neighbor lists
   should be defined appropriately for your choice of simulation
   parameters. The *skin* should be set to a value such that the
   peridynamic horizon plus the skin distance is larger than the maximum
@@ -254,11 +254,11 @@ extension :math:`\underline{e}^{\rm d}`.
    not change as bonds break. It is computed with respect to the bond
    family defined at the reference (initial) configuration.
 
-The nonnegative scalar state :math:`\underline{\omega}` is an *influence
-function* :ref:`(Silling 2007) <Silling2007_2>`. For more on influence
-functions, see :ref:`(Seleson 2010) <Seleson2010>`. If an influence
-function :math:`\underline{\omega}` depends only upon the scalar
-:math:`\left\Vert \boldsymbol{\xi} \right\Vert`, (i.e.,
+The non-negative scalar state :math:`\underline{\omega}` is an
+*influence function* :ref:`(Silling 2007) <Silling2007_2>`. For more on
+influence functions, see :ref:`(Seleson 2010) <Seleson2010>`. If an
+influence function :math:`\underline{\omega}` depends only upon the
+scalar :math:`\left\Vert \boldsymbol{\xi} \right\Vert`, (i.e.,
 :math:`\underline{\omega}\left<\boldsymbol{\xi}\right> =
 \underline{\omega}\left<\left\Vert \boldsymbol{\xi} \right\Vert\right>`\
 ), then :math:`\underline{\omega}` is a spherical influence function.
@@ -369,7 +369,7 @@ critical stretch defined as
 
    s_0(t,\mathbf{\eta},\mathbf{\xi}) = s_{00} - \alpha s_{\min}(t,\mathbf{\eta},\mathbf{\xi}), \qquad s_{\min}(t) = \min_{\mathbf{\xi}} s(t,\mathbf{\eta},\mathbf{\xi}),
 
-where :math:`s_{00}` and :math:`\alpha` are material-dependant
+where :math:`s_{00}` and :math:`\alpha` are material-dependent
 constants. The history function :math:`\mu` breaks bonds when the
 stretch :math:`s` exceeds the critical stretch :math:`s_0`.
 
@@ -557,7 +557,7 @@ described in the :ref:`Damage section <peridamage>`. Bonds are recorded
 as broken in a simulation by removing them from the bond family
 :math:`\mathcal{F}_i` (see \eqref{eqn:BondFamily}).
 
-A naiive implementation would have us first loop over all bonds and
+A naive implementation would have us first loop over all bonds and
 compute :math:`s_{min}` in \eqref{eqn:s0}, then loop over all bonds
 again and break bonds with a stretch :math:`s > s0` as in
 \eqref{eqn:mu}, and finally loop over all particles and compute forces
@@ -761,20 +761,20 @@ Pitfalls
 **Parallel Scalability**
 
 LAMMPS operates in parallel in a :doc:`spatial-decomposition mode
-<Developer_par_part>`, where each processor owns a spatial subdomain of
+<Developer_par_part>`, where each processor owns a spatial sub-domain of
 the overall simulation domain and communicates with its neighboring
 processors via distributed-memory message passing (MPI) to acquire ghost
 atom information to allow forces on the atoms it owns to be
 computed. LAMMPS also uses Verlet neighbor lists which are recomputed
 every few timesteps as particles move. On these timesteps, particles
 also migrate to new processors as needed. LAMMPS decomposes the overall
-simulation domain so that spatial subdomains of nearly equal volume are
-assigned to each processor. When each subdomain contains nearly the same
-number of particles, this results in a reasonable load balance among all
-processors. As is more typical with some peridynamic simulations, some
-subdomains may contain many particles while other subdomains contain few
-particles, resulting in a load imbalance that impacts parallel
-scalability.
+simulation domain so that spatial sub-domains of nearly equal volume are
+assigned to each processor. When each sub-domain contains nearly the
+same number of particles, this results in a reasonable load balance
+among all processors. As is more typical with some peridynamic
+simulations, some sub-domains may contain many particles while other
+sub-domains contain few particles, resulting in a load imbalance that
+impacts parallel scalability.
 
 **Setting the "skin" distance**
 
@@ -937,7 +937,7 @@ In line 2 we specify that SI units are to be used. We specify the
 dimension (3) and boundary conditions ("shrink-wrapped") for the
 computational domain in lines 3 and 4. In line 5 we specify that
 peridynamic particles are to be used for this simulation. In line 7, we
-set the "skin" distance used in building the LAMMPS neighborlist. In
+set the "skin" distance used in building the LAMMPS neighbor list. In
 line 8 we set the lattice constant (in meters) and in line 10 we define
 the spatial region where the target will be placed. In line 12 we
 specify a rectangular box enclosing the target region that defines the

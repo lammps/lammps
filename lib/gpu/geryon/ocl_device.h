@@ -125,6 +125,11 @@ class UCL_Device {
   /// Return the number of devices that support OpenCL
   inline int num_devices() { return _num_devices; }
 
+  /// Specify whether profiling (device timers) will be used for the device (yes=true)
+  /** No-op for CUDA and HIP **/
+  inline void configure_profiling(const bool profiling_on)
+    { _cq_profiling = profiling_on; }
+
   /// Set the OpenCL device to the specified device number
   /** A context and default command queue will be created for the device *
     * Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
@@ -169,10 +174,22 @@ class UCL_Device {
     _cq.push_back(cl_command_queue());
 
 #ifdef CL_VERSION_2_0
-    cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
-    _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props, &errorv);
+    if (_cq_profiling) {
+      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE,
+                                     0};
+      _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
+                                                    &errorv);
+    } else {
+      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, 0};
+      _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
+                                                    &errorv);
+    }
 #else
-    _cq.back()=clCreateCommandQueue(_context, _cl_device, CL_QUEUE_PROFILING_ENABLE, &errorv);
+    if (_cq_profiling)
+      _cq.back()=clCreateCommandQueue(_context, _cl_device, CL_QUEUE_PROFILING_ENABLE,
+                                      &errorv);
+    else
+      _cq.back()=clCreateCommandQueue(_context, _cl_device, 0, &errorv);
 #endif
     if (errorv!=CL_SUCCESS) {
       std::cerr << "Could not create command queue on device: " << name()
@@ -370,6 +387,7 @@ class UCL_Device {
   cl_platform_id _cl_platforms[20]; // OpenCL IDs for all platforms
   cl_context _context;              // Context used for accessing the device
   std::vector<cl_command_queue> _cq;// The default command queue for this device
+  bool _cq_profiling;               // True=create command queues w/ profiling support 
   int _device;                            // UCL_Device ID for current device
   cl_device_id _cl_device;                // OpenCL ID for current device
   std::vector<cl_device_id> _cl_devices;  // OpenCL IDs for all devices
@@ -384,6 +402,7 @@ class UCL_Device {
 // Grabs the properties for all devices
 UCL_Device::UCL_Device() {
   _device=-1;
+  _cq_profiling=true;
 
   // --- Get Number of Platforms
   cl_uint nplatforms;

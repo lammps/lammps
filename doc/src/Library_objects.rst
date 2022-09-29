@@ -21,6 +21,11 @@ fixes, or variables in LAMMPS using the following functions:
 
 -----------------------
 
+.. doxygenfunction:: lammps_extract_variable_datatype
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_extract_variable
    :project: progguide
 
@@ -36,3 +41,5 @@ fixes, or variables in LAMMPS using the following functions:
 .. doxygenenum:: _LMP_STYLE_CONST
 
 .. doxygenenum:: _LMP_TYPE_CONST
+
+.. doxygenenum:: _LMP_VAR_CONST

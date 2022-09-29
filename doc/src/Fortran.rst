@@ -10,7 +10,7 @@ written in C, C++, or Fortran.
 While C libraries have a defined binary interface (ABI) and can thus be
 used from multiple compiler versions from different vendors for as long
 as they are compatible with the hosting operating system, the same is
-not true for Fortran codes.  Thus the LAMMPS Fortran module needs to be
+not true for Fortran programs.  Thus, the LAMMPS Fortran module needs to be
 compiled alongside the code using it from the source code in
 ``fortran/lammps.f90``.  When linking, you also need to
 :doc:`link to the LAMMPS library <Build_link>`.  A typical command line
@@ -18,21 +18,21 @@ for a simple program using the Fortran interface would be:
 
 .. code-block:: bash
 
-   mpifort -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
+   mpifort -o testlib.x lammps.f90 testlib.f90 -L. -llammps
 
-Please note, that the MPI compiler wrapper is only required when the
-calling the library from an MPI parallel code.  Otherwise, using the
+Please note that the MPI compiler wrapper is only required when the
+calling the library from an MPI-parallelized program.  Otherwise, using the
 fortran compiler (gfortran, ifort, flang, etc.) will suffice.  It may be
-necessary to link to additional libraries depending on how LAMMPS was
+necessary to link to additional libraries, depending on how LAMMPS was
 configured and whether the LAMMPS library :doc:`was compiled as a static
-or shared library <Build_link>`.
+or dynamic library <Build_link>`.
 
 If the LAMMPS library itself has been compiled with MPI support, the
 resulting executable will still be able to run LAMMPS in parallel with
-``mpirun`` or equivalent.  Please also note that the order of the source
+``mpiexec`` or equivalent.  Please also note that the order of the source
 files matters: the ``lammps.f90`` file needs to be compiled first, since
 it provides the ``LIBLAMMPS`` module that is imported by the Fortran
-code using the interface.  A working example code can be found together
+code that uses the interface.  A working example can be found together
 with equivalent examples in C and C++ in the ``examples/COUPLE/simple``
 folder of the LAMMPS distribution.
 
@@ -62,31 +62,31 @@ Creating or deleting a LAMMPS object
 With the Fortran interface, the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructor for
 creating the :f:func:`lammps` derived type.  To import the definition of
-that type and its type bound procedures, you need to add a ``USE
-LIBLAMMPS`` statement.  Internally it will call either
+that type and its type-bound procedures, you need to add a ``USE
+LIBLAMMPS`` statement.  Internally, it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are
-optional and :cpp:func:`lammps_mpi_init` will be called automatically,
+optional and :cpp:func:`lammps_mpi_init` will be called automatically
 if it is needed.  Similarly, a possible call to
 :cpp:func:`lammps_mpi_finalize` is integrated into the :f:func:`close`
 function and triggered with the optional logical argument set to
-``.true.``. Here is a simple example:
+``.TRUE.``. Here is a simple example:
 
 .. code-block:: fortran
 
    PROGRAM testlib
      USE LIBLAMMPS                 ! include the LAMMPS library interface
      IMPLICIT NONE
-     TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
-     CHARACTER(len=*), PARAMETER :: args(3) = &
-         [ CHARACTER(len=12) :: 'liblammps', '-log', 'none' ]
+     TYPE(lammps) :: lmp           ! derived type to hold LAMMPS instance
+     CHARACTER(LEN=*), PARAMETER :: args(3) = &
+         [ CHARACTER(LEN=12) :: 'liblammps', '-log', 'none' ]
 
      ! create a LAMMPS instance (and initialize MPI)
      lmp = lammps(args)
      ! get and print numerical version code
      PRINT*, 'LAMMPS Version: ', lmp%version()
-     ! delete LAMMPS instance (and shuts down MPI)
-     CALL lmp%close(.true.)
+     ! delete LAMMPS instance (and shutdown MPI)
+     CALL lmp%close(.TRUE.)
    END PROGRAM testlib
 
 It is also possible to pass command line flags from Fortran to C/C++ and
@@ -102,8 +102,8 @@ version of the previous example:
    PROGRAM testlib2
      USE LIBLAMMPS                 ! include the LAMMPS library interface
      IMPLICIT NONE
-     TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
-     CHARACTER(len=128), ALLOCATABLE :: command_args(:)
+     TYPE(lammps) :: lmp           ! derived type to hold LAMMPS instance
+     CHARACTER(LEN=128), ALLOCATABLE :: command_args(:)
      INTEGER :: i, argc
 
      ! copy command line flags to `command_args()`
@@ -131,9 +131,9 @@ Executing LAMMPS commands
 Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
 simulation by telling LAMMPS to read commands from a file or to pass
 individual or multiple commands from strings or lists of strings.  This
-is done similarly to how it is implemented in the :doc:`C-library
+is done similarly to how it is implemented in the :doc:`C library
 interface <Library_execute>`. Before handing off the calls to the
-C-library interface, the corresponding Fortran versions of the calls
+C library interface, the corresponding Fortran versions of the calls
 (:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
 :f:func:`commands_string`) have to make a copy of the strings passed as
 arguments so that they can be modified to be compatible with the
@@ -157,9 +157,9 @@ Below is a small demonstration of the uses of the different functions:
      ! define 10 groups of 10 atoms each
      ALLOCATE(cmdlist(10))
      DO i=1, 10
-         WRITE(trimmed,'(I10)') 10*i
-         WRITE(cmdlist(i),'(A,I1,A,I10,A,A)')       &
-             'group g', i-1, ' id ', 10*(i-1)+1, ':', ADJUSTL(trimmed)
+       WRITE(trimmed,'(I10)') 10*i
+       WRITE(cmdlist(i),'(A,I1,A,I10,A,A)')       &
+           'group g', i-1, ' id ', 10*(i-1)+1, ':', ADJUSTL(trimmed)
      END DO
      CALL lmp%commands_list(cmdlist)
      ! run multiple commands from multi-line string
@@ -176,13 +176,13 @@ Below is a small demonstration of the uses of the different functions:
 Accessing system properties
 ***************************
 
-The C-library interface allows the :doc:`extraction of different kinds
+The C library interface allows the :doc:`extraction of different kinds
 of information <Library_properties>` about the active simulation
-instance and also - in some cases - to apply modifications to it.  In
-some cases, the C-library interface makes pointers to internal data
-structures accessible, thus when accessing them from Fortran, special
-care is needed to avoid data corruption and crashes.  Thus please see
-the documentation of the individual type bound procedures for details.
+instance and also---in some cases---to apply modifications to it.  In
+some cases, the C library interface makes pointers to internal data
+structures accessible; when accessing them through the library interfaces, 
+special care is needed to avoid data corruption and crashes.  Please see
+the documentation of the individual type-bound procedures for details.
 
 Below is an example demonstrating some of the possible uses.
 
@@ -191,35 +191,36 @@ Below is an example demonstrating some of the possible uses.
   PROGRAM testprop
     USE LIBLAMMPS
     USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int64_t
-    TYPE(lammps)     :: lmp
-    INTEGER(kind=8)  :: natoms
-    REAL(c_double), POINTER :: dt
-    INTEGER(c_int64_t), POINTER :: ntimestep
-    REAL(kind=8) :: pe, ke
+    USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
+    TYPE(lammps) :: lmp
+    INTEGER(KIND=c_int64_t) :: natoms
+    REAL(KIND=c_double), POINTER :: dt
+    INTEGER(KIND=c_int64_t), POINTER :: ntimestep
+    REAL(KIND=c_double) :: pe, ke
 
     lmp = lammps()
     CALL lmp%file('in.sysinit')
-    natoms = INT(lmp%get_natoms(),8)
-    WRITE(6,'(A,I8,A)') 'Running a simulation with', natoms, ' atoms'
-    WRITE(6,'(I8,A,I8,A,I3,A)') lmp%extract_setting('nlocal'), ' local and', &
-        lmp%extract_setting('nghost'), ' ghost atom. ',                      &
+    natoms = lmp%extract_setting('natoms')
+    WRITE(OUTPUT_UNIT,'(A,I8,A)') 'Running a simulation with', natoms, ' atoms'
+    WRITE(OUTPUT_UNIT,'(I8,A,I8,A,I3,A)') lmp%extract_setting('nlocal'), &
+        ' local and', lmp%extract_setting('nghost'), ' ghost atom. ', &
         lmp%extract_setting('ntypes'), ' atom types'
 
     CALL lmp%command('run 2 post no')
     dt = lmp%extract_global('dt')
     ntimestep = lmp%extract_global('ntimestep')
-    WRITE(6,'(A,I4,A,F4.1,A)') 'At step:', ntimestep, '  Changing timestep from', dt, ' to 0.5'
-    dt = 0.5
+    WRITE(OUTPUT_UNIT,'(A,I4,A,F4.1,A)') 'At step:', ntimestep, &
+        '  Changing timestep from', dt, ' to 0.5'
+    dt = 0.5_c_double
     CALL lmp%command('run 2 post no')
 
-    WRITE(6,'(A,I4)') 'At step:', ntimestep
+    WRITE(OUTPUT_UNIT,'(A,I0)') 'At step:', ntimestep
     pe = lmp%get_thermo('pe')
     ke = lmp%get_thermo('ke')
     PRINT*, 'PE = ', pe
     PRINT*, 'KE = ', ke
 
     CALL lmp%close(.TRUE.)
-
   END PROGRAM testprop
 
 ---------------
@@ -237,6 +238,8 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    class instance that any of the included calls are forwarded to.
 
    :f c_ptr handle: reference to the LAMMPS class
+   :f type(lammps_style) style: derived type to access lammps style constants
+   :f type(lammps_type) type: derived type to access lammps type constants
    :f subroutine close: :f:func:`close`
    :f subroutine error: :f:func:`error`
    :f subroutine file: :f:func:`file`
@@ -248,10 +251,18 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f subroutine extract_box: :f:func:`extract_box`
    :f subroutine reset_box: :f:func:`reset_box`
    :f subroutine memory_usage: :f:func:`memory_usage`
+   :f function get_mpi_comm: :f:func:`get_mpi_comm`
    :f function extract_setting: :f:func:`extract_setting`
    :f function extract_global: :f:func:`extract_global`
+   :f function extract_atom: :f:func:`extract_atom`
+   :f function extract_compute: :f:func:`extract_compute`
+   :f function extract_fix: :f:func:`extract_fix`
+   :f function extract_variable: :f:func:`extract_variable`
    :f function version: :f:func:`version`
+   :f subroutine flush_buffers: :f:func:`flush_buffers`
    :f function is_running: :f:func:`is_running`
+   :f function has_error: :f:func:`has_error`
+   :f subroutine get_last_error_message: :f:func:`get_last_error_message`
 
 --------
 
@@ -290,6 +301,24 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
            lmp = lammps(MPI_COMM_SELF%MPI_VAL)
          END PROGRAM testmpi
 
+.. f:type:: lammps_style
+
+   This derived type is there to provide a convenient interface for the style
+   constants used with :f:func:`extract_compute`, :f:func:`extract_fix`, and
+   :f:func:`extract_variable`. Assuming your LAMMPS instance is called ``lmp``,
+   these constants will be ``lmp%style%global``, ``lmp%style%atom``,
+   and ``lmp%style%local``. These values are identical to the values described
+   in :cpp:enum:`_LMP_STYLE_CONST` for the C library interface.
+
+.. f:type:: lammps_type
+
+   This derived type is there to provide a convenient interface for the type
+   constants used with :f:func:`extract_compute`, :f:func:`extract_fix`, and
+   :f:func:`extract_variable`. Assuming your LAMMPS instance is called ``lmp``,
+   these constants will be ``lmp%type%scalar``, ``lmp%type%vector``, and
+   ``lmp%type%array``. These values are identical to the values described
+   in :cpp:enum:`_LMP_TYPE_CONST` for the C library interface.
+
 Procedures Bound to the lammps Derived Type
 ===========================================
 
@@ -301,7 +330,7 @@ Procedures Bound to the lammps Derived Type
    :cpp:func:`lammps_mpi_finalize`.
 
    :o logical finalize [optional]: shut down the MPI environment of the LAMMPS
-    library if true.
+    library if ``.TRUE.``.
 
 --------
 
@@ -571,6 +600,8 @@ Procedures Bound to the lammps Derived Type
    LAMMPS data tied to the :cpp:class:`Atom` class, depending on the data
    requested through *name*.
 
+   .. versionadded:: TBD
+
    Note that this function actually does not return a pointer, but rather
    associates the pointer on the left side of the assignment to point
    to internal LAMMPS data. Pointers must be of the correct type, kind, and
@@ -644,6 +675,8 @@ Procedures Bound to the lammps Derived Type
    array. Since computes may provide multiple kinds of data, the user is
    required to specify which set of data is to be returned through the
    *style* and *type* variables.
+
+   .. versionadded:: TBD
 
    Note that this function actually does not return a value, but rather
    associates the pointer on the left side of the assignment to point to
@@ -719,6 +752,11 @@ Procedures Bound to the lammps Derived Type
     (global, per-atom, or local)
    :p integer(c_int) type: value indicating the type of data to extract
     (scalar, vector, or array)
+   :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
+    should be a C-compatible pointer (e.g., ``REAL (C_double), POINTER :: x``)
+    to the extracted property. If expecting vector data, the pointer should
+    have dimension ":"; if expecting array (matrix) data, the pointer should
+    have dimension ":,:".
 
    .. note::
 
@@ -738,9 +776,220 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
+.. f:function:: extract_fix(id, style, type, [nrow,] [ncol])
+
+   This function calls :c:func:`lammps_extract_fix` and returns a pointer to
+   LAMMPS data tied to the :cpp:class:`Fix` class, specifically data provided
+   by the fix identified by *id*. Fixes may provide global, per-atom, or
+   local data, and those data may be a scalar, a vector, or an array. Since
+   many fixes provide multiple kinds of data, the user is required to specify
+   which set of data is to be returned through the *style* and *type*
+   variables.
+
+   .. versionadded:: TBD
+
+   Global data are calculated at the time they are requested and are only
+   available element-by-element. As such, the user is expected to provide
+   the *nrow* variable to specify which element of a global vector or the
+   *nrow* and *ncol* variables to specify which element of a global array the
+   user wishes LAMMPS to return. The *ncol* variable is optional for global
+   scalar or vector data, and both *nrow* and *ncol* are optional when a
+   global scalar is requested, as well as when per-atom or local data are
+   requested.
+
+   In the case of global data, this function returns a value of type
+   ``real(C_double)``. For per-atom or local data, this function does not
+   return a value but instead associates the pointer on the left side of the
+   assignment to point to internal LAMMPS data. Pointers must be of the correct
+   data type to point to said data (i.e., ``REAL(c_double)``) and have
+   compatible rank.  The pointer being associated with LAMMPS data is type-,
+   kind-, and rank-checked at run-time via an overloaded assignment operator.
+
+   For example,
+
+   .. code-block:: Fortran
+
+      TYPE(lammps) :: lmp
+      REAL(c_double) :: dr, dx, dy, dz
+      ! more code to set up, etc.
+      lmp%command('fix george all recenter 2 2 2')
+      ! more code
+      dr = lmp%extract_fix("george", lmp%style%global, lmp%style%scalar)
+      dx = lmp%extract_fix("george", lmp%style%global, lmp%style%vector, 1)
+      dy = lmp%extract_fix("george", lmp%style%global, lmp%style%vector, 2)
+      dz = lmp%extract_fix("george", lmp%style%global, lmp%style%vector, 3)
+
+   will extract the global scalar calculated by
+   :doc:`fix recenter <fix_recenter>` into the variable *dr* and the
+   three elements of the global vector calculated by fix recenter into the
+   variables *dx*, *dy*, and *dz*, respectively.
+
+   If asked for per-atom or local data, :f:func:`extract_compute` returns a
+   pointer to actual LAMMPS data. The pointer so returned will have the
+   appropriate size to match the internal data, and will be
+   type/kind/rank-checked at the time of the assignment. For example,
+
+   .. code-block:: Fortran
+
+      TYPE(lammps) :: lmp
+      REAL(c_double), DIMENSION(:), POINTER :: r
+      ! more code to set up, etc.
+      lmp%command('fix state all store/state 0 x y z')
+      ! more code
+      r = lmp%extract_fix('state', lmp%style%atom, lmp%type%array)
+
+   will bind the pointer *r* to internal LAMMPS data representing the per-atom
+   array computed by :doc:`fix store/state <fix_store_state>` when three
+   inputs are specified. Similarly,
+
+   .. code-block:: Fortran
+
+      TYPE(lammps) :: lmp
+      REAL(c_double), DIMENSION(:), POINTER :: x
+      ! more code to set up, etc.
+      lmp%command('fix state all store/state 0 x')
+      ! more code
+      x = lmp%extract_fix('state', lmp%style%atom, lmp%type%vector)
+
+   will associate the pointer *x* with internal LAMMPS data corresponding to
+   the per-atom vector computed by :doc:`fix store/state <fix_store_state>`
+   when only one input is specified. Similar examples with ``lmp%style%atom``
+   replaced by ``lmp%style%local`` will extract local data from fixes that
+   define local vectors and/or arrays.
+
+   .. warning::
+
+      The pointers returned by this function for per-atom or local data are
+      generally not persistent, since the computed data may be redistributed,
+      reallocated, and reordered at every invocation of the fix.  It is thus
+      advisable to reinvoke this function before the data are accessed or to
+      make a copy if the data are to be used after other LAMMPS commands have
+      been issued.
+
+   .. note::
+
+      LAMMPS cannot easily check if it is valid to access the data, so it
+      may fail with an error.  The caller has to avoid such an error.
+
+   :p character(len=\*) id: string with the name of the fix from which
+    to extract data
+   :p integer(c_int) style: value indicating the style of data to extract
+    (global, per-atom, or local)
+   :p integer(c_int) type: value indicating the type of data to extract
+    (scalar, vector, or array)
+   :p integer(c_int) nrow: row index (used only for global vectors and arrays)
+   :p integer(c_int) ncol: column index (only used for global arrays)
+   :r polymorphic: LAMMPS data (for global data) or a pointer to LAMMPS data
+    (for per-atom or local data). The left-hand side of the assignment should
+    be of type ``REAL(C_double)`` and have appropriate rank (i.e.,
+    ``DIMENSION(:)`` if expecting per-atom or local vector data and
+    ``DIMENSION(:,:)`` if expecting per-atom or local array data). If expecting
+    global or per-atom data, it should have the ``POINTER`` attribute.
+
+   .. admonition:: Array index order
+
+      Two-dimensional global, per-atom, or local array data from
+      :f:func:`extract_fix` will be **transposed** from equivalent arrays in
+      C (or in the ordinary LAMMPS interface accessed through thermodynamic
+      output), and they will be indexed from 1, not 0. This is true even for
+      global data, which are returned as scalars---this is done primarily so
+      the interface is consistent, as there is no choice but to transpose the
+      indices for per-atom or local array data. See the similar note under
+      :f:func:`extract_atom` for further details.
+
+--------
+
+.. f:function:: extract_variable(name[,group])
+
+   This function calls :c:func:`lammps_extract_variable` and returns a scalar,
+   vector, or string containing the value of the variable identified by
+   *name*. When the variable is an *equal*-style variable (or one compatible
+   with that style such as *internal*), the variable is evaluated and the
+   corresponding value returned. When the variable is an *atom*-style variable,
+   the variable is evaluated and a vector of values is returned. With all
+   other variables, a string is returned. The *group* argument is only used
+   for *atom* style variables and is ignored otherwise. If *group* is absent
+   for *atom*-style variables, the group is assumed to be "all".
+
+   .. versionadded:: TBD
+
+   This function returns the values of the variables, not pointers to them.
+   Vectors pointing to *atom*-style variables should be of type
+   ``REAL(C_double)``, be of rank 1 (i.e., ``DIMENSION(:)``), and either have
+   the ``ALLOCATABLE`` attribute or be long enough to contain the data without
+   reallocation.
+
+   .. note::
+
+      Unlike the C library interface, the Fortran interface does not require
+      you to deallocate memory when you are through; this is done for you,
+      behind the scenes.
+
+   For example,
+
+   .. code-block:: Fortran
+
+      TYPE(lammps) :: lmp
+      REAL(c_double) :: area
+      ! more code to set up, etc.
+      lmp%command('variable A equal lx*ly')
+      ! more code
+      area = lmp%extract_variable("A")
+
+   will extract the *x*\ --*y* cross-sectional area of the simulation into the
+   variable *area*.
+
+   :p character(len=\*) name: variable name to evaluate
+   :o character(len=\*) group [optional]: group for which to extract per-atom
+    data (if absent, use "all")
+   :r polymorphic: scalar of type ``REAL(C_double)`` (for *equal*-style
+    variables and others that are *equal*-compatible), vector of type
+    ``REAL(C_double), DIMENSION(nlocal)`` for *atom*-style variables, or
+    ``CHARACTER(LEN=:), ALLOCATABLE`` for *string*-style and compatible
+    variables. Non-allocatable strings whose length is too short to hold the
+    result will be truncated.
+
+.. note::
+
+   LAMMPS cannot easily check if it is valid to access the data
+   referenced by the variables (e.g., computes, fixes, or thermodynamic
+   info), so it may fail with an error.  The caller has to make certain
+   that the data are extracted only when it safe to evaluate the variable
+   and thus an error and crash are avoided.
+
+--------
+
 .. f:function:: version()
 
    This method returns the numeric LAMMPS version like
    :cpp:func:`lammps_version` does.
 
    :r integer: LAMMPS version
+
+--------
+
+.. f:subroutine:: flush_buffers
+
+..
+    TODO
+
+--------
+
+.. f:function:: is_running
+
+..
+    TODO
+
+--------
+
+.. f:function:: has_error
+
+..
+    TODO
+
+--------
+
+.. f:subroutine:: get_last_error_message
+
+..
+    TODO

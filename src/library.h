@@ -91,7 +91,7 @@ enum _LMP_ERROR_CONST {
   LMP_ERROR_UNIVERSE = 8 /*!< error on Comm::universe */
 };
 
-/** Variable style constants for extracting data from variables
+/** Variable style constants for extracting data from variables.
  *
  * Must be kept in sync with the equivalent constants in lammps/constants.py
  * and fortran/lammps.f90 */

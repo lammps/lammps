@@ -2068,9 +2068,9 @@ use to avoid a memory leak. Example:
 
 For *atom*\ -style variables the data returned is a pointer to an
 allocated block of storage of double of the length ``atom->nlocal``.
-Since the data is returned a copy, the location will persist, but its
-content will not be updated, in case the variable is re-evaluated.
-To avoid a memory leak this pointer needs to be freed after use in
+Since the data returned are a copy, the location will persist, but its
+content will not be updated in case the variable is re-evaluated.
+To avoid a memory leak, this pointer needs to be freed after use in
 the calling program.
 
 For other variable styles the returned pointer needs to be cast to
@@ -2084,10 +2084,10 @@ a char pointer.
 .. note::
 
    LAMMPS cannot easily check if it is valid to access the data
-   referenced by the variables, e.g. computes or fixes or thermodynamic
-   info, so it may fail with an error.  The caller has to make certain,
-   that the data is extracted only when it safe to evaluate the variable
-   and thus an error and crash is avoided.
+   referenced by the variables (e.g., computes or fixes or thermodynamic
+   info), so it may fail with an error.  The caller has to make certain
+   that the data are extracted only when it safe to evaluate the variable
+   and thus an error or crash are avoided.
 
 \endverbatim
  *
@@ -2130,7 +2130,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
 
 /* ---------------------------------------------------------------------- */
 
-/** Get data type of a LAMMPS variable
+/** Get data type of a LAMMPS variable.
  *
 \verbatim embed:rst
 
@@ -2207,12 +2207,12 @@ int lammps_set_variable(void *handle, char *name, char *str)
      requirement for consecutive atom IDs (1 to N)
    see gather_atoms_concat() to return data for all atoms, unordered
    see gather_atoms_subset() to return data for only a subset of atoms
-   name = desired quantity, e.g. x or charge
+   name = desired quantity (e.g., x or charge)
    type = 0 for integer values, 1 for double values
-   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
      use count = 3 with "image" if want single image flag unpacked into xyz
    return atom-based values in 1d data, ordered by count, then by atom ID
-     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...);
      data must be pre-allocated by caller to correct length
      correct length = count*Natoms, as queried by get_natoms()
    method:
@@ -2344,12 +2344,12 @@ void lammps_gather_atoms(void *handle, char *name, int type, int count, void *da
      can do a gather_atoms_concat for "id" if need to know atom IDs
    see gather_atoms() to return data ordered by consecutive atom IDs
    see gather_atoms_subset() to return data for only a subset of atoms
-   name = desired quantity, e.g. x or charge
+   name = desired quantity (e.g., x or charge)
    type = 0 for integer values, 1 for double values
-   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
      use count = 3 with "image" if want single image flag unpacked into xyz
    return atom-based values in 1d data, ordered by count, then by atom
-     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
      data must be pre-allocated by caller to correct length
      correct length = count*Natoms, as queried by get_natoms()
    method:
@@ -2488,14 +2488,14 @@ void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, v
      no requirement for consecutive atom IDs (1 to N)
    see gather_atoms() to return data for all atoms, ordered by consecutive IDs
    see gather_atoms_concat() to return data for all atoms, unordered
-   name = desired quantity, e.g. x or charge
+   name = desired quantity (e.g., x or charge)
    type = 0 for integer values, 1 for double values
-   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
      use count = 3 with "image" if want single image flag unpacked into xyz
    ndata = # of atoms to return data for (could be all atoms)
    ids = list of Ndata atom IDs to return data for
    return atom-based values in 1d data, ordered by count, then by atom
-     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
      data must be pre-allocated by caller to correct length
      correct length = count*Ndata
    method:
@@ -2632,12 +2632,12 @@ void lammps_gather_atoms_subset(void *handle, char *name, int type, int count,
    data is ordered by atom ID
      requirement for consecutive atom IDs (1 to N)
    see scatter_atoms_subset() to scatter data for some (or all) atoms, unordered
-   name = desired quantity, e.g. x or charge
+   name = desired quantity (e.g., x or charge)
    type = 0 for integer values, 1 for double values
-   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
      use count = 3 with "image" for xyz to be packed into single image flag
    data = atom-based values in 1d data, ordered by count, then by atom ID
-     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
      data must be correct length = count*Natoms, as queried by get_natoms()
    method:
      loop over Natoms, if I own atom ID, set its values from data
@@ -2748,14 +2748,14 @@ void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *d
    data is ordered by provided atom IDs
      no requirement for consecutive atom IDs (1 to N)
    see scatter_atoms() to scatter data for all atoms, ordered by consecutive IDs
-   name = desired quantity, e.g. x or charge
+   name = desired quantity (e.g., x or charge)
    type = 0 for integer values, 1 for double values
-   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
      use count = 3 with "image" for xyz to be packed into single image flag
    ndata = # of atoms in ids and data (could be all atoms)
    ids = list of Ndata atom IDs to scatter data to
    data = atom-based values in 1d data, ordered by count, then by atom ID
-     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
      data must be correct length = count*Ndata
    method:
      loop over Ndata, if I own atom ID, set its values from data
@@ -2992,10 +2992,10 @@ void lammps_gather_bonds(void *handle, void *data)
          "d2_name" or "i2_name" for fix property/atom arrays with count > 1
          will return error if fix/compute isn't atom-based
   type = 0 for integer values, 1 for double values
-  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+  count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
     use count = 3 with "image" if want single image flag unpacked into xyz
   return atom-based values in 1d data, ordered by count, then by atom ID
-    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
     data must be pre-allocated by caller to correct length
     correct length = count*Natoms, as queried by get_natoms()
   method:
@@ -3227,10 +3227,10 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
          "d2_name" or "i2_name" for fix property/atom arrays with count > 1
          will return error if fix/compute isn't atom-based
   type = 0 for integer values, 1 for double values
-  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+  count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
     use count = 3 with "image" if want single image flag unpacked into xyz
   return atom-based values in 1d data, ordered by count, then by atom ID
-    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
     data must be pre-allocated by caller to correct length
     correct length = count*Natoms, as queried by get_natoms()
   method:
@@ -3479,10 +3479,10 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
          "d2_name" or "i2_name" for fix property/atom arrays with count > 1
          will return error if fix/compute isn't atom-based
   type = 0 for integer values, 1 for double values
-  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+  count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
     use count = 3 with "image" if want single image flag unpacked into xyz
   return atom-based values in 1d data, ordered by count, then by atom ID
-    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
     data must be pre-allocated by caller to correct length
     correct length = count*Natoms, as queried by get_natoms()
   method:
@@ -3727,10 +3727,10 @@ void lammps_gather_subset(void *handle, char *name,
          "d2_name" or "i2_name" for fix property/atom arrays with count > 1
          will return error if fix/compute isn't atom-based
   type = 0 for integer values, 1 for double values
-  count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+  count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
     use count = 3 with "image" if want single image flag unpacked into xyz
   return atom-based values in 1d data, ordered by count, then by atom ID
-    e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+    (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
     data must be pre-allocated by caller to correct length
     correct length = count*Natoms, as queried by get_natoms()
   method:
@@ -3945,12 +3945,12 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
           "f_fix", "c_compute" for fixes / computes
           will return error if fix/compute doesn't isn't atom-based
    type = 0 for integer values, 1 for double values
-   count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
+   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
      use count = 3 with "image" for xyz to be packed into single image flag
    ndata = # of atoms in ids and data (could be all atoms)
    ids = list of Ndata atom IDs to scatter data to
    data = atom-based values in 1d data, ordered by count, then by atom ID
-     e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
+     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
      data must be correct length = count*Ndata
    method:
      loop over Ndata, if I own atom ID, set its values from data
@@ -4193,8 +4193,8 @@ boundaries atoms will be wrapped back into the simulation cell and its
 image flags adjusted accordingly, unless explicit image flags are
 provided.
 
-The function returns the number of atoms created or -1 on failure, e.g.
-when called before as box has been created.
+The function returns the number of atoms created or -1 on failure (e.g.,
+when called before as box has been created).
 
 Coordinates and velocities have to be given in a 1d-array in the order
 X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
@@ -4552,7 +4552,7 @@ int lammps_config_has_mpi_support()
  * files via a pipe to gzip or similar compression programs
 
 \verbatim embed:rst
-Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
+Several LAMMPS commands (e.g., :doc:`read_data`, :doc:`write_data`,
 :doc:`dump styles atom, custom, and xyz <dump>`) support reading and
 writing compressed files via creating a pipe to the ``gzip`` program.
 This function checks whether this feature was :ref:`enabled at compile
@@ -5224,8 +5224,8 @@ data structures can change as well as the order of atom as they migrate
 between MPI processes because of the domain decomposition
 parallelization, this function should be always called immediately
 before the forces are going to be set to get an up-to-date pointer.
- You can use e.g. :cpp:func:`lammps_get_natoms` to obtain the number
-of local atoms `nlocal` and then assume the dimensions of the returned
+You can use, for example, :cpp:func:`lammps_extract_setting` to obtain the
+number of local atoms `nlocal` and then assume the dimensions of the returned
 force array as ``double force[nlocal][3]``.
 
 This is an alternative to the callback mechanism in fix external set up by
@@ -5511,7 +5511,7 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to set the values of a global vector of
 properties that will be stored with the fix.  And can be accessed from
-within LAMMPS input commands (e.g. fix ave/time or variables) when used
+within LAMMPS input commands (e.g., fix ave/time or variables) when used
 in a vector context.
 
 This function needs to be called **after** a call to

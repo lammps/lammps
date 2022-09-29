@@ -118,15 +118,19 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
 template <class mat_type, class copy_type>
 inline int _host_view(mat_type &mat, copy_type &cm, const size_t o,
                       const size_t n) {
-  cl_int error_flag;
-  cl_buffer_region subbuffer;
-  subbuffer.origin = o;
-  subbuffer.size = n;
-  mat.cbegin()=clCreateSubBuffer(cm.cbegin(), 0,
-                                 CL_BUFFER_CREATE_TYPE_REGION, &subbuffer,
-                                 &error_flag);
-
-  CL_CHECK_ERR(error_flag);
+  // When viewing outside host allocation with discrete main memory on accelerator,
+  // no cl_buffer object is created to avoid unnecessary creation of device allocs
+  if (cm.shared_mem_device()) {
+    cl_int error_flag;
+    cl_buffer_region subbuffer;
+    subbuffer.origin = o;
+    subbuffer.size = n;
+    mat.cbegin()=clCreateSubBuffer(cm.cbegin(), 0,
+                                   CL_BUFFER_CREATE_TYPE_REGION, &subbuffer,
+                                   &error_flag);
+    CL_CHECK_ERR(error_flag);
+  } else
+    mat.cbegin()=(cl_mem)0;
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;
 }
@@ -170,10 +174,13 @@ inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
 
 template <class mat_type>
 inline int _host_view(mat_type &mat, UCL_Device &dev, const size_t n) {
-  cl_int error_flag;
-  mat.cbegin()=clCreateBuffer(dev.context(), CL_MEM_USE_HOST_PTR,
-                              n,*mat.host_ptr(),&error_flag);
-  CL_CHECK_ERR(error_flag);
+  if (mat.shared_mem_device()) {
+    cl_int error_flag;
+    mat.cbegin()=clCreateBuffer(dev.context(), CL_MEM_USE_HOST_PTR,
+                                n,*mat.host_ptr(),&error_flag);
+    CL_CHECK_ERR(error_flag);
+  } else
+    mat.cbegin()=(cl_mem)0;
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;
 }
@@ -181,7 +188,10 @@ inline int _host_view(mat_type &mat, UCL_Device &dev, const size_t n) {
 template <class mat_type>
 inline void _host_free(mat_type &mat) {
   if (mat.cols()>0) {
-    CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
+    // When viewing outside host allocation with discrete main memory on accelerator,
+    // no cl_buffer object is created to avoid unnecessary creation of device allocs
+    if (mat.cbegin()!=(cl_mem)(0))
+      CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
     CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
   }
 }

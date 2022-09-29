@@ -39,7 +39,7 @@ toolkit software on your system (this is only tested on Linux
 and unsupported on Windows):
 
 * Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/\*/information
-* Go to http://www.nvidia.com/object/cuda_get.html
+* Go to https://developer.nvidia.com/cuda-downloads
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
 * Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
   list supported devices and properties

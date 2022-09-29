@@ -480,7 +480,7 @@ style.
 ----------
 
 Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
-can be read directly by `VMD <http://www.ks.uiuc.edu/Research/vmd>`_, a
+can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_, a
 popular molecular viewing program.
 
 ----------

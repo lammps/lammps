@@ -16,17 +16,17 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "bond_class2.h"
 
-#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
 #include "force.h"
-#include "pair.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

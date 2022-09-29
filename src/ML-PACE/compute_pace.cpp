@@ -38,7 +38,6 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   paceall(nullptr), pace_peratom(nullptr),
   basis_set(nullptr), ace(nullptr), map(nullptr), cg(nullptr)
 {
-
   array_flag = 1;
   extarray = 0;
   bikflag = 0;
@@ -54,40 +53,53 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   if (dgradflag && !bikflag)
     error->all(FLERR,"Illegal compute pace command: dgradflag=1 requires bikflag=1");
 
-
+  // map[i] = which element the Ith atom type is, -1 if not mapped
+  // map[0] is not used
   memory->create(map,ntypes+1,"pace:map");
+  for (int i=0; i<ntypes; i++){
+    map[i+1] = i+1;
+  }
 
   //read in file with CG coefficients or c_tilde coefficients
   basis_set = new ACECTildeBasisSet(arg[3]);
   double cut = basis_set->cutoffmax;
-  double cutmax = basis_set->cutoffmax;
+  cutmax = basis_set->cutoffmax;
   double cuti;
   double radelemall = 0.5;
+  /*
   memory->create(cutsq,ntypes+1,ntypes+1,"pace:cutsq");
+  printf("----- looping over ntypes\n");
   for (int i = 1; i <= ntypes; i++) {
+    printf("----- map[%d]: %d\n", i, map[i]);
     cuti = basis_set->radial_functions->cut(map[i], map[i]);
     if (cuti > cutmax) cutmax = cuti;
     cutsq[i][i] = cuti*cuti;
     for (int j = i+1; j <= ntypes; j++) {
+      //printf("----- j: %d\n", j);
+      printf("----- map[%d]: %d\n", j, map[j]);
       cuti = basis_set->radial_functions->cut(map[i], map[j]);
       cutsq[i][j] = cutsq[j][i] = cuti*cuti;
     }
   }
+  printf("----- looped over ntypes\n");
+  */
   //# of rank 1, rank > 1 functions
   int n_r1, n_rp = 0;
   n_r1 = basis_set->total_basis_size_rank1[0];
   n_rp = basis_set->total_basis_size[0];
 
   int ncoeff = n_r1 + n_rp;
-  int nvalues = ncoeff;
+  //int nvalues = ncoeff;
+  nvalues = ncoeff;
 
   //-----------------------------------------------------------
-  nperdim = ncoeff;
+  //nperdim = ncoeff;
+
   ndims_force = 3;
   ndims_virial = 6;
   bik_rows = 1;
-  yoffset = nperdim;
-  zoffset = 2*nperdim;
+  yoffset = nvalues; //nperdim;
+  zoffset = 2*nvalues; //nperdim;
   natoms = atom->natoms;
   if (bikflag) bik_rows = natoms;
     dgrad_rows = ndims_force*natoms;
@@ -101,7 +113,7 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   lastcol = size_array_cols-1;
 
   ndims_peratom = ndims_force;
-  size_peratom = ndims_peratom*nperdim*atom->ntypes;
+  size_peratom = ndims_peratom*nvalues*atom->ntypes;
 
   nmax = 0;
 }
@@ -123,8 +135,13 @@ void ComputePACE::init()
 {
   if (force->pair == nullptr)
     error->all(FLERR,"Compute pace requires a pair style be defined");
+
+  printf("----- cutoffmax: %f\n", cutmax);
   if (cutmax > force->pair->cutforce)
     error->all(FLERR,"Compute pace cutoff is longer than pairwise cutoff");
+
+  //if (basis_set->cutoffmax > force->pair->cutforce)
+  //  error->all(FLERR,"Compute pace cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
@@ -249,8 +266,8 @@ void ComputePACE::compute_array()
       const int itype = type[i];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
-      const int typeoffset_local = ndims_peratom*nperdim*(itype-1);
-      const int typeoffset_global = nperdim*(itype-1);
+      const int typeoffset_local = ndims_peratom*nvalues*(itype-1);
+      const int typeoffset_global = nvalues*(itype-1);
 
       ace = new ACECTildeEvaluator(*basis_set);
       int n_r1, n_rp = 0;
@@ -369,9 +386,9 @@ void ComputePACE::compute_array()
   // accumulate force contributions to global array
   if (!dgradflag){
     for (int itype = 0; itype < atom->ntypes; itype++) {
-      const int typeoffset_local = ndims_peratom*nperdim*itype;
-      const int typeoffset_global = nperdim*itype;
-      for (int icoeff = 0; icoeff < nperdim; icoeff++) {
+      const int typeoffset_local = ndims_peratom*nvalues*itype;
+      const int typeoffset_global = nvalues*itype;
+      for (int icoeff = 0; icoeff < nvalues; icoeff++) {
         for (int i = 0; i < ntotal; i++) {
           double *pacedi = pace_peratom[i]+typeoffset_local;
           int iglobal = atom->tag[i];
@@ -462,7 +479,7 @@ void ComputePACE::dbdotr_compute()
       const int typeoffset_local = ndims_peratom*nvalues*itype;
       const int typeoffset_global = nvalues*itype;
       double *pacedi = pace_peratom[i]+typeoffset_local;
-      for (int icoeff = 0; icoeff < nperdim; icoeff++) {
+      for (int icoeff = 0; icoeff < nvalues; icoeff++) {
         double dbdx = pacedi[icoeff];
         double dbdy = pacedi[icoeff+yoffset];
         double dbdz = pacedi[icoeff+zoffset];

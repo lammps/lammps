@@ -219,7 +219,7 @@ TEST_F(VariableTest, CreateDelete)
     TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
                  command("variable ten4   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
-                 command("variable ten11  format    two \"%08f\""););
+                 command("variable ten11  format    two \"%08x\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
                  command("variable ten@12  index    one two three"););
     TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",
@@ -281,7 +281,7 @@ TEST_F(VariableTest, AtomicSystem)
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
-                 command("variable one vector f_press"););
+                 command("variable id vector f_press"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
     TEST_FAILURE(".*ERROR: Variable loop: has a circular dependency.*",
@@ -637,6 +637,40 @@ TEST_F(VariableTest, Label2TypeMolecular)
     ASSERT_THAT(variable->retrieve("a2"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("d1"), StrEq("1"));
     ASSERT_THAT(variable->retrieve("i1"), StrEq("1"));
+}
+
+TEST_F(VariableTest, Format)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("variable idx    index    -0.625");
+    command("variable one    equal    -0.625");
+    command("variable two    equal     1.0e-20");
+    command("variable f1idx   format    idx \"%8.4f\"");
+    command("variable f1one   format    one \"%8.4f\"");
+    command("variable f1two   format    two \"%8.4f\"");
+    command("variable f2one   format    one \"%.2F\"");
+    command("variable f2two   format    two \"% .25F\"");
+    command("variable f3one   format    one \"%5f\"");
+    command("variable f3two   format    two \"%f\"");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("one"), StrEq("-0.625"));
+    EXPECT_THAT(variable->retrieve("two"), StrEq("1e-20"));
+    EXPECT_EQ(variable->retrieve("f1idx"), nullptr); // cannot format index style variables
+    EXPECT_THAT(variable->retrieve("f1one"), StrEq(" -0.6250"));
+    EXPECT_THAT(variable->retrieve("f1two"), StrEq("  0.0000"));
+    EXPECT_THAT(variable->retrieve("f2one"), StrEq("-0.62"));
+    EXPECT_THAT(variable->retrieve("f2two"), StrEq(" 0.0000000000000000000100000"));
+    EXPECT_THAT(variable->retrieve("f3one"), StrEq("-0.625000"));
+    EXPECT_THAT(variable->retrieve("f3two"), StrEq("0.000000"));
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable f1one   format    one \"%-8.4f\"");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("f1one"), StrEq("-0.6250 "));
+
+    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable xxx format \"xxx\""););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable f2one equal 0.5"););
 }
 } // namespace LAMMPS_NS
 

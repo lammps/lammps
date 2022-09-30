@@ -1,8 +1,8 @@
 hello
-god dag
+god_dag
 hola
 bonjour
-guten Tag
+guten_Tag
 konnichiwa
 shalom
 salve

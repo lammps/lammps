@@ -29,18 +29,42 @@ CONTAINS
   FUNCTION absolute_path(filename)
     CHARACTER(LEN=:), ALLOCATABLE :: absolute_path
     CHARACTER(LEN=*), INTENT(IN) :: filename
-    CHARACTER(LEN=:), ALLOCATABLE :: test_input_directory
+    CHARACTER(LEN=256) :: test_input_directory
 
-print *, 'GOT HERE! filename is ', filename
     test_input_directory = lmp%extract_variable('input_dir')
-print *, '          test_input_directory is ', test_input_directory
-    absolute_path = test_input_directory // '/' // TRIM(filename)
+    absolute_path = TRIM(test_input_directory) // '/' // TRIM(filename)
   END FUNCTION absolute_path
+
+  FUNCTION f2c_string(f_string) RESULT(ptr)
+    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_char, c_ptr, c_size_t, &
+      c_null_char, C_F_POINTER
+    CHARACTER(LEN=*), INTENT(IN)           :: f_string
+    CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
+    TYPE(c_ptr) :: ptr
+    INTEGER(c_size_t) :: i, n
+
+    INTERFACE
+      FUNCTION lammps_malloc(size) BIND(C, name='malloc')
+        IMPORT :: c_ptr, c_size_t
+        IMPLICIT NONE
+        INTEGER(c_size_t), VALUE :: size
+        TYPE(c_ptr) :: lammps_malloc
+      END FUNCTION lammps_malloc
+    END INTERFACE
+
+    n = LEN_TRIM(f_string)
+    ptr = lammps_malloc(n+1)
+    CALL C_F_POINTER(ptr, c_string, [1])
+    DO i=1, n
+        c_string(i) = f_string(i:i)
+    END DO
+    c_string(n+1) = c_null_char
+  END FUNCTION f2c_string
 
 END MODULE keepvar
 
 FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
-  USE ISO_C_BINDING, ONLY: c_ptr, c_char, c_int, c_size_t, c_f_pointer
+  USE ISO_C_BINDING, ONLY: c_ptr, c_char, c_int, c_size_t, C_F_POINTER
   USE liblammps
   USE keepvar, ONLY: lmp
   IMPLICIT NONE
@@ -87,33 +111,36 @@ SUBROUTINE f_lammps_close() BIND(C)
 END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_setup_extract_variable () BIND(C)
-   USE LIBLAMMPS
-   USE keepvar, ONLY : lmp, demo_input, cont_input, pair_input, absolute_path
-   IMPLICIT NONE
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, demo_input, cont_input, pair_input, absolute_path
+  IMPLICIT NONE
 
-   CALL lmp%commands_list(demo_input)
-   CALL lmp%commands_list(cont_input)
-   CALL lmp%commands_list(pair_input)
-   CALL lmp%command('variable idx index "hello" "goodbye"')
-   CALL lmp%command('variable lp loop 10')
-   CALL lmp%command('variable lp_pad loop 10 pad')
-   !CALL lmp%command('variable wld world "group1" "group2" "group3"')
-   CALL lmp%command('variable wld world "group1"')
-   CALL lmp%command('variable uni universe "universe1" "universeA"')
-   CALL lmp%command('variable ulp uloop 2')
-   CALL lmp%command('variable str index "this is a string"')
-   CALL lmp%command('variable fmt format lp %.6G')
-   CALL lmp%command('variable fmt_pad format lp %0.6g')
-   CALL lmp%command('variable shell getenv SHELL')
-!   CALL lmp%command('variable greet file ' // absolute_path('greetings.txt'))
-!   CALL lmp%command('variable atfile atomfile ' // absolute_path('atomdata.txt')
-   IF ( lmp%config_has_package('PYTHON') ) THEN
-      CALL lmp%command('variable py python square_it')
-   END IF
-   CALL lmp%command('variable time timer')
-   CALL lmp%command('variable int internal 4')
-   CALL lmp%command("variable nat equal count(all)")
-   CALL lmp%command("variable ts equal step")
+  CALL lmp%command('atom_modify map array')
+  CALL lmp%commands_list(demo_input)
+  CALL lmp%commands_list(cont_input)
+  CALL lmp%commands_list(pair_input)
+  CALL lmp%command('variable idx index "hello" "goodbye"')
+  CALL lmp%command('variable lp loop 10')
+  CALL lmp%command('variable lp_pad loop 10 pad')
+  CALL lmp%command('variable wld world "group1"')
+  CALL lmp%command('variable uni universe "universe1" "universeA"')
+  CALL lmp%command('variable ulp uloop 2')
+  CALL lmp%command('variable str string "this is a string"')
+  CALL lmp%command('variable ex equal exp(v_lp)')
+  CALL lmp%command('variable fmt format ex %.6G')
+  CALL lmp%command('variable fmt_pad format ex %08.6g')
+  ! USERNAME should exist on all platforms (incl. Windows)
+  CALL lmp%command('variable username getenv USERNAME')
+  CALL lmp%command('variable greeting file ' // absolute_path('greetings.txt'))
+  CALL lmp%command('variable atfile atomfile ' &
+    // absolute_path('atomdata.txt'))
+  IF ( lmp%config_has_package('PYTHON') ) THEN
+     CALL lmp%command('variable py python square_it')
+  END IF
+  CALL lmp%command('variable time timer')
+  CALL lmp%command('variable int internal 4')
+  CALL lmp%command("variable nat equal count(all)")
+  CALL lmp%command("variable ts equal step")
 END SUBROUTINE f_lammps_setup_extract_variable
 
 FUNCTION f_lammps_extract_variable_index_1 () BIND(C)
@@ -159,3 +186,128 @@ FUNCTION f_lammps_extract_variable_loop () BIND(C)
   loop = lmp%extract_variable('lp')
   READ(loop,*) f_lammps_extract_variable_loop
 END FUNCTION f_lammps_extract_variable_loop
+
+FUNCTION f_lammps_extract_variable_loop_pad () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_loop_pad
+  CHARACTER(LEN=20) :: loop
+
+  loop = lmp%extract_variable('lp_pad')
+  f_lammps_extract_variable_loop_pad = f2c_string(loop)
+END FUNCTION f_lammps_extract_variable_loop_pad
+
+FUNCTION f_lammps_extract_variable_world () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_world
+  CHARACTER(LEN=20) :: world
+
+  world = lmp%extract_variable('wld')
+  f_lammps_extract_variable_world = f2c_string(world)
+END FUNCTION f_lammps_extract_variable_world
+
+FUNCTION f_lammps_extract_variable_universe () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_universe
+  CHARACTER(LEN=20) :: universe
+
+  universe = lmp%extract_variable('uni')
+  f_lammps_extract_variable_universe = f2c_string(universe)
+END FUNCTION f_lammps_extract_variable_universe
+
+FUNCTION f_lammps_extract_variable_uloop () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int) :: f_lammps_extract_variable_uloop
+  CHARACTER(LEN=80) :: uloop
+
+  uloop = lmp%extract_variable('ulp')
+  READ(uloop,*) f_lammps_extract_variable_uloop
+END FUNCTION f_lammps_extract_variable_uloop
+
+FUNCTION f_lammps_extract_variable_string () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_string
+  CHARACTER(LEN=20) :: string
+
+  string = lmp%extract_variable('str')
+  f_lammps_extract_variable_string = f2c_string(string)
+END FUNCTION f_lammps_extract_variable_string
+
+FUNCTION f_lammps_extract_variable_format () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_format
+  CHARACTER(LEN=20) :: form
+
+  form = lmp%extract_variable('fmt')
+  f_lammps_extract_variable_format = f2c_string(form)
+END FUNCTION f_lammps_extract_variable_format
+
+FUNCTION f_lammps_extract_variable_format_pad () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_format_pad
+  CHARACTER(LEN=20) :: form
+
+  form = lmp%extract_variable('fmt_pad')
+  f_lammps_extract_variable_format_pad = f2c_string(form)
+END FUNCTION f_lammps_extract_variable_format_pad
+
+FUNCTION f_lammps_extract_variable_getenv () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_getenv
+  CHARACTER(LEN=20) :: string
+
+  string = lmp%extract_variable('username')
+  f_lammps_extract_variable_getenv = f2c_string(string)
+END FUNCTION f_lammps_extract_variable_getenv
+
+FUNCTION f_lammps_extract_variable_file () BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+  TYPE(c_ptr) :: f_lammps_extract_variable_file
+  CHARACTER(LEN=40) :: string
+
+  string = lmp%extract_variable('greeting')
+  f_lammps_extract_variable_file = f2c_string(string)
+END FUNCTION f_lammps_extract_variable_file
+
+FUNCTION f_lammps_extract_variable_atomfile(i) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int, C_double
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double) :: f_lammps_extract_variable_atomfile
+  REAL(c_double), DIMENSION(:), POINTER :: atom_data
+
+  atom_data = lmp%extract_variable('atfile')
+print*, 'TESTING: atom_data is', atom_data
+  f_lammps_extract_variable_atomfile = atom_data(i)
+END FUNCTION f_lammps_extract_variable_atomfile

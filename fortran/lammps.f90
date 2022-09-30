@@ -193,6 +193,7 @@ MODULE LIBLAMMPS
       assign_doublemat_to_lammps_fix_data
     ! Variables, too
     MODULE PROCEDURE assign_double_to_lammps_variable_data, &
+      assign_doublevec_to_lammps_variable_data, &
       assign_string_to_lammps_variable_data
   END INTERFACE
 

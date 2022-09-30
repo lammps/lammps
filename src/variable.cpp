@@ -389,19 +389,32 @@ void Variable::set(int narg, char **arg)
   //   3rd is filled on retrieval
 
   } else if (strcmp(arg[1],"format") == 0) {
+    constexpr char validfmt[] = "% ?-?[0-9]*\\.?[0-9]*[efgEFG]";
     if (narg != 4) error->all(FLERR,"Illegal variable command: expected 4 arguments but found {}", narg);
-    if (find(arg[0]) >= 0) return;
-    if (nvar == maxvar) grow();
-    style[nvar] = FORMAT;
-    num[nvar] = 3;
-    which[nvar] = 0;
-    pad[nvar] = 0;
-    if (!utils::strmatch(arg[3],"%[0-9 ]*\\.[0-9]+[efgEFG]"))
-      error->all(FLERR,"Incorrect conversion in format string");
-    data[nvar] = new char*[num[nvar]];
-    copy(2,&arg[2],data[nvar]);
-    data[nvar][2] = new char[VALUELENGTH];
-    strcpy(data[nvar][2],"(undefined)");
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != FORMAT)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      if (!utils::strmatch(arg[3], validfmt))
+        error->all(FLERR,"Incorrect conversion in format string");
+      delete[] data[ivar][0];
+      delete[] data[ivar][1];
+      data[ivar][0] = utils::strdup(arg[2]);
+      data[ivar][1] = utils::strdup(arg[3]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = FORMAT;
+      num[nvar] = 3;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      if (!utils::strmatch(arg[3], validfmt))
+        error->all(FLERR,"Incorrect conversion in format string");
+      data[nvar] = new char*[num[nvar]];
+      copy(2,&arg[2],data[nvar]);
+      data[nvar][2] = new char[VALUELENGTH];
+      strcpy(data[nvar][2],"(undefined)");
+    }
 
   // EQUAL
   // replace pre-existing var if also style EQUAL (allows it to be reset)

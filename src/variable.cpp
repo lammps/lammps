@@ -392,6 +392,11 @@ void Variable::set(int narg, char **arg)
     constexpr char validfmt[] = "^% ?-?[0-9]*\\.?[0-9]*[efgEFG]$";
     if (narg != 4) error->all(FLERR,"Illegal variable command: expected 4 arguments but found {}", narg);
     int ivar = find(arg[0]);
+    int jvar = find(arg[2]);
+    if (jvar < 0)
+      error->all(FLERR, "Variable {}: format variable {} does not exist", arg[0], arg[2]);
+    if (!equalstyle(jvar))
+      error->all(FLERR, "Variable {}: format variable {} has incompatible style", arg[0], arg[2]);
     if (ivar >= 0) {
       if (style[ivar] != FORMAT)
         error->all(FLERR,"Cannot redefine variable as a different style");
@@ -953,8 +958,11 @@ char *Variable::retrieve(const char *name)
     str = data[ivar][1];
   } else if (style[ivar] == FORMAT) {
     int jvar = find(data[ivar][0]);
-    if (jvar == -1) return nullptr;
-    if (!equalstyle(jvar)) return nullptr;
+    if (jvar < 0)
+      error->all(FLERR, "Variable {}: format variable {} does not exist", names[ivar],data[ivar][0]);
+    if (!equalstyle(jvar))
+      error->all(FLERR, "Variable {}: format variable {} has incompatible style",
+                 names[ivar],data[ivar][0]);
     double answer = compute_equal(jvar);
     sprintf(data[ivar][2],data[ivar][1],answer);
     str = data[ivar][2];

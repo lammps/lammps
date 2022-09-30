@@ -4572,8 +4572,8 @@ int lammps_config_has_gzip_support() {
 
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
-image file formats.  Most of them need, however, support from an external
-library and using that has to be :ref:`enabled at compile time <graphics>`.
+image file formats.  Most of them, however, need support from an external
+library, and using that has to be :ref:`enabled at compile time <graphics>`.
 This function checks whether support for the `PNG image file format
 <https://en.wikipedia.org/wiki/Portable_Network_Graphics>`_ is available
 in the current LAMMPS library.
@@ -4591,8 +4591,8 @@ int lammps_config_has_png_support() {
 
 \verbatim embed:rst
 The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
-image file formats.  Most of them need, however, support from an external
-library and using that has to be :ref:`enabled at compile time <graphics>`.
+image file formats.  Most of them, however, need support from an external
+library, and using that has to be :ref:`enabled at compile time <graphics>`.
 This function checks whether support for the `JPEG image file format
 <https://jpeg.org/jpeg/>`_ is available in the current LAMMPS library.
 \endverbatim
@@ -4609,7 +4609,7 @@ int lammps_config_has_jpeg_support() {
 
 \verbatim embed:rst
 The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
-from images on-the-fly  via creating a pipe to the
+from images on-the-fly via creating a pipe to the
 `ffmpeg <https://ffmpeg.org/ffmpeg/>`_ program.
 This function checks whether this feature was :ref:`enabled at compile time <graphics>`.
 It does **not** check whether the ``ffmpeg`` itself is installed and usable.
@@ -4623,14 +4623,14 @@ int lammps_config_has_ffmpeg_support() {
 
 /* ---------------------------------------------------------------------- */
 
-/** Check whether LAMMPS errors will throw a C++ exception
+/** Check whether LAMMPS errors will throw C++ exceptions.
  *
 \verbatim embed:rst
-In case of errors LAMMPS will either abort or throw a C++ exception.
+In case of an error, LAMMPS will either abort or throw a C++ exception.
 The latter has to be :ref:`enabled at compile time <exceptions>`.
 This function checks if exceptions were enabled.
 
-When using the library interface and C++ exceptions are enabled,
+When using the library interface with C++ exceptions enabled,
 the library interface functions will "catch" them and the
 error status can then be checked by calling
 :cpp:func:`lammps_has_error` and the most recent error message
@@ -4649,10 +4649,10 @@ int lammps_config_has_exceptions() {
 
 /* ---------------------------------------------------------------------- */
 
-/** Check if a specific package has been included in LAMMPS
+/** Check whether a specific package has been included in LAMMPS
  *
 \verbatim embed:rst
-This function checks if the LAMMPS library in use includes the
+This function checks whether the LAMMPS library in use includes the
 specific :doc:`LAMMPS package <Packages>` provided as argument.
 \endverbatim
  *
@@ -5609,7 +5609,7 @@ int lammps_is_running(void *handle)
   return lmp->update->whichflag;
 }
 
-/** Force a timeout to cleanly stop an ongoing run
+/** Force a timeout to stop an ongoing run cleanly.
  *
  * This function can be used from signal handlers or multi-threaded
  * applications to cleanly terminate an ongoing run.

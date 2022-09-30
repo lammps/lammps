@@ -389,6 +389,12 @@ Procedures Bound to the lammps Derived Type
 
    :r real(c_double): number of atoms
 
+   .. note::
+
+      If you would prefer to get the number of atoms in its native format
+      (i.e., as a 32- or 64-bit integer, depending on how LAMMPS was compiled),
+      this can be extracted with :f:func:`extract_global`.
+
 --------
 
 .. f:function:: get_thermo(name)
@@ -575,7 +581,26 @@ Procedures Bound to the lammps Derived Type
       greater than or equal to the length of the string (not including the
       terminal ``NULL`` character) that LAMMPS returns. If the variable's
       length is too short, the string will be truncated. As usual in Fortran,
-      strings are padded with spaces at the end.
+      strings are padded with spaces at the end. If you use an allocatable
+      string, the string **must be allocated** prior to calling this function,
+      but you can automatically reallocate it to the correct length after the
+      function returns, viz.,
+
+      .. code-block :: Fortran
+
+         PROGRAM test
+           USE LIBLAMMPS
+           TYPE(lammps) :: lmp
+           CHARACTER(LEN=:), ALLOCATABLE :: str
+           lmp = lammps()
+           CALL lmp%command('units metal')
+           ALLOCATE ( CHARACTER(LEN=80) :: str )
+           str = lmp%extract_global('units')
+           str = TRIM(str) ! re-allocates to length len_trim(str) here
+           PRINT*, LEN(str), LEN_TRIM(str)
+         END PROGRAM test
+
+      will print the number 5 (the length of the word "metal") twice.
 
    :p character(len=\*) name: string with the name of the property to extract
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
@@ -737,8 +762,8 @@ Procedures Bound to the lammps Derived Type
 
       Two-dimensional arrays returned from :f:func:`extract_compute` will be
       **transposed** from equivalent arrays in C, and they will be indexed
-      from 1 instead of 0. See the similar note under
-      :f:func:`extract_atom` for further details.
+      from 1 instead of 0. See the note at :f:func:`extract_atom` for
+      further details.
 
    The following combinations are possible (assuming ``lmp`` is the name of
    your LAMMPS instance):
@@ -749,7 +774,7 @@ Procedures Bound to the lammps Derived Type
 
       * - Style
         - Type
-        - Pointer type to assign to
+        - Type to assign to
         - Returned data
       * - ``lmp%style%global``
         - ``lmp%type%scalar``
@@ -786,7 +811,7 @@ Procedures Bound to the lammps Derived Type
    :p integer(c_int) type: value indicating the type of data to extract
     (scalar, vector, or array)
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
-    should be a C-compatible pointer (e.g., ``REAL (C_double), POINTER :: x``)
+    should be a C-compatible pointer (e.g., ``REAL (c_double), POINTER :: x``)
     to the extracted property. If expecting vector data, the pointer should
     have dimension ":"; if expecting array (matrix) data, the pointer should
     have dimension ":,:".
@@ -828,10 +853,76 @@ Procedures Bound to the lammps Derived Type
    user wishes LAMMPS to return. The *ncol* variable is optional for global
    scalar or vector data, and both *nrow* and *ncol* are optional when a
    global scalar is requested, as well as when per-atom or local data are
-   requested.
+   requested. The following combinations are possible (assuming ``lmp`` is the
+   name of your LAMMPS instance):
+
+   .. list-table::
+      :header-rows: 1
+      :widths: auto
+
+      * - Style
+        - Type
+        - nrow
+        - ncol
+        - Type to assign to
+        - Returned data
+      * - ``lmp%style%global``
+        - ``lmp%type%scalar``
+        - Ignored
+        - Ignored
+        - ``REAL(c_double)``
+        - Global scalar
+      * - ``lmp%style%global``
+        - ``lmp%type%vector``
+        - Required
+        - Ignored
+        - ``REAL(c_double)``
+        - Element of global vector
+      * - ``lmp%style%global``
+        - ``lmp%type%array``
+        - Required
+        - Required
+        - ``REAL(c_double)``
+        - Element of global array
+      * - ``lmp%style%atom``
+        - ``lmp%type%scalar``
+        - 
+        - 
+        - 
+        - (not allowed)
+      * - ``lmp%style%atom``
+        - ``lmp%type%vector``
+        - Ignored
+        - Ignored
+        - ``REAL(c_double), DIMENSION(:), POINTER``
+        - Per-atom vector
+      * - ``lmp%style%atom``
+        - ``lmp%type%array``
+        - Ignored
+        - Ignored
+        - ``REAL(c_double), DIMENSION(:,:), POINTER``
+        - Per-atom array
+      * - ``lmp%style%local``
+        - ``lmp%type%scalar``
+        - 
+        - 
+        - 
+        - (not allowed)
+      * - ``lmp%style%local``
+        - ``lmp%type%vector``
+        - Ignored
+        - Ignored
+        - ``REAL(c_double), DIMENSION(:), POINTER``
+        - Per-atom vector
+      * - ``lmp%style%local``
+        - ``lmp%type%array``
+        - Ignored
+        - Ignored
+        - ``REAL(c_double), DIMENSION(:,:), POINTER``
+        - Per-atom array
 
    In the case of global data, this function returns a value of type
-   ``real(C_double)``. For per-atom or local data, this function does not
+   ``real(c_double)``. For per-atom or local data, this function does not
    return a value but instead associates the pointer on the left side of the
    assignment to point to internal LAMMPS data. Pointers must be of the correct
    data type to point to said data (i.e., ``REAL(c_double)``) and have
@@ -914,7 +1005,7 @@ Procedures Bound to the lammps Derived Type
    :p integer(c_int) ncol: column index (only used for global arrays)
    :r polymorphic: LAMMPS data (for global data) or a pointer to LAMMPS data
     (for per-atom or local data). The left-hand side of the assignment should
-    be of type ``REAL(C_double)`` and have appropriate rank (i.e.,
+    be of type ``REAL(c_double)`` and have appropriate rank (i.e.,
     ``DIMENSION(:)`` if expecting per-atom or local vector data and
     ``DIMENSION(:,:)`` if expecting per-atom or local array data). If expecting
     local or per-atom data, it should have the ``POINTER`` attribute, but
@@ -950,7 +1041,7 @@ Procedures Bound to the lammps Derived Type
 
    This function returns the values of the variables, not pointers to them.
    Vectors pointing to *atom*-style variables should be of type
-   ``REAL(C_double)``, be of rank 1 (i.e., ``DIMENSION(:)``), and either have
+   ``REAL(c_double)``, be of rank 1 (i.e., ``DIMENSION(:)``), and either have
    the ``ALLOCATABLE`` attribute or be long enough to contain the data without
    reallocation.
 
@@ -977,19 +1068,20 @@ Procedures Bound to the lammps Derived Type
    :p character(len=\*) name: variable name to evaluate
    :o character(len=\*) group [optional]: group for which to extract per-atom
     data (if absent, use "all")
-   :r polymorphic: scalar of type ``REAL(C_double)`` (for *equal*-style
+   :r polymorphic: scalar of type ``REAL(c_double)`` (for *equal*-style
     variables and others that are *equal*-compatible), vector of type
-    ``REAL(C_double), DIMENSION(nlocal)`` for *atom*-style variables, or
-    ``CHARACTER(LEN=:), ALLOCATABLE`` for *string*-style and compatible
-    variables. Non-allocatable strings whose length is too short to hold the
-    result will be truncated.
+    ``REAL(c_double), DIMENSION(nlocal)`` for *atom*-style variables, or
+    ``CHARACTER(LEN=*)`` for *string*-style and compatible variables. Strings
+    whose length is too short to hold the result will be truncated.
+    Allocatable strings must be allocated before this function is called;
+    see note at :f:func:`extract_global` regarding allocatable strings.
 
 .. note::
 
    LAMMPS cannot easily check if it is valid to access the data
    referenced by the variables (e.g., computes, fixes, or thermodynamic
    info), so it may fail with an error.  The caller has to make certain
-   that the data are extracted only when it safe to evaluate the variable
+   that the data are extracted only when it is safe to evaluate the variable
    and thus an error and crash are avoided.
 
 --------
@@ -1003,7 +1095,187 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
-.. f:subroutine:: flush_buffers
+.. f:subroutine:: get_os_info(buffer)
+
+   This function can be used to retrieve detailed information about the hosting
+   operating system and compiler/runtime environment.
+
+   .. versionadded:: TBD
+
+   A suitable buffer has to be provided. The assembled text will be truncated
+   to not overflow this buffer. The string is typically a few hundred bytes
+   long.
+
+--------
+
+.. f:function:: config_has_mpi_support()
+
+   This function is used to query whether LAMMPS was compiled with a real MPI
+   library or in serial.
+
+   .. versionadded:: TBD
+
+   :r logical: ``.FALSE.`` when compiled with STUBS, ``.TRUE.`` if complied
+    with MPI.
+
+--------
+
+.. f:function:: config_has_gzip_support()
+
+   Check if the LAMMPS library supports reading or writing compressed
+   files via a pipe to gzip or similar compression programs.
+
+   .. versionadded:: TBD
+
+   Several LAMMPS commands (e.g., :doc:`read_data`, :doc:`write_data`,
+   :doc:`dump styles atom, custom, and xyz <dump>`) support reading and writing
+   compressed files via creating a pipe to the ``gzip`` program.  This function
+   checks whether this feature was :ref:`enabled at compile time <gzip>`.
+   It does **not** check whether ``gzip`` or any other supported compression
+   programs themselves are installed and usable.
+  
+   :r logical:
+
+--------
+
+.. f:function:: config_has_png_support()
+
+   Check if the LAMMPS library supports writing PNG format images.
+
+   .. versionadded:: TBD
+
+   The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
+   image file formats.  Most of them, however, need support from an external
+   library, and using that has to be :ref:`enabled at compile time <graphics>`.
+   This function checks whether support for the `PNG image file format
+   <https://en.wikipedia.org/wiki/Portable_Network_Graphics>`_ is available
+   in the current LAMMPS library.
+
+   :r logical:
+
+--------
+
+.. f:function:: config_has_jpeg_support()
+
+   Check if the LAMMPS library supports writing JPEG format images.
+
+   .. versionadded:: TBD
+
+   The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
+   image file formats.  Most of them, however, need support from an external
+   library, and using that has to be :ref:`enabled at compile time <graphics>`.
+   This function checks whether support for the `JPEG image file format
+   <https://jpeg.org/jpeg/>`_ is available in the current LAMMPS library.
+
+   :r logical:
+
+--------
+
+.. f:function:: config_has_ffmpeg_support()
+
+   Check if the LAMMPS library supports creating movie files via a pipe to
+   ffmpeg.
+
+   .. versionadded:: TBD
+
+   The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
+   from images on-the-fly via creating a pipe to the
+   `ffmpeg <https://ffmpeg.org/ffmpeg/>`_ program.
+   This function checks whether this feature was
+   :ref:`enabled at compile time <graphics>`.
+   It does **not** check whether the ``ffmpeg`` itself is installed and usable.
+
+   :r logical:
+
+--------
+
+.. f:function:: config_has_exceptions()
+
+   Check whether LAMMPS errors will throw C++ exceptions.
+
+   .. versionadded:: TBD
+
+   In case of an error, LAMMPS will either abort or throw a C++ exception.
+   The latter has to be :ref:`enabled at compile time <exceptions>`.
+   This function checks if exceptions were enabled.
+
+   When using the library interface with C++ exceptions enabled, the library
+   interface functions will "catch" them, and the error status can then be
+   checked by calling :f:func:`has_error`. The most recent error message can be
+   retrieved via :f:func:`get_last_error_message`.
+   This can allow one to restart a calculation or delete and recreate
+   the LAMMPS instance when a C++ exception occurs.  One application
+   of using exceptions this way is the :ref:`lammps_shell`.  If C++
+   exceptions are disabled and an error happens during a call to
+   LAMMPS or the Fortran API, the application will terminate.
+
+   :r logical:
+
+--------
+
+.. f:function:: config_has_package(name)
+
+   Check whether a specific package has been included in LAMMPS
+
+   .. versionadded:: TBD
+
+   This function checks whether the LAMMPS library in use includes the specific
+   :doc:`LAMMPS package <Packages>` provided as argument.
+
+   :r logical:
+
+--------
+
+.. f:function:: config_package_count()
+
+   Count the number of installed packages in the LAMMPS library.
+
+   .. versionadded:: TBD
+
+   This function counts how many :doc:`LAMMPS packages <Packages>` are
+   included in the LAMMPS library in use. It directly calls the C library
+   function :cpp:func:`lammps_config_package_count`.
+
+   :r integer(c_int): number of packages installed
+
+--------
+
+.. f:subroutine:: config_package_name(idx, buffer)
+
+   Get the name of a package in the list of installed packages in the LAMMPS
+   library.
+  
+   .. versionadded:: TBD
+
+   This subroutine copies the name of the package with the index *idx* into the
+   provided string *buffer*. If the name of the package exceeds the length of
+   the buffer, it will be truncated accordingly.  If the index is out of range,
+   *buffer* is set to an empty string.
+
+   :p integer(c_int) idx: index of the package in the list of included packages
+    :math:`(0 \le idx < \text{package count})`
+   :p character(len=\*) buffer: string to hold the name of the package
+
+--------
+
+.. f:subroutine:: installed_packages(package[, length])
+
+   Obtain a list of the names of enabled packages in the LAMMPS shared library
+   and store it in *package*.
+
+   This function is analogous to the :py:func`installed_packages` function in
+   the Python API. The optional argument *length* sets the length of each
+   string in the vector *package* (default: 31).
+
+   :p character(len=:) package [dimension(:),allocatable]: list of packages;
+    *must* have the ``ALLOCATABLE`` attribute and be of rank-1
+    (``DIMENSION(:)``) with allocatable length.
+   :o integer length [optional]: length of each string in the list.
+    Default: 31.
+   
+--------
+
+.. f:subroutine:: flush_buffers()
 
    This function calls :cpp:func:`lammps_flush_buffers`, which flushes buffered
    output to be written to screen and logfile. This can simplify capturing
@@ -1013,7 +1285,7 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
-.. f:function:: is_running
+.. f:function:: is_running()
 
    Check if LAMMPS is currently inside a run or minimization.
 
@@ -1026,7 +1298,18 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
-.. f:function:: has_error
+.. f:subroutine:: force_timeout()
+
+   Force a timeout to stop an ongoing run cleanly.
+
+   .. versionadded:: TBD
+  
+   This function can be used from signal handlers or multi-threaded
+   applications to cleanly terminate an ongoing run.
+
+--------
+
+.. f:function:: has_error()
 
    Check if there is a (new) error message available.
 
@@ -1069,8 +1352,8 @@ Procedures Bound to the lammps Derived Type
       This function will do nothing when the LAMMPS library has been
       compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
       LAMMPS into C++ exceptions.  You can use the function
-      :f:func:`config_has_exceptions` to check whethher this is the case.
+      :f:func:`config_has_exceptions` to check whether this is the case.
 
    :p character(len=\*) buffer: string buffer to copy the error message into
-   :o integer(C_int) status [optional]: 1 when all ranks had the error,
+   :o integer(c_int) status [optional]: 1 when all ranks had the error,
     2 on a single-rank error.

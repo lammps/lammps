@@ -301,6 +301,8 @@ class lammps(object):
     self.lib.lammps_extract_fix.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int, c_int]
 
     self.lib.lammps_extract_variable.argtypes = [c_void_p, c_char_p, c_char_p]
+    self.lib.lammps_extract_variable_datatype.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_variable_datatype.restype = c_int
 
     self.lib.lammps_fix_external_get_force.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_fix_external_get_force.restype = POINTER(POINTER(c_double))
@@ -1083,21 +1085,22 @@ class lammps(object):
   # for vector, must copy nlocal returned values to local c_double vector
   # memory was allocated by library interface function
 
-  def extract_variable(self, name, group=None, vartype=LMP_VAR_EQUAL):
+  def extract_variable(self, name, group=None, vartype=None):
     """ Evaluate a LAMMPS variable and return its data
 
     This function is a wrapper around the function
-    :cpp:func:`lammps_extract_variable` of the C-library interface,
+    :cpp:func:`lammps_extract_variable` of the C library interface,
     evaluates variable name and returns a copy of the computed data.
     The memory temporarily allocated by the C-interface is deleted
     after the data is copied to a Python variable or list.
     The variable must be either an equal-style (or equivalent)
-    variable or an atom-style variable. The variable type has to
-    provided as ``vartype`` parameter which may be one of two constants:
-    ``LMP_VAR_EQUAL`` or ``LMP_VAR_ATOM``; it defaults to
-    equal-style variables.
-    The group parameter is only used for atom-style variables and
-    defaults to the group "all" if set to ``None``, which is the default.
+    variable or an atom-style variable. The variable type can be
+    provided as the ``vartype`` parameter, which may be one of several
+    constants: ``LMP_VAR_EQUAL``, ``LMP_VAR_ATOM``, or ``LMP_VAR_STRING``.
+    If omitted or ``None``, LAMMPS will determine its value for you based on
+    a call to :cpp:func:`lammps_extract_variable_datatype` from the C library
+    interface.  The group parameter is only used for atom-style variables and
+    defaults to the group "all".
 
     :param name: name of the variable to execute
     :type name: string
@@ -1111,6 +1114,9 @@ class lammps(object):
     if name: name = name.encode()
     else: return None
     if group: group = group.encode()
+    if vartype is None :
+      vartype = self.lib.lammps_extract_variable_datatype(self.lmp, name)
+      #vartype = LMP_VAR_EQUAL
     if vartype == LMP_VAR_EQUAL:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       with ExceptionCheck(self):
@@ -1130,6 +1136,11 @@ class lammps(object):
         self.lib.lammps_free(ptr)
       else: return None
       return result
+    elif vartype == LMP_VAR_STRING :
+      self.lib.lammps_extract_variable.restype = c_char_p
+      with ExceptionCheck(self) :
+        ptr = self.lib.lammps_extract_variable(self.lmp, name, group)
+        return ptr.decode('utf-8')
     return None
 
   # -------------------------------------------------------------------------

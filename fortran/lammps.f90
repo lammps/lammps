@@ -32,7 +32,6 @@ MODULE LIBLAMMPS
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_associated, &
     c_loc, c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, &
     c_f_pointer
-  USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : ERROR_UNIT
 
   IMPLICIT NONE
   PRIVATE
@@ -80,36 +79,48 @@ MODULE LIBLAMMPS
   END TYPE lammps_type
 
   TYPE lammps
-      TYPE(c_ptr) :: handle
-      TYPE(lammps_style) :: style
-      TYPE(lammps_type) :: type
-    CONTAINS
-      PROCEDURE :: close                  => lmp_close
-      PROCEDURE :: error                  => lmp_error
-      PROCEDURE :: file                   => lmp_file
-      PROCEDURE :: command                => lmp_command
-      PROCEDURE :: commands_list          => lmp_commands_list
-      PROCEDURE :: commands_string        => lmp_commands_string
-      PROCEDURE :: get_natoms             => lmp_get_natoms
-      PROCEDURE :: get_thermo             => lmp_get_thermo
-      PROCEDURE :: extract_box            => lmp_extract_box
-      PROCEDURE :: reset_box              => lmp_reset_box
-      PROCEDURE :: memory_usage           => lmp_memory_usage
-      PROCEDURE :: get_mpi_comm           => lmp_get_mpi_comm
-      PROCEDURE :: extract_setting        => lmp_extract_setting
-      PROCEDURE :: extract_global         => lmp_extract_global
-      PROCEDURE :: extract_atom           => lmp_extract_atom
-      PROCEDURE :: extract_compute        => lmp_extract_compute
-      PROCEDURE :: extract_fix            => lmp_extract_fix
-      PROCEDURE :: extract_variable       => lmp_extract_variable
+    TYPE(c_ptr) :: handle = c_null_ptr
+    TYPE(lammps_style) :: style
+    TYPE(lammps_type) :: type
+  CONTAINS
+    PROCEDURE :: close                  => lmp_close
+    PROCEDURE :: error                  => lmp_error
+    PROCEDURE :: file                   => lmp_file
+    PROCEDURE :: command                => lmp_command
+    PROCEDURE :: commands_list          => lmp_commands_list
+    PROCEDURE :: commands_string        => lmp_commands_string
+    PROCEDURE :: get_natoms             => lmp_get_natoms
+    PROCEDURE :: get_thermo             => lmp_get_thermo
+    PROCEDURE :: extract_box            => lmp_extract_box
+    PROCEDURE :: reset_box              => lmp_reset_box
+    PROCEDURE :: memory_usage           => lmp_memory_usage
+    PROCEDURE :: get_mpi_comm           => lmp_get_mpi_comm
+    PROCEDURE :: extract_setting        => lmp_extract_setting
+    PROCEDURE :: extract_global         => lmp_extract_global
+    PROCEDURE :: extract_atom           => lmp_extract_atom
+    PROCEDURE :: extract_compute        => lmp_extract_compute
+    PROCEDURE :: extract_fix            => lmp_extract_fix
+    PROCEDURE :: extract_variable       => lmp_extract_variable
 !
-      PROCEDURE :: version                => lmp_version
+    PROCEDURE :: version                => lmp_version
+    PROCEDURE,NOPASS :: get_os_info     => lmp_get_os_info
+    PROCEDURE,NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
+    PROCEDURE,NOPASS :: config_has_gzip_support => lmp_config_has_gzip_support
+    PROCEDURE,NOPASS :: config_has_png_support => lmp_config_has_png_support
+    PROCEDURE,NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
+    PROCEDURE,NOPASS :: config_has_ffmpeg_support &
+      => lmp_config_has_ffmpeg_support
+    PROCEDURE,NOPASS :: config_has_exceptions => lmp_config_has_exceptions
+    PROCEDURE,NOPASS :: config_has_package => lmp_config_has_package
+    PROCEDURE,NOPASS :: config_package_count => lammps_config_package_count
+    PROCEDURE,NOPASS :: config_package_name => lmp_config_package_name
+    PROCEDURE,NOPASS :: installed_packages => lmp_installed_packages
 !
-      PROCEDURE :: flush_buffers          => lmp_flush_buffers
-      PROCEDURE :: is_running             => lmp_is_running
-! force_timeout
-      PROCEDURE :: has_error              => lmp_has_error
-      PROCEDURE :: get_last_error_message => lmp_get_last_error_message
+    PROCEDURE :: flush_buffers          => lmp_flush_buffers
+    PROCEDURE :: is_running             => lmp_is_running
+    PROCEDURE :: force_timeout          => lmp_force_timeout
+    PROCEDURE :: has_error              => lmp_has_error
+    PROCEDURE :: get_last_error_message => lmp_get_last_error_message
   END TYPE lammps
 
   INTERFACE lammps
@@ -180,6 +191,9 @@ MODULE LIBLAMMPS
     MODULE PROCEDURE assign_double_to_lammps_fix_data, &
       assign_doublevec_to_lammps_fix_data, &
       assign_doublemat_to_lammps_fix_data
+    ! Variables, too
+    MODULE PROCEDURE assign_double_to_lammps_variable_data, &
+      assign_string_to_lammps_variable_data
   END INTERFACE
 
   ! interface definitions for calling functions in library.cpp
@@ -412,17 +426,69 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_version
     END FUNCTION lammps_version
 
-    !SUBROUTINE lammps_get_os_info
+    SUBROUTINE lammps_get_os_info (buffer, buf_size) BIND(C)
+      IMPORT :: C_ptr, C_int
+      IMPLICIT NONE
+      TYPE (C_ptr), VALUE :: buffer
+      INTEGER (C_int), VALUE :: buf_size
+    END SUBROUTINE lammps_get_os_info
 
-    !LOGICAL FUNCTION lammps_config_has_mpi_support
-    !LOGICAL FUNCTION lammps_config_has_gzip_support
-    !LOGICAL FUNCTION lammps_config_has_png_support
-    !LOGICAL FUNCTION lammps_config_has_jpeg_support
-    !LOGICAL FUNCTION lammps_config_has_ffmpeg_support
-    !LOGICAL FUNCTION lammps_config_has_exceptions
-    !LOGICAL FUNCTION lammps_config_has_package
-    !INTEGER (C_int) FUNCTION lammps_config_package_count
-    !SUBROUTINE lammps_config_package_name
+    FUNCTION lammps_config_has_mpi_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_mpi_support
+    END FUNCTION lammps_config_has_mpi_support
+
+    FUNCTION lammps_config_has_gzip_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_gzip_support
+    END FUNCTION lammps_config_has_gzip_support
+
+    FUNCTION lammps_config_has_png_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_png_support
+    END FUNCTION lammps_config_has_png_support
+
+    FUNCTION lammps_config_has_jpeg_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_jpeg_support
+    END FUNCTION lammps_config_has_jpeg_support
+
+    FUNCTION lammps_config_has_ffmpeg_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_ffmpeg_support
+    END FUNCTION lammps_config_has_ffmpeg_support
+
+    FUNCTION lammps_config_has_exceptions() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER (c_int) :: lammps_config_has_exceptions
+    END FUNCTION lammps_config_has_exceptions
+
+    FUNCTION lammps_config_has_package(name) BIND(C)
+      IMPORT :: C_int, C_ptr
+      IMPLICIT NONE
+      TYPE (C_ptr), VALUE :: name
+      INTEGER (c_int) :: lammps_config_has_package
+    END FUNCTION lammps_config_has_package
+
+    FUNCTION lammps_config_package_count() BIND(C)
+      IMPORT :: C_int
+      IMPLICIT NONE
+      INTEGER (C_int) :: lammps_config_package_count
+    END FUNCTION lammps_config_package_count
+
+    FUNCTION lammps_config_package_name (idx, buffer, buf_size) BIND(C)
+      IMPORT :: C_int, C_ptr
+      IMPLICIT NONE
+      INTEGER (C_int) :: lammps_config_package_name
+      INTEGER (C_int), VALUE :: idx, buf_size
+      TYPE (C_ptr), VALUE :: buffer
+    END FUNCTION lammps_config_package_name
 
     !LOGICAL FUNCTION lammps_config_accelerator
     !LOGICAL FUNCTION lammps_has_gpu_device
@@ -474,7 +540,11 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle
     END FUNCTION lammps_is_running
 
-    !SUBROUTINE lammps_force_timeout
+    SUBROUTINE lammps_force_timeout (handle) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle
+    END SUBROUTINE lammps_force_timeout
 
     INTEGER (C_int) FUNCTION lammps_has_error (handle) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -622,14 +692,14 @@ CONTAINS
   END SUBROUTINE lmp_commands_string
 
   ! equivalent function to lammps_get_natoms
-  DOUBLE PRECISION FUNCTION lmp_get_natoms(self)
+  REAL (c_double) FUNCTION lmp_get_natoms(self)
     CLASS(lammps) :: self
 
     lmp_get_natoms = lammps_get_natoms(self%handle)
   END FUNCTION lmp_get_natoms
 
   ! equivalent function to lammps_get_thermo
-  REAL (C_double) FUNCTION lmp_get_thermo(self,name)
+  REAL (c_double) FUNCTION lmp_get_thermo(self,name)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*) :: name
     TYPE(C_ptr) :: Cname
@@ -1025,6 +1095,7 @@ CONTAINS
     CALL lammps_free(Cname)
     CALL lammps_free(Cgroup)
 
+    variable_data%lammps_instance => self
     SELECT CASE (datatype)
       CASE (LMP_VAR_EQUAL)
         variable_data%datatype = DATA_DOUBLE
@@ -1059,12 +1130,125 @@ CONTAINS
     lmp_version = lammps_version(self%handle)
   END FUNCTION lmp_version
 
-  ! equivalent function to lammps_is_running
-  LOGICAL FUNCTION lmp_is_running(self)
-    CLASS(lammps), INTENT(IN) :: self
+  ! equivalent function to lammps_get_os_info
+  SUBROUTINE lmp_get_os_info (buffer)
+    CHARACTER(LEN=*) :: buffer
+    INTEGER(c_int) :: buf_size
+    CHARACTER(LEN=1,KIND=c_char), DIMENSION(LEN(buffer)), TARGET :: Cbuffer
+    TYPE(c_ptr) :: ptr
+    INTEGER :: i
 
-    lmp_is_running = ( lammps_is_running(self%handle) /= 0_C_int )
-  END FUNCTION lmp_is_running
+    buffer = ''
+    ptr = C_LOC(Cbuffer(1))
+    buf_size = LEN(buffer)
+    CALL lammps_get_os_info (ptr, buf_size)
+    DO i=1,buf_size
+      IF ( Cbuffer(i) == C_NULL_CHAR ) EXIT
+      buffer(i:i) = Cbuffer(i)
+    END DO
+  END SUBROUTINE lmp_get_os_info
+
+  ! equivalent function to lammps_config_has_mpi_support
+  LOGICAL FUNCTION lmp_config_has_mpi_support()
+    INTEGER(c_int) :: has_mpi_support
+
+    has_mpi_support = lammps_config_has_mpi_support()
+    lmp_config_has_mpi_support = (has_mpi_support /= 0_c_int)
+  END FUNCTION lmp_config_has_mpi_support
+
+  ! equivalent function to lammps_config_has_gzip_support
+  LOGICAL FUNCTION lmp_config_has_gzip_support()
+    INTEGER(c_int) :: has_gzip_support
+
+    has_gzip_support = lammps_config_has_gzip_support()
+    lmp_config_has_gzip_support = (has_gzip_support /= 0_c_int)
+  END FUNCTION lmp_config_has_gzip_support
+
+  ! equivalent function to lammps_config_has_png_support
+  LOGICAL FUNCTION lmp_config_has_png_support()
+    INTEGER(C_int) :: has_png_support
+
+    has_png_support = lammps_config_has_png_support()
+    lmp_config_has_png_support = (has_png_support /= 0_c_int)
+  END FUNCTION lmp_config_has_png_support
+
+  ! equivalent function to lammps_config_has_jpeg_support
+  LOGICAL FUNCTION lmp_config_has_jpeg_support()
+    INTEGER(c_int) :: has_jpeg_support
+
+    has_jpeg_support = lammps_config_has_jpeg_support()
+    lmp_config_has_jpeg_support = (has_jpeg_support /= 0_c_int)
+  END FUNCTION lmp_config_has_jpeg_support
+
+  ! equivalent function to lammps_config_has_ffmpeg_support
+  LOGICAL FUNCTION lmp_config_has_ffmpeg_support()
+    INTEGER(c_int) :: has_ffmpeg_support
+
+    has_ffmpeg_support = lammps_config_has_ffmpeg_support()
+    lmp_config_has_ffmpeg_support = (has_ffmpeg_support /= 0_c_int)
+  END FUNCTION lmp_config_has_ffmpeg_support
+
+  ! equivalent function to lammps_config_has_exceptions
+  LOGICAL FUNCTION lmp_config_has_exceptions()
+    INTEGER(c_int) :: has_exceptions
+
+    has_exceptions = lammps_config_has_exceptions()
+    lmp_config_has_exceptions = (has_exceptions /= 0_c_int)
+  END FUNCTION lmp_config_has_exceptions
+
+  ! equivalent function to lammps_config_has_package
+  LOGICAL FUNCTION lmp_config_has_package(name)
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER (c_int) :: has_package
+    TYPE (c_ptr) :: Cname
+
+    Cname = f2c_string(name)
+    has_package = lammps_config_has_package(Cname)
+    lmp_config_has_package = (has_package /= 0_c_int)
+    CALL lammps_free(Cname)
+  END FUNCTION lmp_config_has_package
+
+  ! equivalent subroutine to lammps_config_package_name
+  SUBROUTINE lmp_config_package_name (idx, buffer)
+    INTEGER, INTENT(IN) :: idx
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER(c_int) :: Cidx, Csuccess
+    TYPE(c_ptr) :: Cptr
+    CHARACTER(LEN=1,KIND=c_char), TARGET :: Cbuffer(LEN(buffer)+1)
+    INTEGER :: i, strlen
+
+    Cidx = idx - 1
+    Cptr = C_LOC(Cbuffer(1))
+    Csuccess = lammps_config_package_name(Cidx, Cptr, LEN(buffer)+1)
+    buffer = ''
+    IF ( Csuccess /= 0_c_int ) THEN
+      strlen = c_strlen(Cptr)
+      FORALL ( i = 1:strlen )
+        buffer(i:i) = Cbuffer(i)
+      END FORALL
+    END IF
+  END SUBROUTINE lmp_config_package_name
+
+  ! equivalent function to Python routine .installed_packages()
+  SUBROUTINE lmp_installed_packages (package, length)
+    CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: package
+    INTEGER, INTENT(IN), OPTIONAL :: length
+    INTEGER, PARAMETER :: MAX_BUFFER_LENGTH = 31
+    INTEGER :: i, npackage, buf_length
+
+    IF ( PRESENT(length) ) THEN
+      buf_length = length
+    ELSE
+      buf_length = MAX_BUFFER_LENGTH
+    END IF
+
+    IF ( ALLOCATED(package) ) DEALLOCATE(package)
+    npackage = lammps_config_package_count()
+    ALLOCATE( CHARACTER(LEN=MAX_BUFFER_LENGTH) :: package(npackage) )
+    DO i=1, npackage
+      CALL lmp_config_package_name(i, package(i))
+    END DO
+  END SUBROUTINE lmp_installed_packages
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)
@@ -1072,6 +1256,20 @@ CONTAINS
 
     CALL lammps_flush_buffers(self%handle)
   END SUBROUTINE lmp_flush_buffers
+
+  ! equivalent function to lammps_is_running
+  LOGICAL FUNCTION lmp_is_running(self)
+    CLASS(lammps), INTENT(IN) :: self
+
+    lmp_is_running = ( lammps_is_running(self%handle) /= 0_C_int )
+  END FUNCTION lmp_is_running
+
+  ! equivalent function to lammps_force_timeout
+  SUBROUTINE lmp_force_timeout (self)
+    CLASS(lammps), INTENT(IN) :: self
+
+    CALL lammps_force_timeout(self%handle)
+  END SUBROUTINE
 
   ! equivalent function to lammps_has_error
   LOGICAL FUNCTION lmp_has_error(self)
@@ -1264,6 +1462,17 @@ CONTAINS
     END IF
   END SUBROUTINE assign_doublevec_to_lammps_variable_data
 
+  SUBROUTINE assign_string_to_lammps_variable_data (lhs, rhs)
+    CHARACTER(LEN=*), INTENT(OUT) :: lhs
+    CLASS(lammps_variable_data), INTENT(IN) :: rhs
+
+    IF ( rhs%datatype == DATA_STRING ) THEN
+      lhs = rhs%str
+    ELSE
+      CALL assignment_error(rhs, 'string')
+    END IF
+  END SUBROUTINE assign_string_to_lammps_variable_data
+
   ! ----------------------------------------------------------------------
   ! Generic function to catch all errors in assignments of LAMMPS data to
   ! user-space variables/pointers
@@ -1292,6 +1501,8 @@ CONTAINS
         str1 = 'vector of doubles'
       CASE (DATA_DOUBLE_2D)
         str1 = 'matrix of doubles'
+      CASE (DATA_STRING)
+        str1 = 'string'
       CASE DEFAULT
         str1 = 'that type'
     END SELECT

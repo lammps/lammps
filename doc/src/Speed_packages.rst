@@ -117,32 +117,14 @@ script.
    with all its accelerator packages installed.  Note however that the
    INTEL and KOKKOS packages require you to choose one of their
    hardware options when building for a specific platform.  I.e. CPU or
-   Phi option for the INTEL package.  Or the OpenMP, Cuda, or Phi
-   option for the KOKKOS package.
+   Phi option for the INTEL package.  Or the OpenMP, Cuda, Hip, Sycl,
+   or Phi  option for the KOKKOS package.  Or the OpenCL, Hip, or Cuda
+   for the GPU package.
 
 These are the exceptions.  You cannot build a single executable with:
 
 * both the INTEL Phi and KOKKOS Phi options
 * the INTEL Phi or Kokkos Phi option, and the GPU package
-
-See the examples/accelerate/README and make.list files for sample
-Make.py commands that build LAMMPS with any or all of the accelerator
-packages.  As an example, here is a command that builds with all the
-GPU related packages installed (GPU, KOKKOS with Cuda), including
-settings to build the needed auxiliary GPU libraries for Kepler GPUs:
-
-.. code-block:: bash
-
-   Make.py -j 16 -p omp gpu kokkos -cc nvcc wrap=mpi   -gpu mode=double arch=35 -kokkos cuda arch=35 lib-all file mpi
-
-The examples/accelerate directory also has input scripts that can be
-used with all of the accelerator packages.  See its README file for
-details.
-
-Likewise, the bench directory has FERMI and KEPLER and PHI
-sub-directories with Make.py commands and input scripts for using all
-the accelerator packages on various machines.  See the README files in
-those directories.
 
 As mentioned above, the `Benchmark page <https://www.lammps.org/bench.html>`_ of the LAMMPS website gives
 performance results for the various accelerator packages for several

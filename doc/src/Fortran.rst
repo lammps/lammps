@@ -180,7 +180,7 @@ The C library interface allows the :doc:`extraction of different kinds
 of information <Library_properties>` about the active simulation
 instance and also---in some cases---to apply modifications to it.  In
 some cases, the C library interface makes pointers to internal data
-structures accessible; when accessing them through the library interfaces, 
+structures accessible; when accessing them through the library interfaces,
 special care is needed to avoid data corruption and crashes.  Please see
 the documentation of the individual type-bound procedures for details.
 
@@ -651,7 +651,7 @@ Procedures Bound to the lammps Derived Type
        Two-dimensional arrays returned from :f:func:`extract_atom` will be
        **transposed** from equivalent arrays in C, and they will be indexed
        from 1 instead of 0. For example, in C,
-       
+
        .. code-block:: C
 
           void *lmp;
@@ -712,13 +712,13 @@ Procedures Bound to the lammps Derived Type
        If you would like the indices to start at 0 instead of 1 (which follows
        typical notation in C and C++, but not Fortran), you can create another
        pointer and associate it thus:
-       
+
        .. code-block:: Fortran
 
           REAL(c_double), DIMENSION(:,:), POINTER :: x, x0
           x = lmp%extract_atom("x")
           x0(0:,0:) => x
-  
+
        The above would cause the dimensions of *x* to be (1:3, 1:nmax)
        and those of *x0* to be (0:2, 0:nmax-1).
 
@@ -886,9 +886,9 @@ Procedures Bound to the lammps Derived Type
         - Element of global array
       * - ``lmp%style%atom``
         - ``lmp%type%scalar``
-        - 
-        - 
-        - 
+        -
+        -
+        -
         - (not allowed)
       * - ``lmp%style%atom``
         - ``lmp%type%vector``
@@ -904,9 +904,9 @@ Procedures Bound to the lammps Derived Type
         - Per-atom array
       * - ``lmp%style%local``
         - ``lmp%type%scalar``
-        - 
-        - 
-        - 
+        -
+        -
+        -
         - (not allowed)
       * - ``lmp%style%local``
         - ``lmp%type%vector``
@@ -986,7 +986,7 @@ Procedures Bound to the lammps Derived Type
       The pointers returned by this function for per-atom or local data are
       generally not persistent, since the computed data may be redistributed,
       reallocated, and reordered at every invocation of the fix.  It is thus
-      advisable to reinvoke this function before the data are accessed or to
+      advisable to re-invoke this function before the data are accessed or to
       make a copy if the data are to be used after other LAMMPS commands have
       been issued.
 
@@ -1133,7 +1133,7 @@ Procedures Bound to the lammps Derived Type
    checks whether this feature was :ref:`enabled at compile time <gzip>`.
    It does **not** check whether ``gzip`` or any other supported compression
    programs themselves are installed and usable.
-  
+
    :r logical:
 
 --------
@@ -1244,7 +1244,7 @@ Procedures Bound to the lammps Derived Type
 
    Get the name of a package in the list of installed packages in the LAMMPS
    library.
-  
+
    .. versionadded:: TBD
 
    This subroutine copies the name of the package with the index *idx* into the
@@ -1272,7 +1272,7 @@ Procedures Bound to the lammps Derived Type
     (``DIMENSION(:)``) with allocatable length.
    :o integer length [optional]: length of each string in the list.
     Default: 31.
-   
+
 --------
 
 .. f:subroutine:: flush_buffers()
@@ -1293,7 +1293,7 @@ Procedures Bound to the lammps Derived Type
 
    This function can be used from signal handlers or multi-threaded
    applications to determine if the LAMMPS instance is currently active.
-  
+
    :r logical: ``.FALSE.`` if idle or ``.TRUE.`` if active
 
 --------
@@ -1303,7 +1303,7 @@ Procedures Bound to the lammps Derived Type
    Force a timeout to stop an ongoing run cleanly.
 
    .. versionadded:: TBD
-  
+
    This function can be used from signal handlers or multi-threaded
    applications to cleanly terminate an ongoing run.
 
@@ -1325,7 +1325,7 @@ Procedures Bound to the lammps Derived Type
       errors aborting LAMMPS into C++ exceptions. You can use the library
       function :cpp:func:`lammps_config_has_exceptions` to check if this is
       the case.
-  
+
    :r logical: ``.TRUE.`` if there is an error.
 
 --------

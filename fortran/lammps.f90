@@ -43,7 +43,7 @@ MODULE LIBLAMMPS
   ! src/library.h and python/lammps/constants.py
   !
   ! These are NOT part of the API (the part the user sees)
-  INTEGER (c_int), PARAMETER :: &
+  INTEGER(c_int), PARAMETER :: &
     LAMMPS_INT = 0, &         ! 32-bit integer (array)
     LAMMPS_INT_2D = 1, &      ! two-dimensional 32-bit integer array
     LAMMPS_DOUBLE = 2, &      ! 64-bit double (array)
@@ -329,7 +329,7 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_extract_global_datatype
     END FUNCTION lammps_extract_global_datatype
 
-    FUNCTION c_strlen (str) BIND(C,name='strlen')
+    FUNCTION c_strlen(str) BIND(C,name='strlen')
       IMPORT :: c_ptr, c_size_t
       IMPLICIT NONE
       TYPE(c_ptr), INTENT(IN), VALUE :: str
@@ -387,11 +387,11 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: lammps_extract_variable
     END FUNCTION lammps_extract_variable
 
-    FUNCTION lammps_set_variable (handle, name, str) BIND(C)
+    FUNCTION lammps_set_variable(handle, name, str) BIND(C)
       IMPORT :: c_int, c_ptr
       IMPLICIT NONE
-      TYPE (c_ptr), VALUE :: handle, name, str
-      INTEGER (c_int) :: lammps_set_variable
+      TYPE(c_ptr), VALUE :: handle, name, str
+      INTEGER(c_int) :: lammps_set_variable
     END FUNCTION lammps_set_variable
 
     !SUBROUTINE lammps_gather_atoms
@@ -415,15 +415,15 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_scatter_subset
 
     !(generic / id, type, and image are special) / requires LAMMPS_BIGBIG
-    !INTEGER (C_int) FUNCTION lammps_create_atoms
+    !INTEGER(c_int) FUNCTION lammps_create_atoms
 
-    !INTEGER (C_int) FUNCTION lammps_find_pair_neighlist
+    !INTEGER(c_int) FUNCTION lammps_find_pair_neighlist
 
-    !INTEGER (C_int) FUNCTION lammps_find_fix_neighlist
+    !INTEGER(c_int) FUNCTION lammps_find_fix_neighlist
 
-    !INTEGER (C_int) FUNCTION lammps_find_compute_neighlist
+    !INTEGER(c_int) FUNCTION lammps_find_compute_neighlist
 
-    !INTEGER (C_int) FUNCTION lammps_neighlist_num_elements
+    !INTEGER(c_int) FUNCTION lammps_neighlist_num_elements
 
     !SUBROUTINE lammps_neighlist_element_neighbors
 
@@ -434,11 +434,11 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_version
     END FUNCTION lammps_version
 
-    SUBROUTINE lammps_get_os_info (buffer, buf_size) BIND(C)
+    SUBROUTINE lammps_get_os_info(buffer, buf_size) BIND(C)
       IMPORT :: C_ptr, C_int
       IMPLICIT NONE
-      TYPE (C_ptr), VALUE :: buffer
-      INTEGER (C_int), VALUE :: buf_size
+      TYPE(C_ptr), VALUE :: buffer
+      INTEGER(C_int), VALUE :: buf_size
     END SUBROUTINE lammps_get_os_info
 
     FUNCTION lammps_config_has_mpi_support() BIND(C)
@@ -474,28 +474,28 @@ MODULE LIBLAMMPS
     FUNCTION lammps_config_has_exceptions() BIND(C)
       IMPORT :: c_int
       IMPLICIT NONE
-      INTEGER (c_int) :: lammps_config_has_exceptions
+      INTEGER(c_int) :: lammps_config_has_exceptions
     END FUNCTION lammps_config_has_exceptions
 
     FUNCTION lammps_config_has_package(name) BIND(C)
       IMPORT :: C_int, C_ptr
       IMPLICIT NONE
-      TYPE (C_ptr), VALUE :: name
-      INTEGER (c_int) :: lammps_config_has_package
+      TYPE(C_ptr), VALUE :: name
+      INTEGER(c_int) :: lammps_config_has_package
     END FUNCTION lammps_config_has_package
 
     FUNCTION lammps_config_package_count() BIND(C)
       IMPORT :: C_int
       IMPLICIT NONE
-      INTEGER (C_int) :: lammps_config_package_count
+      INTEGER(C_int) :: lammps_config_package_count
     END FUNCTION lammps_config_package_count
 
-    FUNCTION lammps_config_package_name (idx, buffer, buf_size) BIND(C)
+    FUNCTION lammps_config_package_name(idx, buffer, buf_size) BIND(C)
       IMPORT :: C_int, C_ptr
       IMPLICIT NONE
-      INTEGER (C_int) :: lammps_config_package_name
-      INTEGER (C_int), VALUE :: idx, buf_size
-      TYPE (C_ptr), VALUE :: buffer
+      INTEGER(C_int) :: lammps_config_package_name
+      INTEGER(C_int), VALUE :: idx, buf_size
+      TYPE(C_ptr), VALUE :: buffer
     END FUNCTION lammps_config_package_name
 
     !LOGICAL FUNCTION lammps_config_accelerator
@@ -503,18 +503,18 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_get_gpu_device
 
     !LOGICAL FUNCTION lammps_has_id
-    !INTEGER (C_int) FUNCTION lammps_id_count
+    !INTEGER(C_int) FUNCTION lammps_id_count
     !SUBROUTINE lammps_id_name
 
-    !INTEGER (C_int) FUNCTION lammps_plugin_count
+    !INTEGER(C_int) FUNCTION lammps_plugin_count
     !SUBROUTINE lammps_plugin_name
 
     !Both of these use LAMMPS_BIGBIG
-    !INTEGER (LAMMPS_imageint) FUNCTION lammps_encode_image_flags
+    !INTEGER(LAMMPS_imageint) FUNCTION lammps_encode_image_flags
     !SUBROUTINE lammps_decode_image_flags
 
     !SUBROUTINE lammps_set_fix_external_callback ! may have trouble....
-    !FUNCTION lammps_fix_external_get_force() ! returns real(c_double) (:)
+    !FUNCTION lammps_fix_external_get_force() ! returns real(c_double)(:)
 
     !SUBROUTINE lammps_fix_external_set_energy_global
     !SUBROUTINE lammps_fix_external_set_energy_peratom
@@ -523,7 +523,7 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_fix_external_set_vector_length
     !SUBROUTINE lammps_fix_external_set_vector
 
-    SUBROUTINE lammps_flush_buffers (handle) BIND(C)
+    SUBROUTINE lammps_flush_buffers(handle) BIND(C)
       IMPORT :: C_ptr
       IMPLICIT NONE
       TYPE(C_ptr), VALUE :: handle
@@ -548,19 +548,19 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle
     END FUNCTION lammps_is_running
 
-    SUBROUTINE lammps_force_timeout (handle) BIND(C)
+    SUBROUTINE lammps_force_timeout(handle) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
       TYPE(c_ptr), VALUE :: handle
     END SUBROUTINE lammps_force_timeout
 
-    INTEGER (C_int) FUNCTION lammps_has_error (handle) BIND(C)
+    INTEGER(C_int) FUNCTION lammps_has_error(handle) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
       TYPE(c_ptr), VALUE :: handle
     END FUNCTION lammps_has_error
 
-    INTEGER (c_int) FUNCTION lammps_get_last_error_message &
+    INTEGER(c_int) FUNCTION lammps_get_last_error_message &
         (handle, buffer, buf_size) BIND(C)
       IMPORT :: c_ptr, c_int, c_char
       IMPLICIT NONE
@@ -700,14 +700,14 @@ CONTAINS
   END SUBROUTINE lmp_commands_string
 
   ! equivalent function to lammps_get_natoms
-  REAL (c_double) FUNCTION lmp_get_natoms(self)
+  REAL(c_double) FUNCTION lmp_get_natoms(self)
     CLASS(lammps) :: self
 
     lmp_get_natoms = lammps_get_natoms(self%handle)
   END FUNCTION lmp_get_natoms
 
   ! equivalent function to lammps_get_thermo
-  REAL (c_double) FUNCTION lmp_get_thermo(self,name)
+  REAL(c_double) FUNCTION lmp_get_thermo(self,name)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*) :: name
     TYPE(C_ptr) :: Cname
@@ -724,7 +724,7 @@ CONTAINS
     REAL(c_double), INTENT(OUT), TARGET, OPTIONAL :: xy, yz, xz
     LOGICAL, INTENT(OUT), OPTIONAL :: pflags(3), boxflag
     INTEGER(c_int), TARGET :: C_pflags(3), C_boxflag
-    TYPE (c_ptr) :: ptr(7)
+    TYPE(c_ptr) :: ptr(7)
 
     ptr = c_null_ptr
     IF ( PRESENT(boxlo) ) ptr(1) = C_LOC(boxlo(1))
@@ -752,7 +752,7 @@ CONTAINS
   SUBROUTINE lmp_memory_usage(self,meminfo)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER, PARAMETER :: MEMINFO_ELEM = 3
-    REAL (c_double), DIMENSION(MEMINFO_ELEM), INTENT(OUT) :: meminfo
+    REAL(c_double), DIMENSION(MEMINFO_ELEM), INTENT(OUT) :: meminfo
 
     CALL lammps_memory_usage(self%handle,meminfo)
   END SUBROUTINE lmp_memory_usage
@@ -765,7 +765,7 @@ CONTAINS
   END FUNCTION lmp_get_mpi_comm
 
   ! equivalent function to lammps_extract_setting
-  INTEGER (c_int) FUNCTION lmp_extract_setting(self, keyword)
+  INTEGER(c_int) FUNCTION lmp_extract_setting(self, keyword)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: keyword
     TYPE(c_ptr) :: Ckeyword
@@ -778,7 +778,7 @@ CONTAINS
   ! equivalent function to lammps_extract_global
   ! the assignment is actually overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
-  FUNCTION lmp_extract_global(self, name) RESULT (global_data)
+  FUNCTION lmp_extract_global(self, name) RESULT(global_data)
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(lammps_data) :: global_data
@@ -849,7 +849,7 @@ CONTAINS
   ! equivalent function to lammps_extract_atom
   ! the assignment is actually overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
-  FUNCTION lmp_extract_atom (self, name) RESULT (peratom_data)
+  FUNCTION lmp_extract_atom(self, name) RESULT(peratom_data)
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(lammps_data) :: peratom_data
@@ -916,7 +916,7 @@ CONTAINS
   ! equivalent function to lammps_extract_compute
   ! the assignment operator is overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
-  FUNCTION lmp_extract_compute (self, id, style, type) RESULT (compute_data)
+  FUNCTION lmp_extract_compute(self, id, style, type) RESULT(compute_data)
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: id
     INTEGER(c_int), INTENT(IN) :: style, type
@@ -980,7 +980,7 @@ CONTAINS
     CALL lammps_free(Cid)
   END FUNCTION lmp_extract_compute
 
-  FUNCTION lmp_extract_fix(self, id, style, type, nrow, ncol) RESULT (fix_data)
+  FUNCTION lmp_extract_fix(self, id, style, type, nrow, ncol) RESULT(fix_data)
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: id
     INTEGER(c_int), INTENT(IN) :: style, type
@@ -1079,7 +1079,7 @@ CONTAINS
   END FUNCTION lmp_extract_fix
 
   ! equivalent function to lammps_extract_variable
-  FUNCTION lmp_extract_variable(self, name, group) RESULT (variable_data)
+  FUNCTION lmp_extract_variable(self, name, group) RESULT(variable_data)
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: group
@@ -1157,9 +1157,9 @@ CONTAINS
   END FUNCTION lmp_extract_variable
 
   ! equivalent function to lammps_set_variable
-  SUBROUTINE lmp_set_variable (self, name, str)
+  SUBROUTINE lmp_set_variable(self, name, str)
     CLASS(lammps), INTENT(IN) :: self
-    CHARACTER (LEN=*), INTENT(IN) :: name, str
+    CHARACTER(LEN=*), INTENT(IN) :: name, str
     INTEGER :: err
     TYPE(C_ptr) :: Cstr, Cname
 
@@ -1183,7 +1183,7 @@ CONTAINS
   END FUNCTION lmp_version
 
   ! equivalent function to lammps_get_os_info
-  SUBROUTINE lmp_get_os_info (buffer)
+  SUBROUTINE lmp_get_os_info(buffer)
     CHARACTER(LEN=*) :: buffer
     INTEGER(c_int) :: buf_size
     CHARACTER(LEN=1,KIND=c_char), DIMENSION(LEN(buffer)), TARGET :: Cbuffer
@@ -1193,7 +1193,7 @@ CONTAINS
     buffer = ''
     ptr = C_LOC(Cbuffer(1))
     buf_size = LEN(buffer)
-    CALL lammps_get_os_info (ptr, buf_size)
+    CALL lammps_get_os_info(ptr, buf_size)
     DO i=1,buf_size
       IF ( Cbuffer(i) == C_NULL_CHAR ) EXIT
       buffer(i:i) = Cbuffer(i)
@@ -1251,8 +1251,8 @@ CONTAINS
   ! equivalent function to lammps_config_has_package
   LOGICAL FUNCTION lmp_config_has_package(name)
     CHARACTER(LEN=*), INTENT(IN) :: name
-    INTEGER (c_int) :: has_package
-    TYPE (c_ptr) :: Cname
+    INTEGER(c_int) :: has_package
+    TYPE(c_ptr) :: Cname
 
     Cname = f2c_string(name)
     has_package = lammps_config_has_package(Cname)
@@ -1261,7 +1261,7 @@ CONTAINS
   END FUNCTION lmp_config_has_package
 
   ! equivalent subroutine to lammps_config_package_name
-  SUBROUTINE lmp_config_package_name (idx, buffer)
+  SUBROUTINE lmp_config_package_name(idx, buffer)
     INTEGER, INTENT(IN) :: idx
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER(c_int) :: Cidx, Csuccess
@@ -1282,7 +1282,7 @@ CONTAINS
   END SUBROUTINE lmp_config_package_name
 
   ! equivalent function to Python routine .installed_packages()
-  SUBROUTINE lmp_installed_packages (package, length)
+  SUBROUTINE lmp_installed_packages(package, length)
     CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: package
     INTEGER, INTENT(IN), OPTIONAL :: length
     INTEGER, PARAMETER :: MAX_BUFFER_LENGTH = 31
@@ -1317,7 +1317,7 @@ CONTAINS
   END FUNCTION lmp_is_running
 
   ! equivalent function to lammps_force_timeout
-  SUBROUTINE lmp_force_timeout (self)
+  SUBROUTINE lmp_force_timeout(self)
     CLASS(lammps), INTENT(IN) :: self
 
     CALL lammps_force_timeout(self%handle)
@@ -1365,7 +1365,7 @@ CONTAINS
   ! ----------------------------------------------------------------------
   ! functions to assign user-space pointers to LAMMPS data
   ! ----------------------------------------------------------------------
-  SUBROUTINE assign_int_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_int_to_lammps_data(lhs, rhs)
     INTEGER(c_int), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1376,7 +1376,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_int_to_lammps_data
 
-  SUBROUTINE assign_int64_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_int64_to_lammps_data(lhs, rhs)
     INTEGER(c_int64_t), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1387,7 +1387,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_int64_to_lammps_data
 
-  SUBROUTINE assign_intvec_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_intvec_to_lammps_data(lhs, rhs)
     INTEGER(c_int), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1398,7 +1398,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_intvec_to_lammps_data
 
-  SUBROUTINE assign_int64vec_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_int64vec_to_lammps_data(lhs, rhs)
     INTEGER(c_int64_t), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1409,7 +1409,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_int64vec_to_lammps_data
 
-  SUBROUTINE assign_double_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_double_to_lammps_data(lhs, rhs)
     REAL(c_double), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1420,7 +1420,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_double_to_lammps_data
 
-  SUBROUTINE assign_doublevec_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_doublevec_to_lammps_data(lhs, rhs)
     REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1431,7 +1431,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_doublevec_to_lammps_data
 
-  SUBROUTINE assign_doublemat_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_doublemat_to_lammps_data(lhs, rhs)
     REAL(c_double), DIMENSION(:,:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1442,7 +1442,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_doublemat_to_lammps_data
 
-  SUBROUTINE assign_string_to_lammps_data (lhs, rhs)
+  SUBROUTINE assign_string_to_lammps_data(lhs, rhs)
     CHARACTER(LEN=*), INTENT(OUT) :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
@@ -1456,7 +1456,7 @@ CONTAINS
   ! ----------------------------------------------------------------------
   ! functions to assign user-space pointers to LAMMPS *fix* data
   ! ----------------------------------------------------------------------
-  SUBROUTINE assign_double_to_lammps_fix_data (lhs, rhs)
+  SUBROUTINE assign_double_to_lammps_fix_data(lhs, rhs)
     REAL(c_double), INTENT(OUT) :: lhs
     CLASS(lammps_fix_data), INTENT(IN) :: rhs
 
@@ -1467,7 +1467,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_double_to_lammps_fix_data
 
-  SUBROUTINE assign_doublevec_to_lammps_fix_data (lhs, rhs)
+  SUBROUTINE assign_doublevec_to_lammps_fix_data(lhs, rhs)
     REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_fix_data), INTENT(IN) :: rhs
 
@@ -1478,7 +1478,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_doublevec_to_lammps_fix_data
 
-  SUBROUTINE assign_doublemat_to_lammps_fix_data (lhs, rhs)
+  SUBROUTINE assign_doublemat_to_lammps_fix_data(lhs, rhs)
     REAL(c_double), DIMENSION(:,:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_fix_data), INTENT(IN) :: rhs
 
@@ -1492,7 +1492,7 @@ CONTAINS
   ! ----------------------------------------------------------------------
   ! functions to assign user-space pointers to LAMMPS *variable* data
   ! ----------------------------------------------------------------------
-  SUBROUTINE assign_double_to_lammps_variable_data (lhs, rhs)
+  SUBROUTINE assign_double_to_lammps_variable_data(lhs, rhs)
     REAL(c_double), INTENT(OUT) :: lhs
     CLASS(lammps_variable_data), INTENT(IN) :: rhs
 
@@ -1503,7 +1503,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_double_to_lammps_variable_data
 
-  SUBROUTINE assign_doublevec_to_lammps_variable_data (lhs, rhs)
+  SUBROUTINE assign_doublevec_to_lammps_variable_data(lhs, rhs)
     REAL(c_double), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: lhs
     CLASS(lammps_variable_data), INTENT(IN) :: rhs
 
@@ -1516,7 +1516,7 @@ CONTAINS
     END IF
   END SUBROUTINE assign_doublevec_to_lammps_variable_data
 
-  SUBROUTINE assign_string_to_lammps_variable_data (lhs, rhs)
+  SUBROUTINE assign_string_to_lammps_variable_data(lhs, rhs)
     CHARACTER(LEN=*), INTENT(OUT) :: lhs
     CLASS(lammps_variable_data), INTENT(IN) :: rhs
 
@@ -1531,31 +1531,31 @@ CONTAINS
   ! Generic function to catch all errors in assignments of LAMMPS data to
   ! user-space variables/pointers
   ! ----------------------------------------------------------------------
-  SUBROUTINE assignment_error (type1, str2)
+  SUBROUTINE assignment_error(type1, str2)
     CLASS(lammps_data_baseclass), INTENT(IN) :: type1
-    CHARACTER (LEN=*), INTENT(IN) :: str2
-    CHARACTER (LEN=:), ALLOCATABLE :: str1
+    CHARACTER(LEN=*), INTENT(IN) :: str2
+    CHARACTER(LEN=:), ALLOCATABLE :: str1
 
-    SELECT CASE (type1%datatype)
-      CASE (DATA_INT)
+    SELECT CASE(type1%datatype)
+      CASE(DATA_INT)
         str1 = 'scalar int'
-      CASE (DATA_INT_1D)
+      CASE(DATA_INT_1D)
         str1 = 'vector of ints'
-      CASE (DATA_INT_2D)
+      CASE(DATA_INT_2D)
         str1 = 'matrix of ints'
-      CASE (DATA_INT64)
+      CASE(DATA_INT64)
         str1 = 'scalar long int'
-      CASE (DATA_INT64_1D)
+      CASE(DATA_INT64_1D)
         str1 = 'vector of long ints'
-      CASE (DATA_INT64_2D)
+      CASE(DATA_INT64_2D)
         str1 = 'matrix of long ints'
-      CASE (DATA_DOUBLE)
+      CASE(DATA_DOUBLE)
         str1 = 'scalar double'
-      CASE (DATA_DOUBLE_1D)
+      CASE(DATA_DOUBLE_1D)
         str1 = 'vector of doubles'
-      CASE (DATA_DOUBLE_2D)
+      CASE(DATA_DOUBLE_2D)
         str1 = 'matrix of doubles'
-      CASE (DATA_STRING)
+      CASE(DATA_STRING)
         str1 = 'string'
       CASE DEFAULT
         str1 = 'that type'

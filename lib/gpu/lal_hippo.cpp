@@ -143,8 +143,12 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
   _polar_uscale = polar_uscale;
 
   _allocated=true;
-  this->_max_bytes=coeff_amtype.row_bytes() + coeff_rep.row_bytes() + coeff_amclass.row_bytes() +
-    + sp_polar.row_bytes() + sp_nonpolar.row_bytes() + this->_tep.row_bytes();
+  this->_max_bytes=coeff_amtype.row_bytes() + coeff_rep.row_bytes()
+    + coeff_amclass.row_bytes() + sp_polar.row_bytes()
+    + sp_nonpolar.row_bytes() + this->_tep.row_bytes()
+    + this->_fieldp.row_bytes() + this->_thetai1.row_bytes()
+    + this->_thetai2.row_bytes()  + this->_thetai3.row_bytes()
+    + this->_igrid.row_bytes() + this->_cgrid_brick.row_bytes();
   return 0;
 }
 
@@ -169,7 +173,7 @@ double HippoT::host_memory_usage() const {
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute repulsion
+// Compute the repulsion term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void HippoT::compute_repulsion(const int ago, const int inum_full,
@@ -203,26 +207,6 @@ void HippoT::compute_repulsion(const int ago, const int inum_full,
 
   this->set_kernel(eflag,vflag);
 
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
-  // NOTE:
-  //   For now we invoke precompute() again here,
-  //     to be able to turn on/off the udirect2b kernel (which comes before this)
-  //   Once all the kernels are ready, precompute() is needed only once
-  //     in the first kernel in a time step.
-  //   We only need to cast the necessary from host to device here
-  //     if the neighbor lists are rebuilt and other per-atom arrays
-  //     (x, type, amtype, amgroup, rpole) are ready on the device.
-/*
-  int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
-                                host_amtype, host_amgroup, host_rpole,
-                                nullptr, nullptr, nullptr, sublo, subhi, tag,
-                                nspecial, special, nspecial15, special15,
-                                eflag_in, vflag_in, eatom, vatom,
-                                host_start, ilist, jnum, cpu_time,
-                                success, host_q, boxlo, prd);
-*/
   // ------------------- Resize _tep array ------------------------
 
   if (inum_full>this->_max_tep_size) {
@@ -252,12 +236,10 @@ void HippoT::compute_repulsion(const int ago, const int inum_full,
   // copy tep from device to host
 
   this->_tep.update_host(this->_max_tep_size*4,false);
-
-//  return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the repulsion term, returning tep
+// Launch the repulsion kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int HippoT::repulsion(const int eflag, const int vflag) {
@@ -299,7 +281,7 @@ int HippoT::repulsion(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute dispersion real-space
+// Compute dispersion real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
@@ -323,12 +305,10 @@ void HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
   //this->device->add_ans_object(this->ans);
 
   this->hd_balancer.stop_timer();
-
- // return nullptr; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the dispersion real-space term, returning tep
+// Launch the dispersion real-space kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int HippoT::dispersion_real(const int eflag, const int vflag) {
@@ -346,7 +326,7 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
   this->time_pair.start();
 
   // Build the short neighbor list for the cutoff off2_disp,
-  //   at this point mpole is the first kernel in a time step
+  //   at this point dispersion is the first kernel in a time step
 
   this->k_short_nbor.set_size(GX,BX);
   this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
@@ -356,20 +336,20 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
 
   k_dispersion.set_size(GX,BX);
   k_dispersion.run(&this->atom->x, &this->atom->extra,
-                         &coeff_amtype, &coeff_amclass, &sp_nonpolar,
-                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                         &this->dev_short_nbor,
-                         &this->ans->force, &this->ans->engv,
-                         &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
-                         &this->_threads_per_atom,  &this->_aewald,
-                         &this->_off2_disp);
+                   &coeff_amtype, &coeff_amclass, &sp_nonpolar,
+                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                   &this->dev_short_nbor,
+                   &this->ans->force, &this->ans->engv,
+                   &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
+                   &this->_threads_per_atom,  &this->_aewald,
+                   &this->_off2_disp);
   this->time_pair.stop();
 
   return GX;
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute multipole real-space
+// Compute the multipole real-space term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void HippoT::compute_multipole_real(const int ago, const int inum_full,
@@ -416,12 +396,10 @@ void HippoT::compute_multipole_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   this->_tep.update_host(this->_max_tep_size*4,false);
-
-  //return nullptr; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the multipole real-space term, returning tep
+// Launch the multipole real-space kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int HippoT::multipole_real(const int eflag, const int vflag) {
@@ -438,8 +416,7 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
                                (BX/this->_threads_per_atom)));
   this->time_pair.start();
 
-  // Build the short neighbor list for the cutoff off2_mpole,
-  //   at this point mpole is the first kernel in a time step
+  // Build the short neighbor list for the cutoff off2_mpole
 
   this->k_short_nbor.set_size(GX,BX);
   this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
@@ -462,8 +439,8 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute the direct real space part
-//    of the permanent field
+// Compute the direct real space part of the permanent field
+//   returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void HippoT::compute_udirect2b(int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -488,7 +465,7 @@ void HippoT::compute_udirect2b(int *host_amtype, int *host_amgroup, double **hos
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the real-space permanent field, returning field and fieldp
+// Launch the real-space permanent field kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int HippoT::udirect2b(const int eflag, const int vflag) {
@@ -505,7 +482,9 @@ int HippoT::udirect2b(const int eflag, const int vflag) {
                                (BX/this->_threads_per_atom)));
   this->time_pair.start();
 
-  // Build the short neighbor list if not done yet
+  // Build the short neighbor list for the cutoff _off2_polar, if not done yet
+  //   this is the first kernel in a time step where _off2_polar is used
+
   if (!this->short_nbor_polar_avail) {
     this->k_short_nbor.set_size(GX,BX);
     this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
@@ -529,8 +508,8 @@ int HippoT::udirect2b(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute the direct real space part
-//    of the induced field
+// Compute the direct real space term of the induced field
+//   returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -554,7 +533,7 @@ void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **hos
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the real-space induced field, returning field and fieldp
+// Launch the real-space induced field kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int HippoT::umutual2b(const int eflag, const int vflag) {
@@ -628,7 +607,7 @@ void HippoT::compute_polar_real(int *host_amtype, int *host_amgroup, double **ho
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the polar real-space term, returning tep
+// Launch the polar real-space kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int HippoT::polar_real(const int eflag, const int vflag) {

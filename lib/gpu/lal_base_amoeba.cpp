@@ -447,7 +447,9 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute multipole real-space
+// Compute multipole real-space part
+//   precompute() should be already invoked before mem (re)allocation
+//   this is the first part in a time step done on the GPU for AMOEBA for now 
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
@@ -464,21 +466,6 @@ void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
                                           const double aewald, const double felec,
                                           const double off2_mpole, double *host_q,
                                           double *boxlo, double *prd, void **tep_ptr) {
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
-  // NOTE:
-  //   Once all the kernels are ready, precompute() is needed only once
-  //     in the first kernel in a time step.
-/*
-  int** firstneigh = nullptr;
-  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          nullptr, nullptr, nullptr, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
-*/
   // ------------------- Resize _tep array ------------------------
 
   if (inum_full>_max_tep_size) {
@@ -502,8 +489,6 @@ void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   _tep.update_host(_max_tep_size*4,false);
-
-//  return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -842,22 +827,23 @@ double BaseAmoebaT::host_memory_usage_atomic() const {
 }
 
 // ---------------------------------------------------------------------------
-// Setup the FFT plan
+// Setup the FFT plan: only placeholder for now
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::setup_fft(const int numel, const int element_type)
 {
-
+  // TODO: setting up FFT plan based on the backend (cuFFT or hipFFT)
 }
 
 // ---------------------------------------------------------------------------
-// Compute FFT on the device
+// Compute FFT on the device: only placeholder for now
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int mode)
 {
+  // TODO: setting up FFT plan based on the backend (cuFFT or hipFFT)
   #if !defined(USE_OPENCL) && !defined(USE_HIP)    
   if (fft_plan_created == false) {
     int m = numel/2;

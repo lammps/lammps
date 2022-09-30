@@ -185,7 +185,7 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the real-space permanent field, returning field and fieldp
+// Launch the real-space permanent field kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::udirect2b(const int eflag, const int vflag) {
@@ -202,7 +202,9 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
                                (BX/this->_threads_per_atom)));
   this->time_pair.start();
 
-  // Build the short neighbor list if not done yet
+  // Build the short neighbor list for the cutoff _off2_polar, if not done yet
+  //   this is the first kernel in a time step where _off2_polar is used
+
   if (!this->short_nbor_polar_avail) {
     this->k_short_nbor.set_size(GX,BX);
     this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
@@ -225,7 +227,7 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the real-space induced field, returning field and fieldp
+// Launch the real-space induced field kernel, returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::umutual2b(const int eflag, const int vflag) {
@@ -264,7 +266,7 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the polar real-space term, returning tep
+// Launch the polar real-space kernel, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::polar_real(const int eflag, const int vflag) {

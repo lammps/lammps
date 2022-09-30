@@ -13,16 +13,7 @@ PairStyle(pod,CPairPOD);
 namespace LAMMPS_NS {
 
   class CPairPOD : public Pair {
-  private:
-          
-      bool is_a_number(std::string line);
-      
-      int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-      
-      int podneighborcount(double *r, double rcutsq, int nx, int N, int dim);
-      int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
-      
-  public:
+    public:
       class CPOD *podptr;
       
       CPairPOD(class LAMMPS *);
@@ -83,10 +74,6 @@ namespace LAMMPS_NS {
       void estimate_tempmemory();    
       void free_tempmemory();
       void allocate_tempmemory();
-          
-      void check_pairmemory(double *x, double *a1, double *a2, double *a3, int natom);    
-      void free_pairmemory();
-      void allocate_pairmemory();
       
       void check_atommemory(int inum, int nall);
       void free_atommemory();    
@@ -94,30 +81,8 @@ namespace LAMMPS_NS {
       
       void free_memory();            
       void allocate_memory();  
-          
-      void get_atomblocks(int natom);
-      
-      int podfullneighborlist(double *y, int *alist, int *pairlist, int *pairnum, int *pairnumsum, 
-          double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-          
-      void podNeighPairs(int *atomtype, int istart, int iend);
-          
-      void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *numneigh, 
-              int *ilist, int istart, int iend);
-              
-      void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *numneigh, int i);
-      
-      double podenergy(double *x, double *a1, double *a2, double *a3, int *atomtype, int inum);    
-      double podeatom(double *eatom, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum);
-      void podforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum);
-      double podenergyforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtype, int inum);      
-      
-      double lammpsenergy(double **x, int **firstneigh, int *atype, int *numneigh, int *ilist, int inum, int nall);
-      double lammpseatom(double *eatom, double **x, int **firstneigh, int *atomtypes, int *numneigh, 
-          int *ilist, int inum, int nall);
-      void lammpsforce(double **f, double **x, int **firstneigh, int *atomtypes, 
-          int *numneigh, int *ilist, int inum, int nall);
-      double lammpsenergyforce(double **f, double **x, int **firstneigh, int *atomtype, int *numneigh, int *ilist, int inum, int nall);     
+                 
+      void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *numneigh, int i); 
       
       void printinfo()
       {        

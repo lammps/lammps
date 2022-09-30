@@ -152,7 +152,7 @@ class BaseAmoeba {
                 double *charge, double *boxlo, double *prd);
 
   /// Compute multipole real-space with device neighboring
-  virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
+  virtual void compute_multipole_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole, double *host_pval,
                 double *sublo, double *subhi, tagint *tag,

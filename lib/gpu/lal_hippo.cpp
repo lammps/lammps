@@ -172,7 +172,7 @@ double HippoT::host_memory_usage() const {
 // Reneighbor on GPU if necessary, and then compute repulsion
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** HippoT::compute_repulsion(const int ago, const int inum_full,
+void HippoT::compute_repulsion(const int ago, const int inum_full,
                                 const int nall, double **host_x,
                                 int *host_type, int *host_amtype,
                                 int *host_amgroup, double **host_rpole,
@@ -213,7 +213,7 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
   //   We only need to cast the necessary from host to device here
   //     if the neighbor lists are rebuilt and other per-atom arrays
   //     (x, type, amtype, amgroup, rpole) are ready on the device.
-
+/*
   int** firstneigh = nullptr;
   firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
                                 host_amtype, host_amgroup, host_rpole,
@@ -222,7 +222,7 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
                                 eflag_in, vflag_in, eatom, vatom,
                                 host_start, ilist, jnum, cpu_time,
                                 success, host_q, boxlo, prd);
-
+*/
   // ------------------- Resize _tep array ------------------------
 
   if (inum_full>this->_max_tep_size) {
@@ -253,7 +253,7 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
 
   this->_tep.update_host(this->_max_tep_size*4,false);
 
-  return firstneigh; // nbor->host_jlist.begin()-host_start;
+//  return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -275,7 +275,7 @@ int HippoT::repulsion(const int eflag, const int vflag) {
   this->time_pair.start();
 
   // Build the short neighbor list for the cutoff off2_disp,
-  //   at this point mpole is the first kernel in a time step
+  //   at this point repuslion is the first kernel in a time step for HIPPO
 
   this->k_short_nbor.set_size(GX,BX);
   this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
@@ -302,7 +302,7 @@ int HippoT::repulsion(const int eflag, const int vflag) {
 // Reneighbor on GPU if necessary, and then compute dispersion real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
+void HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
                                       double **host_rpole, const double aewald,
                                       const double off2_disp) {
 
@@ -324,7 +324,7 @@ int** HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
 
   this->hd_balancer.stop_timer();
 
-  return nullptr; // nbor->host_jlist.begin()-host_start;
+ // return nullptr; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -372,7 +372,7 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
 // Reneighbor on GPU if necessary, and then compute multipole real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** HippoT::compute_multipole_real(const int ago, const int inum_full,
+void HippoT::compute_multipole_real(const int ago, const int inum_full,
                                      const int nall, double **host_x,
                                      int *host_type, int *host_amtype,
                                      int *host_amgroup, double **host_rpole,
@@ -417,7 +417,7 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
 
   this->_tep.update_host(this->_max_tep_size*4,false);
 
-  return nullptr; // nbor->host_jlist.begin()-host_start;
+  //return nullptr; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------

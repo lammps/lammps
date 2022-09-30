@@ -226,12 +226,12 @@ int * BaseAmoebaT::reset_nbors(const int nall, const int inum, int *ilist,
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 inline int BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
-                                         const int nall, double **host_x,
-                                         int *host_type, double *sublo,
-                                         double *subhi, tagint *tag,
-                                         int **nspecial, tagint **special,
-                                         int *nspecial15, tagint **special15,
-                                         bool &success) {
+                                        const int nall, double **host_x,
+                                        int *host_type, double *sublo,
+                                        double *subhi, tagint *tag,
+                                        int **nspecial, tagint **special,
+                                        int *nspecial15, tagint **special15,
+                                        bool &success) {
   success=true;
   resize_atom(inum,nall,success);
   resize_local(inum,host_inum,nbor->max_nbors(),success);
@@ -450,7 +450,7 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 // Reneighbor on GPU if necessary, and then compute multipole real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
+void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
                                           const int nall, double **host_x,
                                           int *host_type, int *host_amtype,
                                           int *host_amgroup, double **host_rpole, double *host_pval,
@@ -469,7 +469,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   // NOTE:
   //   Once all the kernels are ready, precompute() is needed only once
   //     in the first kernel in a time step.
-
+/*
   int** firstneigh = nullptr;
   firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole,
@@ -478,7 +478,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
                           success, host_q, boxlo, prd);
-
+*/
   // ------------------- Resize _tep array ------------------------
 
   if (inum_full>_max_tep_size) {
@@ -503,7 +503,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
 
   _tep.update_host(_max_tep_size*4,false);
 
-  return firstneigh; // nbor->host_jlist.begin()-host_start;
+//  return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -782,7 +782,6 @@ int BaseAmoebaT::fphi_mpole() {
 
   // Compute the block size and grid size to keep all cores busy
   const int BX=block_size();
-  //printf("BX = %d; pppm block size = %d\n", BX, PPPM_BLOCK_1D);
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
   time_pair.start();

@@ -69,7 +69,19 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
                     const double polar_dscale, const double polar_uscale, int& tq_size);
 void amoeba_gpu_clear();
 
-int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
+int** amoeba_gpu_precompute(const int ago, const int inum_full, const int nall,
+                            double **host_x, int *host_type, int *host_amtype,
+                            int *host_amgroup, double **host_rpole,
+                            double **host_uind, double **host_uinp, double *host_pval,
+                            double *sublo, double *subhi, tagint *tag,
+                            int **nspecial, tagint **special,
+                            int *nspecial15, tagint **special15,
+                            const bool eflag_in, const bool vflag_in,
+                            const bool eatom, const bool vatom, int &host_start,
+                            int **ilist, int **jnum, const double cpu_time,
+                            bool &success, double *host_q, double *boxlo, double *prd);
+
+void amoeba_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double *sublo, double *subhi, tagint *tag,
               int **nspecial, tagint **special, int* nspecial15, tagint** special15,
@@ -240,6 +252,18 @@ void PairAmoebaGPU::multipole_real()
   }
   inum = atom->nlocal;
 
+  firstneigh = amoeba_gpu_precompute(neighbor->ago, inum, nall, atom->x,
+                                     atom->type, amtype, amgroup, rpole,
+                                     nullptr, nullptr, nullptr,
+                                     sublo, subhi, atom->tag,
+                                     atom->nspecial, atom->special,
+                                     atom->nspecial15, atom->special15,
+                                     eflag, vflag, eflag_atom, vflag_atom,
+                                     host_start, &ilist, &numneigh, cpu_time,
+                                     success, atom->q, domain->boxlo, domain->prd);
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
+
   // select the correct cutoff for the term
 
   if (use_ewald) choose(MPOLE_LONG);
@@ -249,18 +273,17 @@ void PairAmoebaGPU::multipole_real()
 
   double felec = electric / am_dielectric;
 
-  firstneigh = amoeba_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
-                                                 atom->type, amtype, amgroup, rpole,
-                                                 sublo, subhi, atom->tag,
-                                                 atom->nspecial, atom->special,
-                                                 atom->nspecial15, atom->special15,
-                                                 eflag, vflag, eflag_atom, vflag_atom,
-                                                 host_start, &ilist, &numneigh, cpu_time,
-                                                 success, aewald, felec, off2, atom->q,
-                                                 domain->boxlo, domain->prd, &tq_pinned);
+  amoeba_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
+                                    atom->type, amtype, amgroup, rpole,
+                                    sublo, subhi, atom->tag,
+                                    atom->nspecial, atom->special,
+                                    atom->nspecial15, atom->special15,
+                                    eflag, vflag, eflag_atom, vflag_atom,
+                                    host_start, &ilist, &numneigh, cpu_time,
+                                    success, aewald, felec, off2, atom->q,
+                                    domain->boxlo, domain->prd, &tq_pinned);
 
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  
 
   // reference to the tep array from GPU lib
 

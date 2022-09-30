@@ -70,7 +70,19 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const double polar_dscale, const double polar_uscale, int& tq_size);
 void hippo_gpu_clear();
 
-int** hippo_gpu_compute_repulsion(const int ago, const int inum_full,
+int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
+                            double **host_x, int *host_type, int *host_amtype,
+                            int *host_amgroup, double **host_rpole,
+                            double **host_uind, double **host_uinp, double *host_pval,
+                            double *sublo, double *subhi, tagint *tag,
+                            int **nspecial, tagint **special,
+                            int *nspecial15, tagint **special15,
+                            const bool eflag_in, const bool vflag_in,
+                            const bool eatom, const bool vatom, int &host_start,
+                            int **ilist, int **jnum, const double cpu_time,
+                            bool &success, double *host_q, double *boxlo, double *prd);
+
+void hippo_gpu_compute_repulsion(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *host_amtype, int *host_amgroup, double **host_rpole,
                            double *sublo, double *subhi, tagint *tag, int **nspecial,
@@ -86,7 +98,7 @@ int** hippo_gpu_compute_repulsion(const int ago, const int inum_full,
 void hippo_gpu_compute_dispersion_real(int *host_amtype, int *host_amgroup, double **host_rpole,
                                         const double aewald, const double off2);
 
-int ** hippo_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
+void hippo_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double *host_pval, double *sublo, double *subhi, tagint *tag,
               int **nspecial, tagint **special, int* nspecial15, tagint** special15,
@@ -258,22 +270,30 @@ void PairHippoGPU::repulsion()
   }
   inum = atom->nlocal;
 
+  firstneigh = hippo_gpu_precompute(neighbor->ago, inum, nall, atom->x,
+                                     atom->type, amtype, amgroup, rpole,
+                                     nullptr, nullptr, nullptr,
+                                     sublo, subhi, atom->tag,
+                                     atom->nspecial, atom->special,
+                                     atom->nspecial15, atom->special15,
+                                     eflag, vflag, eflag_atom, vflag_atom,
+                                     host_start, &ilist, &numneigh, cpu_time,
+                                     success, atom->q, domain->boxlo, domain->prd);
+
   // select the correct cutoff for the term
 
   choose(REPULSE);
 
-  // set the energy unit conversion factor for multipolar real-space calculation
-
-  firstneigh = hippo_gpu_compute_repulsion(neighbor->ago, inum, nall, atom->x,
-                                           atom->type, amtype, amgroup, rpole,
-                                           sublo, subhi, atom->tag,
-                                           atom->nspecial, atom->special,
-                                           atom->nspecial15, atom->special15,
-                                           eflag, vflag, eflag_atom, vflag_atom,
-                                           host_start, &ilist, &numneigh, cpu_time,
-                                           success, aewald, off2, atom->q,
-                                           domain->boxlo, domain->prd, cut2,
-                                           c0, c1, c2, c3, c4, c5, &tq_pinned);
+  hippo_gpu_compute_repulsion(neighbor->ago, inum, nall, atom->x,
+                              atom->type, amtype, amgroup, rpole,
+                              sublo, subhi, atom->tag,
+                              atom->nspecial, atom->special,
+                              atom->nspecial15, atom->special15,
+                              eflag, vflag, eflag_atom, vflag_atom,
+                              host_start, &ilist, &numneigh, cpu_time,
+                              success, aewald, off2, atom->q,
+                              domain->boxlo, domain->prd, cut2,
+                              c0, c1, c2, c3, c4, c5, &tq_pinned);
 
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");

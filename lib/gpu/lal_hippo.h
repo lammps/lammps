@@ -55,7 +55,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
            const double polar_dscale, const double polar_uscale);
 
   /// Compute repulsion with device neighboring
-  int** compute_repulsion(const int ago, const int inum_full,
+  virtual void compute_repulsion(const int ago, const int inum_full,
                           const int nall, double **host_x,
                           int *host_type, int *host_amtype,
                           int *host_amgroup, double **host_rpole,
@@ -72,12 +72,12 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                           double c3, double c4, double c5,void** tep_ptr);
 
   /// Compute dispersion real-space with device neighboring
-  int** compute_dispersion_real(int *host_amtype,  int *host_amgroup,
+  virtual void compute_dispersion_real(int *host_amtype,  int *host_amgroup,
                                 double **host_rpole, const double aewald,
                                 const double off2_disp);
 
   /// Compute multipole real-space with device neighboring
-  virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
+  virtual void compute_multipole_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole, double *host_pval,
                 double *sublo, double *subhi, tagint *tag, int **nspecial, tagint **special,

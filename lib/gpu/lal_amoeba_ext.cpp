@@ -117,7 +117,28 @@ void amoeba_gpu_clear() {
   AMOEBAMF.clear();
 }
 
-int** amoeba_gpu_compute_multipole_real(const int ago, const int inum_full,
+int** amoeba_gpu_precompute(const int ago, const int inum_full, const int nall,
+                            double **host_x, int *host_type, int *host_amtype,
+                            int *host_amgroup, double **host_rpole,
+                            double **host_uind, double **host_uinp, double *host_pval,
+                            double *sublo, double *subhi, tagint *tag,
+                            int **nspecial, tagint **special,
+                            int *nspecial15, tagint **special15,
+                            const bool eflag_in, const bool vflag_in,
+                            const bool eatom, const bool vatom, int &host_start,
+                            int **ilist, int **jnum, const double cpu_time,
+                            bool &success, double *host_q, double *boxlo, double *prd) {
+  return AMOEBAMF.precompute(ago, inum_full, nall, host_x, host_type,
+                             host_amtype, host_amgroup, host_rpole,
+                             nullptr, nullptr, nullptr, sublo, subhi, tag,
+                             nspecial, special, nspecial15, special15,
+                             eflag_in, vflag_in, eatom, vatom,
+                             host_start, ilist, jnum, cpu_time,
+                             success, host_q, boxlo, prd);
+}
+
+
+void amoeba_gpu_compute_multipole_real(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *host_amtype, int *host_amgroup, double **host_rpole,
                            double *sublo, double *subhi, tagint *tag, int **nspecial,
@@ -127,7 +148,7 @@ int** amoeba_gpu_compute_multipole_real(const int ago, const int inum_full,
                            int **ilist, int **jnum, const double cpu_time,
                            bool &success, const double aewald, const double felec, const double off2,
                            double *host_q, double *boxlo, double *prd, void **tep_ptr) {
-  return AMOEBAMF.compute_multipole_real(ago, inum_full, nall, host_x, host_type,
+  AMOEBAMF.compute_multipole_real(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, nullptr, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom, vatom, host_start, ilist, jnum,

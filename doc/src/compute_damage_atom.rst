@@ -32,10 +32,9 @@ The "damage" of a Peridynamics particles is based on the bond breakage
 between the particle and its neighbors.  If all the bonds are broken
 the particle is considered to be fully damaged.
 
-See the `PDLAMMPS user guide
-<https://download.lammps.org/pdfs/PDLAMMPS_user_guide.pdf>`_ for a
-formal definition of "damage" and more details about Peridynamics as it
-is implemented in LAMMPS.
+See the :doc:`Peridynamics Howto <Howto_peri>` for a formal definition
+of "damage" and more details about Peridynamics as it is implemented in
+LAMMPS.
 
 This command can be used with all the Peridynamic pair styles.
 

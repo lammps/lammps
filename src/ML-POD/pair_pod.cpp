@@ -250,6 +250,7 @@ void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file, std::st
 {
   podptr = new CPOD(lmp, pod_file, coeff_file);
 
+  utils::logmesg(lmp, "^^^^^ data_file: {}\n", data_file);
   if (data_file != "")
     this->read_data_files(data_file, podptr->pod.species);
   //else
@@ -285,6 +286,7 @@ bool CPairPOD::is_a_number(std::string line)
 void CPairPOD::read_data_file(double *inputs, std::string &file_format, std::string &file_extension,
   std::string &data_path, std::string data_file)
 {
+  /*
   std::ifstream file_in(data_file);
   if (!file_in) error->all(FLERR,"Error: Data input file is not found");
 
@@ -345,21 +347,23 @@ void CPairPOD::read_data_file(double *inputs, std::string &file_format, std::str
 
   if (inputs[4] == 0) inputs[4] = blocksize;
 
-  std::cout<<"**************** Begin of Data File ****************"<<std::endl;
-  std::cout<<"file format: "<<file_format<<std::endl;
-  std::cout<<"file extension: "<<file_extension<<std::endl;
-  std::cout<<"path to data set: "<<data_path<<std::endl;
-  std::cout<<"error analysis for data set: "<<inputs[0]<<std::endl;
-  std::cout<<"run MD simulation: "<<inputs[3]<<std::endl;
-  std::cout<<"save calculation fin binary files: "<<inputs[1]<<std::endl;
-  std::cout<<"save frequency: "<<inputs[2]<<std::endl;
-  std::cout<<"number of atoms per computation block: "<<inputs[4]<<std::endl;
-  std::cout<<"Apply random rotation to configurations: "<<inputs[5]<<std::endl;
-  std::cout<<"**************** End of Data File ****************"<<std::endl<<std::endl;
+  utils::logmesg(lmp, "**************** Begin of Data File ****************\n");
+  utils::logmesg(lmp, "file format: {}\n", file_format);
+  utils::logmesg(lmp, "file extension: {}\n", file_extension);
+  utils::logmesg(lmp, "path to data set: {}\n", data_path);
+  utils::logmesg(lmp, "error analysis for data set: {}\n", inputs[0]);
+  utils::logmesg(lmp, "run MD simulation: {}\n", inputs[3]);
+  utils::logmesg(lmp, "save calculation fin binary files: {}\n", inputs[1]);
+  utils::logmesg(lmp, "save frequency: {}\n", inputs[2]);
+  utils::logmesg(lmp, "number of atoms per computation block: {}\n", inputs[4]);
+  utils::logmesg(lmp, "Apply random rotation to configurations: {}\n", inputs[5]);
+  utils::logmesg(lmp, "**************** End of Data File ****************\n");
+  */
 }
 
 std::vector<std::string> CPairPOD::globVector(const std::string& pattern, std::vector<std::string> & files)
 {
+  /*
   glob_t glob_result;
   glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
   for(unsigned int i=0;i<glob_result.gl_pathc;++i){
@@ -368,18 +372,21 @@ std::vector<std::string> CPairPOD::globVector(const std::string& pattern, std::v
   }
   globfree(&glob_result);
   return files;
+  */
 }
 
 void CPairPOD::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)
 {
-  std::vector<std::string> res = this->globVector(datapath + "/*." + extension, files);
+  //std::vector<std::string> res = this->globVector(datapath + "/*." + extension, files);
 }
 
 int CPairPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
 {
-  std::ifstream datafile(file);
-  if (!datafile) {/*error*/}
+  
+  //std::ifstream datafile(file);
+  //if (!datafile) {/*error*/}
 
+  /*
   std::string line;
   int num_configs = 0;
   num_atom_sum = 0;
@@ -399,10 +406,12 @@ int CPairPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum
   datafile.close();
 
   return num_configs;
+  */
 }
 
 int CPairPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files)
 {
+  /*
   int nfiles = training_files.size(); // number of files
   int d, n;
 
@@ -417,14 +426,16 @@ int CPairPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num
     num_atom_all += num_atom[i];
 
   return num_atom_all;
+  */
 }
 
 void CPairPOD::read_exyz_file(double *lattice, double *stress, double *energy, double *pos,
   double *vel, double *forces, int *atomtype, std::string file, std::vector<std::string> species)
 {
-  std::ifstream datafile(file);
-  if (!datafile) {/*error*/}
-
+  
+  //std::ifstream datafile(file);
+  //if (!datafile) {/*error*/}
+  /*
   std::string substr1 = "nergy";
   std::string substr3 = "tress";
 
@@ -491,10 +502,12 @@ void CPairPOD::read_exyz_file(double *lattice, double *stress, double *energy, d
   }
   }
   datafile.close();
+  */
 }
 
 void CPairPOD::get_data(std::vector<std::string> species)
 {
+  /*
   this->get_exyz_files(data.data_files, data.data_path, data.file_extension);
   data.num_atom_sum = this->get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
   data.num_config_sum = data.num_atom.size();
@@ -542,10 +555,13 @@ void CPairPOD::get_data(std::vector<std::string> species)
 
   std::cout << "minimum number of atoms: " <<data.num_atom_min << std::endl;
   std::cout << "maximum number of atoms: " <<data.num_atom_max << std::endl;
+  */
 }
 
 void CPairPOD::read_data_files(std::string data_file, std::vector<std::string> species)
 {
+  utils::logmesg(lmp, "^^^^^ READ DATA FILES ^^^^^\n");
+  /*
   double inputs[100];
   for (int i=0; i<100; i++) inputs[i] = 0;
 
@@ -564,6 +580,7 @@ void CPairPOD::read_data_files(std::string data_file, std::vector<std::string> s
     this->get_data(species);
   else
     error->all(FLERR,"data set is not found");
+  */
 }
 
 void CPairPOD::get_atomblocks(int natom)
@@ -1383,6 +1400,8 @@ double CPairPOD::lammpsenergyforce(double **f, double **x, int **firstneigh, int
 
 void CPairPOD::error_analsysis()
 {
+  utils::logmesg(lmp, "^^^^^^^^ ERROR ANALYSIS ^^^^^^^\n");
+  /*
   double f[dim*data.num_atom_max];
 
   double Rmat[dim*dim]; // Rotation matrix
@@ -1511,10 +1530,13 @@ void CPairPOD::error_analsysis()
   std::cout<<"**************** End of Error Calculation ****************"<<std::endl<<std::endl;
 
   this->print_analysis(outarray, errors);
+  */
 }
 
 void CPairPOD::print_analysis(double *outarray, double *errors)
 {
+  utils::logmesg(lmp, "^^^^^^^^^^^^^^ WOW WE ARE ACTUALLY USING THIS FUNCTION ^^^^^^^^^^^^^^\n");
+  /*
   string s = "All files";
   int nfiles = data.data_files.size();  // number of files
   int lm = s.size();
@@ -1616,4 +1638,5 @@ void CPairPOD::print_analysis(double *outarray, double *errors)
   myfile <<mystr+"\n";
   myfile.close();
   mfile.close();
+  */
 }

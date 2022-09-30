@@ -389,7 +389,7 @@ void Variable::set(int narg, char **arg)
   //   3rd is filled on retrieval
 
   } else if (strcmp(arg[1],"format") == 0) {
-    constexpr char validfmt[] = "% ?-?[0-9]*\\.?[0-9]*[efgEFG]";
+    constexpr char validfmt[] = "^% ?-?[0-9]*\\.?[0-9]*[efgEFG]$";
     if (narg != 4) error->all(FLERR,"Illegal variable command: expected 4 arguments but found {}", narg);
     int ivar = find(arg[0]);
     if (ivar >= 0) {

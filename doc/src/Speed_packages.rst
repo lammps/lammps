@@ -117,9 +117,9 @@ script.
    with all its accelerator packages installed.  Note however that the
    INTEL and KOKKOS packages require you to choose one of their
    hardware options when building for a specific platform.  I.e. CPU or
-   Phi option for the INTEL package.  Or the OpenMP, Cuda, Hip, Sycl,
-   or Phi  option for the KOKKOS package.  Or the OpenCL, Hip, or Cuda
-   for the GPU package.
+   Phi option for the INTEL package.  Or the OpenMP, CUDA, HIP, SYCL,
+   or Phi option for the KOKKOS package.  Or the OpenCL, HIP, or CUDA
+   option for the GPU package.
 
 These are the exceptions.  You cannot build a single executable with:
 

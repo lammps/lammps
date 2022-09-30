@@ -14,7 +14,6 @@ namespace LAMMPS_NS {
 
   class CPairPOD : public Pair {
   private:
-      std::vector<std::string> globVector(const std::string& pattern, std::vector<std::string> & files);
           
       bool is_a_number(std::string line);
       
@@ -23,69 +22,7 @@ namespace LAMMPS_NS {
       int podneighborcount(double *r, double rcutsq, int nx, int N, int dim);
       int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
       
-      void read_data_file(double *inputs, std::string &file_format, std::string &file_extension, 
-          std::string &data_path, std::string data_file);
-
-      void get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension);
-      
-      int get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file);  
-      
-      int get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files);  
-      
-      void read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *vel, 
-              double *forces, int *atomtype, std::string file, std::vector<std::string> species);
-      
-      void get_data(std::vector<std::string> species);
-
-      void read_data_files(std::string data_file, std::vector<std::string> species);    
-      
   public:
-      struct datastruct {     
-          std::string file_format;
-          std::string file_extension;    
-          std::string data_path;    
-          std::vector<std::string> data_files;     
-          std::vector<std::string> filenames;     
-
-          std::vector<int> num_atom;
-          std::vector<int> num_atom_cumsum;
-          std::vector<int> num_atom_each_file;
-          std::vector<int> num_config;
-          std::vector<int> num_config_cumsum;
-          int num_atom_sum; 
-          int num_atom_min; 
-          int num_atom_max; 
-          int num_config_sum;    
-
-          double *lattice=NULL;
-          double *energy=NULL; 
-          double *stress=NULL;
-          double *position=NULL;
-          double *velocity=NULL;
-          double *force=NULL;
-          int *atomtype=NULL;
-
-          void copydatainfo(datastruct &data) {
-              data.data_path = data_path;        
-              data.file_format = file_format;
-              data.file_extension = file_extension;              
-              data.data_files = data_files;
-              data.filenames = filenames;            
-          }                
-
-          void freememory(int backend)
-          {
-              TemplateFree(lattice, backend);        
-              TemplateFree(energy, backend);        
-              TemplateFree(stress, backend);        
-              TemplateFree(position, backend);  
-              TemplateFree(velocity, backend);  
-              TemplateFree(force, backend);        
-              TemplateFree(atomtype, backend);        
-          }            
-      };
-
-      datastruct data;
       class CPOD *podptr;
       
       CPairPOD(class LAMMPS *);
@@ -99,7 +36,7 @@ namespace LAMMPS_NS {
       double memory_usage() override;
       void *extract(const char *, int &) override;
     
-      void InitPairPOD(std::string pod_file, std::string coeff_file, std::string data_file); 
+      void InitPairPOD(std::string pod_file, std::string coeff_file); 
       
       int backend=1;
       int dim = 3;
@@ -156,8 +93,7 @@ namespace LAMMPS_NS {
       void allocate_atommemory();    
       
       void free_memory();            
-      void allocate_memory();
-      void estimate_memory(datastruct data);    
+      void allocate_memory();  
           
       void get_atomblocks(int natom);
       
@@ -182,10 +118,6 @@ namespace LAMMPS_NS {
       void lammpsforce(double **f, double **x, int **firstneigh, int *atomtypes, 
           int *numneigh, int *ilist, int inum, int nall);
       double lammpsenergyforce(double **f, double **x, int **firstneigh, int *atomtype, int *numneigh, int *ilist, int inum, int nall);     
-              
-      
-      void print_analysis(double *outarray, double *errors);
-      void error_analsysis();
       
       void printinfo()
       {        

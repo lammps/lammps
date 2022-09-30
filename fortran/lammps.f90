@@ -102,6 +102,7 @@ MODULE LIBLAMMPS
     PROCEDURE :: extract_compute        => lmp_extract_compute
     PROCEDURE :: extract_fix            => lmp_extract_fix
     PROCEDURE :: extract_variable       => lmp_extract_variable
+    PROCEDURE :: set_variable           => lmp_set_variable
 !
     PROCEDURE :: version                => lmp_version
     PROCEDURE,NOPASS :: get_os_info     => lmp_get_os_info
@@ -386,7 +387,12 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: lammps_extract_variable
     END FUNCTION lammps_extract_variable
 
-    !INTEGER (c_int) lammps_set_variable
+    FUNCTION lammps_set_variable (handle, name, str) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE (c_ptr), VALUE :: handle, name, str
+      INTEGER (c_int) :: lammps_set_variable
+    END FUNCTION lammps_set_variable
 
     !SUBROUTINE lammps_gather_atoms
 
@@ -1150,7 +1156,26 @@ CONTAINS
     END SELECT
   END FUNCTION lmp_extract_variable
 
-  ! equivalent function to lammps_version()
+  ! equivalent function to lammps_set_variable
+  SUBROUTINE lmp_set_variable (self, name, str)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER (LEN=*), INTENT(IN) :: name, str
+    INTEGER :: err
+    TYPE(C_ptr) :: Cstr, Cname
+
+    Cstr = f2c_string(str)
+    Cname = f2c_string(name)
+    err = lammps_set_variable(self%handle, Cname, Cstr)
+    CALL lammps_free(Cname)
+    CALL lammps_free(Cstr)
+    IF ( err /= 0 ) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'WARNING: unable to set string variable "' // name &
+        // '" [Fortran/set_variable]')
+    END IF
+  END SUBROUTINE lmp_set_variable
+
+  ! equivalent function to lammps_version
   INTEGER FUNCTION lmp_version(self)
     CLASS(lammps), INTENT(IN) :: self
 
@@ -1321,7 +1346,7 @@ CONTAINS
       length = LEN(buffer)
       Cptr = f2c_string(buffer)
       Cstatus = lammps_get_last_error_message(self%handle, Cptr, length)
-      length = MIN(LEN(buffer), c_strlen(Cptr))
+      length = MIN(LEN(buffer, c_size_t), c_strlen(Cptr))
       CALL C_F_POINTER(Cptr, Cbuffer, [length])
       FORALL ( i=1:length )
         buffer(i:i) = Cbuffer(i)

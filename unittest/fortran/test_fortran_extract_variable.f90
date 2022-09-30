@@ -248,10 +248,9 @@ FUNCTION f_lammps_extract_variable_string () BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_ptr
   USE LIBLAMMPS
   USE keepvar, ONLY : lmp, f2c_string
-
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_string
-  CHARACTER(LEN=20) :: string
+  CHARACTER(LEN=40) :: string
 
   string = lmp%extract_variable('str')
   f_lammps_extract_variable_string = f2c_string(string)
@@ -287,7 +286,7 @@ FUNCTION f_lammps_extract_variable_getenv () BIND(C)
   USE keepvar, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_getenv
-  CHARACTER(LEN=20) :: string
+  CHARACTER(LEN=40) :: string
 
   string = lmp%extract_variable('username')
   f_lammps_extract_variable_getenv = f2c_string(string)
@@ -384,4 +383,16 @@ FUNCTION f_lammps_extract_variable_vector(i) BIND(C)
   vector = lmp%extract_variable('center') ! z-coordinates
   f_lammps_extract_variable_vector = vector(i)
 END FUNCTION f_lammps_extract_variable_vector
+
+SUBROUTINE f_lammps_set_variable_string() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+  CHARACTER(LEN=40) :: string
+
+  string = "this is the new string"
+  CALL lmp%set_variable('str', string)
+END SUBROUTINE f_lammps_set_variable_string
+
 ! vim: sts=2 ts=2 sw=2 et

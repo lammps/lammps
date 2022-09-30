@@ -42,6 +42,7 @@ double f_lammps_extract_variable_internal();
 double f_lammps_extract_variable_equal();
 double f_lammps_extract_variable_atom(int);
 double f_lammps_extract_variable_vector(int);
+void f_lammps_set_variable_string();
 }
 
 class LAMMPS_extract_variable : public ::testing::Test {
@@ -135,6 +136,10 @@ TEST_F(LAMMPS_extract_variable, string)
    f_lammps_setup_extract_variable();
    char* fstr = f_lammps_extract_variable_string();
    EXPECT_STREQ(fstr, "this is a string");
+   std::free(fstr);
+   f_lammps_set_variable_string();
+   fstr = f_lammps_extract_variable_string();
+   EXPECT_STREQ(fstr, "this is the new string");
    std::free(fstr);
 };
 

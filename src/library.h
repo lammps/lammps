@@ -97,9 +97,10 @@ enum _LMP_ERROR_CONST {
  * and fortran/lammps.f90 */
 
 enum _LMP_VAR_CONST {
-  LMP_VAR_EQUAL = 0, /*!< compatible with equal-style variables */
-  LMP_VAR_ATOM = 1,  /*!< compatible with atom-style variables */
-  LMP_VAR_STRING = 2 /*!< return value will be a string (catch-all) */
+  LMP_VAR_EQUAL = 0,  /*!< compatible with equal-style variables */
+  LMP_VAR_ATOM = 1,   /*!< compatible with atom-style variables */
+  LMP_VAR_VECTOR = 2, /*!< compatible with vector-style variables */
+  LMP_VAR_STRING = 3  /*!< return value will be a string (catch-all) */
 };
 
 /* Ifdefs to allow this file to be included in C and C++ programs */

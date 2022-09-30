@@ -66,8 +66,9 @@ MODULE LIBLAMMPS
     LMP_ERROR_WORLD = 4, &    ! error on comm->world
     LMP_ERROR_UNIVERSE = 8, & ! error on comm->universe
     LMP_VAR_EQUAL = 0, &      ! equal-style variables (and compatible)
-    LMP_VAR_ATOM = 1, &       ! atom-style variables (and compatible)
-    LMP_VAR_STRING = 2        ! string variables (and compatible)
+    LMP_VAR_ATOM = 1, &       ! atom-style variables
+    LMP_VAR_VECTOR = 2, &     ! vector variables
+    LMP_VAR_STRING = 3        ! string variables (everything else)
 
   ! "Constants" to use with extract_compute and friends
   TYPE lammps_style
@@ -1078,12 +1079,13 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: group
     TYPE(lammps_variable_data) :: variable_data
 
-    TYPE(c_ptr) :: Cptr, Cname, Cgroup
+    TYPE(c_ptr) :: Cptr, Cname, Cgroup, Cveclength
     INTEGER :: length, i
     CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cstring
     INTEGER(c_int) :: datatype
-    REAL(c_double), POINTER :: double
-    REAL(c_double), DIMENSION(:), POINTER :: double_vec
+    REAL(c_double), POINTER :: double => NULL()
+    REAL(c_double), DIMENSION(:), POINTER :: double_vec => NULL()
+    INTEGER(c_int), POINTER :: Clength => NULL()
 
     Cname = f2c_string(name)
     IF ( PRESENT(group) ) THEN
@@ -1107,8 +1109,27 @@ CONTAINS
         variable_data%datatype = DATA_DOUBLE_1D
         length = lmp_extract_setting(self, 'nlocal')
         CALL C_F_POINTER(Cptr, double_vec, [length])
+        IF ( ALLOCATED(variable_data%r64_vec) ) &
+          DEALLOCATE(variable_data%r64_vec)
+        ALLOCATE( variable_data%r64_vec(length) )
         variable_data%r64_vec = double_vec
         CALL lammps_free(Cptr)
+      CASE (LMP_VAR_VECTOR)
+        variable_data%datatype = DATA_DOUBLE_1D
+        Cgroup = f2c_string('LMP_SIZE_VECTOR') ! must match library.cpp
+        Cname = f2c_string(name)
+        Cveclength = lammps_extract_variable(self%handle, Cname, Cgroup)
+        CALL C_F_POINTER(Cveclength, Clength)
+        length = Clength
+        CALL lammps_free(Cgroup)
+        CALL lammps_free(Cname)
+        CALL lammps_free(Cveclength)
+        CALL C_F_POINTER(Cptr, double_vec, [length])
+        IF ( ALLOCATED(variable_data%r64_vec) ) &
+          DEALLOCATE(variable_data%r64_vec)
+        ALLOCATE( variable_data%r64_vec(length) )
+        variable_data%r64_vec = double_vec
+        ! DO NOT deallocate the C pointer
       CASE (LMP_VAR_STRING)
         variable_data%datatype = DATA_STRING
         length = c_strlen(Cptr)
@@ -1117,6 +1138,11 @@ CONTAINS
         FORALL ( i=1:length )
           variable_data%str(i:i) = Cstring(i)
         END FORALL
+        ! DO NOT deallocate the C pointer
+      CASE (-1)
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'Variable "' // TRIM(name) // &
+          '" not found [Fortran/extract_variable]')
       CASE DEFAULT
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'Unknown variable type returned from &
@@ -1453,10 +1479,12 @@ CONTAINS
   END SUBROUTINE assign_double_to_lammps_variable_data
 
   SUBROUTINE assign_doublevec_to_lammps_variable_data (lhs, rhs)
-    REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
+    REAL(c_double), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: lhs
     CLASS(lammps_variable_data), INTENT(IN) :: rhs
 
     IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
+      IF ( ALLOCATED(lhs) ) DEALLOCATE(lhs)
+      ALLOCATE( lhs(SIZE(rhs%r64_vec)) )
       lhs = rhs%r64_vec
     ELSE
       CALL assignment_error(rhs, 'vector of doubles')

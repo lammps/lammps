@@ -2043,16 +2043,19 @@ void *lammps_extract_fix(void *handle, const char *id, int style, int type,
 
 This function returns a pointer to data from a LAMMPS :doc:`variable`
 identified by its name.  When the variable is either an *equal*\ -style
-compatible or an *atom*\ -style variable the variable is evaluated and
-the corresponding value(s) returned.  Variables of style *internal*
-are compatible with *equal*\ -style variables and so are *python*\
--style variables, if they return a numeric value.  For other
-variable styles their string value is returned.  The function returns
+compatible variable, a *vector*\ -style variable, or an *atom*\ -style
+variable, the variable is evaluated and the corresponding value(s) returned.
+Variables of style *internal* are compatible with *equal*\ -style variables and
+so are *python*\ -style variables, if they return a numeric value.  For other
+variable styles, their string value is returned.  The function returns
 ``NULL`` when a variable of the provided *name* is not found or of an
 incompatible style.  The *group* argument is only used for *atom*\
--style variables and ignored otherwise.  If set to ``NULL`` when
-extracting data from and *atom*\ -style variable, the group is assumed
-to be "all".
+-style variables and ignored otherwise, with one exception: for style *vector*,
+if *group* is "GET_VECTOR_SIZE", the returned pointer will yield the length
+of the vector to be returned when dereferenced. This pointer must be
+deallocated after the value is read to avoid a memory leak.
+If *group* is set to ``NULL`` when extracting data from an *atom*\ -style
+variable, the group is assumed to be "all".
 
 When requesting data from an *equal*\ -style or compatible variable
 this function allocates storage for a single double value, copies the
@@ -2066,15 +2069,23 @@ use to avoid a memory leak. Example:
    double value = *dptr;
    lammps_free((void *)dptr);
 
-For *atom*\ -style variables the data returned is a pointer to an
+For *atom*\ -style variables, the return value is a pointer to an
 allocated block of storage of double of the length ``atom->nlocal``.
 Since the data returned are a copy, the location will persist, but its
 content will not be updated in case the variable is re-evaluated.
 To avoid a memory leak, this pointer needs to be freed after use in
 the calling program.
 
+For *vector*\ -style variables, the returned pointer is to actual LAMMPS data.
+The pointer should not be deallocated. Its length depends on the variable,
+compute, or fix data used to construct the *vector*\ -style variable.
+This length can be fetched by calling this function with *group* set to the
+constant "LMP_SIZE_VECTOR", which returns a ``void\*`` pointer that can be
+dereferenced to an integer that is the length of the vector. This pointer
+needs to be deallocated when finished with it to avoid memory leaks.
+
 For other variable styles the returned pointer needs to be cast to
-a char pointer.
+a char pointer. It should not be deallocated.
 
 .. code-block:: c
 
@@ -2084,7 +2095,7 @@ a char pointer.
 .. note::
 
    LAMMPS cannot easily check if it is valid to access the data
-   referenced by the variables (e.g., computes or fixes or thermodynamic
+   referenced by the variables (e.g., computes, fixes, or thermodynamic
    info), so it may fail with an error.  The caller has to make certain
    that the data are extracted only when it safe to evaluate the variable
    and thus an error or crash are avoided.
@@ -2118,6 +2129,15 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
       auto vector = (double *) malloc(nlocal*sizeof(double));
       lmp->input->variable->compute_atom(ivar,igroup,vector,1,0);
       return (void *) vector;
+    } else if (lmp->input->variable->vectorstyle(ivar)) {
+      double *values = nullptr;
+      int nvector = lmp->input->variable->compute_vector(ivar, &values);
+      if ( group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0 ) {
+          int* nvecptr = (int *) malloc(sizeof(int));
+          *nvecptr = nvector;
+          return (void *) nvecptr;
+      } else
+        return (void *) values;
     } else {
       return lmp->input->variable->retrieve(name);
     }
@@ -2162,6 +2182,8 @@ int lammps_extract_variable_datatype(void *handle, const char *name)
       return LMP_VAR_EQUAL;
     else if (lmp->input->variable->atomstyle(ivar))
       return LMP_VAR_ATOM;
+    else if (lmp->input->variable->vectorstyle(ivar))
+      return LMP_VAR_VECTOR;
     else
       return LMP_VAR_STRING;
   }

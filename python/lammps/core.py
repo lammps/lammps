@@ -1136,6 +1136,26 @@ class lammps(object):
         self.lib.lammps_free(ptr)
       else: return None
       return result
+    elif vartype == LMP_VAR_VECTOR :
+      nvector = 0
+      self.lib.lammps_extract_variable.restype = POINTER(c_int)
+      ptr = self.lib.lammps_extract_variable(self.lmp,name,
+              'LMP_SIZE_VECTOR'.encode())
+      if ptr :
+        nvector = ptr[0]
+        self.lib.lammps_free(ptr)
+      else :
+        return None
+      self.lib.lammps_extract_variable.restype = POINTER(c_double)
+      result = (c_double*nvector)()
+      values = self.lib.lammps_extract_variable(self.lmp,name,group)
+      if values :
+        for i in range(nvector) :
+          result[i] = values[i]
+        # do NOT free the values pointer (points to internal vector data)
+        return result
+      else :
+        return None
     elif vartype == LMP_VAR_STRING :
       self.lib.lammps_extract_variable.restype = c_char_p
       with ExceptionCheck(self) :

@@ -9,6 +9,9 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cmath>
+#include <chrono>
+#include <thread>
+#include <cmath>
 
 #include "gtest/gtest.h"
 
@@ -36,10 +39,9 @@ double f_lammps_extract_variable_atomfile(int);
 double f_lammps_extract_variable_python();
 double f_lammps_extract_variable_timer();
 double f_lammps_extract_variable_internal();
-double f_lammps_extract_variable_equal_natoms();
-double f_lammps_extract_variable_equal_dt();
-double f_lammps_extract_variable_vector(int);
+double f_lammps_extract_variable_equal();
 double f_lammps_extract_variable_atom(int);
+double f_lammps_extract_variable_vector(int);
 }
 
 class LAMMPS_extract_variable : public ::testing::Test {
@@ -196,8 +198,64 @@ TEST_F(LAMMPS_extract_variable, atomfile)
    EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atomfile(1), 5.2);
    EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atomfile(2), 1.6);
    EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atomfile(3), -1.4);
-/*   lammps_command(lmp, "next atfile");
+   lammps_command(lmp, "next atfile");
    EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atomfile(1), -1.1);
    EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atomfile(2), 0.0);
-   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atomfile(3), 2.5); */
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atomfile(3), 2.5);
+};
+
+TEST_F(LAMMPS_extract_variable, python)
+{
+   if ( lammps_config_has_package("PYTHON") ) {
+      f_lammps_setup_extract_variable();
+      for (int i = 1; i <= 10; i++) {
+         EXPECT_DOUBLE_EQ(f_lammps_extract_variable_python(),
+            static_cast<double>(i*i));
+         lammps_command(lmp, "next lp");
+      }
+   }
+};
+
+TEST_F(LAMMPS_extract_variable, timer)
+{
+   f_lammps_setup_extract_variable();
+   double initial_t, final_t;
+   initial_t = f_lammps_extract_variable_timer();
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+   lammps_command(lmp,"variable time timer"); // update the time
+   final_t = f_lammps_extract_variable_timer();
+   EXPECT_GT(final_t, initial_t + 0.1);
+};
+
+TEST_F(LAMMPS_extract_variable, internal)
+{
+   f_lammps_setup_extract_variable();
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_internal(), 4.0);
+};
+
+TEST_F(LAMMPS_extract_variable, equal)
+{
+   f_lammps_setup_extract_variable();
+   int i;
+   for ( i = 1; i <= 10; i++ ) {
+      EXPECT_DOUBLE_EQ(f_lammps_extract_variable_equal(),
+         std::exp(static_cast<double>(i)));
+      lammps_command(lmp, "next lp");
+   }
+};
+
+TEST_F(LAMMPS_extract_variable, atom)
+{
+   f_lammps_setup_extract_variable();
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atom(1), 1.5);
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atom(2), 0.1);
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_atom(3), 0.5);
+};
+
+TEST_F(LAMMPS_extract_variable, vector)
+{
+   f_lammps_setup_extract_variable();
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_vector(1), (1+0.2+0.5)/3.0);
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_vector(2), (1+0.1+0.5)/3.0);
+   EXPECT_DOUBLE_EQ(f_lammps_extract_variable_vector(3), (1.5+0.1+0.5)/3.0);
 };

@@ -17,12 +17,6 @@ MODULE keepvar
       'pair_style lj/cut 2.5',                              &
       'pair_coeff 1 1 1.0 1.0',                             &
       'mass 1 2.0' ]
-  CHARACTER(LEN=60), DIMENSION(4), PARAMETER :: py_input = &
-      [ CHARACTER(LEN=60) :: &
-      'python square_it input 1 v_lp return v_square here """', &
-      'def square_it(N) :', &
-      '  return N*N', &
-      '"""' ]
 
 CONTAINS
 
@@ -115,6 +109,14 @@ SUBROUTINE f_lammps_setup_extract_variable () BIND(C)
   USE keepvar, ONLY : lmp, demo_input, cont_input, pair_input, absolute_path
   IMPLICIT NONE
 
+  ! Had to do this one as one string because lammps_commands_list and
+  ! lammps_commands_string do not play well with triple quotes
+  CHARACTER(LEN=256), PARAMETER :: py_input = &
+      'python square_it input 1 v_lp return v_py format ff here """' &
+        // NEW_LINE(' ') // 'def square_it(N) :' &
+        // NEW_LINE(' ') // '  return N*N' &
+        // NEW_LINE(' ') // '"""'
+
   CALL lmp%command('atom_modify map array')
   CALL lmp%commands_list(demo_input)
   CALL lmp%commands_list(cont_input)
@@ -135,12 +137,17 @@ SUBROUTINE f_lammps_setup_extract_variable () BIND(C)
   CALL lmp%command('variable atfile atomfile ' &
     // absolute_path('atomdata.txt'))
   IF ( lmp%config_has_package('PYTHON') ) THEN
-     CALL lmp%command('variable py python square_it')
+    CALL lmp%command(py_input)
+    CALL lmp%command('variable py python square_it')
   END IF
   CALL lmp%command('variable time timer')
   CALL lmp%command('variable int internal 4')
-  CALL lmp%command("variable nat equal count(all)")
-  CALL lmp%command("variable ts equal step")
+  CALL lmp%command('variable at_z atom z')
+  CALL lmp%command("compute COM all com") ! defines a global vector
+  CALL lmp%command("variable center vector c_COM")
+  ! make sure COM is computable...
+  CALL lmp%command("thermo_style custom step pe c_COM[1] v_center[1]")
+  CALL lmp%command("run 0") ! so c_COM and v_center have values
 END SUBROUTINE f_lammps_setup_extract_variable
 
 FUNCTION f_lammps_extract_variable_index_1 () BIND(C)
@@ -305,9 +312,76 @@ FUNCTION f_lammps_extract_variable_atomfile(i) BIND(C)
   IMPLICIT NONE
   INTEGER(c_int), INTENT(IN), VALUE :: i
   REAL(c_double) :: f_lammps_extract_variable_atomfile
-  REAL(c_double), DIMENSION(:), POINTER :: atom_data
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: atom_data
 
   atom_data = lmp%extract_variable('atfile')
-print*, 'TESTING: atom_data is', atom_data
   f_lammps_extract_variable_atomfile = atom_data(i)
 END FUNCTION f_lammps_extract_variable_atomfile
+
+FUNCTION f_lammps_extract_variable_python(i) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int, C_double
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double) :: f_lammps_extract_variable_python
+
+  f_lammps_extract_variable_python = lmp%extract_variable('py')
+END FUNCTION f_lammps_extract_variable_python
+
+FUNCTION f_lammps_extract_variable_timer() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  REAL(c_double) :: f_lammps_extract_variable_timer
+
+  f_lammps_extract_variable_timer = lmp%extract_variable('time')
+END FUNCTION f_lammps_extract_variable_timer
+
+FUNCTION f_lammps_extract_variable_internal() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  REAL(c_double) :: f_lammps_extract_variable_internal
+
+  f_lammps_extract_variable_internal = lmp%extract_variable('int')
+END FUNCTION f_lammps_extract_variable_internal
+
+FUNCTION f_lammps_extract_variable_equal() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  REAL(c_double) :: f_lammps_extract_variable_equal
+
+  f_lammps_extract_variable_equal = lmp%extract_variable('ex')
+END FUNCTION f_lammps_extract_variable_equal
+
+FUNCTION f_lammps_extract_variable_atom(i) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double) :: f_lammps_extract_variable_atom
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: atom
+
+  atom = lmp%extract_variable('at_z') ! z-coordinates
+  f_lammps_extract_variable_atom = atom(i)
+END FUNCTION f_lammps_extract_variable_atom
+
+FUNCTION f_lammps_extract_variable_vector(i) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+  USE LIBLAMMPS
+  USE keepvar, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double) :: f_lammps_extract_variable_vector
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: vector
+
+  vector = lmp%extract_variable('center') ! z-coordinates
+  f_lammps_extract_variable_vector = vector(i)
+END FUNCTION f_lammps_extract_variable_vector
+! vim: sts=2 ts=2 sw=2 et

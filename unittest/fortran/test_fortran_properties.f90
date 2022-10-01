@@ -53,7 +53,7 @@ END FUNCTION f_lammps_extract_setting
 
 FUNCTION f_lammps_has_error () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepcmds, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER(C_int) :: f_lammps_has_error

@@ -201,9 +201,9 @@ Below is an example demonstrating some of the possible uses.
     lmp = lammps()
     CALL lmp%file('in.sysinit')
     natoms = lmp%extract_global('natoms')
-    WRITE(OUTPUT_UNIT,'(A,I0,A)') 'Running a simulation with', natoms, ' atoms'
+    WRITE(OUTPUT_UNIT,'(A,I0,A)') 'Running a simulation with ', natoms, ' atoms'
     WRITE(OUTPUT_UNIT,'(I0,A,I0,A,I0,A)') lmp%extract_setting('nlocal'), &
-        ' local and', lmp%extract_setting('nghost'), ' ghost atoms. ', &
+        ' local and ', lmp%extract_setting('nghost'), ' ghost atoms. ', &
         lmp%extract_setting('ntypes'), ' atom types'
 
     CALL lmp%command('run 2 post no')

@@ -1096,11 +1096,12 @@ class lammps(object):
     The variable must be either an equal-style (or equivalent)
     variable or an atom-style variable. The variable type can be
     provided as the ``vartype`` parameter, which may be one of several
-    constants: ``LMP_VAR_EQUAL``, ``LMP_VAR_ATOM``, or ``LMP_VAR_STRING``.
-    If omitted or ``None``, LAMMPS will determine its value for you based on
-    a call to :cpp:func:`lammps_extract_variable_datatype` from the C library
-    interface.  The group parameter is only used for atom-style variables and
-    defaults to the group "all".
+    constants: ``LMP_VAR_EQUAL``, ``LMP_VAR_ATOM``, ``LMP_VAR_VECTOR``,
+    or ``LMP_VAR_STRING``. If omitted or ``None``, LAMMPS will determine its
+    value for you based on a call to
+    :cpp:func:`lammps_extract_variable_datatype` from the C library interface.
+    The group parameter is only used for atom-style variables and defaults to
+    the group "all".
 
     :param name: name of the variable to execute
     :type name: string

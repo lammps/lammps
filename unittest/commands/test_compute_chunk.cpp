@@ -23,7 +23,8 @@
 #include <mpi.h>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
-bool verbose = false;
+bool verbose                    = false;
+static constexpr double EPSILON = 1.0e-6;
 
 namespace LAMMPS_NS {
 
@@ -103,9 +104,8 @@ TEST_F(ComputeChunkTest, ChunkAtom)
     command("pair_coeff * * 0.01 3.0");
     command("bond_style harmonic");
     command("bond_coeff * 100.0 1.5");
-    command("dump d1 all custom 1 binsph.lammpstrj id c_binsph");
-    command("dump d2 all custom 1 bincyl.lammpstrj id c_bincyl");
-    command("dump d3 all custom 1 types.lammpstrj id c_types");
+    command("dump 1 all custom 1 compute_chunk_atom.lammpstrj "
+            "id c_bin1d c_bin2d c_bin3d c_binsph c_bincyl c_mols c_types c_tags");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
@@ -145,15 +145,123 @@ TEST_F(ComputeChunkTest, ChunkAtom)
             "compress yes units box");
     END_HIDE_OUTPUT();
     EXPECT_EQ(get_scalar("bin1d"), 5);
-    EXPECT_EQ(get_scalar("bin3d"), 150);
+    EXPECT_EQ(get_scalar("bin3d"), 12);
 
     cbin1d = get_peratom("bin1d");
     tag    = get_peratom("tags");
     for (int i = 0; i < natoms; ++i) {
         EXPECT_EQ(cbin1d[i], chalf1d[(int)tag[i]]);
     }
+
+    // cleanup
+    platform::unlink("compute_chunk_atom.lammpstrj");
 }
 
+TEST_F(ComputeChunkTest, PropertyChunk)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style lj/cut/coul/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    command("uncompute bin3d");
+    command("compute bin3d all chunk/atom bin/3d x lower 3.0 y lower 3.0 z lower 3.0 "
+            "compress yes units box");
+    command("compute prop1 all property/chunk bin1d count");
+    command("compute prop2 all property/chunk bin2d count");
+    command("compute prop3 all property/chunk bin3d id count");
+    command("fix hist1 all ave/time 1 1 1 c_prop1 mode vector");
+    command("fix hist2 all ave/time 1 1 1 c_prop2 mode vector");
+    command("fix hist3 all ave/time 1 1 1 c_prop3[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto cprop1 = get_vector("prop1");
+    EXPECT_EQ(cprop1[0], 0);
+    EXPECT_EQ(cprop1[1], 7);
+    EXPECT_EQ(cprop1[2], 16);
+    EXPECT_EQ(cprop1[3], 6);
+    EXPECT_EQ(cprop1[4], 0);
+
+    auto cprop2 = get_vector("prop2");
+    int nempty  = 0;
+    int ncount  = 0;
+    for (int i = 0; i < 25; ++i) {
+        if (cprop2[i] == 0)
+            ++nempty;
+        else
+            ncount += cprop2[i];
+    }
+    EXPECT_EQ(nempty, 17);
+    EXPECT_EQ(ncount, 29);
+
+    auto cprop3 = get_array("prop3");
+    EXPECT_EQ(cprop3[0][0], 34);
+    EXPECT_EQ(cprop3[1][0], 38);
+    EXPECT_EQ(cprop3[2][0], 43);
+    EXPECT_EQ(cprop3[3][0], 58);
+    EXPECT_EQ(cprop3[4][0], 59);
+    EXPECT_EQ(cprop3[5][0], 62);
+    EXPECT_EQ(cprop3[6][0], 63);
+    EXPECT_EQ(cprop3[7][0], 67);
+    EXPECT_EQ(cprop3[8][0], 68);
+    EXPECT_EQ(cprop3[9][0], 69);
+    EXPECT_EQ(cprop3[10][0], 82);
+    EXPECT_EQ(cprop3[11][0], 88);
+
+    EXPECT_EQ(cprop3[0][1], 3);
+    EXPECT_EQ(cprop3[1][1], 2);
+    EXPECT_EQ(cprop3[2][1], 2);
+    EXPECT_EQ(cprop3[3][1], 2);
+    EXPECT_EQ(cprop3[4][1], 1);
+    EXPECT_EQ(cprop3[5][1], 2);
+    EXPECT_EQ(cprop3[6][1], 4);
+    EXPECT_EQ(cprop3[7][1], 3);
+    EXPECT_EQ(cprop3[8][1], 1);
+    EXPECT_EQ(cprop3[9][1], 3);
+    EXPECT_EQ(cprop3[10][1], 3);
+    EXPECT_EQ(cprop3[11][1], 3);
+}
+
+TEST_F(ComputeChunkTest, ChunkComputes)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style lj/cut/coul/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    command("compute ang all angmom/chunk mols");
+    command("compute com all com/chunk mols");
+    command("compute dip all dipole/chunk mols geometry");
+    command("fix hist1 all ave/time 1 1 1 c_ang[*] c_com[*] c_dip[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    auto cang = get_array("ang");
+    auto ccom = get_array("com");
+    auto cdip = get_array("dip");
+    EXPECT_NEAR(cang[0][0], -0.0190698, EPSILON);
+    EXPECT_NEAR(cang[0][1], -0.0281453, EPSILON);
+    EXPECT_NEAR(cang[0][2], -0.0335739, EPSILON);
+    EXPECT_NEAR(cang[5][0], 0.00767837, EPSILON);
+    EXPECT_NEAR(cang[5][1], -0.00303138, EPSILON);
+    EXPECT_NEAR(cang[5][2], 0.00740977, EPSILON);
+    EXPECT_NEAR(ccom[1][0], 2.2705137, EPSILON);
+    EXPECT_NEAR(ccom[1][1], -1.2103888, EPSILON);
+    EXPECT_NEAR(ccom[1][2], -0.585817, EPSILON);
+    EXPECT_NEAR(ccom[5][0], -1.9828469, EPSILON);
+    EXPECT_NEAR(ccom[5][1], -4.1735122, EPSILON);
+    EXPECT_NEAR(ccom[5][2], 2.0485, EPSILON);
+    EXPECT_NEAR(cdip[0][3], 0.359122, EPSILON);
+    EXPECT_NEAR(cdip[1][3], 0.684537, EPSILON);
+    EXPECT_NEAR(cdip[2][3], 0.502726, EPSILON);
+    EXPECT_NEAR(cdip[3][3], 0.508459, EPSILON);
+    EXPECT_NEAR(cdip[4][3], 0.497574, EPSILON);
+    EXPECT_NEAR(cdip[5][3], 0.49105, EPSILON);
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

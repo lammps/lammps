@@ -203,7 +203,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
     lmp->error->all(FLERR, "Could not initialize embedded Python");
   }
 
-  PyObject *unified_module = PyImport_ImportModule("mliap_unified_couple");
+  PyImport_ImportModule("mliap_unified_couple");
 
   if (PyErr_Occurred()) {
     PyErr_Print();

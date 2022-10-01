@@ -30,7 +30,7 @@ if(CMAKE_Fortran_COMPILER)
     add_library(MPI::MPI_Fortran ALIAS fmpi_stubs)
   endif()
 
-  add_library(flammps STATIC ${LAMMPS_FORTRAN_MODULE})
+  add_library(flammps STATIC ${LAMMPS_FORTRAN_MODULE} keepstuff.f90)
 
   add_executable(test_fortran_create wrap_create.cpp test_fortran_create.f90)
   target_link_libraries(test_fortran_create PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)

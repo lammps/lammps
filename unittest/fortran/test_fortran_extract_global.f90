@@ -1,26 +1,7 @@
-MODULE keepglobal
-  USE liblammps
-  TYPE(LAMMPS) :: lmp
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: demo_input = &
-      [ CHARACTER(len=40) ::                                &
-      'region       box block 0 $x 0 3 0 4',                &
-      'create_box 1 box',                                   &
-      'create_atoms 1 single 1.0 1.0 ${zpos}' ]
-  CHARACTER(LEN=40), DIMENSION(2), PARAMETER :: cont_input = &
-      [ CHARACTER(len=40) ::                                &
-      'create_atoms 1 single &',                            &
-      ' 0.2 0.1 0.1' ]
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: pair_input = &
-      [ CHARACTER(LEN=40) ::                                &
-      'pair_style lj/cut 2.5',                              &
-      'pair_coeff 1 1 1.0 1.0',                             &
-      'mass 1 1.0' ]
-END MODULE keepglobal
-
 FUNCTION f_lammps_with_args() BIND(C, name="f_lammps_with_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
-  USE keepglobal, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_with_args
   CHARACTER(len=12), DIMENSION(12), PARAMETER :: args = &
@@ -34,7 +15,7 @@ END FUNCTION f_lammps_with_args
 SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepglobal, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
 
   CALL lmp%close()
@@ -43,10 +24,10 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_setup_extract_global () BIND(C)
    USE LIBLAMMPS
-   USE keepglobal, ONLY : lmp, demo_input, cont_input, pair_input
+   USE keepstuff, ONLY : lmp, big_input, cont_input, pair_input
    IMPLICIT NONE
 
-   CALL lmp%commands_list(demo_input)
+   CALL lmp%commands_list(big_input)
    CALL lmp%commands_list(cont_input)
    CALL lmp%commands_list(pair_input)
    CALL lmp%command('run 0')
@@ -54,7 +35,7 @@ END SUBROUTINE f_lammps_setup_extract_global
 
 SUBROUTINE f_lammps_setup_full_extract_global () BIND(C)
    USE LIBLAMMPS
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTERFACE
       SUBROUTINE f_lammps_setup_extract_global () BIND(C)
@@ -72,7 +53,7 @@ END SUBROUTINE f_lammps_setup_full_extract_global
 FUNCTION f_lammps_extract_global_units () BIND(C) RESULT(success)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
    USE LIBLAMMPS
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER (C_int) :: success
    CHARACTER (LEN=16) :: units
@@ -89,7 +70,7 @@ END FUNCTION f_lammps_extract_global_units
 
 FUNCTION f_lammps_extract_global_ntimestep () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: ntimestep
@@ -100,7 +81,7 @@ FUNCTION f_lammps_extract_global_ntimestep () BIND(C)
 END FUNCTION f_lammps_extract_global_ntimestep
 FUNCTION f_lammps_extract_global_ntimestep_big () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int64_t), POINTER :: ntimestep
@@ -112,7 +93,7 @@ END FUNCTION f_lammps_extract_global_ntimestep_big
 
 FUNCTION f_lammps_extract_global_dt () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double), POINTER :: dt
@@ -124,7 +105,7 @@ END FUNCTION f_lammps_extract_global_dt
 
 SUBROUTINE f_lammps_extract_global_boxlo (C_boxlo) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double), DIMENSION(3) :: C_boxlo
@@ -136,7 +117,7 @@ END SUBROUTINE f_lammps_extract_global_boxlo
 
 SUBROUTINE f_lammps_extract_global_boxhi (C_boxhi) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double), DIMENSION(3) :: C_boxhi
@@ -148,7 +129,7 @@ END SUBROUTINE f_lammps_extract_global_boxhi
 
 FUNCTION f_lammps_extract_global_boxxlo () BIND(C) RESULT(C_boxxlo)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_boxxlo
@@ -160,7 +141,7 @@ END FUNCTION f_lammps_extract_global_boxxlo
 
 FUNCTION f_lammps_extract_global_boxxhi () BIND(C) RESULT(C_boxxhi)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_boxxhi
@@ -172,7 +153,7 @@ END FUNCTION f_lammps_extract_global_boxxhi
 
 FUNCTION f_lammps_extract_global_boxylo () BIND(C) RESULT(C_boxylo)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_boxylo
@@ -184,7 +165,7 @@ END FUNCTION f_lammps_extract_global_boxylo
 
 FUNCTION f_lammps_extract_global_boxyhi () BIND(C) RESULT(C_boxyhi)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_boxyhi
@@ -196,7 +177,7 @@ END FUNCTION f_lammps_extract_global_boxyhi
 
 FUNCTION f_lammps_extract_global_boxzlo () BIND(C) RESULT(C_boxzlo)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_boxzlo
@@ -208,7 +189,7 @@ END FUNCTION f_lammps_extract_global_boxzlo
 
 FUNCTION f_lammps_extract_global_boxzhi () BIND(C) RESULT(C_boxzhi)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_boxzhi
@@ -220,7 +201,7 @@ END FUNCTION f_lammps_extract_global_boxzhi
 
 SUBROUTINE f_lammps_extract_global_periodicity (C_periodicity) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), DIMENSION(3) :: C_periodicity
@@ -232,7 +213,7 @@ END SUBROUTINE f_lammps_extract_global_periodicity
 
 FUNCTION f_lammps_extract_global_triclinic () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: triclinic
@@ -244,7 +225,7 @@ END FUNCTION f_lammps_extract_global_triclinic
 
 FUNCTION f_lammps_extract_global_xy () BIND(C) RESULT(C_xy)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_xy
@@ -256,7 +237,7 @@ END FUNCTION f_lammps_extract_global_xy
 
 FUNCTION f_lammps_extract_global_xz () BIND(C) RESULT(C_xz)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_xz
@@ -268,7 +249,7 @@ END FUNCTION f_lammps_extract_global_xz
 
 FUNCTION f_lammps_extract_global_yz () BIND(C) RESULT(C_yz)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_yz
@@ -280,7 +261,7 @@ END FUNCTION f_lammps_extract_global_yz
 
 FUNCTION f_lammps_extract_global_natoms () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: natoms
@@ -291,7 +272,7 @@ FUNCTION f_lammps_extract_global_natoms () BIND(C)
 END FUNCTION f_lammps_extract_global_natoms
 FUNCTION f_lammps_extract_global_natoms_big () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int64_t), POINTER :: natoms
@@ -303,7 +284,7 @@ END FUNCTION f_lammps_extract_global_natoms_big
 
 FUNCTION f_lammps_extract_global_nbonds () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: nbonds
@@ -314,7 +295,7 @@ FUNCTION f_lammps_extract_global_nbonds () BIND(C)
 END FUNCTION f_lammps_extract_global_nbonds
 FUNCTION f_lammps_extract_global_nbonds_big () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int64_t), POINTER :: nbonds
@@ -326,7 +307,7 @@ END FUNCTION f_lammps_extract_global_nbonds_big
 
 FUNCTION f_lammps_extract_global_nangles () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: nangles
@@ -337,7 +318,7 @@ FUNCTION f_lammps_extract_global_nangles () BIND(C)
 END FUNCTION f_lammps_extract_global_nangles
 FUNCTION f_lammps_extract_global_nangles_big () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int64_t), POINTER :: nangles
@@ -349,7 +330,7 @@ END FUNCTION f_lammps_extract_global_nangles_big
 
 FUNCTION f_lammps_extract_global_ndihedrals () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: ndihedrals
@@ -360,7 +341,7 @@ FUNCTION f_lammps_extract_global_ndihedrals () BIND(C)
 END FUNCTION f_lammps_extract_global_ndihedrals
 FUNCTION f_lammps_extract_global_ndihedrals_big () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int64_t), POINTER :: ndihedrals
@@ -372,7 +353,7 @@ END FUNCTION f_lammps_extract_global_ndihedrals_big
 
 FUNCTION f_lammps_extract_global_nimpropers () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: nimpropers
@@ -383,7 +364,7 @@ FUNCTION f_lammps_extract_global_nimpropers () BIND(C)
 END FUNCTION f_lammps_extract_global_nimpropers
 FUNCTION f_lammps_extract_global_nimpropers_big () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int64_t
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int64_t), POINTER :: nimpropers
@@ -396,7 +377,7 @@ END FUNCTION f_lammps_extract_global_nimpropers_big
 
 FUNCTION f_lammps_extract_global_ntypes () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: ntypes
@@ -408,7 +389,7 @@ END FUNCTION f_lammps_extract_global_ntypes
 
 FUNCTION f_lammps_extract_global_nlocal () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: nlocal
@@ -420,7 +401,7 @@ END FUNCTION f_lammps_extract_global_nlocal
 
 FUNCTION f_lammps_extract_global_nghost () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: nghost
@@ -432,7 +413,7 @@ END FUNCTION f_lammps_extract_global_nghost
 
 FUNCTION f_lammps_extract_global_nmax () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    INTEGER (C_int), POINTER :: nmax
@@ -444,7 +425,7 @@ END FUNCTION f_lammps_extract_global_nmax
 
 FUNCTION f_lammps_extract_global_boltz () BIND(C) RESULT(C_k_B)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_k_B
@@ -456,7 +437,7 @@ END FUNCTION f_lammps_extract_global_boltz
 
 FUNCTION f_lammps_extract_global_hplanck () BIND(C) RESULT(C_h)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: C_h
@@ -468,7 +449,7 @@ END FUNCTION f_lammps_extract_global_hplanck
 
 FUNCTION f_lammps_extract_global_angstrom () BIND(C) RESULT(Angstrom)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: Angstrom
@@ -480,7 +461,7 @@ END FUNCTION f_lammps_extract_global_angstrom
 
 FUNCTION f_lammps_extract_global_femtosecond () BIND(C) RESULT(fs)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
-   USE keepglobal, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
    REAL (C_double) :: fs

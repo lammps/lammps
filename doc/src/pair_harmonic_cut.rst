@@ -27,6 +27,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 17Feb2022
+
 Style *harmonic/cut* computes pairwise repulsive-only harmonic interactions with the formula
 
 .. math::

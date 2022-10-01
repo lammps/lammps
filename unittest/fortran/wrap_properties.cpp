@@ -1,7 +1,6 @@
 // unit tests for getting LAMMPS properties through the Fortran wrapper
 
 #include "lammps.h"
-//#include <cstdio> // for stdin, stdout
 #include "library.h"
 #include <mpi.h>
 #include <string>

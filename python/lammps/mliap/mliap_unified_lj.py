@@ -6,16 +6,13 @@ class MLIAPUnifiedLJ(MLIAPUnified):
     """Test implementation for MLIAPUnified."""
 
     def __init__(self, element_types, epsilon=1.0, sigma=1.0, rcutfac=1.25):
-        super().__init__()
-        self.element_types = element_types
-        self.ndescriptors = 1
-        self.nparams = 3
+        # ARGS: interface, element_types, ndescriptors, nparams, rcutfac
+        super().__init__(None, element_types, 1, 3, rcutfac)
         # Mimicking the LJ pair-style:
         # pair_style lj/cut 2.5
         # pair_coeff * * 1 1
         self.epsilon = epsilon
         self.sigma = sigma
-        self.rcutfac = rcutfac
 
     def compute_gradients(self, data):
         """Test compute_gradients."""

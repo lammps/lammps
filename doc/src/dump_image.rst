@@ -212,7 +212,7 @@ is used.
 Similarly, the format of the resulting movie is chosen with the
 *movie* dump style. This is handled by the underlying FFmpeg converter
 and thus details have to be looked up in the `FFmpeg documentation
-<http://ffmpeg.org/ffmpeg.html>`_.  Typical examples are: .avi, .mpg,
+<https://ffmpeg.org/ffmpeg.html>`_.  Typical examples are: .avi, .mpg,
 .m4v, .mp4, .mkv, .flv, .mov, .gif Additional settings of the movie
 compression like bitrate and framerate can be set using the
 dump_modify command as described below.
@@ -642,7 +642,7 @@ MPEG or other movie file you can use:
      cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
   Front ends for FFmpeg exist for multiple platforms. For more
-  information see the `FFmpeg homepage <http://www.ffmpeg.org/>`_
+  information see the `FFmpeg homepage <https://www.ffmpeg.org/>`_
 
 ----------
 

@@ -56,6 +56,7 @@ FixNVTSllodKokkos<DeviceType>::FixNVTSllodKokkos(LAMMPS *lmp, int narg, char **a
   this->id_temp = utils::strdup(std::string(this->id)+"_temp");
   this->modify->add_compute(fmt::format("{} all temp/deform/kk",this->id_temp));
   this->tcomputeflag = 1;
+  this->nondeformbias = 0;
 }
 
 /* ---------------------------------------------------------------------- */

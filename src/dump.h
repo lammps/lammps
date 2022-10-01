@@ -45,15 +45,9 @@ class Dump : protected Pointers {
   void init();
   virtual void write();
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *)
-  {
-    return 0;
-  }
+  virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}
-  virtual int pack_reverse_comm(int, int, double *)
-  {
-    return 0;
-  }
+  virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
   void modify_params(int, char **);
@@ -157,17 +151,11 @@ class Dump : protected Pointers {
 
   virtual void init_style() = 0;
   virtual void openfile();
-  virtual int modify_param(int, char **)
-  {
-    return 0;
-  }
+  virtual int modify_param(int, char **) { return 0; }
   virtual void write_header(bigint) = 0;
   virtual int count();
   virtual void pack(tagint *) = 0;
-  virtual int convert_string(int, double *)
-  {
-    return 0;
-  }
+  virtual int convert_string(int, double *) { return 0; }
   virtual void write_data(int, double *) = 0;
   virtual void write_footer() {}
 

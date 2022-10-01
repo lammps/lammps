@@ -130,6 +130,8 @@ terms.
    so the inconsistency between potential and force can be neglected in
    actual simulations.
 
+.. versionadded:: 3Aug2022
+
 The *threebody* keyword is optional and determines whether or not the
 three-body term of the potential is calculated.  The default value is
 "on" and it is only available for the plain *sw* pair style variants,

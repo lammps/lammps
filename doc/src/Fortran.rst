@@ -209,12 +209,12 @@ Below is an example demonstrating some of the possible uses.
     CALL lmp%command('run 2 post no')
     dt = lmp%extract_global('dt')
     ntimestep = lmp%extract_global('ntimestep')
-    WRITE(OUTPUT_UNIT,'(A,I4,A,F4.1,A)') 'At step:', ntimestep, &
+    WRITE(OUTPUT_UNIT,'(A,I0,A,F4.1,A)') 'At step: ', ntimestep, &
         '  Changing timestep from', dt, ' to 0.5'
     dt = 0.5_c_double
     CALL lmp%command('run 2 post no')
 
-    WRITE(OUTPUT_UNIT,'(A,I0)') 'At step:', ntimestep
+    WRITE(OUTPUT_UNIT,'(A,I0)') 'At step: ', ntimestep
     pe = lmp%get_thermo('pe')
     ke = lmp%get_thermo('ke')
     PRINT*, 'PE = ', pe

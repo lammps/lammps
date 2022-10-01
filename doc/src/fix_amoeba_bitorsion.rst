@@ -6,7 +6,7 @@ fix amoeba/bitorsion command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ameoba/bitorsion filename
 
@@ -30,8 +30,8 @@ This command enables 5-body torsion/torsion interactions to be added
 to simulations which use the AMOEBA and HIPPO force fields.  It
 matches how the Tinker MD code computes its torsion/torsion
 interactions for the AMOEBA and HIPPO force fields.  See the
-:doc:`Howto amoeba <howto_ameoba>` doc page for more information about
-the implemention of AMOEBA and HIPPO in LAMMPS.
+:doc:`Howto amoeba <Howto_amoeba>` doc page for more information about
+the implementation of AMOEBA and HIPPO in LAMMPS.
 
 Bitorsion interactions add additional potential energy contributions
 to pairs of overlapping phi-psi dihedrals of amino-acids, which are
@@ -55,8 +55,8 @@ should have a line like this in its header section:
 
    N bitorsions
 
-where N is the number of bitorsion 5-body interactions.  It should
-also have a section in the body of the data file like this with N
+where :math:`N` is the number of bitorsion 5-body interactions.  It should
+also have a section in the body of the data file like this with :math:`N`
 lines:
 
 .. parsed-literal::
@@ -68,7 +68,7 @@ lines:
           [...]
           N       3     314     315     317      318    330
 
-The first column is an index from 1 to N to enumerate the bitorsion
+The first column is an index from 1 to :math:`N` to enumerate the bitorsion
 5-atom tuples; it is ignored by LAMMPS.  The second column is the
 *type* of the interaction; it is an index into the bitorsion force
 field file.  The remaining 5 columns are the atom IDs of the atoms in

@@ -14,17 +14,18 @@
 
 #include "angle_amoeba.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -52,6 +53,9 @@ AngleAmoeba::AngleAmoeba(LAMMPS *lmp) : Angle(lmp)
 
   ub_k = nullptr;
   ub_r0 = nullptr;
+
+  setflag_a = setflag_ba = setflag_ub = nullptr;
+  enable_angle = enable_urey = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,6 +267,7 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   }
 
   i4 = atom->map(i4tag);
+  if (i4 < 0) error->one(FLERR,"Amoeba angle 4th atom {} out of range", i4tag);
   i4 = domain->closest_image(i2,i4);
 
   // anglep out-of-plane calculation from Tinker
@@ -697,7 +702,7 @@ void AngleAmoeba::init_style()
 {
   // check if PairAmoeba or PairHippo disabled angle or Urey-Bradley terms
 
-  Pair *pair = NULL;
+  Pair *pair = nullptr;
   pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
 

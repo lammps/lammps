@@ -37,24 +37,27 @@ Description
 Modify one or more parameters of a previously defined compute.  Not
 all compute styles support all parameters.
 
-The *extra/dof* or *extra* keyword refers to how many
-degrees-of-freedom are subtracted (typically from 3N) as a normalizing
+The *extra/dof* or *extra* keyword refers to how many degrees of freedom are
+subtracted (typically from :math:`3N`) as a normalizing
 factor in a temperature computation.  Only computes that compute a
-temperature use this option.  The default is 2 or 3 for :doc:`2d or 3d systems <dimension>` which is a correction factor for an ensemble
-of velocities with zero total linear momentum. For compute
+temperature use this option.  The default is 2 or 3 for
+:doc:`2d or 3d systems <dimension>`, which is a correction factor for an
+ensemble of velocities with zero total linear momentum. For compute
 temp/partial, if one or more velocity components are excluded, the
 value used for *extra* is scaled accordingly. You can use a negative
 number for the *extra* parameter if you need to add
 degrees-of-freedom.  See the :doc:`compute temp/asphere <compute_temp_asphere>` command for an example.
 
 The *dynamic/dof* or *dynamic* keyword determines whether the number
-of atoms N in the compute group and their associated degrees of
-freedom are re-computed each time a temperature is computed.  Only
+of atoms :math:`N` in the compute group and their associated degrees of
+freedom (DOF) are re-computed each time a temperature is computed.  Only
 compute styles that calculate a temperature use this option.  By
-default, N and their DOF are assumed to be constant.  If you are
-adding atoms or molecules to the system (see the :doc:`fix pour <fix_pour>`, :doc:`fix deposit <fix_deposit>`, and :doc:`fix gcmc <fix_gcmc>` commands) or expect atoms or molecules to be lost
-(e.g. due to exiting the simulation box or via :doc:`fix evaporate <fix_evaporate>`), then this option should be used to
-insure the temperature is correctly normalized.
+default, :math:`N` and their DOF are assumed to be constant.  If you are
+adding atoms or molecules to the system (see the :doc:`fix pour <fix_pour>`,
+:doc:`fix deposit <fix_deposit>`, and :doc:`fix gcmc <fix_gcmc>` commands) or
+expect atoms or molecules to be lost (e.g., due to exiting the simulation box
+or via :doc:`fix evaporate <fix_evaporate>`), then this option should be used
+to ensure the temperature is correctly normalized.
 
 .. note::
 
@@ -75,4 +78,4 @@ Default
 """""""
 
 The option defaults are extra/dof = 2 or 3 for 2d or 3d systems and
-dynamic/dof = no.
+dynamic/dof = *no*.

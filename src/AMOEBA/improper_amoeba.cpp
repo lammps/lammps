@@ -14,16 +14,17 @@
 
 #include "improper_amoeba.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "neighbor.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -284,7 +285,7 @@ void ImproperAmoeba::init_style()
 {
   // check if PairAmoeba disabled improper terms
 
-  Pair *pair = NULL;
+  Pair *pair = nullptr;
   pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("amoeba/gpu",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);

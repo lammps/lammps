@@ -24,9 +24,9 @@ Syntax
 
   .. parsed-literal::
 
-       *energy* value = no or yes
-         no = do not compute work done by this fix
-         yes = compute work done by this fix
+       *energy* value = *no* or *yes*
+         *no* = do not compute work done by this fix
+         *yes* = compute work done by this fix
 
 Examples
 """"""""

@@ -260,6 +260,7 @@ template <>
 struct DeviceTypeTraits<Cuda> {
   /// \brief An ID to differentiate (for example) Serial from OpenMP in Tooling
   static constexpr DeviceType id = DeviceType::Cuda;
+  static int device_id(const Cuda& exec) { return exec.cuda_device(); }
 };
 }  // namespace Experimental
 }  // namespace Tools

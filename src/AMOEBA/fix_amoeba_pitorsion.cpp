@@ -14,19 +14,19 @@
 
 #include "fix_amoeba_pitorsion.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -152,7 +152,7 @@ void FixAmoebaPiTorsion::init()
 
   // check if PairAmoeba or PairHippo disabled pitorsion terms
 
-  Pair *pair = NULL;
+  Pair *pair = nullptr;
   pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
 

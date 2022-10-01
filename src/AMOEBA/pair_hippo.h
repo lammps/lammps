@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hippo,PairHippo)
-
+// clang-format off
+PairStyle(hippo,PairHippo);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HIPPO_H
@@ -28,8 +28,6 @@ class PairHippo : public PairAmoeba {
  public:
   PairHippo(class LAMMPS *);
 };
-
-}
-
+}    // namespace LAMMPS_NS
 #endif
 #endif

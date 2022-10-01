@@ -75,6 +75,18 @@ enum _LMP_TYPE_CONST {
   LMP_SIZE_COLS = 5    /*!< return number of columns */
 };
 
+/** Error codes to select the suitable function in the Error class
+ *
+ * Must be kept in sync with the equivalent constants in lammps/constants.py */
+
+enum _LMP_ERROR_CONST {
+  LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
+  LMP_ERROR_ONE = 1,     /*!< called from one MPI rank */
+  LMP_ERROR_ALL = 2,     /*!< called from all MPI ranks */
+  LMP_ERROR_WORLD = 4,   /*!< error on Comm::world */
+  LMP_ERROR_UNIVERSE = 8 /*!< error on Comm::universe */
+};
+
 /* Ifdefs to allow this file to be included in C and C++ programs */
 
 #ifdef __cplusplus
@@ -96,6 +108,8 @@ void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
 void lammps_python_finalize();
+
+void lammps_error(void *handle, int error_type, const char *error_text);
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
@@ -255,6 +269,8 @@ void lammps_force_timeout(void *handle);
 
 int lammps_has_error(void *handle);
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
+
+int lammps_python_api_version();
 
 #ifdef __cplusplus
 }

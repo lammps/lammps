@@ -8,21 +8,26 @@ Syntax
 
 .. parsed-literal::
 
-   mdi mode args
+   mdi option args
 
-* mode = *engine* or *plugin*
+* option = *engine* or *plugin* or *connect* or *exit*
 
   .. parsed-literal::
 
-     *engine* args = none
-     *plugin* args = name keyword value keyword value
+     *engine* args = zero or more keyword/args pairs
+       keywords = *elements*
+         *elements* args = N_1 N_2 ... N_ntypes
+           N_1,N_2,...N_ntypes = atomic number for each of ntypes LAMMPS atom types
+     *plugin* args = name keyword value keyword value ...
        name = name of plugin library, e.g. lammps means a liblammps.so library will be loaded
+       keyword/value pairs in any order, some are required, some are optional
        keywords = *mdi* or *infile* or *extra* or *command*
-         *mdi* value = args passed to MDI for driver to operate with plugins
-         *infile* value = filename the engine will read at start-up
-         *extra* value = aditional command-line args to pass to engine library when loaded
-         *command* value = a LAMMPS input script command to execute
-
+         *mdi* value = args passed to MDI for driver to operate with plugins (required)
+         *infile* value = filename the engine will read at start-up (optional)
+         *extra* value = aditional command-line args to pass to engine library when loaded (optional)
+         *command* value = a LAMMPS input script command to execute (required)
+     *connect* args = none
+     *exit* args = none
 
 Examples
 """"""""
@@ -30,26 +35,19 @@ Examples
 .. code-block:: LAMMPS
 
    mdi engine
+   mdi engine elements 13 29
    mdi plugin lammps mdi "-role ENGINE -name lammps -method LINK" &
               infile in.aimd.engine extra "-log log.aimd.engine.plugin" &
               command "run 5"
+   mdi connect
+   mdi exit
 
 Description
 """""""""""
 
-This command implements two high-level operations within LAMMPS to use
-the `MDI Library
-<https://molssi-mdi.github.io/MDI_Library/html/index.html>` for
-coupling to other codes in a client/server protocol.
-
-The *engine* mode enables LAMMPS to act as an MDI engine (server),
-responding to requests from an MDI driver (client) code.
-
-The *plugin* mode enables LAMMPS to act as an MDI driver (client), and
-load the MDI engine (server) code as a library plugin.  In this case
-the MDI engine is a library plugin.  It can also be a stand-alone
-code, launched separately from LAMMPS, in which case the mdi plugin
-command is not used.
+This command implements operations within LAMMPS to use the `MDI
+Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`
+for coupling to other codes in a client/server protocol.
 
 See the Howto MDI doc page for a discussion of all the different ways
 2 or more codes can interact via MDI.
@@ -60,6 +58,22 @@ code or as a plugin, and as an engine operating as either a
 stand-alone code or as a plugin.  The README file in that directory
 shows how to launch and couple codes for all the 4 usage modes, and so
 they communicate via the MDI library using either MPI or sockets.
+
+The scripts in that directory illustrate the use of all the options
+for this command.
+
+The *engine* option enables LAMMPS to act as an MDI engine (server),
+responding to requests from an MDI driver (client) code.
+
+The *plugin* option enables LAMMPS to act as an MDI driver (client),
+and load the MDI engine (server) code as a library plugin.  In this
+case the MDI engine is a library plugin.  An MDI engine can also be a
+stand-alone code, launched separately from LAMMPS, in which case the
+mdi plugin command is not used.
+
+The *connect* and *exit* options are only used when LAMMPS is acting
+as an MDI driver.  As explained below, these options are normally not
+needed, except for a specific kind of use case.
 
 ----------
 
@@ -100,6 +114,8 @@ commands, which are described further below.
      - Send/request charge on each atom (N values)
    * - >COORDS or <COORDS
      - Send/request coordinates of each atom (3N values)
+   * - >ELEMENTS
+     - Send elements (atomic numbers) for each atom (N values)
    * - <ENERGY
      - Request total energy (potential + kinetic) of the system (1 value)
    * - >FORCES or <FORCES
@@ -121,11 +137,11 @@ commands, which are described further below.
    * - <PE
      - Request potential energy of the system (1 value)
    * - <STRESS
-     - Request stress tensor (virial) of the system (6 values)
+     - Request symmetric stress tensor (virial) of the system (9 values)
    * - >TOLERANCE
      - Send 4 tolerance parameters for next MD minimization via OPTG command
    * - >TYPES or <TYPES
-     - Send/request the numeric type of each atom (N values)
+     - Send/request the LAMMPS atom type for each atom (N values)
    * - >VELOCITIES or <VELOCITIES
      - Send/request the velocity of each atom (3N values)
    * - @INIT_MD or @INIT_OPTG
@@ -145,9 +161,25 @@ commands, which are described further below.
    builds.  If the change in atom positions is large (since the
    previous >COORDS command), then LAMMPS will do a more expensive
    operation to migrate atoms to new processors as needed and
-   re-neighbor.  If the >NATOMS or >TYPES commands have been sent
-   (since the previous >COORDS command), then LAMMPS assumes the
-   system is new and re-initializes an entirely new simulation.
+   re-neighbor.  If the >NATOMS or >TYPES or >ELEMENTS commands have
+   been sent (since the previous >COORDS command), then LAMMPS assumes
+   the system is new and re-initializes an entirely new simulation.
+
+.. note::
+
+   The >TYPES or >ELEMENTS commands are how the MDI driver tells the
+   LAMMPS engine which LAMMPS atom type to assign to each atom.  If
+   both the MDI driver and the LAMMPS engine are initialized so that
+   atom type values are consistent in both codes, then the >TYPES
+   command can be used.  If not, the optional *elements* keyword can
+   be used to specify what element each LAMMPS atom type corresponds
+   to.  This is specified by the atomic number of the element, e.g. 13
+   for Al.  An atomic number must be specified for each of the ntypes
+   LAMMPS atom types.  Ntypes is typically specified via the
+   create_box command or in the data file read by the read_data
+   command.  In this has been done, the MDI driver can send an
+   >ELEMENTS command to the LAMMPS driver with the atomic number of
+   each atom.
 
 The MD and OPTG commands perform an entire MD simulation or energy
 minimization (to convergence) with no communication from the driver
@@ -257,11 +289,11 @@ are required.  The -name setting can be anything you choose.  MDI
 drivers and engines can query their names to verify they are values
 they expect.
 
-The *infile* keyword is also required.  It is the name of an input
-script which the engine will open and process.  MDI will pass it as a
+The *infile* keyword is optional.  It sets the name of an input script
+which the engine will open and process.  MDI will pass it as a
 command-line argument to the library when it is launched.  The file
 typically contains settings that an MD or QM code will use for its
-subsequent calculations.
+calculations.
 
 The *extra* keyword is optional.  It contains additional command-line
 arguments which MDI will pass to the library when it is launched.
@@ -270,19 +302,44 @@ The *command* keyword is required.  It specifies a LAMMPS input script
 command (as a single argument in quotes if it is multiple words).
 Once the plugin library is launched, LAMMPS will execute this command.
 Other previously-defined commands in the input script, such as the
-:doc:`fix mdi/aimd <fix_mdi_aimd>` command, should perform MDI
+:doc:`fix mdi/qm <fix_mdi_qm>` command, should perform MDI
 communication with the engine, while the specified *command* executes.
 Note that if *command* is an :doc:`include <include>` command, then it
 could specify a filename with multiple LAMMPS commands.
 
 .. note::
 
-   When the single *command* is complete, LAMMPS will send an MDI
-   EXIT command to the plugin engine and the plugin will be removed.
-   The "mdi plugin" command will then exit and the next command
-   (if any) in the LAMMPS input script will be processed.  A subsequent
-   "mdi plugin" command could then load the same library plugin or
-   a different one if desired.
+   When the *command* is complete, LAMMPS will send an MDI EXIT
+   command to the plugin engine and the plugin will be removed.  The
+   "mdi plugin" command will then exit and the next command (if any)
+   in the LAMMPS input script will be processed.  A subsequent "mdi
+   plugin" command could then load the same or a different MDI
+   plugin if desired.
+
+----------
+
+The *mdi connect* and *mdi exit* commands are only used when LAMMPS is
+operating as an MDI driver.  And when other LAMMPS command(s) which
+send MDI commands and associated data to/from the MDI engine are not
+able to initiate and terminate the connection to the engine code.
+
+The only current MDI driver command in LAMMPS is the :doc:`fix mdi/qm
+<fix_mdi_qm>` command.  If it is only used once in an input script
+then it can initiate and terminate the connection.  But if it is being
+issued multiple times, e.g. in a loop that issues a :doc:`clear
+<clear>` command, then it cannot initiate or terminate the connection
+multiple times.  Instead, the *mdi connect* and *mdi exit* commands
+should be used outside the loop to initiate or terminate the connection.
+
+See the examples/mdi/in.series.driver script for an example of how
+this is done.  The LOOP in that script is reading a series of data
+file configurations and passing them to an MDI engine (e.g. quantum
+code) for energy and force evaluation.  A *clear* command inside the
+loop wipes out the current system so a new one can be defined.  This
+operation also destroys all fixes.  So the :doc:`fix mdi/qm
+<fix_mdi_qm>` command is issued once per loop iteration.  Note that it
+includes a "connect no" option which disables the initiate/terminate
+logic within that fix.
 
 
 Restrictions
@@ -304,7 +361,7 @@ supports, e.g. *lj*, but then no unit conversion is performed.
 Related commands
 """"""""""""""""
 
-:doc:`fix mdi/aimd <fix_mdi_aimd>`
+:doc:`fix mdi/qm <fix_mdi_qm>`
 
 Default
 """""""

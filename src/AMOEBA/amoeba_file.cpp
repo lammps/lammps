@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel ator
    https://www.lammps.org/ Sandia National Laboratories
@@ -12,22 +13,24 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <mpi.h>
+
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "utils.h"
+#include "tokenizer.h"
+
 #include <cmath>
 #include <cstring>
 #include <cctype>
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
-enum{FFIELD,LITERATURE,ATOMTYPE,VDWL,VDWLPAIR,BSTRETCH,SBEND,ABEND,
+enum{UNKNOWN,FFIELD,LITERATURE,ATOMTYPE,VDWL,VDWLPAIR,BSTRETCH,SBEND,ABEND,
      PAULI,DISPERSION,UB,OUTPLANE,TORSION,PITORSION,ATOMMULT,
-     QPENETRATION,DIPPOLAR,QTRANSFER,UNKNOWN};
+     QPENETRATION,DIPPOLAR,QTRANSFER,END_OF_FILE};
 enum{ALLINGER,BUFFERED_14_7};
 enum{ARITHMETIC,GEOMETRIC,CUBIC_MEAN,R_MIN,SIGMA,DIAMETER,HARMONIC,HHG,W_H};
 enum{MUTUAL,OPT,TCG,DIRECT};
@@ -75,21 +78,17 @@ void PairAmoeba::set_defaults()
 
 void PairAmoeba::read_prmfile(char *filename)
 {
-  int n,nextflag;
-
   // open potential file
 
   int me = comm->me;
   FILE *fptr;
-  char line[MAXLINE],next[MAXLINE];
+  char line[MAXLINE];
 
   if (me == 0) {
-    fptr = utils::open_potential(filename,lmp,nullptr);
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open AMOEBA PRM file %s",filename);
-      error->one(FLERR,str);
-    }
+    fptr = utils::open_potential(filename, lmp, nullptr);
+    if (fptr == nullptr)
+      error->one(FLERR, "Cannot open {} PRM file {}: {}", utils::uppercase(mystyle), filename,
+                 utils::getsyserror());
   }
 
   // read sections, one at a time
@@ -98,97 +97,221 @@ void PairAmoeba::read_prmfile(char *filename)
   // Atom Type Definitions must come before any other section
   // other sections can follow in any order
 
-  int forcefield_flag = 0;
-  int atomtype_flag = 0;
+  bool forcefield_flag = false;
+  bool atomtype_flag = false;
   int section;
+  int nline = 0;
 
-  while (1) {
-    if (me == 0) n = read_section_name(fptr,line);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    if (n < 0) break;
-    MPI_Bcast(line,n+1,MPI_CHAR,0,world);
+  while (true) {
+    if (me == 0) {
+      clearerr(fptr);
+      section = END_OF_FILE;
+      while (fgets(line, MAXLINE, fptr)) {
+        ++nline;
+        if (utils::strmatch(line, "^\\s*##\\s+\\S+.*##\\s*$")) {
+          auto trimmed = utils::trim(line);
+          if (utils::strmatch(trimmed, "^##\\s*Force Field"))
+            section = FFIELD;
+          else if (utils::strmatch(trimmed, "^##\\s*Literature"))
+            section = LITERATURE;
+          else if (utils::strmatch(trimmed, "^##\\s*Atom Type"))
+            section = ATOMTYPE;
+          else if (utils::strmatch(trimmed, "^##\\s*Van der Waals Param"))
+            section = VDWL;
+          else if (utils::strmatch(trimmed, "^##\\s*Van der Waals Pair"))
+            section = VDWLPAIR;
+          else if (utils::strmatch(trimmed, "^##\\s*Bond Stretching"))
+            section = BSTRETCH;
+          else if (utils::strmatch(trimmed, "^##\\s*Stretch-Bend"))
+            section = SBEND;
+          else if (utils::strmatch(trimmed, "^##\\s*Angle Bending"))
+            section = ABEND;
+          else if (utils::strmatch(trimmed, "^##\\s*Pauli Repulsion"))
+            section = PAULI;
+          else if (utils::strmatch(trimmed, "^##\\s*Dispersion Param"))
+            section = DISPERSION;
+          else if (utils::strmatch(trimmed, "^##\\s*Urey-Bradley"))
+            section = UB;
+          else if (utils::strmatch(trimmed, "^##\\s*Out-of-Plane"))
+            section = OUTPLANE;
+          else if (utils::strmatch(trimmed, "^##\\s*Torsional"))
+            section = TORSION;
+          else if (utils::strmatch(trimmed, "^##\\s*Pi-Torsion"))
+            section = PITORSION;
+          else if (utils::strmatch(trimmed, "^##\\s*Atomic Multipole"))
+            section = ATOMMULT;
+          else if (utils::strmatch(trimmed, "^##\\s*Charge Penetration"))
+            section = QPENETRATION;
+          else if (utils::strmatch(trimmed, "^##\\s*Dipole Polarizability"))
+            section = DIPPOLAR;
+          else if (utils::strmatch(trimmed, "^##\\s*Charge Transfer"))
+            section = QTRANSFER;
+          else {
+            section = UNKNOWN;
+            utils::logmesg(lmp, "Skipping section: {}\n", trimmed.substr(2, trimmed.size() - 4));
+          }
 
-    if (strstr(line,"Force Field") == line) section = FFIELD;
-    else if (strstr(line,"Literature") == line) section = LITERATURE;
-    else if (strstr(line,"Atom Type") == line) section = ATOMTYPE;
-    else if (strstr(line,"Van der Waals Param") == line) section = VDWL;
-    else if (strstr(line,"Van der Waals Pair") == line) section = VDWLPAIR;
-    else if (strstr(line,"Bond Stretching") == line) section = BSTRETCH;
-    else if (strstr(line,"Stretch-Bend") == line) section = SBEND;
-    else if (strstr(line,"Angle Bending") == line) section = ABEND;
-    else if (strstr(line,"Pauli Repulsion") == line) section = PAULI;
-    else if (strstr(line,"Dispersion Param") == line) section = DISPERSION;
-    else if (strstr(line,"Urey-Bradley") == line) section = UB;
-    else if (strstr(line,"Out-of-Plane") == line) section = OUTPLANE;
-    else if (strstr(line,"Torsional") == line) section = TORSION;
-    else if (strstr(line,"Pi-Torsion") == line) section = PITORSION;
-    else if (strstr(line,"Atomic Multipole") == line) section = ATOMMULT;
-    else if (strstr(line,"Charge Penetration") == line) section = QPENETRATION;
-    else if (strstr(line,"Dipole Polarizability") == line) section = DIPPOLAR;
-    else if (strstr(line,"Charge Transfer") == line) section = QTRANSFER;
-    else {
-      if (me == 0) printf("Skipping section: %s\n",line);
-      section = UNKNOWN;
+          // skip two lines following section head keyword
+          fgets(line, MAXLINE, fptr);
+          fgets(line, MAXLINE, fptr);
+          nline += 2;
+          break;
+        }
+      }
+      if (ferror(fptr))
+        error->one(FLERR, "Problem reading {} PRM file {}:{} {}", utils::uppercase(mystyle), nline,
+                   filename, utils::getsyserror());
+      if (feof(fptr)) section = END_OF_FILE;
     }
+    MPI_Bcast(&section, 1, MPI_INT, 0, world);
+    if (section == END_OF_FILE) break;
 
-    if (forcefield_flag == 0 && section != FFIELD)
-      error->all(FLERR,"Force Field is not first section of "
-                 "pair amoeba potential file");
-    if (section != FFIELD && section != LITERATURE && section != ATOMTYPE &&
-        section != UNKNOWN && atomtype_flag == 0)
-      error->all(FLERR,"Atom Type section of pair amoeba potential file "
-                 "must come before all but Force Field section");
+    // sanity checks
+    if (!forcefield_flag && (section != FFIELD))
+      error->all(FLERR, "Force Field is not first section of pair {} potential file", mystyle);
 
-    if (section == FFIELD) forcefield_flag = 1;
-    if (section == ATOMTYPE) atomtype_flag = 1;
+    if ((section > ATOMTYPE) && !atomtype_flag)
+      error->all(FLERR,
+                 "Atom Type section of pair {} potential file must "
+                 "come before all but the Force Field section",
+                 mystyle);
 
+    if (section == FFIELD) forcefield_flag = true;
+    if (section == ATOMTYPE) atomtype_flag = true;
     if (section == ATOMMULT) {
       for (int i = 1; i <= n_amtype; i++) nmultiframe[i] = 0;
     }
 
-    nextflag = 0;
+    char next[MAXLINE];
+    next[0] = '\0';
+    bool has_next = false;
+    int n;
+    while (true) {
+      if (me == 0) {
+        while (true) {
+          line[0] = '\0';
+          n = -1;
+          if (has_next) strcpy(line, next);
+          has_next = false;
+          clearerr(fptr);
+          while (fgets(next, MAXLINE, fptr)) {
+            ++nline;
+            auto trimmed = utils::trim(next);
+            // chop off !! comments
+            std::size_t pos = trimmed.find("!!");
+            if (pos != std::string::npos) trimmed = trimmed.substr(0, pos);
 
-    while (1) {
-      if (me == 0) n = read_section_line(fptr,line,nextflag,next);
-      MPI_Bcast(&n,1,MPI_INT,0,world);
+            // append to line if next line starts with a number
+            if (utils::is_double(utils::strfind(trimmed, "^\\S+"))) {
+              strcat(line, " ");
+              strcat(line, trimmed.c_str());
+              has_next = false;
+            } else {
+              strcpy(next, trimmed.c_str());
+              has_next = true;
+              break;
+            }
+          }
+          if (ferror(fptr))
+            error->one(FLERR, "Problem reading {} PRM file {}:{} {}", utils::uppercase(mystyle),
+                       nline, filename, utils::getsyserror());
+
+          auto trimmed = utils::trim(line);
+
+          // start of next section
+          if (utils::strmatch(trimmed, "^####+$")) {
+            n = 0;
+            break;
+          }
+
+          // skip concatenated line with commented out keyword
+          if (utils::strmatch(trimmed, "^#\\w+")) continue;
+
+          // exit loop if line is not empty
+          if (!trimmed.empty()) {
+            strcpy(line, trimmed.c_str());
+            n = strlen(line) + 1;
+            break;
+          }
+          if (feof(fptr)) {
+            n = -1;
+            break;
+          }
+        }
+      }
+      MPI_Bcast(&n, 1, MPI_INT, 0, world);
       if (n < 0) break;
-      MPI_Bcast(line,n+1,MPI_CHAR,0,world);
+      MPI_Bcast(line, n, MPI_CHAR, 0, world);
 
-      // line starting with #### = next section line
+      // next section
 
       if (n == 0) break;
 
-      // convert all chars in line to lower-case
+      // convert line to lowercase and get list of words
+      // XXX do we need to use lowercase? Preserving case may be useful later for type lables.
+      // XXX We could also use utils::split_words() which slower but can handle quotes.
+      auto words = Tokenizer(utils::lowercase(line)).as_vector();
 
-      for (int i = 0; i < n; i++)
-        line[i] = tolower(line[i]);
-
-      char *copy;
-      char **words;
-      int nwords = tokenize(line,words,copy);
-
-      if (section == FFIELD) file_ffield(nwords,words);
-      else if (section == LITERATURE) file_literature(nwords,words);
-      else if (section == ATOMTYPE) file_atomtype(nwords,words);
-      else if (section == VDWL) file_vdwl(nwords,words);
-      else if (section == VDWLPAIR) file_vdwl_pair(nwords,words);
-      else if (section == BSTRETCH) file_bstretch(nwords,words);
-      else if (section == SBEND) file_sbend(nwords,words);
-      else if (section == ABEND) file_abend(nwords,words);
-      else if (section == PAULI) file_pauli(nwords,words);
-      else if (section == DISPERSION) file_dispersion(nwords,words);
-      else if (section == UB) file_ub(nwords,words);
-      else if (section == OUTPLANE) file_outplane(nwords,words);
-      else if (section == TORSION) file_torsion(nwords,words);
-      else if (section == PITORSION) file_pitorsion(nwords,words);
-      else if (section == ATOMMULT) file_multipole(nwords,words);
-      else if (section == QPENETRATION) file_charge_penetration(nwords,words);
-      else if (section == DIPPOLAR) file_dippolar(nwords,words);
-      else if (section == QTRANSFER) file_charge_transfer(nwords,words);
-      else if (section == UNKNOWN) {}
-
-      delete[] copy;
-      delete[] words;
+      switch (section) {
+        case FFIELD:
+          file_ffield(words, nline - 1);
+          break;
+        case LITERATURE:
+          file_literature(words, nline - 1);
+          break;
+        case ATOMTYPE:
+          file_atomtype(words, nline - 1);
+          break;
+        case VDWL:
+          file_vdwl(words, nline - 1);
+          break;
+        case VDWLPAIR:
+          file_vdwl_pair(words, nline - 1);
+          break;
+        case BSTRETCH:
+          file_bstretch(words, nline - 1);
+          break;
+        case SBEND:
+          file_sbend(words, nline - 1);
+          break;
+        case ABEND:
+          file_abend(words, nline - 1);
+          break;
+        case PAULI:
+          file_pauli(words, nline - 1);
+          break;
+        case DISPERSION:
+          file_dispersion(words, nline - 1);
+          break;
+        case UB:
+          file_ub(words, nline - 1);
+          break;
+        case OUTPLANE:
+          file_outplane(words, nline - 1);
+          break;
+        case TORSION:
+          file_torsion(words, nline - 1);
+          break;
+        case PITORSION:
+          file_pitorsion(words, nline - 1);
+          break;
+        case ATOMMULT:
+          file_multipole(words, nline - 1);
+          break;
+        case QPENETRATION:
+          file_charge_penetration(words, nline - 1);
+          break;
+        case DIPPOLAR:
+          file_dippolar(words, nline - 1);
+          break;
+        case QTRANSFER:
+          file_charge_transfer(words, nline - 1);
+          break;
+        case UNKNOWN:
+        case END_OF_FILE:
+        default:
+          ;    // do nothing
+      }
     }
 
     if (n < 0) break;
@@ -197,7 +320,7 @@ void PairAmoeba::read_prmfile(char *filename)
   if (me == 0) fclose(fptr);
 
   if (forcefield_flag == 0 || atomtype_flag == 0)
-    error->all(FLERR,"Pair amoeba potential file incomplete");
+    error->all(FLERR, "Pair {} potential file {} incomplete", mystyle, filename);
 }
 
 /* ----------------------------------------------------------------------
@@ -206,7 +329,7 @@ void PairAmoeba::read_prmfile(char *filename)
 
 void PairAmoeba::read_keyfile(char *filename)
 {
-  double aprd,bprd,cprd;
+  double aprd, bprd, cprd;
 
   // default settings for which there are keyword options
 
@@ -263,61 +386,62 @@ void PairAmoeba::read_keyfile(char *filename)
   FILE *fptr;
   char line[MAXLINE];
   if (me == 0) {
-    fptr = utils::open_potential(filename,lmp,nullptr);
-    if (fptr == NULL)
-      error->one(FLERR,"Cannot open AMOEBA key file {}: {}",filename, utils::getsyserror());
+    fptr = utils::open_potential(filename, lmp, nullptr);
+    if (fptr == nullptr)
+      error->one(FLERR, "Cannot open {} key file {}: {}", utils::uppercase(mystyle), filename,
+                 utils::getsyserror());
   }
 
   // read lines, one at a time
 
   int n;
-  char *ptr,*keyword;
+  char *ptr;
 
-  while (1) {
+  while (true) {
     if (me == 0) {
-      ptr = fgets(line,MAXLINE,fptr);
-      if (!ptr) n = -1;
-      else n = strlen(line);
+      ptr = fgets(line, MAXLINE, fptr);
+      if (!ptr)
+        n = -1;
+      else
+        n = strlen(line) + 1;
     }
-    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
     if (n < 0) break;
-    MPI_Bcast(line,n+1,MPI_CHAR,0,world);
-    if (strspn(line," \t\n\r") == strlen(line)) continue;
+    MPI_Bcast(line, n, MPI_CHAR, 0, world);
 
-    // convert all chars in line to lower-case
+    // skip over empty or comment lines
+    auto trimmed = utils::lowercase(utils::trim(line));
+    if (trimmed.empty() || utils::strmatch(trimmed, "^#") || utils::strmatch(trimmed, "!!"))
+      continue;
 
-    for (int i = 0; i < n; i++)
-      line[i] = tolower(line[i]);
+    const auto words = Tokenizer(trimmed).as_vector();
+    const int nwords = words.size();
+    const auto &keyword = words[0];
 
-    char *copy;
-    char **words;
-    int nwords = tokenize(line,words,copy);
-    keyword = words[0];
+    if (utils::strmatch(keyword, "^[^a-z]+")) {
+      ;    // ignore keywords that do not start with text
+    } else if (keyword == "a-axis") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      aprd = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "b-axis") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      bprd = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "c-axis") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      cprd = utils::numeric(FLERR, words[1], false, lmp);
 
-    if (strstr(keyword,"#") || strstr(keyword,"!!") || !isalpha(keyword[0])) {
-
-    } else if (strcmp(keyword,"a-axis") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      aprd = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"b-axis") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      bprd = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"c-axis") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      cprd = utils::numeric(FLERR,words[1],true,lmp);
-
-    } else if (strcmp(keyword,"cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      double cut = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      double cut = utils::numeric(FLERR, words[1], false, lmp);
       vdwcut = repcut = dispcut = mpolecut = ctrncut = ewaldcut = dewaldcut = cut;
       vdwtaper = 0.9 * vdwcut;
       reptaper = 0.9 * repcut;
       disptaper = 0.9 * dispcut;
       mpoletaper = 0.65 * mpolecut;
       ctrntaper = 0.9 * ctrncut;
-    } else if (strcmp(keyword,"taper") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      double taper = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "taper") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      double taper = utils::numeric(FLERR, words[1], false, lmp);
       if (taper >= 1.0) {
         vdwtaper = reptaper = disptaper = mpoletaper = ctrntaper = taper;
       } else {
@@ -328,189 +452,189 @@ void PairAmoeba::read_keyfile(char *filename)
         mpoletaper = taper * mpolecut;
         ctrntaper = taper * ctrncut;
       }
-    } else if (strcmp(keyword,"vdw-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      vdwcut = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "vdw-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      vdwcut = utils::numeric(FLERR, words[1], false, lmp);
       vdwtaper = 0.9 * vdwcut;
-    } else if (strcmp(keyword,"repulsion-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      repcut = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "repulsion-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      repcut = utils::numeric(FLERR, words[1], false, lmp);
       reptaper = 0.9 * repcut;
-    } else if (strcmp(keyword,"dispersion-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      dispcut = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "dispersion-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      dispcut = utils::numeric(FLERR, words[1], false, lmp);
       disptaper = 0.9 * dispcut;
-    } else if (strcmp(keyword,"mpole-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      mpolecut = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "mpole-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      mpolecut = utils::numeric(FLERR, words[1], false, lmp);
       mpoletaper = 0.65 * mpolecut;
-    } else if (strcmp(keyword,"ctrn-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      ctrncut = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "ctrn-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      ctrncut = utils::numeric(FLERR, words[1], false, lmp);
       ctrntaper = 0.9 * ctrncut;
-    } else if (strcmp(keyword,"ewald-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      ewaldcut = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"dewald-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      dewaldcut = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"usolve-cutoff") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      usolvcut = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"usolve-diag") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      udiag = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "ewald-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      ewaldcut = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "dewald-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      dewaldcut = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "usolve-cutoff") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      usolvcut = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "usolve-diag") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      udiag = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (strcmp(keyword,"vdw-taper") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      vdwtaper = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "vdw-taper") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      vdwtaper = utils::numeric(FLERR, words[1], false, lmp);
       if (vdwtaper < 1.0) vdwtaper = -vdwtaper * vdwcut;
-    } else if (strcmp(keyword,"repulsion-taper") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      reptaper = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "repulsion-taper") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      reptaper = utils::numeric(FLERR, words[1], false, lmp);
       if (reptaper < 1.0) reptaper = -reptaper * repcut;
-    } else if (strcmp(keyword,"dispersion-taper") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      disptaper = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "dispersion-taper") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      disptaper = utils::numeric(FLERR, words[1], false, lmp);
       if (disptaper < 1.0) disptaper = -disptaper * vdwcut;
-    } else if (strcmp(keyword,"mpole-taper") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      mpoletaper = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "mpole-taper") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      mpoletaper = utils::numeric(FLERR, words[1], false, lmp);
       if (mpoletaper < 1.0) mpoletaper = -mpoletaper * vdwcut;
-    } else if (strcmp(keyword,"ctrn-taper") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      ctrntaper = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "ctrn-taper") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      ctrntaper = utils::numeric(FLERR, words[1], false, lmp);
       if (ctrntaper < 1.0) ctrntaper = -ctrntaper * vdwcut;
 
-    } else if (strcmp(keyword,"delta-halgren") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      dhal = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"gamma-halgren") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      ghal = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "delta-halgren") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      dhal = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "gamma-halgren") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      ghal = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (strcmp(keyword,"ewald") == 0) {
-      if (nwords != 1) error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "ewald") {
+      if (nwords != 1) error->all(FLERR, "AMOEBA keyfile line is invalid");
       use_ewald = 1;
-    } else if (strcmp(keyword,"dewald") == 0) {
-      if (nwords != 1) error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "dewald") {
+      if (nwords != 1) error->all(FLERR, "AMOEBA keyfile line is invalid");
       use_dewald = 1;
 
-    } else if (strcmp(keyword,"pme-order") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      bseorder = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"ppme-order") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      bsporder = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"dpme-order") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      bsdorder = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "pme-order") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      bseorder = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "ppme-order") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      bsporder = utils::numeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "dpme-order") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      bsdorder = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (strcmp(keyword,"pme-grid") == 0) {
-      if (nwords != 2 && nwords != 4)
-        error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "pme-grid") {
+      if (nwords != 2 && nwords != 4) error->all(FLERR, "AMOEBA keyfile line is invalid");
       if (nwords == 2)
-        nefft1 = nefft2 = nefft3 = utils::numeric(FLERR,words[1],true,lmp);
+        nefft1 = nefft2 = nefft3 = utils::numeric(FLERR, words[1], false, lmp);
       else {
-        nefft1 = utils::numeric(FLERR,words[1],true,lmp);
-        nefft2 = utils::numeric(FLERR,words[2],true,lmp);
-        nefft3 = utils::numeric(FLERR,words[3],true,lmp);
+        nefft1 = utils::numeric(FLERR, words[1], false, lmp);
+        nefft2 = utils::numeric(FLERR, words[2], false, lmp);
+        nefft3 = utils::numeric(FLERR, words[3], false, lmp);
       }
       pmegrid_key = 1;
-    } else if (strcmp(keyword,"dpme-grid") == 0) {
-      if (nwords != 2 && nwords != 4)
-        error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "dpme-grid") {
+      if (nwords != 2 && nwords != 4) error->all(FLERR, "AMOEBA keyfile line is invalid");
       if (nwords == 2)
-        ndfft1 = ndfft2 = ndfft3 = utils::numeric(FLERR,words[1],true,lmp);
+        ndfft1 = ndfft2 = ndfft3 = utils::numeric(FLERR, words[1], false, lmp);
       else {
-        ndfft1 = utils::numeric(FLERR,words[1],true,lmp);
-        ndfft2 = utils::numeric(FLERR,words[2],true,lmp);
-        ndfft3 = utils::numeric(FLERR,words[3],true,lmp);
+        ndfft1 = utils::numeric(FLERR, words[1], false, lmp);
+        ndfft2 = utils::numeric(FLERR, words[2], false, lmp);
+        ndfft3 = utils::numeric(FLERR, words[3], false, lmp);
       }
       dpmegrid_key = 1;
 
-    } else if (strcmp(keyword,"ewald-alpha") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      aeewald = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "ewald-alpha") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      aeewald = utils::numeric(FLERR, words[1], false, lmp);
       aeewald_key = 1;
-    } else if (strcmp(keyword,"pewald-alpha") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      apewald = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "pewald-alpha") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      apewald = utils::numeric(FLERR, words[1], false, lmp);
       apewald_key = 1;
-    } else if (strcmp(keyword,"dewald-alpha") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      adewald = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "dewald-alpha") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      adewald = utils::numeric(FLERR, words[1], false, lmp);
       adewald_key = 1;
 
-    // polarization options
+      // polarization options
 
-    } else if (strcmp(words[0],"polarization") == 0) {
-      if (strcmp(words[1],"mutual") == 0) poltyp = MUTUAL;
-      else if (strstr(words[1],"opt") == words[1]) {
+    } else if (keyword == "polarization") {
+      if (words[1] == "mutual")
+        poltyp = MUTUAL;
+      else if (utils::strmatch(words[1], "^opt")) {
         poltyp = OPT;
-        if (strcmp(words[1],"opt") == 0) optorder = 4;
-        else optorder = utils::inumeric(FLERR,&words[1][3],true,lmp);
+        if (words[1] == "opt")
+          optorder = 4;
+        else
+          optorder = utils::inumeric(FLERR, &words[1][3], false, lmp);
         if (optorder < 1 || optorder > 6)
-          error->all(FLERR,"Unrecognized polarization OPTn in AMOEBA FF file");
-      } else if (strcmp(words[1],"tcg") == 0)
-        error->all(FLERR,"Polarization TCG not yet supported in AMOEBA/HIPPO");
-      else if (strcmp(words[1],"direct") == 0) poltyp = DIRECT;
-      else error->all(FLERR,"Unrecognized polarization in AMOEBA FF file");
+          error->all(FLERR, "Unrecognized polarization OPT{} in AMOEBA FF file", optorder);
+      } else if (words[1] == "tcg")
+        error->all(FLERR, "Polarization TCG not yet supported in AMOEBA/HIPPO");
+      else if (words[1] == "direct")
+        poltyp = DIRECT;
+      else
+        error->all(FLERR, "Unrecognized polarization in AMOEBA FF file");
 
-    } else if (strcmp(keyword,"polar-predict") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      if (strcmp(words[1],"gear") == 0) {
+    } else if (keyword == "polar-predict") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      if (words[1] == "gear") {
         polpred = GEAR;
         maxualt = 7;
-      } else if (strcmp(words[1],"aspc") == 0) {
+      } else if (words[1] == "aspc") {
         polpred = ASPC;
         maxualt = 17;
-      } else if (strcmp(words[1],"lsqr") == 0) {
+      } else if (words[1] == "lsqr") {
         polpred = LSQR;
         maxualt = 7;
-      } else error->all(FLERR,"AMOEBA keyfile line is invalid");
+      } else
+        error->all(FLERR, "AMOEBA keyfile line is invalid");
       use_pred = 1;
-    } else if (strcmp(keyword,"polar-iter") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      politer = utils::inumeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"polar-eps") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      poleps = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "polar-iter") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      politer = utils::inumeric(FLERR, words[1], false, lmp);
+    } else if (keyword == "polar-eps") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      poleps = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (strcmp(keyword,"pcg-precond") == 0) {
-      if (nwords != 1) error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "pcg-precond") {
+      if (nwords != 1) error->all(FLERR, "AMOEBA keyfile line is invalid");
       pcgprec = 1;
-    } else if (strcmp(keyword,"pcg-noprecond") == 0) {
-      if (nwords != 1) error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "pcg-noprecond") {
+      if (nwords != 1) error->all(FLERR, "AMOEBA keyfile line is invalid");
       pcgprec = 0;
-    } else if (strcmp(keyword,"pcg-guess") == 0) {
-      if (nwords != 1) error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "pcg-guess") {
+      if (nwords != 1) error->all(FLERR, "AMOEBA keyfile line is invalid");
       pcgguess = 1;
-    } else if (strcmp(keyword,"pcg-noguess") == 0) {
-      if (nwords != 1) error->all(FLERR,"AMOEBA keyfile line is invalid");
+    } else if (keyword == "pcg-noguess") {
+      if (nwords != 1) error->all(FLERR, "AMOEBA keyfile line is invalid");
       pcgguess = 0;
-    } else if (strcmp(keyword,"pcg-peek") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      pcgpeek = utils::numeric(FLERR,words[1],true,lmp);
+    } else if (keyword == "pcg-peek") {
+      if (nwords != 2) error->all(FLERR, "AMOEBA keyfile line is invalid");
+      pcgpeek = utils::numeric(FLERR, words[1], false, lmp);
 
-    // Tinker keywords that LAMMPS can skip
+      // Tinker keywords that LAMMPS can skip
 
-    } else if (strcmp(keyword,"parameters") == 0) {
-    } else if (strcmp(keyword,"verbose") == 0) {
-    } else if (strcmp(keyword,"openmp-threads") == 0) {
-    } else if (strcmp(keyword,"digits") == 0) {
-    } else if (strcmp(keyword,"neighbor-list") == 0) {
-    } else if (strcmp(keyword,"tau-temperature") == 0) {
-    } else if (strcmp(keyword,"tau-pressure") == 0) {
+    } else if (keyword == "parameters") {
+    } else if (keyword == "verbose") {
+    } else if (keyword == "openmp-threads") {
+    } else if (keyword == "digits") {
+    } else if (keyword == "neighbor-list") {
+    } else if (keyword == "tau-temperature") {
+    } else if (keyword == "tau-pressure") {
 
-    // error if LAMMPS does not recognize other keywords
+      // error if LAMMPS does not recognize other keywords
 
-    } else error->all(FLERR,
-                      "LAMMPS does not recognize AMOEBA keyfile keyword {}",
-                      keyword);
-
-    delete[] copy;
-    delete[] words;
+    } else
+      error->all(FLERR, "LAMMPS does not recognize AMOEBA keyfile keyword {}", keyword);
   }
 
   // close key file
@@ -525,386 +649,229 @@ void PairAmoeba::read_keyfile(char *filename)
   // error checks
 
   if (use_ewald || use_dewald) {
-    if (domain->nonperiodic)
-      error->all(FLERR,"AMOEBA KSpace requires fully periodic system");
+    if (domain->nonperiodic) error->all(FLERR, "AMOEBA KSpace requires fully periodic system");
   }
 
   if (aprd > 0.0 && (!domain->xperiodic || domain->xprd != aprd))
-    error->all(FLERR,"AMOEBA abc prd does not match LAMMPS domain");
+    error->all(FLERR, "AMOEBA abc prd does not match LAMMPS domain");
   if (bprd > 0.0 && (!domain->yperiodic || domain->yprd != bprd))
-    error->all(FLERR,"AMOEBA abc prd does not match LAMMPS domain");
+    error->all(FLERR, "AMOEBA abc prd does not match LAMMPS domain");
   if (cprd > 0.0 && (!domain->zperiodic || domain->zprd != cprd))
-    error->all(FLERR,"AMOEBA abc prd does not match LAMMPS domain");
+    error->all(FLERR, "AMOEBA abc prd does not match LAMMPS domain");
 }
 
 /* ---------------------------------------------------------------------- */
 
-int PairAmoeba::read_section_name(FILE *fp, char *line)
+void PairAmoeba::file_ffield(const std::vector<std::string> &words, int nline)
 {
-  char dummy[MAXLINE];
+  if (words.size() < 2)
+    error->all(FLERR, "Keyword {} without argument(s) in {} PRM file", words[0], mystyle);
 
-  // loop on read line
-  // return -1 if EOF
-  // skip line if blank
-  // tokenize
-  // if ncount <= 2 skip line
-  // if 1st word and last word != ## then error
-  // pack line with 2nd thru next-to-last words
-  // return length of line
+  if (words[0] == "forcefield") {
+    forcefield = utils::strdup(words[1]);
+  } else if (words[0] == "bond-cubic") {
+    bond_cubic = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "bond-quartic") {
+    bond_quartic = utils::numeric(FLERR, words[1], false, lmp);
 
-  char *ptr,*copy;
-  char **words;
-  int nwords;
+  } else if (words[0] == "angle-cubic") {
+    angle_cubic = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "angle-quartic") {
+    angle_quartic = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "angle-pentic") {
+    angle_pentic = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "angle-sextic") {
+    angle_sextic = utils::numeric(FLERR, words[1], false, lmp);
 
-  while (1) {
-    ptr = fgets(line,MAXLINE,fp);
-    if (!ptr) return -1;
-    if (strspn(line," \t\n\r") == strlen(line)) continue;
-    nwords = tokenize(line,words,copy);
-    if (nwords <= 2) {
-      delete[] copy;
-      delete[] words;
-      continue;
-    }
-    break;
-  }
-
-  if ((strstr(words[0],"##") != words[0]) ||
-      (strstr(words[nwords-1],"##") != words[nwords-1]))
-    error->one(FLERR,"Section header of pair amoeba potential file is invalid");
-
-  line[0] = '\0';
-  for (int i = 1; i < nwords-1; i++) {
-    if (i > 1) strcat(line," ");
-    strcat(line,words[i]);
-  }
-  int n = strlen(line);
-
-  delete[] copy;
-  delete[] words;
-
-  // skip next 2 lines of section header
-
-  fgets(dummy,MAXLINE,fp);
-  fgets(dummy,MAXLINE,fp);
-
-  return n;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int PairAmoeba::read_section_line(FILE *fp, char *line,
-                                  int &nextflag, char *next)
-{
-  // loop on read line
-  // if next line defined, use it instead of read
-  // return -1 if EOF
-  // skip line if blank
-  // tokenize
-  // if first word starts with ####, return 0
-  // if first word starts with # or !!, continue
-  // append continuation lines to line
-  //   until a line is blank, starts with #, starts with alpha char, or EOF
-  // save next line read, and set nextflag for next call
-  // return length of line
-
-  char *ptr,*copy,*copy_next;
-  char **words,**words_next;
-  int nwords, nwords_next;
-
-  copy = copy_next = NULL;
-  words = words_next = NULL;
-
-  while (1) {
-    if (nextflag) {
-      strcpy(line,next);
-      nextflag = 0;
+  } else if (words[0] == "opbendtype") {
+    if (words[1] == "allinger") {
+      opbendtype = ALLINGER;
     } else {
-      ptr = fgets(line,MAXLINE,fp);
-      if (!ptr) return -1;
+      error->all(FLERR, "Unrecognized opbendtype {} in {} PRM file", words[1], mystyle);
     }
+  } else if (words[0] == "opbend-cubic") {
+    opbend_cubic = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "opbend-quartic") {
+    opbend_quartic = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "opbend-pentic") {
+    opbend_pentic = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "opbend-sextic") {
+    opbend_sextic = utils::numeric(FLERR, words[1], false, lmp);
 
-    if (strspn(line," \t\n\r") == strlen(line)) continue;
-    nwords = tokenize(line,words,copy);
-    if (strstr(words[0],"####")) {
-      delete[] words;
-      delete[] copy;
-      return 0;
-    }
-    if (strstr(words[0],"#") || strstr(words[0],"!!") || !isalpha(words[0][0])) {
-      delete[] words;
-      delete[] copy;
-      words = NULL;
-      copy = NULL;
-      continue;
-    }
-    while (1) {
-      ptr = fgets(next,MAXLINE,fp);
-      if (!ptr) {
-        nextflag = 0;
-        delete[] words;
-        delete[] copy;
-        return strlen(line);
-      }
-      nwords_next = tokenize(next,words_next,copy_next);
-      if (nwords_next == 0) break;
-      if (words_next[0][0] == '#') break;
-      if (isalpha(words_next[0][0])) break;
-      strcat(line,next);
-      delete[] words_next;
-      delete[] copy_next;
-    }
-    nextflag = 1;
-    break;
-  }
+  } else if (words[0] == "torsionunit") {
+    torsion_unit = utils::numeric(FLERR, words[1], false, lmp);
 
-  delete[] copy;
-  delete[] words;
-  delete[] copy_next;
-  delete[] words_next;
+  } else if (words[0] == "vdwtype") {
+    if (words[1] == "buffered-14-7")
+      vdwtype = BUFFERED_14_7;
+    else
+      error->all(FLERR, "Unrecognized vdwtype {} in {} PRM file", words[1], mystyle);
+  } else if (words[0] == "radiusrule") {
+    if (words[1] == "arithmetic")
+      radius_rule = ARITHMETIC;
+    else if (words[1] == "geometric")
+      radius_rule = GEOMETRIC;
+    else if (words[1] == "cubic-mean")
+      radius_rule = CUBIC_MEAN;
+    else
+      error->all(FLERR, "Unrecognized radiusrule {} in {} PRM file", words[1], mystyle);
+  } else if (words[0] == "radiustype") {
+    if (words[1] == "r-min")
+      radius_type = R_MIN;
+    else if (words[1] == "sigma")
+      radius_type = SIGMA;
+    else
+      error->all(FLERR, "Unrecognized radiustype {} in {} PRM file", words[1], mystyle);
+  } else if (words[0] == "radiussize") {
+    if (words[1] == "diameter")
+      radius_size = DIAMETER;
+    else
+      error->all(FLERR, "Unrecognized radiussize {} in {} PRM file", words[1], mystyle);
+  } else if (words[0] == "epsilonrule") {
+    if (words[1] == "arithmetic")
+      epsilon_rule = ARITHMETIC;
+    else if (words[1] == "geometric")
+      epsilon_rule = GEOMETRIC;
+    else if (words[1] == "harmonic")
+      epsilon_rule = HARMONIC;
+    else if (words[1] == "hhg")
+      epsilon_rule = HHG;
+    else if (words[1] == "w-h")
+      epsilon_rule = W_H;
+    else
+      error->all(FLERR, "Unrecognized epsilonrule {} in {} PRM file", words[1], mystyle);
 
-  int n = strlen(line);
-  return n;
-}
-
-/* ----------------------------------------------------------------------
-   tokenize str into white-space separated words
-   return nwords = number of words
-   return words = vector of ptrs to each word
-   also return copystr since words points into it
-   if a word is !!, that word and the rest of the line is discarded
-   IMPORTANT: caller must delete words and copystr
-------------------------------------------------------------------------- */
-
-int PairAmoeba::tokenize(char *str, char **&words, char *&copystr)
-{
-  int n = strlen(str) + 1;
-  copystr = new char[n];
-  strcpy(copystr,str);
-
-  int nword = count_words(copystr);
-  words = new char*[nword];
-
-  nword = 0;
-  char *word = strtok(copystr," \t\n\r\f");
-  while (word) {
-    words[nword++] = word;
-    word = strtok(NULL," \t\n\r\f");
-    if (word && strcmp(word,"!!") == 0) break;
-  }
-
-  return nword;
-}
-
-/* ----------------------------------------------------------------------
-   count and return words in a single line
-   make copy of line before using strtok so as not to change line
-------------------------------------------------------------------------- */
-
-int PairAmoeba::count_words(const char *line)
-{
-  int n = strlen(line) + 1;
-  char *copy = new char[n];
-  strcpy(copy,line);
-
-  if (strtok(copy," \t\n\r\f") == NULL) {
-    delete[] copy;
-    return 0;
-  }
-  n = 1;
-  while (strtok(NULL," \t\n\r\f")) n++;
-
-  delete[] copy;
-  return n;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairAmoeba::file_ffield(int nwords, char **words)
-{
-  if (strcmp(words[0],"forcefield") == 0) {
-    int n = strlen(words[1]) + 1;
-    forcefield = new char[n];
-    strcpy(forcefield,words[1]);
-
-  } else if (strcmp(words[0],"bond-cubic") == 0) {
-    bond_cubic = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"bond-quartic") == 0) {
-    bond_quartic = utils::numeric(FLERR,words[1],true,lmp);
-
-  } else if (strcmp(words[0],"angle-cubic") == 0) {
-    angle_cubic = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"angle-quartic") == 0) {
-    angle_quartic = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"angle-pentic") == 0) {
-    angle_pentic = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"angle-sextic") == 0) {
-    angle_sextic = utils::numeric(FLERR,words[1],true,lmp);
-
-  } else if (strcmp(words[0],"opbendtype") == 0) {
-    if (strcmp(words[1],"allinger") == 0) opbendtype = ALLINGER;
-    else error->all(FLERR,"Unrecognized opbendtype in AMOEBA FF file");
-  } else if (strcmp(words[0],"opbend-cubic") == 0) {
-    opbend_cubic = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"opbend-quartic") == 0) {
-    opbend_quartic = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"opbend-pentic") == 0) {
-    opbend_pentic = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"opbend-sextic") == 0) {
-    opbend_sextic = utils::numeric(FLERR,words[1],true,lmp);
-
-  } else if (strcmp(words[0],"torsionunit") == 0) {
-    torsion_unit = utils::numeric(FLERR,words[1],true,lmp);
-
-  } else if (strcmp(words[0],"vdwtype") == 0) {
-    if (strcmp(words[1],"buffered-14-7") == 0) vdwtype = BUFFERED_14_7;
-    else error->all(FLERR,"Unrecognized vdwtype in AMOEBA FF file");
-  } else if (strcmp(words[0],"radiusrule") == 0) {
-    if (strcmp(words[1],"arithmetic") == 0) radius_rule = ARITHMETIC;
-    else if (strcmp(words[1],"geometric") == 0) radius_rule = GEOMETRIC;
-    else if (strcmp(words[1],"cubic-mean") == 0) radius_rule = CUBIC_MEAN;
-    else error->all(FLERR,"Unrecognized radiusrule in AMOEBA FF file");
-  } else if (strcmp(words[0],"radiustype") == 0) {
-    if (strcmp(words[1],"r-min") == 0) radius_type = R_MIN;
-    else if (strcmp(words[1],"sigma") == 0) radius_type = SIGMA;
-    else error->all(FLERR,"Unrecognized radiustype in AMOEBA FF file");
-  } else if (strcmp(words[0],"radiussize") == 0) {
-    if (strcmp(words[1],"diameter") == 0) radius_size = DIAMETER;
-    else error->all(FLERR,"Unrecognized radiussize in AMOEBA FF file");
-  } else if (strcmp(words[0],"epsilonrule") == 0) {
-    if (strcmp(words[1],"arithmetic") == 0) epsilon_rule = ARITHMETIC;
-    else if (strcmp(words[1],"geometric") == 0) epsilon_rule = GEOMETRIC;
-    else if (strcmp(words[1],"harmonic") == 0) epsilon_rule = HARMONIC;
-    else if (strcmp(words[1],"hhg") == 0) epsilon_rule = HHG;
-    else if (strcmp(words[1],"w-h") == 0) epsilon_rule = W_H;
-    else error->all(FLERR,"Unrecognized epsilonrule in AMOEBA FF file");
-
-  } else if (strcmp(words[0],"dielectric") == 0) {
-    am_dielectric = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"polarization") == 0) {
-    if (strcmp(words[1],"mutual") == 0) poltyp = MUTUAL;
-    else if (strstr(words[1],"opt") == words[1]) {
+  } else if (words[0] == "dielectric") {
+    am_dielectric = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "polarization") {
+    if (words[1] == "mutual")
+      poltyp = MUTUAL;
+    else if (utils::strmatch(words[1], "^opt")) {
       poltyp = OPT;
-      if (strcmp(words[1],"opt") == 0) optorder = 4;
-      else optorder = utils::inumeric(FLERR,&words[1][3],true,lmp);
+      if (words[1] == "opt")
+        optorder = 4;
+      else
+        optorder = utils::inumeric(FLERR, words[1].c_str() + 3, false, lmp);
       if (optorder < 1 || optorder > 6)
-        error->all(FLERR,"Unrecognized polarization OPTn in AMOEBA FF file");
-    } else if (strcmp(words[1],"tcg") == 0)
-      error->all(FLERR,"Polarization TCG not yet supported in AMOEBA/HIPPO");
-    else if (strcmp(words[1],"direct") == 0) poltyp = DIRECT;
-    else error->all(FLERR,"Unrecognized polarization in AMOEBA FF file");
+        error->all(FLERR, "Unrecognized polarization {} in {} PRM file line {}", words[1], mystyle);
+    } else if (words[1] == "tcg")
+      error->all(FLERR, "Polarization TCG not yet supported in AMOEBA/HIPPO");
+    else if (words[1] == "direct")
+      poltyp = DIRECT;
+    else
+      error->all(FLERR, "Unrecognized polarization {} in {} PRM file", words[1], mystyle);
 
-  } else if (strcmp(words[0],"vdw-12-scale") == 0) {
-    special_hal[1] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"vdw-13-scale") == 0) {
-    special_hal[2] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"vdw-14-scale") == 0) {
-    special_hal[3] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"vdw-15-scale") == 0) {
-    special_hal[4]  = utils::numeric(FLERR,words[1],true,lmp);
+  } else if (words[0] == "vdw-12-scale") {
+    special_hal[1] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "vdw-13-scale") {
+    special_hal[2] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "vdw-14-scale") {
+    special_hal[3] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "vdw-15-scale") {
+    special_hal[4] = utils::numeric(FLERR, words[1], false, lmp);
 
-  } else if (strcmp(words[0],"rep-12-scale") == 0) {
-    special_repel[1] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"rep-13-scale") == 0) {
-    special_repel[2] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"rep-14-scale") == 0) {
-    special_repel[3] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"rep-15-scale") == 0) {
-    special_repel[4]  = utils::numeric(FLERR,words[1],true,lmp);
+  } else if (words[0] == "rep-12-scale") {
+    special_repel[1] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "rep-13-scale") {
+    special_repel[2] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "rep-14-scale") {
+    special_repel[3] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "rep-15-scale") {
+    special_repel[4] = utils::numeric(FLERR, words[1], false, lmp);
 
-  } else if (strcmp(words[0],"disp-12-scale") == 0) {
-    special_disp[1] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"disp-13-scale") == 0) {
-    special_disp[2] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"disp-14-scale") == 0) {
-    special_disp[3] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"disp-15-scale") == 0) {
-    special_disp[4]  = utils::numeric(FLERR,words[1],true,lmp);
+  } else if (words[0] == "disp-12-scale") {
+    special_disp[1] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "disp-13-scale") {
+    special_disp[2] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "disp-14-scale") {
+    special_disp[3] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "disp-15-scale") {
+    special_disp[4] = utils::numeric(FLERR, words[1], false, lmp);
 
-  } else if (strcmp(words[0],"mpole-12-scale") == 0) {
-    special_mpole[1] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"mpole-13-scale") == 0) {
-    special_mpole[2] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"mpole-14-scale") == 0) {
-    special_mpole[3] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"mpole-15-scale") == 0) {
-    special_mpole[4] = utils::numeric(FLERR,words[1],true,lmp);
+  } else if (words[0] == "mpole-12-scale") {
+    special_mpole[1] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "mpole-13-scale") {
+    special_mpole[2] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "mpole-14-scale") {
+    special_mpole[3] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "mpole-15-scale") {
+    special_mpole[4] = utils::numeric(FLERR, words[1], false, lmp);
 
-  } else if (strcmp(words[0],"polar-12-scale") == 0) {
-    special_polar_pscale[1] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"polar-13-scale") == 0) {
-    special_polar_pscale[2] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"polar-14-scale") == 0) {
-    special_polar_pscale[3] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"polar-15-scale") == 0) {
-    special_polar_pscale[4] = utils::numeric(FLERR,words[1],true,lmp);
+  } else if (words[0] == "polar-12-scale") {
+    special_polar_pscale[1] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "polar-13-scale") {
+    special_polar_pscale[2] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "polar-14-scale") {
+    special_polar_pscale[3] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "polar-15-scale") {
+    special_polar_pscale[4] = utils::numeric(FLERR, words[1], false, lmp);
 
-  } else if (strcmp(words[0],"polar-12-intra") == 0) {
-    special_polar_piscale[1] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"polar-13-intra") == 0) {
-    special_polar_piscale[2] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"polar-14-intra") == 0) {
-    special_polar_piscale[3] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"polar-15-intra") == 0) {
-    special_polar_piscale[4] = utils::numeric(FLERR,words[1],true,lmp);
+  } else if (words[0] == "polar-12-intra") {
+    special_polar_piscale[1] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "polar-13-intra") {
+    special_polar_piscale[2] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "polar-14-intra") {
+    special_polar_piscale[3] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "polar-15-intra") {
+    special_polar_piscale[4] = utils::numeric(FLERR, words[1], false, lmp);
 
-  } else if (strcmp(words[0],"induce-12-scale") == 0) {
-    special_polar_wscale[1] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"induce-13-scale") == 0) {
-    special_polar_wscale[2] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"induce-14-scale") == 0) {
-    special_polar_wscale[3] = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"induce-15-scale") == 0) {
-    special_polar_wscale[4] = utils::numeric(FLERR,words[1],true,lmp);
+  } else if (words[0] == "induce-12-scale") {
+    special_polar_wscale[1] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "induce-13-scale") {
+    special_polar_wscale[2] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "induce-14-scale") {
+    special_polar_wscale[3] = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (words[0] == "induce-15-scale") {
+    special_polar_wscale[4] = utils::numeric(FLERR, words[1], false, lmp);
 
-  } else if (strcmp(words[0],"direct-11-scale") == 0) {
-    polar_dscale = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"direct-12-scale") == 0 ||
-             strcmp(words[0],"direct-13-scale") == 0 ||
-             strcmp(words[0],"direct-14-scale") == 0) {
-    double tmp = utils::numeric(FLERR,words[1],true,lmp);
-    if (tmp != 1.0) 
-      error->all(FLERR,"AMOEBA FF file direct-scale 1-2, 1-3, 1-4 values should be 1.0");
-
-  } else if (strcmp(words[0],"mutual-11-scale") == 0) {
-    polar_uscale = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"mutual-12-scale") == 0 ||
-             strcmp(words[0],"mutual-13-scale") == 0 ||
-             strcmp(words[0],"mutual-14-scale") == 0) {
-    double tmp = utils::numeric(FLERR,words[1],true,lmp);
-    if (tmp != 1.0) 
-      error->all(FLERR,"AMOEBA FF file mutual-scale 1-2, 1-3, 1-4 values should be 1.0");
-
-  // error if LAMMPS does not recognize keyword
-
-  } else error->all(FLERR, "LAMMPS does not recognize AMOEBA PRM file setting {}", words[0]);
+  } else if (words[0] == "direct-11-scale") {
+    polar_dscale = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (utils::strmatch(words[0], "^direct-1[234]-scale$")) {
+    double tmp = utils::numeric(FLERR, words[1], false, lmp);
+    if (tmp != 1.0)
+      error->all(FLERR, "{} FF direct-scale 1-2, 1-3, 1-4 values should be 1.0",
+                 utils::uppercase(mystyle));
+  } else if (words[0] == "mutual-11-scale") {
+    polar_uscale = utils::numeric(FLERR, words[1], false, lmp);
+  } else if (utils::strmatch(words[0], "^mutual-1[234]-scale$")) {
+    double tmp = utils::numeric(FLERR, words[1], false, lmp);
+    if (tmp != 1.0)
+      error->all(FLERR, "{} FF mutual-scale 1-2, 1-3, 1-4 values should be 1.0",
+                 utils::uppercase(mystyle));
+    // error if LAMMPS does not recognize keyword
+  } else {
+    error->all(FLERR, "LAMMPS does not recognize {} PRM file setting on line {}: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_literature(int nwords, char **words)
+void PairAmoeba::file_literature(const std::vector<std::string> & /*words*/, int /*nline*/)
 {
   // do nothing, this section is skipped
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_atomtype(int nwords, char **words)
+void PairAmoeba::file_atomtype(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 8)
-    error->all(FLERR,"AMOEBA atom type line is invalid");
-  if (strcmp(words[0],"atom") != 0)
-    error->all(FLERR,"AMOEBA atom type line is invalid");
+  if (words[0] != "atom")
+    error->all(FLERR, "{} PRM file atom type line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  int itype = utils::inumeric(FLERR,words[1],true,lmp);
-  int iclass = utils::inumeric(FLERR,words[2],true,lmp);
+  if (words.size() < 8)
+    error->all(FLERR, "{} PRM file atom type line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
+
+  int itype = utils::inumeric(FLERR, words[1], false, lmp);
+  int iclass = utils::inumeric(FLERR, words[2], false, lmp);
 
   // grow per-type and per-class vecs/arrays as needed
 
-  allocate_type_class(itype,iclass);
-
-  n_amtype = MAX(n_amtype,itype);
-  n_amclass = MAX(n_amclass,iclass);
+  allocate_type_class(itype, iclass);
+  n_amtype = MAX(n_amtype, itype);
+  n_amclass = MAX(n_amclass, iclass);
 
   // store words from line
 
@@ -912,197 +879,237 @@ void PairAmoeba::file_atomtype(int nwords, char **words)
   amclass_defined[iclass] = 1;
   amtype2class[itype] = iclass;
 
-  atomic_num[itype] = utils::inumeric(FLERR,words[nwords-3],true,lmp);
-  am_mass[itype] = utils::numeric(FLERR,words[nwords-2],true,lmp);
-  valence[itype] = utils::inumeric(FLERR,words[nwords-1],true,lmp);
+  atomic_num[itype] = utils::inumeric(FLERR, words[words.size() - 3], false, lmp);
+  am_mass[itype] = utils::numeric(FLERR, words[words.size() - 2], false, lmp);
+  valence[itype] = utils::inumeric(FLERR, words[words.size() - 1], false, lmp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_vdwl(int nwords, char **words)
+void PairAmoeba::file_vdwl(const std::vector<std::string> &words, int nline)
 {
-  if (nwords != 4 && nwords != 5)
-    error->all(FLERR,"AMOEBA Van der Waals line is invalid");
-  if (strcmp(words[0],"vdw") != 0)
-    error->all(FLERR,"AMOEBA Van der Waals line is invalid");
+  if (words[0] != "vdw")
+    error->all(FLERR, "{} PRM file Van der Waals line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  int iclass = utils::inumeric(FLERR,words[1],true,lmp);
+  if (words.size() != 4 && words.size() != 5)
+    error->all(FLERR, "{} PRM file Vand der Walls line {} has incorrect length ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
+
+  int iclass = utils::inumeric(FLERR, words[1], false, lmp);
   if (iclass < 1 || iclass > n_amclass)
-    error->all(FLERR,"AMOEBA Van der Waals type index is invalid");
+    error->all(FLERR, "{} RPM file Van der Waals type index {} on line {} is invalid: {}",
+               utils::uppercase(mystyle), iclass, nline, utils::join_words(words, " "));
 
-  vdwl_sigma[iclass] = utils::numeric(FLERR,words[2],true,lmp);
-  vdwl_eps[iclass] = utils::numeric(FLERR,words[3],true,lmp);
-  if (nwords == 4) kred[iclass] = 0.0;
-  else kred[iclass] = utils::numeric(FLERR,words[4],true,lmp);
+  vdwl_sigma[iclass] = utils::numeric(FLERR, words[2], false, lmp);
+  vdwl_eps[iclass] = utils::numeric(FLERR, words[3], false, lmp);
+  if (words.size() == 4)
+    kred[iclass] = 0.0;
+  else
+    kred[iclass] = utils::numeric(FLERR, words[4], false, lmp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_vdwl_pair(int nwords, char **words)
+void PairAmoeba::file_vdwl_pair(const std::vector<std::string> &words, int nline)
 {
-  if (nwords != 5)
-    error->all(FLERR,"AMOEBA Van der Waals pair line is invalid");
-  if (strcmp(words[0],"vdwpr") != 0)
-    error->all(FLERR,"AMOEBA Van der Waals pair line is invalid");
+  if (words[0] != "vdwpr")
+    error->all(FLERR, "{} PRM file Van der Waals pair line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  if (words.size() != 5)
+    error->all(FLERR, "{} PRM file Van der Waals pair line {} has incorret length ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 
   if (nvdwl_pair == max_vdwl_pair) {
     max_vdwl_pair += DELTA_VDWL_PAIR;
-    memory->grow(vdwl_class_pair,max_vdwl_pair,2,"amoeba:vdwl_class_pair");
-    memory->grow(vdwl_sigma_pair,max_vdwl_pair,"amoeba:vdwl_sigma_pair");
-    memory->grow(vdwl_eps_pair,max_vdwl_pair,"amoeba:vdwl_eps_pair");
+    memory->grow(vdwl_class_pair, max_vdwl_pair, 2, "amoeba:vdwl_class_pair");
+    memory->grow(vdwl_sigma_pair, max_vdwl_pair, "amoeba:vdwl_sigma_pair");
+    memory->grow(vdwl_eps_pair, max_vdwl_pair, "amoeba:vdwl_eps_pair");
   }
 
-  vdwl_class_pair[nvdwl_pair][0] = utils::inumeric(FLERR,words[1],true,lmp);
-  vdwl_class_pair[nvdwl_pair][1] = utils::inumeric(FLERR,words[2],true,lmp);
-  vdwl_sigma_pair[nvdwl_pair] = utils::numeric(FLERR,words[3],true,lmp);
-  vdwl_eps_pair[nvdwl_pair] = utils::numeric(FLERR,words[4],true,lmp);
+  vdwl_class_pair[nvdwl_pair][0] = utils::inumeric(FLERR, words[1], false, lmp);
+  vdwl_class_pair[nvdwl_pair][1] = utils::inumeric(FLERR, words[2], false, lmp);
+  vdwl_sigma_pair[nvdwl_pair] = utils::numeric(FLERR, words[3], false, lmp);
+  vdwl_eps_pair[nvdwl_pair] = utils::numeric(FLERR, words[4], false, lmp);
   nvdwl_pair++;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_bstretch(int nwords, char **words)
+void PairAmoeba::file_bstretch(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 5)
-    error->all(FLERR,"AMOEBA bond stretch line is invalid");
-  if (strcmp(words[0],"bond") != 0)
-    error->all(FLERR,"AMOEBA bond stretch line is invalid");
+  if (words[0] != "bond")
+    error->all(FLERR, "{} PRM file bond stretch line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  if (words.size() < 5)
+    error->all(FLERR, "{} PRM file bond stretch line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_sbend(int nwords, char **words)
+void PairAmoeba::file_sbend(const std::vector<std::string> &words, int nline)
 {
-  if (nwords != 6)
-    error->all(FLERR,"AMOEBA strectch-bend line is invalid");
-  if (strstr(words[0],"strbnd") != words[0])
-    error->all(FLERR,"AMOEBA strectch-bend line is invalid");
+  if (words[0] != "strbnd")
+    error->all(FLERR, "{} PRM file stretch-bend line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  if (words.size() != 6)
+    error->all(FLERR, "{} PRM file stretch-bend line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_abend(int nwords, char **words)
+void PairAmoeba::file_abend(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 6)
-    error->all(FLERR,"AMOEBA angle bending line is invalid");
+  if (words.size() < 6)
+    error->all(FLERR, "{} PRM file angle bending line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_pauli(int nwords, char **words)
+void PairAmoeba::file_pauli(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 5)
-    error->all(FLERR,"AMOEBA Pauli repulsion line is invalid");
-  if (strstr(words[0],"repulsion") != words[0])
-    error->all(FLERR,"AMOEBA Pauli repulsion line is invalid");
+  if (words[0] != "repulsion")
+    error->all(FLERR, "{} PRM file Pauli repulsion line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  int itype = utils::inumeric(FLERR,words[1],true,lmp);
+  if (words.size() < 5)
+    error->all(FLERR, "{} PRM file Pauli repulsion line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
+
+  int itype = utils::inumeric(FLERR, words[1], false, lmp);
   if (itype < 1 || itype > n_amtype)
-    error->all(FLERR,"AMOEBA Pauli repulsion type index is invalid");
+    error->all(FLERR, "{} PRM file Pauli repulsion type index {} on line {} is invalid: {}",
+               utils::uppercase(mystyle), itype, nline, utils::join_words(words, " "));
 
   // negate the elepr setting
 
-  sizpr[itype] = utils::numeric(FLERR,words[2],true,lmp);
-  dmppr[itype] = utils::numeric(FLERR,words[3],true,lmp);
-  elepr[itype] = - fabs(utils::numeric(FLERR,words[4],true,lmp));
+  sizpr[itype] = utils::numeric(FLERR, words[2], false, lmp);
+  dmppr[itype] = utils::numeric(FLERR, words[3], false, lmp);
+  elepr[itype] = -fabs(utils::numeric(FLERR, words[4], false, lmp));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_dispersion(int nwords, char **words)
+void PairAmoeba::file_dispersion(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 4)
-    error->all(FLERR,"AMOEBA dispersion line is invalid");
-  if (strstr(words[0],"dispersion") != words[0])
-    error->all(FLERR,"AMOEBA dipersion line is invalid");
+  if (words[0] != "dispersion")
+    error->all(FLERR, "{} PRM file dispersion line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  int iclass = utils::inumeric(FLERR,words[1],true,lmp);
+  if (words.size() < 4)
+    error->all(FLERR, "{} PRM file dispersion line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
+
+  int iclass = utils::inumeric(FLERR, words[1], false, lmp);
   if (iclass < 1 || iclass > n_amclass)
-    error->all(FLERR,"AMOEBA dispersion class index is invalid");
+    error->all(FLERR, "{} PRM file dispersion class index {} on line {} is invalid: {}",
+               utils::uppercase(mystyle), iclass, nline, utils::join_words(words, " "));
 
-  csix[iclass] = utils::numeric(FLERR,words[2],true,lmp);
-  adisp[iclass] = utils::numeric(FLERR,words[3],true,lmp);
+  csix[iclass] = utils::numeric(FLERR, words[2], false, lmp);
+  adisp[iclass] = utils::numeric(FLERR, words[3], false, lmp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_ub(int nwords, char **words)
+void PairAmoeba::file_ub(const std::vector<std::string> &words, int nline)
 {
-  if (nwords != 6)
-    error->all(FLERR,"AMOEBA Urey-Bradley line is invalid");
-  if (strstr(words[0],"ureybrad") != words[0])
-    error->all(FLERR,"AMOEBA Urey-Bradley line is invalid");
+  if (words[0] != "ureybrad")
+    error->all(FLERR, "{} PRM file Urey-Bradley line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  if (words.size() != 6)
+    error->all(FLERR, "{} PRM file Urey-Bradley line {} has incorrect length ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_outplane(int nwords, char **words)
+void PairAmoeba::file_outplane(const std::vector<std::string> &words, int nline)
 {
-  if (nwords != 6)
-    error->all(FLERR,"AMOEBA out-of-plane bend line is invalid");
-  if (strstr(words[0],"opbend") != words[0])
-    error->all(FLERR,"AMOEBA out-of-plane bend line is invalid");
+  if (words[0] != "opbend")
+    error->all(FLERR, "{} PRM file out-of-plane bend line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  if (words.size() != 6)
+    error->all(FLERR, "{} PRM file out-of-plane bend line {} has incorrect length ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_torsion(int nwords, char **words)
+void PairAmoeba::file_torsion(const std::vector<std::string> &words, int nline)
 {
-  if (nwords != 14)
-    error->all(FLERR,"AMOEBA torsional line is invalid");
-  if (strstr(words[0],"torsion") != words[0])
-    error->all(FLERR,"AMOEBA torsional line is invalid");
+  if (words[0] != "torsion")
+    error->all(FLERR, "{} PRM file torsion line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  if (words.size() != 14)
+    error->all(FLERR, "{} PRM file torsion line {} has incorrect length ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_pitorsion(int nwords, char **words)
+void PairAmoeba::file_pitorsion(const std::vector<std::string> &words, int nline)
 {
-  if (nwords != 4)
-    error->all(FLERR,"AMOEBA pi-torsion line is invalid");
-  if (strstr(words[0],"pitors") != words[0])
-    error->all(FLERR,"AMOEBA pi-torsion line is invalid");
+  if (words[0] != "pitors")
+    error->all(FLERR, "{} PRM file pi-torsion line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  if (words.size() != 4)
+    error->all(FLERR, "{} PRM file pi-torsion line {} has incorrect length ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_multipole(int nwords, char **words)
+void PairAmoeba::file_multipole(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 12 || nwords > 15)
-    error->all(FLERR,"AMOEBA atomic multipole line is invalid");
-  if (strstr(words[0],"multipole") != words[0])
-    error->all(FLERR,"AMOEBA atomic multipole line is invalid");
+  if (words[0] != "multipole")
+    error->all(FLERR, "{} PRM file atomic multipole line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  int itype = utils::inumeric(FLERR,words[1],true,lmp);
+  if (words.size() < 12 || words.size() > 15)
+    error->all(FLERR, "{} PRM file atomic multipole line {} has incorrect length ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
+
+  int itype = utils::inumeric(FLERR, words[1], false, lmp);
   if (itype < 1 || itype > n_amtype)
-    error->all(FLERR,"AMOEBA atomic multipole type index is invalid");
+    error->all(FLERR, "{} PRM file atomic multipole type index {} on line {} is invalid: {}",
+               utils::uppercase(mystyle), itype, nline, utils::join_words(words, " "));
 
   int iframe = nmultiframe[itype];
-  if (iframe == MAX_FRAME_PER_TYPE)
-    error->all(FLERR,"AMOEBA MAX_FRAME_PER_TYPE is too small");
+  if (iframe >= MAX_FRAME_PER_TYPE)
+    error->all(FLERR, "{} MAX_FRAME_PER_TYPE is too small: {}", utils::uppercase(mystyle), iframe);
 
   int extra;
-  if (nwords == 12) {
+  if (words.size() == 12) {
     zpole[itype][iframe] = xpole[itype][iframe] = ypole[itype][iframe] = 0;
     extra = 2;
-  } else if (nwords == 13) {
-    zpole[itype][iframe] = utils::inumeric(FLERR,words[2],true,lmp);
+  } else if (words.size() == 13) {
+    zpole[itype][iframe] = utils::inumeric(FLERR, words[2], false, lmp);
     xpole[itype][iframe] = ypole[itype][iframe] = 0;
     extra = 3;
-  } else if (nwords == 14) {
-    zpole[itype][iframe] = utils::inumeric(FLERR,words[2],true,lmp);
-    xpole[itype][iframe] = utils::inumeric(FLERR,words[3],true,lmp);
+  } else if (words.size() == 14) {
+    zpole[itype][iframe] = utils::inumeric(FLERR, words[2], false, lmp);
+    xpole[itype][iframe] = utils::inumeric(FLERR, words[3], false, lmp);
     ypole[itype][iframe] = 0;
     extra = 4;
-  } else if (nwords == 15) {
-    zpole[itype][iframe] = utils::inumeric(FLERR,words[2],true,lmp);
-    xpole[itype][iframe] = utils::inumeric(FLERR,words[3],true,lmp);
-    ypole[itype][iframe] = utils::inumeric(FLERR,words[4],true,lmp);
+  } else if (words.size() == 15) {
+    zpole[itype][iframe] = utils::inumeric(FLERR, words[2], false, lmp);
+    xpole[itype][iframe] = utils::inumeric(FLERR, words[3], false, lmp);
+    ypole[itype][iframe] = utils::inumeric(FLERR, words[4], false, lmp);
     extra = 5;
   }
 
   for (int i = 0; i < 10; i++)
-    fpole[itype][iframe][i] = utils::numeric(FLERR,words[extra+i],true,lmp);
+    fpole[itype][iframe][i] = utils::numeric(FLERR, words[extra + i], false, lmp);
 
   // convert fpole to be 13 values by symmetrizing quadrupole 3x3 matrix
   // xx yx yy zx zy zz --> xx xy xz yz yy yz zx zy zz
@@ -1125,10 +1132,8 @@ void PairAmoeba::file_multipole(int nwords, char **words)
   // convert the dipole and quadrupole moments to Angstroms
   // quadrupole terms divided by 3 for use as traceless values
 
-  for (int i = 1; i < 4; i++)
-    fpole[itype][iframe][i] *= BOHR;
-  for (int i = 4; i < 13; i++)
-    fpole[itype][iframe][i] *= BOHR*BOHR / 3.0;
+  for (int i = 1; i < 4; i++) fpole[itype][iframe][i] *= BOHR;
+  for (int i = 4; i < 13; i++) fpole[itype][iframe][i] *= BOHR * BOHR / 3.0;
 
   // set mpaxis from xyz pole values
   // uses both positive and negative values
@@ -1157,71 +1162,80 @@ void PairAmoeba::file_multipole(int nwords, char **words)
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_charge_penetration(int nwords, char **words)
+void PairAmoeba::file_charge_penetration(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 4)
-    error->all(FLERR,"AMOEBA charge penetration line is invalid");
-  if (strstr(words[0],"chgpen") != words[0])
-    error->all(FLERR,"AMOEBA charge penetration line is invalid");
+  if (words[0] != "chgpen")
+    error->all(FLERR, "{} PRM file charge penetration line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  int iclass = utils::inumeric(FLERR,words[1],true,lmp);
+  if (words.size() < 4)
+    error->all(FLERR, "{} PRM file charge penetration line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
+
+  int iclass = utils::inumeric(FLERR, words[1], false, lmp);
   if (iclass < 1 || iclass > n_amclass)
-    error->all(FLERR,"AMOEBA charge penetration class index is invalid");
+    error->all(FLERR, "{} PRM file charge penetration class index {} on line {} is invalid: {}",
+               utils::uppercase(mystyle), iclass, nline, utils::join_words(words, " "));
 
-  pcore[iclass] = fabs(utils::numeric(FLERR,words[2],true,lmp));
-  palpha[iclass] = utils::numeric(FLERR,words[3],true,lmp);
+  pcore[iclass] = fabs(utils::numeric(FLERR, words[2], false, lmp));
+  palpha[iclass] = utils::numeric(FLERR, words[3], false, lmp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_dippolar(int nwords, char **words)
+void PairAmoeba::file_dippolar(const std::vector<std::string> &words, int nline)
 {
-  int nparams;
-  if (amoeba) nparams = 4;
-  else nparams = 3;
+  const std::size_t ndipparams = amoeba ? 4 : 3;
+  if (words[0] != "polarize")
+    error->all(FLERR, "{} PRM file dipole polariability line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  if (nwords < nparams)
-    error->all(FLERR,"AMOEBA dipole polarizability line is invalid");
-  if (strstr(words[0],"polarize") != words[0])
-    error->all(FLERR,"AMOEBA dipole polarizability line is invalid");
+  if (words.size() < ndipparams)
+    error->all(FLERR, "{} PRM file dipole polarizability line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
 
-  int itype = utils::inumeric(FLERR,words[1],true,lmp);
+  int itype = utils::inumeric(FLERR, words[1], false, lmp);
   if (itype < 1 || itype > n_amtype)
-    error->all(FLERR,"AMOEBA dipole polarizabilty type index is invalid");
+    error->all(FLERR, "{} PRM file dipole polarizability type index {} on line {} is invalid: {}",
+               utils::uppercase(mystyle), itype, nline, utils::join_words(words, " "));
 
-  polarity[itype] = utils::numeric(FLERR,words[2],true,lmp);
-  pdamp[itype] = pow(polarity[itype],1.0/6.0);
-  if (amoeba) thole[itype] = utils::numeric(FLERR,words[3],true,lmp);
+  polarity[itype] = utils::numeric(FLERR, words[2], false, lmp);
+  pdamp[itype] = pow(polarity[itype], 1.0 / 6.0);
+  if (amoeba) thole[itype] = utils::numeric(FLERR, words[3], false, lmp);
 
   // eventually AMOEBA+ files will set dirdamp
 
   dirdamp[itype] = 0.0;
 
-  int ngroup = nwords - nparams;
+  int ngroup = words.size() - ndipparams;
   if (ngroup > MAX_TYPE_PER_GROUP)
-    error->all(FLERR,"AMOEBA MAX_TYPE_PER_GROUP is too small");
+    error->all(FLERR, "{} MAX_TYPE_PER_GROUP is too small: {} vs {}", utils::uppercase(mystyle),
+               MAX_TYPE_PER_GROUP, ngroup);
 
   npolgroup[itype] = ngroup;
   for (int igroup = 0; igroup < ngroup; igroup++)
-    polgroup[itype][igroup] =
-      utils::inumeric(FLERR,words[nparams+igroup],true,lmp);
+    polgroup[itype][igroup] = utils::inumeric(FLERR, words[ndipparams + igroup], false, lmp);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoeba::file_charge_transfer(int nwords, char **words)
+void PairAmoeba::file_charge_transfer(const std::vector<std::string> &words, int nline)
 {
-  if (nwords < 4)
-    error->all(FLERR,"AMOEBA charge transfer line is invalid");
-  if (strstr(words[0],"chgtrn") != words[0])
-    error->all(FLERR,"AMOEBA charge transfer line is invalid");
+  if (words[0] != "chgtrn")
+    error->all(FLERR, "{} PRM file charge transfer line {} has invalid format: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
-  int iclass = utils::inumeric(FLERR,words[1],true,lmp);
+  if (words.size() < 4)
+    error->all(FLERR, "{} PRM file charge transfer line {} has too few values ({}): {}",
+               utils::uppercase(mystyle), nline, words.size(), utils::join_words(words, " "));
+
+  int iclass = utils::inumeric(FLERR, words[1], false, lmp);
   if (iclass < 1 || iclass > n_amclass)
-    error->all(FLERR,"AMOEBA charge transfer class index is invalid");
+    error->all(FLERR, "{} PRM file charge transfer class index {} on line {} is invalid: {}",
+               utils::uppercase(mystyle), iclass, nline, utils::join_words(words, " "));
 
-  chgct[iclass] = utils::numeric(FLERR,words[2],true,lmp);
-  dmpct[iclass] = utils::numeric(FLERR,words[3],true,lmp);
+  chgct[iclass] = utils::numeric(FLERR, words[2], false, lmp);
+  dmpct[iclass] = utils::numeric(FLERR, words[3], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1236,48 +1250,48 @@ void PairAmoeba::initialize_type_class()
 
   // per type data
 
-  amtype_defined = NULL;
-  amtype2class = NULL;
-  atomic_num = NULL;
-  valence = NULL;
-  am_mass = NULL;
-  am_q = NULL;
-  am_mu = NULL;
-  npolgroup = NULL;
-  polgroup = NULL;
-  polarity = NULL;
-  pdamp = NULL;
-  thole = NULL;
-  dirdamp = NULL;
-  sizpr = NULL;
-  dmppr = NULL;
-  elepr = NULL;
+  amtype_defined = nullptr;
+  amtype2class = nullptr;
+  atomic_num = nullptr;
+  valence = nullptr;
+  am_mass = nullptr;
+  am_q = nullptr;
+  am_mu = nullptr;
+  npolgroup = nullptr;
+  polgroup = nullptr;
+  polarity = nullptr;
+  pdamp = nullptr;
+  thole = nullptr;
+  dirdamp = nullptr;
+  sizpr = nullptr;
+  dmppr = nullptr;
+  elepr = nullptr;
 
-  nmultiframe = NULL;
-  mpaxis = NULL;
-  xpole = NULL;
-  ypole = NULL;
-  zpole = NULL;
-  fpole = NULL;
+  nmultiframe = nullptr;
+  mpaxis = nullptr;
+  xpole = nullptr;
+  ypole = nullptr;
+  zpole = nullptr;
+  fpole = nullptr;
 
   // per class data
 
-  amclass_defined = NULL;
-  vdwl_eps = NULL;
-  vdwl_sigma = NULL;
-  kred = NULL;
-  csix = NULL;
-  adisp = NULL;
-  chgct = NULL;
-  dmpct = NULL;
-  pcore = NULL;
-  palpha = NULL;
+  amclass_defined = nullptr;
+  vdwl_eps = nullptr;
+  vdwl_sigma = nullptr;
+  kred = nullptr;
+  csix = nullptr;
+  adisp = nullptr;
+  chgct = nullptr;
+  dmpct = nullptr;
+  pcore = nullptr;
+  palpha = nullptr;
 
   // other
 
-  vdwl_class_pair = NULL;
-  vdwl_sigma_pair = NULL;
-  vdwl_eps_pair = NULL;
+  vdwl_class_pair = nullptr;
+  vdwl_sigma_pair = nullptr;
+  vdwl_eps_pair = nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -55,11 +55,11 @@ enum{NONE,RLINEAR,RSQ};
 #define isOneFluid(_site) ( (_site) == oneFluidParameter )
 
 static const char cite_pair_multi_lucy_rx[] =
-  "pair_style multi/lucy/rx command:\n\n"
+  "pair_style multi/lucy/rx command: doi:10.1063/1.4942520\n\n"
   "@Article{Moore16,\n"
-  " author = {J.D. Moore, B.C. Barnes, S. Izvekov, M. Lisal, M.S. Sellers, D.E. Taylor and J. K. Brennan},\n"
-  " title = {A coarse-grain force field for RDX:  Density dependent and energy conserving},\n"
-  " journal = {J. Chem. Phys.},\n"
+  " author = {J. D. Moore and B. C. Barnes and S. Izvekov and M. Lisal and M. S. Sellers and D. E. Taylor and J. K. Brennan},\n"
+  " title = {A Coarse-Grain Force Field for {RDX}:  {D}ensity Dependent and Energy Conserving},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2016,\n"
   " volume =  144\n"
   " pages =   {104501}\n"

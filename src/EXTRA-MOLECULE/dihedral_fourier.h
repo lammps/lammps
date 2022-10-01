@@ -30,7 +30,6 @@ class DihedralFourier : public Dihedral {
   ~DihedralFourier() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
-  void init_style() override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
@@ -40,7 +39,6 @@ class DihedralFourier : public Dihedral {
   int **multiplicity;
   int *nterms;
   int implicit, weightflag;
-  int disable;
 
   void allocate();
 };

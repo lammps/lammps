@@ -55,8 +55,8 @@ class PairSWAngleTable : public PairSW {
   ParamTable *table_params;    // tabulated parameter set for an I-J-K interaction
 
   void read_file(char *) override;
-  void threebody_table(Param *, Param *, ParamTable *, double, double, double *, double *,
-                       double *, double *, int, double &);
+  void threebody_table(Param *, Param *, ParamTable *, double, double, double *, double *, double *,
+                       double *, int, double &);
 
   void read_table(Table *, char *, char *);
   void spline_table(Table *);
@@ -69,6 +69,7 @@ class PairSWAngleTable : public PairSW {
   void spline(double *, double *, int, double, double, double *);
   double splint(double *, double *, double *, int, double);
   void uf_lookup(ParamTable *, double, double &, double &);
+  void settings(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

@@ -19,6 +19,7 @@
 
 #include "mliap_model_python.h"
 
+#include "comm.h"
 #include "error.h"
 #include "lmppython.h"
 #include "mliap_data.h"
@@ -104,7 +105,7 @@ void MLIAPModelPython::read_coeffs(char *fname)
   if (loaded) {
     this->connect_param_counts();
   } else {
-    utils::logmesg(lmp, "Loading python model deferred.\n");
+    if (comm->me == 0) utils::logmesg(lmp, "Loading python model deferred.\n");
   }
 }
 

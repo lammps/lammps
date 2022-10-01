@@ -43,7 +43,7 @@ BaseAmoebaT::~BaseAmoeba() {
   k_special15.clear();
   k_short_nbor.clear();
   
-  #if !defined(USE_OPENCL) && !defined(USE_HIP)
+  #if 0 // !defined(USE_OPENCL) && !defined(USE_HIP)
   if (fft_plan_created) cufftDestroy(plan);
   #endif
 
@@ -844,7 +844,7 @@ template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int mode)
 {
   // TODO: setting up FFT plan based on the backend (cuFFT or hipFFT)
-  #if !defined(USE_OPENCL) && !defined(USE_HIP)    
+  #if 0 // !defined(USE_OPENCL) && !defined(USE_HIP)    
   if (fft_plan_created == false) {
     int m = numel/2;
     cufftPlan1d(&plan, m, CUFFT_Z2Z, 1);

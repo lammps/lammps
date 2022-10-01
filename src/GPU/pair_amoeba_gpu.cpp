@@ -23,7 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "math_const.h"

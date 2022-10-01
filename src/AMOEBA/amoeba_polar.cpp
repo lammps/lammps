@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -12,21 +13,25 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include "amoeba_convolution.h"
 
+#include "amoeba_convolution.h"
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "neigh_list.h"
+#include "domain.h"
 #include "fft3d_wrap.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
+#include "neigh_list.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+using MathSpecial::square;
+using MathSpecial::cube;
 
 enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
 enum{MUTUAL,OPT,TCG,DIRECT};
@@ -88,7 +93,7 @@ void PairAmoeba::polar()
 
   // compute the Ewald self-energy torque and virial terms
 
-  term = (4.0/3.0) * felec * pow(aewald,3.0) / MY_PIS;
+  term = (4.0/3.0) * felec * cube(aewald) / MY_PIS;
 
   for (i = 0; i < nlocal; i++) {
     dix = rpole[i][1];
@@ -118,7 +123,7 @@ void PairAmoeba::polar()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-    
+
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
@@ -129,7 +134,7 @@ void PairAmoeba::polar()
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-    
+
     virpolar[0] -= vxx;
     virpolar[1] -= vyy;
     virpolar[2] -= vzz;
@@ -465,7 +470,7 @@ void PairAmoeba::polar_real()
         damp = pdi * pdamp[jtype];
         if (damp != 0.0) {
           pgamma = MIN(pti,thole[jtype]);
-          damp = pgamma * pow(r/damp,3.0);
+          damp = pgamma * cube(r/damp);
           if (damp < 50.0) {
             expdamp = exp(-damp);
             sc3 = 1.0 - expdamp;
@@ -510,6 +515,18 @@ void PairAmoeba::polar_real()
             urc3[k] = rc3[k] * factor_uscale;
             urc5[k] = rc5[k] * factor_uscale;
           }
+        } else {
+          // avoid uninitialized data access when damp == 0.0
+          psc3 = psc5 = psc7 = dsc3 = dsc5 = dsc7 = usc3 = usc5 = 0.0;
+          psr3 = psr5 = psr7 = dsr3 = dsr5 = dsr7 = usr5 = 0.0;
+          prc3[0] = prc3[1] = prc3[2] = 0.0;
+          drc3[0] = drc3[1] = drc3[2] = 0.0;
+          prc5[0] = prc5[1] = prc5[2] = 0.0;
+          drc5[0] = drc5[1] = drc5[2] = 0.0;
+          prc7[0] = prc7[1] = prc7[2] = 0.0;
+          drc7[0] = drc7[1] = drc7[2] = 0.0;
+          urc3[0] = urc3[1] = urc3[2] = 0.0;
+          urc5[0] = urc5[1] = urc5[2] = 0.0;
         }
 
       // apply charge penetration damping to scale factors
@@ -1271,7 +1288,7 @@ void PairAmoeba::polar_kspace()
   int nlocal = atom->nlocal;
 
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
-  pterm = pow((MY_PI/aewald),2.0);
+  pterm = square(MY_PI/aewald);
   volterm = MY_PI * volbox;
 
   // initialize variables required for the scalar summation

@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -12,11 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "neigh_list.h"
 #include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -501,7 +504,7 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
     dmpk24 = dmpk23 * dmpk2;
     dmpk25 = dmpk24 * dmpk2;
     term = dmpi22 - dmpk22;
-    pre = 8192.0 * dmpi23 * dmpk23 / pow(term,4.0);
+    pre = 8192.0 * dmpi23 * dmpk23 / (term*term*term*term);
     tmp = 4.0 * dmpi2 * dmpk2 / term;
     s = (dampi-tmp)*expk + (dampk+tmp)*expi;
 

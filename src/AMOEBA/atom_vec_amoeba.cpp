@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_amoeba.h"
+
 #include "atom.h"
 
 using namespace LAMMPS_NS;
@@ -62,7 +63,7 @@ AtomVecAmoeba::AtomVecAmoeba(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
-  bond_negative = angle_negative = dihedral_negative = improper_negative = NULL;
+  bond_negative = angle_negative = dihedral_negative = improper_negative = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

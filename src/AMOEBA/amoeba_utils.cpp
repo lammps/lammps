@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -12,13 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "fix_store.h"
+#include "domain.h"
 #include "error.h"
+#include "fix_store_peratom.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -70,8 +73,8 @@ void PairAmoeba::kmpole()
     flag = 0;
 
     // create a sorted version of bond/angle neighs from special[][]
-    // NOTE: this is to try and do it identically to Tinker 
-    //   b/c I think in Tinker, atom order matters as to which case is seen fist
+    // NOTE: this is to try and do it identically to Tinker
+    //   b/c I think in Tinker, which case is seen first can depend on atom order
 
     for (j = 0; j < nspecial[i][0]; j++)
       bondneigh[j] = special[i][j];
@@ -81,9 +84,9 @@ void PairAmoeba::kmpole()
         if (bondneigh[j] < smallest) {
           smallest = bondneigh[j];
           k = j;
+          bondneigh[k] = bondneigh[m];
+          bondneigh[m] = smallest;
         }
-        bondneigh[k] = bondneigh[m];
-        bondneigh[m] = smallest;
       }
     }
 
@@ -253,7 +256,7 @@ void PairAmoeba::kmpole()
       ztype = zpole[itype][iframe];
       if (ztype == 0 && !flag) {
         flag = 1;
-        xyzaxis[i][2] = xyzaxis[i][0] = xyzaxis[i][2] = 0.0;
+        xyzaxis[i][2] = xyzaxis[i][1] = xyzaxis[i][0] = 0.0;
         polaxe[i] = mpaxis[itype][iframe];
         for (j = 0; j < 13; j++)
           pole[i][j] = fpole[itype][iframe][j];
@@ -271,11 +274,8 @@ void PairAmoeba::kmpole()
 
   int nmissing_all;
   MPI_Allreduce(&nmissing,&nmissing_all,1,MPI_INT,MPI_SUM,world);
-  if (nmissing_all) {
-    char str[128];
-    sprintf(str,"Pair amoeba multipole settings missing %d\n",nmissing_all);
-    error->all(FLERR,str);
-  }
+  if (nmissing_all)
+    error->all(FLERR, "Pair amoeba: {} multipole settings missing\n", nmissing_all);
 }
 
 /* ----------------------------------------------------------------------
@@ -759,11 +759,8 @@ void PairAmoeba::find_multipole_neighbors()
 
   int nmissing_all;
   MPI_Allreduce(&nmissing,&nmissing_all,1,MPI_INT,MPI_SUM,world);
-  if (nmissing_all) {
-    char str[128];
-    sprintf(str,"Pair amoeba multipole neighbors missing %d\n",nmissing_all);
-    error->all(FLERR,str);
-  }
+  if (nmissing_all)
+    error->all(FLERR, "Pair amoeba: {} multipole neighbors missing\n", nmissing_all);
 }
 
 /* ----------------------------------------------------------------------

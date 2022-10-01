@@ -28,18 +28,16 @@ DELTA = 0.001     # delta on LAMMPS shrink-wrap box size, in Angstroms
 
 # print an error message and exit
 
-def error(txt=""):
-  if not txt:
-    print("Syntax: tinker2lmp.py -switch args ...")
-    print("  -xyz file")
-    print("  -amoeba file")
-    print("  -hippo file")
-    print("  -data file")
-    print("  -bitorsion file")
-    print("  -nopbc")
-    print("  -pbc xhi yhi zhi")
-  else: print("ERROR:",txt)
-  #sys.exit()
+def error(txt="""
+Syntax: tinker2lmp.py -switch args ...
+  -xyz file
+  -amoeba file
+  -hippo file
+  -data file
+  -bitorsion file
+  -nopbc
+  -pbc xhi yhi zhi"""):
+  sys.exit("ERROR: " + txt)
 
 # read and store values from a Tinker xyz file
 
@@ -55,7 +53,7 @@ class XYZfile(object):
     y = []
     z = []
     bonds = []
-    
+
     for line in lines[1:natoms+1]:
       words = line.split()
       id.append(int(words[0]))
@@ -89,19 +87,19 @@ class XYZfile(object):
     xhalfsq = 0.25 * boxhi[0]*boxhi[0]
     yhalfsq = 0.25 * boxhi[1]*boxhi[1]
     zhalfsq = 0.25 * boxhi[2]*boxhi[2]
-  
+
     x = self.x
     y = self.y
     z = self.z
     bonds = self.bonds
     imageflags = []
-    
+
     for i in range(self.natoms):
       xi = float(x[i])
       yi = float(y[i])
       zi = float(z[i])
       oneflags = []
-      
+
       for j in bonds[i]:
         xj = float(x[j-1])
         yj = float(y[j-1])
@@ -120,7 +118,7 @@ class XYZfile(object):
         elif zi < zj: zimage = -1
         elif zi > zj: zimage = 1
         oneflags.append((ximage,yimage,zimage))
-        
+
       imageflags.append(oneflags)
 
     self.imageflags = imageflags
@@ -128,7 +126,7 @@ class XYZfile(object):
   # replicate system by Nx and Ny and Nz in each dim
   # rebuild data structs (except imageflags) in this class
   # also alter global boxhi
-  
+
   def replicate(self,nx,ny,nz):
 
     natoms = self.natoms
@@ -140,11 +138,11 @@ class XYZfile(object):
     z = self.z
     bonds = self.bonds
     imageflags = self.imageflags
-    
+
     xbox = boxhi[0]
     ybox = boxhi[1]
     zbox = boxhi[2]
-    
+
     idnew = []
     labelnew = []
     typenew = []
@@ -168,23 +166,23 @@ class XYZfile(object):
 
             oneflags = imageflags[m]
             onebonds = []
-            
+
             for n,mbond in enumerate(bonds[m]):
 
               # ijk new = which replicated box the mbond atom is in
-              
+
               if oneflags[n][0] == 0: inew = i
               elif oneflags[n][0] == -1: inew = i - 1
               elif oneflags[n][0] == 1: inew = i + 1
               if inew < 0: inew = nx-1
               if inew == nx: inew = 0
-                  
+
               if oneflags[n][1] == 0: jnew = j
               elif oneflags[n][1] == -1: jnew = j - 1
               elif oneflags[n][1] == 1: jnew = j + 1
               if jnew < 0: jnew = ny-1
               if jnew == ny: jnew = 0
-                  
+
               if oneflags[n][2] == 0: knew = k
               elif oneflags[n][2] == -1: knew = k - 1
               elif oneflags[n][2] == 1: knew = k + 1
@@ -193,12 +191,12 @@ class XYZfile(object):
 
               # bondnew = replicated atom ID of bond partner
               # based on replication box (inew,jnew,knew) that owns it
-              
+
               bondnew = mbond + natoms*(knew*ny*nx + jnew*nx + inew)
               onebonds.append(bondnew)
-              
+
             bondsnew.append(onebonds)
-            
+
     self.natoms = natoms * nx*ny*nz
     self.id = idnew
     self.label = labelnew
@@ -209,7 +207,7 @@ class XYZfile(object):
     self.bonds = bondsnew
 
   # write out new xyzfile for replicated system
-  
+
   def output(self,outfile):
     fp = open(outfile,'w')
     words = self.header.split()
@@ -224,32 +222,36 @@ class XYZfile(object):
     bonds = self.bonds
 
     # NOTE: worry about formatting of line
-    
+
     for i in range(self.natoms):
       print(i+1,label[i],x[i],y[i],z[i],type[i], end=' ', file=fp)
       for j in bonds[i]: print(j, end=' ', file=fp)
       print(file=fp)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> develop
     fp.close()
-    
+
   # triplet of atoms in an angle = atom 1,2,3
   # atom2 is center atom
   # nbonds = number of atoms which atom2 is bonded to
   # hcount = # of H atoms which atom2 is bonded to, excluding atom1 and atom3
-    
+
   def angle_hbond_count(self,atom1,atom2,atom3,lmptype,lmpmass):
     bondlist = self.bonds[atom2-1]
     nbonds = len(bondlist)
-    
+
     hcount = 0
     for bondID in bondlist:
       if atom1 == bondID: continue
       if atom3 == bondID: continue
       massone = lmpmass[lmptype[bondID-1]-1]
       if int(massone+0.5) == 1: hcount += 1
-      
+
     return nbonds,hcount
-      
+
 # read and store select values from a Tinker force field PRM file
 # ntypes = # of Tinker types
 # per-type values: class and mass
@@ -276,7 +278,7 @@ class PRMfile(object):
     self.ntypes = len(self.masses)
 
   # find a section in the PRM file
-  
+
   def find_section(self,txt):
     txt = "##  %s  ##" % txt
     for iline,line in enumerate(self.lines):
@@ -284,7 +286,7 @@ class PRMfile(object):
     return -1
 
   # scalar params
-  
+
   def force_field_definition(self):
     iline = self.find_section("Force Field Definition")
     iline += 3
@@ -301,7 +303,7 @@ class PRMfile(object):
       iline += 1
 
   # atom classes and masses
-  
+
   def peratom(self):
     classes = []
     masses = []
@@ -320,12 +322,12 @@ class PRMfile(object):
     return classes,masses
 
   # replicate per-atom data: classes and masses
-  
+
   def replicate_peratom(self,nx,ny,nz):
     classes = self.classes
     masses = self.masses
     natoms = len(self.masses)
-    
+
     classes_new = []
     masses_new = []
 
@@ -338,9 +340,9 @@ class PRMfile(object):
 
     self.classes = classes_new
     self.masses = masses_new
-    
+
   # polarization groups
-  
+
   def polarize(self):
     polgroup = []
     iline = self.find_section("Dipole Polarizability Parameters")
@@ -362,7 +364,7 @@ class PRMfile(object):
     return polgroup
 
   # convert PRMfile params to LAMMPS bond_style class2 params
-  
+
   def bonds(self):
     params = []
     iline = self.find_section("Bond Stretching Parameters")
@@ -384,11 +386,11 @@ class PRMfile(object):
           params.append((class1,class2,lmp1,lmp2,lmp3,lmp4))
       iline += 1
     return params
-    
+
   # convert PRMfile params to LAMMPS angle_style class2/p6 params
   # line may have prefactor plus 1,2,3 angle0 params
   # save prefactor/angle0 pairs as option 1,2,3
-  
+
   def angles(self):
     r2d = 180.0 / math.pi
     ubflag = 0
@@ -405,7 +407,7 @@ class PRMfile(object):
         if words[0] == "angle" or words[0] == "anglep":
           if words[0] == "angle": pflag = 0
           if words[0] == "anglep": pflag = 1
-          
+
           class1 = int(words[1])
           class2 = int(words[2])
           class3 = int(words[3])
@@ -421,14 +423,14 @@ class PRMfile(object):
           lmp4 = self.angle_quartic * value1 * r2d*r2d
           lmp5 = self.angle_pentic * value1 * r2d*r2d*r2d
           lmp6 = self.angle_sextic * value1 * r2d*r2d*r2d*r2d
-          
+
           option1 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
-          
+
           if len(words) >= 7:
             value3 = float(words[6])
             lmp1 = value3
             option2 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
-            
+
           if len(words) == 8:
             value4 = float(words[7])
             lmp1 = value4
@@ -440,7 +442,7 @@ class PRMfile(object):
             params.append((class1,class2,class3,[option1,option2]))
           else:
             params.append((class1,class2,class3,[option1,option2,option3]))
-          
+
       iline += 1
     return params
 
@@ -448,7 +450,7 @@ class PRMfile(object):
   # lmp3,lmp4 = equilibrium bond lengths for 2 bonds in angle
   #   need to find these values in self.bondparams
   #   put them in a dictionary for efficient searching
-  
+
   def bondangles(self):
     params = []
     iline = self.find_section("Stretch-Bend Parameters")
@@ -471,15 +473,15 @@ class PRMfile(object):
           value2 = float(words[5])
           lmp1 = value1
           lmp2 = value2
-          
+
           if (class1,class2) in bdict:
             lmp3 = bdict[(class1,class2)]
           elif (class2,class1) in bdict:
             lmp3 = bdict[(class2,class1)]
           else:
-            error("1st bond in BondAngle term not found: %d %d %d" % \
-                  (class1,class2,class3))
             # NOTE: just for debugging
+            #error("1st bond in BondAngle term not found: %d %d %d" % \
+            #      (class1,class2,class3))
             lmp3 = 0.0
 
           if (class2,class3) in bdict:
@@ -487,17 +489,17 @@ class PRMfile(object):
           elif (class3,class2) in bdict:
             lmp4 = bdict[(class3,class2)]
           else:
-            error("2nd bond in BondAngle term not found: %d %d %d" % \
-                  (class1,class2,class3))
             # NOTE: just for debugging
+            #error("2nd bond in BondAngle term not found: %d %d %d" % \
+            #      (class1,class2,class3))
             lmp4 = 0.0
-            
+
           params.append((class1,class2,class3,lmp1,lmp2,lmp3,lmp4))
       iline += 1
     return params
 
   # dihedral interactions
-  
+
   def torsions(self):
     params = []
     iline = self.find_section("Torsional Parameters")
@@ -512,11 +514,11 @@ class PRMfile(object):
           class2 = int(words[2])
           class3 = int(words[3])
           class4 = int(words[4])
-          
+
           if len(words) <= 5:
             error("torsion has no params: %d %d %d %d" % \
                   (class1,class2,class3,class4))
-          if (len(words)-5) % 3: 
+          if (len(words)-5) % 3:
             error("torsion does not have triplets of params: %d %d %d %d" % \
                   (class1,class2,class3,class4))
 
@@ -531,13 +533,13 @@ class PRMfile(object):
             lmp2 = value3
             lmp3 = value2
             oneparams += [lmp1,lmp2,lmp3]
-            
+
           params.append(oneparams)
       iline += 1
     return params
 
   # improper or out-of-plane bend interactions
-  
+
   def opbend(self):
     params = []
     iline = self.find_section("Out-of-Plane Bend Parameters")
@@ -557,10 +559,10 @@ class PRMfile(object):
           params.append((class1,class2,class3,class4,lmp1))
       iline += 1
     return params
-    
+
   # convert PRMfile params to LAMMPS angle_style amoeba UB params
   # coeffs for K2,K3 = 0.0 since Urey-Bradley is simple harmonic
-  
+
   def ureybonds(self):
     params = []
     iline = self.find_section("Urey-Bradley Parameters")
@@ -579,7 +581,7 @@ class PRMfile(object):
           value2 = float(words[5])
           lmp1 = value1
           lmp2 = value2
-            
+
           params.append((class1,class2,class3,lmp1,lmp2))
       iline += 1
     return params
@@ -601,7 +603,7 @@ class PRMfile(object):
           class2 = int(words[2])
           value1 = float(words[3])
           lmp1 = value1
-            
+
           params.append((class1,class2,lmp1))
       iline += 1
     return params
@@ -646,7 +648,7 @@ class PRMfile(object):
 # ----------------------------------------
 # main program
 # ----------------------------------------
-    
+
 args = sys.argv[1:]
 narg = len(args)
 
@@ -714,7 +716,7 @@ if not datafile: error("datafile not specified")
 if not pbcflag and repflag: error("cannot replicate non-periodic system")
 if repflag and (nxrep <= 0 or nyrep <= 0 or nzrep <= 0):
   error("replication factors <= 0 not allowed")
-    
+
 # read Tinker xyz and prm files
 
 xyz = XYZfile(xyzfile)
@@ -731,7 +733,7 @@ if repflag:
   boxhi[0] *= nxrep
   boxhi[1] *= nyrep
   boxhi[2] *= nzrep
-  
+
 # create LAMMPS box bounds based on pbcflag
 
 natoms = xyz.natoms
@@ -750,7 +752,7 @@ else:
     zlo = min(zlo,float(z[i]))
     xhi = max(xhi,float(x[i]))
     yhi = max(yhi,float(y[i]))
-    zhi = max(zhi,float(z[i]))  
+    zhi = max(zhi,float(z[i]))
   boxlo = [xlo-DELTA,ylo-DELTA,zlo-DELTA]
   boxhi = [xhi+DELTA,yhi+DELTA,zhi+DELTA]
 
@@ -941,7 +943,7 @@ for atom1 in id:
     if atom1 < atom2:
       if len(bonds[atom1-1]) != 3: continue
       if len(bonds[atom2-1]) != 3: continue
-      
+
       if bonds[atom1-1][0] == atom2:
         atom3 = bonds[atom1-1][1]
         atom4 = bonds[atom1-1][2]
@@ -1006,7 +1008,7 @@ classes = prm.classes
 bdict = {}
 for m,params in enumerate(prm.bondparams):
   bdict[(params[0],params[1])] = (m,params)
-         
+
 flags = len(prm.bondparams)*[0]
 btype = []
 bparams = []
@@ -1016,17 +1018,17 @@ for atom1,atom2 in blist:
   type2 = type[atom2-1]
   c1 = classes[type1-1]
   c2 = classes[type2-1]
-  
+
   if (c1,c2) in bdict: m,params = bdict[(c1,c2)]
   elif (c2,c1) in bdict: m,params = bdict[(c2,c1)]
   else: error("bond not found: %d %d: %d %d" % (atom1,atom2,c1,c2))
-    
+
   if not flags[m]:
     v1,v2,v3,v4 = params[2:]
     bparams.append((v1,v2,v3,v4))
     flags[m] = len(bparams)
   btype.append(flags[m])
-  
+
 # generate atype = LAMMPS type of each angle
 # generate aparams = LAMMPS params for each angle type
 # flags[i] = which LAMMPS angle type (1-N) the Tinker FF file angle I is
@@ -1047,7 +1049,7 @@ for m,params in enumerate(prm.angleparams):
   adict[(params[0],params[1],params[2])] = (noptions,params)
   n = len(params[3])
   noptions += n
-  
+
 flags = noptions*[0]
 atype = []
 aparams = []
@@ -1072,11 +1074,11 @@ for i,one in enumerate(alist):
     #   from Bond Stretching section of PRM file
     # since in general r1 != r2, the LAMMPS AngleAmoeba class requires
     #   the 3 atoms in the angle be in the order that matches r1 and r2
-    
+
     if c1 != c3 and (c3,c2,c1) in adict:
       m,params = adict[(c3,c2,c1)]
       alist[i] = (atom3,atom2,atom1)
-      
+
     # params is a sequence of 1 or 2 or 3 options
     # which = which of 1,2,3 options this atom triplet matches
     # for which = 2 or 3, increment m to index correct position in flags
@@ -1093,9 +1095,10 @@ for i,one in enumerate(alist):
 
     if len(params[3]) == 1:
       which = 1
-      
+
     elif len(params[3]) == 2:
       nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
+<<<<<<< HEAD
       
       if nbonds != 3: 
         print("Center angle atom has wrong bond count")
@@ -1104,12 +1107,24 @@ for i,one in enumerate(alist):
         print("  Tinker FF file param options:",len(params[3]))
         print("  Nbonds and hydrogen count:",nbonds,hcount)
         #sys.exit()      NOTE: allow this for now
+=======
+
+      #if nbonds != 3:
+        #print("Center angle atom has wrong bond count")
+        #print("  angle atom IDs:",atom1,atom2,atom3)
+        #print("  angle atom classes:",c1,c2,c3)
+        #print("  Tinker FF file param options:",len(params[3]))
+        #print("  Nbonds and hydrogen count:",nbonds,hcount)
+        # NOTE: allow this for now
+        #sys.exit()
+>>>>>>> develop
 
       if hcount == 0: which = 1
       elif hcount == 1:
         which = 2
         m += 1
 
+<<<<<<< HEAD
       print("3-bond angle")
       print("  angle atom IDs:",atom1,atom2,atom3)
       print("  angle atom classes:",c1,c2,c3)
@@ -1128,6 +1143,27 @@ for i,one in enumerate(alist):
         print("  Nbonds and hydrogen count:",nbonds,hcount)
         #sys.exit()     NOTE: allow this for now
         
+=======
+      #print("3-bond angle")
+      #print("  angle atom IDs:",atom1,atom2,atom3)
+      #print("  angle atom classes:",c1,c2,c3)
+      #print("  Tinker FF file param options:",len(params[3]))
+      #print("  Nbonds and hydrogen count:",nbonds,hcount)
+      #print("  which:",which,m)
+
+    elif len(params[3]) == 3:
+      nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
+
+      #if nbonds != 4:
+        #print("Center angle atom has wrong bond count")
+        #print("  angle atom IDs:",atom1,atom2,atom3)
+        #print("  angle atom classes:",c1,c2,c3)
+        #print("  Tinker FF file param options:",len(params[3]))
+        #print("  Nbonds and hydrogen count:",nbonds,hcount)
+        # NOTE: allow this for now
+        #sys.exit()
+
+>>>>>>> develop
       if hcount == 0: which = 1
       elif hcount == 1:
         which = 2
@@ -1138,7 +1174,7 @@ for i,one in enumerate(alist):
 
   else:
     error("angle not found: %d %d %d: %d %d %d" % (atom1,atom2,atom3,c1,c2,c3))
-    
+
   if not flags[m]:
     pflag,ubflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
     aparams.append((pflag,ubflag,v1,v2,v3,v4,v5,v6))
@@ -1157,7 +1193,7 @@ for v1,v2,v3,v4,v5,v6,v7 in prm.bondangleparams:
 baparams = []
 
 for itype in range(len(aparams)):
-  iangle = atype.index(itype+1) 
+  iangle = atype.index(itype+1)
   atom1,atom2,atom3 = alist[iangle]
   type1 = type[atom1-1]
   type2 = type[atom2-1]
@@ -1171,9 +1207,14 @@ for itype in range(len(aparams)):
   elif (c3,c2,c1) in badict:
     n1,n2,r1,r2 = badict[(c3,c2,c1)]
   else:
+<<<<<<< HEAD
     print("Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3))
+=======
+    # NOTE: just for debugging
+    #print("Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3))
+>>>>>>> develop
     n1,n2,r1,r2 = 4*[0.0]
-    
+
   baparams.append((n1,n2,r1,r2))
 
 # augment the aparams with Urey_Bradley terms from ureyparams
@@ -1188,7 +1229,7 @@ for v1,v2,v3,v4,v5 in prm.ureyparams:
 ubparams = []
 
 for itype in range(len(aparams)):
-  iangle = atype.index(itype+1) 
+  iangle = atype.index(itype+1)
   atom1,atom2,atom3 = alist[iangle]
   type1 = type[atom1-1]
   type2 = type[atom2-1]
@@ -1198,7 +1239,7 @@ for itype in range(len(aparams)):
   c3 = classes[type3-1]
 
   # if UB settings exist for this angle type, set ubflag in aparams to 1
-  
+
   if (c1,c2,c3) in ubdict:
     r1,r2 = ubdict[(c1,c2,c3)]
     pflag,ubflag,v1,v2,v3,v4,v5,v6 = aparams[itype]
@@ -1211,7 +1252,7 @@ for itype in range(len(aparams)):
     aparams[itype] = (pflag,ubflag,v1,v2,v3,v4,v5,v6)
   else:
     r1,r2 = 2*[0.0]
-    
+
   ubparams.append((r1,r2))
 
 # generate dtype = LAMMPS type of each dihedral
@@ -1243,7 +1284,7 @@ for atom1,atom2,atom3,atom4 in dlist:
   c2 = classes[type2-1]
   c3 = classes[type3-1]
   c4 = classes[type4-1]
-  
+
   if (c1,c2,c3,c4) in ddict: m,params = ddict[(c1,c2,c3,c4)]
   elif (c4,c3,c2,c1) in ddict: m,params = ddict[(c4,c3,c2,c1)]
   else:
@@ -1289,11 +1330,11 @@ for atom1,atom2,atom3,atom4 in olist:
 
   # 4-tuple is only an improper if matches an entry in PRM file
   # olist_reduced = list of just these 4-tuples
-  
+
   if (c1,c2) in odict:
     m,params = odict[(c1,c2)]
     olist_reduced.append((atom1,atom2,atom3,atom4))
-    
+
     if not flags[m]:
       oneparams = params[4:]
       oparams.append(oneparams)
@@ -1319,7 +1360,7 @@ classes = prm.classes
 pitdict = {}
 for m,params in enumerate(prm.pitorsionparams):
   pitdict[(params[0],params[1])] = (m,params)
-         
+
 flags = len(prm.pitorsionparams)*[0]
 pitorsiontype = []
 pitorsionparams = []
@@ -1333,7 +1374,7 @@ for tmp1,tmp2,atom1,atom2,tmp3,tmp4 in pitorsionlist:
 
   # 6-tuple is only a PiTorsion if central 2 atoms match an entry in PRM file
   # pitorsionlist_reduced = list of just these 6-tuples
-  
+
   if (c1,c2) in pitdict or (c2,c1) in pitdict:
     if (c1,c2) in pitdict: m,params = pitdict[(c1,c2)]
     else: m,params = pitdict[(c2,c1)]
@@ -1344,7 +1385,7 @@ for tmp1,tmp2,atom1,atom2,tmp3,tmp4 in pitorsionlist:
       pitorsionparams.append(v1)
       flags[m] = len(pitorsionparams)
     pitorsiontype.append(flags[m])
-    
+
 # replace original pitorsionlist with reduced version
 
 pitorsionlist = pitorsionlist_reduced
@@ -1384,7 +1425,7 @@ for atom1,atom2,atom3,atom4,atom5 in bitorsionlist:
 
   # 5-tuple is only a BiTorsion if 5 atoms match an entry in PRM file
   # bitorsionlist_reduced = list of just these 5-tuples
-  
+
   if (c1,c2,c3,c4,c5) in bitdict or (c5,c4,c3,c2,c1) in bitdict:
     if (c1,c2,c3,c4,c5) in bitdict: m,params = bitdict[(c1,c2,c3,c4,c5)]
     else: m,params = bitdict[(c5,c4,c3,c2,c1)]
@@ -1395,7 +1436,7 @@ for atom1,atom2,atom3,atom4,atom5 in bitorsionlist:
       bitorsionparams.append(v1)
       flags[m] = len(bitorsionparams)
     bitorsiontype.append(flags[m])
-    
+
 # replace original bitorsionlist with reduced version
 
 bitorsionlist = bitorsionlist_reduced
@@ -1436,7 +1477,7 @@ bitorsionlist = bitorsionlist_reduced
 #      if tgroup[j-1] > 0: continue
 #      if ttype[j-1] not in polgroup[ttype[m-1]-1]: continue
 #      stack.append(j)
-      
+
 # ----------------------------------------
 # write LAMMPS data file via Pizza.py data class
 # ----------------------------------------
@@ -1494,7 +1535,7 @@ d.sections["Tinker Types"] = lines
 if nbonds:
   d.headers["bonds"] = len(blist)
   d.headers["bond types"] = len(bparams)
-  
+
   lines = []
   for i,one in enumerate(bparams):
     strone = [str(single) for single in one]
@@ -1502,7 +1543,7 @@ if nbonds:
     lines.append(line+'\n')
   d.sections["Bond Coeffs"] = lines
 
-  lines = [] 
+  lines = []
   for i,one in enumerate(blist):
     line = "%d %d %d %d" % (i+1,btype[i],one[0],one[1])
     lines.append(line+'\n')
@@ -1511,7 +1552,7 @@ if nbonds:
 if nangles:
   d.headers["angles"] = len(alist)
   d.headers["angle types"] = len(aparams)
-  
+
   lines = []
   for i,one in enumerate(aparams):
     strone = [str(single) for single in one]
@@ -1533,7 +1574,7 @@ if nangles:
     lines.append(line+'\n')
   d.sections["UreyBradley Coeffs"] = lines
 
-  lines = [] 
+  lines = []
   for i,one in enumerate(alist):
     line = "%d %d %d %d %d" % (i+1,atype[i],one[0],one[1],one[2])
     lines.append(line+'\n')
@@ -1542,7 +1583,7 @@ if nangles:
 if ndihedrals:
   d.headers["dihedrals"] = len(dlist)
   d.headers["dihedral types"] = len(dparams)
-  
+
   lines = []
   for i,one in enumerate(dparams):
     strone = [str(single) for single in one]
@@ -1550,7 +1591,7 @@ if ndihedrals:
     lines.append(line+'\n')
   d.sections["Dihedral Coeffs"] = lines
 
-  lines = [] 
+  lines = []
   for i,one in enumerate(dlist):
     line = "%d %d %d %d %d %d" % (i+1,dtype[i],one[0],one[1],one[2],one[3])
     lines.append(line+'\n')
@@ -1559,7 +1600,7 @@ if ndihedrals:
 if nimpropers:
   d.headers["impropers"] = len(olist)
   d.headers["improper types"] = len(oparams)
-  
+
   lines = []
   for i,one in enumerate(oparams):
     strone = [str(single) for single in one]
@@ -1567,7 +1608,7 @@ if nimpropers:
     lines.append(line+'\n')
   d.sections["Improper Coeffs"] = lines
 
-  lines = [] 
+  lines = []
   for i,one in enumerate(olist):
     line = "%d %d %d %d %d %d" % (i+1,otype[i],one[0],one[1],one[2],one[3])
     lines.append(line+'\n')
@@ -1576,7 +1617,7 @@ if nimpropers:
 if npitorsions:
   d.headers["pitorsions"] = len(pitorsionlist)
   d.headers["pitorsion types"] = len(pitorsionparams)
-  
+
   lines = []
   for i,one in enumerate(pitorsionparams):
     strone = [str(single) for single in one]
@@ -1584,7 +1625,7 @@ if npitorsions:
     lines.append(line+'\n')
   d.sections["PiTorsion Coeffs"] = lines
 
-  lines = [] 
+  lines = []
   for i,one in enumerate(pitorsionlist):
     line = "%d %d %d %d %d %d %d %d" % \
            (i+1,pitorsiontype[i],one[0],one[1],one[2],one[3],one[4],one[5])
@@ -1595,7 +1636,7 @@ if nbitorsions:
   d.headers["bitorsions"] = len(bitorsionlist)
 
   # if there are bitorsions, then -bitorsion file must have been specified
-  
+
   if not bitorsionfile:
     error("no -bitorsion file was specified, but %d bitorsions exist" % \
           nbitorsions)
@@ -1613,8 +1654,8 @@ if nbitorsions:
         xgrid,ygrid,value = array[ix][iy]
         print(" ",xgrid,ygrid,value, file=fp)
   fp.close()
-  
-  lines = [] 
+
+  lines = []
   for i,one in enumerate(bitorsionlist):
     line = "%d %d %d %d %d %d %d" % \
            (i+1,bitorsiontype[i],one[0],one[1],one[2],one[3],one[4])
@@ -1629,7 +1670,11 @@ print("Natoms =",natoms)
 print("Ntypes =",ntypes)
 print("Tinker XYZ types =",len(tink2lmp))
 print("Tinker PRM types =",prm.ntypes)
+<<<<<<< HEAD
 #print "Tinker groups =",ngroups
+=======
+#print("Tinker groups =",ngroups)
+>>>>>>> develop
 print("Nmol =",nmol)
 print("Nbonds =",nbonds)
 print("Nangles =",nangles)

@@ -10,11 +10,14 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 General commands
 ================
 
-An alphabetic list of general LAMMPS commands.
+An alphabetic list of general LAMMPS commands.  Note that style
+commands with many variants, can be more easily accessed via the small
+table above.
 
 .. table_from_list::
    :columns: 5
@@ -60,6 +63,7 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`kspace_modify <kspace_modify>`
    * :doc:`kspace_style <kspace_style>`
    * :doc:`label <label>`
+   * :doc:`labelmap <labelmap>`
    * :doc:`lattice <lattice>`
    * :doc:`log <log>`
    * :doc:`mass <mass>`

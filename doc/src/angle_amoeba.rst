@@ -41,8 +41,8 @@ length.
 
 These formulas match how the Tinker MD code performs its angle
 calculations for the AMOEBA and HIPPO force fields.  See the
-:doc:`Howto amoeba <howto_ameoba>` doc page for more information about
-the implemention of AMOEBA and HIPPO in LAMMPS.
+:doc:`Howto amoeba <Howto_amoeba>` page for more information about
+the implementation of AMOEBA and HIPPO in LAMMPS.
 
 Note that the :math:`E_a` and :math:`E_{ba}` formulas are identical to
 those used for the :doc:`angle_style class2/p6 <angle_class2>`
@@ -75,7 +75,7 @@ restart files read by the :doc:`read_data <read_data>` or
 These are the 8 coefficients for the :math:`E_a` formula:
 
 * pflag = 0 or 1
-* ublag = 0 or 1
+* ubflag = 0 or 1
 * :math:`\theta_0` (degrees)
 * :math:`K_2` (energy)
 * :math:`K_3` (energy)
@@ -87,7 +87,7 @@ A pflag value of 0 vs 1 selects between the "in-plane" and
 "out-of-plane" options described above.  Ubflag is 1 if there is a
 Urey-Bradley term associated with this angle type, else it is 0.
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to
-radians internally; hence the various :math:`K` vaues are effectively
+radians internally; hence the various :math:`K` values are effectively
 energy per radian\^2 or radian\^3 or radian\^4 or radian\^5 or
 radian\^6.
 

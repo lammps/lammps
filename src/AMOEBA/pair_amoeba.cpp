@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -20,10 +21,11 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "gridcomm.h"
 #include "group.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "my_page.h"
@@ -38,6 +40,8 @@
 #include <cctype>
 
 using namespace LAMMPS_NS;
+
+using MathSpecial::powint;
 
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP,PVAL};  // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                                   // reverse comm
@@ -133,6 +137,14 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   forcefield = nullptr;
 
   id_pole = id_udalt = id_upalt = nullptr;
+
+  memset(special_hal, 0 , sizeof(special_hal));
+  memset(special_repel, 0 , sizeof(special_repel));
+  memset(special_disp, 0 , sizeof(special_disp));
+  memset(special_mpole, 0 , sizeof(special_mpole));
+  memset(special_polar_pscale, 0 , sizeof(special_polar_pscale));
+  memset(special_polar_piscale, 0 , sizeof(special_polar_piscale));
+  memset(special_polar_wscale, 0 , sizeof(special_polar_wscale));
 
   nualt = 0;
   first_flag = 1;
@@ -239,7 +251,7 @@ PairAmoeba::~PairAmoeba()
 
   memory->destroy(qfac);
   memory->destroy(gridfft1);
- 
+
   delete m_kspace;
   delete p_kspace;
   delete pc_kspace;
@@ -506,7 +518,7 @@ void PairAmoeba::finish()
   double ave;
   MPI_Allreduce(&time_init,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_init = ave/comm->nprocs;
-  
+
   MPI_Allreduce(&time_hal,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_hal = ave/comm->nprocs;
 
@@ -566,16 +578,16 @@ void PairAmoeba::finish()
 
   if (comm->me == 0) {
     utils::logmesg(lmp,"\n{} timing breakdown:\n", utils::uppercase(mystyle));
-    utils::logmesg(lmp,"  Init    time: {:.6g} {:.3g}%\n", time_init, time_init/time_total);
+    utils::logmesg(lmp,"  Init    time: {:<12.6g} {:6.2f}%\n", time_init, time_init/time_total);
     if (amoeba) {
-      utils::logmesg(lmp,"  Hal     time: {:.6g} {:.3g}%\n", time_hal, time_hal/time_total);
+      utils::logmesg(lmp,"  Hal     time: {:<12.6g} {:6.2f}%\n", time_hal, time_hal/time_total);
     } else { // hippo
-      utils::logmesg(lmp,"  Repulse time: {:.6g} {:.3g}%\n", time_repulse, time_repulse/time_total);
-      utils::logmesg(lmp,"  Disp    time: {:.6g} {:.3g}%\n", time_disp, time_disp/time_total);
+      utils::logmesg(lmp,"  Repulse time: {:<12.6g} {:6.2f}%\n", time_repulse, time_repulse/time_total);
+      utils::logmesg(lmp,"  Disp    time: {:<12.6g} {:6.2f}%\n", time_disp, time_disp/time_total);
     }
-    utils::logmesg(lmp,"  Mpole   time: {:.6g} {:.3g}%\n", time_mpole, time_mpole/time_total);
-    utils::logmesg(lmp,"  Induce  time: {:.6g} {:.3g}%\n", time_induce, time_induce/time_total);
-    utils::logmesg(lmp,"  Polar   time: {:.6g} {:.3g}%\n", time_polar, time_polar/time_total);
+    utils::logmesg(lmp,"  Mpole   time: {:<12.6g} {:6.2f}%\n", time_mpole, time_mpole/time_total);
+    utils::logmesg(lmp,"  Induce  time: {:<12.6g} {:6.2f}%\n", time_induce, time_induce/time_total);
+    utils::logmesg(lmp,"  Polar   time: {:<12.6g} {:6.2f}%\n", time_polar, time_polar/time_total);
     if (!amoeba)
       utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n", time_qxfer, time_qxfer/time_total);
     utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total * 100.0);
@@ -615,11 +627,14 @@ void PairAmoeba::allocate()
 
 /* ----------------------------------------------------------------------
    global settings
+   NOTE: these undocumented args are only for debugging
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::settings(int narg, char **arg)
 {
   // turn on all FF components by default
+  // first 4 lines are non-bonded terms
+  // last 2 lines are bonded terms
 
   hal_flag = repulse_flag = qxfer_flag = 1;
   disp_rspace_flag = disp_kspace_flag = 1;
@@ -679,6 +694,12 @@ void PairAmoeba::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"bitorsion") == 0) bitorsion_flag = newvalue;
     else error->all(FLERR,"Illegal pair_style command");
   }
+
+  // cannot disable bond and dihedral terms b/c those classes not in AMOEBA pkg
+
+  if ((bond_flag == 0 || dihedral_flag == 0) && comm->me == 0)
+    error->warning(FLERR,"Cannot disable AMOEBA bonds or dihedrals - "
+                   "use bond_style or dihedral_style none instead");
 }
 
 /* ----------------------------------------------------------------------
@@ -704,7 +725,7 @@ void PairAmoeba::coeff(int narg, char **arg)
 
   set_defaults();
   read_prmfile(arg[2]);
-  if (narg == 3) read_keyfile(NULL);
+  if (narg == 3) read_keyfile(nullptr);
   else read_keyfile(arg[3]);
 
   // compute Vdwl mixing rules, only for AMOEBA
@@ -834,8 +855,8 @@ void PairAmoeba::init_style()
   Fix *myfix;
   if (first_flag) {
     id_pole = utils::strdup("AMOEBA_pole");
-    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 13",id_pole,group->names[0]));
-    fixpole = dynamic_cast<FixStore *>(myfix);
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 13",id_pole,group->names[0]));
+    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
   }
 
   // creation of per-atom storage
@@ -846,14 +867,14 @@ void PairAmoeba::init_style()
 
   if (first_flag && use_pred) {
     id_udalt = utils::strdup("AMOEBA_udalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
                                         id_udalt, group->names[0], maxualt));
-    fixudalt = dynamic_cast<FixStore *>(myfix);
+    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
 
     id_upalt = utils::strdup("AMOEBA_upalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
                                         id_upalt, group->names[0], maxualt));
-    fixupalt = dynamic_cast<FixStore *>(myfix);
+    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
   }
 
   // create pages for storing pairwise data:
@@ -967,19 +988,22 @@ void PairAmoeba::init_style()
 
   if (id_pole) {
     myfix = modify->get_fix_by_id(id_pole);
-    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_pole);
-    fixpole = dynamic_cast<FixStore *>(myfix);
+    if (!myfix)
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_pole);
+    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
 
   }
 
   if (id_udalt) {
     myfix = modify->get_fix_by_id(id_udalt);
-    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_udalt);
-    fixudalt = dynamic_cast<FixStore *>(myfix);
+    if (!myfix)
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_udalt);
+    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
 
     myfix = modify->get_fix_by_id(id_upalt);
-    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_upalt);
-    fixupalt = dynamic_cast<FixStore *>(myfix);
+    if (!myfix)
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_upalt);
+    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
   }
 
   // assign hydrogen neighbors (redID) to each owned atom
@@ -1645,7 +1669,7 @@ void PairAmoeba::assign_groups()
 
   int nstack = 0;
   int maxstack = 0;
-  int *stack = NULL;
+  int *stack = nullptr;
 
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
@@ -1661,7 +1685,7 @@ void PairAmoeba::assign_groups()
 
   // loop until no ghost atom groupIDs are reset
 
-  while (1) {
+  while (true) {
 
     // loop over all atoms and their group neighborhoods
 
@@ -1821,13 +1845,15 @@ void PairAmoeba::precond_neigh()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *neighptr;
 
-  // set cutoffs and taper coeffs
-  // NOTE: add skin to cutoff, same as for main neighbor list ??
+  // NOTE: no skin added to cutoff for this shorter neighbor list
+  // also note that Tinker (and thus LAMMPS) does not apply the
+  //   distance cutoff in the CG iterations in induce.cpp,
+  //   rather all interactions in the precond neigh list are
+  //   used every step until the neighbor list is rebuilt,
+  //   this means the cutoff distance is not exactly enforced,
+  //   on later steps atoms outside may contribute, atoms inside may not
 
   choose(USOLV);
-
-  //double off = sqrt(off2);
-  //off2 = (off + neighbor->skin) * (off + neighbor->skin);
 
   // atoms and neighbor list
 
@@ -1873,6 +1899,7 @@ void PairAmoeba::precond_neigh()
   }
 }
 
+
 /* ----------------------------------------------------------------------
    allocate Vdwl arrays
    note that n_amclass = # of classes in Tinker PRM file
@@ -1883,7 +1910,7 @@ void PairAmoeba::precond_neigh()
 
 void PairAmoeba::initialize_vdwl()
 {
-  radmin = radmin4 = epsilon = epsilon4 = NULL;
+  radmin = radmin4 = epsilon = epsilon4 = nullptr;
 }
 
 void PairAmoeba::allocate_vdwl()
@@ -1908,12 +1935,12 @@ void PairAmoeba::deallocate_vdwl()
 
 void PairAmoeba::initialize_smallsize()
 {
-  copt = copm = NULL;
-  a_ualt = ap_ualt = NULL;
-  b_ualt = bp_ualt = NULL;
-  c_ualt = cp_ualt = NULL;
-  bpred = bpredp = bpreds = bpredps = NULL;
-  gear = aspc = NULL;
+  copt = copm = nullptr;
+  a_ualt = ap_ualt = nullptr;
+  b_ualt = bp_ualt = nullptr;
+  c_ualt = cp_ualt = nullptr;
+  bpred = bpredp = bpreds = bpredps = nullptr;
+  gear = aspc = nullptr;
 }
 
 void PairAmoeba::allocate_smallsize()
@@ -2014,7 +2041,7 @@ void PairAmoeba::choose(int which)
 
   // taper coeffs
 
-  double denom = pow(off-cut,5.0);
+  double denom = powint(off-cut,5);
   c0 = off*off2 * (off2 - 5.0*off*cut + 10.0*cut2) / denom;
   c1 = -30.0 * off2*cut2 / denom;
   c2 = 30.0 * (off2*cut+off*cut2) / denom;
@@ -2084,7 +2111,7 @@ void PairAmoeba::mix()
       } else if (epsilon_rule == HHG) {
         eij = 4.0 * (ei*ej) / ((sei+sej)*(sei+sej));
       } else if (epsilon_rule == W_H) {
-        eij = 2.0 * (sei*sej) * pow(ri*rj,3.0) / (pow(ri,6.0) + pow(rj,6.0));
+        eij = 2.0 * (sei*sej) * powint(ri*rj,3) / (powint(ri,6) + powint(rj,6));
       } else {
         eij = sei * sej;
       }
@@ -2134,6 +2161,29 @@ void *PairAmoeba::extract(const char *str, int &dim)
   if (strcmp(str,"opbend_quartic") == 0) return (void *) &opbend_quartic;
   if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;
   if (strcmp(str,"opbend_sextic") == 0) return (void *) &opbend_sextic;
+
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+
+void *PairAmoeba::extract_peratom(const char *str, int &ncol)
+{
+  if (strcmp(str,"uind") == 0) {
+    ncol = 3;
+    return (void *) uind;
+  } else if (strcmp(str,"uinp") == 0) {
+    ncol = 3;
+    return (void *) uinp;
+  }
+
   return nullptr;
 }
 
@@ -2365,7 +2415,7 @@ double PairAmoeba::memory_usage()
   if (use_ewald || use_dewald) {
     bytes += (double) 12 * bsordermax * nmax *sizeof(double);   // theta123
     bytes += (double) 3 * nmax *sizeof(int);                    // igrid
-  }    
+  }
 
   bytes += (double) nmax * sizeof(int);        // numneigh_dipole
   bytes += (double) nmax * sizeof(int *);      // firstneigh_dipole

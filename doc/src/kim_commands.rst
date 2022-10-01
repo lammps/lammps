@@ -981,7 +981,7 @@ In the last example, "new-property.edn" and
 "/home/mary/marys-kim-properties/dissociation-energy.edn" are the names of files
 that contain user-defined (local) property definitions.
 
-A KIM property instance takes the form of a "map," i.e. a set of key-value
+A KIM property instance takes the form of a "map", i.e. a set of key-value
 pairs akin to Perl's hash, Python's dictionary, or Java's Hashtable.  It
 consists of a set of property key names, each of which is referred to here by
 the *key_name* argument, that are defined as part of the relevant KIM Property

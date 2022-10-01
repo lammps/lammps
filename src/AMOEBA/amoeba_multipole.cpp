@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -15,18 +16,21 @@
 
 #include "amoeba_convolution.h"
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "neigh_list.h"
+#include "domain.h"
 #include "fft3d_wrap.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
+#include "neigh_list.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+using MathSpecial::square;
 
 enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
@@ -521,7 +525,7 @@ void PairAmoeba::multipole_real()
         vyy = -yr * frcy;
         vyz = -0.5 * (zr*frcy+yr*frcz);
         vzz = -zr * frcz;
-      
+
         virmpole[0] -= vxx;
         virmpole[1] -= vyy;
         virmpole[2] -= vzz;
@@ -557,7 +561,7 @@ void PairAmoeba::multipole_real()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-    
+
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
@@ -567,7 +571,7 @@ void PairAmoeba::multipole_real()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-    
+
     virmpole[0] -= vxx;
     virmpole[1] -= vyy;
     virmpole[2] -= vzz;
@@ -692,7 +696,7 @@ void PairAmoeba::multipole_kspace()
   nzlo = m_kspace->nzlo_fft;
   nzhi = m_kspace->nzhi_fft;
 
-  pterm = pow((MY_PI/aewald),2.0);
+  pterm = square(MY_PI/aewald);
   volterm = MY_PI * volbox;
 
   n = 0;

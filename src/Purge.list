@@ -51,6 +51,30 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# renamed on 11 July 2022
+lj_sdk_common.h
+angle_sdk.cpp
+pair_lj_sdk.cpp
+pair_lj_sdk_coul_msm.cpp
+pair_lj_sdk_coul_long.h
+pair_lj_sdk_coul_msm.h
+angle_sdk.h
+pair_lj_sdk.h
+pair_lj_sdk_coul_long.cpp
+pair_lj_sdk_kokkos.h
+pair_lj_sdk_kokkos.cpp
+pair_lj_sdk_gpu.cpp
+pair_lj_sdk_gpu.h
+pair_lj_sdk_coul_long_gpu.cpp
+pair_lj_sdk_coul_long_gpu.h
+pair_lj_sdk_omp.h
+pair_lj_sdk_coul_msm_omp.cpp
+pair_lj_sdk_coul_long_omp.h
+angle_sdk_omp.cpp
+pair_lj_sdk_omp.cpp
+pair_lj_sdk_coul_msm_omp.h
+pair_lj_sdk_coul_long_omp.cpp
+angle_sdk_omp.h
 # removed on 8 April 2022
 fix_client_md.cpp
 fix_client_md.h

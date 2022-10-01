@@ -193,17 +193,17 @@ Below is an example demonstrating some of the possible uses.
     USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int64_t
     USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
     TYPE(lammps) :: lmp
-    INTEGER(KIND=c_int64_t) :: natoms
+    INTEGER(KIND=c_int64_t), POINTER :: natoms
     REAL(KIND=c_double), POINTER :: dt
     INTEGER(KIND=c_int64_t), POINTER :: ntimestep
     REAL(KIND=c_double) :: pe, ke
 
     lmp = lammps()
     CALL lmp%file('in.sysinit')
-    natoms = lmp%extract_setting('natoms')
-    WRITE(OUTPUT_UNIT,'(A,I8,A)') 'Running a simulation with', natoms, ' atoms'
-    WRITE(OUTPUT_UNIT,'(I8,A,I8,A,I3,A)') lmp%extract_setting('nlocal'), &
-        ' local and', lmp%extract_setting('nghost'), ' ghost atom. ', &
+    natoms = lmp%extract_global('natoms')
+    WRITE(OUTPUT_UNIT,'(A,I0,A)') 'Running a simulation with', natoms, ' atoms'
+    WRITE(OUTPUT_UNIT,'(I0,A,I0,A,I0,A)') lmp%extract_setting('nlocal'), &
+        ' local and', lmp%extract_setting('nghost'), ' ghost atoms. ', &
         lmp%extract_setting('ntypes'), ' atom types'
 
     CALL lmp%command('run 2 post no')

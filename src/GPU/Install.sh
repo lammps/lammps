@@ -28,6 +28,8 @@ action () {
 
 # list of files with optional dependcies
 
+action amoeba_convolution_gpu.cpp amoeba_convolution.cpp
+action amoeba_convolution_gpu.h amoeba_convolution.cpp
 action fix_gpu.cpp
 action fix_gpu.h
 action fix_nve_gpu.h
@@ -117,6 +119,10 @@ action pair_lj_cut_coul_msm_gpu.cpp pair_lj_cut_coul_msm.cpp
 action pair_lj_cut_coul_msm_gpu.h pair_lj_cut_coul_msm.h
 action pair_lj_cut_gpu.cpp
 action pair_lj_cut_gpu.h
+action pair_lj_cut_dipole_long_gpu.cpp pair_lj_cut_dipole_long.cpp
+action pair_lj_cut_dipole_long_gpu.h pair_lj_cut_dipole_long.cpp
+action pair_lj_cut_tip4p_long_gpu.h pair_lj_cut_tip4p_long.cpp
+action pair_lj_cut_tip4p_long_gpu.cpp pair_lj_cut_tip4p_long.cpp
 action pair_lj_smooth_gpu.cpp pair_lj_smooth.cpp
 action pair_lj_smooth_gpu.h pair_lj_smooth.cpp
 action pair_lj_expand_gpu.cpp
@@ -159,10 +165,6 @@ action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
 action pair_ufm_gpu.cpp pair_ufm.cpp
 action pair_ufm_gpu.h pair_ufm.h
-action pair_lj_cut_dipole_long_gpu.cpp pair_lj_cut_dipole_long.cpp
-action pair_lj_cut_dipole_long_gpu.h pair_lj_cut_dipole_long.cpp
-action pair_lj_cut_tip4p_long_gpu.h pair_lj_cut_tip4p_long.cpp
-action pair_lj_cut_tip4p_long_gpu.cpp pair_lj_cut_tip4p_long.cpp
 
 # edit 2 Makefile.package files to include/exclude package info
 

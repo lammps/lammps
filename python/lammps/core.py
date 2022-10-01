@@ -1116,7 +1116,6 @@ class lammps(object):
     if group: group = group.encode()
     if vartype is None :
       vartype = self.lib.lammps_extract_variable_datatype(self.lmp, name)
-      #vartype = LMP_VAR_EQUAL
     if vartype == LMP_VAR_EQUAL:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       with ExceptionCheck(self):

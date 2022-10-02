@@ -2222,21 +2222,38 @@ int lammps_set_variable(void *handle, char *name, char *str)
 // Library functions for scatter/gather operations of data
 // ----------------------------------------------------------------------
 
+/** Gather the named atom-based entity for all atoms across all processors,
+ * in order.
+ *
+\verbatim embed:rst
+
+This subroutine gathers data for all atoms and stores them in a
+one-dimensional array allocated by the user. The data will be ordered by
+atom ID, which requires consecutive atom IDs (1 to *natoms*\ ). If you need
+a similar array but have non-consecutive atom IDs, see
+:cpp:func:`lammps_gather_atoms_concat`; for a similar array but for a subset
+of atoms, see :cpp:func:`lammps_gather_atoms_subset`.
+
+The *data* array will be ordered in groups of *count* values, sorted by atom ID
+(e.g., if *name* is *x* and *count* = 3, then *data* = x[0][0], x[0][1], 
+x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], :math:`\dots`);
+*data* must be pre-allocated by the caller to length (*count* :math:`\times`
+*natoms*), as queried by :cpp:func:`lammps_get_natoms`,
+:cpp:func:`lammps_extract_global`, or :cpp:func:`lammps_extract_setting`.
+
+\endverbatim
+ *
+ * \param handle  pointer to a previously created LAMMPS instance
+ * \param name    desired quantity (e.g., *x* or *charge*)
+ * \param type    0 for ``int`` values, 1 for ``double`` values
+ * \param count   number of per-atom values (e.g., 1 for *type* or *charge*,
+ *                3 for *x* or *f*); use *count* = 3 with *image* if you want
+ *                a single image flag unpacked into (*x*,*y*,*z*) components.
+ * \param data    per-atom values packed in a 1-dimensional array of length
+ *                *natoms* \* *count*.
+ *
+ */
 /* ----------------------------------------------------------------------
-   gather the named atom-based entity for all atoms
-     return it in user-allocated data
-   data will be ordered by atom ID
-     requirement for consecutive atom IDs (1 to N)
-   see gather_atoms_concat() to return data for all atoms, unordered
-   see gather_atoms_subset() to return data for only a subset of atoms
-   name = desired quantity (e.g., x or charge)
-   type = 0 for integer values, 1 for double values
-   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
-     use count = 3 with "image" if want single image flag unpacked into xyz
-   return atom-based values in 1d data, ordered by count, then by atom ID
-     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...);
-     data must be pre-allocated by caller to correct length
-     correct length = count*Natoms, as queried by get_natoms()
    method:
      alloc and zero count*Natom length vector
      loop over Nlocal to fill vector with my values
@@ -2357,23 +2374,43 @@ void lammps_gather_atoms(void *handle, char *name, int type, int count, void *da
   END_CAPTURE
 }
 
+/** Gather the named atom-based entity for all atoms across all processors,
+ * unordered.
+ *
+\verbatim embed:rst
+
+This subroutine gathers data for all atoms and stores them in a
+one-dimensional array allocated by the user. The data will be a concatenation
+of chunks from each processor's owned atoms, in whatever order the atoms are
+in on each processor. This process has no requirement that the atom IDs be
+consecutive. If you need the ID of each atom, you can do another 
+:cpp:func:`lammps_gather_atoms_concat` call with *name* set to ``id``.
+If you have consecutive IDs and want the data to be in order, use
+:cpp:func:`lammps_gather_atoms`; for a similar array but for a subset
+of atoms, use :cpp:func:`lammps_gather_atoms_subset`.
+
+The *data* array will be in groups of *count* values, with *natoms*
+groups total, but not in order by atom ID (e.g., if *name* is *x* and *count*
+is 3, then *data* might be something like = x[10][0], x[10][1], x[10][2],
+x[2][0], x[2][1], x[2][2], x[4][0], :math:`\dots`); *data* must be
+pre-allocated by the caller to length (*count* :math:`\times` *natoms*), as
+queried by :cpp:func:`lammps_get_natoms`,
+:cpp:func:`lammps_extract_global`, or :cpp:func:`lammps_extract_setting`.
+
+\endverbatim
+ *
+ * \param handle: pointer to a previously created LAMMPS instance
+ * \param name:   desired quantity (e.g., *x* or *charge*\ )
+ * \param type:   0 for ``int`` values, 1 for ``double`` values
+ * \param count:  number of per-atom values (e.g., 1 for *type* or *charge*,
+ *                3 for *x* or *f*); use *count* = 3 with "image" if you want
+ *                single image flags unpacked into (*x*,*y*,*z*)
+ * \param data:   per-atom values packed in a 1-dimensional array of length
+ *                *natoms* \* *count*.
+ *
+ */
+
 /* ----------------------------------------------------------------------
-   gather the named atom-based entity for all atoms
-     return it in user-allocated data
-   data will be a concatenation of chunks of each proc's atoms,
-     in whatever order the atoms are on each proc
-     no requirement for consecutive atom IDs (1 to N)
-     can do a gather_atoms_concat for "id" if need to know atom IDs
-   see gather_atoms() to return data ordered by consecutive atom IDs
-   see gather_atoms_subset() to return data for only a subset of atoms
-   name = desired quantity (e.g., x or charge)
-   type = 0 for integer values, 1 for double values
-   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
-     use count = 3 with "image" if want single image flag unpacked into xyz
-   return atom-based values in 1d data, ordered by count, then by atom
-     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
-     data must be pre-allocated by caller to correct length
-     correct length = count*Natoms, as queried by get_natoms()
    method:
      Allgather Nlocal atoms from each proc into data
 ------------------------------------------------------------------------- */
@@ -2503,23 +2540,38 @@ void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, v
   END_CAPTURE
 }
 
+/** Gather the named atom-based entity for a subset of atoms.
+ *
+\verbatim embed:rst
+
+This subroutine gathers data for the requested atom IDs and stores them in a
+one-dimensional array allocated by the user. The data will be ordered by atom
+ID, but there is no requirement that the IDs be consecutive. If you wish to
+return a similar array for *all* the atoms, use :cpp:func:`lammps_gather_atoms`
+or :cpp:func:`lammps_gather_atoms_concat`.
+
+The *data* array will be in groups of *count* values, sorted by atom ID
+(e.g., if *name* is *x* and *count* = 3, then *data* might look like
+x[100][0], x[100][1], x[100][2], x[101][0], x[101][1], x[101][2], x[102][0],
+:math:`\dots`); *data* must be pre-allocated by the caller to length (*count*
+:math:`\times` *ndata*).
+
+\endverbatim
+ *
+ * \param handle: pointer to a previously created LAMMPS instance
+ * \param name:   desired quantity (e.g., *x* or *charge*)
+ * \param type:   0 for ``int`` values, 1 for ``double`` values
+ * \param count:  number of per-atom values (e.g., 1 for *type* or *charge*,
+ *                3 for *x* or *f*); use *count* = 3 with "image" if you want
+ *                single image flags unpacked into (*x*,*y*,*z*)
+ * \param ndata:  number of atoms for which to return data (can be all of them)
+ * \param ids:    list of *ndata* atom IDs for which to return data
+ * \param data:   per-atom values packed in a 1-dimensional array of length
+ *                *ndata* \* *count*.
+ *
+ */
+
 /* ----------------------------------------------------------------------
-   gather the named atom-based entity for a subset of atoms
-     return it in user-allocated data
-   data will be ordered by requested atom IDs
-     no requirement for consecutive atom IDs (1 to N)
-   see gather_atoms() to return data for all atoms, ordered by consecutive IDs
-   see gather_atoms_concat() to return data for all atoms, unordered
-   name = desired quantity (e.g., x or charge)
-   type = 0 for integer values, 1 for double values
-   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
-     use count = 3 with "image" if want single image flag unpacked into xyz
-   ndata = # of atoms to return data for (could be all atoms)
-   ids = list of Ndata atom IDs to return data for
-   return atom-based values in 1d data, ordered by count, then by atom
-     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
-     data must be pre-allocated by caller to correct length
-     correct length = count*Ndata
    method:
      alloc and zero count*Ndata length vector
      loop over Ndata to fill vector with my values
@@ -2540,12 +2592,13 @@ void lammps_gather_atoms_subset(void *handle, char *name, int type, int count,
     int i,j,m,offset;
     tagint id;
 
-    // error if tags are not defined
+    // error if tags are not defined or no atom map
     // NOTE: test that name = image or ids is not a 64-bit int in code?
 
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_gather_atoms_subset");
@@ -2649,18 +2702,35 @@ void lammps_gather_atoms_subset(void *handle, char *name, int type, int count,
   END_CAPTURE
 }
 
+/** Scatter the named atom-based entities in *data* to all processors.
+ *
+\verbatim embed:rst
+
+This subroutine takes data stored in a one-dimensional array supplied by the
+user and scatters them to all atoms on all processors. The data must be
+ordered by atom ID, with the requirement that the IDs be consecutive.
+Use :cpp:func:`lammps_scatter_atoms_subset` to scatter data for some (or all)
+atoms, unordered.
+
+The *data* array needs to be ordered in groups of *count* values, sorted by
+atom ID (e.g., if *name* is *x* and *count* = 3, then
+*data* = x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0],
+:math:`\dots`); *data* must be of length (*count* :math:`\times` *natoms*).
+
+\endverbatim
+ *
+ * \param handle  pointer to a previously created LAMMPS instance
+ * \param name    desired quantity (e.g., *x* or *charge*)
+ * \param type    0 for ``int`` values, 1 for ``double`` values
+ * \param count   number of per-atom values (e.g., 1 for *type* or *charge*,
+ *                3 for *x* or *f*); use *count* = 3 with *image* if you have
+ *                a single image flag packed into (*x*,*y*,*z*) components.
+ * \param data    per-atom values packed in a 1-dimensional array of length
+ *                *natoms* \* *count*.
+ *
+ */
+
 /* ----------------------------------------------------------------------
-   scatter the named atom-based entity in data to all atoms
-   data is ordered by atom ID
-     requirement for consecutive atom IDs (1 to N)
-   see scatter_atoms_subset() to scatter data for some (or all) atoms, unordered
-   name = desired quantity (e.g., x or charge)
-   type = 0 for integer values, 1 for double values
-   count = # of per-atom values (e.g., 1 for type or charge, 3 for x or f)
-     use count = 3 with "image" for xyz to be packed into single image flag
-   data = atom-based values in 1d data, ordered by count, then by atom ID
-     (e.g., x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...)
-     data must be correct length = count*Natoms, as queried by get_natoms()
    method:
      loop over Natoms, if I own atom ID, set its values from data
 ------------------------------------------------------------------------- */
@@ -2764,6 +2834,38 @@ void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *d
   }
   END_CAPTURE
 }
+
+/** Scatter the named atom-based entities in *data* from a subset of atoms
+ *  to all processors.
+ *
+\verbatim embed:rst
+
+This subroutine takes data stored in a one-dimensional array supplied by the
+user and scatters them to a subset of atoms on all processors. The array
+*data* contains data associated with atom IDs, but there is no requirement that
+the IDs be consecutive, as they are provided in a separate array.
+Use :cpp:func:`lammps_scatter_atoms` to scatter data for all atoms, in order.
+
+The *data* array needs to be organized in groups of *count* values, with the
+groups in the same order as the array *ids*. For example, if you want *data*
+to be the array {x[1][0], x[1][1], x[1][2], x[100][0], x[100][1], x[100][2],
+x[57][0], x[57][1], x[57][2]}, then *count* = 3, *ndata* = 3, and *ids* would
+be {1, 100, 57}.
+
+\endverbatim
+ *
+ * \param handle: pointer to a previously created LAMMPS instance
+ * \param name:   desired quantity (e.g., *x* or *charge*)
+ * \param type:   0 for ``int`` values, 1 for ``double`` values
+ * \param count:  number of per-atom values (e.g., 1 for *type* or *charge*,
+ *                3 for *x* or *f*); use *count* = 3 with "image" if you have
+ *                all the image flags packed into (*xyz*)
+ * \param ndata:  number of atoms listed in *ids* and *data* arrays
+ * \param ids:    list of *ndata* atom IDs to scatter data to
+ * \param data    per-atom values packed in a 1-dimensional array of length
+ *                *ndata* \* *count*.
+ *
+ */
 
 /* ----------------------------------------------------------------------
    scatter the named atom-based entity in data to a subset of atoms
@@ -3528,11 +3630,12 @@ void lammps_gather_subset(void *handle, char *name,
     int i,j,m,offset,ltype;
     tagint id;
 
-    // error if tags are not defined or not consecutive
+    // error if tags are not defined or no atom map
 
     int flag = 0;
     if (lmp->atom->tag_enable == 0) flag = 1;
     if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR,"Library error in lammps_gather_subset");

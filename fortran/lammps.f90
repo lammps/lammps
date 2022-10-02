@@ -29,9 +29,9 @@
 !
 MODULE LIBLAMMPS
 
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, c_associated, &
-    c_loc, c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, &
-    c_f_pointer
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, C_ASSOCIATED, &
+    C_LOC, c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, &
+    C_F_POINTER
 
   IMPLICIT NONE
   PRIVATE
@@ -103,6 +103,17 @@ MODULE LIBLAMMPS
     PROCEDURE :: extract_fix            => lmp_extract_fix
     PROCEDURE :: extract_variable       => lmp_extract_variable
     PROCEDURE :: set_variable           => lmp_set_variable
+    PROCEDURE, PRIVATE :: lmp_gather_atoms_int, lmp_gather_atoms_double
+    GENERIC   :: gather_atoms           => lmp_gather_atoms_int, &
+                                           lmp_gather_atoms_double
+    PROCEDURE, PRIVATE :: lmp_gather_atoms_concat_int
+    PROCEDURE, PRIVATE :: lmp_gather_atoms_concat_double
+    GENERIC   :: gather_atoms_concat    => lmp_gather_atoms_concat_int, &
+                                           lmp_gather_atoms_concat_double
+    PROCEDURE, PRIVATE :: lmp_gather_atoms_subset_int
+    PROCEDURE, PRIVATE :: lmp_gather_atoms_subset_double
+    GENERIC   :: gather_atoms_subset    => lmp_gather_atoms_subset_int, &
+                                           lmp_gather_atoms_subset_double
 !
     PROCEDURE :: version                => lmp_version
     PROCEDURE,NOPASS :: get_os_info     => lmp_get_os_info
@@ -394,11 +405,28 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_set_variable
     END FUNCTION lammps_set_variable
 
-    !SUBROUTINE lammps_gather_atoms
+    SUBROUTINE lammps_gather_atoms(handle, name, type, count, data) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, data
+      INTEGER(c_int), VALUE :: type, count
+    END SUBROUTINE lammps_gather_atoms
 
-    !SUBROUTINE lammps_gather_atoms_concat
+    SUBROUTINE lammps_gather_atoms_concat(handle, name, type, count, data) &
+    BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, data
+      INTEGER(c_int), VALUE :: type, count
+    END SUBROUTINE lammps_gather_atoms_concat
 
-    !SUBROUTINE lammps_gather_atoms_subset
+    SUBROUTINE lammps_gather_atoms_subset(handle, name, type, count, ndata, &
+        ids, data) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, ids, data
+      INTEGER(c_int), VALUE :: type, count, ndata
+    END SUBROUTINE lammps_gather_atoms_subset
 
     !SUBROUTINE lammps_scatter_atoms
 
@@ -1174,6 +1202,203 @@ CONTAINS
         // '" [Fortran/set_variable]')
     END IF
   END SUBROUTINE lmp_set_variable
+
+  ! equivalent function to lammps_gather_atoms (for integers)
+  SUBROUTINE lmp_gather_atoms_int(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+    REAL(C_double) :: dnatoms
+    CHARACTER(LEN=80) :: error_msg
+
+    IF ( count /= 1 .AND. count /= 3 ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'gather_atoms&
+        & requires "count" to be 1 or 3 [Fortran/gather_atoms]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF ( dnatoms > HUGE(1_c_int) ) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather_atoms with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather_atoms]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_atoms(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_atoms_int
+
+  ! equivalent function to lammps_gather_atoms (for doubles)
+  SUBROUTINE lmp_gather_atoms_double(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    REAL(c_double), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+    REAL(C_double) :: dnatoms
+    CHARACTER(LEN=80) :: error_msg
+
+    IF ( count /= 1 .AND. count /= 3 ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'gather_atoms&
+        & requires "count" to be 1 or 3 [Fortran/gather_atoms]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF ( dnatoms > HUGE(1_c_int) ) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather_atoms with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather_atoms]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_atoms(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_atoms_double
+
+  ! equivalent function to lammps_gather_atoms_concat (for integers)
+  SUBROUTINE lmp_gather_atoms_concat_int(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+    REAL(C_double) :: dnatoms
+    CHARACTER(LEN=80) :: error_msg
+
+    IF ( count /= 1 .AND. count /= 3 ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather_atoms_concat requires "count" to be 1 or 3 &
+        &[Fortran/gather_atoms_concat]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF ( dnatoms > HUGE(1_c_int) ) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather_atoms_concat with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather_atoms_concat]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_atoms_concat(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_atoms_concat_int
+
+  ! equivalent function to lammps_gather_atoms_concat (for doubles)
+  SUBROUTINE lmp_gather_atoms_concat_double(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    REAL(c_double), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+    REAL(C_double) :: dnatoms
+    CHARACTER(LEN=80) :: error_msg
+
+    IF ( count /= 1 .AND. count /= 3 ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather_atoms_concat requires "count" to be 1 or 3 &
+        &[Fortran/gather_atoms_concat]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF ( dnatoms > HUGE(1_c_int) ) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather_atoms_concat with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather_atoms_concat]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_atoms_concat(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_atoms_concat_double
+
+  ! equivalent function to lammps_gather_atoms_subset (for integers)
+  SUBROUTINE lmp_gather_atoms_subset_int(self, name, count, ids, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), TARGET, INTENT(IN) :: ids
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: ndata
+    TYPE(c_ptr) :: Cdata, Cname, Cids
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+    CHARACTER(LEN=80) :: error_msg
+
+    IF ( count /= 1 .AND. count /= 3 ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'gather_atoms&
+        & requires "count" to be 1 or 3 [Fortran/gather_atoms]')
+    END IF
+
+    ndata = SIZE(ids, KIND=c_int)
+
+    Cname = f2c_string(name)
+    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    ALLOCATE(data(ndata*count))
+    data = -1_c_int
+    Cdata = C_LOC(data(1))
+    Cids = C_LOC(ids(1))
+    CALL lammps_gather_atoms_subset(self%handle, Cname, Ctype, count, &
+        ndata, Cids, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_atoms_subset_int
+
+  ! equivalent function to lammps_gather_atoms_subset (for doubles)
+  SUBROUTINE lmp_gather_atoms_subset_double(self, name, count, ids, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), TARGET, INTENT(IN) :: ids
+    REAL(c_double), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: ndata
+    TYPE(c_ptr) :: Cdata, Cname, Cids
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+    CHARACTER(LEN=80) :: error_msg
+
+    IF ( count /= 1 .AND. count /= 3 ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'gather_atoms&
+        & requires "count" to be 1 or 3 [Fortran/gather_atoms]')
+    END IF
+
+    ndata = SIZE(ids, KIND=c_int)
+
+    Cname = f2c_string(name)
+    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    ALLOCATE(data(ndata*count))
+    Cdata = C_LOC(data(1))
+    Cids = C_LOC(ids(1))
+    CALL lammps_gather_atoms_subset(self%handle, Cname, Ctype, count, &
+        ndata, Cids, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_atoms_subset_double
 
   ! equivalent function to lammps_version
   INTEGER FUNCTION lmp_version(self)

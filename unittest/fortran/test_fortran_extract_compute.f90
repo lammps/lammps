@@ -1,27 +1,7 @@
-MODULE keepcompute
-  USE liblammps
-  TYPE(LAMMPS) :: lmp
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: demo_input = &
-      [ CHARACTER(len=40) ::                                &
-      'region       box block 0 $x 0 3 0 4',                &
-      'create_box 1 box',                                   &
-      'create_atoms 1 single 1.0 1.0 ${zpos}' ]
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: cont_input = &
-      [ CHARACTER(len=40) ::                                &
-      'create_atoms 1 single &',                            &
-      ' 0.2 0.1 0.1',                                       &
-      'create_atoms 1 single 0.5 0.5 0.5' ]
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: pair_input = &
-      [ CHARACTER(LEN=40) ::                                &
-      'pair_style lj/cut 2.5',                              &
-      'pair_coeff 1 1 1.0 1.0',                             &
-      'mass 1 2.0' ]
-END MODULE keepcompute
-
 FUNCTION f_lammps_with_args() BIND(C)
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
-  USE keepcompute, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_with_args
   CHARACTER(len=12), DIMENSION(12), PARAMETER :: args = &
@@ -35,7 +15,7 @@ END FUNCTION f_lammps_with_args
 SUBROUTINE f_lammps_close() BIND(C)
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepcompute, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
 
   CALL lmp%close()
@@ -44,11 +24,12 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_setup_extract_compute () BIND(C)
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp, demo_input, cont_input, pair_input
+   USE keepstuff, ONLY : lmp, big_input, cont_input, more_input, pair_input
    IMPLICIT NONE
 
-   CALL lmp%commands_list(demo_input)
+   CALL lmp%commands_list(big_input)
    CALL lmp%commands_list(cont_input)
+   CALL lmp%commands_list(more_input)
    CALL lmp%commands_list(pair_input)
    CALL lmp%command("compute peratompe all pe/atom") ! per-atom vector
    call lmp%command("compute stress all stress/atom thermo_temp") ! per-atom array
@@ -64,7 +45,7 @@ END SUBROUTINE f_lammps_setup_extract_compute
 FUNCTION f_lammps_extract_compute_peratom_vector (i) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i
    REAL(C_double) :: f_lammps_extract_compute_peratom_vector
@@ -77,7 +58,7 @@ END FUNCTION f_lammps_extract_compute_peratom_vector
 FUNCTION f_lammps_extract_compute_peratom_array (i,j) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i, j
    REAL(C_double) :: f_lammps_extract_compute_peratom_array
@@ -90,7 +71,7 @@ END FUNCTION f_lammps_extract_compute_peratom_array
 FUNCTION f_lammps_extract_compute_global_scalar () BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL(C_double) :: f_lammps_extract_compute_global_scalar
    REAL(C_double), POINTER :: scalar
@@ -102,7 +83,7 @@ END FUNCTION f_lammps_extract_compute_global_scalar
 FUNCTION f_lammps_extract_compute_global_vector (i) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i
    REAL(C_double) :: f_lammps_extract_compute_global_vector
@@ -115,7 +96,7 @@ END FUNCTION f_lammps_extract_compute_global_vector
 FUNCTION f_lammps_extract_compute_global_array (i,j) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i, j
    REAL(C_double) :: f_lammps_extract_compute_global_array
@@ -128,7 +109,7 @@ END FUNCTION f_lammps_extract_compute_global_array
 FUNCTION f_lammps_extract_compute_local_vector (i) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i
    REAL(C_double) :: f_lammps_extract_compute_local_vector
@@ -141,7 +122,7 @@ END FUNCTION f_lammps_extract_compute_local_vector
 FUNCTION f_lammps_extract_compute_local_array (i, j) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepcompute, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i, j
    REAL(C_double) :: f_lammps_extract_compute_local_array

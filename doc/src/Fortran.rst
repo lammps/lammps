@@ -1070,11 +1070,13 @@ Procedures Bound to the lammps Derived Type
     data (if absent, use "all")
    :r polymorphic: scalar of type ``REAL(c_double)`` (for *equal*-style
     variables and others that are *equal*-compatible), vector of type
-    ``REAL(c_double), DIMENSION(nlocal)`` for *atom*-style variables, or
-    ``CHARACTER(LEN=*)`` for *string*-style and compatible variables. Strings
-    whose length is too short to hold the result will be truncated.
-    Allocatable strings must be allocated before this function is called;
-    see note at :f:func:`extract_global` regarding allocatable strings.
+    ``REAL(c_double), DIMENSION(:), ALLOCATABLE`` for *atom*- or *vector*-style
+    variables, or ``CHARACTER(LEN=*)`` for *string*-style and compatible
+    variables. Strings whose length is too short to hold the result will be
+    truncated. Allocatable strings must be allocated before this function is
+    called; see note at :f:func:`extract_global` regarding allocatable strings.
+    Allocatable arrays (for *atom*- and *vector*-style data) will be
+    reallocated on assignment.
 
 .. note::
 
@@ -1083,6 +1085,84 @@ Procedures Bound to the lammps Derived Type
    info), so it may fail with an error.  The caller has to make certain
    that the data are extracted only when it is safe to evaluate the variable
    and thus an error and crash are avoided.
+
+--------
+
+.. f:function:: gather_atoms(name, count, data)
+
+   This function calls :c:func:`lammps_gather_atoms` to gather the named
+   atom-based entity for all atoms on all processors and return it in the
+   vector *data*. The vector *data* will be ordered by atom
+   ID, which requires consecutive atom IDs (1 to *natoms*).
+
+   .. versionadded:: TBD
+
+   If you need a similar array but have non-consecutive atom IDs, see
+   :f:func:`gather_atoms_concat`; for a similar array but for a subset
+   of atoms, see :f:func:`gather_atoms_subset`.
+
+   The *data* array will be ordered in groups of *count* values, sorted by atom
+   ID (e.g., if *name* is *x* and *count* = 3, then *data* = x[1][1], x[2][1], 
+   x[3][1], x[1][2], x[2][2], x[3][2], x[1][3], :math:`\dots`);
+   *data* must be ``ALLOCATABLE`` and will be allocated to length
+   (*count* :math:`\times` *natoms*), as queried by
+   :f:func:`extract_setting`.
+
+   :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
+   :p integer(c_int) count: number of per-atom values you expect per atom
+    (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
+    *count* = 3 with *image* if you want a single image flag unpacked into
+    *x*/*y*/*z* components.
+   :p real(c_double) data [dimension(:),allocatable]: array into which to store
+    the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
+    (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
+    reallocated to fit the length of the incoming data.
+
+   .. note::
+
+      If you want data from this function to be accessible as a two-dimensional
+      array, you can declare a rank-2 pointer and reassign it, like so:
+
+      .. code-block:: Fortran
+
+         USE, INTRINSIC :: ISO_C_BINDING
+         USE LIBLAMMPS
+         TYPE(lammps) :: lmp
+         REAL(c_double), DIMENSION(:), ALLOCATABLE, TARGET :: xdata
+         REAL(c_double), DIMENSION(:,:), POINTER :: x
+         ! other code to set up, etc.
+         CALL lmp%gather_atoms('x',3,xdata)
+         x(1:3,1:size(xdata)/3) => xdata
+
+      You can then access the *y*\ -component of atom 3 with ``x(2,3)``.
+
+--------
+
+.. f:function:: gather_atoms_concat(name, count, data)
+
+   This function calls :c:func:`lammps_gather_atoms_concat` to gather the named
+   atom-based entity for all atoms on all processors and return it in the
+   vector *data*.
+
+   .. versionadded:: TBD
+
+   The vector *data* will not be ordered by atom ID, and there is no
+   restriction on the IDs being consecutive. If you need the IDs, you can do
+   another :f:func:`gather_atoms_concat` with *name* set to ``id``.
+
+   If you need a similar array but have consecutive atom IDs, see
+   :f:func:`gather_atoms`; for a similar array but for a subset of atoms, see
+   :f:func:`gather_atoms_subset`.
+
+   :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
+   :p integer(c_int) count: number of per-atom values you expect per atom
+    (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
+    *count* = 3 with *image* if you want a single image flag unpacked into
+    *x*/*y*/*z* components.
+   :p real(c_double) data [dimension(:),allocatable]: array into which to store
+    the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
+    (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
+    reallocated to fit the length of the incoming data.
 
 --------
 

@@ -25,9 +25,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { ONE, RUNNING, WINDOW };
-enum { SCALAR, VECTOR };
-
 /* ---------------------------------------------------------------------- */
 
 FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :

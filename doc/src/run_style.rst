@@ -277,7 +277,7 @@ Even a LJ system can benefit from rRESPA if the interactions are
 divided by the inner, middle and outer keywords.  A 2-fold or more
 speedup can be obtained while maintaining good energy conservation.
 In real units, for a pure LJ fluid at liquid density, with a sigma of
-3.0 Angstroms, and epsilon of 0.1 Kcal/mol, the following settings
+3.0 Angstroms, and epsilon of 0.1 kcal/mol, the following settings
 seem to work well:
 
 .. code-block:: LAMMPS

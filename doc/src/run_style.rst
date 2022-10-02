@@ -221,7 +221,7 @@ impropers, and dihedrals can be computed on this innermost 0.5 fs
 step.  The outermost timestep cannot be greater than 4.0 fs without
 risking energy drift.  Smooth switching of forces between the levels
 of the rRESPA hierarchy is also necessary to avoid drift, and a 1-2
-angstrom "healing distance" (the distance between the outer and inner
+Angstrom "healing distance" (the distance between the outer and inner
 cutoffs) works reasonably well.  We thus recommend the following
 settings for use of the *respa* style without SHAKE in biomolecular
 simulations:
@@ -277,7 +277,7 @@ Even a LJ system can benefit from rRESPA if the interactions are
 divided by the inner, middle and outer keywords.  A 2-fold or more
 speedup can be obtained while maintaining good energy conservation.
 In real units, for a pure LJ fluid at liquid density, with a sigma of
-3.0 angstroms, and epsilon of 0.1 Kcal/mol, the following settings
+3.0 Angstroms, and epsilon of 0.1 Kcal/mol, the following settings
 seem to work well:
 
 .. code-block:: LAMMPS

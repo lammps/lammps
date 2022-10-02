@@ -464,7 +464,7 @@ The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
 style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
 *box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring{A}}` for
+:doc:`units <units>` command (e.g., :math:`\AA` for
 units = *real* or *metal*\ .  A *lattice* value means the distance units are in
 lattice spacings.
 

@@ -86,7 +86,7 @@ will defined using the *c* values for the spacing along each reciprocal
 lattice axis. Note that manual mapping of the reciprocal space mesh is
 good for comparing diffraction results from  multiple simulations; however
 it can reduce the likelihood that Bragg reflections will be satisfied
-unless small spacing parameters (:math:`<0.05~\mathrm{\mathring A}^-1`)
+unless small spacing parameters (:math:`<0.05~\AA^-1`)
 are implemented.  Meshes with manual spacing do not require a periodic
 boundary.
 

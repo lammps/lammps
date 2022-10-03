@@ -70,23 +70,22 @@ if(DOWNLOAD_MDI)
     -Dplugins=ON
     -Dpython_plugins=${MDI_USE_PYTHON_PLUGINS}
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ""
-    BUILD_BYPRODUCTS "<BINARY_DIR>/MDI_Library/libmdi.a"
+    BUILD_BYPRODUCTS "<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/mdi/${CMAKE_STATIC_LIBRARY_PREFIX}mdi${CMAKE_STATIC_LIBRARY_SUFFIX}"
     )
 
   # where is the compiled library?
-  ExternalProject_get_property(mdi_build BINARY_DIR)
-  set(MDI_BINARY_DIR "${BINARY_DIR}/MDI_Library")
+  ExternalProject_get_property(mdi_build INSTALL_DIR)
   # workaround for older CMake versions
-  file(MAKE_DIRECTORY ${MDI_BINARY_DIR})
+  file(MAKE_DIRECTORY ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/mdi)
+  file(MAKE_DIRECTORY ${INSTALL_DIR}/include/mdi)
 
   # create imported target for the MDI library
   add_library(LAMMPS::MDI UNKNOWN IMPORTED)
   add_dependencies(LAMMPS::MDI mdi_build)
   set_target_properties(LAMMPS::MDI PROPERTIES
-    IMPORTED_LOCATION "${MDI_BINARY_DIR}/libmdi.a"
-    INTERFACE_INCLUDE_DIRECTORIES ${MDI_BINARY_DIR}
-    )
+    IMPORTED_LOCATION "${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/mdi/${CMAKE_STATIC_LIBRARY_PREFIX}mdi${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    INTERFACE_INCLUDE_DIRECTORIES ${INSTALL_DIR}/include/mdi
+  )
 
   set(MDI_DEP_LIBS "")
   # if compiling with python plugins we need

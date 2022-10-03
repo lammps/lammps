@@ -3,6 +3,8 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "platform.h"
+
 #include <mpi.h>
 #include <string>
 #include <cstdio>
@@ -175,8 +177,9 @@ TEST_F(LAMMPS_extract_variable, format_pad)
 
 TEST_F(LAMMPS_extract_variable, getenv)
 {
+   LAMMPS_NS::platform::putenv("FORTRAN_USER=myuser");
    f_lammps_setup_extract_variable();
-   char *env = std::getenv("USERNAME");
+   char *env = std::getenv("FORTRAN_USER");
    char *fenv = f_lammps_extract_variable_getenv();
    EXPECT_STREQ(fenv, env);
    std::free(fenv);

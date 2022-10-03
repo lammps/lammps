@@ -1,14 +1,14 @@
 The ``LIBLAMMPS`` Fortran Module
 ********************************
 
-The ``LIBLAMMPS`` module provides an interface to call LAMMPS from a
-Fortran code.  It is based on the LAMMPS C-library interface and
-requires a Fortran 2003 compatible compiler to be compiled.  It is
+The ``LIBLAMMPS`` module provides an interface to call LAMMPS from Fortran.
+It is based on the LAMMPS C library interface and
+requires a Fortran 2003-compatible compiler to be compiled.  It is
 designed to be self-contained and not require any support functions
-written in C, C++, or Fortran.
+written in C, C++, or Fortran other than those in the C library interface.
 
 While C libraries have a defined binary interface (ABI) and can thus be
-used from multiple compiler versions from different vendors for as long
+used from multiple compiler versions from different vendors as long
 as they are compatible with the hosting operating system, the same is
 not true for Fortran programs.  Thus, the LAMMPS Fortran module needs to be
 compiled alongside the code using it from the source code in
@@ -49,7 +49,7 @@ folder of the LAMMPS distribution.
 .. note::
 
    A contributed (and more complete!) Fortran interface that more
-   closely resembles the C-library interface is available in the
+   closely resembles the C library interface is available in the
    ``examples/COUPLE/fortran2`` folder.  Please see the ``README`` file
    in that folder for more information about it and how to contact its
    author and maintainer.
@@ -62,8 +62,8 @@ Creating or deleting a LAMMPS object
 With the Fortran interface, the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructor for
 creating the :f:func:`lammps` derived type.  To import the definition of
-that type and its type-bound procedures, you need to add a ``USE
-LIBLAMMPS`` statement.  Internally, it will call either
+that type and its type-bound procedures, you need to add a ``USE LIBLAMMPS``
+statement.  Internally, it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are
 optional and :cpp:func:`lammps_mpi_init` will be called automatically
@@ -178,11 +178,13 @@ Accessing system properties
 
 The C library interface allows the :doc:`extraction of different kinds
 of information <Library_properties>` about the active simulation
-instance and also---in some cases---to apply modifications to it.  In
-some cases, the C library interface makes pointers to internal data
-structures accessible; when accessing them through the library interfaces,
-special care is needed to avoid data corruption and crashes.  Please see
-the documentation of the individual type-bound procedures for details.
+instance and also---in some cases---to apply modifications to it, and the
+Fortran interface provides access to the same data using Fortran-style,
+C-interoperable data types.  In some cases, the Fortran library interface makes
+pointers to internal LAMMPS data structures accessible; when accessing them
+through the library interfaces, special care is needed to avoid data corruption
+and crashes.  Please see the documentation of the individual type-bound
+procedures for details.
 
 Below is an example demonstrating some of the possible uses.
 
@@ -258,6 +260,11 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f function extract_compute: :f:func:`extract_compute`
    :f function extract_fix: :f:func:`extract_fix`
    :f function extract_variable: :f:func:`extract_variable`
+   :f subroutine gather_atoms: :f:func:`gather_atoms`
+   :f subroutine gather_atoms_concat: :f:func:`gather_atoms_concat`
+   :f subroutine gather_atoms_subset: :f:func:`gather_atoms_subset`
+   :f subroutine scatter_atoms: :f:func:`scatter_atoms`
+   :f subroutine scatter_atoms_subset: :f:func:`scatter_atoms_subset`
    :f function version: :f:func:`version`
    :f subroutine flush_buffers: :f:func:`flush_buffers`
    :f function is_running: :f:func:`is_running`
@@ -1041,9 +1048,8 @@ Procedures Bound to the lammps Derived Type
 
    This function returns the values of the variables, not pointers to them.
    Vectors pointing to *atom*-style variables should be of type
-   ``REAL(c_double)``, be of rank 1 (i.e., ``DIMENSION(:)``), and either have
-   the ``ALLOCATABLE`` attribute or be long enough to contain the data without
-   reallocation.
+   ``REAL(c_double)``, be of rank 1 (i.e., ``DIMENSION(:)``), and have the
+   ``ALLOCATABLE`` attribute.
 
    .. note::
 
@@ -1088,7 +1094,7 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
-.. f:function:: gather_atoms(name, count, data)
+.. f:subroutine:: gather_atoms(name, count, data)
 
    This function calls :c:func:`lammps_gather_atoms` to gather the named
    atom-based entity for all atoms on all processors and return it in the
@@ -1135,10 +1141,11 @@ Procedures Bound to the lammps Derived Type
          x(1:3,1:size(xdata)/3) => xdata
 
       You can then access the *y*\ -component of atom 3 with ``x(2,3)``.
+      See the note about array index order at :f:func:`extract_atom`.
 
 --------
 
-.. f:function:: gather_atoms_concat(name, count, data)
+.. f:subroutine:: gather_atoms_concat(name, count, data)
 
    This function calls :c:func:`lammps_gather_atoms_concat` to gather the named
    atom-based entity for all atoms on all processors and return it in the
@@ -1166,6 +1173,100 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
+.. f:subroutine:: gather_atoms_subset(name, count, ids, data)
+
+   This function calls :c:func:`lammps_gather_atoms_subset` to gather the named
+   atom-based entity for the atoms in the array *ids* from all processors and
+   return it in the vector *data*.
+
+   .. versionadded: TBD
+
+   This subroutine gathers data for the requested atom IDs and stores them in a
+   one-dimensional array allocated by the user. The data will be ordered by
+   atom ID, but there is no requirement that the IDs be consecutive. If you
+   wish to return a similar array for *all* the atoms, use
+   :f:func:`gather_atoms` or :f:func:`gather_atoms_concat`.
+
+   The *data* array will be in groups of *count* values, sorted by atom ID
+   in the same order as the array *ids* (e.g., if *name* is *x*, *count* = 3,
+   and *ids* is [100, 57, 210], then *data* might look like
+   [x(1,100), x(2,100), x(3,100), x(1,57), x(2,57), x(3,57), x(1,210),
+   :math:`\dots`]; *ids* must be provided by the user, and *data* must be
+   of rank 1 (i.e., ``DIMENSION(:)``) and have the ``ALLOCATABLE`` attribute.
+
+   :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
+   :p integer(c_int) count: number of per-atom values you expect per atom
+    (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
+    *count* = 3 with *image* if you want a single image flag unpacked into
+    *x*/*y*/*z* components.
+   :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
+    to be gathered
+   :p real(c_double) data [dimension(:),allocatable]: array into which to store
+    the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
+    (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
+    reallocated to fit the length of the incoming data.
+
+--------
+
+.. f:subroutine:: scatter_atoms(name, data)
+
+   This function calls :c:func:`lammps_scatter_atoms` to scatter the named
+   atom-based entities in *data* to all processors.
+
+   .. versionadded:: TBD
+
+   This subroutine takes data stored in a one-dimensional array supplied by the
+   user and scatters them to all atoms on all processors. The data must be
+   ordered by atom ID, with the requirement that the IDs be consecutive.
+   Use :f:func:`scatter_atoms_subset` to scatter data for some (or all)
+   atoms, in any order.
+
+   The *data* array needs to be ordered in groups of *count* values, sorted by
+   atom ID (e.g., if *name* is *x* and *count* = 3, then
+   *data* = [x(1,1) x(2,1) x(3,1) x(1,2) x(2,2) x(3,2) x(1,3) :math:`\dots`];
+   *data* must be of length (*count* :math:`\times` *natoms*).
+
+   :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
+   :p polymorphic data [dimension(:)]: per-atom values packed in a one-dimensional array
+    containing the data to be scattered. This array must have length *natoms*
+    (e.g., for *type* or *charge*) or length *natoms*\ :math:`\times 3`
+    (e.g., for *x* or *f*). The array *data* must be rank 1 (i.e.,
+    ``DIMENSION(:)``) and be of type ``INTEGER(c_int)`` (e.g., for *mask* or
+    *type*) or of type ``REAL(c_double)`` (e.g., for *x* or *charge* or *f*).
+
+--------
+
+.. f:subroutine:: scatter_atoms_subset(name, ids, data)
+
+   This function calls :c:func:`lammps_scatter_atoms_subset` to scatter the
+   named atom-based entities in *data* to all processors.
+
+   .. versionadded:: TBD
+
+   This subroutine takes data stored in a one-dimensional array supplied by the
+   user and scatters them to a subset of atoms on all processors. The array
+   *data* contains data associated with atom IDs, but there is no requirement
+   that the IDs be consecutive, as they are provided in a separate array,
+   *ids*. Use :f:func:`scatter_atoms` to scatter data for all atoms, in order.
+
+   The *data* array needs to be organized in groups of 1 or 3 values,
+   depending on which quantity is being scattered, with the groups in the same
+   order as the array *ids*. For example, if you want *data* to be the array
+   [x(1,1) x(2,1) x(3,1) x(1,100) x(2,100) x(3,100) x(1,57) x(2,57) x(3,57)],
+   then *ids* would be [1 100 57] and *name* would be *x*.
+
+   :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
+   :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
+    being scattered
+   :p polymorphic data [dimension(:)]: per-atom values packed into a
+    one-dimensional array containing the data to be scattered. This array must
+    have either the same length as *ids* (for *mask*, *type*, etc.) or three
+    times its length (for *x*, *f*, etc.); the array must be rank 1
+    and be of type ``INTEGER(c_int)`` (e.g., for *mask* or *type*) or of type
+    ``REAL(c_double)`` (e.g., *charge*, *x*, or *f*).
+
+--------
+
 .. f:function:: version()
 
    This method returns the numeric LAMMPS version like
@@ -1183,8 +1284,8 @@ Procedures Bound to the lammps Derived Type
    .. versionadded:: TBD
 
    A suitable buffer has to be provided. The assembled text will be truncated
-   to not overflow this buffer. The string is typically a few hundred bytes
-   long.
+   so as not to overflow this buffer. The string is typically a few hundred
+   bytes long.
 
 --------
 

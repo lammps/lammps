@@ -2551,10 +2551,12 @@ return a similar array for *all* the atoms, use :cpp:func:`lammps_gather_atoms`
 or :cpp:func:`lammps_gather_atoms_concat`.
 
 The *data* array will be in groups of *count* values, sorted by atom ID
-(e.g., if *name* is *x* and *count* = 3, then *data* might look like
-x[100][0], x[100][1], x[100][2], x[101][0], x[101][1], x[101][2], x[102][0],
-:math:`\dots`); *data* must be pre-allocated by the caller to length (*count*
-:math:`\times` *ndata*).
+in the same order as the array *ids* (e.g., if *name* is *x*, *count* = 3, and
+*ids* is {100, 57, 210}, then *data* might look like {x[100][0], x[100][1],
+x[100][2], x[57][0], x[57][1], x[57][2], x[210][0], :math:`\dots`);
+*ids* must be provided by the user with length *ndata*, and
+*data* must be pre-allocated by the caller to length
+(*count* :math:`\times` *ndata*).
 
 \endverbatim
  *
@@ -2601,7 +2603,7 @@ void lammps_gather_atoms_subset(void *handle, char *name, int type, int count,
     if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_gather_atoms_subset");
+        lmp->error->warning(FLERR,"Library error in lammps_gather_atoms_subset: atoms must have mappable ids");
       return;
     }
 
@@ -2757,7 +2759,7 @@ void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *d
     if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
+        lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms: ids must exist, be consecutive, and be mapped");
       return;
     }
 
@@ -2908,7 +2910,7 @@ void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count,
     if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag) {
       if (lmp->comm->me == 0)
-        lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms_subset");
+        lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms_subset: atoms must have mapped ids");
       return;
     }
 

@@ -40,8 +40,8 @@
 
 /** Data type constants for extracting data from atoms, computes and fixes
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py
- * and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
@@ -55,8 +55,8 @@ enum _LMP_DATATYPE_CONST {
 
 /** Style constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py
- * and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL = 0, /*!< return global data */
@@ -66,8 +66,8 @@ enum _LMP_STYLE_CONST {
 
 /** Type and size constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py
- * and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR = 0, /*!< return scalar */
@@ -80,8 +80,8 @@ enum _LMP_TYPE_CONST {
 
 /** Error codes to select the suitable function in the Error class
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py
- * and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 enum _LMP_ERROR_CONST {
   LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
@@ -93,8 +93,8 @@ enum _LMP_ERROR_CONST {
 
 /** Variable style constants for extracting data from variables.
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py
- * and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 enum _LMP_VAR_CONST {
   LMP_VAR_EQUAL = 0,  /*!< compatible with equal-style variables */

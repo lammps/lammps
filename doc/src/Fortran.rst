@@ -1108,7 +1108,7 @@ Procedures Bound to the lammps Derived Type
    of atoms, see :f:func:`gather_atoms_subset`.
 
    The *data* array will be ordered in groups of *count* values, sorted by atom
-   ID (e.g., if *name* is *x* and *count* = 3, then *data* = x[1][1], x[2][1], 
+   ID (e.g., if *name* is *x* and *count* = 3, then *data* = x[1][1], x[2][1],
    x[3][1], x[1][2], x[2][2], x[3][2], x[1][3], :math:`\dots`);
    *data* must be ``ALLOCATABLE`` and will be allocated to length
    (*count* :math:`\times` *natoms*), as queried by

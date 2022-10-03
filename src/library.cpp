@@ -2235,7 +2235,7 @@ a similar array but have non-consecutive atom IDs, see
 of atoms, see :cpp:func:`lammps_gather_atoms_subset`.
 
 The *data* array will be ordered in groups of *count* values, sorted by atom ID
-(e.g., if *name* is *x* and *count* = 3, then *data* = x[0][0], x[0][1], 
+(e.g., if *name* is *x* and *count* = 3, then *data* = x[0][0], x[0][1],
 x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], :math:`\dots`);
 *data* must be pre-allocated by the caller to length (*count* :math:`\times`
 *natoms*), as queried by :cpp:func:`lammps_get_natoms`,
@@ -2383,7 +2383,7 @@ This subroutine gathers data for all atoms and stores them in a
 one-dimensional array allocated by the user. The data will be a concatenation
 of chunks from each processor's owned atoms, in whatever order the atoms are
 in on each processor. This process has no requirement that the atom IDs be
-consecutive. If you need the ID of each atom, you can do another 
+consecutive. If you need the ID of each atom, you can do another
 :cpp:func:`lammps_gather_atoms_concat` call with *name* set to ``id``.
 If you have consecutive IDs and want the data to be in order, use
 :cpp:func:`lammps_gather_atoms`; for a similar array but for a subset

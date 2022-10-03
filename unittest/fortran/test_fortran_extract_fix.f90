@@ -1,27 +1,7 @@
-MODULE keepfix
-  USE liblammps
-  TYPE(LAMMPS) :: lmp
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: demo_input = &
-      [ CHARACTER(LEN=40) ::                                &
-      'region       box block 0 $x 0 3 0 4',                &
-      'create_box 1 box',                                   &
-      'create_atoms 1 single 1.0 1.0 ${zpos}' ]
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: cont_input = &
-      [ CHARACTER(LEN=40) ::                                &
-      'create_atoms 1 single &',                            &
-      ' 0.2 0.1 0.1',                                       &
-      'create_atoms 1 single 0.5 0.5 0.5' ]
-  CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: pair_input = &
-      [ CHARACTER(LEN=40) ::                                &
-      'pair_style lj/cut 2.5',                              &
-      'pair_coeff 1 1 1.0 1.0',                             &
-      'mass 1 2.0' ]
-END MODULE keepfix
-
 FUNCTION f_lammps_with_args() BIND(C)
   USE ISO_C_BINDING, ONLY: C_ptr
   USE liblammps
-  USE keepfix, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
   TYPE(C_ptr) :: f_lammps_with_args
   CHARACTER(len=12), DIMENSION(12), PARAMETER :: args = &
@@ -35,7 +15,7 @@ END FUNCTION f_lammps_with_args
 SUBROUTINE f_lammps_close() BIND(C)
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepfix, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
 
   CALL lmp%close()
@@ -44,11 +24,12 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_setup_extract_fix () BIND(C)
    USE LIBLAMMPS
-   USE keepfix, ONLY : lmp, demo_input, cont_input, pair_input
+   USE keepstuff, ONLY : lmp, big_input, cont_input, pair_input, more_input
    IMPLICIT NONE
 
-   CALL lmp%commands_list(demo_input)
+   CALL lmp%commands_list(big_input)
    CALL lmp%commands_list(cont_input)
+   CALL lmp%commands_list(more_input)
    CALL lmp%commands_list(pair_input)
    CALL lmp%command("fix state all store/state 0 z") ! per-atom vector
    CALL lmp%command("fix move all move linear 0 0 0") ! for per-atom array
@@ -62,7 +43,7 @@ END SUBROUTINE f_lammps_setup_extract_fix
 FUNCTION f_lammps_extract_fix_global_scalar () BIND(C) RESULT(scalar)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
    USE LIBLAMMPS
-   USE keepfix, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    REAL(C_double) :: scalar
 
@@ -72,7 +53,7 @@ END FUNCTION f_lammps_extract_fix_global_scalar
 FUNCTION f_lammps_extract_fix_global_vector (i) BIND(C) RESULT(element)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepfix, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i
    REAL(C_double) :: element
@@ -83,7 +64,7 @@ END FUNCTION f_lammps_extract_fix_global_vector
 FUNCTION f_lammps_extract_fix_global_array (i,j) BIND(C) RESULT(element)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepfix, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i, j
    REAL(C_double) :: element
@@ -94,7 +75,7 @@ END FUNCTION f_lammps_extract_fix_global_array
 FUNCTION f_lammps_extract_fix_peratom_vector (i) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepfix, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i
    REAL(C_double) :: f_lammps_extract_fix_peratom_vector
@@ -107,7 +88,7 @@ END FUNCTION f_lammps_extract_fix_peratom_vector
 FUNCTION f_lammps_extract_fix_peratom_array (i,j) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
    USE LIBLAMMPS
-   USE keepfix, ONLY : lmp
+   USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(C_int), INTENT(IN), VALUE :: i, j
    REAL(C_double) :: f_lammps_extract_fix_peratom_array

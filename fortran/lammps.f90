@@ -103,7 +103,8 @@ MODULE LIBLAMMPS
     PROCEDURE :: extract_fix            => lmp_extract_fix
     PROCEDURE :: extract_variable       => lmp_extract_variable
     PROCEDURE :: set_variable           => lmp_set_variable
-    PROCEDURE, PRIVATE :: lmp_gather_atoms_int, lmp_gather_atoms_double
+    PROCEDURE, PRIVATE :: lmp_gather_atoms_int
+    PROCEDURE, PRIVATE :: lmp_gather_atoms_double
     GENERIC   :: gather_atoms           => lmp_gather_atoms_int, &
                                            lmp_gather_atoms_double
     PROCEDURE, PRIVATE :: lmp_gather_atoms_concat_int
@@ -114,7 +115,8 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_gather_atoms_subset_double
     GENERIC   :: gather_atoms_subset    => lmp_gather_atoms_subset_int, &
                                            lmp_gather_atoms_subset_double
-    PROCEDURE, PRIVATE :: lmp_scatter_atoms_int, lmp_scatter_atoms_double
+    PROCEDURE, PRIVATE :: lmp_scatter_atoms_int
+    PROCEDURE, PRIVATE :: lmp_scatter_atoms_double
     GENERIC   :: scatter_atoms          => lmp_scatter_atoms_int, &
                                            lmp_scatter_atoms_double
 !
@@ -1504,7 +1506,7 @@ CONTAINS
 
     Cname = f2c_string(name)
     Cdata = C_LOC(data(1))
-    Cids = C_LOC(ids)
+    Cids = C_LOC(ids(1))
     CALL lammps_scatter_atoms_subset(self%handle, Cname, Ctype, Ccount, &
       Cndata, Cids, Cdata)
     CALL lammps_free(Cname)
@@ -1529,7 +1531,7 @@ CONTAINS
 
     Cname = f2c_string(name)
     Cdata = C_LOC(data(1))
-    Cids = C_LOC(ids)
+    Cids = C_LOC(ids(1))
     CALL lammps_scatter_atoms_subset(self%handle, Cname, Ctype, Ccount, &
       Cndata, Cids, Cdata)
     CALL lammps_free(Cname)
@@ -1808,6 +1810,10 @@ CONTAINS
 
     IF ( rhs%datatype == DATA_STRING ) THEN
       lhs = rhs%str
+      IF ( LEN_TRIM(rhs%str) > LEN(lhs) ) THEN
+        CALL lmp_error(rhs%lammps_instance, LMP_ERROR_WARNING, &
+          'String provided by user required truncation [Fortran API]')
+      END IF
     ELSE
       CALL assignment_error(rhs, 'string')
     END IF
@@ -1882,6 +1888,10 @@ CONTAINS
 
     IF ( rhs%datatype == DATA_STRING ) THEN
       lhs = rhs%str
+      IF ( LEN_TRIM(rhs%str) > LEN(lhs) ) THEN
+        CALL lmp_error(rhs%lammps_instance, LMP_ERROR_WARNING, &
+          'String provided by user required truncation [Fortran API]')
+      END IF
     ELSE
       CALL assignment_error(rhs, 'string')
     END IF

@@ -179,10 +179,7 @@ void PairEAMAlloyGPU::init_style()
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
-  if (fp_size == sizeof(double))
-    fp_single = false;
-  else
-    fp_single = true;
+  fp_single = fp_size != sizeof(double);
 
   embedstep = -1;
 }

@@ -53,6 +53,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;
+  special_onefive = 0;
   special_extra = 0;
 
   dielectric = 1.0;
@@ -704,6 +705,7 @@ void Force::set_special(int narg, char **arg)
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;
+  special_onefive = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -768,6 +770,19 @@ void Force::set_special(int narg, char **arg)
     } else if (strcmp(arg[iarg], "dihedral") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal special_bonds command");
       special_dihedral = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "one/five") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal special_bonds command");
+      if (strcmp(arg[iarg + 1], "no") == 0)
+        special_onefive = 0;
+      else if (strcmp(arg[iarg + 1], "yes") == 0)
+        special_onefive = 1;
+      else
+        error->all(FLERR, "Illegal special_bonds command");
+      if (special_onefive && atom->nspecial15_flag == 0)
+        error->all(FLERR,
+                   "Cannot set special_bonds one/five if "
+                   "atom style does not support it");
       iarg += 2;
     } else
       error->all(FLERR, "Illegal special_bonds command");

@@ -22,14 +22,16 @@
 namespace LAMMPS_NS {
 class Memory;
 
-typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI } lattice_t;
+typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI, SC } lattice_t;
 
 class MEAM {
  public:
   MEAM(Memory *mem);
-  ~MEAM();
+  virtual ~MEAM();
 
- private:
+  int copymode;
+
+ protected:
   Memory *memory;
 
   // cutforce = force cutoff
@@ -261,6 +263,7 @@ class MEAM {
     else if (str == "lin") lat = LIN;
     else if (str == "zig") lat = ZIG;
     else if (str == "tri") lat = TRI;
+    else if (str == "sc") lat = SC;
     else {
       if (single)
         return false;
@@ -285,8 +288,8 @@ class MEAM {
                          double *rozero, int *ibar);
   void meam_setup_param(int which, double value, int nindex, int *index /*index(3)*/,
                         int *errorflag);
-  void meam_setup_done(double *cutmax);
-  void meam_dens_setup(int atom_nmax, int nall, int n_neigh);
+  virtual void meam_setup_done(double *cutmax);
+  virtual void meam_dens_setup(int atom_nmax, int nall, int n_neigh);
   void meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, int numneigh,
                       int *firstneigh, int numneigh_full, int *firstneigh_full, int fnoffset);
   void meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom,

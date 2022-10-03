@@ -37,6 +37,7 @@ class PPPMDispTIP4P : public PPPMDisp {
   void fieldforce_c_ik() override;
   void fieldforce_c_ad() override;
   void fieldforce_c_peratom() override;
+  void slabcorr(int) override;
 
  private:
   void find_M(int, int &, int &, double *);

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -17,20 +16,17 @@
 #include "comm.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-RegionDeprecated::RegionDeprecated(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg)
+RegionDeprecated::RegionDeprecated(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 {
   std::string my_style = style;
 
   if (my_style == "DEPRECATED") {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp,"\nRegion style 'DEPRECATED' is a dummy style\n\n");
+    if (lmp->comm->me == 0) utils::logmesg(lmp, "\nRegion style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR,"This region style is no longer available");
+  error->all(FLERR, "This region style is no longer available");
 }

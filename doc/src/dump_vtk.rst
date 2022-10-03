@@ -6,13 +6,13 @@ dump vtk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID vtk N file args
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* vtk = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
+* vtk = style of dump command (other styles such as *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = same as arguments for :doc:`dump_style custom <dump>`
@@ -28,17 +28,19 @@ Examples
 Description
 """""""""""
 
-Dump a snapshot of atom quantities to one or more files every N
-timesteps in a format readable by the `VTK visualization toolkit <http://www.vtk.org>`_ or other visualization tools that use it,
-e.g. `ParaView <http://www.paraview.org>`_.  The timesteps on which dump
+Dump a snapshot of atom quantities to one or more files every :math:`N`
+timesteps in a format readable by the `VTK visualization toolkit
+<https://www.vtk.org>`_ or other visualization tools that use it, such
+as `ParaView <https://www.paraview.org>`_.  The time steps on which dump
 output is written can also be controlled by a variable; see the
 :doc:`dump_modify every <dump_modify>` command for details.
 
 This dump style is similar to :doc:`dump_style custom <dump>` but uses
-the VTK library to write data to VTK simple legacy or XML format
+the VTK library to write data to VTK simple legacy or XML format,
 depending on the filename extension specified for the dump file.  This
 can be either *\*.vtk* for the legacy format or *\*.vtp* and *\*.vtu*,
-respectively, for XML format; see the `VTK homepage <http://www.vtk.org/VTK/img/file-formats.pdf>`_ for a detailed
+respectively, for XML format; see the `VTK homepage
+<https://www.vtk.org/VTK/img/file-formats.pdf>`_ for a detailed
 description of these formats.  Since this naming convention conflicts
 with the way binary output is usually specified (see below), the
 :doc:`dump_modify binary <dump_modify>` command allows setting of a
@@ -60,14 +62,15 @@ determine the kind of output.
 
 .. warning::
 
-   Unless the :doc:`dump_modify sort <dump_modify>` option
-   is invoked, the lines of atom information written to dump files will
-   be in an indeterminate order for each snapshot.  This is even true
-   when running on a single processor, if the :doc:`atom_modify sort <atom_modify>` option is on, which it is by default.  In this
-   case atoms are re-ordered periodically during a simulation, due to
-   spatial sorting.  It is also true when running in parallel, because
-   data for a single snapshot is collected from multiple processors, each
-   of which owns a subset of the atoms.
+   Unless the :doc:`dump_modify sort <dump_modify>` option is invoked,
+   the lines of atom information written to dump files will be in an
+   indeterminate order for each snapshot.  This is even true when
+   running on a single processor, if the :doc:`atom_modify sort
+   <atom_modify>` option is on, which it is by default.  In this case
+   atoms are re-ordered periodically during a simulation, due to spatial
+   sorting.  It is also true when running in parallel, because data for
+   a single snapshot is collected from multiple processors, each of
+   which owns a subset of the atoms.
 
 For the *vtk* style, sorting is off by default. See the
 :doc:`dump_modify <dump_modify>` page for details.

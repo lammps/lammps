@@ -48,20 +48,18 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
+using MathConst::MY_2PI;
 
 #define MAXENERGYTEST 1.0e50
-
-enum{EXCHATOM,EXCHMOL}; // exchmode
+enum { EXCHATOM, EXCHMOL };    // exchmode
 
 /* ---------------------------------------------------------------------- */
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  region(nullptr), idregion(nullptr), full_flag(false), local_gas_list(nullptr),
-  molcoords(nullptr),molq(nullptr), molimage(nullptr), random_equal(nullptr)
+    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false), molcoords(nullptr),
+    molq(nullptr), molimage(nullptr), random_equal(nullptr), c_pe(nullptr)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix widom command");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "fix widom", error);
 
   if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"Fix widom does not (yet) work with atom_style template");
@@ -83,11 +81,11 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   seed = utils::inumeric(FLERR,arg[6],false,lmp);
   insertion_temperature = utils::numeric(FLERR,arg[7],false,lmp);
 
-  if (nevery <= 0) error->all(FLERR,"Illegal fix widom command");
-  if (ninsertions < 0) error->all(FLERR,"Illegal fix widom command");
-  if (seed <= 0) error->all(FLERR,"Illegal fix widom command");
+  if (nevery <= 0) error->all(FLERR,"Invalid fix widom every argument: {}", nevery);
+  if (ninsertions < 0) error->all(FLERR,"Invalid fix widom insertions argument: {}", ninsertions);
+  if (seed <= 0) error->all(FLERR,"Invalid fix widom seed argument: {}", seed);
   if (insertion_temperature < 0.0)
-    error->all(FLERR,"Illegal fix widom command");
+    error->all(FLERR,"Invalid fix widom temperature argument: {}", insertion_temperature);
 
   // read options from end of input line
 
@@ -99,13 +97,12 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks on region and its extent being inside simulation box
 
-  region_xlo = region_xhi = region_ylo = region_yhi =
-    region_zlo = region_zhi = 0.0;
+  region_xlo = region_xhi = region_ylo = region_yhi = region_zlo = region_zhi = 0.0;
   if (region) {
     if (region->bboxflag == 0)
-      error->all(FLERR,"Fix widom region does not support a bounding box");
+      error->all(FLERR,"Fix widom region {} does not support a bounding box", region->id);
     if (region->dynamic_check())
-      error->all(FLERR,"Fix widom region cannot be dynamic");
+      error->all(FLERR,"Fix widom region {} cannot be dynamic", region->id);
 
     region_xlo = region->extent_xlo;
     region_xhi = region->extent_xhi;
@@ -117,7 +114,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     if (region_xlo < domain->boxlo[0] || region_xhi > domain->boxhi[0] ||
         region_ylo < domain->boxlo[1] || region_yhi > domain->boxhi[1] ||
         region_zlo < domain->boxlo[2] || region_zhi > domain->boxhi[2])
-      error->all(FLERR,"Fix widom region extends outside simulation box");
+      error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
 
     // estimate region volume using MC trials
 
@@ -132,8 +129,8 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
         inside++;
     }
 
-    double max_region_volume = (region_xhi - region_xlo) *
-      (region_yhi - region_ylo) * (region_zhi - region_zlo);
+    double max_region_volume = (region_xhi - region_xlo) * (region_yhi - region_ylo)
+      * (region_zhi - region_zlo);
 
     region_volume = max_region_volume * static_cast<double>(inside) / static_cast<double>(attempts);
   }
@@ -141,28 +138,25 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   // error check and further setup for exchmode = EXCHMOL
 
   if (exchmode == EXCHMOL) {
-    if (onemols[imol]->xflag == 0)
-      error->all(FLERR,"Fix widom molecule must have coordinates");
-    if (onemols[imol]->typeflag == 0)
-      error->all(FLERR,"Fix widom molecule must have atom types");
+    if (onemol->xflag == 0)
+      error->all(FLERR,"Fix widom molecule {} must have coordinates", onemol->id);
+    if (onemol->typeflag == 0)
+      error->all(FLERR,"Fix widom molecule {} must have atom types", onemol->id);
     if (nwidom_type != 0)
       error->all(FLERR,"Atom type must be zero in fix widom mol command");
-    if (onemols[imol]->qflag == 1 && atom->q == nullptr)
-      error->all(FLERR,"Fix widom molecule has charges, but atom style does not");
+    if (onemol->qflag == 1 && atom->q == nullptr)
+      error->all(FLERR,"Fix widom molecule {} has charges, but atom style does not", onemol->id);
 
-    if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
-      error->all(FLERR,"Fix widom molecule template ID must be same "
-                 "as atom_style template ID");
-    onemols[imol]->check_attributes(0);
+    onemol->check_attributes();
   }
 
   if (charge_flag && atom->q == nullptr)
-    error->all(FLERR,"Fix Widom atom has charge, but atom style does not");
+    error->all(FLERR,"Fix widom atom has charge, but atom style does not");
 
   // setup of array of coordinates for molecule insertion
 
   if (exchmode == EXCHATOM) natoms_per_molecule = 1;
-  else natoms_per_molecule = onemols[imol]->natoms;
+  else natoms_per_molecule = onemol->natoms;
   nmaxmolatoms = natoms_per_molecule;
   grow_molecule_arrays(nmaxmolatoms);
 
@@ -173,7 +167,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   // zero out counters
   widom_nmax = 0;
-  local_gas_list = nullptr;
+  ave_widom_chemical_potential = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -201,17 +195,16 @@ void FixWidom::options(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-  if (strcmp(arg[iarg],"mol") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
-      imol = atom->find_molecule(arg[iarg+1]);
-      if (imol == -1)
-        error->all(FLERR,"Molecule template ID for fix widom does not exist");
-      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix widom has multiple molecules");
+    if (strcmp(arg[iarg],"mol") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix widom mol", error);
+      auto onemols = atom->get_molecule_by_id(arg[iarg+1]);
+      if (onemols.size() == 0)
+        error->all(FLERR,"Molecule template ID {} for fix widom does not exist", arg[iarg+1]);
+      if (onemols.size() > 1 && comm->me == 0)
+        error->warning(FLERR,"Molecule template {} for fix widom has multiple molecules; "
+                       "will use only the first molecule", arg[iarg+1]);
       exchmode = EXCHMOL;
-      onemols = atom->molecules;
-      nmol = onemols[imol]->nset;
+      onemol = onemols[0];
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
@@ -243,7 +236,6 @@ FixWidom::~FixWidom()
   delete[] idregion;
   delete random_equal;
 
-  memory->destroy(local_gas_list);
   memory->destroy(molcoords);
   memory->destroy(molq);
   memory->destroy(molimage);
@@ -273,7 +265,7 @@ void FixWidom::init()
 
   triclinic = domain->triclinic;
 
-  ave_widom_chemical_potential = 0;
+  ave_widom_chemical_potential = 0.0;
 
   if (region) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
@@ -292,7 +284,7 @@ void FixWidom::init()
     }
   }
 
-  if (full_flag) c_pe = modify->compute[modify->find_compute("thermo_pe")];
+  if (full_flag) c_pe = modify->get_compute_by_id("thermo_pe");
 
   if (exchmode == EXCHATOM) {
     if (nwidom_type <= 0 || nwidom_type > atom->ntypes)
@@ -360,22 +352,21 @@ void FixWidom::init()
 
   if (exchmode == EXCHMOL) {
 
-    onemols[imol]->compute_mass();
-    onemols[imol]->compute_com();
-    gas_mass = onemols[imol]->masstotal;
-    for (int i = 0; i < onemols[imol]->natoms; i++) {
-      onemols[imol]->x[i][0] -= onemols[imol]->com[0];
-      onemols[imol]->x[i][1] -= onemols[imol]->com[1];
-      onemols[imol]->x[i][2] -= onemols[imol]->com[2];
+    onemol->compute_mass();
+    onemol->compute_com();
+    gas_mass = onemol->masstotal;
+    for (int i = 0; i < onemol->natoms; i++) {
+      onemol->x[i][0] -= onemol->com[0];
+      onemol->x[i][1] -= onemol->com[1];
+      onemol->x[i][2] -= onemol->com[2];
     }
-    onemols[imol]->com[0] = 0;
-    onemols[imol]->com[1] = 0;
-    onemols[imol]->com[2] = 0;
+    onemol->com[0] = 0;
+    onemol->com[1] = 0;
+    onemol->com[2] = 0;
 
   } else gas_mass = atom->mass[nwidom_type];
 
-  if (gas_mass <= 0.0)
-    error->all(FLERR,"Illegal fix widom gas mass <= 0");
+  if (gas_mass <= 0.0) error->all(FLERR,"Illegal fix widom gas mass <= 0");
 
   // check that no deletable atoms are in atom->firstgroup
   // deleting such an atom would not leave firstgroup atoms first
@@ -443,7 +434,6 @@ void FixWidom::pre_exchange()
   atom->nghost = 0;
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  update_gas_atoms_list();
 
   if (full_flag) {
     energy_stored = energy_full();
@@ -525,12 +515,12 @@ void FixWidom::attempt_atomic_insertion()
       if (!domain->inside(coord))
         error->one(FLERR,"Fix widom put atom outside box");
       if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-    coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-    coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
+          coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+          coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
     } else {
       if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
-    lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
-    lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
+          lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+          lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
     }
 
     if (proc_flag) {
@@ -545,9 +535,7 @@ void FixWidom::attempt_atomic_insertion()
       double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
       ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
     }
-
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -571,13 +559,13 @@ void FixWidom::attempt_molecule_insertion()
       com_coord[2] = region_zlo + random_equal->uniform() *
         (region_zhi-region_zlo);
       while (region->match(com_coord[0],com_coord[1],
-               com_coord[2]) == 0) {
+                           com_coord[2]) == 0) {
         com_coord[0] = region_xlo + random_equal->uniform() *
-    (region_xhi-region_xlo);
+          (region_xhi-region_xlo);
         com_coord[1] = region_ylo + random_equal->uniform() *
-    (region_yhi-region_ylo);
+          (region_yhi-region_ylo);
         com_coord[2] = region_zlo + random_equal->uniform() *
-    (region_zhi-region_zlo);
+          (region_zhi-region_zlo);
         region_attempt++;
         if (region_attempt >= max_region_attempts) return;
       }
@@ -622,7 +610,7 @@ void FixWidom::attempt_molecule_insertion()
     auto procflag = new bool[natoms_per_molecule];
 
     for (int i = 0; i < natoms_per_molecule; i++) {
-      MathExtra::matvec(rotmat,onemols[imol]->x[i],molcoords[i]);
+      MathExtra::matvec(rotmat,onemol->x[i],molcoords[i]);
       molcoords[i][0] += com_coord[0];
       molcoords[i][1] += com_coord[1];
       molcoords[i][2] += com_coord[2];
@@ -641,40 +629,37 @@ void FixWidom::attempt_molecule_insertion()
       procflag[i] = false;
       if (triclinic == 0) {
         if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
-      xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
-      xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) procflag[i] = true;
+            xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
+            xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) procflag[i] = true;
       } else {
         domain->x2lamda(xtmp,lamda);
         if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
-      lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
-      lamda[2] >= sublo[2] && lamda[2] < subhi[2]) procflag[i] = true;
+            lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+            lamda[2] >= sublo[2] && lamda[2] < subhi[2]) procflag[i] = true;
       }
 
       if (procflag[i]) {
         int ii = -1;
-        if (onemols[imol]->qflag == 1) {
-    ii = atom->nlocal + atom->nghost;
-    if (ii >= atom->nmax) atom->avec->grow(0);
-    atom->q[ii] = onemols[imol]->q[i];
+        if (onemol->qflag == 1) {
+          ii = atom->nlocal + atom->nghost;
+          if (ii >= atom->nmax) atom->avec->grow(0);
+          atom->q[ii] = onemol->q[i];
         }
-        insertion_energy += energy(ii,onemols[imol]->type[i],-1,xtmp);
+        insertion_energy += energy(ii,onemol->type[i],-1,xtmp);
       }
     }
 
     double insertion_energy_sum = 0.0;
     MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,
-      MPI_DOUBLE,MPI_SUM,world);
+                  MPI_DOUBLE,MPI_SUM,world);
 
     // the insertion_energy_sum is the variable with the energy of inserting one molecule
     double inst_chem_pot = exp(-insertion_energy_sum*beta);
     double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
     ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
 
-
     delete[] procflag;
-
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -727,12 +712,12 @@ void FixWidom::attempt_atomic_insertion_full()
       if (!domain->inside(coord))
         error->one(FLERR,"Fix widom put atom outside box");
       if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-    coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-    coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
+          coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+          coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
     } else {
       if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
-    lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
-    lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
+          lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+          lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
     }
 
     if (proc_flag) {
@@ -770,11 +755,7 @@ void FixWidom::attempt_atomic_insertion_full()
     if (proc_flag) atom->nlocal--;
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
-
-    update_gas_atoms_list();
-
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -803,20 +784,13 @@ void FixWidom::attempt_molecule_insertion_full()
     double com_coord[3];
     if (region) {
       int region_attempt = 0;
-      com_coord[0] = region_xlo + random_equal->uniform() *
-        (region_xhi-region_xlo);
-      com_coord[1] = region_ylo + random_equal->uniform() *
-        (region_yhi-region_ylo);
-      com_coord[2] = region_zlo + random_equal->uniform() *
-        (region_zhi-region_zlo);
-      while (region->match(com_coord[0],com_coord[1],
-               com_coord[2]) == 0) {
-        com_coord[0] = region_xlo + random_equal->uniform() *
-    (region_xhi-region_xlo);
-        com_coord[1] = region_ylo + random_equal->uniform() *
-    (region_yhi-region_ylo);
-        com_coord[2] = region_zlo + random_equal->uniform() *
-    (region_zhi-region_zlo);
+      com_coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
+      com_coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
+      com_coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
+      while (region->match(com_coord[0],com_coord[1], com_coord[2]) == 0) {
+        com_coord[0] = region_xlo + random_equal->uniform() * (region_xhi-region_xlo);
+        com_coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
+        com_coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
         region_attempt++;
         if (region_attempt >= max_region_attempts) return;
       }
@@ -861,7 +835,7 @@ void FixWidom::attempt_molecule_insertion_full()
 
     for (int i = 0; i < natoms_per_molecule; i++) {
       double xtmp[3];
-      MathExtra::matvec(rotmat,onemols[imol]->x[i],xtmp);
+      MathExtra::matvec(rotmat,onemol->x[i],xtmp);
       xtmp[0] += com_coord[0];
       xtmp[1] += com_coord[1];
       xtmp[2] += com_coord[2];
@@ -876,40 +850,39 @@ void FixWidom::attempt_molecule_insertion_full()
       int proc_flag = 0;
       if (triclinic == 0) {
         if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
-      xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
-      xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) proc_flag = 1;
+            xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
+            xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) proc_flag = 1;
       } else {
         domain->x2lamda(xtmp,lamda);
         if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] &&
-      lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
-      lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
+            lamda[1] >= sublo[1] && lamda[1] < subhi[1] &&
+            lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
       }
 
       if (proc_flag) {
-        atom->avec->create_atom(onemols[imol]->type[i],xtmp);
+        atom->avec->create_atom(onemol->type[i],xtmp);
         int m = atom->nlocal - 1;
 
         atom->image[m] = imagetmp;
         atom->molecule[m] = insertion_molecule;
         if (maxtag_all+i+1 >= MAXTAGINT)
-    error->all(FLERR,"Fix widom ran out of available atom IDs");
+          error->all(FLERR,"Fix widom ran out of available atom IDs");
         atom->tag[m] = maxtag_all + i + 1;
         atom->v[m][0] = 0;
         atom->v[m][1] = 0;
         atom->v[m][2] = 0;
 
-        atom->add_molecule_atom(onemols[imol],i,m,maxtag_all);
+        atom->add_molecule_atom(onemol,i,m,maxtag_all);
         modify->create_attribute(m);
       }
     }
 
     atom->natoms += natoms_per_molecule;
-    if (atom->natoms < 0)
-      error->all(FLERR,"Too many total atoms");
-    atom->nbonds += onemols[imol]->nbonds;
-    atom->nangles += onemols[imol]->nangles;
-    atom->ndihedrals += onemols[imol]->ndihedrals;
-    atom->nimpropers += onemols[imol]->nimpropers;
+    if (atom->natoms < 0) error->all(FLERR,"Too many total atoms");
+    atom->nbonds += onemol->nbonds;
+    atom->nangles += onemol->nangles;
+    atom->ndihedrals += onemol->ndihedrals;
+    atom->nimpropers += onemol->nimpropers;
     if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -924,10 +897,10 @@ void FixWidom::attempt_molecule_insertion_full()
     double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
     ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
 
-    atom->nbonds -= onemols[imol]->nbonds;
-    atom->nangles -= onemols[imol]->nangles;
-    atom->ndihedrals -= onemols[imol]->ndihedrals;
-    atom->nimpropers -= onemols[imol]->nimpropers;
+    atom->nbonds -= onemol->nbonds;
+    atom->nangles -= onemol->nangles;
+    atom->ndihedrals -= onemol->ndihedrals;
+    atom->nimpropers -= onemol->nimpropers;
     atom->natoms -= natoms_per_molecule;
 
     int i = 0;
@@ -939,9 +912,6 @@ void FixWidom::attempt_molecule_insertion_full()
     }
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
-
-    update_gas_atoms_list();
-
   }
 
 }
@@ -1059,92 +1029,6 @@ double FixWidom::energy_full()
   double total_energy = c_pe->compute_scalar();
 
   return total_energy;
-}
-
-/* ----------------------------------------------------------------------
-   update the list of gas atoms
-------------------------------------------------------------------------- */
-
-void FixWidom::update_gas_atoms_list()
-{
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
-  double **x = atom->x;
-
-  if (atom->nmax > widom_nmax) {
-    memory->sfree(local_gas_list);
-    widom_nmax = atom->nmax;
-    local_gas_list = (int *) memory->smalloc(widom_nmax*sizeof(int),
-     "Widom:local_gas_list");
-  }
-
-  ngas_local = 0;
-
-  if (region) {
-
-    if (exchmode == EXCHMOL) {
-
-      tagint maxmol = 0;
-      for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
-      tagint maxmol_all;
-      MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      auto comx = new double[maxmol_all];
-      auto comy = new double[maxmol_all];
-      auto comz = new double[maxmol_all];
-      for (int imolecule = 0; imolecule < maxmol_all; imolecule++) {
-        for (int i = 0; i < nlocal; i++) {
-          if (molecule[i] == imolecule) {
-            mask[i] |= molecule_group_bit;
-          } else {
-            mask[i] &= molecule_group_inversebit;
-          }
-        }
-        double com[3];
-        com[0] = com[1] = com[2] = 0.0;
-        group->xcm(molecule_group,gas_mass,com);
-
-        // remap unwrapped com into periodic box
-
-        domain->remap(com);
-        comx[imolecule] = com[0];
-        comy[imolecule] = com[1];
-        comz[imolecule] = com[2];
-      }
-
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
-          if (region->match(comx[molecule[i]],
-             comy[molecule[i]],comz[molecule[i]]) == 1) {
-            local_gas_list[ngas_local] = i;
-            ngas_local++;
-          }
-        }
-      }
-      delete[] comx;
-      delete[] comy;
-      delete[] comz;
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
-          if (region->match(x[i][0],x[i][1],x[i][2]) == 1) {
-            local_gas_list[ngas_local] = i;
-            ngas_local++;
-          }
-        }
-      }
-    }
-
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        local_gas_list[ngas_local] = i;
-        ngas_local++;
-      }
-    }
-  }
-
-  MPI_Allreduce(&ngas_local,&ngas,1,MPI_INT,MPI_SUM,world);
 }
 
 /* ----------------------------------------------------------------------

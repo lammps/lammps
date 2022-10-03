@@ -21,7 +21,7 @@
 
 using namespace LAMMPS_NS;
 
-GzFileWriter::GzFileWriter() : FileWriter(), compression_level(Z_BEST_COMPRESSION), gzFp(nullptr) {}
+GzFileWriter::GzFileWriter() : compression_level(Z_BEST_COMPRESSION), gzFp(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 

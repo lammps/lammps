@@ -19,7 +19,7 @@
 
 extern const char *COMPRESS_SUFFIX;
 extern const char *COMPRESS_EXTENSION;
-extern char *COMPRESS_BINARY;
+extern char *COMPRESS_EXECUTABLE;
 
 class CompressedDumpTest : public MeltTest {
 protected:
@@ -102,7 +102,7 @@ public:
         BEGIN_HIDE_OUTPUT();
         std::string converted_file = compressed_file.substr(0, compressed_file.find_last_of('.'));
         std::string cmdline =
-            fmt::format("{} -d -c {} > {}", COMPRESS_BINARY, compressed_file, converted_file);
+            fmt::format("\"{}\" -d -c {} > {}", COMPRESS_EXECUTABLE, compressed_file, converted_file);
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return converted_file;

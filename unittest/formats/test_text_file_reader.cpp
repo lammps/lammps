@@ -111,7 +111,7 @@ TEST_F(TextFileReaderTest, usefp)
     delete reader;
 
     // check that we reached EOF and the destructor didn't close the file.
-    ASSERT_EQ(feof(fp), 1);
+    ASSERT_NE(feof(fp), 0);
     ASSERT_EQ(fclose(fp), 0);
 }
 
@@ -166,9 +166,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

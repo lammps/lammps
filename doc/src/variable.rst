@@ -66,7 +66,7 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), extract_setting(name)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
          feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
@@ -319,11 +319,12 @@ in the input script, or if the script is read again in a loop. The other
 difference is that *string* performs variable substitution even if the
 string parameter is quoted.
 
-For the *format* style, an equal-style variable is specified along
-with a C-style format string, e.g. "%f" or "%.10g", which must be
-appropriate for formatting a double-precision floating-point value.
-The default format is "%.15g".  This variable style allows an
-equal-style variable to be formatted precisely when it is evaluated.
+For the *format* style, an equal-style or compatible variable is
+specified along with a C-style format string, e.g. "%f" or "%.10g",
+which must be appropriate for formatting a double-precision
+floating-point value and may not have extra characters.  The default
+format is "%.15g".  This variable style allows an equal-style variable
+to be formatted precisely when it is evaluated.
 
 Note that if you simply wish to print a variable value with desired
 precision to the screen or logfile via the :doc:`print <print>` or
@@ -505,7 +506,7 @@ references, and references to other variables.
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                    |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x)                                                                                                                                                                                                                                                          |
+| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x),  label2type(kind,label)                                                                                                                                                                                                                                 |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                            |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -685,7 +686,9 @@ of a run, according to this formula:
 The run begins on startstep and ends on stopstep.  Startstep and
 stopstep can span multiple runs, using the *start* and *stop* keywords
 of the :doc:`run <run>` command.  See the :doc:`run <run>` command for
-details of how to do this.
+details of how to do this.  If called in between runs or during a
+:doc:`run 0 <run>` command, the ramp(x,y) function will return the
+value of x.
 
 The stagger(x,y) function uses the current timestep to generate a new
 timestep.  X,y > 0 and x > y are required.  The generated timesteps
@@ -781,10 +784,14 @@ according to this formula:
 where dt = the timestep size.
 
 The run begins on startstep.  Startstep can span multiple runs, using
-the *start* keyword of the :doc:`run <run>` command.  See the
-:doc:`run <run>` command for details of how to do this.  Note that the
-:doc:`thermo_style <thermo_style>` keyword elaplong =
-timestep-startstep.
+the *start* keyword of the :doc:`run <run>` command.  See the :doc:`run
+<run>` command for details of how to do this.  Note that the
+:doc:`thermo_style <thermo_style>` keyword elaplong = timestep-startstep.
+If used between runs this function will return
+the value according to the end of the last run or the value of x if
+used before *any* runs.  This function assumes the length of the time
+step does not change and thus may not be used in combination with
+:doc:`fix dt/reset <fix_dt_reset>`.
 
 The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
 x = value0, y = amplitude, z = period.  They use the elapsed time to
@@ -799,10 +806,14 @@ run, according to one of these formulas, where omega = 2 PI / period:
 where dt = the timestep size.
 
 The run begins on startstep.  Startstep can span multiple runs, using
-the *start* keyword of the :doc:`run <run>` command.  See the
-:doc:`run <run>` command for details of how to do this.  Note that the
-:doc:`thermo_style <thermo_style>` keyword elaplong =
-timestep-startstep.
+the *start* keyword of the :doc:`run <run>` command.  See the :doc:`run
+<run>` command for details of how to do this.  Note that the
+:doc:`thermo_style <thermo_style>` keyword elaplong = timestep-startstep.
+If used between runs these functions will return
+the value according to the end of the last run or the value of x if
+used before *any* runs.  These functions assume the length of the time
+step does not change and thus may not be used in combination with
+:doc:`fix dt/reset <fix_dt_reset>`.
 
 ----------
 
@@ -846,15 +857,6 @@ Special Functions
 
 Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
-
-The is_file(name) function is a test whether *name* is a (readable) file
-and returns 1 in this case, otherwise it returns 0.  For that *name*
-is taken as a literal string and must not have any blanks in it.
-
-The extract_setting(name) function allows to access some basic settings
-through calling the :cpp:func:`lammps_extract_setting` library function.
-For available keywords *name* and their meaning, please see the
-documentation of that function.
 
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
 each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
@@ -934,6 +936,39 @@ invoked more times than there are lines or sets of lines in the file,
 the variable is deleted, similar to how the :doc:`next <next>` command
 operates.
 
+The is_file(name) function is a test whether *name* is a (readable) file
+and returns 1 in this case, otherwise it returns 0.  For that *name*
+is taken as a literal string and must not have any blanks in it.
+
+The is_os(name) function is a test whether *name* is part of the OS
+information that LAMMPS collects and provides in the
+:cpp:func:`platform::os_info() <LAMMPS_NS::platform::os_info>` function.
+The argument *name* is interpreted as a regular expression as documented
+for the :cpp:func:`utils::strmatch() <LAMMPS_NS::utils::strmatch>`
+function. This allows to adapt LAMMPS inputs to the OS it runs on:
+
+.. code-block:: LAMMPS
+
+   if $(is_os(^Windows)) then &
+     "shell copy ${input_dir}\some_file.txt ." &
+   else &
+     "shell cp ${input_dir}/some_file.txt ."
+
+The extract_setting(name) function enables access to basic settings for
+the LAMMPS executable and the running simulation via calling the
+:cpp:func:`lammps_extract_setting` library function.  For example, the
+number of processors (MPI ranks) being used by the simulation or the MPI
+process ID (for this processor) can be queried, or the number of atom
+types, bond types and so on. For the full list of available keywords
+*name* and their meaning, see the documentation for extract_setting()
+via the link in this paragraph.
+
+The label2type() function converts type labels into numeric types, using label
+maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
+commands.  The first argument is the label map kind (atom, bond, angle,
+dihedral, or improper) and the second argument is the label.  The function
+returns the corresponding numeric type.
+
 ----------
 
 Feature Functions
@@ -988,7 +1023,7 @@ step
 
 .. code-block:: LAMMPS
 
-   timestep $(2.0*(1.0+2.0*is_active(pair,respa))
+   timestep $(2.0*(1.0+2.0*is_active(pair,respa)))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
 The *is_available(category,name)* function allows to query whether

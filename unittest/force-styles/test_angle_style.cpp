@@ -32,8 +32,8 @@
 #include "input.h"
 #include "lammps.h"
 #include "modify.h"
-#include "universe.h"
 #include "platform.h"
+#include "universe.h"
 
 #include <cctype>
 #include <cstdio>
@@ -90,7 +90,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
@@ -133,7 +133,7 @@ void run_lammps(LAMMPS *lmp)
 {
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     command("fix 1 all nve");
@@ -148,7 +148,7 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     command("clear");
@@ -175,7 +175,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
@@ -226,7 +226,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
 
     const int natoms = lmp->atom->natoms;
-    std::string block("");
+    std::string block;
 
     YamlWriter writer(outfile);
 
@@ -297,9 +297,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_forces", block);
 
     cleanup_lammps(lmp, config);
-    return;
 }
-
 
 TEST(AngleStyle, plain)
 {
@@ -335,7 +333,7 @@ TEST(AngleStyle, plain)
     double epsilon = test_config.epsilon;
 
     ErrorStats stats;
-    auto angle  = lmp->force->angle;
+    auto angle = lmp->force->angle;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", angle->virial, test_config.init_stress, epsilon);
@@ -365,10 +363,11 @@ TEST(AngleStyle, plain)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-        angle  = lmp->force->angle;
+        angle = lmp->force->angle;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
-        EXPECT_STRESS("init_stress (newton off)", angle->virial, test_config.init_stress, 2*epsilon);
+        EXPECT_STRESS("init_stress (newton off)", angle->virial, test_config.init_stress,
+                      2 * epsilon);
 
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.init_energy, epsilon);
@@ -393,7 +392,7 @@ TEST(AngleStyle, plain)
     restart_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    angle  = lmp->force->angle;
+    angle = lmp->force->angle;
     EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("restart_stress", angle->virial, test_config.init_stress, epsilon);
 
@@ -405,7 +404,7 @@ TEST(AngleStyle, plain)
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    angle  = lmp->force->angle;
+    angle = lmp->force->angle;
     EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("data_stress", angle->virial, test_config.init_stress, epsilon);
 
@@ -455,7 +454,7 @@ TEST(AngleStyle, omp)
     double epsilon = 5.0 * test_config.epsilon;
 
     ErrorStats stats;
-    auto angle  = lmp->force->angle;
+    auto angle = lmp->force->angle;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", angle->virial, test_config.init_stress, 10 * epsilon);
@@ -488,10 +487,11 @@ TEST(AngleStyle, omp)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-        angle  = lmp->force->angle;
+        angle = lmp->force->angle;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
-        EXPECT_STRESS("init_stress (newton off)", angle->virial, test_config.init_stress, 10 * epsilon);
+        EXPECT_STRESS("init_stress (newton off)", angle->virial, test_config.init_stress,
+                      10 * epsilon);
 
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(angle->energy, test_config.init_energy, epsilon);
@@ -502,7 +502,8 @@ TEST(AngleStyle, omp)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
-        EXPECT_STRESS("run_stress (newton off)", angle->virial, test_config.run_stress, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", angle->virial, test_config.run_stress,
+                      10 * epsilon);
 
         stats.reset();
         id     = lmp->modify->find_compute("sum");
@@ -556,7 +557,7 @@ TEST(AngleStyle, single)
 
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     // now start over

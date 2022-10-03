@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -34,7 +33,6 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
 
  public:
   PairLJCharmmCoulLongIntel(class LAMMPS *);
-  ~PairLJCharmmCoulLongIntel() override;
 
   void compute(int, int) override;
   void init_style() override;

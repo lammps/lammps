@@ -43,13 +43,14 @@ using namespace FixConst;
 enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 
 static const char cite_fix_ave_correlate_long[] =
-"fix ave/correlate/long command:\n\n"
+"fix ave/correlate/long command: doi:10.1063/1.3491098\n\n"
 "@Article{Ramirez10,\n"
 " author = {Jorge Rami{\'}rez and Sathish K. Sukumaran and Bart Vorselaars and Alexei E. Likhtman},\n"
-" title =   {Efficient on the fly calculation of time correlation functions in computer simulations},"
-" journal = {J.~Chem.~Phys.},\n"
+" title =   {Efficient on the Fly Calculation of Time Correlation Functions in Computer Simulations},"
+" journal = {J.~Chem.\\ Phys.},\n"
 " year =    2010,\n"
 " volume =  133,\n"
+" number =  15,\n"
 " pages =   {154103}\n"
 "}\n\n";
 
@@ -474,9 +475,6 @@ void FixAveCorrelateLong::end_of_step()
         error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
-
-  return;
-
 }
 
 void FixAveCorrelateLong::evaluate() {

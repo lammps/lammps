@@ -10,11 +10,14 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 General commands
 ================
 
-An alphabetic list of all general LAMMPS commands.
+An alphabetic list of general LAMMPS commands.  Note that style
+commands with many variants, can be more easily accessed via the small
+table above.
 
 .. table_from_list::
    :columns: 5
@@ -47,35 +50,27 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
    * :doc:`dump_modify <dump_modify>`
-   * :doc:`dynamical_matrix (k) <dynamical_matrix>`
    * :doc:`echo <echo>`
    * :doc:`fix <fix>`
    * :doc:`fix_modify <fix_modify>`
    * :doc:`group <group>`
-   * :doc:`group2ndx <group2ndx>`
-   * :doc:`hyper <hyper>`
    * :doc:`if <if>`
    * :doc:`improper_coeff <improper_coeff>`
    * :doc:`improper_style <improper_style>`
    * :doc:`include <include>`
    * :doc:`info <info>`
    * :doc:`jump <jump>`
-   * :doc:`kim <kim_commands>`
    * :doc:`kspace_modify <kspace_modify>`
    * :doc:`kspace_style <kspace_style>`
    * :doc:`label <label>`
+   * :doc:`labelmap <labelmap>`
    * :doc:`lattice <lattice>`
    * :doc:`log <log>`
    * :doc:`mass <mass>`
-   * :doc:`mdi <mdi>`
    * :doc:`minimize <minimize>`
    * :doc:`min_modify <min_modify>`
    * :doc:`min_style <min_style>`
-   * :doc:`min_style spin <min_spin>`
    * :doc:`molecule <molecule>`
-   * :doc:`ndx2group <group2ndx>`
-   * :doc:`neb <neb>`
-   * :doc:`neb/spin <neb_spin>`
    * :doc:`neigh_modify <neigh_modify>`
    * :doc:`neighbor <neighbor>`
    * :doc:`newton <newton>`
@@ -86,11 +81,8 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`pair_style <pair_style>`
    * :doc:`pair_write <pair_write>`
    * :doc:`partition <partition>`
-   * :doc:`plugin <plugin>`
-   * :doc:`prd <prd>`
    * :doc:`print <print>`
    * :doc:`processors <processors>`
-   * :doc:`python <python>`
    * :doc:`quit <quit>`
    * :doc:`read_data <read_data>`
    * :doc:`read_dump <read_dump>`
@@ -108,14 +100,9 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`shell <shell>`
    * :doc:`special_bonds <special_bonds>`
    * :doc:`suffix <suffix>`
-   * :doc:`tad <tad>`
-   * :doc:`temper <temper>`
-   * :doc:`temper/grem <temper_grem>`
-   * :doc:`temper/npt <temper_npt>`
    * :doc:`thermo <thermo>`
    * :doc:`thermo_modify <thermo_modify>`
    * :doc:`thermo_style <thermo_style>`
-   * :doc:`third_order (k) <third_order>`
    * :doc:`timer <timer>`
    * :doc:`timestep <timestep>`
    * :doc:`uncompute <uncompute>`
@@ -128,3 +115,27 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`write_data <write_data>`
    * :doc:`write_dump <write_dump>`
    * :doc:`write_restart <write_restart>`
+
+Additional general LAMMPS commands provided by packages.  A few
+commands have accelerated versions.  This is indicated by an
+additional letter in parenthesis: k = KOKKOS.
+
+.. table_from_list::
+   :columns: 5
+
+   * :doc:`dynamical_matrix (k) <dynamical_matrix>`
+   * :doc:`group2ndx <group2ndx>`
+   * :doc:`hyper <hyper>`
+   * :doc:`kim <kim_commands>`
+   * :doc:`mdi <mdi>`
+   * :doc:`ndx2group <group2ndx>`
+   * :doc:`neb <neb>`
+   * :doc:`neb/spin <neb_spin>`
+   * :doc:`plugin <plugin>`
+   * :doc:`prd <prd>`
+   * :doc:`python <python>`
+   * :doc:`tad <tad>`
+   * :doc:`temper <temper>`
+   * :doc:`temper/grem <temper_grem>`
+   * :doc:`temper/npt <temper_npt>`
+   * :doc:`third_order (k) <third_order>`

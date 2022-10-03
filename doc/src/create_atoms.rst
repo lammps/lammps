@@ -11,7 +11,7 @@ Syntax
    create_atoms type style args keyword values ...
 
 * type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
-* style = *box* or *region* or *single* or *random*
+* style = *box* or *region* or *single* or *mesh* or *random*
 
   .. parsed-literal::
 
@@ -20,6 +20,8 @@ Syntax
          region-ID = particles will only be created if contained in the region
        *single* args = x y z
          x,y,z = coordinates of a single particle (distance units)
+       *mesh* args = STL-file
+         STL-file = file with triangle mesh in STL format
        *random* args = N seed region-ID
          N = number of particles to create
          seed = random # seed (positive integer)
@@ -47,6 +49,14 @@ Syntax
        *set* values = dim name
          dim = *x* or *y* or *z*
          name = name of variable to set with x, y, or z atom position
+       *radscale* value = factor
+         factor = scale factor for setting atom radius
+       *meshmode* values = mode arg
+         mode = *bisect* or *qrand*
+         *bisect* arg = radthresh
+           radthresh = threshold value for *mesh* to determine when to split triangles (distance units)
+         *qrand* arg = density
+           density = minimum number density for atoms place on *mesh* triangles (inverse distance squared units)
        *rotate* values = theta Rx Ry Rz
          theta = rotation angle for single molecule (degrees)
          Rx,Ry,Rz = rotation vector for single molecule
@@ -69,30 +79,32 @@ Examples
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
+   create_atoms 1 mesh open_box.stl meshmode qrand 0.1 units box
+   create_atoms 1 mesh funnel.stl meshmode bisect 4.0 units box radscale 0.9
 
 Description
 """""""""""
 
 This command creates atoms (or molecules) within the simulation box,
-either on a lattice, or a single atom (or molecule), or a random
-collection of atoms (or molecules).  It is an alternative to reading
-in atom coordinates explicitly via a :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` command.  A simulation box must
-already exist, which is typically created via the :doc:`create_box
-<create_box>` command.  Before using this command, a lattice must also
-be defined using the :doc:`lattice <lattice>` command, unless you
-specify the *single* style with units = box or the *random* style.
-For the remainder of this doc page, a created atom or molecule is
-referred to as a "particle".
+either on a lattice, or a single atom (or molecule), or on a surface
+defined by a triangulated mesh, or a random collection of atoms (or
+molecules).  It is an alternative to reading in atom coordinates
+explicitly via a :doc:`read_data <read_data>` or :doc:`read_restart
+<read_restart>` command.  A simulation box must already exist, which is
+typically created via the :doc:`create_box <create_box>` command.
+Before using this command, a lattice must also be defined using the
+:doc:`lattice <lattice>` command, unless you specify the *single* style
+with units = box or the *random* style.  For the remainder of this doc
+page, a created atom or molecule is referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
 keyword as discussed below.  If molecules are being created, the type
 of each atom in the created molecule is specified in the file read by
 the :doc:`molecule <molecule>` command, and those values are added to
-the specified atom *type*\ .  E.g. if *type* = 2, and the file specifies
-atom types 1,2,3, then each created molecule will have atom types
-3,4,5.
+the specified atom *type* (e.g., if *type* = 2 and the file specifies
+atom types 1, 2, and 3, then each created molecule will have atom types
+3, 4, and 5).
 
 For the *box* style, the create_atoms command fills the entire
 simulation box with particles on the lattice.  If your simulation box
@@ -119,6 +131,68 @@ the specified coordinates.  This can be useful for debugging purposes
 or to create a tiny system with a handful of particles at specified
 positions.
 
+.. figure:: img/marble_race.jpg
+            :figwidth: 33%
+            :align: right
+            :target: _images/marble_race.jpg
+
+.. versionadded:: 2Jun2022
+
+For the *mesh* style, a file with a triangle mesh in `STL format
+<https://en.wikipedia.org/wiki/STL_(file_format)>`_ is read and one or
+more particles are placed into the area of each triangle.  The reader
+supports both ASCII and binary files conforming to the format on the
+Wikipedia page.  Binary STL files (e.g. as frequently offered for
+3d-printing) can also be first converted to ASCII for editing with the
+:ref:`stl_bin2txt tool <stlconvert>`.  The use of the *units box* option
+is required. There are two algorithms available for placing atoms:
+*bisect* and *qrand*. They can be selected via the *meshmode* option;
+*bisect* is the default.  If the atom style allows it, the radius will
+be set to a value depending on the algorithm and the value of the
+*radscale* parameter (see below), and the atoms created from the mesh
+are assigned a new molecule ID.
+
+In *bisect* mode a particle is created at the center of each triangle
+unless the average distance of the triangle vertices from its center is
+larger than the *radthresh* value (default is lattice spacing in
+x-direction).  In case the average distance is over the threshold, the
+triangle is recursively split into two halves along the the longest side
+until the threshold is reached. There will be at least one sphere per
+triangle. The value of *radthresh* is set as an argument to *meshmode
+bisect*.  The average distance of the vertices from the center is also
+used to set the radius.
+
+In *qrand* mode a quasi-random sequence is used to distribute particles
+on mesh triangles using an approach by :ref:`(Roberts) <Roberts2019>`.
+Particles are added to the triangle until the minimum number density is
+met or exceeded such that every triangle will have at least one
+particle.  The minimum number density is set as an argument to the
+*qrand* option.  The radius will be set so that the sum of the area of
+the radius of the particles created in place of a triangle will be equal
+to the area of that triangle.
+
+.. note::
+
+   The atom placement algorithms in the *mesh* style benefit from meshes
+   where triangles are close to equilateral.  It is therefore
+   recommended to pre-process STL files to optimize the mesh
+   accordingly.  There are multiple open source and commercial software
+   tools available with the capability to generate optimized meshes.
+
+.. note::
+
+   In most cases the atoms created in *mesh* style will become an
+   immobile or rigid object that would not be time integrated or moved
+   by :doc:`fix move <fix_move>` or :doc:`fix rigid <fix_rigid>`.  For
+   computational efficiency *and* to avoid undesired contributions to
+   pressure and potential energy due to close contacts, it is usually
+   beneficial to exclude computing interactions between the created
+   particles using :doc:`neigh_modify exclude <neigh_modify>`.
+
+.. versionchanged:: 2Jun2022
+
+The *porosity* style has been renamed to *random* with added functionality.
+
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
@@ -134,7 +208,7 @@ all requested *N* particles, a warning will be output.
 
 If the *region-ID* argument is specified as NULL, then the randomly
 created particles will be anywhere in the simulation box.  If a
-*region-ID* is specified, a geometric volume is filled which is both
+*region-ID* is specified, a geometric volume is filled that is both
 inside the simulation box and is also consistent with the region
 volume.  See the :doc:`region <region>` command for details.  Note
 that a region can be specified so that its "volume" is either inside
@@ -149,7 +223,7 @@ interleaving the create_atoms command with :doc:`lattice <lattice>`
 commands specifying different orientations.
 
 When this command is used, care should be taken to insure the
-resulting system does not contain particles which are highly
+resulting system does not contain particles that are highly
 overlapped.  Such overlaps will cause many interatomic potentials to
 compute huge energies and forces, leading to bad dynamics.  There are
 several strategies to avoid this problem:
@@ -221,7 +295,7 @@ and inserts all molecules at a specified orientation.
    optional keywords allowed by the :doc:`create_box <create_box>` command
    for extra bonds (angles,etc) or extra special neighbors.  This is
    because by default, the :doc:`create_box <create_box>` command sets up a
-   non-molecular system which does not allow molecules to be added.
+   non-molecular system that does not allow molecules to be added.
 
 ----------
 
@@ -238,11 +312,11 @@ The *ratio* and *subset* keywords can be used in conjunction with the
 *box* or *region* styles to limit the total number of particles
 inserted.  The lattice defines a set of *Nlatt* eligible sites for
 inserting particles, which may be limited by the *region* style or the
-*var* and *set* keywords.  For the *ratio* keyword only the specified
-fraction of them (0 <= *frac* <= 1) will be assigned particles.  For
-the *subset* keyword only the specified *Nsubset* of them will be
+*var* and *set* keywords.  For the *ratio* keyword, only the specified
+fraction of them (:math:`0 \le f \le 1`) will be assigned particles.
+For the *subset* keyword only the specified *Nsubset* of them will be
 assigned particles.  In both cases the assigned lattice sites are
-chosen randomly.  An iterative algorithm is used which insures the
+chosen randomly.  An iterative algorithm is used that insures the
 correct number of particles are inserted, in a perfectly random
 fashion.  Which lattice sites are selected will change with the number
 of processors used.
@@ -257,23 +331,23 @@ The *var* and *set* keywords can be used together to provide a
 criterion for accepting or rejecting the addition of an individual
 atom, based on its coordinates.  They apply to all styles except
 *single*.  The *name* specified for the *var* keyword is the name of
-an :doc:`equal-style variable <variable>` which should evaluate to a
-zero or non-zero value based on one or two or three variables which
-will store the x, y, or z coordinates of an atom (one variable per
+an :doc:`equal-style variable <variable>` that should evaluate to a
+zero or non-zero value based on one or two or three variables that
+will store the *x*, *y*, or *z* coordinates of an atom (one variable per
 coordinate).  If used, these other variables must be
 :doc:`internal-style variables <variable>` defined in the input
 script; their initial numeric value can be anything.  They must be
 internal-style variables, because this command resets their values
 directly.  The *set* keyword is used to identify the names of these
-other variables, one variable for the x-coordinate of a created atom,
-one for y, and one for z.
+other variables, one variable for the *x*-coordinate of a created atom,
+one for *y*, and one for *z*.
 
 .. figure:: img/sinusoid.jpg
             :figwidth: 50%
             :align: right
             :target: _images/sinusoid.jpg
 
-When an atom is created, its x,y,z coordinates become the values for
+When an atom is created, its :math:`(x,y,z)` coordinates become the values for
 any *set* variable that is defined.  The *var* variable is then
 evaluated.  If the returned value is 0.0, the atom is not created.  If
 it is non-zero, the atom is created.
@@ -283,7 +357,7 @@ create a sinusoidal surface.  Note that the surface is "rough" due to
 individual lattice points being "above" or "below" the mathematical
 expression for the sinusoidal curve.  If a finer lattice were used,
 the sinusoid would appear to be "smoother".  Also note the use of the
-"xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords which
+"xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords, which
 converts lattice spacings to distance.
 
 .. only:: html
@@ -309,12 +383,21 @@ converts lattice spacings to distance.
 
 The *rotate* keyword allows specification of the orientation
 at which molecules are inserted.  The axis of rotation is
-determined by the rotation vector (Rx,Ry,Rz) that goes through the
+determined by the rotation vector :math:`(R_x,R_y,R_z)` that goes through the
 insertion point.  The specified *theta* determines the angle of
 rotation around that axis.  Note that the direction of rotation for
 the atoms around the rotation axis is consistent with the right-hand
 rule: if your right-hand's thumb points along *R*, then your fingers
 wrap around the axis in the direction of rotation.
+
+The *radscale* keyword only applies to the *mesh* style and adjusts the
+radius of created particles (see above), provided this is supported by
+the atom style.  Its value is a prefactor (must be :math:`>` 0.0, default is
+1.0) that is applied to the atom radius inferred from the size of the
+individual triangles in the triangle mesh that the particle corresponds
+to.
+
+.. versionadded:: 2Jun2022
 
 The *overlap* keyword only applies to the *random* style.  It prevents
 newly created particles from being created closer than the specified
@@ -327,12 +410,12 @@ non-overlapping criterion.
 
 .. note::
 
-   Checking for overlaps is a costly O(N(N+M)) operation for inserting
-   *N* new particles into a system with *M* existing particles.  This
-   is because distances to all *M* existing particles are computed for
+   Checking for overlaps is a costly :math:`\mathcal{O}(N(N+M))` operation for
+   inserting *N* new particles into a system with *M* existing particles.
+   This is because distances to all *M* existing particles are computed for
    each new particle that is added.  Thus the intended use of this
    keyword is to add relatively small numbers of particles to systems
-   which remain at a relatively low density even after the new
+   that remain at a relatively low density even after the new
    particles are created.  Careful use of the *maxtry* keyword in
    combination with *overlap* is recommended.  See the discussion
    above about systems with overlapped particles for alternate
@@ -343,7 +426,7 @@ the number of attempts to generate valid coordinates for a single new
 particle that satisfy all requirements imposed by the *region*, *var*,
 and *overlap* keywords.  The default is 10 attempts per particle
 before the loop over the requested *N* particles advances to the next
-particle.  Note that if insertion success is unlikely (e.g. inserting
+particle.  Note that if insertion success is unlikely (e.g., inserting
 new particles into a dense system using the *overlap* keyword),
 setting the *maxtry* keyword to a large value may result in this
 command running for a long time.
@@ -368,7 +451,7 @@ Here is an example for the *random* style using these commands
 to produce a system as shown in the image with 1520 particles (out of
 2000 requested) that are moderately dense and which have no overlaps
 sufficient to prevent the LJ pair_style from running properly (because
-the overlap criterion = 1.0).  The create_atoms command ran for 0.3 s
+the overlap criterion is 1.0).  The create_atoms command ran for 0.3 s
 on a single CPU core.
 
 .. only:: html
@@ -381,9 +464,9 @@ The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
 style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
 *box* value selects standard distance units as defined by the
-:doc:`units <units>` command, e.g. Angstroms for units = real or
-metal.  A *lattice* value means the distance units are in lattice
-spacings.
+:doc:`units <units>` command (e.g., :math:`\AA` for
+units = *real* or *metal*\ .  A *lattice* value means the distance units are in
+lattice spacings.
 
 ----------
 
@@ -392,15 +475,15 @@ collection of created atoms are assigned consecutive IDs that start
 immediately following the largest atom ID existing before the
 create_atoms command was invoked.  This is done by the processor's
 communicating the number of atoms they each own, the first processor
-numbering its atoms from 1 to N1, the second processor from N1+1 to
-N2, etc.  Where N1 = number of atoms owned by the first processor, N2
-= number owned by the second processor, etc.  Thus when the same
-simulation is performed on different numbers of processors, there is
-no guarantee a particular created atom will be assigned the same ID in
-both simulations.  If molecules are being created, molecule IDs are
-assigned to created molecules in a similar fashion.
+numbering its atoms from :math:`1` to :math:`N_1`, the second processor from
+:math:`N_1+1` to :math:`N_2`, and so on, where :math:`N_1` is the number of
+atoms owned by the first processor, :math:`N_2` is the number owned by the
+second processor, and so forth.  Thus, when the same simulation is performed on
+different numbers of processors, there is no guarantee a particular created
+atom will be assigned the same ID in both simulations.  If molecules are being
+created, molecule IDs are assigned to created molecules in a similar fashion.
 
-Aside from their ID, atom type, and xyz position, other properties of
+Aside from their ID, atom type, and :math:`xyz` position, other properties of
 created atoms are set to default values, depending on which quantities
 are defined by the chosen :doc:`atom style <atom_style>`.  See the
 :doc:`atom style <atom_style>` command for more details.  See the
@@ -421,15 +504,17 @@ how to change these values.
 
 If molecules are being created, these defaults can be overridden by
 values specified in the file read by the :doc:`molecule <molecule>`
-command.  E.g. the file typically defines bonds (angles,etc) between
+command. That is, the file typically defines bonds (angles, etc.) between
 atoms in the molecule, and can optionally define charges on each atom.
 
-Note that the *sphere* atom style sets the default particle diameter
-to 1.0 as well as the density.  This means the mass for the particle
-is not 1.0, but is PI/6 \* diameter\^3 = 0.5236.
+Note that the *sphere* atom style sets the default particle diameter to
+1.0 as well as the density.  This means the mass for the particle is not
+1.0, but is :math:`\frac{\pi}{6} d^3 = 0.5236`, where :math:`d` is the
+diameter.  When using the *mesh* style, the particle diameter is adjusted from
+the size of the individual triangles in the triangle mesh.
 
 Note that the *ellipsoid* atom style sets the default particle shape
-to (0.0 0.0 0.0) and the density to 1.0 which means it is a point
+to (0.0 0.0 0.0) and the density to 1.0, which means it is a point
 particle, not an ellipsoid, and has a mass of 1.0.
 
 Note that the *peri* style sets the default volume and density to 1.0
@@ -452,13 +537,22 @@ the z-direction for a 2d model.
 Related commands
 """"""""""""""""
 
-:doc:`lattice <lattice>`, :doc:`region <region>`, :doc:`create_box <create_box>`,
-:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`
+:doc:`lattice <lattice>`, :doc:`region <region>`,
+:doc:`create_box <create_box>`, :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>`
 
 Default
 """""""
 
 The default for the *basis* keyword is that all created atoms are
 assigned the argument *type* as their atom type (when single atoms are
-being created).  The other defaults are *remap* = no, *rotate* =
-random, *overlap* not checked, *maxtry* = 10, and *units* = lattice.
+being created).  The other defaults are *remap* = no, *rotate* = random,
+*radscale* = 1.0, *radthresh* = x-lattice spacing, *overlap* not
+checked, *maxtry* = 10, and *units* = lattice.
+
+----------
+
+.. _Roberts2019:
+
+**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.
+`<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_

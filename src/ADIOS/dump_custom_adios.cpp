@@ -40,7 +40,7 @@ namespace LAMMPS_NS {
 class DumpCustomADIOSInternal {
 
  public:
-  DumpCustomADIOSInternal(){};
+  DumpCustomADIOSInternal() = default;
   ~DumpCustomADIOSInternal() = default;
 
   // name of adios group, referrable in adios2_config.xml
@@ -76,7 +76,7 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
   }
 
   internal->columnNames.reserve(nfield);
-  for (int i = 0; i < nfield; ++i) { internal->columnNames.push_back(earg[i]); }
+  for (int i = 0; i < nfield; ++i) { internal->columnNames.emplace_back(earg[i]); }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,7 +219,7 @@ void DumpCustomADIOS::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
     if (keyword_user[icol].size())
       combined += keyword_user[icol];

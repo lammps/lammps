@@ -6,7 +6,7 @@ compute property/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID property/atom input1 input2 ...
 
@@ -31,7 +31,7 @@ Syntax
                              corner2x, corner2y, corner2z,
                              corner3x, corner3y, corner3z,
                              i_name, d_name, i2_name[I], d2_name[I],
-                             vfrac, s0, spin, eradius, ervel, erforce,
+                             vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
 
   .. parsed-literal::
@@ -76,7 +76,7 @@ Syntax
   .. parsed-literal::
 
            EFF and AWPMD package per-atom properties:
-           spin = electron spin
+           espin = electron spin
            eradius = electron radius
            ervel = electron radial velocity
            erforce = electron radial force
@@ -127,7 +127,7 @@ LAMMPS.
 The values are stored in a per-atom vector or array as discussed
 below.  Zeroes are stored for atoms not in the specified group or for
 quantities that are not defined for a particular particle in the group
-(e.g. *shapex* if the particle is not an ellipsoid).
+(e.g., *shapex* if the particle is not an ellipsoid).
 
 Attributes *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
 per-atom integer and floating-point vectors or arrays that have been
@@ -135,7 +135,7 @@ added via the :doc:`fix property/atom <fix_property_atom>` command.
 When that command is used specific names are given to each attribute
 which are the "name" portion of these attributes.  For arrays *i2_name*
 and *d2_name*, the column of the array must also be included following
-the name in brackets: e.g. d2_xyz[2], i2_mySpin[3].
+the name in brackets (e.g., d2_xyz[2] or i2_mySpin[3]).
 
 The additional quantities only accessible via this command, and not
 directly via the :doc:`dump custom <dump>` command, are as follows.
@@ -144,21 +144,21 @@ directly via the :doc:`dump custom <dump>` command, are as follows.
 number of explicit bonds assigned to an atom.  Note that if the
 :doc:`newton bond <newton>` command is set to *on*\ , which is the
 default, then every bond in the system is assigned to only one of the
-two atoms in the bond.  Thus a bond between atoms I,J may be tallied
-for either atom I or atom J.  If :doc:`newton bond off <newton>` is
-set, it will be tallied with both atom I and atom J.
+two atoms in the bond.  Thus a bond between atoms :math:`I` and :math:`J` may
+be tallied for either atom :math:`I` or atom :math:`J`.
+If :doc:`newton bond off <newton>` is set, it will be tallied with both atom
+:math:`I` and atom :math:`J`.
 
-*Shapex*, *shapey*, and *shapez* are defined for ellipsoidal particles
-and define the 3d shape of each particle.
+The quantities *shapex*, *shapey*, and *shapez* are defined for ellipsoidal
+particles and define the 3d shape of each particle.
 
-*Quatw*, *quati*, *quatj*, and *quatk* are defined for ellipsoidal
-particles and body particles and store the 4-vector quaternion
+The quantities *quatw*, *quati*, *quatj*, and *quatk* are defined for
+ellipsoidal particles and body particles and store the 4-vector quaternion
 representing the orientation of each particle.  See the :doc:`set <set>`
 command for an explanation of the quaternion vector.
 
-*End1x*, *end1y*, *end1z*, *end2x*, *end2y*, *end2z*, are
-defined for line segment particles and define the end points of each
-line segment.
+*End1x*, *end1y*, *end1z*, *end2x*, *end2y*, *end2z*, are defined for line
+segment particles and define the end points of each line segment.
 
 *Corner1x*, *corner1y*, *corner1z*, *corner2x*, *corner2y*,
 *corner2z*, *corner3x*, *corner3y*, *corner3z*, are defined for
@@ -166,6 +166,10 @@ triangular particles and define the corner points of each triangle.
 
 In addition, the various per-atom quantities listed above for specific
 packages are only accessible by this command.
+
+.. versionchanged:: 15Sep2022
+
+  The *espin* property was previously called *spin*.
 
 Output info
 """""""""""
@@ -179,12 +183,12 @@ per-atom values from a compute as input.  See the :doc:`Howto output
 <Howto_output>` page for an overview of LAMMPS output options.
 
 The vector or array values will be in whatever :doc:`units <units>` the
-corresponding attribute is in, e.g. velocity units for vx, charge
-units for q, etc.
+corresponding attribute is in (e.g., velocity units for *vx*, charge
+units for *q*).
 
-For the spin quantities, sp is in the units of the Bohr magneton, spx,
-spy, and spz are unitless quantities, and fmx, fmy and fmz are given
-in rad/THz.
+For the spin quantities, *sp* is in the units of the Bohr magneton;
+*spx*, *spy*, and *spz* are unitless quantities; and *fmx*, *fmy*, and *fmz*
+are given in rad/THz.
 
 Restrictions
 """"""""""""
@@ -194,8 +198,8 @@ Related commands
 """"""""""""""""
 
 :doc:`dump custom <dump>`, :doc:`compute reduce <compute_reduce>`,
-:doc::doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk
-:doc:<fix_ave_chunk>`, `fix property/atom <fix_property_atom>`
+:doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
+:doc:`fix property/atom <fix_property_atom>`
 
 Default
 """""""

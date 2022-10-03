@@ -22,13 +22,14 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *ext* or *strain* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
+     keyword = *erate* or *ext* or *strain* or *temp* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
+       *erate* values = e_x e_y = engineering strain rates (required)
        *ext* value = *x* or *y* or *z* or *xy* or *yz* or *xz* = external dimensions
          sets the external dimensions used to calculate the scalar pressure
        *strain* values = e_x e_y = initial strain
          usually not needed, but may be needed to resume a run with a data file.
-       *iso*, *x*, *y*, *z*, *tchain*, *pchain*, *tloop*, *ploop*, *mtk* keywords
-         documented by the :doc:`fix npt <fix_nh>` command
+       *temp*, *iso*, *x*, *y*, *z*, *tchain*, *pchain*, *tloop*, *ploop*, *mtk*
+         keywords documented by the :doc:`fix npt <fix_nh>` command
 
 Examples
 """"""""
@@ -209,7 +210,8 @@ use :doc:`change_box <change_box>` before invoking the fix.
 
 .. note::
 
-   When resuming from restart files, you may need to use :doc:`box tilt large <box>` since lammps has internal criteria from lattice
+   When resuming from restart files, you may need to use :doc:`box tilt
+   large <box>` since LAMMPS has internal criteria from lattice
    reduction that are not the same as the criteria in the numerical
    lattice reduction algorithm.
 

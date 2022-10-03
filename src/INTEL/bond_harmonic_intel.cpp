@@ -45,12 +45,6 @@ BondHarmonicIntel::BondHarmonicIntel(LAMMPS *lmp) : BondHarmonic(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicIntel::~BondHarmonicIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void BondHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -165,9 +159,9 @@ void BondHarmonicIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = bondlist[n].a;
-      const int i2 = bondlist[n].b;
-      const int type = bondlist[n].t;
+      const int i1 = IP_PRE_dword_index(bondlist[n].a);
+      const int i2 = IP_PRE_dword_index(bondlist[n].b);
+      const int type = IP_PRE_dword_index(bondlist[n].t);
 
       const flt_t delx = x[i1].x - x[i2].x;
       const flt_t dely = x[i1].y - x[i2].y;

@@ -30,8 +30,7 @@ class PPPMDispDielectric : public PPPMDisp {
   ~PPPMDispDielectric() override;
   double memory_usage() override;
   void compute(int, int) override;
-  void qsum_qsq();
-  void slabcorr(int);
+  void slabcorr(int) override;
 
   double **efield;
   double *phi;

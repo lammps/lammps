@@ -39,15 +39,15 @@ NPairIntel::NPairIntel(LAMMPS *lmp) : NPair(lmp) {
 
 /* ---------------------------------------------------------------------- */
 
+#ifdef _LMP_INTEL_OFFLOAD
 NPairIntel::~NPairIntel() {
-  #ifdef _LMP_INTEL_OFFLOAD
   if (_off_map_stencil) {
     const int * stencil = this->stencil;
     #pragma offload_transfer target(mic:_cop)   \
       nocopy(stencil:alloc_if(0) free_if(1))
   }
-  #endif
 }
+#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -359,7 +359,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           #pragma vector aligned
           #endif
           for (int u = 0; u < ncount; u++) {
-            const int j = tj[u];
+            const int j = IP_PRE_dword_index(tj[u]);
             tx[u] = x[j].x;
             ty[u] = x[j].y;
             tz[u] = x[j].z;
@@ -387,7 +387,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
 #endif
             #endif
             for (int jj = bstart; jj < bend; jj++) {
-              const int j = binpacked[jj];
+              const int j = IP_PRE_dword_index(binpacked[jj]);
               itj[icount] = j;
               itx[icount] = x[j].x;
               ity[icount] = x[j].y;

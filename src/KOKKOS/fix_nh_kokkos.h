@@ -36,7 +36,7 @@ class FixNHKokkos : public FixNH {
   typedef DeviceType device_type;
 
   FixNHKokkos(class LAMMPS *, int, char **);
-  ~FixNHKokkos() override;
+
   void init() override;
   void setup(int) override;
   void initial_integrate(int) override;

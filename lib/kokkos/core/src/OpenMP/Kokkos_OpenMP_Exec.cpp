@@ -66,8 +66,10 @@ int g_openmp_hardware_max_threads = 1;
 __thread int t_openmp_hardware_id            = 0;
 __thread Impl::OpenMPExec *t_openmp_instance = nullptr;
 
-void OpenMPExec::validate_partition(const int nthreads, int &num_partitions,
-                                    int &partition_size) {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+void OpenMPExec::validate_partition_impl(const int nthreads,
+                                         int &num_partitions,
+                                         int &partition_size) {
   if (nthreads == 1) {
     num_partitions = 1;
     partition_size = 1;
@@ -117,6 +119,7 @@ void OpenMPExec::validate_partition(const int nthreads, int &num_partitions,
     }
   }
 }
+#endif
 
 void OpenMPExec::verify_is_master(const char *const label) {
   if (!t_openmp_instance) {
@@ -312,10 +315,11 @@ void OpenMP::impl_initialize(int thread_count) {
     // g_openmp_hardware_max_threads to thread_count
     if (thread_count < 0) {
       thread_count = Impl::g_openmp_hardware_max_threads;
-    } else if (thread_count == 0 &&
-               Impl::g_openmp_hardware_max_threads != process_num_threads) {
-      Impl::g_openmp_hardware_max_threads = process_num_threads;
-      omp_set_num_threads(Impl::g_openmp_hardware_max_threads);
+    } else if (thread_count == 0) {
+      if (Impl::g_openmp_hardware_max_threads != process_num_threads) {
+        Impl::g_openmp_hardware_max_threads = process_num_threads;
+        omp_set_num_threads(Impl::g_openmp_hardware_max_threads);
+      }
     } else {
       if (Kokkos::show_warnings() && thread_count > process_num_threads) {
         printf(
@@ -503,6 +507,15 @@ void OpenMPSpaceInitializer::print_configuration(std::ostream &msg,
 }
 
 }  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_CXX14
+namespace Tools {
+namespace Experimental {
+constexpr DeviceType DeviceTypeTraits<OpenMP>::id;
+}
+}  // namespace Tools
+#endif
+
 }  // namespace Kokkos
 
 #else

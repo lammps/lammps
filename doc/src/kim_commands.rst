@@ -29,15 +29,16 @@ Examples
 Description
 """""""""""
 
-The *kim command* includes a set of sub-commands that allow LAMMPS users to use
-interatomic models (IM) (potentials and force fields) and their predictions for
-various physical properties archived in the
-`Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
-repository.
+The *kim command* includes a set of sub-commands that allow LAMMPS
+users to use interatomic models (IM) (potentials and force fields) and
+their predictions for various physical properties archived in the
+`Open Knowledgebase of Interatomic Models (OpenKIM)
+<https://openkim.org>`_ repository.
 
-Using OpenKIM provides LAMMPS users with immediate access to a large number of
-verified IMs and their predictions. OpenKIM IMs have multiple benefits including
-`reliability, reproducibility and convenience <https://openkim.org/doc/overview/kim-features/>`_.
+Using OpenKIM provides LAMMPS users with immediate access to a large
+number of verified IMs and their predictions. OpenKIM IMs have
+multiple benefits including `reliability, reproducibility and
+convenience <https://openkim.org/doc/overview/kim-features/>`_.
 
 .. _IM_types:
 
@@ -980,7 +981,7 @@ In the last example, "new-property.edn" and
 "/home/mary/marys-kim-properties/dissociation-energy.edn" are the names of files
 that contain user-defined (local) property definitions.
 
-A KIM property instance takes the form of a "map," i.e. a set of key-value
+A KIM property instance takes the form of a "map", i.e. a set of key-value
 pairs akin to Perl's hash, Python's dictionary, or Java's Hashtable.  It
 consists of a set of property key names, each of which is referred to here by
 the *key_name* argument, that are defined as part of the relevant KIM Property

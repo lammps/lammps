@@ -81,7 +81,7 @@
    obj:*
 }
 {
-   OpnMP_init_part7
+   OpenMP_init_part7
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
@@ -91,7 +91,7 @@
    obj:*
 }
 {
-   OpnMP_init_part8
+   OpenMP_init_part8
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
@@ -101,7 +101,7 @@
    obj:*
 }
 {
-   OpnMP_init_part9
+   OpenMP_init_part9
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -113,7 +113,7 @@
    obj:*
 }
 {
-   OpnMP_init_part10
+   OpenMP_init_part10
    Memcheck:Leak
    match-leak-kinds: reachable
    fun:malloc
@@ -124,7 +124,7 @@
    obj:*
 }
 {
-   OpnMP_init_part11
+   OpenMP_init_part11
    Memcheck:Leak
    match-leak-kinds: possible
    fun:calloc
@@ -134,3 +134,41 @@
    fun:GOMP_parallel
    obj:*
 }
+{
+   OpenMP_open_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:openaux
+   ...
+   fun:dl_open_worker_begin
+   ...
+   fun:dl_open_worker
+   ...
+   fun:_dl_open
+}
+{
+   OpenMP_open_part2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:openaux
+   ...
+   fun:dl_open_worker_begin
+   ...
+   fun:dl_open_worker
+   ...
+   fun:_dl_open
+}
+{
+   OpenMP_team_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:memalign
+   fun:gomp_aligned_alloc
+   fun:gomp_new_team
+   fun:GOMP_parallel
+}
+

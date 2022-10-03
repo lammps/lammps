@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -33,7 +32,6 @@ namespace LAMMPS_NS {
 class BondFENEIntel : public BondFENE {
  public:
   BondFENEIntel(class LAMMPS *);
-  ~BondFENEIntel() override;
   void compute(int, int) override;
   void init_style() override;
 

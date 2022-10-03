@@ -38,7 +38,7 @@ class PairHybridKokkos : public PairHybrid {
   typedef LMPDeviceType device_type;
 
   PairHybridKokkos(class LAMMPS *);
-  ~PairHybridKokkos() override;
+
   void compute(int, int) override;
 
  private:

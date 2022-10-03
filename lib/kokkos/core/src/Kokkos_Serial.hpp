@@ -106,7 +106,7 @@ class SerialInternal {
 ///
 /// A "device" represents a parallel execution model.  It tells Kokkos
 /// how to parallelize the execution of kernels in a parallel_for or
-/// parallel_reduce.  For example, the Threads device uses Pthreads or
+/// parallel_reduce.  For example, the Threads device uses
 /// C++11 threads on a CPU, the OpenMP device uses the OpenMP language
 /// extensions, and the Cuda device uses NVIDIA's CUDA programming
 /// model.  The Serial device executes "parallel" kernels
@@ -226,6 +226,7 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<Serial> {
   static constexpr DeviceType id = DeviceType::Serial;
+  static int device_id(const Serial&) { return 0; }
 };
 }  // namespace Experimental
 }  // namespace Tools

@@ -49,18 +49,36 @@ namespace Kokkos {
 
 namespace Impl {
 
-#ifndef KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT
-#define KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT 10 * 8192
-#endif
-
 void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n) {
-  if ((n < KOKKOS_IMPL_HOST_DEEP_COPY_SERIAL_LIMIT) ||
-      (Kokkos::DefaultHostExecutionSpace().concurrency() == 1)) {
+  Kokkos::DefaultHostExecutionSpace exec;
+  hostspace_parallel_deepcopy_async(exec, dst, src, n);
+}
+
+// DeepCopy called with an execution space that can't access HostSpace
+void hostspace_parallel_deepcopy_async(void* dst, const void* src,
+                                       ptrdiff_t n) {
+  Kokkos::DefaultHostExecutionSpace exec;
+  hostspace_parallel_deepcopy_async(exec, dst, src, n);
+  exec.fence(
+      "Kokkos::Impl::hostspace_parallel_deepcopy_async: fence after copy");
+}
+
+void hostspace_parallel_deepcopy_async(const DefaultHostExecutionSpace& exec,
+                                       void* dst, const void* src,
+                                       ptrdiff_t n) {
+  using policy_t = Kokkos::RangePolicy<Kokkos::DefaultHostExecutionSpace>;
+  constexpr int host_deep_copy_serial_limit = 10 * 8192;
+
+  // If the asynchronous HPX backend is enabled, do *not* copy anything
+  // synchronously. The deep copy must be correctly sequenced with respect to
+  // other kernels submitted to the same instance, so we only use the fallback
+  // parallel_for version in this case.
+#if !(defined(KOKKOS_ENABLE_HPX) && defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH))
+  if ((n < host_deep_copy_serial_limit) ||
+      (DefaultHostExecutionSpace().concurrency() == 1)) {
     std::memcpy(dst, src, n);
     return;
   }
-
-  using policy_t = Kokkos::RangePolicy<Kokkos::DefaultHostExecutionSpace>;
 
   // Both src and dst are aligned the same way with respect to 8 byte words
   if (reinterpret_cast<ptrdiff_t>(src) % 8 ==
@@ -80,7 +98,7 @@ void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n) {
     double* dst_p       = reinterpret_cast<double*>(dst_c);
     const double* src_p = reinterpret_cast<const double*>(src_c);
     Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_double",
-                         policy_t(0, (n - count) / 8),
+                         policy_t(exec, 0, (n - count) / 8),
                          [=](const ptrdiff_t i) { dst_p[i] = src_p[i]; });
 
     // get final data copied
@@ -113,7 +131,7 @@ void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n) {
     int32_t* dst_p       = reinterpret_cast<int32_t*>(dst_c);
     const int32_t* src_p = reinterpret_cast<const int32_t*>(src_c);
     Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_int",
-                         policy_t(0, (n - count) / 4),
+                         policy_t(exec, 0, (n - count) / 4),
                          [=](const ptrdiff_t i) { dst_p[i] = src_p[i]; });
 
     // get final data copied
@@ -127,13 +145,14 @@ void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n) {
     }
     return;
   }
+#endif
 
   // Src and dst are not aligned the same way, we can only to byte wise copy.
   {
     char* dst_p       = reinterpret_cast<char*>(dst);
     const char* src_p = reinterpret_cast<const char*>(src);
     Kokkos::parallel_for("Kokkos::Impl::host_space_deepcopy_char",
-                         policy_t(0, n),
+                         policy_t(exec, 0, n),
                          [=](const ptrdiff_t i) { dst_p[i] = src_p[i]; });
   }
 }

@@ -487,24 +487,15 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::attach_texture_object(
 // <editor-fold desc="SharedAllocationRecord destructors"> {{{1
 
 SharedAllocationRecord<Kokkos::CudaSpace, void>::~SharedAllocationRecord() {
-  const char *label = nullptr;
-  if (Kokkos::Profiling::profileLibraryLoaded()) {
-    SharedAllocationHeader header;
-    Kokkos::Impl::DeepCopy<Kokkos::CudaSpace, HostSpace>(
-        &header, RecordBase::m_alloc_ptr, sizeof(SharedAllocationHeader));
-    label = header.label();
-  }
   auto alloc_size = SharedAllocationRecord<void, void>::m_alloc_size;
-  m_space.deallocate(label, SharedAllocationRecord<void, void>::m_alloc_ptr,
+  m_space.deallocate(m_label.c_str(),
+                     SharedAllocationRecord<void, void>::m_alloc_ptr,
                      alloc_size, (alloc_size - sizeof(SharedAllocationHeader)));
 }
 
 SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::~SharedAllocationRecord() {
-  const char *label = nullptr;
-  if (Kokkos::Profiling::profileLibraryLoaded()) {
-    label = RecordBase::m_alloc_ptr->m_label;
-  }
-  m_space.deallocate(label, SharedAllocationRecord<void, void>::m_alloc_ptr,
+  m_space.deallocate(m_label.c_str(),
+                     SharedAllocationRecord<void, void>::m_alloc_ptr,
                      SharedAllocationRecord<void, void>::m_alloc_size,
                      (SharedAllocationRecord<void, void>::m_alloc_size -
                       sizeof(SharedAllocationHeader)));
@@ -512,7 +503,7 @@ SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::~SharedAllocationRecord() {
 
 SharedAllocationRecord<Kokkos::CudaHostPinnedSpace,
                        void>::~SharedAllocationRecord() {
-  m_space.deallocate(RecordBase::m_alloc_ptr->m_label,
+  m_space.deallocate(m_label.c_str(),
                      SharedAllocationRecord<void, void>::m_alloc_ptr,
                      SharedAllocationRecord<void, void>::m_alloc_size,
                      (SharedAllocationRecord<void, void>::m_alloc_size -
@@ -537,7 +528,8 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::SharedAllocationRecord(
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
                                                arg_alloc_size),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
       m_tex_obj(0),
       m_space(arg_space) {
 
@@ -546,8 +538,13 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::SharedAllocationRecord(
   this->base_t::_fill_host_accessible_header_info(header, arg_label);
 
   // Copy to device memory
-  Kokkos::Impl::DeepCopy<CudaSpace, HostSpace>(RecordBase::m_alloc_ptr, &header,
-                                               sizeof(SharedAllocationHeader));
+  Kokkos::Cuda exec;
+  Kokkos::Impl::DeepCopy<CudaSpace, HostSpace>(
+      exec, RecordBase::m_alloc_ptr, &header, sizeof(SharedAllocationHeader));
+  exec.fence(
+      "SharedAllocationRecord<Kokkos::CudaSpace, "
+      "void>::SharedAllocationRecord(): fence after copying header from "
+      "HostSpace");
 }
 
 SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::SharedAllocationRecord(
@@ -562,7 +559,8 @@ SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::SharedAllocationRecord(
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
                                                arg_alloc_size),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
       m_tex_obj(0),
       m_space(arg_space) {
   this->base_t::_fill_host_accessible_header_info(*base_t::m_alloc_ptr,
@@ -583,7 +581,8 @@ SharedAllocationRecord<Kokkos::CudaHostPinnedSpace, void>::
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
                                                arg_alloc_size),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
       m_space(arg_space) {
   this->base_t::_fill_host_accessible_header_info(*base_t::m_alloc_ptr,
                                                   arg_label);

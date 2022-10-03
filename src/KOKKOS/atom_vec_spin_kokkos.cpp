@@ -863,6 +863,8 @@ struct AtomVecSpinKokkos_UnpackExchangeFunctor {
 int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
                                                 int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
                                                 ExecutionSpace space) {
+  while (nlocal + nrecv/15 >= nmax) grow(0);
+
   if(space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecSpinKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
@@ -1056,13 +1058,14 @@ void AtomVecSpinKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecSpinKokkos::data_atom(double *coord, imageint imagetmp,
-                                  const std::vector<std::string> &values)
+                                  const std::vector<std::string> &values, std::string &extract)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
   h_tag[nlocal] = utils::inumeric(FLERR,values[0],true,lmp);
   h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
+  extract = values[1];
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 

@@ -57,6 +57,10 @@
 #include "exceptions.h"
 #endif
 
+#if defined(LMP_PYTHON)
+#include <Python.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 // for printing the non-null pointer argument warning only once
@@ -234,7 +238,7 @@ fails a null pointer is returned.
 
 void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
 {
-  return lammps_open(argc,argv,MPI_COMM_WORLD,ptr);
+  return lammps_open(argc, argv, MPI_COMM_WORLD, ptr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -414,6 +418,89 @@ environment in case it is safe to do so.
 void lammps_python_finalize()
 {
   Python::finalize();
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+/** Call a LAMMPS Error class function
+ *
+\verbatim embed:rst
+
+This function is a wrapper around functions in the ``Error`` to print an
+error message and then stop LAMMPS.
+
+The *error_type* parameter selects which function to call.  It is a sum
+of constants from :cpp:enum:`_LMP_ERROR_CONST`.  If the value does not
+match any valid combination of constants a warning is printed and the
+function returns.
+
+.. versionadded:: TBD
+
+\endverbatim
+ *
+ * \param  handle       pointer to a previously created LAMMPS instance
+ * \param  error_type   parameter to select function in the Error class
+ * \param  error_text   error message */
+
+void lammps_error(void *handle, int error_type, const char *error_text)
+{
+  auto lmp = (LAMMPS *) handle;
+
+  BEGIN_CAPTURE
+  {
+    switch (error_type) {
+    case LMP_ERROR_WARNING:
+      lmp->error->warning("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ONE:
+      lmp->error->one("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ALL:
+      lmp->error->all("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_WARNING|LMP_ERROR_WORLD:
+      lmp->error->warning("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ONE|LMP_ERROR_WORLD:
+      lmp->error->one("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ALL|LMP_ERROR_WORLD:
+      lmp->error->all("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_WARNING|LMP_ERROR_UNIVERSE:
+      lmp->error->universe_warn("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ONE|LMP_ERROR_UNIVERSE:
+      lmp->error->universe_one("(library)", 0, error_text);
+      break;
+    case LMP_ERROR_ALL|LMP_ERROR_UNIVERSE:
+      lmp->error->universe_all("(library)", 0, error_text);
+      break;
+    default:
+      auto mesg = fmt::format("Unknown error type {} for message: {}", error_type, error_text);
+      lmp->error->warning("(library)", 0, mesg);
+    }
+  }
+  END_CAPTURE
+
+#if defined(LAMMPS_EXCEPTIONS)
+    // with enabled exceptions the above code will simply throw an
+    // exception and record the error message. So we have to explicitly
+    // stop here like we do in main.cpp
+  if (lammps_has_error(handle)) {
+    if (error_type & 1) {
+      lammps_kokkos_finalize();
+      lammps_python_finalize();
+      MPI_Abort(lmp->universe->uworld, 1);
+    } else if (error_type & 2) {
+      lammps_kokkos_finalize();
+      lammps_python_finalize();
+      lammps_mpi_finalize();
+      exit(1);
+    }
+  }
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -950,6 +1037,14 @@ not recognized, the function returns -1.
      - number of dihedral types
    * - nimpropertypes
      - number of improper types
+   * - nellipsoids
+     - number of atoms that have ellipsoid data
+   * - nlines
+     - number of atoms that have line data (see :doc:`pair style line/lj <pair_line_lj>`)
+   * - ntris
+     - number of atoms that have triangle data (see :doc:`pair style tri/lj <pair_tri_lj>`)
+   * - nbodies
+     - number of atoms that have body data (see :doc:`the Body particle HowTo <Howto_body>`)
 
 .. _extract_atom_flags:
 
@@ -1021,6 +1116,10 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"nangletypes") == 0) return lmp->atom->nangletypes;
   if (strcmp(keyword,"ndihedraltypes") == 0) return lmp->atom->ndihedraltypes;
   if (strcmp(keyword,"nimpropertypes") == 0) return lmp->atom->nimpropertypes;
+  if (strcmp(keyword,"nellipsoids") == 0) return lmp->atom->nellipsoids;
+  if (strcmp(keyword,"nlines") == 0) return lmp->atom->nlines;
+  if (strcmp(keyword,"ntris") == 0) return lmp->atom->ntris;
+  if (strcmp(keyword,"nbodies") == 0) return lmp->atom->nbodies;
 
   if (strcmp(keyword,"molecule_flag") == 0) return lmp->atom->molecule_flag;
   if (strcmp(keyword,"q_flag") == 0) return lmp->atom->q_flag;
@@ -1144,8 +1243,8 @@ Please also see :cpp:func:`lammps_extract_setting`,
    may lead to inconsistent internal data and thus may cause failures or
    crashes or bogus simulations.  In general it is thus usually better
    to use a LAMMPS input command that sets or changes these parameters.
-   Those will takes care of all side effects and necessary updates of
-   settings derived from such settings.  Where possible a reference to
+   Those will take care of all side effects and necessary updates of
+   settings derived from such settings.  Where possible, a reference to
    such a command or a relevant section of the manual is given below.
 
 The following tables list the supported names, their data types, length
@@ -1648,13 +1747,17 @@ lists the available options.
      - ``double **``
      - Local data array
    * - LMP_STYLE_LOCAL
+     - LMP_SIZE_VECTOR
+     - ``int *``
+     - Alias for using LMP_SIZE_ROWS
+   * - LMP_STYLE_LOCAL
      - LMP_SIZE_ROWS
      - ``int *``
-     - Number of local data rows
+     - Number of local array rows or length of vector
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_COLS
      - ``int *``
-     - Number of local data columns
+     - Number of local array columns, 0 if vector
 
 .. warning::
 
@@ -1737,6 +1840,7 @@ void *lammps_extract_compute(void *handle, const char *id, int style, int type)
       if (type == LMP_TYPE_SCALAR) return (void *) &compute->size_local_rows;  /* for backward compatibility */
       if (type == LMP_TYPE_VECTOR) return (void *) compute->vector_local;
       if (type == LMP_TYPE_ARRAY) return (void *) compute->array_local;
+      if (type == LMP_SIZE_VECTOR) return (void *) &compute->size_local_rows;  /* alias for LMP_SIZE_ROWS */
       if (type == LMP_SIZE_ROWS) return (void *) &compute->size_local_rows;
       if (type == LMP_SIZE_COLS) return (void *) &compute->size_local_cols;
     }
@@ -4744,43 +4848,19 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(category,"compute") == 0) {
-    int ncompute = lmp->modify->ncompute;
-    Compute **compute = lmp->modify->compute;
-    for (int i=0; i < ncompute; ++i) {
-      if (strcmp(name,compute[i]->id) == 0) return 1;
-    }
+    if (lmp->modify->get_compute_by_id(name)) return 1;
   } else if (strcmp(category,"dump") == 0) {
-    int ndump = lmp->output->ndump;
-    Dump **dump = lmp->output->dump;
-    for (int i=0; i < ndump; ++i) {
-      if (strcmp(name,dump[i]->id) == 0) return 1;
-    }
+    if (lmp->output->get_dump_by_id(name)) return 1;
   } else if (strcmp(category,"fix") == 0) {
-    for (auto &ifix : lmp->modify->get_fix_list()) {
-      if (strcmp(name,ifix->id) == 0) return 1;
-    }
+    if (lmp->modify->get_fix_by_id(name)) return 1;
   } else if (strcmp(category,"group") == 0) {
-    int ngroup = lmp->group->ngroup;
-    char **groups = lmp->group->names;
-    for (int i=0; i < ngroup; ++i) {
-      if (strcmp(groups[i],name) == 0) return 1;
-    }
+    if (lmp->group->find(name) >= 0) return 1;
   } else if (strcmp(category,"molecule") == 0) {
-    int nmolecule = lmp->atom->nmolecule;
-    Molecule **molecule = lmp->atom->molecules;
-    for (int i=0; i < nmolecule; ++i) {
-      if (strcmp(name,molecule[i]->id) == 0) return 1;
-    }
+    if (lmp->atom->find_molecule(name) >= 0) return 1;
   } else if (strcmp(category,"region") == 0) {
-    for (auto &reg : lmp->domain->get_region_list()) {
-      if (strcmp(name,reg->id) == 0) return 1;
-    }
+    if (lmp->domain->get_region_by_id(name)) return 1;
   } else if (strcmp(category,"variable") == 0) {
-    int nvariable = lmp->input->variable->nvar;
-    char **varnames = lmp->input->variable->names;
-    for (int i=0; i < nvariable; ++i) {
-      if (strcmp(name,varnames[i]) == 0) return 1;
-    }
+    if (lmp->input->variable->find(name) >= 0) return 1;
   }
   return 0;
 }
@@ -4806,11 +4886,11 @@ categories.
 int lammps_id_count(void *handle, const char *category) {
   auto lmp = (LAMMPS *) handle;
   if (strcmp(category,"compute") == 0) {
-    return lmp->modify->ncompute;
+    return lmp->modify->get_compute_list().size();
   } else if (strcmp(category,"dump") == 0) {
-    return lmp->output->ndump;
+    return lmp->output->get_dump_list().size();
   } else if (strcmp(category,"fix") == 0) {
-    return lmp->modify->nfix;
+    return lmp->modify->get_fix_list().size();
   } else if (strcmp(category,"group") == 0) {
     return lmp->group->ngroup;
   } else if (strcmp(category,"molecule") == 0) {
@@ -4848,6 +4928,7 @@ set to an empty string, otherwise 1.
  */
 int lammps_id_name(void *handle, const char *category, int idx, char *buffer, int buf_size) {
   auto lmp = (LAMMPS *) handle;
+  if (idx < 0) return 0;
 
   if (strcmp(category,"compute") == 0) {
     auto icompute = lmp->modify->get_compute_by_index(idx);
@@ -4856,8 +4937,9 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"dump") == 0) {
-    if ((idx >=0) && (idx < lmp->output->ndump)) {
-      strncpy(buffer, lmp->output->dump[idx]->id, buf_size);
+    auto idump = lmp->output->get_dump_by_index(idx);
+    if (idump) {
+      strncpy(buffer, idump->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"fix") == 0) {
@@ -5076,7 +5158,7 @@ void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalF
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style 'external'", id);
 
-    auto fext = dynamic_cast<FixExternal *>( fix);
+    auto fext = dynamic_cast<FixExternal *>(fix);
     fext->set_callback(callback, ptr);
   }
   END_CAPTURE
@@ -5184,7 +5266,7 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto fext = dynamic_cast<FixExternal*>( fix);
+    auto fext = dynamic_cast<FixExternal*>(fix);
     fext->set_energy_global(eng);
   }
   END_CAPTURE
@@ -5232,7 +5314,7 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto  fext = dynamic_cast<FixExternal*>( fix);
+    auto  fext = dynamic_cast<FixExternal*>(fix);
     fext->set_virial_global(virial);
   }
   END_CAPTURE
@@ -5280,7 +5362,7 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto fext = dynamic_cast<FixExternal*>( fix);
+    auto fext = dynamic_cast<FixExternal*>(fix);
     fext->set_energy_peratom(eng);
   }
   END_CAPTURE
@@ -5331,7 +5413,7 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto  fext = dynamic_cast<FixExternal*>( fix);
+    auto  fext = dynamic_cast<FixExternal*>(fix);
     fext->set_virial_peratom(virial);
   }
   END_CAPTURE
@@ -5375,7 +5457,7 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto fext = dynamic_cast<FixExternal*>( fix);
+    auto fext = dynamic_cast<FixExternal*>(fix);
     fext->set_vector_length(len);
   }
   END_CAPTURE
@@ -5429,7 +5511,7 @@ void lammps_fix_external_set_vector(void *handle, const char *id, int idx, doubl
     if (strcmp("external",fix->style) != 0)
       lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
-    auto  fext = dynamic_cast<FixExternal*>( fix);
+    auto  fext = dynamic_cast<FixExternal*>(fix);
     fext->set_vector(idx, val);
   }
   END_CAPTURE
@@ -5574,6 +5656,29 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
   }
 #endif
   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Return API version of embedded Python interpreter
+
+\verbatim embed:rst
+This function is used by the ML-IAP python code (mliappy) to verify
+the API version of the embedded python interpreter of the PYTHON
+package.  It returns -1 if the PYTHON package is not enabled.
+
+.. versionadded:: TBD
+
+\endverbatim
+ *
+ * \return   PYTHON_API_VERSION constant of the python interpreter or -1 */
+
+int lammps_python_api_version() {
+#if defined(LMP_PYTHON)
+  return PYTHON_API_VERSION;
+#else
+  return -1;
+#endif
 }
 
 // Local Variables:

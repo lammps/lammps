@@ -109,7 +109,7 @@ struct CudaDispatchProperties {
 ///
 /// An "execution space" represents a parallel execution model.  It tells Kokkos
 /// how to parallelize the execution of kernels in a parallel_for or
-/// parallel_reduce.  For example, the Threads execution space uses Pthreads or
+/// parallel_reduce.  For example, the Threads execution space uses
 /// C++11 threads on a CPU, the OpenMP execution space uses the OpenMP language
 /// extensions, and the Serial execution space executes "parallel" kernels
 /// sequentially.  The Cuda execution space uses NVIDIA's CUDA programming
@@ -260,6 +260,7 @@ template <>
 struct DeviceTypeTraits<Cuda> {
   /// \brief An ID to differentiate (for example) Serial from OpenMP in Tooling
   static constexpr DeviceType id = DeviceType::Cuda;
+  static int device_id(const Cuda& exec) { return exec.cuda_device(); }
 };
 }  // namespace Experimental
 }  // namespace Tools

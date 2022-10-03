@@ -14,11 +14,12 @@ Syntax
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
 * keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
-  or *mol* or *x* or *y* or *z* or *charge* or *dipole* or
-  *dipole/random* or *quat* or *spin* or *spin/random* or
-  *quat* or *quat/random* or *diameter* or *shape* or
-  *length* or *tri* or *theta* or *theta/random* or *angmom* or
-  *omega* or *mass* or *density* or *density/disc* or
+  or *mol* or *x* or *y* or *z* or *vx* or *vy* or *vz* or *charge* or
+  *dipole* or *dipole/random* or *quat* or *spin/atom* or *spin/atom/random* or
+  *spin/electron* or *radius/electron* or
+  *quat* or *quat/random* or *diameter* or *shape* or *length* or *tri* or
+  *theta* or *theta/random* or *angmom* or *omega* or
+  *mass* or *density* or *density/disc* or
   *volume* or *image* or *bond* or *angle* or *dihedral* or
   *improper* or *sph/e* or *sph/cv* or *sph/rho* or
   *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
@@ -55,13 +56,17 @@ Syntax
        *dipole/random* value = seed Dlen
          seed = random # seed (positive integer) for dipole moment orientations
          Dlen = magnitude of dipole moment (dipole units)
-       *spin* values = g x y z
+       *spin/atom* values = g x y z
          g = magnitude of magnetic spin vector (in Bohr magneton's unit)
          x,y,z = orientation of magnetic spin vector
          any of x,y,z can be an atom-style variable (see below)
-       *spin/random* value = seed Dlen
+       *spin/atom/random* value = seed Dlen
          seed = random # seed (positive integer) for magnetic spin orientations
          Dlen = magnitude of magnetic spin vector (in Bohr magneton's unit)
+       *radius/electron* values = eradius
+         eradius = electron radius (or fixed-core radius) (distance units)
+       *spin/electron* value = espin
+         espin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
        *quat* values = a b c theta
          a,b,c = unit vector to rotate particle around via right-hand rule
          theta = rotation angle (degrees)
@@ -277,14 +282,28 @@ the orientation of a particular atom is the same, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
-Keyword *spin* uses the specified g value to set the magnitude of the
+.. versionchanged:: 15Sep2022
+
+Keyword *spin/atom* uses the specified g value to set the magnitude of the
 magnetic spin vectors, and the x,y,z values as components of a vector
 to set as the orientation of the magnetic spin vectors of the selected
-atoms.
+atoms.  This keyword was previously called *spin*.
 
-Keyword *spin/random* randomizes the orientation of the magnetic spin
+.. versionchanged:: 15Sep2022
+
+Keyword *spin/atom/random* randomizes the orientation of the magnetic spin
 vectors for the selected atoms and sets the magnitude of each to the
-specified *Dlen* value.
+specified *Dlen* value.  This keyword was previously called *spin/random*.
+
+.. versionadded:: 15Sep2022
+
+Keyword *radius/electron* uses the specified value to set the radius of
+electrons or fixed cores.
+
+.. versionadded:: 15Sep2022
+
+Keyword *spin/electron* sets the spin of an electron (+/- 1) or indicates
+nuclei (=0), fixed-cores (=2), or pseudo-cores (= 3).
 
 Keyword *quat* uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The

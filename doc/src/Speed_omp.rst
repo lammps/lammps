@@ -97,7 +97,7 @@ sub-section.
 
 A description of the multi-threading strategy used in the OPENMP
 package and some performance examples are
-`presented here <http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1>`_.
+`presented here <https://drive.google.com/file/d/1d1gLK6Ru6aPYB50Ld2tO10Li8zgPVNB8/view?usp=sharing>`_.
 
 Guidelines for best performance
 """""""""""""""""""""""""""""""

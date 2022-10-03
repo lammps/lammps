@@ -1,0 +1,90 @@
+LAMMPS (2 Jun 2022)
+# MDI engine script to process a series of evaulate, run, minimize commands
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region		box block 0 1 0 1 0 1
+create_box	1 box
+Created orthogonal box = (0 0 0) to (1.6795962 1.6795962 1.6795962)
+  1 by 2 by 2 MPI processor grid
+mass		1 1.0
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix             1 all nve
+
+thermo          10
+
+mdi             engine
+delete_atoms group all
+Deleted 0 atoms, new total = 0
+  1 by 2 by 2 MPI processor grid
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.077 | 3.077 | 3.077 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1             -3.9713146      0             -2.4947521      3.1253597    
+        10   1.2380002     -4.3210346      0             -2.4930499      2.0015258    
+        20   1.173596      -4.2234559      0             -2.4905682      2.3587731    
+        30   1.2989994     -4.4124445      0             -2.4943907      1.903698     
+        40   1.4510255     -4.6467459      0             -2.504216       1.2196259    
+        50   1.4631454     -4.6641774      0             -2.5037518      1.2838406    
+        60   1.2694188     -4.3794267      0             -2.5050505      2.4497113    
+        70   1.3363814     -4.4759884      0             -2.5027378      2.2441463    
+        80   1.402534      -4.5752515      0             -2.5043224      1.9011715    
+        90   1.3870321     -4.5512479      0             -2.5032084      2.0040237    
+       100   1.3635651     -4.5209384      0             -2.5075493      1.9773816    
+delete_atoms group all
+Deleted 64 atoms, new total = 0
+  1 by 2 by 2 MPI processor grid
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 3.077 | 3.077 | 3.077 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1             -4.1934138      0             -2.7168513      0.72358299   
+        10   1.0170498     -4.2225288      0             -2.7207912      0.7556766    
+        20   0.92567967    -4.0920979      0             -2.725274       1.2463143    
+        30   1.0851758     -4.3346599      0             -2.73233        0.53176652   
+        40   1.2163699     -4.5351986      0             -2.7391524     -0.077915153  
+        50   1.2305739     -4.5558134      0             -2.7387942     -0.10711153   
+        60   1.1172288     -4.3979372      0             -2.7482791      0.52752067   
+        70   1.2228415     -4.5540741      0             -2.7484722      0.11937533   
+        80   1.1776333     -4.4870195      0             -2.7481704      0.33904864   
+        90   1.219283      -4.5483185      0             -2.747971       0.17898549   
+       100   1.2138939     -4.5432229      0             -2.7508327      0.3076354    
+delete_atoms group all
+Deleted 64 atoms, new total = 0
+  1 by 2 by 2 MPI processor grid
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 3.077 | 3.077 | 3.077 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1             -3.8524214      0             -2.3758589      4.6814052    
+        10   1.3356745     -4.3481612      0             -2.3759544      3.061856     
+        20   1.1791601     -4.117932       0             -2.3768284      3.8565       
+        30   1.3435556     -4.3613609      0             -2.3775171      3.0728735    
+        40   1.5628445     -4.6886004      0             -2.3809628      2.0989245    
+        50   1.4735556     -4.5569123      0             -2.3811152      2.6364099    
+        60   1.609387      -4.7581056      0             -2.3817452      1.8988642    
+        70   1.5014902     -4.5938759      0             -2.3768318      2.458161     
+        80   1.3763383     -4.4089865      0             -2.3767369      3.0379808    
+        90   1.498202      -4.5909613      0             -2.3787724      2.5543714    
+       100   1.43934       -4.5009545      0             -2.375679       3.0923444    
+
+Total wall time: 0:00:00

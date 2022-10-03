@@ -73,23 +73,24 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   format_default = nullptr;
   flush_flag = 0;
   unwrap_flag = 0;
-  datafile_from_dump = -1;
-  author_name=nullptr;
+  other_dump = nullptr;
+  author_name = nullptr;
 
   every_dump = utils::inumeric(FLERR,arg[3],false,lmp);
   every_position = every_image = -1;
   every_velocity = every_force = every_species = -1;
   every_charge = -1;
 
-  do_box=true;
-  create_group=true;
+  do_box = true;
+  create_group = true;
 
   bool box_is_set, create_group_is_set;
   box_is_set = create_group_is_set = false;
-  int iarg=5;
+  int iarg = 5;
   int n_parsed, default_every;
-  size_one=0;
-  if (every_dump==0) default_every=0; else default_every=1;
+  size_one = 0;
+  if (every_dump==0) default_every=0;
+  else default_every=1;
 
   while (iarg<narg) {
     if (strcmp(arg[iarg], "position")==0) {
@@ -140,11 +141,8 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       }
       if (box_is_set||create_group_is_set)
         error->all(FLERR, "Cannot set file_from in dump h5md after box or create_group");
-      int idump;
-      for (idump = 0; idump < output->ndump; idump++)
-        if (strcmp(arg[iarg+1],output->dump[idump]->id) == 0) break;
-      if (idump == output->ndump) error->all(FLERR,"Cound not find dump_modify ID");
-      datafile_from_dump = idump;
+      other_dump = dynamic_cast<DumpH5MD *>(output->get_dump_by_id(arg[iarg+1]));
+      if (!other_dump) error->all(FLERR,"Cound not find dump_modify H5MD dump ID {}", arg[iarg+1]);
       do_box=false;
       create_group=false;
       iarg+=2;
@@ -166,9 +164,8 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       if (iarg+1>=narg) {
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
-      if (author_name==nullptr) {
-        author_name = new char[strlen(arg[iarg])+1];
-        strcpy(author_name, arg[iarg+1]);
+      if (!author_name) {
+        author_name = utils::strdup(arg[iarg+1]);
       } else {
         error->all(FLERR, "Illegal dump h5md command: author argument repeated");
       }
@@ -262,7 +259,7 @@ void DumpH5MD::openfile()
   }
 
   if (me == 0) {
-    if (datafile_from_dump<0) {
+    if (!other_dump) {
       if (author_name==nullptr) {
         datafile = h5md_create_file(filename, "N/A", nullptr, "lammps", LAMMPS_VERSION);
       } else {
@@ -296,8 +293,6 @@ void DumpH5MD::openfile()
         h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
       }
     } else {
-      DumpH5MD* other_dump;
-      other_dump=(DumpH5MD*)output->dump[datafile_from_dump];
       datafile = other_dump->datafile;
       group_name_length = strlen(group->names[igroup]);
       group_name = new char[group_name_length];
@@ -334,13 +329,6 @@ void DumpH5MD::openfile()
     delete [] boundary[i];
   }
 
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpH5MD::write_header(bigint /* nbig */)
-{
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

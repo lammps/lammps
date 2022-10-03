@@ -20,6 +20,7 @@
 #include "fix.h"
 #include "fmt/chrono.h"
 #include "input.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
@@ -234,7 +235,6 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
     if (error) error->one(srcname, srcline, errmsg);
     if (s) *s = '\0';    // truncate string to empty in case error is null pointer
   }
-  return;
 }
 
 /* like fread() but aborts with an error or EOF is encountered */
@@ -262,7 +262,6 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_
 
     if (error) error->one(srcname, srcline, errmsg);
   }
-  return;
 }
 
 /* ------------------------------------------------------------------ */
@@ -303,7 +302,7 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
 
   if (pkg) {
     errmsg += fmt::format(" is part of the {} package", pkg);
-    if (lmp->is_installed_pkg(pkg))
+    if (LAMMPS::is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else
       errmsg += " which is not enabled in this LAMMPS binary.";
@@ -671,7 +670,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-      // fix
+        // fix
 
       } else if (word[0] == 'f') {
         auto fix = lmp->modify->get_fix_by_id(id);
@@ -694,7 +693,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-      // vector variable
+        // vector variable
 
       } else if (word[0] == 'v') {
         int index = lmp->input->variable->find(id.c_str());
@@ -711,8 +710,8 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-      // only match custom array reference with a '*' wildcard
-      // number range in the first pair of square brackets
+        // only match custom array reference with a '*' wildcard
+        // number range in the first pair of square brackets
 
       } else if ((word[0] == 'i') || (word[0] == 'd')) {
         int flag, cols;
@@ -766,6 +765,34 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
   //  printf("  arg %d: %s\n",i,earg[i]);
 
   return newarg;
+}
+
+static const char *labeltypes[] = {"Atom", "Bond", "Angle", "Dihedral", "Improper"};
+
+/* -------------------------------------------------------------------------
+   Expand type string to numeric string from labelmap.
+   Return copy of expanded type or null pointer.
+------------------------------------------------------------------------- */
+
+char *utils::expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
+{
+  if (!lmp) return nullptr;
+  if (!lmp->atom->labelmapflag) return nullptr;
+
+  const std::string typestr = utils::utf8_subst(utils::trim(str));
+  if (is_type(typestr) == 1) {
+    if (!lmp->atom->labelmapflag)
+      lmp->error->all(file, line, "{} type string {} cannot be used without a labelmap",
+                      labeltypes[mode], typestr);
+
+    int type = lmp->atom->lmap->find(typestr, mode);
+    if (type == -1)
+      lmp->error->all(file, line, "{} type string {} not found in labelmap", labeltypes[mode],
+                      typestr);
+
+    return utils::strdup(std::to_string(type));
+  } else
+    return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -987,6 +1014,19 @@ size_t utils::trim_and_count_words(const std::string &text, const std::string &s
 }
 
 /* ----------------------------------------------------------------------
+   combine words in vector to single string with separator added between words
+------------------------------------------------------------------------- */
+std::string utils::join_words(const std::vector<std::string> &words, const std::string &sep)
+{
+  std::string result;
+
+  if (words.size() > 0) result = words[0];
+  for (std::size_t i = 1; i < words.size(); ++i) result += sep + words[i];
+
+  return result;
+}
+
+/* ----------------------------------------------------------------------
    Convert string into words on whitespace while handling single and
    double quotes.
 ------------------------------------------------------------------------- */
@@ -1089,7 +1129,7 @@ bool utils::is_integer(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (auto c : str) {
+  for (const auto &c : str) {
     if (isdigit(c) || c == '-' || c == '+') continue;
     return false;
   }
@@ -1104,7 +1144,7 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (auto c : str) {
+  for (const auto &c : str) {
     if (isdigit(c)) continue;
     if (c == '-' || c == '+' || c == '.') continue;
     if (c == 'e' || c == 'E') continue;
@@ -1121,11 +1161,41 @@ bool utils::is_id(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (auto c : str) {
+  for (const auto &c : str) {
     if (isalnum(c) || (c == '_')) continue;
     return false;
   }
   return true;
+}
+
+/* ----------------------------------------------------------------------
+   Check whether string is a valid type or type label string
+------------------------------------------------------------------------- */
+
+int utils::is_type(const std::string &str)
+{
+  if (str.empty()) return -1;
+
+  bool numeric = true;
+  int nstar = 0;
+  for (const auto &c : str) {
+    if (isdigit(c)) continue;
+    if (c == '*') {
+      ++nstar;
+      continue;
+    }
+    numeric = false;
+  }
+  if (numeric && (nstar < 2)) return 0;
+
+  // TODO: the first two checks below are not really needed with this function.
+  // If a type label has at least one character that is not a digit or '*'
+  // it can be identified by this function as type label due to the check above.
+  // Whitespace and multi-byte characters are not allowed.
+  if (isdigit(str[0]) || (str[0] == '*') || (str[0] == '#')) return -1;
+  if (str.find_first_of(" \t\r\n\f") != std::string::npos) return -1;
+  if (has_utf8(utf8_subst(str))) return -1;
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1505,8 +1575,8 @@ static int re_matchp(const char *text, re_t pattern, int *matchlen);
 
 /* Definitions: */
 
-#define MAX_REGEXP_OBJECTS 30 /* Max number of regex symbols in expression. */
-#define MAX_CHAR_CLASS_LEN 40 /* Max length of character-class buffer in.   */
+#define MAX_REGEXP_OBJECTS 256 /* Max number of regex symbols in expression. */
+#define MAX_CHAR_CLASS_LEN 256 /* Max length of character-class buffer in.   */
 
 enum {
   RX_UNUSED,
@@ -1745,7 +1815,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 /* Private functions: */
 static int matchdigit(char c)
 {
-  return ((c >= '0') && (c <= '9'));
+  return isdigit(c);
 }
 
 static int matchint(char c)
@@ -1760,12 +1830,12 @@ static int matchfloat(char c)
 
 static int matchalpha(char c)
 {
-  return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
+  return isalpha(c);
 }
 
 static int matchwhitespace(char c)
 {
-  return ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r') || (c == '\f') || (c == '\v'));
+  return isspace(c);
 }
 
 static int matchalphanum(char c)

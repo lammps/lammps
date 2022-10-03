@@ -60,14 +60,14 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 using namespace LAMMPS_NS;
 
 static const char cite_ml_rann_package[] =
-  "ML-RANN package:\n\n"
+  "ML-RANN package: doi:10.1016/j.commatsci.2020.110207\n\n"
   "@Article{Nitol2021,\n"
   " author = {Nitol, Mashroor S and Dickel, Doyl E and Barrett, Christopher D},\n"
-  " title = {Artificial neural network potential for pure zinc},\n"
+  " title = {Artificial Neural Network Potential for Pure Zinc},\n"
   " journal = {Computational Materials Science},\n"
   " year =    2021,\n"
   " volume =  188,\n"
-  " pages =   {110207}\n"
+  " pages =   110207\n"
   "}\n\n";
 
 
@@ -897,9 +897,9 @@ void PairRANN::compute(int eflag, int vflag)
       }
       //run fingerprints through network
       if (dospin) {
-        propagateforwardspin(&energy,force,fm,ii,jnum);
+        propagateforwardspin(energy,force,fm,ii,jnum);
       } else {
-        propagateforward(&energy,force,ii,jnum);
+        propagateforward(energy,force,ii,jnum);
       }
   }
   if (vflag_fdotr) virial_fdotr_compute();
@@ -1071,7 +1071,7 @@ void PairRANN::screening(int ii,int sid,int jnum)
 
 
 //Called by getproperties. Propagate features and dfeatures through network. Updates force and energy
-void PairRANN::propagateforward(double *energy,double **force,int ii,int jnum) {
+void PairRANN::propagateforward(double &energy,double **force,int ii,int jnum) {
   int i,j,k,jj,j1,itype,i1;
   int *ilist;
   ilist = listfull->ilist;
@@ -1097,7 +1097,7 @@ void PairRANN::propagateforward(double *energy,double **force,int ii,int jnum) {
       dsum1 = activation[itype][i]->dactivation_function(sum[j]);
       sum[j] = activation[itype][i]->activation_function(sum[j]);
       if (i==L-1) {
-        energy[j] = sum[j];
+        energy = sum[j];
         if (eflag_atom) eatom[i1]=sum[j];
         if (eflag_global) eng_vdwl +=sum[j];
       }
@@ -1148,7 +1148,7 @@ void PairRANN::propagateforward(double *energy,double **force,int ii,int jnum) {
 }
 
 //Called by getproperties. Propagate features and dfeatures through network. Updates force and energy
-void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,int ii,int jnum) {
+void PairRANN::propagateforwardspin(double &energy,double **force,double **fm,int ii,int jnum) {
   int i,j,k,jj,j1,itype,i1;
   int *ilist;
   ilist = listfull->ilist;
@@ -1174,7 +1174,7 @@ void PairRANN::propagateforwardspin(double * energy,double **force,double **fm,i
       dsum1 = activation[itype][i]->dactivation_function(sum[j]);
       sum[j] = activation[itype][i]->activation_function(sum[j]);
       if (i==L-1) {
-        energy[j] = sum[j];
+        energy = sum[j];
         if (eflag_atom) eatom[i1]=sum[j];
         if (eflag_global) eng_vdwl +=sum[j];
       }

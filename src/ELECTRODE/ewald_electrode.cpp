@@ -40,7 +40,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldElectrode::EwaldElectrode(LAMMPS *lmp) : Ewald(lmp), ElectrodeKSpace()
+EwaldElectrode::EwaldElectrode(LAMMPS *lmp) : Ewald(lmp)
 {
   eikr_step = -1;
 }

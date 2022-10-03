@@ -54,6 +54,8 @@
 #include <Kokkos_View.hpp>
 
 #include <impl/Kokkos_Tools.hpp>
+#include <impl/Kokkos_Tools_Generic.hpp>
+
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
@@ -85,6 +87,31 @@ using device_type_t = typename T::device_type;
 
 template <class Functor, class Policy>
 struct FunctorPolicyExecutionSpace {
+  using policy_execution_space  = detected_t<execution_space_t, Policy>;
+  using functor_execution_space = detected_t<execution_space_t, Functor>;
+  using functor_device_type     = detected_t<device_type_t, Functor>;
+  using functor_device_type_execution_space =
+      detected_t<execution_space_t, functor_device_type>;
+
+  static_assert(
+      !is_detected<execution_space_t, Policy>::value ||
+          !is_detected<execution_space_t, Functor>::value ||
+          std::is_same<policy_execution_space, functor_execution_space>::value,
+      "A policy with an execution space and a functor with an execution space "
+      "are given but the execution space types do not match!");
+  static_assert(!is_detected<execution_space_t, Policy>::value ||
+                    !is_detected<device_type_t, Functor>::value ||
+                    std::is_same<policy_execution_space,
+                                 functor_device_type_execution_space>::value,
+                "A policy with an execution space and a functor with a device "
+                "type are given but the execution space types do not match!");
+  static_assert(!is_detected<device_type_t, Functor>::value ||
+                    !is_detected<execution_space_t, Functor>::value ||
+                    std::is_same<functor_device_type_execution_space,
+                                 functor_execution_space>::value,
+                "A functor with both an execution space and device type is "
+                "given but their execution space types do not match!");
+
   using execution_space = detected_or_t<
       detected_or_t<
           std::conditional_t<

@@ -6,7 +6,7 @@ balance command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    balance thresh style args ... keyword args ...
 

@@ -272,12 +272,11 @@ void Info::command(int narg, char **arg)
   fmt::print(out,"Printed on {:%a %b %d %H:%M:%S %Y}\n", fmt::localtime(now));
 
   if (flags & CONFIG) {
-    fmt::print(out,"\nLAMMPS version: {} / {}\n",
-               lmp->version, lmp->num_ver);
+    fmt::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
 
-    if (lmp->has_git_info())
+    if (LAMMPS::has_git_info())
       fmt::print(out,"Git info: {} / {} / {}\n",
-                 lmp->git_branch(), lmp->git_descriptor(),lmp->git_commit());
+                 LAMMPS::git_branch(), LAMMPS::git_descriptor(),LAMMPS::git_commit());
 
     fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
 
@@ -310,7 +309,7 @@ void Info::command(int narg, char **arg)
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
-    for (const char **pkg = lmp->installed_packages; *pkg != nullptr; ++pkg) {
+    for (const char **pkg = LAMMPS::installed_packages; *pkg != nullptr; ++pkg) {
       ncword = strlen(*pkg);
       if (ncline + ncword > 78) {
         ncline = 0;
@@ -403,7 +402,7 @@ void Info::command(int narg, char **arg)
   if (flags & SYSTEM) {
     fputs("\nSystem information:\n",out);
     fmt::print(out,"Units         = {}\n", update->unit_style);
-    fmt::print(out,"Atom style    = {}\n", atom->atom_style);
+    fmt::print(out,"Atom style    = {}\n", atom->get_style());
     fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
     if (atom->molecular != Atom::ATOMIC) {
       const char *msg;
@@ -842,7 +841,7 @@ bool Info::is_active(const char *category, const char *name)
       if (name_w_suffix == style) match = 1;
     }
   }
-  return match ? true : false;
+  return match != 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -888,42 +887,17 @@ bool Info::is_defined(const char *category, const char *name)
   if ((category == nullptr) || (name == nullptr)) return false;
 
   if (strcmp(category,"compute") == 0) {
-    int ncompute = modify->ncompute;
-    Compute **compute = modify->compute;
-    for (int i=0; i < ncompute; ++i) {
-      if (strcmp(compute[i]->id,name) == 0)
-        return true;
-    }
+    if (modify->get_compute_by_id(name)) return true;
   } else if (strcmp(category,"dump") == 0) {
-    int ndump = output->ndump;
-    Dump **dump = output->dump;
-    for (int i=0; i < ndump; ++i) {
-      if (strcmp(dump[i]->id,name) == 0)
-        return true;
-    }
+    if (output->get_dump_by_id(name)) return true;
   } else if (strcmp(category,"fix") == 0) {
-    for (const auto &fix : modify->get_fix_list()) {
-      if (strcmp(fix->id,name) == 0)
-        return true;
-    }
+    if (modify->get_fix_by_id(name)) return true;
   } else if (strcmp(category,"group") == 0) {
-    int ngroup = group->ngroup;
-    char **names = group->names;
-    for (int i=0; i < ngroup; ++i) {
-      if (strcmp(names[i],name) == 0)
-        return true;
-    }
+    if (group->find(name) >= 0) return true;
   } else if (strcmp(category,"region") == 0) {
-    for (auto &reg : domain->get_region_list())
-      if (strcmp(reg->id,name) == 0) return true;
+    if (domain->get_region_by_id(name)) return true;
   } else if (strcmp(category,"variable") == 0) {
-    int nvar = input->variable->nvar;
-    char **names = input->variable->names;
-
-    for (int i=0; i < nvar; ++i) {
-      if (strcmp(names[i],name) == 0)
-        return true;
-    }
+    if (input->variable->find(name) >= 0) return true;
   } else error->all(FLERR,"Unknown category for info is_defined(): {}", category);
 
   return false;
@@ -1174,8 +1148,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_KOKKOS)
   if (package == "KOKKOS") {
     if (category == "precision") {
-      if (setting == "double") return true;
-      else return false;
+      return setting == "double";
     }
     if (category == "api") {
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -1208,8 +1181,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_OPENMP)
   if (package == "OPENMP") {
     if (category == "precision") {
-      if (setting == "double") return true;
-      else return false;
+      return setting == "double";
     }
     if (category == "api") {
 #if defined(_OPENMP)
@@ -1246,7 +1218,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 
 std::string Info::get_accelerator_info(const std::string &package)
 {
-  std::string mesg("");
+  std::string mesg;
   if ((package.empty() || (package == "GPU")) && has_package("GPU")) {
     mesg += "GPU package API:";
     if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
@@ -1299,45 +1271,45 @@ std::string Info::get_accelerator_info(const std::string &package)
 
 void Info::get_memory_info(double *meminfo)
 {
-    double bytes = 0;
-    bytes += atom->memory_usage();
-    bytes += neighbor->memory_usage();
-    bytes += comm->memory_usage();
-    bytes += update->memory_usage();
-    bytes += force->memory_usage();
-    bytes += modify->memory_usage();
-    for (int i = 0; i < output->ndump; i++)
-      bytes += output->dump[i]->memory_usage();
-    meminfo[0] = bytes/1024.0/1024.0;
-    meminfo[1] = 0;
-    meminfo[2] = 0;
+  double bytes = 0;
+  bytes += atom->memory_usage();
+  bytes += neighbor->memory_usage();
+  bytes += comm->memory_usage();
+  bytes += update->memory_usage();
+  bytes += force->memory_usage();
+  bytes += modify->memory_usage();
+  for (int i = 0; i < output->ndump; i++)
+    bytes += output->dump[i]->memory_usage();
+  meminfo[0] = bytes/1024.0/1024.0;
+  meminfo[1] = 0;
+  meminfo[2] = 0;
 
 #if defined(_WIN32)
-    HANDLE phandle = GetCurrentProcess();
-    PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
-    meminfo[1] = (double)pmc.PrivateUsage/1048576.0;
-    meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
+  HANDLE phandle = GetCurrentProcess();
+  PROCESS_MEMORY_COUNTERS_EX pmc;
+  GetProcessMemoryInfo(phandle,(PROCESS_MEMORY_COUNTERS *)&pmc,sizeof(pmc));
+  meminfo[1] = (double)pmc.PrivateUsage/1048576.0;
+  meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
 #else
 #if defined(__linux__)
 #if defined(__GLIBC__) && __GLIBC_PREREQ(2, 33)
-    struct mallinfo2 mi;
-    mi = mallinfo2();
+  struct mallinfo2 mi;
+  mi = mallinfo2();
 #else
-    struct mallinfo mi;
-    mi = mallinfo();
+  struct mallinfo mi;
+  mi = mallinfo();
 #endif
-    meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
+  meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
 #endif
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0)
-      meminfo[2] = (double)ru.ru_maxrss/1024.0;
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0)
+    meminfo[2] = (double)ru.ru_maxrss/1024.0;
 #endif
 }
 
 /* ---------------------------------------------------------------------- */
 
 char **Info::get_variable_names(int &num) {
-    num = input->variable->nvar;
-    return input->variable->names;
+  num = input->variable->nvar;
+  return input->variable->names;
 }

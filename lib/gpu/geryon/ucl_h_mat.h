@@ -140,7 +140,10 @@ class UCL_H_Mat : public UCL_BaseMat {
     _end=_array+_cols;
     #ifdef _OCL_MAT
     _carray=input.cbegin();
-    CL_SAFE_CALL(clRetainMemObject(input.cbegin()));
+    // When viewing outside host allocation with discrete main memory on accelerator,
+    // no cl_buffer object is created to avoid unnecessary creation of device allocs
+    if (_carray!=(cl_mem)(0))
+      CL_SAFE_CALL(clRetainMemObject(input.cbegin()));
     CL_SAFE_CALL(clRetainCommandQueue(input.cq()));
     #endif
   }

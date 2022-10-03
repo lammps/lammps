@@ -219,7 +219,7 @@ TEST_F(VariableTest, CreateDelete)
     TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
                  command("variable ten4   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
-                 command("variable ten11  format    two \"%08f\""););
+                 command("variable ten11  format    two \"%08x\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
                  command("variable ten@12  index    one two three"););
     TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",
@@ -281,7 +281,7 @@ TEST_F(VariableTest, AtomicSystem)
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
-                 command("variable one vector f_press"););
+                 command("variable id vector f_press"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
     TEST_FAILURE(".*ERROR: Variable loop: has a circular dependency.*",
@@ -637,6 +637,87 @@ TEST_F(VariableTest, Label2TypeMolecular)
     ASSERT_THAT(variable->retrieve("a2"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("d1"), StrEq("1"));
     ASSERT_THAT(variable->retrieve("i1"), StrEq("1"));
+}
+
+TEST_F(VariableTest, Format)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("variable idx     index    -0.625");
+    command("variable one     equal    -0.625");
+    command("variable two     equal     1.0e-20");
+    command("variable three   equal    1.0e10");
+    command("variable f1one   format    one \"%8.4f\"");
+    command("variable f1two   format    two %8.4f");
+    command("variable f2one   format    one %.2F");
+    command("variable f2two   format    two \"% .25F\"");
+    command("variable f3one   format    one \"%5f\"");
+    command("variable f3two   format    two %f");
+    command("variable e1one   format    one \"%14.4e\"");
+    command("variable e1two   format    two %-14.4e");
+    command("variable e2one   format    one %.2E");
+    command("variable e2two   format    two \"% .15E\"");
+    command("variable e3one   format    one \"%5e\"");
+    command("variable e3two   format    two %e");
+    command("variable g1one   format    one %14.4g");
+    command("variable g1two   format    two \"%-14.4g\"");
+    command("variable g2one   format    one %.2G");
+    command("variable g2two   format    two \"% .15G\"");
+    command("variable g3one   format    one \"%5g\"");
+    command("variable g3two   format    two \"%g\"");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("one"), StrEq("-0.625"));
+    EXPECT_THAT(variable->retrieve("two"), StrEq("1e-20"));
+    EXPECT_THAT(variable->retrieve("f1one"), StrEq(" -0.6250"));
+    EXPECT_THAT(variable->retrieve("f1two"), StrEq("  0.0000"));
+    EXPECT_THAT(variable->retrieve("f2one"), StrEq("-0.62"));
+    EXPECT_THAT(variable->retrieve("f2two"), StrEq(" 0.0000000000000000000100000"));
+    EXPECT_THAT(variable->retrieve("f3one"), StrEq("-0.625000"));
+    EXPECT_THAT(variable->retrieve("f3two"), StrEq("0.000000"));
+    EXPECT_THAT(variable->retrieve("e1one"), StrEq("   -6.2500e-01"));
+    EXPECT_THAT(variable->retrieve("e1two"), StrEq("1.0000e-20    "));
+    EXPECT_THAT(variable->retrieve("e2one"), StrEq("-6.25E-01"));
+    EXPECT_THAT(variable->retrieve("e2two"), StrEq(" 9.999999999999999E-21"));
+    EXPECT_THAT(variable->retrieve("e3one"), StrEq("-6.250000e-01"));
+    EXPECT_THAT(variable->retrieve("e3two"), StrEq("1.000000e-20"));
+    EXPECT_THAT(variable->retrieve("g1one"), StrEq("        -0.625"));
+    EXPECT_THAT(variable->retrieve("g1two"), StrEq("1e-20         "));
+    EXPECT_THAT(variable->retrieve("g2one"), StrEq("-0.62"));
+    EXPECT_THAT(variable->retrieve("g2two"), StrEq(" 1E-20"));
+    EXPECT_THAT(variable->retrieve("g3one"), StrEq("-0.625"));
+    EXPECT_THAT(variable->retrieve("g3two"), StrEq("1e-20"));
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable f1one    format  one \"%-8.4f\"");
+    command("variable two delete");
+    command("variable two index 12.5");
+    command("variable f1three  format  three %g");
+    command("variable three delete");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("f1one"), StrEq("-0.6250 "));
+
+    TEST_FAILURE(".*ERROR: Variable f1idx: format variable idx has incompatible style.*",
+                 command("variable f1idx format idx %8.4f"););
+    TEST_FAILURE(".*ERROR: Variable f1two: format variable two has incompatible style.*",
+                 variable->retrieve("f1two"););
+    TEST_FAILURE(".*ERROR: Variable f1idx: format variable yyy does not exist.*",
+                 command("variable f1idx format yyy %8.4f"););
+    TEST_FAILURE(".*ERROR: Variable f1three: format variable three does not exist.*",
+                 variable->retrieve("f1three"););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable f2one equal 0.5"););
+    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable xxx format \"xxx\""););
+    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+                 command("variable xxx format one \"xxx\""););
+    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+                 command("variable xxx format one \"%d\""););
+    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+                 command("variable xxx format one \"%g%g\""););
+    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+                 command("variable xxx format one \"%g%5\""););
+    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+                 command("variable xxx format one \"%g%%\""););
+    //    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+    //                 command("print \"${f1idx}\""););
 }
 } // namespace LAMMPS_NS
 

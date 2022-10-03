@@ -216,9 +216,20 @@ be multiple tests run automatically:
 - A test that only standard, printable ASCII text characters are used.
   This runs the command ``env LC_ALL=C grep -n '[^ -~]' src/*.rst`` and
   thus prints all offending lines with filename and line number
-  prepended to the screen.  Special characters like the Angstrom
-  :math:`\mathrm{\mathring{A}}` should be typeset with embedded math
-  (like this ``:math:`\mathrm{\mathring{A}}```\ ).
+  prepended to the screen.  Special characters like greek letters
+  (:math:`\alpha~~\sigma~~\epsilon`), super- or subscripts
+  (:math:`x^2~~\mathrm{U}_{LJ}`), mathematical expressions
+  (:math:`\frac{1}{2}\mathrm{N}~~x\to\infty`), or the Angstrom symbol
+  (:math:`\AA`) should be typeset with embedded LaTeX (like this
+  ``:math:`\alpha \sigma \epsilon```, ``:math:`x^2 \mathrm{E}_{LJ}```,
+  ``:math:`\frac{1}{2}\mathrm{N} x\to\infty```, or ``:math:`\AA```\ ).
+
+- Embedded LaTeX is rendered in HTML output with `MathJax
+  <https://www.mathjax.org/>`_ and in PDF output by passing the embedded
+  text to LaTeX.  Some care has to be taken, though, since there are
+  limitations which macros and features can be used in either mode, so
+  it is recommended to always check whether any new or changed
+  documentation does translate and render correctly with either output.
 
 - A test whether all styles are documented and listed in their
   respective overview pages.  A typical output with warnings looks like this:

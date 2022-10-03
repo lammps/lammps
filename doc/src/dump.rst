@@ -693,7 +693,7 @@ charge.
 
 There are several options for outputting atom coordinates.  The *x*,
 *y*, and *z* attributes write atom coordinates "unscaled", in the
-appropriate distance :doc:`units <units>` (:math:`\mathrm{\mathring A}`,
+appropriate distance :doc:`units <units>` (:math:`\AA`,
 :math:`\sigma`, etc.).  Use *xs*, *ys*, and *zs* if you want the
 coordinates "scaled" to the box size so that each value is 0.0 to 1.0.
 If the simulation box is triclinic (tilted), then all atom coords will

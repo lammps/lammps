@@ -87,7 +87,7 @@ FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
   INTEGER(c_int), INTENT(IN), VALUE :: argc
   TYPE(c_ptr), VALUE :: argv
   TYPE(c_ptr), DIMENSION(:), POINTER :: Fargv
-  INTEGER, PARAMETER :: ARG_LENGTH = 80
+  INTEGER, PARAMETER :: ARG_LENGTH = 256
   TYPE(c_ptr) :: f_lammps_with_C_args
   CHARACTER(LEN=ARG_LENGTH), DIMENSION(argc) :: args
   CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Cstr
@@ -179,7 +179,7 @@ FUNCTION f_lammps_extract_variable_index_1 () BIND(C)
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
   INTEGER(c_int) :: f_lammps_extract_variable_index_1
-  CHARACTER(LEN=80) :: str
+  CHARACTER(LEN=256) :: str
 
   str = lmp%extract_variable("idx")
   IF ( trim(str) == 'hello' ) THEN
@@ -195,7 +195,7 @@ FUNCTION f_lammps_extract_variable_index_2 () BIND(C)
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
   INTEGER(c_int) :: f_lammps_extract_variable_index_2
-  CHARACTER(LEN=80) :: str
+  CHARACTER(LEN=256) :: str
 
   str = lmp%extract_variable("idx")
   IF ( trim(str) == 'goodbye' ) THEN
@@ -211,7 +211,7 @@ FUNCTION f_lammps_extract_variable_loop () BIND(C)
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
   INTEGER(c_int) :: f_lammps_extract_variable_loop
-  CHARACTER(LEN=80) :: loop
+  CHARACTER(LEN=256) :: loop
 
   loop = lmp%extract_variable('lp')
   READ(loop,*) f_lammps_extract_variable_loop
@@ -262,7 +262,7 @@ FUNCTION f_lammps_extract_variable_uloop () BIND(C)
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
   INTEGER(c_int) :: f_lammps_extract_variable_uloop
-  CHARACTER(LEN=80) :: uloop
+  CHARACTER(LEN=256) :: uloop
 
   uloop = lmp%extract_variable('ulp')
   READ(uloop,*) f_lammps_extract_variable_uloop
@@ -275,7 +275,7 @@ FUNCTION f_lammps_extract_variable_string () BIND(C)
   USE keepvar, ONLY : f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_string
-  CHARACTER(LEN=40) :: string
+  CHARACTER(LEN=256) :: string
 
   string = lmp%extract_variable('str')
   f_lammps_extract_variable_string = f2c_string(string)

@@ -59,7 +59,7 @@ Note both the COMMA and the SPACE separating the volume's
 value and its corresponding pressure correction. The volumes in the file
 must be uniformly spaced. Both the volumes and the pressure corrections
 should be provided in the proper units, e.g. if you are using *units real*,
-the volumes should all be in cubic angstroms, and the pressure corrections
+the volumes should all be in cubic Angstroms, and the pressure corrections
 should all be in atmospheres. Furthermore, the table should start/end at a
 volume considerably smaller/larger than you expect your system to sample
 during the simulation. If the system ever reaches a volume outside of the
@@ -72,8 +72,8 @@ With the *analytic* option, the arguments are as follows:
    ... analytic V_avg N_particles N_coeff Coeff_1 Coeff_2 ... Coeff_N
 
 Note that *V_avg* and *Coeff_i* should all be in the proper units, e.g. if you
-are using *units real*, *V_avg* should be in cubic angstroms, and the
-coefficients should all be in atmospheres \* cubic angstroms.
+are using *units real*, *V_avg* should be in cubic Angstroms, and the
+coefficients should all be in atmospheres \* cubic Angstroms.
 
 ----------
 

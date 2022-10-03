@@ -95,7 +95,7 @@ something like the following commands:
                    refresh c_dsp delay 100
 
 The :doc:`dump_modify thresh <dump_modify>` command will only output
-atoms that have displaced more than :math:`0.6~\mathrm{\mathring A}` on each
+atoms that have displaced more than :math:`0.6~\AA` on each
 snapshot (assuming metal units).  The dump_modify *refresh* option triggers a
 call to this compute at the end of every dump.
 

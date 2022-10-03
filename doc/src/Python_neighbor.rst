@@ -38,7 +38,7 @@ using the NumPy access method.
            for n in np.nditer(nlist):
                print("  atom {} with ID {}".format(n,tags[n]))
 
-Another example for extracting a full neighbor list without evaluating a 
+Another example for extracting a full neighbor list without evaluating a
 potential is shown below.
 
 .. code-block:: python

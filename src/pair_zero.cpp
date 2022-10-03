@@ -91,7 +91,7 @@ void PairZero::settings(int narg, char **arg)
   if ((narg != 1) && (narg != 2) && (narg != 3)) error->all(FLERR, "Illegal pair_style command");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
- 
+
   if (narg == 2){
     if (strcmp("nocoeff", arg[1]) == 0)
       coeffflag = 0;

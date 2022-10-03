@@ -12,7 +12,7 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword =  *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial* or *every*
+* keyword =  *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 
@@ -29,7 +29,6 @@ Syntax
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
        *temp* value = compute ID that calculates a temperature
        *virial* value = *yes* or *no*
-       *every* arg  = N
 
 Examples
 """"""""
@@ -40,7 +39,6 @@ Examples
    fix_modify 1 energy yes
    fix_modify tether respa 2
    fix_modify ave colname c_thermo_press Pressure colname 1 Temperature
-   fix_modify pair every 10
 
 Description
 """""""""""

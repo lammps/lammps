@@ -56,12 +56,10 @@ class PairZero : public Pair {
   double cut_global;
   double **cut;
   int coeffflag;
-  int fullneighflag; // 0 for half list, 1 for full list
+  int fullneighflag;    // 0 for half list, 1 for full list
 
   virtual void allocate();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

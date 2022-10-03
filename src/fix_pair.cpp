@@ -356,19 +356,3 @@ double FixPair::memory_usage()
   else bytes += (double)atom->nmax*ncols * sizeof(double);
   return bytes;
 }
-
-int FixPair::modify_param(int narg, char **arg) {
-    int processed_args=0;
-    int iarg = 0;
-    while (iarg < narg) {
-        if (strcmp(arg[iarg], "every") == 0) {
-            nevery = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
-            if (nevery < 1) error->all(FLERR, "Illegal fix_modify pair every value: {}", nevery);
-            iarg += 2;
-            processed_args+=2;
-        } else
-            iarg +=1;
-    }
-
-    return processed_args; // how many arguments were processed
-}

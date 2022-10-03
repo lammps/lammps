@@ -45,8 +45,6 @@ class FixPair : public Fix {
 
   double memory_usage() override;
 
-  int modify_param(int, char **) override;
-
  private:
   int nevery,nfield,ncols;
   bigint lasttime;

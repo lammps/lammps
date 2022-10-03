@@ -50,6 +50,7 @@ protected:
 
 TEST_F(LAMMPS_gather_scatter, gather_atoms_masks)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_EQ(f_lammps_gather_atoms_mask(1), 1);
   EXPECT_EQ(f_lammps_gather_atoms_mask(2), 1);
@@ -68,6 +69,7 @@ TEST_F(LAMMPS_gather_scatter, gather_atoms_masks)
 
 TEST_F(LAMMPS_gather_scatter, gather_atoms_positions)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_position(1), 1.0);
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_position(2), 1.0);
@@ -82,6 +84,7 @@ TEST_F(LAMMPS_gather_scatter, gather_atoms_positions)
 
 TEST_F(LAMMPS_gather_scatter, gather_atoms_concat_masks)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_EQ(f_lammps_gather_atoms_concat_mask(1), 1);
   EXPECT_EQ(f_lammps_gather_atoms_concat_mask(2), 1);
@@ -100,6 +103,7 @@ TEST_F(LAMMPS_gather_scatter, gather_atoms_concat_masks)
 
 TEST_F(LAMMPS_gather_scatter, gather_atoms_concat_positions)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_concat_position(1,1), 1.0);
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_concat_position(2,1), 1.0);
@@ -114,6 +118,7 @@ TEST_F(LAMMPS_gather_scatter, gather_atoms_concat_positions)
 
 TEST_F(LAMMPS_gather_scatter, gather_atoms_subset_masks)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_subset_mask(2), 1);
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_subset_mask(3), 1);
@@ -129,6 +134,7 @@ TEST_F(LAMMPS_gather_scatter, gather_atoms_subset_masks)
 
 TEST_F(LAMMPS_gather_scatter, gather_atoms_subset_positions)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_subset_position(1,2), 0.2);
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_subset_position(2,2), 0.1);
@@ -140,6 +146,7 @@ TEST_F(LAMMPS_gather_scatter, gather_atoms_subset_positions)
 
 TEST_F(LAMMPS_gather_scatter, scatter_atoms_masks)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   lammps_command(lmp, "group special id 1");
   lammps_command(lmp, "group other id 2");
@@ -155,6 +162,7 @@ TEST_F(LAMMPS_gather_scatter, scatter_atoms_masks)
 
 TEST_F(LAMMPS_gather_scatter, scatter_atoms_positions)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_concat_position(1,1), 1.0);
   EXPECT_DOUBLE_EQ(f_lammps_gather_atoms_concat_position(2,1), 1.0);
@@ -179,6 +187,7 @@ TEST_F(LAMMPS_gather_scatter, scatter_atoms_positions)
 
 TEST_F(LAMMPS_gather_scatter, scatter_atoms_subset_mask)
 {
+  if ( lammps_extract_setting(nullptr,"tagint") == 8 ) GTEST_SKIP();
   f_lammps_setup_gather_scatter();
   EXPECT_EQ(f_lammps_gather_atoms_mask(1), 1);
   EXPECT_EQ(f_lammps_gather_atoms_mask(3), 1);

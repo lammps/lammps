@@ -45,6 +45,19 @@ double f_lammps_extract_variable_equal();
 double f_lammps_extract_variable_atom(int);
 double f_lammps_extract_variable_vector(int);
 void f_lammps_set_variable_string();
+char* c_path_join(const char*, const char*);
+}
+
+char* c_path_join(const char* a, const char* b)
+{
+   std::string A = a;
+   std::string B = b;
+   std::string C = LAMMPS_NS::platform::path_join(A, B);
+   size_t length = C.length() + 1;
+   char *retval = (char*) malloc(length*sizeof(char));
+   C.copy(retval, length);
+   retval[length-1] = '\0';
+   return retval;
 }
 
 class LAMMPS_extract_variable : public ::testing::Test {

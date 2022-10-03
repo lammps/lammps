@@ -1,17 +1,54 @@
 MODULE keepvar
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_size_t, c_char
   USE liblammps
   IMPLICIT NONE
+
+  INTERFACE
+    FUNCTION c_path_join(a, b) BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: a, b
+      TYPE(c_ptr) :: c_path_join
+    END FUNCTION c_path_join
+
+    FUNCTION c_strlen(str) BIND(C,name='strlen')
+      IMPORT :: c_ptr, c_size_t
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: str
+      INTEGER(c_size_t) :: c_strlen
+    END FUNCTION c_strlen
+
+    SUBROUTINE c_free(ptr) BIND(C,name='free')
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: ptr
+    END SUBROUTINE c_free
+  END INTERFACE
 
 CONTAINS
 
   FUNCTION absolute_path(filename)
+    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_size_t, c_char, C_F_POINTER
     USE keepstuff, ONLY : lmp
     CHARACTER(LEN=:), ALLOCATABLE :: absolute_path
     CHARACTER(LEN=*), INTENT(IN) :: filename
     CHARACTER(LEN=256) :: test_input_directory
+    TYPE(c_ptr) :: c_test_input_directory, c_absolute_path, c_filename
+    CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: F_absolute_path
+    INTEGER :: i
+    INTEGER(c_size_t) :: length
 
     test_input_directory = lmp%extract_variable('input_dir')
-    absolute_path = TRIM(test_input_directory) // '/' // TRIM(filename)
+    c_test_input_directory = f2c_string(test_input_directory)
+    c_filename = f2c_string(filename)
+    c_absolute_path = c_path_join(c_test_input_directory, c_filename)
+    length = c_strlen(c_absolute_path)
+    CALL C_F_POINTER(c_absolute_path, F_absolute_path, [length])
+    ALLOCATE( CHARACTER(LEN=length) :: absolute_path )
+    DO i = 1, length
+      absolute_path(i:i) = F_absolute_path(i)
+    END DO
+    CALL c_free(c_filename)
+    CALL c_free(c_test_input_directory)
+    CALL c_free(c_absolute_path)
   END FUNCTION absolute_path
 
   FUNCTION f2c_string(f_string) RESULT(ptr)

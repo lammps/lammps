@@ -64,3 +64,26 @@ FUNCTION f_lammps_has_error () BIND(C)
       f_lammps_has_error = 0_C_int
    END IF
 END FUNCTION f_lammps_has_error
+
+FUNCTION f_lammps_get_last_error_message(errmesg, errlen) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_int, C_char, C_ptr, C_F_POINTER
+   USE keepstuff, ONLY : lmp
+   USE LIBLAMMPS
+   IMPLICIT NONE
+   INTEGER(C_int) :: f_lammps_get_last_error_message
+   CHARACTER(KIND=c_char), DIMENSION(*) :: errmesg
+   INTEGER(C_int), VALUE, INTENT(IN) :: errlen
+   CHARACTER(LEN=:), ALLOCATABLE :: buffer
+   INTEGER :: status, i
+
+   ! copy error message to buffer
+   ALLOCATE(CHARACTER(errlen) :: buffer)
+   CALL lmp%get_last_error_message(buffer, status)
+   f_lammps_get_last_error_message = status
+   ! and copy to C style string
+   DO i=1, errlen
+      errmesg(i) = buffer(i:i)
+      IF (buffer(i:i) == ACHAR(0)) EXIT
+   END DO
+   DEALLOCATE(buffer)
+END FUNCTION f_lammps_get_last_error_message

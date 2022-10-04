@@ -2,9 +2,10 @@
 
 #include "lammps.h"
 #include "library.h"
-#include <mpi.h>
+
 #include <string>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 // prototypes for fortran reverse wrapper functions
@@ -16,7 +17,12 @@ void f_lammps_memory_usage(double*);
 int f_lammps_get_mpi_comm();
 int f_lammps_extract_setting(const char*);
 int f_lammps_has_error();
+int f_lammps_get_last_error_message(char *, int);
 }
+
+namespace LAMMPS_NS {
+
+using ::testing::ContainsRegex;
 
 class LAMMPS_properties : public ::testing::Test {
 protected:
@@ -105,11 +111,28 @@ TEST_F(LAMMPS_properties, extract_setting)
     EXPECT_EQ(f_lammps_extract_setting("mu_flag"), 0);
     EXPECT_EQ(f_lammps_extract_setting("rmass_flag"), 0);
     EXPECT_EQ(f_lammps_extract_setting("UNKNOWN"), -1);
-
 };
 
 TEST_F(LAMMPS_properties, has_error)
 {
-   EXPECT_EQ(f_lammps_has_error(), lammps_has_error(lmp));
-   // TODO: How to test the error message itself?
+    // need errors to throw exceptions to be able to intercept them.
+    if (!lammps_config_has_exceptions()) GTEST_SKIP();
+
+    EXPECT_EQ(f_lammps_has_error(), lammps_has_error(lmp));
+    EXPECT_EQ(f_lammps_has_error(), 0);
+
+    // trigger an error, but hide output
+    ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "this_is_not_a_known_command");
+    ::testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(f_lammps_has_error(), lammps_has_error(lmp));
+    EXPECT_EQ(f_lammps_has_error(), 1);
+
+    // retrieve error message
+    char errmsg[1024];
+    int err = f_lammps_get_last_error_message(errmsg, 1023);
+    EXPECT_EQ(err, 1);
+    EXPECT_THAT(errmsg, ContainsRegex(".*ERRORx: Unknown command: this_is_not_a_known_command.*"));
 };
+} // namespace LAMMPS_NS

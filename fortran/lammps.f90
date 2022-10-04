@@ -1552,7 +1552,7 @@ CONTAINS
     TYPE(c_ptr) :: ptr
     INTEGER :: i
 
-    buffer = ''
+    buffer = ' '
     ptr = C_LOC(Cbuffer(1))
     buf_size = LEN(buffer)
     CALL lammps_get_os_info(ptr, buf_size)
@@ -1699,25 +1699,28 @@ CONTAINS
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER, INTENT(OUT), OPTIONAL :: status
-    INTEGER(c_int) :: length, Cstatus, i
+    INTEGER(c_int) :: buflen, Cstatus, i
+    INTEGER(c_size_t) :: length
     TYPE(c_ptr) :: Cptr
-    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cbuffer
+    CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
 
-    buffer = ''
+    buffer = ' '
     IF ( lmp_has_error(self) ) THEN
-      length = LEN(buffer)
-      Cptr = f2c_string(buffer)
-      Cstatus = lammps_get_last_error_message(self%handle, Cptr, length)
-      length = MIN(LEN(buffer, c_size_t), c_strlen(Cptr))
-      CALL C_F_POINTER(Cptr, Cbuffer, [length])
-      FORALL ( i=1:length )
-        buffer(i:i) = Cbuffer(i)
-      END FORALL
+      buflen = LEN(buffer)
+      length = buflen
+      Cptr = lammps_malloc(length)
+      Cstatus = lammps_get_last_error_message(self%handle, Cptr, buflen)
+      CALL C_F_POINTER(Cptr, c_string, [1])
+      DO i=1, length
+        buffer(i:i) = c_string(i)
+        IF (c_string(i) == c_null_char) EXIT
+      END DO
       IF ( PRESENT(status) ) THEN
         status = Cstatus
       END IF
+      CALL lammps_free(Cptr)
     ELSE
-      buffer = ''
+      buffer = ' '
       IF ( PRESENT(status) ) THEN
         status = 0
       END IF

@@ -76,8 +76,15 @@ struct UnorderedMapRehash {
                  *this);
   }
 
-  KOKKOS_INLINE_FUNCTION
-  void operator()(size_type i) const {
+  template <typename Dummy = typename map_type::value_type>
+  KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_void<Dummy>::value>
+  operator()(size_type i) const {
+    if (m_src.valid_at(i)) m_dst.insert(m_src.key_at(i));
+  }
+
+  template <typename Dummy = typename map_type::value_type>
+  KOKKOS_INLINE_FUNCTION std::enable_if_t<!std::is_void<Dummy>::value>
+  operator()(size_type i) const {
     if (m_src.valid_at(i)) m_dst.insert(m_src.key_at(i), m_src.value_at(i));
   }
 };

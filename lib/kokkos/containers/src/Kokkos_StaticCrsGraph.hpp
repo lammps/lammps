@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_STATICCRSGRAPH_HPP
 #define KOKKOS_STATICCRSGRAPH_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_STATICCRSGRAPH
+#endif
 
 #include <string>
 #include <vector>
@@ -214,8 +218,7 @@ struct GraphRowViewConst {
       const typename GraphType::entries_type& colidx_in,
       const ordinal_type& stride, const ordinal_type& count,
       const OffsetType& idx,
-      const typename std::enable_if<std::is_integral<OffsetType>::value,
-                                    int>::type& = 0)
+      const std::enable_if_t<std::is_integral<OffsetType>::value, int>& = 0)
       : colidx_(&colidx_in(idx)), stride_(stride), length(count) {}
 
   /// \brief Number of entries in the row.
@@ -471,8 +474,7 @@ struct StaticCrsGraphMaximumEntry {
   void init(value_type& update) const { update = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& update,
-            volatile const value_type& input) const {
+  void join(value_type& update, const value_type& input) const {
     if (update < input) update = input;
   }
 };
@@ -498,4 +500,8 @@ DataType maximum_entry(const StaticCrsGraph<DataType, Arg1Type, Arg2Type,
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_STATICCRSGRAPH
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_STATICCRSGRAPH
+#endif
 #endif /* #ifndef KOKKOS_CRSARRAY_HPP */

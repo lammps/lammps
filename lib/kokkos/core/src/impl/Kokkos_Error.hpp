@@ -67,12 +67,65 @@ namespace Impl {
 
 [[noreturn]] void host_abort(const char *const);
 
-void throw_runtime_exception(const std::string &);
+#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)
+
+#if defined(__APPLE__) || defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
+// cuda_abort does not abort when building for macOS.
+// required to workaround failures in random number generator unit tests with
+// pre-volta architectures
+#define KOKKOS_IMPL_ABORT_NORETURN
+#else
+// cuda_abort aborts when building for other platforms than macOS
+#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
+#endif
+
+#elif defined(KOKKOS_COMPILER_NVHPC)
+
+#define KOKKOS_IMPL_ABORT_NORETURN
+
+#elif defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)
+// HIP aborts
+#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+// FIXME_SYCL SYCL doesn't abort
+#define KOKKOS_IMPL_ABORT_NORETURN
+#elif !defined(KOKKOS_ENABLE_OPENMPTARGET)
+// Host aborts
+#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
+#else
+// Everything else does not abort
+#define KOKKOS_IMPL_ABORT_NORETURN
+#endif
+
+#ifdef KOKKOS_ENABLE_SYCL  // FIXME_SYCL
+#define KOKKOS_IMPL_ABORT_NORETURN_DEVICE
+#else
+#define KOKKOS_IMPL_ABORT_NORETURN_DEVICE KOKKOS_IMPL_ABORT_NORETURN
+#endif
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+KOKKOS_IMPL_ABORT_NORETURN_DEVICE inline KOKKOS_IMPL_DEVICE_FUNCTION void
+device_abort(const char *const msg) {
+#if defined(KOKKOS_ENABLE_CUDA)
+  ::Kokkos::Impl::cuda_abort(msg);
+#elif defined(KOKKOS_ENABLE_HIP)
+  ::Kokkos::Impl::hip_abort(msg);
+#elif defined(KOKKOS_ENABLE_SYCL)
+  ::Kokkos::Impl::sycl_abort(msg);
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+  printf("%s", msg);  // FIXME_OPENMPTARGET
+#else
+#error faulty logic
+#endif
+}
+#endif
+
+[[noreturn]] void throw_runtime_exception(const std::string &msg);
 
 void traceback_callstack(std::ostream &);
 
 std::string human_memory_size(size_t arg_bytes);
-void throw_runtime_exception(const std::string &msg);
 
 }  // namespace Impl
 
@@ -97,6 +150,7 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
     CudaHostAlloc,
     HIPMalloc,
     HIPHostMalloc,
+    HIPMallocManaged,
     SYCLMallocDevice,
     SYCLMallocShared,
     SYCLMallocHost
@@ -171,47 +225,15 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)
-
-#if defined(__APPLE__) || defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-// cuda_abort does not abort when building for macOS.
-// required to workaround failures in random number generator unit tests with
-// pre-volta architectures
-#define KOKKOS_IMPL_ABORT_NORETURN
-#else
-// cuda_abort aborts when building for other platforms than macOS
-#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
-#endif
-
-#elif defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)
-// HIP aborts
-#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
-// FIXME_SYCL SYCL doesn't abort
-#define KOKKOS_IMPL_ABORT_NORETURN
-#elif !defined(KOKKOS_ENABLE_OPENMPTARGET)
-// Host aborts
-#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
-#else
-// Everything else does not abort
-#define KOKKOS_IMPL_ABORT_NORETURN
-#endif
-
 namespace Kokkos {
+
 KOKKOS_IMPL_ABORT_NORETURN KOKKOS_INLINE_FUNCTION void abort(
     const char *const message) {
-#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)
-  Kokkos::Impl::cuda_abort(message);
-#elif defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)
-  Kokkos::Impl::hip_abort(message);
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
-  Kokkos::Impl::sycl_abort(message);
-#elif !defined(KOKKOS_ENABLE_OPENMPTARGET)
-  Kokkos::Impl::host_abort(message);
-#else
-  (void)message;  // FIXME_OPENMPTARGET
-#endif
+  KOKKOS_IF_ON_HOST(::Kokkos::Impl::host_abort(message);)
+  KOKKOS_IF_ON_DEVICE(::Kokkos::Impl::device_abort(message);)
 }
+
+#undef KOKKOS_IMPL_ABORT_NORETURN
 
 }  // namespace Kokkos
 

@@ -86,6 +86,8 @@ IF(KOKKOS_ENABLE_OPENMP)
   ENDIF()
 ENDIF()
 
+KOKKOS_DEVICE_OPTION(OPENACC OFF DEVICE "Whether to build the OpenACC backend")
+
 KOKKOS_DEVICE_OPTION(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
 IF (KOKKOS_ENABLE_OPENMPTARGET)
   SET(ClangOpenMPFlag -fopenmp=libomp)

@@ -43,7 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_MinMaxElementOperations.hpp>
 
 namespace KE = Kokkos::Experimental;
 
@@ -228,39 +227,39 @@ template <class ViewType>
 void test_max_element_trivial_data(ViewType view) {
   /* if we pass empty range, should return last */
   auto result = KE::max_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_TRUE(result == KE::cbegin(view));
+  EXPECT_EQ(result, KE::cbegin(view));
 
   /* if we pass empty range, should return last */
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::max_element(exespace(), it0, it1);
-  EXPECT_TRUE(result2 == it1);
+  EXPECT_EQ(result2, it1);
 }
 
 template <class ViewType>
 void test_min_element_trivial_data(ViewType view) {
   /* if we pass empty range, should return last */
   auto result = KE::min_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_TRUE(result == KE::cbegin(view));
+  EXPECT_EQ(result, KE::cbegin(view));
 
   /* if we pass empty range, should return last */
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::min_element(exespace(), it0, it1);
-  EXPECT_TRUE(result2 == it1);
+  EXPECT_EQ(result2, it1);
 }
 
 template <class ViewType>
 void test_minmax_element_empty_range(ViewType view) {
   auto result =
       KE::minmax_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_TRUE(result.first == KE::cbegin(view));
-  EXPECT_TRUE(result.second == KE::cbegin(view));
+  EXPECT_EQ(result.first, KE::cbegin(view));
+  EXPECT_EQ(result.second, KE::cbegin(view));
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::minmax_element(exespace(), it0, it1);
-  EXPECT_TRUE(result2.first == it1);
-  EXPECT_TRUE(result2.second == it1);
+  EXPECT_EQ(result2.first, it1);
+  EXPECT_EQ(result2.second, it1);
 }
 
 template <class ViewType>
@@ -337,7 +336,7 @@ void std_algorithms_min_max_element_test::test_minmax_element_non_trivial_data(
   }
 }
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
 template <class ViewType>
 void std_algorithms_min_max_element_test::
     test_max_element_non_trivial_data_custom_comp(ViewType view) {
@@ -446,7 +445,7 @@ TEST_F(std_algorithms_min_max_element_test, max_element_non_trivial_data) {
   test_max_element_non_trivial_data(m_strided_view);
 }
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
 // non-trivial data, custom comp
 TEST_F(std_algorithms_min_max_element_test,
        min_element_non_trivial_data_custom_comp) {
@@ -478,7 +477,7 @@ TEST_F(std_algorithms_min_max_element_test, minmax_element_non_trivial_data) {
 }
 #endif
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
 // OpenMPTarget does not yet support custom comparator
 TEST_F(std_algorithms_min_max_element_test,
        minmax_element_non_trivial_data_custom_comp) {

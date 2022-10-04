@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "text_file_reader.h"
 
@@ -31,6 +32,7 @@
 #include <map>
 
 using namespace LAMMPS_NS;
+using MathSpecial::square;
 
 enum { NONE = 0, HARM, MORSE, LJ126 };
 
@@ -265,7 +267,7 @@ void PairList::settings(int narg, char **arg)
           break;
         }
         if (values.has_next())
-          oneparam.cutsq = values.next_double();
+          oneparam.cutsq = square(values.next_double());
         else
           oneparam.cutsq = cut_global*cut_global;
 

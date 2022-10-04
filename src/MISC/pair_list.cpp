@@ -168,11 +168,11 @@ void PairList::compute(int eflag, int vflag)
       } else if (par.style == MORSE) {
 
         const double r = sqrt(rsq);
-        const double dr = par.param.morse.r0 - r;
-        const double dexp = exp(par.param.morse.alpha * dr);
+        const double dr = r - par.param.morse.r0;
+        const double dexp = exp(-par.param.morse.alpha * dr);
         fpair = 2.0 * par.param.morse.d0 * par.param.morse.alpha * (dexp * dexp - dexp) / r;
 
-        if (eflag_either) epair = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp) - par.offset;
+        if (eflag_either) epair = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp + 1.0) - par.offset;
 
       } else if (par.style == LJ126) {
 
@@ -385,7 +385,7 @@ void PairList::init_style()
       } else if (par.style == MORSE) {
         const double dr = par.param.morse.r0 - sqrt(par.cutsq);
         const double dexp = exp(par.param.morse.alpha * dr);
-        par.offset = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp);
+        par.offset = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp - 1.0);
 
       } else if (par.style == LJ126) {
         const double r6inv = par.cutsq * par.cutsq * par.cutsq;

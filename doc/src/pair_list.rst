@@ -88,7 +88,7 @@ The style *morse* computes pairwise interactions with the formula
 
 .. math::
 
-   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c
+   E = D_0 \left[ 1 - e^{-\alpha (r - r_0)} \right]^2 \qquad r < r_c
 
 and the coefficients:
 
@@ -171,8 +171,9 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style hybrid/overlay <pair_hybrid>`,
 :doc:`pair_style lj/cut <pair_lj>`,
-:doc:`pair_style morse <pair_morse>`,
+:doc:`bond_style morse <bond_morse>`,
 :doc:`bond_style harmonic <bond_harmonic>`
+:doc:`bond_style quartic <bond_quartic>`
 
 Default
 """""""

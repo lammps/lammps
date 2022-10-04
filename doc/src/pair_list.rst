@@ -30,15 +30,17 @@ Description
 """""""""""
 
 Style *list* computes interactions between explicitly listed pairs of
-atoms with the option to select functional form and parameters for
-each individual pair.  Because the parameters are set in the list
-file, the pair_coeff command has no parameters (but still needs to be
-provided).  The *check* and *nocheck* keywords enable/disable a test
-that checks whether all listed bonds were present and computed.
+atoms with the option to select functional form and parameters for each
+individual pair.  Because the parameters are set in the list file, the
+pair_coeff command has no parameters (but still needs to be provided).
+The *check* and *nocheck* keywords enable/disable tests that checks
+whether all listed pairs of atom IDs were present and the interactions
+computed.  If *nocheck* is set and either atom ID is not present, the
+interaction is skipped.
 
 This pair style can be thought of as a hybrid between bonded,
-non-bonded, and restraint interactions.  It will typically be used as
-an additional interaction within the *hybrid/overlay* pair style.  It
+non-bonded, and restraint interactions.  It will typically be used as an
+additional interaction within the *hybrid/overlay* pair style.  It
 currently supports three interaction styles: a 12-6 Lennard-Jones, a
 Morse and a harmonic potential.
 
@@ -55,10 +57,10 @@ The format of the list file is as follows:
        ID2 = atom ID of second atom
        style = style of interaction
        coeffs = list of coeffs
-       cutoff = cutoff for interaction (optional)
+       cutoff = cutoff for interaction (optional, except for style *quartic*)
 
-The cutoff parameter is optional. If not specified, the global cutoff
-is used.
+The cutoff parameter is optional for all but the *quartic* interactions.
+If it is not specified, the global cutoff is used.
 
 Here is an example file:
 
@@ -120,7 +122,7 @@ and the coefficients:
 * :math:`b_2` (distance units)
 * :math:`r_c` (distance units)
 
-Note that the global cutoff specified by *pair_style list* command is ignored, unless :math:`r_c` is not specified. In this case, :math:`r_c` equals the sqare root of the globle cutoff.
+Note that the per list entry cutoff :math:`r_c` is **required** for *quartic* interactions.
 
 ----------
 
@@ -136,8 +138,9 @@ pair style.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need
-to be specified in an input script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart
+files <restart>`, so pair_style and pair_coeff commands need to be
+specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
@@ -149,17 +152,18 @@ Restrictions
 """"""""""""
 
 This pair style does not use a neighbor list and instead identifies
-atoms by their IDs. This has two consequences: 1) The cutoff has to be
-chosen sufficiently large, so that the second atom of a pair has to be
-a ghost atom on the same node on which the first atom is local;
-otherwise the interaction will be skipped. You can use the *check*
-option to detect, if interactions are missing. 2) Unlike other pair
-styles in LAMMPS, an atom I will not interact with multiple images of
-atom J (assuming the images are within the cutoff distance), but only
-with the nearest image.
+atoms by their IDs.  This has two consequences: 1) The cutoff has to be
+chosen sufficiently large, so that the second atom of a pair has to be a
+ghost atom on the same node on which the first atom is local; otherwise
+the interaction will be skipped.  You can use the *check* option to
+detect, if interactions are missing.  2) Unlike other pair styles in
+LAMMPS, an atom I will not interact with multiple images of atom J
+(assuming the images are within the cutoff distance), but only with the
+closest image.
 
-This style is part of the MISC package. It is only enabled if
-LAMMPS is build with that package. See the :doc:`Build package <Build_package>` page on for more info.
+This style is part of the MISC package. It is only enabled if LAMMPS is
+build with that package. See the :doc:`Build package <Build_package>`
+page on for more info.
 
 Related commands
 """"""""""""""""

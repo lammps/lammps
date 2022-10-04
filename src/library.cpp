@@ -1145,7 +1145,7 @@ int lammps_extract_setting(void *handle, const char *keyword)
 This function returns an integer that encodes the data type of the global
 property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
 values. Callers of :cpp:func:`lammps_extract_global` can use this information
-to then decide how to cast the (void*) pointer and access the data.
+to then decide how to cast the ``void *`` pointer and access the data.
 
 .. versionadded:: 18Sep2020
 
@@ -1622,7 +1622,7 @@ void *lammps_extract_global(void *handle, const char *name)
 This function returns an integer that encodes the data type of the per-atom
 property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
 values. Callers of :cpp:func:`lammps_extract_atom` can use this information
-to then decide how to cast the (void*) pointer and access the data.
+to then decide how to cast the ``void *`` pointer and access the data.
 
 .. versionadded:: 18Sep2020
 
@@ -2080,7 +2080,7 @@ For *vector*\ -style variables, the returned pointer is to actual LAMMPS data.
 The pointer should not be deallocated. Its length depends on the variable,
 compute, or fix data used to construct the *vector*\ -style variable.
 This length can be fetched by calling this function with *group* set to the
-constant "LMP_SIZE_VECTOR", which returns a ``void\*`` pointer that can be
+constant "LMP_SIZE_VECTOR", which returns a ``void *`` pointer that can be
 dereferenced to an integer that is the length of the vector. This pointer
 needs to be deallocated when finished with it to avoid memory leaks.
 
@@ -2157,7 +2157,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
 This function returns an integer that encodes the data type of the variable
 with the specified name. See :cpp:enum:`_LMP_VAR_CONST` for valid values.
 Callers of :cpp:func:`lammps_extract_variable` can use this information to
-decide how to cast the (void*) pointer and access the data.
+decide how to cast the ``void *`` pointer and access the data.
 
 .. versionadded:: TBD
 
@@ -3071,7 +3071,7 @@ Below is a brief C code demonstrating accessing this collected bond information.
 
 void lammps_gather_bonds(void *handle, void *data)
 {
-  auto lmp = (LAMMPS *)handle;
+  auto lmp = (LAMMPS *) handle;
   BEGIN_CAPTURE {
     void *val = lammps_extract_global(handle,"nbonds");
     bigint nbonds = *(bigint *)val;
@@ -4526,7 +4526,7 @@ int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
  *                 multiple requests from the same compute
  * \return         return neighbor list index if found, otherwise -1 */
 
-int lammps_find_compute_neighlist(void* handle, const char *id, int reqid) {
+int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   auto lmp = (LAMMPS *) handle;
   auto compute = lmp->modify->get_compute_by_id(id);
   if (!compute) return -1;
@@ -5773,8 +5773,8 @@ has thrown a :ref:`C++ exception <exceptions>`.
  */
 int lammps_has_error(void *handle) {
 #ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *  lmp = (LAMMPS *) handle;
-  Error * error = lmp->error;
+  LAMMPS *lmp = (LAMMPS *) handle;
+  Error *error = lmp->error;
   return (error->get_last_error().empty()) ? 0 : 1;
 #else
   return 0;

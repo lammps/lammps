@@ -32,13 +32,14 @@
 
 using namespace LAMMPS_NS;
 
-enum { NONE = 0, HARM, MORSE, LJ126 };
+enum { NONE = 0, HARM, MORSE, LJ126, QUARTIC };
 
 static std::map<std::string, int> stylename = {
   { "none",     NONE  },
   { "harmonic", HARM  },
   { "morse",    MORSE },
-  { "lj126",    LJ126 }
+  { "lj126",    LJ126 },
+  { "quartic",  QUARTIC }
 };
 
 // fast power function for integer exponent > 0
@@ -157,7 +158,20 @@ void PairList::compute(int eflag, int vflag)
         if (eflag_either)
           epair = 4.0*par.param.lj126.epsilon*r6inv
             * (sig6*sig6*r6inv - sig6) - par.offset;
+       
+      } else if (par.style == QUARTIC) {
+
+        const double r = sqrt(rsq);
+        double dr = r - sqrt(par.cutsq);
+	double ra = dr - par.param.quartic.b1;
+	double rb = dr - par.param.quartic.b2;
+	double r2 = dr * dr;
+        fpair = -par.param.quartic.k / r * (r2 * (ra + rb) + 2.0 * dr * ra * rb);
+
+        if (eflag_either)
+          epair = par.param.quartic.k * r2 * ra * rb;
       }
+
 
       if (newton_pair || i < nlocal) {
         f[i].x += dx*fpair;
@@ -221,10 +235,10 @@ void PairList::settings(int narg, char **arg)
 
   // read and parse potential file only on MPI rank 0.
   if (comm->me == 0) {
-    int nharm, nmorse, nlj126, nskipped;
+    int nharm, nmorse, nlj126, nquartic, nskipped;
     FILE *fp = utils::open_potential(arg[0],lmp,nullptr);
     TextFileReader reader(fp,"pair list coeffs");
-    npairs = nharm = nmorse = nlj126 = nskipped = 0;
+    npairs = nharm = nmorse = nlj126 = nquartic = nskipped = 0;
 
     try {
       char *line;
@@ -258,6 +272,14 @@ void PairList::settings(int narg, char **arg)
           ++nlj126;
           break;
 
+        case QUARTIC:
+          oneparam.param.quartic.k = values.next_double();
+          oneparam.param.quartic.b1 = values.next_double();
+          oneparam.param.quartic.b2 = values.next_double();
+          oneparam.param.quartic.rc = values.next_double();
+          ++nquartic;
+          break;
+
         case NONE: // fallthrough
           error->warning(FLERR,"Skipping unrecognized pair list potential entry: {}",
                          utils::trim(line));
@@ -265,7 +287,7 @@ void PairList::settings(int narg, char **arg)
           break;
         }
         if (values.has_next())
-          oneparam.cutsq = values.next_double();
+          oneparam.cutsq = mypow(values.next_double(), 2);
         else
           oneparam.cutsq = cut_global*cut_global;
 
@@ -274,8 +296,8 @@ void PairList::settings(int narg, char **arg)
     } catch (std::exception &e) {
       error->one(FLERR,"Error reading pair list coeffs file: {}", e.what());
     }
-    utils::logmesg(lmp, "Read {} ({}/{}/{}) interacting pair lines from {}. "
-                   "{} skipped entries.\n", npairs, nharm, nmorse, nlj126, arg[0], nskipped);
+    utils::logmesg(lmp, "Read {} ({}/{}/{}/{}) interacting pair lines from {}. "
+                   "{} skipped entries.\n", npairs, nharm, nmorse, nlj126, nquartic, arg[0], nskipped);
 
     memory->create(params,npairs,"pair_list:params");
     memcpy(params, myparams.data(),npairs*sizeof(list_param));
@@ -339,6 +361,12 @@ void PairList::init_style()
         const double r6inv = par.cutsq*par.cutsq*par.cutsq;
         const double sig6  = mypow(par.param.lj126.sigma,6);
         par.offset = 4.0*par.param.lj126.epsilon*r6inv * (sig6*sig6*r6inv - sig6);
+      
+      } else if (par.style == QUARTIC) {
+        // the offset is always 0 at rc
+        par.offset = 0.0;
+	// correct cutsq
+	par.cutsq = mypow(par.param.quartic.rc, 2);
       }
     }
   }

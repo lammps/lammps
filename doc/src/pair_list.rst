@@ -69,6 +69,7 @@ Here is an example file:
    15 259 lj126     1.0 1.0      50.0
    15 603 morse    10.0 1.2 2.0  10.0 # and another comment
    18 470 harmonic 50.0 1.2       5.0
+   19 332 quartic   5.0 -1.2 1.2  5.0
 
 The style *lj126* computes pairwise interactions with the formula
 
@@ -105,6 +106,21 @@ and the coefficients:
 * :math:`r_0` (distance units)
 
 Note that the usual 1/2 factor is included in :math:`K`.
+
+The style *quartic* computes pairwise interactions with the formula
+
+.. math::
+
+   E = K (r - r_c)^2 (r - r_c -b_1) (r - r_c - b_2) \qquad r < r_c
+
+and the coefficients:
+
+* :math:`K` (energy units)
+* :math:`b_1` (distance units)
+* :math:`b_2` (distance units)
+* :math:`r_c` (distance units)
+
+Note that the cutoff :math:`r_c` should always be specified to ensure zero energy and smooth force at cutoff.
 
 ----------
 

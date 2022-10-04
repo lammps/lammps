@@ -276,7 +276,6 @@ void PairList::settings(int narg, char **arg)
           oneparam.param.quartic.k = values.next_double();
           oneparam.param.quartic.b1 = values.next_double();
           oneparam.param.quartic.b2 = values.next_double();
-          oneparam.param.quartic.rc = values.next_double();
           ++nquartic;
           break;
 
@@ -365,8 +364,6 @@ void PairList::init_style()
       } else if (par.style == QUARTIC) {
         // the offset is always 0 at rc
         par.offset = 0.0;
-	// correct cutsq
-	par.cutsq = mypow(par.param.quartic.rc, 2);
       }
     }
   }

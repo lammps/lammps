@@ -50,7 +50,7 @@ class PairList : public Pair {
     double epsilon, sigma;
   };
   struct quartic_p {
-    double k, b1, b2, rc;
+    double k, b1, b2;
   };
 
 

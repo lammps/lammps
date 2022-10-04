@@ -120,7 +120,7 @@ and the coefficients:
 * :math:`b_2` (distance units)
 * :math:`r_c` (distance units)
 
-Note that the cutoff :math:`r_c` should always be specified to ensure zero energy and smooth force at cutoff.
+Note that the global cutoff specified by *pair_style list* command is ignored, unless :math:`r_c` is not specified. In this case, :math:`r_c` equals the sqare root of the globle cutoff.
 
 ----------
 

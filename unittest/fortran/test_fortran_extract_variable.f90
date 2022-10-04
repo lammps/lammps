@@ -100,7 +100,7 @@ FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
       TYPE(c_ptr), INTENT(IN), VALUE :: str
       INTEGER(c_size_t) :: c_strlen
     END FUNCTION c_strlen
-  END INTERFACE    
+  END INTERFACE
 
   CALL C_F_POINTER(argv, Fargv, [argc])
   DO i = 1, argc
@@ -111,7 +111,7 @@ FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
       args(i)(j:j) = Cstr(j)
     END FORALL
   END DO
-  
+
   lmp = lammps(args)
   f_lammps_with_C_args = lmp%handle
 END FUNCTION f_lammps_with_C_args

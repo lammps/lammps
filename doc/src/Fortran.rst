@@ -29,12 +29,12 @@ or dynamic library <Build_link>`.
 
 If the LAMMPS library itself has been compiled with MPI support, the
 resulting executable will still be able to run LAMMPS in parallel with
-``mpiexec`` or equivalent.  Please also note that the order of the source
-files matters: the ``lammps.f90`` file needs to be compiled first, since
-it provides the ``LIBLAMMPS`` module that is imported by the Fortran
-code that uses the interface.  A working example can be found together
-with equivalent examples in C and C++ in the ``examples/COUPLE/simple``
-folder of the LAMMPS distribution.
+``mpirun``, ``mpiexec`` or equivalent.  Please also note that the order
+of the source files matters: the ``lammps.f90`` file needs to be
+compiled first, since it provides the ``LIBLAMMPS`` module that is
+imported by the Fortran code that uses the interface.  A working example
+can be found together with equivalent examples in C and C++ in the
+``examples/COUPLE/simple`` folder of the LAMMPS distribution.
 
 .. versionadded:: 9Oct2020
 

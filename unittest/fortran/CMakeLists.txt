@@ -50,7 +50,7 @@ if(CMAKE_Fortran_COMPILER)
   add_test(NAME FortranBox COMMAND test_fortran_box)
 
   add_executable(test_fortran_properties wrap_properties.cpp test_fortran_properties.f90 test_fortran_commands.f90)
-  target_link_libraries(test_fortran_properties PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  target_link_libraries(test_fortran_properties PRIVATE flammps lammps MPI::MPI_Fortran GTest::GMockMain)
   add_test(NAME FortranProperties COMMAND test_fortran_properties)
 
   add_executable(test_fortran_extract_global wrap_extract_global.cpp test_fortran_extract_global.f90)

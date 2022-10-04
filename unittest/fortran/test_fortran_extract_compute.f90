@@ -22,7 +22,7 @@ SUBROUTINE f_lammps_close() BIND(C)
   lmp%handle = c_null_ptr
 END SUBROUTINE f_lammps_close
 
-SUBROUTINE f_lammps_setup_extract_compute () BIND(C)
+SUBROUTINE f_lammps_setup_extract_compute() BIND(C)
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp, big_input, cont_input, more_input, pair_input
    IMPLICIT NONE
@@ -42,91 +42,91 @@ SUBROUTINE f_lammps_setup_extract_compute () BIND(C)
    CALL lmp%command("run 0") ! must be here, otherwise will SEGFAULT
 END SUBROUTINE f_lammps_setup_extract_compute
 
-FUNCTION f_lammps_extract_compute_peratom_vector (i) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_compute_peratom_vector(i) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   INTEGER(C_int), INTENT(IN), VALUE :: i
-   REAL(C_double) :: f_lammps_extract_compute_peratom_vector
-   REAL(C_double), DIMENSION(:), POINTER :: vector => NULL()
+   INTEGER(c_int), INTENT(IN), VALUE :: i
+   REAL(c_double) :: f_lammps_extract_compute_peratom_vector
+   REAL(c_double), DIMENSION(:), POINTER :: vector => NULL()
 
    vector = lmp%extract_compute('peratompe', lmp%style%atom, lmp%type%vector)
    f_lammps_extract_compute_peratom_vector = vector(i)
 END FUNCTION f_lammps_extract_compute_peratom_vector
 
-FUNCTION f_lammps_extract_compute_peratom_array (i,j) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_compute_peratom_array(i,j) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   INTEGER(C_int), INTENT(IN), VALUE :: i, j
-   REAL(C_double) :: f_lammps_extract_compute_peratom_array
-   REAL(C_double), DIMENSION(:,:), POINTER :: array => NULL()
+   INTEGER(c_int), INTENT(IN), VALUE :: i, j
+   REAL(c_double) :: f_lammps_extract_compute_peratom_array
+   REAL(c_double), DIMENSION(:,:), POINTER :: array => NULL()
 
    array = lmp%extract_compute('stress', lmp%style%atom, lmp%type%array)
    f_lammps_extract_compute_peratom_array = array(i,j)
 END FUNCTION f_lammps_extract_compute_peratom_array
 
-FUNCTION f_lammps_extract_compute_global_scalar () BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_compute_global_scalar() BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   REAL(C_double) :: f_lammps_extract_compute_global_scalar
-   REAL(C_double), POINTER :: scalar
+   REAL(c_double) :: f_lammps_extract_compute_global_scalar
+   REAL(c_double), POINTER :: scalar
 
    scalar = lmp%extract_compute('totalpe', lmp%style%global, lmp%type%scalar)
    f_lammps_extract_compute_global_scalar = scalar
 END FUNCTION f_lammps_extract_compute_global_scalar
 
-FUNCTION f_lammps_extract_compute_global_vector (i) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_compute_global_vector(i) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i
-   REAL(C_double) :: f_lammps_extract_compute_global_vector
-   REAL(C_double), DIMENSION(:), POINTER :: vector
+   REAL(c_double) :: f_lammps_extract_compute_global_vector
+   REAL(c_double), DIMENSION(:), POINTER :: vector
 
    vector = lmp%extract_compute('COM', lmp%style%global, lmp%type%vector)
    f_lammps_extract_compute_global_vector = vector(i)
 END FUNCTION f_lammps_extract_compute_global_vector
 
-FUNCTION f_lammps_extract_compute_global_array (i,j) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_compute_global_array(i,j) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i, j
-   REAL(C_double) :: f_lammps_extract_compute_global_array
-   REAL(C_double), DIMENSION(:,:), POINTER :: array
+   REAL(c_double) :: f_lammps_extract_compute_global_array
+   REAL(c_double), DIMENSION(:,:), POINTER :: array
 
    array = lmp%extract_compute('RDF', lmp%style%global, lmp%type%array)
    f_lammps_extract_compute_global_array = array(i,j)
 END FUNCTION f_lammps_extract_compute_global_array
 
-FUNCTION f_lammps_extract_compute_local_vector (i) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_compute_local_vector(i) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i
-   REAL(C_double) :: f_lammps_extract_compute_local_vector
-   REAL(C_double), DIMENSION(:), POINTER :: vector
+   REAL(c_double) :: f_lammps_extract_compute_local_vector
+   REAL(c_double), DIMENSION(:), POINTER :: vector
 
    vector = lmp%extract_compute('pairdist', lmp%style%local, lmp%type%vector)
    f_lammps_extract_compute_local_vector = vector(i)
 END FUNCTION f_lammps_extract_compute_local_vector
 
-FUNCTION f_lammps_extract_compute_local_array (i, j) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_compute_local_array(i, j) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
    INTEGER(c_int), INTENT(IN), VALUE :: i, j
-   REAL(C_double) :: f_lammps_extract_compute_local_array
-   REAL(C_double), DIMENSION(:,:), POINTER :: array
+   REAL(c_double) :: f_lammps_extract_compute_local_array
+   REAL(c_double), DIMENSION(:,:), POINTER :: array
 
    array = lmp%extract_compute('pairlocal', lmp%style%local, lmp%type%array)
    f_lammps_extract_compute_local_array = array(i,j)

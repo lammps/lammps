@@ -22,7 +22,7 @@ SUBROUTINE f_lammps_close() BIND(C)
   lmp%handle = c_null_ptr
 END SUBROUTINE f_lammps_close
 
-SUBROUTINE f_lammps_setup_gather_scatter () BIND(C)
+SUBROUTINE f_lammps_setup_gather_scatter() BIND(C)
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp, big_input, cont_input, more_input
   IMPLICIT NONE
@@ -33,7 +33,7 @@ SUBROUTINE f_lammps_setup_gather_scatter () BIND(C)
   CALL lmp%commands_list(more_input)
 END SUBROUTINE f_lammps_setup_gather_scatter
 
-FUNCTION f_lammps_gather_atoms_mask (i) BIND(C)
+FUNCTION f_lammps_gather_atoms_mask(i) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
@@ -46,7 +46,7 @@ FUNCTION f_lammps_gather_atoms_mask (i) BIND(C)
   f_lammps_gather_atoms_mask = mask(i)
 END FUNCTION f_lammps_gather_atoms_mask
 
-FUNCTION f_lammps_gather_atoms_position (i) BIND(C)
+FUNCTION f_lammps_gather_atoms_position(i) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
@@ -59,7 +59,7 @@ FUNCTION f_lammps_gather_atoms_position (i) BIND(C)
   f_lammps_gather_atoms_position = positions(i)
 END FUNCTION f_lammps_gather_atoms_position
 
-FUNCTION f_lammps_gather_atoms_concat_mask (i) BIND(C)
+FUNCTION f_lammps_gather_atoms_concat_mask(i) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
@@ -72,7 +72,7 @@ FUNCTION f_lammps_gather_atoms_concat_mask (i) BIND(C)
   CALL lmp%gather_atoms_concat('mask', 1_c_int, mask)
   CALL lmp%gather_atoms_concat('id', 1_c_int, tag)
   DO j = 1, SIZE(tag)
-    IF ( tag(j) == i ) THEN
+    IF (tag(j) == i) THEN
       f_lammps_gather_atoms_concat_mask = mask(j)
       RETURN
     END IF
@@ -80,7 +80,7 @@ FUNCTION f_lammps_gather_atoms_concat_mask (i) BIND(C)
   f_lammps_gather_atoms_concat_mask = -1
 END FUNCTION f_lammps_gather_atoms_concat_mask
 
-FUNCTION f_lammps_gather_atoms_concat_position (xyz, id) BIND(C)
+FUNCTION f_lammps_gather_atoms_concat_position(xyz, id) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
@@ -94,13 +94,13 @@ FUNCTION f_lammps_gather_atoms_concat_position (xyz, id) BIND(C)
   CALL lmp%gather_atoms_concat('x', 3_c_int, positions)
   CALL lmp%gather_atoms_concat('id', 1_c_int, tag)
   DO j = 1, SIZE(tag)
-    IF ( tag(j) == id ) THEN
+    IF (tag(j) == id) THEN
        f_lammps_gather_atoms_concat_position = positions((j-1)*3 + xyz)
     END IF
   END DO
 END FUNCTION f_lammps_gather_atoms_concat_position
 
-FUNCTION f_lammps_gather_atoms_subset_mask (i) BIND(C)
+FUNCTION f_lammps_gather_atoms_subset_mask(i) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
@@ -113,7 +113,7 @@ FUNCTION f_lammps_gather_atoms_subset_mask (i) BIND(C)
 
   CALL lmp%gather_atoms_subset('mask', 1_c_int, tag, mask)
   DO j = 1, SIZE(tag)
-    IF ( tag(j) == i ) THEN
+    IF (tag(j) == i) THEN
       f_lammps_gather_atoms_subset_mask = mask(j)
       RETURN
     END IF
@@ -121,7 +121,7 @@ FUNCTION f_lammps_gather_atoms_subset_mask (i) BIND(C)
   f_lammps_gather_atoms_subset_mask = -1
 END FUNCTION f_lammps_gather_atoms_subset_mask
 
-FUNCTION f_lammps_gather_atoms_subset_position (xyz,id) BIND(C)
+FUNCTION f_lammps_gather_atoms_subset_position(xyz,id) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
@@ -134,7 +134,7 @@ FUNCTION f_lammps_gather_atoms_subset_position (xyz,id) BIND(C)
 
   CALL lmp%gather_atoms_subset('x', 3_c_int, tag, positions)
   DO j = 1, SIZE(tag)
-    IF ( tag(j) == id ) THEN
+    IF (tag(j) == id) THEN
       f_lammps_gather_atoms_subset_position = positions((j-1)*3 + xyz)
       RETURN
     END IF

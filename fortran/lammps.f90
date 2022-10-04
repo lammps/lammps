@@ -483,10 +483,10 @@ MODULE LIBLAMMPS
     END FUNCTION lammps_version
 
     SUBROUTINE lammps_get_os_info(buffer, buf_size) BIND(C)
-      IMPORT :: C_ptr, C_int
+      IMPORT :: c_ptr, c_int
       IMPLICIT NONE
-      TYPE(C_ptr), VALUE :: buffer
-      INTEGER(C_int), VALUE :: buf_size
+      TYPE(c_ptr), VALUE :: buffer
+      INTEGER(c_int), VALUE :: buf_size
     END SUBROUTINE lammps_get_os_info
 
     FUNCTION lammps_config_has_mpi_support() BIND(C)
@@ -526,24 +526,24 @@ MODULE LIBLAMMPS
     END FUNCTION lammps_config_has_exceptions
 
     FUNCTION lammps_config_has_package(name) BIND(C)
-      IMPORT :: C_int, C_ptr
+      IMPORT :: c_int, c_ptr
       IMPLICIT NONE
-      TYPE(C_ptr), VALUE :: name
+      TYPE(c_ptr), VALUE :: name
       INTEGER(c_int) :: lammps_config_has_package
     END FUNCTION lammps_config_has_package
 
     FUNCTION lammps_config_package_count() BIND(C)
-      IMPORT :: C_int
+      IMPORT :: c_int
       IMPLICIT NONE
-      INTEGER(C_int) :: lammps_config_package_count
+      INTEGER(c_int) :: lammps_config_package_count
     END FUNCTION lammps_config_package_count
 
     FUNCTION lammps_config_package_name(idx, buffer, buf_size) BIND(C)
-      IMPORT :: C_int, C_ptr
+      IMPORT :: c_int, c_ptr
       IMPLICIT NONE
-      INTEGER(C_int) :: lammps_config_package_name
-      INTEGER(C_int), VALUE :: idx, buf_size
-      TYPE(C_ptr), VALUE :: buffer
+      INTEGER(c_int) :: lammps_config_package_name
+      INTEGER(c_int), VALUE :: idx, buf_size
+      TYPE(c_ptr), VALUE :: buffer
     END FUNCTION lammps_config_package_name
 
     !LOGICAL FUNCTION lammps_config_accelerator
@@ -551,10 +551,10 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_get_gpu_device
 
     !LOGICAL FUNCTION lammps_has_id
-    !INTEGER(C_int) FUNCTION lammps_id_count
+    !INTEGER(c_int) FUNCTION lammps_id_count
     !SUBROUTINE lammps_id_name
 
-    !INTEGER(C_int) FUNCTION lammps_plugin_count
+    !INTEGER(c_int) FUNCTION lammps_plugin_count
     !SUBROUTINE lammps_plugin_name
 
     !Both of these use LAMMPS_BIGBIG
@@ -572,9 +572,9 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_fix_external_set_vector
 
     SUBROUTINE lammps_flush_buffers(handle) BIND(C)
-      IMPORT :: C_ptr
+      IMPORT :: c_ptr
       IMPLICIT NONE
-      TYPE(C_ptr), VALUE :: handle
+      TYPE(c_ptr), VALUE :: handle
     END SUBROUTINE lammps_flush_buffers
 
     FUNCTION lammps_malloc(size) BIND(C, name='malloc')
@@ -602,7 +602,7 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle
     END SUBROUTINE lammps_force_timeout
 
-    INTEGER(C_int) FUNCTION lammps_has_error(handle) BIND(C)
+    INTEGER(c_int) FUNCTION lammps_has_error(handle) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
       TYPE(c_ptr), VALUE :: handle
@@ -758,7 +758,7 @@ CONTAINS
   REAL(c_double) FUNCTION lmp_get_thermo(self,name)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*) :: name
-    TYPE(C_ptr) :: Cname
+    TYPE(c_ptr) :: Cname
 
     Cname = f2c_string(name)
     lmp_get_thermo = lammps_get_thermo(self%handle, Cname)
@@ -771,27 +771,27 @@ CONTAINS
     REAL(c_double), INTENT(OUT), TARGET, OPTIONAL :: boxlo(3), boxhi(3)
     REAL(c_double), INTENT(OUT), TARGET, OPTIONAL :: xy, yz, xz
     LOGICAL, INTENT(OUT), OPTIONAL :: pflags(3), boxflag
-    INTEGER(c_int), TARGET :: C_pflags(3), C_boxflag
+    INTEGER(c_int), TARGET :: c_pflags(3), c_boxflag
     TYPE(c_ptr) :: ptr(7)
 
     ptr = c_null_ptr
-    IF ( PRESENT(boxlo) ) ptr(1) = C_LOC(boxlo(1))
-    IF ( PRESENT(boxhi) ) ptr(2) = C_LOC(boxhi(1))
-    IF ( PRESENT(xy) ) ptr(3) = C_LOC(xy)
-    IF ( PRESENT(yz) ) ptr(4) = C_LOC(yz)
-    IF ( PRESENT(xz) ) ptr(5) = C_LOC(xz)
-    IF ( PRESENT(pflags) ) ptr(6) = C_LOC(C_pflags(1))
-    IF ( PRESENT(boxflag) ) ptr(7) = C_LOC(C_boxflag)
+    IF (PRESENT(boxlo)) ptr(1) = C_LOC(boxlo(1))
+    IF (PRESENT(boxhi)) ptr(2) = C_LOC(boxhi(1))
+    IF (PRESENT(xy)) ptr(3) = C_LOC(xy)
+    IF (PRESENT(yz)) ptr(4) = C_LOC(yz)
+    IF (PRESENT(xz)) ptr(5) = C_LOC(xz)
+    IF (PRESENT(pflags)) ptr(6) = C_LOC(c_pflags(1))
+    IF (PRESENT(boxflag)) ptr(7) = C_LOC(c_boxflag)
     CALL lammps_extract_box(self%handle, ptr(1), ptr(2), ptr(3), ptr(4), &
       ptr(5), ptr(6), ptr(7))
-    IF ( PRESENT(pflags) ) pflags = ( C_pflags /= 0_C_int )
-    IF ( PRESENT(boxflag) ) boxflag = ( C_boxflag /= 0_C_int )
+    IF (PRESENT(pflags)) pflags = (c_pflags /= 0_c_int)
+    IF (PRESENT(boxflag)) boxflag = (c_boxflag /= 0_c_int)
   END SUBROUTINE lmp_extract_box
 
   ! equivalent function to lammps_reset_box
   SUBROUTINE lmp_reset_box(self, boxlo, boxhi, xy, yz, xz)
     CLASS(lammps), INTENT(IN) :: self
-    REAL(C_double), INTENT(IN) :: boxlo(3), boxhi(3), xy, yz, xz
+    REAL(c_double), INTENT(IN) :: boxlo(3), boxhi(3), xy, yz, xz
 
     CALL lammps_reset_box(self%handle, boxlo, boxhi, xy, yz, xz)
   END SUBROUTINE lmp_reset_box
@@ -857,7 +857,7 @@ CONTAINS
     global_data%lammps_instance => self
     SELECT CASE (datatype)
       CASE (LAMMPS_INT)
-        IF ( length == 1 ) THEN
+        IF (length == 1) THEN
           global_data%datatype = DATA_INT
           CALL C_F_POINTER(Cptr, global_data%i32)
         ELSE
@@ -865,7 +865,7 @@ CONTAINS
           CALL C_F_POINTER(Cptr, global_data%i32_vec, [length])
         END IF
       CASE (LAMMPS_INT64)
-        IF ( length == 1 ) THEN
+        IF (length == 1) THEN
           global_data%datatype = DATA_INT64
           CALL C_F_POINTER(Cptr, global_data%i64)
         ELSE
@@ -873,7 +873,7 @@ CONTAINS
           CALL C_F_POINTER(Cptr, global_data%i64_vec, [length])
         END IF
       CASE (LAMMPS_DOUBLE)
-        IF ( length == 1 ) THEN
+        IF (length == 1) THEN
           global_data%datatype = DATA_DOUBLE
           CALL C_F_POINTER(Cptr, global_data%r64)
         ELSE
@@ -884,8 +884,8 @@ CONTAINS
         global_data%datatype = DATA_STRING
         length = c_strlen(Cptr)
         CALL C_F_POINTER(Cptr, Fptr, [length])
-        ALLOCATE ( CHARACTER(LEN=length) :: global_data%str )
-        FORALL ( i=1:length )
+        ALLOCATE(CHARACTER(LEN=length) :: global_data%str)
+        FORALL (i=1:length)
           global_data%str(i:i) = Fptr(i)
         END FORALL
       CASE DEFAULT
@@ -939,7 +939,7 @@ CONTAINS
         CALL C_F_POINTER(Cptr, peratom_data%i64_vec, [ncols])
       CASE (LAMMPS_DOUBLE)
         peratom_data%datatype = DATA_DOUBLE_1D
-        IF ( name == 'mass' ) THEN
+        IF (name == 'mass') THEN
           CALL C_F_POINTER(Cptr, dummy, [ncols])
           peratom_data%r64_vec(0:) => dummy
         ELSE
@@ -978,7 +978,7 @@ CONTAINS
     Cid = f2c_string(id)
     Cptr = lammps_extract_compute(self%handle, Cid, style, type)
 
-    IF ( .NOT. C_ASSOCIATED(Cptr) ) THEN
+    IF (.NOT. C_ASSOCIATED(Cptr)) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Pointer from LAMMPS is NULL [Fortran/extract_compute]')
     END IF
@@ -1046,8 +1046,8 @@ CONTAINS
     ! global data, as it would be if we could access the C++ array directly
     Cnrow = -1
     Cncol = -1
-    IF ( PRESENT(nrow) ) THEN
-      IF ( .NOT. PRESENT(ncol) ) THEN
+    IF (PRESENT(nrow)) THEN
+      IF (.NOT. PRESENT(ncol)) THEN
         ! Presumably the argument that's there is the vector length
         Cnrow = nrow - 1_c_int
         Cncol = -1_c_int
@@ -1057,11 +1057,11 @@ CONTAINS
       END IF
     END IF
 
-    IF ( PRESENT(ncol) ) Cnrow = ncol - 1_c_int
+    IF (PRESENT(ncol)) Cnrow = ncol - 1_c_int
 
     Cid = f2c_string(id)
     Cptr = lammps_extract_fix(self%handle, Cid, style, type, Cnrow, Cncol)
-    IF ( .NOT. C_ASSOCIATED(Cptr) ) THEN
+    IF (.NOT. C_ASSOCIATED(Cptr)) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Pointer from LAMMPS is NULL for fix id "' // id &
         // '" [Fortran/extract_fix]')
@@ -1082,7 +1082,7 @@ CONTAINS
               & [Fortran/extract_fix]')
           CASE (LMP_TYPE_VECTOR)
             fix_data%datatype = DATA_DOUBLE_1D
-            IF ( STYLE == LMP_STYLE_ATOM ) THEN
+            IF (STYLE == LMP_STYLE_ATOM) THEN
               nrows = self%extract_setting('nmax')
             ELSE
               Ctemp = lammps_extract_fix(self%handle, Cid, style, &
@@ -1093,7 +1093,7 @@ CONTAINS
             CALL C_F_POINTER(Cptr, fix_data%r64_vec, [nrows])
           CASE (LMP_TYPE_ARRAY)
             fix_data%datatype = DATA_DOUBLE_2D
-            IF ( STYLE == LMP_STYLE_ATOM ) THEN
+            IF (STYLE == LMP_STYLE_ATOM) THEN
               ! Fortran array is transposed relative to C
               ncols = self%extract_setting('nmax')
               Ctemp = lammps_extract_fix(self%handle, Cid, style, &
@@ -1142,7 +1142,7 @@ CONTAINS
     INTEGER(c_int), POINTER :: Clength => NULL()
 
     Cname = f2c_string(name)
-    IF ( PRESENT(group) ) THEN
+    IF (PRESENT(group)) THEN
       Cgroup = f2c_string(group)
     ELSE
       Cgroup = c_null_ptr
@@ -1163,9 +1163,8 @@ CONTAINS
         variable_data%datatype = DATA_DOUBLE_1D
         length = lmp_extract_setting(self, 'nlocal')
         CALL C_F_POINTER(Cptr, double_vec, [length])
-        IF ( ALLOCATED(variable_data%r64_vec) ) &
-          DEALLOCATE(variable_data%r64_vec)
-        ALLOCATE( variable_data%r64_vec(length) )
+        IF (ALLOCATED(variable_data%r64_vec)) DEALLOCATE(variable_data%r64_vec)
+        ALLOCATE(variable_data%r64_vec(length))
         variable_data%r64_vec = double_vec
         CALL lammps_free(Cptr)
       CASE (LMP_VAR_VECTOR)
@@ -1179,17 +1178,17 @@ CONTAINS
         CALL lammps_free(Cname)
         CALL lammps_free(Cveclength)
         CALL C_F_POINTER(Cptr, double_vec, [length])
-        IF ( ALLOCATED(variable_data%r64_vec) ) &
+        IF (ALLOCATED(variable_data%r64_vec)) &
           DEALLOCATE(variable_data%r64_vec)
-        ALLOCATE( variable_data%r64_vec(length) )
+        ALLOCATE(variable_data%r64_vec(length))
         variable_data%r64_vec = double_vec
         ! DO NOT deallocate the C pointer
       CASE (LMP_VAR_STRING)
         variable_data%datatype = DATA_STRING
         length = c_strlen(Cptr)
         CALL C_F_POINTER(Cptr, Cstring, [length])
-        ALLOCATE ( CHARACTER(LEN=length) :: variable_data%str )
-        FORALL ( i=1:length )
+        ALLOCATE(CHARACTER(LEN=length) :: variable_data%str)
+        FORALL (i=1:length)
           variable_data%str(i:i) = Cstring(i)
         END FORALL
         ! DO NOT deallocate the C pointer
@@ -1209,14 +1208,14 @@ CONTAINS
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: name, str
     INTEGER :: err
-    TYPE(C_ptr) :: Cstr, Cname
+    TYPE(c_ptr) :: Cstr, Cname
 
     Cstr = f2c_string(str)
     Cname = f2c_string(name)
     err = lammps_set_variable(self%handle, Cname, Cstr)
     CALL lammps_free(Cname)
     CALL lammps_free(Cstr)
-    IF ( err /= 0 ) THEN
+    IF (err /= 0) THEN
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'WARNING: unable to set string variable "' // name &
         // '" [Fortran/set_variable]')
@@ -1235,13 +1234,13 @@ CONTAINS
     REAL(c_double) :: dnatoms
     CHARACTER(LEN=100) :: error_msg
 
-    IF ( count /= 1 .AND. count /= 3 ) THEN
+    IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'gather_atoms&
         & requires "count" to be 1 or 3 [Fortran/gather_atoms]')
     END IF
 
     dnatoms = lmp_get_natoms(self)
-    IF ( dnatoms > HUGE(1_c_int) ) THEN
+    IF (dnatoms > HUGE(1_c_int)) THEN
       WRITE(error_msg,'(A,1X,I0,1X,A)') &
         'Cannot use library function gather_atoms with more than', &
         HUGE(0_c_int), 'atoms [Fortran/gather_atoms]'
@@ -1250,7 +1249,7 @@ CONTAINS
     natoms = NINT(dnatoms, c_int)
 
     Cname = f2c_string(name)
-    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
     ALLOCATE(data(natoms*count))
     Cdata = C_LOC(data(1))
     CALL lammps_gather_atoms(self%handle, Cname, Ctype, count, Cdata)
@@ -1266,16 +1265,16 @@ CONTAINS
     TYPE(c_ptr) :: Cdata, Cname
     INTEGER(c_int) :: natoms
     INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
-    REAL(C_double) :: dnatoms
+    REAL(c_double) :: dnatoms
     CHARACTER(LEN=100) :: error_msg
 
-    IF ( count /= 1 .AND. count /= 3 ) THEN
+    IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'gather_atoms&
         & requires "count" to be 1 or 3 [Fortran/gather_atoms]')
     END IF
 
     dnatoms = lmp_get_natoms(self)
-    IF ( dnatoms > HUGE(1_c_int) ) THEN
+    IF (dnatoms > HUGE(1_c_int)) THEN
       WRITE(error_msg,'(A,1X,I0,1X,A)') &
         'Cannot use library function gather_atoms with more than', &
         HUGE(0_c_int), 'atoms [Fortran/gather_atoms]'
@@ -1284,7 +1283,7 @@ CONTAINS
     natoms = NINT(dnatoms, c_int)
 
     Cname = f2c_string(name)
-    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
     ALLOCATE(data(natoms*count))
     Cdata = C_LOC(data(1))
     CALL lammps_gather_atoms(self%handle, Cname, Ctype, count, Cdata)
@@ -1300,17 +1299,17 @@ CONTAINS
     TYPE(c_ptr) :: Cdata, Cname
     INTEGER(c_int) :: natoms
     INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
-    REAL(C_double) :: dnatoms
+    REAL(c_double) :: dnatoms
     CHARACTER(LEN=100) :: error_msg
 
-    IF ( count /= 1 .AND. count /= 3 ) THEN
+    IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'gather_atoms_concat requires "count" to be 1 or 3 &
         &[Fortran/gather_atoms_concat]')
     END IF
 
     dnatoms = lmp_get_natoms(self)
-    IF ( dnatoms > HUGE(1_c_int) ) THEN
+    IF (dnatoms > HUGE(1_c_int)) THEN
       WRITE(error_msg,'(A,1X,I0,1X,A)') &
         'Cannot use library function gather_atoms_concat with more than', &
         HUGE(0_c_int), 'atoms [Fortran/gather_atoms_concat]'
@@ -1319,7 +1318,7 @@ CONTAINS
     natoms = NINT(dnatoms, c_int)
 
     Cname = f2c_string(name)
-    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
     ALLOCATE(data(natoms*count))
     Cdata = C_LOC(data(1))
     CALL lammps_gather_atoms_concat(self%handle, Cname, Ctype, count, Cdata)
@@ -1335,17 +1334,17 @@ CONTAINS
     TYPE(c_ptr) :: Cdata, Cname
     INTEGER(c_int) :: natoms
     INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
-    REAL(C_double) :: dnatoms
+    REAL(c_double) :: dnatoms
     CHARACTER(LEN=100) :: error_msg
 
-    IF ( count /= 1 .AND. count /= 3 ) THEN
+    IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'gather_atoms_concat requires "count" to be 1 or 3 &
         &[Fortran/gather_atoms_concat]')
     END IF
 
     dnatoms = lmp_get_natoms(self)
-    IF ( dnatoms > HUGE(1_c_int) ) THEN
+    IF (dnatoms > HUGE(1_c_int)) THEN
       WRITE(error_msg,'(A,1X,I0,1X,A)') &
         'Cannot use library function gather_atoms_concat with more than', &
         HUGE(0_c_int), 'atoms [Fortran/gather_atoms_concat]'
@@ -1354,7 +1353,7 @@ CONTAINS
     natoms = NINT(dnatoms, c_int)
 
     Cname = f2c_string(name)
-    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
     ALLOCATE(data(natoms*count))
     Cdata = C_LOC(data(1))
     CALL lammps_gather_atoms_concat(self%handle, Cname, Ctype, count, Cdata)
@@ -1373,7 +1372,7 @@ CONTAINS
     INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
     CHARACTER(LEN=100) :: error_msg
 
-    IF ( count /= 1 .AND. count /= 3 ) THEN
+    IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'gather_atoms_subset requires "count" to be 1 or 3 &
         &[Fortran/gather_atoms]')
@@ -1382,7 +1381,7 @@ CONTAINS
     ndata = SIZE(ids, KIND=c_int)
 
     Cname = f2c_string(name)
-    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
     ALLOCATE(data(ndata*count))
     data = -1_c_int
     Cdata = C_LOC(data(1))
@@ -1404,7 +1403,7 @@ CONTAINS
     INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
     CHARACTER(LEN=100) :: error_msg
 
-    IF ( count /= 1 .AND. count /= 3 ) THEN
+    IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'gather_atoms_subset requires "count" to be 1 or 3 &
         &[Fortran/gather_atoms]')
@@ -1413,7 +1412,7 @@ CONTAINS
     ndata = SIZE(ids, KIND=c_int)
 
     Cname = f2c_string(name)
-    IF ( ALLOCATED(data) ) DEALLOCATE(data)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
     ALLOCATE(data(ndata*count))
     Cdata = C_LOC(data(1))
     Cids = C_LOC(ids(1))
@@ -1434,7 +1433,7 @@ CONTAINS
     CHARACTER(LEN=100) :: error_msg
 
     dnatoms = lmp_get_natoms(self)
-    IF ( dnatoms > HUGE(1_c_int) ) THEN
+    IF (dnatoms > HUGE(1_c_int)) THEN
       WRITE(error_msg,'(A,1X,I0,1X,A)') &
         'Cannot use library function scatter_atoms with more than', &
         HUGE(0_c_int), 'atoms [Fortran/scatter_atoms]'
@@ -1446,7 +1445,7 @@ CONTAINS
     Cdata = C_LOC(data(1))
     Ccount = SIZE(data) / natoms
 
-    IF ( Ccount /= 1 .AND. Ccount /= 3 ) THEN
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'lammps_scatter_atoms requires either 1 or 3 data per atom')
     END IF
@@ -1466,7 +1465,7 @@ CONTAINS
     CHARACTER(LEN=100) :: error_msg
 
     dnatoms = lmp_get_natoms(self)
-    IF ( dnatoms > HUGE(1_c_int) ) THEN
+    IF (dnatoms > HUGE(1_c_int)) THEN
       WRITE(error_msg,'(A,1X,I0,1X,A)') &
         'Cannot use library function scatter_atoms with more than', &
         HUGE(0_c_int), 'atoms [Fortran/scatter_atoms]'
@@ -1478,7 +1477,7 @@ CONTAINS
     Cdata = C_LOC(data(1))
     Ccount = SIZE(data) / natoms
 
-    IF ( Ccount /= 1 .AND. Ccount /= 3 ) THEN
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'scatter_atoms requires either 1 or 3 data per atom &
         &[Fortran/scatter_atoms]')
@@ -1499,7 +1498,7 @@ CONTAINS
 
     Cndata = SIZE(ids, KIND=c_int)
     Ccount = SIZE(data, KIND=c_int) / Cndata
-    IF ( Ccount /= 1 .AND. Ccount /= 3 ) THEN
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'scatter_atoms_subset requires either 1 or 3 data per atom')
     END IF
@@ -1524,7 +1523,7 @@ CONTAINS
 
     Cndata = SIZE(ids, KIND=c_int)
     Ccount = SIZE(data, KIND=c_int) / Cndata
-    IF ( Ccount /= 1 .AND. Ccount /= 3 ) THEN
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'scatter_atoms_subset requires either 1 or 3 data per atom')
     END IF
@@ -1552,12 +1551,12 @@ CONTAINS
     TYPE(c_ptr) :: ptr
     INTEGER :: i
 
-    buffer = ''
+    buffer = ' '
     ptr = C_LOC(Cbuffer(1))
     buf_size = LEN(buffer)
     CALL lammps_get_os_info(ptr, buf_size)
     DO i=1,buf_size
-      IF ( Cbuffer(i) == C_NULL_CHAR ) EXIT
+      IF (Cbuffer(i) == c_null_char) EXIT
       buffer(i:i) = Cbuffer(i)
     END DO
   END SUBROUTINE lmp_get_os_info
@@ -1580,7 +1579,7 @@ CONTAINS
 
   ! equivalent function to lammps_config_has_png_support
   LOGICAL FUNCTION lmp_config_has_png_support()
-    INTEGER(C_int) :: has_png_support
+    INTEGER(c_int) :: has_png_support
 
     has_png_support = lammps_config_has_png_support()
     lmp_config_has_png_support = (has_png_support /= 0_c_int)
@@ -1634,10 +1633,10 @@ CONTAINS
     Cidx = idx - 1
     Cptr = C_LOC(Cbuffer(1))
     Csuccess = lammps_config_package_name(Cidx, Cptr, LEN(buffer)+1)
-    buffer = ''
-    IF ( Csuccess /= 0_c_int ) THEN
+    buffer = ' '
+    IF (Csuccess /= 0_c_int) THEN
       strlen = c_strlen(Cptr)
-      FORALL ( i = 1:strlen )
+      FORALL (i = 1:strlen)
         buffer(i:i) = Cbuffer(i)
       END FORALL
     END IF
@@ -1650,15 +1649,15 @@ CONTAINS
     INTEGER, PARAMETER :: MAX_BUFFER_LENGTH = 31
     INTEGER :: i, npackage, buf_length
 
-    IF ( PRESENT(length) ) THEN
+    IF (PRESENT(length)) THEN
       buf_length = length
     ELSE
       buf_length = MAX_BUFFER_LENGTH
     END IF
 
-    IF ( ALLOCATED(package) ) DEALLOCATE(package)
+    IF (ALLOCATED(package)) DEALLOCATE(package)
     npackage = lammps_config_package_count()
-    ALLOCATE( CHARACTER(LEN=MAX_BUFFER_LENGTH) :: package(npackage) )
+    ALLOCATE(CHARACTER(LEN=MAX_BUFFER_LENGTH) :: package(npackage))
     DO i=1, npackage
       CALL lmp_config_package_name(i, package(i))
     END DO
@@ -1675,7 +1674,7 @@ CONTAINS
   LOGICAL FUNCTION lmp_is_running(self)
     CLASS(lammps), INTENT(IN) :: self
 
-    lmp_is_running = ( lammps_is_running(self%handle) /= 0_C_int )
+    lmp_is_running = (lammps_is_running(self%handle) /= 0_c_int)
   END FUNCTION lmp_is_running
 
   ! equivalent function to lammps_force_timeout
@@ -1699,26 +1698,29 @@ CONTAINS
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER, INTENT(OUT), OPTIONAL :: status
-    INTEGER(c_int) :: length, Cstatus, i
+    INTEGER(c_int) :: buflen, Cstatus, i
+    INTEGER(c_size_t) :: length
     TYPE(c_ptr) :: Cptr
-    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cbuffer
+    CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
 
-    buffer = ''
-    IF ( lmp_has_error(self) ) THEN
-      length = LEN(buffer)
-      Cptr = f2c_string(buffer)
-      Cstatus = lammps_get_last_error_message(self%handle, Cptr, length)
-      length = MIN(LEN(buffer, c_size_t), c_strlen(Cptr))
-      CALL C_F_POINTER(Cptr, Cbuffer, [length])
-      FORALL ( i=1:length )
-        buffer(i:i) = Cbuffer(i)
-      END FORALL
-      IF ( PRESENT(status) ) THEN
+    buffer = ' '
+    IF (lmp_has_error(self)) THEN
+      buflen = LEN(buffer)
+      length = buflen
+      Cptr = lammps_malloc(length)
+      Cstatus = lammps_get_last_error_message(self%handle, Cptr, buflen)
+      CALL C_F_POINTER(Cptr, c_string, [1])
+      DO i=1, length
+        buffer(i:i) = c_string(i)
+        IF (c_string(i) == c_null_char) EXIT
+      END DO
+      IF (PRESENT(status)) THEN
         status = Cstatus
       END IF
+      CALL lammps_free(Cptr)
     ELSE
-      buffer = ''
-      IF ( PRESENT(status) ) THEN
+      buffer = ' '
+      IF (PRESENT(status)) THEN
         status = 0
       END IF
     END IF
@@ -1731,7 +1733,7 @@ CONTAINS
     INTEGER(c_int), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_INT ) THEN
+    IF (rhs%datatype == DATA_INT) THEN
       lhs => rhs%i32
     ELSE
       CALL assignment_error(rhs, 'scalar int')
@@ -1742,7 +1744,7 @@ CONTAINS
     INTEGER(c_int64_t), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_INT64 ) THEN
+    IF (rhs%datatype == DATA_INT64) THEN
       lhs => rhs%i64
     ELSE
       CALL assignment_error(rhs, 'scalar long int')
@@ -1753,7 +1755,7 @@ CONTAINS
     INTEGER(c_int), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_INT_1D ) THEN
+    IF (rhs%datatype == DATA_INT_1D) THEN
       lhs => rhs%i32_vec
     ELSE
       CALL assignment_error(rhs, 'vector of ints')
@@ -1764,7 +1766,7 @@ CONTAINS
     INTEGER(c_int64_t), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_INT64_1D ) THEN
+    IF (rhs%datatype == DATA_INT64_1D) THEN
       lhs => rhs%i64_vec
     ELSE
       CALL assignment_error(rhs, 'vector of long ints')
@@ -1775,7 +1777,7 @@ CONTAINS
     REAL(c_double), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE ) THEN
+    IF (rhs%datatype == DATA_DOUBLE) THEN
       lhs => rhs%r64
     ELSE
       CALL assignment_error(rhs, 'scalar double')
@@ -1786,7 +1788,7 @@ CONTAINS
     REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
+    IF (rhs%datatype == DATA_DOUBLE_1D) THEN
       lhs => rhs%r64_vec
     ELSE
       CALL assignment_error(rhs, 'vector of doubles')
@@ -1797,7 +1799,7 @@ CONTAINS
     REAL(c_double), DIMENSION(:,:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE_2D ) THEN
+    IF (rhs%datatype == DATA_DOUBLE_2D) THEN
       lhs => rhs%r64_mat
     ELSE
       CALL assignment_error(rhs, 'matrix of doubles')
@@ -1808,9 +1810,9 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: lhs
     CLASS(lammps_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_STRING ) THEN
+    IF (rhs%datatype == DATA_STRING) THEN
       lhs = rhs%str
-      IF ( LEN_TRIM(rhs%str) > LEN(lhs) ) THEN
+      IF (LEN_TRIM(rhs%str) > LEN(lhs)) THEN
         CALL lmp_error(rhs%lammps_instance, LMP_ERROR_WARNING, &
           'String provided by user required truncation [Fortran API]')
       END IF
@@ -1826,7 +1828,7 @@ CONTAINS
     REAL(c_double), INTENT(OUT) :: lhs
     CLASS(lammps_fix_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE ) THEN
+    IF (rhs%datatype == DATA_DOUBLE) THEN
       lhs = rhs%r64
     ELSE
       CALL assignment_error(rhs, 'scalar double')
@@ -1837,7 +1839,7 @@ CONTAINS
     REAL(c_double), DIMENSION(:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_fix_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
+    IF (rhs%datatype == DATA_DOUBLE_1D) THEN
       lhs => rhs%r64_vec
     ELSE
       CALL assignment_error(rhs, 'vector of doubles')
@@ -1848,7 +1850,7 @@ CONTAINS
     REAL(c_double), DIMENSION(:,:), INTENT(OUT), POINTER :: lhs
     CLASS(lammps_fix_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE_2D ) THEN
+    IF (rhs%datatype == DATA_DOUBLE_2D) THEN
       lhs => rhs%r64_mat
     ELSE
       CALL assignment_error(rhs, 'matrix of doubles')
@@ -1862,7 +1864,7 @@ CONTAINS
     REAL(c_double), INTENT(OUT) :: lhs
     CLASS(lammps_variable_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE ) THEN
+    IF (rhs%datatype == DATA_DOUBLE) THEN
       lhs = rhs%r64
     ELSE
       CALL assignment_error(rhs, 'scalar double')
@@ -1873,9 +1875,9 @@ CONTAINS
     REAL(c_double), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: lhs
     CLASS(lammps_variable_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_DOUBLE_1D ) THEN
-      IF ( ALLOCATED(lhs) ) DEALLOCATE(lhs)
-      ALLOCATE( lhs(SIZE(rhs%r64_vec)) )
+    IF (rhs%datatype == DATA_DOUBLE_1D) THEN
+      IF (ALLOCATED(lhs)) DEALLOCATE(lhs)
+      ALLOCATE(lhs(SIZE(rhs%r64_vec)))
       lhs = rhs%r64_vec
     ELSE
       CALL assignment_error(rhs, 'vector of doubles')
@@ -1886,9 +1888,9 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: lhs
     CLASS(lammps_variable_data), INTENT(IN) :: rhs
 
-    IF ( rhs%datatype == DATA_STRING ) THEN
+    IF (rhs%datatype == DATA_STRING) THEN
       lhs = rhs%str
-      IF ( LEN_TRIM(rhs%str) > LEN(lhs) ) THEN
+      IF (LEN_TRIM(rhs%str) > LEN(lhs)) THEN
         CALL lmp_error(rhs%lammps_instance, LMP_ERROR_WARNING, &
           'String provided by user required truncation [Fortran API]')
       END IF

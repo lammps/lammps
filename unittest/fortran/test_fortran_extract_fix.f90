@@ -22,7 +22,7 @@ SUBROUTINE f_lammps_close() BIND(C)
   lmp%handle = C_NULL_PTR
 END SUBROUTINE f_lammps_close
 
-SUBROUTINE f_lammps_setup_extract_fix () BIND(C)
+SUBROUTINE f_lammps_setup_extract_fix() BIND(C)
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp, big_input, cont_input, pair_input, more_input
    IMPLICIT NONE
@@ -40,59 +40,59 @@ SUBROUTINE f_lammps_setup_extract_fix () BIND(C)
    CALL lmp%command("run 1") ! must be 1, otherwise move/recenter won't happen
 END SUBROUTINE f_lammps_setup_extract_fix
 
-FUNCTION f_lammps_extract_fix_global_scalar () BIND(C) RESULT(scalar)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double
+FUNCTION f_lammps_extract_fix_global_scalar() BIND(C) RESULT(scalar)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   REAL(C_double) :: scalar
+   REAL(c_double) :: scalar
 
    scalar = lmp%extract_fix("recenter", lmp%style%global, lmp%type%scalar)
 END FUNCTION f_lammps_extract_fix_global_scalar
 
-FUNCTION f_lammps_extract_fix_global_vector (i) BIND(C) RESULT(element)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_fix_global_vector(i) BIND(C) RESULT(element)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   INTEGER(C_int), INTENT(IN), VALUE :: i
-   REAL(C_double) :: element
+   INTEGER(c_int), INTENT(IN), VALUE :: i
+   REAL(c_double) :: element
 
    element = lmp%extract_fix("recenter", lmp%style%global, lmp%type%vector, i)
 END FUNCTION f_lammps_extract_fix_global_vector
 
-FUNCTION f_lammps_extract_fix_global_array (i,j) BIND(C) RESULT(element)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_fix_global_array(i,j) BIND(C) RESULT(element)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   INTEGER(C_int), INTENT(IN), VALUE :: i, j
-   REAL(C_double) :: element
+   INTEGER(c_int), INTENT(IN), VALUE :: i, j
+   REAL(c_double) :: element
 
    element = lmp%extract_fix("vec", lmp%style%global, lmp%type%array, i, j)
 END FUNCTION f_lammps_extract_fix_global_array
 
-FUNCTION f_lammps_extract_fix_peratom_vector (i) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_fix_peratom_vector(i) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   INTEGER(C_int), INTENT(IN), VALUE :: i
-   REAL(C_double) :: f_lammps_extract_fix_peratom_vector
-   REAL(C_double), DIMENSION(:), POINTER :: vector
+   INTEGER(c_int), INTENT(IN), VALUE :: i
+   REAL(c_double) :: f_lammps_extract_fix_peratom_vector
+   REAL(c_double), DIMENSION(:), POINTER :: vector
 
    vector = lmp%extract_fix("state", lmp%style%atom, lmp%type%vector, -1, -1)
    f_lammps_extract_fix_peratom_vector = vector(i)
 END FUNCTION f_lammps_extract_fix_peratom_vector
 
-FUNCTION f_lammps_extract_fix_peratom_array (i,j) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_double, C_int
+FUNCTION f_lammps_extract_fix_peratom_array(i,j) BIND(C)
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
    USE LIBLAMMPS
    USE keepstuff, ONLY : lmp
    IMPLICIT NONE
-   INTEGER(C_int), INTENT(IN), VALUE :: i, j
-   REAL(C_double) :: f_lammps_extract_fix_peratom_array
-   REAL(C_double), DIMENSION(:,:), POINTER :: array
+   INTEGER(c_int), INTENT(IN), VALUE :: i, j
+   REAL(c_double) :: f_lammps_extract_fix_peratom_array
+   REAL(c_double), DIMENSION(:,:), POINTER :: array
 
    array = lmp%extract_fix("move", lmp%style%atom, lmp%type%array, -1, -1)
    f_lammps_extract_fix_peratom_array = array(i,j)

@@ -895,7 +895,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
 
 int FixAveTime::column_length(int dynamic)
 {
-  int m,length,lengthone;
+  int length,lengthone;
 
   // determine nrows for static values
 

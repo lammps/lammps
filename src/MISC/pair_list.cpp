@@ -89,7 +89,15 @@ void PairList::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
+  // get maximum allowed tag.
+
+  bigint maxtag_one, maxtag;
+  maxtag_one = maxtag = 0;
   const int nlocal = atom->nlocal;
+  const tagint * _noalias const tag = atom->tag;
+  for (int i = 0; i < nlocal; ++i) maxtag_one = MAX(maxtag_one, tag[i]);
+  MPI_Allreduce(&maxtag_one, &maxtag, 1, MPI_LMP_TAGINT, MPI_MAX, world);
+
   const int newton_pair = force->newton_pair;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];       // NOLINT
@@ -98,8 +106,21 @@ void PairList::compute(int eflag, int vflag)
   int i,j;
 
   int pc = 0;
-  for (int n=0; n < npairs; ++n) {
+  for (int n = 0; n < npairs; ++n) {
     const list_param &par = params[n];
+
+    // can only use valid tags or else atom->map() below will segfault.
+    if ((par.id1 < 1) || (par.id1 > maxtag)) {
+      if (check_flag)
+        error->all(FLERR, "Invalid pair list atom ID {}", par.id1);
+      else continue;
+    }
+    if ((par.id2 < 1) || (par.id2 > maxtag)) {
+      if (check_flag)
+        error->all(FLERR, "Invalid pair list atom ID {}", par.id2);
+      else continue;
+    }
+
     i = atom->map(par.id1);
     j = atom->map(par.id2);
 
@@ -144,8 +165,7 @@ void PairList::compute(int eflag, int vflag)
         const double r = sqrt(rsq);
         const double dr = par.param.morse.r0 - r;
         const double dexp = exp(par.param.morse.alpha * dr);
-        fpair = 2.0*par.param.morse.d0*par.param.morse.alpha
-          * (dexp*dexp - dexp) / r;
+        fpair = 2.0 * par.param.morse.d0 * par.param.morse.alpha * (dexp*dexp - dexp) / r;
 
         if (eflag_either)
           epair = par.param.morse.d0 * (dexp*dexp - 2.0*dexp) - par.offset;
@@ -154,26 +174,23 @@ void PairList::compute(int eflag, int vflag)
 
         const double r6inv = r2inv*r2inv*r2inv;
         const double sig6  = mypow(par.param.lj126.sigma,6);
-        fpair =  24.0*par.param.lj126.epsilon*r6inv
-          * (2.0*sig6*sig6*r6inv - sig6) * r2inv;
+        fpair = 24.0 * par.param.lj126.epsilon * r6inv * (2.0 * sig6 * sig6 * r6inv - sig6) * r2inv;
 
         if (eflag_either)
-          epair = 4.0*par.param.lj126.epsilon*r6inv
-            * (sig6*sig6*r6inv - sig6) - par.offset;
-       
+          epair = 4.0 * par.param.lj126.epsilon * r6inv * (sig6 * sig6 * r6inv - sig6) - par.offset;
+
       } else if (par.style == QUARTIC) {
 
         const double r = sqrt(rsq);
         double dr = r - sqrt(par.cutsq);
-	double ra = dr - par.param.quartic.b1;
-	double rb = dr - par.param.quartic.b2;
-	double r2 = dr * dr;
+        double ra = dr - par.param.quartic.b1;
+        double rb = dr - par.param.quartic.b2;
+        double r2 = dr * dr;
         fpair = -par.param.quartic.k / r * (r2 * (ra + rb) + 2.0 * dr * ra * rb);
 
         if (eflag_either)
           epair = par.param.quartic.k * r2 * ra * rb;
       }
-
 
       if (newton_pair || i < nlocal) {
         f[i].x += dx*fpair;
@@ -207,14 +224,14 @@ void PairList::compute(int eflag, int vflag)
 void PairList::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  memory->create(setflag,np1,np1,"pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++)
       setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,np1,np1,"pair:cutsq");
 }
 
 /* ----------------------------------------------------------------------
@@ -223,13 +240,18 @@ void PairList::allocate()
 
 void PairList::settings(int narg, char **arg)
 {
-  if (narg < 2)
-    error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style list", error);
 
   cut_global = utils::numeric(FLERR,arg[1],false,lmp);
-  if (narg > 2) {
-    if (strcmp(arg[2],"nocheck") == 0) check_flag = 0;
-    if (strcmp(arg[2],"check") == 0) check_flag = 1;
+  int iarg = 2;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"nocheck") == 0) {
+      check_flag = 0;
+      ++iarg;
+    } else if (strcmp(arg[2],"check") == 0) {
+      check_flag = 1;
+      ++iarg;
+    } else error->all(FLERR, "Unknown pair style list keyword: {}", arg[iarg]);
   }
 
   std::vector<int> mystyles;
@@ -239,11 +261,13 @@ void PairList::settings(int narg, char **arg)
   if (comm->me == 0) {
     int nharm, nmorse, nlj126, nquartic, nskipped;
     FILE *fp = utils::open_potential(arg[0],lmp,nullptr);
-    TextFileReader reader(fp,"pair list coeffs");
+    if (!fp)
+      error->one(FLERR, "Error opening pair list coeffs file {}: {}", arg[0], utils::getsyserror());
+    TextFileReader reader(fp, "pair list coeffs");
     npairs = nharm = nmorse = nlj126 = nquartic = nskipped = 0;
+    char *line;
 
     try {
-      char *line;
       while ((line = reader.next_line())) {
         ValueTokenizer values(line);
         list_param oneparam;
@@ -278,6 +302,8 @@ void PairList::settings(int narg, char **arg)
           oneparam.param.quartic.k = values.next_double();
           oneparam.param.quartic.b1 = values.next_double();
           oneparam.param.quartic.b2 = values.next_double();
+          if (!values.has_next())
+            throw FileReaderException("Must specify individual cutoff for quartic interaction");
           ++nquartic;
           break;
 
@@ -295,7 +321,7 @@ void PairList::settings(int narg, char **arg)
         myparams.push_back(oneparam);
       }
     } catch (std::exception &e) {
-      error->one(FLERR,"Error reading pair list coeffs file: {}", e.what());
+      error->one(FLERR,"Error reading pair list coeffs file: {}\n{}", e.what(),line);
     }
     utils::logmesg(lmp, "Read {} ({}/{}/{}/{}) interacting pair lines from {}. "
                    "{} skipped entries.\n", npairs, nharm, nmorse, nlj126, nquartic, arg[0], nskipped);
@@ -310,12 +336,12 @@ void PairList::settings(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   there are no coeffs to be set, but we need to update setflag and pretend
+   there are no coeffs to be set, but we need to update setflag and pretend there are
 ------------------------------------------------------------------------- */
 
 void PairList::coeff(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 2) utils::missing_cmd_args(FLERR,"pair_coeff list", error);
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -362,7 +388,7 @@ void PairList::init_style()
         const double r6inv = par.cutsq*par.cutsq*par.cutsq;
         const double sig6  = mypow(par.param.lj126.sigma,6);
         par.offset = 4.0*par.param.lj126.epsilon*r6inv * (sig6*sig6*r6inv - sig6);
-      
+
       } else if (par.style == QUARTIC) {
         // the offset is always 0 at rc
         par.offset = 0.0;

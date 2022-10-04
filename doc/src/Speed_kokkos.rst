@@ -72,12 +72,12 @@ See the :ref:`Build extras <kokkos>` page for instructions.
 Running LAMMPS with the KOKKOS package
 """"""""""""""""""""""""""""""""""""""
 
-All Kokkos operations occur within the context of an individual MPI
-task running on a single node of the machine. The total number of MPI
-tasks used by LAMMPS (one or multiple per compute node) is set in the
-usual manner via the mpirun or mpiexec commands, and is independent of
-Kokkos. E.g. the mpirun command in OpenMPI does this via its -np and
--npernode switches. Ditto for MPICH via -np and -ppn.
+All Kokkos operations occur within the context of an individual MPI task
+running on a single node of the machine. The total number of MPI tasks
+used by LAMMPS (one or multiple per compute node) is set in the usual
+manner via the ``mpirun`` or ``mpiexec`` commands, and is independent of
+Kokkos. E.g. the mpirun command in OpenMPI does this via its ``-np`` and
+``-npernode`` switches. Ditto for MPICH via ``-np`` and ``-ppn``.
 
 Running on a multi-core CPU
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -168,7 +168,7 @@ for your MPI installation), binding can be forced with these flags:
 
 .. parsed-literal::
 
-   OpenMPI 1.8: mpirun -np 2 --bind-to socket --map-by socket ./lmp_openmpi ...
+   OpenMPI 1.8:  mpirun -np 2 --bind-to socket --map-by socket ./lmp_openmpi ...
    Mvapich2 2.0: mpiexec -np 2 --bind-to socket --map-by socket ./lmp_mvapich ...
 
 For binding threads with KOKKOS OpenMP, use thread affinity environment
@@ -310,7 +310,8 @@ Alternatively the effect of the "-sf" or "-pk" switches can be
 duplicated by adding the :doc:`package kokkos <package>` or :doc:`suffix kk <suffix>` commands to your input script.
 
 The discussion above for building LAMMPS with the KOKKOS package, the
-mpirun/mpiexec command, and setting appropriate thread are the same.
+``mpirun`` or ``mpiexec`` command, and setting appropriate thread
+properties are the same.
 
 You must still use the "-k on" :doc:`command-line switch <Run_options>`
 to enable the KOKKOS package, and specify its additional arguments for

@@ -13,9 +13,9 @@ extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
 int f_lammps_version();
-void f_lammps_memory_usage(double*);
+void f_lammps_memory_usage(double *);
 int f_lammps_get_mpi_comm();
-int f_lammps_extract_setting(const char*);
+int f_lammps_extract_setting(const char *);
 int f_lammps_has_error();
 int f_lammps_get_last_error_message(char *, int);
 }
@@ -26,17 +26,17 @@ using ::testing::ContainsRegex;
 
 class LAMMPS_properties : public ::testing::Test {
 protected:
-    LAMMPS_NS::LAMMPS *lmp;
-    LAMMPS_properties()           = default;
-    ~LAMMPS_properties() override = default;
+    LAMMPS *lmp;
 
     void SetUp() override
     {
         ::testing::internal::CaptureStdout();
-        lmp                = (LAMMPS_NS::LAMMPS *)f_lammps_with_args();
+        lmp = (LAMMPS *)f_lammps_with_args();
+
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0, 8).c_str(), "LAMMPS (");
     }
+
     void TearDown() override
     {
         ::testing::internal::CaptureStdout();
@@ -54,10 +54,10 @@ TEST_F(LAMMPS_properties, version)
 
 TEST_F(LAMMPS_properties, memory_usage)
 {
-// copied from c-library, with a two-character modification
-   double meminfo[3];
-   f_lammps_memory_usage(meminfo);
-   EXPECT_GT(meminfo[0], 0.0);
+    // copied from c-library, with a two-character modification
+    double meminfo[3];
+    f_lammps_memory_usage(meminfo);
+    EXPECT_GT(meminfo[0], 0.0);
 #if defined(__linux__) || defined(_WIN32)
     EXPECT_GE(meminfo[1], 0.0);
 #endif
@@ -68,11 +68,11 @@ TEST_F(LAMMPS_properties, memory_usage)
 
 TEST_F(LAMMPS_properties, get_mpi_comm)
 {
-   int f_comm = f_lammps_get_mpi_comm();
-   if ( lammps_config_has_mpi_support() )
-      EXPECT_GE(f_comm, 0);
-   else
-      EXPECT_EQ(f_comm, -1);
+    int f_comm = f_lammps_get_mpi_comm();
+    if (lammps_config_has_mpi_support())
+        EXPECT_GE(f_comm, 0);
+    else
+        EXPECT_EQ(f_comm, -1);
 };
 
 TEST_F(LAMMPS_properties, extract_setting)

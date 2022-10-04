@@ -42,6 +42,7 @@ class PairZero : public Pair {
   void compute_outer(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
+  void init_style() override;
   double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
@@ -55,11 +56,10 @@ class PairZero : public Pair {
   double cut_global;
   double **cut;
   int coeffflag;
+  int fullneighflag;    // 0 for half list, 1 for full list
 
   virtual void allocate();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

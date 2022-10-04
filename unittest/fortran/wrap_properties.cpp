@@ -134,5 +134,11 @@ TEST_F(LAMMPS_properties, has_error)
     int err = f_lammps_get_last_error_message(errmsg, 1023);
     EXPECT_EQ(err, 1);
     EXPECT_THAT(errmsg, ContainsRegex(".*ERROR: Unknown command: this_is_not_a_known_command.*"));
+
+    // retrieving the error message clear the error status
+    EXPECT_EQ(f_lammps_has_error(), 0);
+    err = f_lammps_get_last_error_message(errmsg, 1023);
+    EXPECT_EQ(err, 0);
+    EXPECT_THAT(errmsg, ContainsRegex("                                                  "));
 };
 } // namespace LAMMPS_NS

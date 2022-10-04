@@ -949,7 +949,8 @@ int lammps_get_mpi_comm(void *handle)
 This function will retrieve or compute global properties. In contrast to
 :cpp:func:`lammps_get_thermo` this function returns an ``int``.  The
 following tables list the currently supported keyword.  If a keyword is
-not recognized, the function returns -1.
+not recognized, the function returns -1.  The integer sizes functions may
+be called without a valid LAMMPS object handle (it is ignored).
 
 * :ref:`Integer sizes <extract_integer_sizes>`
 * :ref:`System status <extract_system_status>`

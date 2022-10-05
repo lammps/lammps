@@ -107,9 +107,9 @@ FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
     args(i) = ''
     length = c_strlen(Fargv(i))
     CALL C_F_POINTER(Fargv(i), Cstr, [length])
-    FORALL (j = 1:length)
+    DO j = 1, length
       args(i)(j:j) = Cstr(j)
-    END FORALL
+    END DO
   END DO
 
   lmp = lammps(args)

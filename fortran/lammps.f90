@@ -885,9 +885,9 @@ CONTAINS
         length = c_strlen(Cptr)
         CALL C_F_POINTER(Cptr, Fptr, [length])
         ALLOCATE(CHARACTER(LEN=length) :: global_data%str)
-        FORALL (i=1:length)
+        DO i = 1, length
           global_data%str(i:i) = Fptr(i)
-        END FORALL
+        END DO
       CASE DEFAULT
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'Unknown pointer type in extract_global')
@@ -1188,9 +1188,9 @@ CONTAINS
         length = c_strlen(Cptr)
         CALL C_F_POINTER(Cptr, Cstring, [length])
         ALLOCATE(CHARACTER(LEN=length) :: variable_data%str)
-        FORALL (i=1:length)
+        DO i = 1, length
           variable_data%str(i:i) = Cstring(i)
-        END FORALL
+        END DO
         ! DO NOT deallocate the C pointer
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
@@ -1636,9 +1636,9 @@ CONTAINS
     buffer = ' '
     IF (Csuccess /= 0_c_int) THEN
       strlen = c_strlen(Cptr)
-      FORALL (i = 1:strlen)
+      DO i = 1, strlen
         buffer(i:i) = Cbuffer(i)
-      END FORALL
+      END DO
     END IF
   END SUBROUTINE lmp_config_package_name
 

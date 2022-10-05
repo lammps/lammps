@@ -43,10 +43,10 @@ FUNCTION f_lammps_extract_setting(Cstr) BIND(C)
       i = i + 1
    END DO
    strlen = i
-   allocate (CHARACTER(LEN=strlen) :: Fstr)
-   FORALL (i=1:strlen)
+   ALLOCATE(CHARACTER(LEN=strlen) :: Fstr)
+   DO i = 1, strlen
       Fstr(i:i) = Cstr(i)
-   END FORALL
+   END DO
    f_lammps_extract_setting = lmp%extract_setting(Fstr)
    DEALLOCATE(Fstr)
 END FUNCTION f_lammps_extract_setting

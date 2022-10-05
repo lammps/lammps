@@ -33,12 +33,18 @@ class ComputeGlobalAtom : public Compute {
   double memory_usage() override;
 
  protected:
-  int whichref, indexref, ref2index;
-  char *idref;
-
-  int nvalues;
-  int *which, *argindex, *value2index;
-  char **ids;
+    struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+  value_t reference;
 
   int nmax, maxvector;
   int *indices;

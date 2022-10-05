@@ -153,7 +153,7 @@ void ComputeChunkSpreadAtom::init()
 {
   init_chunk();
 
-  // set indices of all computes,fixes,variables
+  // store references of all computes and fixes
 
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {

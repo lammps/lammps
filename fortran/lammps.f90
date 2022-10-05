@@ -1134,7 +1134,7 @@ CONTAINS
     TYPE(lammps_variable_data) :: variable_data
 
     TYPE(c_ptr) :: Cptr, Cname, Cgroup, Cveclength
-    INTEGER :: length, i
+    INTEGER(c_size_t) :: length, i
     CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cstring
     INTEGER(c_int) :: datatype
     REAL(c_double), POINTER :: double => NULL()
@@ -1370,7 +1370,6 @@ CONTAINS
     INTEGER(c_int) :: ndata
     TYPE(c_ptr) :: Cdata, Cname, Cids
     INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
-    CHARACTER(LEN=100) :: error_msg
 
     IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
@@ -1401,7 +1400,6 @@ CONTAINS
     INTEGER(c_int) :: ndata
     TYPE(c_ptr) :: Cdata, Cname, Cids
     INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
-    CHARACTER(LEN=100) :: error_msg
 
     IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
@@ -1494,7 +1492,6 @@ CONTAINS
     INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
     INTEGER(c_int) :: Cndata, Ccount
     TYPE(c_ptr) :: Cdata, Cname, Cids
-    CHARACTER(LEN=100) :: error_msg
 
     Cndata = SIZE(ids, KIND=c_int)
     Ccount = SIZE(data, KIND=c_int) / Cndata
@@ -1519,7 +1516,6 @@ CONTAINS
     INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
     INTEGER(c_int) :: Cndata, Ccount
     TYPE(c_ptr) :: Cdata, Cname, Cids
-    CHARACTER(LEN=100) :: error_msg
 
     Cndata = SIZE(ids, KIND=c_int)
     Ccount = SIZE(data, KIND=c_int) / Cndata
@@ -1628,7 +1624,7 @@ CONTAINS
     INTEGER(c_int) :: Cidx, Csuccess
     TYPE(c_ptr) :: Cptr
     CHARACTER(LEN=1,KIND=c_char), TARGET :: Cbuffer(LEN(buffer)+1)
-    INTEGER :: i, strlen
+    INTEGER(c_size_t) :: i, strlen
 
     Cidx = idx - 1
     Cptr = C_LOC(Cbuffer(1))
@@ -1698,8 +1694,8 @@ CONTAINS
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER, INTENT(OUT), OPTIONAL :: status
-    INTEGER(c_int) :: buflen, Cstatus, i
-    INTEGER(c_size_t) :: length
+    INTEGER(c_int) :: buflen, Cstatus
+    INTEGER(c_size_t) :: i, length
     TYPE(c_ptr) :: Cptr
     CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
 

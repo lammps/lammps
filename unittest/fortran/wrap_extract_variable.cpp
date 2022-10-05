@@ -165,7 +165,7 @@ TEST_F(LAMMPS_extract_variable, format)
 {
     f_lammps_setup_extract_variable();
     int i;
-    char str[10];
+    char str[16];
     char *fstr;
     for (i = 1; i <= 10; i++) {
         std::sprintf(str, "%.6G", std::exp(i));
@@ -180,7 +180,7 @@ TEST_F(LAMMPS_extract_variable, format_pad)
 {
     f_lammps_setup_extract_variable();
     int i;
-    char str[10];
+    char str[16];
     char *fstr;
     for (i = 1; i <= 10; i++) {
         std::sprintf(str, "%08.6G", std::exp(i));

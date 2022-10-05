@@ -314,6 +314,39 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     EXPECT_NEAR(ctmp[4], -0.06062938, EPSILON);
     EXPECT_NEAR(ctmp[5], -0.09219489, EPSILON);
 }
+
+TEST_F(ComputeChunkTest, ChunkSpreadGlobal)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style lj/cut/coul/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    command("compute gyr all gyration/chunk mols");
+    command("compute spr all chunk/spread/atom mols c_gyr");
+    command("compute glb all global/atom c_mols c_gyr");
+    command("variable odd atom ((id+1)%2)+1");
+    command("compute odd all global/atom v_odd c_gyr");
+    command("fix ave all ave/atom 1 1 1 c_spr c_glb c_odd");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int natoms = lammps_get_natoms(lmp);
+
+    auto cgyr = get_vector("gyr");
+    auto cspr = get_peratom("spr");
+    auto cglb = get_peratom("glb");
+    auto codd = get_peratom("odd");
+    auto ctag = get_peratom("tags");
+
+    for (int i = 0; i < natoms; ++i) {
+        EXPECT_EQ(cspr[i], cgyr[chunkmol[(int)ctag[i]] - 1]);
+        EXPECT_EQ(cglb[i], cgyr[chunkmol[(int)ctag[i]] - 1]);
+        EXPECT_EQ(codd[i], cgyr[(((int)ctag[i] + 1) % 2)]);
+    }
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

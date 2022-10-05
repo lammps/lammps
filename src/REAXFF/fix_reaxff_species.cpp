@@ -132,13 +132,13 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   setupflag = 0;
 
   // set default bond order cutoff
-  int n, i, j, itype, jtype;
+  int itype, jtype;
   double bo_cut;
   bg_cut = 0.30;
-  n = ntypes + 1;
-  memory->create(BOCut, n, n, "reaxff/species:BOCut");
-  for (i = 1; i < n; i++)
-    for (j = 1; j < n; j++) BOCut[i][j] = bg_cut;
+  int np1 = ntypes + 1;
+  memory->create(BOCut, np1, np1, "reaxff/species:BOCut");
+  for (int i = 1; i < np1; i++)
+    for (int j = 1; j < np1; j++) BOCut[i][j] = bg_cut;
 
   // optional args
   eletype = nullptr;
@@ -213,7 +213,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
 
         if (comm->me == 0) {
           fprintf(fdel, "Timestep");
-          for (i = 0; i < ndelspec; i++) fprintf(fdel, "\t%s", del_species[i].c_str());
+          for (int i = 0; i < ndelspec; i++) fprintf(fdel, "\t%s", del_species[i].c_str());
           fprintf(fdel, "\n");
           fflush(fdel);
         }

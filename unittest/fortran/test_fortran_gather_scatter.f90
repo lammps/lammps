@@ -190,7 +190,6 @@ SUBROUTINE f_lammps_scatter_atoms_subset_mask() BIND(C)
   INTEGER(c_int), DIMENSION(:), ALLOCATABLE :: all_masks
   INTEGER(c_int), DIMENSION(*), PARAMETER :: tags = [3,1]
   INTEGER(c_int), DIMENSION(2) :: masks
-  INTEGER(c_int) :: swap
 
   CALL lmp%gather_atoms('mask', 1_c_int, all_masks)
 

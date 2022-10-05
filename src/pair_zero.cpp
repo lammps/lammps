@@ -21,6 +21,8 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 #include <cstring>
 
@@ -34,6 +36,7 @@ PairZero::PairZero(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
   single_enable = 1;
   respa_enable = 1;
+  fullneighflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,14 +88,24 @@ void PairZero::allocate()
 
 void PairZero::settings(int narg, char **arg)
 {
-  if ((narg != 1) && (narg != 2)) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "pair_style zero", error);
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) {
-    if (strcmp("nocoeff", arg[1]) == 0)
+
+  // reset to defaults
+  coeffflag = 1;
+  fullneighflag = 0;
+
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp("nocoeff", arg[iarg]) == 0) {
       coeffflag = 0;
-    else
-      error->all(FLERR, "Illegal pair_style command");
+      ++iarg;
+    } else if (strcmp("full", arg[iarg]) == 0) {
+      fullneighflag = 1;
+      ++iarg;
+    } else
+      error->all(FLERR, "Unknown pair style zero option {}", arg[iarg]);
   }
 
   // reset cutoffs that have been explicitly set
@@ -132,6 +145,18 @@ void PairZero::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairZero::init_style()
+{
+  if (fullneighflag)
+    neighbor->add_request(this, NeighConst::REQ_FULL);
+  else
+    neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 }
 
 /* ----------------------------------------------------------------------

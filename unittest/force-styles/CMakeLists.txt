@@ -260,3 +260,7 @@ if(MLIAP_ENABLE_PYTHON AND (NOT WIN32))
   set_tests_properties(TestMliapPyUnified PROPERTIES ENVIRONMENT "PYTHONPATH=${LAMMPS_PYTHON_DIR};PYTHONDONTWRITEBYTECODE=1")
 endif()
 
+add_executable(test_pair_list test_pair_list.cpp)
+target_link_libraries(test_pair_list PRIVATE lammps GTest::GMockMain)
+add_test(NAME TestPairList COMMAND test_pair_list)
+

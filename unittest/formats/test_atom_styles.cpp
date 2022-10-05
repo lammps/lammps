@@ -560,7 +560,6 @@ TEST_F(AtomStyleTest, atomic)
 
     auto x   = lmp->atom->x;
     auto v   = lmp->atom->v;
-    auto tag = lmp->atom->tag;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);

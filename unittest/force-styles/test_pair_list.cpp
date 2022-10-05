@@ -52,6 +52,7 @@ namespace LAMMPS_NS {
 TEST(PairList, ListVsPairBond)
 {
     if (!lammps_config_has_package("MOLECULE")) GTEST_SKIP();
+    if (!lammps_config_has_package("MISC")) GTEST_SKIP();
 
     const char *lmpargv[] = {"melt", "-log", "none", "-nocite"};
     int lmpargc           = sizeof(lmpargv) / sizeof(const char *);

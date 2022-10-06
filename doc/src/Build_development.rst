@@ -140,7 +140,7 @@ of the LAMMPS project on GitHub.
 The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `YAML <http://pyyaml.org/>`_ library and development
+It requires the `YAML <https://pyyaml.org/>`_ library and development
 headers (if those are not found locally a recent version will be
 downloaded and compiled along with LAMMPS and the test program) to
 compile and will download and compile a specific recent version of the

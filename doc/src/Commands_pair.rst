@@ -236,6 +236,7 @@ OPT.
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
    * :doc:`pace (k) <pair_pace>`
+   * :doc:`pace/extrapolation <pair_pace>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`

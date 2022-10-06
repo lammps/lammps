@@ -314,7 +314,7 @@ detailed information is available at:
 
 In addition to installing the KIM API, it is also necessary to install the
 library of KIM models (interatomic potentials).
-See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_ to
+See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_ to
 learn how to install a pre-build binary of the OpenKIM Repository of Models.
 See the list of all KIM models here: https://openkim.org/browse/models
 
@@ -432,7 +432,7 @@ Enabling the extra unit tests have some requirements,
   ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000``,
   ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005``, and
   ``LennardJones612_UniversalShifted__MO_959249795837_003`` KIM models.
-  See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_
+  See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_
   to learn how to install a pre-built binary of the OpenKIM Repository of
   Models or see
   `Installing KIM Models <https://openkim.org/doc/usage/obtaining-models/#installing_models>`_
@@ -1053,7 +1053,7 @@ VORONOI package
 -----------------------------
 
 To build with this package, you must download and build the
-`Voro++ library <http://math.lbl.gov/voro++>`_ or install a
+`Voro++ library <https://math.lbl.gov/voro++>`_ or install a
 binary package provided by your operating system.
 
 .. tabs::

@@ -154,25 +154,25 @@ which must be installed on your system when building LAMMPS for use
 with this compute.  See instructions on obtaining and installing the
 Voro++ software in the src/VORONOI/README file.
 
-.. _voronoi: http://math.lbl.gov/voro++/
+.. _voronoi: https://math.lbl.gov/voro++/
 
 .. note::
 
-   The calculation of Voronoi volumes is performed by each
-   processor for the atoms it owns, and includes the effect of ghost
-   atoms stored by the processor.  This assumes that the Voronoi cells of
-   owned atoms are not affected by atoms beyond the ghost atom cut-off
-   distance.  This is usually a good assumption for liquid and solid
-   systems, but may lead to underestimation of Voronoi volumes in low
-   density systems.  By default, the set of ghost atoms stored by each
-   processor is determined by the cutoff used for
-   :doc:`pair_style <pair_style>` interactions.  The cutoff can be set
-   explicitly via the :doc:`comm_modify cutoff <comm_modify>` command.  The
-   Voronoi cells for atoms adjacent to empty regions will extend into
-   those regions up to the communication cutoff in :math:`x`, :math:`y`, or
-   :math:`z`.  In that situation, an exterior face is created at the cutoff
-   distance normal to the :math:`x`, :math:`y`, or :math:`z` direction.
-   For triclinic systems, the exterior face is parallel to the corresponding
+   The calculation of Voronoi volumes is performed by each processor for
+   the atoms it owns, and includes the effect of ghost atoms stored by
+   the processor.  This assumes that the Voronoi cells of owned atoms
+   are not affected by atoms beyond the ghost atom cut-off distance.
+   This is usually a good assumption for liquid and solid systems, but
+   may lead to underestimation of Voronoi volumes in low density
+   systems.  By default, the set of ghost atoms stored by each processor
+   is determined by the cutoff used for :doc:`pair_style <pair_style>`
+   interactions.  The cutoff can be set explicitly via the
+   :doc:`comm_modify cutoff <comm_modify>` command.  The Voronoi cells
+   for atoms adjacent to empty regions will extend into those regions up
+   to the communication cutoff in :math:`x`, :math:`y`, or :math:`z`.
+   In that situation, an exterior face is created at the cutoff distance
+   normal to the :math:`x`, :math:`y`, or :math:`z` direction.  For
+   triclinic systems, the exterior face is parallel to the corresponding
    reciprocal lattice vector.
 
 .. note::

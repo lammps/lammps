@@ -221,8 +221,6 @@ void PairMLIAP::coeff(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  char* type1 = arg[0];
-  char* type2 = arg[1];
   char** elemtypes = &arg[2];
 
   // read args that map atom types to elements

@@ -319,11 +319,12 @@ in the input script, or if the script is read again in a loop. The other
 difference is that *string* performs variable substitution even if the
 string parameter is quoted.
 
-For the *format* style, an equal-style variable is specified along
-with a C-style format string, e.g. "%f" or "%.10g", which must be
-appropriate for formatting a double-precision floating-point value.
-The default format is "%.15g".  This variable style allows an
-equal-style variable to be formatted precisely when it is evaluated.
+For the *format* style, an equal-style or compatible variable is
+specified along with a C-style format string, e.g. "%f" or "%.10g",
+which must be appropriate for formatting a double-precision
+floating-point value and may not have extra characters.  The default
+format is "%.15g".  This variable style allows an equal-style variable
+to be formatted precisely when it is evaluated.
 
 Note that if you simply wish to print a variable value with desired
 precision to the screen or logfile via the :doc:`print <print>` or

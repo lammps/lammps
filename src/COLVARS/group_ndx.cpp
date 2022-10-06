@@ -77,7 +77,7 @@ void Group2Ndx::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-  write out one group to a Gromacs style index file
+  write out one group to a Gromacs style index file, fp is non-null only on MPI rank 0
    ---------------------------------------------------------------------- */
 void Group2Ndx::write_group(FILE *fp, int gid)
 {
@@ -85,7 +85,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
   bigint gcount = group->count(gid);
   int lnum, width, cols;
 
-  if (comm->me == 0) {
+  if (fp) {
     utils::logmesg(lmp," writing group {}...",group->names[gid]);
 
     // the "all" group in LAMMPS is called "System" in Gromacs
@@ -138,7 +138,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
     delete [] sendlist;
   }
 
-  if (comm->me == 0) {
+  if (fp) {
     int i, j;
     for (i=0, j=0; i < gcount; ++i) {
       fmt::print(fp,"{:>{}}",recvlist[i],width);

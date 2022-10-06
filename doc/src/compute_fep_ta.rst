@@ -34,6 +34,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 Define a computation that calculates the change in the free energy due
 to a test-area (TA) perturbation :ref:`(Gloor) <Gloor>`. The test-area
 approach can be used to determine the interfacial tension of the system

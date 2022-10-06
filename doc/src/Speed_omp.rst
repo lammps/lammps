@@ -33,8 +33,8 @@ These examples assume one or more 16-core nodes.
    mpirun -np 4 lmp_omp -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
    mpirun -np 32 -ppn 4 lmp_omp -sf omp -pk omp 4 -in in.script   # 8 nodes, 4 MPI tasks/node, 4 threads/task
 
-The mpirun or mpiexec command sets the total number of MPI tasks used
-by LAMMPS (one or multiple per compute node) and the number of MPI
+The ``mpirun`` or ``mpiexec`` command sets the total number of MPI tasks
+used by LAMMPS (one or multiple per compute node) and the number of MPI
 tasks used per node.  E.g. the mpirun command in MPICH does this via
 its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.
 
@@ -58,8 +58,8 @@ OMP_NUM_THREADS environment variable.
 Or run with the OPENMP package by editing an input script
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The discussion above for the mpirun/mpiexec command, MPI tasks/node,
-and threads/MPI task is the same.
+The discussion above for the ``mpirun`` or ``mpiexec`` command, MPI
+tasks/node, and threads/MPI task is the same.
 
 Use the :doc:`suffix omp <suffix>` command, or you can explicitly add an
 "omp" suffix to individual styles in your input script, e.g.
@@ -97,7 +97,7 @@ sub-section.
 
 A description of the multi-threading strategy used in the OPENMP
 package and some performance examples are
-`presented here <http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1>`_.
+`presented here <https://drive.google.com/file/d/1d1gLK6Ru6aPYB50Ld2tO10Li8zgPVNB8/view?usp=sharing>`_.
 
 Guidelines for best performance
 """""""""""""""""""""""""""""""

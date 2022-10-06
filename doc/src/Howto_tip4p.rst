@@ -97,7 +97,7 @@ This leads to slightly larger cost for the long-range calculation, so
 you can test the trade-off for your model.  The OM distance and the LJ
 and Coulombic cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>` command.
 
-Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
+Wikipedia also has a nice article on `water models <https://en.wikipedia.org/wiki/Water_model>`_.
 
 ----------
 

@@ -50,12 +50,33 @@ if(CMAKE_Fortran_COMPILER)
   add_test(NAME FortranBox COMMAND test_fortran_box)
 
   add_executable(test_fortran_properties wrap_properties.cpp test_fortran_properties.f90 test_fortran_commands.f90)
-  target_link_libraries(test_fortran_properties PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  target_link_libraries(test_fortran_properties PRIVATE flammps lammps MPI::MPI_Fortran GTest::GMockMain)
   add_test(NAME FortranProperties COMMAND test_fortran_properties)
 
   add_executable(test_fortran_extract_global wrap_extract_global.cpp test_fortran_extract_global.f90)
   target_link_libraries(test_fortran_extract_global PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
   add_test(NAME FortranExtractGlobal COMMAND test_fortran_extract_global)
+
+  add_executable(test_fortran_extract_atom wrap_extract_atom.cpp test_fortran_extract_atom.f90)
+  target_link_libraries(test_fortran_extract_atom PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  add_test(NAME FortranExtractAtom COMMAND test_fortran_extract_atom)
+
+  add_executable(test_fortran_extract_compute wrap_extract_compute.cpp test_fortran_extract_compute.f90)
+  target_link_libraries(test_fortran_extract_compute PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  add_test(NAME FortranExtractCompute COMMAND test_fortran_extract_compute)
+
+  add_executable(test_fortran_extract_fix wrap_extract_fix.cpp test_fortran_extract_fix.f90)
+  target_link_libraries(test_fortran_extract_fix PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  add_test(NAME FortranExtractFix COMMAND test_fortran_extract_fix)
+
+  add_executable(test_fortran_extract_variable wrap_extract_variable.cpp test_fortran_extract_variable.f90)
+  target_compile_definitions(test_fortran_extract_variable PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_fortran_extract_variable PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  add_test(NAME FortranExtractVariable COMMAND test_fortran_extract_variable)
+
+  add_executable(test_fortran_gather_scatter wrap_gather_scatter.cpp test_fortran_gather_scatter.f90)
+  target_link_libraries(test_fortran_gather_scatter PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  add_test(NAME FortranGatherScatter COMMAND test_fortran_gather_scatter)
 
 else()
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran compiler")

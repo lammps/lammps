@@ -28,6 +28,7 @@ Syntax
        *format* values = *line* string, *int* string, *float* string, ID string, or *none*
          string = C-style format string
          ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* an integer range such as 2*6 (negative values are not allowed)
               *or* a thermo keyword or reference to compute, fix, property or variable.
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
@@ -178,12 +179,15 @@ output, with N fields, which you must enclose in quotes if it is more
 than one field.  The *int* and *float* keywords take a single format
 argument and are applied to all integer or floating-point quantities
 output.  The setting for *ID string* also takes a single format argument
-which is used for the indexed value in each line.  The interpretation is
-the same as for *colname*, i.e. a positive integer is the n-th value
+that is used for the indexed value in each line.  The interpretation is
+the same as for *colname* (i.e., a positive integer is the n-th value
 corresponding to the n-th thermo keyword, a negative integer is counting
-backwards, and a string matches the entry with the thermo keyword.,
-e.g. the fifth column is output in high precision for "format 5 %20.15g"
-and the pair energy for "format epair %20.15g".
+backwards, and a string matches the entry with the thermo keyword).
+For example, the fifth column is output in high precision for
+"format 5 %20.15g", and the pair energy for "format epair %20.15g".
+The *ID* field can be a range, such as "3\*6", "*", "2*", or "\*3";
+in such cases, all fields in the range (inclusive) are set to the specified
+format string. Ranges containing negative numbers are not supported.
 
 The *format* keyword can be used multiple times.  The precedence is
 that for each value in a line of output, the *ID* format (if specified)

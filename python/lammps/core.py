@@ -1634,6 +1634,8 @@ class lammps(object):
     This is a wrapper around the :cpp:func:`lammps_config_has_package`
     function of the library interface.
 
+    .. versionadded:: TBD
+
     :param name: name of the package
     :type  name: string
 

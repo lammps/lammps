@@ -78,6 +78,7 @@ Alexey
 ali
 aliceblue
 Allinger
+allocatable
 allocator
 allocators
 allosws
@@ -657,6 +658,7 @@ Dcut
 de
 dE
 De
+deallocate
 deallocated
 debye
 Debye
@@ -691,6 +693,7 @@ dequidt
 Dequidt
 der
 dereference
+dereferenced
 derekt
 Deresiewicz
 Derjagin
@@ -1486,6 +1489,7 @@ interfacial
 interial
 interlayer
 intermolecular
+interoperable
 Interparticle
 interstitials
 intertube
@@ -3621,6 +3625,7 @@ Universite
 unix
 unmaintained
 unoptimized
+unordered
 unpadded
 unphysical
 unphysically

@@ -930,15 +930,6 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
   memset(&field[0][0], 0, 3*nall *sizeof(double));
   memset(&fieldp[0][0], 0, 3*nall *sizeof(double));
 
-/*  
-  for (int i = 0; i < nall; i++) {
-    for (int j = 0; j < 3; j++) {
-      field[i][j] = 0.0;
-      fieldp[i][j] = 0.0;
-    }
-  }
-*/
-  
   // get the real space portion of the mutual field first
 
   MPI_Barrier(world);
@@ -960,19 +951,13 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
     field[i][1] += term*uind[i][1];
     field[i][2] += term*uind[i][2];
   }
+
   for (int i = 0; i < nlocal; i++) {
     fieldp[i][0] += term*uinp[i][0];
     fieldp[i][1] += term*uinp[i][1];
     fieldp[i][2] += term*uinp[i][2];
   }
-/*  
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      field[i][j] += term*uind[i][j];
-      fieldp[i][j] += term*uinp[i][j];
-    }
-  }
-*/
+
   // accumulate the field and fieldp values from the real-space portion from umutual2b() on the GPU
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
@@ -1029,7 +1014,6 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
   }
 
   int nlocal = atom->nlocal;
-
   for (int i = 0; i < nlocal; i++) {
     fuind[i][0] = a[0][0]*uind[i][0] + a[0][1]*uind[i][1] + a[0][2]*uind[i][2];
     fuind[i][1] = a[1][0]*uind[i][0] + a[1][1]*uind[i][1] + a[1][2]*uind[i][2];
@@ -1041,22 +1025,23 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
     fuinp[i][1] = a[1][0]*uinp[i][0] + a[1][1]*uinp[i][1] + a[1][2]*uinp[i][2];
     fuinp[i][2] = a[2][0]*uinp[i][0] + a[2][1]*uinp[i][1] + a[2][2]*uinp[i][2];
   }
-/*
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      fuind[i][j] = a[j][0]*uind[i][0] + a[j][1]*uind[i][1] + a[j][2]*uind[i][2];
-      fuinp[i][j] = a[j][0]*uinp[i][0] + a[j][1]*uinp[i][1] + a[j][2]*uinp[i][2];
-    }
-  }
-*/
+
+  double time0, time1;
+
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
   double ****gridpre = (double ****) ic_kspace->zero();
 
   // map 2 values to grid
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   grid_uind(fuind,fuinp,gridpre);
 
+  time1 = MPI_Wtime();
+  time_grid_uind += (time1 - time0);
+ 
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
 
@@ -1093,9 +1078,6 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
   double ****gridpost = (double ****) ic_kspace->post_convolution();
 
   // get potential
-  double time0, time1;
-
-  MPI_Barrier(world);
   time0 = MPI_Wtime();
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);
@@ -1112,14 +1094,6 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
         foptp[i][optlevel][j] = fdip_phi2[i][j];
       }
     }
-  }
-
-  // convert the dipole fields from fractional to Cartesian
-
-  for (int i = 0; i < 3; i++) {
-    a[0][i] = nfft1 * recip[0][i];
-    a[1][i] = nfft2 * recip[1][i];
-    a[2][i] = nfft3 * recip[2][i];
   }
 
   for (int i = 0; i < nlocal; i++) {
@@ -1145,25 +1119,7 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
     fieldp[i][1] -= dfy;
     fieldp[i][2] -= dfz;
   }
-/*
-  for (int i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      dipfield1[i][j] = a[j][0]*fdip_phi1[i][1] +
-        a[j][1]*fdip_phi1[i][2] + a[j][2]*fdip_phi1[i][3];
-      dipfield2[i][j] = a[j][0]*fdip_phi2[i][1] +
-        a[j][1]*fdip_phi2[i][2] + a[j][2]*fdip_phi2[i][3];
-    }
-  }
 
-  // increment the field at each multipole site
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      field[i][j] -= dipfield1[i][j];
-      fieldp[i][j] -= dipfield2[i][j];
-    }
-  }
-*/
 }
 
 /* ----------------------------------------------------------------------

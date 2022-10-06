@@ -241,6 +241,8 @@ class Device {
   inline int shuffle_avail() const { return _shuffle_avail; }
   /// For OpenCL, 0 if fast-math options disabled, 1 enabled
   inline int fast_math() const { return _fast_math; }
+  /// return the max number of CUs among the devices
+  inline int max_cus() const { return _max_cus; }
 
   /// Return the number of threads per atom for pair styles
   inline int threads_per_atom() const { return _threads_per_atom; }
@@ -324,7 +326,7 @@ class Device {
 
  private:
   std::queue<Answer<numtyp,acctyp> *> ans_queue;
-  int _init_count;
+  int _init_count, _max_cus;
   bool _device_init, _host_timer_started, _time_device;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,

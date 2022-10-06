@@ -31,6 +31,8 @@
 #include "geryon/nvd_texture.h"
 #endif
 
+//#define ASYNC_DEVICE_COPY
+
 #if !defined(USE_OPENCL) && !defined(USE_HIP)
 // temporary workaround for int2 also defined in cufft
 #ifdef int2
@@ -263,6 +265,8 @@ class BaseAmoeba {
   int _nzlo_out, _nzhi_out, _nylo_out, _nyhi_out, _nxlo_out, _nxhi_out;
   int _ngridx, _ngridy, _ngridz, _num_grid_points;
 
+  int _end_command_queue;
+  
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
   Answer<numtyp,acctyp> *ans;

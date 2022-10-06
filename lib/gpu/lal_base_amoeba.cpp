@@ -155,7 +155,14 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
 
+  #if 0 // !defined(USE_OPENCL) && !defined(USE_HIP)
   fft_plan_created = false;
+  #endif
+
+  #ifdef ASYNC_DEVICE_COPY
+  _end_command_queue=ucl_device->num_queues();
+  ucl_device->push_command_queue();
+  #endif
 
   return success;
 }
@@ -507,6 +514,7 @@ void BaseAmoebaT::compute_udirect2b(int *host_amtype, int *host_amgroup, double 
  
   *fieldp_ptr=_fieldp.host.begin();
 
+  // specify the correct cutoff and alpha values
   _off2_polar = off2_polar;
   _aewald = aewald;
   const int red_blocks=udirect2b(_eflag,_vflag);
@@ -525,18 +533,20 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
                                      double **host_uind, double **host_uinp, double *host_pval,
                                      const double aewald, const double off2_polar,
                                      void** fieldp_ptr) {
-  // all the necessary data arrays are already copied from host to device
-
-  //cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+  // only copy the necessary data arrays that are updated over the iterations
+  // use nullptr for the other arrays that are already copied from host to device
   cast_extra_data(host_amtype, host_amgroup, nullptr, host_uind, host_uinp, nullptr);
   atom->add_extra_data();                          
 
+  // set the correct cutoff and alpha
   _off2_polar = off2_polar;
   _aewald = aewald;
+  // launch the kernel
   const int red_blocks=umutual2b(_eflag,_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
   // NOTE: move this step to update_fieldp() to delay device-host transfer
+  //       after umutual1 and self are done on the GPU
   // *fieldp_ptr=_fieldp.host.begin();
   // _fieldp.update_host(_max_fieldp_size*8,false);
 }
@@ -547,7 +557,7 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
 //     host_thetai1, host_thetai2, host_thetai3 are allocated with nmax by bsordermax by 4
 //     host_igrid is allocated with nmax by 4
 //   - transfer extra data from host to device
-// NOTE: can be re-used for fphi_mpole() (already allocate 2x grid points)
+// NOTE: can be re-used for fphi_mpole() but with a different bsorder value
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
@@ -587,6 +597,12 @@ void BaseAmoebaT::precompute_kspace(const int inum_full, const int bsorder,
       _fdip_sum_phi.resize(_max_thetai_size*20);
     }
   }
+
+  #ifdef ASYNC_DEVICE_COPY
+  _thetai1.cq(ucl_device->cq(_end_command_queue));
+  _thetai2.cq(ucl_device->cq(_end_command_queue));
+  _thetai3.cq(ucl_device->cq(_end_command_queue));
+  #endif
 
   // pack host data to device
 
@@ -634,6 +650,8 @@ void BaseAmoebaT::precompute_kspace(const int inum_full, const int bsorder,
   }
   _igrid.update_device(true);
 
+  // _cgrid_brick holds the grid-based potential
+
   _nzlo_out = nzlo_out;
   _nzhi_out = nzhi_out;
   _nylo_out = nylo_out;
@@ -679,14 +697,21 @@ void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
         _cgrid_brick[n] = v;
         n++;
       }
-  _cgrid_brick.update_device(_num_grid_points, false);
+  _cgrid_brick.update_device(_num_grid_points, true);
 
+  #ifdef ASYNC_DEVICE_COPY
+  ucl_device->sync();
+  #endif
+
+  // launch the kernel with its execution configuration (see below)
   const int red_blocks = fphi_uind();
 
-  _fdip_phi1.update_host(_max_thetai_size*10);
-  _fdip_phi2.update_host(_max_thetai_size*10);
-  _fdip_sum_phi.update_host(_max_thetai_size*20);
+  // copy data from device to host asynchronously
+  _fdip_phi1.update_host(_max_thetai_size*10, true);
+  _fdip_phi2.update_host(_max_thetai_size*10, true);
+  _fdip_sum_phi.update_host(_max_thetai_size*20, true);
 
+  // return the pointers to the host-side arrays
   *host_fdip_phi1 = _fdip_phi1.host.begin();
   *host_fdip_phi2 = _fdip_phi2.host.begin();
   *host_fdip_sum_phi = _fdip_sum_phi.host.begin();
@@ -701,13 +726,15 @@ int BaseAmoebaT::fphi_uind() {
   if (ainum == 0)
     return 0;
 
-  int _nall=atom->nall();
-  int nbor_pitch=nbor->nbor_pitch();
-
   // Compute the block size and grid size to keep all cores busy
-  const int BX=block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
-
+  const int max_cus = device->max_cus();
+  int BX=block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  while (GX < max_cus) {
+    BX /= 2;
+    GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  }
+  
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;
   k_fphi_uind.set_size(GX,BX);
@@ -766,8 +793,13 @@ int BaseAmoebaT::fphi_mpole() {
   int nbor_pitch=nbor->nbor_pitch();
 
   // Compute the block size and grid size to keep all cores busy
-  const int BX=block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
+  const int max_cus = device->max_cus();
+  int BX=block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  while (GX < max_cus) {
+    BX /= 2;
+    GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  }
 
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;

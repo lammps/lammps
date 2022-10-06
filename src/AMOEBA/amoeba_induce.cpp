@@ -901,13 +901,21 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
     }
   }
 
+  double time0, time1;
+
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
   double ****gridpre = (double ****) ic_kspace->zero();
 
   // map 2 values to grid
 
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   grid_uind(fuind,fuinp,gridpre);
+
+  time1 = MPI_Wtime();
+  time_grid_uind += (time1 - time0);
 
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
@@ -945,7 +953,6 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
   double ****gridpost = (double ****) ic_kspace->post_convolution();
 
   // get potential
-  double time0, time1;
 
   MPI_Barrier(world);
   time0 = MPI_Wtime();

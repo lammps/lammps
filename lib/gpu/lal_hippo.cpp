@@ -619,9 +619,14 @@ int HippoT::polar_real(const int eflag, const int vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
 
   // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
+  const int max_cus = this->device->max_cus();
+  int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/(BX/this->_threads_per_atom)));
+  while (GX < max_cus) {
+    BX /= 2;
+    GX=static_cast<int>(ceil(static_cast<double>(ainum)/(BX/this->_threads_per_atom)));
+  }
+
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet

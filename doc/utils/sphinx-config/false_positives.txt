@@ -2387,6 +2387,7 @@ Nmols
 nn
 nnodes
 npits
+npj
 nO
 Nocedal
 nocite
@@ -3163,6 +3164,7 @@ sfree
 Sg
 Shan
 Shanno
+Shapeev
 shapex
 shapey
 shapez

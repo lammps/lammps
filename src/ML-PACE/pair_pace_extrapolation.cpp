@@ -12,21 +12,16 @@
 ------------------------------------------------------------------------- */
 
 /*
-Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
- Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
- Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1
+Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drautz^1
 
 ^1: Ruhr-University Bochum, Bochum, Germany
-^2: University of Cambridge, Cambridge, United Kingdom
-^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
-^4: University of British Columbia, Vancouver, BC, Canada
-*/
+ */
 
 //
-// Created by Lysogorskiy Yury on 27.02.20.
+// Created by Lysogorskiy Yury on 2.01.22.
 //
 
-#include "pair_pace.h"
+#include "pair_pace_extrapolation.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -34,35 +29,45 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
-#include <exception>
 
-#include "ace_c_basis.h"
-#include "ace_evaluator.h"
+#include "ace_b_basis.h"
+#include "ace_b_evaluator.h"
 #include "ace_recursive.h"
 #include "ace_version.h"
 
 namespace LAMMPS_NS {
-struct ACEImpl {
-  ACEImpl() : basis_set(nullptr), ace(nullptr) {}
-  ~ACEImpl()
+struct ACEALImpl {
+  ACEALImpl() : basis_set(nullptr), ace(nullptr), ctilde_basis_set(nullptr), rec_ace(nullptr) {}
+
+  ~ACEALImpl()
   {
     delete basis_set;
     delete ace;
+
+    delete ctilde_basis_set;
+    delete rec_ace;
   }
-  ACECTildeBasisSet *basis_set;
-  ACERecursiveEvaluator *ace;
+
+  ACEBBasisSet *basis_set;
+  ACEBEvaluator *ace;
+  ACECTildeBasisSet *ctilde_basis_set;
+  ACERecursiveEvaluator *rec_ace;
 };
 }    // namespace LAMMPS_NS
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static char const *const elements_pace[] = {
+static char const *const elements_pace_al[] = {
     "X",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na", "Mg", "Al", "Si",
     "P",  "S",  "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu",
     "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru",
@@ -70,36 +75,35 @@ static char const *const elements_pace[] = {
     "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",
     "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac",
     "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"};
-static constexpr int elements_num_pace = sizeof(elements_pace) / sizeof(const char *);
+static constexpr int elements_num_pace_al = sizeof(elements_pace_al) / sizeof(const char *);
 
-static int AtomicNumberByName_pace(char *elname)
+int AtomicNumberByName_pace_al(char *elname)
 {
-  for (int i = 1; i < elements_num_pace; i++)
-    if (strcmp(elname, elements_pace[i]) == 0) return i;
+  for (int i = 1; i < elements_num_pace_al; i++)
+    if (strcmp(elname, elements_pace_al[i]) == 0) return i;
   return -1;
 }
 
 /* ---------------------------------------------------------------------- */
-PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
+PairPACEExtrapolation::PairPACEExtrapolation(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
 
-  aceimpl = new ACEImpl;
-  recursive = false;
+  nmax = 0;
 
+  aceimpl = new ACEALImpl;
   scale = nullptr;
-
-  chunksize = 4096;
+  extrapolation_grade_gamma = nullptr;
 }
 
 /* ----------------------------------------------------------------------
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-PairPACE::~PairPACE()
+PairPACEExtrapolation::~PairPACEExtrapolation()
 {
   if (copymode) return;
 
@@ -109,27 +113,34 @@ PairPACE::~PairPACE()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(scale);
+    memory->destroy(map);
+    memory->destroy(extrapolation_grade_gamma);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairPACE::compute(int eflag, int vflag)
+void PairPACEExtrapolation::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum;
   double delx, dely, delz, evdwl;
   double fij[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
-
   ev_init(eflag, vflag);
+
+  // downwards modified by YL
 
   double **x = atom->x;
   double **f = atom->f;
+  tagint *tag = atom->tag;
   int *type = atom->type;
-
   // number of atoms in cell
   int nlocal = atom->nlocal;
+
   int newton_pair = force->newton_pair;
+
+  // number of atoms including ghost atoms
+  int nall = nlocal + atom->nghost;
 
   // inum: length of the neighborlists list
   inum = list->inum;
@@ -143,6 +154,20 @@ void PairPACE::compute(int eflag, int vflag)
   // the pointer to the list of neighbors of "i"
   firstneigh = list->firstneigh;
 
+  // this happens when used as substyle in pair style hybrid.
+  // So this check and error effectively disallows use with pair style hybrid.
+  if (inum != nlocal) { error->all(FLERR, "inum: {} nlocal: {} are different", inum, nlocal); }
+
+  //if flag_compute_extrapolation_grade at this iteration then
+  // grow extrapolation_grade_gamma array, that store per-atom extrapolation grades
+  if (flag_compute_extrapolation_grade && atom->nlocal > nmax) {
+    memory->destroy(extrapolation_grade_gamma);
+    nmax = atom->nlocal;
+    memory->create(extrapolation_grade_gamma, nmax, "pace/atom:gamma");
+    //zeroify array
+    memset(extrapolation_grade_gamma, 0, nmax * sizeof(*extrapolation_grade_gamma));
+  }
+
   //determine the maximum number of neighbours
   int max_jnum = 0;
   int nei = 0;
@@ -153,7 +178,10 @@ void PairPACE::compute(int eflag, int vflag)
     if (jnum > max_jnum) max_jnum = jnum;
   }
 
-  aceimpl->ace->resize_neighbours_cache(max_jnum);
+  if (flag_compute_extrapolation_grade)
+    aceimpl->ace->resize_neighbours_cache(max_jnum);
+  else
+    aceimpl->rec_ace->resize_neighbours_cache(max_jnum);
 
   //loop over atoms
   for (ii = 0; ii < list->inum; ii++) {
@@ -169,30 +197,40 @@ void PairPACE::compute(int eflag, int vflag)
 
     // checking if neighbours are actually within cutoff range is done inside compute_atom
     // mapping from LAMMPS atom types ('type' array) to ACE species is done inside compute_atom
-    //      by using 'aceimpl->ace->element_type_mapping' array
+    //      by using 'ace->element_type_mapping' array
     // x: [r0 ,r1, r2, ..., r100]
     // i = 0 ,1
     // jnum(0) = 50
     // jlist(neigh ind of 0-atom) = [1,2,10,7,99,25, .. 50 element in total]
-
     try {
-      aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
+      if (flag_compute_extrapolation_grade)
+        aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
+      else
+        aceimpl->rec_ace->compute_atom(i, x, type, jnum, jlist);
     } catch (std::exception &e) {
       error->one(FLERR, e.what());
     }
+    // 'compute_atom' will update the `ace->e_atom` and `ace->neighbours_forces(jj, alpha)` arrays and max_gamma_grade
 
-    // 'compute_atom' will update the `aceimpl->ace->e_atom` and `aceimpl->ace->neighbours_forces(jj, alpha)` arrays
+    if (flag_compute_extrapolation_grade)
+      extrapolation_grade_gamma[i] = aceimpl->ace->max_gamma_grade;
+
+    Array2D<DOUBLE_TYPE> &neighbours_forces =
+        (flag_compute_extrapolation_grade ? aceimpl->ace->neighbours_forces
+                                          : aceimpl->rec_ace->neighbours_forces);
+    //optionally assign global forces arrays
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      const int jtype = type[j];
       j &= NEIGHMASK;
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
       delz = x[j][2] - ztmp;
 
-      fij[0] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 0);
-      fij[1] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 1);
-      fij[2] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 2);
+      fij[0] = scale[itype][jtype] * neighbours_forces(jj, 0);
+      fij[1] = scale[itype][jtype] * neighbours_forces(jj, 1);
+      fij[2] = scale[itype][jtype] * neighbours_forces(jj, 2);
 
       f[i][0] += fij[0];
       f[i][1] += fij[1];
@@ -202,15 +240,20 @@ void PairPACE::compute(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      if (vflag_either)
+      if (vflag)
         ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
                      -delz);
     }
 
     // tally energy contribution
-    if (eflag_either) {
+    if (eflag) {
       // evdwl = energy of atom I
-      evdwl = scale[itype][itype] * aceimpl->ace->e_atom;
+      DOUBLE_TYPE e_atom;
+      if (flag_compute_extrapolation_grade)
+        e_atom = aceimpl->ace->e_atom;
+      else
+        e_atom = aceimpl->rec_ace->e_atom;
+      evdwl = scale[itype][itype] * e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
   }
@@ -222,72 +265,57 @@ void PairPACE::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairPACE::allocate()
+void PairPACEExtrapolation::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes + 1;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag, n, n, "pair:setflag");
-  memory->create(cutsq, n, n, "pair:cutsq");
-  memory->create(scale, n, n, "pair:scale");
-  map = new int[n];
+  memory->create(setflag, np1, np1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(map, np1, "pair:map");
+  memory->create(scale, np1, np1, "pair:scale");
 }
 
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPACE::settings(int narg, char **arg)
+void PairPACEExtrapolation::settings(int narg, char **arg)
 {
-  if (narg > 3) utils::missing_cmd_args(FLERR, "pair_style pace", error);
+  if (narg > 0) error->all(FLERR, "Pair style pace/extrapolation supports no keywords");
 
-  // ACE potentials are parameterized in metal units
-  if (strcmp("metal", update->unit_style) != 0)
-    error->all(FLERR, "ACE potentials require 'metal' units");
-
-  recursive = true;    // default evaluator style: RECURSIVE
-
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg], "recursive") == 0) {
-      recursive = true;
-      iarg += 1;
-    } else if (strcmp(arg[iarg], "product") == 0) {
-      recursive = false;
-      iarg += 1;
-    } else if (strcmp(arg[iarg], "chunksize") == 0) {
-      chunksize = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
-    } else
-      error->all(FLERR, "Unknown pair_style pace keyword: {}", arg[iarg]);
-  }
-
-  if (comm->me == 0) {
-    utils::logmesg(lmp, "ACE version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
-    if (recursive)
-      utils::logmesg(lmp, "Recursive evaluator is used\n");
-    else
-      utils::logmesg(lmp, "Product evaluator is used\n");
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairPACE::coeff(int narg, char **arg)
+void PairPACEExtrapolation::coeff(int narg, char **arg)
 {
+
+  if (narg < 5) utils::missing_cmd_args(FLERR, "pair_coeff", error);
 
   if (!allocated) allocate();
 
-  map_element2type(narg - 3, arg + 3);
+  map_element2type(narg - 4, arg + 4);
 
   auto potential_file_name = utils::get_potential_file_path(arg[2]);
+  auto active_set_inv_filename = utils::get_potential_file_path(arg[3]);
+  char **elemtypes = &arg[4];
+
+  delete aceimpl->basis_set;
+  delete aceimpl->ctilde_basis_set;
 
   //load potential file
-  delete aceimpl->basis_set;
+  aceimpl->basis_set = new ACEBBasisSet();
   if (comm->me == 0) utils::logmesg(lmp, "Loading {}\n", potential_file_name);
-  aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+  aceimpl->basis_set->load(potential_file_name);
+
+  //convert the basis set to CTilde format
+  aceimpl->ctilde_basis_set = new ACECTildeBasisSet();
+  *aceimpl->ctilde_basis_set = aceimpl->basis_set->to_ACECTildeBasisSet();
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "Total number of basis functions\n");
@@ -303,15 +331,24 @@ void PairPACE::coeff(int narg, char **arg)
   // read args that map atom types to PACE elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
-
   delete aceimpl->ace;
-  aceimpl->ace = new ACERecursiveEvaluator();
-  aceimpl->ace->set_recursive(recursive);
+  delete aceimpl->rec_ace;
+
+  aceimpl->ace = new ACEBEvaluator();
   aceimpl->ace->element_type_mapping.init(atom->ntypes + 1);
 
+  aceimpl->rec_ace = new ACERecursiveEvaluator();
+  aceimpl->rec_ace->set_recursive(true);
+  aceimpl->rec_ace->element_type_mapping.init(atom->ntypes + 1);
+  aceimpl->rec_ace->element_type_mapping.fill(-1);    //-1 means atom not included into potential
+
+  FILE *species_type_file = nullptr;
+
   const int n = atom->ntypes;
+  element_names.resize(n);
   for (int i = 1; i <= n; i++) {
-    char *elemname = arg[2 + i];
+    char *elemname = elemtypes[i - 1];
+    element_names[i - 1] = elemname;
     if (strcmp(elemname, "NULL") == 0) {
       // species_type=-1 value will not reach ACE Evaluator::compute_atom,
       // but if it will ,then error will be thrown there
@@ -319,7 +356,8 @@ void PairPACE::coeff(int narg, char **arg)
       map[i] = -1;
       if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
     } else {
-      int atomic_number = AtomicNumberByName_pace(elemname);
+      // dump species types for reconstruction of atomic configurations
+      int atomic_number = AtomicNumberByName_pace_al(elemname);
       if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
       SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
       if (mu != -1) {
@@ -327,8 +365,9 @@ void PairPACE::coeff(int narg, char **arg)
           utils::logmesg(lmp, "Mapping LAMMPS atom type #{}({}) -> ACE species type #{}\n", i,
                          elemname, mu);
         map[i] = mu;
-        // set up LAMMPS atom type to ACE species  mapping for ace evaluator
+        // set up LAMMPS atom type to ACE species  mapping for ace evaluators
         aceimpl->ace->element_type_mapping(i) = mu;
+        aceimpl->rec_ace->element_type_mapping(i) = mu;
       } else {
         error->all(FLERR, "Element {} is not supported by ACE-potential from file {}", elemname,
                    potential_file_name);
@@ -336,22 +375,33 @@ void PairPACE::coeff(int narg, char **arg)
     }
   }
 
-  // initialize scale factor
-  for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) scale[i][j] = 1.0;
+  aceimpl->ace->set_basis(*aceimpl->basis_set);
+  aceimpl->rec_ace->set_basis(*aceimpl->ctilde_basis_set);
+
+  if (comm->me == 0) utils::logmesg(lmp, "Loading ASI {}\n", active_set_inv_filename);
+  aceimpl->ace->load_active_set(active_set_inv_filename);
+  bool is_linear_extrapolation_grade = aceimpl->ace->get_is_linear_extrapolation_grade();
+  if (comm->me == 0) {
+        if (is_linear_extrapolation_grade)
+            utils::logmesg(lmp, "LINEAR ASI is loaded\n");
+        else
+            utils::logmesg(lmp, "FULL ASI is loaded\n");
   }
 
-  aceimpl->ace->set_basis(*aceimpl->basis_set, 1);
+  // clear setflag since coeff() called once with I,J = * *
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++) scale[i][j] = 1.0;
 }
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairPACE::init_style()
+void PairPACEExtrapolation::init_style()
 {
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pace requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style pace requires newton pair on");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pace/extrapolation requires atom IDs");
+  if (force->newton_pair == 0)
+    error->all(FLERR, "Pair style pace/extrapolation requires newton pair on");
 
   // request a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL);
@@ -361,7 +411,7 @@ void PairPACE::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairPACE::init_one(int i, int j)
+double PairPACEExtrapolation::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
   //cutoff from the basis set's radial functions settings
@@ -372,9 +422,31 @@ double PairPACE::init_one(int i, int j)
 /* ----------------------------------------------------------------------
     extract method for extracting value of scale variable
  ---------------------------------------------------------------------- */
-void *PairPACE::extract(const char *str, int &dim)
+void *PairPACEExtrapolation::extract(const char *str, int &dim)
 {
+  //check if str=="gamma_flag" then compute extrapolation grades on this iteration
+  dim = 0;
+  if (strcmp(str, "gamma_flag") == 0) return (void *) &flag_compute_extrapolation_grade;
+
   dim = 2;
   if (strcmp(str, "scale") == 0) return (void *) scale;
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+void *PairPACEExtrapolation::extract_peratom(const char *str, int &ncol)
+{
+  if (strcmp(str, "gamma") == 0) {
+    ncol = 0;
+    return (void *) extrapolation_grade_gamma;
+  }
+
   return nullptr;
 }

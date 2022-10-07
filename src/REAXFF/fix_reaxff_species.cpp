@@ -134,6 +134,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   nd = nullptr;
   molmap = nullptr;
   mark = nullptr;
+  fdel = nullptr;
 
   nmax = 0;
   setupflag = 0;

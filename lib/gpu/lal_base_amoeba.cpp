@@ -727,10 +727,10 @@ int BaseAmoebaT::fphi_uind() {
     return 0;
 
   // Compute the block size and grid size to keep all cores busy
-  const int max_cus = device->max_cus();
+  const int cus = device->gpu->cus();
   int BX=block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  while (GX < max_cus) {
+  while (GX < cus) {
     BX /= 2;
     GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
   }
@@ -793,10 +793,10 @@ int BaseAmoebaT::fphi_mpole() {
   int nbor_pitch=nbor->nbor_pitch();
 
   // Compute the block size and grid size to keep all cores busy
-  const int max_cus = device->max_cus();
+  const int cus = device->gpu->cus();
   int BX=block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  while (GX < max_cus) {
+  while (GX < cus) {
     BX /= 2;
     GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
   }

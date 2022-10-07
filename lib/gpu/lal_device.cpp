@@ -214,7 +214,6 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
       }
     }
     _first_device = _last_device = best_device;
-    _max_cus = best_cus;
     type = gpu->device_type(_first_device);
 
     if (ndevices > 0) {

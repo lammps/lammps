@@ -109,7 +109,7 @@ void FixLangevinSpin::init()
   double hbar = force->hplanck/MY_2PI;  // eV/(rad.THz)
   double kb = force->boltz;             // eV/K
 
-  D = (alpha_t*gil_factor*kb*temp);
+  D = (alpha_t*(1.0+(alpha_t)*(alpha_t))*kb*temp);
   D /= (hbar*dts);
   sigma = sqrt(2.0*D);
 }

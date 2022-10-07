@@ -189,6 +189,10 @@ to the area of that triangle.
    beneficial to exclude computing interactions between the created
    particles using :doc:`neigh_modify exclude <neigh_modify>`.
 
+.. versionchanged:: 2Jun2022
+
+The *porosity* style has been renamed to *random* with added functionality.
+
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
@@ -460,7 +464,7 @@ The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
 style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
 *box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring{A}}` for
+:doc:`units <units>` command (e.g., :math:`\AA` for
 units = *real* or *metal*\ .  A *lattice* value means the distance units are in
 lattice spacings.
 

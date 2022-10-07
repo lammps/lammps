@@ -78,6 +78,7 @@ Alexey
 ali
 aliceblue
 Allinger
+allocatable
 allocator
 allocators
 allosws
@@ -657,6 +658,7 @@ Dcut
 de
 dE
 De
+deallocate
 deallocated
 debye
 Debye
@@ -691,6 +693,7 @@ dequidt
 Dequidt
 der
 dereference
+dereferenced
 derekt
 Deresiewicz
 Derjagin
@@ -747,6 +750,7 @@ dirname
 discoverable
 discretization
 discretized
+discretizing
 disp
 dissipative
 Dissipative
@@ -915,6 +919,7 @@ emax
 Emax
 Embt
 emi
+Emmrich
 emol
 eN
 endian
@@ -1080,7 +1085,7 @@ filesystem
 filesystems
 Fily
 Fincham
-Finchham
+Fint
 fingerprintconstants
 fingerprintsperelement
 Finnis
@@ -1093,6 +1098,7 @@ flagHI
 flaglog
 flagN
 flagVF
+flang
 fld
 floralwhite
 Florez
@@ -1204,6 +1210,7 @@ gewald
 Gezelter
 Gflop
 gfortran
+ghostneigh
 ghostwhite
 Giacomo
 gif
@@ -1482,6 +1489,7 @@ interfacial
 interial
 interlayer
 intermolecular
+interoperable
 Interparticle
 interstitials
 intertube
@@ -2122,6 +2130,7 @@ modelled
 modelling
 Modelling
 Modine
+moduli
 mofff
 MOFFF
 Mohd
@@ -2137,6 +2146,7 @@ Monaghan
 Monaghans
 monodisperse
 monodispersity
+monolayer
 monopole
 monovalent
 Montalenti
@@ -2381,6 +2391,7 @@ Nmols
 nn
 nnodes
 npits
+npj
 nO
 Nocedal
 nocite
@@ -2412,6 +2423,7 @@ normy
 normz
 Noskov
 noslip
+notational
 noticable
 Nout
 noutcol
@@ -2772,6 +2784,7 @@ ps
 Ps
 pscreen
 pscrozi
+Pseudocode
 pseudodynamics
 pseudopotential
 pSp
@@ -3131,6 +3144,7 @@ sectoring
 sed
 segmental
 Seifert
+Seleson
 sellerio
 Sellerio
 Semaev
@@ -3154,6 +3168,7 @@ sfree
 Sg
 Shan
 Shanno
+Shapeev
 shapex
 shapey
 shapez
@@ -3209,7 +3224,7 @@ slategray
 slater
 Slepoy
 Sliozberg
-sLLG
+sLL
 sllod
 sm
 smallbig
@@ -3610,6 +3625,7 @@ Universite
 unix
 unmaintained
 unoptimized
+unordered
 unpadded
 unphysical
 unphysically
@@ -3620,6 +3636,7 @@ unsmoothed
 unsolvated
 unsplit
 unstrained
+unstretched
 untar
 untilted
 Unwin

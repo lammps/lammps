@@ -592,7 +592,8 @@ void FixElectrodeConp::setup_pre_reverse(int eflag, int /*vflag*/)
   // correct forces for initial timestep
   gausscorr(eflag, true);
   self_energy(eflag);
-  potential_energy(eflag);
+  // potential_energy(eflag); // not always part of the energy, depending on ensemble, therefore
+  // removed
 }
 
 /* ---------------------------------------------------------------------- */
@@ -717,7 +718,8 @@ void FixElectrodeConp::pre_reverse(int eflag, int /*vflag*/)
 {
   gausscorr(eflag, true);
   self_energy(eflag);
-  potential_energy(eflag);
+  //potential_energy(eflag); // not always part of the energy, depending on ensemble, therefore
+  // removed
 }
 
 /* ---------------------------------------------------------------------- */
@@ -861,6 +863,7 @@ void FixElectrodeConp::update_charges()
       delta = dot_nlocalele(r, d);
       dot_old = dot_new;
     }
+    recompute_potential(b, q_local);
     if (delta > cg_threshold && comm->me == 0) error->warning(FLERR, "CG threshold not reached");
   } else {
     error->all(FLERR, "This algorithm is not implemented, yet");
@@ -1058,7 +1061,7 @@ void FixElectrodeConp::compute_macro_matrices()
 
 double FixElectrodeConp::compute_scalar()
 {
-  return potential_energy(0);
+  return potential_energy();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1084,7 +1087,7 @@ double FixElectrodeConp::compute_array(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-double FixElectrodeConp::potential_energy(int eflag)
+double FixElectrodeConp::potential_energy()
 {
   // corrections to energy due to potential psi
   double const qqrd2e = force->qqrd2e;
@@ -1094,12 +1097,7 @@ double FixElectrodeConp::potential_energy(int eflag)
   double energy = 0;
   for (int i = 0, iele = 0; i < nlocal; i++) {
     if (groupbit & mask[i]) {
-      double e = -qqrd2e * q[i] * group_psi[iele_to_group_local[iele]] * evscale;
-      energy += e;
-      if (eflag) {
-        force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0,
-                              0);    // 0 evdwl, 0 fpair, 0 delxyz
-      }
+      energy -= qqrd2e * q[i] * group_psi[iele_to_group_local[iele]] * evscale;
       iele++;
     }
   }

@@ -505,7 +505,7 @@ void FixElectrodeConp::setup_post_neighbor()
     memory->create(elastance, ngroup, ngroup, "fix_electrode:matrix");
     if (read_mat)
       read_from_file(input_file_mat, elastance, "elastance");
-    else if (!read_inv) {  
+    else if (!read_inv) {
       if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
       auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
       array_compute->setup(tag_to_iele, pair, mat_neighlist);

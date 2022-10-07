@@ -686,10 +686,10 @@ void UCL_Device::add_properties(cl_device_id device_list) {
     double arch = static_cast<double>(minor)/10+major;
     if (arch >= 3.0)
       op.has_shuffle_support=true;
-    op.shared_main_memory=_shared_mem_device(device_list);
   }
   delete[] buffer2;
   #endif
+  op.shared_main_memory=_shared_mem_device(device_list);
 
   _properties.push_back(op);
 }

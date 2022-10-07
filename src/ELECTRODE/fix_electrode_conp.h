@@ -70,14 +70,17 @@ class FixElectrodeConp : public Fix {
   enum class VarStyle { CONST, EQUAL };
   virtual void update_psi();
   virtual void pre_update(){};
+  virtual void recompute_potential(std::vector<double>, std::vector<double>){};
   virtual std::vector<double> constraint_projection(std::vector<double>);
   virtual std::vector<double> constraint_correction(std::vector<double>);
   virtual void compute_macro_matrices();
+  std::vector<double> ele_ele_interaction(std::vector<double>);
   std::vector<double> group_psi;
   std::vector<int> group_bits;
   std::vector<int> groups;
   int num_of_groups;
   bigint ngroup;
+  double evscale;
   std::vector<std::vector<double>> sd_vectors;
   std::vector<double> sb_charges;
   std::vector<int> group_psi_var_ids;
@@ -112,14 +115,13 @@ class FixElectrodeConp : public Fix {
   void symmetrize();
   double gausscorr(int, bool);
   void update_charges();
-  double potential_energy(int);
+  double potential_energy();
   double self_energy(int);
   void write_to_file(FILE *, const std::vector<tagint> &, const std::vector<std::vector<double>> &);
   void read_from_file(const std::string &input_file, double **, const std::string &);
   void compute_sd_vectors();
   void compute_sd_vectors_ffield();
   int groupnum_from_name(char *);
-  double evscale;
   class Pair *pair;
   class NeighList *mat_neighlist, *vec_neighlist;
   std::vector<int> etypes;
@@ -132,7 +134,6 @@ class FixElectrodeConp : public Fix {
   bool timer_flag;
   std::map<int, double> tf_types;
   // cg
-  std::vector<double> ele_ele_interaction(std::vector<double>);
   std::vector<double> scale_vector(double, std::vector<double>);
   std::vector<double> add_nlocalele(std::vector<double>, std::vector<double>);
   double dot_nlocalele(std::vector<double>, std::vector<double>);

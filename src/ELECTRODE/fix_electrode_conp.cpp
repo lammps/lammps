@@ -385,6 +385,12 @@ void FixElectrodeConp::init()
   }
   if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");
 
+  // error if more than one fix electrode/*
+  int count = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strncmp(modify->fix[i]->style, "electrode", 9) == 0) count++;
+  if (count > 1) error->all(FLERR, "More than one fix electrode");
+
   // check for package intel
   accel_interface->intel_find_fix();
   if (etypes_neighlists)

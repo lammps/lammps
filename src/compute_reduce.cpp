@@ -527,9 +527,8 @@ double ComputeReduce::compute_one(int m, int flag)
     if (val.flavor == PERATOM) {
       if (aidx == 0) {
         double *fix_vector = val.val.f->vector_atom;
-        int n = nlocal;
         if (flag < 0) {
-          for (int i = 0; i < n; i++)
+          for (int i = 0; i < nlocal; i++)
             if (mask[i] & groupbit) combine(one, fix_vector[i], i);
         } else
           one = fix_vector[flag];

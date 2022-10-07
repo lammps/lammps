@@ -66,10 +66,10 @@ atom can be "lost" if it moves across a non-periodic simulation box
 :doc:`boundary <boundary>` or if it moves more than a box length outside
 the simulation domain (or more than a processor sub-domain length)
 before reneighboring occurs.  The latter case is typically due to bad
-dynamics, e.g. too large a timestep or huge forces and velocities.  If
+dynamics (e.g., too large a time step and/or huge forces and velocities).  If
 the value is *ignore*, LAMMPS does not check for lost atoms.  If the
 value is *error* or *warn*, LAMMPS checks and either issues an error or
-warning.  The code will exit with an error and continue with a warning.
+warning.  The simulation will exit with an error and continue with a warning.
 A warning will only be issued once, the first time an atom is lost.
 This can be a useful debugging option.
 
@@ -90,10 +90,10 @@ that should be investigated, but LAMMPS cannot determine for
 certain whether they are an indication of an error.
 
 Some warning messages are printed during a run (or immediately before)
-each time a specific MPI rank encounters the issue, e.g. bonds that are
-stretched too far or dihedrals in extreme configurations. These number
+each time a specific MPI rank encounters the issue (e.g., bonds that are
+stretched too far or dihedrals in extreme configurations). These number
 of these can quickly blow up the size of the log file and screen output.
-Thus a limit of 100 warning messages is applied by default.  The warning
+Thus, a limit of 100 warning messages is applied by default.  The warning
 count is applied to the entire input unless reset with a ``thermo_modify
 warn reset`` command.  If there are more warnings than the limit, LAMMPS
 will print one final warning that it will not print any additional
@@ -161,8 +161,8 @@ for a column or field of thermodynamic output.  The setting for *ID
 string* replaces the default text with the provided string.  *ID* can be
 a positive integer when it represents the column number counting from
 the left, a negative integer when it represents the column number from
-the right (i.e. -1 is the last column/keyword), or a thermo keyword (or
-compute, fix, property, or variable reference) and then it replaces the
+the right (i.e., :math:`-1` is the last column/keyword), or a thermo keyword
+(or compute, fix, property, or variable reference) and then it replaces the
 string for that specific thermo keyword.
 
 The *colname* keyword can be used multiple times. If multiple *colname*
@@ -172,10 +172,10 @@ to their default values.
 
 The *format* keyword can be used to change the default numeric format of
 any of quantities the :doc:`thermo_style <thermo_style>` command
-outputs.  All the specified format strings are C-style formats, e.g. as
-used by the C/C++ printf() command.  The *line* keyword takes a single
+outputs.  All the specified format strings are C-style formats (i.e., as
+used by the C/C++ printf() command).  The *line* keyword takes a single
 argument which is the format string for the entire line of thermo
-output, with N fields, which you must enclose in quotes if it is more
+output, with :math:`N` fields, which you must enclose in quotes if it is more
 than one field.  The *int* and *float* keywords take a single format
 argument and are applied to all integer or floating-point quantities
 output.  The setting for *ID string* also takes a single format argument
@@ -205,8 +205,8 @@ settings, reverting all values to their default format.
    to the corresponding 8-byte form when it is applied to those
    keywords.  However, when specifying the *line* option or *format ID
    string* option for *step* and *natoms*, you should specify a format
-   string appropriate for an 8-byte signed integer, e.g. one with "%ld"
-   or "%lld" depending on the platform.
+   string appropriate for an 8-byte signed integer (i.e., one with "%ld"
+   or "%lld", depending on the platform).
 
 The *temp* keyword is used to determine how thermodynamic temperature is
 calculated, which is used by all thermo quantities that require a

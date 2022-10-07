@@ -609,6 +609,10 @@ void DeviceT::init_message(FILE *screen, const char *name,
     int last=last_gpu+1;
     if (last>gpu->num_devices())
       last=gpu->num_devices();
+    if (gpu->num_platforms()>1) {
+      std::string pname=gpu->platform_name();
+      fprintf(screen,"Platform: %s\n",pname.c_str());
+    }
     for (int i=first_gpu; i<last; i++) {
       std::string sname;
       if (i==first_gpu)

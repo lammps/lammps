@@ -46,6 +46,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
+#include "suffix.h"
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
@@ -858,9 +859,32 @@ void LAMMPS::post_create()
 {
   if (skiprunflag) input->one("timer timeout 0 every 1");
 
+  // Don't unnecessarily reissue a package command via suffix
+  int package_issued = 0;
+
   // default package command triggered by "-k on"
 
   if (kokkos && kokkos->kokkos_exists) input->one("package kokkos");
+
+  // invoke any command-line package commands
+
+  if (num_package) {
+    std::string str;
+    for (int i = 0; i < num_package; i++) {
+      str = "package";
+      char *pkg_name = *(packargs[i]);
+      if (pkg_name != nullptr) {
+        if (strcmp("gpu", pkg_name) == 0) package_issued |= Suffix::GPU;
+        if (strcmp("omp", pkg_name) == 0) package_issued |= Suffix::OMP;
+        if (strcmp("intel", pkg_name) == 0) package_issued |= Suffix::INTEL;
+      }
+      for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
+        str += " ";
+        str += *ptr;
+      }
+      input->one(str);
+    }
+  }
 
   // suffix will always be set if suffix_enable = 1
   // check that KOKKOS package classes were instantiated
@@ -878,28 +902,20 @@ void LAMMPS::post_create()
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
-    if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
-    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
+    if (strcmp(suffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
+      input->one("package gpu 0");
+    if (strcmp(suffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
+      input->one("package intel 1");
+    if (strcmp(suffix,"omp") == 0 && !(package_issued & Suffix::OMP))
+      input->one("package omp 0");
 
     if (suffix2) {
-      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 0");
-      if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
-      if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
-    }
-  }
-
-  // invoke any command-line package commands
-
-  if (num_package) {
-    std::string str;
-    for (int i = 0; i < num_package; i++) {
-      str = "package";
-      for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
-        str += " ";
-        str += *ptr;
-      }
-      input->one(str);
+      if (strcmp(suffix2,"gpu") == 0 && !(package_issued & Suffix::GPU))
+        input->one("package gpu 0");
+      if (strcmp(suffix2,"intel") == 0 && !(package_issued & Suffix::INTEL))
+        input->one("package intel 1");
+      if (strcmp(suffix2,"omp") == 0 && !(package_issued & Suffix::OMP))
+        input->one("package omp 0");
     }
   }
 }

@@ -37,30 +37,38 @@ class ComputeReduce : public Compute {
   double memory_usage() override;
 
  protected:
-  int me;
   int mode, nvalues;
-  int *which, *argindex, *flavor, *value2index;
-  char **ids;
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    int flavor;
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
   double *onevec;
   int *replace, *indices, *owner;
+
   int index;
   char *idregion;
   class Region *region;
   int maxatom;
   double *varatom;
 
-  struct Pair {
+  struct valpair {
     double value;
     int proc;
   };
-  Pair pairme, pairall;
+  valpair pairme, pairall;
 
   virtual double compute_one(int, int);
   virtual bigint count(int);
   void combine(double &, double, int);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

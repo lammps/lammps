@@ -65,7 +65,7 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
 
-  // parse values until
+  // parse values
 
   values.clear();
   for (iarg = 0; iarg < nargnew; iarg++) {

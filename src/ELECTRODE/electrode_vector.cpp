@@ -115,7 +115,7 @@ void ElectrodeVector::compute_vector(double *vector)
 
 void ElectrodeVector::pair_contribution(double *vector)
 {
-  //double const etaij = eta * eta / sqrt(2.0 * eta * eta);    // see mw ewald theory eq. (29)-(30)
+  double const etaij = eta * eta / sqrt(2.0 * eta * eta);
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
@@ -156,11 +156,10 @@ void ElectrodeVector::pair_contribution(double *vector)
       double const rinv = 1.0 / r;
       double aij = rinv;
       aij *= ElectrodeMath::safe_erfc(g_ewald * r);
-      // TODO using etaij makes no difference?
-      //if (invert_source)
-      aij -= ElectrodeMath::safe_erfc(eta * r) * rinv;
-      //else
-      //aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
+      if (invert_source)
+        aij -= ElectrodeMath::safe_erfc(eta * r) * rinv;
+      else
+        aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
       if (i_in_sensor) {
         vector[i] += aij * q[j];
         //} else if (j_in_sensor) {

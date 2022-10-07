@@ -328,7 +328,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   for (int i=0; i<_procs_per_gpu; i++) {
     if (_gpu_rank==i)
       flag=compile_kernels();
-    gpu_barrier();
+    serialize_init();
   }
 
   // check if double precision support is available

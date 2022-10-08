@@ -109,7 +109,7 @@ class UCL_Timer {
     #else
     CL_SAFE_CALL(clFinish(_cq));
     has_measured_time = false;
-    #endif    
+    #endif
   }
 
   /// Block until the stop event has been reached on device
@@ -160,7 +160,7 @@ class UCL_Timer {
     CL_SAFE_CALL(clFinish(_cq));
     has_measured_time = false;
     return 0.0;
-    #endif    
+    #endif
   }
 
   /// Return the time (s) of last start to stop - Forces synchronization

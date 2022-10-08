@@ -518,7 +518,7 @@ int UCL_Device::set_platform(int pid) {
       }
     }
     #endif
-    
+
     for (cl_uint j=0; j<num_subdevices; j++) {
       _num_devices++;
       _cl_devices.push_back(subdevice_list[j]);

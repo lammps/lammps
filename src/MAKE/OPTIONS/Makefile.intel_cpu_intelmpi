@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicpc -std=c++11 -diag-disable=10441
+CC =		mpiicpc -std=c++11 -diag-disable=10441 -diag-disable=2196
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
                 -qopt-zmm-usage=high
 CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \
@@ -15,9 +15,9 @@ CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpiicpc -std=c++11 -diag-disable=10441
+LINK =		mpiicpc -std=c++11 -diag-disable=10441 -diag-disable=2196
 LINKFLAGS =	-qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
-LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core	
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
 
 ARCHIVE =	ar

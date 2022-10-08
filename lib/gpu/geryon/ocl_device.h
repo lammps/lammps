@@ -126,10 +126,13 @@ class UCL_Device {
   /// Return the number of devices that support OpenCL
   inline int num_devices() { return _num_devices; }
 
-  /// Specify whether profiling (device timers) will be used for the device (yes=true)
+  /// Specify whether profiling (device timers) will be used (yes=true)
   /** No-op for CUDA and HIP **/
-  inline void configure_profiling(const bool profiling_on)
-    { _cq_profiling = profiling_on; }
+  inline void configure_profiling(const bool profiling_on) {
+    #ifndef GERYON_NO_OCL_MARKERS
+    _cq_profiling = profiling_on;
+    #endif
+  }
 
   /// Set the OpenCL device to the specified device number
   /** A context and default command queue will be created for the device *
@@ -176,8 +179,8 @@ class UCL_Device {
 
 #ifdef CL_VERSION_2_0
     if (_cq_profiling) {
-      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE,
-                                     0};
+      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES,
+                                     CL_QUEUE_PROFILING_ENABLE, 0};
       _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
                                                     &errorv);
     } else {
@@ -187,8 +190,8 @@ class UCL_Device {
     }
 #else
     if (_cq_profiling)
-      _cq.back()=clCreateCommandQueue(_context, _cl_device, CL_QUEUE_PROFILING_ENABLE,
-                                      &errorv);
+      _cq.back()=clCreateCommandQueue(_context, _cl_device,
+                                      CL_QUEUE_PROFILING_ENABLE, &errorv);
     else
       _cq.back()=clCreateCommandQueue(_context, _cl_device, 0, &errorv);
 #endif
@@ -403,7 +406,11 @@ class UCL_Device {
 // Grabs the properties for all devices
 UCL_Device::UCL_Device() {
   _device=-1;
+  #ifndef GERYON_NO_OCL_MARKERS
   _cq_profiling=true;
+  #else
+  _cq_profiling=false;
+  #endif
 
   // --- Get Number of Platforms
   cl_uint nplatforms;

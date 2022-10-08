@@ -860,7 +860,7 @@ void LAMMPS::post_create()
   if (skiprunflag) input->one("timer timeout 0 every 1");
 
   // Don't unnecessarily reissue a package command via suffix
-  int package_issued = 0;
+  int package_issued = Suffix::NONE;
 
   // default package command triggered by "-k on"
 
@@ -886,27 +886,30 @@ void LAMMPS::post_create()
     }
   }
 
-  // suffix will always be set if suffix_enable = 1
+  // either suffix or suffixp will be set if suffix_enable = 1
   // check that KOKKOS package classes were instantiated
   // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
+  // do not re-issue package command if already issued
 
   if (suffix_enable) {
+    const char *mysuffix = suffix;
+    if (suffixp) mysuffix = suffixp;
 
-    if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
+    if (strcmp(mysuffix,"gpu") == 0 && !modify->check_package("GPU"))
       error->all(FLERR,"Using suffix gpu without GPU package installed");
-    if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
+    if (strcmp(mysuffix,"intel") == 0 && !modify->check_package("INTEL"))
       error->all(FLERR,"Using suffix intel without INTEL package installed");
-    if (strcmp(suffix,"kk") == 0 &&
+    if (strcmp(mysuffix,"kk") == 0 &&
         (kokkos == nullptr || kokkos->kokkos_exists == 0))
       error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
-    if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
+    if (strcmp(mysuffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
-    if (strcmp(suffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
+    if (strcmp(mysuffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
       input->one("package gpu 0");
-    if (strcmp(suffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
+    if (strcmp(mysuffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
       input->one("package intel 1");
-    if (strcmp(suffix,"omp") == 0 && !(package_issued & Suffix::OMP))
+    if (strcmp(mysuffix,"omp") == 0 && !(package_issued & Suffix::OMP))
       input->one("package omp 0");
 
     if (suffix2) {
@@ -1216,7 +1219,6 @@ void _noopt LAMMPS::help()
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
-
 
   print_config(fp);
   fprintf(fp,"List of individual style options included in this LAMMPS executable\n\n");

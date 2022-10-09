@@ -47,7 +47,6 @@ AtomVecDipoleKokkos::AtomVecDipoleKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
   commKK = (CommKokkos *) comm;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -976,13 +975,14 @@ void AtomVecDipoleKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecDipoleKokkos::data_atom(double *coord, imageint imagetmp,
-                                    const std::vector<std::string> &values)
+                                    const std::vector<std::string> &values, std::string &extract)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
   h_tag[nlocal] = utils::inumeric(FLERR,values[0],true,lmp);
   h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
+  extract = values[1];
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 

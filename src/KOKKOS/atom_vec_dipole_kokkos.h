@@ -13,9 +13,9 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(charge/kk,AtomVecDipoleKokkos);
-AtomStyle(charge/kk/device,AtomVecDipoleKokkos);
-AtomStyle(charge/kk/host,AtomVecDipoleKokkos);
+AtomStyle(dipole/kk,AtomVecDipoleKokkos);
+AtomStyle(dipole/kk/device,AtomVecDipoleKokkos);
+AtomStyle(dipole/kk/host,AtomVecDipoleKokkos);
 // clang-format on
 #else
 
@@ -46,7 +46,7 @@ class AtomVecDipoleKokkos : public AtomVecKokkos {
   int pack_restart(int, double *) override;
   int unpack_restart(double *) override;
   void create_atom(int, double *) override;
-  void data_atom(double *, imageint, const std::vector<std::string> &) override;
+  void data_atom(double *, imageint, const std::vector<std::string> &, std::string &) override;
   int data_atom_hybrid(int , const std::vector<std::string> &, int) override;
   void pack_data(double **) override;
   int pack_data_hybrid(int, double *) override;

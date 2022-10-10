@@ -63,6 +63,7 @@ void NPairCopyKokkos<DeviceType>::copy_to_kokkos(NeighList *list)
   list_kk->d_ilist = listcopy_kk->d_ilist;
   list_kk->d_numneigh = listcopy_kk->d_numneigh;
   list_kk->d_neighbors = listcopy_kk->d_neighbors;
+  list_kk->maxneighs = listcopy_kk->maxneighs;
 }
 
 /* ---------------------------------------------------------------------- */

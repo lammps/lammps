@@ -1726,11 +1726,10 @@ void Input::pair_coeff()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
-  if (force->pair == nullptr)
-    error->all(FLERR,"Pair_coeff command before pair_style is defined");
-  if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
-                                             || (strcmp(arg[1],"*") != 0))))
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (force->pair == nullptr) error->all(FLERR,"Pair_coeff command without a pair style");
+  if (narg < 2) utils::missing_cmd_args(FLERR,"pair_coeff", error);
+  if (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0)))
+    error->all(FLERR,"Pair_coeff must start with * * for this pair style");
 
   char *newarg0 = utils::expand_type(FLERR, arg[0], Atom::ATOM, lmp);
   if (newarg0) arg[0] = newarg0;
@@ -1740,9 +1739,9 @@ void Input::pair_coeff()
   // if arg[1] < arg[0], and neither contain a wildcard, reorder
 
   int itype,jtype;
-  if (strchr(arg[0],'*') == nullptr && strchr(arg[1],'*') == nullptr) {
-    itype = utils::numeric(FLERR,arg[0],false,lmp);
-    jtype = utils::numeric(FLERR,arg[1],false,lmp);
+  if (utils::strmatch(arg[0],"^\\d+$") && utils::strmatch(arg[1],"^\\d+$")) {
+    itype = utils::inumeric(FLERR,arg[0],false,lmp);
+    jtype = utils::inumeric(FLERR,arg[1],false,lmp);
     if (jtype < itype) {
       char *str = arg[0];
       arg[0] = arg[1];

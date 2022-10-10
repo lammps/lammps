@@ -1740,9 +1740,9 @@ void Input::pair_coeff()
   // if arg[1] < arg[0], and neither contain a wildcard, reorder
 
   int itype,jtype;
-  if (strchr(arg[0],'*') == nullptr && strchr(arg[1],'*') == nullptr) {
-    itype = utils::numeric(FLERR,arg[0],false,lmp);
-    jtype = utils::numeric(FLERR,arg[1],false,lmp);
+  if (utils::strmatch(arg[0],"^\\d+$") && utils::strmatch(arg[1],"^\\d+$")) {
+    itype = utils::inumeric(FLERR,arg[0],false,lmp);
+    jtype = utils::inumeric(FLERR,arg[1],false,lmp);
     if (jtype < itype) {
       char *str = arg[0];
       arg[0] = arg[1];

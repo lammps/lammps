@@ -115,7 +115,7 @@ void ElectrodeVector::compute_vector(double *vector)
 
 void ElectrodeVector::pair_contribution(double *vector)
 {
-  double const etaij = eta * eta / sqrt(2.0 * eta * eta);
+  double const etaij = eta * MY_ISQRT2;
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;

@@ -72,16 +72,14 @@ coming from its area and surface charge density.
 
 For non-interface particles such as atoms and charged particles,
 the interface normal vectors, element area, and dielectric mismatch are
-irrelevant. Their local dielectric value is used to rescale their given charge
-when computing the Coulombic interactions. For instance, to simulate a cation 
+irrelevant and unused. Their local dielectric value is used internally to rescale their given 
+charge when computing the Coulombic interactions. For instance, to simulate a cation 
 carrying a charge of +2 (in simulation charge units) in an implicit solvent with 
-a dielectric constant of 40, the cation's charge should be set to +2/40 = +0.05 and 
-its local dielectric constant property (defined in the 
-:doc:`atom_style dielectric <atom_style>`) should be set to 40. This will produce 
+a dielectric constant of 40, the cation's charge should be set to +2 and 
+its local dielectric constant property (defined in the :doc:`atom_style dielectric <atom_style>`) 
+should be set to 40; there is no need to manually rescale charge. This will produce 
 the proper force for any :doc:`pair_style <pair_style>` with the dielectric suffix. 
-As noted in :doc:`pair_style <pair_dielectric>`, the charge (+0.05) will be scaled by the 
-local dielectric constant (40) to produce the appropriate charge (+2) during 
-force computation. It is assumed that the particles cannot pass through the interface 
+It is assumed that the particles cannot pass through the interface 
 during the simulation because the value of the local dielectric constant property 
 does not change.
 
@@ -165,6 +163,8 @@ If the argumnts of the *rand* keyword are set, then the atoms subject to this fi
 The *mr* keyword only applies to *style* = *polarize/bem/gmres*. It is the maximum number of q-vectors to use when solving for the surface charge.
 
 The *omega* keyword only applies when using *style* = *polarize/bem/icc*. It is a relaxation parameter defined in :ref:`(Tyagi) <Tyagi>` that should generally be set between 0 and 2.
+
+Note that the local dielectric constant (epsilon) can also be set independently using the :doc:`set <set>` command. 
 
 ----------
 

@@ -91,7 +91,7 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *dielectric* | normx normy normz area_per_patch ed em epsilon curv | system with surface polarization     |
+| *dielectric* | normx normy normz area/patch ed em epsilon curv | system with surface polarization     |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -184,7 +184,7 @@ particle (e.g. an ion), or an interface particle representing a boundary
 element between two regions of different dielectric constant. For
 interface particles, in addition to the properties associated with
 atom_style full, each particle also should be assigned a normal unit vector
-(defined by normx, normy, normz), an area (area_per_patch), the difference and
+(defined by normx, normy, normz), an area (area/patch), the difference and
 mean of the dielectric constants of two sides of the interface along the
 direction of the normal vector (ed and em), the local dielectric constant at the
 boundary element (epsilon), and a mean local curvature (curv).

@@ -1726,11 +1726,10 @@ void Input::pair_coeff()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
-  if (force->pair == nullptr)
-    error->all(FLERR,"Pair_coeff command before pair_style is defined");
-  if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
-                                             || (strcmp(arg[1],"*") != 0))))
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (force->pair == nullptr) error->all(FLERR,"Pair_coeff command without a pair style");
+  if (narg < 2) utils::missing_cmd_args(FLERR,"pair_coeff", error);
+  if (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0)))
+    error->all(FLERR,"Pair_coeff must start with * * for this pair style");
 
   char *newarg0 = utils::expand_type(FLERR, arg[0], Atom::ATOM, lmp);
   if (newarg0) arg[0] = newarg0;

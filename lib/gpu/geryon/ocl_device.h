@@ -126,10 +126,13 @@ class UCL_Device {
   /// Return the number of devices that support OpenCL
   inline int num_devices() { return _num_devices; }
 
-  /// Specify whether profiling (device timers) will be used for the device (yes=true)
+  /// Specify whether profiling (device timers) will be used (yes=true)
   /** No-op for CUDA and HIP **/
-  inline void configure_profiling(const bool profiling_on)
-    { _cq_profiling = profiling_on; }
+  inline void configure_profiling(const bool profiling_on) {
+    #ifndef GERYON_NO_OCL_MARKERS
+    _cq_profiling = profiling_on;
+    #endif
+  }
 
   /// Set the OpenCL device to the specified device number
   /** A context and default command queue will be created for the device *
@@ -176,8 +179,8 @@ class UCL_Device {
 
 #ifdef CL_VERSION_2_0
     if (_cq_profiling) {
-      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE,
-                                     0};
+      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES,
+                                     CL_QUEUE_PROFILING_ENABLE, 0};
       _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
                                                     &errorv);
     } else {
@@ -187,8 +190,8 @@ class UCL_Device {
     }
 #else
     if (_cq_profiling)
-      _cq.back()=clCreateCommandQueue(_context, _cl_device, CL_QUEUE_PROFILING_ENABLE,
-                                      &errorv);
+      _cq.back()=clCreateCommandQueue(_context, _cl_device,
+                                      CL_QUEUE_PROFILING_ENABLE, &errorv);
     else
       _cq.back()=clCreateCommandQueue(_context, _cl_device, 0, &errorv);
 #endif
@@ -403,7 +406,11 @@ class UCL_Device {
 // Grabs the properties for all devices
 UCL_Device::UCL_Device() {
   _device=-1;
+  #ifndef GERYON_NO_OCL_MARKERS
   _cq_profiling=true;
+  #else
+  _cq_profiling=false;
+  #endif
 
   // --- Get Number of Platforms
   cl_uint nplatforms;
@@ -482,6 +489,7 @@ int UCL_Device::set_platform(int pid) {
   _num_devices = 0;
   for (int i=0; i<num_unpart; i++) {
     cl_uint num_subdevices = 1;
+    cl_device_id *subdevice_list = device_list + i;
 
     #ifdef CL_VERSION_1_2
     cl_device_affinity_domain adomain;
@@ -494,25 +502,29 @@ int UCL_Device::set_platform(int pid) {
     props[0]=CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN;
     props[1]=CL_DEVICE_AFFINITY_DOMAIN_NUMA;
     props[2]=0;
+
+    cl_int err = CL_SUCCESS;
     if (adomain & CL_DEVICE_AFFINITY_DOMAIN_NUMA)
-      CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, 0, NULL,
-                                      &num_subdevices));
-    if (num_subdevices > 1) {
-      cl_device_id *subdevice_list = new cl_device_id[num_subdevices];
-      CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, num_subdevices,
-                                      subdevice_list, &num_subdevices));
-      for (cl_uint j=0; j<num_subdevices; j++) {
-        _cl_devices.push_back(device_list[i]);
-        add_properties(device_list[i]);
-        _num_devices++;
+      err = clCreateSubDevices(device_list[i], props, 0, NULL,
+                               &num_subdevices);
+    if (err == CL_SUCCESS && num_subdevices > 1) {
+      subdevice_list = new cl_device_id[num_subdevices];
+      err = clCreateSubDevices(device_list[i], props, num_subdevices,
+                               subdevice_list, &num_subdevices);
+      if (err != CL_SUCCESS) {
+        delete[] subdevice_list;
+        num_subdevices = 1;
+        subdevice_list = device_list + i;
       }
-      delete[] subdevice_list;
-    } else {
-      _cl_devices.push_back(device_list[i]);
-      add_properties(device_list[i]);
-      _num_devices++;
     }
     #endif
+
+    for (cl_uint j=0; j<num_subdevices; j++) {
+      _num_devices++;
+      _cl_devices.push_back(subdevice_list[j]);
+      add_properties(subdevice_list[j]);
+    }
+    if (num_subdevices > 1) delete[] subdevice_list;
   } // for i
   #endif
 
@@ -686,10 +698,10 @@ void UCL_Device::add_properties(cl_device_id device_list) {
     double arch = static_cast<double>(minor)/10+major;
     if (arch >= 3.0)
       op.has_shuffle_support=true;
-    op.shared_main_memory=_shared_mem_device(device_list);
   }
   delete[] buffer2;
   #endif
+  op.shared_main_memory=_shared_mem_device(device_list);
 
   _properties.push_back(op);
 }

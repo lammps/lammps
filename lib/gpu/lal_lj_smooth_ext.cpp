@@ -80,7 +80,7 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                          cell_size, gpu_split, screen, host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3,
                          host_ljsw4, cut_inner, cut_inner_sq);
 
-    LJSMTMF.device->gpu_barrier();
+    LJSMTMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -110,7 +110,7 @@ void ljsmt_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       LJSMTMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4, offset, host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
-    LJSMTMF.device->gpu_barrier();
+    LJSMTMF.device->serialize_init();
   }
 }
 

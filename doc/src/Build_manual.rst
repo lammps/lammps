@@ -216,7 +216,7 @@ be multiple tests run automatically:
 - A test that only standard, printable ASCII text characters are used.
   This runs the command ``env LC_ALL=C grep -n '[^ -~]' src/*.rst`` and
   thus prints all offending lines with filename and line number
-  prepended to the screen.  Special characters like greek letters
+  prepended to the screen.  Special characters like Greek letters
   (:math:`\alpha~~\sigma~~\epsilon`), super- or subscripts
   (:math:`x^2~~\mathrm{U}_{LJ}`), mathematical expressions
   (:math:`\frac{1}{2}\mathrm{N}~~x\to\infty`), or the Angstrom symbol

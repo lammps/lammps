@@ -16,7 +16,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID style nevery tolerance 
+   fix ID group-ID style nevery tolerance
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *polarize/bem/gmres* or *polarize/bem/icc* or *polarize/functional*
@@ -72,15 +72,15 @@ coming from its area and surface charge density.
 
 For non-interface particles such as atoms and charged particles,
 the interface normal vectors, element area, and dielectric mismatch are
-irrelevant and unused. Their local dielectric value is used internally to rescale their given 
-charge when computing the Coulombic interactions. For instance, to simulate a cation 
-carrying a charge of +2 (in simulation charge units) in an implicit solvent with 
-a dielectric constant of 40, the cation's charge should be set to +2 and 
-its local dielectric constant property (defined in the :doc:`atom_style dielectric <atom_style>`) 
-should be set to 40; there is no need to manually rescale charge. This will produce 
-the proper force for any :doc:`pair_style <pair_style>` with the dielectric suffix. 
-It is assumed that the particles cannot pass through the interface 
-during the simulation because the value of the local dielectric constant property 
+irrelevant and unused. Their local dielectric value is used internally to rescale their given
+charge when computing the Coulombic interactions. For instance, to simulate a cation
+carrying a charge of +2 (in simulation charge units) in an implicit solvent with
+a dielectric constant of 40, the cation's charge should be set to +2 and
+its local dielectric constant property (defined in the :doc:`atom_style dielectric <atom_style>`)
+should be set to 40; there is no need to manually rescale charge. This will produce
+the proper force for any :doc:`pair_style <pair_style>` with the dielectric suffix.
+It is assumed that the particles cannot pass through the interface
+during the simulation because the value of the local dielectric constant property
 does not change.
 
 There are some example scripts for using these fixes
@@ -131,7 +131,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` command provides the ability to modify certain 
+The :doc:`fix_modify <fix_modify>` command provides the ability to modify certain
 settings:
 
   .. parsed-literal::
@@ -148,7 +148,7 @@ settings:
          max = range of random induced charges to be generated
          seed = random number seed to use when generating random charge
       *mr* arg
-         arg = maximum number of q-vectors to use when solving (GMRES only) 
+         arg = maximum number of q-vectors to use when solving (GMRES only)
       *omega* arg
          arg = relaxation parameter to use when iterating (ICC only)
 
@@ -164,7 +164,7 @@ The *mr* keyword only applies to *style* = *polarize/bem/gmres*. It is the maxim
 
 The *omega* keyword only applies when using *style* = *polarize/bem/icc*. It is a relaxation parameter defined in :ref:`(Tyagi) <Tyagi>` that should generally be set between 0 and 2.
 
-Note that the local dielectric constant (epsilon) can also be set independently using the :doc:`set <set>` command. 
+Note that the local dielectric constant (epsilon) can also be set independently using the :doc:`set <set>` command.
 
 ----------
 

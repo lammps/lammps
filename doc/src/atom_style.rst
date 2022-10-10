@@ -181,19 +181,19 @@ with its orientation.
 
 For the *dielectric* style, each particle can be either a physical
 particle (e.g. an ion), or an interface particle representing a boundary
-element between two regions of different dielectric constant. For 
+element between two regions of different dielectric constant. For
 interface particles, in addition to the properties associated with
-atom_style full, each particle also should be assigned a normal unit vector 
-(defined by normx, normy, normz), an area (area_per_patch), the difference and 
-mean of the dielectric constants of two sides of the interface along the 
+atom_style full, each particle also should be assigned a normal unit vector
+(defined by normx, normy, normz), an area (area_per_patch), the difference and
+mean of the dielectric constants of two sides of the interface along the
 direction of the normal vector (ed and em), the local dielectric constant at the
-boundary element (epsilon), and a mean local curvature (curv). 
-Physical particles must be assigned these values, as well, 
-but only their local dielectric constants will be used; see documentation for 
+boundary element (epsilon), and a mean local curvature (curv).
+Physical particles must be assigned these values, as well,
+but only their local dielectric constants will be used; see documentation for
 associated :doc:`pair styles <pair_dielectric>` and :doc:`fixes <fix_polarize>`.
 The distinction between the physical and interface
 particles is only meaningful when :doc:`fix polarize <fix_polarize>`
-commands are applied to the interface particles. This style is part of the 
+commands are applied to the interface particles. This style is part of the
 DIELECTRIC package.
 
 For the *dipole* style, a point dipole is defined for each point

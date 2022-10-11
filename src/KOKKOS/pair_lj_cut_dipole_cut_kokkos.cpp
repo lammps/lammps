@@ -119,6 +119,8 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   qqrd2e = force->qqrd2e;
   newton_pair = force->newton_pair;
 
+  // get the neighbor list and neighbors used in operator()
+
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -229,9 +231,6 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
   const F_FLOAT qtmp = q[i];
-
-  //const AtomNeighborsConst neighbors_i = list->get_neighbors_const(i);
-  //const int jnum = list->d_numneigh[i];
 
   const int jnum = d_numneigh[i];
 

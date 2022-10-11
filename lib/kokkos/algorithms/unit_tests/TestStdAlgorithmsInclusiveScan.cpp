@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_Numeric.hpp>
 #include <utility>
 
 namespace Test {
@@ -78,10 +76,16 @@ struct UnifDist<int> {
   int operator()() { return m_dist(m_gen); }
 };
 
-template <class ViewType>
-void fill_zero(ViewType view) {
-  Kokkos::parallel_for(view.extent(0), FillZeroFunctor<ViewType>(view));
-}
+template <>
+struct UnifDist<CustomValueType> {
+  using dist_type = std::uniform_real_distribution<double>;
+  std::mt19937 m_gen;
+  dist_type m_dist;
+
+  UnifDist() : m_dist(0.05, 1.2) { m_gen.seed(1034343); }
+
+  CustomValueType operator()() { return m_dist(m_gen); }
+};
 
 template <class ViewType>
 void fill_view(ViewType dest_view, const std::string& name) {
@@ -195,15 +199,17 @@ void verify_data(ViewType1 data_view,  // contains data
       //           << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
 
       if (std::is_same<gold_view_value_type, int>::value) {
-        EXPECT_TRUE(gold_h(i) == test_view_h(i));
+        EXPECT_EQ(gold_h(i), test_view_h(i));
       } else {
-        const auto error = std::abs(gold_h(i) - test_view_h(i));
+        const auto error =
+            std::abs(static_cast<double>(gold_h(i) - test_view_h(i)));
         if (error > 1e-10) {
           std::cout << i << " " << std::setprecision(15) << data_view_h(i)
                     << " " << gold_h(i) << " " << test_view_h(i) << " "
-                    << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
+                    << std::abs(static_cast<double>(gold_h(i) - test_view_h(i)))
+                    << std::endl;
         }
-        EXPECT_TRUE(error < 1e-10);
+        EXPECT_LT(error, 1e-10);
       }
     }
     // std::cout << " last el: " << test_view_h(ext-1) << std::endl;
@@ -216,24 +222,12 @@ struct MultiplyFunctor {
   ValueType operator()(const ValueType& a, const ValueType& b) const {
     return (a * b);
   }
-
-  KOKKOS_INLINE_FUNCTION
-  ValueType operator()(const volatile ValueType& a,
-                       const volatile ValueType& b) const {
-    return (a * b);
-  }
 };
 
 template <class ValueType>
 struct SumFunctor {
   KOKKOS_INLINE_FUNCTION
   ValueType operator()(const ValueType& a, const ValueType& b) const {
-    return (a + b);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  ValueType operator()(const volatile ValueType& a,
-                       const volatile ValueType& b) const {
     return (a + b);
   }
 };
@@ -258,7 +252,7 @@ void run_single_scenario_default_op(const InfoType& scenario_info) {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan(exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest));
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
@@ -266,21 +260,21 @@ void run_single_scenario_default_op(const InfoType& scenario_info) {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan("label", exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest));
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan(exespace(), view_from, view_dest);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan("label", exespace(), view_from, view_dest);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
@@ -313,7 +307,7 @@ void run_single_scenario_custom_op(const InfoType& scenario_info, BinaryOp bop,
     auto r = KE::inclusive_scan(exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest), bop,
                                 args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
@@ -322,14 +316,14 @@ void run_single_scenario_custom_op(const InfoType& scenario_info, BinaryOp bop,
     auto r = KE::inclusive_scan("label", exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest), bop,
                                 args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan(exespace(), view_from, view_dest, bop, args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
@@ -337,7 +331,7 @@ void run_single_scenario_custom_op(const InfoType& scenario_info, BinaryOp bop,
     fill_zero(view_dest);
     auto r = KE::inclusive_scan("label", exespace(), view_from, view_dest, bop,
                                 args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
@@ -354,7 +348,7 @@ void run_inclusive_scan_all_scenarios() {
   for (const auto& it : scenarios) {
     run_single_scenario_default_op<Tag, ValueType>(it);
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
     // the sum custom op is always run
     using sum_binary_op = SumFunctor<ValueType>;
     sum_binary_op sbop;
@@ -383,6 +377,8 @@ TEST(std_algorithms_numeric_ops_test, inclusive_scan) {
   run_inclusive_scan_all_scenarios<StridedThreeTag, double>();
   run_inclusive_scan_all_scenarios<DynamicTag, int>();
   run_inclusive_scan_all_scenarios<StridedThreeTag, int>();
+  run_inclusive_scan_all_scenarios<DynamicTag, CustomValueType>();
+  run_inclusive_scan_all_scenarios<StridedThreeTag, CustomValueType>();
 }
 
 }  // namespace IncScan

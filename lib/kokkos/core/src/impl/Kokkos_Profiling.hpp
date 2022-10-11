@@ -56,6 +56,7 @@
 namespace Kokkos {
 
 // forward declaration
+bool show_warnings() noexcept;
 bool tune_internals() noexcept;
 
 namespace Tools {
@@ -66,10 +67,9 @@ struct InitArguments {
   // for this long-term
   static const std::string unset_string_option;
   enum PossiblyUnsetOption { unset, off, on };
-  PossiblyUnsetOption tune_internals = unset;
-  PossiblyUnsetOption help           = unset;
-  std::string lib                    = unset_string_option;
-  std::string args                   = unset_string_option;
+  PossiblyUnsetOption help = unset;
+  std::string lib          = unset_string_option;
+  std::string args         = unset_string_option;
 };
 
 namespace Impl {

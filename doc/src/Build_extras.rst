@@ -483,6 +483,9 @@ They must be specified in uppercase.
    *  - **Arch-ID**
       - **HOST or GPU**
       - **Description**
+   *  - NATIVE
+      - HOST
+      - Local machine
    *  - AMDAVX
       - HOST
       - AMD 64-bit x86 CPU (AVX 1)
@@ -522,9 +525,21 @@ They must be specified in uppercase.
    *  - BDW
       - HOST
       - Intel Broadwell Xeon E-class CPU (AVX 2 + transactional mem)
+   *  - SKL
+      - HOST
+      - Intel Skylake Client CPU
    *  - SKX
       - HOST
-      - Intel Sky Lake Xeon E-class HPC CPU (AVX512 + transactional mem)
+      - Intel Skylake Xeon Server CPU (AVX512)
+   *  - ICL
+      - HOST
+      - Intel Ice Lake Client CPU (AVX512)
+   *  - ICX
+      - HOST
+      - Intel Ice Lake Xeon Server CPU (AVX512)
+   *  - SPR
+      - HOST
+      - Intel Sapphire Rapids Xeon Server CPU (AVX512)
    *  - KNC
       - HOST
       - Intel Knights Corner Xeon Phi
@@ -596,7 +611,10 @@ They must be specified in uppercase.
       - AMD GPU MI100 GFX908
    *  - VEGA90A
       - GPU
-      - AMD GPU
+      - AMD GPU MI200 GFX90A
+   *  - INTEL_GEN
+      - GPU
+      - SPIR64-based devices, e.g. Intel GPUs, using JIT
    *  - INTEL_DG1
       - GPU
       - Intel Iris XeMAX GPU
@@ -611,9 +629,12 @@ They must be specified in uppercase.
       - Intel GPU Gen12LP
    *  - INTEL_XEHP
       - GPU
-      - Intel GPUs Xe-HP
+      - Intel GPU Xe-HP
+   *  - INTEL_PVC
+      - GPU
+      - Intel GPU Ponte Vecchio
 
-This list was last updated for version 3.5.0 of the Kokkos library.
+This list was last updated for version 3.7.0 of the Kokkos library.
 
 .. tabs::
 

@@ -51,6 +51,8 @@ namespace Kokkos {
 
 namespace Impl {
 
+void hostspace_fence(const DefaultHostExecutionSpace& exec);
+
 void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n);
 // DeepCopy called with an execution space that can't access HostSpace
 void hostspace_parallel_deepcopy_async(void* dst, const void* src, ptrdiff_t n);

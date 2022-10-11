@@ -1426,7 +1426,7 @@ void EwaldDisp::compute_slabcorr()
 
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;

@@ -2915,7 +2915,7 @@ void PPPM::slabcorr()
 
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
@@ -3431,7 +3431,7 @@ void PPPM::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
 
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

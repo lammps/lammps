@@ -498,7 +498,7 @@ void PPPMDispTIP4P::slabcorr(int /*eflag*/)
 
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
   int *type = atom->type;
   double *xi, xM[3]; int iH1, iH2;  //for TIP4P virtual site

@@ -595,7 +595,7 @@ void PPPMCG::slabcorr()
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
-  const double zprd = domain->zprd;
+  const double zprd_slab = domain->zprd*slab_volfactor;
   double dipole = 0.0;
 
 

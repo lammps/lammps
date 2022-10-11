@@ -754,7 +754,7 @@ void PPPMDispDielectric::slabcorr(int /*eflag*/)
   double *q = atom->q;
   double **x = atom->x;
   double *eps = atom->epsilon;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;

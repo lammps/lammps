@@ -2760,7 +2760,7 @@ void PPPMKokkos<DeviceType>::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  zprd = domain->zprd;
+  zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atomKK->nlocal;
 
   double dipole = 0.0;

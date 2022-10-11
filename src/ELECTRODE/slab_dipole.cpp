@@ -43,7 +43,7 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
   // compute local contribution to global dipole moment
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) dipole += q[i] * x[i][2];

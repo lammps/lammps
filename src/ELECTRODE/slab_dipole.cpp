@@ -37,8 +37,8 @@ using namespace MathConst;
 */
 SlabDipole::SlabDipole(LAMMPS *lmp) : BoundaryCorrection(lmp){};
 
-void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, double &energy,
-                              double *eatom)
+void SlabDipole::compute_corr(double qsum, double slab_volfactor, int eflag_atom,
+                              int eflag_global, double &energy, double *eatom)
 {
   // compute local contribution to global dipole moment
   double *q = atom->q;

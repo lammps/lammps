@@ -108,13 +108,6 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  newton_pair = force->newton_pair;
-
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
-  d_numneigh = k_list->d_numneigh;
-  d_neighbors = k_list->d_neighbors;
-  d_ilist = k_list->d_ilist;
-
   special_lj[0] = force->special_lj[0];
   special_lj[1] = force->special_lj[1];
   special_lj[2] = force->special_lj[2];
@@ -124,16 +117,21 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   special_coul[2] = force->special_coul[2];
   special_coul[3] = force->special_coul[3];
   qqrd2e = force->qqrd2e;
+  newton_pair = force->newton_pair;
 
+  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  d_numneigh = k_list->d_numneigh;
+  d_neighbors = k_list->d_neighbors;
+  d_ilist = k_list->d_ilist;
   int inum = list->inum;
-
-  copymode = 1;
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
   EV_FLOAT ev;
 
- // compute kernel
+  // compute kernel
 
   if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (evflag) {

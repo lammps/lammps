@@ -77,12 +77,14 @@ class FixDeform : public Fix {
     int fixed, dynamic1, dynamic2;
     char *hstr, *hratestr, *pstr;
     int hvar, hratevar;
-    int pvar;
+    int pvar, pvar_flag;
     int coupled_flag;
   };
   Set *set;
 
   void options(int, char **);
+  void set_strain();
+  void set_pressure();
   void set_volume();
   void couple();
 };

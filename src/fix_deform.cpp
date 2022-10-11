@@ -17,14 +17,14 @@
 ------------------------------------------------------------------------- */
 
 // Save previous state to restart file for derivatives
-// define hrate_lo/hi for volume
-// add modify command
-// add pressure code
+// define hrate_lo/hi for volume/pressure
+// add logic for hi_stop and flip flag
 
 #include "fix_deform.h"
 
 #include "atom.h"
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -84,36 +84,36 @@ irregular(nullptr), set(nullptr)
       else if (strcmp(arg[iarg],"y") == 0) index = 1;
       else if (strcmp(arg[iarg],"z") == 0) index = 2;
 
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix deform", error);
       if (strcmp(arg[iarg+1],"final") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform final", error);
         set[index].style = FINAL;
         set[index].flo = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         set[index].fhi = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform delta", error);
         set[index].style = DELTA;
         set[index].dlo = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         set[index].dhi = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"scale") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform scale", error);
         set[index].style = SCALE;
         set[index].scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"vel") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform vel", error);
         set[index].style = VEL;
         set[index].vel = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"erate") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform erate", error);
         set[index].style = ERATE;
         set[index].rate = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"trate") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform trate", error);
         set[index].style = TRATE;
         set[index].rate = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
@@ -121,54 +121,52 @@ irregular(nullptr), set(nullptr)
         set[index].style = VOLUME;
         iarg += 2;
       } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform wiggle", error);
         set[index].style = WIGGLE;
         set[index].amplitude = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         set[index].tperiod = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         if (set[index].tperiod <= 0.0)
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform wiggle period, must be positive");
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"variable") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform variable", error);
         set[index].style = VARIABLE;
         if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform variable name {}", arg[iarg+2]);
         if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform variable name {}", arg[iarg+3]);
         delete[] set[index].hstr;
         delete[] set[index].hratestr;
         set[index].hstr = utils::strdup(&arg[iarg+2][2]);
         set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"pressure") == 0) {
-        if (iarg+4 > narg) error->all(FLERR, "Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform pressure", error);
         set[index].style = PRESSURE;
         if (strstr(arg[iarg+2],"v_") != arg[iarg+2]) {
           set[index].ptarget = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         } else {
-          if (iarg+ > narg) error->all(FLERR,"Illegal fix deform command");
           set[index].pstr = utils::strdup(&arg[iarg+2][2]);
-          set[index].pvar = 1;
+          set[index].pvar_flag = 1;
         }
         set[index].pgain = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         if (set[index].pgain <= 0.0)
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform pressure gain, must be positive");
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"pressure/isotropic") == 0) {
-        if (iarg+4 > narg) error->all(FLERR, "Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform pressure/isotropic", error);
         set[index].style = PISOTROPIC;
         if (strstr(arg[iarg+2],"v_") != arg[iarg+2]) {
           set[index].ptarget = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         } else {
-          if (iarg+ > narg) error->all(FLERR,"Illegal fix deform command");
           set[index].pstr = utils::strdup(&arg[iarg+2][2]);
-          set[index].pvar = 1;
+          set[index].pvar_flag = 1;
         }
         set[index].pgain = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         if (set[index].pgain <= 0.0)
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform pressure gain, must be positive");
         iarg += 4;
-      } error->all(FLERR,"Illegal fix deform command");
+      } else error->all(FLERR,"Illegal fix deform command argument: {}", arg[iarg+1]);
 
     } else if (strcmp(arg[iarg],"xy") == 0 ||
                strcmp(arg[iarg],"xz") == 0 ||
@@ -180,67 +178,66 @@ irregular(nullptr), set(nullptr)
       else if (strcmp(arg[iarg],"xz") == 0) index = 4;
       else if (strcmp(arg[iarg],"yz") == 0) index = 3;
 
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix deform", error);
       if (strcmp(arg[iarg+1],"final") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform final", error);
         set[index].style = FINAL;
         set[index].ftilt = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform delta", error);
         set[index].style = DELTA;
         set[index].dtilt = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"vel") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform vel", error);
         set[index].style = VEL;
         set[index].vel = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"erate") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform erate", error);
         set[index].style = ERATE;
         set[index].rate = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"trate") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix deform trate", error);
         set[index].style = TRATE;
         set[index].rate = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"wiggle") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform wiggle", error);
         set[index].style = WIGGLE;
         set[index].amplitude = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         set[index].tperiod = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         if (set[index].tperiod <= 0.0)
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform wiggle period, must be positive");
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"variable") == 0) {
-        if (iarg+4 > narg) error->all(FLERR,"Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform variable", error);
         set[index].style = VARIABLE;
         if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform variable name {}", arg[iarg+2]);
         if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform variable name {}", arg[iarg+3]);
         delete[] set[index].hstr;
         delete[] set[index].hratestr;
         set[index].hstr = utils::strdup(&arg[iarg+2][2]);
         set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"pressure") == 0) {
-        if (iarg+4 > narg) error->all(FLERR, "Illegal fix deform command");
+        if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix deform pressure", error);
         set[index].style = PRESSURE;
         if (strstr(arg[iarg+2],"v_") != arg[iarg+2]) {
           set[index].ptarget = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         } else {
-          if (iarg+ > narg) error->all(FLERR,"Illegal fix deform command");
           set[index].pstr = utils::strdup(&arg[iarg+2][2]);
-          set[index].pvar = 1;
+          set[index].pvar_flag = 1;
         }
         set[index].pgain = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         if (set[index].pgain <= 0.0)
-          error->all(FLERR,"Illegal fix deform command");
+          error->all(FLERR,"Illegal fix deform pressure gain, must be positive");
         iarg += 4;
-      } else error->all(FLERR,"Illegal fix deform command");
+      } else error->all(FLERR,"Illegal fix deform command: {}", arg[iarg+1]);
     } else break;
   }
 
@@ -270,7 +267,7 @@ irregular(nullptr), set(nullptr)
       if (coupled_indices[i]) {
         set[i].coupled_flag = 1;
         if (set[i].style != VOLUME && set[i].style != PRESSURE && set[i].style != NONE)
-          error->all(FLERR, "Cannot couple dimensions not controlled by pressure or volume in fix deform");
+          error->all(FLERR, "Cannot couple dimensions unless they are controlled using the pressure or volume option in fix deform");
         if (set[i].style == PRESSURE || set[i].style == VOLUME)
           j = i;
       }
@@ -279,30 +276,45 @@ irregular(nullptr), set(nullptr)
     if (j == -1)
       error->all(FLERR, "Must specify pressure style for a coupled dimension in fix deform");
 
-    // Copy data to each coupled dimension
+    // Copy or compare data for each coupled dimension
     for (int i = 0; i < 3; i++) {
       if (coupled_indices[i]) {
-        if (set[j].style != set[i].style && set[i].style != NONE)
-          error->all(FLERR, "Cannot couple dimensions with different control options");
-
+        // Copy coupling information if dimension style is undefined
         if (set[j].style == PRESSURE && set[i].style == NONE) {
           set[i].style = PRESSURE;
           set[i].pgain = set[j].pgain;
-          if (set[j].pvar == 1) {
+          if (set[j].pvar_flag) {
             set[i].pstr = set[j].pstr;
-            set[i].pvar = 1;
+            set[i].pvar_flag = 1;
           } else {
             set[i].ptarget = set[j].ptarget;
           }
         } else if (set[j].style == VOLUME && set[i].style == NONE) {
           set[i].style = VOLUME;
-          set[i].saved = -1;
           if (domain->dimension == 2)
             error->all(FLERR, "Cannot couple pressure with constant volume in two dimensions");
         }
+
+        // Check for incompatibilities in style
+        if (set[j].style != set[i].style && set[i].style != NONE)
+          error->all(FLERR, "Cannot couple dimensions with different control options");
+        if (set[j].style != PRESSURE) continue;
+
+        // If pressure controlled, check for incompatibilities in parameters
+        if (set[i].pgain != set[j].pgain)
+          error->all(FLERR, "Coupled dimensions must have identical gain parameters\n");
+
+        if (set[i].pvar_flag != set[j].pvar_flag)
+          error->all(FLERR, "Coupled dimensions must have the same target pressure\n");
+        if (set[j].pvar_flag)
+          if (strcmp(set[i].pstr, set[j].pstr) != 0)
+            error->all(FLERR, "Coupled dimensions must have the same target pressure\n");
+        if (set[i].ptarget != set[j].ptarget)
+          error->all(FLERR, "Coupled dimensions must have the same target pressure\n");
+
       } else {
         if (set[i].style == VOLUME && set[j].style == VOLUME)
-          error->all(FLERR, "Dimensions used to maintain constant volume must either be all be coupled or not coupled");
+          error->all(FLERR, "Dimensions used to maintain constant volume must either all be coupled or uncoupled");
       }
     }
   }
@@ -427,6 +439,7 @@ irregular(nullptr), set(nullptr)
   }
 
   // set strain_flag
+
   strain_flag = 0;
   for (int i = 0; i < 6; i++)
     if (set[i].style != NONE && set[i].style != VOLUME &&
@@ -569,14 +582,25 @@ void FixDeform::init()
     if (set[i].style != VARIABLE) continue;
     set[i].hvar = input->variable->find(set[i].hstr);
     if (set[i].hvar < 0)
-      error->all(FLERR,"Variable name for fix deform does not exist");
+      error->all(FLERR,"Variable name {} for fix deform does not exist", set[i].hstr);
     if (!input->variable->equalstyle(set[i].hvar))
-      error->all(FLERR,"Variable for fix deform is invalid style");
+      error->all(FLERR,"Variable {} for fix deform is invalid style", set[i].hstr);
     set[i].hratevar = input->variable->find(set[i].hratestr);
     if (set[i].hratevar < 0)
-      error->all(FLERR,"Variable name for fix deform does not exist");
+      error->all(FLERR,"Variable name {} for fix deform does not exist", set[i].hratestr);
     if (!input->variable->equalstyle(set[i].hratevar))
-      error->all(FLERR,"Variable for fix deform is invalid style");
+      error->all(FLERR,"Variable {} for fix deform is invalid style", set[i].hratestr);
+  }
+
+  // check optional variables for PRESSURE or PISOTROPIC style
+
+  for (int i = 0; i < 6; i++) {
+    if (!set[i].pvar_flag) continue;
+    set[i].pvar = input->variable->find(set[i].pstr);
+    if (set[i].pvar < 0)
+      error->all(FLERR,"Variable name {} for fix deform does not exist", set[i].pstr);
+    if (!input->variable->equalstyle(set[i].pvar))
+      error->all(FLERR,"Variable {} for fix deform is invalid style", set[i].pstr);
   }
 
   // set start/stop values for box size and shape
@@ -834,11 +858,6 @@ void FixDeform::pre_exchange()
 
 void FixDeform::end_of_step()
 {
-  int i;
-
-  double delta = update->ntimestep - update->beginstep;
-  if (delta != 0.0) delta /= update->endstep - update->beginstep;
-
   // wrap variable evaluations with clear/add
 
   if (varflag) modify->clearstep_compute();
@@ -853,13 +872,13 @@ void FixDeform::end_of_step()
     temperature->compute_vector();
     pressure->compute_vector();
     for (int i = 0; i < 3; i++) {
-      if (set[i].saved == -1) {
+      if (! set[i].saved) {
         set[i].saved = 1;
-        set[i].rate = 0.0;
+        set[i].prior_rate = 0.0;
         set[i].prior_pressure = pressure->vector[i];
         if (i == 0) set[i].box_length = domain->xprd;
         else if (i == 1) set[i].box_length = domain->yprd;
-        else (i == 2) set[i].box_length = domain->zprd;
+        else set[i].box_length = domain->zprd;
       }
     }
     set_pressure();
@@ -877,61 +896,6 @@ void FixDeform::end_of_step()
     for (int i = 0; i < 3; i++) {
       set[i].prior_pressure = pressure->vector[i];
       set[i].prior_rate = ((set[i].hi_target - set[i].lo_target) / set[i].box_length - 1.0) * dt_inv;
-    }
-  }
-
-  // for triclinic, set new box shape
-  // for NONE, target is current tilt
-  // for TRATE, set target directly based on current time. also set h_rate
-  // for WIGGLE, set target directly based on current time. also set h_rate
-  // for VARIABLE, set target directly via variable eval. also set h_rate
-  // for other styles, target is linear value between start and stop values
-
-  if (triclinic) {
-    double *h = domain->h;
-
-    for (i = 3; i < 6; i++) {
-      if (set[i].style == NONE) {
-        if (i == 5) set[i].tilt_target = domain->xy;
-        else if (i == 4) set[i].tilt_target = domain->xz;
-        else if (i == 3) set[i].tilt_target = domain->yz;
-      } else if (set[i].style == TRATE) {
-        double delt = (update->ntimestep - update->beginstep) * update->dt;
-        set[i].tilt_target = set[i].tilt_start * exp(set[i].rate*delt);
-        h_rate[i] = set[i].rate * domain->h[i];
-      } else if (set[i].style == WIGGLE) {
-        double delt = (update->ntimestep - update->beginstep) * update->dt;
-        set[i].tilt_target = set[i].tilt_start +
-          set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-        h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
-          cos(TWOPI*delt/set[i].tperiod);
-      } else if (set[i].style == VARIABLE) {
-        double delta_tilt = input->variable->compute_equal(set[i].hvar);
-        set[i].tilt_target = set[i].tilt_start + delta_tilt;
-        h_rate[i] = input->variable->compute_equal(set[i].hratevar);
-      } else {
-        set[i].tilt_target = set[i].tilt_start +
-          delta*(set[i].tilt_stop - set[i].tilt_start);
-      }
-
-      // tilt_target can be large positive or large negative value
-      // add/subtract box lengths until tilt_target is closest to current value
-
-      int idenom = 0;
-      if (i == 5) idenom = 0;
-      else if (i == 4) idenom = 0;
-      else if (i == 3) idenom = 1;
-      double denom = set[idenom].hi_target - set[idenom].lo_target;
-
-      double current = h[i]/h[idenom];
-
-      while (set[i].tilt_target/denom - current > 0.0)
-        set[i].tilt_target -= denom;
-      while (set[i].tilt_target/denom - current < 0.0)
-        set[i].tilt_target += denom;
-      if (fabs(set[i].tilt_target/denom - 1.0 - current) <
-          fabs(set[i].tilt_target/denom - current))
-        set[i].tilt_target -= denom;
     }
   }
 
@@ -1006,7 +970,7 @@ void FixDeform::end_of_step()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
         domain->x2lamda(x[i],x[i]);
 
@@ -1045,7 +1009,7 @@ void FixDeform::end_of_step()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
         domain->lamda2x(x[i],x[i]);
 
@@ -1078,6 +1042,9 @@ void FixDeform::set_strain()
   // for WIGGLE, set target directly based on current time, also set h_rate
   // for VARIABLE, set target directly via variable eval, also set h_rate
   // for others except VOLUME, target is linear value between start and stop
+
+  double delta = update->ntimestep - update->beginstep;
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   for (int i = 0; i < 3; i++) {
     if (set[i].style == NONE) {
@@ -1113,6 +1080,62 @@ void FixDeform::set_strain()
         delta*(set[i].hi_stop - set[i].hi_start);
     }
   }
+
+
+  // for triclinic, set new box shape
+  // for NONE, target is current tilt
+  // for TRATE, set target directly based on current time. also set h_rate
+  // for WIGGLE, set target directly based on current time. also set h_rate
+  // for VARIABLE, set target directly via variable eval. also set h_rate
+  // for other styles, target is linear value between start and stop values
+
+  if (triclinic) {
+    double *h = domain->h;
+
+    for (int i = 3; i < 6; i++) {
+      if (set[i].style == NONE) {
+        if (i == 5) set[i].tilt_target = domain->xy;
+        else if (i == 4) set[i].tilt_target = domain->xz;
+        else if (i == 3) set[i].tilt_target = domain->yz;
+      } else if (set[i].style == TRATE) {
+        double delt = (update->ntimestep - update->beginstep) * update->dt;
+        set[i].tilt_target = set[i].tilt_start * exp(set[i].rate*delt);
+        h_rate[i] = set[i].rate * domain->h[i];
+      } else if (set[i].style == WIGGLE) {
+        double delt = (update->ntimestep - update->beginstep) * update->dt;
+        set[i].tilt_target = set[i].tilt_start +
+          set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
+          cos(TWOPI*delt/set[i].tperiod);
+      } else if (set[i].style == VARIABLE) {
+        double delta_tilt = input->variable->compute_equal(set[i].hvar);
+        set[i].tilt_target = set[i].tilt_start + delta_tilt;
+        h_rate[i] = input->variable->compute_equal(set[i].hratevar);
+      } else {
+        set[i].tilt_target = set[i].tilt_start +
+          delta*(set[i].tilt_stop - set[i].tilt_start);
+      }
+
+      // tilt_target can be large positive or large negative value
+      // add/subtract box lengths until tilt_target is closest to current value
+
+      int idenom = 0;
+      if (i == 5) idenom = 0;
+      else if (i == 4) idenom = 0;
+      else if (i == 3) idenom = 1;
+      double denom = set[idenom].hi_target - set[idenom].lo_target;
+
+      double current = h[i]/h[idenom];
+
+      while (set[i].tilt_target/denom - current > 0.0)
+        set[i].tilt_target -= denom;
+      while (set[i].tilt_target/denom - current < 0.0)
+        set[i].tilt_target += denom;
+      if (fabs(set[i].tilt_target/denom - 1.0 - current) <
+          fabs(set[i].tilt_target/denom - current))
+        set[i].tilt_target -= denom;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1121,13 +1144,59 @@ void FixDeform::set_strain()
 
 void FixDeform::set_pressure()
 {
-  for (int i = 0; i < 3; i++) {
+  // If variable pressure, calculate current target
+  for (int i = 0; i < 6; i++)
+    if (set[i].style == PRESSURE)
+      if (set[i].pvar_flag)
+        set[i].ptarget = input->variable->compute_equal(set[i].pvar);
 
+  // Find current (possibly coupled/hydrostatic) pressure for X, Y, Z
+  double *tensor = pressure->vector;
+  double scalar = pressure->scalar;
+  double p_current[3];
 
+  if (pcouple == XYZ) {
+    double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
+    p_current[0] = p_current[1] = p_current[2] = ave;
+  } else if (pcouple == XY) {
+    double ave = 0.5 * (tensor[0] + tensor[1]);
+    p_current[0] = p_current[1] = ave;
+    p_current[2] = tensor[2];
+  } else if (pcouple == YZ) {
+    double ave = 0.5 * (tensor[1] + tensor[2]);
+    p_current[1] = p_current[2] = ave;
+    p_current[0] = tensor[0];
+  } else if (pcouple == XZ) {
+    double ave = 0.5 * (tensor[0] + tensor[2]);
+    p_current[0] = p_current[2] = ave;
+    p_current[1] = tensor[1];
+  } else {
+    if (set[0].style == PRESSURE) p_current[0] = tensor[0];
+    else if (set[0].style == PISOTROPIC) p_current[0] = scalar;
+
+    if (set[1].style == PRESSURE) p_current[1] = tensor[1];
+    else if (set[1].style == PISOTROPIC) p_current[1] = scalar;
+
+    if (set[2].style == PRESSURE) p_current[2] = tensor[2];
+    else if (set[2].style == PISOTROPIC) p_current[2] = scalar;
   }
-  // must define hi+lo target
-  //
 
+  for (int i = 0; i < 3; i++) {
+    if (set[i].style != PRESSURE && set[i].style != PISOTROPIC) continue;
+    double dilation = 1.0 - update->dt * set[i].pgain * (set[i].ptarget - p_current[i]);
+    double center_start = 0.5 * (set[i].lo_start + set[i].hi_start);
+    double offset = 0.5 * set[i].box_length * dilation;
+    //printf("ptarget %g vs %g, dilation %g cs %g ofset %g box %g\n", set[i].ptarget, p_current[i], dilation, center_start, offset, set[i].box_length);
+    set[i].lo_target = center_start - offset;
+    set[i].hi_target = center_start + offset;
+  }
+
+  for (int i = 3; i < 6; i++) {
+    double shift = update->dt * set[i].pgain * (set[i].ptarget - tensor[i]);
+    if (i == 3) set[i].tilt_target = domain->xy + shift * domain->xprd;
+    else if (i == 4) set[i].tilt_target = domain->xz + shift * domain->xprd;
+    else set[i].tilt_target = domain->yz + shift * domain->yprd;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1136,6 +1205,9 @@ void FixDeform::set_pressure()
 
 void FixDeform::set_volume()
 {
+  double e1, e2;
+  int linked_pressure = 0;
+
   for (int i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;
 
@@ -1150,28 +1222,46 @@ void FixDeform::set_volume()
     } else if (set[i].substyle == ONE_FROM_TWO) {
       offset = 0.5 * (v0 /
              (set[set[i].dynamic1].hi_target - set[set[i].dynamic1].lo_target) /
-             (set[set[i].dynamic2].hi_target - set[set[i].dynamic2].lo_target))
+             (set[set[i].dynamic2].hi_target - set[set[i].dynamic2].lo_target));
     } else if (set[i].substyle == TWO_FROM_ONE) {
       if (!set[i].coupled_flag) {
         offset = 0.5 * sqrt(v0 * (set[i].hi_start - set[i].lo_start) /
                    (set[set[i].dynamic1].hi_target - set[set[i].dynamic1].lo_target) /
-                   (set[set[i].fixed].hi_start - set[set[i].fixed].lo_start))
+                   (set[set[i].fixed].hi_start - set[set[i].fixed].lo_start));
       } else {
+        double dt = update->dt;
+        double e1i = set[i].prior_rate;
+        double e2i = set[set[i].fixed].prior_rate;
+        double L3 = (set[set[i].dynamic1].hi_target - set[set[i].dynamic1].lo_target);
+        double e3 = (L3 / set[set[i].dynamic1].box_length - 1.0) / dt;
         double p1 = pressure->vector[i];
         double p2 = pressure->vector[set[i].fixed];
         double p1i = set[i].prior_pressure;
         double p2i = set[set[i].fixed].prior_pressure;
-        double e1i = set[i].prior_rate;
-        double e2i = set[set[i].fixed].prior_rate;
-        double L3 = (set[set[i].dynamic1].hi_target - set[set[i].dynamic1].lo_target);
-        double dt = update->dt;
 
-        double e3 = (L3 / set[set[i].dynamic1].box_length - 1.0) / dt;
-        double e1 = -e3 * dt / (1 + e3 * dt) * (p2 - p2i) - e2i * (p1 - p2);
-        e1 /= (p2 - p2i + (p1 - p1i) / e1p * e2p);
-        double e2 = (1.0 - (1 + e3 * dt) * (1 + e1 * dt));
-        e2 /= (1 + e3 * dt) * (1 + e1 * dt) * dt;
-        offset = 0.5 * set[i].box_length * (1.0 - e3 * dt);
+        if (e3 == 0) {
+          e1 = 0.0;
+          e2 = 0.0;
+          offset = 0.5 * set[i].box_length;
+        } else if (e1i == 0 || e2i == 0 || (p2 == p2i && p1 == p1i)) {
+          // If no prior strain or no change in pressure (initial step) just scale offset by relative box lengths
+          offset = 0.5 * sqrt(v0 * set[i].box_length / L3 / set[set[i].fixed].box_length);
+        } else {
+          if (! linked_pressure) {
+            // Calculate first strain rate by expanding stress to linear order in strain to achieve p1(t+dt) = p2(t+dt)
+            e1 = -e3 / (1 + e3 * dt) * (p2 - p2i) - e2i * (p1 - p2);
+            e1 /= (p2 - p2i + (p1 - p1i) / e1i * e2i);
+
+            // Calculate second strain rate to preserve volume
+            e2 = (1.0 - (1 + e3 * dt) * (1 + e1 * dt));
+            e2 /= (1 + e3 * dt) * (1 + e1 * dt) * dt;
+
+            offset = 0.5 * set[i].box_length * (1.0 + e1 * dt);
+            linked_pressure = 1;
+          } else {
+            offset = 0.5 * set[i].box_length * (1.0 + e2 * dt);
+          }
+        }
       }
     }
     set[i].lo_target = center_start - offset;
@@ -1229,33 +1319,32 @@ void FixDeform::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"remap") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix deform remap", error);
       if (strcmp(arg[iarg+1],"x") == 0) remapflag = Domain::X_REMAP;
       else if (strcmp(arg[iarg+1],"v") == 0) remapflag = Domain::V_REMAP;
       else if (strcmp(arg[iarg+1],"none") == 0) remapflag = Domain::NO_REMAP;
-      else error->all(FLERR,"Illegal fix deform command");
+      else error->all(FLERR,"Illegal fix deform remap command: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix deform units", error);
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix deform command");
+      else error->all(FLERR,"Illegal fix deform units command: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"flip") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix deform flip", error);
       flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal fix fix deform command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix deform couple", error);
       if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
       else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
       else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
       else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
       else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NOCOUPLE;
-      else error->all(FLERR,"Illegal fix fix deform command");
+      else error->all(FLERR,"Illegal fix fix deform couple command: {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix deform command");
+    } else error->all(FLERR,"Illegal fix deform command: {}", arg[iarg]);
   }
 
   if (dimension == 2)
@@ -1281,7 +1370,7 @@ int FixDeform::modify_param(int narg, char **arg)
 {
   if (!pressure_flag) error->all(FLERR,"Cannot modify fix deform without a pressure control");
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify deform", error);
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;

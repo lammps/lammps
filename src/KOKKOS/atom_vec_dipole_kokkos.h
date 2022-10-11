@@ -98,8 +98,8 @@ class AtomVecDipoleKokkos : public AtomVecKokkos {
 
   DAT::t_float_1d d_q;
   HAT::t_float_1d h_q;
-  DAT::t_v_array d_mu;
-  HAT::t_v_array h_mu;
+  DAT::t_mu_array d_mu;
+  HAT::t_mu_array h_mu;
 
   DAT::tdual_int_1d k_count;
 };

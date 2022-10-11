@@ -229,7 +229,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const int itype = type[i];
+  const int itype = type(i);
   const F_FLOAT qtmp = q[i];
 
   //const AtomNeighborsConst neighbors_i = list->get_neighbors_const(i);
@@ -592,6 +592,13 @@ double PairLJCutDipoleCutKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int PairLJCutDipoleCutKokkos<DeviceType>::sbmask(const int& j) const {
+  return j >> SBBITS & 3;
+}
 
 
 namespace LAMMPS_NS {

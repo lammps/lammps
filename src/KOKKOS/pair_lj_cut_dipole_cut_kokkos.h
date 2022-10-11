@@ -67,6 +67,9 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
                          F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                          X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
 
+  KOKKOS_INLINE_FUNCTION
+  int sbmask(const int& j) const;
+
  protected:
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,
@@ -83,8 +86,8 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   typename AT::t_f_array torque;
   typename AT::t_int_1d_randomread type;
   typename AT::t_float_1d_randomread q;
-  typename AT::t_x_array_randomread mu;
-  typename AT::t_x_array c_mu;
+  typename AT::t_mu_array_randomread mu;
+  typename AT::t_mu_array c_mu;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;

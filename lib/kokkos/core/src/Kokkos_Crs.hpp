@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_CRS_HPP
 #define KOKKOS_CRS_HPP
 
@@ -213,8 +222,7 @@ class CrsRowMapFromCounts {
   KOKKOS_INLINE_FUNCTION
   void init(value_type& update) const { update = 0; }
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& update,
-            const volatile value_type& input) const {
+  void join(value_type& update, const value_type& input) const {
     update += input;
   }
   using self_type = CrsRowMapFromCounts<InCounts, OutRowMap>;

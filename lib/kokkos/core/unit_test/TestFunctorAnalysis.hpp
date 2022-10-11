@@ -61,7 +61,7 @@ struct TestFunctorAnalysis_03 {
   void operator()(int, value_type&) const {}
 
   KOKKOS_INLINE_FUNCTION
-  void join(value_type volatile&, value_type const volatile&) const {}
+  void join(value_type&, value_type const&) const {}
 
   KOKKOS_INLINE_FUNCTION static void init(value_type&) {}
 };
@@ -75,11 +75,11 @@ void test_functor_analysis() {
                                     Kokkos::RangePolicy<ExecSpace>,
                                     decltype(c01)>;
 
-  using R01 = typename A01::template Reducer<typename ExecSpace::memory_space>;
+  using R01 = typename A01::Reducer;
 
-  static_assert(std::is_same<typename A01::value_type, void>::value, "");
-  static_assert(std::is_same<typename A01::pointer_type, void>::value, "");
-  static_assert(std::is_same<typename A01::reference_type, void>::value, "");
+  static_assert(std::is_void<typename A01::value_type>::value, "");
+  static_assert(std::is_void<typename A01::pointer_type>::value, "");
+  static_assert(std::is_void<typename A01::reference_type>::value, "");
   static_assert(std::is_same<typename R01::functor_type, decltype(c01)>::value,
                 "");
 
@@ -94,7 +94,7 @@ void test_functor_analysis() {
   using A02 = Kokkos::Impl::FunctorAnalysis<
       Kokkos::Impl::FunctorPatternInterface::REDUCE,
       Kokkos::RangePolicy<ExecSpace>, decltype(c02)>;
-  using R02 = typename A02::template Reducer<typename ExecSpace::memory_space>;
+  using R02 = typename A02::Reducer;
 
   static_assert(std::is_same<typename A02::value_type, double>::value, "");
   static_assert(std::is_same<typename A02::pointer_type, double*>::value, "");
@@ -114,7 +114,7 @@ void test_functor_analysis() {
   using A03 = Kokkos::Impl::FunctorAnalysis<
       Kokkos::Impl::FunctorPatternInterface::REDUCE,
       Kokkos::RangePolicy<ExecSpace>, TestFunctorAnalysis_03>;
-  using R03 = typename A03::template Reducer<typename ExecSpace::memory_space>;
+  using R03 = typename A03::Reducer;
 
   static_assert(std::is_same<typename A03::value_type,
                              TestFunctorAnalysis_03::value_type>::value,

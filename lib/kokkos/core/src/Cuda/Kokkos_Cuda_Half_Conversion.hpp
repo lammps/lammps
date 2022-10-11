@@ -80,56 +80,38 @@ half_t cast_to_half(double val) {
 
 KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(short val) {
-#ifdef __CUDA_ARCH__
-  return half_t(__short2half_rn(val));
-#else
-  return half_t(__float2half(static_cast<float>(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return half_t(__short2half_rn(val));))
+  KOKKOS_IF_ON_HOST((return half_t(__float2half(static_cast<float>(val)));))
 }
 
 KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(unsigned short val) {
-#ifdef __CUDA_ARCH__
-  return half_t(__ushort2half_rn(val));
-#else
-  return half_t(__float2half(static_cast<float>(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return half_t(__ushort2half_rn(val));))
+  KOKKOS_IF_ON_HOST((return half_t(__float2half(static_cast<float>(val)));))
 }
 
 KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(int val) {
-#ifdef __CUDA_ARCH__
-  return half_t(__int2half_rn(val));
-#else
-  return half_t(__float2half(static_cast<float>(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return half_t(__int2half_rn(val));))
+  KOKKOS_IF_ON_HOST((return half_t(__float2half(static_cast<float>(val)));))
 }
 
 KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(unsigned int val) {
-#ifdef __CUDA_ARCH__
-  return half_t(__uint2half_rn(val));
-#else
-  return half_t(__float2half(static_cast<float>(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return half_t(__uint2half_rn(val));))
+  KOKKOS_IF_ON_HOST((return half_t(__float2half(static_cast<float>(val)));))
 }
 
 KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(long long val) {
-#ifdef __CUDA_ARCH__
-  return half_t(__ll2half_rn(val));
-#else
-  return half_t(__float2half(static_cast<float>(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return half_t(__ll2half_rn(val));))
+  KOKKOS_IF_ON_HOST((return half_t(__float2half(static_cast<float>(val)));))
 }
 
 KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(unsigned long long val) {
-#ifdef __CUDA_ARCH__
-  return half_t(__ull2half_rn(val));
-#else
-  return half_t(__float2half(static_cast<float>(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return half_t(__ull2half_rn(val));))
+  KOKKOS_IF_ON_HOST((return half_t(__float2half(static_cast<float>(val)));))
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -163,62 +145,50 @@ cast_from_half(half_t val) {
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, short>::value, T>
 cast_from_half(half_t val) {
-#ifdef __CUDA_ARCH__
-  return __half2short_rz(half_t::impl_type(val));
-#else
-  return static_cast<T>(__half2float(half_t::impl_type(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return __half2short_rz(half_t::impl_type(val));))
+  KOKKOS_IF_ON_HOST(
+      (return static_cast<T>(__half2float(half_t::impl_type(val)));))
 }
 
 template <class T>
 KOKKOS_INLINE_FUNCTION
     std::enable_if_t<std::is_same<T, unsigned short>::value, T>
     cast_from_half(half_t val) {
-#ifdef __CUDA_ARCH__
-  return __half2ushort_rz(half_t::impl_type(val));
-#else
-  return static_cast<T>(__half2float(half_t::impl_type(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return __half2ushort_rz(half_t::impl_type(val));))
+  KOKKOS_IF_ON_HOST(
+      (return static_cast<T>(__half2float(half_t::impl_type(val)));))
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, int>::value, T>
 cast_from_half(half_t val) {
-#ifdef __CUDA_ARCH__
-  return __half2int_rz(half_t::impl_type(val));
-#else
-  return static_cast<T>(__half2float(half_t::impl_type(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return __half2int_rz(half_t::impl_type(val));))
+  KOKKOS_IF_ON_HOST(
+      (return static_cast<T>(__half2float(half_t::impl_type(val)));))
 }
 
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, unsigned>::value, T>
 cast_from_half(half_t val) {
-#ifdef __CUDA_ARCH__
-  return __half2uint_rz(half_t::impl_type(val));
-#else
-  return static_cast<T>(__half2float(half_t::impl_type(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return __half2uint_rz(half_t::impl_type(val));))
+  KOKKOS_IF_ON_HOST(
+      (return static_cast<T>(__half2float(half_t::impl_type(val)));))
 }
 
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long long>::value, T>
 cast_from_half(half_t val) {
-#ifdef __CUDA_ARCH__
-  return __half2ll_rz(half_t::impl_type(val));
-#else
-  return static_cast<T>(__half2float(half_t::impl_type(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return __half2ll_rz(half_t::impl_type(val));))
+  KOKKOS_IF_ON_HOST(
+      (return static_cast<T>(__half2float(half_t::impl_type(val)));))
 }
 
 template <class T>
 KOKKOS_INLINE_FUNCTION
     std::enable_if_t<std::is_same<T, unsigned long long>::value, T>
     cast_from_half(half_t val) {
-#ifdef __CUDA_ARCH__
-  return __half2ull_rz(half_t::impl_type(val));
-#else
-  return static_cast<T>(__half2float(half_t::impl_type(val)));
-#endif
+  KOKKOS_IF_ON_DEVICE((return __half2ull_rz(half_t::impl_type(val));))
+  KOKKOS_IF_ON_HOST(
+      (return static_cast<T>(__half2float(half_t::impl_type(val)));))
 }
 
 template <class T>

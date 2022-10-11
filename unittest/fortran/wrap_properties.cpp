@@ -2,9 +2,10 @@
 
 #include "lammps.h"
 #include "library.h"
-#include <mpi.h>
+
 #include <string>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 // prototypes for fortran reverse wrapper functions
@@ -12,24 +13,30 @@ extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
 int f_lammps_version();
-void f_lammps_memory_usage(double*);
+void f_lammps_memory_usage(double *);
 int f_lammps_get_mpi_comm();
-int f_lammps_extract_setting(const char*);
+int f_lammps_extract_setting(const char *);
+int f_lammps_has_error();
+int f_lammps_get_last_error_message(char *, int);
 }
+
+namespace LAMMPS_NS {
+
+using ::testing::ContainsRegex;
 
 class LAMMPS_properties : public ::testing::Test {
 protected:
-    LAMMPS_NS::LAMMPS *lmp;
-    LAMMPS_properties()           = default;
-    ~LAMMPS_properties() override = default;
+    LAMMPS *lmp;
 
     void SetUp() override
     {
         ::testing::internal::CaptureStdout();
-        lmp                = (LAMMPS_NS::LAMMPS *)f_lammps_with_args();
+        lmp = (LAMMPS *)f_lammps_with_args();
+
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0, 8).c_str(), "LAMMPS (");
     }
+
     void TearDown() override
     {
         ::testing::internal::CaptureStdout();
@@ -47,10 +54,10 @@ TEST_F(LAMMPS_properties, version)
 
 TEST_F(LAMMPS_properties, memory_usage)
 {
-// copied from c-library, with a two-character modification
-   double meminfo[3];
-   f_lammps_memory_usage(meminfo);
-   EXPECT_GT(meminfo[0], 0.0);
+    // copied from c-library, with a two-character modification
+    double meminfo[3];
+    f_lammps_memory_usage(meminfo);
+    EXPECT_GT(meminfo[0], 0.0);
 #if defined(__linux__) || defined(_WIN32)
     EXPECT_GE(meminfo[1], 0.0);
 #endif
@@ -61,11 +68,11 @@ TEST_F(LAMMPS_properties, memory_usage)
 
 TEST_F(LAMMPS_properties, get_mpi_comm)
 {
-   int f_comm = f_lammps_get_mpi_comm();
-   if ( lammps_config_has_mpi_support() )
-      EXPECT_GE(f_comm, 0);
-   else
-      EXPECT_EQ(f_comm, -1);
+    int f_comm = f_lammps_get_mpi_comm();
+    if (lammps_config_has_mpi_support())
+        EXPECT_GE(f_comm, 0);
+    else
+        EXPECT_EQ(f_comm, -1);
 };
 
 TEST_F(LAMMPS_properties, extract_setting)
@@ -104,5 +111,34 @@ TEST_F(LAMMPS_properties, extract_setting)
     EXPECT_EQ(f_lammps_extract_setting("mu_flag"), 0);
     EXPECT_EQ(f_lammps_extract_setting("rmass_flag"), 0);
     EXPECT_EQ(f_lammps_extract_setting("UNKNOWN"), -1);
-
 };
+
+TEST_F(LAMMPS_properties, has_error)
+{
+    // need errors to throw exceptions to be able to intercept them.
+    if (!lammps_config_has_exceptions()) GTEST_SKIP();
+
+    EXPECT_EQ(f_lammps_has_error(), lammps_has_error(lmp));
+    EXPECT_EQ(f_lammps_has_error(), 0);
+
+    // trigger an error, but hide output
+    ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "this_is_not_a_known_command");
+    ::testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(f_lammps_has_error(), lammps_has_error(lmp));
+    EXPECT_EQ(f_lammps_has_error(), 1);
+
+    // retrieve error message
+    char errmsg[1024];
+    int err = f_lammps_get_last_error_message(errmsg, 1023);
+    EXPECT_EQ(err, 1);
+    EXPECT_THAT(errmsg, ContainsRegex(".*ERROR: Unknown command: this_is_not_a_known_command.*"));
+
+    // retrieving the error message clear the error status
+    EXPECT_EQ(f_lammps_has_error(), 0);
+    err = f_lammps_get_last_error_message(errmsg, 1023);
+    EXPECT_EQ(err, 0);
+    EXPECT_THAT(errmsg, ContainsRegex("                                                  "));
+};
+} // namespace LAMMPS_NS

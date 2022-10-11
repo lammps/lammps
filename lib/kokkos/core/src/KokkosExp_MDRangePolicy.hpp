@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
 #define KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
 
@@ -190,7 +199,7 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   template <class... OtherProperties>
   friend struct MDRangePolicy;
 
-  static_assert(!std::is_same<typename traits::iteration_pattern, void>::value,
+  static_assert(!std::is_void<typename traits::iteration_pattern>::value,
                 "Kokkos Error: MD iteration pattern not defined");
 
   using iteration_pattern = typename traits::iteration_pattern;

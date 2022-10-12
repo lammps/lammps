@@ -1,19 +1,17 @@
 # /* ----------------------------------------------------------------------   
-#  Generic Mac Makefile for OpenCL 
+#  Generic Mac Makefile for OpenCL - Single precision with FFT_SINGLE
 # ------------------------------------------------------------------------- */
 
 # which file will be copied to Makefile.lammps
 
 EXTRAMAKE = Makefile.lammps.mac_ocl
 
-OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
-# OCL_TUNE = -DKEPLER_OCL    # -- Uncomment for NVIDIA Kepler
-# OCL_TUNE = -DCYPRESS_OCL   # -- Uncomment for AMD Cypress
-# OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
+LMP_INC = -DLAMMPS_SMALLBIG
 
-OCL_CPP = mpic++ -O3 -DMPI_GERYON -DUCL_NO_EXIT
+OCL_CPP = clang++ -std=c++11 -O3 -I../../src/STUBS
 OCL_LINK = -framework OpenCL
 OCL_PREC = -D_SINGLE_SINGLE
+OCL_TUNE = -DUCL_NO_EXIT
 
 BIN_DIR = ./
 OBJ_DIR = ./

@@ -1,4 +1,4 @@
-# DATE: 2007-10-25 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Tersoff, Phys Rev B, 37, 6991 (1988) 
+# DATE: 2007-10-25 UNITS: metal CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Tersoff, Phys Rev B, 37, 6991 (1988) 
 
 # Tersoff parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs

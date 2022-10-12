@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(centro/atom,ComputeCentroAtom)
-
+// clang-format off
+ComputeStyle(centro/atom,ComputeCentroAtom);
+// clang-format on
 #else
 
 #ifndef COMPUTE_CENTRO_ATOM_H
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class ComputeCentroAtom : public Compute {
  public:
   ComputeCentroAtom(class LAMMPS *, int, char **);
-  ~ComputeCentroAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeCentroAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
-  int nmax,maxneigh,nnn;
+  int nmax, maxneigh, nnn;
   double *distsq;
   int *nearest;
   class NeighList *list;
@@ -45,38 +45,7 @@ class ComputeCentroAtom : public Compute {
   void select2(int, int, double *, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Illegal compute centro/atom command3
-
-UNDOCUMENTED
-
-E: Illegal compute centro/atom command2
-
-UNDOCUMENTED
-
-E: Illegal compute centro/atom command1
-
-UNDOCUMENTED
-
-E: Compute centro/atom requires a pair style be defined
-
-This is because the computation of the centro-symmetry values
-uses a pairwise neighbor list.
-
-W: More than one compute centro/atom
-
-It is not efficient to use compute centro/atom more than once.
-
-*/

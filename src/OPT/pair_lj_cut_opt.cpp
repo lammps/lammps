@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,8 +19,8 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "pair_lj_cut_opt.h"
+
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"
@@ -77,13 +78,13 @@ void PairLJCutOpt::eval()
   int** _noalias firstneigh = list->firstneigh;
   int* _noalias numneigh = list->numneigh;
 
-  vec3_t* _noalias xx = (vec3_t*)x[0];
-  vec3_t* _noalias ff = (vec3_t*)f[0];
+  auto * _noalias xx = (vec3_t*)x[0];
+  auto * _noalias ff = (vec3_t*)f[0];
 
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
 
-  fast_alpha_t* _noalias fast_alpha =
+  auto * _noalias fast_alpha =
     (fast_alpha_t*) malloc(ntypes2*sizeof(fast_alpha_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t& a = fast_alpha[i*ntypes+j];
@@ -94,7 +95,7 @@ void PairLJCutOpt::eval()
     a.lj4 = lj4[i+1][j+1];
     a.offset = offset[i+1][j+1];
   }
-  fast_alpha_t* _noalias tabsix = fast_alpha;
+  auto * _noalias tabsix = fast_alpha;
 
   // loop over neighbors of my atoms
 
@@ -111,7 +112,7 @@ void PairLJCutOpt::eval()
     double tmpfy = 0.0;
     double tmpfz = 0.0;
 
-    fast_alpha_t* _noalias tabsixi = (fast_alpha_t*)&tabsix[itype*ntypes];
+    auto * _noalias tabsixi = (fast_alpha_t*)&tabsix[itype*ntypes];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -194,7 +195,7 @@ void PairLJCutOpt::eval()
     ff[i].z += tmpfz;
   }
 
-  free(fast_alpha); fast_alpha = 0;
+  free(fast_alpha); fast_alpha = nullptr;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

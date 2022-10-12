@@ -2,10 +2,11 @@
  //@HEADER
  // ************************************************************************
  //
- //                        Kokkos v. 2.0
- //              Copyright (2014) Sandia Corporation
+ //                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
  //
- // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+ // Under the terms of Contract DE-NA0003525 with NTESS,
  // the U.S. Government retains certain rights in this software.
  //
  // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
  // contributors may be used to endorse or promote products derived from
  // this software without specific prior written permission.
  //
- // THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+ // THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
  // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+ // PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
  // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -43,9 +44,14 @@
 
 #ifndef KOKKOSP_PROFILE_SECTION_HPP
 #define KOKKOSP_PROFILE_SECTION_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_PROFILING_PROFILESECTION
+#endif
 
 #include <Kokkos_Macros.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Profiling.hpp>
 
 #include <string>
 
@@ -53,59 +59,56 @@ namespace Kokkos {
 namespace Profiling {
 
 class ProfilingSection {
+ public:
+  ProfilingSection(ProfilingSection const&) = delete;
+  ProfilingSection& operator=(ProfilingSection const&) = delete;
 
-public:
-	ProfilingSection(const std::string& sectionName) :
-		secName(sectionName) {
+  ProfilingSection(const std::string& sectionName)
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+      : secName(sectionName)
+#endif
+  {
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::createProfileSection(sectionName, &secID);
+    }
+  }
 
-		#if defined( KOKKOS_ENABLE_PROFILING )
-			if(Kokkos::Profiling::profileLibraryLoaded()) {
-				Kokkos::Profiling::createProfileSection(secName, &secID);
-			}
-		#else
-			secID = 0;
-		#endif
-	}
-	
-	void start() {
-		#if defined( KOKKOS_ENABLE_PROFILING )
-			if(Kokkos::Profiling::profileLibraryLoaded()) {
-				Kokkos::Profiling::startSection(secID);
-			}
-		#endif
-	}
-	
-	void stop() {
-		#if defined( KOKKOS_ENABLE_PROFILING )
-			if(Kokkos::Profiling::profileLibraryLoaded()) {
-				Kokkos::Profiling::stopSection(secID);
-			}
-		#endif
-	}
-	
-	~ProfilingSection() {
-		#if defined( KOKKOS_ENABLE_PROFILING )
-			if(Kokkos::Profiling::profileLibraryLoaded()) {
-				Kokkos::Profiling::destroyProfileSection(secID);
-			}
-		#endif
-	}
-	
-	std::string getName() {
-		return secName;
-	}
-	
-	uint32_t getSectionID() {
-		return secID;
-	}
-	
-protected:
-	const std::string secName;
-	uint32_t secID;
+  void start() {
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::startSection(secID);
+    }
+  }
 
+  void stop() {
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::stopSection(secID);
+    }
+  }
+
+  ~ProfilingSection() {
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::destroyProfileSection(secID);
+    }
+  }
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  KOKKOS_DEPRECATED std::string getName() { return secName; }
+
+  KOKKOS_DEPRECATED uint32_t getSectionID() { return secID; }
+#endif
+
+ protected:
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  const std::string secName;
+#endif
+  uint32_t secID;
 };
 
-}
-}
+}  // namespace Profiling
+}  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING_PROFILESECTION
+#endif
 #endif

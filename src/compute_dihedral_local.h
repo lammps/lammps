@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(dihedral/local,ComputeDihedralLocal)
-
+// clang-format off
+ComputeStyle(dihedral/local,ComputeDihedralLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DIHEDRAL_LOCAL_H
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeDihedralLocal : public Compute {
  public:
   ComputeDihedralLocal(class LAMMPS *, int, char **);
-  ~ComputeDihedralLocal();
-  void init();
-  void compute_local();
-  double memory_usage();
+  ~ComputeDihedralLocal() override;
+  void init() override;
+  void compute_local() override;
+  double memory_usage() override;
 
  private:
-  int nvalues,nvar,ncount,setflag;
+  int nvalues, nvar, ncount, setflag;
 
   int pvar;
-  int *bstyle,*vvar;
+  int *bstyle, *vvar;
   char *pstr;
   char **vstr;
 
@@ -48,29 +48,7 @@ class ComputeDihedralLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute dihedral/local used when dihedrals are not allowed
-
-The atom style does not support dihedrals.
-
-E: Invalid keyword in compute dihedral/local command
-
-Self-explanatory.
-
-E: No dihedral style is defined for compute dihedral/local
-
-Self-explanatory.
-
-*/

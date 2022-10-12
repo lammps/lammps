@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(plasticity/atom,ComputePlasticityAtom)
-
+// clang-format off
+ComputeStyle(plasticity/atom,ComputePlasticityAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PLASTICITY_ATOM_H
@@ -27,40 +27,18 @@ namespace LAMMPS_NS {
 class ComputePlasticityAtom : public Compute {
  public:
   ComputePlasticityAtom(class LAMMPS *, int, char **);
-  ~ComputePlasticityAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputePlasticityAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;
   double *plasticity;
-  int ifix_peri;
+  class FixPeriNeigh *fix_peri_neigh;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute plasticity/atom cannot be used with this pair style
-
-Self-explanatory.
-
-W: More than one compute plasticity/atom
-
-Self-explanatory.
-
-E: Compute plasticity/atom requires Peridynamic pair style
-
-Self-explanatory.
-
-*/

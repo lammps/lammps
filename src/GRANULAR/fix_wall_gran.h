@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(wall/gran,FixWallGran)
-
+// clang-format off
+FixStyle(wall/gran,FixWallGran);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_GRAN_H
@@ -26,108 +26,96 @@ namespace LAMMPS_NS {
 
 class FixWallGran : public Fix {
  public:
+  enum { HOOKE, HOOKE_HISTORY, HERTZ_HISTORY, GRANULAR };
+  enum { NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR };
+
   FixWallGran(class LAMMPS *, int, char **);
-  virtual ~FixWallGran();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
+  ~FixWallGran() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
 
-  virtual double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual void set_arrays(int);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
-  virtual int pack_restart(int, double *);
-  virtual void unpack_restart(int, int);
-  virtual int size_restart(int);
-  virtual int maxsize_restart();
-  void reset_dt();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  void reset_dt() override;
 
-  void hooke(double, double, double, double, double *,
-             double *, double *, double *, double *, double, double);
-  void hooke_history(double, double, double, double, double *,
-                     double *, double *, double *, double *, double, double,
-                     double *);
-  void hertz_history(double, double, double, double, double *, double,
-                     double *, double *, double *, double *, double, double,
-                     double *);
-  void bonded_history(double, double, double, double, double *, double,
-                       double *, double *, double *, double *, double, double,
-                       double *);
+  void hooke(double, double, double, double, double *, double *, double *, double *, double *,
+             double, double, double *);
+  void hooke_history(double, double, double, double, double *, double *, double *, double *,
+                     double *, double, double, double *, double *);
+  void hertz_history(double, double, double, double, double *, double, double *, double *, double *,
+                     double *, double, double, double *, double *);
+  void granular(double, double, double, double, double *, double, double *, double *, double *,
+                double *, double, double, double *, double *);
+
+  double pulloff_distance(double);
 
  protected:
-  int wallstyle,wiggle,wshear,axis;
-  int pairstyle,nlevels_respa;
+  int wallstyle, wiggle, wshear, axis;
+  int pairstyle, nlevels_respa;
   bigint time_origin;
-  double kn,kt,gamman,gammat,xmu;
-  double E,G,SurfEnergy;
-  double lo,hi,cylradius;
-  double amplitude,period,omega,vshear;
+  double kn, kt, gamman, gammat, xmu;
+
+  // for granular model choices
+  int normal_model, damping_model;
+  int tangential_model, roll_model, twist_model;
+  int limit_damping;
+
+  // history flags
+  int normal_history, tangential_history, roll_history, twist_history;
+
+  // indices of history entries
+  int normal_history_index;
+  int tangential_history_index;
+  int roll_history_index;
+  int twist_history_index;
+
+  // material coefficients
+  double Emod, poiss, Gmod;
+
+  // contact model coefficients
+  double normal_coeffs[4];
+  double tangential_coeffs[3];
+  double roll_coeffs[3];
+  double twist_coeffs[3];
+
+  double lo, hi, cylradius;
+  double amplitude, period, omega, vshear;
   double dt;
   char *idregion;
 
-  int history;       // if particle/wall interaction stores history
-  int shearupdate;   // flag for whether shear history is updated
-  int sheardim;      // # of shear history values per contact
+  int use_history;       // if particle/wall interaction stores history
+  int history_update;    // flag for whether shear history is updated
+  int size_history;      // # of shear history values per contact
 
   // shear history for single contact per particle
 
-  double **shearone;
+  double **history_one;
 
   // rigid body masses for use in granular interactions
 
-  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  class Fix *fix_rigid;    // ptr to rigid body fix, null pointer if none
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
+
+  // store particle interactions
+
+  int store;
+
+  void clear_stored_contacts();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix wall/gran requires atom style sphere
-
-Self-explanatory.
-
-E: Invalid fix wall/gran interaction style
-
-UNDOCUMENTED
-
-E: Cannot use wall in periodic dimension
-
-Self-explanatory.
-
-E: Cannot wiggle and shear fix wall/gran
-
-Cannot specify both options at the same time.
-
-E: Invalid wiggle direction for fix wall/gran
-
-Self-explanatory.
-
-E: Invalid shear direction for fix wall/gran
-
-Self-explanatory.
-
-E: Cannot wiggle or shear with fix wall/gran/region
-
-UNDOCUMENTED
-
-U: Fix wall/gran is incompatible with Pair style
-
-Must use a granular pair style to define the parameters needed for
-this fix.
-
-*/

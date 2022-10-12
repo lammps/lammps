@@ -1,0 +1,6 @@
+The input script in.lammps simulates bulk water using the 2015 E3B potential.
+
+This script also demonstrates the use of compute pair to calculate the
+potential energy contribution of the e3b pair style. These potential energy
+contributions can be found in the output file e3b.txt. See the LAMMPS
+documentation for more details.

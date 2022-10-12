@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(enforce2d/kk,FixEnforce2DKokkos<LMPDeviceType>)
-FixStyle(enforce2d/kk/device,FixEnforce2DKokkos<LMPDeviceType>)
-FixStyle(enforce2d/kk/host,FixEnforce2DKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(enforce2d/kk,FixEnforce2DKokkos<LMPDeviceType>);
+FixStyle(enforce2d/kk/device,FixEnforce2DKokkos<LMPDeviceType>);
+FixStyle(enforce2d/kk/host,FixEnforce2DKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_ENFORCE2D_KOKKOS_H
 #define LMP_FIX_ENFORCE2D_KOKKOS_H
 
@@ -32,8 +33,8 @@ class FixEnforce2DKokkos : public FixEnforce2D {
  public:
   FixEnforce2DKokkos(class LAMMPS *, int, char **);
   // ~FixEnforce2DKokkos() {}
-  void setup(int);
-  void post_force(int);
+  void setup(int) override;
+  void post_force(int) override;
 
   template <int omega_flag, int angmom_flag, int torque_flag>
   KOKKOS_INLINE_FUNCTION
@@ -75,10 +76,3 @@ struct FixEnforce2DKokkosPostForceFunctor {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Flag in fix_enforce2d_kokkos outside of what it should be
-
-LAMMPS developer-only error.
-
-*/

@@ -23,7 +23,7 @@ const char *yukawa_colloid=0;
 
 #include "lal_yukawa_colloid.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define YukawaColloidT YukawaColloid<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -56,10 +56,7 @@ int YukawaColloidT::init(const int ntypes,
   if (success!=0)
     return success;
 
-  if (this->ucl_device->shared_memory() && sizeof(numtyp)==sizeof(double))
-    _shared_view=true;
-  else
-    _shared_view=false;
+  _shared_view = this->ucl_device->shared_memory() && sizeof(numtyp)==sizeof(double);
 
   // allocate rad
 
@@ -69,7 +66,7 @@ int YukawaColloidT::init(const int ntypes,
 
   _max_rad_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
 
-  if (_shared_view==false)
+  if (!_shared_view)
     c_rad.alloc(_max_rad_size,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
 
   rad_tex.get_texture(*(this->pair_program),"rad_tex");
@@ -133,16 +130,31 @@ double YukawaColloidT::host_memory_usage() const {
 template <class numtyp, class acctyp>
 void YukawaColloidT::compute(const int f_ago, const int inum_full,
                const int nall, double **host_x, int *host_type, int *ilist,
-               int *numj, int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *rad) {
+               int *numj, int **firstneigh, const bool eflag_in,
+               const bool vflag_in, const bool eatom, const bool vatom,
+               int &host_start, const double cpu_time, bool &success,
+               double *rad) {
   this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
 
   // ------------------- Resize rad array --------------------------
 
   if (nall>_max_rad_size) {
     _max_rad_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    if (_shared_view==false) {
+    if (!_shared_view) {
       c_rad.resize(_max_rad_size);
       rad_tex.bind_float(c_rad,1);
     }
@@ -177,8 +189,8 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
   this->atom->add_x_data(host_x,host_type);
   this->add_rad_data();
 
-  this->loop(eflag,vflag);
-  this->ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
+  const int red_blocks=this->loop(eflag,vflag);
+  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   this->device->add_ans_object(this->ans);
   this->hd_balancer.stop_timer();
 }
@@ -187,20 +199,34 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
 // Reneighbor on GPU and then compute per-atom densities
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, double *sublo,
+int** YukawaColloidT::compute(const int ago, const int inum_full,
+                const int nall, double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag,
+                tagint **special, const bool eflag_in, const bool vflag_in,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **jnum, const double cpu_time, bool &success,
                 double *rad) {
   this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
 
   // ------------------- Resize rad array ----------------------------
 
   if (nall>_max_rad_size) {
     _max_rad_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    if (_shared_view==false) {
+    if (!_shared_view) {
       c_rad.resize(_max_rad_size);
       rad_tex.bind_float(c_rad,1);
     }
@@ -213,7 +239,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   // load balance, returning the atom count on the device (inum)
@@ -227,7 +253,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                           sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     this->cast_rad_data(rad);
     this->hd_balancer.start_timer();
   } else {
@@ -240,8 +266,8 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
   *ilist=this->nbor->host_ilist.begin();
   *jnum=this->nbor->host_acc.begin();
 
-  this->loop(eflag,vflag);
-  this->ans->copy_answers(eflag,vflag,eatom,vatom);
+  const int red_blocks=this->loop(eflag,vflag);
+  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   this->device->add_ans_object(this->ans);
   this->hd_balancer.stop_timer();
 
@@ -252,20 +278,9 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
 // Calculate per-atom energies and forces
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
+int YukawaColloidT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -273,8 +288,8 @@ void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &c_rad, &coeff, &sp_lj,
+    this->k_pair_sel->set_size(GX,BX);
+    this->k_pair_sel->run(&this->atom->x, &c_rad, &coeff, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag, &vflag,
                           &ainum, &nbor_pitch, &this->_threads_per_atom, &_kappa);
@@ -286,6 +301,8 @@ void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
                      &ainum, &nbor_pitch, &this->_threads_per_atom, &_kappa);
   }
   this->time_pair.stop();
+  return GX;
 }
 
 template class YukawaColloid<PRECISION,ACC_PRECISION>;
+}

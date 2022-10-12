@@ -1,0 +1,4 @@
+packages:
+ kokkos:
+  variants: +cuda +openmp +volta70 +cuda_lambda +wrapper ^cuda@10.1
+  compiler: [gcc@7.2.0]

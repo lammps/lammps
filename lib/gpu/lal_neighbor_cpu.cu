@@ -11,14 +11,15 @@
 //
 //    begin                :
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_preprocessor.h"
 #endif
 
 __kernel void kernel_unpack(__global int *dev_nbor,
                             const __global int *dev_ij,
+                            const __global int *dev_ij_begin,
                             const int inum, const int t_per_atom) {
   int tid=THREAD_ID_X;
   int offset=tid & (t_per_atom-1);
@@ -28,7 +29,7 @@ __kernel void kernel_unpack(__global int *dev_nbor,
     int nbor=ii+inum;
     int numj=dev_nbor[nbor];
     nbor+=inum;
-    int list=dev_nbor[nbor];
+    int list=dev_ij_begin[ii];
     int list_end=list+numj;
     list+=offset;
     nbor+=fast_mul(ii,t_per_atom-1)+offset;
@@ -40,4 +41,3 @@ __kernel void kernel_unpack(__global int *dev_nbor,
     }
   } // if ii
 }
-

@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -11,14 +11,13 @@
 #include "colvar.h"
 #include "colvarcomp.h"
 
-#include <cmath>
-
-
 
 colvar::angle::angle(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "angle";
+  set_function_type("angle");
+  init_as_angle();
+
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -28,8 +27,6 @@ colvar::angle::angle(std::string const &conf)
   group3 = parse_group(conf, "group3");
 
   init_total_force_params(conf);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -37,7 +34,9 @@ colvar::angle::angle(cvm::atom const &a1,
                      cvm::atom const &a2,
                      cvm::atom const &a3)
 {
-  function_type = "angle";
+  set_function_type("angle");
+  init_as_angle();
+
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -48,15 +47,6 @@ colvar::angle::angle(cvm::atom const &a1,
   register_atom_group(group1);
   register_atom_group(group2);
   register_atom_group(group3);
-
-  x.type(colvarvalue::type_scalar);
-}
-
-
-colvar::angle::angle()
-{
-  function_type = "angle";
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -77,14 +67,14 @@ void colvar::angle::calc_value()
 
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
 
-  x.real_value = (180.0/PI) * std::acos(cos_theta);
+  x.real_value = (180.0/PI) * cvm::acos(cos_theta);
 }
 
 
 void colvar::angle::calc_gradients()
 {
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
-  cvm::real const dxdcos = -1.0 / std::sqrt(1.0 - cos_theta*cos_theta);
+  cvm::real const dxdcos = -1.0 / cvm::sqrt(1.0 - cos_theta*cos_theta);
 
   dxdr1 = (180.0/PI) * dxdcos *
     (1.0/r21l) * ( r23/r23l + (-1.0) * cos_theta * r21/r21l );
@@ -126,7 +116,7 @@ void colvar::angle::calc_Jacobian_derivative()
   // det(J) = (2 pi) r^2 * sin(theta)
   // hence Jd = cot(theta)
   const cvm::real theta = x.real_value * PI / 180.0;
-  jd = PI / 180.0 * (theta != 0.0 ? std::cos(theta) / std::sin(theta) : 0.0);
+  jd = PI / 180.0 * (theta != 0.0 ? cvm::cos(theta) / cvm::sin(theta) : 0.0);
 }
 
 
@@ -150,14 +140,14 @@ simple_scalar_dist_functions(angle)
 colvar::dipole_angle::dipole_angle(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "dipole_angle";
+  set_function_type("dipoleAngle");
+  init_as_angle();
+
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
   group3 = parse_group(conf, "group3");
 
   init_total_force_params(conf);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -165,7 +155,8 @@ colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
                       cvm::atom const &a2,
                       cvm::atom const &a3)
 {
-  function_type = "dipole_angle";
+  set_function_type("dipoleAngle");
+  init_as_angle();
 
   group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
   group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
@@ -173,15 +164,13 @@ colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
   register_atom_group(group1);
   register_atom_group(group2);
   register_atom_group(group3);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
 colvar::dipole_angle::dipole_angle()
 {
-  function_type = "dipole_angle";
-  x.type(colvarvalue::type_scalar);
+  set_function_type("dipoleAngle");
+  init_as_angle();
 }
 
 
@@ -202,7 +191,7 @@ void colvar::dipole_angle::calc_value()
 
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
 
-  x.real_value = (180.0/PI) * std::acos(cos_theta);
+  x.real_value = (180.0/PI) * cvm::acos(cos_theta);
 }
 
 //to be implemented
@@ -212,7 +201,7 @@ void colvar::dipole_angle::calc_value()
 void colvar::dipole_angle::calc_gradients()
 {
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
-  cvm::real const dxdcos = -1.0 / std::sqrt(1.0 - cos_theta*cos_theta);
+  cvm::real const dxdcos = -1.0 / cvm::sqrt(1.0 - cos_theta*cos_theta);
 
   dxdr1 = (180.0/PI) * dxdcos *
   (1.0/r21l)* (r23/r23l + (-1.0) * cos_theta * r21/r21l );
@@ -260,9 +249,8 @@ simple_scalar_dist_functions(dipole_angle)
 colvar::dihedral::dihedral(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "dihedral";
-  period = 360.0;
-  b_periodic = true;
+  set_function_type("dihedral");
+  init_as_periodic_angle();
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -273,8 +261,6 @@ colvar::dihedral::dihedral(std::string const &conf)
   group4 = parse_group(conf, "group4");
 
   init_total_force_params(conf);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -283,12 +269,8 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
                            cvm::atom const &a3,
                            cvm::atom const &a4)
 {
-  if (cvm::debug())
-    cvm::log("Initializing dihedral object from atom groups.\n");
-
-  function_type = "dihedral";
-  period = 360.0;
-  b_periodic = true;
+  set_function_type("dihedral");
+  init_as_periodic_angle();
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -303,22 +285,16 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
   register_atom_group(group2);
   register_atom_group(group3);
   register_atom_group(group4);
-
-  x.type(colvarvalue::type_scalar);
-
-  if (cvm::debug())
-    cvm::log("Done initializing dihedral object from atom groups.\n");
 }
 
 
 colvar::dihedral::dihedral()
 {
-  function_type = "dihedral";
-  period = 360.0;
-  b_periodic = true;
+  set_function_type("dihedral");
+  init_as_periodic_angle();
+  enable(f_cvc_periodic);
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -346,7 +322,7 @@ void colvar::dihedral::calc_value()
   cvm::real const cos_phi = n1 * n2;
   cvm::real const sin_phi = n1 * r34 * r23.norm();
 
-  x.real_value = (180.0/PI) * std::atan2(sin_phi, cos_phi);
+  x.real_value = (180.0/PI) * cvm::atan2(sin_phi, cos_phi);
   this->wrap(x);
 }
 
@@ -368,7 +344,7 @@ void colvar::dihedral::calc_gradients()
   rB = 1.0/rB;
   B *= rB;
 
-  if (std::fabs(sin_phi) > 0.1) {
+  if (cvm::fabs(sin_phi) > 0.1) {
     rA = 1.0/rA;
     A *= rA;
     cvm::rvector const dcosdA = rA*(cos_phi*A-B);
@@ -440,8 +416,8 @@ void colvar::dihedral::calc_force_invgrads()
   cvm::real const dot1 = u23 * u12;
   cvm::real const dot4 = u23 * u34;
 
-  cvm::real const fact1 = d12 * std::sqrt(1.0 - dot1 * dot1);
-  cvm::real const fact4 = d34 * std::sqrt(1.0 - dot4 * dot4);
+  cvm::real const fact1 = d12 * cvm::sqrt(1.0 - dot1 * dot1);
+  cvm::real const fact4 = d34 * cvm::sqrt(1.0 - dot4 * dot4);
 
   group1->read_total_forces();
   if (is_enabled(f_cvc_one_site_total_force)) {
@@ -508,26 +484,24 @@ colvarvalue colvar::dihedral::dist2_rgrad(colvarvalue const &x1,
 }
 
 
-void colvar::dihedral::wrap(colvarvalue &x) const
+void colvar::dihedral::wrap(colvarvalue &x_unwrapped) const
 {
-  if ((x.real_value - wrap_center) >= 180.0) {
-    x.real_value -= 360.0;
+  if ((x_unwrapped.real_value - wrap_center) >= 180.0) {
+    x_unwrapped.real_value -= 360.0;
     return;
   }
 
-  if ((x.real_value - wrap_center) < -180.0) {
-    x.real_value += 360.0;
+  if ((x_unwrapped.real_value - wrap_center) < -180.0) {
+    x_unwrapped.real_value += 360.0;
     return;
   }
-
-  return;
 }
 
 
 colvar::polar_theta::polar_theta(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "polar_theta";
+  set_function_type("polarTheta");
   enable(f_cvc_com_based);
 
   atoms = parse_group(conf, "atoms");
@@ -538,7 +512,7 @@ colvar::polar_theta::polar_theta(std::string const &conf)
 
 colvar::polar_theta::polar_theta()
 {
-  function_type = "polar_theta";
+  set_function_type("polarTheta");
   x.type(colvarvalue::type_scalar);
 }
 
@@ -548,8 +522,8 @@ void colvar::polar_theta::calc_value()
   cvm::rvector pos = atoms->center_of_mass();
   r = atoms->center_of_mass().norm();
   // Internal values of theta and phi are radians
-  theta = (r > 0.) ? std::acos(pos.z / r) : 0.;
-  phi = std::atan2(pos.y, pos.x);
+  theta = (r > 0.) ? cvm::acos(pos.z / r) : 0.;
+  phi = cvm::atan2(pos.y, pos.x);
   x.real_value = (180.0/PI) * theta;
 }
 
@@ -560,9 +534,9 @@ void colvar::polar_theta::calc_gradients()
     atoms->set_weighted_gradient(cvm::rvector(0., 0., 0.));
   else
     atoms->set_weighted_gradient(cvm::rvector(
-      (180.0/PI) *  std::cos(theta) * std::cos(phi) / r,
-      (180.0/PI) *  std::cos(theta) * std::sin(phi) / r,
-      (180.0/PI) * -std::sin(theta) / r));
+      (180.0/PI) *  cvm::cos(theta) * cvm::cos(phi) / r,
+      (180.0/PI) *  cvm::cos(theta) * cvm::sin(phi) / r,
+      (180.0/PI) * -cvm::sin(theta) / r));
 }
 
 
@@ -579,21 +553,19 @@ simple_scalar_dist_functions(polar_theta)
 colvar::polar_phi::polar_phi(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "polar_phi";
-  period = 360.0;
+  set_function_type("polarPhi");
+  init_as_periodic_angle();
   enable(f_cvc_com_based);
 
   atoms = parse_group(conf, "atoms");
   init_total_force_params(conf);
-  x.type(colvarvalue::type_scalar);
 }
 
 
 colvar::polar_phi::polar_phi()
 {
-  function_type = "polar_phi";
-  period = 360.0;
-  x.type(colvarvalue::type_scalar);
+  set_function_type("polarPhi");
+  init_as_periodic_angle();
 }
 
 
@@ -602,8 +574,8 @@ void colvar::polar_phi::calc_value()
   cvm::rvector pos = atoms->center_of_mass();
   r = atoms->center_of_mass().norm();
   // Internal values of theta and phi are radians
-  theta = (r > 0.) ? std::acos(pos.z / r) : 0.;
-  phi = std::atan2(pos.y, pos.x);
+  theta = (r > 0.) ? cvm::acos(pos.z / r) : 0.;
+  phi = cvm::atan2(pos.y, pos.x);
   x.real_value = (180.0/PI) * phi;
 }
 
@@ -611,8 +583,8 @@ void colvar::polar_phi::calc_value()
 void colvar::polar_phi::calc_gradients()
 {
   atoms->set_weighted_gradient(cvm::rvector(
-    (180.0/PI) * -std::sin(phi) / (r*std::sin(theta)),
-    (180.0/PI) *  std::cos(phi) / (r*std::sin(theta)),
+    (180.0/PI) * -cvm::sin(phi) / (r*cvm::sin(theta)),
+    (180.0/PI) *  cvm::cos(phi) / (r*cvm::sin(theta)),
     0.));
 }
 
@@ -653,15 +625,15 @@ colvarvalue colvar::polar_phi::dist2_rgrad(colvarvalue const &x1,
 }
 
 
-void colvar::polar_phi::wrap(colvarvalue &x) const
+void colvar::polar_phi::wrap(colvarvalue &x_unwrapped) const
 {
-  if ((x.real_value - wrap_center) >= 180.0) {
-    x.real_value -= 360.0;
+  if ((x_unwrapped.real_value - wrap_center) >= 180.0) {
+    x_unwrapped.real_value -= 360.0;
     return;
   }
 
-  if ((x.real_value - wrap_center) < -180.0) {
-    x.real_value += 360.0;
+  if ((x_unwrapped.real_value - wrap_center) < -180.0) {
+    x_unwrapped.real_value += 360.0;
     return;
   }
 

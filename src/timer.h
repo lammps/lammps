@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,24 +16,41 @@
 
 #include "pointers.h"
 
-
 namespace LAMMPS_NS {
 
 class Timer : protected Pointers {
  public:
-
-  enum ttype  {RESET=-2,START=-1,TOTAL=0,PAIR,BOND,KSPACE,NEIGH,COMM,
-               MODIFY,OUTPUT,SYNC,ALL,DEPHASE,DYNAMICS,QUENCH,NEB,REPCOMM,
-               REPOUT,NUM_TIMER};
-  enum tlevel {OFF=0,LOOP,NORMAL,FULL};
+  enum ttype {
+    RESET = -2,
+    START = -1,
+    TOTAL = 0,
+    PAIR,
+    BOND,
+    KSPACE,
+    NEIGH,
+    COMM,
+    MODIFY,
+    OUTPUT,
+    SYNC,
+    ALL,
+    DEPHASE,
+    DYNAMICS,
+    QUENCH,
+    NEB,
+    REPCOMM,
+    REPOUT,
+    NUM_TIMER
+  };
+  enum tlevel { OFF = 0, LOOP, NORMAL, FULL };
 
   Timer(class LAMMPS *);
-  ~Timer() {};
+
   void init();
 
   // inline function to reduce overhead if we want no detailed timings
 
-  void stamp(enum ttype which=START) {
+  void stamp(enum ttype which = START)
+  {
     if (_level > LOOP) _stamp(which);
   }
 
@@ -42,10 +59,10 @@ class Timer : protected Pointers {
 
   // accessor methods for supported level of detail
 
-  bool has_loop()   const { return (_level >= LOOP); }
+  bool has_loop() const { return (_level >= LOOP); }
   bool has_normal() const { return (_level >= NORMAL); }
-  bool has_full()   const { return (_level >= FULL); }
-  bool has_sync()   const { return (_sync  != OFF); }
+  bool has_full() const { return (_level >= FULL); }
+  bool has_sync() const { return (_sync != OFF); }
 
   // flag if wallclock time is expired
   bool is_timeout() const { return (_timeout == 0.0); }
@@ -53,10 +70,8 @@ class Timer : protected Pointers {
   double elapsed(enum ttype);
   double cpu(enum ttype);
 
-  double get_cpu(enum ttype which) const {
-    return cpu_array[which]; };
-  double get_wall(enum ttype which) const {
-    return wall_array[which]; };
+  double get_cpu(enum ttype which) const { return cpu_array[which]; };
+  double get_wall(enum ttype which) const { return wall_array[which]; };
 
   void set_wall(enum ttype, double);
 
@@ -77,10 +92,13 @@ class Timer : protected Pointers {
 
   // check for timeout. inline wrapper around internal
   // function to reduce overhead in case there is no check.
-  bool check_timeout(int step) {
+  bool check_timeout(int step)
+  {
     if (_timeout == 0.0) return true;
-    if (_nextcheck != step) return false;
-    else return _check_timeout();
+    if (_nextcheck != step)
+      return false;
+    else
+      return _check_timeout();
   }
 
   void modify_params(int, char **);
@@ -91,12 +109,12 @@ class Timer : protected Pointers {
   double previous_cpu;
   double previous_wall;
   double timeout_start;
-  int _level;     // level of detail: off=0,loop=1,normal=2,full=3
-  int _sync;      // if nonzero, synchronize tasks before setting the timer
-  int _timeout;   // max allowed wall time in seconds. infinity if negative
-  int _s_timeout; // copy of timeout for restoring after a forced timeout
-  int _checkfreq; // frequency of timeout checking
-  int _nextcheck; // loop number of next timeout check
+  int _level;        // level of detail: off=0,loop=1,normal=2,full=3
+  int _sync;         // if nonzero, synchronize tasks before setting the timer
+  int _timeout;      // max allowed wall time in seconds. infinity if negative
+  int _s_timeout;    // copy of timeout for restoring after a forced timeout
+  int _checkfreq;    // frequency of timeout checking
+  int _nextcheck;    // loop number of next timeout check
 
   // update one specific timer array
   void _stamp(enum ttype);
@@ -105,20 +123,6 @@ class Timer : protected Pointers {
   bool _check_timeout();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Wall time limit reached
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

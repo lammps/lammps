@@ -56,7 +56,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
   }
 
   success=0;
-  grdtyp * host_brick=NULL;
+  grdtyp * host_brick=nullptr;
   if (world_me==0)
     host_brick=pppm.init(nlocal,nall,screen,order,nxlo_out,nylo_out,nzlo_out,
                          nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
@@ -81,7 +81,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                            vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
                            split,success);
 
-    pppm.device->gpu_barrier();
+    pppm.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -101,7 +101,7 @@ float * pppm_gpu_init_f(const int nlocal, const int nall, FILE *screen,
   float *b=pppm_gpu_init(PPPMF,nlocal,nall,screen,order,nxlo_out,nylo_out,
                          nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
                          slab_volfactor,nx_pppm,ny_pppm,nz_pppm,split,success);
-  if (split==false && respa==false)
+  if (!split && !respa)
     PPPMF.device->set_single_precompute(&PPPMF);
   return b;
 }
@@ -129,7 +129,8 @@ double pppm_gpu_bytes_f() {
 void pppm_gpu_forces_f(double **f) {
   double etmp;
   PPPMF.atom->data_unavail();
-  PPPMF.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
+  int error_flag;
+  PPPMF.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp,error_flag);
 }
 
 double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
@@ -145,7 +146,7 @@ double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
                           nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
                           vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
                           split,success);
-  if (split==false && respa==false)
+  if (!split && !respa)
     PPPMD.device->set_double_precompute(&PPPMD);
   return b;
 }
@@ -173,6 +174,7 @@ double pppm_gpu_bytes_d() {
 void pppm_gpu_forces_d(double **f) {
   double etmp;
   PPPMD.atom->data_unavail();
-  PPPMD.ans->get_answers(f,NULL,NULL,NULL,NULL,etmp);
+  int error_flag;
+  PPPMD.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp,error_flag);
 }
 

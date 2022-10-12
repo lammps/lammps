@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,35 +12,37 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "comm.h"
-#include "universe.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
-#include "domain.h"
-#include "output.h"
-#include "dump.h"
-#include "group.h"
-#include "procmap.h"
-#include "irregular.h"
-#include "accelerator_kokkos.h"
-#include "memory.h"
-#include "error.h"
 
+#include "accelerator_kokkos.h"
+#include "atom.h"               // IWYU pragma: keep
+#include "atom_vec.h"
+#include "bond.h"
+#include "compute.h"
+#include "domain.h"             // IWYU pragma: keep
+#include "dump.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "irregular.h"
+#include "memory.h"             // IWYU pragma: keep
+#include "modify.h"
+#include "neighbor.h"           // IWYU pragma: keep
+#include "output.h"
+#include "pair.h"
+#include "procmap.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cstring>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;
 
-#define BUFMIN 1000             // also in comm styles
+#define BUFEXTRA 1024
 
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
@@ -54,22 +57,29 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   mode = 0;
   bordergroup = 0;
   cutghostuser = 0.0;
-  cutusermulti = NULL;
+  cutusermulti = nullptr;
+  cutusermultiold = nullptr;
+  ncollections = 0;
+  ncollections_cutoff = 0;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
   coregrid[0] = coregrid[1] = coregrid[2] = 1;
   gridflag = ONELEVEL;
   mapflag = CART;
-  customfile = NULL;
-  outfile = NULL;
+  customfile = nullptr;
+  outfile = nullptr;
   recv_from_partition = send_to_partition = -1;
   otherflag = 0;
-  maxexchange_atom = maxexchange_fix = 0;
 
-  grid2proc = NULL;
-  xsplit = ysplit = zsplit = NULL;
+  maxexchange = maxexchange_atom = maxexchange_fix = 0;
+  maxexchange_fix_dynamic = 0;
+  bufextra = BUFEXTRA;
+
+  grid2proc = nullptr;
+  xsplit = ysplit = zsplit = nullptr;
   rcbnew = 0;
+  multi_reduce = 0;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time
@@ -81,8 +91,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   nthreads = 1;
 #ifdef _OPENMP
   if (lmp->kokkos) {
-    nthreads = lmp->kokkos->num_threads * lmp->kokkos->numa;
-  } else if (getenv("OMP_NUM_THREADS") == NULL) {
+    nthreads = lmp->kokkos->nthreads * lmp->kokkos->numa;
+  } else if (getenv("OMP_NUM_THREADS") == nullptr) {
     nthreads = 1;
     if (me == 0)
       error->message(FLERR,"OMP_NUM_THREADS environment is not set. "
@@ -96,12 +106,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   MPI_Bcast(&nthreads,1,MPI_INT,0,world);
   if (!lmp->kokkos) omp_set_num_threads(nthreads);
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-    if (logfile)
-      fprintf(logfile,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"  using {} OpenMP thread(s) per MPI task\n",nthreads);
 #endif
 
 }
@@ -115,6 +121,7 @@ Comm::~Comm()
   memory->destroy(ysplit);
   memory->destroy(zsplit);
   memory->destroy(cutusermulti);
+  memory->destroy(cutusermultiold);
   delete [] customfile;
   delete [] outfile;
 }
@@ -142,21 +149,23 @@ void Comm::copy_arrays(Comm *oldcomm)
     memcpy(zsplit,oldcomm->zsplit,(procgrid[2]+1)*sizeof(double));
   }
 
+  ncollections = oldcomm->ncollections;
+  ncollections_cutoff = oldcomm->ncollections_cutoff;
   if (oldcomm->cutusermulti) {
-    memory->create(cutusermulti,atom->ntypes+1,"comm:cutusermulti");
-    memcpy(cutusermulti,oldcomm->cutusermulti,atom->ntypes+1);
+    memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
+    memcpy(cutusermulti,oldcomm->cutusermulti,ncollections_cutoff);
   }
 
-  if (customfile) {
-    int n = strlen(oldcomm->customfile) + 1;
-    customfile = new char[n];
-    strcpy(customfile,oldcomm->customfile);
+  if (oldcomm->cutusermultiold) {
+    memory->create(cutusermultiold,atom->ntypes+1,"comm:cutusermultiold");
+    memcpy(cutusermultiold,oldcomm->cutusermultiold,atom->ntypes+1);
   }
-  if (outfile) {
-    int n = strlen(oldcomm->outfile) + 1;
-    outfile = new char[n];
-    strcpy(outfile,oldcomm->outfile);
-  }
+
+  if (customfile)
+    customfile = utils::strdup(oldcomm->customfile);
+
+  if (outfile)
+    outfile = utils::strdup(oldcomm->outfile);
 }
 
 /* ----------------------------------------------------------------------
@@ -192,8 +201,9 @@ void Comm::init()
   if (ghost_velocity) size_forward += atom->avec->size_velocity;
   if (ghost_velocity) size_border += atom->avec->size_velocity;
 
-  for (int i = 0; i < modify->nfix; i++)
-    size_border += modify->fix[i]->comm_border;
+  const auto &fix_list = modify->get_fix_list();
+  for (const auto &fix : fix_list)
+    size_border += fix->comm_border;
 
   // per-atom limits for communication
   // maxexchange = max # of datums in exchange comm, set in exchange()
@@ -208,23 +218,61 @@ void Comm::init()
   if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
 
-  for (int i = 0; i < modify->nfix; i++) {
-    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
+  if (force->bond) maxforward = MAX(maxforward,force->bond->comm_forward);
+  if (force->bond) maxreverse = MAX(maxreverse,force->bond->comm_reverse);
+
+  for (const auto &fix : fix_list) {
+    maxforward = MAX(maxforward, fix->comm_forward);
+    maxreverse = MAX(maxreverse, fix->comm_reverse);
   }
 
-  for (int i = 0; i < modify->ncompute; i++) {
-    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
+  for (const auto &compute : modify->get_compute_list()) {
+    maxforward = MAX(maxforward,compute->comm_forward);
+    maxreverse = MAX(maxreverse,compute->comm_reverse);
   }
 
-  for (int i = 0; i < output->ndump; i++) {
-    maxforward = MAX(maxforward,output->dump[i]->comm_forward);
-    maxreverse = MAX(maxreverse,output->dump[i]->comm_reverse);
+  for (const auto &dump: output->get_dump_list()) {
+    maxforward = MAX(maxforward,dump->comm_forward);
+    maxreverse = MAX(maxreverse,dump->comm_reverse);
   }
 
   if (force->newton == 0) maxreverse = 0;
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
+  if (force->bond) maxreverse = MAX(maxreverse,force->bond->comm_reverse_off);
+
+  // maxexchange_atom = size of an exchanged atom, set by AtomVec
+  //   only needs to be set if size > BUFEXTRA
+  // maxexchange_fix_dynamic = 1 if any fix sets its maxexchange dynamically
+
+  maxexchange_atom = atom->avec->maxexchange;
+
+  maxexchange_fix_dynamic = 0;
+  for (const auto &fix : fix_list) if (fix->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+
+  if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
+    error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
+
+  if (multi_reduce) {
+    if (force->newton == 0)
+      error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
+    if (neighbor->any_full())
+      error->all(FLERR,"Cannot use multi/reduce communication with a full neighbor list");
+    if (mode != Comm::MULTI)
+      error->all(FLERR,"Cannot use multi/reduce communication without mode multi");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   set maxexchange based on AtomVec and fixes
+------------------------------------------------------------------------- */
+
+void Comm::init_exchange()
+{
+  maxexchange_fix = 0;
+  for (const auto &fix : modify->get_fix_list()) maxexchange_fix += fix->maxexchange;
+
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
 }
 
 /* ----------------------------------------------------------------------
@@ -234,73 +282,117 @@ void Comm::init()
 
 void Comm::modify_params(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal comm_modify command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "comm_modify", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mode") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify mode", error);
       if (strcmp(arg[iarg+1],"single") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
+        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
         memory->destroy(cutusermulti);
-        cutusermulti = NULL;
+        memory->destroy(cutusermultiold);
         mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
+        if (neighbor->style != Neighbor::MULTI)
+          error->all(FLERR,"Cannot use comm mode 'multi' without 'multi' style neighbor lists");
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
+        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
+        memory->destroy(cutusermultiold);
         mode = Comm::MULTI;
-      } else error->all(FLERR,"Illegal comm_modify command");
+      } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
+        if (neighbor->style == Neighbor::MULTI)
+          error->all(FLERR,"Cannot use comm mode 'multi/old' with 'multi' style neighbor lists");
+        // need to reset cutghostuser when switching comm mode
+        if (mode == Comm::SINGLE) cutghostuser = 0.0;
+        if (mode == Comm::MULTI) cutghostuser = 0.0;
+        memory->destroy(cutusermulti);
+        mode = Comm::MULTIOLD;
+      } else error->all(FLERR,"Unknown comm_modify mode argument: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify group", error);
       bordergroup = group->find(arg[iarg+1]);
       if (bordergroup < 0)
-        error->all(FLERR,"Invalid group in comm_modify command");
-      if (bordergroup && (atom->firstgroupname == NULL ||
-                          strcmp(arg[iarg+1],atom->firstgroupname) != 0))
-        error->all(FLERR,"Comm_modify group != atom_modify first group");
+        error->all(FLERR, "Invalid comm_modify keyword: group {} not found", arg[iarg+1]);
+      if (bordergroup && ((atom->firstgroupname == nullptr) || strcmp(arg[iarg+1],atom->firstgroupname) != 0))
+        error->all(FLERR, "Comm_modify group != atom_modify first group: {}", atom->firstgroupname);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify cutoff", error);
       if (mode == Comm::MULTI)
-        error->all(FLERR,
-                   "Use cutoff/multi keyword to set cutoff in multi mode");
-      cutghostuser = force->numeric(FLERR,arg[iarg+1]);
+        error->all(FLERR, "Use cutoff/multi keyword to set cutoff in multi mode");
+      if (mode == Comm::MULTIOLD)
+        error->all(FLERR, "Use cutoff/multi/old keyword to set cutoff in multi mode");
+      cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
-        error->all(FLERR,"Invalid cutoff in comm_modify command");
+        error->all(FLERR,"Invalid cutoff {} in comm_modify command", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff/multi") == 0) {
       int i,nlo,nhi;
       double cut;
       if (mode == Comm::SINGLE)
         error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
+      if (mode == Comm::MULTIOLD)
+        error->all(FLERR,"Use cutoff/multi/old keyword to set cutoff in multi/old mode");
       if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Cannot set cutoff/multi before simulation box is defined");
-      const int ntypes = atom->ntypes;
-      if (iarg+3 > narg)
-        error->all(FLERR,"Illegal comm_modify command");
-      if (cutusermulti == NULL) {
-        memory->create(cutusermulti,ntypes+1,"comm:cutusermulti");
-        for (i=0; i < ntypes+1; ++i)
+        error->all(FLERR, "Cannot set cutoff/multi before simulation box is defined");
+
+      // Check if # of collections has changed, if so erase any previously defined cutoffs
+      // Neighbor will reset ncollections if collections are redefined
+      if (! cutusermulti || ncollections_cutoff != neighbor->ncollections) {
+        ncollections_cutoff = neighbor->ncollections;
+        memory->destroy(cutusermulti);
+        memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
+        for (i=0; i < ncollections_cutoff; ++i)
           cutusermulti[i] = -1.0;
       }
-      force->bounds(FLERR,arg[iarg+1],ntypes,nlo,nhi,1);
-      cut = force->numeric(FLERR,arg[iarg+2]);
+      utils::bounds(FLERR,arg[iarg+1],1,ncollections_cutoff,nlo,nhi,error);
+      cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)
-        error->all(FLERR,"Invalid cutoff in comm_modify command");
+        error->all(FLERR,"Invalid cutoff {} in comm_modify command", arg[iarg+2]);
+      // collections use 1-based indexing externally and 0-based indexing internally
       for (i=nlo; i<=nhi; ++i)
-        cutusermulti[i] = cut;
+        cutusermulti[i-1] = cut;
       iarg += 3;
+    }  else if (strcmp(arg[iarg],"cutoff/multi/old") == 0) {
+      int i,nlo,nhi;
+      double cut;
+      if (mode == Comm::SINGLE)
+        error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
+      if (mode == Comm::MULTI)
+        error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
+      if (domain->box_exist == 0)
+        error->all(FLERR, "Cannot set cutoff/multi before simulation box is defined");
+      const int ntypes = atom->ntypes;
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "comm_modify cutoff/multi/old", error);
+      if (cutusermultiold == nullptr) {
+        memory->create(cutusermultiold,ntypes+1,"comm:cutusermultiold");
+        for (i=0; i < ntypes+1; ++i)
+          cutusermultiold[i] = -1.0;
+      }
+      utils::bounds(FLERR,arg[iarg+1],1,ntypes,nlo,nhi,error);
+      cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      cutghostuser = MAX(cutghostuser,cut);
+      if (cut < 0.0)
+        error->all(FLERR,"Invalid cutoff {} in comm_modify command", arg[iarg+2]);
+      for (i=nlo; i<=nhi; ++i)
+        cutusermultiold[i] = cut;
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"reduce/multi") == 0) {
+      if (mode == Comm::SINGLE)
+        error->all(FLERR,"Use reduce/multi in mode multi only");
+      multi_reduce = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
-      else error->all(FLERR,"Illegal comm_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify vel", error);
+      ghost_velocity = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal comm_modify command");
+    } else error->all(FLERR,"Unknown comm_modify keyword: {}", arg[iarg]);
   }
 }
 
@@ -314,11 +406,11 @@ void Comm::set_processors(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Illegal processors command");
 
   if (strcmp(arg[0],"*") == 0) user_procgrid[0] = 0;
-  else user_procgrid[0] = force->inumeric(FLERR,arg[0]);
+  else user_procgrid[0] = utils::inumeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"*") == 0) user_procgrid[1] = 0;
-  else user_procgrid[1] = force->inumeric(FLERR,arg[1]);
+  else user_procgrid[1] = utils::inumeric(FLERR,arg[1],false,lmp);
   if (strcmp(arg[2],"*") == 0) user_procgrid[2] = 0;
-  else user_procgrid[2] = force->inumeric(FLERR,arg[2]);
+  else user_procgrid[2] = utils::inumeric(FLERR,arg[2],false,lmp);
 
   if (user_procgrid[0] < 0 || user_procgrid[1] < 0 || user_procgrid[2] < 0)
     error->all(FLERR,"Illegal processors command");
@@ -339,13 +431,13 @@ void Comm::set_processors(int narg, char **arg)
         if (iarg+6 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = TWOLEVEL;
 
-        ncores = force->inumeric(FLERR,arg[iarg+2]);
+        ncores = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (strcmp(arg[iarg+3],"*") == 0) user_coregrid[0] = 0;
-        else user_coregrid[0] = force->inumeric(FLERR,arg[iarg+3]);
+        else user_coregrid[0] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
         if (strcmp(arg[iarg+4],"*") == 0) user_coregrid[1] = 0;
-        else user_coregrid[1] = force->inumeric(FLERR,arg[iarg+4]);
+        else user_coregrid[1] = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
         if (strcmp(arg[iarg+5],"*") == 0) user_coregrid[2] = 0;
-        else user_coregrid[2] = force->inumeric(FLERR,arg[iarg+5]);
+        else user_coregrid[2] = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
 
         if (ncores <= 0 || user_coregrid[0] < 0 ||
             user_coregrid[1] < 0 || user_coregrid[2] < 0)
@@ -359,9 +451,7 @@ void Comm::set_processors(int narg, char **arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = CUSTOM;
         delete [] customfile;
-        int n = strlen(arg[iarg+2]) + 1;
-        customfile = new char[n];
-        strcpy(customfile,arg[iarg+2]);
+        customfile = utils::strdup(arg[iarg+2]);
         iarg += 1;
 
       } else error->all(FLERR,"Illegal processors command");
@@ -388,8 +478,8 @@ void Comm::set_processors(int narg, char **arg)
         error->all(FLERR,
                    "Cannot use processors part command "
                    "without using partitions");
-      int isend = force->inumeric(FLERR,arg[iarg+1]);
-      int irecv = force->inumeric(FLERR,arg[iarg+2]);
+      int isend = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      int irecv = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (isend < 1 || isend > universe->nworlds ||
           irecv < 1 || irecv > universe->nworlds || isend == irecv)
         error->all(FLERR,"Invalid partitions in processors part command");
@@ -421,9 +511,7 @@ void Comm::set_processors(int narg, char **arg)
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
       delete [] outfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      outfile = new char[n];
-      strcpy(outfile,arg[iarg+1]);
+      outfile = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal processors command");
@@ -462,7 +550,7 @@ void Comm::set_proc_grid(int outflag)
 
   // create ProcMap class to create 3d grid and map procs to it
 
-  ProcMap *pmap = new ProcMap(lmp);
+  auto pmap = new ProcMap(lmp);
 
   // create 3d grid of processors
   // produces procgrid and coregrid (if relevant)
@@ -526,20 +614,12 @@ void Comm::set_proc_grid(int outflag)
   // print 3d grid info to screen and logfile
 
   if (outflag && me == 0) {
-    if (screen) {
-      fprintf(screen,"  %d by %d by %d MPI processor grid\n",
-              procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL)
-        fprintf(screen,"  %d by %d by %d core grid within node\n",
-                coregrid[0],coregrid[1],coregrid[2]);
-    }
-    if (logfile) {
-      fprintf(logfile,"  %d by %d by %d MPI processor grid\n",
-              procgrid[0],procgrid[1],procgrid[2]);
-      if (gridflag == NUMA || gridflag == TWOLEVEL)
-        fprintf(logfile,"  %d by %d by %d core grid within node\n",
-                coregrid[0],coregrid[1],coregrid[2]);
-    }
+    auto mesg = fmt::format("  {} by {} by {} MPI processor grid\n",
+                            procgrid[0],procgrid[1],procgrid[2]);
+    if (gridflag == NUMA || gridflag == TWOLEVEL)
+      mesg += fmt::format("  {} by {} by {} core grid within node\n",
+                          coregrid[0],coregrid[1],coregrid[2]);
+    utils::logmesg(lmp,mesg);
   }
 
   // print 3d grid details to outfile
@@ -586,6 +666,84 @@ void Comm::set_proc_grid(int outflag)
 }
 
 /* ----------------------------------------------------------------------
+   determine suitable communication cutoff.
+   this uses three inputs: 1) maximum neighborlist cutoff, 2) an estimate
+   based on bond lengths and bonded interaction styles present, and 3) a
+   user supplied communication cutoff.
+   the neighbor list cutoff (1) is *always* used, since it is a requirement
+   for neighborlists working correctly. the bond length based cutoff is
+   *only* used, if no pair style is defined and no user cutoff is provided.
+   otherwise, a warning is printed. if the bond length based estimate is
+   larger than what is used.
+   print a warning, if a user specified communication cutoff is overridden.
+------------------------------------------------------------------------- */
+
+double Comm::get_comm_cutoff()
+{
+  double maxcommcutoff, maxbondcutoff = 0.0;
+
+  if (force->bond) {
+    int n = atom->nbondtypes;
+    for (int i = 1; i <= n; ++i)
+      maxbondcutoff = MAX(maxbondcutoff,force->bond->equilibrium_distance(i));
+
+    // apply bond length based heuristics.
+
+    if (force->newton_bond) {
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
+    } else {
+      if (force->dihedral || force->improper) {
+        maxbondcutoff *= 3.125;
+      } else if (force->angle) {
+        maxbondcutoff *= 2.25;
+      } else {
+        maxbondcutoff *=1.5;
+      }
+    }
+    maxbondcutoff += neighbor->skin;
+  }
+
+  // always take the larger of max neighbor list and user specified cutoff
+
+  maxcommcutoff = MAX(cutghostuser,neighbor->cutneighmax);
+
+  // use cutoff estimate from bond length only if no user specified
+  // cutoff was given and no pair style present. Otherwise print a
+  // warning, if the estimated bond based cutoff is larger than what
+  // is currently used.
+
+  if (!force->pair && (cutghostuser == 0.0)) {
+    maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
+  } else {
+    if ((me == 0) && (maxbondcutoff > maxcommcutoff))
+      error->warning(FLERR,"Communication cutoff {} is shorter than a bond "
+                     "length based estimate of {}. This may lead to errors.",
+                     maxcommcutoff,maxbondcutoff);
+  }
+
+  // print warning if neighborlist cutoff overrides user cutoff
+
+  if ((me == 0) && (update->setupflag == 1)) {
+    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser))
+      error->warning(FLERR,"Communication cutoff adjusted to {}",maxcommcutoff);
+  }
+
+  // check maximum interval size for neighbor multi
+
+  if (neighbor->interval_collection_flag) {
+    for (int i = 0; i < neighbor->ncollections; i++){
+      maxcommcutoff = MAX(maxcommcutoff, neighbor->collection2cut[i]);
+    }
+  }
+
+  return maxcommcutoff;
+}
+
+/* ----------------------------------------------------------------------
    determine which proc owns atom with coord x[3] based on current decomp
    x will be in box (orthogonal) or lamda coords (triclinic)
    if layout = UNIFORM, calculate owning proc directly
@@ -618,13 +776,13 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 
   } else if (layout == Comm::LAYOUT_NONUNIFORM) {
     if (triclinic == 0) {
-      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
-      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
-      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+      igx = utils::binary_search((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      igy = utils::binary_search((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      igz = utils::binary_search((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
     } else {
-      igx = binary(x[0],procgrid[0],xsplit);
-      igy = binary(x[1],procgrid[1],ysplit);
-      igz = binary(x[2],procgrid[2],zsplit);
+      igx = utils::binary_search(x[0],procgrid[0],xsplit);
+      igy = utils::binary_search(x[1],procgrid[1],ysplit);
+      igz = utils::binary_search(x[2],procgrid[2],zsplit);
     }
   }
 
@@ -639,33 +797,100 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 }
 
 /* ----------------------------------------------------------------------
-   binary search for value in N-length ascending vec
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
+   partition a global regular grid into one brick-shaped sub-grid per proc
+   if grid point is inside my sub-domain I own it,
+     this includes sub-domain lo boundary but excludes hi boundary
+   nx,ny,nz = extent of global grid
+     indices into the global grid range from 0 to N-1 in each dim
+   zfactor = 0.0 if the grid exactly covers the simulation box
+   zfactor > 1.0 if the grid extends beyond the +z boundary by this factor
+     used by 2d slab-mode PPPM
+     this effectively maps proc sub-grids to a smaller subset of the grid
+   nxyz lo/hi = inclusive lo/hi bounds of global grid sub-brick I own
+   if proc owns no grid cells in a dim, then nlo > nhi
+   special case: 2 procs share boundary which a grid point is exactly on
+     2 equality if tests insure a consistent decision as to which proc owns it
 ------------------------------------------------------------------------- */
 
-int Comm::binary(double value, int n, double *vec)
+void Comm::partition_grid(int nx, int ny, int nz, double zfactor,
+                          int &nxlo, int &nxhi, int &nylo, int &nyhi,
+                          int &nzlo, int &nzhi)
 {
-  int lo = 0;
-  int hi = n-1;
+  double xfraclo,xfrachi,yfraclo,yfrachi,zfraclo,zfrachi;
 
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
+  if (layout != LAYOUT_TILED) {
+    xfraclo = xsplit[myloc[0]];
+    xfrachi = xsplit[myloc[0]+1];
+    yfraclo = ysplit[myloc[1]];
+    yfrachi = ysplit[myloc[1]+1];
+    zfraclo = zsplit[myloc[2]];
+    zfrachi = zsplit[myloc[2]+1];
+  } else {
+    xfraclo = mysplit[0][0];
+    xfrachi = mysplit[0][1];
+    yfraclo = mysplit[1][0];
+    yfrachi = mysplit[1][1];
+    zfraclo = mysplit[2][0];
+    zfrachi = mysplit[2][1];
   }
 
-  return index;
+  nxlo = static_cast<int> (xfraclo * nx);
+  if (1.0*nxlo != xfraclo*nx) nxlo++;
+  nxhi = static_cast<int> (xfrachi * nx);
+  if (1.0*nxhi == xfrachi*nx) nxhi--;
+
+  nylo = static_cast<int> (yfraclo * ny);
+  if (1.0*nylo != yfraclo*ny) nylo++;
+  nyhi = static_cast<int> (yfrachi * ny);
+  if (1.0*nyhi == yfrachi*ny) nyhi--;
+
+  if (zfactor == 0.0) {
+    nzlo = static_cast<int> (zfraclo * nz);
+    if (1.0*nzlo != zfraclo*nz) nzlo++;
+    nzhi = static_cast<int> (zfrachi * nz);
+    if (1.0*nzhi == zfrachi*nz) nzhi--;
+  } else {
+    nzlo = static_cast<int> (zfraclo * nz/zfactor);
+    if (1.0*nzlo != zfraclo*nz) nzlo++;
+    nzhi = static_cast<int> (zfrachi * nz/zfactor);
+    if (1.0*nzhi == zfrachi*nz) nzhi--;
+  }
+
+  // OLD code
+  // could sometimes map grid points slightly outside a proc to the proc
+
+  /*
+  if (layout != LAYOUT_TILED) {
+    nxlo = static_cast<int> (xsplit[myloc[0]] * nx);
+    nxhi = static_cast<int> (xsplit[myloc[0]+1] * nx) - 1;
+
+    nylo = static_cast<int> (ysplit[myloc[1]] * ny);
+    nyhi = static_cast<int> (ysplit[myloc[1]+1] * ny) - 1;
+
+    if (zfactor == 0.0) {
+      nzlo = static_cast<int> (zsplit[myloc[2]] * nz);
+      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz) - 1;
+    } else {
+      nzlo = static_cast<int> (zsplit[myloc[2]] * nz/zfactor);
+      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz/zfactor) - 1;
+    }
+
+  } else {
+    nxlo = static_cast<int> (mysplit[0][0] * nx);
+    nxhi = static_cast<int> (mysplit[0][1] * nx) - 1;
+
+    nylo = static_cast<int> (mysplit[1][0] * ny);
+    nyhi = static_cast<int> (mysplit[1][1] * ny) - 1;
+
+    if (zfactor == 0.0) {
+      nzlo = static_cast<int> (mysplit[2][0] * nz);
+      nzhi = static_cast<int> (mysplit[2][1] * nz) - 1;
+    } else {
+      nzlo = static_cast<int> (mysplit[2][0] * nz/zfactor);
+      nzhi = static_cast<int> (mysplit[2][1] * nz/zfactor) - 1;
+    }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -674,7 +899,7 @@ int Comm::binary(double value, int n, double *vec)
    callback() is invoked to allow caller to process/update each proc's inbuf
    if self=1 (default), then callback() is invoked on final iteration
      using original inbuf, which may have been updated
-   for non-NULL outbuf, final updated inbuf is copied to it
+   for non-nullptr outbuf, final updated inbuf is copied to it
      ok to specify outbuf = inbuf
    the ptr argument is a pointer to the instance of calling class
 ------------------------------------------------------------------------- */
@@ -696,7 +921,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
 
   // sanity check
 
-  if ((nbytes > 0) && inbuf == NULL)
+  if ((nbytes > 0) && inbuf == nullptr)
     error->one(FLERR,"Cannot put data on ring from NULL pointer");
 
   char *buf,*bufcopy;
@@ -730,7 +955,7 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
    rendezvous communication operation
    three stages:
      first comm sends inbuf from caller decomp to rvous decomp
-     callback operates on data in rendevous decomp
+     callback operates on data in rendezvous decomp
      second comm sends outbuf from rvous decomp back to caller decomp
    inputs:
      which = perform (0) irregular or (1) MPI_All2allv communication
@@ -786,14 +1011,15 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
 {
   // irregular comm of inbuf from caller decomp to rendezvous decomp
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
 
   int nrvous;
   if (inorder) nrvous = irregular->create_data_grouped(n,procs);
   else nrvous = irregular->create_data(n,procs);
 
-  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize,
-                                               "rendezvous:inbuf");
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
+
+  auto inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
   irregular->exchange_data(inbuf,insize,inbuf_rvous);
 
   bigint irregular1_bytes = irregular->memory_usage();
@@ -806,14 +1032,12 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   int flag;
   int *procs_rvous;
   char *outbuf_rvous;
-  int nrvous_out = callback(nrvous,inbuf_rvous,flag,
-                            procs_rvous,outbuf_rvous,ptr);
+  int nrvous_out = callback(nrvous,inbuf_rvous,flag, procs_rvous,outbuf_rvous,ptr);
 
   if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
   if (flag == 0) {
     if (statflag) rendezvous_stats(n,0,nrvous,nrvous_out,insize,outsize,
-                                   (bigint) nrvous_out*sizeof(int) +
-                                   irregular1_bytes);
+                                   (bigint) nrvous_out*sizeof(int) + irregular1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd comm stage
   }
 
@@ -823,12 +1047,12 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   irregular = new Irregular(lmp);
 
   int nout;
-  if (outorder)
-    nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
+  if (outorder) nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
   else nout = irregular->create_data(nrvous_out,procs_rvous);
 
-  outbuf = (char *) memory->smalloc((bigint) nout*outsize,
-                                    "rendezvous:outbuf");
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
+
+  outbuf = (char *) memory->smalloc((bigint) nout*outsize+1, "rendezvous:outbuf");
   irregular->exchange_data(outbuf_rvous,outsize,outbuf);
 
   bigint irregular2_bytes = irregular->memory_usage();
@@ -862,12 +1086,16 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   bigint *offsets;
   char *inbuf_a2a,*outbuf_a2a;
 
-  // create procs and inbuf for All2all if necesary
+  // create procs and inbuf for All2all if necessary
 
   if (!inorder) {
     memory->create(procs_a2a,nprocs,"rendezvous:procs");
-    inbuf_a2a = (char *) memory->smalloc((bigint) n*insize,
+
+    // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
+
+    inbuf_a2a = (char *) memory->smalloc((bigint) n*insize+1,
                                          "rendezvous:inbuf");
+    memset(inbuf_a2a,0,(bigint)n*insize*sizeof(char));
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
     for (int i = 0; i < nprocs; i++) procs_a2a[i] = 0;
@@ -875,7 +1103,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + insize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)insize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < n; i++) {
@@ -885,7 +1113,8 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
       offset += insize;
     }
 
-    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) + n*insize;
+    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint)
+                     + (bigint)n*insize;
 
   } else {
     procs_a2a = procs;
@@ -928,12 +1157,13 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   }
 
   // all2all comm of inbuf from caller decomp to rendezvous decomp
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize,
-                                               "rendezvous:inbuf");
+  auto inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
+  memset(inbuf_rvous,0,(bigint) nrvous*insize*sizeof(char));
 
   MPI_Alltoallv(inbuf_a2a,sendcount,sdispls,MPI_CHAR,
-		inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);
+                inbuf_rvous,recvcount,rdispls,MPI_CHAR,world);
 
   if (!inorder) {
     memory->destroy(procs_a2a);
@@ -948,8 +1178,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   int *procs_rvous;
   char *outbuf_rvous;
 
-  int nrvous_out = callback(nrvous,inbuf_rvous,flag,
-                            procs_rvous,outbuf_rvous,ptr);
+  int nrvous_out = callback(nrvous,inbuf_rvous,flag, procs_rvous,outbuf_rvous,ptr);
 
   if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
   if (flag == 0) {
@@ -963,18 +1192,14 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     return 0;    // all nout_rvous are 0, no 2nd irregular
   }
 
-
-
-
-
-
-  // create procs and outbuf for All2all if necesary
+  // create procs and outbuf for All2all if necessary
 
   if (!outorder) {
     memory->create(procs_a2a,nprocs,"rendezvous_a2a:procs");
 
-    outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize,
-                                          "rendezvous:outbuf");
+    // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
+
+    outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize+1, "rendezvous:outbuf");
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
     for (int i = 0; i < nprocs; i++) procs_a2a[i] = 0;
@@ -982,7 +1207,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + outsize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)outsize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < nrvous_out; i++) {
@@ -992,8 +1217,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
       offset += outsize;
     }
 
-    all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) +
-      nrvous_out*outsize;
+    all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) + (bigint)nrvous_out*outsize;
 
   } else {
     procs_a2a = procs_rvous;
@@ -1032,11 +1256,12 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // all2all comm of outbuf from rendezvous decomp back to caller decomp
   // caller will free outbuf
+  // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-  outbuf = (char *) memory->smalloc((bigint) nout*outsize,"rendezvous:outbuf");
+  outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,"rendezvous:outbuf");
 
   MPI_Alltoallv(outbuf_a2a,sendcount,sdispls,MPI_CHAR,
-		outbuf,recvcount,rdispls,MPI_CHAR,world);
+                outbuf,recvcount,rdispls,MPI_CHAR,world);
 
   memory->destroy(procs_rvous);
   memory->sfree(outbuf_rvous);
@@ -1106,113 +1331,41 @@ void Comm::rendezvous_stats(int n, int nout, int nrvous, int nrvous_out,
   int mbytes = 1024*1024;
 
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"Rendezvous balance and memory info: (tot,ave,max,min) \n");
-      fprintf(screen,"  input datum count: "
-              BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-              size_in_all/insize,1.0*size_in_all/nprocs/insize,
-              size_in_max/insize,size_in_min/insize);
-      fprintf(screen,"  input data (MB): %g %g %g %g\n",
-              1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
-              1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
-      if (outsize)
-        fprintf(screen,"  output datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
-                size_out_max/outsize,size_out_min/outsize);
-      else
-        fprintf(screen,"  output datum count: %d %g %d %d\n",0,0.0,0,0);
-      fprintf(screen,"  output data (MB): %g %g %g %g\n",
-              1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
-              1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
-      fprintf(screen,"  input rvous datum count: "
-              BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-              size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
-              size_inrvous_max/insize,size_inrvous_min/insize);
-      fprintf(screen,"  input rvous data (MB): %g %g %g %g\n",
-              1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
-              1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
-      if (outsize)
-        fprintf(screen,"  output rvous datum count: "
-                BIGINT_FORMAT " %g " BIGINT_FORMAT " " BIGINT_FORMAT "\n",
-                size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
-                size_outrvous_max/outsize,size_outrvous_min/outsize);
-      else
-        fprintf(screen,"  output rvous datum count: %d %g %d %d\n",0,0.0,0,0);
-      fprintf(screen,"  output rvous data (MB): %g %g %g %g\n",
-              1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
-              1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
-      fprintf(screen,"  rvous comm (MB): %g %g %g %g\n",
-              1.0*size_comm_all/mbytes,1.0*size_comm_all/nprocs/mbytes,
-              1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
-    }
+    std::string mesg = "Rendezvous balance and memory info: (tot,ave,max,min) \n";
+    mesg += fmt::format("  input datum count: {} {} {} {}\n",
+                        size_in_all/insize,1.0*size_in_all/nprocs/insize,
+                        size_in_max/insize,size_in_min/insize);
+    mesg += fmt::format("  input data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_in_all/mbytes,1.0*size_in_all/nprocs/mbytes,
+                        1.0*size_in_max/mbytes,1.0*size_in_min/mbytes);
+    if (outsize)
+      mesg += fmt::format("  output datum count: {} {} {} {}\n",
+                          size_out_all/outsize,1.0*size_out_all/nprocs/outsize,
+                          size_out_max/outsize,size_out_min/outsize);
+    else
+      mesg += fmt::format("  output datum count: {} {:.6} {} {}\n",0,0.0,0,0);
+
+    mesg += fmt::format("  output data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_out_all/mbytes,1.0*size_out_all/nprocs/mbytes,
+                        1.0*size_out_max/mbytes,1.0*size_out_min/mbytes);
+    mesg += fmt::format("  input rvous datum count: {} {} {} {}\n",
+                        size_inrvous_all/insize,1.0*size_inrvous_all/nprocs/insize,
+                        size_inrvous_max/insize,size_inrvous_min/insize);
+    mesg += fmt::format("  input rvous data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_inrvous_all/mbytes,1.0*size_inrvous_all/nprocs/mbytes,
+                        1.0*size_inrvous_max/mbytes,1.0*size_inrvous_min/mbytes);
+    if (outsize)
+      mesg += fmt::format("  output rvous datum count: {} {} {} {}\n",
+                          size_outrvous_all/outsize,1.0*size_outrvous_all/nprocs/outsize,
+                          size_outrvous_max/outsize,size_outrvous_min/outsize);
+    else
+      mesg += fmt::format("  output rvous datum count: {} {:.6} {} {}\n",0,0.0,0,0);
+    mesg += fmt::format("  output rvous data (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_outrvous_all/mbytes,1.0*size_outrvous_all/nprocs/mbytes,
+                        1.0*size_outrvous_max/mbytes,1.0*size_outrvous_min/mbytes);
+    mesg += fmt::format("  rvous comm (MB): {:.6} {:.6} {:.6} {:.6}\n",
+                        1.0*size_comm_all/mbytes,1.0*size_comm_all/nprocs/mbytes,
+                        1.0*size_comm_max/mbytes,1.0*size_comm_min/mbytes);
+    utils::logmesg(lmp,mesg);
   }
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads Nlines from file into buf and bcasts buf to all procs
-   caller allocates buf to max size needed
-   each line is terminated by newline, even if last line in file is not
-   return 0 if successful, 1 if get EOF error before read is complete
-------------------------------------------------------------------------- */
-
-int Comm::read_lines_from_file(FILE *fp, int nlines, int maxline, char *buf)
-{
-  int m;
-
-  if (me == 0) {
-    m = 0;
-    for (int i = 0; i < nlines; i++) {
-      if (!fgets(&buf[m],maxline,fp)) {
-        m = 0;
-        break;
-      }
-      m += strlen(&buf[m]);
-    }
-    if (m) {
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      m++;
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,world);
-  if (m == 0) return 1;
-  MPI_Bcast(buf,m,MPI_CHAR,0,world);
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads Nlines from file into buf and bcasts buf to all procs
-   caller allocates buf to max size needed
-   each line is terminated by newline, even if last line in file is not
-   return 0 if successful, 1 if get EOF error before read is complete
-------------------------------------------------------------------------- */
-
-int Comm::read_lines_from_file_universe(FILE *fp, int nlines, int maxline,
-                                        char *buf)
-{
-  int m;
-
-  int me_universe = universe->me;
-  MPI_Comm uworld = universe->uworld;
-
-  if (me_universe == 0) {
-    m = 0;
-    for (int i = 0; i < nlines; i++) {
-      if (!fgets(&buf[m],maxline,fp)) {
-        m = 0;
-        break;
-      }
-      m += strlen(&buf[m]);
-    }
-    if (m) {
-      if (buf[m-1] != '\n') strcpy(&buf[m++],"\n");
-      m++;
-    }
-  }
-
-  MPI_Bcast(&m,1,MPI_INT,0,uworld);
-  if (m == 0) return 1;
-  MPI_Bcast(buf,m,MPI_CHAR,0,uworld);
-  return 0;
 }

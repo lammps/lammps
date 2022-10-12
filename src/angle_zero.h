@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(zero,AngleZero)
-
+// clang-format off
+AngleStyle(zero,AngleZero);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_ZERO_H
 #define LMP_ANGLE_ZERO_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -28,17 +27,17 @@ namespace LAMMPS_NS {
 class AngleZero : public Angle {
  public:
   AngleZero(class LAMMPS *);
-  virtual ~AngleZero();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void settings(int, char **);
+  ~AngleZero() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void settings(int, char **) override;
 
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
-  double single(int, int, int, int);
+  double single(int, int, int, int) override;
 
  protected:
   double *theta0;
@@ -47,19 +46,7 @@ class AngleZero : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Incorrect args for angle coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

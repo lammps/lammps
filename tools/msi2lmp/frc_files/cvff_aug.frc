@@ -123,7 +123,7 @@
 
 
 ! Currently Insight does not handle version numbers on lines correctly.
-! It uses the first occurence of a line, so when making changes you
+! It uses the first occurrence of a line, so when making changes you
 ! can either comment the original out temporarily or put the correct
 ! line first.
 
@@ -5080,7 +5080,7 @@ for silicate, copied directly from previous si and o parameters.
 @Date 07-Nov-91
 
 #reference 15
-Adding a  torsion parametr, cp cp o c = 1.8  so that the rotation barrier
+Adding a torsion parameter, cp cp o c = 1.8  so that the rotation barrier
 around bond cp-o in anisole  matches the experimental value ~3.0kcal/mole
 and the equilibrium geometry of anisole has torsion angle cp-cp-o-c =0
 @Author Shenghua Shi

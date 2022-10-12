@@ -1,4 +1,4 @@
-DATE: 2007-06-15 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Ackland,  Mendelev,  Srolovitz, Han and Barashev, J Phys Condens Matter 16, S2629-S2642 (2004)
+DATE: 2007-06-15 UNITS: metal CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Ackland,  Mendelev,  Srolovitz, Han and Barashev, J Phys Condens Matter 16, S2629-S2642 (2004)
 Tuesday, Jun 12, 2007  The potential was taken from v4_19_DO3 (in C:\SIMULATION.MD\Fe-P\Seungwu\V4\Results\v4_19)
 ################################################
 2  Fe  P  

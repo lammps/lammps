@@ -1,0 +1,63 @@
+dimension          2
+units              si
+atom_style         sph
+
+# create simulation box
+region             box block -0.050e-3 1.044e-3 -0.05e-3 1.044e-3 -1.0e-6 1.0e-6 units box
+create_box         3 box
+
+# create fluid particles
+region             fluid block 0.0001e-3 0.999e-3 0.0001e-3 0.999e-3 EDGE EDGE side in units box 
+lattice            sq 0.025e-3
+create_atoms       1 region fluid
+
+# create bottom, left, and right wall
+region             walls block 0.0001e-3 0.999e-3 0.0001e-3 EDGE EDGE EDGE side out units box 
+lattice            sq2 0.025e-3
+create_atoms       2 region walls
+
+# create a driver strip of particles, which exerts shear forces on the fluid
+region             driver block EDGE EDGE 0.999e-3 EDGE EDGE EDGE side in units box 
+create_atoms       3 region driver
+
+group              fluid type 1 
+group              walls type 2 
+group              driver type 3
+group              integrate_full union fluid driver
+
+mass               3 2.0e-7
+mass               2 2.0e-7
+mass               1 4.0e-7
+set                group all sph/rho 1000.0
+
+# use Tait's EOS in combination with Morris' laminar viscosity.
+# We set rho_0 = 1000 kg/m^3, c = 0.1 m/s, h = 6.5e-5 m.
+# The dynamic viscosity is set to 1.0e-3 Pa s, corresponding to a kinematic viscosity of 1.0e-6 m^2/s
+pair_style         hybrid sph/taitwater/morris
+pair_coeff         * *    sph/taitwater/morris 1000 0.1 1.0e-3 6.5e-5
+pair_coeff         2 3    none # exclude interaction between walls and shear driver
+
+compute            rho_peratom all sph/rho/atom
+compute            e_peratom all sph/e/atom
+compute            ke_peratom all ke/atom
+compute            esph all reduce sum c_e_peratom
+compute            ke all ke
+variable           etot equal c_ke+c_esph
+
+# assign a constant velocity to shear driver
+velocity           driver set 0.001 0.0 0.0 units box
+fix                freeze_fix driver setforce 0.0 0.0 0.0
+
+# do full time integration for shear driver and fluid, but keep walls stationary
+fix                integrate_fix_full integrate_full sph
+fix                integrate_fix_stationary walls sph/stationary
+
+dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs vx vy c_rho_peratom c_e_peratom
+dump_modify        dump_id first yes
+thermo             100
+thermo_style       custom step c_esph v_etot
+thermo_modify      norm no
+
+neighbor           3.0e-6 bin
+timestep           5.0e-5
+run                4000

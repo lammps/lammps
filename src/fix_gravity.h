@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(gravity,FixGravity)
-
+// clang-format off
+FixStyle(gravity,FixGravity);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GRAVITY_H
@@ -29,53 +29,38 @@ class FixGravity : public Fix {
 
  public:
   FixGravity(class LAMMPS *, int, char **);
-  virtual ~FixGravity();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  double compute_scalar();
+  ~FixGravity() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_scalar() override;
+  void *extract(const char *, int &) override;
+  enum { CONSTANT, EQUAL };
 
  protected:
-  int style;
+  int style, disable;
   double magnitude;
-  double vert,phi,theta;
-  double xdir,ydir,zdir;
-  double xgrav,ygrav,zgrav,xacc,yacc,zacc;
-  double degree2rad;
+  double vert, phi, theta;
+  double xdir, ydir, zdir;
+  double xgrav, ygrav, zgrav, xacc, yacc, zacc;
   int ilevel_respa;
   int time_origin;
+  double gvec[3];
+
   int eflag;
-  double egrav,egrav_all;
+  double egrav, egrav_all;
 
   int varflag;
-  int mstyle,vstyle,pstyle,tstyle,xstyle,ystyle,zstyle;
-  int mvar,vvar,pvar,tvar,xvar,yvar,zvar;
-  char *mstr,*vstr,*pstr,*tstr,*xstr,*ystr,*zstr;
+  int mstyle, vstyle, pstyle, tstyle, xstyle, ystyle, zstyle;
+  int mvar, vvar, pvar, tvar, xvar, yvar, zvar;
+  char *mstr, *vstr, *pstr, *tstr, *xstr, *ystr, *zstr;
 
   void set_acceleration();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Variable name for fix gravity does not exist
-
-Self-explanatory.
-
-E: Variable for fix gravity is invalid style
-
-Only equal-style variables can be used.
-
-*/

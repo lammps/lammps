@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,14 +20,15 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_eam_opt.h"
+#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -80,11 +82,13 @@ void PairEAMOpt::eval()
   // grow energy array if necessary
 
   if (atom->nmax > nmax) {
-    memory->sfree(rho);
-    memory->sfree(fp);
+    memory->destroy(rho);
+    memory->destroy(fp);
+    memory->destroy(numforce);
     nmax = atom->nmax;
-    rho = (double *) memory->smalloc(nmax*sizeof(double),"pair:rho");
-    fp = (double *) memory->smalloc(nmax*sizeof(double),"pair:fp");
+    memory->create(rho,nmax,"pair:rho");
+    memory->create(fp,nmax,"pair:fp");
+    memory->create(numforce,nmax,"pair:numforce");
   }
 
   double** _noalias x = atom->x;
@@ -92,8 +96,8 @@ void PairEAMOpt::eval()
   int* _noalias type = atom->type;
   int nlocal = atom->nlocal;
 
-  vec3_t* _noalias xx = (vec3_t*)x[0];
-  vec3_t* _noalias ff = (vec3_t*)f[0];
+  auto * _noalias xx = (vec3_t*)x[0];
+  auto * _noalias ff = (vec3_t*)f[0];
 
   double tmp_cutforcesq = cutforcesq;
   double tmp_rdr = rdr;
@@ -108,12 +112,12 @@ void PairEAMOpt::eval()
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
 
-  fast_alpha_t* _noalias fast_alpha =
-    (fast_alpha_t*) malloc(ntypes2*(nr+1)*sizeof(fast_alpha_t));
+  auto * _noalias fast_alpha =
+    (fast_alpha_t*) malloc((size_t)ntypes2*(nr+1)*sizeof(fast_alpha_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
-    fast_alpha_t* _noalias tab = &fast_alpha[i*ntypes*nr+j*nr];
+    auto * _noalias tab = &fast_alpha[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor0i =  rhor_spline[type2rhor[i+1][j+1]][m][6];
         tab[m].rhor1i =  rhor_spline[type2rhor[i+1][j+1]][m][5];
         tab[m].rhor2i =  rhor_spline[type2rhor[i+1][j+1]][m][4];
@@ -121,7 +125,7 @@ void PairEAMOpt::eval()
       }
     }
     if (type2rhor[j+1][i+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor0j =  rhor_spline[type2rhor[j+1][i+1]][m][6];
         tab[m].rhor1j =  rhor_spline[type2rhor[j+1][i+1]][m][5];
         tab[m].rhor2j =  rhor_spline[type2rhor[j+1][i+1]][m][4];
@@ -129,21 +133,21 @@ void PairEAMOpt::eval()
       }
     }
   }
-  fast_alpha_t* _noalias tabeight = fast_alpha;
+  auto * _noalias tabeight = fast_alpha;
 
-  fast_gamma_t* _noalias fast_gamma =
-    (fast_gamma_t*) malloc(ntypes2*(nr+1)*sizeof(fast_gamma_t));
+  auto * _noalias fast_gamma =
+    (fast_gamma_t*) malloc((size_t)ntypes2*(nr+1)*sizeof(fast_gamma_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
-    fast_gamma_t* _noalias tab = &fast_gamma[i*ntypes*nr+j*nr];
+    auto * _noalias tab = &fast_gamma[i*ntypes*nr+j*nr];
     if (type2rhor[i+1][j+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor4i =  rhor_spline[type2rhor[i+1][j+1]][m][2];
         tab[m].rhor5i =  rhor_spline[type2rhor[i+1][j+1]][m][1];
         tab[m].rhor6i =  rhor_spline[type2rhor[i+1][j+1]][m][0];
       }
     }
     if (type2rhor[j+1][i+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].rhor4j =  rhor_spline[type2rhor[j+1][i+1]][m][2];
         tab[m].rhor5j =  rhor_spline[type2rhor[j+1][i+1]][m][1];
         tab[m].rhor6j =  rhor_spline[type2rhor[j+1][i+1]][m][0];
@@ -151,7 +155,7 @@ void PairEAMOpt::eval()
       }
     }
     if (type2z2r[i+1][j+1] >= 0) {
-      for(int m = 1; m <= nr; m++) {
+      for (int m = 1; m <= nr; m++) {
         tab[m].z2r0 =  z2r_spline[type2z2r[i+1][j+1]][m][6];
         tab[m].z2r1 =  z2r_spline[type2z2r[i+1][j+1]][m][5];
         tab[m].z2r2 =  z2r_spline[type2z2r[i+1][j+1]][m][4];
@@ -162,7 +166,7 @@ void PairEAMOpt::eval()
       }
     }
   }
-  fast_gamma_t* _noalias tabss = fast_gamma;
+  auto * _noalias tabss = fast_gamma;
 
   // zero out density
 
@@ -172,8 +176,6 @@ void PairEAMOpt::eval()
   } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
 
   // rho = density at each atom
-  // loop over neighbors of my atoms
-
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -186,7 +188,7 @@ void PairEAMOpt::eval()
     jnum = numneigh[i];
 
     double tmprho = rho[i];
-    fast_alpha_t* _noalias tabeighti = &tabeight[itype*ntypes*nr];
+    auto * _noalias tabeighti = &tabeight[itype*ntypes*nr];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -201,7 +203,7 @@ void PairEAMOpt::eval()
         jtype = type[j] - 1;
 
         double p = sqrt(rsq)*tmp_rdr;
-        if ( (int)p <= nr2 ) {
+        if ((int)p <= nr2) {
           int m = (int)p + 1;
           p -= (double)((int)p);
           fast_alpha_t& a = tabeighti[jtype*nr+m];
@@ -223,7 +225,7 @@ void PairEAMOpt::eval()
 
   // communicate and sum densities
 
-  if (NEWTON_PAIR) comm->reverse_comm_pair(this);
+  if (NEWTON_PAIR) comm->reverse_comm(this);
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
@@ -232,10 +234,11 @@ void PairEAMOpt::eval()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    double p = rho[i]*rdrho;
-    int m = MIN((int)p,nrho-2);
-    p -= (double)m;
-    ++m;
+    double p = rho[i]*rdrho + 1.0;
+    int m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
@@ -249,7 +252,8 @@ void PairEAMOpt::eval()
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
+  embedstep = update->ntimestep;
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -267,8 +271,9 @@ void PairEAMOpt::eval()
     double tmpfy = 0.0;
     double tmpfz = 0.0;
 
-    fast_gamma_t* _noalias tabssi = &tabss[itype1*ntypes*nr];
+    auto * _noalias tabssi = &tabss[itype1*ntypes*nr];
     double* _noalias scale_i = scale[itype1+1]+1;
+    numforce[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -280,13 +285,16 @@ void PairEAMOpt::eval()
       double rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < tmp_cutforcesq) {
+        ++numforce[i];
         jtype = type[j] - 1;
         double r = sqrt(rsq);
         double rhoip,rhojp,z2,z2p;
         double p = r*tmp_rdr;
-        if ( (int)p <= nr2 ) {
+        if ((int)p <= nr2) {
           int m = (int) p + 1;
+          m = MIN(m,nr-1);
           p -= (double)((int) p);
+          p = MIN(p,1.0);
 
           fast_gamma_t& a = tabssi[jtype*nr+m];
           rhoip = (a.rhor6i*p + a.rhor5i)*p + a.rhor4i;
@@ -341,8 +349,8 @@ void PairEAMOpt::eval()
     ff[i].z += tmpfz;
   }
 
-  free(fast_alpha); fast_alpha = 0;
-  free(fast_gamma); fast_gamma = 0;
+  free(fast_alpha); fast_alpha = nullptr;
+  free(fast_gamma); fast_gamma = nullptr;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

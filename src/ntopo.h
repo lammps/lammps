@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,26 +14,27 @@
 #ifndef LMP_NTOPO_H
 #define LMP_NTOPO_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
 class NTopo : protected Pointers {
  public:
-  int nbondlist,nanglelist,ndihedrallist,nimproperlist;
-  int **bondlist,**anglelist,**dihedrallist,**improperlist;
+  int nbondlist, nanglelist, ndihedrallist, nimproperlist;
+  int **bondlist, **anglelist, **dihedrallist, **improperlist;
 
   NTopo(class LAMMPS *);
-  virtual ~NTopo();
+  ~NTopo() override;
 
   virtual void build() = 0;
 
-  bigint memory_usage();
+  void add_temporary_bond(int, int, int);
+  double memory_usage();
 
  protected:
-  int me,nprocs;
-  int maxbond,maxangle,maxdihedral,maximproper;
-  int cluster_check;             // copy from Neighbor
+  int me, nprocs;
+  int maxbond, maxangle, maxdihedral, maximproper;
+  int cluster_check;    // copy from Neighbor
 
   void allocate_bond();
   void allocate_angle();
@@ -45,22 +46,6 @@ class NTopo : protected Pointers {
   void dihedral_check(int, int **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Bond extent > half of periodic box length
-
-UNDOCUMENTED
-
-E: Angle extent > half of periodic box length
-
-UNDOCUMENTED
-
-E: Dihedral/improper extent > half of periodic box length
-
-UNDOCUMENTED
-
-*/

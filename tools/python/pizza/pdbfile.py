@@ -1,10 +1,13 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
+# Pizza.py toolkit, https://lammps.github.io/pizza
 # Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
+
+# for python3 compatibility
+from __future__ import print_function
 
 # pdb tool
 
@@ -22,7 +25,7 @@ p = pdbfile("3CRO",d)       read in single PDB file with snapshot data
     if only one 4-char file specified and it is not found,
       it will be downloaded from http://www.rcsb.org as 3CRO.pdb
   d arg is object with atom coordinates (dump, data)
-  
+
 p.one()                     write all output as one big PDB file to tmp.pdb
 p.one("mine")               write to mine.pdb
 p.many()                    write one PDB file per snapshot: tmp0000.pdb, ...
@@ -36,7 +39,7 @@ p.single(N,"new")           write as new.pdb
     if one file in str arg and d: one new PDB file per snapshot
       using input PDB file as template
     multiple input PDB files with a d is not allowed
-    
+
 index,time,flag = p.iterator(0)
 index,time,flag = p.iterator(1)
 
@@ -51,6 +54,7 @@ index,time,flag = p.iterator(1)
 
 # History
 #   8/05, Steve Plimpton (SNL): original version
+#   3/17, Richard Berger (Temple U): improve Python 3 compatibility
 
 # ToDo list
 #   for generic PDB file (no template) from a LJ unit system,
@@ -64,7 +68,13 @@ index,time,flag = p.iterator(1)
 
 # Imports and external programs
 
-import sys, types, glob, urllib
+import sys, glob, urllib
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    string_types = str,
+else:
+    string_types = basestring
 
 # Class definition
 
@@ -74,7 +84,7 @@ class pdbfile:
 
   def __init__(self,*args):
     if len(args) == 1:
-      if type(args[0]) is types.StringType:
+      if type(args[0]) is string_types:
         filestr = args[0]
         self.data = None
       else:
@@ -83,41 +93,41 @@ class pdbfile:
     elif len(args) == 2:
       filestr = args[0]
       self.data = args[1]
-    else: raise StandardError, "invalid args for pdb()"
+    else: raise Exception("invalid args for pdb()")
 
     # flist = full list of all PDB input file names
     # append .pdb if needed
-    
+
     if filestr:
       list = filestr.split()
       flist = []
       for file in list:
         if '*' in file: flist += glob.glob(file)
         else: flist.append(file)
-      for i in xrange(len(flist)):
+      for i in range(len(flist)):
         if flist[i][-4:] != ".pdb": flist[i] += ".pdb"
       if len(flist) == 0:
-        raise StandardError,"no PDB file specified"
+        raise Exception("no PDB file specified")
       self.files = flist
     else: self.files = []
 
     if len(self.files) > 1 and self.data:
-      raise StandardError, "cannot use multiple PDB files with data object"
+      raise Exception("cannot use multiple PDB files with data object")
     if len(self.files) == 0 and not self.data:
-      raise StandardError, "no input PDB file(s)"
+      raise Exception("no input PDB file(s)")
 
     # grab PDB file from http://rcsb.org if not a local file
-    
+
     if len(self.files) == 1 and len(self.files[0]) == 8:
       try:
         open(self.files[0],'r').close()
       except:
-        print "downloading %s from http://rcsb.org" % self.files[0]
+        print("downloading %s from http://rcsb.org" % self.files[0])
         fetchstr = "http://www.rcsb.org/pdb/cgi/export.cgi/%s?format=PDB&pdbId=2cpk&compression=None" % self.files[0]
         urllib.urlretrieve(fetchstr,self.files[0])
 
     if self.data and len(self.files): self.read_template(self.files[0])
-      
+
   # --------------------------------------------------------------------
   # write a single large PDB file for concatenating all input data or files
   # if data exists:
@@ -135,27 +145,27 @@ class pdbfile:
     f = open(file,'w')
 
     # use template PDB file with each snapshot
-    
+
     if self.data:
       n = flag = 0
       while 1:
         which,time,flag = self.data.iterator(flag)
         if flag == -1: break
         self.convert(f,which)
-        print >>f,"END"
-        print time,
+        print("END",file=f)
+        print(time,end='')
         sys.stdout.flush()
         n += 1
 
     else:
       for file in self.files:
         f.write(open(file,'r').read())
-        print >>f,"END"
-        print file,
+        print("END",file=f)
+        print(file,end='')
         sys.stdout.flush()
-        
+
     f.close()
-    print "\nwrote %d datasets to %s in PDB format" % (n,file)
+    print("\nwrote %d datasets to %s in PDB format" % (n,file))
 
   # --------------------------------------------------------------------
   # write series of numbered PDB files
@@ -189,8 +199,8 @@ class pdbfile:
         f = open(file,'w')
         self.convert(f,which)
         f.close()
-        
-        print time,
+
+        print(time,end='')
         sys.stdout.flush()
         n += 1
 
@@ -206,16 +216,16 @@ class pdbfile:
         else:
           file = root + str(n)
         file += ".pdb"
-        
+
         f = open(file,'w')
         f.write(open(infile,'r').read())
         f.close()
-        print file,
+        print(file,end='')
         sys.stdout.flush()
-        
+
         n += 1
 
-    print "\nwrote %d datasets to %s*.pdb in PDB format" % (n,root)
+    print("\nwrote %d datasets to %s*.pdb in PDB format" % (n,root))
 
   # --------------------------------------------------------------------
   # write a single PDB file
@@ -239,7 +249,7 @@ class pdbfile:
       self.convert(f,which)
     else:
       f.write(open(self.files[time],'r').read())
-      
+
     f.close()
 
   # --------------------------------------------------------------------
@@ -258,8 +268,8 @@ class pdbfile:
 
   # --------------------------------------------------------------------
   # read a PDB file and store ATOM lines
-  
-  def read_template(self,file):  
+
+  def read_template(self,file):
     lines = open(file,'r').readlines()
     self.atomlines = {}
     for line in lines:
@@ -277,13 +287,13 @@ class pdbfile:
     if len(self.files):
       for atom in atoms:
         id = atom[0]
-        if self.atomlines.has_key(id):
+        if id in self.atomlines:
           (begin,end) = self.atomlines[id]
           line = "%s%8.3f%8.3f%8.3f%s" % (begin,atom[2],atom[3],atom[4],end)
-          print >>f,line,
+          print(line,file=f,end='')
     else:
       for atom in atoms:
         begin = "ATOM %6d %2d   R00     1    " % (atom[0],atom[1])
         middle = "%8.3f%8.3f%8.3f" %  (atom[2],atom[3],atom[4])
         end = "  1.00  0.00    NONE"
-        print >>f,begin+middle+end
+        print(begin+middle+end,file=f)

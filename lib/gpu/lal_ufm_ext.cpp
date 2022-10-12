@@ -10,7 +10,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : pl.rodolfo@gmail.com
                            dekoning@ifi.unicamp.br
  ***************************************************************************/
@@ -30,10 +30,10 @@ static UFM<PRECISION,ACC_PRECISION> UFMLMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
-                 double **host_uf2, double **host_uf3, double **host_uf4,
-                 double **offset, double *special_lj, const int inum, const int nall,
-		 const int max_nbors,  const int maxspecial, const double cell_size,
-		 int &gpu_mode, FILE *screen) {
+                 double **host_uf2, double **host_uf3, double **offset,
+                 double *special_lj, const int inum, const int nall,
+                 const int max_nbors,  const int maxspecial, const double cell_size,
+                 int &gpu_mode, FILE *screen) {
   UFMLMF.clear();
   gpu_mode=UFMLMF.device->gpu_mode();
   double gpu_split=UFMLMF.device->particle_split();
@@ -57,8 +57,8 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
   int init_ok=0;
   if (world_me==0)
     init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
-                       host_uf4, offset, special_lj, inum, nall, 300,
-                       maxspecial, cell_size, gpu_split, screen);
+                        offset, special_lj, inum, nall, max_nbors,
+                        maxspecial, cell_size, gpu_split, screen);
 
   UFMLMF.device->world_barrier();
   if (message)
@@ -74,12 +74,12 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3, host_uf4,
-                         offset, special_lj, inum, nall, 300, maxspecial,
+      init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
+                         offset, special_lj, inum, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
-    UFMLMF.device->gpu_barrier();
-    if (message) 
+    UFMLMF.device->serialize_init();
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -94,20 +94,19 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
 // Copy updated coeffs from host to device
 // ---------------------------------------------------------------------------
 void ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
-                    double **host_uf2, double **host_uf3, double **host_uf4,
-                    double **offset) {
+                    double **host_uf2, double **host_uf3, double **offset) {
   int world_me=UFMLMF.device->world_me();
   int gpu_rank=UFMLMF.device->gpu_rank();
   int procs_per_gpu=UFMLMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
-    UFMLMF.reinit(ntypes, cutsq, host_uf1, host_uf2, host_uf3, host_uf4, offset);
+    UFMLMF.reinit(ntypes, cutsq, host_uf1, host_uf2, host_uf3, offset);
   UFMLMF.device->world_barrier();
-  
+
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
-      UFMLMF.reinit(ntypes, cutsq, host_uf1, host_uf2, host_uf3, host_uf4, offset);
-    UFMLMF.device->gpu_barrier();
+      UFMLMF.reinit(ntypes, cutsq, host_uf1, host_uf2, host_uf3, offset);
+    UFMLMF.device->serialize_init();
   }
 }
 
@@ -125,8 +124,8 @@ int ** ufml_gpu_compute_n(const int ago, const int inum_full,
   return UFMLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void ufml_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,

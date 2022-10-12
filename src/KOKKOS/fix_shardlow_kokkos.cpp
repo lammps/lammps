@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,31 +34,24 @@
    135, 204105.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_shardlow_kokkos.h"
+
 #include "atom.h"
-#include "atom_masks.h"
 #include "atom_kokkos.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "error.h"
-#include <cmath>
-#include "atom_vec.h"
+#include "atom_masks.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "domain.h"
-#include "modify.h"
-// #include "pair_dpd_fdt.h"
-#include "pair_dpd_fdt_energy_kokkos.h"
-#include "pair.h"
+#include "neighbor.h"
 #include "npair_ssa_kokkos.h"
-#include "citeme.h"
+#include "pair_dpd_fdt_energy_kokkos.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,12 +60,11 @@ using namespace random_external_state;
 #define EPSILON 1.0e-10
 #define EPSILON_SQUARED ((EPSILON) * (EPSILON))
 
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixShardlow(lmp, narg, arg), k_pairDPDE(NULL), ghostmax(0), nlocal(0) , nghost(0)
+  FixShardlow(lmp, narg, arg), k_pairDPDE(nullptr), ghostmax(0), nlocal(0) , nghost(0)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -82,12 +75,12 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 
   if (narg != 3) error->all(FLERR,"Illegal fix shardlow command");
 
-//  k_pairDPD = NULL;
-  k_pairDPDE = NULL;
+//  k_pairDPD = nullptr;
+  k_pairDPDE = nullptr;
 //  k_pairDPD = (PairDPDfdtKokkos *) force->pair_match("dpd/fdt",1);
   k_pairDPDE = dynamic_cast<PairDPDfdtEnergyKokkos<DeviceType> *>(force->pair_match("dpd/fdt/energy",0));
 
-//   if(k_pairDPDE){
+//   if (k_pairDPDE) {
     comm_forward = 3;
     comm_reverse = 5;
 //   } else {
@@ -96,19 +89,14 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //   }
 
 
-  if(/* k_pairDPD == NULL &&*/ k_pairDPDE == NULL)
+  if (/* k_pairDPD == nullptr &&*/ k_pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style "/*"dpd/fdt/kk or "*/"dpd/fdt/energy/kk with fix shardlow/kk");
 
 #ifdef DEBUG_SSA_PAIR_CT
   d_counters = typename AT::t_int_2d("FixShardlowKokkos::d_counters", 2, 3);
   d_hist = typename AT::t_int_1d("FixShardlowKokkos::d_hist", 32);
-#ifndef KOKKOS_USE_CUDA_UVM
   h_counters = Kokkos::create_mirror_view(d_counters);
   h_hist = Kokkos::create_mirror_view(d_hist);
-#else
-  h_counters = d_counters;
-  h_hist = d_hist;
-#endif
 #endif
 }
 
@@ -137,18 +125,12 @@ void FixShardlowKokkos<DeviceType>::init()
 {
   FixShardlow::init();
 
-  int irequest = neighbor->nrequest - 1;
+  // adjust neighbor list request for KOKKOS
 
-  neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-
-//  neighbor->requests[irequest]->pair = 0;
-//  neighbor->requests[irequest]->fix  = 1;
-//  neighbor->requests[irequest]->ghost= 1;
-//  neighbor->requests[irequest]->ssa  = 1;
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
 
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_ssa**,Kokkos::LayoutRight,DeviceType>
@@ -168,7 +150,7 @@ void FixShardlowKokkos<DeviceType>::init()
 
       k_params.h_view(j,i) = k_params.h_view(i,j);
 
-      if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+      if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
         m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
         m_cutsq[j][i] = m_cutsq[i][j] = k_pairDPDE->k_cutsq.h_view(i,j);
       }
@@ -204,7 +186,7 @@ void FixShardlowKokkos<DeviceType>::pre_neighbor()
   if (domain->triclinic)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
 
-  if(rcut >= bbx || rcut >= bby || rcut>= bbz )
+  if (rcut >= bbx || rcut >= bby || rcut>= bbz )
   {
     char fmt[] = {"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin: rcut= %e bbx= %e bby= %e bbz= %e\n"};
     char *msg = (char *) malloc(sizeof(fmt) + 4*15);
@@ -239,7 +221,7 @@ void FixShardlowKokkos<DeviceType>::pre_neighbor()
     massPerI = false;
     masses = atomKK->k_mass.view<DeviceType>();
   }
-//   if(k_pairDPDE){
+//   if (k_pairDPDE) {
   dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
 
 //} else {
@@ -570,7 +552,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
 
 
 template<class DeviceType>
-void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
+void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -640,7 +622,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
   for (workPhase = 0; workPhase < ssa_phaseCt; ++workPhase) {
     int workItemCt = h_ssa_phaseLen[workPhase];
 
-    if(atom->ntypes > MAX_TYPES_STACKPARAMS)
+    if (atom->ntypes > MAX_TYPES_STACKPARAMS)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDE<false> >(0,workItemCt),*this);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDE<true> >(0,workItemCt),*this);
@@ -654,10 +636,10 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
     // Communicate the updated velocities to all nodes
     atomKK->sync(Host,V_MASK);
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     atomKK->modified(Host,V_MASK);
 
-    if(k_pairDPDE){
+    if (k_pairDPDE) {
       // Zero out the ghosts' uCond & uMech to be used as delta accumulators
 //      memset(&(atom->uCond[nlocal]), 0, sizeof(double)*nghost);
 //      memset(&(atom->uMech[nlocal]), 0, sizeof(double)*nghost);
@@ -666,7 +648,8 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
       atomKK->sync(execution_space,UCOND_MASK | UMECH_MASK);
       auto l_uCond = uCond;
       auto l_uMech = uMech;
-      Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nlocal+nghost),
+       LAMMPS_LAMBDA (const int i) {
         l_uCond(i) = 0.0;
         l_uMech(i) = 0.0;
       });
@@ -675,7 +658,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
     // process neighbors in this AIR
     atomKK->sync(execution_space,X_MASK | V_MASK | TYPE_MASK | RMASS_MASK | UCOND_MASK | UMECH_MASK | DPDTHETA_MASK);
-    if(atom->ntypes > MAX_TYPES_STACKPARAMS)
+    if (atom->ntypes > MAX_TYPES_STACKPARAMS)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDEGhost<false> >(0,workItemCt),*this);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShardlowSSAUpdateDPDEGhost<true> >(0,workItemCt),*this);
@@ -683,7 +666,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int vflag)
 
     // Communicate the ghost deltas to the atom owners
     atomKK->sync(Host,V_MASK | UCOND_MASK | UMECH_MASK);
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
     atomKK->modified(Host,V_MASK | UCOND_MASK | UMECH_MASK);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
@@ -724,7 +707,7 @@ void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDEGhost<
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixShardlowKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
 
@@ -767,7 +750,7 @@ int FixShardlowKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *b
     buf[m++] = h_v(i, 0) - h_v_t0(i - nlocal, 0);
     buf[m++] = h_v(i, 1) - h_v_t0(i - nlocal, 1);
     buf[m++] = h_v(i, 2) - h_v_t0(i - nlocal, 2);
-    if(k_pairDPDE){
+    if (k_pairDPDE) {
       buf[m++] = h_uCond(i); // for ghosts, this is an accumulated delta
       buf[m++] = h_uMech(i); // for ghosts, this is an accumulated delta
     }
@@ -789,7 +772,7 @@ void FixShardlowKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double
     h_v(j, 0) += buf[m++];
     h_v(j, 1) += buf[m++];
     h_v(j, 2) += buf[m++];
-    if(k_pairDPDE){
+    if (k_pairDPDE) {
       h_uCond(j) += buf[m++]; // add in the accumulated delta
       h_uMech(j) += buf[m++]; // add in the accumulated delta
     }
@@ -802,13 +785,13 @@ template<class DeviceType>
 double FixShardlowKokkos<DeviceType>::memory_usage()
 {
   double bytes = 0.0;
-  bytes += sizeof(double)*3*ghostmax; // v_t0[]
+  bytes += (double)sizeof(double)*3*ghostmax; // v_t0[]
   return bytes;
 }
 
 namespace LAMMPS_NS {
 template class FixShardlowKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixShardlowKokkos<LMPHostType>;
 #endif
 }

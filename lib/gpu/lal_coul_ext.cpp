@@ -54,7 +54,7 @@ int coul_gpu_init(const int ntypes, double **host_scale,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=COULMF.init(ntypes, host_scale, cutsq, special_coul, inum, nall, 300,
+    init_ok=COULMF.init(ntypes, host_scale, cutsq, special_coul, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen, qqrd2e);
 
   COULMF.device->world_barrier();
@@ -71,10 +71,10 @@ int coul_gpu_init(const int ntypes, double **host_scale,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=COULMF.init(ntypes, host_scale, cutsq, special_coul, inum, nall, 300,
+      init_ok=COULMF.init(ntypes, host_scale, cutsq, special_coul, inum, nall, max_nbors,
                           maxspecial, cell_size, gpu_split, screen, qqrd2e);
 
-    COULMF.device->gpu_barrier();
+    COULMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -103,7 +103,7 @@ void coul_gpu_reinit(const int ntypes, double **host_scale) {
     if (gpu_rank==i && world_me!=0)
       COULMF.reinit(ntypes, host_scale);
 
-    COULMF.device->gpu_barrier();
+    COULMF.device->serialize_init();
   }
 }
 

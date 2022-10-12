@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_request.h"
+
 #include "atom.h"
 #include "memory.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
+using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
+NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
 {
   // default ID = 0
 
@@ -37,7 +40,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   half = 1;
   full = 0;
 
-  // attribute flags, mutiple can be set to 1
+  // attribute flags, multiple can be set to 1
   // default is every reneighboring, not occasional
   // default is use newton_pair setting in force
   // default is no neighbors of ghosts
@@ -71,18 +74,19 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // skip info, default is no skipping
 
   skip = 0;
-  iskip = NULL;
-  ijskip = NULL;
+  iskip = nullptr;
+  ijskip = nullptr;
 
   // only set when command = 1;
 
-  command_style = NULL;
+  command_style = nullptr;
 
   // info set by Neighbor class when morphing original requests
 
   skiplist = -1;
   off2on = 0;
   copy = 0;
+  trim = 0;
   copylist = -1;
   halffull = 0;
   halffulllist = -1;
@@ -95,9 +99,24 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
+NeighRequest::NeighRequest(LAMMPS *_lmp, void *ptr, int num) : NeighRequest(_lmp)
+{
+  requestor = ptr;
+  requestor_instance = num;
+}
+
+/* ---------------------------------------------------------------------- */
+
+NeighRequest::NeighRequest(NeighRequest *old) : NeighRequest(old->lmp)
+{
+  copy_request(old, 1);
+}
+
+/* ---------------------------------------------------------------------- */
+
 NeighRequest::~NeighRequest()
 {
-  delete [] iskip;
+  delete[] iskip;
   memory->destroy(ijskip);
 }
 
@@ -164,15 +183,13 @@ int NeighRequest::identical(NeighRequest *other)
 
 int NeighRequest::same_skip(NeighRequest *other)
 {
-  int i,j;
-
-  int ntypes = atom->ntypes;
+  const int ntypes = atom->ntypes;
   int same = 1;
 
-  for (i = 1; i <= ntypes; i++)
+  for (int i = 1; i <= ntypes; i++)
     if (iskip[i] != other->iskip[i]) same = 0;
-  for (i = 1; i <= ntypes; i++)
-    for (j = 1; j <= ntypes; j++)
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = 1; j <= ntypes; j++)
       if (ijskip[i][j] != other->ijskip[i][j]) same = 0;
 
   return same;
@@ -205,7 +222,7 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   size = other->size;
   history = other->history;
   granonesided = other->granonesided;
-  respainner =  other->respainner;
+  respainner = other->respainner;
   respamiddle = other->respamiddle;
   respaouter = other->respaouter;
   bond = other->bond;
@@ -217,25 +234,92 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   cut = other->cut;
   cutoff = other->cutoff;
 
-  iskip = NULL;
-  ijskip = NULL;
+  iskip = nullptr;
+  ijskip = nullptr;
 
   if (!skipflag) return;
 
-  int i,j;
-  int ntypes = atom->ntypes;
+  int i, j;
+  int ntp1 = atom->ntypes + 1;
+
+  skip = other->skip;
 
   if (other->iskip) {
-    iskip = new int[ntypes+1];
-    for (i = 1; i <= ntypes; i++)
-      iskip[i] = other->iskip[i];
+    iskip = new int[ntp1];
+    for (i = 1; i < ntp1; i++) iskip[i] = other->iskip[i];
   }
 
   if (other->ijskip) {
-    memory->create(ijskip,ntypes+1,ntypes+1,"neigh_request:ijskip");
-    for (i = 1; i <= ntypes; i++)
-      for (j = 1; j <= ntypes; j++)
-        ijskip[i][j] = other->ijskip[i][j];
+    memory->create(ijskip, ntp1, ntp1, "neigh_request:ijskip");
+    for (i = 1; i < ntp1; i++)
+      for (j = 1; j < ntp1; j++) ijskip[i][j] = other->ijskip[i][j];
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void NeighRequest::apply_flags(int flags)
+{
+  if (flags & REQ_FULL) {
+    half = 0;
+    full = 1;
+  }
+  // clang-format off
+  if (flags & REQ_GHOST)       { ghost = 1; }
+  if (flags & REQ_SIZE)        { size = 1; }
+  if (flags & REQ_HISTORY)     { history = 1; }
+  if (flags & REQ_NEWTON_ON)   { newton = 1; }
+  if (flags & REQ_NEWTON_OFF)  { newton = 2; }
+  if (flags & REQ_OCCASIONAL)  { occasional = 1; }
+  if (flags & REQ_RESPA_INOUT) { respainner = respaouter = 1; }
+  if (flags & REQ_RESPA_ALL)   { respainner = respamiddle = respaouter = 1; }
+  if (flags & REQ_SSA)         { ssa = 1; }
+  // clang-format on
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NeighRequest::set_cutoff(double _cutoff)
+{
+  cut = 1;
+  cutoff = _cutoff;
+}
+
+void NeighRequest::set_id(int _id)
+{
+  id = _id;
+}
+
+void NeighRequest::set_kokkos_device(int flag)
+{
+  kokkos_device = flag;
+}
+
+void NeighRequest::set_kokkos_host(int flag)
+{
+  kokkos_host = flag;
+}
+
+void NeighRequest::set_skip(int *_iskip, int **_ijskip)
+{
+  skip = 1;
+  iskip = _iskip;
+  ijskip = _ijskip;
+}
+
+void NeighRequest::enable_full()
+{
+  half = 0;
+  full = 1;
+}
+
+void NeighRequest::enable_ghost()
+{
+  ghost = 1;
+}
+
+void NeighRequest::enable_intel()
+{
+  intel = 1;
+  omp = 0;
+}

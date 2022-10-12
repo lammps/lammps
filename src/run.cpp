@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,33 +12,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "run.h"
+
 #include "domain.h"
-#include "update.h"
-#include "force.h"
+#include "error.h"
+#include "finish.h"
+#include "input.h"
 #include "integrate.h"
 #include "modify.h"
 #include "output.h"
-#include "finish.h"
-#include "input.h"
 #include "timer.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 2048
-
 /* ---------------------------------------------------------------------- */
 
-Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
+Run::Run(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
 void Run::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal run command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "run", error);
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Run command before simulation box is defined");
@@ -46,7 +45,7 @@ void Run::command(int narg, char **arg)
 
   if (timer->is_timeout()) return;
 
-  bigint nsteps_input = force->bnumeric(FLERR,arg[0]);
+  bigint nsteps_input = utils::bnumeric(FLERR,arg[0],false,lmp);
 
   // parse optional args
 
@@ -63,46 +62,42 @@ void Run::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"upto") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal run command");
+      if (iarg+1 > narg) utils::missing_cmd_args(FLERR, "run upto", error);
       uptoflag = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "run start", error);
       startflag = 1;
-      start = force->bnumeric(FLERR,arg[iarg+1]);
+      start = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "run stop", error);
       stopflag = 1;
-      stop = force->bnumeric(FLERR,arg[iarg+1]);
+      stop = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
-      if (strcmp(arg[iarg+1],"no") == 0) preflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) preflag = 1;
-      else error->all(FLERR,"Illegal run command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "run pre", error);
+      preflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"post") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
-      if (strcmp(arg[iarg+1],"no") == 0) postflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) postflag = 1;
-      else error->all(FLERR,"Illegal run command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "run post", error);
+      postflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
       // all remaining args are commands
       // first,last = arg index of first/last commands
-      // set ncommands = 0 if single command and it is NULL
+      // set ncommands = 0 if single command and it is "NULL"
 
     } else if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal run command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
-      if (nevery <= 0) error->all(FLERR,"Illegal run command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "run every", error);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (nevery <= 0) error->all(FLERR, "Invalid run every argument: {}", nevery);
       first = iarg+2;
       last = narg-1;
       ncommands = last-first + 1;
       if (ncommands == 1 && strcmp(arg[first],"NULL") == 0) ncommands = 0;
       iarg = narg;
-    } else error->all(FLERR,"Illegal run command");
+    } else error->all(FLERR,"Unknown run keyword: {}", arg[iarg]);
   }
 
   // set nsteps as integer, using upto value if specified
@@ -110,12 +105,12 @@ void Run::command(int narg, char **arg)
   int nsteps;
   if (!uptoflag) {
     if (nsteps_input < 0 || nsteps_input > MAXSMALLINT)
-      error->all(FLERR,"Invalid run command N value");
+      error->all(FLERR,"Invalid run command N value: {}", nsteps_input);
     nsteps = static_cast<int> (nsteps_input);
   } else {
     bigint delta = nsteps_input - update->ntimestep;
     if (delta < 0 || delta > MAXSMALLINT)
-      error->all(FLERR,"Invalid run command upto value");
+      error->all(FLERR,"Invalid run command upto value: {}", delta);
     nsteps = static_cast<int> (delta);
   }
 
@@ -123,31 +118,29 @@ void Run::command(int narg, char **arg)
 
   if (startflag) {
     if (start < 0)
-      error->all(FLERR,"Invalid run command start/stop value");
+      error->all(FLERR,"Invalid run command start value: {}", start);
     if (start > update->ntimestep)
       error->all(FLERR,"Run command start value is after start of run");
   }
   if (stopflag) {
     if (stop < 0)
-      error->all(FLERR,"Invalid run command start/stop value");
+      error->all(FLERR,"Invalid run command stop value: {}", stop);
     if (stop < update->ntimestep + nsteps)
       error->all(FLERR,"Run command stop value is before end of run");
   }
 
-  if (!preflag && strstr(update->integrate_style,"respa"))
+  if (!preflag && utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Run flag 'pre no' not compatible with r-RESPA");
 
   // if nevery, make copies of arg strings that are commands
   // required because re-parsing commands via input->one() will wipe out args
 
-  char **commands = NULL;
+  char **commands = nullptr;
   if (nevery && ncommands > 0) {
     commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
-      commands[ncommands] = new char[n];
-      strcpy(commands[ncommands],arg[i]);
+      commands[ncommands] = utils::strdup(arg[i]);
       ncommands++;
     }
   }

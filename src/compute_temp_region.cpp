@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,34 +11,29 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_temp_region.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "domain.h"
-#include "region.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
+#include "region.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  idregion(NULL)
+    Compute(lmp, narg, arg), region(nullptr), idregion(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute temp/region command");
+  if (narg != 4) error->all(FLERR, "Illegal compute temp/region command");
 
-  iregion = domain->find_region(arg[3]);
-  if (iregion == -1)
-    error->all(FLERR,"Region ID for compute temp/region does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
+  if (!domain->get_region_by_id(arg[3]))
+    error->all(FLERR, "Region {} for compute temp/region does not exist", arg[3]);
+  idregion = utils::strdup(arg[3]);
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -48,17 +43,17 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
-  vector = new double[6];
+  vbiasall = nullptr;
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeTempRegion::~ComputeTempRegion()
 {
-  delete [] idregion;
+  delete[] idregion;
   memory->destroy(vbiasall);
-  delete [] vector;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,9 +62,8 @@ void ComputeTempRegion::init()
 {
   // set index and check validity of region
 
-  iregion = domain->find_region(idregion);
-  if (iregion == -1)
-    error->all(FLERR,"Region ID for compute temp/region does not exist");
+  region = domain->get_region_by_id(idregion);
+  if (!region) error->all(FLERR, "Region {} for compute temp/region does not exist", idregion);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,7 +79,7 @@ void ComputeTempRegion::setup()
 
 void ComputeTempRegion::dof_remove_pre()
 {
-  domain->regions[iregion]->prematch();
+  region->prematch();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,7 +87,7 @@ void ComputeTempRegion::dof_remove_pre()
 int ComputeTempRegion::dof_remove(int i)
 {
   double *x = atom->x[i];
-  if (domain->regions[iregion]->match(x[0],x[1],x[2])) return 0;
+  if (region->match(x[0], x[1], x[2])) return 0;
   return 1;
 }
 
@@ -111,7 +105,6 @@ double ComputeTempRegion::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   int count = 0;
@@ -119,28 +112,29 @@ double ComputeTempRegion::compute_scalar()
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
         count++;
-        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
+        t += (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]) * rmass[i];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+      if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
         count++;
-        t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
-          mass[type[i]];
+        t += (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]) * mass[type[i]];
       }
   }
 
-  double tarray[2],tarray_all[2];
+  double tarray[2], tarray_all[2];
   tarray[0] = count;
   tarray[1] = t;
-  MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(tarray, tarray_all, 2, MPI_DOUBLE, MPI_SUM, world);
   dof = domain->dimension * tarray_all[0] - extra_dof;
   if (dof < 0.0 && tarray_all[0] > 0.0)
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
-  if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
-  else scalar = 0.0;
+    error->all(FLERR, "Temperature compute degrees of freedom < 0");
+  if (dof > 0)
+    scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
+  else
+    scalar = 0.0;
   return scalar;
 }
 
@@ -160,25 +154,26 @@ void ComputeTempRegion::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  Region *region = domain->regions[iregion];
   region->prematch();
 
-  double massone,t[6];
+  double massone, t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 
   for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
-      t[0] += massone * v[i][0]*v[i][0];
-      t[1] += massone * v[i][1]*v[i][1];
-      t[2] += massone * v[i][2]*v[i][2];
-      t[3] += massone * v[i][0]*v[i][1];
-      t[4] += massone * v[i][0]*v[i][2];
-      t[5] += massone * v[i][1]*v[i][2];
+    if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
+      if (rmass)
+        massone = rmass[i];
+      else
+        massone = mass[type[i]];
+      t[0] += massone * v[i][0] * v[i][0];
+      t[1] += massone * v[i][1] * v[i][1];
+      t[2] += massone * v[i][2] * v[i][2];
+      t[3] += massone * v[i][0] * v[i][1];
+      t[4] += massone * v[i][0] * v[i][2];
+      t[5] += massone * v[i][1] * v[i][2];
     }
 
-  MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(t, vector, 6, MPI_DOUBLE, MPI_SUM, world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
@@ -189,7 +184,7 @@ void ComputeTempRegion::compute_vector()
 void ComputeTempRegion::remove_bias(int i, double *v)
 {
   double *x = atom->x[i];
-  if (domain->regions[iregion]->match(x[0],x[1],x[2]))
+  if (region->match(x[0], x[1], x[2]))
     vbias[0] = vbias[1] = vbias[2] = 0.0;
   else {
     vbias[0] = v[0];
@@ -206,7 +201,7 @@ void ComputeTempRegion::remove_bias(int i, double *v)
 void ComputeTempRegion::remove_bias_thr(int i, double *v, double *b)
 {
   double *x = atom->x[i];
-  if (domain->regions[iregion]->match(x[0],x[1],x[2]))
+  if (region->match(x[0], x[1], x[2]))
     b[0] = b[1] = b[2] = 0.0;
   else {
     b[0] = v[0];
@@ -230,14 +225,12 @@ void ComputeTempRegion::remove_bias_all()
   if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
-    memory->create(vbiasall,maxbias,3,"temp/region:vbiasall");
+    memory->create(vbiasall, maxbias, 3, "temp/region:vbiasall");
   }
-
-  Region *region = domain->regions[iregion];
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (region->match(x[i][0],x[i][1],x[i][2]))
+      if (region->match(x[i][0], x[i][1], x[i][2]))
         vbiasall[i][0] = vbiasall[i][1] = vbiasall[i][2] = 0.0;
       else {
         vbiasall[i][0] = v[i][0];
@@ -295,6 +288,6 @@ void ComputeTempRegion::restore_bias_all()
 
 double ComputeTempRegion::memory_usage()
 {
-  double bytes = 3*maxbias * sizeof(double);
+  double bytes = 3 * maxbias * sizeof(double);
   return bytes;
 }

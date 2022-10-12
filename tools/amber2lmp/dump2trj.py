@@ -70,7 +70,7 @@ def Find_dump_files():
 
 class Snapshot:
     def __init__(self, The_trajectory):
-        'Initialise the Snapshot class'
+        'Initialize the Snapshot class'
         
         self.timestep = The_trajectory.timestep
         self.atoms = The_trajectory.atoms

@@ -30,7 +30,7 @@ static EAM<PRECISION,ACC_PRECISION> EAMFSMF;
 int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
                  double ***host_rhor_spline, double ***host_z2r_spline,
-                 double ***host_frho_spline,
+                 double ***host_frho_spline, double** host_cutsq,
                  double rdr, double rdrho, double rhomax, int nrhor,
                  int nrho, int nz2r, int nfrho, int nr,
                  const int nlocal, const int nall, const int max_nbors,
@@ -66,8 +66,8 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
   if (world_me==0)
     init_ok=EAMFSMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                        host_type2frho, host_rhor_spline, host_z2r_spline,
-                       host_frho_spline, rdr, rdrho, rhomax, nrhor, nrho, nz2r,
-                       nfrho, nr, nlocal, nall, 300, maxspecial, cell_size,
+                       host_frho_spline, host_cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r,
+                       nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size,
                        gpu_split, screen);
 
   EAMFSMF.device->world_barrier();
@@ -86,11 +86,11 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
     if (gpu_rank==i && world_me!=0)
       init_ok=EAMFSMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                          host_type2frho, host_rhor_spline, host_z2r_spline,
-                         host_frho_spline, rdr, rdrho, rhomax, nrhor, nrho,
-                         nz2r, nfrho, nr, nlocal, nall, 300, maxspecial,
+                         host_frho_spline, host_cutsq, rdr, rdrho, rhomax, nrhor, nrho,
+                         nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
-    EAMFSMF.device->gpu_barrier();
+    EAMFSMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

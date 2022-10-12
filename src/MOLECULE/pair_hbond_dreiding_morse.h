@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hbond/dreiding/morse,PairHbondDreidingMorse)
-
+// clang-format off
+PairStyle(hbond/dreiding/morse,PairHbondDreidingMorse);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HBOND_DREIDING_MORSE_H
@@ -27,46 +27,14 @@ namespace LAMMPS_NS {
 class PairHbondDreidingMorse : public PairHbondDreidingLJ {
  public:
   PairHbondDreidingMorse(class LAMMPS *);
-  virtual ~PairHbondDreidingMorse() {};
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
-  double single(int, int, int, int, double, double, double, double &);
+
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double single(int, int, int, int, double, double, double, double &) override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair inner cutoff >= Pair outer cutoff
-
-The specified cutoffs for the pair style are inconsistent.
-
-E: Pair style hbond/dreiding requires molecular system
-
-Self-explanatory.
-
-E: Pair style hbond/dreiding requires atom IDs
-
-Self-explanatory.
-
-E: Pair style hbond/dreiding requires an atom map, see atom_modify
-
-Self-explanatory.
-
-E: Pair style hbond/dreiding requires newton pair on
-
-See the newton command for details.
-
-E: No pair hbond/dreiding coefficients set
-
-Self-explanatory.
-
-*/

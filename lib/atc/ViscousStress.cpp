@@ -14,7 +14,7 @@ namespace ATC {
 //=============================================================================
 // isotropic constant viscosity
 //=============================================================================
-ViscousStressConstant::ViscousStressConstant(fstream &fileId) 
+ViscousStressConstant::ViscousStressConstant(fstream &fileId)
   : ViscousStress(), viscosity_(0)
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
@@ -22,7 +22,7 @@ ViscousStressConstant::ViscousStressConstant(fstream &fileId)
   while(fileId.good()) {
     command_line(fileId, line);
     if (line[0] == "end") {
-      if (viscosity_ < 0.0) 
+      if (viscosity_ < 0.0)
         throw ATC_Error("ViscousStressConstant:: bad constant viscosity");
       return;
     }
@@ -34,7 +34,7 @@ ViscousStressConstant::ViscousStressConstant(fstream &fileId)
 // compute the stress at N integration points from the velocity gradients
 // T_{ij} = viscosity * du_i/dx_j
 //=============================================================================
-void ViscousStressConstant::viscous_stress(const FIELD_MATS      &fields,
+  void ViscousStressConstant::viscous_stress(const FIELD_MATS      & /* fields */,
                                            const GRAD_FIELD_MATS &gradFields,
                                            DENS_MAT_VEC &sigma)
 {
@@ -74,7 +74,7 @@ void ViscousStressConstant::viscosity(const FIELD_MATS &fields,
                                       DENS_MAT &coefs) const
 {
   const DENS_MAT & v = (fields.find(VELOCITY))->second;
-  
+
   coefs.resize(v.nRows(),v.nCols());
   coefs = -1.*viscosity_;
 }

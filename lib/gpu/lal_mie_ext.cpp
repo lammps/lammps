@@ -58,7 +58,7 @@ int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
   if (world_me==0)
     init_ok=MLMF.init(ntypes, cutsq, host_mie1, host_mie2,
                       host_mie3, host_mie4, host_gamA, host_gamR,
-                      offset, special_lj, inum, nall, 300,
+                      offset, special_lj, inum, nall, max_nbors,
                       maxspecial, cell_size, gpu_split, screen);
 
   MLMF.device->world_barrier();
@@ -77,10 +77,10 @@ int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
     if (gpu_rank==i && world_me!=0)
       init_ok=MLMF.init(ntypes, cutsq, host_mie1, host_mie2,
                         host_mie3, host_mie4, host_gamA, host_gamR,
-                        offset, special_lj, inum, nall, 300, maxspecial,
+                        offset, special_lj, inum, nall, max_nbors, maxspecial,
                         cell_size, gpu_split, screen);
 
-    MLMF.device->gpu_barrier();
+    MLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

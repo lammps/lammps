@@ -19,14 +19,14 @@ WeakEquationChargeDiffusion::WeakEquationChargeDiffusion()
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-WeakEquationChargeDiffusion::~WeakEquationChargeDiffusion(void)
+WeakEquationChargeDiffusion::~WeakEquationChargeDiffusion()
 {}
 //---------------------------------------------------------------------
 //   compute capacity
 //---------------------------------------------------------------------
 void WeakEquationChargeDiffusion::M_integrand(
   const FIELD_MATS &fields,
-  const Material * material,
+  const Material * /* material */,
   DENS_MAT & capacity ) const
 {
   FIELD_MATS::const_iterator rhoField = fields.find(CHARGE_DENSITY);
@@ -36,4 +36,4 @@ void WeakEquationChargeDiffusion::M_integrand(
 }
 }; // end namespace
 
-  
+

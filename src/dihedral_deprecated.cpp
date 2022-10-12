@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,43 +15,34 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dihedral_deprecated.h"
-#include "dihedral_hybrid.h"
+
 #include "comm.h"
-#include "force.h"
+#include "dihedral_hybrid.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
-
-static void writemsg(LAMMPS *lmp, const char *msg, int abend=1)
-{
-  if (lmp->comm->me == 0) {
-    if (lmp->screen) fputs(msg,lmp->screen);
-    if (lmp->logfile) fputs(msg,lmp->logfile);
-  }
-  if (abend)
-    lmp->error->all(FLERR,"This dihedral style is no longer available");
-}
 
 /* ---------------------------------------------------------------------- */
 
 void DihedralDeprecated::settings(int, char **)
 {
-  const char *my_style = force->dihedral_style;
+  std::string my_style = force->dihedral_style;
 
-  // hybrid substyles are created in DihedralHybrid::settings(), so when this is
-  // called, our style was just added at the end of the list of substyles
+  // hybrid substyles are created in DihedralHybrid::settings(),
+  // so when this is called, our style was just added at the end
+  // of the list of substyles
 
-  if (strncmp(my_style,"hybrid",6) == 0) {
-    DihedralHybrid *hybrid = (DihedralHybrid *)force->dihedral;
+  if (utils::strmatch(my_style, "^hybrid")) {
+    auto hybrid = dynamic_cast<DihedralHybrid *>(force->dihedral);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
-  if (strcmp(my_style,"DEPRECATED") == 0) {
-    writemsg(lmp,"\nDihedral style 'DEPRECATED' is a dummy style\n\n",0);
-
+  if (my_style == "DEPRECATED") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nDihedral style 'DEPRECATED' is a dummy style\n\n");
+    return;
   }
+  error->all(FLERR, "This dihedral style is no longer available");
 }
-
-

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,41 +28,16 @@ FixFreezeKokkos<DeviceType>::FixFreezeKokkos(LAMMPS *lmp, int narg, char **arg) 
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  datamask_read = F_MASK | MASK_MASK;
+  datamask_read = F_MASK | MASK_MASK | TORQUE_MASK;
   datamask_modify = F_MASK | TORQUE_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixFreezeKokkos<DeviceType>::setmask()
-{
-  return FixFreeze::setmask();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::init()
-{
-  FixFreeze::init();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::setup(int vflag)
-{
-  FixFreeze::setup(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force(int vflag)
+void FixFreezeKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
 
   f = atomKK->k_f.view<DeviceType>();
   torque = atomKK->k_torque.view<DeviceType>();
@@ -79,29 +55,12 @@ void FixFreezeKokkos<DeviceType>::post_force(int vflag)
   foriginal[0] = original.values[0];
   foriginal[1] = original.values[1];
   foriginal[2] = original.values[2];
+
+  atomKK->modified(execution_space,datamask_modify);
 }
 
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
-void FixFreezeKokkos<DeviceType>::post_force_respa(int vflag, int ilevel, int iloop)
-{
-  post_force(vflag);
-}
-
-/* ----------------------------------------------------------------------
-   return components of total force on fix group before force was changed
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double FixFreezeKokkos<DeviceType>::compute_vector(int n)
-{
-  return FixFreeze::compute_vector(n);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
 void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &original) const {
   if (mask[i] & groupbit) {
     original.values[0] += f(i,0);
@@ -118,7 +77,7 @@ void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &origina
 
 namespace LAMMPS_NS {
 template class FixFreezeKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixFreezeKokkos<LMPHostType>;
 #endif
 }

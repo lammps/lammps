@@ -1,0 +1,201 @@
+LAMMPS (15 Apr 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+# two monomer nylon example
+# reaction produces a condensed water molecule
+
+units real
+
+boundary p p p
+
+atom_style full
+
+kspace_style pppm 1.0e-4
+
+pair_style lj/class2/coul/long 8.5
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+read_data tiny_nylon.data
+  orthogonal box = (-25 -25 -25) to (25 25 25)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  44 atoms
+  reading velocities ...
+  44 velocities
+  scanning bonds ...
+  9 = max bonds/atom
+  scanning angles ...
+  21 = max angles/atom
+  scanning dihedrals ...
+  29 = max dihedrals/atom
+  scanning impropers ...
+  29 = max impropers/atom
+  reading bonds ...
+  42 bonds
+  reading angles ...
+  74 angles
+  reading dihedrals ...
+  100 dihedrals
+  reading impropers ...
+  44 impropers
+  4 = max # of 1-2 neighbors
+  6 = max # of 1-3 neighbors
+  12 = max # of 1-4 neighbors
+  41 = max # of special neighbors
+  special bonds CPU = 0.000385045 secs
+  read_data CPU = 0.013443 secs
+
+variable runsteps equal 1000
+variable prob1 equal step/v_runsteps*2
+variable prob2 equal (step/v_runsteps)>0.5
+
+velocity all create 300.0 4928459 dist gaussian
+
+molecule mol1 rxn1_stp1_unreacted.data_template
+Read molecule template mol1:
+  1 molecules
+  18 atoms with max type 8
+  16 bonds with max type 14
+  25 angles with max type 28
+  23 dihedrals with max type 36
+  14 impropers with max type 11
+molecule mol2 rxn1_stp1_reacted.data_template
+Read molecule template mol2:
+  1 molecules
+  18 atoms with max type 9
+  17 bonds with max type 13
+  31 angles with max type 27
+  39 dihedrals with max type 33
+  20 impropers with max type 1
+molecule mol3 rxn1_stp2_unreacted.data_template
+Read molecule template mol3:
+  1 molecules
+  15 atoms with max type 9
+  14 bonds with max type 13
+  25 angles with max type 27
+  30 dihedrals with max type 33
+  16 impropers with max type 1
+molecule mol4 rxn1_stp2_reacted.data_template
+Read molecule template mol4:
+  1 molecules
+  15 atoms with max type 11
+  13 bonds with max type 15
+  19 angles with max type 29
+  16 dihedrals with max type 32
+  10 impropers with max type 13
+
+thermo 50
+
+# dump 1 all xyz 1 test_vis.xyz
+
+fix myrxns all bond/react stabilization yes statted_grp .03   react rxn1 all 1 0.0 5.0 mol1 mol2 rxn1_stp1_map prob v_prob1 1234   react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map prob v_prob2 1234
+WARNING: Bond/react: Atom affected by reaction rxn1 too close to template edge (src/REACTION/fix_bond_react.cpp:2051)
+WARNING: Bond/react: Atom affected by reaction rxn2 too close to template edge (src/REACTION/fix_bond_react.cpp:2051)
+dynamic group bond_react_MASTER_group defined
+dynamic group statted_grp_REACT defined
+
+fix 1 statted_grp_REACT nvt temp 300 300 100
+
+# optionally, you can customize behavior of reacting atoms,
+# by using the internally-created 'bond_react_MASTER_group', like so:
+fix 4 bond_react_MASTER_group temp/rescale 1 300 300 10 1
+
+thermo_style custom step temp press density v_prob1 v_prob2 f_myrxns[1] f_myrxns[2]
+
+# restart 100 restart1 restart2
+
+run ${runsteps}
+run 1000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:332)
+  G vector (1/distance) = 0.0534597
+  grid = 2 2 2
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0402256
+  estimated relative force accuracy = 0.000121138
+  using double precision FFTW3
+  3d grid and FFT values/proc = 343 8
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 10 10 10
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/class2/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix bond/react, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+WARNING: Inconsistent image flags (src/domain.cpp:812)
+Per MPI rank memory allocation (min/avg/max) = 33.78 | 33.78 | 33.78 Mbytes
+Step Temp Press Density v_prob1 v_prob2 f_myrxns[1] f_myrxns[2] 
+       0          300    346.78165 0.0034851739            0            0            0            0 
+      50    262.63913   -492.10749 0.0034851739          0.1            0            1            0 
+     100    766.52962   -29.714349 0.0034851739          0.2            0            1            0 
+     150    503.86837    50.220304 0.0034851739          0.3            0            1            0 
+     200    456.51295    12.312892 0.0034851739          0.4            0            1            0 
+     250    391.54928    9.2335844 0.0034851739          0.5            0            1            0 
+     300     336.6988   -47.193937 0.0034851739          0.6            0            1            0 
+     350    254.06985   -9.2867898 0.0034851739          0.7            0            1            0 
+     400    259.41098   -25.657321 0.0034851739          0.8            0            1            0 
+     450    258.10364      22.5086 0.0034851739          0.9            0            1            0 
+     500    272.13412   -6.5391448 0.0034851739            1            0            1            0 
+     550    202.75504    54.658731 0.0034851739          1.1            1            1            1 
+     600    344.79887    23.798478 0.0034851739          1.2            1            1            1 
+     650    328.44488   -29.908484 0.0034851739          1.3            1            1            1 
+     700    280.13593   -8.3223255 0.0034851739          1.4            1            1            1 
+     750    300.67624    1.0632669 0.0034851739          1.5            1            1            1 
+     800    376.64234    12.488392 0.0034851739          1.6            1            1            1 
+     850    321.07642    19.814074 0.0034851739          1.7            1            1            1 
+     900    332.23751    30.814079 0.0034851739          1.8            1            1            1 
+     950    311.14029    5.7853136 0.0034851739          1.9            1            1            1 
+    1000    253.14634   -37.560642 0.0034851739            2            1            1            1 
+Loop time of 0.379454 on 1 procs for 1000 steps with 44 atoms
+
+Performance: 227.696 ns/day, 0.105 hours/ns, 2635.368 timesteps/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.069723   | 0.069723   | 0.069723   |   0.0 | 18.37
+Bond    | 0.14802    | 0.14802    | 0.14802    |   0.0 | 39.01
+Kspace  | 0.044252   | 0.044252   | 0.044252   |   0.0 | 11.66
+Neigh   | 0.072359   | 0.072359   | 0.072359   |   0.0 | 19.07
+Comm    | 0.0044748  | 0.0044748  | 0.0044748  |   0.0 |  1.18
+Output  | 0.0022775  | 0.0022775  | 0.0022775  |   0.0 |  0.60
+Modify  | 0.036509   | 0.036509   | 0.036509   |   0.0 |  9.62
+Other   |            | 0.00184    |            |       |  0.48
+
+Nlocal:    44 ave 44 max 44 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3 ave 3 max 3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    722 ave 722 max 722 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 722
+Ave neighs/atom = 16.4091
+Ave special neighs/atom = 9.77273
+Neighbor list builds = 1000
+Dangerous builds = 0
+
+# write_restart restart_longrun
+# write_data restart_longrun.data
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:00

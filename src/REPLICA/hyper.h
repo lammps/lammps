@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,37 +12,37 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(hyper,Hyper)
-
+// clang-format off
+CommandStyle(hyper,Hyper);
+// clang-format on
 #else
 
 #ifndef LMP_HYPER_H
 #define LMP_HYPER_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Hyper : protected Pointers {
+class Hyper : public Command {
  public:
   Hyper(class LAMMPS *);
-  ~Hyper() {}
-  void command(int, char **);
+
+  void command(int, char **) override;
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   int t_event;
-  double etol,ftol;
-  int maxiter,maxeval;
-  int stepmode,dumpflag,ndump,rebond;
-  int *dumplist;
+  double etol, ftol;
+  int maxiter, maxeval;
+  int stepmode, dumpflag, rebond;
+  std::vector<class Dump *> dumplist;
 
-  int neigh_every,neigh_delay,neigh_dist_check;
+  int neigh_every, neigh_delay, neigh_dist_check;
   int quench_reneighbor;
-  bigint nbuild,ndanger;
+  bigint nbuild, ndanger;
 
-  double time_dynamics,time_quench;
+  double time_dynamics, time_quench;
   double time_start;
 
   class FixHyper *fix_hyper;
@@ -55,11 +55,7 @@ class Hyper : protected Pointers {
   void options(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

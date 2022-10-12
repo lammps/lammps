@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,32 +12,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_ke_rigid.h"
-#include "update.h"
-#include "force.h"
-#include "modify.h"
+
+#include "error.h"
 #include "fix.h"
 #include "fix_rigid.h"
 #include "fix_rigid_small.h"
-#include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeKERigid::ComputeKERigid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), rfix(NULL)
+  Compute(lmp, narg, arg), rfix(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute ke/rigid command");
 
   scalar_flag = 1;
   extscalar = 1;
 
-  int n = strlen(arg[3]) + 1;
-  rfix = new char[n];
-  strcpy(rfix,arg[3]);
+  rfix = utils::strdup(arg[3]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,8 +65,8 @@ double ComputeKERigid::compute_scalar()
 
   if (strncmp(modify->fix[irfix]->style,"rigid",5) == 0) {
     if (strstr(modify->fix[irfix]->style,"/small")) {
-      scalar = ((FixRigidSmall *) modify->fix[irfix])->extract_ke();
-    } else scalar = ((FixRigid *) modify->fix[irfix])->extract_ke();
+      scalar = (dynamic_cast<FixRigidSmall *>(modify->fix[irfix]))->extract_ke();
+    } else scalar = (dynamic_cast<FixRigid *>(modify->fix[irfix]))->extract_ke();
   }
   scalar *= force->mvv2e;
   return scalar;

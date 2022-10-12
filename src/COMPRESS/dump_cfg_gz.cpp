@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_cfg_gz.h"
+
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
 
 #include <cstring>
@@ -22,29 +24,14 @@
 using namespace LAMMPS_NS;
 #define UNWRAPEXPAND 10.0
 
-DumpCFGGZ::DumpCFGGZ(LAMMPS *lmp, int narg, char **arg) :
-  DumpCFG(lmp, narg, arg)
+DumpCFGGZ::DumpCFGGZ(LAMMPS *lmp, int narg, char **arg) : DumpCFG(lmp, narg, arg)
 {
-  gzFp = NULL;
-
-  if (!compressed)
-    error->all(FLERR,"Dump cfg/gz only writes compressed files");
+  if (!compressed) error->all(FLERR, "Dump cfg/gz only writes compressed files");
 }
-
-
-/* ---------------------------------------------------------------------- */
-
-DumpCFGGZ::~DumpCFGGZ()
-{
-  if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
-}
-
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -61,30 +48,17 @@ void DumpCFGGZ::openfile()
   if (multiproc) filecurrent = multiname;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
-    else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        if (remove(nameslist[fileidx]) != 0) {
+          error->warning(FLERR, "Could not delete {}", nameslist[fileidx]);
+        }
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -93,18 +67,16 @@ void DumpCFGGZ::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
-    if (append_flag) {
-      gzFp = gzopen(filecurrent,"ab9");
-    } else {
-      gzFp = gzopen(filecurrent,"wb9");
+    try {
+      writer.open(filecurrent, append_flag);
+    } catch (FileWriterException &e) {
+      error->one(FLERR, e.what());
     }
-
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+  }
 
   // delete string with timestep replaced
 
-  if (multifile) delete [] filecurrent;
+  if (multifile) delete[] filecurrent;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,33 +91,99 @@ void DumpCFGGZ::write_header(bigint n)
   //   so molecules are not split across periodic box boundaries
 
   double scale = 1.0;
-  if (atom->peri_flag) scale = atom->pdscale;
-  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+  if (atom->peri_flag)
+    scale = atom->pdscale;
+  else if (unwrapflag == 1)
+    scale = UNWRAPEXPAND;
 
-  char str[64];
-  sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
-  gzprintf(gzFp,str,n);
-  gzprintf(gzFp,"A = %g Angstrom (basic length-scale)\n",scale);
-  gzprintf(gzFp,"H0(1,1) = %g A\n",domain->xprd);
-  gzprintf(gzFp,"H0(1,2) = 0 A \n");
-  gzprintf(gzFp,"H0(1,3) = 0 A \n");
-  gzprintf(gzFp,"H0(2,1) = %g A \n",domain->xy);
-  gzprintf(gzFp,"H0(2,2) = %g A\n",domain->yprd);
-  gzprintf(gzFp,"H0(2,3) = 0 A \n");
-  gzprintf(gzFp,"H0(3,1) = %g A \n",domain->xz);
-  gzprintf(gzFp,"H0(3,2) = %g A \n",domain->yz);
-  gzprintf(gzFp,"H0(3,3) = %g A\n",domain->zprd);
-  gzprintf(gzFp,".NO_VELOCITY.\n");
-  gzprintf(gzFp,"entry_count = %d\n",nfield-2);
-  for (int i = 0; i < nfield-5; i++)
-    gzprintf(gzFp,"auxiliary[%d] = %s\n",i,auxname[i]);
+  std::string header = fmt::format("Number of particles = {}\n", n);
+  header += fmt::format("A = {:g} Angstrom (basic length-scale)\n", scale);
+  header += fmt::format("H0(1,1) = {:g} A\n", domain->xprd);
+  header += fmt::format("H0(1,2) = 0 A\n");
+  header += fmt::format("H0(1,3) = 0 A\n");
+  header += fmt::format("H0(2,1) = {:g} A\n", domain->xy);
+  header += fmt::format("H0(2,2) = {:g} A\n", domain->yprd);
+  header += fmt::format("H0(2,3) = 0 A\n");
+  header += fmt::format("H0(3,1) = {:g} A\n", domain->xz);
+  header += fmt::format("H0(3,2) = {:g} A\n", domain->yz);
+  header += fmt::format("H0(3,3) = {:g} A\n", domain->zprd);
+  header += fmt::format(".NO_VELOCITY.\n");
+  header += fmt::format("entry_count = {}\n", nfield - 2);
+  for (int i = 0; i < nfield - 5; i++) header += fmt::format("auxiliary[{}] = {}\n", i, auxname[i]);
+
+  writer.write(header.c_str(), header.length());
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpCFGGZ::write_data(int n, double *mybuf)
 {
-  gzwrite(gzFp,mybuf,sizeof(char)*n);
+  if (buffer_flag) {
+    writer.write(mybuf, n);
+  } else {
+    constexpr size_t VBUFFER_SIZE = 256;
+    char vbuffer[VBUFFER_SIZE];
+    if (unwrapflag == 0) {
+      int m = 0;
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < size_one; j++) {
+          int written = 0;
+          if (j == 0) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%f \n", mybuf[m]);
+          } else if (j == 1) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%s \n", typenames[(int) mybuf[m]]);
+          } else if (j >= 2) {
+            if (vtype[j] == Dump::INT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int>(mybuf[m]));
+            else if (vtype[j] == Dump::DOUBLE)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+            else if (vtype[j] == Dump::STRING)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
+            else if (vtype[j] == Dump::BIGINT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
+          }
+          if (written > 0) {
+            writer.write(vbuffer, written);
+          } else if (written < 0) {
+            error->one(FLERR, "Error while writing dump cfg/gz output");
+          }
+          m++;
+        }
+        writer.write("\n", 1);
+      }
+    } else if (unwrapflag == 1) {
+      int m = 0;
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < size_one; j++) {
+          int written = 0;
+          if (j == 0) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%f \n", mybuf[m]);
+          } else if (j == 1) {
+            written = snprintf(vbuffer, VBUFFER_SIZE, "%s \n", typenames[(int) mybuf[m]]);
+          } else if (j >= 2 && j <= 4) {
+            double unwrap_coord = (mybuf[m] - 0.5) / UNWRAPEXPAND + 0.5;
+            written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], unwrap_coord);
+          } else if (j >= 5) {
+            if (vtype[j] == Dump::INT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int>(mybuf[m]));
+            else if (vtype[j] == Dump::DOUBLE)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+            else if (vtype[j] == Dump::STRING)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
+            else if (vtype[j] == Dump::BIGINT)
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
+          }
+          if (written > 0) {
+            writer.write(vbuffer, written);
+          } else if (written < 0) {
+            error->one(FLERR, "Error while writing dump cfg/gz output");
+          }
+          m++;
+        }
+        writer.write("\n", 1);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -155,12 +193,29 @@ void DumpCFGGZ::write()
   DumpCFG::write();
   if (filewriter) {
     if (multifile) {
-      gzclose(gzFp);
-      gzFp = NULL;
+      writer.close();
     } else {
-      if (flush_flag)
-        gzflush(gzFp,Z_SYNC_FLUSH);
+      if (flush_flag && writer.isopen()) { writer.flush(); }
     }
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+int DumpCFGGZ::modify_param(int narg, char **arg)
+{
+  int consumed = DumpCFG::modify_param(narg, arg);
+  if (consumed == 0) {
+    try {
+      if (strcmp(arg[0], "compression_level") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
+        writer.setCompressionLevel(compression_level);
+        return 2;
+      }
+    } catch (FileWriterException &e) {
+      error->one(FLERR, "Illegal dump_modify command: {}", e.what());
+    }
+  }
+  return consumed;
+}

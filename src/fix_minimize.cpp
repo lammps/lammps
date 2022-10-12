@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "fix_minimize.h"
 #include "atom.h"
 #include "domain.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -25,12 +24,12 @@ using namespace FixConst;
 
 FixMinimize::FixMinimize(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvector(0), peratom(NULL), vectors(NULL)
+  nvector(0), peratom(nullptr), vectors(nullptr)
 {
   // register callback to this fix from Atom class
   // don't perform initial allocation here, must wait until add_vector()
 
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -39,13 +38,15 @@ FixMinimize::~FixMinimize()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored data
 
   memory->destroy(peratom);
-  for (int m = 0; m < nvector; m++) memory->destroy(vectors[m]);
-  memory->sfree(vectors);
+  if (vectors) {
+    for (int m = 0; m < nvector; m++) memory->destroy(vectors[m]);
+    memory->sfree(vectors);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,7 +167,7 @@ double FixMinimize::memory_usage()
 {
   double bytes = 0.0;
   for (int m = 0; m < nvector; m++)
-    bytes += atom->nmax*peratom[m]*sizeof(double);
+    bytes += (double)atom->nmax*peratom[m]*sizeof(double);
   return bytes;
 }
 

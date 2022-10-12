@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nvt/kk,FixNVTKokkos<LMPDeviceType>)
-FixStyle(nvt/kk/device,FixNVTKokkos<LMPDeviceType>)
-FixStyle(nvt/kk/host,FixNVTKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(nvt/kk,FixNVTKokkos<LMPDeviceType>);
+FixStyle(nvt/kk/device,FixNVTKokkos<LMPDeviceType>);
+FixStyle(nvt/kk/host,FixNVTKokkos<LMPHostType>);
+// clang-format on
 #else
 
-
+// clang-format off
 #ifndef LMP_FIX_NVT_KOKKOS_H
 #define LMP_FIX_NVT_KOKKOS_H
 
@@ -31,7 +31,6 @@ template<class DeviceType>
 class FixNVTKokkos : public FixNHKokkos<DeviceType> {
  public:
   FixNVTKokkos(class LAMMPS *, int, char **);
-  ~FixNVTKokkos() {}
 };
 
 }
@@ -39,14 +38,3 @@ class FixNVTKokkos : public FixNHKokkos<DeviceType> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt
-
-Self-explanatory.
-
-*/

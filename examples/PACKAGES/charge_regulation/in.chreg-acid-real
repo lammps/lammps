@@ -1,0 +1,44 @@
+# Charge regulation lammps for simple weak electrolyte
+
+units           real
+atom_style      charge
+neighbor        10.0 bin
+read_data       data.chreg-acid-real
+
+#real units
+variable 	sigma equal 7.2	              # particle diameter 0.72 nm	    	
+variable	temperature equal 298         # temperature 298 K
+variable        kb index 0.0019872067         # kB in Kcal/mol/K
+variable 	epsilon equal ${kb}*${temperature}
+variable	tunit   equal 	2000          # time unit is 2000 fs    
+variable	timestep equal 0.005*${tunit}
+
+variable        cut_long equal 12.5*${sigma}
+variable        nevery equal 100
+variable        nmc equal 100
+variable        pH equal 7.0
+variable        pKa equal 6.0
+variable        pIm equal 3.0
+variable        pIp equal 3.0
+
+variable        cut_lj equal 2^(1.0/6.0)*${sigma}
+velocity        all create ${temperature} 8008 loop geom
+
+pair_style      lj/cut/coul/long ${cut_lj} ${cut_long}
+pair_coeff      * *  ${epsilon} ${sigma}
+kspace_style    pppm 1.0e-3
+dielectric	78
+pair_modify     shift yes
+
+#########  VERLET INTEGRATION WITH LANGEVIN THERMOSTAT  ###########
+fix             fnve all nve
+compute         dtemp all temp
+compute_modify  dtemp dynamic yes
+fix             fT all langevin $(v_temperature) $(v_temperature) $(v_tunit) 123
+fix_modify      fT temp dtemp
+
+fix chareg      all charge/regulation 2 3 acid_type 1 pH ${pH} pKa ${pKa} pIp ${pIp} pIm ${pIm} lunit_nm 0.1 nevery ${nevery} nmc ${nmc} seed 2345 tempfixid fT
+thermo          100
+thermo_style custom step pe c_dtemp f_chareg[1] f_chareg[2] f_chareg[3] f_chareg[4] f_chareg[5] f_chareg[6] f_chareg[7] f_chareg[8]
+timestep        ${timestep}
+run             2000

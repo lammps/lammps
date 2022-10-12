@@ -1,0 +1,3 @@
+
+../mliap_model_python_couple.cpp: ../mliap_model_python_couple.pyx
+	cythonize -3 ../mliap_model_python_couple.cpp

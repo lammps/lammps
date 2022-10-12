@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(append/atoms,FixAppendAtoms)
-
+// clang-format off
+FixStyle(append/atoms,FixAppendAtoms);
+// clang-format on
 #else
 
 #ifndef FIX_APPEND_ATOMS_H
@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixAppendAtoms : public Fix {
  public:
   FixAppendAtoms(class LAMMPS *, int, char **);
-  ~FixAppendAtoms();
-  int setmask();
-  void setup(int);
-  void pre_exchange();
-  void initial_integrate(int);
-  void post_force(int);
+  ~FixAppendAtoms() override;
+  int setmask() override;
+  void setup(int) override;
+  void pre_exchange() override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
 
  private:
   int get_spatial();
@@ -44,65 +44,14 @@ class FixAppendAtoms : public Fix {
   int scaleflag, freq;
   int nbasis;
   int *basistype;
-  int advance,advance_sum;
-  double size,spatlead;
+  int advance, advance_sum;
+  double size, spatlead;
   char *spatialid;
   double tfactor;
-  double *gfactor1,*gfactor2;
+  double *gfactor1, *gfactor2;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix append/atoms requires a lattice be defined
-
-Use the lattice command for this purpose.
-
-E: Only zhi currently implemented for fix append/atoms
-
-Self-explanatory.
-
-E: Append boundary must be shrink/minimum
-
-The boundary style of the face where atoms are added
-must be of type m (shrink/minimum).
-
-E: Bad fix ID in fix append/atoms command
-
-The value of the fix_id for keyword spatial must start with 'f_'.
-
-E: Invalid basis setting in fix append/atoms command
-
-The basis index must be between 1 to N where N is the number of basis
-atoms in the lattice.  The type index must be between 1 to N where N
-is the number of atom types.
-
-E: Cannot use append/atoms in periodic dimension
-
-The boundary style of the face where atoms are added can not be of
-type p (periodic).
-
-E: Cannot append atoms to a triclinic box
-
-The simulation box must be defined with edges aligned with the
-Cartesian axes.
-
-E: Fix ID for fix ave/spatial does not exist
-
-Self-explanatory.
-
-E: Too many total atoms
-
-See the setting for bigint in the src/lmptype.h file.
-
-*/

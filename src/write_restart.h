@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,43 +12,42 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(write_restart,WriteRestart)
-
+// clang-format off
+CommandStyle(write_restart,WriteRestart);
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_RESTART_H
 #define LMP_WRITE_RESTART_H
 
-#include <cstdio>
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class WriteRestart : protected Pointers {
+class WriteRestart : public Command {
  public:
   WriteRestart(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
   void multiproc_options(int, int, int, char **);
-  void write(char *);
+  void write(const std::string &);
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   FILE *fp;
-  bigint natoms;         // natoms (sum of nlocal) to write into file
+  bigint natoms;    // natoms (sum of nlocal) to write into file
   int noinit;
 
-  int multiproc;             // 0 = proc 0 writes for all
-                             // else # of procs writing files
-  int nclusterprocs;         // # of procs in my cluster that write to one file
-  int filewriter;            // 1 if this proc writes a file, else 0
-  int fileproc;              // ID of proc in my cluster who writes to file
-  int icluster;              // which cluster I am in
+  int multiproc;        // 0 = proc 0 writes for all
+                        // else # of procs writing files
+  int nclusterprocs;    // # of procs in my cluster that write to one file
+  int filewriter;       // 1 if this proc writes a file, else 0
+  int fileproc;         // ID of proc in my cluster who writes to file
+  int icluster;         // which cluster I am in
 
   // MPI-IO values
 
-  int mpiioflag;               // 1 for MPIIO output, else 0
-  class RestartMPIIO *mpiio;   // MPIIO for restart file output
+  int mpiioflag;                // 1 for MPIIO output, else 0
+  class RestartMPIIO *mpiio;    // MPIIO for restart file output
   MPI_Offset headerOffset;
 
   void header();
@@ -68,48 +67,7 @@ class WriteRestart : protected Pointers {
   void write_double_vec(int, int, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Write_restart command before simulation box is defined
-
-The write_restart command cannot be used before a read_data,
-read_restart, or create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Restart file MPI-IO output not allowed with % in filename
-
-This is because a % signifies one file per processor and MPI-IO
-creates one large file for all processors.
-
-E: Writing to MPI-IO filename when MPIIO package is not installed
-
-Self-explanatory.
-
-E: Cannot use write_restart fileper without % in restart file name
-
-Self-explanatory.
-
-E: Cannot use write_restart nfile without % in restart file name
-
-Self-explanatory.
-
-E: Atom count is inconsistent, cannot write restart file
-
-Sum of atoms across processors does not equal initial total count.
-This is probably because you have lost some atoms.
-
-E: Cannot open restart file %s
-
-Self-explanatory.
-
-*/

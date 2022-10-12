@@ -10,7 +10,7 @@ velocity	all create 1.44 320984 loop geom
 
 neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
-neigh_modify	exclude molecule all
+neigh_modify	exclude molecule/intra all
 
 pair_style	line/lj 2.5
 pair_coeff	* * 1.0 1.0 1.0 0.25 2.5
@@ -33,8 +33,10 @@ compute		2 all ke
 compute		3 all pe
 variable	toteng equal (c_1+c_2+c_3)/atoms
 
+compute_modify  thermo_temp extra/dof -350
+
 thermo		1000
-thermo_style	custom step temp f_2 pe ke c_1 c_2 c_3 v_toteng
+thermo_style	custom step f_2 pe ke c_1 c_2 c_3 v_toteng
 
 run		10000
 

@@ -35,7 +35,7 @@ fix_modify 	1 energy yes
 
 fix 		2 all langevin/spin 0.0 0.0 21
 
-fix 		3 all nve/spin lattice yes
+fix 		3 all nve/spin lattice moving
 timestep	0.0001
 
 # compute and output options
@@ -45,8 +45,6 @@ compute 	out_pe     all pe
 compute 	out_ke     all ke
 compute 	out_temp   all temp
 
-thermo_style	custom f_1
-
 variable 	magx      equal c_out_mag[1]
 variable 	magy      equal c_out_mag[2]
 variable 	magz      equal c_out_mag[3]
@@ -54,10 +52,10 @@ variable 	magnorm   equal c_out_mag[4]
 variable 	emag      equal c_out_mag[5]
 variable 	tmag      equal c_out_mag[6]
 
-thermo_style    custom step time f_1 v_magx v_magy v_magnorm v_emag temp etotal
+thermo_style    custom step time v_magx v_magy v_magnorm pe v_emag temp etotal
 thermo          50
 
-#compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
-#dump 		100 all custom 1 dump_cobalt_fcc.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+# compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+# dump 		1 all custom 100 dump_cobalt_fcc.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
 
 run 		1000

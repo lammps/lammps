@@ -1,109 +1,151 @@
 # Makefile for LAMMPS documentation
 
-SHELL         = /bin/bash
-SHA1          = $(shell echo ${USER}-${PWD} | python utils/sha1sum.py)
-BUILDDIR      = /tmp/lammps-docs-$(SHA1)
-RSTDIR        = $(BUILDDIR)/rst
-VENV          = $(BUILDDIR)/docenv
-TXT2RST       = $(VENV)/bin/txt2rst
-ANCHORCHECK   = $(VENV)/bin/doc_anchor_check
+SHELL          = /bin/bash
+HAS_BASH       = YES
+ifeq (,$(wildcard $(SHELL)))
+OSHELL         := $(SHELL)
+override SHELL = /bin/sh
+HAS_BASH       = NO
+endif
+BUILDDIR       = ${CURDIR}
+RSTDIR         = $(BUILDDIR)/src
+VENV           = $(BUILDDIR)/docenv
+ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
+SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
+MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
+MATHJAXTAG     = 3.2.2
 
-PYTHON        = $(shell which python3)
-VIRTUALENV     = virtualenv
+PYTHON         = $(word 3,$(shell type python3))
+DOXYGEN        = $(word 3,$(shell type doxygen))
 HAS_PYTHON3    = NO
-HAS_VIRTUALENV = NO
+HAS_DOXYGEN    = NO
+HAS_PDFLATEX   = NO
 
-ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
-HAS_PYTHON3 = YES
+ifeq ($(shell type python3 >/dev/null 2>&1; echo $$?), 0)
+HAS_PYTHON3    = YES
 endif
 
-ifeq ($(shell which virtualenv-3 >/dev/null 2>&1; echo $$?), 0)
-VIRTUALENV     = virtualenv-3
-HAS_VIRTUALENV = YES
+ifeq ($(shell type doxygen >/dev/null 2>&1; echo $$?), 0)
+HAS_DOXYGEN    = YES
 endif
 
-ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 0)
-VIRTUALENV     = virtualenv
-HAS_VIRTUALENV = YES
+ifeq ($(shell type pdflatex >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell type latexmk >/dev/null 2>&1; echo $$?), 0)
+HAS_PDFLATEX = YES
+endif
 endif
 
-SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
-SOURCES=$(filter-out $(wildcard src/lammps_commands*.txt) src/lammps_support.txt src/lammps_tutorials.txt,$(wildcard src/*.txt))
-OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
+# override settings for PIP commands
+# PIP_OPTIONS = --cert /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt --proxy http://proxy.mydomain.org
 
-.PHONY: help clean-all clean epub mobi html pdf old venv spelling anchor_check
+#SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())') $(shell test -f $(BUILDDIR)/doxygen/xml/run.stamp && printf -- "-E")
+
+# temporarily disable caching so that the hack for the sphinx-tabs extensions to get proper non-html output works
+SPHINXEXTRA = -E -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
+
+# grab list of sources from doxygen config file.
+# we only want to use explicitly listed files.
+DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
+
+.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check char_check xmlgen fasthtml
 
 # ------------------------------------------
 
 help:
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       create HTML doc pages in html dir"
-	@echo "  pdf        create Developer.pdf and Manual.pdf in this dir"
-	@echo "  old        create old-style HTML doc pages and Manual.pdf in old dir"
-	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
-	@echo "  epub       create ePUB format manual for e-book readers"
-	@echo "  mobi       convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
+	@echo "  html          create HTML pages in html dir"
+	@echo "  pdf           create Manual.pdf in this dir"
+	@echo "  epub          create ePUB format manual for e-book readers"
+	@echo "  mobi          convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
-	@echo "  clean      remove all intermediate RST files"
-	@echo "  clean-all  reset the entire build environment"
-	@echo "  txt2html   build txt2html tool"
+	@echo "  fasthtml      approximate HTML page creation in fasthtml dir (for development)"
+	@echo "  clean         remove all intermediate files"
+	@echo "  clean-all     reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
-	@echo "  spelling   spell-check the manual"
+	@echo "  style_check   check for complete and consistent style lists"
+	@echo "  package_check check for complete and consistent package lists"
+	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
+	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
-clean:
-	rm -rf $(RSTDIR) html old epub latex
-	rm -rf spelling
+clean: clean-spelling
+	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml
 
 clean-spelling:
-	rm -rf spelling
+	rm -rf $(BUILDDIR)/spelling
 
-html: $(OBJECTS) $(ANCHORCHECK)
+$(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
+	sed -e 's,@DOXYGEN_XML_DIR@,$(BUILDDIR)/doxygen/xml,g'   \
+	    -e 's,@LAMMPS_SOURCE_DIR@,$(BUILDDIR)/../src,g'    \
+	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
+	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
+
+html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
-		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
-		sphinx-build $(SPHINXEXTRA) -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		ln -sf Manual.html html/index.html;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ;\
-		doc_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.rst ;\
+		python $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
-	-rm html/searchindex.js
 	@rm -rf html/_sources
 	@rm -rf html/PDF
 	@rm -rf html/USER
+	@rm -rf html/JPG
 	@cp -r src/PDF html/PDF
-	@cp -r src/USER html/USER
 	@rm -rf html/PDF/.[sg]*
-	@rm -rf html/USER/.[sg]*
-	@rm -rf html/USER/*/.[sg]*
-	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
-spelling: $(OBJECTS) utils/sphinx-config/false_positives.txt
+fasthtml: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@$(MAKE) $(MFLAGS) -C graphviz all
+	@mkdir -p fasthtml
 	@(\
-		. $(VENV)/bin/activate ;\
-		pip install sphinxcontrib-spelling ;\
-		cp -r src/* $(RSTDIR)/ ;\
-        cp utils/sphinx-config/false_positives.txt $(RSTDIR)/ ;\
-		sphinx-build -b spelling -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		sphinx-build -j 4 -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/fasthtml/doctrees $(RSTDIR) fasthtml ;\
+		deactivate ;\
+	)
+	@rm -rf fasthtml/_sources
+	@rm -rf fasthtml/PDF
+	@rm -rf fasthtml/USER
+	@rm -rf fasthtml/JPG
+	@cp -r src/PDF fasthtml/PDF
+	@rm -rf fasthtml/PDF/.[sg]*
+	@echo "Fast HTML build finished. The HTML pages are in doc/fasthtml."
+
+spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/ ; env PYTHONWARNINGS= \
+		sphinx-build -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)
 	@echo "Spell check finished."
 
-epub: $(OBJECTS)
+epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p epub/JPG
 	@rm -f LAMMPS.epub
-	@cp src/JPG/lammps-logo.png epub/
 	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
-		sphinx-build $(SPHINXEXTRA) -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
+		sphinx-build $(SPHINXEXTRA) -b epub -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)
 	@mv  epub/LAMMPS.epub .
@@ -115,110 +157,91 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: $(OBJECTS) $(ANCHORCHECK)
+pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@$(MAKE) $(MFLAGS) -C graphviz all
+	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
 	@(\
-		cd src/Developer; \
-		pdflatex developer; \
-		pdflatex developer; \
-		mv developer.pdf ../../Developer.pdf; \
-		cd ../../; \
-	)
-	@(\
-                . $(VENV)/bin/activate ;\
-                cp -r src/* $(RSTDIR)/ ;\
-                sphinx-build $(SPHINXEXTRA) -b latex -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
-                echo "############################################" ;\
-                doc_anchor_check src/*.txt ;\
-                echo "############################################" ;\
-                deactivate ;\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
+		echo "############################################" ;\
+		rst_anchor_check src/*.rst ;\
+		python utils/check-packages.py -s ../src -d src ;\
+		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		python utils/check-styles.py -s ../src -d src ;\
+		echo "############################################" ;\
+		deactivate ;\
 	)
 	@cd latex && \
-          sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
-	  mv temp Makefile && \
-	  sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
-	  mv tmp.tex LAMMPS.tex && \
-	  make && \
-	  make && \
-	  mv LAMMPS.pdf ../Manual.pdf && \
-	  cd ../;
+		sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		sed 's/\\contentsname}{.*}}/\\contentsname}{LAMMPS Documentation}}/g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
+		$(MAKE) $(MFLAGS) && \
+		mv LAMMPS.pdf ../Manual.pdf && \
+		cd ../;
 	@rm -rf latex/_sources
 	@rm -rf latex/PDF
 	@rm -rf latex/USER
 	@cp -r src/PDF latex/PDF
-	@cp -r src/USER latex/USER
 	@rm -rf latex/PDF/.[sg]*
-	@rm -rf latex/USER/.[sg]*
-	@rm -rf latex/USER/*/.[sg]*
-	@rm -rf latex/USER/*/*.[sg]*
-	@echo "Build finished. Manual.pdf and Developer.pdf are in this directory."
-
-old: utils/txt2html/txt2html.exe
-	@rm -rf old
-	@mkdir old; mkdir old/Eqs; mkdir old/JPG; mkdir old/PDF
-	@cd src; ../utils/txt2html/txt2html.exe -b *.txt; \
-	  mv *.html ../old; \
-	  cp Eqs/*.jpg ../old/Eqs; \
-	  cp JPG/* ../old/JPG; \
-	  cp PDF/* ../old/PDF;
-	@(      set -e;\
-		cd src/Developer; \
-		pdflatex developer; \
-		pdflatex developer; \
-		mv developer.pdf ../../old/Developer.pdf; \
-		cd ../../old; \
-	        for s in `echo ../src/*.txt | sed -e 's,\.\./src/,,g' -e 's/ \(pairs\|bonds\|angles\|dihedrals\|impropers\|commands_list\|fixes\|computes\).txt/ /g' | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q ^$$s ../src/lammps.book || \
-			echo WARNING: doc file $$s missing in src/lammps.book; done; \
-		htmldoc --batch ../src/lammps.book;          \
-	)
-
-
-fetch:
-	@rm -rf html_www Manual_www.pdf Developer_www.pdf
-	@curl -s -o Manual_www.pdf http://lammps.sandia.gov/doc/Manual.pdf
-	@curl -s -o Developer_www.pdf http://lammps.sandia.gov/doc/Developer.pdf
-	@curl -s -o lammps-doc.tar.gz http://lammps.sandia.gov/tars/lammps-doc.tar.gz
-	@tar xzf lammps-doc.tar.gz
-	@rm -f lammps-doc.tar.gz
-
-txt2html: utils/txt2html/txt2html.exe
+	@echo "Build finished. Manual.pdf is in this directory."
 
 anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ;\
-		doc_anchor_check src/*.txt ;\
+		rst_anchor_check src/*.rst ;\
 		deactivate ;\
 	)
 
+style_check : $(VENV)
+	@(\
+		. $(VENV)/bin/activate ;\
+		python utils/check-styles.py -s ../src -d src ;\
+		deactivate ;\
+	)
+
+package_check : $(VENV)
+	@(\
+		. $(VENV)/bin/activate ;\
+		python utils/check-packages.py -s ../src -d src ;\
+		deactivate ;\
+	)
+
+char_check :
+	@( env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst && exit 1 || : )
+
+xmlgen : doxygen/xml/index.xml
+
+doxygen/Doxyfile: doxygen/Doxyfile.in
+	sed -e 's/@LAMMPS_SOURCE_DIR@/..\/..\/src/g' $< > $@
+
+doxygen/xml/index.xml : $(VENV) doxygen/Doxyfile $(DOXYFILES)
+	@(cd doxygen; $(DOXYGEN) Doxyfile && touch xml/run.stamp)
 # ------------------------------------------
 
-utils/txt2html/txt2html.exe: utils/txt2html/txt2html.cpp
-	g++ -O -Wall -o $@ $<
-
-$(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
-	@(\
-		mkdir -p $(RSTDIR) ; \
-		. $(VENV)/bin/activate ;\
-		txt2rst -v $< > $@ ;\
-		deactivate ;\
-	)
-
 $(VENV):
-	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "Python3 was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
-	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "python3 was not found! Please see README for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_DOXYGEN)" == "NO" ] ; then echo "doxygen was not found! Please see README for further instructions" 1>&2; exit 1; fi
 	@( \
-		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
+		$(PYTHON) -m venv $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install Sphinx; \
+		pip $(PIP_OPTIONS) install --upgrade pip; \
+		pip $(PIP_OPTIONS) install --upgrade wheel; \
+		pip $(PIP_OPTIONS) install -r $(BUILDDIR)/utils/requirements.txt; \
 		deactivate;\
 	)
 
-$(TXT2RST) $(ANCHORCHECK): $(VENV)
+$(MATHJAX):
+	@git clone -b $(MATHJAXTAG) -c advice.detachedHead=0 --depth 1 https://github.com/mathjax/MathJax.git $@
+
+$(ANCHORCHECK): $(VENV)
 	@( \
 		. $(VENV)/bin/activate; \
-		(cd utils/converters;\
-		python setup.py develop);\
+		pip $(PIP_OPTIONS) install -e utils/converters;\
 		deactivate;\
 	)

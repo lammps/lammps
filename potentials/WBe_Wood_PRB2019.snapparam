@@ -1,0 +1,13 @@
+# DATE: 2019-09-18 UNITS: metal CONTRIBUTOR: Mary Alice Cusentino mcusent@sandia.gov CITATION: M.A. Wood, M.A. Cusentino, B.D. Wirth, and A.P. Thompson, "Data-driven material models for atomistic simulation", Physical Review B 99, 184305 (2019) 
+
+# required
+rcutfac 4.8123
+twojmax 8
+
+# optional
+
+rfac0 0.99363
+rmin0 0
+bzeroflag 1
+quadraticflag 0 
+

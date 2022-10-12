@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,26 +12,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_rx_kokkos.h"
-#include "atom_masks.h"
+
 #include "atom_kokkos.h"
-#include "force.h"
-#include "memory_kokkos.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list_kokkos.h"
-#include "neigh_request.h"
-#include "error.h"
-#include "math_special_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_property_atom.h"
+#include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "neigh_list_kokkos.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
 #include <cfloat> // DBL_EPSILON
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,7 +54,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp(void) { return MPI_Wtime(); }
+TimerType getTimeStamp() { return platform::walltime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace
@@ -63,7 +64,7 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 template <typename DeviceType>
 FixRxKokkos<DeviceType>::FixRxKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRX(lmp, narg, arg),
-  pairDPDEKK(NULL),
+  pairDPDEKK(nullptr),
   update_kinetics_data(true)
 {
   kokkosable = 1;
@@ -104,7 +105,7 @@ void FixRxKokkos<DeviceType>::post_constructor()
   FixRX::post_constructor();
 
   // Need a copy of this
-  this->my_restartFlag = modify->fix[modify->nfix-1]->restart_reset;
+  this->my_restartFlag = fix_species->restart_reset;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,54 +113,33 @@ void FixRxKokkos<DeviceType>::post_constructor()
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::init()
 {
-  //printf("Inside FixRxKokkos::init\n");
-
-  // Call the parent's version.
-  //FixRX::init();
-
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
-  if (pairDPDE == NULL)
+  if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix rx");
 
   pairDPDEKK = dynamic_cast<decltype(pairDPDEKK)>(pairDPDE);
-  if (pairDPDEKK == NULL)
+  if (pairDPDEKK == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy/kk with fix rx/kk");
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos/table/rx",3) == 0) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
+    if (utils::strmatch(modify->fix[i]->style,"^eos/table/rx")) eos_flag = true;
+  if (!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
 
   if (update_kinetics_data)
     create_kinetics_data();
 
-  // From FixRX::init()
   // need a half neighbor list
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-
-  // Update the neighbor data for Kokkos.
-  int neighflag = lmp->kokkos->neighflag;
-
-  neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else { //if (neighflag == HALF || neighflag == HALFTHREAD)
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  }
+  auto request = neighbor->add_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (lmp->kokkos->neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -221,6 +201,7 @@ void FixRxKokkos<DeviceType>::rk4(const double t_stop, double *y, double *rwork,
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const
 {
   VectorType k1( rwork );
@@ -280,6 +261,7 @@ void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorTy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out, VectorType& rwk, UserDataType& userData) const
 {
    const double c21=0.25;
@@ -321,7 +303,7 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
    // 1)
    k_rhs (0.0, y, f1, userData);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f1[k] *= h;
       ytmp[k] = y[k] + c21 * f1[k];
    }
@@ -329,7 +311,7 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
    // 2)
    k_rhs(0.0, ytmp, f2, userData);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f2[k] *= h;
       ytmp[k] = y[k] + c31 * f1[k] + c32 * f2[k];
    }
@@ -379,16 +361,14 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
     //y_out[k] = y[k] + r5; // Local extrapolation
       y_out[k] = y[k] + r4;
    }
-
-   return;
 }
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
-int FixRxKokkos<DeviceType>::k_rkf45_h0
-                    (const int neq, const double t, const double t_stop,
-                     const double hmin, const double hmax,
-                     double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const
+KOKKOS_INLINE_FUNCTION
+int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
+                                         const double hmin, const double hmax,
+                                         double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const
 {
    // Set lower and upper bounds on h0, and take geometric mean as first trial value.
    // Exit with this value if the bounds cross each other.
@@ -416,7 +396,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0
    // compute ydot at t=t0
    k_rhs (t, y, ydot, userData);
 
-   while(1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -428,7 +408,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0
 
       // Compute WRMS norm of y''
       double yddnrm = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
          double ydd = (ydot1[k] - ydot[k]) / hg;
          double wterr = ydd / (relTol * fabs( y[k] ) + absTol);
          yddnrm += wterr * wterr;
@@ -440,7 +420,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0
       //std::cout << "ydot " << ydot[neq-1] << std::endl;
 
       // should we accept this?
-      if (hnew_is_ok || iter == max_iters){
+      if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
          //if (iter == max_iters)
          //   fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
@@ -454,11 +434,11 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0
       double hrat = hnew / hg;
 
       // Accept this value ... the bias factor should bring it within range.
-      if ( (hrat > 0.5) && (hrat < 2.0) )
+      if ((hrat > 0.5) && (hrat < 2.0))
          hnew_is_ok = true;
 
       // If y'' is still bad after a few iterations, just accept h and give up.
-      if ( (iter > 1) && hrat > 2.0 ) {
+      if ((iter > 1) && hrat > 2.0) {
          hnew = hg;
          hnew_is_ok = true;
       }
@@ -480,6 +460,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const
 {
   // Rounding coefficient.
@@ -508,7 +489,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
 
   double t = 0.0;
 
-  if (h < h_min){
+  if (h < h_min) {
     //fprintf(stderr,"hin not implemented yet\n");
     //exit(-1);
     nfe = k_rkf45_h0 (neq, t, t_stop, h_min, h_max, h, y, rwork, userData);
@@ -528,7 +509,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
     // Estimate the solution error.
       // ... weighted 2-norm of the error.
       double err2 = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
         const double wterr = eout[k] / (relTol * fabs( y[k] ) + absTol);
         err2 += wterr * wterr;
       }
@@ -536,7 +517,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
     double err = fmax( uround, sqrt( err2 / double(nspecies) ));
 
     // Accept the solution?
-    if (err <= 1.0 || h <= h_min){
+    if (err <= 1.0 || h <= h_min) {
       t += h;
       nst++;
 
@@ -569,7 +550,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
     nit++;
     nfe += 6;
 
-    if (maxIters && nit > maxIters){
+    if (maxIters && nit > maxIters) {
       //fprintf(stderr,"atom[%d] took too many iterations in rkf45 %d %e %e\n", id, nit, t, t_stop);
       counter.nFails ++;
       break;
@@ -641,7 +622,7 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
    // 1)
    rhs (0.0, y, f1, v_param);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f1[k] *= h;
       ytmp[k] = y[k] + c21 * f1[k];
    }
@@ -649,7 +630,7 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
    // 2)
    rhs(0.0, ytmp, f2, v_param);
 
-   for (int k = 0; k < neq; k++){
+   for (int k = 0; k < neq; k++) {
       f2[k] *= h;
       ytmp[k] = y[k] + c31 * f1[k] + c32 * f2[k];
    }
@@ -699,15 +680,12 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
     //y_out[k] = y[k] + r5; // Local extrapolation
       y_out[k] = y[k] + r4;
    }
-
-   return;
 }
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::rkf45_h0
-                    (const int neq, const double t, const double t_stop,
-                     const double hmin, const double hmax,
-                     double& h0, double y[], double rwk[], void* v_params) const
+int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const double /*t_stop*/,
+                                      const double hmin, const double hmax,
+                                      double& h0, double y[], double rwk[], void* v_params) const
 {
    // Set lower and upper bounds on h0, and take geometric mean as first trial value.
    // Exit with this value if the bounds cross each other.
@@ -735,7 +713,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while(1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -747,7 +725,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0
 
       // Compute WRMS norm of y''
       double yddnrm = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
          double ydd = (ydot1[k] - ydot[k]) / hg;
          double wterr = ydd / (relTol * fabs( y[k] ) + absTol);
          yddnrm += wterr * wterr;
@@ -759,7 +737,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0
       //std::cout << "ydot " << ydot[neq-1] << std::endl;
 
       // should we accept this?
-      if (hnew_is_ok || iter == max_iters){
+      if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
          if (iter == max_iters)
             fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
@@ -773,11 +751,11 @@ int FixRxKokkos<DeviceType>::rkf45_h0
       double hrat = hnew / hg;
 
       // Accept this value ... the bias factor should bring it within range.
-      if ( (hrat > 0.5) && (hrat < 2.0) )
+      if ((hrat > 0.5) && (hrat < 2.0))
          hnew_is_ok = true;
 
       // If y'' is still bad after a few iterations, just accept h and give up.
-      if ( (iter > 1) && hrat > 2.0 ) {
+      if ((iter > 1) && hrat > 2.0) {
          hnew = hg;
          hnew_is_ok = true;
       }
@@ -826,7 +804,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
 
   double t = 0.0;
 
-  if (h < h_min){
+  if (h < h_min) {
     //fprintf(stderr,"hin not implemented yet\n");
     //exit(-1);
     nfe = rkf45_h0 (neq, t, t_stop, h_min, h_max, h, y, rwork, v_param);
@@ -835,7 +813,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
   //printf("t= %e t_stop= %e h= %e\n", t, t_stop, h);
 
   // Integrate until we reach the end time.
-  while (fabs(t - t_stop) > tround){
+  while (fabs(t - t_stop) > tround) {
     double *yout = rwork;
     double *eout = yout + neq;
 
@@ -845,7 +823,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
     // Estimate the solution error.
       // ... weighted 2-norm of the error.
       double err2 = 0.0;
-      for (int k = 0; k < neq; k++){
+      for (int k = 0; k < neq; k++) {
         const double wterr = eout[k] / (relTol * fabs( y[k] ) + absTol);
         err2 += wterr * wterr;
       }
@@ -853,7 +831,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
     double err = fmax( uround, sqrt( err2 / double(nspecies) ));
 
     // Accept the solution?
-    if (err <= 1.0 || h <= h_min){
+    if (err <= 1.0 || h <= h_min) {
       t += h;
       nst++;
 
@@ -886,7 +864,7 @@ void FixRxKokkos<DeviceType>::rkf45(const int neq, const double t_stop, double *
     nit++;
     nfe += 6;
 
-    if (maxIters && nit > maxIters){
+    if (maxIters && nit > maxIters) {
       //fprintf(stderr,"atom[%d] took too many iterations in rkf45 %d %e %e\n", id, nit, t, t_stop);
       counter.nFails ++;
       break;
@@ -917,7 +895,7 @@ int FixRxKokkos<DeviceType>::rhs(double t, const double *y, double *dydt, void *
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, void *params) const
+int FixRxKokkos<DeviceType>::rhs_dense(double /*t*/, const double *y, double *dydt, void *params) const
 {
   UserRHSData *userData = (UserRHSData *) params;
 
@@ -927,14 +905,14 @@ int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, 
   //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
   //const int nspecies = atom->nspecies_dpd;
 
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
     dydt[ispecies] = 0.0;
 
   // Construct the reaction rate laws
-  for(int jrxn=0; jrxn<nreactions; jrxn++){
+  for (int jrxn=0; jrxn<nreactions; jrxn++) {
     double rxnRateLawForward = kFor[jrxn];
 
-    for(int ispecies=0; ispecies<nspecies; ispecies++){
+    for (int ispecies=0; ispecies<nspecies; ispecies++) {
       const double concentration = y[ispecies]/VDPD;
       rxnRateLawForward *= pow( concentration, d_kineticsData.stoichReactants(jrxn,ispecies) );
       //rxnRateLawForward *= pow(concentration,stoichReactants[jrxn][ispecies]);
@@ -943,8 +921,8 @@ int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, 
   }
 
   // Construct the reaction rates for each species
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
-    for(int jrxn=0; jrxn<nreactions; jrxn++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
+    for (int jrxn=0; jrxn<nreactions; jrxn++)
     {
       dydt[ispecies] += d_kineticsData.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
       //dydt[ispecies] += stoich[jrxn][ispecies]*VDPD*rxnRateLaw[jrxn];
@@ -956,14 +934,14 @@ int FixRxKokkos<DeviceType>::rhs_dense(double t, const double *y, double *dydt, 
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt, void *v_params) const
+int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_params) const
 {
    UserRHSData *userData = (UserRHSData *) v_params;
 
    //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 
    #define kFor         (userData->kFor)
-   #define kRev         (NULL)
+   #define kRev         (nullptr)
    #define rxnRateLaw   (userData->rxnRateLaw)
    #define conc         (dydt)
    #define maxReactants (this->sparseKinetics_maxReactants)
@@ -981,9 +959,9 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
    for (int i = 0; i < nreactions; ++i)
    {
       double rxnRateLawForward;
-      if (isIntegral(i)){
+      if (isIntegral(i)) {
          rxnRateLawForward = kFor[i] * powint( conc[ nuk(i,0) ], inu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -991,7 +969,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
          }
       } else {
          rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], nu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -1007,10 +985,10 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
    for (int k = 0; k < nspecies; ++k)
       dydt[k] = 0.0;
 
-   for (int i = 0; i < nreactions; ++i){
+   for (int i = 0; i < nreactions; ++i) {
       // Reactants ...
       dydt[ nuk(i,0) ] -= nu(i,0) * rxnRateLaw[i];
-      for (int kk = 1; kk < maxReactants; ++kk){
+      for (int kk = 1; kk < maxReactants; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1019,7 +997,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
 
       // Products ...
       dydt[ nuk(i,maxReactants) ] += nu(i,maxReactants) * rxnRateLaw[i];
-      for (int kk = maxReactants+1; kk < maxSpecies; ++kk){
+      for (int kk = maxReactants+1; kk < maxSpecies; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1050,6 +1028,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double t, const double *y, double *dydt,
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
   // Use the sparse format instead.
@@ -1063,7 +1042,8 @@ int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
-int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
+KOKKOS_INLINE_FUNCTION
+int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
   #define rxnRateLaw (userData.rxnRateLaw)
   #define kFor       (userData.kFor      )
@@ -1071,14 +1051,14 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorTy
   //const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
   //const int nspecies = atom->nspecies_dpd;
 
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
     dydt[ispecies] = 0.0;
 
   // Construct the reaction rate laws
-  for(int jrxn=0; jrxn<nreactions; jrxn++){
+  for (int jrxn=0; jrxn<nreactions; jrxn++) {
     double rxnRateLawForward = kFor[jrxn];
 
-    for(int ispecies=0; ispecies<nspecies; ispecies++){
+    for (int ispecies=0; ispecies<nspecies; ispecies++) {
       const double concentration = y[ispecies]/VDPD;
       rxnRateLawForward *= pow( concentration, d_kineticsData.stoichReactants(jrxn,ispecies) );
       //rxnRateLawForward *= pow(concentration,stoichReactants[jrxn][ispecies]);
@@ -1087,8 +1067,8 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorTy
   }
 
   // Construct the reaction rates for each species
-  for(int ispecies=0; ispecies<nspecies; ispecies++)
-    for(int jrxn=0; jrxn<nreactions; jrxn++)
+  for (int ispecies=0; ispecies<nspecies; ispecies++)
+    for (int jrxn=0; jrxn<nreactions; jrxn++)
     {
       dydt[ispecies] += d_kineticsData.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
       //dydt[ispecies] += stoich[jrxn][ispecies]*VDPD*rxnRateLaw[jrxn];
@@ -1104,10 +1084,11 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double t, const VectorType& y, VectorTy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
-int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
+KOKKOS_INLINE_FUNCTION
+int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
    #define kFor         (userData.kFor)
-   #define kRev         (NULL)
+   #define kRev         (nullptr)
    #define rxnRateLaw   (userData.rxnRateLaw)
    #define conc         (dydt)
    #define maxReactants (this->sparseKinetics_maxReactants)
@@ -1125,9 +1106,9 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorT
    for (int i = 0; i < nreactions; ++i)
    {
       double rxnRateLawForward;
-      if (isIntegral(i)){
+      if (isIntegral(i)) {
          rxnRateLawForward = kFor[i] * powint( conc[ nuk(i,0) ], inu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -1135,7 +1116,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorT
          }
       } else {
          rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], nu(i,0) );
-         for (int kk = 1; kk < maxReactants; ++kk){
+         for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
@@ -1151,10 +1132,10 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorT
    for (int k = 0; k < nspecies; ++k)
       dydt[k] = 0.0;
 
-   for (int i = 0; i < nreactions; ++i){
+   for (int i = 0; i < nreactions; ++i) {
       // Reactants ...
       dydt[ nuk(i,0) ] -= nu(i,0) * rxnRateLaw[i];
-      for (int kk = 1; kk < maxReactants; ++kk){
+      for (int kk = 1; kk < maxReactants; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1163,7 +1144,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double t, const VectorType& y, VectorT
 
       // Products ...
       dydt[ nuk(i,maxReactants) ] += nu(i,maxReactants) * rxnRateLaw[i];
-      for (int kk = maxReactants+1; kk < maxSpecies; ++kk){
+      for (int kk = maxReactants+1; kk < maxSpecies; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
          //if (k != SparseKinetics_invalidIndex)
@@ -1232,7 +1213,7 @@ void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::create_kinetics_data(void)
+void FixRxKokkos<DeviceType>::create_kinetics_data()
 {
   //printf("Inside FixRxKokkos::create_kinetics_data\n");
 
@@ -1424,7 +1405,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreForce)
+void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool isPreForce)
 {
   //printf("Inside FixRxKokkos<DeviceType>::solve_reactions localTempFlag= %d isPreForce= %s\n", localTempFlag, isPreForce ? "True" : "false");
 
@@ -1433,7 +1414,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   if (update_kinetics_data)
     create_kinetics_data();
 
-  TimerType timer_start = getTimeStamp();
+  //TimerType timer_start = getTimeStamp();
 
   //const int nlocal = atom->nlocal;
   this->nlocal = atom->nlocal;
@@ -1441,13 +1422,13 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   const int newton_pair = force->newton_pair;
 
   // Set the forward rates to zero if acting as setup_pre_force.
-  const bool setRatesToZero = (isPreForce == false);
+  const bool setRatesToZero = (!isPreForce);
 
   if (localTempFlag)
   {
     const int count = nlocal + (newton_pair ? nghost : 0);
 
-    if (count > k_dpdThetaLocal.template view<DeviceType>().extent(0)) {
+    if (count > (int) k_dpdThetaLocal.template view<DeviceType>().extent(0)) {
       memoryKK->destroy_kokkos (k_dpdThetaLocal, dpdThetaLocal);
       memoryKK->create_kokkos (k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
       this->d_dpdThetaLocal = k_dpdThetaLocal.template view<DeviceType>();
@@ -1456,30 +1437,33 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 
     const int neighflag = lmp->kokkos->neighflag;
 
-#define _template_switch(_wtflag, _localTempFlag) { \
-       if (neighflag == HALF) \
-          if (newton_pair) \
-             computeLocalTemperature<_wtflag, _localTempFlag, true , HALF> (); \
-          else \
-             computeLocalTemperature<_wtflag, _localTempFlag, false, HALF> (); \
-       else if (neighflag == HALFTHREAD) \
-          if (newton_pair) \
-             computeLocalTemperature<_wtflag, _localTempFlag, true , HALFTHREAD> (); \
-          else \
-             computeLocalTemperature<_wtflag, _localTempFlag, false, HALFTHREAD> (); \
-       else if (neighflag == FULL) \
-          if (newton_pair) \
-             computeLocalTemperature<_wtflag, _localTempFlag, true , FULL> (); \
-          else \
-             computeLocalTemperature<_wtflag, _localTempFlag, false, FULL> (); \
+#define _template_switch(_wtflag, _localTempFlag) {                               \
+      if (neighflag == HALF) {                                                    \
+        if (newton_pair) {                                                        \
+          computeLocalTemperature<_wtflag, _localTempFlag, true , HALF> ();       \
+        } else {                                                                  \
+          computeLocalTemperature<_wtflag, _localTempFlag, false, HALF> ();       \
+        }                                                                         \
+      } else if (neighflag == HALFTHREAD) {                                       \
+        if (newton_pair) {                                                        \
+          computeLocalTemperature<_wtflag, _localTempFlag, true , HALFTHREAD> (); \
+        } else {                                                                  \
+          computeLocalTemperature<_wtflag, _localTempFlag, false, HALFTHREAD> (); \
+        }                                                                         \
+      } else if (neighflag == FULL) {                                             \
+        if (newton_pair)  {                                                       \
+          computeLocalTemperature<_wtflag, _localTempFlag, true , FULL> ();       \
+        } else {                                                                  \
+          computeLocalTemperature<_wtflag, _localTempFlag, false, FULL> ();       \
+        }                                                                         \
+      }                                                                           \
     }
 
     // Are there is no other options than wtFlag = (0)LUCY and localTempFlag = NONE : HARMONIC?
     if (localTempFlag == HARMONIC) {
-       _template_switch(LUCY, HARMONIC)
-    }
-    else {
-       _template_switch(LUCY, NONE)
+      _template_switch(LUCY, HARMONIC)
+    } else {
+      _template_switch(LUCY, NONE)
     }
 #undef _template_switch
   }
@@ -1664,11 +1648,11 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   // Communicate the updated species data to all nodes
   atomKK->sync ( Host, DVECTOR_MASK );
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   atomKK->modified ( Host, DVECTOR_MASK );
 
-  TimerType timer_stop = getTimeStamp();
+  //TimerType timer_stop = getTimeStamp();
 
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
@@ -1679,7 +1663,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
   //                       getElapsedTime(timer_ODE, timer_stop), nlocal, TotalCounters.nFuncs, TotalCounters.nSteps);
 
   // Warn the user if a failure was detected in the ODE solver.
-  if (TotalCounters.nFails > 0){
+  if (TotalCounters.nFails > 0) {
     char sbuf[128];
     sprintf(sbuf,"in FixRX::pre_force, ODE solver failed for %d atoms.", TotalCounters.nFails);
     error->warning(FLERR, sbuf);
@@ -1707,7 +1691,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int vflag, const bool isPreF
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::odeDiagnostics(void)
+void FixRxKokkos<DeviceType>::odeDiagnostics()
 {
   TimerType timer_start = getTimeStamp();
 
@@ -1745,7 +1729,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   double min_per_proc[numCounters];
 
   // Compute counters per dpd time-step.
-  for (int i = 0; i < numCounters; ++i){
+  for (int i = 0; i < numCounters; ++i) {
     my_vals[i] = this->diagnosticCounter[i] / nTimes;
     //printf("my sum[%d] = %f %d\n", i, my_vals[i], comm->me);
   }
@@ -1760,7 +1744,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   double avg_per_atom[numCounters], avg_per_proc[numCounters];
 
   // Averages per-ODE and per-proc per time-step.
-  for (int i = 0; i < numCounters; ++i){
+  for (int i = 0; i < numCounters; ++i) {
     avg_per_atom[i] = sums[i] / nODEs;
     avg_per_proc[i] = sums[i] / comm->nprocs;
   }
@@ -1768,7 +1752,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   // Sum up the differences from each task.
   double sum_sq[2*numCounters];
   double my_sum_sq[2*numCounters];
-  for (int i = 0; i < numCounters; ++i){
+  for (int i = 0; i < numCounters; ++i) {
     double diff_i = my_vals[i] - avg_per_proc[i];
     my_sum_sq[i] = diff_i * diff_i;
   }
@@ -1828,7 +1812,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   TimerType timer_stop = getTimeStamp();
   double time_local = getElapsedTime( timer_start, timer_stop );
 
-  if (comm->me == 0){
+  if (comm->me == 0) {
     char smesg[128];
 
 #define print_mesg(smesg) {\
@@ -1842,7 +1826,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
     print_mesg(smesg);
 
     // only valid for single time-step!
-    if (diagnosticFrequency == 1){
+    if (diagnosticFrequency == 1) {
       double rms_per_ODE[numCounters];
       for (int i = 0; i < numCounters; ++i)
         rms_per_ODE[i] = sqrt( sum_sq[i+numCounters] / nODEs );
@@ -1860,7 +1844,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
     sprintf(smesg, "         AVG per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", avg_per_proc[StepSum], avg_per_proc[FuncSum], avg_per_proc[TimeSum], avg_per_proc[AtomSum]);
     print_mesg(smesg);
 
-    if (comm->nprocs > 1){
+    if (comm->nprocs > 1) {
       double rms_per_proc[numCounters];
       for (int i = 0; i < numCounters; ++i)
         rms_per_proc[i] = sqrt( sum_sq[i] / comm->nprocs );
@@ -1887,8 +1871,6 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   // Reset the counters.
   for (int i = 0; i < numDiagnosticCounters; ++i)
     diagnosticCounter[i] = 0;
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1910,7 +1892,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
 {
   // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
   // for Half/thread scenarios.
-  typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+  typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
 
   AtomicViewType a_dpdThetaLocal = d_dpdThetaLocal;
   AtomicViewType a_sumWeights    = d_sumWeights;
@@ -2026,7 +2008,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
     const int ntypes = atom->ntypes;
 
     //memoryKK->create_kokkos (k_cutsq, h_cutsq, ntypes+1, ntypes+1, "pair:cutsq");
-    if (ntypes+1 > k_cutsq.extent(0)) {
+    if (ntypes+1 > (int) k_cutsq.extent(0)) {
       memoryKK->destroy_kokkos (k_cutsq);
       memoryKK->create_kokkos (k_cutsq, ntypes+1, ntypes+1, "FixRxKokkos::k_cutsq");
       d_cutsq = k_cutsq.template view<DeviceType>();
@@ -2047,7 +2029,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   int sumWeightsCt = nlocal + (NEWTON_PAIR ? nghost : 0);
 
   //memoryKK->create_kokkos (k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
-  if (sumWeightsCt > k_sumWeights.template view<DeviceType>().extent(0)) {
+  if (sumWeightsCt > (int)k_sumWeights.template view<DeviceType>().extent(0)) {
     memoryKK->destroy_kokkos(k_sumWeights, sumWeights);
     memoryKK->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
     d_sumWeights = k_sumWeights.template view<DeviceType>();
@@ -2066,7 +2048,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   // Local list views. (This isn't working!)
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
-  if (not(list->kokkos))
+  if (!list->kokkos)
      error->one(FLERR,"list is not a Kokkos list\n");
 
   //typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors = k_list->d_neighbors;
@@ -2085,8 +2067,8 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
         {
           // Create an atomic view of sumWeights and dpdThetaLocal. Only needed
           // for Half/thread scenarios.
-          //typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
-          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, DeviceType, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+          //typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
+          typedef Kokkos::View< E_FLOAT*, typename DAT::t_efloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits< AtomicF< NEIGHFLAG >::value> > AtomicViewType;
 
           AtomicViewType a_dpdThetaLocal = d_dpdThetaLocal;
           AtomicViewType a_sumWeights    = d_sumWeights;
@@ -2153,7 +2135,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   k_sumWeights.   template modify<DeviceType>();
 
   // Communicate the sum dpdTheta and the weights on the host.
-  if (NEWTON_PAIR) comm->reverse_comm_fix(this);
+  if (NEWTON_PAIR) comm->reverse_comm(this);
 
   // Update the device view in case they got changed.
   k_dpdThetaLocal.template sync<DeviceType>();
@@ -2190,7 +2172,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   //printf("inside FixRxKokkos::pack_forward_comm %d\n", comm->me);
 
@@ -2199,7 +2181,7 @@ int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, in
   int m = 0;
   for (int ii = 0; ii < n; ii++) {
     const int jj = list[ii];
-    for(int ispecies = 0; ispecies < nspecies; ispecies++){
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       buf[m++] = h_dvector(ispecies,jj);
       buf[m++] = h_dvector(ispecies+nspecies,jj);
     }
@@ -2221,8 +2203,8 @@ void FixRxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 
   const int last = first + n ;
   int m = 0;
-  for (int ii = first; ii < last; ii++){
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+  for (int ii = first; ii < last; ii++) {
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       h_dvector(ispecies,ii) = buf[m++];
       h_dvector(ispecies+nspecies,ii) = buf[m++];
     }
@@ -2276,7 +2258,7 @@ void FixRxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 
 namespace LAMMPS_NS {
 template class FixRxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixRxKokkos<LMPHostType>;
 #endif
 }

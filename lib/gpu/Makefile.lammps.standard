@@ -7,5 +7,5 @@ endif
 
 gpu_SYSINC =
 gpu_SYSLIB =  -lcudart -lcuda
-gpu_SYSPATH = -L$(CUDA_HOME)/lib64
+gpu_SYSPATH = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
 

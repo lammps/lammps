@@ -14,7 +14,7 @@ namespace ATC
 
   /**
    *  @class  AtomCluster
-   *  @brief  Base class for a container for a cluster of atoms around an atom at the origin 
+   *  @brief  Base class for a container for a cluster of atoms around an atom at the origin
    *          (which is not included in the lists).
    *          Provides routines for outputting the atoms in the cluster to a vtk file,
    *          and checking for any overlapping atoms (which should not happen).
@@ -23,7 +23,7 @@ namespace ATC
   class AtomCluster
   {
     friend class CBLattice;
-    friend DENS_MAT_VEC compute_dynamical_derivative(StressArgs &args); 
+    friend DENS_MAT_VEC compute_dynamical_derivative(StressArgs &args);
     friend int test_FCB(const StressArgs &args);
   public:
     //* Returns the number of atoms in the cluster.
@@ -46,25 +46,25 @@ namespace ATC
     double bond_length(INDEX i) const { return cur_bond_len_[i]; }
     //* Returns a reference to the deformation gradient tensor.
     const DENS_MAT& deformation_gradient() const { return F_; }
-  
-    //* Computes forces on central atom, with atom I displaced by u. 
+
+    //* Computes forces on central atom, with atom I displaced by u.
     DENS_VEC perturbed_force(const CbPotential *p, int I, DENS_VEC *u) const;
     //* Computes the force constant matrix between atoms I and 0.
     DENS_MAT force_constants(INDEX I, const CbPotential *p) const;
 
   private:
-    
+
     std::vector<double>   cur_bond_len_; //*> Bond lengths (current)
     std::vector<DENS_VEC> ref_coords_;   //*> Atom coordinates (ref)
     DENS_MAT F_;                         //*> Deformation gradient
   };
 
   /**
-   *  @class  CBLattice 
-   *  @brief  Base class that generates a virtual atom clusters given a lattice and 
+   *  @class  CBLattice
+   *  @brief  Base class that generates a virtual atom clusters given a lattice and
    *          a deformation gradient.
    */
- 
+
   class CBLattice
   {
   protected:
@@ -76,7 +76,7 @@ namespace ATC
   public:
     //* Operator that outputs the lattice and basis to a stream.
     friend std::ostream& operator<<(std::ostream& o, const CBLattice& lattice);
-    CBLattice(const MATRIX &N, const MATRIX &B); 
+    CBLattice(const MATRIX &N, const MATRIX &B);
     //* generates the virtual atom cluster
     void atom_cluster(const MATRIX &F, double cutoff, AtomCluster &v);
 
@@ -87,7 +87,7 @@ namespace ATC
   };
   // hash functions: a, b, c must in range [-128, 127]
   inline int hash(int a,int b,int c) {return(a+128)|((b+128)<<8)|((c+128)<<16);}
-  inline void unhash(int r, int &a, int &b, int &c)   
+  inline void unhash(int r, int &a, int &b, int &c)
   {
      a = (r&0xFF) - 128;
      b = ((r>>8)&0xFF) - 128;

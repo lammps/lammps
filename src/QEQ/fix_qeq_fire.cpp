@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,27 +16,21 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_fire.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
-#include "group.h"
-#include "pair.h"
+#include "kspace.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "kspace.h"
-#include "respa.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -50,7 +45,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg)
+  FixQEq(lmp, narg, arg), comb(nullptr), comb3(nullptr)
 {
   qdamp = 0.20;
   qstep = 0.20;
@@ -66,40 +61,28 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/fire command");
       qstep = atof(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/fire command");
+      maxwarn = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/fire command");
   }
-
-  comb = NULL;
-  comb3 = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqFire::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/fire requires atom attribute q");
+  FixQEq::init();
 
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/fire group has no atoms");
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->add_request(this);
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
-      error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
-                    " for damped fires");
+      error->warning(FLERR,"Fix qeq/fire tolerance may be too small for damped fires");
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  comb = (PairComb *) force->pair_match("comb",1);
-  comb3 = (PairComb3 *) force->pair_match("comb3",1);
-
+  comb3 = dynamic_cast<PairComb3 *>(force->pair_match("^comb3",0));
+  if (!comb3) comb = dynamic_cast<PairComb *>(force->pair_match("^comb",0));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,9 +118,9 @@ void FixQEqFire::pre_force(int /*vflag*/)
   dt = qstep;
   dtmax = TMAX * dt;
 
-  for (iloop = 0; iloop < maxiter; iloop ++ ) {
+  for (iloop = 0; iloop < maxiter; iloop ++) {
     pack_flag = 1;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (comb) {
       comb->yasu_char(qf,igroup);
@@ -220,15 +203,11 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
     if (enegchk < tolerance) break;
   }
+  matvecs = iloop;
 
-  if (comm->me == 0) {
-    if (iloop == maxiter) {
-      char str[128];
-      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
-                  ": %lg",update->ntimestep,enegchk);
-      error->warning(FLERR,str);
-    }
-  }
+  if ((comm->me == 0) && maxwarn && (iloop >= maxiter))
+    error->warning(FLERR,"Charges did not converge at step {}: {}",
+                   update->ntimestep,enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }
@@ -260,7 +239,7 @@ double FixQEqFire::compute_eneg()
 
   // communicating charge force to all nodes, first forward then reverse
   pack_flag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -293,7 +272,7 @@ double FixQEqFire::compute_eneg()
   }
 
   pack_flag = 2;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   // sum charge force on each node and return it
 
@@ -316,9 +295,9 @@ int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
   int m = 0;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = qf[list[m]];
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  else if (pack_flag == 2)
+    for (m = 0; m < n; m++) buf[m] = qf[list[m]];
 
   return m;
 }
@@ -330,9 +309,9 @@ void FixQEqFire::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  else if (pack_flag == 2)
+    for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -340,7 +319,7 @@ void FixQEqFire::unpack_forward_comm(int n, int first, double *buf)
 int FixQEqFire::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
+  for (m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
   return m;
 }
 
@@ -350,7 +329,7 @@ void FixQEqFire::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int m;
 
-  for(m = 0; m < n; m++) qf[list[m]] += buf[m];
+  for (m = 0; m < n; m++) qf[list[m]] += buf[m];
 }
 
 /* ---------------------------------------------------------------------- */

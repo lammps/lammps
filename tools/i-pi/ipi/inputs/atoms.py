@@ -78,7 +78,7 @@ class InputAtoms(Input):
       """Takes an Atoms instance and stores a minimal representation of it.
 
       Args:
-         atoms: An Atoms object from which to initialise from.
+         atoms: An Atoms object from which to initialize from.
          filename: An optional string giving a filename to take the atom
             positions from. Defaults to ''.
       """

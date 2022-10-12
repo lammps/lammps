@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,23 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "compute_ke.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "domain.h"
-#include "group.h"
 #include "error.h"
+#include "force.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeKE::ComputeKE(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeKE::ComputeKE(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute ke command");
+  if (narg != 3) error->all(FLERR, "Illegal compute ke command");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -58,15 +55,14 @@ double ComputeKE::compute_scalar()
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-        ke += rmass[i] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+        ke += rmass[i] * (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-        ke += mass[type[i]] *
-          (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+        ke += mass[type[i]] * (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]);
   }
 
-  MPI_Allreduce(&ke,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&ke, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
   scalar *= pfactor;
   return scalar;
 }

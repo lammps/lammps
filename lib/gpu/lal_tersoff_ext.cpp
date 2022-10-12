@@ -63,7 +63,7 @@ int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=TSMF.init(ntypes, inum, nall, 300, cell_size, gpu_split, screen,
+    init_ok=TSMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
                       host_map, nelements, host_elem2param, nparams,
                       ts_lam1, ts_lam2, ts_lam3, ts_powermint,
                       ts_biga, ts_bigb, ts_bigr, ts_bigd,
@@ -84,14 +84,14 @@ int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=TSMF.init(ntypes, inum, nall, 300, cell_size, gpu_split, screen,
+      init_ok=TSMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
                         host_map, nelements, host_elem2param, nparams,
                         ts_lam1, ts_lam2, ts_lam3, ts_powermint,
                         ts_biga, ts_bigb, ts_bigr, ts_bigd,
                         ts_c1, ts_c2, ts_c3, ts_c4, ts_c, ts_d, ts_h,
                         ts_gamma, ts_beta, ts_powern, ts_cutsq);
 
-    TSMF.device->gpu_barrier();
+    TSMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -99,7 +99,7 @@ int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int
     fprintf(screen,"\n");
 
   if (init_ok==0)
-    TSMF.estimate_gpu_overhead();
+    TSMF.estimate_gpu_overhead(1);
   return init_ok;
 }
 

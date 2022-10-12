@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_angle_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_angle_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -38,7 +39,7 @@ enum{THETA,ENG,VARIABLE};
 
 ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vvar(NULL), tstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(nullptr), vvar(nullptr), tstr(nullptr), vstr(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute angle/local command");
 
@@ -67,9 +68,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = ENG;
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       bstyle[nvalues++] = VARIABLE;
-      int n = strlen(arg[iarg]);
-      vstr[nvar] = new char[n];
-      strcpy(vstr[nvar],&arg[iarg][2]);
+      vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else break;
   }
@@ -77,7 +76,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   setflag = 0;
-  tstr = NULL;
+  tstr = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
@@ -85,10 +84,8 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute angle/local command");
       if (strcmp(arg[iarg+1],"theta") == 0) {
         delete [] tstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        tstr = new char[n];
-        strcpy(tstr,arg[iarg+2]);
-	tflag = 1;
+        tstr = utils::strdup(arg[iarg+2]);
+        tflag = 1;
       } else error->all(FLERR,"Illegal compute angle/local command");
       iarg += 3;
     } else error->all(FLERR,"Illegal compute angle/local command");
@@ -102,9 +99,9 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for copute angle/local does not exist");
+        error->all(FLERR,"Variable name for copute angle/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
-	error->all(FLERR,"Variable for compute angle/local is invalid style");
+        error->all(FLERR,"Variable for compute angle/local is invalid style");
     }
 
     if (tstr) {
@@ -123,8 +120,8 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -146,14 +143,14 @@ ComputeAngleLocal::~ComputeAngleLocal()
 
 void ComputeAngleLocal::init()
 {
-  if (force->angle == NULL)
+  if (force->angle == nullptr)
     error->all(FLERR,"No angle style is defined for compute angle/local");
 
   if (nvar) {
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,"Variable name for compute angle/local does not exist");
+        error->all(FLERR,"Variable name for compute angle/local does not exist");
     }
 
     if (tstr) {
@@ -197,7 +194,7 @@ void ComputeAngleLocal::compute_local()
 
 int ComputeAngleLocal::compute_angles(int flag)
 {
-  int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
+  int i,m,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
   tagint tagprev;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,theta;
@@ -223,11 +220,11 @@ int ComputeAngleLocal::compute_angles(int flag)
 
   Angle *angle = force->angle;
 
-  m = n = 0;
+  m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
-    if (molecular == 1) na = num_angle[atom2];
+    if (molecular == Atom::MOLECULAR) na = num_angle[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -236,7 +233,7 @@ int ComputeAngleLocal::compute_angles(int flag)
     }
 
     for (i = 0; i < na; i++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (tag[atom2] != angle_atom2[atom2][i]) continue;
         atype = angle_type[atom2][i];
         atom1 = atom->map(angle_atom1[atom2][i]);
@@ -261,53 +258,53 @@ int ComputeAngleLocal::compute_angles(int flag)
       // theta needed by one or more outputs
 
       if (tflag) {
-	delx1 = x[atom1][0] - x[atom2][0];
-	dely1 = x[atom1][1] - x[atom2][1];
-	delz1 = x[atom1][2] - x[atom2][2];
-	domain->minimum_image(delx1,dely1,delz1);
+        delx1 = x[atom1][0] - x[atom2][0];
+        dely1 = x[atom1][1] - x[atom2][1];
+        delz1 = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(delx1,dely1,delz1);
 
-	rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-	r1 = sqrt(rsq1);
-	
-	delx2 = x[atom3][0] - x[atom2][0];
-	dely2 = x[atom3][1] - x[atom2][1];
-	delz2 = x[atom3][2] - x[atom2][2];
-	domain->minimum_image(delx2,dely2,delz2);
+        rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+        r1 = sqrt(rsq1);
 
-	rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-	r2 = sqrt(rsq2);
+        delx2 = x[atom3][0] - x[atom2][0];
+        dely2 = x[atom3][1] - x[atom2][1];
+        delz2 = x[atom3][2] - x[atom2][2];
+        domain->minimum_image(delx2,dely2,delz2);
 
-	// c = cosine of angle
-	// theta = angle in radians
+        rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+        r2 = sqrt(rsq2);
 
-	c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-	c /= r1*r2;
-	if (c > 1.0) c = 1.0;
-	if (c < -1.0) c = -1.0;
-	theta = acos(c);
+        // c = cosine of angle
+        // theta = angle in radians
+
+        c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+        c /= r1*r2;
+        if (c > 1.0) c = 1.0;
+        if (c < -1.0) c = -1.0;
+        theta = acos(c);
       }
 
       if (nvalues == 1) ptr = &vlocal[m];
       else ptr = alocal[m];
 
       if (nvar) {
-	ivar = 0;
-	if (tstr) input->variable->internal_set(tvar,theta);
+        ivar = 0;
+        if (tstr) input->variable->internal_set(tvar,theta);
       }
 
-      for (n = 0; n < nvalues; n++) {
-	switch (bstyle[n]) {
-	case THETA:
-	  ptr[n] = 180.0*theta/MY_PI;
-	  break;
-	case ENG:
-	  if (atype > 0) ptr[n] = angle->single(atype,atom1,atom2,atom3);
-	  else ptr[n] = 0.0;
-	  break;
-	case VARIABLE:
-	  ptr[n] = input->variable->compute_equal(vvar[ivar]);
-	  ivar++;
-	  break;
+      for (int n = 0; n < nvalues; n++) {
+        switch (bstyle[n]) {
+        case THETA:
+          ptr[n] = 180.0*theta/MY_PI;
+          break;
+        case ENG:
+          if (atype > 0) ptr[n] = angle->single(atype,atom1,atom2,atom3);
+          else ptr[n] = 0.0;
+          break;
+        case VARIABLE:
+          ptr[n] = input->variable->compute_equal(vvar[ivar]);
+          ivar++;
+          break;
         }
       }
 
@@ -343,6 +340,6 @@ void ComputeAngleLocal::reallocate(int n)
 
 double ComputeAngleLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

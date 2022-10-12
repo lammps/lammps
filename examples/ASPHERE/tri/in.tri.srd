@@ -33,9 +33,9 @@ reset_timestep	0
 
 velocity	small create 1.44 87287 loop geom
 
-neighbor	0.3 bin
+neighbor	0.3 multi
 neigh_modify	delay 0 every 1 check yes
-neigh_modify	exclude molecule big include big
+neigh_modify	exclude molecule/intra big include big
 
 comm_modify	mode multi group big vel yes
 neigh_modify	include big
@@ -65,6 +65,8 @@ compute		tsmall small temp/deform
 compute		tbig big temp
 variable	pebig equal pe*atoms/count(big)
 variable	ebig equal etotal*atoms/count(big)
+
+compute_modify  tbig extra/dof -4500
 
 compute		1 big erotate/asphere
 compute		2 all ke

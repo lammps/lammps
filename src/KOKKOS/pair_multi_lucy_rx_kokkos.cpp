@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,26 +22,24 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include "math_const.h"
-#include <cstdlib>
-#include <cstring>
 #include "pair_multi_lucy_rx_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "citeme.h"
-#include "modify.h"
-#include "fix.h"
 #include "atom_masks.h"
-#include "neigh_request.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "kokkos.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
 enum{NONE,RLINEAR,RSQ};
 
@@ -62,6 +61,7 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
@@ -88,7 +88,7 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
 
   delete h_table;
   delete d_table;
-  tabindex = NULL;
+  tabindex = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,26 +98,14 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
 {
   PairMultiLucyRX::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with multi/lucy/rx/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,7 +120,7 @@ void PairMultiLucyRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (tabstyle == LOOKUP)
     compute_style<LOOKUP>(eflag_in,vflag_in);
-  else if(tabstyle == LINEAR)
+  else if (tabstyle == LINEAR)
     compute_style<LINEAR>(eflag_in,vflag_in);
 
   copymode = 0;
@@ -159,7 +147,7 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
@@ -180,7 +168,7 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
 
   {
     const int ntotal = nlocal + nghost;
-    if (ntotal > d_mixWtSite1.extent(0)) {
+    if (ntotal > (int)d_mixWtSite1.extent(0)) {
       d_mixWtSite1old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1old",ntotal);
       d_mixWtSite2old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2old",ntotal);
       d_mixWtSite1 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1",ntotal);
@@ -275,7 +263,7 @@ KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
   int i,jj,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
@@ -285,7 +273,6 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   double mixWtSite2old_i,mixWtSite2old_j;
   double mixWtSite1_i;
 
-  double pi = MathConst::MY_PI;
   double A_i, A_j;
   double fraction_i,fraction_j;
   int jtable;
@@ -326,8 +313,8 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
       //tb = &tables[tabindex[itype][jtype]];
       const int tidx = d_table_const.tabindex(itype,jtype);
 
-      //if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
-      if (rho[i]*rho[i] < d_table_const.innersq(tidx) || rho[j]*rho[j] < d_table_const.innersq(tidx)){
+      //if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq) {
+      if (rho[i]*rho[i] < d_table_const.innersq(tidx) || rho[j]*rho[j] < d_table_const.innersq(tidx)) {
         k_error_flag.template view<DeviceType>()() = 1;
       }
 
@@ -336,7 +323,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         itable = static_cast<int> (((rho[i]*rho[i]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
         //jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
         jtable = static_cast<int> (((rho[j]*rho[j]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-        if (itable >= tlm1 || jtable >= tlm1){
+        if (itable >= tlm1 || jtable >= tlm1) {
           k_error_flag.template view<DeviceType>()() = 2;
         }
         //A_i = tb->f[itable];
@@ -354,22 +341,22 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         itable = static_cast<int> ((rho[i]*rho[i] - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
         //jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
         jtable = static_cast<int> ((rho[j]*rho[j] - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-        if (itable >= tlm1 || jtable >= tlm1){
+        if (itable >= tlm1 || jtable >= tlm1) {
           k_error_flag.template view<DeviceType>()() = 2;
         }
-        if(itable<0) itable=0;
-        if(itable>=tlm1) itable=tlm1;
-        if(jtable<0) jtable=0;
-        if(jtable>=tlm1)jtable=tlm1;
+        if (itable<0) itable=0;
+        if (itable>=tlm1) itable=tlm1;
+        if (jtable<0) jtable=0;
+        if (jtable>=tlm1)jtable=tlm1;
 
         //fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
         fraction_i = (((rho[i]*rho[i]) - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx));
         //fraction_j = (((rho[j]*rho[j]) - tb->rsq[jtable]) * tb->invdelta);
         fraction_j = (((rho[j]*rho[j]) - d_table_const.rsq(tidx,jtable)) * d_table_const.invdelta(tidx));
-        if(itable==0) fraction_i=0.0;
-        if(itable==tlm1) fraction_i=0.0;
-        if(jtable==0) fraction_j=0.0;
-        if(jtable==tlm1) fraction_j=0.0;
+        if (itable==0) fraction_i=0.0;
+        if (itable==tlm1) fraction_i=0.0;
+        if (jtable==0) fraction_j=0.0;
+        if (jtable==tlm1) fraction_j=0.0;
 
         //A_i = tb->f[itable] + fraction_i*tb->df[itable];
         A_i = d_table_const.f(tidx,itable) + fraction_i*d_table_const.df(tidx,itable);
@@ -410,17 +397,17 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   if (TABSTYLE == LOOKUP) {
     evdwl = d_table_const.e(tidx,itable);
   } else if (TABSTYLE == LINEAR) {
-    if (itable >= tlm1){
+    if (itable >= tlm1) {
       k_error_flag.template view<DeviceType>()() = 2;
     }
-    if(itable==0) fraction_i=0.0;
+    if (itable==0) fraction_i=0.0;
     //else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
     else fraction_i = (((rho[i]*rho[i]) - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx));
     //evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     evdwl = d_table_const.e(tidx,itable) + fraction_i*d_table_const.de(tidx,itable);
   } else k_error_flag.template view<DeviceType>()() = 3;
 
-  evdwl *=(pi*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
+  evdwl *=(MY_PI*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
   evdwlOld = mixWtSite1old_i*evdwl;
   evdwl = mixWtSite1_i*evdwl;
 
@@ -461,15 +448,13 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  const double pi = MathConst::MY_PI;
-
   const bool newton_pair = force->newton_pair;
   const bool one_type = (atom->ntypes == 1);
 
   // Special cut-off values for when there's only one type.
   cutsq_type11 = cutsq[1][1];
   rcut_type11 = sqrt(cutsq_type11);
-  factor_type11 = 84.0/(5.0*pi*rcut_type11*rcut_type11*rcut_type11);
+  factor_type11 = 84.0/(5.0*MY_PI*rcut_type11*rcut_type11*rcut_type11);
 
   // zero out density
   int m = nlocal;
@@ -516,12 +501,13 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
 
   atomKK->modified(execution_space,DPDRHO_MASK);
 
-  // communicate and sum densities (on the host)
+  // communicate and sum densities
 
   if (newton_pair)
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
+  atomKK->sync(execution_space,DPDRHO_MASK);
 }
 
 template<class DeviceType>
@@ -537,7 +523,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
 
 
   // The rho array is atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
 
   const int i = d_ilist[ii];
 
@@ -550,9 +536,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
   const int itype = type[i];
   const int jnum = d_numneigh[i];
 
-  const double pi = MathConst::MY_PI;
-
-  for (int jj = 0; jj < jnum; jj++){
+  for (int jj = 0; jj < jnum; jj++) {
     const int j = (d_neighbors(i,jj) & NEIGHMASK);
     const int jtype = type[j];
 
@@ -576,7 +560,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
       const double rcut = sqrt(d_cutsq(itype,jtype));
       const double tmpFactor = 1.0-sqrt(rsq)/rcut;
       const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-      const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+      const double factor = (84.0/(5.0*MY_PI*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
       rho_i_contrib += factor;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_rho[j] += factor;
@@ -603,44 +587,44 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 
   nTotal = 0.0;
   nTotalOld = 0.0;
-  for (int ispecies = 0; ispecies < nspecies; ispecies++){
+  for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     nTotal += dvector(ispecies,id);
     nTotalOld += dvector(ispecies+nspecies,id);
   }
 
-  if (isOneFluid(isite1) == false){
+  if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = dvector(isite1+nspecies,id);
     nMolecules1 = dvector(isite1,id);
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
-  if (isOneFluid(isite2) == false){
+  if (isOneFluid(isite2) == false) {
     nMoleculesOld2 = dvector(isite2+nspecies,id);
     nMolecules2 = dvector(isite2,id);
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
 
-  if (isOneFluid(isite1) || isOneFluid(isite2)){
+  if (isOneFluid(isite1) || isOneFluid(isite2)) {
     nMoleculesOFAold  = 0.0;
     nMoleculesOFA  = 0.0;
     fractionOFAold  = 0.0;
     fractionOFA  = 0.0;
 
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
       nMoleculesOFAold += dvector(ispecies+nspecies,id);
       nMoleculesOFA += dvector(ispecies,id);
       fractionOFAold += dvector(ispecies+nspecies,id) / nTotalOld;
       fractionOFA += dvector(ispecies,id) / nTotal;
     }
-    if (isOneFluid(isite1)){
+    if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld1 = fractionOFAold;
       fraction1 = fractionOFA;
     }
-    if (isOneFluid(isite2)){
+    if (isOneFluid(isite2)) {
       nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld2 = fractionOFAold;
@@ -648,7 +632,7 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
     }
   }
 
-  if(fractionalWeighting){
+  if (fractionalWeighting) {
     mixWtSite1old = fractionOld1;
     mixWtSite1 = fraction1;
     mixWtSite2old = fractionOld2;
@@ -664,15 +648,14 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
-                               int pbc_flag, int *pbc)
+int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   atomKK->sync(execution_space,DPDRHO_MASK);
 
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXPackForwardComm>(0,n),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXPackForwardComm>(0,n),*this);
   return n;
 }
 
@@ -690,9 +673,9 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int fi
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
 
-  atomKK->modified(execution_space,DPDRHO_MASK);
+  atomKK->modified(execution_space,DPDRHO_MASK); // needed for auto_sync
 }
 
 template<class DeviceType>
@@ -704,7 +687,8 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXUnpackForwa
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
+                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,m;
 
@@ -724,6 +708,8 @@ template<class DeviceType>
 void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
+
+  atomKK->sync(Host,DPDRHO_MASK);
 
   m = 0;
   last = first + n;
@@ -754,6 +740,8 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, do
 {
   int i,j,m;
 
+  atomKK->sync(Host,DPDRHO_MASK);
+
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
@@ -776,8 +764,8 @@ void PairMultiLucyRXKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, con
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
   if (EFLAG) {
     if (eflag_atom) {
@@ -867,12 +855,12 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
   memoryKK->create_kokkos(d_table->innersq,h_table->innersq,ntables,"Table::innersq");
   memoryKK->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
 
-  if(tabstyle == LOOKUP) {
+  if (tabstyle == LOOKUP) {
     memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tlm1,"Table::e");
     memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tlm1,"Table::f");
   }
 
-  if(tabstyle == LINEAR) {
+  if (tabstyle == LINEAR) {
     memoryKK->create_kokkos(d_table->rsq,h_table->rsq,ntables,tablength,"Table::rsq");
     memoryKK->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
     memoryKK->create_kokkos(d_table->f,h_table->f,ntables,tablength,"Table::f");
@@ -880,21 +868,21 @@ void PairMultiLucyRXKokkos<DeviceType>::create_kokkos_tables()
     memoryKK->create_kokkos(d_table->df,h_table->df,ntables,tlm1,"Table::df");
   }
 
-  for(int i=0; i < ntables; i++) {
+  for (int i=0; i < ntables; i++) {
     Table* tb = &tables[i];
 
     h_table->innersq[i] = tb->innersq;
     h_table->invdelta[i] = tb->invdelta;
 
-    for(int j = 0; j<h_table->rsq.extent(1); j++)
+    for (int j = 0; j < (int)h_table->rsq.extent(1); j++)
       h_table->rsq(i,j) = tb->rsq[j];
-    for(int j = 0; j<h_table->e.extent(1); j++)
+    for (int j = 0; j < (int)h_table->e.extent(1); j++)
       h_table->e(i,j) = tb->e[j];
-    for(int j = 0; j<h_table->de.extent(1); j++)
+    for (int j = 0; j < (int)h_table->de.extent(1); j++)
       h_table->de(i,j) = tb->de[j];
-    for(int j = 0; j<h_table->f.extent(1); j++)
+    for (int j = 0; j < (int)h_table->f.extent(1); j++)
       h_table->f(i,j) = tb->f[j];
-    for(int j = 0; j<h_table->df.extent(1); j++)
+    for (int j = 0; j < (int)h_table->df.extent(1); j++)
       h_table->df(i,j) = tb->df[j];
   }
 
@@ -958,7 +946,7 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
   else if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords
@@ -985,14 +973,14 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class PairMultiLucyRXKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairMultiLucyRXKokkos<LMPHostType>;
 #endif
 }

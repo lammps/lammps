@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: prismaticjoint.cpp                                      *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -27,8 +27,7 @@ PrismaticJoint::PrismaticJoint(){
   u.Dim(1);
   udot.Dim(1);
 }
-PrismaticJoint::~PrismaticJoint(){
-}
+PrismaticJoint::~PrismaticJoint() = default;
 
 JointType PrismaticJoint::GetType(){
   return PRISMATICJOINT;
@@ -41,7 +40,7 @@ bool PrismaticJoint::ReadInJointData(std::istream& in){
   // init the constant transforms
   pk_C_k = pk_C_ko;
   k_C_pk = T(pk_C_k);
-    
+
   return true;
 }
 
@@ -100,7 +99,7 @@ void PrismaticJoint::ForwardKinematics(){
 
   // compute position vector r21
   FastNegMult(k_C_pk,r12,r21);
-  
+
   // compute global location
   // body2->r = body1->r + body1->n_C_k * r12;
   FastMult(body1->n_C_k,r12,result1);
@@ -115,7 +114,7 @@ void PrismaticJoint::ForwardKinematics(){
   //body2->omega_k = T(pk_C_k) * body1->omega_k;
   FastAssign(body1->omega,body2->omega);
   FastMult(k_C_pk,body1->omega_k,body2->omega_k);
-  
+
   // compute velocities
   Vect3 pk_v_k;
   Vect3 wxgamma;

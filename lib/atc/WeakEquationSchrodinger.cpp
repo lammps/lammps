@@ -18,12 +18,12 @@ WeakEquationSchrodinger::WeakEquationSchrodinger()
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationSchrodinger::~WeakEquationSchrodinger(void)
+WeakEquationSchrodinger::~WeakEquationSchrodinger()
 {}
 
 //---------------------------------------------------------------------
 void WeakEquationSchrodinger::BB_tangent_coefficients(
-  const FieldName field,
+  const FieldName /* field */,
   const FIELD_MATS & fields,
   const Material* material,
   DENS_MAT &coefs) const
@@ -33,7 +33,7 @@ void WeakEquationSchrodinger::BB_tangent_coefficients(
 //---------------------------------------------------------------------
 
 void WeakEquationSchrodinger::NN_tangent_coefficients(
-  const FieldName field,
+  const FieldName /* field */,
   const FIELD_MATS & fields,
   const Material* material,
   DENS_MAT & V) const

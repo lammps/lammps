@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,53 +15,39 @@
    Contributing author: Mike Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_sw_gpu.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
 int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                const double cell_size, int &gpu_mode, FILE *screen,
-                int* host_map, const int nelements, int*** host_elem2param, const int nparams,
-                const double* sw_epsilon, const double* sw_sigma,
-                const double* sw_lambda, const double* sw_gamma,
-                const double* sw_costheta, const double* sw_biga,
-                const double* sw_bigb, const double* sw_powerp,
-                const double* sw_powerq, const double* sw_cut,
-                const double* sw_cutsq);
+                const double cell_size, int &gpu_mode, FILE *screen, double **ncutsq, double **ncut,
+                double **sigma, double **powerp, double **powerq, double **sigma_gamma, double **c1,
+                double **c2, double **c3, double **c4, double **c5, double **c6,
+                double ***lambda_epsilon, double ***costheta, const int *map, int ***e2param);
 void sw_gpu_clear();
-int ** sw_gpu_compute_n(const int ago, const int inum,
-                        const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        int **ilist, int **jnum,
-                        const double cpu_time, bool &success);
-void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln,
-                    double **host_x, int *host_type, int *ilist, int *numj,
-                    int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start,
+int **sw_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
+                       int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                       tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                       const bool vatom, int &host_start, int **ilist, int **jnum,
+                       const double cpu_time, bool &success);
+void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln, double **host_x,
+                    int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
+                    const bool vflag, const bool eatom, const bool vatom, int &host_start,
                     const double cpu_time, bool &success);
 double sw_gpu_bytes();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul);
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -72,9 +58,10 @@ PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
   reinitflag = 0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -85,15 +72,14 @@ PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
 PairSWGPU::~PairSWGPU()
 {
   sw_gpu_clear();
-  if (allocated)
-    memory->destroy(cutghost);
+  if (allocated) memory->destroy(cutghost);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairSWGPU::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -101,26 +87,33 @@ void PairSWGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3], subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
+    }
     inum = atom->nlocal;
-    firstneigh = sw_gpu_compute_n(neighbor->ago, inum, nall,
-                                   atom->x, atom->type, domain->sublo,
-                                   domain->subhi, atom->tag, atom->nspecial,
-                                   atom->special, eflag, vflag, eflag_atom,
-                                   vflag_atom, host_start,
-                                   &ilist, &numneigh, cpu_time, success);
+    firstneigh =
+        sw_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
+                         atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
+                         host_start, &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
 
-    sw_gpu_compute(neighbor->ago, inum, nall, inum+list->gnum,
-                   atom->x, atom->type, ilist, numneigh, firstneigh, eflag,
-                   vflag, eflag_atom, vflag_atom, host_start, cpu_time,
+    sw_gpu_compute(neighbor->ago, inum, nall, inum + list->gnum, atom->x, atom->type, ilist,
+                   numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                    success);
   }
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,7 +123,7 @@ void PairSWGPU::allocate()
   PairSW::allocate();
   int n = atom->ntypes;
 
-  memory->create(cutghost,n+1,n+1,"pair:cutghost");
+  memory->create(cutghost, n + 1, n + 1, "pair:cutghost");
 }
 
 /* ----------------------------------------------------------------------
@@ -141,73 +134,95 @@ void PairSWGPU::init_style()
 {
   double cell_size = cutmax + neighbor->skin;
 
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style sw/gpu requires atom IDs");
-  if (force->newton_pair != 0)
-    error->all(FLERR,"Pair style sw/gpu requires newton pair off");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style sw/gpu requires atom IDs");
 
-  double *epsilon, *sigma, *lambda, *gamma;
-  double *biga, *bigb, *powerp, *powerq;
-  double *_cut, *_cutsq, *costheta;
-  epsilon = sigma = lambda = gamma = NULL;
-  biga = bigb = powerp = powerq = NULL;
-  _cut = _cutsq = costheta = NULL;
+  double **c1, **c2, **c3, **c4, **c5, **c6;
+  double **ncutsq, **ncut, **sigma, **powerp, **powerq, **sigma_gamma;
+  double ***lambda_epsilon, ***costheta;
+  c1 = c2 = c3 = c4 = c5 = c6 = nullptr;
+  ncutsq = ncut = sigma = powerp = powerq = sigma_gamma = nullptr;
+  lambda_epsilon = costheta = nullptr;
 
-  memory->create(epsilon,nparams,"pair:epsilon");
-  memory->create(sigma,nparams,"pair:sigma");
-  memory->create(lambda,nparams,"pair:lambda");
-  memory->create(gamma,nparams,"pair:gamma");
-  memory->create(biga,nparams,"pair:biga");
-  memory->create(bigb,nparams,"pair:bigb");
-  memory->create(powerp,nparams,"pair:powerp");
-  memory->create(powerq,nparams,"pair:powerq");
-  memory->create(_cut,nparams,"pair:_cut");
-  memory->create(_cutsq,nparams,"pair:_cutsq");
-  memory->create(costheta,nparams,"pair:costheta");
+  const int tp1 = atom->ntypes + 1;
 
-  for (int i = 0; i < nparams; i++) {
-    epsilon[i] = params[i].epsilon;
-    sigma[i] = params[i].sigma;
-    lambda[i] = params[i].lambda;
-    gamma[i] = params[i].gamma;
-    biga[i] = params[i].biga;
-    bigb[i] = params[i].bigb;
-    powerp[i] = params[i].powerp;
-    powerq[i] = params[i].powerq;
-    _cut[i] = params[i].cut;
-    _cutsq[i] = params[i].cutsq;
-    costheta[i] = params[i].costheta;
+  memory->create(ncutsq, tp1, tp1, "pair:ncutsq");
+  memory->create(ncut, tp1, tp1, "pair:ncut");
+  memory->create(sigma, tp1, tp1, "pair:sigma");
+  memory->create(powerp, tp1, tp1, "pair:powerp");
+  memory->create(powerq, tp1, tp1, "pair:powerq");
+  memory->create(sigma_gamma, tp1, tp1, "pair:sigma_gamma");
+  memory->create(c1, tp1, tp1, "pair:c1");
+  memory->create(c2, tp1, tp1, "pair:c2");
+  memory->create(c3, tp1, tp1, "pair:c3");
+  memory->create(c4, tp1, tp1, "pair:c4");
+  memory->create(c5, tp1, tp1, "pair:c5");
+  memory->create(c6, tp1, tp1, "pair:c6");
+  memory->create(lambda_epsilon, tp1, tp1, tp1, "pair:lambda_epsilon");
+  memory->create(costheta, tp1, tp1, tp1, "pair:costheta");
+
+  for (int ii = 1; ii < tp1; ii++) {
+    int i = map[ii];
+    for (int jj = 1; jj < tp1; jj++) {
+      int j = map[jj];
+      if (i < 0 || j < 0)
+        continue;
+      else {
+        int ijparam = elem3param[i][j][j];
+        ncutsq[ii][jj] = params[ijparam].cutsq;
+        ncut[ii][jj] = params[ijparam].cut;
+        sigma[ii][jj] = params[ijparam].sigma;
+        powerp[ii][jj] = params[ijparam].powerp;
+        powerq[ii][jj] = params[ijparam].powerq;
+        sigma_gamma[ii][jj] = params[ijparam].sigma_gamma;
+        c1[ii][jj] = params[ijparam].c1;
+        c2[ii][jj] = params[ijparam].c2;
+        c3[ii][jj] = params[ijparam].c3;
+        c4[ii][jj] = params[ijparam].c4;
+        c5[ii][jj] = params[ijparam].c5;
+        c6[ii][jj] = params[ijparam].c6;
+      }
+
+      for (int kk = 1; kk < tp1; kk++) {
+        int k = map[kk];
+        if (k < 0)
+          continue;
+        else {
+          int ijkparam = elem3param[i][j][k];
+          costheta[ii][jj][kk] = params[ijkparam].costheta;
+          lambda_epsilon[ii][jj][kk] = params[ijkparam].lambda_epsilon;
+        }
+      }
+    }
   }
 
-  int success = sw_gpu_init(atom->ntypes+1, atom->nlocal, atom->nlocal+atom->nghost, 300,
-                            cell_size, gpu_mode, screen, map, nelements,
-                            elem2param, nparams, epsilon,
-                            sigma, lambda, gamma, costheta, biga, bigb,
-                            powerp, powerq, _cut, _cutsq);
+  int mnf = 5e-2 * neighbor->oneatom;
+  int success = sw_gpu_init(tp1, atom->nlocal, atom->nlocal + atom->nghost, mnf, cell_size,
+                            gpu_mode, screen, ncutsq, ncut, sigma, powerp, powerq, sigma_gamma, c1,
+                            c2, c3, c4, c5, c6, lambda_epsilon, costheta, map, elem3param);
 
-  memory->destroy(epsilon);
+  memory->destroy(ncutsq);
+  memory->destroy(ncut);
   memory->destroy(sigma);
-  memory->destroy(lambda);
-  memory->destroy(gamma);
-  memory->destroy(biga);
-  memory->destroy(bigb);
   memory->destroy(powerp);
   memory->destroy(powerq);
-  memory->destroy(_cut);
-  memory->destroy(_cutsq);
+  memory->destroy(sigma_gamma);
+  memory->destroy(c1);
+  memory->destroy(c2);
+  memory->destroy(c3);
+  memory->destroy(c4);
+  memory->destroy(c5);
+  memory->destroy(c6);
+  memory->destroy(lambda_epsilon);
   memory->destroy(costheta);
 
-  GPU_EXTRA::check_flag(success,error,world);
+  GPU_EXTRA::check_flag(success, error, world);
 
-  if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this,instance_me);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->ghost = 1;
+  if (gpu_mode == GPU_FORCE)
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
+  if (comm->cutghostuser < (2.0 * cutmax + neighbor->skin)) {
+    comm->cutghostuser = 2.0 * cutmax + neighbor->skin;
+    if (comm->me == 0) error->warning(FLERR, "Increasing communication cutoff for GPU style");
   }
-
-  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin) )
-    comm->cutghostuser=2.0*cutmax + neighbor->skin;
 }
 
 /* ----------------------------------------------------------------------
@@ -216,10 +231,9 @@ void PairSWGPU::init_style()
 
 double PairSWGPU::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
   cutghost[i][j] = cutmax;
   cutghost[j][i] = cutmax;
 
   return cutmax;
 }
-

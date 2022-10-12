@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,6 +19,7 @@
 #include "kokkos_type.h"
 #include "domain_kokkos.h"
 #include "pointers.h"
+#include <Kokkos_UnorderedMap.hpp>
 
 namespace LAMMPS_NS {
 
@@ -40,7 +42,7 @@ class NeighBondKokkos : protected Pointers  {
   typedef int value_type;
 
   NeighBondKokkos(class LAMMPS *);
-  ~NeighBondKokkos() {}
+  ~NeighBondKokkos() override = default;
   void init_topology_kk();
   void build_topology_kk();
 
@@ -80,13 +82,11 @@ class NeighBondKokkos : protected Pointers  {
   int me,nprocs;
 
  private:
-
-
-  DAT::tdual_int_1d k_map_array;
-  typename AT::t_int_1d_randomread map_array;
-
+  int map_style;
   DAT::tdual_int_1d k_sametag;
-  typename AT::t_int_1d_randomread sametag;
+  typename AT::t_int_1d d_sametag;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
 
   typename AT::t_int_2d v_bondlist;
   typename AT::t_int_2d v_anglelist;
@@ -129,7 +129,7 @@ class NeighBondKokkos : protected Pointers  {
   KOKKOS_INLINE_FUNCTION
   void minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOAT &dz) const;
 
-  void update_domain_variables();
+  void update_class_variables();
 
   // topology build functions
 
@@ -171,86 +171,3 @@ class NeighBondKokkos : protected Pointers  {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Must use atom map style array with Kokkos
-
-See the atom_modify map command.
-
-E: Bond atoms missing on proc %d at step %ld
-
-The 2nd atom needed to compute a particular bond is missing on this
-processor.  Typically this is because the pairwise cutoff is set too
-short or the bond has blown apart and an atom is too far away.
-
-W: Bond atoms missing at step %ld
-
-The 2nd atom needed to compute a particular bond is missing on this
-processor.  Typically this is because the pairwise cutoff is set too
-short or the bond has blown apart and an atom is too far away.
-
-E: Cannot (yet) use molecular templates with Kokkos
-
-Self-explanatory.
-
-E: Bond extent > half of periodic box length
-
-This error was detected by the neigh_modify check yes setting.  It is
-an error because the bond atoms are so far apart it is ambiguous how
-it should be defined.
-
-E: Angle atoms missing on proc %d at step %ld
-
-One or more of 3 atoms needed to compute a particular angle are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the angle has blown apart and an atom is
-too far away.
-
-W: Angle atoms missing at step %ld
-
-One or more of 3 atoms needed to compute a particular angle are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the angle has blown apart and an atom is
-too far away.
-
-E: Angle extent > half of periodic box length
-
-This error was detected by the neigh_modify check yes setting.  It is
-an error because the angle atoms are so far apart it is ambiguous how
-it should be defined.
-
-E: Dihedral atoms missing on proc %d at step %ld
-
-One or more of 4 atoms needed to compute a particular dihedral are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the dihedral has blown apart and an atom is
-too far away.
-
-W: Dihedral atoms missing at step %ld
-
-One or more of 4 atoms needed to compute a particular dihedral are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the dihedral has blown apart and an atom is
-too far away.
-
-E: Dihedral/improper extent > half of periodic box length
-
-This error was detected by the neigh_modify check yes setting.  It is
-an error because the dihedral atoms are so far apart it is ambiguous
-how it should be defined.
-
-E: Improper atoms missing on proc %d at step %ld
-
-One or more of 4 atoms needed to compute a particular improper are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the improper has blown apart and an atom is
-too far away.
-
-W: Improper atoms missing at step %ld
-
-One or more of 4 atoms needed to compute a particular improper are
-missing on this processor.  Typically this is because the pairwise
-cutoff is set too short or the improper has blown apart and an atom is
-too far away.
-
-*/

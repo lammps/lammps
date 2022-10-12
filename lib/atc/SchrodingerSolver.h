@@ -21,7 +21,7 @@ class PoissonSolver;
 
 /**
  *  @class SchrodingerSolver
- *  @brief a class to solve the (time-independent) Schrodinger equation 
+ *  @brief a class to solve the (time-independent) Schrodinger equation
  */
 class SchrodingerSolver {
 
@@ -41,19 +41,19 @@ class SchrodingerSolver {
   virtual ~SchrodingerSolver(){};
 
   /** parser */
-  bool modify(int narg, char **arg){ return false;}
+  bool modify(int /* narg */, char ** /* arg */){ return false;}
 
   /** initialize */
   void initialize(void);
 
   /** solve */
-  virtual bool solve(FIELDS & fields); 
+  virtual bool solve(FIELDS & fields);
 
 
-  
+
 
  protected:
-  
+
   /** Pointer to ATC */
   ATC_Coupling * atc_;
 
@@ -103,16 +103,16 @@ class SliceSchrodingerSolver : public SchrodingerSolver {
   virtual ~SliceSchrodingerSolver(){};
 
   /** parser */
-  bool modify(int narg, char **arg){return false;}
+  bool modify(int /* narg */, char ** /* arg */){return false;}
 
   /** initialize */
   void initialize(void);
 
   /** solve */
-  virtual bool solve(FIELDS & fields); 
+  virtual bool solve(FIELDS & fields);
 
-  Array< std::set<int> > & slices(void){ return oneDslices_;} 
-  Array< double > & dxs(void){ return oneDdxs_;} 
+  Array< std::set<int> > & slices(void){ return oneDslices_;}
+  Array< double > & dxs(void){ return oneDdxs_;}
 
  protected:
 
@@ -177,7 +177,7 @@ class SliceSchrodingerPoissonSolver : public SchrodingerPoissonSolver  {
     );
   protected:
     int nslices_;
-    double update_fermi_energy(double target, bool first, 
+    double update_fermi_energy(double target, bool first,
       GRAD_FIELD_MATS & fluxes);
     int oneDconserve_;
     int oneDcoor_;
@@ -236,7 +236,7 @@ class GlobalSliceSchrodingerPoissonSolver : public SliceSchrodingerPoissonSolver
 
 /**
  *  @class SchrodingerSolver
- *  @brief a manager class 
+ *  @brief a manager class
  */
 class SchrodingerPoissonManager  {
   public:
@@ -247,7 +247,7 @@ class SchrodingerPoissonManager  {
     bool modify(int narg, char **arg);
 
     /** initialize */
-    SchrodingerPoissonSolver * initialize(   
+    SchrodingerPoissonSolver * initialize(
       /*const*/ ATC_Coupling * atc,
       SchrodingerSolver * schrodingerSolver,
       PoissonSolver * poissonSolver,

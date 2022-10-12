@@ -1,6 +1,7 @@
-/* ----------------------------------------------------------------------
+// clang-format off
+ /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,25 +12,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_wall_reflect.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
-#include "force.h"
+#include "input.h"
+#include "lattice.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
-enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -37,7 +35,11 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   nwall(0)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
+
+  // let child class process all args
+
+  if (strcmp(arg[2],"wall/reflect/stochastic") == 0) return;
 
   dynamic_group_allow = 1;
 
@@ -51,7 +53,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
         (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
         (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/reflect command");
+      if (iarg+2 > narg) error->all(FLERR, "Illegal fix wall/reflect {} command: missing argument(s)", arg[iarg]);
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -72,39 +74,38 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
         int side = wallwhich[nwall] % 2;
         if (side == 0) coord0[nwall] = domain->boxlo[dim];
         else coord0[nwall] = domain->boxhi[dim];
-      } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      } else if (utils::strmatch(arg[iarg+1],"^v_")) {
         wallstyle[nwall] = VARIABLE;
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        varstr[nwall] = new char[n];
-        strcpy(varstr[nwall],&arg[iarg+1][2]);
+        varstr[nwall] = utils::strdup(arg[iarg+1]+2);
       } else {
         wallstyle[nwall] = CONSTANT;
-        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
+        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
       nwall++;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal wall/reflect command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix wall/reflect units", error);
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix wall/reflect command");
+      else error->all(FLERR,"Unknown fix wall/reflect units argument: {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix wall/reflect command");
+
+    } else error->all(FLERR,"Unknown fix wall/reflect keyword: {}", arg[iarg]);
   }
 
   // error check
 
-  if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
+  if (nwall == 0) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension x");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension y");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension z");
   }
 
   for (int m = 0; m < nwall; m++)
@@ -169,9 +170,9 @@ void FixWallReflect::init()
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
     if (varindex[m] < 0)
-      error->all(FLERR,"Variable name for fix wall/reflect does not exist");
+      error->all(FLERR,"Variable {} for fix wall/reflect does not exist", varstr[m]);
     if (!input->variable->equalstyle(varindex[m]))
-      error->all(FLERR,"Variable for fix wall/reflect is invalid style");
+      error->all(FLERR,"Variable {} for fix wall/reflect is invalid style", varstr[m]);
   }
 
   int nrigid = 0;
@@ -187,16 +188,10 @@ void FixWallReflect::init()
 
 void FixWallReflect::post_integrate()
 {
-  int i,dim,side;
   double coord;
 
   // coord = current position of wall
   // evaluate variable if necessary, wrap with clear/add
-
-  double **x = atom->x;
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 
   if (varflag) modify->clearstep_compute();
 
@@ -208,24 +203,41 @@ void FixWallReflect::post_integrate()
       else coord *= zscale;
     } else coord = coord0[m];
 
-    dim = wallwhich[m] / 2;
-    side = wallwhich[m] % 2;
-
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        if (side == 0) {
-          if (x[i][dim] < coord) {
-            x[i][dim] = coord + (coord - x[i][dim]);
-            v[i][dim] = -v[i][dim];
-          }
-        } else {
-          if (x[i][dim] > coord) {
-            x[i][dim] = coord - (x[i][dim] - coord);
-            v[i][dim] = -v[i][dim];
-          }
-        }
-      }
+    wall_particle(m,wallwhich[m],coord);
   }
 
   if (varflag) modify->addstep_compute(update->ntimestep + 1);
+}
+
+/* ----------------------------------------------------------------------
+   this method may be overwritten by a child class
+------------------------------------------------------------------------- */
+
+void FixWallReflect::wall_particle(int /* m */, int which, double coord)
+{
+  int i,dim,side;
+
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  dim = which / 2;
+  side = which % 2;
+
+  for (i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      if (side == 0) {
+        if (x[i][dim] < coord) {
+          x[i][dim] = coord + (coord - x[i][dim]);
+          v[i][dim] = -v[i][dim];
+        }
+      } else {
+        if (x[i][dim] > coord) {
+          x[i][dim] = coord - (x[i][dim] - coord);
+          v[i][dim] = -v[i][dim];
+        }
+      }
+    }
+  }
 }

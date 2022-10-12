@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 typedef NPairSSAKokkos<LMPHostType> NPairSSAKokkosHost;
 NPairStyle(half/bin/newton/ssa/kk/host,
            NPairSSAKokkosHost,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST)
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST);
 
 typedef NPairSSAKokkos<LMPDeviceType> NPairSSAKokkosDevice;
 NPairStyle(half/bin/newton/ssa/kk/device,
            NPairSSAKokkosDevice,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE)
-
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_SSA_KOKKOS_H
 #define LMP_NPAIR_SSA_KOKKOS_H
 
@@ -58,11 +59,10 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_gitemLen;
 
   NPairSSAKokkos(class LAMMPS *);
-  ~NPairSSAKokkos() {}
-  void copy_neighbor_info();
-  void copy_bin_info();
-  void copy_stencil_info();
-  void build(class NeighList *);
+  void copy_neighbor_info() override;
+  void copy_bin_info() override;
+  void copy_stencil_info() override;
+  void build(class NeighList *) override;
  private:
   // data from Neighbor class
 
@@ -240,6 +240,13 @@ class NPairSSAKokkosExecute
         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
+    exclude(_exclude),nex_type(_nex_type),
+    ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
+    nex_group(_nex_group),
+    ex1_group(_ex1_group),ex2_group(_ex2_group),
+    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
+    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
+    ex_mol_intra(_ex_mol_intra),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     gbincount(_gbincount),c_gbincount(_gbincount),gbins(_gbins),c_gbins(_gbins),
     lbinxlo(_lbinxlo),lbinxhi(_lbinxhi),
@@ -247,6 +254,15 @@ class NPairSSAKokkosExecute
     lbinzlo(_lbinzlo),lbinzhi(_lbinzhi),
     nstencil(_nstencil),sx1(_sx1),sy1(_sy1),sz1(_sz1),
     d_stencil(_d_stencil),d_stencilxyz(_d_stencilxyz),d_nstencil_ssa(_d_nstencil_ssa),
+    x(_x),type(_type),mask(_mask),molecule(_molecule),
+    tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),
+    nbinx(_nbinx),nbiny(_nbiny),nbinz(_nbinz),
+    mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
+    mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
+    bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
+    nlocal(_nlocal),
+    xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
+    xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half),
     ssa_phaseCt(_ssa_phaseCt),
     d_ssa_phaseLen(_d_ssa_phaseLen),
     d_ssa_phaseOff(_d_ssa_phaseOff),
@@ -255,23 +271,8 @@ class NPairSSAKokkosExecute
     ssa_gphaseCt(_ssa_gphaseCt),
     d_ssa_gphaseLen(_d_ssa_gphaseLen),
     d_ssa_gitemLoc(_d_ssa_gitemLoc),
-    d_ssa_gitemLen(_d_ssa_gitemLen),
-    nlocal(_nlocal),
-    x(_x),type(_type),mask(_mask),molecule(_molecule),
-    tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),
-    nbinx(_nbinx),nbiny(_nbiny),nbinz(_nbinz),
-    mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
-    mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
-    bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
-    exclude(_exclude),nex_type(_nex_type),
-    ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
-    nex_group(_nex_group),
-    ex1_group(_ex1_group),ex2_group(_ex2_group),
-    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
-    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
-    ex_mol_intra(_ex_mol_intra),
-    xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
-    xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half) {
+    d_ssa_gitemLen(_d_ssa_gitemLen)
+    {
 
     if (molecular == 2) moltemplate = 1;
     else moltemplate = 0;
@@ -280,26 +281,18 @@ class NPairSSAKokkosExecute
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
     resize = typename AT::t_int_scalar("NPairSSAKokkosExecute::resize");
-#ifndef KOKKOS_USE_CUDA_UVM
     h_resize = Kokkos::create_mirror_view(resize);
-#else
-    h_resize = resize;
-#endif
     h_resize() = 1;
     new_maxneighs = typename AT::
       t_int_scalar("NPairSSAKokkosExecute::new_maxneighs");
-#ifndef KOKKOS_USE_CUDA_UVM
     h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
-#else
-    h_new_maxneighs = new_maxneighs;
-#endif
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
   KOKKOS_FUNCTION
-  void build_locals_onePhase(const bool firstTry, int me, int workPhase) const;
+  void build_locals_onePhase(const bool firstTry, int workPhase) const;
 
   KOKKOS_FUNCTION
   void build_ghosts_onePhase(int workPhase) const;
@@ -361,6 +354,3 @@ class NPairSSAKokkosExecute
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

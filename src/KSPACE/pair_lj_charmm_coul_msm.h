@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/charmm/coul/msm,PairLJCharmmCoulMSM)
-
+// clang-format off
+PairStyle(lj/charmm/coul/msm,PairLJCharmmCoulMSM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_MSM_H
@@ -27,29 +27,18 @@ namespace LAMMPS_NS {
 class PairLJCharmmCoulMSM : public PairLJCharmmCoulLong {
  public:
   PairLJCharmmCoulMSM(class LAMMPS *);
-  virtual ~PairLJCharmmCoulMSM();
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void compute_outer(int, int);
-  virtual void *extract(const char *, int &);
+  ~PairLJCharmmCoulMSM() override;
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void compute_outer(int, int) override;
+  void *extract(const char *, int &) override;
+
  protected:
   int nmax;
   double **ftmp;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial with kspace_style MSM
-
-The kspace scalar pressure option cannot be used to obtain per-atom virial.
-
-E: Must use 'kspace_modify pressure/scalar no' for rRESPA with kspace_style MSM
-
-The kspace scalar pressure option cannot (yet) be used with rRESPA.
-
-*/

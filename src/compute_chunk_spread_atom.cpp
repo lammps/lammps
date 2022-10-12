@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,41 +12,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "compute_chunk_spread_atom.h"
+
+#include "arg_info.h"
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
-#include "input.h"
-#include "memory.h"
 #include "error.h"
+#include "fix.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
-
-enum{COMPUTE,FIX};
-
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
 ComputeChunkSpreadAtom::
 ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  idchunk(NULL), ids(NULL), which(NULL), argindex(NULL), value2index(NULL)
+  Compute(lmp, narg, arg), idchunk(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute chunk/spread/atom command");
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
   init_chunk();
 
   // expand args if any have wildcard character "*"
@@ -53,55 +46,34 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
 
   // parse values
 
-  which = new int[nargnew];
-  argindex = new int[nargnew];
-  ids = new char*[nargnew];
-  value2index = new int[nargnew];
-  nvalues = 0;
+  values.clear();
+  for (iarg = 0; iarg < nargnew; ++iarg) {
+    ArgInfo argi(arg[iarg], ArgInfo::COMPUTE|ArgInfo::FIX);
 
-  iarg = 0;
-  while (iarg < nargnew) {
-    ids[nvalues] = NULL;
+    value_t val;
+    val.which = argi.get_type();
+    val.argindex = argi.get_index1();
+    val.id = argi.get_name();
+    val.val.c = nullptr;
 
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-	strncmp(arg[iarg],"f_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
+    if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE)
+        || (argi.get_dim() > 1))
+      error->all(FLERR,"Illegal compute chunk/spread/atom argument: {}", arg[iarg]);
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
-
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal compute chunk/spread/atom command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
-
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      nvalues++;
-      delete [] suffix;
-
-    } else error->all(FLERR,"Illegal compute chunk/spread/atom command");
-
-    iarg++;
+    values.push_back(val);
   }
 
   // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
-    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -109,47 +81,45 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   // for compute, must calculate per-chunk values, i.e. style ends in "/chunk"
   // for fix, assume a global vector or array is per-chunk data
 
-  for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
-      int icompute = modify->find_compute(ids[i]);
-      if (icompute < 0)
-        error->all(FLERR,"Compute ID for compute chunk/spread/atom "
-                   "does not exist");
+  for (auto &val : values) {
+    if (val.which == ArgInfo::COMPUTE) {
+      auto icompute = modify->get_compute_by_id(val.id);
+      if (!icompute)
+        error->all(FLERR,"Compute ID {} for compute chunk/spread/atom does not exist", val.id);
 
-      char *ptr = strstr(modify->compute[icompute]->style,"/chunk");
-      if (!ptr || (ptr !=  modify->compute[icompute]->style +
-                   strlen(modify->compute[icompute]->style) - strlen("/chunk")))
-        error->all(FLERR,"Compute for compute chunk/spread/atom "
-                   "does not calculate per-chunk values");
+      if (!utils::strmatch(icompute->style,"/chunk$"))
+        error->all(FLERR,"Compute chunk/spread/atom compute {} does not calculate per-chunk values",
+                   val.id);
 
-      if (argindex[i] == 0) {
-	if (!modify->compute[icompute]->vector_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom compute "
-                     "does not calculate global vector");
+      if (val.argindex == 0) {
+        if (!icompute->vector_flag)
+          error->all(FLERR,"Compute chunk/spread/atom compute {} does not calculate global vector",
+                     val.id);
       } else {
-	if (!modify->compute[icompute]->array_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom compute "
-                     "does not calculate global array");
-	if (argindex[i] > modify->compute[icompute]->size_array_cols)
-	  error->all(FLERR,"Compute chunk/spread/atom compute array "
-                     "is accessed out-of-range");
+        if (!icompute->array_flag)
+          error->all(FLERR,"Compute chunk/spread/atom compute {} does not calculate global array",
+                     val.id);
+        if (val.argindex > icompute->size_array_cols)
+          error->all(FLERR,"Compute chunk/spread/atom compute {} array is accessed out-of-range",
+                     val.id);
       }
+      val.val.c = icompute;
 
-    } else if (which[i] == FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for compute chunk/spread/atom does not exist");
-      if (argindex[i] == 0) {
-	if (!modify->fix[ifix]->vector_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom fix "
-                     "does not calculate global vector");
+    } else if (val.which == ArgInfo::FIX) {
+      auto ifix = modify->get_fix_by_id(val.id);
+      if (ifix)
+        error->all(FLERR,"Fix ID {} for compute chunk/spread/atom does not exist", val.id);
+      if (val.argindex == 0) {
+        if (!ifix->vector_flag)
+          error->all(FLERR,"Compute chunk/spread/atom {} fix does not calculate global vector",
+                     val.id);
       } else {
-	if (!modify->fix[ifix]->array_flag)
-	  error->all(FLERR,"Compute chunk/spread/atom fix "
-                     "does not calculate global array");
-	if (argindex[i] > modify->fix[ifix]->size_array_cols)
-	  error->all(FLERR,"Compute chunk/spread/atom fix array "
-                     "is accessed out-of-range");
+        if (!ifix->array_flag)
+          error->all(FLERR,"Compute chunk/spread/atom {} fix does not calculate global array",
+                     val.id);
+        if (val.argindex > ifix->size_array_cols)
+          error->all(FLERR,"Compute chunk/spread/atom fix {} array is accessed out-of-range",
+                     val.id);
       }
     }
   }
@@ -157,27 +127,21 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
   // this compute produces a peratom vector or array
 
   peratom_flag = 1;
-  if (nvalues == 1) size_peratom_cols = 0;
-  else size_peratom_cols = nvalues;
+  if (values.size() == 1) size_peratom_cols = 0;
+  else size_peratom_cols = values.size();
 
   // per-atom vector or array
 
   nmax = 0;
-  vector_atom = NULL;
-  array_atom = NULL;
+  vector_atom = nullptr;
+  array_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeChunkSpreadAtom::~ComputeChunkSpreadAtom()
 {
-  delete [] idchunk;
-
-  delete [] which;
-  delete [] argindex;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
-  delete [] value2index;
+  delete[] idchunk;
 
   memory->destroy(vector_atom);
   memory->destroy(array_atom);
@@ -191,19 +155,16 @@ void ComputeChunkSpreadAtom::init()
 
   // set indices of all computes,fixes,variables
 
-  for (int m = 0; m < nvalues; m++) {
-    if (which[m] == COMPUTE) {
-      int icompute = modify->find_compute(ids[m]);
-      if (icompute < 0)
-        error->all(FLERR,"Compute ID for compute chunk/spread/atom "
-                   "does not exist");
-      value2index[m] = icompute;
+  for (auto &val : values) {
+    if (val.which == ArgInfo::COMPUTE) {
+      val.val.c = modify->get_compute_by_id(val.id);
+      if (!val.val.c)
+        error->all(FLERR,"Compute ID {} for compute chunk/spread/atom does not exist", val.id);
 
-    } else if (which[m] == FIX) {
-      int ifix = modify->find_fix(ids[m]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for compute chunk/spread/atom does not exist");
-      value2index[m] = ifix;
+    } else if (val.which == ArgInfo::FIX) {
+      val.val.f = modify->get_fix_by_id(val.id);
+      if (!val.val.f)
+        error->all(FLERR,"Fix ID {} for compute chunk/spread/atom does not exist", val.id);
     }
   }
 }
@@ -212,12 +173,12 @@ void ComputeChunkSpreadAtom::init()
 
 void ComputeChunkSpreadAtom::init_chunk()
 {
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for compute chunk/spread/atom");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (!cchunk)
+    error->all(FLERR,"Chunk/atom compute {} does not exist for compute chunk/spread/atom "
+               "or is of invalid style", idchunk);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Compute chunk/spread/atom does not use chunk/atom compute");
+    error->all(FLERR,"Compute chunk/spread/atom {} does not use chunk/atom compute", idchunk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -229,14 +190,14 @@ void ComputeChunkSpreadAtom::compute_peratom()
   // grow local vector_atom or array_atom if necessary
 
   if (atom->nmax > nmax) {
-    if (nvalues == 1) {
+    if (values.size() == 1) {
       memory->destroy(vector_atom);
       nmax = atom->nmax;
       memory->create(vector_atom,nmax,"chunk/spread/atom:vector_atom");
     } else {
       memory->destroy(array_atom);
       nmax = atom->nmax;
-      memory->create(array_atom,nmax,nvalues,"chunk/spread/atom:array_atom");
+      memory->create(array_atom,nmax,values.size(),"chunk/spread/atom:array_atom");
     }
   }
 
@@ -254,71 +215,71 @@ void ComputeChunkSpreadAtom::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int i,m,n,index,nstride;
+  int index,nstride;
   double *ptr;
 
-  for (m = 0; m < nvalues; m++) {
-    n = value2index[m];
+  int m = 0;
+  for (auto &val : values) {
 
     // copy compute/fix values into vector_atom or array_atom
     // nstride between values for each atom
 
-    if (nvalues == 1) {
+    if (values.size() == 1) {
       ptr = vector_atom;
       nstride = 1;
     } else {
       ptr = &array_atom[0][m];
-      nstride = nvalues;
+      nstride = values.size();
     }
 
     // invoke compute if not previously invoked
 
-    if (which[m] == COMPUTE) {
-      Compute *compute = modify->compute[n];
+    if (val.which == ArgInfo::COMPUTE) {
+      Compute *compute = val.val.c;
 
-      if (argindex[m] == 0) {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+      if (val.argindex == 0) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
-	double *cvector = compute->vector;
-	for (i = 0; i < nlocal; i++, ptr += nstride) {
-	  *ptr = 0.0;
-	  if (!(mask[i] & groupbit)) continue;
-	  index = ichunk[i]-1;
-	  if (index < 0 || index >= nchunk) continue;
-	  *ptr = cvector[index];
-	}
+        double *cvector = compute->vector;
+        for (int i = 0; i < nlocal; i++, ptr += nstride) {
+          *ptr = 0.0;
+          if (!(mask[i] & groupbit)) continue;
+          index = ichunk[i]-1;
+          if (index < 0 || index >= nchunk) continue;
+          *ptr = cvector[index];
+        }
 
       } else {
-        if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
-        int icol = argindex[m]-1;
+        int icol = val.argindex-1;
         double **carray = compute->array;
-	for (i = 0; i < nlocal; i++, ptr += nstride) {
-	  *ptr = 0.0;
-	  if (!(mask[i] & groupbit)) continue;
-	  index = ichunk[i]-1;
-	  if (index < 0 || index >= nchunk) continue;
-	  *ptr = carray[index][icol];
-	}
+        for (int i = 0; i < nlocal; i++, ptr += nstride) {
+          *ptr = 0.0;
+          if (!(mask[i] & groupbit)) continue;
+          index = ichunk[i]-1;
+          if (index < 0 || index >= nchunk) continue;
+          *ptr = carray[index][icol];
+        }
       }
 
     // access fix data, check if fix frequency is a match
     // are assuming the fix global vector/array is per-chunk data
     // check if index exceeds fix output length/rows
 
-    } else if (which[m] == FIX) {
-      Fix *fix = modify->fix[n];
+    } else if (val.which == ArgInfo::FIX) {
+      Fix *fix = val.val.f;
       if (update->ntimestep % fix->global_freq)
-        error->all(FLERR,"Fix used in compute chunk/spread/atom not "
-                   "computed at compatible time");
+        error->all(FLERR,"Fix {} used in compute chunk/spread/atom not computed at compatible time",
+                   val.id);
 
-      if (argindex[m] == 0) {
+      if (val.argindex == 0) {
         int nfix = fix->size_vector;
-        for (i = 0; i < nlocal; i++, ptr += nstride) {
+        for (int i = 0; i < nlocal; i++, ptr += nstride) {
           *ptr = 0.0;
           if (!(mask[i] & groupbit)) continue;
           index = ichunk[i]-1;
@@ -327,9 +288,9 @@ void ComputeChunkSpreadAtom::compute_peratom()
         }
 
       } else {
-        int icol = argindex[m]-1;
+        int icol = val.argindex-1;
         int nfix = fix->size_array_rows;
-        for (i = 0; i < nlocal; i++, ptr += nstride) {
+        for (int i = 0; i < nlocal; i++, ptr += nstride) {
           *ptr = 0.0;
           if (!(mask[i] & groupbit)) continue;
           index = ichunk[i]-1;
@@ -338,6 +299,7 @@ void ComputeChunkSpreadAtom::compute_peratom()
         }
       }
     }
+    ++m;
   }
 }
 
@@ -347,6 +309,7 @@ void ComputeChunkSpreadAtom::compute_peratom()
 
 double ComputeChunkSpreadAtom::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*values.size() * sizeof(double);
+  bytes += values.size() * sizeof(value_t);
   return bytes;
 }

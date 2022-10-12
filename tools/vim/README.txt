@@ -3,52 +3,50 @@
 
 The files provided in this directory will enable syntax highlighting
 for the lammps script syntax in vim. The simulation scripts have to
-end on *.lmp or start with in.* (see mysyntax.vim).  
-By far not all commands are included
-in the syntax file (lammps.vim). You can easily add new ones.
+end on .lmp or .in or start with in. (see mysyntax.vim or filetype.vim).
+By far not all commands are included in the syntax file (lammps.vim).
+You can easily add new ones.
 
-=To enable the highlighting:
+=To enable the highlighting (compatible with old versions of VIM):
 ============================
-(0)   Create a ~/.vimrc
-      You can have a look in /usr/local/share/vim/current/vimrc.example
-(1)   Insert in ~/.vimrc
+(1)   Create a ~/.vimrc
+      You can have a look in /usr/share/vim/vim*/vimrc_example.vim
+(2)   Insert in ~/.vimrc
          let mysyntaxfile = "~/.vim/mysyntax.vim"
       just before
          syntax on
-(2)   Create directory ~/.vim and place mysyntax.vim and lammps.vim there
+(3)   Create directory ~/.vim and place mysyntax.vim and lammps.vim there
 
 =Here is an alternate method for VIM Version 7.2 and later:
 ===========================================================
 
-(0) Create/edit ~/.vimrc to contain:
+(1) Create/edit ~/.vimrc to contain:
          syntax on
-(1) Create directories ~/.vim and ~/.vim/syntax
-(2) Copy lammps.vim to ~/.vim/syntax/lammps.vim
-(3) Create/edit ~/.vim/filetype.vim to contain
+(2) Create directories ~/.vim/syntax and ~/.vim/ftdetect
+(3) Copy lammps.vim to ~/.vim/syntax/lammps.vim
+(4) Copy filetype.vim to ~/.vim/ftdetect/lammps.vim
 
-" vim syntax highlight customizations
-if exists("did_load_filetypes")
- finish
-endif
+Distribution Packaging guidelines:
+==================================
 
-augroup filetypedetect
- au! BufRead,BufNewFile in.*           setfiletype lammps
- au! BufRead,BufNewFile *.lmp          setfiletype lammps
-augroup END
-(4) the end
+(1) Copy lammps.vim to ${VIMFILES}/syntax/lammps.vim
+(2) Copy filetype.vim as ${VIMFILES}/ftdetect/lammps.vim
 
+${VIMFILES} is typically /usr/share/vim/vimfiles
+Consult your packaging guidlines for exact location.
 
 Gerolf Ziegenhain <gerolf@ziegenhain.com> 2007
+
+=Disable insertion of <TAB> characters
+========================================
+
+(1) The LAMMPS developers strongly discourage writing
+   files (input and C++ source code) with <TAB> characters.
+   To change the default behavior of vim use in your vimrc:
+       set expandtab
 
 ---------------
 
 updated by Sam Bateman, 11/2010
 updated by Aidan Thompson, 12/2010
-
-Sam Bateman
-Naval Research Laboratory
-Code 7434
-1005 Balch Blvd.
-Stennis Space Center, MS 39529
-Phone: (228) 688-4328
-Email: sam.bateman@nrlssc.navy.mil
+updated by Axel Kohlmeyer, 08/2022

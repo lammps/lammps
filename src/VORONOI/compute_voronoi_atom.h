@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(voronoi/atom,ComputeVoronoi)
-
+// clang-format off
+ComputeStyle(voronoi/atom,ComputeVoronoi);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VORONOI_H
@@ -23,25 +23,25 @@ ComputeStyle(voronoi/atom,ComputeVoronoi)
 #include "compute.h"
 
 namespace voro {
-  class container;
-  class container_poly;
-  class voronoicell_neighbor;
-}
+class container;
+class container_poly;
+class voronoicell_neighbor;
+}    // namespace voro
 
 namespace LAMMPS_NS {
 
 class ComputeVoronoi : public Compute {
  public:
   ComputeVoronoi(class LAMMPS *, int, char **);
-  ~ComputeVoronoi();
-  void init();
-  void compute_peratom();
-  void compute_vector();
-  void compute_local();
-  double memory_usage();
+  ~ComputeVoronoi() override;
+  void init() override;
+  void compute_peratom() override;
+  void compute_vector() override;
+  void compute_local() override;
+  double memory_usage() override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  private:
   voro::container *con_mono;
@@ -50,7 +50,7 @@ class ComputeVoronoi : public Compute {
   void buildCells();
   void checkOccupation();
   void loopCells();
-  void processCell(voro::voronoicell_neighbor&, int);
+  void processCell(voro::voronoicell_neighbor &, int);
 
   int nmax, rmax, maxedge, sgroupbit;
   char *radstr;
@@ -66,45 +66,7 @@ class ComputeVoronoi : public Compute {
   double **faces;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Could not find compute/voronoi surface group ID
-
-Self-explanatory.
-
-E: Illegal compute voronoi/atom command (occupation and (surface or edges))
-
-Self-explanatory.
-
-E: Compute voronoi/atom occupation requires an atom map, see atom_modify
-
-UNDOCUMENTED
-
-E: Compute voronoi/atom occupation requires atom IDs
-
-UNDOCUMENTED
-
-E: Variable name for voronoi radius does not exist
-
-Self-explanatory.
-
-E: Variable for voronoi radius is not atom style
-
-Self-explanatory.
-
-E: Voro++ error: narea and neigh have a different size
-
-This error is returned by the Voro++ library.
-
-*/

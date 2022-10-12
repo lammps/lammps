@@ -1,0 +1,40 @@
+# RDX coarse-grain model
+
+units           metal  # ev, ps
+atom_style      dpd
+atom_modify     map array
+
+lattice         hcp 6.6520898 origin 0.0833333333333 0.25 0.25 orient z 1 0 0 orient x 0 1 0 orient y 0 0 1
+variable        xrep equal 10.0
+variable        yrep equal 10.0
+variable        zrep equal 10.0
+region          box block 0 ${xrep} 0 ${yrep} 0.0 ${zrep} units lattice
+create_box      2 box
+region          atoms block 0 ${xrep} 0 ${yrep} 0.0 ${zrep} units lattice
+create_atoms    1 region atoms
+variable        newx equal xhi*0.99998623082367843
+variable        newy equal yhi*0.96972098958539854
+change_box      all x final 0.0 ${newx} y final 0.0 ${newy} remap units box
+
+comm_modify     vel yes
+mass            * 222.12
+
+timestep        0.01
+
+pair_style      multi/lucy linear 74923
+pair_coeff      * * table.multibody KEYWORD 16.00
+
+fix		2 all nve
+
+neighbor        0.0 bin 
+neigh_modify    every 1 delay 0 check no once no 
+
+variable        totEnergy equal pe+ke
+
+thermo          1
+thermo_style    custom step temp press vol pe ke v_totEnergy pxx pyy pzz lx ly lz
+thermo_modify   format float %15.8f flush yes
+
+velocity        all create 300.00 9198783 mom yes rot yes dist gaussian
+
+run             100

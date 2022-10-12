@@ -1,0 +1,163 @@
+LAMMPS (4 Feb 2020)
+# Solvated 5-mer peptide
+
+units		real
+atom_style	full
+
+pair_style	lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style	pppm 0.0001
+
+read_data	data.peptide
+  orthogonal box = (36.8402 41.0137 29.7681) to (64.2116 68.3851 57.1395)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2004 atoms
+  reading velocities ...
+  2004 velocities
+  scanning bonds ...
+  3 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  14 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  reading bonds ...
+  1365 bonds
+  reading angles ...
+  786 angles
+  reading dihedrals ...
+  207 dihedrals
+  reading impropers ...
+  12 impropers
+  4 = max # of 1-2 neighbors
+  7 = max # of 1-3 neighbors
+  14 = max # of 1-4 neighbors
+  18 = max # of special neighbors
+  special bonds CPU = 0.000809431 secs
+  read_data CPU = 0.0102327 secs
+
+neighbor	2.0 bin
+neigh_modify	delay 5
+
+timestep	2.0
+
+group		peptide type <= 12
+84 atoms in group peptide
+group		one id 2 4 5 6
+4 atoms in group one
+group		two id 80 82 83 84
+4 atoms in group two
+group		ref id 37
+1 atoms in group ref
+group		colvar union one two ref
+9 atoms in group colvar
+
+fix		1 all nvt temp  275.0 275.0 100.0 tchain 1
+
+fix		2 all plumed plumedfile plumed.dat outfile p.log
+fix		2a ref setforce 0.0 0.0 0.0
+
+fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
+  19 = # of size 2 clusters
+  6 = # of size 3 clusters
+  3 = # of size 4 clusters
+  640 = # of frozen angles
+  find clusters CPU = 0.000631809 secs
+
+#dump		1 colvar custom 1 dump.colvar.lammpstrj id xu yu zu fx fy fz
+#dump_modify 1 sort id
+
+thermo_style	custom step temp etotal pe ke epair ebond f_2
+thermo		10
+variable        step equal step
+variable        pe equal pe
+
+run		101
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:332)
+  G vector (1/distance) = 0.268725
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0228209
+  estimated relative force accuracy = 6.87243e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 10648 3375
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+SHAKE stats (type/ave/delta) on step 0
+  4 1.111 1.44264e-05
+  6 0.996998 7.26967e-06
+  8 1.08 1.32536e-05
+  10 1.111 1.22749e-05
+  12 1.08 1.11767e-05
+  14 0.96 0
+  18 0.957206 4.37979e-05
+  31 104.519 0.00396029
+Per MPI rank memory allocation (min/avg/max) = 19.07 | 19.07 | 19.07 Mbytes
+Step Temp TotEng PotEng KinEng E_pair E_bond f_2 
+       0    282.10052    -5237.458   -6372.3766    1134.9186    -6442.768    16.557152            0 
+      10     276.9783   -5234.3057   -6348.6171    1114.3114   -6421.6171    17.024361   0.47785504 
+      20    279.08532   -5226.4036   -6349.1917    1122.7881   -6441.0169    20.764378   0.52605302 
+      30    282.32141   -5222.3866   -6358.1939    1135.8073   -6448.9785    22.945165   0.65106011 
+      40    276.34173   -5218.7623   -6330.5128    1111.7504   -6423.7566    15.655345   0.23795099 
+      50    286.12741   -5215.9248   -6367.0439    1151.1192   -6449.2655    17.420975   0.42646205 
+      60    273.01449   -5217.7381   -6316.1026    1098.3646   -6406.4709    21.800931   0.92327815 
+      70    274.67549   -5221.0246   -6326.0716     1105.047   -6409.7721     19.41235 0.0016975896 
+      80    273.74824   -5224.7613   -6326.0778    1101.3165   -6418.5055    19.206793   0.48550348 
+      90    284.32594    -5229.195   -6373.0667    1143.8717   -6461.3467    21.124789    0.5468014 
+SHAKE stats (type/ave/delta) on step 100
+  4 1.111 2.06868e-06
+  6 0.996999 2.09521e-06
+  8 1.08 1.10835e-06
+  10 1.111 2.46599e-06
+  12 1.08 8.86314e-07
+  14 0.959999 0
+  18 0.9572 9.14098e-06
+  31 104.52 0.000760401
+     100    270.40648   -5234.9604   -6322.8327    1087.8723     -6417.73    19.666404 0.0094784372 
+     101    270.99811   -5235.8295    -6326.082    1090.2525   -6418.8974    17.285816  0.086681332 
+Loop time of 2.69839 on 1 procs for 101 steps with 2004 atoms
+
+Performance: 6.468 ns/day, 3.711 hours/ns, 37.430 timesteps/s
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.2853     | 2.2853     | 2.2853     |   0.0 | 84.69
+Bond    | 0.0065637  | 0.0065637  | 0.0065637  |   0.0 |  0.24
+Kspace  | 0.14949    | 0.14949    | 0.14949    |   0.0 |  5.54
+Neigh   | 0.1938     | 0.1938     | 0.1938     |   0.0 |  7.18
+Comm    | 0.0096588  | 0.0096588  | 0.0096588  |   0.0 |  0.36
+Output  | 0.00039172 | 0.00039172 | 0.00039172 |   0.0 |  0.01
+Modify  | 0.050643   | 0.050643   | 0.050643   |   0.0 |  1.88
+Other   |            | 0.00258    |            |       |  0.10
+
+Nlocal:    2004 ave 2004 max 2004 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    11134 ave 11134 max 11134 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    707961 ave 707961 max 707961 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 707961
+Ave neighs/atom = 353.274
+Ave special neighs/atom = 2.34032
+Neighbor list builds = 8
+Dangerous builds = 0
+Total wall time: 0:00:02

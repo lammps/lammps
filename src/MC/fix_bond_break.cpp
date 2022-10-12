@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,22 +12,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "fix_bond_break.h"
-#include "update.h"
-#include "respa.h"
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "random_mars.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
+#include "fix_bond_history.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,14 +38,15 @@ using namespace FixConst;
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  partner(NULL), finalpartner(NULL), distsq(NULL), probability(NULL), broken(NULL), copy(NULL), random(NULL)
+  partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
+  broken(nullptr), copy(nullptr), random(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/break command");
 
   force_reneighbor = 1;
@@ -54,8 +56,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  btype = force->inumeric(FLERR,arg[4]);
-  cutoff = force->numeric(FLERR,arg[5]);
+  btype = utils::inumeric(FLERR,arg[4],false,lmp);
+  cutoff = utils::numeric(FLERR,arg[5],false,lmp);
 
   if (btype < 1 || btype > atom->nbondtypes)
     error->all(FLERR,"Invalid bond type in fix bond/break command");
@@ -72,8 +74,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"prob") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break command");
-      fraction = force->numeric(FLERR,arg[iarg+1]);
-      seed = force->inumeric(FLERR,arg[iarg+2]);
+      fraction = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      seed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (fraction < 0.0 || fraction > 1.0)
         error->all(FLERR,"Illegal fix bond/break command");
       if (seed <= 0) error->all(FLERR,"Illegal fix bond/break command");
@@ -83,7 +85,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/break with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed
@@ -146,8 +148,8 @@ int FixBondBreak::setmask()
 
 void FixBondBreak::init()
 {
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (utils::strmatch(update->integrate_style,"^respa"))
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // enable angle/dihedral/improper breaking if any defined
 
@@ -159,15 +161,11 @@ void FixBondBreak::init()
   else improperflag = 0;
 
   if (force->improper) {
-    if (force->improper_match("class2") || force->improper_match("ring"))
-      error->all(FLERR,"Cannot yet use fix bond/break with this "
-                 "improper style");
+    if (force->improper_match("^class2") || force->improper_match("^ring"))
+      error->all(FLERR,"Cannot yet use fix bond/break with this improper style");
   }
 
   lastcheck = -1;
-
-  // DEBUG
-  //print_bb();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -249,7 +247,7 @@ void FixBondBreak::post_integrate()
 
   // reverse comm of partner info
 
-  if (force->newton_bond) comm->reverse_comm_fix(this);
+  if (force->newton_bond) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner
@@ -261,7 +259,11 @@ void FixBondBreak::post_integrate()
   }
 
   commflag = 1;
-  comm->forward_comm_fix(this,2);
+  comm->forward_comm(this,2);
+
+  // find instances of bond history to delete data
+  auto histories = modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
 
   // break bonds
   // if both atoms list each other as winning bond partner
@@ -297,7 +299,13 @@ void FixBondBreak::post_integrate()
         for (k = m; k < num_bond[i]-1; k++) {
           bond_atom[i][k] = bond_atom[i][k+1];
           bond_type[i][k] = bond_type[i][k+1];
+          if (n_histories > 0)
+            for (auto &ihistory: histories)
+              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,k,k+1);
         }
+        if (n_histories > 0)
+          for (auto &ihistory: histories)
+            dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,num_bond[i]-1);
         num_bond[i]--;
         break;
       }
@@ -340,7 +348,7 @@ void FixBondBreak::post_integrate()
   // 1-2 neighs already reflect broken bonds
 
   commflag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms
@@ -792,49 +800,6 @@ void FixBondBreak::unpack_reverse_comm(int n, int *list, double *buf)
   }
 }
 
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondBreak::print_bb()
-{
-  for (int i = 0; i < atom->nlocal; i++) {
-    printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
-    for (int j = 0; j < atom->num_bond[i]; j++) {
-      printf(" %d",atom->bond_atom[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nangles: ",atom->tag[i],atom->num_angle[i]);
-    for (int j = 0; j < atom->num_angle[i]; j++) {
-      printf(" %d %d %d,",atom->angle_atom1[i][j],
-             atom->angle_atom2[i][j],atom->angle_atom3[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
-    for (int j = 0; j < atom->num_dihedral[i]; j++) {
-      printf(" %d %d %d %d,",atom->dihedral_atom1[i][j],
-             atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
-             atom->dihedral_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d %d %d nspecial: ",atom->tag[i],
-           atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
-    for (int j = 0; j < atom->nspecial[i][2]; j++) {
-      printf(" %d",atom->special[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondBreak::print_copy(const char *str, tagint m,
-                              int n1, int n2, int n3, int *v)
-{
-  printf("%s %i: %d %d %d nspecial: ",str,m,n1,n2,n3);
-  for (int j = 0; j < n3; j++) printf(" %d",v[j]);
-  printf("\n");
-}
-
 /* ---------------------------------------------------------------------- */
 
 double FixBondBreak::compute_vector(int n)
@@ -851,6 +816,6 @@ double FixBondBreak::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 2*nmax * sizeof(tagint);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "atom.h"
+#include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
 
 #ifndef LMP_ATOM_KOKKOS_H
@@ -54,65 +55,106 @@ class AtomKokkos : public Atom {
 
   DAT::tdual_float_2d k_dvector;
 
+  // SPIN package
 
-// USER-DPD package
+  DAT::tdual_float_1d_4 k_sp;
+  DAT::tdual_f_array k_fm;
+  DAT::tdual_f_array k_fm_long;
+
+// DPD-REACT package
   DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
                        k_rho,k_dpdTheta,k_duChem;
 
 
   AtomKokkos(class LAMMPS *);
-  ~AtomKokkos();
+  ~AtomKokkos() override;
 
-  virtual void allocate_type_arrays();
+  void map_init(int check = 1) override;
+  void map_set() override;
+  void map_delete() override;
+
+  DAT::tdual_int_1d k_sametag;
+  DAT::tdual_int_1d k_map_array;
+  DAT::tdual_int_scalar k_error_flag;
+  dual_hash_type k_map_hash;
+
+  // map lookup function inlined for efficiency
+  // return -1 if no map defined
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  static int map_kokkos(tagint global, int map_style, DAT::tdual_int_1d k_map_array, dual_hash_type k_map_hash)
+  {
+    if (map_style == 1)
+      return k_map_array.view<DeviceType>()(global);
+    else if (map_style == 2)
+      return AtomKokkos::map_find_hash_kokkos<DeviceType>(global,k_map_hash);
+    else
+      return -1;
+  }
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  static int map_find_hash_kokkos(tagint global, dual_hash_type &k_map_hash)
+  {
+    int local = -1;
+    auto d_map_hash = k_map_hash.view<DeviceType>();
+    auto index = d_map_hash.find(global);
+    if (d_map_hash.valid_at(index))
+      local = d_map_hash.value_at(index);
+    return local;
+  }
+
+  void allocate_type_arrays() override;
   void sync(const ExecutionSpace space, unsigned int mask);
   void modified(const ExecutionSpace space, unsigned int mask);
   void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
-  virtual void sort();
+  void sort() override;
   virtual void grow(unsigned int mask);
-  int add_custom(const char *, int);
-  void remove_custom(int, int);
+  int add_custom(const char *, int, int) override;
+  void remove_custom(int, int, int) override;
   virtual void deallocate_topology();
-  void sync_modify(ExecutionSpace, unsigned int, unsigned int);
+  void sync_modify(ExecutionSpace, unsigned int, unsigned int) override;
  private:
-   class AtomVec *new_avec(const char *, int, int &);
+  class AtomVec *new_avec(const std::string &, int, int &) override;
 };
 
 template<class ViewType, class IndexView>
-class SortFunctor {
+struct SortFunctor {
   typedef typename ViewType::device_type device_type;
   ViewType source;
   Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type> dest;
   IndexView index;
-  SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0));
   }
-  SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1));
   }
-  SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2));
   }
-  SortFunctor(ViewType src, typename Kokkos::Impl::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind){
+  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2),src.extent(3));
   }
   KOKKOS_INLINE_FUNCTION
-  void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==1, int>::type& i) {
+  void operator()(const typename std::enable_if<ViewType::rank==1, int>::type& i) {
     dest(i) = source(index(i));
   }
-  void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==2, int>::type& i) {
-    for(int j=0;j<source.extent(1);j++)
+  void operator()(const typename std::enable_if<ViewType::rank==2, int>::type& i) {
+    for (int j=0; j < (int)source.extent(1); j++)
       dest(i,j) = source(index(i),j);
   }
-  void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==3, int>::type& i) {
-    for(int j=0;j<source.extent(1);j++)
-    for(int k=0;k<source.extent(2);k++)
-      dest(i,j,k) = source(index(i),j,k);
+  void operator()(const typename std::enable_if<ViewType::rank==3, int>::type& i) {
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
+        dest(i,j,k) = source(index(i),j,k);
   }
-  void operator()(const typename Kokkos::Impl::enable_if<ViewType::rank==4, int>::type& i) {
-    for(int j=0;j<source.extent(1);j++)
-    for(int k=0;k<source.extent(2);k++)
-    for(int l=0;l<source.extent(3);l++)
-      dest(i,j,k,l) = source(index(i),j,k,l);
+  void operator()(const typename std::enable_if<ViewType::rank==4, int>::type& i) {
+    for (int j=0; j < (int)source.extent(1); j++)
+      for (int k=0; k < (int)source.extent(2); k++)
+        for (int l=0; l < (int)source.extent(3); l++)
+          dest(i,j,k,l) = source(index(i),j,k,l);
   }
 };
 
@@ -120,10 +162,3 @@ class SortFunctor {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: KOKKOS package requires a kokkos enabled atom_style
-
-Self-explanatory.
-
-*/

@@ -3,15 +3,19 @@
 
 /*
  * Up to version 11 (VC++ 2012), Microsoft does not support the
- * standard C99 erf() and erfc() functions so we have to fake them here. 
+ * standard C99 erf() and erfc() functions so we have to fake them here.
  * These were added in version 12 (VC++ 2013), which sets _MSC_VER=1800
  * (VC11 has _MSC_VER=1700).
  */
 
-#if defined(_MSC_VER) 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#if !defined(M_PI)
 #define M_PI 3.14159265358979323846264338327950288
+#endif
+#endif
 
-#if _MSC_VER <= 1700 // 1700 is VC11, 1800 is VC12 
+#if defined(_MSC_VER)
+#if _MSC_VER <= 1700 // 1700 is VC11, 1800 is VC12
 /***************************
 *   erf.cpp
 *   author:  Steve Strand

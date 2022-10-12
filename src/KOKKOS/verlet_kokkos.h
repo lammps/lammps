@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
-IntegrateStyle(verlet/kk,VerletKokkos)
-IntegrateStyle(verlet/kk/device,VerletKokkos)
-IntegrateStyle(verlet/kk/host,VerletKokkos)
-
+// clang-format off
+IntegrateStyle(verlet/kk,VerletKokkos);
+IntegrateStyle(verlet/kk/device,VerletKokkos);
+IntegrateStyle(verlet/kk/host,VerletKokkos);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_VERLET_KOKKOS_H
 #define LMP_VERLET_KOKKOS_H
 
@@ -30,10 +31,11 @@ namespace LAMMPS_NS {
 class VerletKokkos : public Verlet {
  public:
   VerletKokkos(class LAMMPS *, int, char **);
-  ~VerletKokkos() {}
-  void setup(int);
-  void setup_minimal(int);
-  void run(int);
+
+  void setup(int) override;
+  void setup_minimal(int) override;
+  void run(int) override;
+  void force_clear() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
@@ -42,18 +44,11 @@ class VerletKokkos : public Verlet {
     f(i,2) += f_merge_copy(i,2);
   }
 
-
  protected:
   DAT::t_f_array f_merge_copy,f;
-
-  void force_clear();
 };
-
 }
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

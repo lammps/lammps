@@ -1,0 +1,79 @@
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+special_bonds lj/coul 0.0 0.0 0.5
+
+pair_style hybrid/overlay lj/cut/coul/long 8.0 8.0 thole 2.600 8.0
+kspace_style pppm 1.0e-4
+
+comm_modify vel yes
+read_data data.ethanol
+
+pair_coeff    1    1 lj/cut/coul/long 0.065997 3.500000 # C3H C3H
+pair_coeff    1    2 lj/cut/coul/long 0.065997 3.500000 # C3H CTO
+pair_coeff    1    3 lj/cut/coul/long 0.044496 2.958040 # C3H H
+pair_coeff    1    4 lj/cut/coul/long 0.105921 3.304542 # C3H OH
+pair_coeff    1    5 lj/cut/coul/long 0.000000 0.000000 # C3H HO
+pair_coeff    2    2 lj/cut/coul/long 0.065997 3.500000 # CTO CTO
+pair_coeff    2    3 lj/cut/coul/long 0.044496 2.958040 # CTO H
+pair_coeff    2    4 lj/cut/coul/long 0.105921 3.304542 # CTO OH
+pair_coeff    2    5 lj/cut/coul/long 0.000000 0.000000 # CTO HO
+pair_coeff    3    3 lj/cut/coul/long 0.029999 2.500000 # H H
+pair_coeff    3    4 lj/cut/coul/long 0.071413 2.792848 # H OH
+pair_coeff    3    5 lj/cut/coul/long 0.000000 0.000000 # H HO
+pair_coeff    4    4 lj/cut/coul/long 0.169996 3.120000 # OH OH
+pair_coeff    4    5 lj/cut/coul/long 0.000000 0.000000 # OH HO
+pair_coeff    5    5 lj/cut/coul/long 0.000000 0.000000 # HO HO
+pair_coeff    *  6*8 lj/cut/coul/long 0.000000 0.000000 # No lj for drudes
+pair_coeff    1    1 thole 2.051000
+pair_coeff    1    2 thole 1.580265
+pair_coeff    1    4 thole 1.416087
+pair_coeff    1    6 thole 2.051000
+pair_coeff    1    7 thole 1.580265
+pair_coeff    1    8 thole 1.416087
+pair_coeff    2    2 thole 1.217570
+pair_coeff    2    4 thole 1.091074
+pair_coeff    2    6 thole 1.580265
+pair_coeff    2    7 thole 1.217570
+pair_coeff    2    8 thole 1.091074
+pair_coeff    4    4 thole 0.977720
+pair_coeff    4    6 thole 1.416087
+pair_coeff    4    7 thole 1.091074
+pair_coeff    4    8 thole 0.977720
+pair_coeff    6    6 thole 2.051000
+pair_coeff    6    7 thole 1.580265
+pair_coeff    6    8 thole 1.416087
+pair_coeff    7    7 thole 1.217570
+pair_coeff    7    8 thole 1.091074
+pair_coeff    8    8 thole 0.977720
+
+group gETHANOL molecule 1:250
+group gATOMS type 1 2 3 4 5
+group gDRUDES type 6 7 8
+
+neighbor 2.0 bin
+
+variable vTEMP   equal 300.0
+variable vTEMP_D equal 1.0
+variable vPRESS  equal 1.0
+
+velocity gATOMS  create ${vTEMP} 12345
+velocity gDRUDES create ${vTEMP_D} 12345
+
+fix fDRUDE all drude C C N C N D D D
+
+fix fSHAKE gATOMS shake 0.0001 20 0 b 2 3 5
+
+fix fNPT all tgnpt/drude temp ${vTEMP} ${vTEMP} 100.0 ${vTEMP_D} 20.0 iso ${vPRESS} ${vPRESS} 1000
+
+compute cTEMP all temp/drude
+
+thermo_style custom step cpu etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2] f_fNPT[1] f_fNPT[2] f_fNPT[3]
+thermo 20
+
+timestep 0.5
+run 2000

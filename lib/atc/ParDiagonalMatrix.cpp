@@ -5,7 +5,7 @@ using MPI_Wrappers::allgatherv;
 namespace ATC_matrix {
 
   // template<>
-  // void ParDiagonalMatrix<double>::MultAB(const Matrix<double> &B, DenseMatrix<double> &C) const 
+  // void ParDiagonalMatrix<double>::MultAB(const Matrix<double> &B, DenseMatrix<double> &C) const
   // {
   //   //SparseMatrix<T>::compress(*this);
   //   GCK(*this, B, this->nCols()!=B.nRows(), "ParDiagonalMatrix * Matrix");
@@ -19,7 +19,7 @@ namespace ATC_matrix {
 
   //   INDEX startIndex = (myRank * nRows) / nProcs;
   //   INDEX endIndex = ((myRank + 1) * nRows) / nProcs;
-    
+
   //   // Calculate the scaled rows associated with this processor
   //   for (INDEX i = startIndex; i < endIndex; i++) {
   //     double value = (*this)[i];
@@ -28,13 +28,13 @@ namespace ATC_matrix {
   //   }
 
   //   // Collect results on all processors
-  
+
   //   //       consider sending only owned rows from each processor
   //   allsum(_comm, MPI_IN_PLACE, C.ptr(), C.size());
   // }
 
   template<>
-  void ParDiagonalMatrix<double>::MultAB(const Matrix<double> &B, DenseMatrix<double> &C) const 
+  void ParDiagonalMatrix<double>::MultAB(const Matrix<double> &B, DenseMatrix<double> &C) const
   {
     //SparseMatrix<T>::compress(*this);
     GCK(*this, B, this->nCols()!=B.nRows(), "ParDiagonalMatrix * Matrix");
@@ -52,7 +52,7 @@ namespace ATC_matrix {
     int nMajor = nRows;
     int nMinor = nCols;
 #endif
-    
+
     int *majorCounts = new int[nProcs];
     int *majorOffsets = new int[nProcs];
 
@@ -64,7 +64,7 @@ namespace ATC_matrix {
 
     INDEX myNMajor = majorCounts[myRank];
     INDEX myMajorOffset = majorOffsets[myRank];
-    
+
     // Calculate the scaled values associated with this processor, in row chunks
 
 #ifdef COL_STORAGE // Column-major storage

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(fene/kk,BondFENEKokkos<LMPDeviceType>)
-BondStyle(fene/kk/device,BondFENEKokkos<LMPDeviceType>)
-BondStyle(fene/kk/host,BondFENEKokkos<LMPHostType>)
-
+// clang-format off
+BondStyle(fene/kk,BondFENEKokkos<LMPDeviceType>);
+BondStyle(fene/kk/device,BondFENEKokkos<LMPDeviceType>);
+BondStyle(fene/kk/host,BondFENEKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_BOND_FENE_KOKKOS_H
 #define LMP_BOND_FENE_KOKKOS_H
 
@@ -38,10 +39,10 @@ class BondFENEKokkos : public BondFENE {
   typedef ArrayTypes<DeviceType> AT;
 
   BondFENEKokkos(class LAMMPS *);
-  virtual ~BondFENEKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~BondFENEKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -91,7 +92,7 @@ class BondFENEKokkos : public BondFENE {
   typename AT::t_ffloat_1d d_epsilon;
   typename AT::t_ffloat_1d d_sigma;
 
-  void allocate();
+  void allocate() override;
 };
 
 }
@@ -99,16 +100,3 @@ class BondFENEKokkos : public BondFENE {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-W: FENE bond too long
-
-A FENE bond has stretched dangerously far.  It's interaction strength
-will be truncated to attempt to prevent the bond from blowing up.
-
-E: Bad FENE bond
-
-Two atoms in a FENE bond have become so far apart that the bond cannot
-be computed.
-
-*/

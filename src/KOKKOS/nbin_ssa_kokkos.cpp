@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,11 +20,8 @@
 #include "nbin_ssa_kokkos.h"
 #include "neighbor.h"
 #include "atom_kokkos.h"
-#include "group.h"
 #include "domain.h"
-#include "comm.h"
 #include "update.h"
-#include "error.h"
 #include "atom_masks.h"
 
 // #include "memory_kokkos.h"
@@ -44,7 +42,6 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
   d_lbinxhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinxhi");
   d_lbinyhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinyhi");
   d_lbinzhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinzhi");
-#ifndef KOKKOS_USE_CUDA_UVM
   h_resize = Kokkos::create_mirror_view(d_resize);
   h_lbinxlo = Kokkos::create_mirror_view(d_lbinxlo);
   h_lbinylo = Kokkos::create_mirror_view(d_lbinylo);
@@ -52,15 +49,6 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
   h_lbinxhi = Kokkos::create_mirror_view(d_lbinxhi);
   h_lbinyhi = Kokkos::create_mirror_view(d_lbinyhi);
   h_lbinzhi = Kokkos::create_mirror_view(d_lbinzhi);
-#else
-  h_resize = d_resize;
-  h_lbinxlo = d_lbinxlo;
-  h_lbinylo = d_lbinylo;
-  h_lbinzlo = d_lbinzlo;
-  h_lbinxhi = d_lbinxhi;
-  h_lbinyhi = d_lbinyhi;
-  h_lbinzhi = d_lbinzhi;
-#endif
   h_resize() = 1;
 
   k_gbincount = DAT::tdual_int_1d("NBinSSAKokkos::gbincount",8);
@@ -70,7 +58,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int nall)
+void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int /*nall*/)
 {
   if (mbins > (int) k_bins.h_view.extent(0)) {
     k_bins = DAT::tdual_int_2d("NBinSSAKokkos::bins",mbins,atoms_per_bin);
@@ -154,12 +142,12 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall), f, ghosts_per_gbin);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nlocal,nall), f, ghosts_per_gbin);
   }
 
   // actually bin the ghost atoms
   {
-    if(ghosts_per_gbin > (int) gbins.extent(1)) {
+    if (ghosts_per_gbin > (int) gbins.extent(1)) {
       k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
       gbins = k_gbins.view<DeviceType>();
     }
@@ -171,16 +159,16 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     auto gbincount_ = gbincount;
     auto gbins_ = gbins;
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall),
-      LAMMPS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nall),
+     LAMMPS_LAMBDA (const int i) {
       const int iAIR = binID_(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
         const int ac = Kokkos::atomic_fetch_add(&gbincount_[iAIR], (int)1);
         gbins_(iAIR, ac) = i;
       }
     });
-    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(1,8),
-      LAMMPS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(1,8),
+     LAMMPS_LAMBDA (const int i) {
       sortBin(gbincount_, gbins_, i);
     });
   }
@@ -203,8 +191,8 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_for(nlocal, f);
 
-    Kokkos::parallel_for(mbins,
-      LAMMPS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,mbins),
+     LAMMPS_LAMBDA (const int i) {
       sortBin(bincount_, bins_, i);
     });
   }
@@ -240,12 +228,12 @@ void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
   binID(i) = ibin;
 
   // Find the bounding box of the local atoms in the bins
-  if (loc[0] < d_lbinxlo()) Kokkos::atomic_fetch_min(&d_lbinxlo(),loc[0]);
-  if (loc[0] >= d_lbinxhi()) Kokkos::atomic_fetch_max(&d_lbinxhi(),loc[0] + 1);
-  if (loc[1] < d_lbinylo()) Kokkos::atomic_fetch_min(&d_lbinylo(),loc[1]);
-  if (loc[1] >= d_lbinyhi()) Kokkos::atomic_fetch_max(&d_lbinyhi(),loc[1] + 1);
-  if (loc[2] < d_lbinzlo()) Kokkos::atomic_fetch_min(&d_lbinzlo(),loc[2]);
-  if (loc[2] >= d_lbinzhi()) Kokkos::atomic_fetch_max(&d_lbinzhi(),loc[2] + 1);
+  if (loc[0] < d_lbinxlo()) Kokkos::atomic_min(&d_lbinxlo(),loc[0]);
+  if (loc[0] >= d_lbinxhi()) Kokkos::atomic_max(&d_lbinxhi(),loc[0] + 1);
+  if (loc[1] < d_lbinylo()) Kokkos::atomic_min(&d_lbinylo(),loc[1]);
+  if (loc[1] >= d_lbinyhi()) Kokkos::atomic_max(&d_lbinyhi(),loc[1] + 1);
+  if (loc[2] < d_lbinzlo()) Kokkos::atomic_min(&d_lbinzlo(),loc[2]);
+  if (loc[2] >= d_lbinzhi()) Kokkos::atomic_max(&d_lbinzhi(),loc[2] + 1);
 
   const int ac = Kokkos::atomic_fetch_add(&(bincount[ibin]), (int)1);
   if (update <= ac) update = ac + 1;
@@ -296,12 +284,12 @@ void NBinSSAKokkos<DeviceType>::sortBin(
       child = parent*2+1; /* Find the next child */
     }
     gbins(ibin, parent) = t; /* We save t in the heap */
-  } while(1);
+  } while (true);
 }
 
 namespace LAMMPS_NS {
 template class NBinSSAKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NBinSSAKokkos<LMPHostType>;
 #endif
 }

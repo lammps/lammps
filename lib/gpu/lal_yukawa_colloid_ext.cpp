@@ -55,7 +55,7 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
   int init_ok=0;
   if (world_me==0)
     init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
-                          inum, nall, 300, maxspecial, cell_size, gpu_split,
+                          inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
                           screen, kappa);
 
   YKCOLLMF.device->world_barrier();
@@ -73,10 +73,10 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
-                            inum, nall, 300, maxspecial, cell_size, gpu_split,
+                            inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
                             screen, kappa);
 
-    YKCOLLMF.device->gpu_barrier();
+    YKCOLLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

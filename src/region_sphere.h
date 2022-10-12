@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(sphere,RegSphere)
-
+// clang-format off
+RegionStyle(sphere,RegSphere);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_SPHERE_H
@@ -27,51 +27,28 @@ namespace LAMMPS_NS {
 class RegSphere : public Region {
  public:
   RegSphere(class LAMMPS *, int, char **);
-  ~RegSphere();
-  void init();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
-  void shape_update();
-  void set_velocity_shape();
-  void velocity_contact_shape(double *, double *);
-
+  ~RegSphere() override;
+  void init() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
+  void shape_update() override;
+  void set_velocity_shape() override;
+  void velocity_contact_shape(double *, double *) override;
 
  private:
-  double xc,yc,zc;
+  double xc, yc, zc;
   double radius;
-  int xstyle,xvar;
-  int ystyle,yvar;
-  int zstyle,zvar;
-  int rstyle,rvar;
-  char *xstr,*ystr,*zstr,*rstr;
+  int xstyle, xvar;
+  int ystyle, yvar;
+  int zstyle, zvar;
+  int rstyle, rvar;
+  char *xstr, *ystr, *zstr, *rstr;
 
   void variable_check();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Variable evaluation in region gave bad value
-
-Variable returned a radius < 0.0.
-
-E: Variable name for region sphere does not exist
-
-Self-explanatory.
-
-E: Variable for region sphere is invalid style
-
-Only equal-style variables are allowed.
-
-*/

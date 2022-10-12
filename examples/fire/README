@@ -1,0 +1,23 @@
+These examples are similar to those in the "min" and "neb" folders.
+Each example can be run with the following minimization style:
+- quickmin:                             qm
+- fire:  	                        fire
+- fire with optimized options:          fire_mod
+- fire with min_modify options to
+  reproduce fire/old:                   fire_mod_old
+- fire/old (previous implementation):   fire_old
+
+Run the NEB examples as:
+
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.sivac.qm
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.sivac.fire
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.sivac.fire_mod
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.sivac.fire_mod_old
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.sivac.fire_old
+
+mpirun -np 8 lmp_g++ -partition 8x1 -in in.neb.sivac.qm
+mpirun -np 8 lmp_g++ -partition 8x1 -in in.neb.sivac.fire
+mpirun -np 8 lmp_g++ -partition 8x1 -in in.neb.sivac.fire_mod
+mpirun -np 8 lmp_g++ -partition 8x1 -in in.neb.sivac.fire_mod_old
+mpirun -np 8 lmp_g++ -partition 8x1 -in in.neb.sivac.fire_old
+

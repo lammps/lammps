@@ -1,35 +1,37 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
+# Pizza.py toolkit, https://lammps.github.io/pizza
 # Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
+
+from __future__ import print_function
 
 # log tool
 
 oneline = "Read LAMMPS log files and extract thermodynamic data"
 
 docstr = """
-l = log("file1")                     read in one or more log files
-l = log("log1 log2.gz")              can be gzipped
-l = log("file*")                     wildcard expands to multiple files
-l = log("log.lammps",0)              two args = store filename, but don't read
+l = log("file1")                      read in one or more log files
+l = log("log1 log2.gz")               can be gzipped
+l = log("file*")                      wildcard expands to multiple files
+l = log("log.lammps",0)               two args = store filename, but don't read
 
   incomplete and duplicate thermo entries are deleted
 
-time = l.next()                      read new thermo info from file
+time = l.next()                       read new thermo info from file
 
   used with 2-argument constructor to allow reading thermo incrementally
   return time stamp of last thermo read
   return -1 if no new thermo since last read
 
-nvec = l.nvec                        # of vectors of thermo info
-nlen = l.nlen                        length of each vectors
-names = l.names                      list of vector names
-t,pe,... = l.get("Time","KE",...)    return one or more vectors of values
-l.write("file.txt")	 	     write all vectors to a file
-l.write("file.txt","Time","PE",...)  write listed vectors to a file
+nvec = l.nvec                         # of vectors of thermo info
+nlen = l.nlen                         length of each vectors
+names = l.names                       list of vector names
+t,pe,... = l.get("Time","KE",...)     return one or more vectors of values
+l.write("file.txt",0)                 write all vectors to a file, done write header comment
+l.write("file.txt",1,"Time","PE",...) write listed vectors to a file, include header comment
 
   get and write allow abbreviated (uniquely) vector names
 """
@@ -64,55 +66,57 @@ class log:
 
   # --------------------------------------------------------------------
 
-  def __init__(self,*list):
+  def __init__(self,*arglist):
     self.nvec = 0
     self.names = []
     self.ptr = {}
     self.data = []
+    self.style = -1
 
     # flist = list of all log file names
 
-    words = list[0].split()
+    words = arglist[0].split()
     self.flist = []
     for word in words: self.flist += glob.glob(word)
-    if len(self.flist) == 0 and len(list) == 1:
-      raise StandardError,"no log file specified"
+    if len(self.flist) == 0 and len(arglist) == 1:
+      raise ValueError("No log files specified or specified files do not exist")
 
-    if len(list) == 1:
+    if len(arglist) == 1:
       self.increment = 0
       self.read_all()
     else:
       if len(self.flist) > 1:
-        raise StandardError,"can only incrementally read one log file"
+        raise ValueError("Can only read one log file incrementally")
       self.increment = 1
       self.eof = 0
 
   # --------------------------------------------------------------------
   # read all thermo from all files
-  
+
   def read_all(self):
     self.read_header(self.flist[0])
-    if self.nvec == 0: raise StandardError,"log file has no values"
+    if self.nvec == 0: raise Exception("log file has no values")
 
     # read all files
 
     for file in self.flist: self.read_one(file)
-    print
 
     # sort entries by timestep, cull duplicates
-    
-    self.data.sort(self.compare)
+
+    self.data.sort(key=(lambda elem: elem[0]))
     self.cull()
     self.nlen = len(self.data)
-    print "read %d log entries" % self.nlen
+    print("read %d log entries" % self.nlen)
 
   # --------------------------------------------------------------------
 
   def next(self):
-    if not self.increment: raise StandardError,"cannot read incrementally"
+    if not self.increment: raise Exception("cannot read incrementally")
 
     if self.nvec == 0:
-      try: open(self.flist[0],'r')
+      try:
+        fp = open(self.flist[0],'r')
+        fp.close()
       except: return -1
       self.read_header(self.flist[0])
       if self.nvec == 0: return -1
@@ -124,58 +128,68 @@ class log:
 
   def get(self,*keys):
     if len(keys) == 0:
-      raise StandardError, "no log vectors specified"
+      raise Exception("no log vectors specified" )
 
-    map = []
+    colmap = []
     for key in keys:
-      if self.ptr.has_key(key):
-        map.append(self.ptr[key])
+      if key in self.ptr:
+        colmap.append(self.ptr[key])
       else:
         count = 0
         for i in range(self.nvec):
-	  if self.names[i].find(key) == 0:
-	    count += 1
-	    index = i
+          if self.names[i].find(key) == 0:
+            count += 1
+            index = i
         if count == 1:
-          map.append(index)
+          colmap.append(index)
         else:
-          raise StandardError, "unique log vector %s not found" % key
+          raise ValueError("unique log vector %s not found" % key)
 
     vecs = []
     for i in range(len(keys)):
       vecs.append(self.nlen * [0])
-      for j in xrange(self.nlen):
-        vecs[i][j] = self.data[j][map[i]]
+      for j in range(self.nlen):
+        vecs[i][j] = self.data[j][colmap[i]]
 
     if len(keys) == 1: return vecs[0]
     else: return vecs
 
   # --------------------------------------------------------------------
 
-  def write(self,filename,*keys):
+  def write(self,filename,writenames,*keys):
     if len(keys):
-      map = []
+      colmap = []
       for key in keys:
-        if self.ptr.has_key(key):
-          map.append(self.ptr[key])
+        if key in self.ptr:
+          colmap.append(self.ptr[key])
         else:
           count = 0
           for i in range(self.nvec):
-	    if self.names[i].find(key) == 0:
-	      count += 1
-	      index = i
+            if self.names[i].find(key) == 0:
+              count += 1
+              index = i
           if count == 1:
-            map.append(index)
+            colmap.append(index)
           else:
-            raise StandardError, "unique log vector %s not found" % key
+            raise Exception( "unique log vector %s not found" % key)
     else:
-      map = range(self.nvec)
+      colmap = range(self.nvec)
 
     f = open(filename,"w")
-    for i in xrange(self.nlen):
-      for j in xrange(len(map)):
-        print >>f,self.data[i][map[j]],
-      print >>f
+
+    # write col names from dict in the right order
+    if writenames:
+      print("# ", file=f, end="")
+      colnames = [k for j in colmap for k,v in self.ptr.items() if v == j]
+      for j in range(len(colnames)):
+        print(colnames[j], file=f, end=" ")
+      print("\n", file=f, end="")
+
+    # write data
+    for i in range(self.nlen):
+      for j in range(len(colmap)):
+        print(self.data[i][colmap[j]],file=f,end=" "),
+      print("\n",file=f,end="")
     f.close()
 
   # --------------------------------------------------------------------
@@ -198,14 +212,16 @@ class log:
 
   # --------------------------------------------------------------------
 
-  def read_header(self,file):
+  def read_header(self, file):
     str_multi = "----- Step"
     str_one = "Step "
 
     if file[-3:] == ".gz":
-      txt = popen("%s -c %s" % (PIZZA_GUNZIP,file),'r').read()
+      fp = popen("%s -c %s" % (PIZZA_GUNZIP,file),'r')
+      txt = fp.read()
     else:
-      txt = open(file).read()
+      fp = open(file)
+      txt = fp.read()
 
     if txt.find(str_multi) >= 0:
       self.firststr = str_multi
@@ -214,6 +230,7 @@ class log:
       self.firststr = str_one
       self.style = 2
     else:
+      fp.close()
       return
 
     if self.style == 1:
@@ -226,7 +243,7 @@ class log:
       keywords.insert(0,"Step")
       i = 0
       for keyword in keywords:
-	self.names.append(keyword)
+        self.names.append(keyword)
         self.ptr[keyword] = i
         i += 1
 
@@ -236,25 +253,26 @@ class log:
       line = txt[s1:s2]
       words = line.split()
       for i in range(len(words)):
-	self.names.append(words[i])
+        self.names.append(words[i])
         self.ptr[words[i]] = i
 
     self.nvec = len(self.names)
+    fp.close()
 
   # --------------------------------------------------------------------
 
-  def read_one(self,*list):
+  def read_one(self,*arglist):
 
-    # if 2nd arg exists set file ptr to that value
+    # if 2nd arg exists set file ptr io that value
     # read entire (rest of) file into txt
 
-    file = list[0]
+    file = arglist[0]
     if file[-3:] == ".gz":
-      f = popen("%s -c %s" % (PIZZA_GUNZIP,file),'rb')
+      f = popen("%s -c %s" % (PIZZA_GUNZIP,file),'r')
     else:
-      f = open(file,'rb')
+      f = open(file,'r')
 
-    if len(list) == 2: f.seek(list[1])
+    if len(arglist) == 2: f.seek(arglist[1])
     txt = f.read()
     if file[-3:] == ".gz": eof = 0
     else: eof = f.tell()
@@ -275,43 +293,43 @@ class log:
 
       if s1 >= 0 and s2 >= 0 and s1 < s2:    # found s1,s2 with s1 before s2
         if self.style == 2:
-	  s1 = txt.find("\n",s1) + 1
+          s1 = txt.find("\n",s1) + 1
       elif s1 >= 0 and s2 >= 0 and s2 < s1:  # found s1,s2 with s2 before s1
         s1 = 0
       elif s1 == -1 and s2 >= 0:             # found s2, but no s1
-	last = 1
+        last = 1
         s1 = 0
       elif s1 >= 0 and s2 == -1:             # found s1, but no s2
         last = 1
         if self.style == 1:
           s2 = txt.rfind("\n--",s1) + 1
         else:
-	  s1 = txt.find("\n",s1) + 1
+          s1 = txt.find("\n",s1) + 1
           s2 = txt.rfind("\n",s1) + 1
-	eof -= len(txt) - s2
+        eof -= len(txt) - s2
       elif s1 == -1 and s2 == -1:            # found neither
                                              # could be end-of-file section
-					     # or entire read was one chunk
+                                             # or entire read was one chunk
 
         if txt.find("Loop time of",start) == start:   # end of file, so exit
-	  eof -= len(txt) - start                     # reset eof to "Loop"
-	  break
+          eof -= len(txt) - start                     # reset eof to "Loop"
+          break
 
-	last = 1                                      # entire read is a chunk
+        last = 1                                      # entire read is a chunk
         s1 = 0
         if self.style == 1:
           s2 = txt.rfind("\n--",s1) + 1
         else:
           s2 = txt.rfind("\n",s1) + 1
-	eof -= len(txt) - s2
-	if s1 == s2: break
+        eof -= len(txt) - s2
+        if s1 == s2: break
 
       chunk = txt[s1:s2-1]
       start = s2
 
       # split chunk into entries
       # parse each entry for numeric fields, append to data
-  
+
       if self.style == 1:
         sections = chunk.split("\n--")
         pat1 = re.compile("Step\s*(\S*)\s")
@@ -320,17 +338,16 @@ class log:
           word1 = [re.search(pat1,section).group(1)]
           word2 = re.findall(pat2,section)
           words = word1 + word2
-          self.data.append(map(float,words))
+          self.data.append(list(map(float,words)))
 
       else:
         lines = chunk.split("\n")
         for line in lines:
           words = line.split()
-          self.data.append(map(float,words))
+          self.data.append(list(map(float,words)))
 
       # print last timestep of chunk
-
-      print int(self.data[len(self.data)-1][0]),
+      print(int(self.data[len(self.data)-1][0]),)
       sys.stdout.flush()
 
     return eof

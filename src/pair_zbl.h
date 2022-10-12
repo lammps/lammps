@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(zbl,PairZBL)
-
+// clang-format off
+PairStyle(zbl,PairZBL);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ZBL_H
@@ -27,20 +27,26 @@ namespace LAMMPS_NS {
 class PairZBL : public Pair {
  public:
   PairZBL(class LAMMPS *);
-  virtual ~PairZBL();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  ~PairZBL() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double cut_global, cut_inner;
   double cut_globalsq, cut_innersq;
   double *z;
-  double **d1a,**d2a,**d3a,**d4a,**zze;
-  double **sw1,**sw2,**sw3,**sw4,**sw5;
+  double **d1a, **d2a, **d3a, **d4a, **zze;
+  double **sw1, **sw2, **sw3, **sw4, **sw5;
 
   virtual void allocate();
   double e_zbl(double, int, int);
@@ -48,38 +54,7 @@ class PairZBL : public Pair {
   double d2zbldr2(double, int, int);
   void set_coeff(int, int, double, double);
 };
-
-namespace PairZBLConstants {
-
-  // ZBL constants
-
-  static const double pzbl = 0.23;
-  static const double a0 = 0.46850;
-  static const double c1 = 0.02817;
-  static const double c2 = 0.28022;
-  static const double c3 = 0.50986;
-  static const double c4 = 0.18175;
-  static const double d1 = 0.20162;
-  static const double d2 = 0.40290;
-  static const double d3 = 0.94229;
-  static const double d4 = 3.19980;
-}
-
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

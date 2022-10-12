@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,13 +21,14 @@ namespace LAMMPS_NS {
 class Special : protected Pointers {
  public:
   Special(class LAMMPS *);
-  ~Special();
+  ~Special() override;
   void build();
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   int maxall;
-  tagint **onetwo,**onethree,**onefour;
+  int onefive_flag;
+  tagint **onetwo, **onethree, **onefour, **onefive;
 
   // data used by rendezvous callback methods
 
@@ -41,7 +42,7 @@ class Special : protected Pointers {
   };
 
   struct PairRvous {
-    tagint atomID,partnerID;
+    tagint atomID, partnerID;
   };
 
   // private methods
@@ -51,6 +52,7 @@ class Special : protected Pointers {
   void onetwo_build_newton_off();
   void onethree_build();
   void onefour_build();
+  void onefive_build();
 
   void dedup();
   void angle_trim();
@@ -65,22 +67,6 @@ class Special : protected Pointers {
   static int rendezvous_pairs(int, char *, int &, int *&, char *&, void *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: 1-3 bond count is inconsistent
-
-An inconsistency was detected when computing the number of 1-3
-neighbors for each atom.  This likely means something is wrong with
-the bond topologies you have defined.
-
-E: 1-4 bond count is inconsistent
-
-An inconsistency was detected when computing the number of 1-4
-neighbors for each atom.  This likely means something is wrong with
-the bond topologies you have defined.
-
-*/

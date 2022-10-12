@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,34 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "compute_erotate_sphere.h"
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "update.h"
-#include "force.h"
-#include "domain.h"
-#include "group.h"
 #include "error.h"
+#include "force.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
-#define INERTIA 0.4          // moment of inertia prefactor for sphere
+#define INERTIA 0.4    // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 
 ComputeERotateSphere::ComputeERotateSphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute erotate/sphere command");
+  if (narg != 3) error->all(FLERR, "Illegal compute erotate/sphere command");
 
   scalar_flag = 1;
   extscalar = 1;
 
   // error check
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Compute erotate/sphere requires atom style sphere");
+  if (!atom->sphere_flag) error->all(FLERR, "Compute erotate/sphere requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,10 +62,11 @@ double ComputeERotateSphere::compute_scalar()
   double erotate = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
-                  omega[i][2]*omega[i][2]) * radius[i]*radius[i]*rmass[i];
+      erotate +=
+          (omega[i][0] * omega[i][0] + omega[i][1] * omega[i][1] + omega[i][2] * omega[i][2]) *
+          radius[i] * radius[i] * rmass[i];
 
-  MPI_Allreduce(&erotate,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&erotate, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
   scalar *= pfactor;
   return scalar;
 }

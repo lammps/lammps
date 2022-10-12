@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,29 +11,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_harmonic.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::RAD2DEG;
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp)
+AngleHarmonic::AngleHarmonic(LAMMPS *_lmp) : Angle(_lmp)
 {
-  k = NULL;
-  theta0 = NULL;
+  k = nullptr;
+  theta0 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,14 +53,14 @@ AngleHarmonic::~AngleHarmonic()
 
 void AngleHarmonic::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,n,type;
-  double delx1,dely1,delz1,delx2,dely2,delz2;
-  double eangle,f1[3],f3[3];
-  double dtheta,tk;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
+  int i1, i2, i3, n, type;
+  double delx1, dely1, delz1, delx2, dely2, delz2;
+  double eangle, f1[3], f3[3];
+  double dtheta, tk;
+  double rsq1, rsq2, r1, r2, c, s, a, a11, a12, a22;
 
   eangle = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -79,7 +81,7 @@ void AngleHarmonic::compute(int eflag, int vflag)
     dely1 = x[i1][1] - x[i2][1];
     delz1 = x[i1][2] - x[i2][2];
 
-    rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+    rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
     r1 = sqrt(rsq1);
 
     // 2nd bond
@@ -88,39 +90,39 @@ void AngleHarmonic::compute(int eflag, int vflag)
     dely2 = x[i3][1] - x[i2][1];
     delz2 = x[i3][2] - x[i2][2];
 
-    rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+    rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     r2 = sqrt(rsq2);
 
     // angle (cos and sin)
 
-    c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-    c /= r1*r2;
+    c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+    c /= r1 * r2;
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 
-    s = sqrt(1.0 - c*c);
+    s = sqrt(1.0 - c * c);
     if (s < SMALL) s = SMALL;
-    s = 1.0/s;
+    s = 1.0 / s;
 
     // force & energy
 
     dtheta = acos(c) - theta0[type];
     tk = k[type] * dtheta;
 
-    if (eflag) eangle = tk*dtheta;
+    if (eflag) eangle = tk * dtheta;
 
     a = -2.0 * tk * s;
-    a11 = a*c / rsq1;
-    a12 = -a / (r1*r2);
-    a22 = a*c / rsq2;
+    a11 = a * c / rsq1;
+    a12 = -a / (r1 * r2);
+    a22 = a * c / rsq2;
 
-    f1[0] = a11*delx1 + a12*delx2;
-    f1[1] = a11*dely1 + a12*dely2;
-    f1[2] = a11*delz1 + a12*delz2;
-    f3[0] = a22*delx2 + a12*delx1;
-    f3[1] = a22*dely2 + a12*dely1;
-    f3[2] = a22*delz2 + a12*delz1;
+    f1[0] = a11 * delx1 + a12 * delx2;
+    f1[1] = a11 * dely1 + a12 * dely2;
+    f1[2] = a11 * delz1 + a12 * delz2;
+    f3[0] = a22 * delx2 + a12 * delx1;
+    f3[1] = a22 * dely2 + a12 * dely1;
+    f3[2] = a22 * delz2 + a12 * delz1;
 
     // apply force to each of 3 atoms
 
@@ -142,8 +144,9 @@ void AngleHarmonic::compute(int eflag, int vflag)
       f[i3][2] += f3[2];
     }
 
-    if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-                         delx1,dely1,delz1,delx2,dely2,delz2);
+    if (evflag)
+      ev_tally(i1, i2, i3, nlocal, newton_bond, eangle, f1, f3, delx1, dely1, delz1, delx2, dely2,
+               delz2);
   }
 }
 
@@ -152,13 +155,13 @@ void AngleHarmonic::compute(int eflag, int vflag)
 void AngleHarmonic::allocate()
 {
   allocated = 1;
-  int n = atom->nangletypes;
+  const int np1 = atom->nangletypes + 1;
 
-  memory->create(k,n+1,"angle:k");
-  memory->create(theta0,n+1,"angle:theta0");
+  memory->create(k, np1, "angle:k");
+  memory->create(theta0, np1, "angle:theta0");
 
-  memory->create(setflag,n+1,"angle:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag, np1, "angle:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -167,26 +170,26 @@ void AngleHarmonic::allocate()
 
 void AngleHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double theta0_one = force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double theta0_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   // convert theta0 from degrees to radians
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one/180.0 * MY_PI;
+    theta0[i] = DEG2RAD * theta0_one;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -202,8 +205,8 @@ double AngleHarmonic::equilibrium_angle(int i)
 
 void AngleHarmonic::write_restart(FILE *fp)
 {
-  fwrite(&k[1],sizeof(double),atom->nangletypes,fp);
-  fwrite(&theta0[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&k[1], sizeof(double), atom->nangletypes, fp);
+  fwrite(&theta0[1], sizeof(double), atom->nangletypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -215,11 +218,11 @@ void AngleHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR, &k[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &theta0[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
   }
-  MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&k[1], atom->nangletypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&theta0[1], atom->nangletypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
@@ -231,7 +234,7 @@ void AngleHarmonic::read_restart(FILE *fp)
 void AngleHarmonic::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k[i],theta0[i]/MY_PI*180.0);
+    fprintf(fp, "%d %g %g\n", i, k[i], RAD2DEG * theta0[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,21 +246,33 @@ double AngleHarmonic::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
-  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
+  domain->minimum_image(delx1, dely1, delz1);
+  double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
-  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
+  domain->minimum_image(delx2, dely2, delz2);
+  double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
 
-  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-  c /= r1*r2;
+  double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+  c /= r1 * r2;
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
   double dtheta = acos(c) - theta0[type];
   double tk = k[type] * dtheta;
-  return tk*dtheta;
+  return tk * dtheta;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleHarmonic::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

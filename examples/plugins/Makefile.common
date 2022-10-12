@@ -1,0 +1,36 @@
+default: morse2plugin$(DSOEXT) nve2plugin$(DSOEXT) helloplugin$(DSOEXT) zero2plugin$(DSOEXT)
+
+helloplugin$(DSOEXT): helloplugin.o
+	$(LD) -o $@ $^
+
+morse2plugin$(DSOEXT): morse2plugin.o pair_morse2.o pair_morse2_omp.o
+	$(LD) -o $@ $^
+
+nve2plugin$(DSOEXT): nve2plugin.o fix_nve2.o
+	$(LD) -o $@ $^
+
+zero2plugin$(DSOEXT): zero2plugin.o pair_zero2.o bond_zero2.o angle_zero2.o dihedral_zero2.o improper_zero2.o
+	$(LD) -o $@ $^
+
+.cpp.o:
+	$(CXX) -o $@ $(CXXFLAGS) -c $<
+
+helloplugin.o: helloplugin.cpp
+
+pair_morse2.o: pair_morse2.cpp pair_morse2.h
+pair_morse2_omp.o: pair_morse2_omp.cpp pair_morse2_omp.h pair_morse2.h
+morse2plugin.o: morse2plugin.cpp pair_morse2.h pair_morse2_omp.h
+
+fix_nve2.o: fix_nve2.cpp fix_nve2.h
+nve2plugin.o: nve2plugin.cpp fix_nve2.h
+
+pair_zero2.o: pair_zero2.cpp pair_zero2.h
+bond_zero2.o: bond_zero2.cpp bond_zero2.h
+angle_zero2.o: angle_zero2.cpp angle_zero2.h
+dihedral_zero2.o: dihedral_zero2.cpp dihedral_zero2.h
+improper_zero2.o: improper_zero2.cpp improper_zero2.h
+zero2plugin.o: zero2plugin.cpp pair_zero2.h bond_zero2.h angle_zero2.h dihedral_zero2.h
+
+clean:
+	rm -rf *~ *.so *.dylib *.o log.lammps CMakeCache.txt CMakeFiles
+

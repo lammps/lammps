@@ -1,4 +1,4 @@
-DATE: 2015-02-19 CONTRIBUTOR: Ray Shan, tnshan@sandia.gov CITATION: Streitz and Mintmire, Phys Rev B, 50, 11996-12003 (1994)
+DATE: 2015-02-19 UNITS: metal CONTRIBUTOR: Ray Shan, tnshan@sandia.gov CITATION: Streitz and Mintmire, Phys Rev B, 50, 11996-12003 (1994)
 Streitz and Mintmire FS EAM potential for Al-O, with additions by Zhou (2004)
 Formatted for LAMMPS 
 2 Al O  

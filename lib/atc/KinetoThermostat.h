@@ -25,23 +25,23 @@ namespace ATC {
    *  @brief  Manager class for atom-continuum simulataneous control of momentum and thermal energy
    */
   class KinetoThermostat : public AtomicRegulator {
-  
+
   public:
 
     // constructor
     KinetoThermostat(ATC_Coupling * atc,
                      const std::string & regulatorPrefix = "");
-        
+
     // destructor
     virtual ~KinetoThermostat(){};
-        
+
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
 
     /** instantiate up the desired method(s) */
     virtual void construct_methods();
 
-        
+
     // data access, intended for method objects
     /** reset the nodal power to a prescribed value */
     virtual void reset_lambda_contribution(const DENS_MAT & target,
@@ -56,10 +56,10 @@ namespace ATC {
     int couplingMaxIterations_;
 
   private:
-    
+
     // DO NOT define this
     KinetoThermostat();
-        
+
   };
 
   /**
@@ -67,17 +67,20 @@ namespace ATC {
    *  @brief  Class for kinetostat/thermostat algorithms using the shape function matrices
    *          (thermostats have general for of N^T w N lambda = rhs)
    */
-  
+
   class KinetoThermostatShapeFunction : public RegulatorMethod {
 
-  
+
   public:
-  
+
     KinetoThermostatShapeFunction(AtomicRegulator * kinetoThermostat,
                                   int couplingMaxIterations,
-                                  const std::string & regulatorPrefix = "") : RegulatorMethod(kinetoThermostat),
+                                  const std::string & /* regulatorPrefix */) : RegulatorMethod(kinetoThermostat),
       couplingMaxIterations_(couplingMaxIterations) {};
-        
+    KinetoThermostatShapeFunction(AtomicRegulator * kinetoThermostat,
+                                  int couplingMaxIterations)
+      : RegulatorMethod(kinetoThermostat), couplingMaxIterations_(couplingMaxIterations) {};
+
     virtual ~KinetoThermostatShapeFunction() {};
 
     /** instantiate all needed data */
@@ -105,25 +108,25 @@ namespace ATC {
    *  @class  VelocityRescaleCombined
    *  @brief  Enforces constraints on atomic velocity based on FE temperature and velocity
    */
-  
+
   class VelocityRescaleCombined : public VelocityGlc {
-  
+
   public:
 
     friend class KinetoThermostatRescale; // since this is basically a set of member functions for friend
-  
+
     VelocityRescaleCombined(AtomicRegulator * kinetostat);
-        
+
     virtual ~VelocityRescaleCombined(){};
 
     /** pre-run initialization of method data */
     virtual void initialize();
-    
+
     /** applies kinetostat to atoms */
-    virtual void apply_mid_predictor(double dt){};
+    virtual void apply_mid_predictor(double /* dt */){};
     /** applies kinetostat to atoms */
-    virtual void apply_post_corrector(double dt){};
-    
+    virtual void apply_post_corrector(double /* dt */){};
+
     /** local shape function matrices are incompatible with this mode */
     virtual bool use_local_shape_functions() const {return false;};
 
@@ -132,53 +135,55 @@ namespace ATC {
     // data
     /** reference to AtC FE velocity */
     DENS_MAN & velocity_;
-    
+
     /** RHS correct based on thermostat */
     DENS_MAN * thermostatCorrection_;
-  
+
     // methods
     /** sets up appropriate rhs for kinetostat equations */
     virtual void set_kinetostat_rhs(DENS_MAT & rhs, double dt);
 
     // disable un-needed functionality
     /** does initial filtering operations before main computation */
-    virtual void apply_pre_filtering(double dt){};
+    virtual void apply_pre_filtering(double /* dt */){};
     /** applies kinetostat correction to atoms */
-    virtual void apply_kinetostat(double dt) {};
+    virtual void apply_kinetostat(double /* dt */) {};
     /** computes the nodal FE force applied by the kinetostat */
-    virtual void compute_nodal_lambda_force(double dt){};
+    virtual void compute_nodal_lambda_force(double /* dt */){};
     /** apply any required corrections for localized kinetostats */
-    virtual void apply_localization_correction(const DENS_MAT & source,
-                                               DENS_MAT & nodalField,
-                                               double weight = 1.){};
+    virtual void apply_localization_correction(const DENS_MAT & /* source */,
+                                               DENS_MAT & /* nodalField */,
+                                               double /* weight */){};
+    virtual void apply_localization_correction(const DENS_MAT & /* source */,
+                                               DENS_MAT & /* nodalField */){};
 
   private:
 
     // DO NOT define this
     VelocityRescaleCombined();
-  
+
   };
 
   /**
    *  @class  ThermostatRescaleCombined
    *  @brief  Enforces constraint on atomic kinetic energy based on FE temperature and velocity
    */
-  
+
   class ThermostatRescaleCombined : public ThermostatRescale {
-  
+
   public:
-  
+
     ThermostatRescaleCombined(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatRescaleCombined() {};
 
     /** pre-run initialization of method data */
     virtual void initialize();
-        
+
     // deactivate un-needed methods
     /** applies thermostat to atoms in the post-corrector phase */
-    virtual void apply_post_corrector(double dt){};
-        
+    virtual void apply_post_corrector(double /* dt */){};
+
   protected:
 
     // data
@@ -187,7 +192,7 @@ namespace ATC {
 
     // deactivate un-needed methods
     /** apply solution to atomic quantities */
-    virtual void apply_to_atoms(PerAtomQuantity<double> * atomVelocities){};
+    virtual void apply_to_atoms(PerAtomQuantity<double> * /* atomVelocities */){};
 
     /** construct the RHS vector */
     virtual void set_rhs(DENS_MAT & rhs);
@@ -196,21 +201,21 @@ namespace ATC {
 
     // DO NOT define this
     ThermostatRescaleCombined();
-  
+
   };
 
   /**
    *  @class  KinetoThermostatRescale
    *  @brief  Enforces constraints on atomic kinetic energy and velocity based on FE temperature and velocity
    */
-  
+
   class KinetoThermostatRescale : public KinetoThermostatShapeFunction {
-  
+
   public:
-  
+
     KinetoThermostatRescale(AtomicRegulator * kinetoThermostat,
                             int couplingMaxIterations);
-        
+
     virtual ~KinetoThermostatRescale();
 
     /** instantiate all needed data */
@@ -218,17 +223,17 @@ namespace ATC {
 
     /** pre-run initialization of method data */
     virtual void initialize();
-        
+
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
     {boundaryFlux_[TEMPERATURE] = 0.; boundaryFlux_[VELOCITY] = 0.;};
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-        
+
   protected:
 
     // methods
@@ -270,29 +275,29 @@ namespace ATC {
 
     // DO NOT define this
     KinetoThermostatRescale();
-  
+
   };
 
   /**
    *  @class  ThermostatRescaleMixedKePeCombined
    *  @brief  Enforces constraint on atomic kinetic energy based on FE temperature and velocity when the temperature is comprised of both KE and PE contributions
    */
-  
+
   class ThermostatRescaleMixedKePeCombined : public ThermostatRescaleMixedKePe {
-  
+
   public:
-  
+
     ThermostatRescaleMixedKePeCombined(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatRescaleMixedKePeCombined() {};
 
     /** pre-run initialization of method data */
     virtual void initialize();
-        
+
     // deactivate un-needed methods
     /** applies thermostat to atoms in the post-corrector phase */
-    virtual void apply_post_corrector(double dt){};
-        
+    virtual void apply_post_corrector(double /* dt */){};
+
   protected:
 
     // data
@@ -301,7 +306,7 @@ namespace ATC {
 
     // deactivate un-needed methods
     /** apply solution to atomic quantities */
-    virtual void apply_to_atoms(PerAtomQuantity<double> * atomVelocities){};
+    virtual void apply_to_atoms(PerAtomQuantity<double> * /* atomVelocities */){};
 
     /** construct the RHS vector */
     virtual void set_rhs(DENS_MAT & rhs);
@@ -310,7 +315,7 @@ namespace ATC {
 
     // DO NOT define this
     ThermostatRescaleMixedKePeCombined();
-  
+
   };
 
   /**
@@ -318,16 +323,16 @@ namespace ATC {
    *  @brief  Enforces constraint on atomic kinetic energy based on FE temperature
    *          when the temperature is a mix of the KE and PE
    */
-  
+
   class KinetoThermostatRescaleMixedKePe : public KinetoThermostatRescale {
-  
+
   public:
-  
+
     KinetoThermostatRescaleMixedKePe(AtomicRegulator * kinetoThermostat,
                                      int couplingMaxIterations);
 
     virtual ~KinetoThermostatRescaleMixedKePe() {};
-        
+
   protected:
 
     /** creates the appropriate rescaling thermostat */
@@ -337,22 +342,22 @@ namespace ATC {
 
     // DO NOT define this
     KinetoThermostatRescaleMixedKePe();
-  
+
   };
 
   /**
    *  @class  KinetoThermostatGlcFs
    *  @brief  Class for regulation algorithms based on Gaussian least constraints (GLC) for fractional step (FS) algorithsm
    */
-  
+
   class KinetoThermostatGlcFs : public KinetoThermostatShapeFunction {
-  
+
   public:
-  
+
     KinetoThermostatGlcFs(AtomicRegulator * kinetoThermostat,
                           int couplingMaxIterations,
                           const std::string & regulatorPrefix = "");
-        
+
     virtual ~KinetoThermostatGlcFs() {};
 
     /** instantiate all needed data */
@@ -369,7 +374,7 @@ namespace ATC {
 
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
-    
+
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
 
@@ -489,12 +494,12 @@ namespace ATC {
 /*    *\/ */
 
 /*   class ThermostatFlux : public ThermostatGlcFs { */
-  
+
 /*   public: */
-  
+
 /*     ThermostatFlux(Thermostat * thermostat, */
 /*                    const std::string & regulatorPrefix = ""); */
-        
+
 /*     virtual ~ThermostatFlux() {}; */
 
 /*     /\** instantiate all needed data *\/ */
@@ -502,7 +507,7 @@ namespace ATC {
 
 /*     /\** pre-run initialization of method data *\/ */
 /*     virtual void initialize(); */
-       
+
 /*   protected: */
 
 /*     /\** sets up appropriate rhs for thermostat equations *\/ */
@@ -534,12 +539,12 @@ namespace ATC {
 /*    *\/ */
 
 /*   class ThermostatFixed : public ThermostatGlcFs { */
-  
+
 /*   public: */
-  
+
 /*     ThermostatFixed(Thermostat * thermostat, */
 /*                     const std::string & regulatorPrefix = ""); */
-        
+
 /*     virtual ~ThermostatFixed() {}; */
 
 /*     /\** instantiate all needed data *\/ */
@@ -547,7 +552,7 @@ namespace ATC {
 
 /*     /\** pre-run initialization of method data *\/ */
 /*     virtual void initialize(); */
-        
+
 /*     /\** applies thermostat to atoms in the predictor phase *\/ */
 /*     virtual void apply_pre_predictor(double dt); */
 
@@ -563,7 +568,7 @@ namespace ATC {
 
 /*     /\** determine if local shape function matrices are needed *\/ */
 /*     virtual bool use_local_shape_functions() const {return atomicRegulator_->use_localized_lambda();}; */
-        
+
 /*   protected: */
 
 /*     // methods */
@@ -602,7 +607,7 @@ namespace ATC {
 /*     /\** change in restricted atomic FE energy over a timestep *\/ */
 /*     DENS_MAT deltaNodalAtomicEnergy_; */
 
-/*     /\** intial restricted atomic FE energy used to compute change *\/ */
+/*     /\** initial restricted atomic FE energy used to compute change *\/ */
 /*     DENS_MAT initialNodalAtomicEnergy_; */
 
 /*     /\** filtered nodal atomic energy *\/ */
@@ -634,12 +639,12 @@ namespace ATC {
 /*    *\/ */
 
 /*   class ThermostatFluxFiltered : public ThermostatFlux { */
-  
+
 /*   public: */
-  
+
 /*     ThermostatFluxFiltered(Thermostat * thermostat, */
 /*                            const std::string & regulatorPrefix = ""); */
-        
+
 /*     virtual ~ThermostatFluxFiltered() {}; */
 
 /*     /\** pre-run initialization of method data *\/ */
@@ -650,7 +655,7 @@ namespace ATC {
 
 /*     /\** get data for output *\/ */
 /*     virtual void output(OUTPUT_LIST & outputData); */
-       
+
 /*   protected: */
 
 /*     /\** sets up appropriate rhs for thermostat equations *\/ */
@@ -680,19 +685,19 @@ namespace ATC {
 /*    *  @brief  Class for thermostatting using the temperature matching constraint and is compatible with */
 /*  the fractional step time-integration with time filtering */
 /*    *\/ */
-  
+
 /*   class ThermostatFixedFiltered : public ThermostatFixed { */
-  
+
 /*   public: */
-  
+
 /*     ThermostatFixedFiltered(Thermostat * thermostat, */
 /*                             const std::string & regulatorPrefix = ""); */
-        
+
 /*     virtual ~ThermostatFixedFiltered() {}; */
 
 /*     /\** get data for output *\/ */
 /*     virtual void output(OUTPUT_LIST & outputData); */
-        
+
 /*   protected: */
 
 /*     // methods */
@@ -729,7 +734,7 @@ namespace ATC {
 
 /*     ThermostatFluxFixed(Thermostat * thermostat, */
 /*                         bool constructThermostats = true); */
-        
+
 /*     virtual ~ThermostatFluxFixed(); */
 
 /*     /\** instantiate all needed data *\/ */
@@ -746,7 +751,7 @@ namespace ATC {
 
 /*     /\** applies thermostat to atoms in the post-corrector phase *\/ */
 /*     virtual void apply_post_corrector(double dt); */
-    
+
 /*     /\** get data for output *\/ */
 /*     virtual void output(OUTPUT_LIST & outputData); */
 
@@ -782,7 +787,7 @@ namespace ATC {
 /*   public: */
 
 /*     ThermostatFluxFixedFiltered(Thermostat * thermostat); */
-        
+
 /*     virtual ~ThermostatFluxFixedFiltered(){}; */
 
 /*   private: */

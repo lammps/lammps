@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: matrixfun.h                                           *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,10 +11,10 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
- 
+
 #ifndef MATRIXFUN_H
 #define MATRIXFUN_H
 
@@ -44,22 +44,22 @@ Mat4x4 Inverse(Mat4x4& A);
 Mat6x6 Inverse(Mat6x6& A);
 
 // overloaded addition
-Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);	// addition
-//Mat3x3 operator+ (const Mat3x3 &A, const Mat3x3 &B);	// addition
-//Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);	// addition
+Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);      // addition
+//Mat3x3 operator+ (const Mat3x3 &A, const Mat3x3 &B);  // addition
+//Matrix operator+ (const VirtualMatrix &A, const VirtualMatrix &B);    // addition
 
 // overloaded subtraction
-Matrix operator- (const VirtualMatrix &A, const VirtualMatrix &B);	// subtraction
+Matrix operator- (const VirtualMatrix &A, const VirtualMatrix &B);      // subtraction
 
 // overloaded matrix multiplication
 Matrix operator* (const VirtualMatrix &A, const VirtualMatrix &B);  // multiplication
 
 // overloaded scalar-matrix multiplication
-Matrix operator* (const VirtualMatrix &A, double b);			// overloaded *
-Matrix operator* (double b, const VirtualMatrix &A);			// overloaded *
+Matrix operator* (const VirtualMatrix &A, double b);                    // overloaded *
+Matrix operator* (double b, const VirtualMatrix &A);                    // overloaded *
 
 // overloaded negative
-Matrix operator- (const VirtualMatrix &A);	// negative
+Matrix operator- (const VirtualMatrix &A);      // negative
 
 Vect3 Cross(Vect3& a, Vect3& b);
 Mat3x3 CrossMat(Vect3& a);

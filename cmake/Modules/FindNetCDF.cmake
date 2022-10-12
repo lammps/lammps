@@ -46,10 +46,14 @@ endif()
 find_path (NETCDF_INCLUDE_DIR netcdf.h
   HINTS "${NETCDF_DIR}/include")
 mark_as_advanced (NETCDF_INCLUDE_DIR)
+
 set (NETCDF_C_INCLUDE_DIRS ${NETCDF_INCLUDE_DIR})
 
+string(REGEX REPLACE "/include/?$" ""
+  NETCDF_LIB_HINT ${NETCDF_INCLUDE_DIR})
+
 find_library (NETCDF_LIBRARY NAMES netcdf
-  HINTS "${NETCDF_DIR}/lib")
+  HINTS "${NETCDF_DIR}" "${NETCDF_LIB_HINT}" PATH_SUFFIXES lib lib64)
 mark_as_advanced (NETCDF_LIBRARY)
 
 set (NETCDF_C_LIBRARIES ${NETCDF_LIBRARY})
@@ -116,3 +120,14 @@ set (NETCDF_INCLUDE_DIRS ${NetCDF_includes})
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (NetCDF
   DEFAULT_MSG NETCDF_LIBRARIES NETCDF_INCLUDE_DIRS NETCDF_HAS_INTERFACES)
+
+# Copy the results to the output variables and target.
+if(NetCDF_FOUND)
+  if(NOT TARGET NetCDF::NetCDF)
+    add_library(NetCDF::NetCDF UNKNOWN IMPORTED)
+    set_target_properties(NetCDF::NetCDF PROPERTIES
+      IMPORTED_LOCATION "${NETCDF_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${NETCDF_LIBRARIES}")
+  endif()
+endif()

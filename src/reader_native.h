@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef READER_CLASS
-
-ReaderStyle(native,ReaderNative)
-
+// clang-format off
+ReaderStyle(native,ReaderNative);
+// clang-format on
 #else
 
 #ifndef LMP_READER_NATIVE_H
@@ -24,43 +24,52 @@ ReaderStyle(native,ReaderNative)
 
 #include "reader.h"
 
+#include <map>
+#include <string>
+
 namespace LAMMPS_NS {
 
 class ReaderNative : public Reader {
  public:
   ReaderNative(class LAMMPS *);
-  ~ReaderNative();
+  ~ReaderNative() override;
 
-  int read_time(bigint &);
-  void skip();
-  bigint read_header(double [3][3], int &, int, int, int *, char **,
-                     int, int, int &, int &, int &, int &);
-  void read_atoms(int, int, double **);
+  int read_time(bigint &) override;
+  void skip() override;
+  bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
+                     int &, int &) override;
+  void read_atoms(int, int, double **) override;
 
-private:
-  char *line;              // line read from dump file
+ private:
+  int revision;
 
-  int nwords;              // # of per-atom columns in dump file
-  char **words;            // ptrs to values in parsed per-atom line
-  int *fieldindex;         //
+  std::string magic_string;
+  std::string unit_style;
+  int *fieldindex;
 
-  int find_label(const char *, int, char **);
+  char *line;         // line read from dump file
+  double *databuf;    // buffer for binary data
+  int nwords;         // # of per-atom columns in dump file
+
+  int size_one;       // number of double for one atom
+  size_t maxbuf;      // maximum buffer size
+  int nchunk;         // number of chunks in the binary file
+  int ichunk;         // index of current reading chunk
+  int natom_chunk;    // number of atoms in the current chunks
+  int iatom_chunk;    // index of current atom in the current chunk
+
+  int find_label(const std::string &label, const std::map<std::string, int> &labels);
   void read_lines(int);
+
+  void read_buf(void *, size_t, size_t);
+  void read_double_chunk(size_t);
+  void skip_buf(size_t);
+  void skip_reading_magic_str();
+  bool is_known_magic_str() const;
+  std::string read_binary_str(size_t);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump file is incorrectly formatted
-
-Self-explanatory.
-
-E: Unexpected end of dump file
-
-A read operation from the file failed.
-
-*/

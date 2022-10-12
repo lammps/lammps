@@ -29,7 +29,7 @@ static DPD<PRECISION,ACC_PRECISION> DPDMF;
 // ---------------------------------------------------------------------------
 int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                  double **host_gamma, double **host_sigma, double **host_cut,
-                 double *special_lj, bool tstat_only, const int inum,
+                 double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen) {
   DPDMF.clear();
@@ -55,7 +55,7 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
   int init_ok=0;
   if (world_me==0)
     init_ok=DPDMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                       host_cut, special_lj, tstat_only, inum, nall, 300,
+                       host_cut, special_lj, false, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen);
 
   DPDMF.device->world_barrier();
@@ -73,10 +73,10 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=DPDMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                         host_cut, special_lj, tstat_only, inum, nall, 300,
+                         host_cut, special_lj, false, inum, nall, max_nbors,
                          maxspecial, cell_size, gpu_split, screen);
 
-    DPDMF.device->gpu_barrier();
+    DPDMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

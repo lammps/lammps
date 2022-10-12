@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009-2015 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2019 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -66,7 +66,7 @@ private:
 
 string Parser::trim(const string& expression) {
     // Remove leading and trailing spaces.
-    
+
     int start, end;
     for (start = 0; start < (int) expression.size() && isspace(expression[start]); start++)
         ;
@@ -313,6 +313,7 @@ Operation* Parser::getFunctionOperation(const std::string& name, const map<strin
         opMap["asin"] = Operation::ASIN;
         opMap["acos"] = Operation::ACOS;
         opMap["atan"] = Operation::ATAN;
+        opMap["atan2"] = Operation::ATAN2;
         opMap["sinh"] = Operation::SINH;
         opMap["cosh"] = Operation::COSH;
         opMap["tanh"] = Operation::TANH;
@@ -368,6 +369,8 @@ Operation* Parser::getFunctionOperation(const std::string& name, const map<strin
             return new Operation::Acos();
         case Operation::ATAN:
             return new Operation::Atan();
+        case Operation::ATAN2:
+            return new Operation::Atan2();
         case Operation::SINH:
             return new Operation::Sinh();
         case Operation::COSH:

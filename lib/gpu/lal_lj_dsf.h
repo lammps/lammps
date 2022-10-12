@@ -32,7 +32,7 @@ class LJDSF : public BaseCharge<numtyp, acctyp> {
     * \param gpu_split fraction of particles handled by device
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -77,7 +77,7 @@ class LJDSF : public BaseCharge<numtyp, acctyp> {
  private:
   bool _allocated;
   numtyp _e_shift, _f_shift, _alpha, _cut_coulsq;
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
 };
 
 }

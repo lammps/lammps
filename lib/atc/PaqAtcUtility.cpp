@@ -18,7 +18,7 @@ namespace ATC {
                                AtomType atomType) :
     atc_(atc),
     atomType_(atomType),
-    myNlocal(NULL)
+    myNlocal(nullptr)
   {
     switch (atomType_) {
       case ALL:

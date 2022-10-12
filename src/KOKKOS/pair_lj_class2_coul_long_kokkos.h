@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/class2/coul/long/kk,PairLJClass2CoulLongKokkos<LMPDeviceType>)
-PairStyle(lj/class2/coul/long/kk/device,PairLJClass2CoulLongKokkos<LMPDeviceType>)
-PairStyle(lj/class2/coul/long/kk/host,PairLJClass2CoulLongKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/class2/coul/long/kk,PairLJClass2CoulLongKokkos<LMPDeviceType>);
+PairStyle(lj/class2/coul/long/kk/device,PairLJClass2CoulLongKokkos<LMPDeviceType>);
+PairStyle(lj/class2/coul/long/kk/host,PairLJClass2CoulLongKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CLASS2_COUL_LONG_KOKKOS_H
 #define LMP_PAIR_LJ_CLASS2_COUL_LONG_KOKKOS_H
 
@@ -36,18 +37,16 @@ class PairLJClass2CoulLongKokkos : public PairLJClass2CoulLong {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJClass2CoulLongKokkos(class LAMMPS *);
-  ~PairLJClass2CoulLongKokkos();
+  ~PairLJClass2CoulLongKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_tables(double cut_coul, double *cut_respa);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_tables(double cut_coul, double *cut_respa) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -94,7 +93,6 @@ class PairLJClass2CoulLongKokkos : public PairLJClass2CoulLong {
   typename AT::t_ffloat_2d d_cutsq;
   typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread
@@ -108,24 +106,24 @@ class PairLJClass2CoulLongKokkos : public PairLJClass2CoulLong {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,false,CoulLongTable<1> >;
+  void allocate() override;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,false,CoulLongTable<1> >;
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulLongKokkos,FULL,CoulLongTable<1> >(PairLJClass2CoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulLongKokkos,HALF,CoulLongTable<1> >(PairLJClass2CoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulLongKokkos,HALFTHREAD,CoulLongTable<1> >(PairLJClass2CoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJClass2CoulLongKokkos,CoulLongTable<1> >(PairLJClass2CoulLongKokkos*,
                                                             NeighListKokkos<DeviceType>*);
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,FULL,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALF,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJClass2CoulLongKokkos,HALFTHREAD,false,CoulLongTable<0> >;
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulLongKokkos,FULL,CoulLongTable<0> >(PairLJClass2CoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulLongKokkos,HALF,CoulLongTable<0> >(PairLJClass2CoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2CoulLongKokkos,HALFTHREAD,CoulLongTable<0> >(PairLJClass2CoulLongKokkos*,NeighListKokkos<DeviceType>*);
@@ -140,20 +138,3 @@ class PairLJClass2CoulLongKokkos : public PairLJClass2CoulLong {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with lj/class2/coul/long/kk
-
-Self-explanatory.
-
-*/

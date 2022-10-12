@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dsmc,PairDSMC)
-
+// clang-format off
+PairStyle(dsmc,PairDSMC);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DSMC_H
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class PairDSMC : public Pair {
  public:
   PairDSMC(class LAMMPS *);
-  virtual ~PairDSMC();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
+  ~PairDSMC() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
  private:
   double cut_global;
@@ -92,44 +92,20 @@ class PairDSMC : public Pair {
   void scatter_random(int, int, int);
   int convert_double_to_equivalent_int(double);
 
-  inline void subtract3d(const double *v1, const double *v2, double *v3) {
+  inline void subtract3d(const double *v1, const double *v2, double *v3)
+  {
     v3[0] = v2[0] - v1[0];
     v3[1] = v2[1] - v1[1];
     v3[2] = v2[2] - v1[2];
   }
 
-  inline double dot3d(const double *v1, const double *v2) {
-    return( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] );
+  inline double dot3d(const double *v1, const double *v2)
+  {
+    return (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]);
   }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Pair dsmc: num_of_collisions > number_of_A
-
-Collision model in DSMC is breaking down.
-
-W: Pair dsmc: num_of_collisions > number_of_B
-
-Collision model in DSMC is breaking down.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Tried to convert a double to int, but input_double > INT_MAX
-
-Self-explanatory.
-
-*/

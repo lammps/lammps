@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
-NTopoStyle(NTOPO_BOND_TEMPLATE,NTopoBondTemplate)
-
+// clang-format off
+NTopoStyle(NTOPO_BOND_TEMPLATE,NTopoBondTemplate);
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_BOND_TEMPLATE_H
@@ -27,23 +27,10 @@ namespace LAMMPS_NS {
 class NTopoBondTemplate : public NTopo {
  public:
   NTopoBondTemplate(class LAMMPS *);
-  ~NTopoBondTemplate() {}
-  void build();
+  void build() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Bond atoms %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Bond atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

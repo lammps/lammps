@@ -1,0 +1,15 @@
+# DATE: 2019-09-18 UNITS: metal CONTRIBUTOR: Mary Alice Cusentino mcusent@sandia.gov CITATION: M.A. Wood, M.A. Cusentino, B.D. Wirth, and A.P. Thompson, "Data-driven material models for atomistic simulation", Physical Review B 99, 184305 (2019) 
+# Definition of SNAP+ZBL potential.
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz1 equal 74
+variable zblz2 equal 4
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap
+pair_coeff 1 1 zbl ${zblz1} ${zblz1}
+pair_coeff 1 2 zbl ${zblz1} ${zblz2}
+pair_coeff 2 2 zbl ${zblz2} ${zblz2}
+pair_coeff * * snap WBe_Wood_PRB2019.snapcoeff WBe_Wood_PRB2019.snapparam W Be
+

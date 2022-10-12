@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,23 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "atom_kokkos.h"
+
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
 #include "comm_kokkos.h"
-#include "update.h"
 #include "domain.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
 #include "error.h"
 #include "kokkos.h"
+#include "memory_kokkos.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp) {}
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
+{
+  k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,52 +78,58 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_improper_atom3, improper_atom3);
   memoryKK->destroy_kokkos(k_improper_atom4, improper_atom4);
 
-  // USER-DPD package
-  memoryKK->destroy_kokkos(k_uCond,uCond);
-  memoryKK->destroy_kokkos(k_uMech,uMech);
-  memoryKK->destroy_kokkos(k_uChem,uChem);
-  memoryKK->destroy_kokkos(k_uCG,uCG);
-  memoryKK->destroy_kokkos(k_uCGnew,uCGnew);
-  memoryKK->destroy_kokkos(k_rho,rho);
-  memoryKK->destroy_kokkos(k_dpdTheta,dpdTheta);
-  memoryKK->destroy_kokkos(k_duChem,duChem);
+  AtomKokkos::map_delete();
 
-  memoryKK->destroy_kokkos(k_dvector,dvector);
-  dvector = NULL;
+  // SPIN package
+
+  memoryKK->destroy_kokkos(k_sp, sp);
+  memoryKK->destroy_kokkos(k_fm, fm);
+  memoryKK->destroy_kokkos(k_fm_long, fm_long);
+
+  // DPD-REACT package
+  memoryKK->destroy_kokkos(k_uCond, uCond);
+  memoryKK->destroy_kokkos(k_uMech, uMech);
+  memoryKK->destroy_kokkos(k_uChem, uChem);
+  memoryKK->destroy_kokkos(k_uCG, uCG);
+  memoryKK->destroy_kokkos(k_uCGnew, uCGnew);
+  memoryKK->destroy_kokkos(k_rho, rho);
+  memoryKK->destroy_kokkos(k_dpdTheta, dpdTheta);
+  memoryKK->destroy_kokkos(k_duChem, duChem);
+
+  memoryKK->destroy_kokkos(k_dvector, dvector);
+  dvector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync)
-    ((AtomVecKokkos *) avec)->modified(Host,mask);
+  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->modified(Host, mask);
 
-  ((AtomVecKokkos *) avec)->sync(space,mask);
+  ((AtomVecKokkos *) avec)->sync(space, mask);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->modified(space,mask);
+  ((AtomVecKokkos *) avec)->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync)
-    ((AtomVecKokkos *) avec)->sync(Host,mask);
+  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->sync(Host, mask);
 }
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->sync_overlapping_device(space,mask);
+  ((AtomVecKokkos *) avec)->sync_overlapping_device(space, mask);
 }
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()
 {
-  if (avec->mass_type) {
-    k_mass = DAT::tdual_float_1d("Mass",ntypes+1);
+  if (avec->mass_type == AtomVec::PER_TYPE) {
+    k_mass = DAT::tdual_float_1d("Mass", ntypes + 1);
     mass = k_mass.h_view.data();
-    mass_setflag = new int[ntypes+1];
+    mass_setflag = new int[ntypes + 1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
     k_mass.modify<LMPHostType>();
   }
@@ -130,11 +139,11 @@ void AtomKokkos::allocate_type_arrays()
 
 void AtomKokkos::sort()
 {
-  int i,m,n,ix,iy,iz,ibin,empty;
+  int i, m, n, ix, iy, iz, ibin, empty;
 
   // set next timestep for sorting to take place
 
-  nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
+  nextsort = (update->ntimestep / sortfreq) * sortfreq + sortfreq;
 
   // re-setup sort bins if needed
 
@@ -147,33 +156,33 @@ void AtomKokkos::sort()
     memory->destroy(next);
     memory->destroy(permute);
     maxnext = atom->nmax;
-    memory->create(next,maxnext,"atom:next");
-    memory->create(permute,maxnext,"atom:permute");
+    memory->create(next, maxnext, "atom:next");
+    memory->create(permute, maxnext, "atom:permute");
   }
 
   // insure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 
-  sync(Host,ALL_MASK);
-  modified(Host,ALL_MASK);
+  sync(Host, ALL_MASK);
+  modified(Host, ALL_MASK);
 
   // bin atoms in reverse order so linked list will be in forward order
 
   for (i = 0; i < nbins; i++) binhead[i] = -1;
 
   HAT::t_x_array_const h_x = k_x.view<LMPHostType>();
-  for (i = nlocal-1; i >= 0; i--) {
-    ix = static_cast<int> ((h_x(i,0)-bboxlo[0])*bininvx);
-    iy = static_cast<int> ((h_x(i,1)-bboxlo[1])*bininvy);
-    iz = static_cast<int> ((h_x(i,2)-bboxlo[2])*bininvz);
-    ix = MAX(ix,0);
-    iy = MAX(iy,0);
-    iz = MAX(iz,0);
-    ix = MIN(ix,nbinx-1);
-    iy = MIN(iy,nbiny-1);
-    iz = MIN(iz,nbinz-1);
-    ibin = iz*nbiny*nbinx + iy*nbinx + ix;
+  for (i = nlocal - 1; i >= 0; i--) {
+    ix = static_cast<int>((h_x(i, 0) - bboxlo[0]) * bininvx);
+    iy = static_cast<int>((h_x(i, 1) - bboxlo[1]) * bininvy);
+    iz = static_cast<int>((h_x(i, 2) - bboxlo[2]) * bininvz);
+    ix = MAX(ix, 0);
+    iy = MAX(iy, 0);
+    iz = MAX(iz, 0);
+    ix = MIN(ix, nbinx - 1);
+    iy = MIN(iy, nbiny - 1);
+    iz = MIN(iz, nbinz - 1);
+    ibin = iz * nbiny * nbinx + iy * nbinx + ix;
     next[i] = binhead[ibin];
     binhead[ibin] = i;
   }
@@ -205,13 +214,13 @@ void AtomKokkos::sort()
 
   for (i = 0; i < nlocal; i++) {
     if (current[i] == permute[i]) continue;
-    avec->copy(i,nlocal,0);
+    avec->copy(i, nlocal, 0);
     empty = i;
     while (permute[empty] != i) {
-      avec->copy(permute[empty],empty,0);
+      avec->copy(permute[empty], empty, 0);
       empty = current[empty] = permute[empty];
     }
-    avec->copy(nlocal,empty,0);
+    avec->copy(nlocal, empty, 0);
     current[empty] = permute[empty];
   }
 
@@ -229,14 +238,15 @@ void AtomKokkos::sort()
    reallocate memory to the pointer selected by the mask
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::grow(unsigned int mask){
+void AtomKokkos::grow(unsigned int mask)
+{
 
-  if (mask & SPECIAL_MASK){
+  if (mask & SPECIAL_MASK) {
     memoryKK->destroy_kokkos(k_special, special);
     sync(Device, mask);
     modified(Device, mask);
-    memoryKK->grow_kokkos(k_special,special,nmax,maxspecial,"atom:special");
-    avec->grow_reset();
+    memoryKK->grow_kokkos(k_special, special, nmax, maxspecial, "atom:special");
+    avec->grow_pointers();
     sync(Host, mask);
   }
 }
@@ -247,31 +257,49 @@ void AtomKokkos::grow(unsigned int mask){
    return index in ivector or dvector of its location
 ------------------------------------------------------------------------- */
 
-int AtomKokkos::add_custom(const char *name, int flag)
+int AtomKokkos::add_custom(const char *name, int flag, int cols)
 {
   int index;
 
-  if (flag == 0) {
+  if (flag == 0 && cols == 0) {
     index = nivector;
     nivector++;
-    iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
-                                       "atom:iname");
-    int n = strlen(name) + 1;
-    iname[index] = new char[n];
-    strcpy(iname[index],name);
-    ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
-                                        "atom:ivector");
-    memory->create(ivector[index],nmax,"atom:ivector");
-  } else {
+    ivname = (char **) memory->srealloc(ivname, nivector * sizeof(char *), "atom:ivname");
+    ivname[index] = utils::strdup(name);
+    ivector = (int **) memory->srealloc(ivector, nivector * sizeof(int *), "atom:ivector");
+    memory->create(ivector[index], nmax, "atom:ivector");
+
+  } else if (flag == 1 && cols == 0) {
     index = ndvector;
     ndvector++;
-    dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
-                                       "atom:dname");
-    int n = strlen(name) + 1;
-    dname[index] = new char[n];
-    strcpy(dname[index],name);
-    memoryKK->grow_kokkos(k_dvector,dvector,ndvector,nmax,
-                        "atom:dvector");
+    dvname = (char **) memory->srealloc(dvname, ndvector * sizeof(char *), "atom:dvname");
+    dvname[index] = utils::strdup(name);
+    dvector = (double **) memory->srealloc(dvector, ndvector * sizeof(double *), "atom:dvector");
+    this->sync(Device, DVECTOR_MASK);
+    memoryKK->grow_kokkos(k_dvector, dvector, ndvector, nmax, "atom:dvector");
+    this->modified(Device, DVECTOR_MASK);
+
+  } else if (flag == 0 && cols) {
+    index = niarray;
+    niarray++;
+    ianame = (char **) memory->srealloc(ianame, niarray * sizeof(char *), "atom:ianame");
+    ianame[index] = utils::strdup(name);
+    iarray = (int ***) memory->srealloc(iarray, niarray * sizeof(int **), "atom:iarray");
+    memory->create(iarray[index], nmax, cols, "atom:iarray");
+
+    icols = (int *) memory->srealloc(icols, niarray * sizeof(int), "atom:icols");
+    icols[index] = cols;
+
+  } else if (flag == 1 && cols) {
+    index = ndarray;
+    ndarray++;
+    daname = (char **) memory->srealloc(daname, ndarray * sizeof(char *), "atom:daname");
+    daname[index] = utils::strdup(name);
+    darray = (double ***) memory->srealloc(darray, ndarray * sizeof(double **), "atom:darray");
+    memory->create(darray[index], nmax, cols, "atom:darray");
+
+    dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
+    dcols[index] = cols;
   }
 
   return index;
@@ -279,22 +307,34 @@ int AtomKokkos::add_custom(const char *name, int flag)
 
 /* ----------------------------------------------------------------------
    remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to NULL
-   ivector/dvector and iname/dname lists never shrink
+   free memory for vector/array and name and set ptrs to a null pointer
+   these lists never shrink
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::remove_custom(int flag, int index)
+void AtomKokkos::remove_custom(int index, int flag, int cols)
 {
-  if (flag == 0) {
+  if (flag == 0 && cols == 0) {
     memory->destroy(ivector[index]);
-    ivector[index] = NULL;
-    delete [] iname[index];
-    iname[index] = NULL;
-  } else {
-    //memoryKK->destroy_kokkos(dvector);
-    dvector[index] = NULL;
-    delete [] dname[index];
-    dname[index] = NULL;
+    ivector[index] = nullptr;
+    delete[] ivname[index];
+    ivname[index] = nullptr;
+
+  } else if (flag == 1 && cols == 0) {
+    dvector[index] = nullptr;
+    delete[] dvname[index];
+    dvname[index] = nullptr;
+
+  } else if (flag == 0 && cols) {
+    memory->destroy(iarray[index]);
+    iarray[index] = nullptr;
+    delete[] ianame[index];
+    ianame[index] = nullptr;
+
+  } else if (flag == 1 && cols) {
+    memory->destroy(darray[index]);
+    darray[index] = nullptr;
+    delete[] daname[index];
+    daname[index] = nullptr;
   }
 }
 
@@ -329,18 +369,16 @@ void AtomKokkos::deallocate_topology()
      done at higher levels (Verlet,Modify,etc)
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::sync_modify(ExecutionSpace execution_space,
-                             unsigned int datamask_read,
+void AtomKokkos::sync_modify(ExecutionSpace execution_space, unsigned int datamask_read,
                              unsigned int datamask_modify)
 {
-  sync(execution_space,datamask_read);
-  modified(execution_space,datamask_modify);
+  sync(execution_space, datamask_read);
+  modified(execution_space, datamask_modify);
 }
 
-AtomVec *AtomKokkos::new_avec(const char *style, int trysuffix, int &sflag)
+AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
-  AtomVec* avec = Atom::new_avec(style,trysuffix,sflag);
-  if (!avec->kokkosable)
-    error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
+  AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
+  if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
   return avec;
 }

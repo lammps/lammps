@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,14 +12,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "dump_atom.h"
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -35,7 +37,10 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   image_flag = 0;
   buffer_allow = 1;
   buffer_flag = 1;
-  format_default = NULL;
+  format_default = nullptr;
+  key2col = { { "id", 0 }, { "type", 1 }, { "x", 2 }, { "y", 3 },
+              { "z", 4 }, { "ix", 5 }, { "iy", 6 }, { "iz", 7 } };
+  keyword_user = { "", "", "", "", "", "", "", "" };
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,20 +53,12 @@ void DumpAtom::init_style()
   // format = copy of default or user-specified line format
   // default depends on image flags
 
-  delete [] format;
+  delete[] format;
   if (format_line_user) {
-    int n = strlen(format_line_user) + 2;
-    format = new char[n];
-    strcpy(format,format_line_user);
-    strcat(format,"\n");
+    format = utils::strdup(std::string(format_line_user) + "\n");
   } else {
-    char *str;
-    if (image_flag == 0) str = (char *) TAGINT_FORMAT " %d %g %g %g";
-    else str = (char *) TAGINT_FORMAT " %d %g %g %g %d %d %d";
-    int n = strlen(str) + 2;
-    format = new char[n];
-    strcpy(format,str);
-    strcat(format,"\n");
+    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
+    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
   }
 
   // setup boundary string
@@ -70,14 +67,25 @@ void DumpAtom::init_style()
 
   // setup column string
 
+  std::string default_columns;
+
   if (scale_flag == 0 && image_flag == 0)
-    columns = (char *) "id type x y z";
+    default_columns = "id type x y z";
   else if (scale_flag == 0 && image_flag == 1)
-    columns = (char *) "id type x y z ix iy iz";
+    default_columns = "id type x y z ix iy iz";
   else if (scale_flag == 1 && image_flag == 0)
-    columns = (char *) "id type xs ys zs";
+    default_columns = "id type xs ys zs";
   else if (scale_flag == 1 && image_flag == 1)
-    columns = (char *) "id type xs ys zs ix iy iz";
+    default_columns = "id type xs ys zs ix iy iz";
+
+  int icol = 0;
+  columns.clear();
+  for (const auto &item : utils::split_words(default_columns)) {
+    if (columns.size()) columns += " ";
+    if (keyword_user[icol].size()) columns += keyword_user[icol];
+    else columns += item;
+    ++icol;
+  }
 
   // setup function ptrs
 
@@ -122,15 +130,13 @@ int DumpAtom::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"scale") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) scale_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) scale_flag = 0;
-    else error->all(FLERR,"Illegal dump_modify command");
+    scale_flag = utils::logical(FLERR,arg[1],false,lmp);
+    for (auto &item : keyword_user) item.clear();
     return 2;
   } else if (strcmp(arg[0],"image") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) image_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) image_flag = 0;
-    else error->all(FLERR,"Illegal dump_modify command");
+    image_flag = utils::logical(FLERR,arg[1],false,lmp);
+    for (auto &item : keyword_user) item.clear();
     return 2;
   }
   return 0;
@@ -167,8 +173,83 @@ void DumpAtom::write_data(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpAtom::format_magic_string_binary()
+{
+  // use negative ntimestep as marker for new format
+  bigint fmtlen = strlen(MAGIC_STRING);
+  bigint marker = -fmtlen;
+  fwrite(&marker, sizeof(bigint), 1, fp);
+  fwrite(MAGIC_STRING, sizeof(char), fmtlen, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::format_endian_binary()
+{
+  int endian = ENDIAN;
+  fwrite(&endian, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::format_revision_binary()
+{
+  int revision = FORMAT_REVISION;
+  fwrite(&revision, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_unit_style_binary()
+{
+  int len = 0;
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    len = strlen(update->unit_style);
+    fwrite(&len, sizeof(int), 1, fp);
+    fwrite(update->unit_style, sizeof(char), len, fp);
+  } else {
+    fwrite(&len, sizeof(int), 1, fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_columns_binary()
+{
+  int len = columns.size();
+  fwrite(&len, sizeof(int), 1, fp);
+  fwrite(columns.c_str(), sizeof(char), len, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_time_binary()
+{
+  char flag = time_flag ? 1 : 0;
+  fwrite(&flag, sizeof(char), 1, fp);
+
+  if (time_flag) {
+    double t = compute_time();
+    fwrite(&t, sizeof(double), 1, fp);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_format_binary()
+{
+  format_magic_string_binary();
+  format_endian_binary();
+  format_revision_binary();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpAtom::header_binary(bigint ndump)
 {
+  header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -180,6 +261,11 @@ void DumpAtom::header_binary(bigint ndump)
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }
@@ -188,6 +274,8 @@ void DumpAtom::header_binary(bigint ndump)
 
 void DumpAtom::header_binary_triclinic(bigint ndump)
 {
+  header_format_binary();
+
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
   fwrite(&domain->triclinic,sizeof(int),1,fp);
@@ -202,6 +290,11 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
   fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
   if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
   else fwrite(&nprocs,sizeof(int),1,fp);
 }
@@ -210,30 +303,42 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
 
 void DumpAtom::header_item(bigint ndump)
 {
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
+  }
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
+
+  fmt::print(fp, "ITEM: TIMESTEP\n{}\nITEM: NUMBER OF ATOMS\n{}\n", update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpAtom::header_item_triclinic(bigint ndump)
 {
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
+  }
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
+
+  fmt::print(fp, "ITEM: TIMESTEP\n{}\nITEM: NUMBER OF ATOMS\n{}\n", update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -471,7 +576,8 @@ void DumpAtom::write_binary(int n, double *mybuf)
 
 void DumpAtom::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

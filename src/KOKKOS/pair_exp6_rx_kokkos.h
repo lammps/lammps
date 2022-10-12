@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EXP6_RX_KOKKOS_H
 #define LMP_PAIR_EXP6_RX_KOKKOS_H
 
@@ -44,11 +45,8 @@ struct PairExp6ParamDataTypeKokkos
           epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkos<DeviceType>(void)
-      : n(0), epsilon1(NULL), alpha1(NULL), rm1(NULL), mixWtSite1(NULL),
-              epsilon2(NULL), alpha2(NULL), rm2(NULL), mixWtSite2(NULL),
-              epsilonOld1(NULL), alphaOld1(NULL), rmOld1(NULL), mixWtSite1old(NULL),
-              epsilonOld2(NULL), alphaOld2(NULL), rmOld2(NULL), mixWtSite2old(NULL)
+   PairExp6ParamDataTypeKokkos()
+      : n(0)
    {}
 };
 
@@ -65,13 +63,7 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotalold;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
-      : epsilon(NULL), rm3(NULL), alpha(NULL), xMolei(NULL), epsilon_old(NULL), rm3_old(NULL),
-        alpha_old(NULL), xMolei_old(NULL), fractionOFA(NULL), fraction1(NULL),
-        fraction2(NULL), nMoleculesOFA(NULL), nMolecules1(NULL), nMolecules2(NULL),
-        nTotal(NULL), fractionOFAold(NULL), fractionOld1(NULL), fractionOld2(NULL),
-        nMoleculesOFAold(NULL), nMoleculesOld1(NULL), nMoleculesOld2(NULL),
-        nTotalold(NULL)
+   PairExp6ParamDataTypeKokkosVect()
    {}
 };
 
@@ -95,10 +87,10 @@ class PairExp6rxKokkos : public PairExp6rx {
   typedef EV_FLOAT value_type;
 
   PairExp6rxKokkos(class LAMMPS *);
-  virtual ~PairExp6rxKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
+  ~PairExp6rxKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxZeroMixingWeights, const int&) const;
@@ -145,7 +137,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   int eflag,vflag;
   int nlocal,newton_pair,neighflag;
   double special_lj[4];
-  int num_threads,ntypes;
+  int nthreads,ntypes;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
@@ -173,7 +165,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   PairExp6ParamDataTypeKokkos<DeviceType> PairExp6ParamData;
   PairExp6ParamDataTypeKokkosVect<DeviceType> PairExp6ParamDataVect;
 
-  void allocate();
+  void allocate() override;
   DAT::tdual_int_1d k_mol2param;               // mapping from molecule to parameters
   typename AT::t_int_1d_randomread d_mol2param;
 
@@ -186,8 +178,8 @@ class PairExp6rxKokkos : public PairExp6rx {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
-  void read_file(char *);
-  void setup();
+  void read_file(char *) override;
+  void setup() override;
 
   KOKKOS_INLINE_FUNCTION
   void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
@@ -217,64 +209,3 @@ class PairExp6rxKokkos : public PairExp6rx {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E:  alpha_ij is 6.0 in pair exp6
-
-Self-explanatory
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: PairExp6rxKokkos requires a fix rx command
-
-The fix rx command must come before the pair style command in the input file
-
-E:  There are no rx species specified
-
-There must be at least one species specified through the fix rx command
-
-E:  Site1 name not recognized in pair coefficients
-
-The site1 keyword does not match the species keywords specified throug the fix rx command
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E:  Cannot open exp6/rx potential file %s
-
-Self-explanatory
-
-E:  Incorrect format in exp6/rx potential file
-
-Self-explanatory
-
-E:  Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.
-
-Self-explanatory
-
-E:  Illegal exp6/rx parameters.  Interaction potential does not exist.
-
-Self-explanatory
-
-E:  Potential file has duplicate entry.
-
-Self-explanatory
-
-E:  The number of molecules in CG particle is less than 10*DBL_EPSILON.
-
-Self-explanatory.  Check the species concentrations have been properly set
-and check the reaction kinetic solver parameters in fix rx to more for
-sufficient accuracy.
-
-
-*/

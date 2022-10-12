@@ -1,0 +1,197 @@
+BootStrap: docker
+From: ubuntu:18.04
+
+%environment
+    export PATH=/usr/lib/ccache:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/lib:/opt/rocm-5.1.3/llvm/lib
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get upgrade --no-install-recommends -y
+
+    apt-get install -y --no-install-recommends curl wget libnuma-dev gnupg ca-certificates
+    apt-get install --no-install-recommends -y software-properties-common
+
+    ###########################################################################
+    # Latest CMake
+    ###########################################################################
+
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+    apt update
+    apt install -y cmake
+
+    ###########################################################################
+    # ROCm 5.1.3
+    ###########################################################################
+    wget https://repo.radeon.com/amdgpu-install/22.10.3/ubuntu/bionic/amdgpu-install_22.10.3.50103-1_all.deb
+    apt-get install -y ./amdgpu-install_22.10.3.50103-1_all.deb
+
+    apt-get update
+    apt-get install --no-install-recommends -y \
+        kmod \
+        file \
+        sudo \
+        libelf1 \
+        build-essential
+
+    amdgpu-install --usecase=rocm --no-dkms -y
+
+    ###########################################################################
+    # ROCm hipCUB
+    ###########################################################################
+    apt-get install -y hipcub-dev
+
+    ###########################################################################
+    # Common Software
+    ###########################################################################
+    add-apt-repository ppa:openkim/latest
+    apt-get update
+    apt-get install --no-install-recommends -y \
+        bc \
+        build-essential \
+        ccache \
+        clang \
+        cmake \
+        cmake-curses-gui \
+        curl \
+        doxygen \
+        enchant \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hdf5-tools \
+        less \
+        libblas-dev \
+        libeigen3-dev \
+        libenchant-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        libhdf5-serial-dev \
+        libhwloc-dev \
+        libjpeg-dev \
+        liblapack-dev \
+        libnetcdf-dev \
+        libomp-dev \
+        libopenblas-dev \
+        libnuma-dev \
+        libpng-dev \
+        libproj-dev \
+        libreadline-dev \
+        libvtk6-dev \
+        libyaml-dev \
+        libzstd-dev \
+        make \
+        mpi-default-bin \
+        mpi-default-dev \
+        ninja-build \
+        python-dev \
+        python-pip \
+        python-pygments \
+        python-virtualenv \
+        python3-dev \
+        python3-pip \
+        python3-pkg-resources \
+        python3-setuptools \
+        python3-virtualenv \
+        python3-venv \
+        rsync \
+        ssh \
+        vim-nox \
+        virtualenv \
+        voro++-dev \
+        wget \
+        xxd \
+        valgrind \
+        gdb \
+        zstd \
+        libyaml-cpp-dev \
+        libkim-api-dev \
+        openkim-models
+
+    ###########################################################################
+    # KIM-API
+    ###########################################################################
+
+    # workaround for installing files in /usr/share/doc inside of a container
+    sed -i 's/path-exclude=\/usr\/share\/doc/#path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+    apt-get install -y libkim-api-doc
+    sed -i 's/#path-exclude=\/usr\/share\/doc/path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+
+    # install KIM models
+    KIM_API_EXAMPLES=/usr/share/doc/libkim-api-dev/examples
+    gunzip $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003/LennardJones612_UniversalShifted.params.gz
+    gunzip $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ/ex_model_driver_P_LJ.f90.gz
+
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/LennardJones612__MD_414112407348_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones_Ar
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/ex_model_Ar_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/simulator-models/Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu
+
+
+    ###########################################################################
+    # Plumed
+    ###########################################################################
+
+    export PLUMED_PKG_VERSION=2.8.0
+
+    mkdir plumed
+    cd plumed
+    curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${PLUMED_PKG_VERSION}/plumed-src-${PLUMED_PKG_VERSION}.tgz
+    tar -xzf plumed.tar.gz
+    cd plumed-${PLUMED_PKG_VERSION}
+    ./configure --disable-doc --prefix=/usr
+    make
+    make install
+    cd ../../
+    rm -rvf plumed
+
+
+    ###########################################################################
+    # Customizations
+    ###########################################################################
+
+    # create missing readline pkgconfig file
+    cat > /usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc <<EOF
+prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib/x86_64-linux-gnu
+includedir=/usr/include
+
+Name: Readline
+Description: GNU Readline library for command line editing
+URL: http://tiswww.cwru.edu/php/chet/readline/rltop.html
+Version: 7.0
+Requires.private: tinfo
+Libs: -L\${libdir} -lreadline
+Cflags: -I\${includedir}/readline
+EOF
+    # set custom prompt indicating the container name
+    CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
+    cat >$CUSTOM_PROMPT_ENV <<EOF
+#!/bin/bash
+PS1="[ubuntu18.04/rocm:\u@\h] \W> "
+EOF
+    chmod 755 $CUSTOM_PROMPT_ENV
+
+
+    ###########################################################################
+    # Cleanup
+    ###########################################################################
+    # clean cache
+    rm -rf /var/lib/apt/lists/*
+
+%environment
+    LC_ALL=C
+    export LC_ALL
+    # tell OpenMPI to not try using Infiniband
+    OMPI_MCA_btl="^openib"
+    # do not warn about unused components as this messes up testing
+    OMPI_MCA_btl_base_warn_component_unused="0"
+    export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
+
+%labels
+    Author rbberger, akohlmey

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,25 +16,19 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_dynamic.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "force.h"
-#include "group.h"
-#include "pair.h"
-#include "kspace.h"
-#include "respa.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "kspace.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -56,6 +51,10 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/dynamic command");
       qstep = atof(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/dynamic command");
+      maxwarn = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/dynamic command");
   }
 }
@@ -64,26 +63,13 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqDynamic::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/dynamic requires atom attribute q");
+  FixQEq::init();
 
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/dynamic group has no atoms");
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->add_request(this);
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
-      error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
-                    " for damped dynamics");
-
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
+      error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small for damped dynamics");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,7 +102,7 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     q1[i] = q2[i] = qf[i] = 0.0;
   }
 
-  for (iloop = 0; iloop < maxiter; iloop ++ ) {
+  for (iloop = 0; iloop < maxiter; iloop ++) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
@@ -126,7 +112,7 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     }
 
     pack_flag = 1;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     enegtot = compute_eneg();
     enegtot /= ngroup;
@@ -148,7 +134,7 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     MPI_Allreduce(&enegmax,&enegmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     enegmax = enegmaxall;
 
-    if (enegchk <= tolerance && enegmax <= 100.0*tolerance) break;
+    if ((enegchk <= tolerance) && (enegmax <= 100.0*tolerance)) break;
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -156,15 +142,11 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
         q1[i] += qf[i]*dtq2 - qdamp*q1[i];
     }
   }
+  matvecs = iloop;
 
-  if (comm->me == 0) {
-    if (iloop == maxiter) {
-      char str[128];
-      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
-                  ": %lg",update->ntimestep,enegchk);
-      error->warning(FLERR,str);
-    }
-  }
+  if ((comm->me == 0) && maxwarn && (iloop >= maxiter))
+      error->warning(FLERR,"Charges did not converge at step {}: {}",
+                     update->ntimestep,enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }
@@ -196,7 +178,7 @@ double FixQEqDynamic::compute_eneg()
 
   // communicating charge force to all nodes, first forward then reverse
   pack_flag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -229,7 +211,7 @@ double FixQEqDynamic::compute_eneg()
   }
 
   pack_flag = 2;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   // sum charge force on each node and return it
 
@@ -252,9 +234,9 @@ int FixQEqDynamic::pack_forward_comm(int n, int *list, double *buf,
   int m=0;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = qf[list[m]];
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  else if (pack_flag == 2)
+    for (m = 0; m < n; m++) buf[m] = qf[list[m]];
 
   return m;
 }
@@ -266,9 +248,9 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  else if (pack_flag == 2)
+    for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -276,7 +258,7 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
 int FixQEqDynamic::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
+  for (m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
   return m;
 }
 
@@ -286,7 +268,7 @@ void FixQEqDynamic::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int m;
 
-  for(m = 0; m < n; m++) qf[list[m]] += buf[m];
+  for (m = 0; m < n; m++) qf[list[m]] += buf[m];
 }
 
 /* ---------------------------------------------------------------------- */

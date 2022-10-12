@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt)
-
+// clang-format off
+PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_TIP4P_LONG_OPT_H
@@ -24,36 +24,19 @@ PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt)
 
 namespace LAMMPS_NS {
 
-  class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
+class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
  public:
-    PairLJCutTIP4PLongOpt(class LAMMPS *);
-    virtual ~PairLJCutTIP4PLongOpt() {};
+  PairLJCutTIP4PLongOpt(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
-  template < const int, const int, const int, const int >
-  void eval();
-  void compute_newsite_opt(const double *, const double *,
-                           const double *, double *) const;
+  template <const int, const int, const int, const int> void eval();
+  void compute_newsite_opt(const double *, const double *, const double *, double *) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: TIP4P hydrogen is missing
-
-The TIP4P pairwise computation failed to find the correct H atom
-within a water molecule.
-
-E: TIP4P hydrogen has incorrect atom type
-
-The TIP4P pairwise computation found an H atom whose type does not
-agree with the specified H type.
-
-*/

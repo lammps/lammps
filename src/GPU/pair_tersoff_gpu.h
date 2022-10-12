@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/gpu,PairTersoffGPU)
-
+// clang-format off
+PairStyle(tersoff/gpu,PairTersoffGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_GPU_H
@@ -27,44 +27,22 @@ namespace LAMMPS_NS {
 class PairTersoffGPU : public PairTersoff {
  public:
   PairTersoffGPU(class LAMMPS *);
-  ~PairTersoffGPU();
-  void compute(int, int);
-  double init_one(int, int);
-  void init_style();
+  ~PairTersoffGPU() override;
+  void compute(int, int) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
-  void allocate();
+  void allocate() override;
 
   int gpu_mode;
   double cpu_time;
   int *gpulist;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style tersoff/gpu requires atom IDs
-
-This is a requirement to use the tersoff/gpu potential.
-
-E: Pair style tersoff/gpu requires newton pair off
-
-See the newton command.  This is a restriction to use this pair style.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

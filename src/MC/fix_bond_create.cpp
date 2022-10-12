@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,27 +12,27 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "fix_bond_create.h"
-#include "update.h"
-#include "respa.h"
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "random_mars.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathConst;
 
 #define BIG 1.0e20
 #define DELTA 16
@@ -40,16 +41,17 @@ using namespace FixConst;
 
 FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  bondcount(NULL), partner(NULL), finalpartner(NULL), distsq(NULL),
-  probability(NULL), created(NULL), copy(NULL), random(NULL), list(NULL)
+  bondcount(nullptr), partner(nullptr), finalpartner(nullptr), distsq(nullptr),
+  probability(nullptr), created(nullptr), copy(nullptr), random(nullptr), list(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix bond/create command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
 
+  dynamic_group_allow = 1;
   force_reneighbor = 1;
   next_reneighbor = -1;
   vector_flag = 1;
@@ -57,10 +59,10 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  iatomtype = force->inumeric(FLERR,arg[4]);
-  jatomtype = force->inumeric(FLERR,arg[5]);
-  double cutoff = force->numeric(FLERR,arg[6]);
-  btype = force->inumeric(FLERR,arg[7]);
+  iatomtype = utils::inumeric(FLERR,arg[4],false,lmp);
+  jatomtype = utils::inumeric(FLERR,arg[5],false,lmp);
+  double cutoff = utils::numeric(FLERR,arg[6],false,lmp);
+  btype = utils::inumeric(FLERR,arg[7],false,lmp);
 
   if (iatomtype < 1 || iatomtype > atom->ntypes ||
       jatomtype < 1 || jatomtype > atom->ntypes)
@@ -81,53 +83,74 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   int seed = 12345;
   atype = dtype = itype = 0;
 
+  constrainflag = 0;
+  constrainpass = 0;
+  amin = 0;
+  amax = 180;
+
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iparam") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
-      imaxbond = force->inumeric(FLERR,arg[iarg+1]);
-      inewtype = force->inumeric(FLERR,arg[iarg+2]);
+      imaxbond = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      inewtype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (imaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
       if (inewtype < 1 || inewtype > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix bond/create command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"jparam") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
-      jmaxbond = force->inumeric(FLERR,arg[iarg+1]);
-      jnewtype = force->inumeric(FLERR,arg[iarg+2]);
+      jmaxbond = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      jnewtype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (jmaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
       if (jnewtype < 1 || jnewtype > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix bond/create command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"prob") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
-      fraction = force->numeric(FLERR,arg[iarg+1]);
-      seed = force->inumeric(FLERR,arg[iarg+2]);
+      fraction = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      seed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (fraction < 0.0 || fraction > 1.0)
         error->all(FLERR,"Illegal fix bond/create command");
       if (seed <= 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"atype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
-      atype = force->inumeric(FLERR,arg[iarg+1]);
+      atype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atype < 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
-      dtype = force->inumeric(FLERR,arg[iarg+1]);
+      dtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (dtype < 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"itype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
-      itype = force->inumeric(FLERR,arg[iarg+1]);
+      itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"aconstrain") == 0 &&
+        strcmp(style,"bond/create/angle") == 0) {
+      if (iarg+3 > narg)
+          error->all(FLERR,"Illegal fix bond/create/angle command");
+      amin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      amax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      if (amin  >= amax)
+        error->all(FLERR,"Illegal fix bond/create/angle command");
+      if (amin < 0 || amin > 180)
+        error->all(FLERR,"Illegal fix bond/create/angle command");
+      if (amax < 0 || amax > 180)
+        error->all(FLERR,"Illegal fix bond/create/angle command");
+      amin = (MY_PI/180.0) * amin;
+      amax = (MY_PI/180.0) * amax;
+      constrainflag = 1;
+      iarg += 3;
     } else error->all(FLERR,"Illegal fix bond/create command");
   }
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/create with non-molecular systems");
   if (iatomtype == jatomtype &&
       ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
@@ -142,9 +165,9 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
   // bondcount values will be initialized in setup()
 
-  bondcount = NULL;
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  bondcount = nullptr;
+  FixBondCreate::grow_arrays(atom->nmax);
+  atom->add_callback(Atom::GROW);
   countflag = 0;
 
   // set comm sizes needed by this fix
@@ -156,11 +179,11 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // allocate arrays local to this fix
 
   nmax = 0;
-  partner = finalpartner = NULL;
-  distsq = NULL;
+  partner = finalpartner = nullptr;
+  distsq = nullptr;
 
   maxcreate = 0;
-  created = NULL;
+  created = nullptr;
 
   // copy = special list for one atom
   // size = ms^2 + ms is sufficient
@@ -183,7 +206,7 @@ FixBondCreate::~FixBondCreate()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   delete random;
 
@@ -211,13 +234,26 @@ int FixBondCreate::setmask()
 
 void FixBondCreate::init()
 {
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (utils::strmatch(update->integrate_style,"^respa"))
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // check cutoff for iatomtype,jatomtype
 
-  if (force->pair == NULL || cutsq > force->pair->cutsq[iatomtype][jatomtype])
+  if (force->pair == nullptr || cutsq > force->pair->cutsq[iatomtype][jatomtype])
     error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
+
+  // warn if more than one fix bond/create or also a fix bond/break
+  // because this fix stores per-atom state in bondcount
+  //   if other fixes create/break bonds, this fix will not know about it
+
+  int count = 0;
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"bond/create") == 0) count++;
+    if (strcmp(modify->fix[i]->style,"bond/break") == 0) count++;
+  }
+  if (count > 1 && me == 0)
+    error->warning(FLERR,"Fix bond/create is used multiple times "
+                   " or with fix bond/break - may not work as expected");
 
   // enable angle/dihedral/improper creation if atype/dtype/itype
   //   option was used and a force field has been specified
@@ -247,11 +283,7 @@ void FixBondCreate::init()
   }
 
   // need a half neighbor list, built every Nevery steps
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   lastcheck = -1;
 }
@@ -307,7 +339,7 @@ void FixBondCreate::setup(int /*vflag*/)
   // if newton_bond is set, need to sum bondcount
 
   commflag = 1;
-  if (newton_bond) comm->reverse_comm_fix(this,1);
+  if (newton_bond) comm->reverse_comm(this,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -338,7 +370,7 @@ void FixBondCreate::post_integrate()
   // forward comm of bondcount, so ghosts have it
 
   commflag = 1;
-  comm->forward_comm_fix(this,1);
+  comm->forward_comm(this,1);
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -375,6 +407,14 @@ void FixBondCreate::post_integrate()
   tagint **special = atom->special;
   int *mask = atom->mask;
   int *type = atom->type;
+
+  if (constrainflag) {
+    // communicate partner and 1-2 special neighbors
+    // to correctly handle angle constraints
+
+    commflag = 3;
+    comm->forward_comm(this);
+  }
 
   neighbor->build_one(list,1);
   inum = list->inum;
@@ -423,6 +463,11 @@ void FixBondCreate::post_integrate()
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq) continue;
 
+      if (constrainflag) {
+        constrainpass = constrain(i,j,amin,amax);
+        if (!constrainpass) continue;
+      }
+
       if (rsq < distsq[i]) {
         partner[i] = tag[j];
         distsq[i] = rsq;
@@ -431,6 +476,7 @@ void FixBondCreate::post_integrate()
         partner[j] = tag[i];
         distsq[j] = rsq;
       }
+
     }
   }
 
@@ -438,7 +484,7 @@ void FixBondCreate::post_integrate()
   // not needed if newton_pair off since I,J pair was seen by both procs
 
   commflag = 2;
-  if (force->newton_pair) comm->reverse_comm_fix(this);
+  if (force->newton_pair) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner
@@ -450,7 +496,7 @@ void FixBondCreate::post_integrate()
   }
 
   commflag = 2;
-  comm->forward_comm_fix(this,2);
+  comm->forward_comm(this,2);
 
   // create bonds for atoms I own
   // only if both atoms list each other as winning bond partner
@@ -547,7 +593,7 @@ void FixBondCreate::post_integrate()
   // 1-2 neighs already reflect created bonds
 
   commflag = 3;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms
@@ -575,9 +621,6 @@ void FixBondCreate::post_integrate()
   // also add angles/dihedrals/impropers induced by created bonds
 
   update_topology();
-
-  // DEBUG
-  //print_bb();
 }
 
 /* ----------------------------------------------------------------------
@@ -638,11 +681,6 @@ void FixBondCreate::update_topology()
   ndihedrals = 0;
   nimpropers = 0;
   overflow = 0;
-
-  //printf("NCREATE %d: ",ncreate);
-  //for (i = 0; i < ncreate; i++)
-  //  printf(" %d %d,",created[i][0],created[i][1]);
-  //printf("\n");
 
   for (i = 0; i < nlocal; i++) {
     influenced = 0;
@@ -1387,60 +1425,9 @@ double FixBondCreate::compute_vector(int n)
 double FixBondCreate::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes = 2*nmax * sizeof(tagint);
-  bytes += nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += 2*nmax * sizeof(tagint);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixBondCreate::print_bb()
-{
-  for (int i = 0; i < atom->nlocal; i++) {
-    printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
-    for (int j = 0; j < atom->num_bond[i]; j++) {
-      printf(" " TAGINT_FORMAT,atom->bond_atom[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nangles: ",atom->tag[i],atom->num_angle[i]);
-    for (int j = 0; j < atom->num_angle[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT ",",
-             atom->angle_atom1[i][j], atom->angle_atom2[i][j],
-             atom->angle_atom3[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
-    for (int j = 0; j < atom->num_dihedral[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
-             TAGINT_FORMAT ",", atom->dihedral_atom1[i][j],
-             atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
-             atom->dihedral_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nimpropers: ",atom->tag[i],atom->num_improper[i]);
-    for (int j = 0; j < atom->num_improper[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
-             TAGINT_FORMAT ",",atom->improper_atom1[i][j],
-             atom->improper_atom2[i][j],atom->improper_atom3[i][j],
-             atom->improper_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d %d %d nspecial: ",atom->tag[i],
-           atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
-    for (int j = 0; j < atom->nspecial[i][2]; j++) {
-      printf(" " TAGINT_FORMAT,atom->special[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondCreate::print_copy(const char *str, tagint m,
-                              int n1, int n2, int n3, int *v)
-{
-  printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);
-  for (int j = 0; j < n3; j++) printf(" %d",v[j]);
-  printf("\n");
-}

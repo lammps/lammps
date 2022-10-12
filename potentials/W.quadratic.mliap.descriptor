@@ -1,0 +1,20 @@
+# DATE: 2020-06-21 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: none
+
+# required
+
+rcutfac 4.73442
+twojmax 6
+
+# elements
+
+nelems 1
+elems W 
+radelems 0.5
+welems 1
+
+# optional
+
+rfac0 0.99363
+rmin0 0
+bzeroflag 1
+

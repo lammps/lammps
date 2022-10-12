@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -17,22 +17,22 @@
 /// \brief Value of a collective variable: this is a metatype which
 /// can be set at runtime.  By default it is set to be a scalar
 /// number, and can be treated as such in all operations (this is
-/// done by most \link cvc \endlink implementations).
+/// done by most \link colvar::cvc \endlink implementations).
 ///
 /// \link colvarvalue \endlink allows \link colvar \endlink to be
 /// treat different data types.  By default, a \link colvarvalue
 /// \endlink variable is a scalar number.  To use it as
 /// another type, declare and initialize it as
-/// \code colvarvalue x(colvarvalue::type_xxx)\endcode, use \link x.type
-/// (colvarvalue::type_xxx) \endlink at a later stage, or if unset,
-///  assign the type with \code x = y; \endcode, provided y is correctly set.
+/// `colvarvalue x(colvarvalue::type_xxx)`, use `x.type (colvarvalue::type_xxx)`
+///  at a later stage, or if unset,
+///  assign the type with `x = y;`, provided y is correctly set.
 ///
 /// All operators (either unary or binary) on a \link
 /// colvarvalue \endlink object performs one or more checks on the
 /// \link Type \endlink, except when reading from a stream, when there is no way to
-/// detect the \link Type \endlink.  To use  \code is >> x; \endcode x \b MUST
+/// detect the \link Type \endlink.  To use  `is >> x;` x \b MUST
 /// already have a type correcly set up for properly parsing the
-/// stream. No problem of course with the output streams: \code os << x; \endcode
+/// stream. No problem of course with the output streams: `os << x;`
 ///
 /// \em Note \em on \em performance: to avoid type checks in a long array of \link
 /// colvarvalue \endlink objects, use one of the existing "_opt" functions or implement a new one
@@ -118,33 +118,21 @@ public:
 
   /// \brief Default constructor: this class defaults to a scalar
   /// number and always behaves like it unless you change its type
-  inline colvarvalue()
-    : value_type(type_scalar), real_value(0.0)
-  {}
+  colvarvalue();
 
   /// Constructor from a type specification
-  inline colvarvalue(Type const &vti)
-    : value_type(vti)
-  {
-    reset();
-  }
+  colvarvalue(Type const &vti);
 
   /// Copy constructor from real base type
-  inline colvarvalue(cvm::real const &x)
-    : value_type(type_scalar), real_value(x)
-  {}
+  colvarvalue(cvm::real const &x);
 
   /// \brief Copy constructor from rvector base type (Note: this sets
   /// by default a type \link type_3vector \endlink , if you want a
   /// \link type_unit3vector \endlink you must set it explicitly)
-  inline colvarvalue(cvm::rvector const &v, Type vti = type_3vector)
-    : value_type(vti), rvector_value(v)
-  {}
+  colvarvalue(cvm::rvector const &v, Type vti = type_3vector);
 
   /// \brief Copy constructor from quaternion base type
-  inline colvarvalue(cvm::quaternion const &q, Type vti = type_quaternion)
-    : value_type(vti), quaternion_value(q)
-  {}
+  colvarvalue(cvm::quaternion const &q, Type vti = type_quaternion);
 
   /// Copy constructor from vector1d base type
   colvarvalue(cvm::vector1d<cvm::real> const &v, Type vti = type_vector);
@@ -159,7 +147,7 @@ public:
   /// \brief If the variable has constraints (e.g. unitvector or
   /// quaternion), transform it to satisfy them; this function needs
   /// to be called only when the \link colvarvalue \endlink
-  /// is calculated outside of \link cvc \endlink objects
+  /// is calculated outside of \link colvar::cvc \endlink objects
   void apply_constraints();
 
   /// Get the current type
@@ -184,7 +172,7 @@ public:
   /// Norm of this colvarvalue
   inline cvm::real norm() const
   {
-    return std::sqrt(this->norm2());
+    return cvm::sqrt(this->norm2());
   }
 
   /// Sum of the components of this colvarvalue (if more than one dimension)
@@ -390,7 +378,7 @@ inline cvm::real colvarvalue::operator [] (int const i) const
   case colvarvalue::type_notset:
   default:
     cvm::error("Error: trying to access a colvar value "
-               "that is not initialized.\n", BUG_ERROR);
+               "that is not initialized.\n", COLVARS_BUG_ERROR);
     return 0.0; break;
   case colvarvalue::type_scalar:
     return real_value; break;
@@ -413,7 +401,7 @@ inline cvm::real & colvarvalue::operator [] (int const i)
   case colvarvalue::type_notset:
   default:
     cvm::error("Error: trying to access a colvar value "
-               "that is not initialized.\n", BUG_ERROR);
+               "that is not initialized.\n", COLVARS_BUG_ERROR);
     return real_value; break;
   case colvarvalue::type_scalar:
     return real_value; break;
@@ -728,7 +716,7 @@ inline cvm::real colvarvalue::dist2(colvarvalue const &x2) const
   case colvarvalue::type_unit3vector:
   case colvarvalue::type_unit3vectorderiv:
     // angle between (*this) and x2 is the distance
-    return std::acos(this->rvector_value * x2.rvector_value) * std::acos(this->rvector_value * x2.rvector_value);
+    return cvm::acos(this->rvector_value * x2.rvector_value) * cvm::acos(this->rvector_value * x2.rvector_value);
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     // angle between (*this) and x2 is the distance, the quaternion

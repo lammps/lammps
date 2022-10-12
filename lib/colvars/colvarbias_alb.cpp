@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -37,6 +37,7 @@ colvarbias_alb::colvarbias_alb(char const *key)
 int colvarbias_alb::init(std::string const &conf)
 {
   colvarbias::init(conf);
+  cvm::main()->cite_feature("ALB colvar bias implementation");
 
   enable(f_cvb_scalar_variables);
 
@@ -73,21 +74,21 @@ int colvarbias_alb::init(std::string const &conf)
     }
   } else {
     colvar_centers.clear();
-    cvm::fatal_error("Error: must define the initial centers of adaptive linear bias .\n");
+    cvm::error("Error: must define the initial centers of adaptive linear bias .\n");
   }
 
   if (colvar_centers.size() != num_variables())
-    cvm::fatal_error("Error: number of centers does not match "
+    cvm::error("Error: number of centers does not match "
                       "that of collective variables.\n");
 
   if (!get_keyval(conf, "UpdateFrequency", update_freq, 0))
-    cvm::fatal_error("Error: must set updateFrequency for adaptive linear bias.\n");
+    cvm::error("Error: must set updateFrequency for adaptive linear bias.\n");
 
   //we split the time between updating and equilibrating
   update_freq /= 2;
 
   if (update_freq <= 1)
-    cvm::fatal_error("Error: must set updateFrequency to greater than 2.\n");
+    cvm::error("Error: must set updateFrequency to greater than 2.\n");
 
   enable(f_cvb_history_dependent);
 
@@ -246,34 +247,38 @@ int colvarbias_alb::update()
 
 int colvarbias_alb::set_state_params(std::string const &conf)
 {
+  int error_code = colvarbias::set_state_params(conf);
+
+  if (error_code != COLVARS_OK) {
+    return error_code;
+  }
+
   if (!get_keyval(conf, "setCoupling", set_coupling))
-    cvm::fatal_error("Error: current setCoupling  is missing from the restart.\n");
+    cvm::error("Error: current setCoupling  is missing from the restart.\n");
 
   if (!get_keyval(conf, "currentCoupling", current_coupling))
-    cvm::fatal_error("Error: current setCoupling  is missing from the restart.\n");
+    cvm::error("Error: current setCoupling  is missing from the restart.\n");
 
   if (!get_keyval(conf, "maxCouplingRange", max_coupling_range))
-    cvm::fatal_error("Error: maxCouplingRange  is missing from the restart.\n");
-
+    cvm::error("Error: maxCouplingRange  is missing from the restart.\n");
 
   if (!get_keyval(conf, "couplingRate", coupling_rate))
-    cvm::fatal_error("Error: current setCoupling  is missing from the restart.\n");
+    cvm::error("Error: current setCoupling  is missing from the restart.\n");
 
   if (!get_keyval(conf, "couplingAccum", coupling_accum))
-    cvm::fatal_error("Error: couplingAccum is missing from the restart.\n");
-
+    cvm::error("Error: couplingAccum is missing from the restart.\n");
 
   if (!get_keyval(conf, "mean", means))
-    cvm::fatal_error("Error: current mean is missing from the restart.\n");
+    cvm::error("Error: current mean is missing from the restart.\n");
 
   if (!get_keyval(conf, "ssd", ssd))
-    cvm::fatal_error("Error: current ssd is missing from the restart.\n");
+    cvm::error("Error: current ssd is missing from the restart.\n");
 
   if (!get_keyval(conf, "updateCalls", update_calls))
-    cvm::fatal_error("Error: current updateCalls is missing from the restart.\n");
+    cvm::error("Error: current updateCalls is missing from the restart.\n");
 
   if (!get_keyval(conf, "b_equilibration", b_equilibration))
-    cvm::fatal_error("Error: current updateCalls is missing from the restart.\n");
+    cvm::error("Error: current updateCalls is missing from the restart.\n");
 
   return COLVARS_OK;
 }
@@ -388,7 +393,7 @@ std::ostream & colvarbias_alb::write_traj(std::ostream &os)
     for (size_t i = 0; i < means.size(); i++) {
       os << " "
          << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << -2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (fmax(update_calls,2) - 1);
+         << -2.0 * (means[i] / (static_cast<cvm::real>(colvar_centers[i])) - 1) * ssd[i] / (fmax(update_calls, 2.0) - 1);
 
     }
 
@@ -405,8 +410,8 @@ cvm::real colvarbias_alb::restraint_potential(cvm::real k,
 
 
 colvarvalue colvarbias_alb::restraint_force(cvm::real k,
-                                            colvar const *x,
-                                            colvarvalue const &xcenter) const
+                                            colvar const * /* x */,
+                                            colvarvalue const & /* xcenter */) const
 {
   return k;
 }

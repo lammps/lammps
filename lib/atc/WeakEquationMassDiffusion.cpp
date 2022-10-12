@@ -19,14 +19,14 @@ WeakEquationMassDiffusion::WeakEquationMassDiffusion()
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-WeakEquationMassDiffusion::~WeakEquationMassDiffusion(void)
+WeakEquationMassDiffusion::~WeakEquationMassDiffusion()
 {}
 //---------------------------------------------------------------------
 //   compute capacity
 //---------------------------------------------------------------------
 void WeakEquationMassDiffusion::M_integrand(
   const FIELD_MATS &fields,
-  const Material * material,
+  const Material * /* material */,
   DENS_MAT & capacity ) const
 {
   FIELD_MATS::const_iterator dField = fields.find(MASS_DENSITY);
@@ -38,13 +38,13 @@ void WeakEquationMassDiffusion::M_integrand(
 //  compute flux
 //--------------------------------------------------------------
 void WeakEquationMassDiffusion::B_integrand(
-  const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
-  const Material * material,
-  DENS_MAT_VEC &flux) const
+  const FIELD_MATS & /* fields */,
+  const GRAD_FIELD_MATS & /* grad_fields */,
+  const Material * /* material */,
+  DENS_MAT_VEC & /* flux */) const
 {
 //  material->mass_flux(fields, grad_fields, flux[MASS_DENSITY]);
 }
 }; // end namespace
 
-  
+

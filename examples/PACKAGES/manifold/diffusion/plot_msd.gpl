@@ -1,0 +1,63 @@
+# Plots the observed and expected MSDs.
+#
+set term epslatex standalone size 12cm,8cm color dashed
+set output 'msd_plot2.tex'
+
+msd_s(t,R,D) = 2*R*R*( 1 - exp(-2*D*t/(R*R)) )
+msd_c(t,R,D) = 2*D*t + 2*R*R*( 1 - exp(-D*t/(R*R)) )
+msd_p(t,D)   = 4*D*t
+
+set key bottom right box opaque maxrow 3 samplen 1 width -5
+
+
+set title 'Mean Squared Displacements on curved surfaces'
+set xlabel 'Time / $\tau$' offset 0,0.5
+set ylabel 'Mean squared displacement $\left<\delta x^2\right>$'
+
+
+set multiplot
+set size 1,1
+set origin 0,0
+
+set xrange[0:130]
+set yrange[-80:520]
+
+set style line 1 lc rgb '#000000' lw 6.0 dt 2
+set style line 2 lc rgb '#000000' lw 6.0 dt 3
+set style line 3 lc rgb '#000000' lw 3.0 dt 1
+
+set grid
+
+plot 'msd.plane.dat'  u ($1-125):2 w p pt 4 ps 2.0 lw 2 lc rgb '#00AA00'       ti 'Plane, data' \
+   , 'msd.cyl.dat'    u ($1-125):2 w p pt 6 ps 2.0 lw 2 lc rgb '#AA0000'       ti 'Cylinder, data' \
+   , 'msd.sphere.dat' u ($1-125):2 w p pt 8 ps 2.0 lw 2 lc rgb '#0000CC'       ti 'Sphere, data' \
+   , msd_p(x, 1.0)          w l ls 1  ti 'Plane, theory' \
+   , msd_c(x, 5, 1.0)       w l ls 2  ti 'Cylinder, theory' \
+   , msd_s(x, 8, 1.0)       w l ls 3  ti 'Sphere, theory'
+
+
+
+set origin 0.12,0.46
+set size 0.4,0.42
+
+# Hack to remove old grid from inset:
+set object 1 rectangle from graph 0,0 to graph 1,1 fillcolor rgb "white" behind
+
+
+unset key
+set grid front
+
+set title 'Short time behavior' offset 0,-0.8
+set ylabel ''
+set xrange[0:10]
+set yrange[0:40]
+set ytics 10
+set xtics 2
+plot 'msd.plane.dat'  u ($1-125):2 w p pt 4 ps 2.0 lw 2 lc rgb '#00AA00'       ti 'Plane, data' \
+   , 'msd.cyl.dat'    u ($1-125):2 w p pt 6 ps 2.0 lw 2 lc rgb '#AA0000'       ti 'Cylinder, data' \
+   , 'msd.sphere.dat' u ($1-125):2 w p pt 8 ps 2.0 lw 2 lc rgb '#0000CC'       ti 'Sphere, data' \
+   , msd_p(x, 1.0)          w l ls 1  ti 'plane, theory' \
+   , msd_c(x, 5, 1.0)       w l ls 2  ti 'cylinder, theory' \
+   , msd_s(x, 8, 1.0)       w l ls 3  ti 'sphere, theory'
+unset multiplot
+

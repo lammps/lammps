@@ -1,0 +1,16 @@
+Examples for Basic Dissipative Particle Dynamics (DPD)
+------------------------------------------------------
+This directory contains examples for DPD simulations using
+pair styles from the DPD-BASIC package.
+
+1)  'dpd' - simple example (DPD fluid) for 'dpd' pair style (in.dpd)
+
+2)  'dpd_tstat' - coarse-grained SPC/E water example for 'dpd/tstat' pair style
+    (in.dpd_tstat), an initial configuration (dpdext.data) and tabulated potential
+    (cg_spce_table.pot) obtained by bottom-up coarse-graining of the atomistic SPC/E water.
+
+3)  'dpdext' - simple example (DPD fluid) for 'dpd/ext' pair style (in.dpdext)
+
+4)  'dpdext_tstat' - coarse-grained SPC/E water example for 'dpd/ext/tstat' pair style
+    (in.dpdext_tstat), an initial configuration (dpdext.data) and tabulated potential
+    (cg_spce_table.pot) obtained by bottom-up coarse-graining of the atomistic SPC/E water.

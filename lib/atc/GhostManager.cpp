@@ -18,19 +18,19 @@ namespace ATC {
   //  Class GhostManager
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
   GhostManager::GhostManager(ATC_Method * atc) :
-    ghostModifier_(NULL),
+    ghostModifier_(nullptr),
     atc_(atc),
     boundaryDynamics_(NO_BOUNDARY_DYNAMICS),
     needReset_(true)
   {
     // do nothing
   }
-  
+
   //--------------------------------------------------------
   //  Destructor
   //--------------------------------------------------------
@@ -46,7 +46,7 @@ namespace ATC {
   bool GhostManager::modify(int narg, char **arg)
   {
     int argIndex = 0;
-    
+
     /*! \page man_boundary_dynamics fix_modify AtC boundary_dynamics
       \section syntax
       fix_modify AtC boundary_dynamics < on | damped_harmonic | prescribed | coupled | none > [args] \n
@@ -91,7 +91,7 @@ namespace ATC {
         gamma_.push_back(atof(arg[argIndex++]));
         mu_.push_back(atof(arg[argIndex++]));
       }
-      
+
       boundaryDynamics_ = DAMPED_LAYERS;
       needReset_ = true;
       return true;
@@ -116,14 +116,14 @@ namespace ATC {
   {
     if (ghostModifier_) {
       delete ghostModifier_;
-      ghostModifier_ = NULL;
+      ghostModifier_ = nullptr;
     }
 
     if (!atc_->groupbit_ghost()) {
       ghostModifier_ = new GhostModifier(this);
       return;
     }
-    
+
     switch (boundaryDynamics_) {
     case VERLET: {
       ghostModifier_ = new GhostModifier(this);
@@ -175,7 +175,7 @@ namespace ATC {
     }
     }
   }
-  
+
   //--------------------------------------------------------
   //  construct_transfers
   //    sets/constructs all required dependency managed data
@@ -184,7 +184,7 @@ namespace ATC {
   {
     ghostModifier_->construct_transfers();
   }
-  
+
   //--------------------------------------------------------
   //  initialize
   //    initialize all data and variables before a run
@@ -204,7 +204,7 @@ namespace ATC {
   {
     ghostModifier_->pre_exchange();
   }
-  
+
   //--------------------------------------------------------
   //  initial_integrate_velocity
   //    velocity update in first part of velocity-verlet
@@ -213,7 +213,7 @@ namespace ATC {
   {
     ghostModifier_->init_integrate_velocity(dt);
   }
-      
+
   //--------------------------------------------------------
   //  initial_integrate_position
   //    position update in first part of velocity-verlet
@@ -246,13 +246,13 @@ namespace ATC {
   //  Class GhostModifier
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
   GhostModifier::GhostModifier(GhostManager * ghostManager) :
     ghostManager_(ghostManager),
-    atomTimeIntegrator_(NULL),
+    atomTimeIntegrator_(nullptr),
     integrateAtoms_(false)
   {
     // do nothing
@@ -291,7 +291,7 @@ namespace ATC {
   {
     atomTimeIntegrator_->init_integrate_velocity(dt);
   }
-      
+
   //--------------------------------------------------------
   //  initial_integrate_position
   //    position update in first part of velocity-verlet
@@ -315,15 +315,15 @@ namespace ATC {
   //  Class GhostModifierPrescribed
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
   GhostModifierPrescribed::GhostModifierPrescribed(GhostManager * ghostManager) :
     GhostModifier(ghostManager),
-    atomPositions_(NULL),
-    atomFeDisplacement_(NULL),
-    atomRefPositions_(NULL)
+    atomPositions_(nullptr),
+    atomFeDisplacement_(nullptr),
+    atomRefPositions_(nullptr)
   {
     // do nothing
   }
@@ -353,10 +353,10 @@ namespace ATC {
                                                            atomShapeFunctions,
                                                            GHOST);
     interscaleManager.add_per_atom_quantity(atomFeDisplacement_,field_to_prolongation_name(DISPLACEMENT)+"Ghost");
-    
+
     atomRefPositions_ = interscaleManager.per_atom_quantity("AtomicGhostCoarseGrainingPositions");
   }
-      
+
   //--------------------------------------------------------
   //  post_init_integrate
   //    after integration, fix ghost atoms' positions
@@ -373,7 +373,7 @@ namespace ATC {
   //  Class GhostModifierDampedHarmonic
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -382,9 +382,9 @@ namespace ATC {
                                                            const vector<double> & gamma,
                                                            const vector<double> & mu) :
     GhostModifierPrescribed(ghostManager),
-    atomVelocities_(NULL),
-    atomFeVelocity_(NULL),
-    atomForces_(NULL),
+    atomVelocities_(nullptr),
+    atomFeVelocity_(nullptr),
+    atomForces_(nullptr),
     kappa_(kappa),
     gamma_(gamma),
     mu_(mu)
@@ -399,7 +399,7 @@ namespace ATC {
   void GhostModifierDampedHarmonic::construct_transfers()
   {
     GhostModifierPrescribed::construct_transfers();
-    
+
     InterscaleManager & interscaleManager((ghostManager_->atc())->interscale_manager());
     atomVelocities_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY,GHOST);
     atomForces_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_FORCE,GHOST);
@@ -431,7 +431,7 @@ namespace ATC {
     atomTimeIntegrator_->init_integrate_velocity(dt);
 #endif
   }
-      
+
   //--------------------------------------------------------
   //  initial_integrate_position
   //    position update in first part of velocity-verlet
@@ -477,7 +477,7 @@ namespace ATC {
   //  Class GhostModifierDampedHarmonicLayers
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -486,10 +486,10 @@ namespace ATC {
                                                                        const vector<double> & gamma,
                                                                        const vector<double> & mu) :
     GhostModifierDampedHarmonic(ghostManager,kappa,gamma,mu),
-    ghostToBoundaryDistance_(NULL),
-    layerId_(NULL)
+    ghostToBoundaryDistance_(nullptr),
+    layerId_(nullptr)
   {
-   
+
     // do nothing
   }
 
@@ -500,7 +500,7 @@ namespace ATC {
   void GhostModifierDampedHarmonicLayers::construct_transfers()
   {
     GhostModifierDampedHarmonic::construct_transfers();
-    
+
     InterscaleManager & interscaleManager((ghostManager_->atc())->interscale_manager());
 
     // transfer for distance to boundary
@@ -523,20 +523,20 @@ namespace ATC {
   {
      compute_distances();
      int nlayers = find_layers();
-     if (nlayers > ((int)gamma_.size())) throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize not enough damping factors specfied " + to_string(gamma_.size()));
+     if (nlayers > ((int)gamma_.size())) throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize not enough damping factors specified " + to_string(gamma_.size()));
   }
 
   //--------------------------------------------------------
   //  find atomic mononlayers
   //--------------------------------------------------------
-  bool compare( pair<int,double> a, pair<int,double> b) { 
+  bool compare( pair<int,double> a, pair<int,double> b) {
     return (a.second < b.second);
   }
   int GhostModifierDampedHarmonicLayers::find_layers()
   {
     DENS_MAT & d(ghostToBoundaryDistance_->set_quantity());
     DenseMatrix<int> & ids = layerId_->set_quantity();
-    
+
     // get distances for every ghost atom for sorting
     // size arrays of length number of processors
     int commSize = LammpsInterface::instance()->comm_size();
@@ -608,7 +608,7 @@ namespace ATC {
     ATC::LammpsInterface::instance()->print_msg_once(msg.str());
     return nlayers;
   }
-   
+
   //--------------------------------------------------------
   //  compute distances to boundary faces
   //--------------------------------------------------------
@@ -640,7 +640,7 @@ namespace ATC {
           feMesh->face_connectivity_unique(PAIR(elt,face),faceNodes);
 
           // identify the boundary face by the face which contains only boundary nodes
-          isBoundaryFace = true; 
+          isBoundaryFace = true;
           for (int i = 0; i < faceNodes.size(); ++i) {
             if (nodeType(faceNodes(i),0) != BOUNDARY) {
               isBoundaryFace = false;
@@ -665,7 +665,7 @@ namespace ATC {
           }
         }
         centroid *= -1./double(nfe); // -1 gets outward normal from ATC region => all distances should be > 0
-        
+
         // for each boundary face get the normal
         // ASSUMES all faces are planar
         feMesh->face_normal(PAIR(elt,face),0,normal);
@@ -692,7 +692,7 @@ namespace ATC {
     }
   }
 
-  
+
   //--------------------------------------------------------
   //  final_integrate
   //    velocity update in second part of velocity-verlet
@@ -723,7 +723,7 @@ namespace ATC {
   //  Class GhostIntegratorVerletSwap
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -731,8 +731,8 @@ namespace ATC {
     GhostModifier(ghostManager),
     lammpsInterface_(LammpsInterface::instance()),
     elementSet_((((ghostManager_->atc())->fe_engine())->fe_mesh())->elementset((ghostManager_->atc())->internal_element_set())),
-    atomElement_(NULL),
-    atomGhostElement_(NULL),
+    atomElement_(nullptr),
+    atomGhostElement_(nullptr),
     internalToAtom_((ghostManager_->atc())->internal_to_atom_map()),
     ghostToAtom_((ghostManager_->atc())->ghost_to_atom_map()),
     groupbit_((ghostManager_->atc())->groupbit()),

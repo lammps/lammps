@@ -59,7 +59,7 @@ int buckcl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
   int init_ok=0;
   if (world_me==0)
     init_ok=BUCKCLMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
-                        host_a, host_c, offset, special_lj, inum, nall, 300,
+                        host_a, host_c, offset, special_lj, inum, nall, max_nbors,
                         maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
@@ -78,11 +78,11 @@ int buckcl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=BUCKCLMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
-                        host_a, host_c, offset, special_lj, inum, nall, 300,
+                        host_a, host_c, offset, special_lj, inum, nall, max_nbors,
                         maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
-    BUCKCLMF.device->gpu_barrier();
+    BUCKCLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

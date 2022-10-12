@@ -32,7 +32,7 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
     * \param gpu_split fraction of particles handled by device
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -65,7 +65,7 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
   bool shared_types;
 
   /// Number of atom types
-  int _lj_types;
+  int _ntypes;
 
   /// ts1.x = lam1, ts1.y = lam2,  ts1.z = lam3, ts1.w = powermint
   UCL_D_Vec<numtyp4> ts1;
@@ -80,7 +80,7 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
   /// ts6.x = Z_i, ts6.y = Z_j, ts6.z = ZBLcut, ts6.w = ZBLexpscale
   UCL_D_Vec<numtyp4> ts6;
 
-  UCL_D_Vec<numtyp> cutsq;
+  numtyp _cutsq_max;
 
   UCL_D_Vec<int> elem2param;
   UCL_D_Vec<int> map;
@@ -91,15 +91,13 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
   /// zetaij.w = zetaij
   UCL_D_Vec<acctyp4>   _zetaij;
 
-  UCL_Kernel k_zeta;
-  UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex, ts6_tex;
+  UCL_Kernel k_zeta, k_zeta_noev, *k_zeta_selt;
 
   numtyp _global_e,_global_a_0,_global_epsilon_0;
-  numtyp _cutshortsq;
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag, const int evatom);
+  int loop(const int eflag, const int vflag, const int evatom, bool &success);
 };
 
 }

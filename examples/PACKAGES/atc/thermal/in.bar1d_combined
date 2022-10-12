@@ -1,0 +1,87 @@
+#AtC Thermal Coupling
+# This benchmark tests heat conducting into an MD region at a fixed temperature at one end.  The
+# temperature is initially 20 everywhere and the left boundary BC is fixed at
+# 40.# The result should show heat diffusing through the FEM to the MD and back
+# out # to the FEM on the right.  Insufficient time is captured to reach the
+# linear # steady state, but heat crossing the boundaries should be observed,
+# as should the interaction of the two themostat types.
+#echo both
+units		real
+atom_style	atomic
+# create domain
+#lattice	type reduced density rho* = 4*(sigma/a)^3, where N=4 for fcc, s = 3.405 A (Wagner) and a = 5.25 A (Ashcroft & Mermin, p. 70)
+# NOTE following 3 lines added for restart
+boundary	f p p
+pair_style	lj/cut 13.5
+read_data       temp.init
+lattice         fcc 5.405 origin 0.25 0.25 0.25
+region		simRegion block -16 4 -3 3 -3 3
+# create atoms, NOTE commented out for restart
+#region		mdRegion block -5 5 -3 3 -3 3
+#boundary	f p p
+#create_box	1 mdRegion
+#create_atoms	1 region mdRegion
+#mass		1 39.95
+# specify interal/ghost atoms
+region		mdInternal block -4 4 -3 3 -3 3
+group		internal region mdInternal
+region		mdGhost block -5 -4 -3 3 -3 3
+group		ghost region mdGhost
+# velocities have Vcm = 0, NOTE next four lines commented out for restart
+#velocity	internal create 40. 87287 mom yes loop geom
+#pair_style	lj/cut 13.5
+##pair_coeff	1 1 0.010323166 3.405 13.5
+#pair_coeff  	1 1 .238 3.405 13.5
+neighbor	5. bin
+neigh_modify	every 10 delay 0 check no
+#write_restart	tinit.dat
+#               ID  group atc PhysicsType ParameterFile
+fix             AtC internal   atc thermal     Ar_thermal.mat
+fix_modify      AtC boundary ghost
+fix_modify      AtC time_integration fractional_step
+fix_modify	AtC internal_quadrature off
+#               ID  part keywords    nx ny nz region
+fix_modify      AtC mesh create 10 1  1  simRegion f p p
+fix_modify      AtC mesh create_faceset ibndy box -4.0 40.0 -INF INF -INF INF in
+fix_modify      AtC mesh create_faceset obndy box -4.0 40.0 -INF INF -INF INF outward
+# fix a temperature
+fix_modify     	AtC  fix temperature all 20.
+# turn on thermostat
+fix_modify	AtC  control thermal rescale 10
+variable xdof equal 3*count(ghost)
+compute_modify thermo_temp extra ${xdof}
+thermo_style custom step cpu etotal pe f_AtC[1] temp f_AtC[2]
+thermo_modify  format 1 %6i format 2 %7.2g
+# equilibrate MD field
+#fix_modify      AtC  output bar1dfe_combined_init 100
+timestep	5
+thermo		10
+run 		400
+# change thermostat to flux
+fix_modify	AtC unfix temperature all
+fix_modify  	AtC control thermal flux faceset obndy 
+#fix_modify	AtC control thermal hoover
+fix_modify	AtC control localized_lambda on
+#fix_modify      AtC  control tolerance 1.e-16 # this tolerance seems necessary to prevent noticeable drift
+# add nodesets
+#               ID  mesh create_nodeset tag xmin xmax ymin ymax zmin zmax
+fix_modify      AtC mesh create_nodeset lbc -16.1  -15.9   -INF INF   -INF INF
+fix_modify      AtC mesh create_nodeset rbc  3.9   4.1   -INF INF   -INF INF
+fix_modify      AtC  fix temperature lbc 40.
+fix_modify      AtC  fix temperature rbc 20.
+
+# equilibrate filter
+fix_modify      AtC  filter type exponential
+fix_modify      AtC  filter scale 1000.0
+#fix_modify      AtC  filter on
+thermo		100
+#run		100
+
+# set up output, should be before a "run"
+fix_modify      AtC  output bar1d_combinedFE 100 text
+# output command
+#dump            D1 all atom 100 dump.bar1d_combined
+# run with FE
+reset_timestep 0
+thermo		100
+run 		5000

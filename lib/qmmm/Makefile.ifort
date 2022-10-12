@@ -3,17 +3,20 @@
 # this file will be copied to Makefile.lammps
 EXTRAMAKE = Makefile.lammps.empty
 
-# top level directory of Quantum ESPRESSO 5.4.1 or later
+# top level directory of Quantum ESPRESSO 6.4 or later
 QETOPDIR=$(HOME)/compile/espresso
 
 # import compiler settings from Quantum ESPRESSO
-sinclude $(QETOPDIR)/make.sys
+sinclude $(QETOPDIR)/make.inc
 
 # FLAGS for c++ with IntelMPI when QE was compiled with Intel Fortran
-MPICXX=icpc
-MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -O2 -Wall -g -fPIC\
-        -I../../src -I$(QETOPDIR)/COUPLE/include -I${INTELMPI_HOME}/include64
-MPILIBS=-openmp  -L${INTELMPI_HOME}/lib64  -lz  -lifcore -L$(I_MPI_ROOT)/lib64 -lmpi -lmpiif
+
+MPICXX=mpiicpc
+MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -DFC_ABORT_ARG -O2 -Wall -g -fPIC -I${INTEL_HOME}/include -I${INTELMPI_HOME}/include64 \
+        -I../../src -I$(QETOPDIR)/COUPLE/include   -I$(QETOPDIR)/LAXlib -I$(QETOPDIR)/UtilXlib -I$(QETOPDIR)/FoX/finclude -tbb
+
+MPILIBS=-qopenmp  -L${INTELMPI_HOME}/lib64  -lz  -lifcore -lifport -L$(I_MPI_ROOT)/lib64 -lmpi -lmpifort
+
 
 # location of required libraries
 # part 1: hi-level libraries for building pw.x
@@ -24,13 +27,20 @@ $(QETOPDIR)/Modules/libqemod.a
 # part 2: lo-level libraries for all of Q-E
 LIBOBJS = \
 $(QETOPDIR)/FFTXlib/libqefft.a \
+$(QETOPDIR)/dft-d3/libdftd3qe.a  \
+$(QETOPDIR)/KS_Solvers/PPCG/libppcg.a  \
+$(QETOPDIR)/KS_Solvers/CG/libcg.a  \
+$(QETOPDIR)/KS_Solvers/Davidson/libdavid.a  \
+$(QETOPDIR)/UtilXlib/libutil.a   \
 $(QETOPDIR)/LAXlib/libqela.a   \
 $(QETOPDIR)/clib/clib.a   \
 $(QETOPDIR)/iotk/src/libiotk.a
+# foxlibs
 
+LIBS += -L${QETOPDIR}/FoX/lib -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys  -mkl  -ltbbmalloc
 # part 3: add-on libraries and main library for LAMMPS
 sinclude ../../src/Makefile.package
-LAMMPSCFG = galileo-omp
+LAMMPSCFG =intel_cpu
 LAMMPSLIB = ../../src/liblammps_$(LAMMPSCFG).a
 
 # part 4: local QM/MM library and progams

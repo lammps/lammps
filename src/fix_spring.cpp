@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,17 +16,16 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_spring.h"
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
-#include "force.h"
-#include "group.h"
 #include "error.h"
+#include "group.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -38,7 +38,7 @@ enum{TETHER,COUPLE};
 
 FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  group2(NULL)
+  group2(nullptr)
 {
   if (narg < 9) error->all(FLERR,"Illegal fix spring command");
 
@@ -48,6 +48,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
   dynamic_group_allow = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
@@ -55,24 +56,22 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"tether") == 0) {
     if (narg != 9) error->all(FLERR,"Illegal fix spring command");
     styleflag = TETHER;
-    k_spring = force->numeric(FLERR,arg[4]);
+    k_spring = utils::numeric(FLERR,arg[4],false,lmp);
     xflag = yflag = zflag = 1;
     if (strcmp(arg[5],"NULL") == 0) xflag = 0;
-    else xc = force->numeric(FLERR,arg[5]);
+    else xc = utils::numeric(FLERR,arg[5],false,lmp);
     if (strcmp(arg[6],"NULL") == 0) yflag = 0;
-    else yc = force->numeric(FLERR,arg[6]);
+    else yc = utils::numeric(FLERR,arg[6],false,lmp);
     if (strcmp(arg[7],"NULL") == 0) zflag = 0;
-    else zc = force->numeric(FLERR,arg[7]);
-    r0 = force->numeric(FLERR,arg[8]);
+    else zc = utils::numeric(FLERR,arg[7],false,lmp);
+    r0 = utils::numeric(FLERR,arg[8],false,lmp);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
 
   } else if (strcmp(arg[3],"couple") == 0) {
     if (narg != 10) error->all(FLERR,"Illegal fix spring command");
     styleflag = COUPLE;
 
-    int n = strlen(arg[4]) + 1;
-    group2 = new char[n];
-    strcpy(group2,arg[4]);
+    group2 = utils::strdup(arg[4]);
     igroup2 = group->find(arg[4]);
     if (igroup2 == -1)
       error->all(FLERR,"Fix spring couple group ID does not exist");
@@ -80,15 +79,15 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Two groups cannot be the same in fix spring couple");
     group2bit = group->bitmask[igroup2];
 
-    k_spring = force->numeric(FLERR,arg[5]);
+    k_spring = utils::numeric(FLERR,arg[5],false,lmp);
     xflag = yflag = zflag = 1;
     if (strcmp(arg[6],"NULL") == 0) xflag = 0;
-    else xc = force->numeric(FLERR,arg[6]);
+    else xc = utils::numeric(FLERR,arg[6],false,lmp);
     if (strcmp(arg[7],"NULL") == 0) yflag = 0;
-    else yc = force->numeric(FLERR,arg[7]);
+    else yc = utils::numeric(FLERR,arg[7],false,lmp);
     if (strcmp(arg[8],"NULL") == 0) zflag = 0;
-    else zc = force->numeric(FLERR,arg[8]);
-    r0 = force->numeric(FLERR,arg[9]);
+    else zc = utils::numeric(FLERR,arg[8],false,lmp);
+    r0 = utils::numeric(FLERR,arg[9],false,lmp);
     if (r0 < 0) error->all(FLERR,"R0 < 0 for fix spring command");
 
   } else error->all(FLERR,"Illegal fix spring command");
@@ -109,7 +108,6 @@ int FixSpring::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -131,8 +129,8 @@ void FixSpring::init()
   masstotal = group->mass(igroup);
   if (styleflag == COUPLE) masstotal2 = group->mass(igroup2);
 
-  if (strstr(update->integrate_style,"respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -141,12 +139,12 @@ void FixSpring::init()
 
 void FixSpring::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,12 +16,19 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <climits>
 #include "restart_mpiio.h"
+
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+// the (rather old) version of ROMIO in MPICH for Windows
+// uses "char *" instead of "const char *". This works around it.
+#if defined(_WIN32)
+#define ROMIO_COMPAT_CAST (char *)
+#else
+#define ROMIO_COMPAT_CAST
+#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -36,9 +44,9 @@ RestartMPIIO::RestartMPIIO(LAMMPS *lmp) : Pointers(lmp)
    for some file servers it is most efficient to only read or only write
 ------------------------------------------------------------------------- */
 
-void RestartMPIIO::openForRead(char *filename)
+void RestartMPIIO::openForRead(const char *filename)
 {
-  int err = MPI_File_open(world, filename, MPI_MODE_RDONLY ,
+  int err = MPI_File_open(world, ROMIO_COMPAT_CAST filename, MPI_MODE_RDONLY,
                           MPI_INFO_NULL, &mpifh);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
@@ -56,9 +64,9 @@ void RestartMPIIO::openForRead(char *filename)
    for some file servers it is most efficient to only read or only write
 ------------------------------------------------------------------------- */
 
-void RestartMPIIO::openForWrite(char *filename)
+void RestartMPIIO::openForWrite(const char *filename)
 {
-  int err = MPI_File_open(world, filename, MPI_MODE_WRONLY,
+  int err = MPI_File_open(world, ROMIO_COMPAT_CAST filename, MPI_MODE_WRONLY,
                           MPI_INFO_NULL, &mpifh);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
@@ -120,7 +128,7 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
    if the consolidated chunksize is greater than INT_MAX
      can only happen in extreme situation of reading restart file on
      much fewer ranks than written and with relatively large data sizes
-   follow the collective IO call with rank independant IO to read remaining data
+   follow the collective IO call with rank independent IO to read remaining data
 ------------------------------------------------------------------------- */
 
 void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)

@@ -1,0 +1,14 @@
+# Descriptor parameters generated in PyXtal_FF 
+
+# Required 
+rcutfac 5.0 
+nmax 3 
+lmax 4 
+alpha 2.0 
+
+# Elements 
+
+nelems 1 
+elems Si 
+radelems 0.5 
+welems 14 

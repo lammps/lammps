@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(harmonic,ImproperHarmonic)
-
+// clang-format off
+ImproperStyle(harmonic,ImproperHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HARMONIC_H
 #define LMP_IMPROPER_HARMONIC_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {
@@ -28,33 +27,20 @@ namespace LAMMPS_NS {
 class ImproperHarmonic : public Improper {
  public:
   ImproperHarmonic(class LAMMPS *);
-  virtual ~ImproperHarmonic();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperHarmonic() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
-  double *k,*chi;
+  double *k, *chi;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Improper problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for improper coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

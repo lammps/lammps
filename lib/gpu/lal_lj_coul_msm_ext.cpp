@@ -59,7 +59,7 @@ int ljcm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=LJCMLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                         host_gcons, host_dgcons, offset,
-                        special_lj, inum, nall, 300, maxspecial,
+                        special_lj, inum, nall, max_nbors, maxspecial,
                         cell_size, gpu_split, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, order, qqrd2e);
 
@@ -79,11 +79,11 @@ int ljcm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJCMLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                           host_gcons, host_dgcons, offset,
-                          special_lj, inum, nall, 300, maxspecial,
+                          special_lj, inum, nall, max_nbors, maxspecial,
                           cell_size, gpu_split, screen, host_cut_ljsq,
                           host_cut_coulsq, host_special_coul, order, qqrd2e);
 
-    LJCMLMF.device->gpu_barrier();
+    LJCMLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

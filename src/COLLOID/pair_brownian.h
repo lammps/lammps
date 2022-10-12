@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(brownian,PairBrownian)
-
+// clang-format off
+PairStyle(brownian,PairBrownian);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BROWNIAN_H
@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class PairBrownian : public Pair {
  public:
   PairBrownian(class LAMMPS *);
-  virtual ~PairBrownian();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairBrownian() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
  protected:
-  double cut_inner_global,cut_global;
-  double t_target,mu;
-  int flaglog,flagfld;
+  double cut_inner_global, cut_global;
+  double t_target, mu;
+  int flaglog, flagfld;
   int flagHI, flagVF;
   int flagdeform, flagwall;
   double vol_P;
@@ -49,54 +49,16 @@ class PairBrownian : public Pair {
   class FixWall *wallfix;
 
   int seed;
-  double **cut_inner,**cut;
-  double R0,RT0;
+  double **cut_inner, **cut;
+  double R0, RT0;
 
   class RanMars *random;
 
-  void set_3_orthogonal_vectors(double*,double*,double*);
+  void set_3_orthogonal_vectors(double *, double *, double *);
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: Cannot include log terms without 1/r terms; setting flagHI to 1
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair brownian requires atom style sphere
-
-Self-explanatory.
-
-W: Pair brownian needs newton pair on for momentum conservation
-
-Self-explanatory.
-
-E: Pair brownian requires extended particles
-
-One of the particles has radius 0.0.
-
-E: Pair brownian requires monodisperse particles
-
-All particles must be the same finite size.
-
-E: Cannot use multiple fix wall commands with pair brownian
-
-Self-explanatory.
-
-*/

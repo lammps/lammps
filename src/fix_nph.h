@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nph,FixNPH)
-
+// clang-format off
+FixStyle(nph,FixNPH);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPH_H
@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixNPH : public FixNH {
  public:
   FixNPH(class LAMMPS *, int, char **);
-  ~FixNPH() {}
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control can not be used with fix nph
-
-Self-explanatory.
-
-E: Pressure control must be used with fix nph
-
-Self-explanatory.
-
-*/

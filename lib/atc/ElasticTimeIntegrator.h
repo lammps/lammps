@@ -16,19 +16,19 @@ namespace ATC {
      */
 
     class MomentumTimeIntegrator : public TimeIntegrator {
-  
+
     public:
-  
+
         // constructor
         MomentumTimeIntegrator(ATC_Coupling * atc,
                                TimeIntegrationType timeIntegrationType);
-        
+
         // destructor
         virtual ~MomentumTimeIntegrator(){};
 
         /** parser/modifier */
         virtual bool modify(int narg, char **arg);
-        
+
         /** create objects to implement requested numerical method */
         virtual void construct_methods();
 
@@ -47,7 +47,7 @@ namespace ATC {
     protected:
 
         /** filtered atomic force */
-        
+
         DENS_MAN nodalAtomicForceFiltered_;
 
         /** filtered atomic momentum due initial conditions and MD updates */
@@ -58,7 +58,7 @@ namespace ATC {
 
         // DO NOT define this
         MomentumTimeIntegrator();
-  
+
     };
 
     /**
@@ -67,12 +67,12 @@ namespace ATC {
      */
 
     class MomentumIntegrationMethod : public TimeIntegrationMethod {
-  
+
     public:
-  
+
         // constructor
         MomentumIntegrationMethod(MomentumTimeIntegrator * momentumTimeIntegrator);
-        
+
         // destructor
         virtual ~MomentumIntegrationMethod(){};
 
@@ -81,17 +81,17 @@ namespace ATC {
 
         /** checks to see if first RHS computation is needed */
         virtual bool has_final_predictor() {return true;};
-        
+
     protected:
- 
+
         /** time filtering object */
         TimeFilter * timeFilter_;
-        
+
         /** finite element velocity field */
         DENS_MAN & velocity_;
         /** finite element acceleration field */
         DENS_MAN & acceleration_;
-        
+
         /** atomic nodal velocity field */
         DENS_MAN & nodalAtomicVelocityOut_;
         /** right-hand side of velocity equation */
@@ -106,7 +106,7 @@ namespace ATC {
 
         // DO NOT define this
         MomentumIntegrationMethod();
-  
+
     };
 
     /**
@@ -115,21 +115,21 @@ namespace ATC {
      */
 
     class ElasticTimeIntegratorVerlet : public MomentumIntegrationMethod {
-  
+
     public:
-  
+
       // constructor
       ElasticTimeIntegratorVerlet(MomentumTimeIntegrator * momentumTimeIntegrator);
-        
+
       // destructor
       virtual ~ElasticTimeIntegratorVerlet(){};
 
       /** create and get necessary transfer operators */
       virtual void construct_transfers();
-      
+
       /** pre time integration initialization of data */
       virtual void initialize();
-      
+
       // time step methods, corresponding to ATC_Transfer
       /** first part of pre_initial_integrate */
       virtual void pre_initial_integrate1(double dt);
@@ -143,52 +143,52 @@ namespace ATC {
       virtual void add_to_rhs();
       /** post processing step before output */
       virtual void post_process();
-        
+
       /** add output data */
       virtual void output(OUTPUT_LIST & outputData);
-      
+
       /** operations at end of a run */
       virtual void finish();
-      
+
     protected:
-      
+
       /** finite element displacement field */
       DENS_MAN & displacement_;
-      
+
       /** atomic nodal displacement field */
       DENS_MAN & nodalAtomicDisplacementOut_;
-      
+
       /** filtered atomic force */
       DENS_MAN & nodalAtomicForceFiltered_;
-      
+
       /** transfer for computing atomic displacement */
       DENS_MAN * nodalAtomicDisplacement_;
 
       /** transfer for computing nodal atomic force */
       DENS_MAN * nodalAtomicForce_;
-      
+
     private:
-      
+
       // DO NOT define this
       ElasticTimeIntegratorVerlet();
-      
+
     };
-    
+
     /**
      *  @class  ElasticTimeIntegratorVerlet
      *  @brief  Verlet integration for FE elastic quantities with time filtering
      */
 
     class ElasticTimeIntegratorVerletFiltered : public ElasticTimeIntegratorVerlet {
-  
+
     public:
-  
+
         // constructor
         ElasticTimeIntegratorVerletFiltered(MomentumTimeIntegrator * momentumTimeIntegrator);
-        
+
         // destructor
         virtual ~ElasticTimeIntegratorVerletFiltered(){};
-        
+
         // time step methods, corresponding to ATC_Transfer
         /** first part of pre_initial_integrate */
         virtual void pre_initial_integrate1(double dt);
@@ -203,7 +203,7 @@ namespace ATC {
 
         /** add output data */
         virtual void output(OUTPUT_LIST & outputData);
-        
+
     protected:
 
         /** atomic nodal acceleration field */
@@ -213,16 +213,16 @@ namespace ATC {
 
         // DO NOT define this
         ElasticTimeIntegratorVerletFiltered();
-  
+
     };
 
   /**
-   *  @class  ElasticTimeIntegratorFractionalStep 
+   *  @class  ElasticTimeIntegratorFractionalStep
    *  @brief  Class for using 2nd order Verlet integration to update FE contributions to momentum field
-   *          (Uses same update for the atomic contributions to the finite 
-   *           elements as are used by the LAMMPS integration scheme 
+   *          (Uses same update for the atomic contributions to the finite
+   *           elements as are used by the LAMMPS integration scheme
    *           for the atomic velocities and positions, i.e. Verlet.)
-   */ 
+   */
 
   class ElasticTimeIntegratorFractionalStep : public MomentumIntegrationMethod {
 
@@ -230,16 +230,16 @@ namespace ATC {
 
     // constructor
     ElasticTimeIntegratorFractionalStep(MomentumTimeIntegrator * momentumTimeIntegrator);
-        
+
     // destructor
     virtual ~ElasticTimeIntegratorFractionalStep() {};
-    
+
     /** create and get necessary transfer operators */
     virtual void construct_transfers();
 
     /** pre time integration initialization of data */
     virtual void initialize();
-        
+
     // time step methods, corresponding to ATC_Transfer
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double dt);
@@ -272,13 +272,13 @@ namespace ATC {
     // data
     /** finite element displacement field */
     DENS_MAN & displacement_;
-      
+
     /** atomic nodal displacement field */
     DENS_MAN & nodalAtomicDisplacementOut_;
 
     /** equivalent nodal force due to atomic momentum change */
     DENS_MAT nodalAtomicForce_;
-      
+
     /** filtered atomic force */
     DENS_MAN & nodalAtomicForceFiltered_;
 
@@ -287,7 +287,7 @@ namespace ATC {
 
     /** filtered atomic momentum */
     DENS_MAN & nodalAtomicMomentumFiltered_;
-      
+
     /** transfer for computing atomic displacement */
     DENS_MAN * nodalAtomicDisplacement_;
 
@@ -312,7 +312,7 @@ namespace ATC {
    *  @class  FluidsTimeIntegratorGear
    *  @brief  Class for using 3rd order Gear integration to update FE contributions to momentum field
    *          and fractional step method for atomic contributions
-   */ 
+   */
 
   class FluidsTimeIntegratorGear : public MomentumIntegrationMethod {
 
@@ -320,16 +320,16 @@ namespace ATC {
 
     // constructor
     FluidsTimeIntegratorGear(MomentumTimeIntegrator * MomentumTimeIntegrator);
-        
+
     // destructor
     virtual ~FluidsTimeIntegratorGear() {};
-    
+
     /** create and get necessary transfer operators */
     virtual void construct_transfers();
 
     /** pre time integration initialization of data */
     virtual void initialize();
-        
+
     // time step methods, corresponding to ATC_Transfer
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double dt);
@@ -371,7 +371,7 @@ namespace ATC {
     // data
     /** equivalent nodal force due to atomic momentum change */
     DENS_MAT nodalAtomicForce_;
-      
+
     /** filtered atomic force */
     DENS_MAN & nodalAtomicForceFiltered_;
 

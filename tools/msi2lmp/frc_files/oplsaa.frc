@@ -1,6 +1,6 @@
 !BIOSYM forcefield          1
 
-! This is a modified version of msi2lmp for use specifically wtih the
+! This is a modified version of msi2lmp for use specifically with the
 ! OPLS force field. No out-of-plane or cross-terms are included.
 ! Atom types from SPC water and CLAYFF are also included.
 

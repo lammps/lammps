@@ -1,5 +1,11 @@
-#ifndef _WIN32
+#if !defined(_WIN32)
+
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include <cstdlib>
+#else
 #include <alloca.h>
+#endif
+
 #endif
 #include "Function.h"
 #include "ATC_Error.h"
@@ -16,17 +22,17 @@ namespace ATC {
   //====================================================================
   //  UXT_Function
   //===================================================================
-  UXT_Function::UXT_Function(int narg, double* args) { }
+  UXT_Function::UXT_Function(int /* narg */, double* /* args */) { }
   //====================================================================
   //  UXT_Function_Mgr
   //====================================================================
-  UXT_Function_Mgr * UXT_Function_Mgr::myInstance_ = NULL;
+  UXT_Function_Mgr * UXT_Function_Mgr::myInstance_ = nullptr;
   // -----------------------------------------------------------------
   //  instance()
   // -----------------------------------------------------------------
   UXT_Function_Mgr * UXT_Function_Mgr::instance()
   {
-    if (myInstance_ == NULL) {
+    if (myInstance_ == nullptr) {
       myInstance_ = new UXT_Function_Mgr();
     }
     return myInstance_;
@@ -42,7 +48,7 @@ namespace ATC {
   }
 
   // add user function into the if statement and assign returnFunction to it
-  UXT_Function* UXT_Function_Mgr::function(string & type, int nargs, double * args)
+  UXT_Function* UXT_Function_Mgr::function(const string & type, int nargs, double * args)
   {
     UXT_Function * returnFunction;
     if      (type=="linear") {
@@ -83,8 +89,8 @@ namespace ATC {
   UXT_Function* UXT_Function_Mgr::copy_UXT_function(UXT_Function* other)
   {
     string tag = other->tag();
-  
-    UXT_Function * returnFunction = NULL;
+
+    UXT_Function * returnFunction = nullptr;
     if (tag=="linear") {
       ScalarLinearFunction * other_cast = (ScalarLinearFunction*) other;
       returnFunction = new ScalarLinearFunction(*other_cast);
@@ -97,7 +103,7 @@ namespace ATC {
   //  ScalarLinearFunction
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  ScalarLinearFunction::ScalarLinearFunction(int narg, double* args) 
+  ScalarLinearFunction::ScalarLinearFunction(int narg, double* args)
     : UXT_Function(narg,args)
   {
     tag_ = "linear";
@@ -113,19 +119,19 @@ namespace ATC {
   //  XT_Function
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  XT_Function::XT_Function(int narg, double* args) 
+  XT_Function::XT_Function(int narg, double* args)
   {
 
-    if (narg > 5 ) { 
-      x0[0] = args[0]; 
+    if (narg > 5 ) {
+      x0[0] = args[0];
       x0[1] = args[1];
       x0[2] = args[2];
       mask[0] = args[3];
       mask[1] = args[4];
       mask[2] = args[5];
-    } 
+    }
     else {
-      x0[0] = 0.0; 
+      x0[0] = 0.0;
       x0[1] = 0.0;
       x0[2] = 0.0;
       mask[0] = 0.0;
@@ -138,14 +144,14 @@ namespace ATC {
   //  XT_Function_Mgr
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
+XT_Function_Mgr * XT_Function_Mgr::myInstance_ = nullptr;
 
 // -----------------------------------------------------------------
 //  instance()
 // -----------------------------------------------------------------
   XT_Function_Mgr * XT_Function_Mgr::instance()
   {
-    if (myInstance_ == NULL) {
+    if (myInstance_ == nullptr) {
       myInstance_ = new XT_Function_Mgr();
     }
     return myInstance_;
@@ -161,7 +167,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   }
 
   // add user function into the if statement and assign returnFunction to it
-  XT_Function* XT_Function_Mgr::function(string & type, int nargs, double * args)
+  XT_Function* XT_Function_Mgr::function(const string & type, int nargs, double * args)
   {
     XT_Function * returnFunction;
     if      (type=="constant") {
@@ -205,7 +211,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     double *dargs = (double *) alloca(sizeof(double) * narg);
 #endif
     for (int i = 0; i < narg; ++i) dargs[i] = atof(args[i+1]);
-  
+
     return function(type, narg, dargs);
   }
 
@@ -220,8 +226,8 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   XT_Function* XT_Function_Mgr::copy_XT_function(XT_Function* other)
   {
     string tag = other->tag();
-  
-    XT_Function * returnFunction = NULL;
+
+    XT_Function * returnFunction = nullptr;
     if (tag=="linear") {
       LinearFunction * other_cast = (LinearFunction*) other;
       returnFunction = new LinearFunction(*other_cast);
@@ -262,14 +268,14 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  ConstantFunction
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  ConstantFunction::ConstantFunction(int narg, double* args) 
+  ConstantFunction::ConstantFunction(int narg, double* args)
     : XT_Function(narg,args),
       C0(args[0])
   {
     tag_ = "constant";
   }
   //--------------------------------------------------------------------
-  ConstantFunction::ConstantFunction(double arg) 
+  ConstantFunction::ConstantFunction(double arg)
     : XT_Function(1,&arg),
       C0(arg)
   {
@@ -280,7 +286,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  LinearFunction
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  LinearFunction::LinearFunction(int narg, double* args) 
+  LinearFunction::LinearFunction(int narg, double* args)
     : XT_Function(narg,args)
   {
     C0 = args[6];
@@ -294,7 +300,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  PiecewiseLinearFunction
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  PiecewiseLinearFunction::PiecewiseLinearFunction(int narg, double* args) 
+  PiecewiseLinearFunction::PiecewiseLinearFunction(int narg, double* args)
     : XT_Function(narg,args)
   {
     int i=0, idx = 6, n = (narg-idx)/2;
@@ -312,7 +318,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     }
     ATC::LammpsInterface::instance()->print_msg_once(ss.str());
   }
-  double PiecewiseLinearFunction::f(double * x, double t)
+  double PiecewiseLinearFunction::f(double * x, double /* t */)
   {
 
     double s = mask[0]*(x[0]-x0[0])+mask[1]*(x[1]-x0[1])+mask[2]*(x[2]-x0[2]);
@@ -321,7 +327,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     if      (index < 0)              return fi(0);
     else if (index >= xi.size()-1 )  return fi(xi.size()-1);
     else {
-      double f = fi(index) 
+      double f = fi(index)
         + (fi(index+1)-fi(index))*(s-xi(index))/(xi(index+1)-xi(index));
       return f;
     }
@@ -355,7 +361,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     return slope[0]*(x[0]-x0[0])+slope[1]*(x[1]-x0[1])+slope[2]*(x[2]-x0[2]) + C0;
   }
 
-  double LinearTemporalRamp::dfdt(double* x, double t) {
+  double LinearTemporalRamp::dfdt(double* x, double /* t */) {
     return mask_slope[0]*(x[0]-x0[0])+mask_slope[1]*(x[1]-x0[1])+mask_slope[2]*(x[2]-x0[2]) + C0_slope;
   }
 
@@ -364,7 +370,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  QuadraticFunction
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  QuadraticFunction::QuadraticFunction(int narg, double* args) 
+  QuadraticFunction::QuadraticFunction(int narg, double* args)
     : XT_Function(narg,args)
   {
     C0 = args[6];
@@ -381,7 +387,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  SineFunction
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  SineFunction::SineFunction(int narg, double* args) 
+  SineFunction::SineFunction(int narg, double* args)
     : XT_Function(narg,args)
   {
     C = args[6];
@@ -397,7 +403,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  GaussianFunction
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  GaussianFunction::GaussianFunction(int narg, double* args) 
+  GaussianFunction::GaussianFunction(int narg, double* args)
     : XT_Function(narg,args)
   {
     tau = args[6];
@@ -410,7 +416,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  GaussianTemporalRamp
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  GaussianTemporalRamp::GaussianTemporalRamp(int narg, double* args) 
+  GaussianTemporalRamp::GaussianTemporalRamp(int narg, double* args)
     : GaussianFunction(narg,args)
   {
     tau_initial = args[9];
@@ -451,7 +457,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  TemporalRamp
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  TemporalRamp::TemporalRamp(int narg, double* args) 
+  TemporalRamp::TemporalRamp(int narg, double* args)
     : XT_Function(narg,args)
   {
     f_initial = args[0];
@@ -465,7 +471,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   //  RadialPower
   //--------------------------------------------------------------------
   //--------------------------------------------------------------------
-  RadialPower::RadialPower(int narg, double* args) 
+  RadialPower::RadialPower(int narg, double* args)
     : XT_Function(narg,args)
   {
     C0 = args[6];
@@ -493,27 +499,27 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
        fps_(i)=coef*fp;
        i++;
      }
-     // scale tangents 
-     double dx, dx0 = xs_(1)-xs_(0); 
+     // scale tangents
+     double dx, dx0 = xs_(1)-xs_(0);
      for (int i = 0; i < npts_ ; i++) {
        if      (i   == 0)     { dx = xs_(1)-xs_(0); }
        else if (i+1 == npts_) { dx = xs_(npts_-1)-xs_(npts_-2); }
        else { dx= 0.5*(xs_(i+1)-xs_(i-1)); }
-       if (abs(dx-dx0) > 1.e-8) throw ATC_Error("InterpolationFunction::initialize non-uniform data spacing not handled currently");
+       if (fabs(dx-dx0) > 1.e-8) throw ATC_Error("InterpolationFunction::initialize non-uniform data spacing not handled currently");
        fps_(i) *= dx;
      }
      // options: calculate / adjust tangents for monotonicity
 
   }
 
-  double InterpolationFunction::coordinate(double x, 
+  double InterpolationFunction::coordinate(double x,
     double & f0, double & fp0, double & f1, double & fp1, double & inv_dx ) const
   {
     int i0 = xs_.index(x);
     int i1 = i0+1;
     if      (i0 < 0) {
       double x0 = xs_(0),   x1 = xs_(1);
-      inv_dx = 1./(x1-x0); 
+      inv_dx = 1./(x1-x0);
       fp0 = fp1 = fps_(0);
       f1 = fs_(0);
       f0 = fp0*(x-xs_(0))+f1;
@@ -521,7 +527,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     }
     else if (i1 >= npts_) {
       double x0 = xs_(npts_-2),   x1 = xs_(npts_-1);
-      inv_dx = 1./(x1-x0); 
+      inv_dx = 1./(x1-x0);
       fp0 = fp1 = fps_(i0);
       f0 = fs_(i0);
       f1 = fp0*(x-xs_(i0))+f0;
@@ -529,7 +535,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
     }
     else {
       double x0 = xs_(i0),   x1 = xs_(i1);
-      inv_dx = 1./(x1-x0); 
+      inv_dx = 1./(x1-x0);
       f0  = fs_ (i0); f1  = fs_ (i1);
       fp0 = fps_(i0); fp1 = fps_(i1);
       double t = (x-x0)*inv_dx;
@@ -540,7 +546,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   {
     double f0,fp0,f1,fp1,inv_dx;
     double t = coordinate(x,f0,fp0,f1,fp1,inv_dx);
-    double t2 = t*t; 
+    double t2 = t*t;
     double t3 = t*t2;
     double h00 = 2*t3 - 3*t2     + 1;
     double h10 =   t3 - 2*t2 + t;
@@ -553,7 +559,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
   {
     double f0,fp0,f1,fp1,inv_dx;
     double t = coordinate(x,f0,fp0,f1,fp1,inv_dx);
-    double t2 = t*t; 
+    double t2 = t*t;
     double d00 = 6*t2 - 6*t;
     double d10 = 3*t2 - 4*t + 1;
     double d01 =-6*t2 + 6*t;

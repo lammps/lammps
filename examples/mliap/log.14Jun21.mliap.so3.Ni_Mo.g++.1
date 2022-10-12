@@ -1,0 +1,88 @@
+LAMMPS (27 May 2021)
+# ---------- Initialize Simulation ---------------------
+clear
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+read_data Ni_Mo.data
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (5.7209005 5.7209005 3.5556620)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  10 atoms
+  read_data CPU = 0.000 seconds
+
+#change_box all x scale 0.9 y scale 0.9 z scale 0.9
+
+pair_style mliap model linear Ni_Mo.mliap.model descriptor so3 Ni_Mo.mliap.descriptor
+Reading potential file Ni_Mo.mliap.descriptor with DATE: 2014-09-05
+SO3 keyword rcutfac 4.1 
+SO3 keyword nmax 3 
+SO3 keyword lmax 2 
+SO3 keyword alpha 2.0 
+SO3 keyword nelems 2 
+SO3 keyword elems Mo 
+SO3 keyword radelems 0.5 
+SO3 keyword welems 42 
+pair_coeff * * Mo Ni
+
+variable        e equal pe
+variable N equal count(all)
+
+thermo_style custom pe pxx pyy pzz pxy pxz pyz
+thermo 1
+
+# dump 1 all custom 1 dump.myforce.* id type fx fy fz
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+
+run             3
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.1
+  ghost atom cutoff = 6.1
+  binsize = 3.05, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair mliap, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 17.22 | 17.22 | 17.22 Mbytes
+PotEng Pxx Pyy Pzz Pxy Pxz Pyz 
+  -60.509577   -38.702887   -342.91582    1831.0743   -819.59439    427.87407    446.40498 
+  -60.509344   -29.050171   -342.67124    1839.4215   -832.92479    439.72661    448.55829 
+  -60.509056   -9.4119072   -335.83361    1856.2802   -846.04664     451.4663    450.35456 
+  -60.508714    20.205972   -322.43019       1881.6   -858.97774    463.10122    451.79916 
+Loop time of 0.00634885 on 1 procs for 3 steps with 10 atoms
+
+Performance: 40.826 ns/day, 0.588 hours/ns, 472.527 timesteps/s
+78.5% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0063019  | 0.0063019  | 0.0063019  |   0.0 | 99.26
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 7.6294e-06 | 7.6294e-06 | 7.6294e-06 |   0.0 |  0.12
+Output  | 3.4094e-05 | 3.4094e-05 | 3.4094e-05 |   0.0 |  0.54
+Modify  | 2.1458e-06 | 2.1458e-06 | 2.1458e-06 |   0.0 |  0.03
+Other   |            | 3.099e-06  |            |       |  0.05
+
+Nlocal:        10.0000 ave          10 max          10 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        423.000 ave         423 max         423 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:      780.000 ave         780 max         780 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 780
+Ave neighs/atom = 78.000000
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

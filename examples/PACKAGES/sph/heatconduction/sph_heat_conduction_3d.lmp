@@ -1,0 +1,49 @@
+# SPH heat conduction
+# heat flow from hot right region to cold left region
+# compare the temperature profile at the end opf the simulation,
+# contained in file dump.last, to analytic solution.
+#
+#
+units		si
+atom_style	sph
+newton          on
+boundary        f p p
+
+lattice		sc 0.01
+region		box block 0 100 0 10 0 10 
+create_box	1 box
+create_atoms	1 box
+mass            1 1.0e-5
+
+region          left  block EDGE 49.9  EDGE EDGE EDGE EDGE
+region          right block 50 EDGE EDGE EDGE EDGE EDGE
+set             region left  sph/e 1.0 # internal energies
+set             region right sph/e 2.0
+set             group all sph/rho 10.0 # SPH density is also needed for this pair style
+#               For correct temperature profiles, mescoscopic density and mass * number density must coincide!
+
+pair_style      sph/heatconduction
+#               i j diffusion coeff. cutoff
+pair_coeff      1 1 1.0e-4           2.0e-2
+neighbor	0.2e-2 bin
+neigh_modify	every 20 delay 0 check no
+
+compute         ie_atom all sph/e/atom
+compute         ie all reduce sum c_ie_atom
+
+thermo_style    custom step temp c_ie
+thermo_modify   norm no
+
+fix             integrate_fix all sph/stationary
+
+thermo		10
+timestep        0.25e-1
+
+dump		dump_fix all custom 10 dump.heat id type x y z c_ie_atom
+dump_modify     dump_fix first yes
+run             160
+undump          dump_fix
+
+dump		dump_fix all custom 10 dump.last id type x y z c_ie_atom
+dump_modify     dump_fix first yes
+run             0

@@ -66,9 +66,9 @@
 *  The program is started by supplying information at the command prompt
 * according to the usage described below.
 *
-*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE} {-ignore} {-nocenter} {-oldstyle}
+*  USAGE: msi2lmp ROOTNAME {-print #} {-class #} {-frc FRC_FILE} {-ignore} {-nocenter} {-oldstyle}
 *
-*  -- msi2lmp3 is the name of the executable
+*  -- msi2lmp is the name of the executable
 *  -- ROOTNAME is the base name of the .car and .mdf files
 *  -- all opther flags are optional and can be abbreviated (e.g. -p instead of -print)
 *
@@ -151,7 +151,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
 #include <ctype.h>
+#endif
 
 /* global variables */
 
@@ -292,12 +295,14 @@ int main (int argc, char *argv[])
   }
 
   /* set defaults, if nothing else was given */
-  if (frc_dir_name == NULL)
+  if (frc_dir_name == NULL) {
 #if (_WIN32)
     frc_dir_name = "..\\frc_files";
 #else
-  frc_dir_name = "../frc_files";
+    frc_dir_name = "../frc_files";
 #endif
+  }
+
   if (frc_file_name == NULL)
     frc_file_name = "cvff.frc";
 

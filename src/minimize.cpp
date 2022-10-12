@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,50 +11,48 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "minimize.h"
+
+#include "citeme.h"
 #include "domain.h"
-#include "update.h"
-#include "min.h"
-#include "finish.h"
-#include "timer.h"
 #include "error.h"
-#include "force.h"
+#include "finish.h"
+#include "min.h"
+#include "timer.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Minimize::Minimize(LAMMPS *lmp) : Pointers(lmp) {}
+Minimize::Minimize(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
 void Minimize::command(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal minimize command");
+  if (narg != 4)
+    error->all(FLERR, "Illegal minimize command: expected 4 arguments but found {}", narg);
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Minimize command before simulation box is defined");
+    error->all(FLERR, "Minimize command before simulation box is defined");
 
   // ignore minimize command, if walltime limit was already reached
   if (timer->is_timeout()) return;
 
-  update->etol = force->numeric(FLERR,arg[0]);
-  update->ftol = force->numeric(FLERR,arg[1]);
-  update->nsteps = force->inumeric(FLERR,arg[2]);
-  update->max_eval = force->inumeric(FLERR,arg[3]);
+  update->etol = utils::numeric(FLERR, arg[0], false, lmp);
+  update->ftol = utils::numeric(FLERR, arg[1], false, lmp);
+  update->nsteps = utils::inumeric(FLERR, arg[2], false, lmp);
+  update->max_eval = utils::inumeric(FLERR, arg[3], false, lmp);
 
-  if (update->etol < 0.0 || update->ftol < 0.0)
-    error->all(FLERR,"Illegal minimize command");
+  if (update->etol < 0.0) error->all(FLERR, "Illegal minimize energy tolerance: {}", update->etol);
+  if (update->ftol < 0.0) error->all(FLERR, "Illegal minimize force tolerance: {}", update->ftol);
 
+  if (lmp->citeme) lmp->citeme->flush();
   update->whichflag = 2;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
-  if (update->laststep < 0)
-    error->all(FLERR,"Too many iterations");
-
-  if (lmp->kokkos)
-    error->all(FLERR,"Cannot yet use minimize with Kokkos");
+  if (update->laststep < 0) error->all(FLERR, "Too many iterations");
 
   lmp->init();
   timer->init_timeout();

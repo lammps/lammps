@@ -23,6 +23,8 @@
 
 #ifdef USE_OPENCL
 #include "geryon/ocl_texture.h"
+#elif defined(USE_HIP)
+#include "geryon/hip_texture.h"
 #else
 #include "geryon/nvd_texture.h"
 #endif
@@ -42,7 +44,7 @@ class BaseDipole {
     * \param k_name name for the kernel for force calculation
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -100,7 +102,7 @@ class BaseDipole {
   /// Accumulate timers
   inline void acc_timers() {
     if (device->time_device()) {
-      nbor->acc_timers();
+      nbor->acc_timers(screen);
       time_pair.add_to_total();
       atom->acc_timers();
       ans->acc_timers();
@@ -174,9 +176,16 @@ class BaseDipole {
   Neighbor *nbor;
 
   // ------------------------- DEVICE KERNELS -------------------------
-  UCL_Program *pair_program;
-  UCL_Kernel k_pair_fast, k_pair;
+  UCL_Program *pair_program, *pair_program_noev;
+  UCL_Kernel k_pair_fast, k_pair, k_pair_noev, *k_pair_sel;
   inline int block_size() { return _block_size; }
+  inline void set_kernel(const int eflag, const int vflag) {
+    #if defined(LAL_OCL_EV_JIT)
+    if (eflag || vflag) k_pair_sel = &k_pair_fast;
+    else k_pair_sel = &k_pair_noev;
+    #endif
+  }
+
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture pos_tex;
@@ -185,14 +194,14 @@ class BaseDipole {
 
  protected:
   bool _compiled;
-  int _block_size, _block_bio_size, _threads_per_atom;
+  int _block_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string, const char *k);
 
-  virtual void loop(const bool _eflag, const bool _vflag) = 0;
+  virtual int loop(const int eflag, const int vflag) = 0;
 };
 
 }

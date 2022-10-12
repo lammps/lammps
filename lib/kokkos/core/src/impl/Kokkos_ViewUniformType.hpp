@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -44,58 +45,77 @@
 #ifndef KOKKOS_EXPERIMENTAL_VIEWUNIFORMTYPE_HPP
 #define KOKKOS_EXPERIMENTAL_VIEWUNIFORMTYPE_HPP
 
+#include <Kokkos_Macros.hpp>
+
 namespace Kokkos {
 namespace Impl {
-  template< class ScalarType, int Rank>
-  struct ViewScalarToDataType {
-    typedef typename ViewScalarToDataType<ScalarType,Rank-1>::type* type;
-  };
+template <class ScalarType, int Rank>
+struct ViewScalarToDataType {
+  using type = typename ViewScalarToDataType<ScalarType, Rank - 1>::type *;
+};
 
-  template< class ScalarType>
-  struct ViewScalarToDataType<ScalarType,0> {
-    typedef ScalarType type;
-  };
+template <class ScalarType>
+struct ViewScalarToDataType<ScalarType, 0> {
+  using type = ScalarType;
+};
 
-  template< class LayoutType, int Rank>
-  struct ViewUniformLayout {
-    typedef LayoutType array_layout;
-  };
+template <class LayoutType, int Rank>
+struct ViewUniformLayout {
+  using array_layout = LayoutType;
+};
 
-  template< class LayoutType>
-  struct ViewUniformLayout<LayoutType, 0> {
-    typedef Kokkos::LayoutLeft array_layout;
-  };
+template <class LayoutType>
+struct ViewUniformLayout<LayoutType, 0> {
+  using array_layout = Kokkos::LayoutLeft;
+};
 
-  template<>
-  struct ViewUniformLayout<Kokkos::LayoutRight, 1> {
-    typedef Kokkos::LayoutLeft array_layout;
-  };
+template <>
+struct ViewUniformLayout<Kokkos::LayoutRight, 1> {
+  using array_layout = Kokkos::LayoutLeft;
+};
 
-  template< class ViewType , int Traits>
-  struct ViewUniformType {
-    typedef typename ViewType::data_type data_type;
-    typedef typename std::add_const<typename ViewType::data_type>::type const_data_type;
-    typedef typename ViewScalarToDataType<typename ViewType::value_type,ViewType::rank>::type runtime_data_type;
-    typedef typename ViewScalarToDataType<typename std::add_const<typename ViewType::value_type>::type,ViewType::rank>::type runtime_const_data_type;
+template <class ViewType, int Traits>
+struct ViewUniformType {
+  using data_type       = typename ViewType::data_type;
+  using const_data_type = std::add_const_t<typename ViewType::data_type>;
+  using runtime_data_type =
+      typename ViewScalarToDataType<typename ViewType::value_type,
+                                    ViewType::rank>::type;
+  using runtime_const_data_type = typename ViewScalarToDataType<
+      std::add_const_t<typename ViewType::value_type>, ViewType::rank>::type;
 
-    typedef typename ViewUniformLayout<typename ViewType::array_layout, ViewType::rank>::array_layout array_layout;
+  using array_layout =
+      typename ViewUniformLayout<typename ViewType::array_layout,
+                                 ViewType::rank>::array_layout;
 
-    typedef typename ViewType::device_type device_type;
-    typedef typename Kokkos::Device<typename device_type::execution_space,Kokkos::AnonymousSpace> anonymous_device_type;
+  using device_type = typename ViewType::device_type;
+  using anonymous_device_type =
+      typename Kokkos::Device<typename device_type::execution_space,
+                              Kokkos::AnonymousSpace>;
 
-    typedef typename Kokkos::MemoryTraits<Traits> memory_traits;
-    typedef Kokkos::View<data_type,array_layout,device_type,memory_traits> type;
-    typedef Kokkos::View<const_data_type,array_layout,device_type,memory_traits> const_type;
-    typedef Kokkos::View<runtime_data_type,array_layout,device_type,memory_traits> runtime_type;
-    typedef Kokkos::View<runtime_const_data_type,array_layout,device_type,memory_traits> runtime_const_type;
+  using memory_traits = typename Kokkos::MemoryTraits<Traits>;
+  using type =
+      Kokkos::View<data_type, array_layout, device_type, memory_traits>;
+  using const_type =
+      Kokkos::View<const_data_type, array_layout, device_type, memory_traits>;
+  using runtime_type =
+      Kokkos::View<runtime_data_type, array_layout, device_type, memory_traits>;
+  using runtime_const_type = Kokkos::View<runtime_const_data_type, array_layout,
+                                          device_type, memory_traits>;
 
-    typedef Kokkos::View<data_type,array_layout,anonymous_device_type,memory_traits> nomemspace_type;
-    typedef Kokkos::View<const_data_type,array_layout,anonymous_device_type,memory_traits> const_nomemspace_type;
-    typedef Kokkos::View<runtime_data_type,array_layout,anonymous_device_type,memory_traits> runtime_nomemspace_type;
-    typedef Kokkos::View<runtime_const_data_type,array_layout,anonymous_device_type,memory_traits> runtime_const_nomemspace_type;
-  };
-}
-}
-
+  using nomemspace_type = Kokkos::View<data_type, array_layout,
+                                       anonymous_device_type, memory_traits>;
+  using const_nomemspace_type =
+      Kokkos::View<const_data_type, array_layout, anonymous_device_type,
+                   memory_traits>;
+  using runtime_nomemspace_type =
+      Kokkos::View<runtime_data_type, array_layout, anonymous_device_type,
+                   memory_traits>;
+  using runtime_const_nomemspace_type =
+      Kokkos::View<runtime_const_data_type, array_layout, anonymous_device_type,
+                   memory_traits>;
+};
+}  // namespace Impl
+}  // namespace Kokkos
 
 #endif

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(zero,DihedralZero)
-
+// clang-format off
+DihedralStyle(zero,DihedralZero);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_ZERO_H
 #define LMP_DIHEDRAL_ZERO_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -32,14 +31,14 @@ namespace LAMMPS_NS {
 class DihedralZero : public Dihedral {
  public:
   DihedralZero(class LAMMPS *);
-  virtual ~DihedralZero();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void settings(int, char **);
+  ~DihedralZero() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void settings(int, char **) override;
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   int coeffflag;
@@ -47,19 +46,7 @@ class DihedralZero : public Dihedral {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Incorrect args for dihedral coefficients
-
-UNDOCUMENTED
-
-*/

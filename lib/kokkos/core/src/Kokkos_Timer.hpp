@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -43,41 +44,79 @@
 
 #ifndef KOKKOS_TIMER_HPP
 #define KOKKOS_TIMER_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_TIMER
+#endif
 
+#include <Kokkos_Macros.hpp>
+// gcc 10.3.0 with CUDA doesn't support std::chrono,
+// see https://github.com/kokkos/kokkos/issues/4334
+#if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU == 1030) && \
+    defined(KOKKOS_COMPILER_NVCC)
+#include <sys/time.h>
+#else
 #include <chrono>
+#endif
 
 namespace Kokkos {
 
 /** \brief  Time since construction */
 
+#if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU == 1030) && \
+    defined(KOKKOS_COMPILER_NVCC)
 class Timer {
-private:
-  std::chrono::high_resolution_clock::time_point m_old;
-  Timer( const Timer & );
-  Timer & operator = ( const Timer & );
-public:
+ private:
+  struct timeval m_old;
 
-  inline
-  void reset() {
-    m_old = std::chrono::high_resolution_clock::now();
-  }
+ public:
+  inline void reset() { gettimeofday(&m_old, nullptr); }
 
-  inline
-  ~Timer() {}
+  inline ~Timer() = default;
 
-  inline
-  Timer() { reset(); }
+  inline Timer() { reset(); }
 
-  inline
-  double seconds() const
-  {
-    std::chrono::high_resolution_clock::time_point m_new =
-        std::chrono::high_resolution_clock::now();
-    return std::chrono::duration_cast<std::chrono::duration<double>>(m_new - m_old).count();
+  Timer(const Timer&) = delete;
+  Timer& operator=(const Timer&) = delete;
+
+  inline double seconds() const {
+    struct timeval m_new;
+
+    gettimeofday(&m_new, nullptr);
+
+    return ((double)(m_new.tv_sec - m_old.tv_sec)) +
+           ((double)(m_new.tv_usec - m_old.tv_usec) * 1.0e-6);
   }
 };
+#else
+class Timer {
+ private:
+  std::chrono::high_resolution_clock::time_point m_old;
 
-} // namespace Kokkos
+ public:
+  inline void reset() { m_old = std::chrono::high_resolution_clock::now(); }
 
+  inline ~Timer() = default;
+
+  inline Timer() { reset(); }
+
+  Timer(const Timer&);
+  Timer& operator=(const Timer&);
+
+  inline double seconds() const {
+    std::chrono::high_resolution_clock::time_point m_new =
+        std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<std::chrono::duration<double> >(m_new -
+                                                                      m_old)
+        .count();
+  }
+};
+#endif
+
+}  // namespace Kokkos
+
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_TIMER
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_TIMER
+#endif
 #endif /* #ifndef KOKKOS_TIMER_HPP */
-

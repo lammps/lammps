@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2013-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2013-2022 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -40,7 +40,11 @@
 #include <utility>
 #include <vector>
 #ifdef LEPTON_USE_JIT
-    #include "asmjit.h"
+#if defined(__ARM__) || defined(__ARM64__)
+#include "asmjit/a64.h"
+#else
+#include "asmjit/x86.h"
+#endif
 #endif
 
 namespace Lepton {
@@ -52,9 +56,9 @@ class ParsedExpression;
  * A CompiledExpression is a highly optimized representation of an expression for cases when you want to evaluate
  * it many times as quickly as possible.  You should treat it as an opaque object; none of the internal representation
  * is visible.
- * 
+ *
  * A CompiledExpression is created by calling createCompiledExpression() on a ParsedExpression.
- * 
+ *
  * WARNING: CompiledExpression is NOT thread safe.  You should never access a CompiledExpression from two threads at
  * the same time.
  */
@@ -99,10 +103,17 @@ private:
     mutable std::vector<double> workspace;
     mutable std::vector<double> argValues;
     std::map<std::string, double> dummyVariables;
-    void* jitCode;
+    double (*jitCode)();
 #ifdef LEPTON_USE_JIT
+    void findPowerGroups(std::vector<std::vector<int> >& groups, std::vector<std::vector<int> >& groupPowers, std::vector<int>& stepGroup);
     void generateJitCode();
-    void generateSingleArgCall(asmjit::X86Compiler& c, asmjit::X86XmmVar& dest, asmjit::X86XmmVar& arg, double (*function)(double));
+#if defined(__ARM__) || defined(__ARM64__)
+    void generateSingleArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg, double (*function)(double));
+    void generateTwoArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg1, asmjit::arm::Vec& arg2, double (*function)(double, double));
+#else
+    void generateSingleArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg, double (*function)(double));
+    void generateTwoArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg1, asmjit::x86::Xmm& arg2, double (*function)(double, double));
+#endif
     std::vector<double> constants;
     asmjit::JitRuntime runtime;
 #endif

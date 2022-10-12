@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list.h"
+#include "my_page.h"    // IWYU pragma: keep
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "pair.h"
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "my_page.h"
 #include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -35,9 +34,9 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   maxatom = 0;
 
   inum = gnum = 0;
-  ilist = NULL;
-  numneigh = NULL;
-  firstneigh = NULL;
+  ilist = nullptr;
+  numneigh = nullptr;
+  firstneigh = nullptr;
 
   // defaults, but may be reset by post_constructor()
 
@@ -49,44 +48,49 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   respamiddle = 0;
   respainner = 0;
   copy = 0;
+  trim = 0;
   copymode = 0;
 
   // ptrs
 
-  iskip = NULL;
-  ijskip = NULL;
+  iskip = nullptr;
+  ijskip = nullptr;
 
-  listcopy = NULL;
-  listskip = NULL;
-  listfull = NULL;
+  listcopy = nullptr;
+  listskip = nullptr;
+  listfull = nullptr;
 
-  fix_bond = NULL;
+  fix_bond = nullptr;
 
-  ipage = NULL;
+  ipage = nullptr;
 
   // extra rRESPA lists
 
   inum_inner = gnum_inner = 0;
-  ilist_inner = NULL;
-  numneigh_inner = NULL;
-  firstneigh_inner = NULL;
+  ilist_inner = nullptr;
+  numneigh_inner = nullptr;
+  firstneigh_inner = nullptr;
 
   inum_middle = gnum_middle = 0;
-  ilist_middle = NULL;
-  numneigh_middle = NULL;
-  firstneigh_middle = NULL;
+  ilist_middle = nullptr;
+  numneigh_middle = nullptr;
+  firstneigh_middle = nullptr;
 
-  ipage_inner = NULL;
-  ipage_middle = NULL;
+  ipage_inner = nullptr;
+  ipage_middle = nullptr;
 
   // Kokkos package
 
   kokkos = 0;
+  kk2cpu = 0;
   execution_space = Host;
 
-  // USER-DPD package
+  // DPD-REACT package
 
-  np = NULL;
+  np = nullptr;
+
+  requestor = nullptr;
+  requestor_type = NeighList::NONE;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,7 +98,8 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
 NeighList::~NeighList()
 {
   if (copymode) return;
-  if (!copy) {
+
+  if (!copy || trim || kk2cpu) {
     memory->destroy(ilist);
     memory->destroy(numneigh);
     memory->sfree(firstneigh);
@@ -141,9 +146,14 @@ void NeighList::post_constructor(NeighRequest *nq)
   respamiddle = nq->respamiddle;
   respainner = nq->respainner;
   copy = nq->copy;
+  trim = nq->trim;
+  id = nq->id;
 
-  if (nq->copy)
+  if (nq->copy) {
     listcopy = neighbor->lists[nq->copylist];
+    if (listcopy->kokkos && !this->kokkos)
+      kk2cpu = 1;
+  }
 
   if (nq->skip) {
     listskip = neighbor->lists[nq->skiplist];
@@ -279,6 +289,8 @@ void NeighList::print_attributes()
   printf("  %d = skip flag\n",rq->skip);
   printf("  %d = off2on\n",rq->off2on);
   printf("  %d = copy flag\n",rq->copy);
+  printf("  %d = trim flag\n",rq->trim);
+  printf("  %d = kk2cpu flag\n",kk2cpu);
   printf("  %d = half/full\n",rq->halffull);
   printf("\n");
 }
@@ -289,12 +301,12 @@ void NeighList::print_attributes()
    if stencilflag = 0, maxstencil * maxstencil_multi will also be 0
 ------------------------------------------------------------------------- */
 
-bigint NeighList::memory_usage()
+double NeighList::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += memory->usage(ilist,maxatom);
   bytes += memory->usage(numneigh,maxatom);
-  bytes += maxatom * sizeof(int *);
+  bytes += (double)maxatom * sizeof(int *);
 
   int nmypage = comm->nthreads;
 
@@ -306,7 +318,7 @@ bigint NeighList::memory_usage()
   if (respainner) {
     bytes += memory->usage(ilist_inner,maxatom);
     bytes += memory->usage(numneigh_inner,maxatom);
-    bytes += maxatom * sizeof(int *);
+    bytes += (double)maxatom * sizeof(int *);
     if (ipage_inner) {
       for (int i = 0; i < nmypage; i++)
         bytes += ipage_inner[i].size();
@@ -316,7 +328,7 @@ bigint NeighList::memory_usage()
   if (respamiddle) {
     bytes += memory->usage(ilist_middle,maxatom);
     bytes += memory->usage(numneigh_middle,maxatom);
-    bytes += maxatom * sizeof(int *);
+    bytes += (double)maxatom * sizeof(int *);
     if (ipage_middle) {
       for (int i = 0; i < nmypage; i++)
         bytes += ipage_middle[i].size();

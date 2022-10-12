@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>)
-ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>)
-ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>)
-
+// clang-format off
+ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>);
+ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>);
+ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_IMPROPER_HARMONIC_KOKKOS_H
 #define LMP_IMPROPER_HARMONIC_KOKKOS_H
 
@@ -38,10 +39,10 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
   typedef ArrayTypes<DeviceType> AT;
 
   ImproperHarmonicKokkos(class LAMMPS *);
-  virtual ~ImproperHarmonicKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~ImproperHarmonicKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -63,14 +64,15 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
 
   class NeighborKokkos *neighborKK;
 
+  typedef typename KKDevice<DeviceType>::value KKDeviceType;
   typename AT::t_x_array_randomread x;
-  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d improperlist;
 
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType> k_eatom;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType> k_vatom;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
+  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
+  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
+  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
+  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
@@ -85,7 +87,7 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
   typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_k;
   typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_chi;
 
-  void allocate();
+  void allocate() override;
 };
 
 }
@@ -93,11 +95,3 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-W: Dihedral problem
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-*/

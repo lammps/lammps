@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,13 +16,13 @@
    Contributing author: Pim Schravendijk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "region_cone.h"
+
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -30,34 +31,35 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg)
+  Region(lmp, narg, arg), lo(0.0), hi(0.0)
 {
   options(narg-9,&arg[9]);
 
   // check open face settings
 
-  if (openflag && (open_faces[3] || open_faces[4] || open_faces[5]))
-    error->all(FLERR,"Invalid region cone open setting");
+  if (openflag)
+    for (int i=3; i<6; i++)
+      if (open_faces[i]) error->all(FLERR,"Illegal region cone open face: {}", i+1);
 
-  if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z"))
-    error->all(FLERR,"Illegal region cylinder command");
+  if (strcmp(arg[2],"x") != 0 && strcmp(arg[2],"y") != 0 && strcmp(arg[2],"z") != 0)
+    error->all(FLERR,"Illegal region cone axis: {}", arg[2]);
   axis = arg[2][0];
 
   if (axis == 'x') {
-    c1 = yscale*force->numeric(FLERR,arg[3]);
-    c2 = zscale*force->numeric(FLERR,arg[4]);
-    radiuslo = yscale*force->numeric(FLERR,arg[5]);
-    radiushi = yscale*force->numeric(FLERR,arg[6]);
+    c1 = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+    c2 = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    radiuslo = yscale*utils::numeric(FLERR,arg[5],false,lmp);
+    radiushi = yscale*utils::numeric(FLERR,arg[6],false,lmp);
   } else if (axis == 'y') {
-    c1 = xscale*force->numeric(FLERR,arg[3]);
-    c2 = zscale*force->numeric(FLERR,arg[4]);
-    radiuslo = xscale*force->numeric(FLERR,arg[5]);
-    radiushi = xscale*force->numeric(FLERR,arg[6]);
+    c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
+    c2 = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    radiuslo = xscale*utils::numeric(FLERR,arg[5],false,lmp);
+    radiushi = xscale*utils::numeric(FLERR,arg[6],false,lmp);
   } else if (axis == 'z') {
-    c1 = xscale*force->numeric(FLERR,arg[3]);
-    c2 = yscale*force->numeric(FLERR,arg[4]);
-    radiuslo = xscale*force->numeric(FLERR,arg[5]);
-    radiushi = xscale*force->numeric(FLERR,arg[6]);
+    c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
+    c2 = yscale*utils::numeric(FLERR,arg[4],false,lmp);
+    radiuslo = xscale*utils::numeric(FLERR,arg[5],false,lmp);
+    radiushi = xscale*utils::numeric(FLERR,arg[6],false,lmp);
   }
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
@@ -79,9 +81,9 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
       else lo = domain->boxlo_bound[2];
     }
   } else {
-    if (axis == 'x') lo = xscale*force->numeric(FLERR,arg[7]);
-    if (axis == 'y') lo = yscale*force->numeric(FLERR,arg[7]);
-    if (axis == 'z') lo = zscale*force->numeric(FLERR,arg[7]);
+    if (axis == 'x') lo = xscale*utils::numeric(FLERR,arg[7],false,lmp);
+    if (axis == 'y') lo = yscale*utils::numeric(FLERR,arg[7],false,lmp);
+    if (axis == 'z') lo = zscale*utils::numeric(FLERR,arg[7],false,lmp);
   }
 
   if (strcmp(arg[8],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
@@ -103,9 +105,9 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
       else hi = domain->boxhi_bound[2];
     }
   } else {
-    if (axis == 'x') hi = xscale*force->numeric(FLERR,arg[8]);
-    if (axis == 'y') hi = yscale*force->numeric(FLERR,arg[8]);
-    if (axis == 'z') hi = zscale*force->numeric(FLERR,arg[8]);
+    if (axis == 'x') hi = xscale*utils::numeric(FLERR,arg[8],false,lmp);
+    if (axis == 'y') hi = yscale*utils::numeric(FLERR,arg[8],false,lmp);
+    if (axis == 'z') hi = zscale*utils::numeric(FLERR,arg[8],false,lmp);
   }
 
   // error check
@@ -508,7 +510,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     distsq = BIG;
 
-    if (!open_faces[2]){
+    if (!open_faces[2]) {
       point_on_line_segment(corner1,corner2,x,xp);
       distsq = closest(x,xp,nearest,distsq);
       crad = -2.0*(radiuslo + (nearest[1]-lo)*(radiushi-radiuslo)/(hi-lo));
@@ -573,7 +575,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     distsq = BIG;
 
-    if (!open_faces[2]){
+    if (!open_faces[2]) {
       point_on_line_segment(corner1,corner2,x,xp);
       distsq = closest(x,xp,nearest,distsq);
       crad = -2.0*(radiuslo + (nearest[2]-lo)*(radiushi-radiuslo)/(hi-lo));

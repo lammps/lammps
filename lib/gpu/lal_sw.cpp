@@ -23,7 +23,7 @@ const char *sw=0;
 
 #include "lal_sw.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define SWT SW<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -43,114 +43,83 @@ int SWT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
-           const double cell_size, const double gpu_split, FILE *_screen,
-           int* host_map, const int nelements, int*** host_elem2param, const int nparams,
-           const double* epsilon, const double* sigma,
-           const double* lambda, const double* gamma,
-           const double* costheta, const double* biga,
-           const double* bigb, const double* powerp,
-           const double* powerq, const double* cut, const double* cutsq)
-{
+int SWT::init(const int ntypes, const int nlocal, const int nall,
+              const int max_nbors, const double cell_size,
+              const double gpu_split, FILE *_screen, double **ncutsq,
+              double **ncut, double **sigma, double **powerp, double **powerq,
+              double **sigma_gamma, double **c1, double **c2, double **c3,
+              double **c4, double **c5, double **c6, double ***lambda_epsilon,
+              double ***costheta, const int *map, int ***e2param) {
+  _lj_types=ntypes;
+
+  int oldparam=-1;
+  int onetype=-1;
+  int onetype3=0;
+  int spq=1;
+  int mtypes=0;
+  #ifdef USE_OPENCL
+  for (int ii=1; ii<ntypes; ii++) {
+    int i=map[ii];
+    if (i<0) continue;
+    for (int jj=1; jj<ntypes; jj++) {
+      int j=map[jj];
+      if (j<0) continue;
+      if (powerp[ii][jj] != 4.0 || powerq[ii][jj] != 0.0)
+        spq=0;
+      for (int kk=1; kk<ntypes; kk++) {
+        int k=map[kk];
+        if (k<0) continue;
+        int param=e2param[i][j][k];
+        if (oldparam!=param) {
+          oldparam=param;
+          onetype=ntypes*ii+jj;
+          onetype3=ntypes*ntypes*ii+ntypes*jj+kk;
+          mtypes++;
+        }
+      }
+    }
+  }
+  if (mtypes>1) onetype=-1;
+  #endif
+
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,sw,"k_sw","k_sw_three_center",
-                           "k_sw_three_end","k_sw_short_nbor");
+                           "k_sw_three_end","k_sw_short_nbor",onetype,
+                           onetype3,spq);
   if (success!=0)
     return success;
 
-  // If atom type constants fit in shared memory use fast kernel
-  int lj_types=ntypes;
-  shared_types=false;
-  int max_shared_types=this->device->max_shared_types();
-  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
-    lj_types=max_shared_types;
-    shared_types=true;
-  }
-  _lj_types=lj_types;
+  UCL_H_Vec<numtyp> host_write(ntypes*ntypes*ntypes*4,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+  host_write.zero();
 
-  _nparams = nparams;
-  _nelements = nelements;
-
-  UCL_H_Vec<numtyp4> dview(nparams,*(this->ucl_device),
-                             UCL_WRITE_ONLY);
-
-  for (int i=0; i<nparams; i++) {
-    dview[i].x=(numtyp)0;
-    dview[i].y=(numtyp)0;
-    dview[i].z=(numtyp)0;
-    dview[i].w=(numtyp)0;
+  for (int i=1; i<ntypes; i++)
+    for (int j=1; j<ntypes; j++) {
+      double ccutsq = ncut[i][j]*ncut[i][j];
+      if (ccutsq > 0.0 && ncutsq[i][j]>=ccutsq)
+        ncutsq[i][j]=ccutsq*0.98;
   }
 
   // pack coefficients into arrays
-  sw1.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
-
-  for (int i=0; i<nparams; i++) {
-    dview[i].x=static_cast<numtyp>(epsilon[i]);
-    dview[i].y=static_cast<numtyp>(sigma[i]);
-    dview[i].z=static_cast<numtyp>(lambda[i]);
-    dview[i].w=static_cast<numtyp>(gamma[i]);
-  }
-
-  ucl_copy(sw1,dview,false);
-  sw1_tex.get_texture(*(this->pair_program),"sw1_tex");
-  sw1_tex.bind_float(sw1,4);
-
-  sw2.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
-
-  for (int i=0; i<nparams; i++) {
-    dview[i].x=static_cast<numtyp>(biga[i]);
-    dview[i].y=static_cast<numtyp>(bigb[i]);
-    dview[i].z=static_cast<numtyp>(powerp[i]);
-    dview[i].w=static_cast<numtyp>(powerq[i]);
-  }
-
-  ucl_copy(sw2,dview,false);
-  sw2_tex.get_texture(*(this->pair_program),"sw2_tex");
-  sw2_tex.bind_float(sw2,4);
-
-  sw3.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
-
-  for (int i=0; i<nparams; i++) {
-    double sw_cut = cut[i];
-    double sw_cutsq = cutsq[i];
-    if (sw_cutsq>=sw_cut*sw_cut)
-      sw_cutsq=sw_cut*sw_cut-1e-4;
-    dview[i].x=static_cast<numtyp>(sw_cut);
-    dview[i].y=static_cast<numtyp>(sw_cutsq);
-    dview[i].z=static_cast<numtyp>(costheta[i]);
-    dview[i].w=(numtyp)0;
-  }
-
-  ucl_copy(sw3,dview,false);
-  sw3_tex.get_texture(*(this->pair_program),"sw3_tex");
-  sw3_tex.bind_float(sw3,4);
-
-  UCL_H_Vec<int> dview_elem2param(nelements*nelements*nelements,
-                           *(this->ucl_device), UCL_WRITE_ONLY);
-
-  elem2param.alloc(nelements*nelements*nelements,*(this->ucl_device),
-                   UCL_READ_ONLY);
-
-  for (int i = 0; i < nelements; i++)
-    for (int j = 0; j < nelements; j++)
-      for (int k = 0; k < nelements; k++) {
-         int idx = i*nelements*nelements+j*nelements+k;
-         dview_elem2param[idx] = host_elem2param[i][j][k];
-      }
-
-  ucl_copy(elem2param,dview_elem2param,false);
-
-  UCL_H_Vec<int> dview_map(lj_types, *(this->ucl_device), UCL_WRITE_ONLY);
-  for (int i = 0; i < ntypes; i++)
-    dview_map[i] = host_map[i];
-
-  map.alloc(lj_types,*(this->ucl_device), UCL_READ_ONLY);
-  ucl_copy(map,dview_map,false);
+  cutsq.alloc(ntypes*ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,ntypes,cutsq,host_write,ncutsq);
+  sw_pre.alloc(ntypes*ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,ntypes,sw_pre,host_write,ncut,sigma,
+                         powerp,powerq);
+  c_14.alloc(ntypes*ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,ntypes,c_14,host_write,c1,c2,c3,c4);
+  c_56.alloc(ntypes*ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack2(ntypes,ntypes,c_56,host_write,c5,c6);
+  cut_sigma_gamma.alloc(ntypes*ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack2(ntypes,ntypes,cut_sigma_gamma,host_write,ncut,
+                         sigma_gamma);
+  sw_pre3.alloc(ntypes*ntypes*ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack2(ntypes,sw_pre3,host_write,lambda_epsilon,costheta);
 
   _allocated=true;
-  this->_max_bytes=sw1.row_bytes()+sw2.row_bytes()+sw3.row_bytes()+
-    map.row_bytes()+elem2param.row_bytes();
+  this->_max_bytes=cutsq.row_bytes()+sw_pre.row_bytes()+c_14.row_bytes()+
+    c_56.row_bytes()+cut_sigma_gamma.row_bytes()+sw_pre3.row_bytes();
   return 0;
 }
 
@@ -160,11 +129,12 @@ void SWT::clear() {
     return;
   _allocated=false;
 
-  sw1.clear();
-  sw2.clear();
-  sw3.clear();
-  map.clear();
-  elem2param.clear();
+  cutsq.clear();
+  sw_pre.clear();
+  c_14.clear();
+  c_56.clear();
+  cut_sigma_gamma.clear();
+  sw_pre3.clear();
   this->clear_atomic();
 }
 
@@ -179,58 +149,33 @@ double SWT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
-  // Compute the block size and grid size to keep all cores busy
-  int BX=this->block_pair();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
+int SWT::loop(const int eflag, const int vflag, const int evatom,
+              bool &success) {
+  const int nbor_pitch=this->nbor->nbor_pitch();
 
   // build the short neighbor list
   int ainum=this->_ainum;
-  int nbor_pitch=this->nbor->nbor_pitch();
-  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
-                               (BX/this->_threads_per_atom)));
+  this->time_pair.start();
+
+  int BX=this->block_pair();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &sw3, &map, &elem2param, &_nelements,
-                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                 &this->dev_short_nbor, &ainum,
-                 &nbor_pitch, &this->_threads_per_atom);
+  this->k_short_nbor.run(&this->atom->x, &cutsq, &_lj_types,
+                         &this->nbor->dev_nbor, &this->nbor->dev_packed,
+                         &ainum, &nbor_pitch, &this->_threads_per_atom);
 
   // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa > 1
   // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1 or tpa == 1
   ainum=this->ans->inum();
-  nbor_pitch=this->nbor->nbor_pitch();
-  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
-  this->time_pair.start();
-  
-  this->k_pair.set_size(GX,BX);
-  this->k_pair.run(&this->atom->x, &sw1, &sw2, &sw3,
-                   &map, &elem2param, &_nelements,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &this->dev_short_nbor,
-                   &this->ans->force, &this->ans->engv,
-                   &eflag, &vflag, &ainum, &nbor_pitch,
-                   &this->_threads_per_atom);
-
   BX=this->block_size();
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                            (BX/(KTHREADS*JTHREADS))));
-  this->k_three_center.set_size(GX,BX);
-  this->k_three_center.run(&this->atom->x, &sw1, &sw2, &sw3,
-                           &map, &elem2param, &_nelements,
-                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                           &this->dev_short_nbor,
-                           &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
-                           &nbor_pitch, &this->_threads_per_atom, &evatom);
+  this->k_3center_sel->set_size(GX,BX);
+  this->k_3center_sel->run(&this->atom->x, &cut_sigma_gamma, &sw_pre3,
+                           &_lj_types, &this->nbor->dev_nbor,
+                           &this->ans->force, &this->ans->engv, &eflag,
+                           &vflag, &ainum, &nbor_pitch,
+                           &this->_threads_per_atom, &evatom);
 
   Answer<numtyp,acctyp> *end_ans;
   #ifdef THREE_CONCURRENT
@@ -240,26 +185,33 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   #endif
   if (evatom!=0) {
     this->k_three_end_vatom.set_size(GX,BX);
-    this->k_three_end_vatom.run(&this->atom->x, &sw1, &sw2, &sw3,
-                          &map, &elem2param, &_nelements,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_ilist, &this->dev_short_nbor,
-                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
-
+    this->k_three_end_vatom.run(&this->atom->x, &cut_sigma_gamma,
+                                &sw_pre3, &_lj_types, &this->nbor->dev_nbor,
+                                &this->nbor->three_ilist, &end_ans->force,
+                                &end_ans->engv, &eflag, &vflag, &ainum,
+                                &nbor_pitch,&this->_threads_per_atom,
+                                &this->_gpu_nbor);
   } else {
-    this->k_three_end.set_size(GX,BX);
-    this->k_three_end.run(&this->atom->x, &sw1, &sw2, &sw3,
-                          &map, &elem2param, &_nelements,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_ilist, &this->dev_short_nbor,
-                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
-
+    this->k_3end_sel->set_size(GX,BX);
+    this->k_3end_sel->run(&this->atom->x, &cut_sigma_gamma, &sw_pre3,
+                          &_lj_types, &this->nbor->dev_nbor,
+                          &this->nbor->three_ilist, &end_ans->force,
+                          &end_ans->engv, &eflag, &vflag, &ainum, &nbor_pitch,
+                          &this->_threads_per_atom, &this->_gpu_nbor);
   }
 
+  BX=this->block_pair();
+  int GXT=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
+  this->k_sel->set_size(GXT,BX);
+  this->k_sel->run(&this->atom->x, &sw_pre, &c_14, &c_56,
+                   &_lj_types, &this->nbor->dev_nbor,
+                   &this->ans->force, &this->ans->engv, &eflag, &vflag,
+                   &ainum, &nbor_pitch, &this->_threads_per_atom, &GX);
+
   this->time_pair.stop();
+  return GX;
 }
 
 template class SW<PRECISION,ACC_PRECISION>;
-
+}

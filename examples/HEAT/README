@@ -1,12 +1,12 @@
 This directory contains 4 input scripts for carrying out NEMD
 simulations of thermal gradients for a Lennard-Jones fluid and SPC/E
-water using the HEX/a (fix heat) and eHEX/a (fix ehex) algorithms.
+water using the HEX/a (fix ehex w/ hex option) and eHEX/a (fix ehex) algorithms.
 
 All input scripts are part of the supplementary (open access) material
 supporting the publication of Wirnsberger et al. [J. Chem. Phys. 143,
 124104 (2015)] and allow one to reproduce the key results reported in
 that paper. The full article is available for download under
-http://dx.doi.org/10.1063/1.4931597 or http://arxiv.org/pdf/1507.07081
+https://doi.org/10.1063/1.4931597 or http://arxiv.org/pdf/1507.07081
 and the supplementary material is available under
 https://www.repository.cam.ac.uk/handle/1810/250539.
 

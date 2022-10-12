@@ -1,4 +1,4 @@
-DATE: 2007-10-12 CONTRIBUTOR: G. Ziegenhain, gerolf@ziegenhain.com CITATION: Mishin, Phys Rev B, 63, 224106 (2001)
+DATE: 2007-10-12 UNITS: metal CONTRIBUTOR: G. Ziegenhain, gerolf@ziegenhain.com CITATION: Mishin, Phys Rev B, 63, 224106 (2001)
 #-> LAMMPS Potential File in DYNAMO 86 setfl Format <-#
 # Mishin Cu EAM1 PRB(2001)63:224106
 1 Cu

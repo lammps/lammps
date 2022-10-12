@@ -28,16 +28,16 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 const char version[] = "2.1";
 
 /* store list of accepted extensions for object targets */
-static const char *extensions[] = { ".cpp", ".c", ".cu" };
-static const int numextensions = sizeof(extensions)/sizeof(const char *);
+static const char *extensions[] = {".cpp", ".c", ".cu"};
+static const int numextensions = sizeof(extensions) / sizeof(const char *);
 
 /* strdup() is not part of ANSI C. provide a replacement for portability */
 static char *my_strdup(const char *src)
@@ -47,8 +47,8 @@ static char *my_strdup(const char *src)
 
     if (src == NULL) return NULL;
     len = strlen(src);
-    ptr = (char *)malloc(len+1);
-    if (ptr) memcpy(ptr,src,len+1);
+    ptr = (char *)malloc(len + 1);
+    if (ptr) memcpy(ptr, src, len + 1);
     return ptr;
 }
 
@@ -60,8 +60,7 @@ static char *my_strdup(const char *src)
 char *trim_path(char *path)
 {
     int last = strlen(path) - 1;
-    while ((path[last] == '/') || (path[last] == '\\'))
-        --last;
+    while ((path[last] == '/') || (path[last] == '\\')) --last;
     path[++last] = '\0';
     return path;
 }
@@ -73,13 +72,13 @@ int file_exists(const char *path)
     struct _stat s;
 
     if (path == NULL) return 0;
-    if (_stat(path,&s) != 0) return 0;
+    if (_stat(path, &s) != 0) return 0;
     return 1;
 #else
     struct stat s;
 
     if (path == NULL) return 0;
-    if (stat(path,&s) != 0) return 0;
+    if (stat(path, &s) != 0) return 0;
     return 1;
 #endif
 }
@@ -87,14 +86,14 @@ int file_exists(const char *path)
 /* simple integer square root */
 static int isqrt(int n)
 {
-  int b = 0;
+    int b = 0;
 
-  while(n >= 0) {
-      n = n - b;
-      b = b + 1;
-      n = n - b;
-  }
-  return b - 1;
+    while (n >= 0) {
+        n = n - b;
+        b = b + 1;
+        n = n - b;
+    }
+    return b - 1;
 }
 
 /* determine next available prime number */
@@ -105,10 +104,10 @@ static int next_prime(const int num)
     /* nprime has to be larger than num and odd */
     nprime = num + (num & 1) + 1;
     /* there is always a prime between n and 2n */
-    while (nprime < 2*num) {
+    while (nprime < 2 * num) {
         /* brute force division test on odd factors up to sqrt(nprime) */
-        root = isqrt(nprime)+1;
-        for (factor = 3; factor < root; factor +=2) {
+        root = isqrt(nprime) + 1;
+        for (factor = 3; factor < root; factor += 2) {
             if (nprime % factor == 0) break;
         }
         /* if the loop didn't exit early, we have found a prime */
@@ -216,7 +215,7 @@ static void llist_append(llist_t *ll, const char *key)
     if ((ll == NULL) || (key == NULL)) return;
 
     ll->tail->key = my_strdup(key);
-    ll->count ++;
+    ll->count++;
     tmp = (llnode_t *)malloc(sizeof(llnode_t));
     tmp->key = NULL;
     tmp->next = NULL;
@@ -237,18 +236,17 @@ static void llist_print(llist_t *ll)
     tmp = ll->head;
 
     if (tmp->next) {
-        fputs(tmp->key,stdout);
+        fputs(tmp->key, stdout);
         tmp = tmp->next;
     }
 
     while (tmp->next) {
-        fputc(':',stdout);
-        fputs(tmp->key,stdout);
+        fputc(':', stdout);
+        fputs(tmp->key, stdout);
         tmp = tmp->next;
     }
-    fputc('\n',stdout);
+    fputc('\n', stdout);
 }
-
 
 /************************************************************************
  * set functions
@@ -260,8 +258,8 @@ static set_t *set_init(int num)
     set_t *s = (set_t *)malloc(sizeof(set_t));
 
     s->nbuckets = next_prime(num);
-    s->buckets = malloc(s->nbuckets*sizeof(llnode_t));
-    memset(s->buckets,0,s->nbuckets*sizeof(llnode_t));
+    s->buckets = malloc(s->nbuckets * sizeof(llnode_t));
+    memset(s->buckets, 0, s->nbuckets * sizeof(llnode_t));
     s->count = 0;
 
     return s;
@@ -299,10 +297,10 @@ static void set_add(set_t *s, const char *key)
     idx = hash_func(key) % s->nbuckets;
     tmp = s->buckets + idx;
     while (tmp->next != NULL) {
-        if (strcmp(tmp->key,key) == 0) return;
+        if (strcmp(tmp->key, key) == 0) return;
         tmp = tmp->next;
     }
-    s->count ++;
+    s->count++;
     tmp->key = my_strdup(key);
     tmp->next = (llnode_t *)malloc(sizeof(llnode_t));
     tmp = tmp->next;
@@ -321,7 +319,7 @@ static int set_find(set_t *s, const char *key)
     idx = hash_func(key) % s->nbuckets;
     tmp = s->buckets + idx;
     while (tmp->next != NULL) {
-        if (strcmp(tmp->key,key) == 0) return 1;
+        if (strcmp(tmp->key, key) == 0) return 1;
         tmp = tmp->next;
     }
     return 0;
@@ -344,8 +342,8 @@ static map_t *map_init(int num)
     if (!m) return NULL;
 
     m->nbuckets = next_prime(num);
-    m->buckets = malloc(m->nbuckets*sizeof(mapnode_t));
-    memset(m->buckets,0,m->nbuckets*sizeof(mapnode_t));
+    m->buckets = malloc(m->nbuckets * sizeof(mapnode_t));
+    memset(m->buckets, 0, m->nbuckets * sizeof(mapnode_t));
     m->count = 0;
 
     return m;
@@ -385,13 +383,13 @@ static void map_add(map_t *m, const char *key, const char *val)
     idx = hash_func(key) % m->nbuckets;
     tmp = m->buckets + idx;
     while (tmp->next != NULL) {
-        if (strcmp(tmp->key,key) == 0) break;
+        if (strcmp(tmp->key, key) == 0) break;
         tmp = tmp->next;
     }
 
     /* add new entry to map */
     if (tmp->next == NULL) {
-        m->count ++;
+        m->count++;
         tmp->key = my_strdup(key);
         tmp->val = set_init(50); /* XXX: chosen arbitrarily */
         tmp->next = (mapnode_t *)malloc(sizeof(mapnode_t));
@@ -399,7 +397,7 @@ static void map_add(map_t *m, const char *key, const char *val)
         tmp->next->val = NULL;
         tmp->next->next = NULL;
     }
-    set_add(tmp->val,val);
+    set_add(tmp->val, val);
 }
 
 /* return an entry in the map */
@@ -413,7 +411,7 @@ static set_t *map_find(map_t *m, const char *key)
     idx = hash_func(key) % m->nbuckets;
     tmp = m->buckets + idx;
     while (tmp->next != NULL) {
-        if (strcmp(tmp->key,key) == 0) return tmp->val;
+        if (strcmp(tmp->key, key) == 0) return tmp->val;
         tmp = tmp->next;
     }
     return NULL;
@@ -459,11 +457,11 @@ static void make_path(const char *file, llist_t *paths, char *buffer)
 /************************************************************************/
 
 static void find_includes(llnode_t *head, llist_t *todo, llist_t *paths,
-                   set_t *incl, map_t *deps)
+                          set_t *incl, map_t *deps)
 {
     FILE *fp;
     llnode_t *tmp;
-    char *buffer,*full,*ptr,*end;
+    char *buffer, *full, *ptr, *end;
     const char *file;
 
     buffer = (char *)malloc(4096);
@@ -472,16 +470,16 @@ static void find_includes(llnode_t *head, llist_t *todo, llist_t *paths,
     tmp = head;
     while (tmp->next != NULL) {
         file = tmp->key;
-        fp = fopen(file,"r");
+        fp = fopen(file, "r");
         if (fp == NULL) {
             perror("Cannot read source");
-            fprintf(stderr,"For file: %s\n",file);
+            fprintf(stderr, "For file: %s\n", file);
             exit(EXIT_FAILURE);
         }
 
         /* read file line by line and look for #include "..." */
         while (!feof(fp) && !ferror(fp)) {
-            if (fgets(buffer,4096,fp) == NULL) continue;
+            if (fgets(buffer, 4096, fp) == NULL) continue;
             ptr = buffer;
             while (*ptr == ' ' || *ptr == '\t') ++ptr;
             if (*ptr != '#') continue;
@@ -500,7 +498,7 @@ static void find_includes(llnode_t *head, llist_t *todo, llist_t *paths,
             end = ptr;
             while (*end != '"') {
                 if (*end == '\0') {
-                    fprintf(stderr,"Unmatched '\"': %s\n",buffer);
+                    fprintf(stderr, "Unmatched '\"': %s\n", buffer);
                     exit(EXIT_FAILURE);
                 }
                 ++end;
@@ -508,18 +506,18 @@ static void find_includes(llnode_t *head, llist_t *todo, llist_t *paths,
             *end = '\0';
 
             /* get full path to include file */
-            make_path(ptr,paths,full);
+            make_path(ptr, paths, full);
             /* skip, if not found or unreadable. */
             if (full[0] == '\0') continue;
 
             /* if this is a yet unknown include, add to the
              * todo list, if append is enabled */
-            if (set_find(incl,full) == 0) {
-                set_add(incl,full);
-                llist_append(todo,full);
+            if (set_find(incl, full) == 0) {
+                set_add(incl, full);
+                llist_append(todo, full);
             }
 
-            map_add(deps,file,full);
+            map_add(deps, file, full);
         }
         fclose(fp);
         tmp = tmp->next;
@@ -534,26 +532,25 @@ static void add_depend(const char *source, set_t *incl, map_t *deps)
 {
     set_t *mydeps;
     llnode_t *tmp;
-    int i,num;
+    int i, num;
 
     if (source == NULL) return;
 
-    mydeps = map_find(deps,source);
+    mydeps = map_find(deps, source);
     if (mydeps != NULL) {
         num = mydeps->nbuckets;
 
         for (i = 0; i < num; ++i) {
             tmp = mydeps->buckets + i;
             while (tmp->next != NULL) {
-                if (set_find(incl,tmp->key) == 0) {
-                    set_add(incl,tmp->key);
-                    add_depend(tmp->key,incl,deps);
+                if (set_find(incl, tmp->key) == 0) {
+                    set_add(incl, tmp->key);
+                    add_depend(tmp->key, incl, deps);
                 }
                 tmp = tmp->next;
             }
         }
     }
-
 }
 
 /************************************************************************/
@@ -564,23 +561,23 @@ static void do_depend(llnode_t *head, map_t *deps)
     set_t *incl;
     const char *source;
     char *target, *ptr;
-    int i,num,ext;
+    int i, num, ext;
 
     tmp = head;
     while (tmp->next != NULL) {
         source = tmp->key;
-        target = strrchr(source,'/');
+        target = strrchr(source, '/');
         if (target == NULL) {
             target = my_strdup(source);
         } else {
-            target = my_strdup(target+1);
+            target = my_strdup(target + 1);
         }
 
         ext = 0;
-        ptr = strrchr(target,'.');
+        ptr = strrchr(target, '.');
         if (ptr != NULL) {
             for (i = 0; i < numextensions; ++i) {
-                if (strcmp(ptr,extensions[i]) == 0) ++ext;
+                if (strcmp(ptr, extensions[i]) == 0) ++ext;
             }
             if (ext > 0) {
                 ptr[1] = 'o';
@@ -589,23 +586,23 @@ static void do_depend(llnode_t *head, map_t *deps)
         }
 
         if (ext > 0) {
-            fputs(target,stdout);
-            fputs(" : ",stdout);
-            fputs(source,stdout);
+            fputs(target, stdout);
+            fputs(" : ", stdout);
+            fputs(source, stdout);
 
             incl = set_init(50);
-            add_depend(source,incl,deps);
+            add_depend(source, incl, deps);
 
             num = incl->nbuckets;
             for (i = 0; i < num; ++i) {
                 lnk = incl->buckets + i;
                 while (lnk->next != NULL) {
-                    fputc(' ',stdout);
-                    fputs(lnk->key,stdout);
+                    fputc(' ', stdout);
+                    fputs(lnk->key, stdout);
                     lnk = lnk->next;
                 }
             }
-            fputc('\n',stdout);
+            fputc('\n', stdout);
             set_free(incl);
         }
 
@@ -614,74 +611,71 @@ static void do_depend(llnode_t *head, map_t *deps)
     }
 }
 
-
-
 /************************************************************************/
 
 int main(int argc, char **argv)
 {
-    llist_t *paths,*src,*todo;
+    llist_t *paths, *src, *todo;
     set_t *incl;
     map_t *deps;
 
     if (argc < 2) {
-        fprintf(stderr,"FastDep v%s for LAMMPS\n"
+        fprintf(stderr,
+                "FastDep v%s for LAMMPS\n"
                 "Usage: %s [-I <path> ...] -- <src1> [<src2> ...]\n",
-                version,argv[0]);
-        fprintf(stderr,"Supported extensions: %d, %s, %s\n",numextensions,
+                version, argv[0]);
+        fprintf(stderr, "Supported extensions: %d, %s, %s\n", numextensions,
                 extensions[0], extensions[1]);
         return 1;
     }
 
     /* hash tables for all known included files and dependencies
      * we guesstimate a little over 2x as many entries as sources. */
-    incl = set_init(2*argc);
-    deps = map_init(2*argc);
+    incl = set_init(2 * argc);
+    deps = map_init(2 * argc);
 
     /* list of include search paths. prefixed by "." and "..". */
     paths = llist_init();
-    llist_append(paths,".");
-    llist_append(paths,"..");
+    llist_append(paths, ".");
+    llist_append(paths, "..");
 
     while (++argv, --argc > 0) {
         if (strncmp(*argv, "-I", 2) == 0) {
             if ((*argv)[2] != '\0') {
-                llist_append(paths,trim_path(*argv+2));
+                llist_append(paths, trim_path(*argv + 2));
             } else {
                 ++argv;
                 --argc;
                 if (argc > 0) {
-                    if (strcmp(*argv,"--") == 0) {
+                    if (strcmp(*argv, "--") == 0) {
                         break;
                     } else {
-                        llist_append(paths,trim_path(*argv));
+                        llist_append(paths, trim_path(*argv));
                     }
                 }
             }
-        } else if (strcmp(*argv,"--") == 0) {
+        } else if (strcmp(*argv, "--") == 0) {
             break;
         } /* ignore all unrecognized arguments before '--'. */
     }
 
     src = llist_init();
-    while (++argv, --argc > 0) {
-        llist_append(src,*argv);
-    }
+    while (++argv, --argc > 0) { llist_append(src, *argv); }
 
     /* process files to look for includes */
     todo = llist_init();
-    find_includes(src->head,todo,paths,incl,deps);
-    find_includes(todo->head,todo,paths,incl,deps);
+    find_includes(src->head, todo, paths, incl, deps);
+    find_includes(todo->head, todo, paths, incl, deps);
     llist_free(todo);
 
-    fprintf(stdout,"# FastDep v%s for LAMMPS\n",version);
-    fputs("# Search path: ",stdout);
+    fprintf(stdout, "# FastDep v%s for LAMMPS\n", version);
+    fputs("# Search path: ", stdout);
     llist_print(paths);
-    fprintf(stdout,"# % 5d sources\n# % 5d includes\n# % 5d depfiles\n",
-            llist_size(src),set_size(incl),map_size(deps));
+    fprintf(stdout, "# % 5d sources\n# % 5d includes\n# % 5d depfiles\n",
+            llist_size(src), set_size(incl), map_size(deps));
 
     set_free(incl);
-    do_depend(src->head,deps);
+    do_depend(src->head, deps);
 
     llist_free(src);
     llist_free(paths);

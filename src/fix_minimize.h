@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(MINIMIZE,FixMinimize)
-
+// clang-format off
+FixStyle(MINIMIZE,FixMinimize);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MINIMIZE_H
@@ -29,34 +29,31 @@ class FixMinimize : public Fix {
 
  public:
   FixMinimize(class LAMMPS *, int, char **);
-  ~FixMinimize();
-  int setmask();
-  void init() {}
+  ~FixMinimize() override;
+  int setmask() override;
+  void init() override {}
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
-  void add_vector(int);
+  virtual void add_vector(int);
   double *request_vector(int);
   void store_box();
   void reset_coords();
 
- private:
+ protected:
   int nvector;
   int *peratom;
   double **vectors;
-  double boxlo[3],boxhi[3];
+  double boxlo[3], boxhi[3];
 
   void box_swap();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

@@ -5,7 +5,7 @@ problems you can run with LAMMPS.
 
 lower-case directories = simple test problems for LAMMPS and its packages
 upper-case directories = more complex problems
-USER directory with its own sub-directories = tests for USER packages
+PACKAGES directory with its own sub-directories = tests for styles from specific packages
 
 Each is discussed below.
 
@@ -37,7 +37,7 @@ produce dump snapshots of the running simulation in any of 3 formats.
 
 If you uncomment the dump command in the input script, a text dump
 file will be produced, which can be animated by various visualization
-programs (see http://lammps.sandia.gov/viz.html) such as Ovito, VMD,
+programs (see https://www.lammps.org/viz.html) such as Ovito, VMD,
 or AtomEye.
 
 If you uncomment the dump image command in the input script, and
@@ -59,56 +59,68 @@ sub-directories:
 
 accelerate: use of all the various accelerator packages
 airebo:   polyethylene with AIREBO potential
+amoeba:   small water and bio models with AMOEBA and HIPPO potentials
 atm:      Axilrod-Teller-Muto potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 cmap:     CMAP 5-body contributions to CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
-comb:	  models using the COMB potential
+comb:     models using the COMB potential
 coreshell: adiabatic core/shell model
 controller: use of fix controller as a thermostat
-crack:	  crack propagation in a 2d solid
+crack:    crack propagation in a 2d solid
 deposit:  deposition of atoms and molecules onto a 3d substrate
 dipole:   point dipolar particles, 2d system
 dreiding: methanol via Dreiding FF
 eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
-flow:	  Couette and Poiseuille flow in a 2d channel
+flow:     Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
-gcmc:     Grand Canonical Monte Carlo (GCMC) via the fix gcmc command
+gjf:      use of fix langevin Gronbech-Jensen/Farago option
 granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
 hyper:    global and local hyperdynamics of diffusion on Pt surface
-indent:	  spherical indenter into a 2d solid
+indent:   spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
 latte:    use of LATTE density-functional tight-binding quantum code
-meam:	  MEAM test for SiC and shear (same as shear examples)
-melt:	  rapid melt of 3d LJ system
-message:  client/server coupling of 2 codes
+mc:       MC package models: GCMC, Widom, fix mol/swap
+mdi:      use of the MDI package and MolSSI MDI code coupling library
+meam:     MEAM test for SiC and shear (same as shear examples)
+melt:     rapid melt of 3d LJ system
+mesh:     create_atoms mesh command
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
-min:	  energy minimization of 2d LJ melt
+min:      energy minimization of 2d LJ melt
+mliap:    examples for using several bundled MLIAP potentials
 mscg:     parameterize a multi-scale coarse-graining (MSCG) model
-msst:	  MSST shock dynamics
+msst:     MSST shock dynamics
 nb3b:     use of nonbonded 3-body harmonic pair style
-neb:	  nudged elastic band (NEB) calculation for barrier finding
-nemd:	  non-equilibrium MD of 2d sheared system
+neb:      nudged elastic band (NEB) calculation for barrier finding
+nemd:     non-equilibrium MD of 2d sheared system
+numdiff:  numerical difference computation of forces, virial, and Born matrix
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
-peri:	  Peridynamic model of cylinder impacted by indenter
+peri:     Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
 qeq:      use of QEQ package for charge equilibration
-reax:     RDX and TATB models using the ReaxFF
+reaxff:   RDX and TATB and several other models using ReaxFF
+rerun:    use of rerun and read_dump commands
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
-snap:     use of SNAP potential for Ta
+snap:     examples for using several bundled SNAP potentials
 srd:      stochastic rotation dynamics (SRD) particles as solvent
-snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
+steinhardt: Steinhardt-Nelson Q_l and W_l parameters usng orientorder/atom
 streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+template: examples for using atom_style template and comparing to atom style molecular
+tersoff:  regression test input for Tersoff variants
+threebody: regression test input for a variety of threebody potentials
+ttm:      two-temeperature model examples
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
+wall:     use of reflective walls with different stochastic models
+yaml:     demonstrates use of yaml thermo and dump styles
 
 Here is how you might run and visualize one of the sample problems:
 
@@ -117,9 +129,7 @@ cp ../../src/lmp_mpi .           # copy LAMMPS executable to this dir
 lmp_mpi -in in.indent              # run the problem
 
 Running the simulation produces the files {dump.indent} and
-{log.lammps}.  You can visualize the dump file as follows:
-
-../../tools/xmovie/xmovie -scale dump.indent
+{log.lammps}.
 
 If you uncomment the dump image line(s) in the input script a series
 of JPG images will be produced by the run.  These can be viewed
@@ -145,12 +155,19 @@ either by itself or in tandem with another code or library.  See the
 COUPLE/README file to get started.
 
 The ELASTIC directory has an example script for computing elastic
-constants at zero temperature, using an Si example.  See the
+stiffness tensor (elastic constants)
+at zero temperature, using an Si example.  See the
 ELASTIC/in.elastic file for more info.
 
-The ELASTIC_T directory has an example script for computing elastic
-constants at finite temperature, using an Si example.  See the
-ELASTIC_T/in.elastic file for more info.
+The ELASTIC_T directory has example scripts for the computing elastic
+stiffness tensor at finite temperature. Two different methods are
+demonstrated. DEFORMATION estimates the change in the average
+stress tensor between multiple simulations
+in which small finite deformations are made to the simulation cell.
+BORN_MATRIX runs a single simulation in which the Born matrix and stress
+fluctuations are averaged. The second method
+is newer in LAMMPS and is generally more efficient and
+more reliable.
 
 The HEAT directory has example scripts for heat exchange algorithms
 (e.g. used for establishing a thermal gradient), using two different
@@ -160,14 +177,29 @@ The KAPPA directory has example scripts for computing the thermal
 conductivity (kappa) of a LJ liquid using 5 different methods.  See
 the KAPPA/README file for more info.
 
-The MC directory has an example script for using LAMMPS as an
+The MC-LOOP directory has an example script for using LAMMPS as an
 energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
 
-The USER directory contains subdirectories of user-provided example
-scripts for ser packages.  See the README files in those directories
-for more info.  See the doc/Section_start.html file for more info
-about installing and building user packages.
+The PACKAGES directory contains subdirectories of example scripts for
+individual packages or additional individual styles. Most of those are
+contributed by the corresponding package or style developers.
+See the README files in those directories (if available) or the
+corresponding doc page in the manual for more info.  See the
+https://docs.lammps.org/Build_package.html page for more info about
+installing and building packages.
+
+The QM directory has examples of how to use LAMMPS in tandem with
+several quantum codes.
+
+The TIP4P directory has an example for testing forces computed on a
+GPU.
+
+The UNITS directory contains examples of input scripts modeling the
+same Lennard-Jones liquid model, written in 3 different unit systems:
+lj, real, and metal.  So that you can see how to scale/unscale input
+and output values read/written by LAMMPS to verify you are performing
+the same simulation in different unit systems.
 
 The VISCOSITY directory has example scripts for computing the
 viscosity of a LJ liquid using 4 different methods.  See the

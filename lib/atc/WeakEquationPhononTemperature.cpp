@@ -19,14 +19,14 @@ WeakEquationPhononTemperature::WeakEquationPhononTemperature()
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-WeakEquationPhononTemperature::~WeakEquationPhononTemperature(void)
+WeakEquationPhononTemperature::~WeakEquationPhononTemperature()
 {}
 //---------------------------------------------------------------------
 //   compute total energy
 //---------------------------------------------------------------------
 void WeakEquationPhononTemperature::E_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &gradFields,
+  const GRAD_FIELD_MATS & /* gradFields */,
   const Material * material,
   DENS_MAT &energy) const
 {
@@ -67,14 +67,14 @@ WeakEquationPhononTemperatureExchange::WeakEquationPhononTemperatureExchange()
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationPhononTemperatureExchange::~WeakEquationPhononTemperatureExchange(void)
+WeakEquationPhononTemperatureExchange::~WeakEquationPhononTemperatureExchange()
 {}
-  
+
 //---------------------------------------------------------------------
 //   compute energy
 //---------------------------------------------------------------------
 void WeakEquationPhononTemperatureExchange::E_integrand(
-  const FIELD_MATS &fields, 
+  const FIELD_MATS &fields,
   const GRAD_FIELD_MATS &gradFields,
   const Material * material,
   DENS_MAT &energy ) const
@@ -121,4 +121,4 @@ bool WeakEquationPhononTemperatureExchange::N_integrand(
 
 }; // end namespace
 
-  
+

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/long/coul/long/opt,PairLJLongCoulLongOpt)
-
+// clang-format off
+PairStyle(lj/long/coul/long/opt,PairLJLongCoulLongOpt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_LONG_COUL_LONG_OPT_H
@@ -27,22 +27,20 @@ namespace LAMMPS_NS {
 class PairLJLongCoulLongOpt : public PairLJLongCoulLong {
  public:
   PairLJLongCoulLongOpt(class LAMMPS *);
-  virtual void compute(int, int);
-  virtual void compute_outer(int,int);
+  void compute(int, int) override;
+  void compute_outer(int, int) override;
 
  protected:
-  template <const int EVFLAG, const int EFLAG,
-    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
-    const int ORDER1, const int ORDER6 >
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,
+            const int LJTABLE, const int ORDER1, const int ORDER6>
   void eval();
 
-  template <const int EVFLAG, const int EFLAG,
-    const int NEWTON_PAIR, const int CTABLE, const int LJTABLE,
-    const int ORDER1, const int ORDER6 >
+  template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,
+            const int LJTABLE, const int ORDER1, const int ORDER6>
   void eval_outer();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -18,18 +18,18 @@ WeakEquationElectronContinuity::WeakEquationElectronContinuity()
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronContinuity::~WeakEquationElectronContinuity(void)
+WeakEquationElectronContinuity::~WeakEquationElectronContinuity()
 {}
 
 //---------------------------------------------------------------------
 void WeakEquationElectronContinuity::M_integrand(
   const FIELD_MATS &fields,
-  const Material * material,
+  const Material * /* material */,
   DENS_MAT & density ) const
 {
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT &  n = nField->second;
-  density.resize(n.nRows(),n.nCols()); 
+  density.resize(n.nRows(),n.nCols());
   density = 1;
 }
 
@@ -66,18 +66,18 @@ WeakEquationElectronEquilibrium::WeakEquationElectronEquilibrium()
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronEquilibrium::~WeakEquationElectronEquilibrium(void)
+WeakEquationElectronEquilibrium::~WeakEquationElectronEquilibrium()
 {}
 
 //---------------------------------------------------------------------
 void WeakEquationElectronEquilibrium::M_integrand(
   const FIELD_MATS &fields,
-  const Material * material,
+  const Material * /* material */,
   DENS_MAT & density ) const
 {
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT &  n = nField->second;
-  density.reset(n.nRows(),n.nCols()); 
+  density.reset(n.nRows(),n.nCols());
   density = 1;
 }
 
@@ -85,7 +85,7 @@ void WeakEquationElectronEquilibrium::M_integrand(
 
 bool WeakEquationElectronEquilibrium::N_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
+  const GRAD_FIELD_MATS & /* grad_fields */,
   const Material * material,
   DENS_MAT &flux) const
 {

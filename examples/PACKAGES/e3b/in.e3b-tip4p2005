@@ -1,0 +1,95 @@
+#LAMMPS input file
+#to simulate bulk E3B3 water model
+
+#####################################################################
+
+variable	samp_rate 	equal 10
+variable	thermo_rate 	equal 10
+variable	Wlat		equal 3.10744  #for water density 0.997g/mL
+variable        L		equal 3  #(L*2)^3 = Nmolec, L=3 -> N=216
+
+variable	equil		equal 100
+variable	run		equal 100
+
+variable	ts		equal 2.0
+variable	Tdamp		equal 100*${ts}
+variable 	Pdamp		equal 1000*${ts}
+variable	myT		equal 298.0
+variable	myP		equal 1.0
+
+units 		real
+atom_style	full
+
+dimension 	3
+
+boundary 	p p p
+
+#############################################################################
+#setup box
+read_data       e3b_box.data
+
+#############################################################################
+#set up potential
+
+pair_style 	hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.1546 8.5
+pair_modify 	table 0 table/disp 0 shift yes
+
+bond_style  	harmonic
+angle_style 	harmonic
+
+kspace_style 	pppm/tip4p 1.0e-6
+
+pair_coeff 	* * lj/cut/tip4p/long 0.0 0.0
+pair_coeff	1 1 lj/cut/tip4p/long 0.1852 3.1589
+pair_coeff	* * e3b preset 2015
+
+#potential coeffs aren't too important since will be rigid anyways
+bond_coeff	1 554.13 0.9572
+angle_coeff	1 45.769 104.52
+
+#############################################################################
+#setup for run
+thermo 		${thermo_rate}
+thermo_style 	custom step vol temp epair pe etotal press density
+
+timestep 	${ts}
+run_style 	verlet
+
+neighbor	2.0 bin
+neigh_modify	every 1 delay 3 check yes
+
+#############################################################################
+
+#dump positions only in first batch run
+#dump 		7 all custom ${samp_rate} dump.lammpstrj id x y z
+#dump_modify	7 sort id
+
+#############################################################################
+#initialize velocity and rigid constraint
+
+fix 		rigid all shake 1.0e-8 100 0 b 1 a 1 t 1 2
+velocity 	all create ${myT} 15856 dist gaussian rot yes mom yes
+
+#scale velocity
+run		0
+velocity	all scale ${myT}
+
+compute    	e3b all pair e3b
+fix		e3b all ave/time 1 1 ${thermo_rate} c_e3b c_e3b[*] &
+		file e3b.txt title2 "step pe_e3b pe_e2 pe_ea pe_eb pe_ec"
+
+#############################################################################
+#equilibrate bulk water at NVT
+
+fix 		1 all nvt temp ${myT} ${myT} ${Tdamp}
+run 		${equil}
+
+#############################################################################
+#run at NVT
+
+#dump 		1 all custom ${samp_rate} dump.lammpstrj id x y z type
+#dump_modify	1 sort id
+
+run 		${run}
+
+# write_restart 	lammps.restart

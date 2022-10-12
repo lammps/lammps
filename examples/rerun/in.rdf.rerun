@@ -1,0 +1,31 @@
+# 3d Lennard-Jones melt
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	yy equal 20*$y
+variable	zz equal 20*$z
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+pair_style	lj/cut 5.0
+pair_coeff	1 1 1.0 1.0
+
+neighbor	0.3 bin
+
+compute         myRDF all rdf 100 cutoff 5.0
+fix             2 all ave/time 100 10 1000 c_myRDF[*] file rdf.rerun mode vector
+
+thermo          100
+
+rerun           lj.dump dump x y z
+

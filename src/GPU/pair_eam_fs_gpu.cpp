@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,61 +15,59 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_fs_gpu.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "gpu_extra.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "gpu_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+#include "suffix.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-
 // External functions from cuda library for atom decomposition
 
-int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
-                 int **host_type2rhor, int **host_type2z2r,
-                 int *host_type2frho, double ***host_rhor_spline,
-                 double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, double rhomax,
-                 int nrhor, int nrho, int nz2r, int nfrho, int nr,
-                 const int nlocal, const int nall, const int max_nbors,
-                 const int maxspecial, const double cell_size, int &gpu_mode,
-                 FILE *screen, int &fp_size);
+int eam_fs_gpu_init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
+                    int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
+                    double ***host_z2r_spline, double ***host_frho_spline, double **host_cutsq,
+                    double rdr, double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
+                    int nfrho, int nr, const int nlocal, const int nall, const int max_nbors,
+                    const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
+                    int &fp_size);
 void eam_fs_gpu_clear();
-int** eam_fs_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                        double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial, tagint **special,
-                        const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist,
-                        int **jnum,  const double cpu_time, bool &success,
-                        int &inum, void **fp_ptr);
-void eam_fs_gpu_compute(const int ago, const int inum_full, const int nlocal,
-                     const int nall,double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-                     const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, void **fp_ptr);
-void eam_fs_gpu_compute_force(int *ilist, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom);
+int **eam_fs_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                           int *host_type, double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int &host_start, int **ilist,
+                           int **jnum, const double cpu_time, bool &success, int &inum,
+                           void **fp_ptr);
+void eam_fs_gpu_compute(const int ago, const int inum_full, const int nlocal, const int nall,
+                        double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
+                        const bool eflag, const bool vflag, const bool eatom, const bool vatom,
+                        int &host_start, const double cpu_time, bool &success, void **fp_ptr);
+void eam_fs_gpu_compute_force(int *ilist, const bool eflag, const bool vflag, const bool eatom,
+                              const bool vatom);
 double eam_fs_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
 PairEAMFSGPU::PairEAMFSGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
 {
+  one_coeff = 1;
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -92,7 +90,7 @@ double PairEAMFSGPU::memory_usage()
 
 void PairEAMFSGPU::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   // compute density on each atom on GPU
 
@@ -103,33 +101,41 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3], subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
+    }
     inum = atom->nlocal;
-    firstneigh = eam_fs_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                   atom->type, domain->sublo, domain->subhi,
-                                   atom->tag, atom->nspecial, atom->special,
-                                   eflag, vflag, eflag_atom, vflag_atom,
-                                   host_start, &ilist, &numneigh, cpu_time,
-                                   success, inum_dev, &fp_pinned);
-  } else { // gpu_mode == GPU_FORCE
+    firstneigh = eam_fs_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
+                                      atom->tag, atom->nspecial, atom->special, eflag, vflag,
+                                      eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
+                                      cpu_time, success, inum_dev, &fp_pinned);
+  } else {    // gpu_mode == GPU_FORCE
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    eam_fs_gpu_compute(neighbor->ago, inum, nlocal, nall, atom->x, atom->type,
-                    ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-                    vflag_atom, host_start, cpu_time, success, &fp_pinned);
+    eam_fs_gpu_compute(neighbor->ago, inum, nlocal, nall, atom->x, atom->type, ilist, numneigh,
+                       firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
+                       success, &fp_pinned);
   }
 
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
-    eam_fs_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+    eam_fs_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_fs_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 }
@@ -140,8 +146,6 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
 
 void PairEAMFSGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with eam/fs/gpu pair style");
 
   // convert read-in file(s) to arrays and spline them
 
@@ -154,10 +158,9 @@ void PairEAMFSGPU::init_style()
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
-        cut = init_one(i,j);
+        cut = init_one(i, j);
         cut *= cut;
-        if (cut > maxcut)
-          maxcut = cut;
+        if (cut > maxcut) maxcut = cut;
         cutsq[i][j] = cutsq[j][i] = cut;
       } else
         cutsq[i][j] = cutsq[j][i] = 0.0;
@@ -165,89 +168,81 @@ void PairEAMFSGPU::init_style()
   }
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
-  int maxspecial=0;
-  if (atom->molecular)
-    maxspecial=atom->maxspecial;
+  int maxspecial = 0;
+  if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int fp_size;
-  int success = eam_fs_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
-                             type2frho, rhor_spline, z2r_spline, frho_spline,
-                             rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
-                             atom->nlocal, atom->nlocal+atom->nghost, 300,
-                             maxspecial, cell_size, gpu_mode, screen, fp_size);
-  GPU_EXTRA::check_flag(success,error,world);
+  int mnf = 5e-2 * neighbor->oneatom;
+  int success = eam_fs_gpu_init(
+      atom->ntypes + 1, cutforcesq, type2rhor, type2z2r, type2frho, rhor_spline, z2r_spline,
+      frho_spline, cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr, atom->nlocal,
+      atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode, screen, fp_size);
+  GPU_EXTRA::check_flag(success, error, world);
 
-  if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this,instance_me);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-  }
+  if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
+  fp_single = fp_size != sizeof(double);
 
-  if (fp_size == sizeof(double))
-    fp_single = false;
-  else
-    fp_single = true;
+  embedstep = -1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairEAMFSGPU::single(int i, int j, int itype, int jtype,
-                            double rsq, double /* factor_coul */,
-                            double /* factor_lj */, double &fforce)
+double PairEAMFSGPU::single(int i, int j, int itype, int jtype, double rsq,
+                            double /* factor_coul */, double /* factor_lj */, double &fforce)
 {
   int m;
-  double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
+  double r, p, rhoip, rhojp, z2, z2p, recip, phi, phip, psip;
   double *coeff;
 
   r = sqrt(rsq);
-  p = r*rdr + 1.0;
-  m = static_cast<int> (p);
-  m = MIN(m,nr-1);
+  p = r * rdr + 1.0;
+  m = static_cast<int>(p);
+  m = MIN(m, nr - 1);
   p -= m;
-  p = MIN(p,1.0);
+  p = MIN(p, 1.0);
 
   coeff = rhor_spline[type2rhor[itype][jtype]][m];
-  rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+  rhoip = (coeff[0] * p + coeff[1]) * p + coeff[2];
   coeff = rhor_spline[type2rhor[jtype][itype]][m];
-  rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+  rhojp = (coeff[0] * p + coeff[1]) * p + coeff[2];
   coeff = z2r_spline[type2z2r[itype][jtype]][m];
-  z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-  z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+  z2p = (coeff[0] * p + coeff[1]) * p + coeff[2];
+  z2 = ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
 
-  double fp_i,fp_j;
-  if (fp_single == false) {
-    fp_i = ((double*)fp_pinned)[i];
-    fp_j = ((double*)fp_pinned)[j];
+  double fp_i, fp_j;
+  if (!fp_single) {
+    fp_i = ((double *) fp_pinned)[i];
+    fp_j = ((double *) fp_pinned)[j];
   } else {
-    fp_i = ((float*)fp_pinned)[i];
-    fp_j = ((float*)fp_pinned)[j];
+    fp_i = ((float *) fp_pinned)[i];
+    fp_j = ((float *) fp_pinned)[j];
   }
 
-  recip = 1.0/r;
-  phi = z2*recip;
-  phip = z2p*recip - phi*recip;
-  psip = fp_i*rhojp + fp_j*rhoip + phip;
-  fforce = -psip*recip;
+  recip = 1.0 / r;
+  phi = z2 * recip;
+  phip = z2p * recip - phi * recip;
+  psip = fp_i * rhojp + fp_j * rhoip + phip;
+  fforce = -psip * recip;
 
   return phi;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAMFSGPU::pack_forward_comm(int n, int *list, double *buf,
-                                    int /* pbc_flag */, int * /* pbc */)
+int PairEAMFSGPU::pack_forward_comm(int n, int *list, double *buf, int /* pbc_flag */,
+                                    int * /* pbc */)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
 
   if (fp_single) {
-    float *fp_ptr = (float *)fp_pinned;
+    auto fp_ptr = (float *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = static_cast<double>(fp_ptr[j]);
     }
   } else {
-    double *fp_ptr = (double *)fp_pinned;
+    auto fp_ptr = (double *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = fp_ptr[j];
@@ -261,15 +256,15 @@ int PairEAMFSGPU::pack_forward_comm(int n, int *list, double *buf,
 
 void PairEAMFSGPU::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
   if (fp_single) {
-    float *fp_ptr = (float *)fp_pinned;
+    auto fp_ptr = (float *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   } else {
-    double *fp_ptr = (double *)fp_pinned;
+    auto fp_ptr = (double *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   }
 }
@@ -281,24 +276,23 @@ void PairEAMFSGPU::unpack_forward_comm(int n, int first, double *buf)
 
 void PairEAMFSGPU::coeff(int narg, char **arg)
 {
-  int i,j;
+  int i, j;
 
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 3 + atom->ntypes) error->all(FLERR, "Incorrect args for pair coefficients");
 
   // insure I,J args are * *
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (strcmp(arg[0], "*") != 0 || strcmp(arg[1], "*") != 0)
+    error->all(FLERR, "Incorrect args for pair coefficients");
 
   // read EAM Finnis-Sinclair file
 
   if (fs) {
-    for (i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
-    delete [] fs->elements;
-    delete [] fs->mass;
+    for (i = 0; i < fs->nelements; i++) delete[] fs->elements[i];
+    delete[] fs->elements;
+    memory->destroy(fs->mass);
     memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
@@ -308,25 +302,26 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
+    if (strcmp(arg[i], "NULL") == 0) {
+      map[i - 2] = -1;
       continue;
     }
     for (j = 0; j < fs->nelements; j++)
-      if (strcmp(arg[i],fs->elements[j]) == 0) break;
-    if (j < fs->nelements) map[i-2] = j;
-    else error->all(FLERR,"No matching element in EAM potential file");
+      if (strcmp(arg[i], fs->elements[j]) == 0) break;
+    if (j < fs->nelements)
+      map[i - 2] = j;
+    else
+      error->all(FLERR, "No matching element in EAM potential file");
   }
 
   // clear setflag since coeff() called once with I,J = * *
 
   int n = atom->ntypes;
   for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      setflag[i][j] = 0;
+    for (j = i; j <= n; j++) setflag[i][j] = 0;
 
   // set setflag i,j for type pairs where both are mapped to elements
   // set mass of atom type if i = j
@@ -336,13 +331,14 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
     for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
-        if (i == j) atom->set_mass(FLERR,i,fs->mass[map[i]]);
+        if (i == j) atom->set_mass(FLERR, i, fs->mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -353,99 +349,121 @@ void PairEAMFSGPU::read_file(char *filename)
 {
   Fs *file = fs;
 
-  // open potential file
+  // read potential file
+  if (comm->me == 0) {
+    PotentialFileReader reader(PairEAM::lmp, filename, "eam/fs", unit_convert_flag);
 
-  int me = comm->me;
-  FILE *fptr;
-  char line[MAXLINE];
+    // transparently convert units for supported conversions
 
-  if (me == 0) {
-    fptr = force->open_potential(filename);
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open EAM potential file %s",filename);
-      error->one(FLERR,str);
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
+    try {
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
+
+      // extract element names from nelements line
+      ValueTokenizer values = reader.next_values(1);
+      file->nelements = values.next_int();
+
+      if ((int) values.count() != file->nelements + 1)
+        error->one(FLERR, "Incorrect element names in EAM potential file");
+
+      file->elements = new char *[file->nelements];
+      for (int i = 0; i < file->nelements; i++) {
+        const std::string word = values.next_string();
+        file->elements[i] = utils::strdup(word);
+      }
+
+      //
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr = values.next_int();
+      file->dr = values.next_double();
+      file->cut = values.next_double();
+      rhomax = 0.0;
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR, "Invalid EAM potential file");
+
+      memory->create(file->mass, file->nelements, "pair:mass");
+      memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+      memory->create(file->rhor, file->nelements, file->nelements, file->nr + 1, "pair:rhor");
+      memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+
+      for (int i = 0; i < file->nelements; i++) {
+        values = reader.next_values(2);
+        values.next_int();    // ignore
+        file->mass[i] = values.next_double();
+
+        reader.next_dvector(&file->frho[i][1], file->nrho);
+        if (unit_convert) {
+          for (int j = 1; j <= file->nrho; ++j) file->frho[i][j] *= conversion_factor;
+        }
+
+        for (int j = 0; j < file->nelements; j++) {
+          reader.next_dvector(&file->rhor[i][j][1], file->nr);
+        }
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k <= file->nr; ++k) file->z2r[i][j][k] *= conversion_factor;
+          }
+        }
+      }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
     }
   }
 
-  // read and broadcast header
-  // extract element names from nelements line
+  // broadcast potential information
+  MPI_Bcast(&file->nelements, 1, MPI_INT, 0, world);
 
-  int n;
-  if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    n = strlen(line) + 1;
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&rhomax, 1, MPI_DOUBLE, 0, world);
+
+  // allocate memory on other procs
+  if (comm->me != 0) {
+    file->elements = new char *[file->nelements];
+    for (int i = 0; i < file->nelements; i++) file->elements[i] = nullptr;
+    memory->create(file->mass, file->nelements, "pair:mass");
+    memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+    memory->create(file->rhor, file->nelements, file->nelements, file->nr + 1, "pair:rhor");
+    memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
   }
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-  sscanf(line,"%d",&file->nelements);
-  int nwords = atom->count_words(line);
-  if (nwords != file->nelements + 1)
-    error->all(FLERR,"Incorrect element names in EAM potential file");
-
-  char **words = new char*[file->nelements+1];
-  nwords = 0;
-  strtok(line," \t\n\r\f");
-  while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-  file->elements = new char*[file->nelements];
+  // broadcast file->elements string array
   for (int i = 0; i < file->nelements; i++) {
-    n = strlen(words[i]) + 1;
-    file->elements[i] = new char[n];
-    strcpy(file->elements[i],words[i]);
-  }
-  delete [] words;
-
-  if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    sscanf(line,"%d %lg %d %lg %lg",
-           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+    int n;
+    if (comm->me == 0) n = strlen(file->elements[i]) + 1;
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if (comm->me != 0) file->elements[i] = new char[n];
+    MPI_Bcast(file->elements[i], n, MPI_CHAR, 0, world);
   }
 
-  MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
-  MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nr,1,MPI_INT,0,world);
-  MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
+  // broadcast file->mass, frho, rhor
+  for (int i = 0; i < file->nelements; i++) {
+    MPI_Bcast(&file->mass[i], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->frho[i][1], file->nrho, MPI_DOUBLE, 0, world);
 
-  file->mass = new double[file->nelements];
-  memory->create(file->frho,file->nelements,file->nrho+1,
-                                              "pair:frho");
-  memory->create(file->rhor,file->nelements,file->nelements,
-                 file->nr+1,"pair:rhor");
-  memory->create(file->z2r,file->nelements,file->nelements,
-                 file->nr+1,"pair:z2r");
-
-  int i,j,tmp;
-  for (i = 0; i < file->nelements; i++) {
-    if (me == 0) {
-      fgets(line,MAXLINE,fptr);
-      sscanf(line,"%d %lg",&tmp,&file->mass[i]);
-    }
-    MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);
-
-    if (me == 0) grab(fptr,file->nrho,&file->frho[i][1]);
-    MPI_Bcast(&file->frho[i][1],file->nrho,MPI_DOUBLE,0,world);
-
-    for (j = 0; j < file->nelements; j++) {
-      if (me == 0) grab(fptr,file->nr,&file->rhor[i][j][1]);
-      MPI_Bcast(&file->rhor[i][j][1],file->nr,MPI_DOUBLE,0,world);
+    for (int j = 0; j < file->nelements; j++) {
+      MPI_Bcast(&file->rhor[i][j][1], file->nr, MPI_DOUBLE, 0, world);
     }
   }
 
-  for (i = 0; i < file->nelements; i++)
-    for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fptr,file->nr,&file->z2r[i][j][1]);
-      MPI_Bcast(&file->z2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
-    }
-
-  // close the potential file
-
-  if (me == 0) fclose(fptr);
+  // broadcast file->z2r
+  for (int i = 0; i < file->nelements; i++) {
+    for (int j = 0; j <= i; j++) { MPI_Bcast(&file->z2r[i][j][1], file->nr, MPI_DOUBLE, 0, world); }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -454,7 +472,7 @@ void PairEAMFSGPU::read_file(char *filename)
 
 void PairEAMFSGPU::file2array()
 {
-  int i,j,m,n;
+  int i, j, m, n;
   int ntypes = atom->ntypes;
 
   // set function params directly from fs file
@@ -463,7 +481,7 @@ void PairEAMFSGPU::file2array()
   nr = fs->nr;
   drho = fs->drho;
   dr = fs->dr;
-  rhomax = (nrho-1) * drho;
+  rhomax = (nrho - 1) * drho;
 
   // ------------------------------------------------------------------
   // setup frho arrays
@@ -474,7 +492,7 @@ void PairEAMFSGPU::file2array()
 
   nfrho = fs->nelements + 1;
   memory->destroy(frho);
-  memory->create(frho,nfrho,nrho+1,"pair:frho");
+  memory->create(frho, nfrho, nrho + 1, "pair:frho");
 
   // copy each element's frho to global frho
 
@@ -484,15 +502,17 @@ void PairEAMFSGPU::file2array()
   // add extra frho of zeroes for non-EAM types to point to (pair hybrid)
   // this is necessary b/c fp is still computed for non-EAM atoms
 
-  for (m = 1; m <= nrho; m++) frho[nfrho-1][m] = 0.0;
+  for (m = 1; m <= nrho; m++) frho[nfrho - 1][m] = 0.0;
 
   // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
   // if atom type doesn't point to element (non-EAM atom in pair hybrid)
   // then map it to last frho array of zeroes
 
   for (i = 1; i <= ntypes; i++)
-    if (map[i] >= 0) type2frho[i] = map[i];
-    else type2frho[i] = nfrho-1;
+    if (map[i] >= 0)
+      type2frho[i] = map[i];
+    else
+      type2frho[i] = nfrho - 1;
 
   // ------------------------------------------------------------------
   // setup rhor arrays
@@ -503,7 +523,7 @@ void PairEAMFSGPU::file2array()
 
   nrhor = fs->nelements * fs->nelements;
   memory->destroy(rhor);
-  memory->create(rhor,nrhor,nr+1,"pair:rhor");
+  memory->create(rhor, nrhor, nr + 1, "pair:rhor");
 
   // copy each element pair rhor to global rhor
 
@@ -519,8 +539,7 @@ void PairEAMFSGPU::file2array()
   // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2rhor not used
 
   for (i = 1; i <= ntypes; i++)
-    for (j = 1; j <= ntypes; j++)
-      type2rhor[i][j] = map[i] * fs->nelements + map[j];
+    for (j = 1; j <= ntypes; j++) type2rhor[i][j] = map[i] * fs->nelements + map[j];
 
   // ------------------------------------------------------------------
   // setup z2r arrays
@@ -529,9 +548,9 @@ void PairEAMFSGPU::file2array()
   // allocate z2r arrays
   // nz2r = N*(N+1)/2 where N = # of fs elements
 
-  nz2r = fs->nelements * (fs->nelements+1) / 2;
+  nz2r = fs->nelements * (fs->nelements + 1) / 2;
   memory->destroy(z2r);
-  memory->create(z2r,nz2r,nr+1,"pair:z2r");
+  memory->create(z2r, nz2r, nr + 1, "pair:z2r");
 
   // copy each element pair z2r to global z2r, only for I >= J
 
@@ -550,7 +569,7 @@ void PairEAMFSGPU::file2array()
   //   type2z2r is not used by non-opt
   //   but set type2z2r to 0 since accessed by opt
 
-  int irow,icol;
+  int irow, icol;
   for (i = 1; i <= ntypes; i++) {
     for (j = 1; j <= ntypes; j++) {
       irow = map[i];

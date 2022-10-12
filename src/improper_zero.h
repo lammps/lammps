@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(zero,ImproperZero)
-
+// clang-format off
+ImproperStyle(zero,ImproperZero);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_ZERO_H
 #define LMP_IMPROPER_ZERO_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {
@@ -28,14 +27,14 @@ namespace LAMMPS_NS {
 class ImproperZero : public Improper {
  public:
   ImproperZero(class LAMMPS *);
-  virtual ~ImproperZero();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void settings(int, char **);
+  ~ImproperZero() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void settings(int, char **) override;
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   int coeffflag;
@@ -43,19 +42,7 @@ class ImproperZero : public Improper {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Incorrect args for improper coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

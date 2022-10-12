@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,40 +12,41 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "displace_atoms.h"
+
 #include "atom.h"
-#include "modify.h"
-#include "domain.h"
-#include "lattice.h"
-#include "comm.h"
-#include "irregular.h"
-#include "group.h"
-#include "math_const.h"
-#include "random_park.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "group.h"
+#include "input.h"
+#include "irregular.h"
+#include "lattice.h"
+#include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "random_park.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::MY_2PI;
 
 enum{MOVE,RAMP,RANDOM,ROTATE};
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp)
+DisplaceAtoms::DisplaceAtoms(LAMMPS *_lmp) : Command(_lmp)
 {
-  mvec = NULL;
+  mvec = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,7 +69,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     error->all(FLERR,"Cannot displace_atoms after "
                "reading restart file with per-atom info");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Displacing atoms ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Displacing atoms ...\n");
 
   // group and style
 
@@ -126,14 +128,14 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     double d_lo,d_hi;
     if (d_dim == 0) {
-      d_lo = xscale*force->numeric(FLERR,arg[3]);
-      d_hi = xscale*force->numeric(FLERR,arg[4]);
+      d_lo = xscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = xscale*utils::numeric(FLERR,arg[4],false,lmp);
     } else if (d_dim == 1) {
-      d_lo = yscale*force->numeric(FLERR,arg[3]);
-      d_hi = yscale*force->numeric(FLERR,arg[4]);
+      d_lo = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = yscale*utils::numeric(FLERR,arg[4],false,lmp);
     } else if (d_dim == 2) {
-      d_lo = zscale*force->numeric(FLERR,arg[3]);
-      d_hi = zscale*force->numeric(FLERR,arg[4]);
+      d_lo = zscale*utils::numeric(FLERR,arg[3],false,lmp);
+      d_hi = zscale*utils::numeric(FLERR,arg[4],false,lmp);
     }
 
     int coord_dim = 0;
@@ -144,14 +146,14 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     double coord_lo,coord_hi;
     if (coord_dim == 0) {
-      coord_lo = xscale*force->numeric(FLERR,arg[6]);
-      coord_hi = xscale*force->numeric(FLERR,arg[7]);
+      coord_lo = xscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = xscale*utils::numeric(FLERR,arg[7],false,lmp);
     } else if (coord_dim == 1) {
-      coord_lo = yscale*force->numeric(FLERR,arg[6]);
-      coord_hi = yscale*force->numeric(FLERR,arg[7]);
+      coord_lo = yscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = yscale*utils::numeric(FLERR,arg[7],false,lmp);
     } else if (coord_dim == 2) {
-      coord_lo = zscale*force->numeric(FLERR,arg[6]);
-      coord_hi = zscale*force->numeric(FLERR,arg[7]);
+      coord_lo = zscale*utils::numeric(FLERR,arg[6],false,lmp);
+      coord_hi = zscale*utils::numeric(FLERR,arg[7],false,lmp);
     }
 
     double **x = atom->x;
@@ -175,12 +177,12 @@ void DisplaceAtoms::command(int narg, char **arg)
   // makes atom result independent of what proc owns it via random->reset()
 
   if (style == RANDOM) {
-    RanPark *random = new RanPark(lmp,1);
+    auto random = new RanPark(lmp,1);
 
-    double dx = xscale*force->numeric(FLERR,arg[2]);
-    double dy = yscale*force->numeric(FLERR,arg[3]);
-    double dz = zscale*force->numeric(FLERR,arg[4]);
-    int seed = force->inumeric(FLERR,arg[5]);
+    double dx = xscale*utils::numeric(FLERR,arg[2],false,lmp);
+    double dy = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+    double dz = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    int seed = utils::inumeric(FLERR,arg[5],false,lmp);
     if (seed <= 0) error->all(FLERR,"Illegal displace_atoms random command");
 
     double **x = atom->x;
@@ -217,13 +219,13 @@ void DisplaceAtoms::command(int narg, char **arg)
     double *quat;
 
     int dim = domain->dimension;
-    point[0] = xscale*force->numeric(FLERR,arg[2]);
-    point[1] = yscale*force->numeric(FLERR,arg[3]);
-    point[2] = zscale*force->numeric(FLERR,arg[4]);
-    axis[0] = force->numeric(FLERR,arg[5]);
-    axis[1] = force->numeric(FLERR,arg[6]);
-    axis[2] = force->numeric(FLERR,arg[7]);
-    double theta = force->numeric(FLERR,arg[8]);
+    point[0] = xscale*utils::numeric(FLERR,arg[2],false,lmp);
+    point[1] = yscale*utils::numeric(FLERR,arg[3],false,lmp);
+    point[2] = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    axis[0] = utils::numeric(FLERR,arg[5],false,lmp);
+    axis[1] = utils::numeric(FLERR,arg[6],false,lmp);
+    axis[2] = utils::numeric(FLERR,arg[7],false,lmp);
+    double theta = utils::numeric(FLERR,arg[8],false,lmp);
     if (dim == 2 && (axis[0] != 0.0 || axis[1] != 0.0))
       error->all(FLERR,"Invalid displace_atoms rotate axis for 2d");
 
@@ -234,7 +236,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     runit[1] = axis[1]/len;
     runit[2] = axis[2]/len;
 
-    double angle = MY_PI*theta/180.0;
+    double angle = DEG2RAD*theta;
     double cosine = cos(angle);
     double sine = sin(angle);
 
@@ -261,11 +263,10 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     // AtomVec pointers to retrieve per-atom storage of extra quantities
 
-    AtomVecEllipsoid *avec_ellipsoid =
-      (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-    AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-    AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-    AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+    auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+    auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+    auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+    auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
     double **x = atom->x;
     int *ellipsoid = atom->ellipsoid;
@@ -313,7 +314,7 @@ void DisplaceAtoms::command(int narg, char **arg)
         // quats for ellipsoids, tris, and bodies
 
         if (quat_flag) {
-          quat = NULL;
+          quat = nullptr;
           if (ellipsoid_flag && ellipsoid[i] >= 0)
             quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
           else if (tri_flag && tri[i] >= 0)
@@ -343,7 +344,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -353,12 +354,9 @@ void DisplaceAtoms::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Lost atoms via displace_atoms: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->warning(FLERR,str);
-  }
+  if (natoms != atom->natoms && comm->me == 0)
+    error->warning(FLERR,"Lost atoms via displace_atoms: original {} "
+                   "current {}",atom->natoms,natoms);
 }
 
 /* ----------------------------------------------------------------------
@@ -372,7 +370,7 @@ void DisplaceAtoms::move(int idim, char *arg, double scale)
   int nlocal = atom->nlocal;
 
   if (strstr(arg,"v_") != arg) {
-    double delta = scale*force->numeric(FLERR,arg);
+    double delta = scale*utils::numeric(FLERR,arg,false,lmp);
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) x[i][idim] += delta;
 
@@ -386,7 +384,7 @@ void DisplaceAtoms::move(int idim, char *arg, double scale)
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) x[i][idim] += delta;
     } else if (input->variable->atomstyle(ivar)) {
-      if (mvec == NULL) memory->create(mvec,nlocal,"displace_atoms:mvec");
+      if (mvec == nullptr) memory->create(mvec,nlocal,"displace_atoms:mvec");
       input->variable->compute_atom(ivar,igroup,mvec,1,0);
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) x[i][idim] += scale*mvec[i];

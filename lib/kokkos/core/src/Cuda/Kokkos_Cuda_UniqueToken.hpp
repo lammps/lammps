@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -50,126 +51,139 @@
 #include <Kokkos_CudaSpace.hpp>
 #include <Kokkos_UniqueToken.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
-#include <impl/Kokkos_ConcurrentBitset.hpp>
 
-namespace Kokkos { namespace Experimental {
+namespace Kokkos {
 
+namespace Impl {
+Kokkos::View<uint32_t*, Kokkos::CudaSpace> cuda_global_unique_token_locks(
+    bool deallocate = false);
+}
+
+namespace Experimental {
 // both global and instance Unique Tokens are implemented in the same way
-template<>
-class UniqueToken< Cuda, UniqueTokenScope::Global >
-{
-private:
+// the global version has one shared static lock array underneath
+// but it can't be a static member variable since we need to acces it on device
+// and we share the implementation with the instance version
+template <>
+class UniqueToken<Cuda, UniqueTokenScope::Global> {
+ protected:
+  Kokkos::View<uint32_t*, Kokkos::CudaSpace> m_locks;
 
-  uint32_t volatile * m_buffer ;
-  uint32_t            m_count ;
-
-public:
-
+ public:
   using execution_space = Cuda;
-  using size_type = int32_t;
+  using size_type       = int32_t;
 
-#if defined( KOKKOS_ENABLE_DEPRECATED_CODE )
-  explicit
-  UniqueToken( execution_space const& );
+  explicit UniqueToken(execution_space const& = Cuda())
+      : m_locks(Kokkos::Impl::cuda_global_unique_token_locks()) {}
 
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken() : m_buffer(0), m_count(0) {}
-#else
-  explicit
-  UniqueToken( execution_space const& = execution_space() );
-#endif
-
-#ifdef KOKKOS_CUDA_9_DEFAULTED_BUG_WORKAROUND
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken( const UniqueToken & rhs )
-  : m_buffer(rhs.m_buffer)
-  , m_count(rhs.m_count)
-  {
+ protected:
+  // These are constructors for the Instance version
+  UniqueToken(size_type max_size) {
+    m_locks = Kokkos::View<uint32_t*, Kokkos::CudaSpace>(
+        "Kokkos::UniqueToken::m_locks", max_size);
+  }
+  UniqueToken(size_type max_size, execution_space const& exec) {
+    m_locks = Kokkos::View<uint32_t*, Kokkos::CudaSpace>(
+        Kokkos::view_alloc(exec, "Kokkos::UniqueToken::m_locks"), max_size);
   }
 
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken( UniqueToken && rhs )
-  : m_buffer(std::move(rhs.m_buffer))
-  , m_count(std::move(rhs.m_count))
-  {
-  }
+ public:
+  KOKKOS_DEFAULTED_FUNCTION
+  UniqueToken(const UniqueToken&) = default;
 
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken & operator=( const UniqueToken & rhs ) {
-    m_buffer = rhs.m_buffer;
-    m_count = rhs.m_count;
-    return *this;
-  }
+  KOKKOS_DEFAULTED_FUNCTION
+  UniqueToken(UniqueToken&&) = default;
 
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken & operator=( UniqueToken && rhs ) {
-    m_buffer = std::move(rhs.m_buffer);
-    m_count = std::move(rhs.m_count);
-    return *this;
-  }
-#else
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken( const UniqueToken & ) = default;
+  KOKKOS_DEFAULTED_FUNCTION
+  UniqueToken& operator=(const UniqueToken&) = default;
 
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken( UniqueToken && )      = default;
-
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken & operator=( const UniqueToken & ) = default ;
-
-  KOKKOS_INLINE_FUNCTION
-  UniqueToken & operator=( UniqueToken && ) = default ;
-#endif
+  KOKKOS_DEFAULTED_FUNCTION
+  UniqueToken& operator=(UniqueToken&&) = default;
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
-  size_type size() const noexcept { return m_count ; }
+  size_type size() const noexcept { return m_locks.extent(0); }
 
+ private:
+  __device__ size_type impl_acquire() const {
+    int idx = blockIdx.x * (blockDim.x * blockDim.y) +
+              threadIdx.y * blockDim.x + threadIdx.x;
+    idx = idx % size();
+#if defined(KOKKOS_ARCH_KEPLER) || defined(KOKKOS_ARCH_PASCAL) || \
+    defined(KOKKOS_ARCH_MAXWELL)
+    unsigned int mask        = __activemask();
+    unsigned int active      = __ballot_sync(mask, 1);
+    unsigned int done_active = 0;
+    bool done                = false;
+    while (active != done_active) {
+      if (!done) {
+        if (Kokkos::atomic_compare_exchange(&m_locks(idx), 0, 1) == 0) {
+          done = true;
+        } else {
+          idx += blockDim.y * blockDim.x + 1;
+          idx = idx % size();
+        }
+      }
+      done_active = __ballot_sync(mask, done ? 1 : 0);
+    }
+#else
+    while (Kokkos::atomic_compare_exchange(&m_locks(idx), 0, 1) == 1) {
+      idx += blockDim.y * blockDim.x + 1;
+      idx = idx % size();
+    }
+#endif
+// Make sure that all writes in the previous lock owner are visible to me
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+    desul::atomic_thread_fence(desul::MemoryOrderAcquire(),
+                               desul::MemoryScopeDevice());
+#else
+    Kokkos::memory_fence();
+#endif
+    return idx;
+  }
+
+ public:
   /// \brief acquire value such that 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
-  size_type acquire() const
-  {
-    const Kokkos::pair<int,int> result =
-      Kokkos::Impl::concurrent_bitset::
-        acquire_bounded( m_buffer
-                       , m_count
-                       , Kokkos::Impl::clock_tic() % m_count
-                       );
-
-    if ( result.first < 0 ) {
-      Kokkos::abort("UniqueToken<Cuda> failure to release tokens, no tokens available" );
-    }
-
-    return result.first;
+  size_type acquire() const {
+    KOKKOS_IF_ON_DEVICE(return impl_acquire();)
+    KOKKOS_IF_ON_HOST(return 0;)
   }
 
   /// \brief release an acquired value
   KOKKOS_INLINE_FUNCTION
-  void release( size_type i ) const noexcept
-  {
-    Kokkos::Impl::concurrent_bitset::release( m_buffer, i );
+  void release(size_type idx) const noexcept {
+// Make sure my writes are visible to the next lock owner
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+    desul::atomic_thread_fence(desul::MemoryOrderRelease(),
+                               desul::MemoryScopeDevice());
+#else
+    Kokkos::memory_fence();
+#endif
+    (void)Kokkos::atomic_exchange(&m_locks(idx), 0);
   }
 };
 
-template<>
-class UniqueToken< Cuda, UniqueTokenScope::Instance >
-  : public UniqueToken< Cuda, UniqueTokenScope::Global >
-{
-public:
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  explicit
-  UniqueToken( execution_space const& arg )
-    : UniqueToken< Cuda, UniqueTokenScope::Global >( arg ) {}
-#else
-  explicit
-  UniqueToken( execution_space const& arg = execution_space() )
-    : UniqueToken< Cuda, UniqueTokenScope::Global >( arg ) {}
-#endif
+template <>
+class UniqueToken<Cuda, UniqueTokenScope::Instance>
+    : public UniqueToken<Cuda, UniqueTokenScope::Global> {
+ public:
+  // The instance version will forward to protected constructor which creates
+  // a lock array per instance
+  UniqueToken()
+      : UniqueToken<Cuda, UniqueTokenScope::Global>(
+            Kokkos::Cuda().concurrency()) {}
+  explicit UniqueToken(execution_space const& arg)
+      : UniqueToken<Cuda, UniqueTokenScope::Global>(
+            Kokkos::Cuda().concurrency(), arg) {}
+  explicit UniqueToken(size_type max_size)
+      : UniqueToken<Cuda, UniqueTokenScope::Global>(max_size) {}
+  UniqueToken(size_type max_size, execution_space const& arg)
+      : UniqueToken<Cuda, UniqueTokenScope::Global>(max_size, arg) {}
 };
 
-}} // namespace Kokkos::Experimental
+}  // namespace Experimental
+}  // namespace Kokkos
 
-#endif // KOKKOS_ENABLE_CUDA
-#endif // KOKKOS_CUDA_UNIQUE_TOKEN_HPP
-
+#endif  // KOKKOS_ENABLE_CUDA
+#endif  // KOKKOS_CUDA_UNIQUE_TOKEN_HPP

@@ -12,8 +12,8 @@ template<class T> class SparseVector;
 template<class T> T dot(const SparseVector<T> &a, const SparseVector<T> &b);
 
   /**
-   *  @class  SparseVector 
-   *  @brief  Class for vectors that contain a majority of zero elements and provides relevant operations 
+   *  @class  SparseVector
+   *  @brief  Class for vectors that contain a majority of zero elements and provides relevant operations
    */
 
 template<class T>
@@ -30,24 +30,24 @@ class SparseVector : public Vector<T> {
   // for use with gcc
   friend T dot<T>(const SparseVector<T> &a, const SparseVector<T> &b);
 #endif
-  //* computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+  //* computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
   friend SparseVector<T> operator*<T>(const SparseMatrix<T> &M, const SparseVector<T> &v);
-  //* computes the product of a SparseMatrix tranpose with a SparseVector (M'*v).
+  //* computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
   friend SparseVector<T> operator*<T>(const SparseVector<T> &v, const SparseMatrix<T> &M);
 public:
   //* Constructor - sets length of vector (NOT # of nonzeros).
   SparseVector(INDEX length=0);
-  //* Copies another SparseVector 
-  SparseVector(const SparseVector<T> &c); 
+  //* Copies another SparseVector
+  SparseVector(const SparseVector<T> &c);
   //* Copies a general Vector (avoid if possible, its going to be slow).
-  SparseVector(const Vector<T> &c); 
+  SparseVector(const Vector<T> &c);
 
   //* Overrides output to string function to list only nonzeros and indices.
   std::string to_string() const;
   //* Indexing operators (w/ const overloading).
   //@{
   T  operator()(INDEX i, INDEX j=0) const;
-  
+
   T& operator()(INDEX i, INDEX j=0);
   T  operator[](INDEX i) const;
   T& operator[](INDEX i);
@@ -71,9 +71,9 @@ public:
   void reset (INDEX nRows, INDEX nCols=1, bool zero=0);
   //* zeros out all elements while preserving sparcity pattern
   void zero();
-  //* TODO impliment copy (or maybe not necessary)
+  //* TODO implement copy (or maybe not necessary)
   void copy(const T* ptr, INDEX nRows, INDEX nCols=1);
-  //* Writes a restart file (TODO impliment this if needed/wanted).
+  //* Writes a restart file (TODO implement this if needed/wanted).
   void write_restart(FILE *F) const;
   //* Adds SparseVector x, scaled by s to this one.  Can be different sparcity.
   void add_scaled(SparseVector<T>& x, const T& s);
@@ -88,9 +88,9 @@ protected:
   //@{
   SparseVector(const Matrix<T> &c);
   SparseVector<T>& operator=(Matrix<T> &c);
-  T* ptr() const {return NULL; } 
+  T* ptr() const {return nullptr; }
   //@}
-  
+
   STORE data_;  //*> sparse data structure
   INDEX length_;             //*> number of rows
 };
@@ -98,6 +98,6 @@ protected:
 } // end namespace
 
 #include "SparseVector-inl.h"
-#undef STORE 
+#undef STORE
 #endif
 

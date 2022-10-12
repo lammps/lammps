@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,23 +12,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_hyper_global.h"
+
 #include "atom.h"
 #include "update.h"
+#include "group.h"
 #include "force.h"
 #include "domain.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "neigh_request.h"
 #include "neigh_list.h"
-#include "modify.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,25 +42,26 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(NULL), xold(NULL), tagold(NULL)
+  FixHyper(lmp, narg, arg), blist(nullptr), xold(nullptr), tagold(nullptr)
 {
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix hyper/global command requires atom map");
 
   if (narg != 7) error->all(FLERR,"Illegal fix hyper/global command");
 
   hyperflag = 1;
   scalar_flag = 1;
+  energy_global_flag = 1;
   vector_flag = 1;
   size_vector = 12;
   global_freq = 1;
   extscalar = 0;
   extvector = 0;
 
-  cutbond = force->numeric(FLERR,arg[3]);
-  qfactor = force->numeric(FLERR,arg[4]);
-  vmax = force->numeric(FLERR,arg[5]);
-  tequil = force->numeric(FLERR,arg[6]);
+  cutbond = utils::numeric(FLERR,arg[3],false,lmp);
+  qfactor = utils::numeric(FLERR,arg[4],false,lmp);
+  vmax = utils::numeric(FLERR,arg[5],false,lmp);
+  tequil = utils::numeric(FLERR,arg[6],false,lmp);
 
   if (cutbond < 0.0 || qfactor <= 0.0 || vmax < 0.0 || tequil <= 0.0)
     error->all(FLERR,"Illegal fix hyper/global command");
@@ -71,12 +72,12 @@ FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   maxbond = 0;
   nblocal = 0;
-  blist = NULL;
+  blist = nullptr;
 
   maxold = 0;
-  xold = NULL;
-  tagold = NULL;
-  old2now = NULL;
+  xold = nullptr;
+  tagold = nullptr;
+  old2now = nullptr;
 
   me = comm->me;
   firstflag = 1;
@@ -105,7 +106,6 @@ int FixHyperGlobal::setmask()
   int mask = 0;
   mask |= PRE_NEIGHBOR;
   mask |= PRE_REVERSE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -126,18 +126,19 @@ void FixHyperGlobal::init()
   if (force->newton_pair == 0)
     error->all(FLERR,"Hyper global requires newton pair on");
 
-  if (atom->molecular && me == 0)
+  if ((atom->molecular != Atom::ATOMIC) && (me == 0))
     error->warning(FLERR,"Hyper global for molecular systems "
                    "requires care in defining hyperdynamic bonds");
 
   dt = update->dt;
 
+  // count of atoms in fix group
+
+  groupatoms = group->count(igroup);
+
   // need an occasional half neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -186,12 +187,10 @@ void FixHyperGlobal::pre_neighbor()
   //   closest current I or J atoms to old I may now be ghost atoms
   //   closest_image() returns the ghost atom index in that case
   // also compute max drift of any atom in a bond
-  //   drift = displacement from quenched coord while event has not yet occured
+  //   drift = displacement from quenched coord while event has not yet occurred
   // NOTE: drift calc is now done in bond_build(), between 2 quenched states
 
   for (i = 0; i < nall_old; i++) old2now[i] = -1;
-
-  double **x = atom->x;
 
   for (m = 0; m < nblocal; m++) {
     iold = blist[m].iold;
@@ -495,7 +494,7 @@ double FixHyperGlobal::compute_vector(int i)
     bigint mybonds = nblocal;
     bigint allbonds;
     MPI_Allreduce(&mybonds,&allbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
-    return 2.0*allbonds/atom->natoms;
+    return 1.0*allbonds/groupatoms;
   }
 
   if (i == 5) {
@@ -558,6 +557,6 @@ double FixHyperGlobal::query(int i)
 
 double FixHyperGlobal::memory_usage()
 {
-  double bytes = maxbond * sizeof(OneBond);    // blist
+  double bytes = (double)maxbond * sizeof(OneBond);    // blist
   return bytes;
 }

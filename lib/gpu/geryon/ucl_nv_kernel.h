@@ -25,21 +25,8 @@
 #ifndef UCL_NV_KERNEL_H
 #define UCL_NV_KERNEL_H
 
-#if (__CUDA_ARCH__ < 200)
-#define mul24 __mul24
-#define MEM_THREADS 16
-#else
 #define mul24(X,Y) (X)*(Y)
 #define MEM_THREADS 32
-#endif
-
-#ifdef CUDA_PRE_THREE
-struct __builtin_align__(16) _double4
-{
-  double x, y, z, w;
-};
-typedef struct _double4 double4;
-#endif
 
 #define GLOBAL_ID_X threadIdx.x+mul24(blockIdx.x,blockDim.x)
 #define GLOBAL_ID_Y threadIdx.y+mul24(blockIdx.y,blockDim.y)

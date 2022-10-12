@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +13,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hooke_history_kokkos.h"
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "memory_kokkos.h"
+#include "error.h"
+#include "fix_neigh_history_kokkos.h"
 #include "force.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "error.h"
-#include "modify.h"
-#include "fix_neigh_history_kokkos.h"
+#include "neighbor.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -32,6 +34,7 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairGranHookeHistoryKokkos<DeviceType>::PairGranHookeHistoryKokkos(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | V_MASK | OMEGA_MASK | F_MASK | TORQUE_MASK | TYPE_MASK | MASK_MASK | ENERGY_MASK | VIRIAL_MASK | RMASS_MASK | RADIUS_MASK;
@@ -48,8 +51,8 @@ PairGranHookeHistoryKokkos<DeviceType>::~PairGranHookeHistoryKokkos()
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 
@@ -60,43 +63,33 @@ PairGranHookeHistoryKokkos<DeviceType>::~PairGranHookeHistoryKokkos()
 template<class DeviceType>
 void PairGranHookeHistoryKokkos<DeviceType>::init_style()
 {
-  if (history && fix_history == NULL) {
-    char dnumstr[16];
-    sprintf(dnumstr,"%d",3);
-    char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
-    fixarg[1] = (char *) "all";
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
+
+  if (history && fix_history == nullptr) {
+    auto cmd = std::string("NEIGH_HISTORY_HH") + std::to_string(instance_me) + " all ";
     if (execution_space == Device)
-      fixarg[2] = (char *) "NEIGH_HISTORY/KK/DEVICE";
+      cmd += "NEIGH_HISTORY/KK/DEVICE 3";
     else
-      fixarg[2] = (char *) "NEIGH_HISTORY/KK/HOST";
-    fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
-    delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+      cmd += "NEIGH_HISTORY/KK/HOST 3";
+    fix_history = (FixNeighHistory *)
+      modify->replace_fix("NEIGH_HISTORY_HH_DUMMY"+std::to_string(instance_me),cmd,1);
     fix_history->pair = this;
     fix_historyKK = (FixNeighHistoryKokkos<DeviceType> *)fix_history;
   }
 
   PairGranHookeHistory::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with gran/hooke/history/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL)
+    error->all(FLERR,"Must use half neighbor list with gran/hooke/history/kk");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,7 +118,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
@@ -164,97 +157,105 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       d_neighbors.extent(1) != d_neighbors_touch.extent(1))
     d_neighbors_touch = typename AT::t_neighbors_2d("pair:neighbors_touch",d_neighbors.extent(0),d_neighbors.extent(1));
 
-  d_firsttouch = fix_historyKK->d_firstflag;
-  d_firstshear = fix_historyKK->d_firstvalue;
+  fix_historyKK->k_firstflag.template sync<DeviceType>();
+  fix_historyKK->k_firstvalue.template sync<DeviceType>();
+
+  d_firsttouch = fix_historyKK->k_firstflag.template view<DeviceType>();
+  d_firstshear = fix_historyKK->k_firstvalue.template view<DeviceType>();
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryReduce>(0,inum),*this);
 
   EV_FLOAT ev;
 
-  if (lmp->kokkos->neighflag == HALF) {
+  if (neighflag == HALF) {
     if (force->newton_pair) {
       if (vflag_atom) {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,2,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,2,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,2,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,2,0>>(0,inum),*this);
+        }
       } else if (vflag_global) {
-	if (shearupdate) {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,1>>(0,inum),*this, ev);
-	} else {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,0>>(0,inum),*this, ev);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,1>>(0,inum),*this, ev);
+        } else {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,1,0>>(0,inum),*this, ev);
+        }
       } else {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,0,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,0,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,0,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,1,0,0>>(0,inum),*this);
+        }
       }
     } else {
       if (vflag_atom) {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,2,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,2,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,2,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,2,0>>(0,inum),*this);
+        }
       } else if (vflag_global) {
-	if (shearupdate) {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,1>>(0,inum),*this, ev);
-	} else {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,0>>(0,inum),*this, ev);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,1>>(0,inum),*this, ev);
+        } else {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,1,0>>(0,inum),*this, ev);
+        }
       } else {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,0,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,0,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,0,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALF,0,0,0>>(0,inum),*this);
+        }
       }
     }
   } else { // HALFTHREAD
     if (force->newton_pair) {
       if (vflag_atom) {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,2,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,2,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,2,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,2,0>>(0,inum),*this);
+        }
       } else if (vflag_global) {
-	if (shearupdate) {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,1>>(0,inum),*this, ev);
-	} else {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,0>>(0,inum),*this, ev);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,1>>(0,inum),*this, ev);
+        } else {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,1,0>>(0,inum),*this, ev);
+        }
       } else {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,0,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,0,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,0,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,1,0,0>>(0,inum),*this);
+        }
       }
     } else {
       if (vflag_atom) {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,2,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,2,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,2,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,2,0>>(0,inum),*this);
+        }
       } else if (vflag_global) {
-	if (shearupdate) {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,1>>(0,inum),*this, ev);
-	} else {
-	  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,0>>(0,inum),*this, ev);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,1>>(0,inum),*this, ev);
+        } else {
+          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,1,0>>(0,inum),*this, ev);
+        }
       } else {
-	if (shearupdate) {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,0,1>>(0,inum),*this);
-	} else {
-	  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,0,0>>(0,inum),*this);
-	}
+        if (shearupdate) {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,0,1>>(0,inum),*this);
+        } else {
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryCompute<HALFTHREAD,0,0,0>>(0,inum),*this);
+        }
       }
     }
+  }
+
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.template sync<LMPHostType>();
   }
 
   if (vflag_global) {
@@ -283,7 +284,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryR
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
-  const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
   const int jnum = d_numneigh[i];
   int count = 0;
@@ -295,7 +295,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryR
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
     const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    const LMP_FLOAT jmass = rmass[j];
     const LMP_FLOAT jrad = radius[j];
     const LMP_FLOAT radsum = irad + jrad;
 
@@ -320,8 +319,8 @@ KOKKOS_INLINE_FUNCTION
 void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int ii, EV_FLOAT &ev) const {
 
   // The f and torque arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -388,6 +387,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     F_FLOAT damp = meff*gamman*vnnr*rsqinv;
     F_FLOAT ccel = kn*(radsum-r)*rinv - damp;
+    if(limit_damping && (ccel < 0.0)) ccel = 0.0;
 
     // relative velocities
 
@@ -408,7 +408,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
       shear3 += vtr3*dt;
     }
     X_FLOAT shrmag = sqrt(shear1*shear1 + shear2*shear2 +
-			  shear3*shear3);
+                          shear3*shear3);
 
     // rotate shear displacements
 
@@ -433,15 +433,15 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     if (fs > fn) {
       if (shrmag != 0.0) {
-	shear1 = (fn/fs) * (shear1 + meff*gammat*vtr1/kt) -
-	  meff*gammat*vtr1/kt;
-	shear2 = (fn/fs) * (shear2 + meff*gammat*vtr2/kt) -
-	  meff*gammat*vtr2/kt;
-	shear3 = (fn/fs) * (shear3 + meff*gammat*vtr3/kt) -
-	  meff*gammat*vtr3/kt;
-	fs1 *= fn/fs;
-	fs2 *= fn/fs;
-	fs3 *= fn/fs;
+        shear1 = (fn/fs) * (shear1 + meff*gammat*vtr1/kt) -
+          meff*gammat*vtr1/kt;
+        shear2 = (fn/fs) * (shear2 + meff*gammat*vtr2/kt) -
+          meff*gammat*vtr2/kt;
+        shear3 = (fn/fs) * (shear3 + meff*gammat*vtr3/kt) -
+          meff*gammat*vtr3/kt;
+        fs1 *= fn/fs;
+        fs2 *= fn/fs;
+        fs3 *= fn/fs;
       } else fs1 = fs2 = fs3 = 0.0;
     }
 
@@ -503,8 +503,8 @@ template<class DeviceType>
 template<int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j,
-							  F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-							  X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
+                                                          F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                                                          X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {
   F_FLOAT v[6];
 
@@ -545,11 +545,11 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, i
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
-							       F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-							       X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
+void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT & /*ev*/, int i, int j,
+                                                               F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                                                               X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
   F_FLOAT v[6];
 
@@ -580,7 +580,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT &ev, int
 
 namespace LAMMPS_NS {
 template class PairGranHookeHistoryKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairGranHookeHistoryKokkos<LMPHostType>;
 #endif
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_yukawa.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -34,6 +35,8 @@ PairYukawa::PairYukawa(LAMMPS *lmp) : Pair(lmp)
 
 PairYukawa::~PairYukawa()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -49,13 +52,13 @@ PairYukawa::~PairYukawa()
 
 void PairYukawa::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double rsq, r2inv, r, rinv, screening, forceyukawa, factor;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -88,25 +91,25 @@ void PairYukawa::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
+        r2inv = 1.0 / rsq;
         r = sqrt(rsq);
-        rinv = 1.0/r;
-        screening = exp(-kappa*r);
+        rinv = 1.0 / r;
+        screening = exp(-kappa * r);
         forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
 
-        fpair = factor*forceyukawa * r2inv;
+        fpair = factor * forceyukawa * r2inv;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        f[i][0] += delx * fpair;
+        f[i][1] += dely * fpair;
+        f[i][2] += delz * fpair;
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[j][0] -= delx * fpair;
+          f[j][1] -= dely * fpair;
+          f[j][2] -= delz * fpair;
         }
 
         if (eflag) {
@@ -114,8 +117,7 @@ void PairYukawa::compute(int eflag, int vflag)
           evdwl *= factor;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
   }
@@ -130,18 +132,17 @@ void PairYukawa::compute(int eflag, int vflag)
 void PairYukawa::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(rad,n+1,"pair:rad");
-  memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(a,n+1,n+1,"pair:a");
-  memory->create(offset,n+1,n+1,"pair:offset");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(rad, np1, "pair:rad");
+  memory->create(cut, np1, np1, "pair:cut");
+  memory->create(a, np1, np1, "pair:a");
+  memory->create(offset, np1, np1, "pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -150,15 +151,15 @@ void PairYukawa::allocate()
 
 void PairYukawa::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 2) error->all(FLERR, "Illegal pair_style command");
 
-  kappa = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  kappa = utils::numeric(FLERR, arg[0], false, lmp);
+  cut_global = utils::numeric(FLERR, arg[1], false, lmp);
 
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
-    int i,j;
+    int i, j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
@@ -171,22 +172,21 @@ void PairYukawa::settings(int narg, char **arg)
 
 void PairYukawa::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 3 || narg > 4) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double a_one = force->numeric(FLERR,arg[2]);
+  double a_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
+  if (narg == 4) cut_one = utils::numeric(FLERR, arg[3], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
+    for (int j = MAX(jlo, i); j <= jhi; j++) {
       a[i][j] = a_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
@@ -194,7 +194,7 @@ void PairYukawa::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -204,14 +204,15 @@ void PairYukawa::coeff(int narg, char **arg)
 double PairYukawa::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
-    a[i][j] = mix_energy(a[i][i],a[j][j],1.0,1.0);
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+    a[i][j] = mix_energy(a[i][i], a[j][j], 1.0, 1.0);
+    cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
   }
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     double screening = exp(-kappa * cut[i][j]);
     offset[i][j] = a[i][j] * screening / cut[i][j];
-  } else offset[i][j] = 0.0;
+  } else
+    offset[i][j] = 0.0;
 
   a[j][i] = a[i][j];
   offset[j][i] = offset[i][j];
@@ -227,13 +228,13 @@ void PairYukawa::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
-  int i,j;
+  int i, j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      fwrite(&setflag[i][j],sizeof(int),1,fp);
+      fwrite(&setflag[i][j], sizeof(int), 1, fp);
       if (setflag[i][j]) {
-        fwrite(&a[i][j],sizeof(double),1,fp);
-        fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&a[i][j], sizeof(double), 1, fp);
+        fwrite(&cut[i][j], sizeof(double), 1, fp);
       }
     }
 }
@@ -248,19 +249,19 @@ void PairYukawa::read_restart(FILE *fp)
 
   allocate();
 
-  int i,j;
+  int i, j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
-      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
+      MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR, &a[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
         }
-        MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&a[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
 }
@@ -271,10 +272,10 @@ void PairYukawa::read_restart(FILE *fp)
 
 void PairYukawa::write_restart_settings(FILE *fp)
 {
-  fwrite(&kappa,sizeof(double),1,fp);
-  fwrite(&cut_global,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
-  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&kappa, sizeof(double), 1, fp);
+  fwrite(&cut_global, sizeof(double), 1, fp);
+  fwrite(&offset_flag, sizeof(int), 1, fp);
+  fwrite(&mix_flag, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -284,15 +285,15 @@ void PairYukawa::write_restart_settings(FILE *fp)
 void PairYukawa::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&kappa,sizeof(double),1,fp);
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR, &kappa, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
   }
-  MPI_Bcast(&kappa,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&kappa, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -301,8 +302,7 @@ void PairYukawa::read_restart_settings(FILE *fp)
 
 void PairYukawa::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g\n",i,a[i][i]);
+  for (int i = 1; i <= atom->ntypes; i++) fprintf(fp, "%d %g\n", i, a[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -312,25 +312,23 @@ void PairYukawa::write_data(FILE *fp)
 void PairYukawa::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g\n",i,j,a[i][j],cut[i][j]);
+    for (int j = i; j <= atom->ntypes; j++) fprintf(fp, "%d %d %g %g\n", i, j, a[i][j], cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 double PairYukawa::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
-                          double /*factor_coul*/, double factor_lj,
-                          double &fforce)
+                          double /*factor_coul*/, double factor_lj, double &fforce)
 {
-  double r2inv,r,rinv,screening,forceyukawa,phi;
+  double r2inv, r, rinv, screening, forceyukawa, phi;
 
-  r2inv = 1.0/rsq;
+  r2inv = 1.0 / rsq;
   r = sqrt(rsq);
-  rinv = 1.0/r;
-  screening = exp(-kappa*r);
+  rinv = 1.0 / r;
+  screening = exp(-kappa * r);
   forceyukawa = a[itype][jtype] * screening * (kappa + rinv);
-  fforce = factor_lj*forceyukawa * r2inv;
+  fforce = factor_lj * forceyukawa * r2inv;
 
   phi = a[itype][jtype] * screening * rinv - offset[itype][jtype];
-  return factor_lj*phi;
+  return factor_lj * phi;
 }

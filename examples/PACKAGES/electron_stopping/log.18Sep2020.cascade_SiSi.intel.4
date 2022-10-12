@@ -1,0 +1,113 @@
+LAMMPS (18 Sep 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+# ***
+# Example input for including electronic stopping effects using fix electron/stopping/fit
+# Si lattice with one primary knock-on atom (PKA) - single species simulation
+# ***
+
+units            metal
+boundary         p p p
+
+lattice          diamond 5.431
+Lattice spacing in x,y,z = 5.4310000 5.4310000 5.4310000
+
+region           box block -10 10 -10 10 -10 10
+create_box       1 box
+Created orthogonal box = (-54.310000 -54.310000 -54.310000) to (54.310000 54.310000 54.310000)
+  1 by 2 by 2 MPI processor grid
+create_atoms     1 box
+Created 64000 atoms
+  create_atoms CPU = 0.003 seconds
+
+pair_style       tersoff/zbl
+pair_coeff       * * ../../../../potentials/SiC.tersoff.zbl Si
+Reading tersoff/zbl potential file ../../../../potentials/SiC.tersoff.zbl with DATE: 2009-04-15
+
+mass             1 28.0855
+
+velocity         all create 300 42534 mom yes rot yes
+
+group            pka id 1
+1 atoms in group pka
+velocity         pka set 1120 1620 400
+
+fix              1 all nve
+fix              2 all dt/reset 1 NULL 0.001 0.05 emax 10.0
+fix              3 all electron/stopping/fit 4.63 3.3e-3 4.0e-8
+
+thermo           5
+thermo_style     custom step dt time temp pe ke f_3
+thermo_modify    lost warn flush yes
+
+#dump             0 all custom 10 dump.pka_* id type x y z vx vy vz fx fy fz
+#dump_modify      0 first yes
+
+run              100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5
+  ghost atom cutoff = 5
+  binsize = 2.5, bins = 44 44 44
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff/zbl, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.777 | 7.777 | 7.777 Mbytes
+Step Dt Time Temp PotEng KinEng f_3 
+       0 2.4879625e-05            0    21258.724   -296293.96    175863.22            0 
+       5 9.2462211e-06 9.0354422e-05    21252.059   -296277.66    175808.08    38.834403 
+      10 6.1568847e-06 0.00013003069    21246.736   -296250.63    175764.05    55.881913 
+      15 4.8997821e-06 0.00015681555    21242.649   -296228.27    175730.24    67.387669 
+      20 5.8536714e-06 0.00018286203    21239.571   -296213.99    175704.78    78.574187 
+      25 7.0160073e-06 0.00021483347    21237.285    -296208.8    175685.86    92.303599 
+      30 8.2556386e-06 0.00025082046    21236.035   -296213.99    175675.53    107.75609 
+      35 6.4735852e-06 0.00029193023    21233.474   -296210.34    175654.34    125.40713 
+      40 7.3441556e-06 0.00032559783    21231.197   -296205.94     175635.5    139.86082 
+      45 6.9483099e-06 0.00036267022     21230.21   -296213.68    175627.34    155.77487 
+      50 7.2213562e-06 0.0003965413    21230.513   -296230.74    175629.84    170.31441 
+      55 1.0776037e-05 0.00044219672    21230.024   -296246.38     175625.8    189.91293 
+      60 5.7538246e-06 0.0004833796    21226.067   -296231.34    175593.06    207.58996 
+      65 5.856213e-06 0.00051099409    21222.546   -296213.98    175563.94    219.44067 
+      70 6.7431217e-06 0.00054250526     21220.18   -296207.92    175544.37    232.96164 
+      75 7.0518411e-06 0.00057646788    21219.781   -296219.18    175541.07    247.53344 
+      80 1.7829072e-05 0.00062207162    21221.276   -296251.34    175553.43     267.1008 
+      85 2.1894958e-05 0.0007395084     21218.04   -296274.95    175526.66    317.49073 
+      90 8.2365472e-06 0.00081516502     21211.25   -296251.55    175470.49    349.94629 
+      95 5.1493496e-06 0.00084788428    21205.333   -296216.57    175421.54    363.97777 
+     100 5.7652664e-06 0.00087648406    21200.171    -296186.3    175378.84    376.23905 
+Loop time of 5.23182 on 4 procs for 100 steps with 64000 atoms
+
+Performance: 0.010 ns/day, 2520.759 hours/ns, 19.114 timesteps/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.8069     | 4.8618     | 4.9229     |   2.0 | 92.93
+Neigh   | 0.11442    | 0.11856    | 0.12948    |   1.8 |  2.27
+Comm    | 0.040943   | 0.098988   | 0.15807    |  14.7 |  1.89
+Output  | 0.0013075  | 0.0014801  | 0.0019936  |   0.8 |  0.03
+Modify  | 0.14496    | 0.14502    | 0.1451     |   0.0 |  2.77
+Other   |            | 0.005981   |            |       |  0.11
+
+Nlocal:        16000.0 ave       16017 max       15987 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+Nghost:        8044.00 ave        8058 max        8026 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Neighs:        0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:     447998.0 ave      448471 max      447634 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+
+Total # of neighbors = 1791990
+Ave neighs/atom = 27.999844
+Neighbor list builds = 7
+Dangerous builds = 2
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:05

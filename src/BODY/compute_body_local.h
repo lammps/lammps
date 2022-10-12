@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(body/local,ComputeBodyLocal)
-
+// clang-format off
+ComputeStyle(body/local,ComputeBodyLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_BODY_LOCAL_H
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class ComputeBodyLocal : public Compute {
  public:
   ComputeBodyLocal(class LAMMPS *, int, char **);
-  ~ComputeBodyLocal();
-  void init();
-  void compute_local();
-  double memory_usage();
+  ~ComputeBodyLocal() override;
+  void init() override;
+  void compute_local() override;
+  double memory_usage() override;
 
  private:
   int nvalues;
-  int *which,*index;
+  int *which, *index;
 
   int nmax;
 
@@ -45,29 +45,7 @@ class ComputeBodyLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute body/local requires atom style body
-
-Self-explanatory.
-
-E: Invalid index in compute body/local command
-
-Self-explanatory.
-
-E: Invalid index for non-body particles in compute body/local command
-
-Only indices 1,2,3 can be used for non-body particles.
-
-*/

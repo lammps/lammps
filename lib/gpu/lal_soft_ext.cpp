@@ -55,7 +55,7 @@ int soft_gpu_init(const int ntypes, double **cutsq, double **host_prefactor,
   int init_ok=0;
   if (world_me==0)
     init_ok=SLMF.init(ntypes, cutsq, host_prefactor, host_cut,
-                      special_lj, inum, nall, 300,
+                      special_lj, inum, nall, max_nbors,
                       maxspecial, cell_size, gpu_split, screen);
 
   SLMF.device->world_barrier();
@@ -73,10 +73,10 @@ int soft_gpu_init(const int ntypes, double **cutsq, double **host_prefactor,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=SLMF.init(ntypes, cutsq, host_prefactor, host_cut,
-                        special_lj, inum, nall, 300, maxspecial,
+                        special_lj, inum, nall, max_nbors, maxspecial,
                         cell_size, gpu_split, screen);
 
-    SLMF.device->gpu_barrier();
+    SLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -106,7 +106,7 @@ void soft_gpu_reinit(const int ntypes, double **cutsq, double **host_prefactor,
     if (gpu_rank==i && world_me!=0)
       SLMF.reinit(ntypes, cutsq, host_prefactor, host_cut);
 
-    SLMF.device->gpu_barrier();
+    SLMF.device->serialize_init();
   }
 }
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,20 +17,15 @@
         Memory efficiency improved by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "dump_cfg.h"
+
+#include "arg_info.h"
 #include "atom.h"
 #include "domain.h"
-#include "comm.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "fix.h"
-#include "variable.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -40,7 +36,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg), auxname(NULL)
+  DumpCustom(lmp, narg, arg), auxname(nullptr)
 {
   multifile_override = 0;
 
@@ -57,40 +53,34 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(earg[2],"xs") == 0) {
     if (strcmp(earg[3],"ysu") == 0 || strcmp(earg[4],"zsu") == 0)
-      error->all(FLERR,
-                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     unwrapflag = 0;
   } else {
     if (strcmp(earg[3],"ys") == 0 || strcmp(earg[4],"zs") == 0)
-      error->all(FLERR,
-                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     unwrapflag = 1;
   }
 
   // setup auxiliary property name strings
   // convert 'X_ID[m]' (X=c,f,v) to 'X_ID_m'
 
-  if (nfield > 5) auxname = new char*[nfield];
-  else auxname = NULL;
+  if (nfield > 5) auxname = new char*[nfield-5];
+  else auxname = nullptr;
 
   int i = 0;
+  key2col.clear();
   for (int iarg = 5; iarg < nfield; iarg++, i++) {
-    if ((strncmp(earg[iarg],"c_",2) == 0 ||
-         strncmp(earg[iarg],"f_",2) == 0 ||
-         strncmp(earg[iarg],"v_",2) == 0) && strchr(earg[iarg],'[')) {
-      char *ptr = strchr(earg[iarg],'[');
-      char *ptr2 = strchr(ptr,']');
-      auxname[i] = new char[strlen(earg[iarg])];
-      *ptr = '\0';
-      *ptr2 = '\0';
-      strcpy(auxname[i],earg[iarg]);
-      strcat(auxname[i],"_");
-      strcat(auxname[i],ptr+1);
+    ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE|
+                 ArgInfo::DNAME|ArgInfo::INAME);
 
+    if (argi.get_dim() == 1) {
+      std::string newarg = fmt::format("{}_{}_{}", earg[iarg][0], argi.get_name(), argi.get_index1());
+      auxname[i] = utils::strdup(newarg);
     } else {
-      auxname[i] = new char[strlen(earg[iarg]) + 1];
-      strcpy(auxname[i],earg[iarg]);
+      auxname[i] = utils::strdup(earg[iarg]);
     }
+    key2col[earg[iarg]] = iarg;
+    keyword_user[iarg].clear();
   }
 }
 
@@ -99,8 +89,8 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 DumpCFG::~DumpCFG()
 {
   if (auxname) {
-    for (int i = 0; i < nfield-5; i++) delete [] auxname[i];
-    delete [] auxname;
+    for (int i = 0; i < nfield-5; i++) delete[] auxname[i];
+    delete[] auxname;
   }
 }
 
@@ -134,23 +124,25 @@ void DumpCFG::write_header(bigint n)
   if (atom->peri_flag) scale = atom->pdscale;
   else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
-  char str[64];
-  sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
-  fprintf(fp,str,n);
-  fprintf(fp,"A = %g Angstrom (basic length-scale)\n",scale);
-  fprintf(fp,"H0(1,1) = %g A\n",domain->xprd);
-  fprintf(fp,"H0(1,2) = 0 A \n");
-  fprintf(fp,"H0(1,3) = 0 A \n");
-  fprintf(fp,"H0(2,1) = %g A \n",domain->xy);
-  fprintf(fp,"H0(2,2) = %g A\n",domain->yprd);
-  fprintf(fp,"H0(2,3) = 0 A \n");
-  fprintf(fp,"H0(3,1) = %g A \n",domain->xz);
-  fprintf(fp,"H0(3,2) = %g A \n",domain->yz);
-  fprintf(fp,"H0(3,3) = %g A\n",domain->zprd);
-  fprintf(fp,".NO_VELOCITY.\n");
-  fprintf(fp,"entry_count = %d\n",nfield-2);
-  for (int i = 0; i < nfield-5; i++)
-    fprintf(fp,"auxiliary[%d] = %s\n",i,auxname[i]);
+  auto header = fmt::format("Number of particles = {}\n",n);
+  header += fmt::format("A = {:g} Angstrom (basic length-scale)\n",scale);
+  header += fmt::format("H0(1,1) = {:g} A\n",domain->xprd);
+  header += fmt::format("H0(1,2) = 0 A\n");
+  header += fmt::format("H0(1,3) = 0 A\n");
+  header += fmt::format("H0(2,1) = {:g} A\n",domain->xy);
+  header += fmt::format("H0(2,2) = {:g} A\n",domain->yprd);
+  header += fmt::format("H0(2,3) = 0 A\n");
+  header += fmt::format("H0(3,1) = {:g} A\n",domain->xz);
+  header += fmt::format("H0(3,2) = {:g} A\n",domain->yz);
+  header += fmt::format("H0(3,3) = {:g} A\n",domain->zprd);
+  header += fmt::format(".NO_VELOCITY.\n");
+  header += fmt::format("entry_count = {}\n",nfield-2);
+  for (int i = 5; i < nfield; i++)
+    if (keyword_user[i].size())
+      header += fmt::format("auxiliary[{}] = {}\n",i-5,keyword_user[i]);
+    else
+      header += fmt::format("auxiliary[{}] = {}\n",i-5,auxname[i-5]);
+  fmt::print(fp, header);
 }
 
 /* ----------------------------------------------------------------------
@@ -180,16 +172,13 @@ int DumpCFG::convert_string(int n, double *mybuf)
           offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == Dump::INT)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+            offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
             offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
           else if (vtype[j] == Dump::STRING)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+            offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
+            offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }
@@ -213,7 +202,7 @@ int DumpCFG::convert_string(int n, double *mybuf)
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
-        } else if (j >= 5 ) {
+        } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
             offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
@@ -246,7 +235,8 @@ void DumpCFG::write_data(int n, double *mybuf)
 
 void DumpCFG::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -289,7 +279,7 @@ void DumpCFG::write_lines(int n, double *mybuf)
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);
-        } else if (j >= 5 ) {
+        } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)

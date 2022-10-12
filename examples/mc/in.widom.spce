@@ -1,0 +1,38 @@
+units           real
+dimension       3
+boundary        p p p
+atom_style      full
+
+pair_style      lj/cut/coul/long 10.0
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.spce
+
+molecule        h2omol H2O.txt
+
+### Flexible SPC/E Potential Parameters ###
+### Zhang et al., Fluid Phase Equilibria, 262 (2007) 210-216 ###
+pair_coeff 1 1 0.1502629 3.1169
+pair_coeff 1 2 0.0341116368 2.04845
+pair_coeff 2 2 0.00774378 0.98
+
+bond_coeff  1 176.864 0.9611
+angle_coeff 1 42.1845 109.4712
+kspace_style pppm 1.0e-4
+
+fix mywidom all widom 10 20 0 29494 298 mol h2omol
+
+fix 2 all nvt temp 298.0 298.0 100.0
+
+neighbor 2.0 bin
+neigh_modify delay 10 every 2 check yes
+
+
+#run variables
+timestep        0.5
+
+thermo          10
+thermo_style    custom step etotal pe temp press vol density f_mywidom[1] f_mywidom[2] f_mywidom[3]
+
+run             100

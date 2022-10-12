@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,16 +16,16 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_nh_sphere.h"
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "group.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "domain.h"
-#include "math_vector.h"
 #include "math_extra.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -44,7 +45,7 @@ FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"disc") == 0){
+    if (strcmp(arg[iarg],"disc") == 0) {
       inertia = 0.5;
       if (domain->dimension != 2)
         error->all(FLERR,
@@ -126,7 +127,7 @@ void FixNHSphere::nve_x()
     double **omega = atom->omega;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    if (dlm_flag == 0){
+    if (dlm_flag == 0) {
       // d_mu/dt = omega cross mu
       // renormalize mu to dipole length
       double msq,scale,g[3];
@@ -145,8 +146,8 @@ void FixNHSphere::nve_x()
           }
     } else {
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
-      vector w, w_temp, a;
-      matrix Q, Q_temp, R;
+      double w[3], w_temp[3], a[3];
+      double Q[3][3], Q_temp[3][3], R[3][3];
       double scale,s2,inv_len_mu;
 
       for (int i = 0; i < nlocal; i++) {
@@ -173,7 +174,7 @@ void FixNHSphere::nve_x()
           // Q = I + vx + vx^2 * (1-c)/s^2
 
           s2 = a[0]*a[0] + a[1]*a[1];
-          if (s2 != 0.0){ // i.e. the vectors are not parallel
+          if (s2 != 0.0) { // i.e. the vectors are not parallel
             scale = (1.0 - a[2])/s2;
 
             Q[0][0] = 1.0 - scale*a[0]*a[0]; Q[0][1] = -scale*a[0]*a[1];      Q[0][2] = -a[0];

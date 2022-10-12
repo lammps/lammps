@@ -1,0 +1,153 @@
+LAMMPS (31 Jul 2019)
+  using 1 OpenMP thread(s) per MPI task
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use different molecule ids for each layer
+# so that inter- and intra-layer
+# interactions can be specified separately
+read_data       gr_hBN_Cstack_2L_noH.data
+  orthogonal box = (0 0 0) to (44.583 42.9 100)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  1440 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+  special bonds CPU = 0.00012207 secs
+  read_data CPU = 0.00357461 secs
+mass            1 10.8110   # boron    mass (g/mole) | membrane
+mass            2 14.0067   # nitrogen mass (g/mole) | membrane
+mass            3 12.0107   # carbon   mass (g/mole) | adsorbate
+# Separate atom groups
+group 		hBN molecule 1
+720 atoms in group hBN
+group 		gr  molecule 2
+720 atoms in group gr
+
+######################## Potential defition ########################
+pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
+####################################################################
+pair_coeff  * * rebo               CH.rebo     NULL NULL C    # chemical
+Reading potential file CH.rebo with DATE: 2018-7-3
+pair_coeff  * * tersoff            BNC.tersoff B    N    NULL # chemical
+Reading potential file BNC.tersoff with DATE: 2013-03-21
+pair_coeff  * * ilp/graphene/hbn   BNCH.ILP    B    N    C    # long range
+pair_coeff  1 1 coul/shield 0.70
+pair_coeff  1 2 coul/shield 0.69498201415576216335
+pair_coeff  2 2 coul/shield 0.69
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+#### Simulation settings ####
+timestep  	0.001
+velocity  	all create 300.0 12345 dist gaussian mom yes rot yes
+fix       	thermostat all nve
+
+compute   	0 all pair rebo
+compute   	1 all pair tersoff
+compute   	2 all pair ilp/graphene/hbn
+compute   	3 all pair coul/shield
+variable  	REBO     equal  c_0
+variable  	Tersoff  equal  c_1
+variable  	EILP     equal  c_2     # total interlayer energy
+variable  	Evdw     equal  c_2[1]  # attractive energy
+variable 	Erep     equal  c_2[2]  # repulsive  energy
+variable  	Ecoul    equal  c_3
+
+############# Output ##############
+thermo          100
+thermo_style    custom step etotal pe ke v_Evdw v_Tersoff v_REBO v_EILP v_Erep v_Evdw v_Ecoul temp
+
+###### Run molecular dynamics ######
+run 		1000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 5 5 12
+  6 neighbor lists, perpetual/occasional/extra = 6 0 0
+  (1) pair rebo, perpetual, skip from (3)
+      attributes: full, newton on, ghost
+      pair build: skip/ghost
+      stencil: none
+      bin: none
+  (2) pair tersoff, perpetual, skip from (5)
+      attributes: full, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) pair ilp/graphene/hbn, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (4) pair coul/shield, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton/skip
+      stencil: none
+      bin: none
+  (5) neighbor class addition, perpetual, copy from (3)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (6) neighbor class addition, perpetual, half/full from (5)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 12.45 | 12.45 | 12.45 Mbytes
+Step TotEng PotEng KinEng v_Evdw v_Tersoff v_REBO v_EILP v_Erep v_Evdw v_Ecoul Temp 
+       0   -10707.284   -10763.085    55.801605   -75.247726   -5401.7348   -5322.2781   -39.072409    36.175318   -75.247726            0          300 
+     100   -10707.074   -10737.127     30.05353   -73.217322   -5389.9568   -5309.2004   -37.970102     35.24722   -73.217322            0    161.57347 
+     200   -10707.016   -10734.932     27.91576   -71.603097   -5389.1294   -5307.7455   -38.056875    33.546222   -71.603097            0    150.08042 
+     300   -10707.013   -10734.987    27.973705   -75.082134   -5388.9196   -5308.1165   -37.950947    37.131186   -75.082134            0    150.39194 
+     400   -10707.012   -10735.498    28.486171   -76.339871   -5389.1657    -5308.153   -38.179442    38.160429   -76.339871            0    153.14706 
+     500   -10707.007   -10734.681    27.674101   -73.312354   -5388.7261   -5307.7384   -38.216944     35.09541   -73.312354            0    148.78121 
+     600   -10707.018   -10735.833    28.815132   -71.927763   -5389.0798    -5308.596   -38.157333     33.77043   -71.927763            0    154.91561 
+     700    -10707.02   -10735.656    28.635377   -74.679371   -5389.2971   -5308.1866   -38.172002    36.507368   -74.679371            0    153.94921 
+     800   -10707.004   -10734.352    27.347425   -76.371288   -5388.5923   -5307.7206   -38.038736    38.332552   -76.371288            0    147.02494 
+     900   -10707.014   -10735.832    28.817405   -73.699332   -5388.9674   -5308.7964   -38.068078    35.631254   -73.699332            0    154.92783 
+    1000   -10706.995   -10733.562     26.56615   -71.439868   -5388.0186   -5307.4414   -38.101452    33.338415   -71.439868            0    142.82466 
+Loop time of 54.095 on 4 procs for 1000 steps with 1440 atoms
+
+Performance: 1.597 ns/day, 15.026 hours/ns, 18.486 timesteps/s
+84.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 42.138     | 45.531     | 49.106     |  42.0 | 84.17
+Bond    | 0.0003159  | 0.00037384 | 0.000489   |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 4.71       | 8.2803     | 11.682     |  98.3 | 15.31
+Output  | 0.0021999  | 0.0055975  | 0.013382   |   6.0 |  0.01
+Modify  | 0.0092845  | 0.010981   | 0.012538   |   1.3 |  0.02
+Other   |            | 0.2673     |            |       |  0.49
+
+Nlocal:    360 ave 380 max 340 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    4716 ave 4736 max 4696 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    35100 ave 37050 max 33150 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:  70200 ave 74100 max 66300 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 280800
+Ave neighs/atom = 195
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:54

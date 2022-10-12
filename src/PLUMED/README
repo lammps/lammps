@@ -1,0 +1,70 @@
+This package implements the "fix plumed" command, which can be used
+in a LAMMPS input script.
+
+The fix allows enhanced sampling methods such as umbrella sampling and
+metadynamics to be used.  Furthermore, PLUMED can be used to perform a
+wide range of analyses on trajectories on the fly as they are generated.
+
+The package uses the "PLUMED" library, whose source code is not included
+in the LAMMPS source code distribution. The files in the PLUMED package
+folder implement an interface between LAMMPS and PLUMED, that are written
+and maintained by Gareth Tribello (gareth.tribello@gmail.com).
+
+PLUMED must instead be downloaded and compiled separately to LAMMPS.  This building
+and compiling of PLUMED can be done before or after the building of LAMMPS as LAMMPS
+can call PLUMED as a dynamic library.  There is also the possibility to link PLUEMD
+statically.  In this case a copy of PLUMED must be downloaded into the lib/plumed
+directory.  This copy of PLUMED will then always be linked into the code at compile
+time.
+
+However you decide to link PLUMED (statically or dynamically) you must run the command:
+
+make yes-plumed
+
+before compiling LAMMPS in order to enable the module.   In addition, if you have chosen to
+link PLUMED dynamically you must ensure that PLUMED is in your
+PATH when running a LAMMPS calculation that takes advantage of PLUMED.  If
+PLUMED is linked as a runtime library and if PLUMED is not in the PATH an error will be returned whenever LAMMPS encounters
+the fix plumed command in its input.  To be clear, however, a LAMMPS executable that was dynamically linked with PLUMED will run
+even if PLUMED is not in the path if as long as the input does not contain a fix
+plumed command.
+
+If you wish to statically link PLUMED you must download PLUMED to the /lib/plumed directory before compiling LAMMPS.  You can
+download a tar ball into that directory or you can clone the plumed2 repository from GitHub there.  Once you have created a
+directory containing a distribution of PLUMED within /lib/plumed you then must build PLUMED within that directory by issuing
+the usual commands.  It is worth noting that we have provided a script that will download and build PLUMED for you with
+a minimal set of options.  To run this script you need to issue the following command:
+
+make lib-plumed args="-b"
+
+in the src directory.
+
+More info about the PLUMED library can be found at:
+
+www.plumed.org
+
+and in the reference articles:
+
+PLUMED2: New feathers for an old bird
+G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi,
+Comp. Phys. Comm 185, 604 (2014)
+https://doi.org/10.1016/j.cpc.2013.09.018
+
+PLUMED: a portable plugin for free energy calculations with molecular dynamics
+M. Bonomi, D. Branduardi, G. Bussi, C. Camilloni, D. Provasi, P. Raiteri, D. Donadio, F. Marinelli, F. Pietrucci, R.A. Broglia and M. Parrinello
+Comp. Phys. Comm. 180, 1961 (2009)
+https://doi.org/10.1016/j.cpc.2009.05.011
+
+Instructions explaining how to use PLUMED and LAMMPS in tandem can be found on the PLUMED website, which also gives
+numerous example scripts for PLUMED as well as citations to articles that dcoment the various methods that are
+implemented within PLUMED.
+
+There are also example scripts for using this package in the folder
+examples/PACKAGES/plumed, as well as on the GitHub page for PLUMED.
+
+Please contact Gareth Tribello (gareth.tribello@gmail.com) for questions
+regarding this package.
+
+---------------------------------
+
+Version: 2016-12-22

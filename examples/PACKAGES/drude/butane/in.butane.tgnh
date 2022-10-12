@@ -1,0 +1,57 @@
+# 250 butane system for drude polarizability example (Langevin)
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+special_bonds lj/coul 0.0 0.0 0.5
+
+pair_style hybrid/overlay lj/cut/coul/long 8.0 8.0 thole 2.089 8.0
+pair_modify mix geometric tail yes
+kspace_style pppm 1.0e-4
+
+read_data data.butane
+
+comm_modify vel yes
+
+group gBUTANE molecule 1:250
+group gCORES type 1 2 3
+group gDRUDES type 4 5
+
+pair_coeff    1    1 lj/cut/coul/long 0.065997 3.500000 # C3H C3H
+pair_coeff    1    2 lj/cut/coul/long 0.065997 3.500000 # C3H C2H
+pair_coeff    1    3 lj/cut/coul/long 0.044496 2.958040 # C3H H
+pair_coeff    2    2 lj/cut/coul/long 0.065997 3.500000 # C2H C2H
+pair_coeff    2    3 lj/cut/coul/long 0.044496 2.958040 # C2H H
+pair_coeff    3    3 lj/cut/coul/long 0.029999 2.500000 # H H
+pair_coeff    *  4*5 lj/cut/coul/long 0.000000 0.000000 # No lj for drudes
+pair_coeff    1    * thole 1.368000
+pair_coeff    2    * thole 1.368000
+pair_coeff    4    * thole 1.368000
+pair_coeff    5    * thole 1.368000
+
+neighbor 2.0 bin
+
+variable vTEMP   equal 260.0
+variable vTEMP_D equal 1.0
+variable vPRESS  equal 1.0
+
+velocity gCORES  create ${vTEMP} 12345
+velocity gDRUDES create ${vTEMP_D} 12345
+
+fix fDRUDE all drude C C N D D
+
+fix fSHAKE gCORES shake 0.0001 20 0 b 2 4
+
+fix fNVT all tgnvt/drude temp ${vTEMP} ${vTEMP} 100.0 ${vTEMP_D} 20.0
+
+compute cTEMP all temp/drude
+
+thermo_style custom step cpu etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2] f_fNVT[1] f_fNVT[2] f_fNVT[3]
+thermo 50
+
+timestep 0.5
+run 2000

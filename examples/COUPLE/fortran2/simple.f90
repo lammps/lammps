@@ -60,19 +60,19 @@ program simple
    call lammps_command (lmp, 'run 500')
 
    ! This extracts f_2 as a scalar (the last two arguments can be arbitrary)
-   call lammps_extract_fix (fix, lmp, '2', 0, 1, 1, 1)
+   call lammps_extract_fix (fix, lmp, '2', LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR, 1, 1)
    print *, 'Fix is ', fix
 
    ! This extracts f_4[1][1] as a scalar
-   call lammps_extract_fix (fix2, lmp, '4', 0, 2, 1, 1)
+   call lammps_extract_fix (fix2, lmp, '4', LMP_STYLE_GLOBAL, LMP_TYPE_ARRAY, 1, 1)
    print *, 'Fix 2 is ', fix2
 
    ! This extracts the scalar compute of compute thermo_temp
-   call lammps_extract_compute (compute, lmp, 'thermo_temp', 0, 0)
+   call lammps_extract_compute (compute, lmp, 'thermo_temp', LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR)
    print *, 'Compute is ', compute
 
    ! This extracts the vector compute of compute thermo_temp
-   call lammps_extract_compute (compute_v, lmp, 'thermo_temp', 0, 1)
+   call lammps_extract_compute (compute_v, lmp, 'thermo_temp', LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR)
    print *, 'Vector is ', compute_v
 
    ! This extracts the masses
@@ -90,6 +90,7 @@ program simple
 
    ! Allocates an array and assigns all positions to it
    call lammps_gather_atoms (lmp, 'x', 3, r)
+   print *, 'natoms = ', int(lammps_get_natoms(lmp))
    print *, 'size(r) = ', size(r)
    print *, 'r is ', r(1:6)
 

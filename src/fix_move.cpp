@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,49 +11,47 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_move.h"
+
 #include "atom.h"
-#include "group.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
-#include "domain.h"
-#include "lattice.h"
-#include "comm.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "input.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{LINEAR,WIGGLE,ROTATE,VARIABLE};
-enum{EQUAL,ATOM};
+enum { LINEAR, WIGGLE, ROTATE, VARIABLE, TRANSROT };
+enum { EQUAL, ATOM };
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
+#define INERTIA 0.2    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
 FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  xvarstr(NULL), yvarstr(NULL), zvarstr(NULL), vxvarstr(NULL),
-  vyvarstr(NULL), vzvarstr(NULL),
-  xoriginal(NULL), toriginal(NULL), qoriginal(NULL),
-  displace(NULL), velocity(NULL)
+    Fix(lmp, narg, arg), xvarstr(nullptr), yvarstr(nullptr), zvarstr(nullptr), vxvarstr(nullptr),
+    vyvarstr(nullptr), vzvarstr(nullptr), xoriginal(nullptr), toriginal(nullptr),
+    qoriginal(nullptr), displace(nullptr), velocity(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix move command");
+  if (narg < 4) error->all(FLERR, "Illegal fix move command");
 
   restart_global = 1;
   restart_peratom = 1;
@@ -70,137 +68,162 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 0;
 
-  if (strcmp(arg[3],"linear") == 0) {
-    if (narg < 7) error->all(FLERR,"Illegal fix move command");
+  if (strcmp(arg[3], "linear") == 0) {
+    if (narg < 7) error->all(FLERR, "Illegal fix move command");
     iarg = 7;
     mstyle = LINEAR;
-    if (strcmp(arg[4],"NULL") == 0) vxflag = 0;
+    if (strcmp(arg[4], "NULL") == 0)
+      vxflag = 0;
     else {
       vxflag = 1;
-      vx = force->numeric(FLERR,arg[4]);
+      vx = utils::numeric(FLERR, arg[4], false, lmp);
     }
-    if (strcmp(arg[5],"NULL") == 0) vyflag = 0;
+    if (strcmp(arg[5], "NULL") == 0)
+      vyflag = 0;
     else {
       vyflag = 1;
-      vy = force->numeric(FLERR,arg[5]);
+      vy = utils::numeric(FLERR, arg[5], false, lmp);
     }
-    if (strcmp(arg[6],"NULL") == 0) vzflag = 0;
+    if (strcmp(arg[6], "NULL") == 0)
+      vzflag = 0;
     else {
       vzflag = 1;
-      vz = force->numeric(FLERR,arg[6]);
+      vz = utils::numeric(FLERR, arg[6], false, lmp);
     }
 
-  } else if (strcmp(arg[3],"wiggle") == 0) {
-    if (narg < 8) error->all(FLERR,"Illegal fix move command");
+  } else if (strcmp(arg[3], "wiggle") == 0) {
+    if (narg < 8) error->all(FLERR, "Illegal fix move command");
     iarg = 8;
     mstyle = WIGGLE;
-    if (strcmp(arg[4],"NULL") == 0) axflag = 0;
+    if (strcmp(arg[4], "NULL") == 0)
+      axflag = 0;
     else {
       axflag = 1;
-      ax = force->numeric(FLERR,arg[4]);
+      ax = utils::numeric(FLERR, arg[4], false, lmp);
     }
-    if (strcmp(arg[5],"NULL") == 0) ayflag = 0;
+    if (strcmp(arg[5], "NULL") == 0)
+      ayflag = 0;
     else {
       ayflag = 1;
-      ay = force->numeric(FLERR,arg[5]);
+      ay = utils::numeric(FLERR, arg[5], false, lmp);
     }
-    if (strcmp(arg[6],"NULL") == 0) azflag = 0;
+    if (strcmp(arg[6], "NULL") == 0)
+      azflag = 0;
     else {
       azflag = 1;
-      az = force->numeric(FLERR,arg[6]);
+      az = utils::numeric(FLERR, arg[6], false, lmp);
     }
-    period = force->numeric(FLERR,arg[7]);
-    if (period <= 0.0) error->all(FLERR,"Illegal fix move command");
+    period = utils::numeric(FLERR, arg[7], false, lmp);
+    if (period <= 0.0) error->all(FLERR, "Illegal fix move command");
 
-  } else if (strcmp(arg[3],"rotate") == 0) {
-    if (narg < 11) error->all(FLERR,"Illegal fix move command");
+  } else if (strcmp(arg[3], "rotate") == 0) {
+    if (narg < 11) error->all(FLERR, "Illegal fix move command");
     iarg = 11;
     mstyle = ROTATE;
-    point[0] = force->numeric(FLERR,arg[4]);
-    point[1] = force->numeric(FLERR,arg[5]);
-    point[2] = force->numeric(FLERR,arg[6]);
-    axis[0] = force->numeric(FLERR,arg[7]);
-    axis[1] = force->numeric(FLERR,arg[8]);
-    axis[2] = force->numeric(FLERR,arg[9]);
-    period = force->numeric(FLERR,arg[10]);
-    if (period <= 0.0) error->all(FLERR,"Illegal fix move command");
+    point[0] = utils::numeric(FLERR, arg[4], false, lmp);
+    point[1] = utils::numeric(FLERR, arg[5], false, lmp);
+    point[2] = utils::numeric(FLERR, arg[6], false, lmp);
+    axis[0] = utils::numeric(FLERR, arg[7], false, lmp);
+    axis[1] = utils::numeric(FLERR, arg[8], false, lmp);
+    axis[2] = utils::numeric(FLERR, arg[9], false, lmp);
+    period = utils::numeric(FLERR, arg[10], false, lmp);
+    if (period <= 0.0) error->all(FLERR, "Illegal fix move command");
 
-  } else if (strcmp(arg[3],"variable") == 0) {
-    if (narg < 10) error->all(FLERR,"Illegal fix move command");
+  } else if (strcmp(arg[3], "transrot") == 0) {
+    if (narg < 11) error->all(FLERR, "Illegal fix move command");
+    iarg = 14;
+    mstyle = TRANSROT;
+    vxflag = vyflag = vzflag = 1;
+    vx = utils::numeric(FLERR, arg[4], false, lmp);
+    vy = utils::numeric(FLERR, arg[5], false, lmp);
+    vz = utils::numeric(FLERR, arg[6], false, lmp);
+    point[0] = utils::numeric(FLERR, arg[7], false, lmp);
+    point[1] = utils::numeric(FLERR, arg[8], false, lmp);
+    point[2] = utils::numeric(FLERR, arg[9], false, lmp);
+    axis[0] = utils::numeric(FLERR, arg[10], false, lmp);
+    axis[1] = utils::numeric(FLERR, arg[11], false, lmp);
+    axis[2] = utils::numeric(FLERR, arg[12], false, lmp);
+    period = utils::numeric(FLERR, arg[13], false, lmp);
+    if (period <= 0.0) error->all(FLERR, "Illegal fix move command");
+
+  } else if (strcmp(arg[3], "variable") == 0) {
+    if (narg < 10) error->all(FLERR, "Illegal fix move command");
     iarg = 10;
     mstyle = VARIABLE;
-    if (strcmp(arg[4],"NULL") == 0) xvarstr = NULL;
-    else if (strstr(arg[4],"v_") == arg[4]) {
-      int n = strlen(&arg[4][2]) + 1;
-      xvarstr = new char[n];
-      strcpy(xvarstr,&arg[4][2]);
-    } else error->all(FLERR,"Illegal fix move command");
-    if (strcmp(arg[5],"NULL") == 0) yvarstr = NULL;
-    else if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      yvarstr = new char[n];
-      strcpy(yvarstr,&arg[5][2]);
-    } else error->all(FLERR,"Illegal fix move command");
-    if (strcmp(arg[6],"NULL") == 0) zvarstr = NULL;
-    else if (strstr(arg[6],"v_") == arg[6]) {
-      int n = strlen(&arg[6][2]) + 1;
-      zvarstr = new char[n];
-      strcpy(zvarstr,&arg[6][2]);
-    } else error->all(FLERR,"Illegal fix move command");
-    if (strcmp(arg[7],"NULL") == 0) vxvarstr = NULL;
-    else if (strstr(arg[7],"v_") == arg[7]) {
-      int n = strlen(&arg[7][2]) + 1;
-      vxvarstr = new char[n];
-      strcpy(vxvarstr,&arg[7][2]);
-    } else error->all(FLERR,"Illegal fix move command");
-    if (strcmp(arg[8],"NULL") == 0) vyvarstr = NULL;
-    else if (strstr(arg[8],"v_") == arg[8]) {
-      int n = strlen(&arg[8][2]) + 1;
-      vyvarstr = new char[n];
-      strcpy(vyvarstr,&arg[8][2]);
-    } else error->all(FLERR,"Illegal fix move command");
-    if (strcmp(arg[9],"NULL") == 0) vzvarstr = NULL;
-    else if (strstr(arg[9],"v_") == arg[9]) {
-      int n = strlen(&arg[9][2]) + 1;
-      vzvarstr = new char[n];
-      strcpy(vzvarstr,&arg[9][2]);
-    } else error->all(FLERR,"Illegal fix move command");
+    if (strcmp(arg[4], "NULL") == 0)
+      xvarstr = nullptr;
+    else if (utils::strmatch(arg[4], "^v_")) {
+      xvarstr = utils::strdup(arg[4] + 2);
+    } else
+      error->all(FLERR, "Illegal fix move command");
+    if (strcmp(arg[5], "NULL") == 0)
+      yvarstr = nullptr;
+    else if (utils::strmatch(arg[5], "^v_")) {
+      yvarstr = utils::strdup(arg[5] + 2);
+    } else
+      error->all(FLERR, "Illegal fix move command");
+    if (strcmp(arg[6], "NULL") == 0)
+      zvarstr = nullptr;
+    else if (utils::strmatch(arg[6], "^v_")) {
+      zvarstr = utils::strdup(arg[6] + 2);
+    } else
+      error->all(FLERR, "Illegal fix move command");
+    if (strcmp(arg[7], "NULL") == 0)
+      vxvarstr = nullptr;
+    else if (utils::strmatch(arg[7], "^v_")) {
+      vxvarstr = utils::strdup(arg[7] + 2);
+    } else
+      error->all(FLERR, "Illegal fix move command");
+    if (strcmp(arg[8], "NULL") == 0)
+      vyvarstr = nullptr;
+    else if (utils::strmatch(arg[8], "^v_")) {
+      vyvarstr = utils::strdup(arg[8] + 2);
+    } else
+      error->all(FLERR, "Illegal fix move command");
+    if (strcmp(arg[9], "NULL") == 0)
+      vzvarstr = nullptr;
+    else if (utils::strmatch(arg[9], "^v_")) {
+      vzvarstr = utils::strdup(arg[9] + 2);
+    } else
+      error->all(FLERR, "Illegal fix move command");
 
-  } else error->all(FLERR,"Illegal fix move command");
+  } else
+    error->all(FLERR, "Illegal fix move command");
 
   // optional args
 
   int scaleflag = 1;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix move command");
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix move command");
+    if (strcmp(arg[iarg], "units") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix move command");
+      if (strcmp(arg[iarg + 1], "box") == 0)
+        scaleflag = 0;
+      else if (strcmp(arg[iarg + 1], "lattice") == 0)
+        scaleflag = 1;
+      else
+        error->all(FLERR, "Illegal fix move command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix move command");
+    } else
+      error->all(FLERR, "Illegal fix move command");
   }
 
   // error checks and warnings
 
   if (domain->dimension == 2) {
-    if (mstyle == LINEAR && vzflag && vz != 0.0)
-      error->all(FLERR,"Fix move cannot set linear z motion for 2d problem");
+    if (((mstyle == LINEAR) || (mstyle == TRANSROT)) && vzflag && (vz != 0.0))
+      error->all(FLERR, "Fix move cannot set linear z motion for 2d problem");
     if (mstyle == WIGGLE && azflag && az != 0.0)
-      error->all(FLERR,"Fix move cannot set wiggle z motion for 2d problem");
-    if (mstyle == ROTATE && (axis[0] != 0.0 || axis[1] != 0.0))
-      error->all(FLERR,
-                 "Fix move cannot rotate around non z-axis for 2d problem");
+      error->all(FLERR, "Fix move cannot set wiggle z motion for 2d problem");
+    if (((mstyle == ROTATE) || (mstyle == TRANSROT)) && (axis[0] != 0.0 || axis[1] != 0.0))
+      error->all(FLERR, "Fix move cannot rotate around non z-axis for 2d problem");
     if (mstyle == VARIABLE && (zvarstr || vzvarstr))
-      error->all(FLERR,
-                 "Fix move cannot define z or vz variable for 2d problem");
+      error->all(FLERR, "Fix move cannot define z or vz variable for 2d problem");
   }
 
   // setup scaling and apply scaling factors to velocity & amplitude
 
-  if ((mstyle == LINEAR || mstyle == WIGGLE || mstyle == ROTATE) &&
-      scaleflag) {
+  if ((mstyle != VARIABLE) && scaleflag) {
     double xscale = domain->lattice->xlattice;
     double yscale = domain->lattice->ylattice;
     double zscale = domain->lattice->zlattice;
@@ -217,22 +240,29 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
       point[0] *= xscale;
       point[1] *= yscale;
       point[2] *= zscale;
+    } else if (mstyle == TRANSROT) {
+      vx *= xscale;
+      vy *= yscale;
+      vz *= zscale;
+      point[0] *= xscale;
+      point[1] *= yscale;
+      point[2] *= zscale;
     }
   }
 
   // set omega_rotate from period
 
-  if (mstyle == WIGGLE || mstyle == ROTATE) omega_rotate = MY_2PI / period;
+  if ((mstyle == WIGGLE) || (mstyle == ROTATE) || (mstyle == TRANSROT))
+    omega_rotate = MY_2PI / period;
 
   // runit = unit vector along rotation axis
 
-  if (mstyle == ROTATE) {
-    double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
-    if (len == 0.0)
-      error->all(FLERR,"Zero length rotation vector with fix move");
-    runit[0] = axis[0]/len;
-    runit[1] = axis[1]/len;
-    runit[2] = axis[2]/len;
+  if ((mstyle == ROTATE) || (mstyle == TRANSROT)) {
+    double len = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
+    if (len == 0.0) error->all(FLERR, "Zero length rotation vector with fix move");
+    runit[0] = axis[0] / len;
+    runit[1] = axis[1] / len;
+    runit[2] = axis[2] / len;
   }
 
   // set flags for extra attributes particles may store
@@ -257,18 +287,18 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  FixMove::grow_arrays(atom->nmax);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
-  displace = velocity = NULL;
+  displace = velocity = nullptr;
 
   // AtomVec pointers to retrieve per-atom storage of extra quantities
 
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
-  avec_body = (AtomVecBody *) atom->style_match("body");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   // xoriginal = initial unwrapped positions of atoms
   // toriginal = initial theta of lines
@@ -284,22 +314,25 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) domain->unmap(x[i],image[i],xoriginal[i]);
-    else xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
+    if (mask[i] & groupbit)
+      domain->unmap(x[i], image[i], xoriginal[i]);
+    else
+      xoriginal[i][0] = xoriginal[i][1] = xoriginal[i][2] = 0.0;
   }
 
   if (theta_flag) {
     for (int i = 0; i < nlocal; i++) {
       if ((mask[i] & groupbit) && line[i] >= 0)
         toriginal[i] = avec_line->bonus[line[i]].theta;
-      else toriginal[i] = 0.0;
+      else
+        toriginal[i] = 0.0;
     }
   }
 
   if (quat_flag) {
     double *quat;
     for (int i = 0; i < nlocal; i++) {
-      quat = NULL;
+      quat = nullptr;
       if (mask[i] & groupbit) {
         if (ellipsoid_flag && ellipsoid[i] >= 0)
           quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
@@ -313,8 +346,8 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
         qoriginal[i][1] = quat[1];
         qoriginal[i][2] = quat[2];
         qoriginal[i][3] = quat[3];
-      } else qoriginal[i][0] = qoriginal[i][1] =
-               qoriginal[i][2] = qoriginal[i][3] = 0.0;
+      } else
+        qoriginal[i][0] = qoriginal[i][1] = qoriginal[i][2] = qoriginal[i][3] = 0.0;
     }
   }
 
@@ -336,8 +369,8 @@ FixMove::~FixMove()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id, Atom::GROW);
+  atom->delete_callback(id, Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -347,12 +380,12 @@ FixMove::~FixMove()
   memory->destroy(displace);
   memory->destroy(velocity);
 
-  delete [] xvarstr;
-  delete [] yvarstr;
-  delete [] zvarstr;
-  delete [] vxvarstr;
-  delete [] vyvarstr;
-  delete [] vzvarstr;
+  delete[] xvarstr;
+  delete[] yvarstr;
+  delete[] zvarstr;
+  delete[] vxvarstr;
+  delete[] vyvarstr;
+  delete[] vzvarstr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -382,51 +415,63 @@ void FixMove::init()
   if (mstyle == VARIABLE) {
     if (xvarstr) {
       xvar = input->variable->find(xvarstr);
-      if (xvar < 0) error->all(FLERR,
-                               "Variable name for fix move does not exist");
-      if (input->variable->equalstyle(xvar)) xvarstyle = EQUAL;
-      else if (input->variable->atomstyle(xvar)) xvarstyle = ATOM;
-      else error->all(FLERR,"Variable for fix move is invalid style");
+      if (xvar < 0) error->all(FLERR, "Variable name for fix move does not exist");
+      if (input->variable->equalstyle(xvar))
+        xvarstyle = EQUAL;
+      else if (input->variable->atomstyle(xvar))
+        xvarstyle = ATOM;
+      else
+        error->all(FLERR, "Variable for fix move is invalid style");
     }
     if (yvarstr) {
       yvar = input->variable->find(yvarstr);
-      if (yvar < 0) error->all(FLERR,
-                               "Variable name for fix move does not exist");
-      if (input->variable->equalstyle(yvar)) yvarstyle = EQUAL;
-      else if (input->variable->atomstyle(yvar)) yvarstyle = ATOM;
-      else error->all(FLERR,"Variable for fix move is invalid style");
+      if (yvar < 0) error->all(FLERR, "Variable name for fix move does not exist");
+      if (input->variable->equalstyle(yvar))
+        yvarstyle = EQUAL;
+      else if (input->variable->atomstyle(yvar))
+        yvarstyle = ATOM;
+      else
+        error->all(FLERR, "Variable for fix move is invalid style");
     }
     if (zvarstr) {
       zvar = input->variable->find(zvarstr);
-      if (zvar < 0) error->all(FLERR,
-                               "Variable name for fix move does not exist");
-      if (input->variable->equalstyle(zvar)) zvarstyle = EQUAL;
-      else if (input->variable->atomstyle(zvar)) zvarstyle = ATOM;
-      else error->all(FLERR,"Variable for fix move is invalid style");
+      if (zvar < 0) error->all(FLERR, "Variable name for fix move does not exist");
+      if (input->variable->equalstyle(zvar))
+        zvarstyle = EQUAL;
+      else if (input->variable->atomstyle(zvar))
+        zvarstyle = ATOM;
+      else
+        error->all(FLERR, "Variable for fix move is invalid style");
     }
     if (vxvarstr) {
       vxvar = input->variable->find(vxvarstr);
-      if (vxvar < 0) error->all(FLERR,
-                                "Variable name for fix move does not exist");
-      if (input->variable->equalstyle(vxvar)) vxvarstyle = EQUAL;
-      else if (input->variable->atomstyle(vxvar)) vxvarstyle = ATOM;
-      else error->all(FLERR,"Variable for fix move is invalid style");
+      if (vxvar < 0) error->all(FLERR, "Variable name for fix move does not exist");
+      if (input->variable->equalstyle(vxvar))
+        vxvarstyle = EQUAL;
+      else if (input->variable->atomstyle(vxvar))
+        vxvarstyle = ATOM;
+      else
+        error->all(FLERR, "Variable for fix move is invalid style");
     }
     if (vyvarstr) {
       vyvar = input->variable->find(vyvarstr);
-      if (vyvar < 0) error->all(FLERR,
-                                "Variable name for fix move does not exist");
-      if (input->variable->equalstyle(vyvar)) vyvarstyle = EQUAL;
-      else if (input->variable->atomstyle(vyvar)) vyvarstyle = ATOM;
-      else error->all(FLERR,"Variable for fix move is invalid style");
+      if (vyvar < 0) error->all(FLERR, "Variable name for fix move does not exist");
+      if (input->variable->equalstyle(vyvar))
+        vyvarstyle = EQUAL;
+      else if (input->variable->atomstyle(vyvar))
+        vyvarstyle = ATOM;
+      else
+        error->all(FLERR, "Variable for fix move is invalid style");
     }
     if (vzvarstr) {
       vzvar = input->variable->find(vzvarstr);
-      if (vzvar < 0) error->all(FLERR,
-                                "Variable name for fix move does not exist");
-      if (input->variable->equalstyle(vzvar)) vzvarstyle = EQUAL;
-      else if (input->variable->atomstyle(vzvar)) vzvarstyle = ATOM;
-      else error->all(FLERR,"Variable for fix move is invalid style");
+      if (vzvar < 0) error->all(FLERR, "Variable name for fix move does not exist");
+      if (input->variable->equalstyle(vzvar))
+        vzvarstyle = EQUAL;
+      else if (input->variable->atomstyle(vzvar))
+        vzvarstyle = ATOM;
+      else
+        error->all(FLERR, "Variable for fix move is invalid style");
     }
 
     if (xvarstr && xvarstyle == ATOM) displaceflag = 1;
@@ -440,13 +485,17 @@ void FixMove::init()
   maxatom = atom->nmax;
   memory->destroy(displace);
   memory->destroy(velocity);
-  if (displaceflag) memory->create(displace,maxatom,3,"move:displace");
-  else displace = NULL;
-  if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
-  else velocity = NULL;
+  if (displaceflag)
+    memory->create(displace, maxatom, 3, "move:displace");
+  else
+    displace = nullptr;
+  if (velocityflag)
+    memory->create(velocity, maxatom, 3, "move:velocity");
+  else
+    velocity = nullptr;
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ----------------------------------------------------------------------
@@ -456,11 +505,11 @@ void FixMove::init()
 void FixMove::initial_integrate(int /*vflag*/)
 {
   int flag;
-  double ddotr,dx,dy,dz;
-  double dtfm,theta_new;
-  double xold[3],a[3],b[3],c[3],d[3],disp[3],w[3],ex[3],ey[3],ez[3];
-  double inertia_ellipsoid[3],qrotate[4];
-  double *quat,*inertia,*shape;
+  double ddotr, dx, dy, dz;
+  double dtfm, theta_new;
+  double xold[3], a[3], b[3], c[3], d[3], disp[3], w[3], ex[3], ey[3], ez[3];
+  double inertia_ellipsoid[3], qrotate[4];
+  double *quat, *inertia, *shape;
 
   double delta = (update->ntimestep - time_origin) * dt;
 
@@ -492,7 +541,7 @@ void FixMove::initial_integrate(int /*vflag*/)
 
         if (vxflag) {
           v[i][0] = vx;
-          x[i][0] = xoriginal[i][0] + vx*delta;
+          x[i][0] = xoriginal[i][0] + vx * delta;
         } else if (rmass) {
           dtfm = dtf / rmass[i];
           v[i][0] += dtfm * f[i][0];
@@ -505,7 +554,7 @@ void FixMove::initial_integrate(int /*vflag*/)
 
         if (vyflag) {
           v[i][1] = vy;
-          x[i][1] = xoriginal[i][1] + vy*delta;
+          x[i][1] = xoriginal[i][1] + vy * delta;
         } else if (rmass) {
           dtfm = dtf / rmass[i];
           v[i][1] += dtfm * f[i][1];
@@ -518,7 +567,7 @@ void FixMove::initial_integrate(int /*vflag*/)
 
         if (vzflag) {
           v[i][2] = vz;
-          x[i][2] = xoriginal[i][2] + vz*delta;
+          x[i][2] = xoriginal[i][2] + vz * delta;
         } else if (rmass) {
           dtfm = dtf / rmass[i];
           v[i][2] += dtfm * f[i][2];
@@ -529,11 +578,11 @@ void FixMove::initial_integrate(int /*vflag*/)
           x[i][2] += dtv * v[i][2];
         }
 
-        domain->remap_near(x[i],xold);
+        domain->remap_near(x[i], xold);
       }
     }
 
-  // for wiggle: X = X0 + A sin(w*dt)
+    // for wiggle: X = X0 + A sin(w*dt)
 
   } else if (mstyle == WIGGLE) {
     double arg = omega_rotate * delta;
@@ -547,8 +596,8 @@ void FixMove::initial_integrate(int /*vflag*/)
         xold[2] = x[i][2];
 
         if (axflag) {
-          v[i][0] = ax*omega_rotate*cosine;
-          x[i][0] = xoriginal[i][0] + ax*sine;
+          v[i][0] = ax * omega_rotate * cosine;
+          x[i][0] = xoriginal[i][0] + ax * sine;
         } else if (rmass) {
           dtfm = dtf / rmass[i];
           v[i][0] += dtfm * f[i][0];
@@ -560,8 +609,8 @@ void FixMove::initial_integrate(int /*vflag*/)
         }
 
         if (ayflag) {
-          v[i][1] = ay*omega_rotate*cosine;
-          x[i][1] = xoriginal[i][1] + ay*sine;
+          v[i][1] = ay * omega_rotate * cosine;
+          x[i][1] = xoriginal[i][1] + ay * sine;
         } else if (rmass) {
           dtfm = dtf / rmass[i];
           v[i][1] += dtfm * f[i][1];
@@ -573,8 +622,8 @@ void FixMove::initial_integrate(int /*vflag*/)
         }
 
         if (azflag) {
-          v[i][2] = az*omega_rotate*cosine;
-          x[i][2] = xoriginal[i][2] + az*sine;
+          v[i][2] = az * omega_rotate * cosine;
+          x[i][2] = xoriginal[i][2] + az * sine;
         } else if (rmass) {
           dtfm = dtf / rmass[i];
           v[i][2] += dtfm * f[i][2];
@@ -585,35 +634,35 @@ void FixMove::initial_integrate(int /*vflag*/)
           x[i][2] += dtv * v[i][2];
         }
 
-        domain->remap_near(x[i],xold);
+        domain->remap_near(x[i], xold);
       }
     }
 
-  // for rotate by right-hand rule around omega:
-  // P = point = vector = point of rotation
-  // R = vector = axis of rotation
-  // w = omega of rotation (from period)
-  // X0 = xoriginal = initial coord of atom
-  // R0 = runit = unit vector for R
-  // D = X0 - P = vector from P to X0
-  // C = (D dot R0) R0 = projection of atom coord onto R line
-  // A = D - C = vector from R line to X0
-  // B = R0 cross A = vector perp to A in plane of rotation
-  // A,B define plane of circular rotation around R line
-  // X = P + C + A cos(w*dt) + B sin(w*dt)
-  // V = w R0 cross (A cos(w*dt) + B sin(w*dt))
+    // for rotate by right-hand rule around omega:
+    // P = point = vector = point of rotation
+    // R = vector = axis of rotation
+    // w = omega of rotation (from period)
+    // X0 = xoriginal = initial coord of atom
+    // R0 = runit = unit vector for R
+    // D = X0 - P = vector from P to X0
+    // C = (D dot R0) R0 = projection of atom coord onto R line
+    // A = D - C = vector from R line to X0
+    // B = R0 cross A = vector perp to A in plane of rotation
+    // A,B define plane of circular rotation around R line
+    // X = P + C + A cos(w*dt) + B sin(w*dt)
+    // V = w R0 cross (A cos(w*dt) + B sin(w*dt))
 
   } else if (mstyle == ROTATE) {
     double arg = omega_rotate * delta;
     double cosine = cos(arg);
     double sine = sin(arg);
 
-    double qcosine = cos(0.5*arg);
-    double qsine = sin(0.5*arg);
+    double qcosine = cos(0.5 * arg);
+    double qsine = sin(0.5 * arg);
     qrotate[0] = qcosine;
-    qrotate[1] = runit[0]*qsine;
-    qrotate[2] = runit[1]*qsine;
-    qrotate[3] = runit[2]*qsine;
+    qrotate[1] = runit[0] * qsine;
+    qrotate[2] = runit[1] * qsine;
+    qrotate[3] = runit[2] * qsine;
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -624,26 +673,26 @@ void FixMove::initial_integrate(int /*vflag*/)
         d[0] = xoriginal[i][0] - point[0];
         d[1] = xoriginal[i][1] - point[1];
         d[2] = xoriginal[i][2] - point[2];
-        ddotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
-        c[0] = ddotr*runit[0];
-        c[1] = ddotr*runit[1];
-        c[2] = ddotr*runit[2];
+        ddotr = d[0] * runit[0] + d[1] * runit[1] + d[2] * runit[2];
+        c[0] = ddotr * runit[0];
+        c[1] = ddotr * runit[1];
+        c[2] = ddotr * runit[2];
         a[0] = d[0] - c[0];
         a[1] = d[1] - c[1];
         a[2] = d[2] - c[2];
-        b[0] = runit[1]*a[2] - runit[2]*a[1];
-        b[1] = runit[2]*a[0] - runit[0]*a[2];
-        b[2] = runit[0]*a[1] - runit[1]*a[0];
-        disp[0] = a[0]*cosine  + b[0]*sine;
-        disp[1] = a[1]*cosine  + b[1]*sine;
-        disp[2] = a[2]*cosine  + b[2]*sine;
+        b[0] = runit[1] * a[2] - runit[2] * a[1];
+        b[1] = runit[2] * a[0] - runit[0] * a[2];
+        b[2] = runit[0] * a[1] - runit[1] * a[0];
+        disp[0] = a[0] * cosine + b[0] * sine;
+        disp[1] = a[1] * cosine + b[1] * sine;
+        disp[2] = a[2] * cosine + b[2] * sine;
 
         x[i][0] = point[0] + c[0] + disp[0];
         x[i][1] = point[1] + c[1] + disp[1];
         x[i][2] = point[2] + c[2] + disp[2];
-        v[i][0] = omega_rotate * (runit[1]*disp[2] - runit[2]*disp[1]);
-        v[i][1] = omega_rotate * (runit[2]*disp[0] - runit[0]*disp[2]);
-        v[i][2] = omega_rotate * (runit[0]*disp[1] - runit[1]*disp[0]);
+        v[i][0] = omega_rotate * (runit[1] * disp[2] - runit[2] * disp[1]);
+        v[i][1] = omega_rotate * (runit[2] * disp[0] - runit[0] * disp[2]);
+        v[i][2] = omega_rotate * (runit[0] * disp[1] - runit[1] * disp[0]);
 
         // set any extra attributes affected by rotation
 
@@ -657,25 +706,25 @@ void FixMove::initial_integrate(int /*vflag*/)
             if (line_flag && line[i] >= 0.0) flag = 1;
             if (tri_flag && tri[i] >= 0.0) flag = 1;
             if (flag) {
-              omega[i][0] = omega_rotate*runit[0];
-              omega[i][1] = omega_rotate*runit[1];
-              omega[i][2] = omega_rotate*runit[2];
+              omega[i][0] = omega_rotate * runit[0];
+              omega[i][1] = omega_rotate * runit[1];
+              omega[i][2] = omega_rotate * runit[2];
             }
           }
 
           // angmom for ellipsoids, tris, and bodies
 
           if (angmom_flag) {
-            quat = inertia = NULL;
+            quat = inertia = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
               shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
               inertia_ellipsoid[0] =
-                INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+                  INERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
               inertia_ellipsoid[1] =
-                INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
               inertia_ellipsoid[2] =
-                INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
               inertia = inertia_ellipsoid;
             } else if (tri_flag && tri[i] >= 0) {
               quat = avec_tri->bonus[tri[i]].quat;
@@ -685,43 +734,181 @@ void FixMove::initial_integrate(int /*vflag*/)
               inertia = avec_body->bonus[body[i]].inertia;
             }
             if (quat) {
-              w[0] = omega_rotate*runit[0];
-              w[1] = omega_rotate*runit[1];
-              w[2] = omega_rotate*runit[2];
-              MathExtra::q_to_exyz(quat,ex,ey,ez);
-              MathExtra::omega_to_angmom(w,ex,ey,ez,inertia,angmom[i]);
+              w[0] = omega_rotate * runit[0];
+              w[1] = omega_rotate * runit[1];
+              w[2] = omega_rotate * runit[2];
+              MathExtra::q_to_exyz(quat, ex, ey, ez);
+              MathExtra::omega_to_angmom(w, ex, ey, ez, inertia, angmom[i]);
             }
           }
 
           // theta for lines
 
           if (theta_flag && line[i] >= 0.0) {
-            theta_new = fmod(toriginal[i]+arg,MY_2PI);
+            theta_new = fmod(toriginal[i] + arg, MY_2PI);
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
 
           // quats for ellipsoids, tris, and bodies
 
           if (quat_flag) {
-            quat = NULL;
+            quat = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0)
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
             else if (tri_flag && tri[i] >= 0)
               quat = avec_tri->bonus[tri[i]].quat;
             else if (body_flag && body[i] >= 0)
               quat = avec_body->bonus[body[i]].quat;
-            if (quat) MathExtra::quatquat(qrotate,qoriginal[i],quat);
+            if (quat) MathExtra::quatquat(qrotate, qoriginal[i], quat);
           }
         }
 
-        domain->remap_near(x[i],xold);
+        domain->remap_near(x[i], xold);
       }
     }
 
-  // for variable: compute x,v from variables
-  // NOTE: also allow for changes to extra attributes?
-  //       omega, angmom, theta, quat
-  //       only necessary if prescribed motion involves rotation
+    // for rotate by right-hand rule around omega:
+    // P = point = vector = point of rotation
+    // R = vector = axis of rotation
+    // w = omega of rotation (from period)
+    // X0 = xoriginal = initial coord of atom
+    // R0 = runit = unit vector for R
+    // D = X0 - P = vector from P to X0
+    // C = (D dot R0) R0 = projection of atom coord onto R line
+    // A = D - C = vector from R line to X0
+    // B = R0 cross A = vector perp to A in plane of rotation
+    // A,B define plane of circular rotation around R line
+    // X = P + C + A cos(w*dt) + B sin(w*dt)
+    // V = w R0 cross (A cos(w*dt) + B sin(w*dt))
+    //
+    // add translation after rotation
+
+  } else if (mstyle == TRANSROT) {
+    double arg = omega_rotate * delta;
+    double cosine = cos(arg);
+    double sine = sin(arg);
+
+    double qcosine = cos(0.5 * arg);
+    double qsine = sin(0.5 * arg);
+    qrotate[0] = qcosine;
+    qrotate[1] = runit[0] * qsine;
+    qrotate[2] = runit[1] * qsine;
+    qrotate[3] = runit[2] * qsine;
+
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        xold[0] = x[i][0];
+        xold[1] = x[i][1];
+        xold[2] = x[i][2];
+
+        d[0] = xoriginal[i][0] - point[0];
+        d[1] = xoriginal[i][1] - point[1];
+        d[2] = xoriginal[i][2] - point[2];
+        ddotr = d[0] * runit[0] + d[1] * runit[1] + d[2] * runit[2];
+        c[0] = ddotr * runit[0];
+        c[1] = ddotr * runit[1];
+        c[2] = ddotr * runit[2];
+        a[0] = d[0] - c[0];
+        a[1] = d[1] - c[1];
+        a[2] = d[2] - c[2];
+        b[0] = runit[1] * a[2] - runit[2] * a[1];
+        b[1] = runit[2] * a[0] - runit[0] * a[2];
+        b[2] = runit[0] * a[1] - runit[1] * a[0];
+        disp[0] = a[0] * cosine + b[0] * sine;
+        disp[1] = a[1] * cosine + b[1] * sine;
+        disp[2] = a[2] * cosine + b[2] * sine;
+
+        x[i][0] = point[0] + c[0] + disp[0];
+        x[i][1] = point[1] + c[1] + disp[1];
+        x[i][2] = point[2] + c[2] + disp[2];
+        v[i][0] = omega_rotate * (runit[1] * disp[2] - runit[2] * disp[1]);
+        v[i][1] = omega_rotate * (runit[2] * disp[0] - runit[0] * disp[2]);
+        v[i][2] = omega_rotate * (runit[0] * disp[1] - runit[1] * disp[0]);
+
+        // set any extra attributes affected by rotation
+
+        if (extra_flag) {
+
+          // omega for spheres, lines, tris
+
+          if (omega_flag) {
+            flag = 0;
+            if (radius_flag && radius[i] > 0.0) flag = 1;
+            if (line_flag && line[i] >= 0.0) flag = 1;
+            if (tri_flag && tri[i] >= 0.0) flag = 1;
+            if (flag) {
+              omega[i][0] = omega_rotate * runit[0];
+              omega[i][1] = omega_rotate * runit[1];
+              omega[i][2] = omega_rotate * runit[2];
+            }
+          }
+
+          // angmom for ellipsoids, tris, and bodies
+
+          if (angmom_flag) {
+            quat = inertia = nullptr;
+            if (ellipsoid_flag && ellipsoid[i] >= 0) {
+              quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+              shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
+              inertia_ellipsoid[0] =
+                  INERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
+              inertia_ellipsoid[1] =
+                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
+              inertia_ellipsoid[2] =
+                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
+              inertia = inertia_ellipsoid;
+            } else if (tri_flag && tri[i] >= 0) {
+              quat = avec_tri->bonus[tri[i]].quat;
+              inertia = avec_tri->bonus[tri[i]].inertia;
+            } else if (body_flag && body[i] >= 0) {
+              quat = avec_body->bonus[body[i]].quat;
+              inertia = avec_body->bonus[body[i]].inertia;
+            }
+            if (quat) {
+              w[0] = omega_rotate * runit[0];
+              w[1] = omega_rotate * runit[1];
+              w[2] = omega_rotate * runit[2];
+              MathExtra::q_to_exyz(quat, ex, ey, ez);
+              MathExtra::omega_to_angmom(w, ex, ey, ez, inertia, angmom[i]);
+            }
+          }
+
+          // theta for lines
+
+          if (theta_flag && line[i] >= 0.0) {
+            theta_new = fmod(toriginal[i] + arg, MY_2PI);
+            avec_line->bonus[atom->line[i]].theta = theta_new;
+          }
+
+          // quats for ellipsoids, tris, and bodies
+
+          if (quat_flag) {
+            quat = nullptr;
+            if (ellipsoid_flag && ellipsoid[i] >= 0)
+              quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+            else if (tri_flag && tri[i] >= 0)
+              quat = avec_tri->bonus[tri[i]].quat;
+            else if (body_flag && body[i] >= 0)
+              quat = avec_body->bonus[body[i]].quat;
+            if (quat) MathExtra::quatquat(qrotate, qoriginal[i], quat);
+          }
+        }
+
+        v[i][0] += vx;
+        x[i][0] += vx * delta;
+        v[i][1] += vy;
+        x[i][1] += vy * delta;
+        v[i][2] += vz;
+        x[i][2] += vz * delta;
+
+        domain->remap_near(x[i], xold);
+      }
+    }
+
+    // for variable: compute x,v from variables
+    // NOTE: also allow for changes to extra attributes?
+    //       omega, angmom, theta, quat
+    //       only necessary if prescribed motion involves rotation
 
   } else if (mstyle == VARIABLE) {
 
@@ -731,11 +918,11 @@ void FixMove::initial_integrate(int /*vflag*/)
       maxatom = atom->nmax;
       if (displaceflag) {
         memory->destroy(displace);
-        memory->create(displace,maxatom,3,"move:displace");
+        memory->create(displace, maxatom, 3, "move:displace");
       }
       if (velocityflag) {
         memory->destroy(velocity);
-        memory->create(velocity,maxatom,3,"move:velocity");
+        memory->create(velocity, maxatom, 3, "move:velocity");
       }
     }
 
@@ -744,28 +931,40 @@ void FixMove::initial_integrate(int /*vflag*/)
     modify->clearstep_compute();
 
     if (xvarstr) {
-      if (xvarstyle == EQUAL) dx = input->variable->compute_equal(xvar);
-      else input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
+      if (xvarstyle == EQUAL)
+        dx = input->variable->compute_equal(xvar);
+      else
+        input->variable->compute_atom(xvar, igroup, &displace[0][0], 3, 0);
     }
     if (yvarstr) {
-      if (yvarstyle == EQUAL) dy = input->variable->compute_equal(yvar);
-      else input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
+      if (yvarstyle == EQUAL)
+        dy = input->variable->compute_equal(yvar);
+      else
+        input->variable->compute_atom(yvar, igroup, &displace[0][1], 3, 0);
     }
     if (zvarstr) {
-      if (zvarstyle == EQUAL) dz = input->variable->compute_equal(zvar);
-      else input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
+      if (zvarstyle == EQUAL)
+        dz = input->variable->compute_equal(zvar);
+      else
+        input->variable->compute_atom(zvar, igroup, &displace[0][2], 3, 0);
     }
     if (vxvarstr) {
-      if (vxvarstyle == EQUAL) vx = input->variable->compute_equal(vxvar);
-      else input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
+      if (vxvarstyle == EQUAL)
+        vx = input->variable->compute_equal(vxvar);
+      else
+        input->variable->compute_atom(vxvar, igroup, &velocity[0][0], 3, 0);
     }
     if (vyvarstr) {
-      if (vyvarstyle == EQUAL) vy = input->variable->compute_equal(vyvar);
-      else input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
+      if (vyvarstyle == EQUAL)
+        vy = input->variable->compute_equal(vyvar);
+      else
+        input->variable->compute_atom(vyvar, igroup, &velocity[0][1], 3, 0);
     }
     if (vzvarstr) {
-      if (vzvarstyle == EQUAL) vz = input->variable->compute_equal(vzvar);
-      else input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
+      if (vzvarstyle == EQUAL)
+        vz = input->variable->compute_equal(vzvar);
+      else
+        input->variable->compute_atom(vzvar, igroup, &velocity[0][2], 3, 0);
     }
 
     modify->addstep_compute(update->ntimestep + 1);
@@ -779,103 +978,106 @@ void FixMove::initial_integrate(int /*vflag*/)
         xold[2] = x[i][2];
 
         if (xvarstr && vxvarstr) {
-          if (vxvarstyle == EQUAL) v[i][0] = vx;
-          else v[i][0] = velocity[i][0];
-          if (xvarstyle == EQUAL) x[i][0] = xoriginal[i][0] + dx;
-          else x[i][0] = xoriginal[i][0] + displace[i][0];
+          if (vxvarstyle == EQUAL)
+            v[i][0] = vx;
+          else
+            v[i][0] = velocity[i][0];
+          if (xvarstyle == EQUAL)
+            x[i][0] = xoriginal[i][0] + dx;
+          else
+            x[i][0] = xoriginal[i][0] + displace[i][0];
         } else if (xvarstr) {
-          if (xvarstyle == EQUAL) x[i][0] = xoriginal[i][0] + dx;
-          else x[i][0] = xoriginal[i][0] + displace[i][0];
+          if (xvarstyle == EQUAL)
+            x[i][0] = xoriginal[i][0] + dx;
+          else
+            x[i][0] = xoriginal[i][0] + displace[i][0];
         } else if (vxvarstr) {
-          if (vxvarstyle == EQUAL) v[i][0] = vx;
-          else v[i][0] = velocity[i][0];
-          if (rmass) {
-            dtfm = dtf / rmass[i];
-            x[i][0] += dtv * v[i][0];
-          } else {
-            dtfm = dtf / mass[type[i]];
-            x[i][0] += dtv * v[i][0];
-          }
+          if (vxvarstyle == EQUAL)
+            v[i][0] = vx;
+          else
+            v[i][0] = velocity[i][0];
+          x[i][0] += dtv * v[i][0];
         } else {
           if (rmass) {
             dtfm = dtf / rmass[i];
             v[i][0] += dtfm * f[i][0];
-            x[i][0] += dtv * v[i][0];
           } else {
             dtfm = dtf / mass[type[i]];
             v[i][0] += dtfm * f[i][0];
-            x[i][0] += dtv * v[i][0];
           }
+          x[i][0] += dtv * v[i][0];
         }
 
         if (yvarstr && vyvarstr) {
-          if (vyvarstyle == EQUAL) v[i][1] = vy;
-          else v[i][1] = velocity[i][1];
-          if (yvarstyle == EQUAL) x[i][1] = xoriginal[i][1] + dy;
-          else x[i][1] = xoriginal[i][1] + displace[i][1];
+          if (vyvarstyle == EQUAL)
+            v[i][1] = vy;
+          else
+            v[i][1] = velocity[i][1];
+          if (yvarstyle == EQUAL)
+            x[i][1] = xoriginal[i][1] + dy;
+          else
+            x[i][1] = xoriginal[i][1] + displace[i][1];
         } else if (yvarstr) {
-          if (yvarstyle == EQUAL) x[i][1] = xoriginal[i][1] + dy;
-          else x[i][1] = xoriginal[i][1] + displace[i][1];
+          if (yvarstyle == EQUAL)
+            x[i][1] = xoriginal[i][1] + dy;
+          else
+            x[i][1] = xoriginal[i][1] + displace[i][1];
         } else if (vyvarstr) {
-          if (vyvarstyle == EQUAL) v[i][1] = vy;
-          else v[i][1] = velocity[i][1];
-          if (rmass) {
-            dtfm = dtf / rmass[i];
-            x[i][1] += dtv * v[i][1];
-          } else {
-            dtfm = dtf / mass[type[i]];
-            x[i][1] += dtv * v[i][1];
-          }
+          if (vyvarstyle == EQUAL)
+            v[i][1] = vy;
+          else
+            v[i][1] = velocity[i][1];
+          x[i][1] += dtv * v[i][1];
         } else {
           if (rmass) {
             dtfm = dtf / rmass[i];
             v[i][1] += dtfm * f[i][1];
-            x[i][1] += dtv * v[i][1];
           } else {
             dtfm = dtf / mass[type[i]];
             v[i][1] += dtfm * f[i][1];
-            x[i][1] += dtv * v[i][1];
           }
+          x[i][1] += dtv * v[i][1];
         }
 
         if (zvarstr && vzvarstr) {
-          if (vzvarstyle == EQUAL) v[i][2] = vz;
-          else v[i][2] = velocity[i][2];
-          if (zvarstyle == EQUAL) x[i][2] = xoriginal[i][2] + dz;
-          else x[i][2] = xoriginal[i][2] + displace[i][2];
+          if (vzvarstyle == EQUAL)
+            v[i][2] = vz;
+          else
+            v[i][2] = velocity[i][2];
+          if (zvarstyle == EQUAL)
+            x[i][2] = xoriginal[i][2] + dz;
+          else
+            x[i][2] = xoriginal[i][2] + displace[i][2];
         } else if (zvarstr) {
-          if (zvarstyle == EQUAL) x[i][2] = xoriginal[i][2] + dz;
-          else x[i][2] = xoriginal[i][2] + displace[i][2];
+          if (zvarstyle == EQUAL)
+            x[i][2] = xoriginal[i][2] + dz;
+          else
+            x[i][2] = xoriginal[i][2] + displace[i][2];
         } else if (vzvarstr) {
-          if (vzvarstyle == EQUAL) v[i][2] = vz;
-          else v[i][2] = velocity[i][2];
-          if (rmass) {
-            dtfm = dtf / rmass[i];
-            x[i][2] += dtv * v[i][2];
-          } else {
-            dtfm = dtf / mass[type[i]];
-            x[i][2] += dtv * v[i][2];
-          }
+          if (vzvarstyle == EQUAL)
+            v[i][2] = vz;
+          else
+            v[i][2] = velocity[i][2];
+          x[i][2] += dtv * v[i][2];
         } else {
           if (rmass) {
             dtfm = dtf / rmass[i];
             v[i][2] += dtfm * f[i][2];
-            x[i][2] += dtv * v[i][2];
           } else {
             dtfm = dtf / mass[type[i]];
             v[i][2] += dtfm * f[i][2];
-            x[i][2] += dtv * v[i][2];
           }
+          x[i][2] += dtv * v[i][2];
         }
 
-        domain->remap_near(x[i],xold);
+        domain->remap_near(x[i], xold);
       }
     }
   }
 }
 
 /* ----------------------------------------------------------------------
-   final NVE of particles with NULL components
+   final NVE of particles with nullptr components
 ------------------------------------------------------------------------- */
 
 void FixMove::final_integrate()
@@ -883,22 +1085,40 @@ void FixMove::final_integrate()
   double dtfm;
 
   int xflag = 1;
-  if (mstyle == LINEAR && vxflag) xflag = 0;
-  else if (mstyle == WIGGLE && axflag) xflag = 0;
-  else if (mstyle == ROTATE) xflag = 0;
-  else if (mstyle == VARIABLE && (xvarstr || vxvarstr)) xflag = 0;
+  if (mstyle == LINEAR && vxflag)
+    xflag = 0;
+  else if (mstyle == WIGGLE && axflag)
+    xflag = 0;
+  else if (mstyle == ROTATE)
+    xflag = 0;
+  else if (mstyle == TRANSROT)
+    xflag = 0;
+  else if (mstyle == VARIABLE && (xvarstr || vxvarstr))
+    xflag = 0;
 
   int yflag = 1;
-  if (mstyle == LINEAR && vyflag) yflag = 0;
-  else if (mstyle == WIGGLE && ayflag) yflag = 0;
-  else if (mstyle == ROTATE) yflag = 0;
-  else if (mstyle == VARIABLE && (yvarstr || vyvarstr)) yflag = 0;
+  if (mstyle == LINEAR && vyflag)
+    yflag = 0;
+  else if (mstyle == WIGGLE && ayflag)
+    yflag = 0;
+  else if (mstyle == ROTATE)
+    yflag = 0;
+  else if (mstyle == TRANSROT)
+    yflag = 0;
+  else if (mstyle == VARIABLE && (yvarstr || vyvarstr))
+    yflag = 0;
 
   int zflag = 1;
-  if (mstyle == LINEAR && vzflag) zflag = 0;
-  else if (mstyle == WIGGLE && azflag) zflag = 0;
-  else if (mstyle == ROTATE) zflag = 0;
-  else if (mstyle == VARIABLE && (zvarstr || vzvarstr)) zflag = 0;
+  if (mstyle == LINEAR && vzflag)
+    zflag = 0;
+  else if (mstyle == WIGGLE && azflag)
+    zflag = 0;
+  else if (mstyle == ROTATE)
+    zflag = 0;
+  else if (mstyle == TRANSROT)
+    zflag = 0;
+  else if (mstyle == VARIABLE && (zvarstr || vzvarstr))
+    zflag = 0;
 
   double **v = atom->v;
   double **f = atom->f;
@@ -950,14 +1170,14 @@ void FixMove::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
   // outermost level - update v and x
   // all other levels - nothing
 
-  if (ilevel == nlevels_respa-1) initial_integrate(vflag);
+  if (ilevel == nlevels_respa - 1) initial_integrate(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixMove::final_integrate_respa(int ilevel, int /*iloop*/)
 {
-  if (ilevel == nlevels_respa-1) final_integrate();
+  if (ilevel == nlevels_respa - 1) final_integrate();
 }
 
 /* ----------------------------------------------------------------------
@@ -966,11 +1186,11 @@ void FixMove::final_integrate_respa(int ilevel, int /*iloop*/)
 
 double FixMove::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
-  if (theta_flag) bytes += atom->nmax * sizeof(double);
-  if (quat_flag) bytes += atom->nmax*4 * sizeof(double);
-  if (displaceflag) bytes += atom->nmax*3 * sizeof(double);
-  if (velocityflag) bytes += atom->nmax*3 * sizeof(double);
+  double bytes = (double) atom->nmax * 3 * sizeof(double);
+  if (theta_flag) bytes += (double) atom->nmax * sizeof(double);
+  if (quat_flag) bytes += (double) atom->nmax * 4 * sizeof(double);
+  if (displaceflag) bytes += (double) atom->nmax * 3 * sizeof(double);
+  if (velocityflag) bytes += (double) atom->nmax * 3 * sizeof(double);
   return bytes;
 }
 
@@ -986,8 +1206,8 @@ void FixMove::write_restart(FILE *fp)
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),n,fp);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list, sizeof(double), n, fp);
   }
 }
 
@@ -998,9 +1218,9 @@ void FixMove::write_restart(FILE *fp)
 void FixMove::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
-  time_origin = static_cast<int> (list[n++]);
+  time_origin = static_cast<int>(list[n++]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1009,9 +1229,9 @@ void FixMove::restart(char *buf)
 
 void FixMove::grow_arrays(int nmax)
 {
-  memory->grow(xoriginal,nmax,3,"move:xoriginal");
-  if (theta_flag) memory->grow(toriginal,nmax,"move:toriginal");
-  if (quat_flag) memory->grow(qoriginal,nmax,4,"move:qoriginal");
+  memory->grow(xoriginal, nmax, 3, "move:xoriginal");
+  if (theta_flag) memory->grow(toriginal, nmax, "move:toriginal");
+  if (quat_flag) memory->grow(qoriginal, nmax, 4, "move:qoriginal");
   array_atom = xoriginal;
 }
 
@@ -1060,50 +1280,51 @@ void FixMove::set_arrays(int i)
   // current time still equal fix creation time
 
   if (update->ntimestep == time_origin) {
-    domain->unmap(x[i],image[i],xoriginal[i]);
+    domain->unmap(x[i], image[i], xoriginal[i]);
     return;
   }
 
   // backup particle to time_origin
 
-  if (mstyle == VARIABLE)
-    error->all(FLERR,"Cannot add atoms to fix move variable");
+  if (mstyle == VARIABLE) error->all(FLERR, "Cannot add atoms to fix move variable");
 
-  domain->unmap(x[i],image[i],xoriginal[i]);
+  domain->unmap(x[i], image[i], xoriginal[i]);
   double delta = (update->ntimestep - time_origin) * update->dt;
 
   if (mstyle == LINEAR) {
     if (vxflag) xoriginal[i][0] -= vx * delta;
     if (vyflag) xoriginal[i][1] -= vy * delta;
     if (vzflag) xoriginal[i][2] -= vz * delta;
+
   } else if (mstyle == WIGGLE) {
     double arg = omega_rotate * delta;
     double sine = sin(arg);
-    if (axflag) xoriginal[i][0] -= ax*sine;
-    if (ayflag) xoriginal[i][1] -= ay*sine;
-    if (azflag) xoriginal[i][2] -= az*sine;
+    if (axflag) xoriginal[i][0] -= ax * sine;
+    if (ayflag) xoriginal[i][1] -= ay * sine;
+    if (azflag) xoriginal[i][2] -= az * sine;
+
   } else if (mstyle == ROTATE) {
-    double a[3],b[3],c[3],d[3],disp[3],ddotr;
-    double arg = - omega_rotate * delta;
+    double a[3], b[3], c[3], d[3], disp[3], ddotr;
+    double arg = -omega_rotate * delta;
     double sine = sin(arg);
     double cosine = cos(arg);
     d[0] = x[i][0] - point[0];
     d[1] = x[i][1] - point[1];
     d[2] = x[i][2] - point[2];
-    ddotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
-    c[0] = ddotr*runit[0];
-    c[1] = ddotr*runit[1];
-    c[2] = ddotr*runit[2];
+    ddotr = d[0] * runit[0] + d[1] * runit[1] + d[2] * runit[2];
+    c[0] = ddotr * runit[0];
+    c[1] = ddotr * runit[1];
+    c[2] = ddotr * runit[2];
 
     a[0] = d[0] - c[0];
     a[1] = d[1] - c[1];
     a[2] = d[2] - c[2];
-    b[0] = runit[1]*a[2] - runit[2]*a[1];
-    b[1] = runit[2]*a[0] - runit[0]*a[2];
-    b[2] = runit[0]*a[1] - runit[1]*a[0];
-    disp[0] = a[0]*cosine  + b[0]*sine;
-    disp[1] = a[1]*cosine  + b[1]*sine;
-    disp[2] = a[2]*cosine  + b[2]*sine;
+    b[0] = runit[1] * a[2] - runit[2] * a[1];
+    b[1] = runit[2] * a[0] - runit[0] * a[2];
+    b[2] = runit[0] * a[1] - runit[1] * a[0];
+    disp[0] = a[0] * cosine + b[0] * sine;
+    disp[1] = a[1] * cosine + b[1] * sine;
+    disp[2] = a[2] * cosine + b[2] * sine;
 
     xoriginal[i][0] = point[0] + c[0] + disp[0];
     xoriginal[i][1] = point[1] + c[1] + disp[1];
@@ -1117,13 +1338,70 @@ void FixMove::set_arrays(int i)
 
       if (theta_flag && line[i] >= 0.0) {
         theta = avec_line->bonus[atom->line[i]].theta;
-        toriginal[i] = theta - 0.0;  // NOTE: edit this line
+        toriginal[i] = theta - 0.0;    // NOTE: edit this line
       }
 
       // quats for ellipsoids, tris, and bodies
 
       if (quat_flag) {
-        quat = NULL;
+        quat = nullptr;
+        if (ellipsoid_flag && ellipsoid[i] >= 0)
+          quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+        else if (tri_flag && tri[i] >= 0)
+          quat = avec_tri->bonus[tri[i]].quat;
+        else if (body_flag && body[i] >= 0)
+          quat = avec_body->bonus[body[i]].quat;
+        if (quat) {
+          // qoriginal = f(quat,-delta);   // NOTE: edit this line
+        }
+      }
+    }
+    xoriginal[i][0] -= vx * delta;
+    xoriginal[i][1] -= vy * delta;
+    xoriginal[i][2] -= vz * delta;
+
+  } else if (mstyle == TRANSROT) {
+    double a[3], b[3], c[3], d[3], disp[3], ddotr;
+    double arg = -omega_rotate * delta;
+    double sine = sin(arg);
+    double cosine = cos(arg);
+    d[0] = x[i][0] - point[0];
+    d[1] = x[i][1] - point[1];
+    d[2] = x[i][2] - point[2];
+    ddotr = d[0] * runit[0] + d[1] * runit[1] + d[2] * runit[2];
+    c[0] = ddotr * runit[0];
+    c[1] = ddotr * runit[1];
+    c[2] = ddotr * runit[2];
+
+    a[0] = d[0] - c[0];
+    a[1] = d[1] - c[1];
+    a[2] = d[2] - c[2];
+    b[0] = runit[1] * a[2] - runit[2] * a[1];
+    b[1] = runit[2] * a[0] - runit[0] * a[2];
+    b[2] = runit[0] * a[1] - runit[1] * a[0];
+    disp[0] = a[0] * cosine + b[0] * sine;
+    disp[1] = a[1] * cosine + b[1] * sine;
+    disp[2] = a[2] * cosine + b[2] * sine;
+
+    xoriginal[i][0] = point[0] + c[0] + disp[0];
+    xoriginal[i][1] = point[1] + c[1] + disp[1];
+    xoriginal[i][2] = point[2] + c[2] + disp[2];
+
+    // set theta and quat extra attributes affected by rotation
+
+    if (extra_flag) {
+
+      // theta for lines
+
+      if (theta_flag && line[i] >= 0.0) {
+        theta = avec_line->bonus[atom->line[i]].theta;
+        toriginal[i] = theta - 0.0;    // NOTE: edit this line
+      }
+
+      // quats for ellipsoids, tris, and bodies
+
+      if (quat_flag) {
+        quat = nullptr;
         if (ellipsoid_flag && ellipsoid[i] >= 0)
           quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
         else if (tri_flag && tri[i] >= 0)
@@ -1195,6 +1473,7 @@ int FixMove::pack_restart(int i, double *buf)
     buf[n++] = qoriginal[i][2];
     buf[n++] = qoriginal[i][3];
   }
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = n;
   return n;
 }
@@ -1208,9 +1487,10 @@ void FixMove::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
-  for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
+  for (int i = 0; i < nth; i++) m += static_cast<int>(extra[nlocal][m]);
   m++;
 
   xoriginal[nlocal][0] = extra[nlocal][m++];
@@ -1247,5 +1527,5 @@ int FixMove::size_restart(int /*nlocal*/)
 
 void FixMove::reset_dt()
 {
-  error->all(FLERR,"Resetting timestep size is not allowed with fix move");
+  error->all(FLERR, "Resetting timestep size is not allowed with fix move");
 }

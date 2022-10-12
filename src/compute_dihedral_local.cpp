@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,19 +12,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "compute_dihedral_local.h"
 #include <cmath>
 #include <cstring>
-#include "compute_dihedral_local.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
 #include "update.h"
 #include "domain.h"
 #include "force.h"
-#include "dihedral.h"
 #include "input.h"
 #include "variable.h"
-
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -40,7 +39,7 @@ enum{PHI,VARIABLE};
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL), vvar(NULL), pstr(NULL), vstr(NULL), vlocal(NULL), alocal(NULL)
+  bstyle(nullptr), vvar(nullptr), pstr(nullptr), vstr(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 
@@ -66,9 +65,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = PHI;
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       bstyle[nvalues++] = VARIABLE;
-      int n = strlen(arg[iarg]);
-      vstr[nvar] = new char[n];
-      strcpy(vstr[nvar],&arg[iarg][2]);
+      vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else break;
   }
@@ -76,7 +73,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   setflag = 0;
-  pstr = NULL;
+  pstr = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
@@ -85,9 +82,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute dihedral/local command");
       if (strcmp(arg[iarg+1],"phi") == 0) {
         delete [] pstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        pstr = new char[n];
-        strcpy(pstr,arg[iarg+2]);
+        pstr = utils::strdup(arg[iarg+2]);
       } else error->all(FLERR,"Illegal compute dihedral/local command");
       iarg += 3;
     } else error->all(FLERR,"Illegal compute dihedral/local command");
@@ -101,10 +96,10 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,
+        error->all(FLERR,
                    "Variable name for copute dihedral/local does not exist");
       if (!input->variable->equalstyle(vvar[i]))
-	error->all(FLERR,"Variable for compute dihedral/local is invalid style");
+        error->all(FLERR,"Variable for compute dihedral/local is invalid style");
     }
 
     if (pstr) {
@@ -124,8 +119,8 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,14 +142,14 @@ ComputeDihedralLocal::~ComputeDihedralLocal()
 
 void ComputeDihedralLocal::init()
 {
-  if (force->dihedral == NULL)
+  if (force->dihedral == nullptr)
     error->all(FLERR,"No dihedral style is defined for compute dihedral/local");
 
   if (nvar) {
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-	error->all(FLERR,
+        error->all(FLERR,
                    "Variable name for compute dihedral/local does not exist");
     }
 
@@ -197,7 +192,7 @@ void ComputeDihedralLocal::compute_local()
 
 int ComputeDihedralLocal::compute_dihedrals(int flag)
 {
-  int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom,ivar;
+  int i,m,nd,atom1,atom2,atom3,atom4,imol,iatom,ivar;
   tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,ra2inv,rb2inv,rabinv;
@@ -222,11 +217,11 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
   // loop over all atoms and their dihedrals
 
-  m = n = 0;
+  m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
-    if (molecular == 1) nd = num_dihedral[atom2];
+    if (molecular == Atom::MOLECULAR) nd = num_dihedral[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -235,7 +230,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
     }
 
     for (i = 0; i < nd; i++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
         atom1 = atom->map(dihedral_atom1[atom2][i]);
         atom3 = atom->map(dihedral_atom3[atom2][i]);
@@ -307,19 +302,19 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
       else ptr = alocal[m];
 
       if (nvar) {
-	ivar = 0;
-	if (pstr) input->variable->internal_set(pvar,phi);
+        ivar = 0;
+        if (pstr) input->variable->internal_set(pvar,phi);
       }
 
-      for (n = 0; n < nvalues; n++) {
-	switch (bstyle[n]) {
-	case PHI:
-	  ptr[n] = 180.0*phi/MY_PI;
-	  break;
-	case VARIABLE:
-	  ptr[n] = input->variable->compute_equal(vvar[ivar]);
-	  ivar++;
-	  break;
+      for (int n = 0; n < nvalues; n++) {
+        switch (bstyle[n]) {
+        case PHI:
+          ptr[n] = 180.0*phi/MY_PI;
+          break;
+        case VARIABLE:
+          ptr[n] = input->variable->compute_equal(vvar[ivar]);
+          ivar++;
+          break;
         }
       }
 
@@ -355,6 +350,6 @@ void ComputeDihedralLocal::reallocate(int n)
 
 double ComputeDihedralLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

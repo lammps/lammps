@@ -1,10 +1,9 @@
+// clang-format off
 // Hash function hashlittle()
 // from lookup3.c, by Bob Jenkins, May 2006, Public Domain
 // bob_jenkins@burtleburtle.net
 
-#include <cmath>
-#include <stddef.h>
-#include <stdint.h>
+#include "hashlittle.h"
 
 // if the system defines the __BYTE_ORDER__ define,
 // we use it instead of guessing the platform
@@ -53,7 +52,7 @@ satisfy this are
    14  9  3  7 17  3
 Well, "9 15 3 18 27 15" didn't quite get 32 bits diffing
 for "differ" defined as + with a one-bit base and a two-bit delta.  I
-used http://burtleburtle.net/bob/hash/avalanche.html to choose
+used https://burtleburtle.net/bob/hash/avalanche.html to choose
 the operations, constants, and arrangements of the variables.
 
 This does not achieve avalanche.  There are input bits of (a,b,c)
@@ -142,7 +141,7 @@ acceptable.  Do NOT use for cryptographic purposes.
 -------------------------------------------------------------------------------
 */
 
-uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
+uint32_t LAMMPS_NS::hashlittle(const void *key, size_t length, uint32_t initval)
 {
 #ifndef PURIFY_HATES_HASHLITTLE
 
@@ -154,7 +153,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
 
   u.ptr = key;
   if (HASH_LITTLE_ENDIAN && ((u.i & 0x3) == 0)) {
-    const uint32_t *k = (const uint32_t *)key;         /* read 32-bit chunks */
+    const uint32_t *k = (const uint32_t *)key;         /* NOLINT read 32-bit chunks */
 
     /*------ all but last block: aligned reads and affect 32 bits of (a,b,c) */
     while (length > 12)
@@ -175,7 +174,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
      * rest of the string.  Every machine with memory protection I've seen
      * does it on word boundaries, so is OK with this.  But VALGRIND will
      * still catch it and complain.  The masking trick does make the hash
-     * noticably faster for short strings (like English words).
+     * noticeably faster for short strings (like English words).
      */
 #ifndef VALGRIND
 
@@ -198,7 +197,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
 
 #else /* make valgrind happy */
 
-    const uint8_t  *k8 = (const uint8_t *)k;
+    const uint8_t  *k8 = (const uint8_t *)k; /* NOLINT */
     switch(length)
     {
     case 12: c+=k[2]; b+=k[1]; a+=k[0]; break;
@@ -219,7 +218,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
 #endif /* !valgrind */
 
   } else if (HASH_LITTLE_ENDIAN && ((u.i & 0x1) == 0)) {
-    const uint16_t *k = (const uint16_t *)key;         /* read 16-bit chunks */
+    const uint16_t *k = (const uint16_t *)key;         /* NOLINT read 16-bit chunks */
     const uint8_t  *k8;
 
     /*--------------- all but last block: aligned reads and different mixing */
@@ -234,7 +233,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
     }
 
     /*----------------------------- handle the last (probably partial) block */
-    k8 = (const uint8_t *)k;
+    k8 = (const uint8_t *)k;                          /* NOLINT */
     switch(length)
     {
     case 12: c+=k[4]+(((uint32_t)k[5])<<16);
@@ -266,7 +265,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
     }
 
   } else {                        /* need to read the key one byte at a time */
-    const uint8_t *k = (const uint8_t *)key;
+    const uint8_t *k = (const uint8_t *)key;       /* NOLINT */
 
     /*--------------- all but the last block: affect some 32 bits of (a,b,c) */
     while (length > 12)
@@ -291,17 +290,17 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
     /*-------------------------------- last block: affect all 32 bits of (c) */
     switch(length)                   /* all the case statements fall through */
     {
-    case 12: c+=((uint32_t)k[11])<<24;
-    case 11: c+=((uint32_t)k[10])<<16;
-    case 10: c+=((uint32_t)k[9])<<8;
-    case 9 : c+=k[8];
-    case 8 : b+=((uint32_t)k[7])<<24;
-    case 7 : b+=((uint32_t)k[6])<<16;
-    case 6 : b+=((uint32_t)k[5])<<8;
-    case 5 : b+=k[4];
-    case 4 : a+=((uint32_t)k[3])<<24;
-    case 3 : a+=((uint32_t)k[2])<<16;
-    case 2 : a+=((uint32_t)k[1])<<8;
+    case 12: c+=((uint32_t)k[11])<<24; /* fall through */
+    case 11: c+=((uint32_t)k[10])<<16; /* fall through */
+    case 10: c+=((uint32_t)k[9])<<8;   /* fall through */
+    case 9 : c+=k[8];                  /* fall through */
+    case 8 : b+=((uint32_t)k[7])<<24;  /* fall through */
+    case 7 : b+=((uint32_t)k[6])<<16;  /* fall through */
+    case 6 : b+=((uint32_t)k[5])<<8;   /* fall through */
+    case 5 : b+=k[4];                  /* fall through */
+    case 4 : a+=((uint32_t)k[3])<<24;  /* fall through */
+    case 3 : a+=((uint32_t)k[2])<<16;  /* fall through */
+    case 2 : a+=((uint32_t)k[1])<<8;   /* fall through */
     case 1 : a+=k[0];
              break;
     case 0 : return c;
@@ -329,13 +328,13 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
   h = 0;
   for (p = (uint32_t *)key, bytes=num_bytes;
        bytes >= (uint32_t) sizeof(uint32_t);
-       bytes-=sizeof(uint32_t), p++){
+       bytes-=sizeof(uint32_t), p++) {
     h = (h^(*p))*MAXINT_DIV_PHI;
   }
 
   /* Then take care of the remaining bytes, if any */
   rest = 0;
-  for (byteptr = (char *)p; bytes > 0; bytes--, byteptr++){
+  for (byteptr = (char *)p; bytes > 0; bytes--, byteptr++) {
     rest = (rest<<8) | (*byteptr);
   }
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,28 +16,26 @@
    (based on Stillinger-Weber pair style)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_nb3b_harmonic.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define SMALL 0.001
-#define PI 3.141592653589793238462643383279
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,13 +45,10 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  nelements = 0;
-  elements = NULL;
-  nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
-  map = NULL;
+  params = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -62,16 +57,12 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp)
 
 PairNb3bHarmonic::~PairNb3bHarmonic()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   memory->destroy(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem3param);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
   }
 }
 
@@ -79,15 +70,15 @@ PairNb3bHarmonic::~PairNb3bHarmonic()
 
 void PairNb3bHarmonic::compute(int eflag, int vflag)
 {
-  int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
-  double xtmp,ytmp,ztmp,evdwl;
-  double rsq1,rsq2;
-  double delr1[3],delr2[3],fj[3],fk[3];
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, k, ii, jj, kk, inum, jnum, jnumm1;
+  int itype, jtype, ktype, ijparam, ikparam, ijkparam;
+  double xtmp, ytmp, ztmp, evdwl;
+  double rsq1, rsq2;
+  double delr1[3], delr2[3], fj[3], fk[3];
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -115,28 +106,28 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
-      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
       if (rsq1 > params[ijparam].cutsq) continue;
 
-      for (kk = jj+1; kk < jnum; kk++) {
+      for (kk = jj + 1; kk < jnum; kk++) {
         k = jlist[kk];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
         if (rsq2 > params[ikparam].cutsq) continue;
 
-        threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-                  rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+        threebody(&params[ijparam], &params[ikparam], &params[ijkparam], rsq1, rsq2, delr1, delr2,
+                  fj, fk, eflag, evdwl);
 
         f[i][0] -= fj[0] + fk[0];
         f[i][1] -= fj[1] + fk[1];
@@ -148,7 +139,7 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
+        if (evflag) ev_tally3(i, j, k, evdwl, 0.0, fj, fk, delr1, delr2);
       }
     }
   }
@@ -161,21 +152,21 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 void PairNb3bHarmonic::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(setflag, np1, np1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
 
-  map = new int[n+1];
+  map = new int[np1];
 }
 
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
 
-void PairNb3bHarmonic::settings(int narg, char **/*arg*/)
+void PairNb3bHarmonic::settings(int narg, char ** /*arg*/)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR, "Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -184,72 +175,15 @@ void PairNb3bHarmonic::settings(int narg, char **/*arg*/)
 
 void PairNb3bHarmonic::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg - 3, arg + 3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   setup_params();
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
-
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
@@ -257,16 +191,13 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
 
 void PairNb3bHarmonic::init_style()
 {
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style nb3b/harmonic requires atom IDs");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style nb3b/harmonic requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style nb3b/harmonic requires newton pair on");
+    error->all(FLERR, "Pair style nb3b/harmonic requires newton pair on");
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -275,7 +206,7 @@ void PairNb3bHarmonic::init_style()
 
 double PairNb3bHarmonic::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
 
   return cutmax;
 }
@@ -284,146 +215,115 @@ double PairNb3bHarmonic::init_one(int i, int j)
 
 void PairNb3bHarmonic::read_file(char *file)
 {
-  int params_per_line = 6;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp = NULL;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open nb3b/harmonic potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "nb3b/harmonic", unit_convert_flag);
+    char *line;
 
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-  // store params if all 3 element tags are in element list
+    // transparently convert units for supported conversions
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-    // strip comment, skip line if blank
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement, kelement;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    // concatenate additional lines until have params_per_line words
+        // load up parameter settings and error check their values
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA * sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].k_theta = values.next_double();
+        params[nparams].theta0 = values.next_double();
+        params[nparams].cutoff = values.next_double();
+
+        if (unit_convert) params[nparams].k_theta *= conversion_factor;
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      if (params[nparams].k_theta < 0.0 || params[nparams].theta0 < 0.0 ||
+          params[nparams].cutoff < 0.0)
+        error->one(FLERR, "Illegal nb3b/harmonic parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in nb3b/harmonic potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next entry in file
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].k_theta = atof(words[3]);
-    params[nparams].theta0 = atof(words[4]);
-    params[nparams].cutoff = atof(words[5]);
-
-    if (params[nparams].k_theta < 0.0 || params[nparams].theta0 < 0.0 ||
-        params[nparams].cutoff < 0.0)
-      error->all(FLERR,"Illegal nb3b/harmonic parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairNb3bHarmonic::setup_params()
 {
-  int i,j,k,m,n;
+  int i, j, k, m, n;
   double rtmp;
 
-  // set elem2param for all triplet combinations
+  // set elem3param for all triplet combinations
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->destroy(elem3param);
+  memory->create(elem3param, nelements, nelements, nelements, "pair:elem3param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
       for (k = 0; k < nelements; k++) {
         n = -1;
         for (m = 0; m < nparams; m++) {
-          if (i == params[m].ielement && j == params[m].jelement &&
-              k == params[m].kelement) {
-            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+          if (i == params[m].ielement && j == params[m].jelement && k == params[m].kelement) {
+            if (n >= 0)
+              error->all(FLERR, "Potential file has a duplicate entry for: {} {} {}", elements[i],
+                         elements[j], elements[k]);
             n = m;
           }
         }
-        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+        if (n < 0)
+          error->all(FLERR, "Potential file is missing an entry for: {} {} {}", elements[i],
+                     elements[j], elements[k]);
+        elem3param[i][j][k] = n;
       }
 
   // compute parameter values derived from inputs
@@ -437,8 +337,7 @@ void PairNb3bHarmonic::setup_params()
     params[m].cut = params[m].cutoff;
     params[m].cutsq = params[m].cut * params[m].cut;
 
-    params[m].theta0 = params[m].theta0 / 180.0 * PI;
-
+    params[m].theta0 = params[m].theta0 / 180.0 * MY_PI;
   }
 
   // set cutmax to max of all params
@@ -452,48 +351,44 @@ void PairNb3bHarmonic::setup_params()
 
 /* ---------------------------------------------------------------------- */
 
-
-void PairNb3bHarmonic::threebody(Param * /*paramij*/, Param * /*paramik*/,
-                                 Param *paramijk,
-                                 double rsq1, double rsq2,
-                                 double *delr1, double *delr2,
-                                 double *fj, double *fk, int eflag, double &eng)
+void PairNb3bHarmonic::threebody(Param * /*paramij*/, Param * /*paramik*/, Param *paramijk,
+                                 double rsq1, double rsq2, double *delr1, double *delr2, double *fj,
+                                 double *fk, int eflag, double &eng)
 {
-  double dtheta,tk;
-  double r1,r2,c,s,a,a11,a12,a22;
+  double dtheta, tk;
+  double r1, r2, c, s, a, a11, a12, a22;
 
   // angle (cos and sin)
 
   r1 = sqrt(rsq1);
   r2 = sqrt(rsq2);
 
-  c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
-  c /= r1*r2;
+  c = delr1[0] * delr2[0] + delr1[1] * delr2[1] + delr1[2] * delr2[2];
+  c /= r1 * r2;
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  s = sqrt(1.0 - c*c);
+  s = sqrt(1.0 - c * c);
   if (s < SMALL) s = SMALL;
-  s = 1.0/s;
+  s = 1.0 / s;
 
   // force & energy
 
   dtheta = acos(c) - paramijk->theta0;
   tk = paramijk->k_theta * dtheta;
 
-  if (eflag) eng = tk*dtheta;
+  if (eflag) eng = tk * dtheta;
 
   a = -2.0 * tk * s;
-  a11 = a*c / rsq1;
-  a12 = -a / (r1*r2);
-  a22 = a*c / rsq2;
+  a11 = a * c / rsq1;
+  a12 = -a / (r1 * r2);
+  a22 = a * c / rsq2;
 
-  fj[0] = a11*delr1[0] + a12*delr2[0];
-  fj[1] = a11*delr1[1] + a12*delr2[1];
-  fj[2] = a11*delr1[2] + a12*delr2[2];
-  fk[0] = a22*delr2[0] + a12*delr1[0];
-  fk[1] = a22*delr2[1] + a12*delr1[1];
-  fk[2] = a22*delr2[2] + a12*delr1[2];
+  fj[0] = a11 * delr1[0] + a12 * delr2[0];
+  fj[1] = a11 * delr1[1] + a12 * delr2[1];
+  fj[2] = a11 * delr1[2] + a12 * delr2[2];
+  fk[0] = a22 * delr2[0] + a12 * delr1[0];
+  fk[1] = a22 * delr2[1] + a12 * delr1[1];
+  fk[2] = a22 * delr2[2] + a12 * delr1[2];
 }
-

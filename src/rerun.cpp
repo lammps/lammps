@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,25 +12,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "rerun.h"
-#include "read_dump.h"
+
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "finish.h"
 #include "integrate.h"
 #include "modify.h"
 #include "output.h"
-#include "finish.h"
+#include "read_dump.h"
 #include "timer.h"
-#include "error.h"
-#include "force.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Rerun::Rerun(LAMMPS *lmp) : Pointers(lmp) {}
+Rerun::Rerun(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,6 +52,7 @@ void Rerun::command(int narg, char **arg)
     if (strcmp(arg[iarg],"start") == 0) break;
     if (strcmp(arg[iarg],"stop") == 0) break;
     if (strcmp(arg[iarg],"dump") == 0) break;
+    if (strcmp(arg[iarg],"post") == 0) break;
     iarg++;
   }
   int nfile = iarg;
@@ -65,41 +67,46 @@ void Rerun::command(int narg, char **arg)
   int nskip = 1;
   int startflag = 0;
   int stopflag = 0;
+  int postflag = 0;
   bigint start = -1;
   bigint stop = -1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      first = force->bnumeric(FLERR,arg[iarg+1]);
+      first = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (first < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"last") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      last = force->bnumeric(FLERR,arg[iarg+1]);
+      last = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (last < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"skip") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      nskip = force->inumeric(FLERR,arg[iarg+1]);
+      nskip = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nskip <= 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       startflag = 1;
-      start = force->bnumeric(FLERR,arg[iarg+1]);
+      start = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (start < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       stopflag = 1;
-      stop = force->bnumeric(FLERR,arg[iarg+1]);
+      stop = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (stop < 0) error->all(FLERR,"Illegal rerun command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"post") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      postflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {
       break;
@@ -115,14 +122,14 @@ void Rerun::command(int narg, char **arg)
   // pass list of filenames to ReadDump
   // along with post-"dump" args and post-"format" args
 
-  ReadDump *rd = new ReadDump(lmp);
+  auto rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
   if (nremain)
     nremain = rd->fields_and_keywords(nremain,&arg[narg-nremain]);
-  else nremain = rd->fields_and_keywords(0,NULL);
+  else nremain = rd->fields_and_keywords(0,nullptr);
   if (nremain) rd->setup_reader(nremain,&arg[narg-nremain]);
-  else rd->setup_reader(0,NULL);
+  else rd->setup_reader(0,nullptr);
 
   // perform the pseudo run
   // invoke lmp->init() only once
@@ -149,15 +156,16 @@ void Rerun::command(int narg, char **arg)
   if (ntimestep < 0)
     error->all(FLERR,"Rerun dump file does not contain requested snapshot");
 
-  while (1) {
+  while (true) {
     ndump++;
     rd->header(firstflag);
-    update->reset_timestep(ntimestep);
+    update->reset_timestep(ntimestep, false);
     rd->atoms();
 
     modify->init();
     update->integrate->setup_minimal(1);
     modify->end_of_step();
+    output->next_dump_any = ntimestep;
     if (firstflag) output->setup();
     else if (output->next) output->write(ntimestep);
 
@@ -182,7 +190,7 @@ void Rerun::command(int narg, char **arg)
   update->nsteps = ndump;
 
   Finish finish(lmp);
-  finish.end(1);
+  finish.end(postflag);
 
   update->whichflag = 0;
   update->firststep = update->laststep = 0;

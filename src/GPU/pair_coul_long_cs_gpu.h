@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/long/cs/gpu,PairCoulLongCSGPU)
-
+// clang-format off
+PairStyle(coul/long/cs/gpu,PairCoulLongCSGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_LONG_CS_GPU_H
@@ -27,41 +27,20 @@ namespace LAMMPS_NS {
 class PairCoulLongCSGPU : public PairCoulLongCS {
  public:
   PairCoulLongCSGPU(LAMMPS *lmp);
-  ~PairCoulLongCSGPU();
+  ~PairCoulLongCSGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  void reinit();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  void reinit() override;
+  double memory_usage() override;
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style coul/long/cs/gpu requires atom attribute q
-
-The atom style defined does not have these attributes.
-
-E: Cannot use newton pair with coul/long/cs/gpu pair style
-
-Self-explanatory.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

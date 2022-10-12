@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(gyration/chunk,ComputeGyrationChunk)
-
+// clang-format off
+ComputeStyle(gyration/chunk,ComputeGyrationChunk);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GYRATION_CHUNK_H
@@ -27,54 +27,36 @@ namespace LAMMPS_NS {
 class ComputeGyrationChunk : public Compute {
  public:
   ComputeGyrationChunk(class LAMMPS *, int, char **);
-  ~ComputeGyrationChunk();
-  void init();
-  void compute_vector();
-  void compute_array();
+  ~ComputeGyrationChunk() override;
+  void init() override;
+  void compute_vector() override;
+  void compute_array() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
-  int nchunk,maxchunk;
+  int nchunk, maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
 
   int tensor;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
-  double *rg,*rgall;
-  double **rgt,**rgtall;
+  double *massproc, *masstotal;
+  double **com, **comall;
+  double *rg, *rgall;
+  double **rgt, **rgtall;
 
   void com_chunk();
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Chunk/atom compute does not exist for compute gyration/chunk
-
-Self-explanatory.
-
-E: Compute gyration/chunk does not use chunk/atom compute
-
-The style of the specified compute is not chunk/atom.
-
-*/

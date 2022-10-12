@@ -11,18 +11,18 @@
 //
 //    begin                :
 //    email                : nguyentd@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> q_tex;
-texture<float4> mu_tex;
+_texture( pos_tex,float4);
+_texture( q_tex,float);
+_texture( mu_tex,float4);
 #else
-texture<int4,1> pos_tex;
-texture<int2> q_tex;
-texture<int4,1> mu_tex;
+_texture_2d( pos_tex,int4);
+_texture( q_tex,int2);
+_texture_2d( mu_tex,int4);
 #endif
 
 #else
@@ -31,105 +31,177 @@ texture<int4,1> mu_tex;
 #define mu_tex mu_
 #endif
 
-#if (ARCH < 300)
+#if (SHUFFLE_AVAIL == 0)
 
-#define store_answers_tq(f, tor, energy, ecoul, virial, ii, inum, tid,      \
-                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+#define store_answers_tq(f, tor, energy, e_coul, virial, ii, inum, tid,     \
+                         t_per_atom, offset, eflag, vflag, ans, engv)       \
   if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[8][BLOCK_PAIR];                                  \
-    red_acc[0][tid]=f.x;                                                    \
-    red_acc[1][tid]=f.y;                                                    \
-    red_acc[2][tid]=f.z;                                                    \
-    red_acc[3][tid]=tor.x;                                                  \
-    red_acc[4][tid]=tor.y;                                                  \
-    red_acc[5][tid]=tor.z;                                                  \
-    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-      if (offset < s) {                                                     \
-        for (int r=0; r<6; r++)                                             \
-          red_acc[r][tid] += red_acc[r][tid+s];                             \
+    simd_reduce_add6(t_per_atom, red_acc, offset, tid, f.x, f.y, f.z,       \
+                     tor.x, tor.y, tor.z);                                  \
+    if (EVFLAG && (vflag==2 || eflag==2)) {                                 \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_add2(t_per_atom, red_acc, offset, tid, energy, e_coul); \
       }                                                                     \
-    }                                                                       \
-    f.x=red_acc[0][tid];                                                    \
-    f.y=red_acc[1][tid];                                                    \
-    f.z=red_acc[2][tid];                                                    \
-    tor.x=red_acc[3][tid];                                                  \
-    tor.y=red_acc[4][tid];                                                  \
-    tor.z=red_acc[5][tid];                                                  \
-    if (eflag>0 || vflag>0) {                                               \
-      for (int r=0; r<6; r++)                                               \
-        red_acc[r][tid]=virial[r];                                          \
-      red_acc[6][tid]=energy;                                               \
-      red_acc[7][tid]=ecoul;                                                \
-      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-        if (offset < s) {                                                   \
-          for (int r=0; r<8; r++)                                           \
-            red_acc[r][tid] += red_acc[r][tid+s];                           \
-        }                                                                   \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_arr(6, t_per_atom, red_acc, offset, tid, virial);       \
       }                                                                     \
-      for (int r=0; r<6; r++)                                               \
-        virial[r]=red_acc[r][tid];                                          \
-      energy=red_acc[6][tid];                                               \
-      ecoul=red_acc[7][tid];                                                \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
-    int ei=ii;                                                              \
-    if (eflag>0) {                                                          \
-      engv[ei]=energy*(acctyp)0.5;                                             \
-      ei+=inum;                                                           \
-      engv[ei]=e_coul*(acctyp)0.5;                                             \
-      ei+=inum;                                                           \
-    }                                                                       \
-    if (vflag>0) {                                                          \
-      for (int i=0; i<6; i++) {                                             \
-        engv[ei]=virial[i]*(acctyp)0.5;                                        \
-        ei+=inum;                                                         \
-      }                                                                     \
-    }                                                                       \
+  if (offset==0 && ii<inum) {                                               \
     ans[ii]=f;                                                              \
     ans[ii+inum]=tor;                                                       \
+  }                                                                         \
+  if (EVFLAG && (eflag || vflag)) {                                         \
+    int ei=BLOCK_ID_X;                                                      \
+    if (eflag!=2 && vflag!=2) {                                             \
+      const int ev_stride=NUM_BLOCKS_X;                                     \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_add2(simd_size(), red_acc, tid, energy, e_coul);       \
+        if (vflag) __syncthreads();                                         \
+        if (tid==0) {                                                       \
+          engv[ei]=energy*(acctyp)0.5;                                      \
+          ei+=ev_stride;                                                    \
+          engv[ei]=e_coul*(acctyp)0.5;                                      \
+          ei+=ev_stride;                                                    \
+        }                                                                   \
+      }                                                                     \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_arr(6, simd_size(), red_acc, tid, virial);             \
+        if (tid==0) {                                                       \
+          for (int r=0; r<6; r++) {                                         \
+            engv[ei]=virial[r]*(acctyp)0.5;                                 \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (EVFLAG && eflag) {                                                \
+        engv[ei]=energy*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+        engv[ei]=e_coul*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+      }                                                                     \
+      if (EVFLAG && vflag) {                                                \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]=virial[i]*(acctyp)0.5;                                   \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
+  }
+
+#else
+
+#if (EVFLAG == 1)
+
+#define store_answers_tq(f, tor, energy, e_coul, virial, ii, inum, tid,     \
+                         t_per_atom, offset, eflag, vflag, ans, engv)       \
+  if (t_per_atom>1) {                                                       \
+    simd_reduce_add6(t_per_atom, f.x, f.y, f.z, tor.x, tor.y, tor.z);       \
+    if (vflag==2 || eflag==2) {                                             \
+      if (eflag)                                                            \
+        simd_reduce_add2(t_per_atom,energy,e_coul);                         \
+      if (vflag)                                                            \
+        simd_reduce_arr(6, t_per_atom,virial);                              \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    ans[ii]=f;                                                              \
+    ans[ii+inum]=tor;                                                       \
+  }                                                                         \
+  if (eflag || vflag) {                                                     \
+    if (eflag!=2 && vflag!=2) {                                             \
+      const int vwidth = simd_size();                                       \
+      const int voffset = tid & (simd_size() - 1);                          \
+      const int bnum = tid/simd_size();                                     \
+      int active_subgs = BLOCK_SIZE_X/simd_size();                          \
+      for ( ; active_subgs > 1; active_subgs /= vwidth) {                   \
+        if (active_subgs < BLOCK_SIZE_X/simd_size()) __syncthreads();       \
+        if (bnum < active_subgs) {                                          \
+          if (eflag) {                                                      \
+            simd_reduce_add2(vwidth, energy, e_coul);                       \
+            if (voffset==0) {                                               \
+              red_acc[6][bnum] = energy;                                    \
+              red_acc[7][bnum] = e_coul;                                    \
+            }                                                               \
+          }                                                                 \
+          if (vflag) {                                                      \
+            simd_reduce_arr(6, vwidth, virial);                             \
+            if (voffset==0)                                                 \
+              for (int r=0; r<6; r++) red_acc[r][bnum]=virial[r];           \
+          }                                                                 \
+        }                                                                   \
+                                                                            \
+        __syncthreads();                                                    \
+        if (tid < active_subgs) {                                           \
+          if (eflag) {                                                      \
+            energy = red_acc[6][tid];                                       \
+            e_coul = red_acc[7][tid];                                       \
+          }                                                                 \
+          if (vflag)                                                        \
+            for (int r = 0; r < 6; r++) virial[r] = red_acc[r][tid];        \
+        } else {                                                            \
+          if (eflag) energy = e_coul = (acctyp)0;                           \
+          if (vflag) for (int r = 0; r < 6; r++) virial[r] = (acctyp)0;     \
+        }                                                                   \
+      }                                                                     \
+                                                                            \
+      if (bnum == 0) {                                                      \
+        int ei=BLOCK_ID_X;                                                  \
+        const int ev_stride=NUM_BLOCKS_X;                                   \
+        if (eflag) {                                                        \
+          simd_reduce_add2(vwidth, energy, e_coul);                         \
+          if (tid==0) {                                                     \
+            engv[ei]=energy*(acctyp)0.5;                                    \
+            ei+=ev_stride;                                                  \
+            engv[ei]=e_coul*(acctyp)0.5;                                    \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+        if (vflag) {                                                        \
+          simd_reduce_arr(6, vwidth, virial);                               \
+          if (tid==0) {                                                     \
+            for (int r=0; r<6; r++) {                                       \
+              engv[ei]=virial[r]*(acctyp)0.5;                               \
+              ei+=ev_stride;                                                \
+            }                                                               \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (eflag) {                                                          \
+        engv[ei]=energy*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+        engv[ei]=e_coul*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+      }                                                                     \
+      if (vflag) {                                                          \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]=virial[i]*(acctyp)0.5;                                   \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
   }
 
 #else
 
 #define store_answers_tq(f, tor, energy, e_coul, virial, ii, inum, tid,     \
                         t_per_atom, offset, eflag, vflag, ans, engv)        \
-  if (t_per_atom>1) {                                                       \
-    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-        f.x += shfl_xor(f.x, s, t_per_atom);                                \
-        f.y += shfl_xor(f.y, s, t_per_atom);                                \
-        f.z += shfl_xor(f.z, s, t_per_atom);                                \
-        tor.x += shfl_xor(tor.x, s, t_per_atom);                            \
-        tor.y += shfl_xor(tor.y, s, t_per_atom);                            \
-        tor.z += shfl_xor(tor.z, s, t_per_atom);                            \
-        energy += shfl_xor(energy, s, t_per_atom);                          \
-        e_coul += shfl_xor(e_coul, s, t_per_atom);                          \
-    }                                                                       \
-    if (vflag>0) {                                                          \
-      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-          for (int r=0; r<6; r++)                                           \
-            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
-      }                                                                     \
-    }                                                                       \
-  }                                                                         \
-  if (offset==0) {                                                          \
-    int ei=ii;                                                              \
-    if (eflag>0) {                                                          \
-      engv[ei]=energy*(acctyp)0.5;                                             \
-      ei+=inum;                                                           \
-      engv[ei]=e_coul*(acctyp)0.5;                                             \
-      ei+=inum;                                                           \
-    }                                                                       \
-    if (vflag>0) {                                                          \
-      for (int i=0; i<6; i++) {                                             \
-        engv[ei]=virial[i]*(acctyp)0.5;                                        \
-        ei+=inum;                                                         \
-      }                                                                     \
-    }                                                                       \
+  if (t_per_atom>1)                                                         \
+    simd_reduce_add6(t_per_atom, f.x, f.y, f.z, tor.x, tor.y, tor.z);       \
+  if (offset==0 && ii<inum) {                                               \
     ans[ii]=f;                                                              \
     ans[ii+inum]=tor;                                                       \
   }
 
+#endif
 #endif
 
 #define MY_PIS (acctyp)1.77245385090551602729
@@ -154,6 +226,9 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
   sp_lj[0]=sp_lj_in[0];
   sp_lj[1]=sp_lj_in[1];
   sp_lj[2]=sp_lj_in[2];
@@ -163,17 +238,15 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
   sp_lj[6]=sp_lj_in[6];
   sp_lj[7]=sp_lj_in[7];
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
-  acctyp4 f;
+  acctyp4 f, tor;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp4 tor;
-  tor.x=(acctyp)0;
-  tor.y=(acctyp)0;
-  tor.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   numtyp pre1 = numtyp(2.0) * g_ewald / MY_PIS;
   numtyp pre2 = numtyp(4.0) * (g_ewald*g_ewald*g_ewald) / MY_PIS;
@@ -182,7 +255,6 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -352,7 +424,7 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
         tor.y+=qqrd2e*ticoul.y;
         tor.z+=qqrd2e*ticoul.z;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           acctyp e = (acctyp)0.0;
           if (rsq < cut_coulsq && factor_coul > (numtyp)0.0) {
             e = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
@@ -368,7 +440,7 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*force.x;
           virial[1] += dely*force.y;
           virial[2] += delz*force.z;
@@ -379,9 +451,9 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_tq(f,tor,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_tq(f,tor,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,
+                   eflag,vflag,ans,engv);
 }
 
 __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
@@ -406,26 +478,27 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp cutsq[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
   if (tid<8)
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
     cutsq[tid]=_cutsq[tid];
-    if (eflag>0)
+    if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
-  acctyp4 f;
+  acctyp4 f, tor;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp4 tor;
-  tor.x=(acctyp)0;
-  tor.y=(acctyp)0;
-  tor.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
@@ -436,7 +509,6 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -606,7 +678,7 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
         tor.y+=qqrd2e*ticoul.y;
         tor.z+=qqrd2e*ticoul.z;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           acctyp e = (acctyp)0.0;
           if (rsq < cut_coulsq && factor_coul > (numtyp)0.0) {
             e = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
@@ -622,7 +694,7 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*force.x;
           virial[1] += dely*force.y;
           virial[2] += delz*force.z;
@@ -633,8 +705,7 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_tq(f,tor,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_tq(f,tor,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,
+                   eflag,vflag,ans,engv);
 }
-

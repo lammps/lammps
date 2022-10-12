@@ -10,5 +10,9 @@ alternative for compressed file I/O on systems where using a pipe can
 cause problems, e.g. when using RDMA communication with pinned memory
 like clusters with Infiniband or Myrinet.
 
+Update 08/2020: Added variants that use the Zstd compression library instead
+of zlib. To enable, set -DLAMMPS_ZSTD. These provide a wider range of
+compression levels. See http://facebook.github.io/zstd/ for more details.
+
 Currently a few selected dump styles are supported for writing via
 this packaging.

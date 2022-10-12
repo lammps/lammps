@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 #define LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 
@@ -53,10 +54,10 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typedef EV_FLOAT value_type;
 
   PairDPDfdtEnergyKokkos(class LAMMPS *);
-  virtual ~PairDPDfdtEnergyKokkos();
-  virtual void compute(int, int);
-  void init_style();
-  double init_one(int, int);
+  ~PairDPDfdtEnergyKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairDPDfdtEnergyZero, const int&) const;
@@ -88,9 +89,9 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 
   struct params_dpd {
     KOKKOS_INLINE_FUNCTION
-    params_dpd(){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
+    params_dpd() {cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     KOKKOS_INLINE_FUNCTION
-    params_dpd(int i){cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
+    params_dpd(int /*i*/) {cut=0;a0=0;sigma=0;kappa=0;alpha=0;};
     F_FLOAT cut,a0,sigma,kappa,alpha;
   };
 
@@ -117,7 +118,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   double boltz,ftm2v;
   double special_lj[4];
 
-  virtual void allocate();
+  void allocate() override;
 
   Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_dpd**,
@@ -154,29 +155,3 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dpd/fdt/energy requires ghost atoms store velocity
-
-Use the communicate vel yes command to enable this.
-
-E: Pair dpd/fdt/energy requires newton pair on
-
-Self-explanatory.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

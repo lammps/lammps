@@ -1,0 +1,17 @@
+# DATE: 2014-09-05 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014) 
+
+# LAMMPS SNAP parameters for Ta_Cand06A
+
+# required
+rcutfac 4.1
+
+nmax 3
+lmax 2
+alpha 2.0
+
+nelems 2
+elems Mo Ni
+radelems 0.5 0.5
+welems 42 28
+
+

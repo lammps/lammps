@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(class2,ImproperClass2)
-
+// clang-format off
+ImproperStyle(class2,ImproperClass2);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_CLASS2_H
 #define LMP_IMPROPER_CLASS2_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {
@@ -28,17 +27,17 @@ namespace LAMMPS_NS {
 class ImproperClass2 : public Improper {
  public:
   ImproperClass2(class LAMMPS *);
-  virtual ~ImproperClass2();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperClass2() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
-  double *k0,*chi0;
-  double *aa_k1,*aa_k2,*aa_k3,*aa_theta0_1,*aa_theta0_2,*aa_theta0_3;
-  int *setflag_i,*setflag_aa;
+  double *k0, *chi0;
+  double *aa_k1, *aa_k2, *aa_k3, *aa_theta0_1, *aa_theta0_2, *aa_theta0_3;
+  int *setflag_i, *setflag_aa;
 
   void allocate();
   void angleangle(int, int);
@@ -46,20 +45,7 @@ class ImproperClass2 : public Improper {
   double dot(double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Improper problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for improper coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

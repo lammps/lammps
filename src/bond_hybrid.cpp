@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,17 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cctype>
 #include "bond_hybrid.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -34,6 +34,9 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
   writedata = 0;
   nstyles = 0;
   has_quartic = -1;
+  nbondlist = nullptr;
+  maxbond = nullptr;
+  bondlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -42,19 +45,20 @@ BondHybrid::~BondHybrid()
 {
   if (nstyles) {
     for (int i = 0; i < nstyles; i++) delete styles[i];
-    delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
-    delete [] keywords;
+    delete[] styles;
+    for (int i = 0; i < nstyles; i++) delete[] keywords[i];
+    delete[] keywords;
   }
+
+  delete[] svector;
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(map);
-    delete [] nbondlist;
-    delete [] maxbond;
-    for (int i = 0; i < nstyles; i++)
-      memory->destroy(bondlist[i]);
-    delete [] bondlist;
+    delete[] nbondlist;
+    delete[] maxbond;
+    for (int i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
+    delete[] bondlist;
   }
 }
 
@@ -62,7 +66,7 @@ BondHybrid::~BondHybrid()
 
 void BondHybrid::compute(int eflag, int vflag)
 {
-  int i,j,m,n;
+  int i, j, m, n;
 
   // save ptrs to original bondlist
 
@@ -84,7 +88,7 @@ void BondHybrid::compute(int eflag, int vflag)
       if (nbondlist[m] > maxbond[m]) {
         memory->destroy(bondlist[m]);
         maxbond[m] = nbondlist[m] + EXTRA;
-        memory->create(bondlist[m],maxbond[m],3,"bond_hybrid:bondlist");
+        memory->create(bondlist[m], maxbond[m], 3, "bond_hybrid:bondlist");
       }
       nbondlist[m] = 0;
     }
@@ -103,13 +107,23 @@ void BondHybrid::compute(int eflag, int vflag)
   // set neighbor->bondlist to sub-style bondlist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
+
+  // need to clear per-thread storage once here, when using multiple threads
+  // with thread-enabled substyles to avoid uninitlialized data access.
+
+  const int nthreads = comm->nthreads;
+  if (nthreads > 1) {
+    const bigint nall = atom->nlocal + atom->nghost;
+    if (eflag_atom) memset(&eatom[0], 0, nall * nthreads * sizeof(double));
+    if (vflag_atom) memset(&vatom[0][0], 0, 6 * nall * nthreads * sizeof(double));
+  }
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nbondlist = nbondlist[m];
     neighbor->bondlist = bondlist[m];
 
-    styles[m]->compute(eflag,vflag);
+    styles[m]->compute(eflag, vflag);
 
     if (eflag_global) energy += styles[m]->energy;
     if (vflag_global)
@@ -125,8 +139,7 @@ void BondHybrid::compute(int eflag, int vflag)
       if (force->newton_bond) n += atom->nghost;
       double **vatom_substyle = styles[m]->vatom;
       for (i = 0; i < n; i++)
-        for (j = 0; j < 6; j++)
-          vatom[i][j] += vatom_substyle[i][j];
+        for (j = 0; j < 6; j++) vatom[i][j] += vatom_substyle[i][j];
     }
   }
 
@@ -143,15 +156,15 @@ void BondHybrid::allocate()
   allocated = 1;
   int n = atom->nbondtypes;
 
-  memory->create(map,n+1,"bond:map");
-  memory->create(setflag,n+1,"bond:setflag");
+  memory->create(map, n + 1, "bond:map");
+  memory->create(setflag, n + 1, "bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   nbondlist = new int[nstyles];
   maxbond = new int[nstyles];
-  bondlist = new int**[nstyles];
+  bondlist = new int **[nstyles];
   for (int m = 0; m < nstyles; m++) maxbond[m] = 0;
-  for (int m = 0; m < nstyles; m++) bondlist[m] = NULL;
+  for (int m = 0; m < nstyles; m++) bondlist[m] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -160,87 +173,115 @@ void BondHybrid::allocate()
 
 void BondHybrid::settings(int narg, char **arg)
 {
-  int i,m,istyle;
+  int i, m;
 
-  if (narg < 1) error->all(FLERR,"Illegal bond_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "bond_style hybrid", error);
 
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (int i = 0; i < nstyles; i++) delete styles[i];
-    delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
-    delete [] keywords;
+    for (i = 0; i < nstyles; i++) delete styles[i];
+    delete[] styles;
+    for (i = 0; i < nstyles; i++) delete[] keywords[i];
+    delete[] keywords;
     has_quartic = -1;
   }
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(map);
-    delete [] nbondlist;
-    delete [] maxbond;
-    for (int i = 0; i < nstyles; i++)
-      memory->destroy(bondlist[i]);
-    delete [] bondlist;
+    delete[] nbondlist;
+    delete[] maxbond;
+    for (i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
+    delete[] bondlist;
   }
   allocated = 0;
 
-  // count sub-styles by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric word
-  // need a better way to skip these exceptions
-
-  nstyles = 0;
-  i = 0;
-  while (i < narg) {
-    if (strcmp(arg[i],"table") == 0) i++;
-    i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
-    nstyles++;
-  }
-
   // allocate list of sub-styles
 
-  styles = new Bond*[nstyles];
-  keywords = new char*[nstyles];
+  styles = new Bond *[narg];
+  keywords = new char *[narg];
 
   // allocate each sub-style and call its settings() with subset of args
   // allocate uses suffix, but don't store suffix version in keywords,
   //   else syntax in coeff() will not match
-  // define subset of args for a sub-style by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric
-  // need a better way to skip these exceptions
 
   int dummy;
   nstyles = 0;
   i = 0;
-
   while (i < narg) {
+    if (strcmp(arg[i], "hybrid") == 0)
+      error->all(FLERR, "Bond style hybrid cannot have hybrid as an argument");
+
+    if (strcmp(arg[i], "none") == 0)
+      error->all(FLERR, "Bond style hybrid cannot have none as an argument");
 
     for (m = 0; m < nstyles; m++)
-      if (strcmp(arg[i],keywords[m]) == 0)
-        error->all(FLERR,"Bond style hybrid cannot use same bond style twice");
-
-    if (strcmp(arg[i],"hybrid") == 0)
-      error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
-
-    if (strcmp(arg[i],"none") == 0)
-      error->all(FLERR,"Bond style hybrid cannot have none as an argument");
+      if (strcmp(arg[i], keywords[m]) == 0)
+        error->all(FLERR, "Bond style hybrid cannot use same bond style twice");
 
     // register index of quartic bond type,
     // so that bond type 0 can be mapped to it
 
-    if (strncmp(arg[i],"quartic",7) == 0)
-      has_quartic = m;
+    if (utils::strmatch(arg[i], "^quartic")) has_quartic = m;
 
-    styles[nstyles] = force->new_bond(arg[i],1,dummy);
-    force->store_style(keywords[nstyles],arg[i],0);
+    styles[nstyles] = force->new_bond(arg[i], 1, dummy);
+    keywords[nstyles] = force->store_style(arg[i], 0);
 
-    istyle = i;
-    if (strcmp(arg[i],"table") == 0) i++;
-    i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
-    styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
+    // determine list of arguments for bond style settings
+    // by looking for the next known bond style name.
+
+    int jarg = i + 1;
+    while ((jarg < narg) && !force->bond_map->count(arg[jarg]) &&
+           !lmp->match_style("bond", arg[jarg]))
+      jarg++;
+
+    styles[nstyles]->settings(jarg - i - 1, &arg[i + 1]);
+    i = jarg;
     nstyles++;
+  }
+
+  // set bond flags from sub-style flags
+
+  flags();
+}
+
+/* ----------------------------------------------------------------------
+   set top-level bond flags from sub-style flags
+------------------------------------------------------------------------- */
+
+void BondHybrid::flags()
+{
+  int m;
+
+  // set comm_forward, comm_reverse, comm_reverse_off to max of any sub-style
+
+  for (m = 0; m < nstyles; m++) {
+    if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
+    if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
+    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,
+                                          styles[m]->comm_reverse_off);
+  }
+
+  init_svector();
+}
+
+/* ----------------------------------------------------------------------
+   initialize Bond::svector array
+------------------------------------------------------------------------- */
+
+void BondHybrid::init_svector()
+{
+  // single_extra = list all sub-style single_extra
+  // allocate svector
+
+  single_extra = 0;
+  for (int m = 0; m < nstyles; m++)
+    single_extra = MAX(single_extra,styles[m]->single_extra);
+
+  if (single_extra) {
+    delete[] svector;
+    svector = new double[single_extra];
   }
 }
 
@@ -252,20 +293,22 @@ void BondHybrid::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
   // 2nd arg = bond sub-style name
   // allow for "none" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
-    if (strcmp(arg[1],keywords[m]) == 0) break;
+    if (strcmp(arg[1], keywords[m]) == 0) break;
 
   int none = 0;
   if (m == nstyles) {
-    if (strcmp(arg[1],"none") == 0) none = 1;
-    else error->all(FLERR,"Bond coeff for hybrid has invalid style");
+    if (strcmp(arg[1], "none") == 0)
+      none = 1;
+    else
+      error->all(FLERR, "Bond coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -275,15 +318,17 @@ void BondHybrid::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st arg
 
-  if (!none) styles[m]->coeff(narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(narg - 1, &arg[1]);
 
   // set setflag and which type maps to which sub-style
   // if sub-style is none: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
     setflag[i] = 1;
-    if (none) map[i] = -1;
-    else map[i] = m;
+    if (none)
+      map[i] = -1;
+    else
+      map[i] = m;
   }
 }
 
@@ -297,8 +342,7 @@ void BondHybrid::init_style()
   // bond style quartic will set broken bonds to bond type 0, so we need
   // to create an entry for it in the bond type to sub-style map
 
-  if (has_quartic >= 0)
-    map[0] = has_quartic;
+  if (has_quartic >= 0) map[0] = has_quartic;
 }
 
 /* ----------------------------------------------------------------------
@@ -307,8 +351,7 @@ void BondHybrid::init_style()
 
 double BondHybrid::equilibrium_distance(int i)
 {
-  if (map[i] < 0)
-    error->one(FLERR,"Invoked bond equil distance on bond style none");
+  if (map[i] < 0) error->one(FLERR, "Invoked bond equil distance on bond style none");
   return styles[map[i]]->equilibrium_distance(i);
 }
 
@@ -318,13 +361,14 @@ double BondHybrid::equilibrium_distance(int i)
 
 void BondHybrid::write_restart(FILE *fp)
 {
-  fwrite(&nstyles,sizeof(int),1,fp);
+  fwrite(&nstyles, sizeof(int), 1, fp);
 
   int n;
   for (int m = 0; m < nstyles; m++) {
     n = strlen(keywords[m]) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(keywords[m],sizeof(char),n,fp);
+    fwrite(&n, sizeof(int), 1, fp);
+    fwrite(keywords[m], sizeof(char), n, fp);
+    styles[m]->write_restart_settings(fp);
   }
 }
 
@@ -335,32 +379,50 @@ void BondHybrid::write_restart(FILE *fp)
 void BondHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) fread(&nstyles,sizeof(int),1,fp);
-  MPI_Bcast(&nstyles,1,MPI_INT,0,world);
-  styles = new Bond*[nstyles];
-  keywords = new char*[nstyles];
+  if (me == 0) utils::sfread(FLERR, &nstyles, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&nstyles, 1, MPI_INT, 0, world);
+  styles = new Bond *[nstyles];
+  keywords = new char *[nstyles];
 
   allocate();
 
-  int n,dummy;
+  int n, dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) fread(&n,sizeof(int),1,fp);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
+    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
     keywords[m] = new char[n];
-    if (me == 0) fread(keywords[m],sizeof(char),n,fp);
-    MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_bond(keywords[m],0,dummy);
+    if (me == 0) utils::sfread(FLERR, keywords[m], sizeof(char), n, fp, nullptr, error);
+    MPI_Bcast(keywords[m], n, MPI_CHAR, 0, world);
+    styles[m] = force->new_bond(keywords[m], 0, dummy);
+    styles[m]->read_restart_settings(fp);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-double BondHybrid::single(int type, double rsq, int i, int j,
-                          double &fforce)
+double BondHybrid::single(int type, double rsq, int i, int j, double &fforce)
 
 {
-  if (map[type] < 0) error->one(FLERR,"Invoked bond single on bond style none");
-  return styles[map[type]]->single(type,rsq,i,j,fforce);
+  if (map[type] < 0) error->one(FLERR, "Invoked bond single on bond style none");
+
+  if (single_extra) copy_svector(type);
+  return styles[map[type]]->single(type, rsq, i, j, fforce);
+}
+
+/* ----------------------------------------------------------------------
+   copy Bond::svector data
+------------------------------------------------------------------------- */
+
+void BondHybrid::copy_svector(int type)
+{
+  memset(svector,0,single_extra*sizeof(double));
+
+  // there is only one style in bond style hybrid for a bond type
+  Bond *this_style = styles[map[type]];
+
+  for (int l = 0; this_style->single_extra; ++l) {
+    svector[l] = this_style->svector[l];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -369,9 +431,9 @@ double BondHybrid::single(int type, double rsq, int i, int j,
 
 double BondHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += maxbond[m]*3 * sizeof(int);
+  double bytes = (double) maxeatom * sizeof(double);
+  bytes += (double) maxvatom * 6 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double) maxbond[m] * 3 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

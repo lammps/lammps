@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(bond/local,ComputeBondLocal)
-
+// clang-format off
+ComputeStyle(bond/local,ComputeBondLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_BOND_LOCAL_H
@@ -27,19 +27,19 @@ namespace LAMMPS_NS {
 class ComputeBondLocal : public Compute {
  public:
   ComputeBondLocal(class LAMMPS *, int, char **);
-  ~ComputeBondLocal();
-  void init();
-  void compute_local();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~ComputeBondLocal() override;
+  void init() override;
+  void compute_local() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
-  int nvalues,nvar,ncount,setflag;
+  int nvalues, nvar, ncount, setflag;
 
-  int singleflag,velflag,ghostvelflag,initflag;
+  int singleflag, velflag, ghostvelflag, initflag;
   int dvar;
-  int *bstyle,*vvar;
+  int *bstyle, *bindex, *vvar;
   char *dstr;
   char **vstr;
 
@@ -51,33 +51,7 @@ class ComputeBondLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute bond/local used when bonds are not allowed
-
-The atom style does not support bonds.
-
-E: Invalid keyword in compute bond/local command
-
-Self-explanatory.
-
-E: No bond style is defined for compute bond/local
-
-Self-explanatory.
-
-E: Sanity check on 3 energy components failed
-
-UNDOCUMENTED
-
-*/

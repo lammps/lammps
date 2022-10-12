@@ -45,7 +45,7 @@ class ImplicitSolveOperator {
   mutable DENS_VEC R_; // condensed current
   double dt_; // timestep
   double alpha_; // implicit/explicit parameter (0 -> explicit, else implicit)
-  double epsilon0_; // small parameter to compute increment 
+  double epsilon0_; // small parameter to compute increment
 };
 
 /**

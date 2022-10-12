@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,23 +17,22 @@
      new options for inter-replica forces, first/last replica treatment
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_neb.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "group.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
 #include "universe.h"
 #include "update.h"
-#include "atom.h"
-#include "domain.h"
-#include "comm.h"
-#include "modify.h"
-#include "compute.h"
-#include "group.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "math_const.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,17 +46,17 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL), xnext(NULL),
-  fnext(NULL), springF(NULL), tangent(NULL), xsend(NULL), xrecv(NULL),
-  fsend(NULL), frecv(NULL), tagsend(NULL), tagrecv(NULL),
-  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL),
-  tagsendall(NULL), tagrecvall(NULL), counts(NULL),
-  displacements(NULL)
+  id_pe(nullptr), pe(nullptr), nlenall(nullptr), xprev(nullptr), xnext(nullptr),
+  fnext(nullptr), springF(nullptr), tangent(nullptr), xsend(nullptr), xrecv(nullptr),
+  fsend(nullptr), frecv(nullptr), tagsend(nullptr), tagrecv(nullptr),
+  xsendall(nullptr), xrecvall(nullptr), fsendall(nullptr), frecvall(nullptr),
+  tagsendall(nullptr), tagrecvall(nullptr), counts(nullptr),
+  displacements(nullptr)
 {
 
   if (narg < 4) error->all(FLERR,"Illegal fix neb command");
 
-  kspring = force->numeric(FLERR,arg[3]);
+  kspring = utils::numeric(FLERR,arg[3],false,lmp);
   if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
 
   // optional params
@@ -85,7 +85,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"perp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
       PerpSpring = true;
-      kspringPerp = force->numeric(FLERR,arg[iarg+1]);
+      kspringPerp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (kspringPerp == 0.0) PerpSpring = false;
       if (kspringPerp < 0.0) error->all(FLERR,"Illegal fix neb command");
       iarg += 2;
@@ -94,22 +94,22 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix neb command");
       if (strcmp(arg[iarg+1],"first") == 0) {
         FreeEndIni = true;
-        kspringIni = force->numeric(FLERR,arg[iarg+2]);
+        kspringIni = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else if (strcmp(arg[iarg+1],"last") == 0) {
         FreeEndFinal = true;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = false;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else if (strcmp(arg[iarg+1],"last/efirst") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = false;
         FreeEndFinalWithRespToEIni = true;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else if (strcmp(arg[iarg+1],"last/efirst/middle") == 0) {
         FreeEndFinal = false;
         FinalAndInterWithRespToEIni = true;
         FreeEndFinalWithRespToEIni = true;
-        kspringFinal = force->numeric(FLERR,arg[iarg+2]);
+        kspringFinal = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       } else error->all(FLERR,"Illegal fix neb command");
 
       iarg += 3;
@@ -135,31 +135,24 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   else procnext = -1;
 
   uworld = universe->uworld;
-  int *iroots = new int[nreplica];
-  MPI_Group uworldgroup,rootgroup;
   if (NEBLongRange) {
-    for (int i=0; i<nreplica; i++)
-      iroots[i] = universe->root_proc[i];
+    int *iroots = new int[nreplica];
+    MPI_Group uworldgroup,rootgroup;
+
+    for (int i=0; i<nreplica; i++) iroots[i] = universe->root_proc[i];
     MPI_Comm_group(uworld, &uworldgroup);
     MPI_Group_incl(uworldgroup, nreplica, iroots, &rootgroup);
     MPI_Comm_create(uworld, rootgroup, &rootworld);
+    if (rootgroup != MPI_GROUP_NULL) MPI_Group_free(&rootgroup);
+    if (uworldgroup != MPI_GROUP_NULL) MPI_Group_free(&uworldgroup);
+    delete [] iroots;
   }
-  delete [] iroots;
 
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all
 
-  int n = strlen(id) + 4;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_pe = utils::strdup(std::string(id)+"_pe");
+  modify->add_compute(std::string(id_pe)+" all pe");
 
   // initialize local storage
 
@@ -245,7 +238,7 @@ void FixNEB::init()
 
   if (atom->nmax > maxlocal) reallocate();
 
-  if (MULTI_PROC && counts == NULL) {
+  if ((cmode == MULTI_PROC) && (counts == nullptr)) {
     memory->create(xsendall,ntotal,3,"neb:xsendall");
     memory->create(xrecvall,ntotal,3,"neb:xrecvall");
     memory->create(fsendall,ntotal,3,"neb:fsendall");
@@ -793,9 +786,9 @@ void FixNEB::inter_replica_comm()
     MPI_Gatherv(fsend[0],3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   } else {
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 xsendall[0],counts,displacements,MPI_DOUBLE,0,world);
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   }
 

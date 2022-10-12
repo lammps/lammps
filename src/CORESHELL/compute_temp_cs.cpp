@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,30 +17,29 @@
                         (hendrik.heenen at mytum.com)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
 #include "compute_temp_cs.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_store.h"
-#include "comm.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
+
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), vint(NULL), id_fix(NULL), fix(NULL)
+  Compute(lmp, narg, arg), vint(nullptr), id_fix(nullptr), fix(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal compute temp/cs command");
 
@@ -69,21 +69,9 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-  id_fix = new char[n];
-  strcpy(id_fix,id);
-  strcat(id_fix,"_COMPUTE_STORE");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_fix;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "0";
-  newarg[5] = (char *) "1";
-  modify->add_fix(6,newarg);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
-  delete [] newarg;
+  id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+  fix = dynamic_cast<FixStorePeratom *>(
+    modify->add_fix(fmt::format("{} {} STORE/PERATOM 0 1", id_fix, group->names[igroup])));
 
   // set fix store values = 0 for now
   // fill them in via setup() once Comm::borders() has been called
@@ -101,9 +89,9 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory
 
-  vector = new double[6];
+  vector = new double[size_vector];
   maxatom = 0;
-  vint = NULL;
+  vint = nullptr;
 
   // set comm size needed by this Compute
 
@@ -118,8 +106,8 @@ ComputeTempCS::~ComputeTempCS()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] vector;
+  delete[] id_fix;
+  delete[] vector;
   memory->destroy(vint);
 }
 
@@ -183,7 +171,7 @@ void ComputeTempCS::setup()
     // reverse comm to acquire unknown partner IDs from ghost atoms
     // only needed if newton_bond = on
 
-    if (force->newton_bond) comm->reverse_comm_compute(this);
+    if (force->newton_bond) comm->reverse_comm(this);
 
     // check that all C/S partners were found
 
@@ -241,7 +229,7 @@ double ComputeTempCS::compute_scalar()
 
   double t = 0.0;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       vthermal[0] = v[i][0] - vint[i][0];
       vthermal[1] = v[i][1] - vint[i][1];
@@ -280,7 +268,7 @@ void ComputeTempCS::compute_vector()
   double t[6];
   for (int i = 0; i < 6; i++) t[i] = 0.0;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];

@@ -66,7 +66,7 @@ class ForceField(dobject):
    """
 
    def __init__(self):
-      """Initialises ForceField."""
+      """Initializes ForceField."""
 
       # ufvx is a list [ u, f, vir, extra ]  which stores the results of the force
       #calculation
@@ -217,7 +217,7 @@ class FFSocket(ForceField):
    """
 
    def __init__(self, pars=None, interface=None):
-      """Initialises FFSocket.
+      """Initializes FFSocket.
 
       Args:
          pars: Optional dictionary, giving the parameters needed by the driver.

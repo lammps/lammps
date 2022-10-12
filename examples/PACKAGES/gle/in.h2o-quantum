@@ -1,0 +1,40 @@
+units           real
+atom_style      full 
+
+pair_style      lj/cut/tip4p/long 1 2 1 1 0.14714951 8
+bond_style      class2
+angle_style     harmonic
+kspace_style    pppm/tip4p 0.0001
+
+read_data       data.h2o-quantum
+
+pair_coeff  * 2  0.0     0.0
+pair_coeff  1 1  0.1852  3.1589022
+
+#q-tip4pf bond parameters
+bond_coeff      1 0.9419 607.19354  -1388.6516 1852.577
+angle_coeff     1 43.93  107.4
+
+timestep        0.5
+
+# mean velocity is higher than target T because of zero point energy
+velocity        all create 800.0 1112 dist gaussian mom yes
+
+thermo          100
+thermo_style    custom step temp pe ke etotal
+
+# some problem
+fix      1 all gle 6 300.0 300.0 31415 qt-300k.A noneq qt-300k.C
+
+#dump           1 all atom 100 h2o-smart.lammpstrj
+
+#dump           2 all image 1000 h2o-smart.*.jpg element element &
+#               zoom 1.4
+#dump_modify    2 pad 5 element O H
+
+#dump           3 all movie 100 movie.mp4 element element &
+#               zoom 1.4
+#dump_modify    3 pad 5 element O H
+
+run             10000
+

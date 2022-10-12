@@ -22,16 +22,16 @@ namespace ATC {
    */
 
   class Kinetostat : public AtomicRegulator {
-  
+
   public:
 
     // constructor
     Kinetostat(ATC_Coupling *atc,
                const std::string & regulatorPrefix = "");
-        
+
     // destructor
     virtual ~Kinetostat(){};
-        
+
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
 
@@ -53,14 +53,14 @@ namespace ATC {
    *  @class  KinetostatShapeFunction
    *  @brief  Base class for implementation of kinetostat algorithms based on FE shape functions
    */
-  
+
   class KinetostatShapeFunction : public RegulatorShapeFunction {
-  
+
   public:
-  
+
     KinetostatShapeFunction(AtomicRegulator *kinetostat,
                             const std::string & regulatorPrefix = "");
-        
+
     virtual ~KinetostatShapeFunction(){};
 
     /** instantiate all needed data */
@@ -95,23 +95,23 @@ namespace ATC {
     DENS_MAT _nodalAtomicLambdaForceOut_; // matrix for output only
 
   private:
-    
+
     // DO NOT define this
     KinetostatShapeFunction();
 
   };
-  
+
   /**
    *  @class  GlcKinetostat
    *  @brief  Base class for implementation of kinetostat algorithms based on Gaussian least constraints (GLC)
    */
-  
+
   class GlcKinetostat : public KinetostatShapeFunction {
-  
+
   public:
-  
+
     GlcKinetostat(AtomicRegulator *kinetostat);
-        
+
     virtual ~GlcKinetostat(){};
 
     /** instantiate all needed data */
@@ -129,38 +129,40 @@ namespace ATC {
                                 double dt=0.);
 
     /** apply any required corrections for localized kinetostats */
-    virtual void apply_localization_correction(const DENS_MAT & source,
-                                               DENS_MAT & nodalField,
-                                               double weight = 1.){};
+    virtual void apply_localization_correction(const DENS_MAT & /* source */,
+                                               DENS_MAT & /* nodalField */,
+                                               double /* weight */){};
+    virtual void apply_localization_correction(const DENS_MAT & /* source */,
+                                               DENS_MAT & /* nodalField */){};
 
     // member data
     /** nodeset corresponding to Hoover coupling */
     std::set<std::pair<int,int> > hooverNodes_;
 
-    
+
     /** pointer to atom positions */
     FundamentalAtomQuantity * atomPositions_;
 
   private:
-    
+
     // DO NOT define this
     GlcKinetostat();
 
   };
-  
+
   /**
    *  @class  DisplacementGlc
    *  @brief  Enforces GLC on atomic position based on FE displacement
    */
-  
+
   class DisplacementGlc : public GlcKinetostat {
-  
+
   public:
-  
+
     DisplacementGlc(AtomicRegulator * kinetostat);
-        
+
     virtual ~DisplacementGlc(){};
-        
+
     /** instantiate all needed data */
     virtual void construct_transfers();
 
@@ -175,9 +177,9 @@ namespace ATC {
 
     /** determine if local shape function matrices are needed */
     virtual bool use_local_shape_functions() const {return (!atomicRegulator_->use_lumped_lambda_solve()) && atomicRegulator_->use_localized_lambda();};
-        
+
   protected:
-        
+
     // methods
     /** set weighting factor for in matrix Nhat^T * weights * Nhat */
     virtual void set_weights();
@@ -202,36 +204,36 @@ namespace ATC {
     DENS_MAN & nodalDisplacements_;
 
   private:
-    
+
     // DO NOT define this
     DisplacementGlc();
-  
+
   };
 
   /**
    *  @class  DisplacementGlcFiltered
    *  @brief  Enforces GLC on time filtered atomic position based on FE displacement
    */
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class DisplacementGlcFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class DisplacementGlcFiltered : public DisplacementGlc {
-  
+
   public:
-  
+
     DisplacementGlcFiltered(AtomicRegulator * kinetostat);
-        
+
     virtual ~DisplacementGlcFiltered(){};
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-        
+
   protected:
-        
+
     // methods
     /** does initial filtering operations before main computation */
     virtual void apply_pre_filtering(double dt);
@@ -245,29 +247,29 @@ namespace ATC {
     DENS_MAN & nodalAtomicDisplacements_;
 
   private:
-    
+
     // DO NOT define this
     DisplacementGlcFiltered();
-  
+
   };
 
   /**
    *  @class  VelocityGlc
    *  @brief  Enforces GLC on atomic velocity based on FE velocity
    */
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class VelocityGlc
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class VelocityGlc : public GlcKinetostat {
-  
+
   public:
-  
+
     VelocityGlc(AtomicRegulator * kinetostat);
-        
+
     virtual ~VelocityGlc(){};
 
     /** instantiate all needed data */
@@ -275,7 +277,7 @@ namespace ATC {
 
     /** pre-run initialization of method data */
     virtual void initialize();
-        
+
     /** applies kinetostat to atoms */
     virtual void apply_mid_predictor(double dt);
 
@@ -284,12 +286,12 @@ namespace ATC {
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-    
+
     /** determine if local shape function matrices are needed */
     virtual bool use_local_shape_functions() const {return (!atomicRegulator_->use_lumped_lambda_solve()) && atomicRegulator_->use_localized_lambda();};
 
   protected:
-  
+
     // methods
     /** set weighting factor for in matrix Nhat^T * weights * Nhat */
     virtual void set_weights();
@@ -319,31 +321,31 @@ namespace ATC {
 
     // DO NOT define this
     VelocityGlc();
-  
+
   };
 
   /**
    *  @class  VelocityGlcFiltered
    *  @brief  Enforces GLC on time filtered atomic velocity based on FE velocity
    */
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class VelocityGlcFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class VelocityGlcFiltered : public VelocityGlc {
-  
+
   public:
-  
+
     VelocityGlcFiltered(AtomicRegulator * kinetostat);
-        
+
     virtual ~VelocityGlcFiltered(){};
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-        
+
   protected:
 
     // methods
@@ -353,7 +355,7 @@ namespace ATC {
     virtual void set_kinetostat_rhs(DENS_MAT & rhs, double dt);
     /** computes the nodal FE force applied by the kinetostat */
     virtual void compute_nodal_lambda_force(double dt);
-  
+
     // data
     /** clone of FE nodal atomic velocity field */
     DENS_MAN & nodalAtomicVelocities_;
@@ -362,7 +364,7 @@ namespace ATC {
 
     // DO NOT define this
     VelocityGlcFiltered();
-        
+
   };
 
   /**
@@ -375,13 +377,13 @@ namespace ATC {
   //  Class StressFlux
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class StressFlux : public GlcKinetostat {
-  
+
   public:
-  
+
     StressFlux(AtomicRegulator * kinetostat);
-        
+
     virtual ~StressFlux();
 
     /** instantiate all needed data */
@@ -406,7 +408,7 @@ namespace ATC {
 
     /** determine if local shape function matrices are needed */
     virtual bool use_local_shape_functions() const {return ((!atomicRegulator_->use_lumped_lambda_solve()) && atomicRegulator_->use_localized_lambda());};
-        
+
   protected:
 
     // data
@@ -457,13 +459,13 @@ namespace ATC {
   //  Class StressFluxGhost
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class StressFluxGhost : public StressFlux {
-  
+
   public:
-  
+
     StressFluxGhost(AtomicRegulator * kinetostat);
-        
+
     virtual ~StressFluxGhost() {};
 
     /** instantiate all needed data */
@@ -471,7 +473,7 @@ namespace ATC {
 
     /** compute boundary flux, requires kinetostat input since it is part of the coupling scheme */
     virtual void compute_boundary_flux(FIELDS & fields);
-        
+
   protected:
 
     // methods
@@ -491,19 +493,19 @@ namespace ATC {
    *  @class  StressFluxFiltered
    *  @brief  Enforces GLC on time filtered atomic forces based on FE stresses or accelerations
    */
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class StressFluxFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class StressFluxFiltered : public StressFlux {
-  
+
   public:
-  
+
     StressFluxFiltered(AtomicRegulator * kinetostat);
-        
+
     virtual ~StressFluxFiltered(){};
 
     /** adds in finite element rhs contributions */
@@ -511,7 +513,7 @@ namespace ATC {
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-        
+
   protected:
 
     // data
@@ -520,7 +522,7 @@ namespace ATC {
     // methods
     /** sets up appropriate rhs for kinetostat equations */
     virtual void set_kinetostat_rhs(DENS_MAT & rhs, double dt);
-    
+
     /** apply forces to atoms */
     virtual void apply_to_atoms(PerAtomQuantity<double> * quantity,
                                 const DENS_MAT & lambdaAtom,
@@ -538,14 +540,14 @@ namespace ATC {
    *  @brief  Base class for implementation of kinetostat algorithms based on Gaussian least constraints (GLC)
    *          when fractional step time integration is used
    */
-  
+
   class KinetostatGlcFs : public KinetostatShapeFunction {
-  
+
   public:
-  
+
     KinetostatGlcFs(AtomicRegulator *kinetostat,
                     const std::string & regulatorPrefix = "");
-        
+
     virtual ~KinetostatGlcFs(){};
 
     /** instantiate all needed data */
@@ -562,7 +564,7 @@ namespace ATC {
 
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
-    
+
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
 
@@ -624,7 +626,7 @@ namespace ATC {
     DENS_MAT _velocityDelta_; // change in velocity when lambda force is applied
 
   private:
-    
+
     // DO NOT define this
     KinetostatGlcFs();
 
@@ -635,14 +637,14 @@ namespace ATC {
    *  @brief  Implementation of kinetostat algorithms based on Gaussian least constraints (GLC)
    *          which apply stresses when fractional step time integration is used
    */
-  
+
   class KinetostatFlux : public KinetostatGlcFs {
-  
+
   public:
-  
+
     KinetostatFlux(AtomicRegulator *kinetostat,
                    const std::string & regulatorPrefix = "");
-        
+
     virtual ~KinetostatFlux(){};
 
     /** instantiate all needed data */
@@ -678,7 +680,7 @@ namespace ATC {
     // member data
     /** reference to ATC sources coming from prescribed data, AtC coupling, and extrinsic coupling */
     DENS_MAN & momentumSource_;
-    
+
     /** force from ghost atoms restricted to nodes */
     DENS_MAN * nodalGhostForce_;
 
@@ -686,7 +688,7 @@ namespace ATC {
     DENS_MAN * nodalGhostForceFiltered_;
 
   private:
-    
+
     // DO NOT define this
     KinetostatFlux();
 
@@ -696,14 +698,14 @@ namespace ATC {
    *  @class  KinetostatFluxGhost
    *  @brief  Implements ghost-atom boundary flux and other loads for fractional-step based kinetostats
    */
-  
+
   class KinetostatFluxGhost : public KinetostatFlux {
-  
+
   public:
-  
+
     KinetostatFluxGhost(AtomicRegulator *kinetostat,
                         const std::string & regulatorPrefix = "");
-        
+
     virtual ~KinetostatFluxGhost(){};
 
     /** instantiate all needed data */
@@ -724,7 +726,7 @@ namespace ATC {
                                  double dt);
 
   private:
-    
+
     // DO NOT define this
     KinetostatFluxGhost();
 
@@ -735,14 +737,14 @@ namespace ATC {
    *  @brief  Implementation of kinetostat algorithms based on Gaussian least constraints (GLC)
    *          which perform Hoover coupling when fractional step time integration is used
    */
-  
+
   class KinetostatFixed : public KinetostatGlcFs {
-  
+
   public:
-  
+
     KinetostatFixed(AtomicRegulator *kinetostat,
                     const std::string & regulatorPrefix = "");
-        
+
     virtual ~KinetostatFixed(){};
 
     /** instantiate all needed data */
@@ -761,7 +763,7 @@ namespace ATC {
     virtual void apply_post_corrector(double dt);
 
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
-    virtual void compute_boundary_flux(FIELDS & fields)
+    virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[VELOCITY] = 0.;};
 
     /** determine if local shape function matrices are needed */
@@ -804,7 +806,7 @@ namespace ATC {
     /** change in restricted atomic FE momentum over a timestep */
     DENS_MAT deltaNodalAtomicMomentum_;
 
-    /** intial restricted atomic FE momentum used to compute change */
+    /** initial restricted atomic FE momentum used to compute change */
     DENS_MAT initialNodalAtomicMomentum_;
 
     /** filtered nodal atomic momentum */
@@ -817,7 +819,7 @@ namespace ATC {
     DENS_MAT _tempNodalAtomicMomentumFiltered_; // stores filtered momentum change in atoms for persistence during predictor
 
   private:
-    
+
     // DO NOT define this
     KinetostatFixed();
 
@@ -834,7 +836,7 @@ namespace ATC {
 
     KinetostatFluxFixed(AtomicRegulator * kinetostat,
                         bool constructThermostats = true);
-        
+
     virtual ~KinetostatFluxFixed();
 
     /** instantiate all needed data */
@@ -851,7 +853,7 @@ namespace ATC {
 
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
-    
+
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
 

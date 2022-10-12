@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +17,9 @@
    based on ComputeTempAsphere
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_temp_body.h"
+
+#include <cstring>
 #include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_body.h"
@@ -27,7 +28,6 @@
 #include "domain.h"
 #include "modify.h"
 #include "group.h"
-#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -37,7 +37,7 @@ enum{ROTATE,ALL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_bias(NULL), tbias(NULL), avec(NULL)
+  Compute(lmp, narg, arg), id_bias(nullptr), tbias(nullptr), avec(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/body command");
 
@@ -48,7 +48,7 @@ ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
 
   tempbias = 0;
-  id_bias = NULL;
+  id_bias = nullptr;
   mode = ALL;
 
   int iarg = 3;
@@ -57,9 +57,7 @@ ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/body command");
       tempbias = 1;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_bias = new char[n];
-      strcpy(id_bias,arg[iarg+1]);
+      id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {
       if (iarg+2 > narg)
@@ -71,7 +69,7 @@ ComputeTempBody::ComputeTempBody(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute temp/body command");
   }
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
 }
 
@@ -89,7 +87,7 @@ void ComputeTempBody::init()
 {
   // error check
 
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
   if (!avec)
     error->all(FLERR,"Compute temp/body requires atom style body");
 
@@ -344,7 +342,6 @@ void ComputeTempBody::compute_vector()
 
         inertia = bonus[body[i]].inertia;
         quat = bonus[body[i]].quat;
-        massone = rmass[i];
 
         // wbody = angular velocity in body frame
 

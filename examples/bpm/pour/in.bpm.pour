@@ -1,0 +1,40 @@
+units           lj
+dimension       3
+boundary        m m m
+atom_style      bpm/sphere
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 3.3
+region          box block -15 15 -15 15 0 60.0
+create_box      1 box bond/types 1 extra/bond/per/atom 15 extra/special/per/atom 50
+
+molecule        my_mol "rect.mol"
+region          wall_cyl cylinder z 0.0 0.0 10.0 EDGE EDGE side in
+region          dropzone cylinder z 0.0 0.0 10.0 40.0 50.0 side in
+
+pair_style      gran/hertz/history 1.0 NULL 0.5 NULL 0.1 1
+bond_style      bpm/rotational
+pair_coeff      1 1
+bond_coeff      1 1.0 0.2 0.01 0.01 2.0 0.4 0.02 0.02 0.2 0.04 0.002 0.002
+
+compute         nbond all nbond/atom
+compute         tbond all reduce sum c_nbond
+compute         bond_ids all property/local batom1 batom2
+compute         bond_properties all bond/local dist b1
+
+compute_modify  thermo_temp dynamic/dof yes
+
+fix             1 all wall/gran hertz/history 1.0 NULL 0.5 NULL 0.1 1 zplane 0.0 NULL
+fix             2 all wall/gran/region hertz/history 1.0 NULL 0.5 NULL 0.1 1 region wall_cyl
+fix             3 all gravity 1e-4 vector 0 0 -1
+fix             4 all deposit 40 0 1500 712511343 mol my_mol region dropzone near 2.0 vz -0.05 -0.05
+fix             5 all nve/bpm/sphere
+
+timestep        0.05
+thermo_style    custom step ke pe pxx pyy pzz c_tbond
+thermo          100
+#dump            1 all custom 500 atomDump id radius x y z c_nbond mol
+#dump            2 all local 500 bondDump c_bond_ids[*] c_bond_properties[*]
+#dump_modify     2 colname 1 "id1" colname 2 "id2" colname 3 "r" colname 4 "r0"
+
+run             100000

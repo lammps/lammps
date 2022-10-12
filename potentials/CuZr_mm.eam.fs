@@ -1,4 +1,4 @@
-DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Unknown
+DATE: 2007-06-11 UNITS: metal CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Unknown
 Sunday, Jun 10, 2007  The potential was taken from v1_3_Cu (in C:\SIMULATION.MD\Cu-Zr\v1_3)
 ################################################
 2  Cu  Zr  

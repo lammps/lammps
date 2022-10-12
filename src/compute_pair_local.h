@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pair/local,ComputePairLocal)
-
+// clang-format off
+ComputeStyle(pair/local,ComputePairLocal);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PAIR_LOCAL_H
@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class ComputePairLocal : public Compute {
  public:
   ComputePairLocal(class LAMMPS *, int, char **);
-  ~ComputePairLocal();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_local();
-  double memory_usage();
+  ~ComputePairLocal() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_local() override;
+  double memory_usage() override;
 
  private:
-  int nvalues,ncount,cutstyle;
+  int nvalues, ncount, cutstyle;
 
-  int *pstyle;              // style of each requested output
-  int *pindex;              // for pI, index of the output (0 to M-1)
+  int *pstyle;    // style of each requested output
+  int *pindex;    // for pI, index of the output (0 to M-1)
   int singleflag;
 
   int nmax;
@@ -50,39 +50,7 @@ class ComputePairLocal : public Compute {
   void reallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid keyword in compute pair/local command
-
-Self-explanatory.
-
-E: Compute pair/local requires atom attribute radius
-
-UNDOCUMENTED
-
-E: No pair style is defined for compute pair/local
-
-Self-explanatory.
-
-E: Pair style does not support compute pair/local
-
-The pair style does not have a single() function, so it can
-not be invoked by compute pair/local.
-
-E: Pair style does not have extra field requested by compute pair/local
-
-The pair style does not support the pN value requested by the compute
-pair/local command.
-
-*/

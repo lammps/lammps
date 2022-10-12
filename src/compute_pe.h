@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pe,ComputePE)
-
+// clang-format off
+ComputeStyle(pe,ComputePE);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PE_H
@@ -27,36 +27,14 @@ namespace LAMMPS_NS {
 class ComputePE : public Compute {
  public:
   ComputePE(class LAMMPS *, int, char **);
-  ~ComputePE() {}
-  void init() {}
-  double compute_scalar();
+  void init() override {}
+  double compute_scalar() override;
 
  private:
-  int pairflag,bondflag,angleflag,dihedralflag,improperflag,kspaceflag,fixflag;
+  int pairflag, bondflag, angleflag, dihedralflag, improperflag, kspaceflag, fixflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute pe must use group all
-
-Energies computed by potentials (pair, bond, etc) are computed on all
-atoms.
-
-E: Energy was not tallied on needed timestep
-
-You are using a thermo keyword that requires potentials to
-have tallied energy, but they didn't on this timestep.  See the
-variable doc page for ideas on how to make this work.
-
-*/

@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -16,7 +16,8 @@
 #include "colvarmodule.h"
 #include "colvartypes.h"
 #include "colvarvalue.h"
-
+#include "colvarproxy_tcl.h"
+#include "colvarproxy_volmaps.h"
 
 /// \file colvarproxy.h
 /// \brief Colvars proxy classes
@@ -48,24 +49,64 @@ public:
   /// Destructor
   virtual ~colvarproxy_system();
 
-  /// \brief Value of the unit for atomic coordinates with respect to
-  /// angstroms (used by some variables for hard-coded default values)
-  virtual cvm::real unit_angstrom() = 0;
+  /// \brief Name of the unit system used internally by Colvars (by default, that of the back-end).
+  /// Supported depending on the back-end: real (A, kcal/mol), metal (A, eV), electron (Bohr, Hartree), gromacs (nm, kJ/mol)
+  /// Note: calls to back-end PBC functions assume back-end length unit
+  /// We use different unit from back-end in VMD bc using PBC functions from colvarproxy base class
+  /// Colvars internal units are user specified, because the module exchanges info in unknown
+  /// composite dimensions with user input, while it only exchanges quantities of known
+  /// dimension with the back-end (length and forces)
+  std::string units;
 
-  /// \brief Boltzmann constant
-  virtual cvm::real boltzmann() = 0;
+  /// \brief Request to set the units used internally by Colvars
+  virtual int set_unit_system(std::string const &units, bool check_only);
+
+  /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
+  /// * defaults to 0. in the base class; derived proxy classes must set it
+  /// * in VMD proxy, can only be changed when no variables are defined
+  /// as user-defined values in composite units must be compatible with that system
+  cvm::real angstrom_value;
+
+  /// \brief Value of 1 Angstrom in the backend's unit for atomic coordinates
+  virtual cvm::real backend_angstrom_value();
+
+  /// \brief Value of 1 kcal/mol in the internal Colvars unit for energy
+  cvm::real kcal_mol_value;
+
+  /// \brief Convert a length from Angstrom to internal
+  inline cvm::real angstrom_to_internal(cvm::real l) const
+  {
+    return l * angstrom_value;
+  }
+
+  /// \brief Convert a length from internal to Angstrom
+  inline cvm::real internal_to_angstrom(cvm::real l) const
+  {
+    return l / angstrom_value;
+  }
+
+  // /// \brief Convert a length from back-end unit to internal
+  // inline cvm::real back_end_to_internal_unit(cvm::real l) {
+  //   if (angstrom_value == 0.) {
+  //     return l / backend_angstrom_value();
+  //   }
+  //   return l * angstrom_value / backend_angstrom_value();
+  // }
+
+  /// \brief Boltzmann constant in internal Colvars units
+  virtual cvm::real boltzmann();
 
   /// \brief Target temperature of the simulation (K units)
-  virtual cvm::real temperature() = 0;
+  virtual cvm::real temperature();
 
   /// \brief Time step of the simulation (fs)
-  virtual cvm::real dt() = 0;
+  virtual cvm::real dt();
 
   /// \brief Pseudo-random number with Gaussian distribution
-  virtual cvm::real rand_gaussian(void) = 0;
+  virtual cvm::real rand_gaussian(void);
 
   /// Pass restraint energy value for current timestep to MD engine
-  virtual void add_energy(cvm::real energy) = 0;
+  virtual void add_energy(cvm::real energy);
 
   /// \brief Get the PBC-aware distance vector between two positions
   virtual cvm::rvector position_distance(cvm::atom_pos const &pos1,
@@ -87,7 +128,51 @@ public:
   /// Are total forces from the current step available?
   virtual bool total_forces_same_step() const;
 
+  /// Get the molecule ID when called in VMD; raise error otherwise
+  /// \param molid Set this argument equal to the current VMD molid
+  virtual int get_molid(int &molid);
+
+  /// Get value of alchemical lambda parameter from back-end (if available)
+  virtual int get_alch_lambda(cvm::real* lambda);
+
+  /// Set value of alchemical lambda parameter to be sent to back-end at end of timestep
+  void set_alch_lambda(cvm::real lambda);
+
+  /// Send cached value of alchemical lambda parameter to back-end (if available)
+  virtual int send_alch_lambda();
+
+  /// Get energy derivative with respect to lambda (if available)
+  virtual int get_dE_dlambda(cvm::real* dE_dlambda);
+
+  /// Apply a scalar force on dE_dlambda (back-end distributes it onto atoms)
+  virtual int apply_force_dE_dlambda(cvm::real* force);
+
+  /// Get energy second derivative with respect to lambda (if available)
+  virtual int get_d2E_dlambda2(cvm::real* d2E_dlambda2);
+
+  /// Force to be applied onto alch. lambda, propagated from biasing forces on dE_dlambda
+  cvm::real indirect_lambda_biasing_force;
+
+  /// Get weight factor from accelMD
+  virtual cvm::real get_accelMD_factor() const {
+    cvm::error("Error: accessing the reweighting factor of accelerated MD  "
+               "is not yet implemented in the MD engine.\n",
+               COLVARS_NOT_IMPLEMENTED);
+    return 1.0;
+  }
+  virtual bool accelMD_enabled() const {
+    return false;
+  }
+
 protected:
+  /// Next value of lambda to be sent to back-end
+  cvm::real cached_alch_lambda;
+
+  /// Whether lambda has been set and needs to be updated in backend
+  bool cached_alch_lambda_changed;
+
+  /// Whether the total forces have been requested
+  bool total_force_requested;
 
   /// \brief Type of boundary conditions
   ///
@@ -125,11 +210,11 @@ public:
 
   /// Prepare this atom for collective variables calculation, selecting it by
   /// numeric index (1-based)
-  virtual int init_atom(int atom_number) = 0;
+  virtual int init_atom(int atom_number);
 
   /// Check that this atom number is valid, but do not initialize the
   /// corresponding atom yet
-  virtual int check_atom_id(int atom_number) = 0;
+  virtual int check_atom_id(int atom_number);
 
   /// Select this atom for collective variables calculation, using name and
   /// residue number.  Not all programs support this: leave this function as
@@ -212,7 +297,7 @@ public:
   }
 
   /// Read the current velocity of the given atom
-  inline cvm::rvector get_atom_velocity(int index)
+  inline cvm::rvector get_atom_velocity(int /* index */)
   {
     cvm::error("Error: reading the current velocity of an atom "
                "is not yet implemented.\n",
@@ -220,19 +305,38 @@ public:
     return cvm::rvector(0.0);
   }
 
-  inline std::vector<int> *modify_atom_ids()
+  inline std::vector<int> const *get_atom_ids() const
   {
     return &atoms_ids;
   }
 
-  inline std::vector<cvm::real> *modify_atom_masses()
+  inline std::vector<cvm::real> const *get_atom_masses() const
   {
     return &atoms_masses;
   }
 
-  inline std::vector<cvm::real> *modify_atom_charges()
+  inline std::vector<cvm::real> *modify_atom_masses()
+  {
+    // assume that we are requesting masses to change them
+    updated_masses_ = true;
+    return &atoms_masses;
+  }
+
+  inline std::vector<cvm::real> const *get_atom_charges()
   {
     return &atoms_charges;
+  }
+
+  inline std::vector<cvm::real> *modify_atom_charges()
+  {
+    // assume that we are requesting charges to change them
+    updated_charges_ = true;
+    return &atoms_charges;
+  }
+
+  inline std::vector<cvm::rvector> const *get_atom_positions() const
+  {
+    return &atoms_positions;
   }
 
   inline std::vector<cvm::rvector> *modify_atom_positions()
@@ -240,14 +344,60 @@ public:
     return &atoms_positions;
   }
 
+  inline std::vector<cvm::rvector> const *get_atom_total_forces() const
+  {
+    return &atoms_total_forces;
+  }
+
   inline std::vector<cvm::rvector> *modify_atom_total_forces()
   {
     return &atoms_total_forces;
   }
 
-  inline std::vector<cvm::rvector> *modify_atom_new_colvar_forces()
+  inline std::vector<cvm::rvector> const *get_atom_applied_forces() const
   {
     return &atoms_new_colvar_forces;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_applied_forces()
+  {
+    return &atoms_new_colvar_forces;
+  }
+
+  /// Compute the root-mean-square of the applied forces
+  void compute_rms_atoms_applied_force();
+
+  /// Compute the maximum norm among all applied forces
+  void compute_max_atoms_applied_force();
+
+  /// Get the root-mean-square of the applied forces
+  inline cvm::real rms_atoms_applied_force() const
+  {
+    return atoms_rms_applied_force_;
+  }
+
+  /// Get the maximum norm among all applied forces
+  inline cvm::real max_atoms_applied_force() const
+  {
+    return atoms_max_applied_force_;
+  }
+
+  /// Get the atom ID with the largest applied force
+  inline int max_atoms_applied_force_id() const
+  {
+    return atoms_max_applied_force_id_;
+  }
+
+  /// Record whether masses have been updated
+  inline bool updated_masses() const
+  {
+    return updated_masses_;
+  }
+
+  /// Record whether masses have been updated
+  inline bool updated_charges() const
+  {
+    return updated_charges_;
   }
 
 protected:
@@ -268,6 +418,18 @@ protected:
   /// \brief Forces applied from colvars, to be communicated to the MD integrator
   std::vector<cvm::rvector> atoms_new_colvar_forces;
 
+  /// Root-mean-square of the applied forces
+  cvm::real atoms_rms_applied_force_;
+
+  /// Maximum norm among all applied forces
+  cvm::real atoms_max_applied_force_;
+
+  /// ID of the atom with the maximum norm among all applied forces
+  int atoms_max_applied_force_id_;
+
+  /// Whether the masses and charges have been updated from the host code
+  bool updated_masses_, updated_charges_;
+
   /// Used by all init_atom() functions: create a slot for an atom not
   /// requested yet; returns the index in the arrays
   int add_atom_slot(int atom_id);
@@ -281,7 +443,7 @@ class colvarproxy_atom_groups {
 
 public:
 
-  /// Contructor
+  /// Constructor
   colvarproxy_atom_groups();
 
   /// Destructor
@@ -336,11 +498,61 @@ public:
   }
 
   /// Read the current velocity of the given atom group
-  inline cvm::rvector get_atom_group_velocity(int index)
+  inline cvm::rvector get_atom_group_velocity(int /* index */)
   {
     cvm::error("Error: reading the current velocity of an atom group is not yet implemented.\n",
                COLVARS_NOT_IMPLEMENTED);
     return cvm::rvector(0.0);
+  }
+
+  inline std::vector<int> const *get_atom_group_ids() const
+  {
+    return &atom_groups_ids;
+  }
+
+  inline std::vector<cvm::real> *modify_atom_group_masses()
+  {
+    // TODO updated_masses
+    return &atom_groups_masses;
+  }
+
+  inline std::vector<cvm::real> *modify_atom_group_charges()
+  {
+    // TODO updated masses
+    return &atom_groups_charges;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_group_positions()
+  {
+    return &atom_groups_coms;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_group_total_forces()
+  {
+    return &atom_groups_total_forces;
+  }
+
+  inline std::vector<cvm::rvector> *modify_atom_group_applied_forces()
+  {
+    return &atom_groups_new_colvar_forces;
+  }
+
+  /// Compute the root-mean-square of the applied forces
+  void compute_rms_atom_groups_applied_force();
+
+  /// Compute the maximum norm among all applied forces
+  void compute_max_atom_groups_applied_force();
+
+  /// Get the root-mean-square of the applied forces
+  inline cvm::real rms_atom_groups_applied_force() const
+  {
+    return atom_groups_rms_applied_force_;
+  }
+
+  /// Get the maximum norm among all applied forces
+  inline cvm::real max_atom_groups_applied_force() const
+  {
+    return atom_groups_max_applied_force_;
   }
 
 protected:
@@ -360,6 +572,12 @@ protected:
   std::vector<cvm::rvector> atom_groups_total_forces;
   /// \brief Forces applied from colvars, to be communicated to the MD integrator
   std::vector<cvm::rvector> atom_groups_new_colvar_forces;
+
+  /// Root-mean-square of the applied group forces
+  cvm::real atom_groups_rms_applied_force_;
+
+  /// Maximum norm among all applied group forces
+  cvm::real atom_groups_max_applied_force_;
 
   /// Used by all init_atom_group() functions: create a slot for an atom group not requested yet
   int add_atom_group_slot(int atom_group_id);
@@ -427,15 +645,15 @@ public:
   virtual ~colvarproxy_replicas();
 
   /// \brief Indicate if multi-replica support is available and active
-  virtual bool replica_enabled();
+  virtual int replica_enabled();
 
   /// \brief Index of this replica
   virtual int replica_index();
 
-  /// \brief Total number of replica
-  virtual int replica_num();
+  /// \brief Total number of replicas
+  virtual int num_replicas();
 
-  /// \brief Synchronize replica
+  /// \brief Synchronize replica with others
   virtual void replica_comm_barrier();
 
   /// \brief Receive data from other replica
@@ -458,18 +676,9 @@ public:
   /// Destructor
   virtual ~colvarproxy_script();
 
-  /// Convert a script object (Tcl or Python call argument) to a C string
-  virtual char const *script_obj_to_str(unsigned char *obj);
-
-  /// Convert a script object (Tcl or Python call argument) to a vector of strings
-  virtual std::vector<std::string> script_obj_to_str_vector(unsigned char *obj);
-
   /// Pointer to the scripting interface object
   /// (does not need to be allocated in a new interface)
   colvarscript *script;
-
-  /// is a user force script defined?
-  bool force_script_defined;
 
   /// Do we have a scripting interface?
   bool have_scripts;
@@ -486,46 +695,6 @@ public:
                 std::string const &name,
                 std::vector<const colvarvalue *> const &cvcs,
                 std::vector<cvm::matrix2d<cvm::real> > &gradient);
-};
-
-
-/// Methods for using Tcl within Colvars
-class colvarproxy_tcl {
-
-public:
-
-  /// Constructor
-  colvarproxy_tcl();
-
-  /// Destructor
-  virtual ~colvarproxy_tcl();
-
-  /// Is Tcl available? (trigger initialization if needed)
-  int tcl_available();
-
-  /// Tcl implementation of script_obj_to_str()
-  char const *tcl_obj_to_str(unsigned char *obj);
-
-  /// Run a user-defined colvar forces script
-  int tcl_run_force_callback();
-
-  int tcl_run_colvar_callback(
-              std::string const &name,
-              std::vector<const colvarvalue *> const &cvcs,
-              colvarvalue &value);
-
-  int tcl_run_colvar_gradient_callback(
-              std::string const &name,
-              std::vector<const colvarvalue *> const &cvcs,
-              std::vector<cvm::matrix2d<cvm::real> > &gradient);
-
-protected:
-
-  /// Pointer to Tcl interpreter object
-  void *_tcl_interp;
-
-  /// Set Tcl pointers
-  virtual void init_tcl_pointers();
 };
 
 
@@ -548,18 +717,6 @@ public:
   // Returns error code
   virtual int set_frame(long int);
 
-  /// \brief Returns a reference to the given output channel;
-  /// if this is not open already, then open it
-  virtual std::ostream *output_stream(std::string const &output_name,
-                                      std::ios_base::openmode mode =
-                                        std::ios_base::out);
-
-  /// \brief Flushes the given output channel
-  virtual int flush_output_stream(std::ostream *os);
-
-  /// \brief Closes the given output channel
-  virtual int close_output_stream(std::string const &output_name);
-
   /// \brief Rename the given file, before overwriting it
   virtual int backup_file(char const *filename);
 
@@ -569,30 +726,68 @@ public:
     return backup_file(filename.c_str());
   }
 
-  /// \brief Prefix of the input state file
+  /// Remove the given file (on Windows only, rename to filename.old)
+  virtual int remove_file(char const *filename);
+
+  /// Remove the given file (on Windows only, rename to filename.old)
+  inline int remove_file(std::string const &filename)
+  {
+    return remove_file(filename.c_str());
+  }
+
+  /// Rename the given file
+  virtual int rename_file(char const *filename, char const *newfilename);
+
+  /// Rename the given file
+  inline int rename_file(std::string const &filename,
+                         std::string const &newfilename)
+  {
+    return rename_file(filename.c_str(), newfilename.c_str());
+  }
+
+  /// Prefix of the input state file to be read next
   inline std::string & input_prefix()
   {
     return input_prefix_str;
   }
 
-  /// \brief Prefix to be used for output restart files
-  inline std::string & restart_output_prefix()
-  {
-    return restart_output_prefix_str;
-  }
-
-  /// \brief Prefix to be used for output files (final system
-  /// configuration)
+  /// Default prefix to be used for all output files (final configuration)
   inline std::string & output_prefix()
   {
     return output_prefix_str;
   }
 
+  /// Prefix of the restart (checkpoint) file to be written next
+  inline std::string & restart_output_prefix()
+  {
+    return restart_output_prefix_str;
+  }
+
+  /// Default restart frequency (as set by the simulation engine)
+  inline int default_restart_frequency() const
+  {
+    return restart_frequency_engine;
+  }
+
+  /// Buffer from which the input state information may be read
+  inline char const * & input_buffer()
+  {
+    return input_buffer_;
+  }
+
 protected:
 
-  /// \brief Prefix to be used for input files (restarts, not
-  /// configuration)
-  std::string input_prefix_str, output_prefix_str, restart_output_prefix_str;
+  /// Prefix of the input state file to be read next
+  std::string input_prefix_str;
+
+  /// Default prefix to be used for all output files (final configuration)
+  std::string output_prefix_str;
+
+  /// Prefix of the restart (checkpoint) file to be written next
+  std::string restart_output_prefix_str;
+
+  /// How often the simulation engine will write its own restart
+  int restart_frequency_engine;
 
   /// \brief Currently opened output files: by default, these are ofstream objects.
   /// Allows redefinition to implement different output mechanisms
@@ -600,6 +795,8 @@ protected:
   /// \brief Identifiers for output_stream objects: by default, these are the names of the files
   std::list<std::string>    output_stream_names;
 
+  /// Buffer from which the input state information may be read
+  char const *input_buffer_;
 };
 
 
@@ -607,11 +804,11 @@ protected:
 /// \brief Interface between the collective variables module and
 /// the simulation or analysis program (NAMD, VMD, LAMMPS...).
 /// This is the base class: each interfaced program is supported by a derived class.
-/// Only pure virtual functions ("= 0") must be reimplemented to ensure baseline functionality.
 class colvarproxy
   : public colvarproxy_system,
     public colvarproxy_atoms,
     public colvarproxy_atom_groups,
+    public colvarproxy_volmaps,
     public colvarproxy_smp,
     public colvarproxy_replicas,
     public colvarproxy_script,
@@ -642,6 +839,9 @@ public:
   /// \brief Reset proxy state, e.g. requested atoms
   virtual int reset();
 
+  /// Close any open files to prevent data loss
+  int close_files();
+
   /// (Re)initialize required member data after construction
   virtual int setup();
 
@@ -653,23 +853,46 @@ public:
   /// \brief Update data based from the results of a module update (e.g. send forces)
   virtual int update_output();
 
+  /// Carry out operations needed before next step is run
+  int end_of_step();
+
   /// Print a message to the main log
-  virtual void log(std::string const &message) = 0;
+  virtual void log(std::string const &message);
 
-  /// Print a message to the main log and let the rest of the program handle the error
-  virtual void error(std::string const &message) = 0;
+  /// Print a message to the main log and/or let the host code know about it
+  virtual void error(std::string const &message);
 
-  /// Print a message to the main log and exit with error code
-  virtual void fatal_error(std::string const &message) = 0;
+  /// Record error message (used by VMD to collect them after a script call)
+  void add_error_msg(std::string const &message);
 
-  /// \brief Restarts will be written each time this number of steps has passed
-  virtual size_t restart_frequency();
+  /// Retrieve accumulated error messages
+  std::string const & get_error_msgs();
+
+  /// As the name says
+  void clear_error_msgs();
 
   /// Whether a simulation is running (warn against irrecovarable errors)
   inline bool simulation_running() const
   {
     return b_simulation_running;
   }
+
+  /// Is the current step a repetition of a step just executed?
+  /// This is set to true when the step 0 of a new "run" command is being
+  /// executed, regardless of whether a state file has been loaded.
+  inline bool simulation_continuing() const
+  {
+    return b_simulation_continuing;
+  }
+
+  /// Called at the end of a simulation segment (i.e. "run" command)
+  int post_run();
+
+  /// Print a full list of all input atomic arrays for debug purposes
+  void print_input_atomic_data();
+
+  /// Print a full list of all applied forces for debug purposes
+  void print_output_atomic_data();
 
   /// Convert a version string "YYYY-MM-DD" into an integer
   int get_version_from_string(char const *version_string);
@@ -680,16 +903,48 @@ public:
     return version_int;
   }
 
+  /// \brief Returns a reference to the given output channel;
+  /// if this is not open already, then open it
+  virtual std::ostream *output_stream(std::string const &output_name,
+                                      std::ios_base::openmode mode =
+                                      std::ios_base::out);
+
+  /// Returns a reference to output_name if it exists, NULL otherwise
+  virtual std::ostream *get_output_stream(std::string const &output_name);
+
+  /// \brief Flushes the given output channel
+  virtual int flush_output_stream(std::ostream *os);
+
+  /// \brief Flushes all output channels
+  virtual int flush_output_streams();
+
+  /// \brief Closes the given output channel
+  virtual int close_output_stream(std::string const &output_name);
+
 protected:
+
+  /// Collected error messages
+  std::string error_output;
 
   /// Whether a simulation is running (warn against irrecovarable errors)
   bool b_simulation_running;
+
+  /// Is the current step a repetition of a step just executed?
+  /// This is set to true when the step 0 of a new "run" command is being
+  /// executed, regardless of whether a state file has been loaded.
+  bool b_simulation_continuing;
 
   /// Whether the entire module should be deallocated by the host engine
   bool b_delete_requested;
 
   /// Integer representing the version string (allows comparisons)
   int version_int;
+
+  /// Track which features have been acknowledged during the last run
+  size_t features_hash;
+
+  /// Raise when the output stream functions are used on threads other than 0
+  void smp_stream_error();
 
 };
 

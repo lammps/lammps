@@ -32,7 +32,7 @@ class ZBL : public BaseAtomic<numtyp, acctyp> {
     * \param gpu_split fraction of particles handled by device
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
@@ -67,16 +67,16 @@ class ZBL : public BaseAtomic<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  double _cut_globalsq;
-  double _cut_innersq;
-  double _cut_inner;
+  numtyp _cut_globalsq;
+  numtyp _cut_innersq;
+  numtyp _cut_inner;
 
   /// Number of atom types
   int _lj_types;
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
 };
 
 }

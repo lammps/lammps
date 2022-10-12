@@ -13,12 +13,12 @@
 
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
+sys.path.insert(1,path)
 from dump import dump
 from pdbfile import pdbfile
 
 if len(sys.argv) != 8 and len(sys.argv) != 9:
-  raise StandardError, "Syntax: dump2pdb.py dumpfile Nid Ntype Nx Ny Nz pdbfile template"
+  sys.exit("Syntax: dump2pdb.py dumpfile Nid Ntype Nx Ny Nz pdbfile template")
 
 dumpfile = sys.argv[1]
 nid = int(sys.argv[2])

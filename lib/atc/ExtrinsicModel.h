@@ -42,7 +42,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModelManager {
-  
+
   public:
 
     // constructor
@@ -98,7 +98,7 @@ namespace ATC {
 
 
     /** model name enum to string */
-    static bool model_to_string(const ExtrinsicModelType index, std::string & name) 
+    static bool model_to_string(const ExtrinsicModelType index, std::string & name)
     {
       switch (index) {
         case NO_MODEL:
@@ -141,11 +141,11 @@ namespace ATC {
           return false;
           break;
       }
-      return true; 
+      return true;
     };
 
     /** string to model enum */
-    static bool string_to_model(const std::string & name, ExtrinsicModelType & index) 
+    static bool string_to_model(const std::string & name, ExtrinsicModelType & index)
     {
       if      (name=="no_model")
         index = NO_MODEL;
@@ -174,7 +174,7 @@ namespace ATC {
 
       else
         return false;
-      
+
       return true;
     };
 
@@ -209,7 +209,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModel {
-  
+
   public:
 
     // constructor
@@ -221,7 +221,7 @@ namespace ATC {
     virtual ~ExtrinsicModel();
 
     /** parser/modifier */
-    virtual bool modify(int narg, char **arg) {return false;};
+    virtual bool modify(int /* narg */, char ** /* arg */) {return false;};
 
     /** construct transfers needed by the model */
     virtual void construct_transfers(){};
@@ -230,11 +230,11 @@ namespace ATC {
     virtual void initialize();
 
     /** set up LAMMPS display variables */
-    virtual int size_vector(int externalSize) {return 0;};
+    virtual int size_vector(int /* externalSize */) {return 0;};
 
     /** get LAMMPS display variables */
     virtual double compute_scalar(void) { return 0.0; }
-    virtual bool compute_vector(int n, double & value) {return false;};
+    virtual bool compute_vector(int /* n */, double & /* value */) {return false;};
 
     /** post integration run */
     // is this called at end of run or simulation
@@ -259,10 +259,10 @@ namespace ATC {
     virtual void post_final_integrate(){};
 
     /** Set sources to AtC equation */
-    virtual void set_sources(FIELDS & fields, FIELDS & sources){};
+    virtual void set_sources(FIELDS & /* fields */, FIELDS & /* sources */){};
 
     /** Add model-specific output data */
-    virtual void output(OUTPUT_LIST & outputData){};
+    virtual void output(OUTPUT_LIST & /* outputData */){};
 
     /** get the fields and their sizes */
     void num_fields(std::map<FieldName,int> & fieldSizes);
@@ -295,8 +295,8 @@ namespace ATC {
     /** rhs mask for coupling with MD */
     Array2D<bool> rhsMaskIntrinsic_;
 
-    
-    
+
+
     GRAD_FIELD_MATS fluxes_;
 
     /** number of nodes */

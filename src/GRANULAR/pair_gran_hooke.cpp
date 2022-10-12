@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,10 +16,8 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "pair_gran_hooke.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "fix.h"
@@ -43,7 +42,7 @@ void PairGranHooke::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
-  double radi,radj,radsum,rsq,r,rinv,rsqinv;
+  double radi,radj,radsum,rsq,r,rinv,rsqinv,factor_lj;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
@@ -60,7 +59,7 @@ void PairGranHooke::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -70,7 +69,7 @@ void PairGranHooke::compute(int eflag, int vflag)
     for (i = 0; i < nlocal; i++)
       if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
       else mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;
@@ -83,6 +82,7 @@ void PairGranHooke::compute(int eflag, int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  double *special_lj = force->special_lj;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -102,7 +102,10 @@ void PairGranHooke::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
+
+      if (factor_lj == 0) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -160,6 +163,7 @@ void PairGranHooke::compute(int eflag, int vflag)
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
+        if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
         // relative velocities
 
@@ -187,6 +191,9 @@ void PairGranHooke::compute(int eflag, int vflag)
         fx = delx*ccel + fs1;
         fy = dely*ccel + fs2;
         fz = delz*ccel + fs3;
+        fx *= factor_lj;
+        fy *= factor_lj;
+        fz *= factor_lj;
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;
@@ -194,6 +201,9 @@ void PairGranHooke::compute(int eflag, int vflag)
         tor1 = rinv * (dely*fs3 - delz*fs2);
         tor2 = rinv * (delz*fs1 - delx*fs3);
         tor3 = rinv * (delx*fs2 - dely*fs1);
+        tor1 *= factor_lj;
+        tor2 *= factor_lj;
+        tor3 *= factor_lj;
         torque[i][0] -= radi*tor1;
         torque[i][1] -= radi*tor2;
         torque[i][2] -= radi*tor3;
@@ -301,6 +311,7 @@ double PairGranHooke::single(int i, int j, int /*itype*/, int /*jtype*/, double 
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radsum-r)*rinv - damp;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 

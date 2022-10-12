@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,28 +12,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "hyper.h"
-#include "update.h"
-#include "atom.h"
-#include "domain.h"
-#include "region.h"
-#include "integrate.h"
-#include "min.h"
-#include "force.h"
-#include "neighbor.h"
-#include "modify.h"
+
 #include "compute_event_displace.h"
-#include "fix_hyper.h"
-#include "fix_event_hyper.h"
-#include "output.h"
+#include "domain.h"
 #include "dump.h"
-#include "finish.h"
-#include "timer.h"
-#include "memory.h"
 #include "error.h"
+#include "finish.h"
+#include "fix_event_hyper.h"
+#include "fix_hyper.h"
+#include "integrate.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "region.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -40,7 +39,7 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *lmp) : Pointers(lmp), dumplist(NULL) {}
+Hyper::Hyper(LAMMPS *_lmp) : Command(_lmp) {}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation
@@ -58,14 +57,11 @@ void Hyper::command(int narg, char **arg)
 
   if (narg < 4) error->all(FLERR,"Illegal hyper command");
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
 
-  char *id_fix = new char[strlen(arg[2])+1];
-  strcpy(id_fix,arg[2]);
-
-  char *id_compute = new char[strlen(arg[3])+1];
-  strcpy(id_compute,arg[3]);
+  auto id_fix = utils::strdup(arg[2]);
+  auto id_compute = utils::strdup(arg[3]);
 
   options(narg-4,&arg[4]);
 
@@ -90,10 +86,10 @@ void Hyper::command(int narg, char **arg)
   } else {
     int ifix = modify->find_fix(id_fix);
     if (ifix < 0) error->all(FLERR,"Could not find fix ID for hyper");
-    fix_hyper = (FixHyper *) modify->fix[ifix];
+    fix_hyper = dynamic_cast<FixHyper *>(modify->fix[ifix]);
     int dim;
     int *hyperflag = (int *) fix_hyper->extract("hyperflag",dim);
-    if (hyperflag == NULL || *hyperflag == 0)
+    if (hyperflag == nullptr || *hyperflag == 0)
       error->all(FLERR,"Hyper fix is not a valid hyperdynamics fix");
     if (*hyperflag == 1) hyperstyle = GLOBAL;
     if (*hyperflag == 2) hyperstyle = LOCAL;
@@ -102,13 +98,7 @@ void Hyper::command(int narg, char **arg)
 
   // create FixEventHyper class to store event and pre-quench states
 
-  char **args = new char*[3];
-  args[0] = (char *) "hyper_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/HYPER";
-  modify->add_fix(3,args);
-  fix_event = (FixEventHyper *) modify->fix[modify->nfix-1];
-  delete [] args;
+  fix_event = dynamic_cast<FixEventHyper *>(modify->add_fix("hyper_event all EVENT/HYPER"));
 
   // create Finish for timing output
 
@@ -119,7 +109,7 @@ void Hyper::command(int narg, char **arg)
 
   int icompute = modify->find_compute(id_compute);
   if (icompute < 0) error->all(FLERR,"Could not find compute ID for hyper");
-  compute_event = (ComputeEventDisplace *) modify->compute[icompute];
+  compute_event = dynamic_cast<ComputeEventDisplace *>(modify->compute[icompute]);
   compute_event->reset_extra_compute_fix("hyper_event");
 
   // reset reneighboring criteria since will perform minimizations
@@ -142,7 +132,7 @@ void Hyper::command(int narg, char **arg)
   update->whichflag = 1;
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
-  update->endstep = update->laststep = update->firststep + nsteps;
+  update->endstep = update->laststep = update->beginstep + nsteps;
   if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
@@ -162,12 +152,11 @@ void Hyper::command(int narg, char **arg)
 
   // cannot use hyper with time-dependent fixes or regions
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->time_depend)
-      error->all(FLERR,"Cannot use hyper with a time-dependent fix defined");
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->time_depend) error->all(FLERR,"Cannot use hyper with a time-dependent fix defined");
 
-  for (int i = 0; i < domain->nregion; i++)
-    if (domain->regions[i]->dynamic_check())
+  for (auto &reg : domain->get_region_list())
+    if (reg->dynamic_check())
       error->all(FLERR,"Cannot use hyper with a time-dependent region defined");
 
   // perform hyperdynamics simulation
@@ -188,9 +177,7 @@ void Hyper::command(int narg, char **arg)
 
   fix_event->store_state_quench();
   quench(1);
-  if (dumpflag)
-    for (int idump = 0; idump < ndump; idump++)
-      output->dump[dumplist[idump]]->write();
+  if (dumpflag) for (auto &idump : dumplist) idump->write();
   fix_event->store_event();
   if (hyperenable) fix_hyper->build_bond_list(0);
   fix_event->restore_state_quench();
@@ -219,9 +206,7 @@ void Hyper::command(int narg, char **arg)
       nevent++;
       nevent_atoms += ecount;
 
-      if (dumpflag)
-        for (int idump = 0; idump < ndump; idump++)
-          output->dump[dumplist[idump]]->write();
+      if (dumpflag) for (auto &idump : dumplist) idump->write();
       fix_event->store_event();
       if (hyperenable) fix_hyper->build_bond_list(ecount);
 
@@ -249,26 +234,24 @@ void Hyper::command(int narg, char **arg)
 
   update->nsteps = nsteps;
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"Final hyper stats ...\n\n");
-    if (logfile) fprintf(logfile,"Final hyper stats ...\n\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"Final hyper stats ...\n\n");
 
   // subset of quantities also available in fix hyper output
+  // set t_hyper to no-boost value when hyperenable is not set
 
   int nevent_running = 0;
   int nevent_atoms_running = 0;
-  double t_hyper = 0.0;
+  double t_hyper = update->dt * (update->endstep - update->beginstep);
   double avebonds = 0.0;
   double maxdrift = 0.0;
   double maxbondlen = 0.0;
   double fraczero = 1.0;
   double fracneg = 1.0;
 
-  double nnewbond,avenbias,avebiascoeff,minbiascoeff,maxbiascoeff;
+  double nnewbond,aveboost,avenbias,avebiascoeff,minbiascoeff,maxbiascoeff;
   double maxbondperatom,neighbondperbond,avebiasnow;
   double tbondbuild,rmaxever,rmaxeverbig,allghost_toofar;
-  double lostbond,lostbondcoeff,biasoverlap;
+  double biasoverlap;
 
   if (hyperenable) {
     t_hyper = fix_hyper->query(1);
@@ -283,66 +266,63 @@ void Hyper::command(int narg, char **arg)
     if (hyperstyle == LOCAL) {
       nnewbond = fix_hyper->query(9);
       maxbondperatom = fix_hyper->query(10);
-      avenbias = fix_hyper->query(11);
-      avebiascoeff = fix_hyper->query(12);
-      minbiascoeff = fix_hyper->query(13);
-      maxbiascoeff = fix_hyper->query(14);
-      neighbondperbond = fix_hyper->query(15);
-      avebiasnow = fix_hyper->query(16);
-      tbondbuild = fix_hyper->query(17);
-      rmaxever = fix_hyper->query(18);
-      rmaxeverbig = fix_hyper->query(19);
-      allghost_toofar = fix_hyper->query(20);
-      biasoverlap = fix_hyper->query(21);
+      aveboost = fix_hyper->query(11);
+      avenbias = fix_hyper->query(12);
+      avebiascoeff = fix_hyper->query(13);
+      minbiascoeff = fix_hyper->query(14);
+      maxbiascoeff = fix_hyper->query(15);
+      neighbondperbond = fix_hyper->query(16);
+      avebiasnow = fix_hyper->query(17);
+      tbondbuild = fix_hyper->query(18);
+      rmaxever = fix_hyper->query(19);
+      rmaxeverbig = fix_hyper->query(20);
+      allghost_toofar = fix_hyper->query(21);
+      biasoverlap = fix_hyper->query(22);
     }
   }
 
   if (me == 0) {
-    FILE *out;
-    for (int iout = 0; iout < 2; iout++) {
-      if (iout == 0) out = screen;
-      if (iout == 1) out = logfile;
-      if (!out) continue;
-      fprintf(out,"Cummulative quantities for fix hyper:\n");
-      fprintf(out,"  hyper time = %g\n",t_hyper);
-      fprintf(out,"  time boost factor = %g\n",t_hyper/(nsteps*update->dt));
-      fprintf(out,"  event timesteps = %d\n",nevent_running);
-      fprintf(out,"  # of atoms in events = %d\n",nevent_atoms_running);
-      fprintf(out,"Quantities for this hyper run:\n");
-      fprintf(out,"  event timesteps = %d\n",nevent);
-      fprintf(out,"  # of atoms in events = %d\n",nevent_atoms);
-      fprintf(out,"  max length of any bond = %g\n",maxbondlen);
-      fprintf(out,"  max drift distance of any atom = %g\n",maxdrift);
-      fprintf(out,"  fraction of biased bonds with zero bias = %g\n",fraczero);
-      fprintf(out,"  fraction of biased bonds with negative strain = %g\n",
-              fracneg);
-      fprintf(out,"Current quantities:\n");
-      fprintf(out,"  ave bonds/atom = %g\n",avebonds);
+    std::string mesg = "Cummulative quantities for fix hyper:\n";
+    mesg += fmt::format("  hyper time = {}\n",t_hyper);
+    if (hyperenable)
+      mesg += fmt::format("  time boost factor = {}\n", t_hyper /
+                          ((update->ntimestep -fix_hyper->ntimestep_initial)*update->dt));
+    else mesg += "  time boost factor = 1\n";
+    mesg += fmt::format("  event timesteps = {}\n",nevent_running);
+    mesg += fmt::format("  # of atoms in events = {}\n",nevent_atoms_running);
+    mesg += "Quantities for this hyper run:\n";
+    mesg += fmt::format("  event timesteps = {}\n",nevent);
+    mesg += fmt::format("  # of atoms in events = {}\n",nevent_atoms);
+    mesg += fmt::format("  max length of any bond = {}\n",maxbondlen);
+    mesg += fmt::format("  max drift distance of any atom = {}\n",maxdrift);
+    mesg += fmt::format("  fraction of biased bonds with zero bias = {}\n",fraczero);
+    mesg += fmt::format("  fraction of biased bonds with negative strain = {}\n",fracneg);
+    mesg += "Current quantities:\n";
+    mesg += fmt::format("  ave bonds/atom = {}\n",avebonds);
 
-      if (hyperstyle == LOCAL) {
-        fprintf(out,"Cummulative quantities specific to fix hyper/local:\n");
-        fprintf(out,"  # of new bonds formed = %g\n",nnewbond);
-        fprintf(out,"  max bonds/atom = %g\n",maxbondperatom);
-        fprintf(out,"Quantities for this hyper run specific to "
-                "fix hyper/local:\n");
-        fprintf(out,"  ave biased bonds/step = %g\n",avenbias);
-        fprintf(out,"  ave bias coeff of all bonds = %g\n",avebiascoeff);
-        fprintf(out,"  min bias coeff of any bond = %g\n",minbiascoeff);
-        fprintf(out,"  max bias coeff of any bond = %g\n",maxbiascoeff);
-        fprintf(out,"  max dist from my subbox of any "
-                "non-maxstrain bond ghost atom = %g\n",rmaxever);
-        fprintf(out,"  max dist from my box of any bond ghost atom = %g\n",
-                rmaxeverbig);
-        fprintf(out,"  count of bond ghost neighbors "
-                "not found on reneighbor steps = %g\n",allghost_toofar);
-        fprintf(out,"  bias overlaps = %g\n",biasoverlap);
-        fprintf(out,"  CPU time for bond builds = %g\n",tbondbuild);
-        fprintf(out,"Current quantities specific to fix hyper/local:\n");
-        fprintf(out,"  neighbor bonds/bond = %g\n",neighbondperbond);
-        fprintf(out,"  ave boost coeff for all bonds = %g\n",avebiasnow);
-      }
-      fprintf(out,"\n");
+    if (hyperstyle == LOCAL) {
+      mesg += "Cummulative quantities specific to fix hyper/local:\n";
+      mesg += fmt::format("  # of new bonds formed = {}\n",nnewbond);
+      mesg += fmt::format("  max bonds/atom = {}\n",maxbondperatom);
+      mesg += "Quantities for this hyper run specific to fix hyper/local:\n";
+      mesg += fmt::format("  ave boost for all bonds/step = {}\n",aveboost);
+      mesg += fmt::format("  ave biased bonds/step = {}\n",avenbias);
+      mesg += fmt::format("  ave bias coeff of all bonds = {}\n",avebiascoeff);
+      mesg += fmt::format("  min bias coeff of any bond = {}\n",minbiascoeff);
+      mesg += fmt::format("  max bias coeff of any bond = {}\n",maxbiascoeff);
+      mesg += fmt::format("  max dist from my subbox of any "
+                          "non-maxstrain bond ghost atom = {}\n",rmaxever);
+      mesg += fmt::format("  max dist from my box of any bond ghost atom = {}\n",
+                          rmaxeverbig);
+      mesg += fmt::format("  count of bond ghost neighbors "
+                          "not found on reneighbor steps = {}\n",allghost_toofar);
+      mesg += fmt::format("  bias overlaps = {}\n",biasoverlap);
+      mesg += fmt::format("  CPU time for bond builds = {}\n",tbondbuild);
+      mesg += "Current quantities specific to fix hyper/local:\n";
+      mesg += fmt::format("  neighbor bonds/bond = {}\n",neighbondperbond);
+      mesg += fmt::format("  ave boost coeff for all bonds = {}\n",avebiasnow);
     }
+    utils::logmesg(lmp, mesg);
   }
 
   // timing stats
@@ -361,11 +341,10 @@ void Hyper::command(int narg, char **arg)
 
   delete [] id_fix;
   delete [] id_compute;
-  memory->destroy(dumplist);
   delete finish;
   modify->delete_fix("hyper_event");
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -382,6 +361,7 @@ void Hyper::dynamics(int nsteps, double & /* time_category */)
 
   lmp->init();
   update->integrate->setup(0);
+
   // this may be needed if don't do full init
   //modify->addstep_compute_all(update->ntimestep);
   bigint ncalls = neighbor->ncalls;
@@ -413,7 +393,7 @@ void Hyper::quench(int flag)
 
   update->whichflag = 2;
   update->nsteps = maxiter;
-  update->endstep = update->laststep = update->firststep + maxiter;
+  update->endstep = update->laststep = update->ntimestep + maxiter;
   if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
   update->restrict_output = 1;
@@ -459,34 +439,30 @@ void Hyper::options(int narg, char **arg)
   maxiter = 40;
   maxeval = 50;
   dumpflag = 0;
-  ndump = 0;
-  dumplist = NULL;
   rebond = 0;
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal hyper command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0) error->all(FLERR,"Illegal hyper command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"dump") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
       dumpflag = 1;
-      int idump = output->find_dump(arg[iarg+1]);
-      if (idump < 0)
-        error->all(FLERR,"Dump ID in hyper command does not exist");
-      memory->grow(dumplist,ndump+1,"hyper:dumplist");
-      dumplist[ndump++] = idump;
+      auto idump = output->get_dump_by_id(arg[iarg+1]);
+      if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
+      dumplist.emplace_back(idump);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"rebond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
-      rebond = force->inumeric(FLERR,arg[iarg+1]);
+      rebond = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal hyper command");

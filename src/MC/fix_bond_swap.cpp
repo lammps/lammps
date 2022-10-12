@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,56 +12,58 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_bond_swap.h"
-#include "atom.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "group.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "compute.h"
-#include "random_mars.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
 
+#include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "citeme.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_bond_history.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_mars.h"
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_bond_swap[] =
-  "neighbor multi command:\n\n"
+  "fix bond/swap command: doi:10.1063/1.1628670\n\n"
   "@Article{Auhl03,\n"
-  " author = {R. Auhl, R. Everaers, G. S. Grest, K. Kremer, S. J. Plimpton},\n"
-  " title = {Equilibration of long chain polymer melts in computer simulations},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " author = {R. Auhl and R. Everaers and G. S. Grest and K. Kremer and S. J. Plimpton},\n"
+  " title = {Equilibration of Long Chain Polymer Melts in Computer Simulations},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2003,\n"
   " volume =  119,\n"
+  " number =  12,\n"
   " pages =   {12718--12728}\n"
   "}\n\n";
+
+#define DELTA_PERMUTE 100
 
 /* ---------------------------------------------------------------------- */
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tflag(0), alist(NULL), id_temp(NULL), type(NULL), x(NULL), list(NULL),
-  temperature(NULL), random(NULL)
+  tflag(0), alist(nullptr), id_temp(nullptr), type(nullptr), x(nullptr), list(nullptr),
+  temperature(nullptr), random(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
 
   if (narg != 7) error->all(FLERR,"Illegal fix bond/swap command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/swap command");
 
   force_reneighbor = 1;
@@ -70,40 +73,34 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  fraction = force->numeric(FLERR,arg[4]);
-  double cutoff = force->numeric(FLERR,arg[5]);
+  fraction = utils::numeric(FLERR,arg[4],false,lmp);
+  double cutoff = utils::numeric(FLERR,arg[5],false,lmp);
   cutsq = cutoff*cutoff;
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
   random = new RanMars(lmp,seed + comm->me);
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/swap with non-molecular systems");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tflag = 1;
 
-  // initialize atom list
+  // initialize two permutation lists
 
   nmax = 0;
-  alist = NULL;
+  alist = nullptr;
+
+  maxpermute = 0;
+  permute = nullptr;
 
   naccept = foursome = 0;
 }
@@ -117,9 +114,10 @@ FixBondSwap::~FixBondSwap()
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   memory->destroy(alist);
+  delete[] permute;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,7 +135,7 @@ void FixBondSwap::init()
 {
   // require an atom style with molecule IDs
 
-  if (atom->molecule == NULL)
+  if (atom->molecule == nullptr)
     error->all(FLERR,
                "Must use atom style with molecule IDs with fix bond/swap");
 
@@ -150,14 +148,15 @@ void FixBondSwap::init()
   // no dihedral or improper potentials allowed
   // special bonds must be 0 1 1
 
-  if (force->pair == NULL || force->bond == NULL)
+  if (force->pair == nullptr || force->bond == nullptr)
     error->all(FLERR,"Fix bond/swap requires pair and bond styles");
 
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support fix bond/swap");
 
-  if (force->angle == NULL && atom->nangles > 0 && comm->me == 0)
-    error->warning(FLERR,"Fix bond/swap will ignore defined angles");
+  if (force->angle == nullptr && atom->nangles > 0 && comm->me == 0)
+    error->warning(FLERR,"Fix bond/swap will not preserve correct angle "
+                   "topology because no angle_style is defined");
 
   if (force->dihedral || force->improper)
     error->all(FLERR,"Fix bond/swap cannot use dihedral or improper styles");
@@ -168,10 +167,7 @@ void FixBondSwap::init()
 
   // need a half neighbor list, built every Nevery steps
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   // zero out stats
 
@@ -248,6 +244,15 @@ void FixBondSwap::post_integrate()
     memory->create(alist,nmax,"bondswap:alist");
   }
 
+  // use randomized permutation of both I and J atoms in double loop below
+  // this is to avoid any bias in accepted MC swaps based on
+  //   ordering LAMMPS creates on a processor for atoms or their neighbors
+
+  // create a random permutation of list of Neligible atoms
+  // uses one-pass Fisher-Yates shuffle on an initial identity permutation
+  // output: randomized alist[] vector, used in outer loop to select an I atom
+  // similar randomized permutation is created for neighbors of each I atom
+
   int neligible = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -256,20 +261,27 @@ void FixBondSwap::post_integrate()
   }
 
   int tmp;
-  for (i = 0; i < neligible; i++) {
-    j = static_cast<int> (random->uniform() * neligible);
+  for (i = 0; i < neligible-1; i++) {
+    j = i + static_cast<int> (random->uniform() * (neligible-i));
     tmp = alist[i];
     alist[i] = alist[j];
     alist[j] = tmp;
   }
 
   // examine ntest of my eligible atoms for potential swaps
-  // atom i is randomly selected via atom list
-  // look at all j neighbors of atom i
-  // atom j must be on-processor (j < nlocal)
-  // atom j must be in fix group
-  // i and j must be same distance from chain end (mol[i] = mol[j])
-  // NOTE: must use extra parens in if test on mask[j] & groupbit
+  // atom I is randomly selected via atom list
+  // look at all J neighbors of atom I
+  //   done in a randomized permutation, via neighbor_permutation()
+  // J must be on-processor (J < nlocal)
+  // I,J must be in fix group
+  // I,J must have same molecule IDs
+  //   use case 1 (see doc page):
+  //     if user defines mol IDs appropriately for linear chains,
+  //     this will mean they are same distance from (either) chain end
+  //   use case 2 (see doc page):
+  //     if user defines a unique mol ID for desired bond sites (on any chain)
+  //     and defines the fix group as these sites,
+  //     this will mean they are eligible bond sites
 
   int ntest = static_cast<int> (fraction * neligible);
   int accept = 0;
@@ -279,30 +291,38 @@ void FixBondSwap::post_integrate()
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    neighbor_permutation(jnum);
+
     for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+      j = jlist[permute[jj]];
       j &= NEIGHMASK;
       if (j >= nlocal) continue;
       if ((mask[j] & groupbit) == 0) continue;
       if (molecule[i] != molecule[j]) continue;
 
-      // look at all bond partners of atoms i and j
-      // use num_bond for this, not special list, so also find bondtypes
-      // inext,jnext = bonded atoms
+      // loop over all bond partners of atoms I and J
+      // use num_bond for this, not special list, so also have bondtypes
+      // inext,jnext = atoms bonded to I,J
       // inext,jnext must be on-processor (inext,jnext < nlocal)
-      // inext,jnext must be same dist from chain end (mol[inext] = mol[jnext])
-      // since swaps may occur between two ends of a single chain, insure
-      //   the 4 atoms are unique (no duplicates): inext != jnext, inext != j
+      // inext,jnext must be in fix group
+      // inext,jnext must have same molecule IDs
+      //   in use cases above ...
+      //   for case 1: this insures chain length is preserved
+      //   for case 2: always satisfied b/c fix group = bond-able atoms
+      // 4 atoms must be unique (no duplicates): inext != jnext, inext != j
+      //   already know i != inext, j != jnext
       // all 4 old and new bonds must have length < cutoff
 
       for (ibond = 0; ibond < num_bond[i]; ibond++) {
         inext = atom->map(bond_atom[i][ibond]);
         if (inext >= nlocal || inext < 0) continue;
+        if ((mask[inext] & groupbit) == 0) continue;
         ibondtype = bond_type[i][ibond];
 
         for (jbond = 0; jbond < num_bond[j]; jbond++) {
           jnext = atom->map(bond_atom[j][jbond]);
           if (jnext >= nlocal || jnext < 0) continue;
+          if ((mask[jnext] & groupbit) == 0) continue;
           jbondtype = bond_type[j][jbond];
 
           if (molecule[inext] != molecule[jnext]) continue;
@@ -315,7 +335,7 @@ void FixBondSwap::post_integrate()
           // if angles are enabled:
           // find other atoms i,inext,j,jnext are in angles with
           //   and angletypes: i/j angletype, i/j nextangletype
-          // use num_angle for this, not special list, so also find angletypes
+          // use num_angle for this, not special list, so also have angletypes
           // 4 atoms consecutively along 1st chain: iprev,i,inext,ilast
           // 4 atoms consecutively along 2nd chain: jprev,j,jnext,jlast
           // prev or last atom can be non-existent at end of chain
@@ -429,6 +449,7 @@ void FixBondSwap::post_integrate()
             factor = exp(-delta/force->boltz/t_current);
             if (random->uniform() < factor) accept = 1;
           }
+
           goto done;
         }
       }
@@ -437,7 +458,7 @@ void FixBondSwap::post_integrate()
 
  done:
 
-  // trigger immediate reneighboring if any swaps occurred
+  // trigger immediate reneighboring if swaps occurred on one or more procs
 
   int accept_any;
   MPI_Allreduce(&accept,&accept_any,1,MPI_INT,MPI_SUM,world);
@@ -446,6 +467,10 @@ void FixBondSwap::post_integrate()
   if (!accept) return;
   naccept++;
 
+  // find instances of bond/history to reset history
+  auto histories = modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
+
   // change bond partners of affected atoms
   // on atom i: bond i-inext changes to i-jnext
   // on atom j: bond j-jnext changes to j-inext
@@ -453,13 +478,33 @@ void FixBondSwap::post_integrate()
   // on atom jnext: bond jnext-j changes to jnext-i
 
   for (ibond = 0; ibond < num_bond[i]; ibond++)
-    if (bond_atom[i][ibond] == tag[inext]) bond_atom[i][ibond] = tag[jnext];
+    if (bond_atom[i][ibond] == tag[inext]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,ibond);
+      bond_atom[i][ibond] = tag[jnext];
+    }
   for (jbond = 0; jbond < num_bond[j]; jbond++)
-    if (bond_atom[j][jbond] == tag[jnext]) bond_atom[j][jbond] = tag[inext];
+    if (bond_atom[j][jbond] == tag[jnext]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(j,jbond);
+      bond_atom[j][jbond] = tag[inext];
+    }
   for (ibond = 0; ibond < num_bond[inext]; ibond++)
-    if (bond_atom[inext][ibond] == tag[i]) bond_atom[inext][ibond] = tag[j];
+    if (bond_atom[inext][ibond] == tag[i]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(inext,ibond);
+      bond_atom[inext][ibond] = tag[j];
+    }
   for (jbond = 0; jbond < num_bond[jnext]; jbond++)
-    if (bond_atom[jnext][jbond] == tag[j]) bond_atom[jnext][jbond] = tag[i];
+    if (bond_atom[jnext][jbond] == tag[j]) {
+      if (n_histories > 0)
+        for (auto &ihistory: histories)
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(jnext,jbond);
+      bond_atom[jnext][jbond] = tag[i];
+    }
 
   // set global tags of 4 atoms in bonds
 
@@ -648,10 +693,8 @@ int FixBondSwap::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    delete[] id_temp;
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -714,6 +757,34 @@ double FixBondSwap::angle_eng(int atype, int i, int j, int k)
 }
 
 /* ----------------------------------------------------------------------
+   create a random permutation of one atom's N neighbor list atoms
+   uses one-pass Fisher-Yates shuffle on an initial identity permutation
+   output: randomized permute[] vector, used to index neighbors
+------------------------------------------------------------------------- */
+
+void FixBondSwap::neighbor_permutation(int n)
+{
+  int i,j,tmp;
+
+  if (n > maxpermute) {
+    delete[] permute;
+    maxpermute = n + DELTA_PERMUTE;
+    permute = new int[maxpermute];
+  }
+
+  // Fisher-Yates shuffle
+
+  for (i = 0; i < n; i++) permute[i] = i;
+
+  for (i = 0; i < n-1; i++) {
+    j = i + static_cast<int> (random->uniform() * (n-i));
+    tmp = permute[i];
+    permute[i] = permute[j];
+    permute[j] = tmp;
+  }
+}
+
+/* ----------------------------------------------------------------------
    return bond swapping stats
    n = 1 is # of swaps
    n = 2 is # of attempted swaps
@@ -734,6 +805,6 @@ double FixBondSwap::compute_vector(int n)
 
 double FixBondSwap::memory_usage()
 {
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   return bytes;
 }

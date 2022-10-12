@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,8 +14,8 @@
 
 // Park/Miller RNG
 
-#include <cmath>
 #include "random_park.h"
+#include <cmath>
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -93,7 +94,7 @@ void RanPark::reset(int ibase, double *coord)
 {
   int i;
 
-  char *str = (char *) &ibase;
+  auto str = (char *) &ibase;
   int n = sizeof(int);
 
   unsigned int hash = 0;

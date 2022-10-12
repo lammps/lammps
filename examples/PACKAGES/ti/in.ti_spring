@@ -1,0 +1,59 @@
+# Rodrigo Freitas - rodrigof@berkeley.edu
+#
+# Description: nonequilibrium thermodynamic integration. Further details in:
+# R. Freitas, M. Asta, and M. de Koning, Computational Materials Science, (2016)
+# https://doi.org/10.1016/j.commatsci.2015.10.050
+
+
+#--------------------------- System setup -------------------------------------#
+  units             metal
+  lattice           fcc 3.621
+  region            sim_box block 0 4 0 4 0 4
+  create_box        1 sim_box
+  create_atoms      1 box
+
+  pair_style        eam/alloy
+  pair_coeff        * * ../../../../potentials/Cu_mishin1.eam.alloy Cu
+#------------------------------------------------------------------------------#
+
+
+#---------------------- Simulation setup --------------------------------------#
+  # The order of the fix commands is important: thermostat AFTER thermodynamic integration force interpolation.
+  fix               f1 all nve
+  fix               f2 all ti/spring 3.728 2000 1000 function 2
+  fix               f3 all langevin 100.0 100.0 0.1 666 zero yes
+
+  # Compute temperature using center-of-mass coordinates.
+  compute           c1 all temp/com
+  fix_modify        f3 temp c1
+
+  # Output variables.
+  variable          step    equal step
+  variable          dU      equal pe-f_f2 # Used on the integration.
+  variable          lambda  equal f_f2[1] # For reference or integration.
+  variable          dlambda equal f_f2[2] # For reference or integration.
+
+  # Thermo output.
+  thermo_style      custom step pe
+  thermo            100
+#------------------------------------------------------------------------------#
+
+
+#------------------------- Running the simulation -----------------------------#
+  # Setup initial velocities to accelerate equilibration.
+  velocity          all create 200.0 9999 mom yes rot yes dist gaussian
+
+  # Forward nonequilibrium thermodynamic integration.
+  run               1000 # Equilibrate system at lambda = 0.
+  fix               f4 all print 1 "${step} ${dU} ${lambda} ${dlambda}" & 
+                    screen no file forward.dat title '# step dU lambda dlambda'
+  run               2000 # Lambda switching: 0 -> 1.
+  unfix             f4
+
+  # Backward nonequilibrium thermodynamic integration.
+  run               1000 # Equilibrate system at lambda = 1.
+  fix               f4 all print 1 "${step} ${dU} ${lambda} ${dlambda}" & 
+                    screen no file backward.dat title '# step dU lambda dlambda'
+  run               2000 # Lambda switching: 1 -> 0.
+  unfix             f4
+#------------------------------------------------------------------------------#

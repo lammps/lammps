@@ -1,0 +1,197 @@
+LAMMPS (19 Sep 2019)
+# Ar in metal units
+
+# simulation params in reduced units
+# settable from command line
+# epsilon, sigma, mass set below
+
+variable	x index 5
+variable	y index 5
+variable	z index 5
+variable        rhostar index 0.8842
+variable        dt index 0.005
+variable        cutoff index 2.5
+variable        skin index 0.3
+variable        tinitial index 1.0
+variable        nthermo index 10
+variable        nsteps index 100
+
+# physical constants from update.cpp
+
+variable        kb index 8.617343e-5          # kB in eV/K
+variable        avogadro index 6.02214129e23  # Avogadro's number
+
+# Ar properties in metal units
+
+variable        epskb index 117.7             # LJ epsilon/kB in degrees K
+variable        sigma index 3.504             # LJ sigma in Angstroms
+variable        epsilon equal ${epskb}*${kb}  # LJ epsilon in eV
+variable        epsilon equal 117.7*${kb}  
+variable        epsilon equal 117.7*8.617343e-5  
+variable        mass index 39.95              # mass in g/mole
+
+# scale factors
+
+# sigma = scale factor on distance, converts reduced distance to Angs
+# epsilon = scale factor on energy, converts reduced energy to eV
+# tmpscale = scale factor on temperature, converts reduced temp to degrees K
+# tscale = scale factor on time, converts reduced time to ps
+#   formula is t = t* / sqrt(epsilon/mass/sigma^2), but need t in fs
+#   use epsilon (Joule), mass (kg/atom), sigma (meter) to get t in seconds
+# pscale = scale factor on pressure, converts reduced pressure to bars
+#   formula is P = P* / (sigma^3/epsilon), but need P in atmospheres
+#   use sigma (meter), epsilon (Joule) to get P in nt/meter^2, convert to bars
+
+variable        eVtoJoule index 1.602e-19     # convert eV to Joules
+variable        NtMtoAtm equal 1.0e-5         # convert Nt/meter^2 to bars
+
+variable        tmpscale equal ${epskb}
+variable        tmpscale equal 117.7
+variable        epsilonJ equal ${epsilon}*${eVtoJoule}
+variable        epsilonJ equal 0.010142612711*${eVtoJoule}
+variable        epsilonJ equal 0.010142612711*1.602e-19
+variable        massKgAtom equal ${mass}/1000.0/${avogadro}
+variable        massKgAtom equal 39.95/1000.0/${avogadro}
+variable        massKgAtom equal 39.95/1000.0/6.02214129e23
+variable        sigmaM equal ${sigma}/1.0e10
+variable        sigmaM equal 3.504/1.0e10
+variable        sigmaMsq equal ${sigmaM}*${sigmaM}
+variable        sigmaMsq equal 3.504e-10*${sigmaM}
+variable        sigmaMsq equal 3.504e-10*3.504e-10
+variable        tscale equal 1.0e12/sqrt(${epsilonJ}/${massKgAtom}/${sigmaMsq})
+variable        tscale equal 1.0e12/sqrt(1.6248465563022e-21/${massKgAtom}/${sigmaMsq})
+variable        tscale equal 1.0e12/sqrt(1.6248465563022e-21/6.6338529895236e-26/${sigmaMsq})
+variable        tscale equal 1.0e12/sqrt(1.6248465563022e-21/6.6338529895236e-26/1.2278016e-19)
+variable        sigmaM3 equal ${sigmaM}*${sigmaM}*${sigmaM}
+variable        sigmaM3 equal 3.504e-10*${sigmaM}*${sigmaM}
+variable        sigmaM3 equal 3.504e-10*3.504e-10*${sigmaM}
+variable        sigmaM3 equal 3.504e-10*3.504e-10*3.504e-10
+variable        pscale equal ${NtMtoAtm}/(${sigmaM3}/(${epsilonJ}))
+variable        pscale equal 1e-05/(${sigmaM3}/(${epsilonJ}))
+variable        pscale equal 1e-05/(4.3022168064e-29/(${epsilonJ}))
+variable        pscale equal 1e-05/(4.3022168064e-29/(1.6248465563022e-21))
+
+# variables
+# alat = lattice constant in Angs (at reduced density rhostar)
+# temp = reduced temperature for output
+# epair,emol,etotal = reduced epair,emol,etotal energies for output
+# press = reduced pressure for output
+
+variable        alat equal (4.0*${sigma}*${sigma}*${sigma}/${rhostar})^(1.0/3.0)
+variable        alat equal (4.0*3.504*${sigma}*${sigma}/${rhostar})^(1.0/3.0)
+variable        alat equal (4.0*3.504*3.504*${sigma}/${rhostar})^(1.0/3.0)
+variable        alat equal (4.0*3.504*3.504*3.504/${rhostar})^(1.0/3.0)
+variable        alat equal (4.0*3.504*3.504*3.504/0.8842)^(1.0/3.0)
+variable        temp equal temp/${tmpscale}
+variable        temp equal temp/117.7
+variable        epair equal epair/${epsilon}
+variable        epair equal epair/0.010142612711
+variable        emol equal emol/${epsilon}
+variable        emol equal emol/0.010142612711
+variable        etotal equal etotal/${epsilon}
+variable        etotal equal etotal/0.010142612711
+variable        press equal press/${pscale}
+variable        press equal press/377.676586146256
+
+# same script as in.ar.lj
+
+units		metal
+atom_style	atomic
+
+lattice		fcc ${alat}
+lattice		fcc 5.79518437579763
+Lattice spacing in x,y,z = 5.79518 5.79518 5.79518
+region		box block 0 $x 0 $y 0 $z
+region		box block 0 5 0 $y 0 $z
+region		box block 0 5 0 5 0 $z
+region		box block 0 5 0 5 0 5
+create_box	1 box
+Created orthogonal box = (0 0 0) to (28.9759 28.9759 28.9759)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 500 atoms
+  create_atoms CPU = 0.000674009 secs
+mass		1 ${mass}
+mass		1 39.95
+
+velocity	all create $(v_tinitial*v_epskb) 12345
+velocity	all create 117.70000000000000284 12345
+
+pair_style	lj/cut $(v_cutoff*v_sigma)
+pair_style	lj/cut 8.7599999999999997868
+pair_coeff	1 1 ${epsilon} ${sigma}
+pair_coeff	1 1 0.010142612711 ${sigma}
+pair_coeff	1 1 0.010142612711 3.504
+
+neighbor	$(v_skin*v_sigma) bin
+neighbor	1.0511999999999999122 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+timestep	$(v_dt*v_tscale)
+timestep	0.011194658410003900315
+
+# columns 2,3,4 = temp,pe,press in metal units
+# columns 5-9 = temp,energy.press in reduced units, compare to in.ar.lj
+# need to include metal unit output to enable use of reduced variables
+
+thermo_style    custom step temp pe press v_temp v_epair v_emol v_etotal v_press
+thermo_modify	norm yes
+thermo		${nthermo}
+thermo		10
+
+run		${nsteps}
+run		100
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 9.8112
+  ghost atom cutoff = 9.8112
+  binsize = 4.9056, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.609 | 2.609 | 2.609 Mbytes
+Step Temp PotEng Press v_temp v_epair v_emol v_etotal v_press 
+       0        117.7  -0.07203931   -1934.8523            1   -7.1026383            0   -5.6056383     -5.12304 
+      10    86.648851  -0.06811179   -1166.7855   0.73618395   -6.7154088            0   -5.6133414   -3.0893774 
+      20    42.107954 -0.062497536   -143.06615   0.35775662   -6.1618774            0   -5.6263157  -0.37880598 
+      30    55.484504 -0.064263032   -416.20245   0.47140615   -6.3359445            0   -5.6302495   -1.1020075 
+      40    54.538222 -0.064148334   -414.88071   0.46336637   -6.3246361            0   -5.6309766   -1.0985079 
+      50    57.367693 -0.064511259   -463.67683   0.48740606   -6.3604182            0   -5.6307714   -1.2277087 
+      60    59.828794 -0.064824938   -519.05997   0.50831601   -6.3913451            0    -5.630396   -1.3743504 
+      70    60.014616 -0.064848979   -533.07604   0.50989478   -6.3937154            0   -5.6304029   -1.4114617 
+      80     63.47861 -0.065285885   -622.71073   0.53932549   -6.4367917            0   -5.6294215   -1.6487936 
+      90    65.060881 -0.065484011   -664.99883   0.55276874   -6.4563257            0   -5.6288309   -1.7607627 
+     100    64.637033 -0.065427467   -653.00765   0.54916765   -6.4507508            0   -5.6286468   -1.7290128 
+Loop time of 0.0258265 on 4 procs for 100 steps with 500 atoms
+
+Performance: 3745.060 ns/day, 0.006 hours/ns, 3871.990 timesteps/s
+99.6% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0090213  | 0.012419   | 0.015494   |   2.1 | 48.09
+Neigh   | 0.0013709  | 0.0018765  | 0.0022483  |   0.7 |  7.27
+Comm    | 0.0071132  | 0.010597   | 0.014538   |   2.6 | 41.03
+Output  | 0.00039983 | 0.00042897 | 0.00049567 |   0.0 |  1.66
+Modify  | 0.00024104 | 0.00028801 | 0.00031543 |   0.0 |  1.12
+Other   |            | 0.0002173  |            |       |  0.84
+
+Nlocal:    125 ave 133 max 117 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:    1099 ave 1107 max 1091 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Neighs:    4908.75 ave 5492 max 4644 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 19635
+Ave neighs/atom = 39.27
+Neighbor list builds = 5
+Dangerous builds not checked
+Total wall time: 0:00:00

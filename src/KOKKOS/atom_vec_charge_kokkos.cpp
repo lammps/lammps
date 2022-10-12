@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,27 +12,25 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
 #include "atom_vec_charge_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
 #include "error.h"
+#include "fix.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
-
-#define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
 
 AtomVecChargeKokkos::AtomVecChargeKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 {
-  molecular = 0;
-  mass_type = 1;
+  molecular = Atom::ATOMIC;
+  mass_type = PER_TYPE;
 
   comm_x_only = comm_f_only = 1;
   size_forward = 3;
@@ -58,28 +57,30 @@ AtomVecChargeKokkos::AtomVecChargeKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 
 void AtomVecChargeKokkos::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  auto DELTA = LMP_KOKKOS_AV_DELTA;
+  int step = MAX(DELTA,nmax*0.01);
+  if (n == 0) nmax += step;
   else nmax = n;
   atomKK->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 
-  sync(Device,ALL_MASK);
-  modified(Device,ALL_MASK);
+  atomKK->sync(Device,ALL_MASK);
+  atomKK->modified(Device,ALL_MASK);
 
   memoryKK->grow_kokkos(atomKK->k_tag,atomKK->tag,nmax,"atom:tag");
   memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
   memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
   memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
 
-  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,3,"atom:x");
-  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,3,"atom:v");
-  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,3,"atom:f");
+  memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,"atom:x");
+  memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,"atom:v");
+  memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,"atom:f");
 
   memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
 
-  grow_reset();
-  sync(Host,ALL_MASK);
+  grow_pointers();
+  atomKK->sync(Host,ALL_MASK);
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -90,7 +91,7 @@ void AtomVecChargeKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecChargeKokkos::grow_reset()
+void AtomVecChargeKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -267,7 +268,7 @@ int AtomVecChargeKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
       dy = pbc[1];
       dz = pbc[2];
     }
-    if(space==Host) {
+    if (space==Host) {
       AtomVecChargeKokkos_PackBorder<LMPHostType,1> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_q,dx,dy,dz);
@@ -281,7 +282,7 @@ int AtomVecChargeKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
 
   } else {
     dx = dy = dz = 0;
-    if(space==Host) {
+    if (space==Host) {
       AtomVecChargeKokkos_PackBorder<LMPHostType,0> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_q,dx,dy,dz);
@@ -463,7 +464,7 @@ struct AtomVecChargeKokkos_UnpackBorder {
       typename ArrayTypes<DeviceType>::t_int_1d &mask,
       typename ArrayTypes<DeviceType>::t_float_1d &q,
       const int& first):
-    _buf(buf),_x(x),_tag(tag),_type(type),_mask(mask),_q(q),_first(first){
+    _buf(buf),_x(x),_tag(tag),_type(type),_mask(mask),_q(q),_first(first) {
   };
 
   KOKKOS_INLINE_FUNCTION
@@ -485,7 +486,7 @@ void AtomVecChargeKokkos::unpack_border_kokkos(const int &n, const int &first,
   if (first+n >= nmax) {
     grow(first+n+100);
   }
-  if(space==Host) {
+  if (space==Host) {
     struct AtomVecChargeKokkos_UnpackBorder<LMPHostType>
       f(buf.view<LMPHostType>(),h_x,h_tag,h_type,h_mask,h_q,first);
     Kokkos::parallel_for(n,f);
@@ -494,7 +495,7 @@ void AtomVecChargeKokkos::unpack_border_kokkos(const int &n, const int &first,
       f(buf.view<LMPDeviceType>(),d_x,d_tag,d_type,d_mask,d_q,first);
     Kokkos::parallel_for(n,f);
   }
-  modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -505,12 +506,9 @@ void AtomVecChargeKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
 
   for (i = first; i < last; i++) {
-    if (i == nmax) {
-      grow(0);
-    }
-    modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -519,6 +517,8 @@ void AtomVecChargeKokkos::unpack_border(int n, int first, double *buf)
     h_mask(i) = (int) ubuf(buf[m++]).i;
     h_q[i] = buf[m++];
   }
+
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -534,9 +534,9 @@ void AtomVecChargeKokkos::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
-    modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -548,6 +548,8 @@ void AtomVecChargeKokkos::unpack_border_vel(int n, int first, double *buf)
     h_v(i,1) = buf[m++];
     h_v(i,2) = buf[m++];
   }
+
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|V_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -618,7 +620,7 @@ struct AtomVecChargeKokkos_PackExchangeFunctor {
     _sendlist(sendlist.template view<DeviceType>()),
     _copylist(copylist.template view<DeviceType>()),
     _nlocal(nlocal),_dim(dim),
-    _lo(lo),_hi(hi){
+    _lo(lo),_hi(hi) {
     const size_t elements = 12;
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
                              buf.template view<DeviceType>().extent(1))/elements;
@@ -643,7 +645,7 @@ struct AtomVecChargeKokkos_PackExchangeFunctor {
     _buf(mysend,11) = _q[i];
     const int j = _copylist(mysend);
 
-    if(j>-1) {
+    if (j>-1) {
     _xw(i,0) = _x(j,0);
     _xw(i,1) = _x(j,1);
     _xw(i,2) = _x(j,2);
@@ -667,11 +669,11 @@ int AtomVecChargeKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat
                                               ExecutionSpace space,int dim,
                                               X_FLOAT lo,X_FLOAT hi )
 {
-  if(nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/12) {
+  if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/12) {
     int newsize = nsend*12/k_buf.view<LMPHostType>().extent(1)+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
-  if(space == Host) {
+  if (space == Host) {
     AtomVecChargeKokkos_PackExchangeFunctor<LMPHostType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
@@ -740,7 +742,7 @@ struct AtomVecChargeKokkos_UnpackExchangeFunctor {
     _image(atom->k_image.view<DeviceType>()),
     _q(atom->k_q.view<DeviceType>()),
     _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
-    _lo(lo),_hi(hi){
+    _lo(lo),_hi(hi) {
     const size_t elements = 12;
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
 
@@ -772,7 +774,9 @@ struct AtomVecChargeKokkos_UnpackExchangeFunctor {
 int AtomVecChargeKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
                                                 int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
                                                 ExecutionSpace space) {
-  if(space == Host) {
+  while (nlocal + nrecv/12 >= nmax) grow(0);
+
+  if (space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecChargeKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
     Kokkos::parallel_for(nrecv/12,f);
@@ -797,7 +801,7 @@ int AtomVecChargeKokkos::unpack_exchange(double *buf)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK | Q_MASK);
 
   int m = 1;
@@ -850,7 +854,7 @@ int AtomVecChargeKokkos::size_restart()
 
 int AtomVecChargeKokkos::pack_restart(int i, double *buf)
 {
-  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
             MASK_MASK | IMAGE_MASK | Q_MASK);
 
   int m = 1;
@@ -888,7 +892,7 @@ int AtomVecChargeKokkos::unpack_restart(double *buf)
       memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
 
-  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
            MASK_MASK | IMAGE_MASK | Q_MASK);
 
   int m = 1;
@@ -953,17 +957,18 @@ void AtomVecChargeKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecChargeKokkos::data_atom(double *coord, imageint imagetmp,
-                                    char **values)
+                                    const std::vector<std::string> &values, std::string &extract)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
 
-  h_tag[nlocal] = atoi(values[0]);
-  h_type[nlocal] = atoi(values[1]);
+  h_tag[nlocal] = utils::inumeric(FLERR,values[0],true,lmp);
+  h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
+  extract = values[1];
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
-  h_q[nlocal] = atof(values[2]);
+  h_q[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
 
   h_x(nlocal,0) = coord[0];
   h_x(nlocal,1) = coord[1];
@@ -985,9 +990,10 @@ void AtomVecChargeKokkos::data_atom(double *coord, imageint imagetmp,
    initialize other atom quantities for this sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecChargeKokkos::data_atom_hybrid(int nlocal, char **values)
+int AtomVecChargeKokkos::data_atom_hybrid(int nlocal, const std::vector<std::string> &values,
+                                          int offset)
 {
-  h_q[nlocal] = atof(values[0]);
+  h_q[nlocal] = utils::numeric(FLERR,values[offset],true,lmp);
 
   return 1;
 }
@@ -1047,9 +1053,9 @@ int AtomVecChargeKokkos::write_data_hybrid(FILE *fp, double *buf)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecChargeKokkos::memory_usage()
+double AtomVecChargeKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
 
   if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
   if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
@@ -1131,7 +1137,7 @@ void AtomVecChargeKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
-    if ((mask & MOLECULE_MASK) && atomKK->k_q.need_sync<LMPDeviceType>())
+    if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
   } else {
     if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPHostType>())
@@ -1148,7 +1154,7 @@ void AtomVecChargeKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
-    if ((mask & MOLECULE_MASK) && atomKK->k_q.need_sync<LMPHostType>())
+    if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
   }
 }

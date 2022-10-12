@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -43,43 +44,26 @@
 
 #ifndef KOKKOS_CORE_HPP
 #define KOKKOS_CORE_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#endif
 
 //----------------------------------------------------------------------------
 // Include the execution space header files for the enabled execution spaces.
 
 #include <Kokkos_Core_fwd.hpp>
 
-#if defined( KOKKOS_ENABLE_SERIAL )
-#include <Kokkos_Serial.hpp>
-#endif
+#include <KokkosCore_Config_DeclareBackend.hpp>
 
-#if defined( KOKKOS_ENABLE_OPENMP )
-#include <Kokkos_OpenMP.hpp>
-#endif
-
-//#if defined( KOKKOS_ENABLE_OPENMPTARGET )
-#include <Kokkos_OpenMPTarget.hpp>
-#include <Kokkos_OpenMPTargetSpace.hpp>
-//#endif
-
-#if defined( KOKKOS_ENABLE_QTHREADS )
-#include <Kokkos_Qthreads.hpp>
-#endif
-
-#if defined( KOKKOS_ENABLE_THREADS )
-#include <Kokkos_Threads.hpp>
-#endif
-
-#if defined( KOKKOS_ENABLE_CUDA )
-#include <Kokkos_Cuda.hpp>
-#endif
-
-#if defined( KOKKOS_ENABLE_ROCM )
-#include <Kokkos_ROCm.hpp>
-#endif
-
+#include <Kokkos_Half.hpp>
 #include <Kokkos_AnonymousSpace.hpp>
+#include <Kokkos_LogicalSpaces.hpp>
 #include <Kokkos_Pair.hpp>
+#include <Kokkos_MinMaxClamp.hpp>
+#include <Kokkos_MathematicalConstants.hpp>
+#include <Kokkos_MathematicalFunctions.hpp>
+#include <Kokkos_MathematicalSpecialFunctions.hpp>
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
@@ -87,46 +71,42 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_hwloc.hpp>
 #include <Kokkos_Timer.hpp>
-
+#include <Kokkos_Tuners.hpp>
+#include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Complex.hpp>
-
 #include <Kokkos_CopyViews.hpp>
+#include <impl/Kokkos_InitializationSettings.hpp>
 #include <functional>
 #include <iosfwd>
+#include <memory>
+#include <vector>
 
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 
-struct InitArguments {
-  int num_threads;
-  int num_numa;
-  int device_id;
-  int ndevices;
-  int skip_device;
-  bool disable_warnings;
+void initialize(int& argc, char* argv[]);
 
-  InitArguments( int nt = -1
-               , int nn = -1
-               , int dv = -1
-               , bool dw = false
-               )
-    : num_threads{ nt }
-    , num_numa{ nn }
-    , device_id{ dv }
-    , ndevices{ -1 }
-    , skip_device{ 9999 }
-    , disable_warnings{ dw }
-  {}
-};
+void initialize(
+    InitializationSettings const& settings = InitializationSettings());
 
-void initialize(int& narg, char* arg[]);
+namespace Impl {
 
-void initialize(const InitArguments& args = InitArguments());
+void pre_initialize(const InitializationSettings& settings);
 
-bool is_initialized() noexcept;
+void post_initialize(const InitializationSettings& settings);
+
+void declare_configuration_metadata(const std::string& category,
+                                    const std::string& key,
+                                    const std::string& value);
+
+}  // namespace Impl
+
+KOKKOS_ATTRIBUTE_NODISCARD bool is_initialized() noexcept;
+KOKKOS_ATTRIBUTE_NODISCARD bool is_finalized() noexcept;
 
 bool show_warnings() noexcept;
+bool tune_internals() noexcept;
 
 /** \brief  Finalize the spaces that were initialized via Kokkos::initialize */
 void finalize();
@@ -153,15 +133,15 @@ void finalize();
  */
 void push_finalize_hook(std::function<void()> f);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 /** \brief  Finalize all known execution spaces */
-void finalize_all();
-
-void fence();
+KOKKOS_DEPRECATED void finalize_all();
+#endif
 
 /** \brief Print "Bill of Materials" */
-void print_configuration( std::ostream & , const bool detail = false );
+void print_configuration(std::ostream& os, bool verbose = false);
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -172,98 +152,254 @@ namespace Kokkos {
  * The allocation is tracked in Kokkos memory tracking system, so
  * leaked memory can be identified.
  */
-template< class Space = typename Kokkos::DefaultExecutionSpace::memory_space >
-inline
-void * kokkos_malloc( const std::string & arg_alloc_label
-                    , const size_t arg_alloc_size )
-{
-  typedef typename Space::memory_space MemorySpace ;
-  return Impl::SharedAllocationRecord< MemorySpace >::
-    allocate_tracked( MemorySpace() , arg_alloc_label , arg_alloc_size );
+template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
+inline void* kokkos_malloc(const std::string& arg_alloc_label,
+                           const size_t arg_alloc_size) {
+  using MemorySpace = typename Space::memory_space;
+  return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
+      MemorySpace(), arg_alloc_label, arg_alloc_size);
 }
 
-template< class Space = typename Kokkos::DefaultExecutionSpace::memory_space >
-inline
-void * kokkos_malloc( const size_t arg_alloc_size )
-{
-  typedef typename Space::memory_space MemorySpace ;
-  return Impl::SharedAllocationRecord< MemorySpace >::
-    allocate_tracked( MemorySpace() , "no-label" , arg_alloc_size );
+template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
+inline void* kokkos_malloc(const size_t arg_alloc_size) {
+  using MemorySpace = typename Space::memory_space;
+  return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
+      MemorySpace(), "no-label", arg_alloc_size);
 }
 
-template< class Space = typename Kokkos::DefaultExecutionSpace::memory_space >
-inline
-void kokkos_free( void * arg_alloc )
-{
-  typedef typename Space::memory_space MemorySpace ;
-  return Impl::SharedAllocationRecord< MemorySpace >::
-    deallocate_tracked( arg_alloc );
+template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
+inline void kokkos_free(void* arg_alloc) {
+  using MemorySpace = typename Space::memory_space;
+  return Impl::SharedAllocationRecord<MemorySpace>::deallocate_tracked(
+      arg_alloc);
 }
 
-template< class Space = typename Kokkos::DefaultExecutionSpace::memory_space >
-inline
-void * kokkos_realloc( void * arg_alloc , const size_t arg_alloc_size )
-{
-  typedef typename Space::memory_space MemorySpace ;
-  return Impl::SharedAllocationRecord< MemorySpace >::
-    reallocate_tracked( arg_alloc , arg_alloc_size );
+template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
+inline void* kokkos_realloc(void* arg_alloc, const size_t arg_alloc_size) {
+  using MemorySpace = typename Space::memory_space;
+  return Impl::SharedAllocationRecord<MemorySpace>::reallocate_tracked(
+      arg_alloc, arg_alloc_size);
 }
 
-} // namespace Kokkos
+}  // namespace Kokkos
 
 namespace Kokkos {
 
 /** \brief  ScopeGuard
- *  Some user scope issues have been identified with some Kokkos::finalize calls;
- *  ScopeGuard aims to correct these issues.
+ *  Some user scope issues have been identified with some Kokkos::finalize
+ * calls; ScopeGuard aims to correct these issues.
  *
- *  Two requirements for ScopeGuard: 
- *     if Kokkos::is_initialized() in the constructor, don't call Kokkos::initialize or Kokkos::finalize
- *     it is not copyable or assignable
+ *  Two requirements for ScopeGuard:
+ *     if Kokkos::is_initialized() in the constructor, don't call
+ * Kokkos::initialize or Kokkos::finalize it is not copyable or assignable
  */
+namespace Impl {
 
-class ScopeGuard {
-public:
-  ScopeGuard ( int& narg, char* arg[] )
-  {
-    sg_init = false; 
-    if ( ! Kokkos::is_initialized() ) { 
-      initialize( narg, arg );
+inline std::string scopeguard_correct_usage() {
+  return std::string(
+      "Do instead:\n"
+      "  std::unique_ptr<Kokkos::ScopeGuard> guard =\n"
+      "    !Kokkos::is_initialized() && !Kokkos::is_finalized()?\n"
+      "    new ScopeGuard(argc,argv) : nullptr;\n");
+}
+
+inline std::string scopeguard_create_while_initialized_warning() {
+  return std::string(
+             "Kokkos Error: Creating a ScopeGuard while Kokkos is initialized "
+             "is illegal.\n")
+      .append(scopeguard_correct_usage());
+}
+
+inline std::string scopeguard_create_after_finalize_warning() {
+  return std::string(
+             "Kokkos Error: Creating a ScopeGuard after Kokkos was finalized "
+             "is illegal.\n")
+      .append(scopeguard_correct_usage());
+}
+
+inline std::string scopeguard_destruct_after_finalize_warning() {
+  return std::string(
+             "Kokkos Error: Destroying a ScopeGuard after Kokkos was finalized "
+             "is illegal.\n")
+      .append(scopeguard_correct_usage());
+}
+
+}  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+class KOKKOS_ATTRIBUTE_NODISCARD ScopeGuard {
+ public:
+#if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) >= 201907
+  KOKKOS_ATTRIBUTE_NODISCARD
+#endif
+  ScopeGuard(int& argc, char* argv[]) {
+    sg_init = false;
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    if (is_initialized()) {
+      std::cerr << Impl::scopeguard_create_while_initialized_warning()
+                << std::endl;
+    }
+    if (is_finalized()) {
+      std::cerr << Impl::scopeguard_create_after_finalize_warning()
+                << std::endl;
+    }
+#endif
+    if (!is_initialized()) {
+      initialize(argc, argv);
       sg_init = true;
     }
   }
 
-  ScopeGuard ( const InitArguments& args = InitArguments() )
-  {
-    sg_init = false; 
-    if ( ! Kokkos::is_initialized() ) { 
-      initialize( args );
+#if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) >= 201907
+  KOKKOS_ATTRIBUTE_NODISCARD
+#endif
+  explicit ScopeGuard(
+      const InitializationSettings& settings = InitializationSettings()) {
+    sg_init = false;
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    if (is_initialized()) {
+      std::cerr << Impl::scopeguard_create_while_initialized_warning()
+                << std::endl;
+    }
+    if (is_finalized()) {
+      std::cerr << Impl::scopeguard_create_after_finalize_warning()
+                << std::endl;
+    }
+#endif
+    if (!is_initialized()) {
+      initialize(settings);
       sg_init = true;
     }
   }
 
-  ~ScopeGuard( )
-  {
-    if ( Kokkos::is_initialized() && sg_init) { 
-      finalize(); 
+  ~ScopeGuard() {
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    if (is_finalized()) {
+      std::cerr << Impl::scopeguard_destruct_after_finalize_warning()
+                << std::endl;
+    }
+#endif
+    if (is_initialized() && sg_init) {
+      finalize();
     }
   }
 
-//private:
-  bool sg_init;    
+ private:
+  bool sg_init;
 
-  ScopeGuard& operator=( const ScopeGuard& ) = delete;
-  ScopeGuard( const ScopeGuard& ) = delete;
-
+ public:
+  ScopeGuard& operator=(const ScopeGuard&) = delete;
+  ScopeGuard& operator=(ScopeGuard&&) = delete;
+  ScopeGuard(const ScopeGuard&)       = delete;
+  ScopeGuard(ScopeGuard&&)            = delete;
 };
 
-} // namespace Kokkos
+#else  // ifndef KOKKOS_ENABLE_DEPRECATED_CODE3
+
+class KOKKOS_ATTRIBUTE_NODISCARD ScopeGuard {
+ public:
+#if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) >= 201907
+  KOKKOS_ATTRIBUTE_NODISCARD
+#endif
+  ScopeGuard(int& argc, char* argv[]) {
+    if (is_initialized()) {
+      Kokkos::abort(
+          Impl::scopeguard_create_while_initialized_warning().c_str());
+    }
+    if (is_finalized()) {
+      Kokkos::abort(Impl::scopeguard_create_after_finalize_warning().c_str());
+    }
+    initialize(argc, argv);
+  }
+
+#if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) >= 201907
+  KOKKOS_ATTRIBUTE_NODISCARD
+#endif
+  ScopeGuard(
+      const InitializationSettings& settings = InitializationSettings()) {
+    if (is_initialized()) {
+      Kokkos::abort(
+          Impl::scopeguard_create_while_initialized_warning().c_str());
+    }
+    if (is_finalized()) {
+      Kokkos::abort(Impl::scopeguard_create_after_finalize_warning().c_str());
+    }
+    initialize(settings);
+  }
+
+  ~ScopeGuard() {
+    if (is_finalized()) {
+      Kokkos::abort(Impl::scopeguard_destruct_after_finalize_warning().c_str());
+    }
+    finalize();
+  }
+
+  ScopeGuard& operator=(const ScopeGuard&) = delete;
+  ScopeGuard& operator=(ScopeGuard&&) = delete;
+  ScopeGuard(const ScopeGuard&)       = delete;
+  ScopeGuard(ScopeGuard&&)            = delete;
+};
+#endif
+
+}  // namespace Kokkos
+
+namespace Kokkos {
+namespace Experimental {
+// Partitioning an Execution Space: expects space and integer arguments for
+// relative weight
+//   Customization point for backends
+//   Default behavior is to return the passed in instance
+template <class ExecSpace, class... Args>
+std::vector<ExecSpace> partition_space(ExecSpace space, Args...) {
+  static_assert(is_execution_space<ExecSpace>::value,
+                "Kokkos Error: partition_space expects an Execution Space as "
+                "first argument");
+#ifdef __cpp_fold_expressions
+  static_assert(
+      (... && std::is_arithmetic_v<Args>),
+      "Kokkos Error: partitioning arguments must be integers or floats");
+#endif
+  std::vector<ExecSpace> instances(sizeof...(Args));
+  for (int s = 0; s < int(sizeof...(Args)); s++) instances[s] = space;
+  return instances;
+}
+
+template <class ExecSpace, class T>
+std::vector<ExecSpace> partition_space(ExecSpace space,
+                                       std::vector<T>& weights) {
+  static_assert(is_execution_space<ExecSpace>::value,
+                "Kokkos Error: partition_space expects an Execution Space as "
+                "first argument");
+  static_assert(
+      std::is_arithmetic<T>::value,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+
+  std::vector<ExecSpace> instances(weights.size());
+  for (int s = 0; s < int(weights.size()); s++) instances[s] = space;
+  return instances;
+}
+}  // namespace Experimental
+}  // namespace Kokkos
 
 #include <Kokkos_Crs.hpp>
 #include <Kokkos_WorkGraphPolicy.hpp>
+// Including this in Kokkos_Parallel_Reduce.hpp led to a circular dependency
+// because Kokkos::Sum is used in Kokkos_Combined_Reducer.hpp and the default.
+// The real answer is to finally break up Kokkos_Parallel_Reduce.hpp into
+// smaller parts...
+#include <impl/Kokkos_Combined_Reducer.hpp>
+// Yet another workaround to deal with circular dependency issues because the
+// implementation of the RAII wrapper is using Kokkos::single.
+#include <Kokkos_AcquireUniqueTokenImpl.hpp>
+
+// Specializations required after core definitions
+#include <KokkosCore_Config_PostInclude.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
 #endif
-
+#endif

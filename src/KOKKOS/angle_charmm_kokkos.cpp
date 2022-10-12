@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +16,17 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_charmm_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -43,6 +43,8 @@ AngleCharmmKokkos<DeviceType>::AngleCharmmKokkos(LAMMPS *lmp) : AngleCharmm(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,21 +74,21 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<DeviceType>();
+      d_eatom = k_eatom.template view<KKDeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"improper:vatom");
-      d_vatom = k_vatom.template view<DeviceType>();
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
+      d_vatom = k_vatom.template view<KKDeviceType>();
     //}
   }
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   neighborKK->k_anglelist.template sync<DeviceType>();
-  anglelist = neighborKK->k_anglelist.view<DeviceType>();
+  anglelist = neighborKK->k_anglelist.view<KKDeviceType>();
   int nanglelist = neighborKK->nanglelist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
@@ -265,10 +267,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   AngleCharmm::coeff(narg, arg);
 
   int n = atom->nangletypes;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("AngleCharmm::k",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_theta0("AngleCharmm::theta0",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
+  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
+  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
+  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
+  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
@@ -303,10 +305,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   AngleCharmm::read_restart(fp);
 
   int n = atom->nangletypes;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k("AngleCharmm::k",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_theta0("AngleCharmm::theta0",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k_ub("AngleCharmm::k_ub",n+1);
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_r_ub("AngleCharmm::r_ub",n+1);
+  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
+  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
+  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
+  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
@@ -446,7 +448,7 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
 
 namespace LAMMPS_NS {
 template class AngleCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class AngleCharmmKokkos<LMPHostType>;
 #endif
 }

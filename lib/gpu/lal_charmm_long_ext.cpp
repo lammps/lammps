@@ -60,7 +60,7 @@ int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
   int init_ok=0;
   if (world_me==0)
     CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                offset, special_lj, inum, nall, 300, maxspecial, cell_size,
+                offset, special_lj, inum, nall, max_nbors, maxspecial, cell_size,
                 gpu_split, screen, host_cut_ljsq, host_cut_coulsq,
                 host_special_coul, qqrd2e, g_ewald, cut_lj_innersq, denom_lj,
                 epsilon,sigma,mix_arithmetic);
@@ -80,13 +80,13 @@ int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3,
-                          host_lj4, offset, special_lj, inum, nall, 300,
+                          host_lj4, offset, special_lj, inum, nall, max_nbors,
                           maxspecial, cell_size, gpu_split, screen,
                           host_cut_ljsq, host_cut_coulsq, host_special_coul,
                           qqrd2e, g_ewald,  cut_lj_innersq, denom_lj, epsilon,
                           sigma, mix_arithmetic);
 
-    CRMLMF.device->gpu_barrier();
+    CRMLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,30 +12,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "compute_global_atom.h"
+
+#include "arg_info.h"
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "force.h"
-#include "comm.h"
-#include "group.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "fix.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
 using namespace LAMMPS_NS;
 
-enum{COMPUTE,FIX,VARIABLE};
 enum{VECTOR,ARRAY};
 
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
 
 #define BIG 1.0e20
 
@@ -42,8 +35,8 @@ enum{VECTOR,ARRAY};
 
 ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idref(NULL), which(NULL), argindex(NULL), value2index(NULL), ids(NULL),
-  indices(NULL), varatom(NULL), vecglobal(NULL)
+  idref(nullptr), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr),
+  indices(nullptr), varatom(nullptr), vecglobal(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute global/atom command");
 
@@ -52,31 +45,15 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   // process index arg
 
   int iarg = 3;
+  ArgInfo argi(arg[iarg]);
 
-  if (strncmp(arg[iarg],"c_",2) == 0 ||
-      strncmp(arg[iarg],"f_",2) == 0 ||
-      strncmp(arg[iarg],"v_",2) == 0) {
-    if (arg[iarg][0] == 'c') whichref = COMPUTE;
-    else if (arg[iarg][0] == 'f') whichref = FIX;
-    else if (arg[iarg][0] == 'v') whichref = VARIABLE;
+  whichref = argi.get_type();
+  indexref = argi.get_index1();
+  idref = argi.copy_name();
 
-    int n = strlen(arg[iarg]);
-    char *suffix = new char[n];
-    strcpy(suffix,&arg[iarg][2]);
-
-    char *ptr = strchr(suffix,'[');
-    if (ptr) {
-      if (suffix[strlen(suffix)-1] != ']')
-        error->all(FLERR,"Illegal compute global/atom command");
-      indexref = atoi(ptr+1);
-      *ptr = '\0';
-    } else indexref = 0;
-
-    n = strlen(suffix) + 1;
-    idref = new char[n];
-    strcpy(idref,suffix);
-    delete [] suffix;
-  } else error->all(FLERR,"Illegal compute global/atom command");
+  if ((whichref == ArgInfo::UNKNOWN) || (whichref == ArgInfo::NONE)
+      || (argi.get_dim() > 1))
+    error->all(FLERR,"Illegal compute global/atom command");
 
   iarg++;
 
@@ -84,7 +61,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
@@ -97,37 +74,18 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[nargnew];
   nvalues = 0;
 
-  iarg = 0;
-  while (iarg < nargnew) {
-    ids[nvalues] = NULL;
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0 ||
-        strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+  for (iarg = 0; iarg < nargnew; iarg++) {
+    ArgInfo argi2(arg[iarg]);
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+    which[nvalues] = argi2.get_type();
+    argindex[nvalues] = argi2.get_index1();
+    ids[nvalues] = argi2.copy_name();
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal compute global/atom command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
+    if ((which[nvalues] == ArgInfo::UNKNOWN) || (which[nvalues] == ArgInfo::NONE)
+        || (argi2.get_dim() > 1))
+      error->all(FLERR,"Illegal compute slice command");
 
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      nvalues++;
-      delete [] suffix;
-
-    } else error->all(FLERR,"Illegal compute global/atom command");
-
-    iarg++;
+    nvalues++;
   }
 
   // if wildcard expansion occurred, free earg memory from expand_args()
@@ -139,7 +97,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // setup and error check both index arg and values
 
-  if (whichref == COMPUTE) {
+  if (whichref == ArgInfo::COMPUTE) {
     int icompute = modify->find_compute(idref);
     if (icompute < 0)
       error->all(FLERR,"Compute ID for compute global/atom does not exist");
@@ -158,25 +116,20 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,
                  "Compute global/atom compute array is accessed out-of-range");
 
-  } else if (whichref == FIX) {
-    int ifix = modify->find_fix(idref);
-    if (ifix < 0)
-      error->all(FLERR,"Fix ID for compute global/atom does not exist");
-    if (!modify->fix[ifix]->peratom_flag)
-      error->all(FLERR,"Compute global/atom fix does not "
-                 "calculate a per-atom vector or array");
-    if (indexref == 0 &&
-        modify->fix[ifix]->size_peratom_cols != 0)
-      error->all(FLERR,"Compute global/atom fix does not "
-                 "calculate a per-atom vector");
-    if (indexref && modify->fix[ifix]->size_peratom_cols == 0)
-      error->all(FLERR,"Compute global/atom fix does not "
-                 "calculate a per-atom array");
-    if (indexref && indexref > modify->fix[ifix]->size_peratom_cols)
-      error->all(FLERR,
-                 "Compute global/atom fix array is accessed out-of-range");
+  } else if (whichref == ArgInfo::FIX) {
+    auto ifix = modify->get_fix_by_id(idref);
+    if (!ifix)
+      error->all(FLERR,"Fix ID {} for compute global/atom does not exist", idref);
+    if (!ifix->peratom_flag)
+      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom vector or array", idref);
+    if (indexref == 0 && (ifix->size_peratom_cols != 0))
+      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom vector", idref);
+    if (indexref && (ifix->size_peratom_cols == 0))
+      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom array", idref);
+    if (indexref && indexref > ifix->size_peratom_cols)
+      error->all(FLERR, "Compute global/atom fix {} array is accessed out-of-range", idref);
 
-  } else if (whichref == VARIABLE) {
+  } else if (whichref == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(idref);
     if (ivariable < 0)
       error->all(FLERR,"Variable name for compute global/atom does not exist");
@@ -186,7 +139,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for compute global/atom does not exist");
@@ -203,31 +156,26 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
                      "accessed out-of-range");
       }
 
-    } else if (which[i] == FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
+    } else if (which[i] == ArgInfo::FIX) {
+      auto ifix = modify->get_fix_by_id(ids[i]);
+      if (!ifix)
         error->all(FLERR,"Fix ID for compute global/atom does not exist");
       if (argindex[i] == 0) {
-        if (!modify->fix[ifix]->vector_flag)
-          error->all(FLERR,"Compute global/atom fix does not "
-                     "calculate a global vector");
+        if (!ifix->vector_flag)
+          error->all(FLERR,"Compute global/atom fix {} does not calculate a global vector", ids[i]);
       } else {
-        if (!modify->fix[ifix]->array_flag)
-          error->all(FLERR,"Compute global/atom fix does not "
-                     "calculate a global array");
-        if (argindex[i] > modify->fix[ifix]->size_array_cols)
-          error->all(FLERR,"Compute global/atom fix array is "
-                     "accessed out-of-range");
+        if (!ifix->array_flag)
+          error->all(FLERR,"Compute global/atom fix {} does not calculate a global array", ids[i]);
+        if (argindex[i] > ifix->size_array_cols)
+          error->all(FLERR,"Compute global/atom fix {} array is accessed out-of-range", ids[i]);
       }
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-        error->all(FLERR,"Variable name for compute global/atom "
-                   "does not exist");
+        error->all(FLERR,"Variable name for compute global/atom does not exist");
       if (input->variable->vectorstyle(ivariable) == 0)
-        error->all(FLERR,"Compute global/atom variable is not "
-                   "vector-style variable");
+        error->all(FLERR,"Compute global/atom variable is not vector-style variable");
     }
   }
 
@@ -237,12 +185,8 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   else size_peratom_cols = nvalues;
 
   nmax = maxvector = 0;
-  indices = NULL;
-  varatom = NULL;
-  vecglobal = NULL;
-
-  vector_atom = NULL;
-  array_atom = NULL;
+  vector_atom = nullptr;
+  array_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -270,17 +214,17 @@ void ComputeGlobalAtom::init()
 {
   // set indices of all computes,fixes,variables
 
-  if (whichref == COMPUTE) {
+  if (whichref == ArgInfo::COMPUTE) {
     int icompute = modify->find_compute(idref);
     if (icompute < 0)
       error->all(FLERR,"Compute ID for compute global/atom does not exist");
     ref2index = icompute;
-  } else if (whichref == FIX) {
+  } else if (whichref == ArgInfo::FIX) {
     int ifix = modify->find_fix(idref);
     if (ifix < 0)
       error->all(FLERR,"Fix ID for compute global/atom does not exist");
     ref2index = ifix;
-  } else if (whichref == VARIABLE) {
+  } else if (whichref == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(idref);
     if (ivariable < 0)
       error->all(FLERR,"Variable name for compute global/atom does not exist");
@@ -288,19 +232,19 @@ void ComputeGlobalAtom::init()
   }
 
   for (int m = 0; m < nvalues; m++) {
-    if (which[m] == COMPUTE) {
+    if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for compute global/atom does not exist");
       value2index[m] = icompute;
 
-    } else if (which[m] == FIX) {
+    } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute global/atom does not exist");
       value2index[m] = ifix;
 
-    } else if (which[m] == VARIABLE) {
+    } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for compute global/atom "
@@ -324,6 +268,10 @@ void ComputeGlobalAtom::compute_peratom()
     nmax = atom->nmax;
     memory->destroy(indices);
     memory->create(indices,nmax,"global/atom:indices");
+    if (whichref == ArgInfo::VARIABLE) {
+      memory->destroy(varatom);
+      memory->create(varatom,nmax,"global/atom:varatom");
+    }
     if (nvalues == 1) {
       memory->destroy(vector_atom);
       memory->create(vector_atom,nmax,"global/atom:vector_atom");
@@ -340,12 +288,12 @@ void ComputeGlobalAtom::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (whichref == COMPUTE) {
+  if (whichref == ArgInfo::COMPUTE) {
     Compute *compute = modify->compute[ref2index];
 
-    if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+    if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
       compute->compute_peratom();
-      compute->invoked_flag |= INVOKED_PERATOM;
+      compute->invoked_flag |= Compute::INVOKED_PERATOM;
     }
 
     if (indexref == 0) {
@@ -361,7 +309,7 @@ void ComputeGlobalAtom::compute_peratom()
           indices[i] = static_cast<int> (compute_array[i][im1]) - 1;
     }
 
-  } else if (whichref == FIX) {
+  } else if (whichref == ArgInfo::FIX) {
     if (update->ntimestep % modify->fix[ref2index]->peratom_freq)
       error->all(FLERR,"Fix used in compute global/atom not "
                  "computed at compatible time");
@@ -380,13 +328,7 @@ void ComputeGlobalAtom::compute_peratom()
           indices[i] = static_cast<int> (fix_array[i][im1]) - 1;
     }
 
-  } else if (whichref == VARIABLE) {
-    if (atom->nmax > nmax) {
-      nmax = atom->nmax;
-      memory->destroy(varatom);
-      memory->create(varatom,nmax,"global/atom:varatom");
-    }
-
+  } else if (whichref == ArgInfo::VARIABLE) {
     input->variable->compute_atom(ref2index,igroup,varatom,1,0);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
@@ -403,21 +345,20 @@ void ComputeGlobalAtom::compute_peratom()
       int vmax;
       double *source;
 
-      if (which[m] == COMPUTE) {
+      if (which[m] == ArgInfo::COMPUTE) {
         Compute *compute = modify->compute[value2index[m]];
 
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
 
         source = compute->vector;
         vmax = compute->size_vector;
 
-      } else if (which[m] == FIX) {
+      } else if (which[m] == ArgInfo::FIX) {
         if (update->ntimestep % modify->fix[value2index[m]]->peratom_freq)
-          error->all(FLERR,"Fix used in compute global/atom not "
-                     "computed at compatible time");
+          error->all(FLERR,"Fix used in compute global/atom not computed at compatible time");
         Fix *fix = modify->fix[value2index[m]];
         vmax = fix->size_vector;
 
@@ -432,7 +373,7 @@ void ComputeGlobalAtom::compute_peratom()
 
         source = vecglobal;
 
-      } else if (which[m] == VARIABLE) {
+      } else if (which[m] == ArgInfo::VARIABLE) {
         vmax = input->variable->compute_vector(value2index[m],&source);
       }
 
@@ -461,12 +402,12 @@ void ComputeGlobalAtom::compute_peratom()
       double *source;
       int col = argindex[m] - 1;
 
-      if (which[m] == COMPUTE) {
+      if (which[m] == ArgInfo::COMPUTE) {
         Compute *compute = modify->compute[value2index[m]];
 
-        if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
 
         double **compute_array = compute->array;
@@ -483,7 +424,7 @@ void ComputeGlobalAtom::compute_peratom()
 
         source = vecglobal;
 
-      } else if (which[m] == FIX) {
+      } else if (which[m] == ArgInfo::FIX) {
         if (update->ntimestep % modify->fix[value2index[m]]->peratom_freq)
           error->all(FLERR,"Fix used in compute global/atom not "
                      "computed at compatible time");
@@ -501,7 +442,7 @@ void ComputeGlobalAtom::compute_peratom()
 
         source = vecglobal;
 
-      } else if (which[m] == VARIABLE) {
+      } else if (which[m] == ArgInfo::VARIABLE) {
         vmax = input->variable->compute_vector(value2index[m],&source);
       }
 
@@ -532,9 +473,9 @@ void ComputeGlobalAtom::compute_peratom()
 
 double ComputeGlobalAtom::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
-  bytes += nmax * sizeof(int);                    // indices
-  if (varatom) bytes += nmax * sizeof(double);    // varatom
-  bytes += maxvector * sizeof(double);            // vecglobal
+  double bytes = (double)nmax*nvalues * sizeof(double);
+  bytes += (double)nmax * sizeof(int);                    // indices
+  if (varatom) bytes += (double)nmax * sizeof(double);    // varatom
+  bytes += (double)maxvector * sizeof(double);            // vecglobal
   return bytes;
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_full_bin_2d.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -27,12 +25,11 @@ NStencilFullBin2d::NStencilFullBin2d(LAMMPS *lmp) : NStencil(lmp) {}
 
 void NStencilFullBin2d::create()
 {
-  int i,j;
+  int i, j;
 
   nstencil = 0;
 
   for (j = -sy; j <= sy; j++)
     for (i = -sx; i <= sx; i++)
-      if (bin_distance(i,j,0) < cutneighmaxsq)
-        stencil[nstencil++] = j*mbinx + i;
+      if (bin_distance(i, j, 0) < cutneighmaxsq) stencil[nstencil++] = j * mbinx + i;
 }

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(angle,AtomVecAngle)
-
+// clang-format off
+AtomStyle(angle,AtomVecAngle);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_ANGLE_H
@@ -27,66 +27,25 @@ namespace LAMMPS_NS {
 class AtomVecAngle : public AtomVec {
  public:
   AtomVecAngle(class LAMMPS *);
-  virtual ~AtomVecAngle() {}
-  void grow(int);
-  void grow_reset();
-  void copy(int, int, int);
-  virtual int pack_comm(int, int *, double *, int, int *);
-  virtual int pack_comm_vel(int, int *, double *, int, int *);
-  virtual void unpack_comm(int, int, double *);
-  virtual void unpack_comm_vel(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  virtual int pack_border(int, int *, double *, int, int *);
-  virtual int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *);
-  virtual void unpack_border(int, int, double *);
-  virtual void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **);
-  void pack_data(double **);
-  int pack_data_hybrid(int, double *);
-  void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *);
-  bigint memory_usage();
+  ~AtomVecAngle() override;
 
- protected:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-  tagint *molecule;
+  void grow_pointers() override;
+  void pack_restart_pre(int) override;
+  void pack_restart_post(int) override;
+  void unpack_restart_init(int) override;
+  void data_atom_post(int) override;
+
+ private:
+  int *num_bond, *num_angle;
+  int **bond_type, **angle_type;
   int **nspecial;
-  tagint **special;
-  int *num_bond;
-  int **bond_type;
-  tagint **bond_atom;
-  int *num_angle;
-  int **angle_type;
-  tagint **angle_atom1,**angle_atom2,**angle_atom3;
+
+  int any_bond_negative, any_angle_negative;
+  int bond_per_atom, angle_per_atom;
+  int *bond_negative, *angle_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

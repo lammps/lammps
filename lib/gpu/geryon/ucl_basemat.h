@@ -69,19 +69,27 @@ class UCL_BaseMat {
   /// Return the type/permissions of memory allocation
   /** Returns UCL_READ_WRITE, UCL_WRITE_ONLY, UCL_READ_ONLY, UCL_NOT_PINNED
     * or UCL_VIEW **/
+  /// Assert that any ops in associate command queue have been issued to device
+  inline void flush() { ucl_flush(_cq); }
+
   inline enum UCL_MEMOPT kind() const { return _kind; }
 
   inline bool shared_mem_device() {
-    #ifdef _OCL_MAT
+    #ifndef _OCL_MAT
+    return false;
+    #else
+
+    #if defined(GERYON_FORCE_SHARED_MAIN_MEM_ON)
+    return true;
+    #elif defined(GERYON_FORCE_SHARED_MAIN_MEM_OFF)
+    return false;
+    #else
     cl_device_id device;
     CL_SAFE_CALL(clGetCommandQueueInfo(_cq,CL_QUEUE_DEVICE,
                                        sizeof(cl_device_id),&device,NULL));
-    cl_device_type device_type;
-    CL_SAFE_CALL(clGetDeviceInfo(device,CL_DEVICE_TYPE,
-                                 sizeof(device_type),&device_type,NULL));
-    return _shared_mem_device(device_type);
-    #else
-    return false;
+    return _shared_mem_device(device);
+    #endif
+
     #endif
   }
 

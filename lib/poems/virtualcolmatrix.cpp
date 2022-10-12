@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: virtualcolmatrix.cpp                                    *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -25,15 +25,12 @@ VirtualColMatrix::VirtualColMatrix(){
   numcols = 1;
 }
 
-VirtualColMatrix::~VirtualColMatrix(){
-}
-
 double& VirtualColMatrix::operator_2int(int i, int j){
-	if(j!=1){
-		cerr << "matrix index invalid in operator ()" << endl;
-		exit(1);
-	}
-	return (*this).operator_1int(i);
+  if(j!=1){
+    cerr << "matrix index invalid in operator ()" << endl;
+    exit(1);
+  }
+  return (*this).operator_1int(i);
 }
 
 double VirtualColMatrix::Get_2int(int i, int j) const{

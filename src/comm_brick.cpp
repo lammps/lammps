@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,52 +16,43 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
 #include "comm_brick.h"
-#include "comm_tiled.h"
-#include "universe.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
-#include "domain.h"
-#include "neighbor.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
+#include "bond.h"
 #include "compute.h"
-#include "output.h"
+#include "domain.h"
 #include "dump.h"
-#include "math_extra.h"
 #include "error.h"
+#include "fix.h"
 #include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
-#define BUFMIN 1000
-#define BUFEXTRA 1000
+#define BUFMIN 1024
 #define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
 
 CommBrick::CommBrick(LAMMPS *lmp) :
   Comm(lmp),
-  sendnum(NULL), recvnum(NULL), sendproc(NULL), recvproc(NULL),
-  size_forward_recv(NULL),
-  size_reverse_send(NULL), size_reverse_recv(NULL),
-  slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
-  cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL),
-  sendlist(NULL),  localsendlist(NULL), maxsendlist(NULL),
-  buf_send(NULL), buf_recv(NULL)
+  sendnum(nullptr), recvnum(nullptr), sendproc(nullptr), recvproc(nullptr),
+  size_forward_recv(nullptr), size_reverse_send(nullptr), size_reverse_recv(nullptr),
+  slablo(nullptr), slabhi(nullptr), multilo(nullptr), multihi(nullptr),
+  multioldlo(nullptr), multioldhi(nullptr), cutghostmulti(nullptr), cutghostmultiold(nullptr),
+  pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr), sendlist(nullptr),
+  localsendlist(nullptr), maxsendlist(nullptr), buf_send(nullptr), buf_recv(nullptr)
 {
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
-  pbc_flag = NULL;
+  pbc_flag = nullptr;
   init_buffers();
 }
 
@@ -68,10 +60,15 @@ CommBrick::CommBrick(LAMMPS *lmp) :
 
 CommBrick::~CommBrick()
 {
-  free_swap();
+  CommBrick::free_swap();
   if (mode == Comm::MULTI) {
-    free_multi();
+    CommBrick::free_multi();
     memory->destroy(cutghostmulti);
+  }
+
+  if (mode == Comm::MULTIOLD) {
+    CommBrick::free_multiold();
+    memory->destroy(cutghostmultiold);
   }
 
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
@@ -107,25 +104,20 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 
 void CommBrick::init_buffers()
 {
-  multilo = multihi = NULL;
-  cutghostmulti = NULL;
+  multilo = multihi = nullptr;
+  cutghostmulti = nullptr;
 
-  // bufextra = max size of one exchanged atom
-  //          = allowed overflow of sendbuf in exchange()
-  // atomvec, fix reset these 2 maxexchange values if needed
-  // only necessary if their size > BUFEXTRA
+  multioldlo = multioldhi = nullptr;
+  cutghostmultiold = nullptr;
 
-  maxexchange = maxexchange_atom + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
-
-  maxsend = BUFMIN;
-  memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
-  maxrecv = BUFMIN;
+  buf_send = buf_recv = nullptr;
+  maxsend = maxrecv = BUFMIN;
+  CommBrick::grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   nswap = 0;
   maxswap = 6;
-  allocate_swap(maxswap);
+  CommBrick::allocate_swap(maxswap);
 
   sendlist = (int **) memory->smalloc(maxswap*sizeof(int *),"comm:sendlist");
   memory->create(maxsendlist,maxswap,"comm:maxsendlist");
@@ -141,15 +133,50 @@ void CommBrick::init()
 {
   Comm::init();
 
-  // memory for multi-style communication
+  int bufextra_old = bufextra;
+  init_exchange();
+  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
 
-  if (mode == Comm::MULTI && multilo == NULL) {
-    allocate_multi(maxswap);
-    memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
+  // memory for multi style communication
+  // allocate in setup
+
+  if (mode == Comm::MULTI) {
+    // If inconsitent # of collections, destroy any preexisting arrays (may be missized)
+    if (ncollections != neighbor->ncollections) {
+      ncollections = neighbor->ncollections;
+      if (multilo != nullptr) {
+        free_multi();
+        memory->destroy(cutghostmulti);
+      }
+    }
+
+    // delete any old user cutoffs if # of collections chanaged
+    if (cutusermulti && ncollections != ncollections_cutoff) {
+      if(me == 0) error->warning(FLERR, "cutoff/multi settings discarded, must be defined"
+                                        " after customizing collections in neigh_modify");
+      memory->destroy(cutusermulti);
+      cutusermulti = nullptr;
+    }
+
+    if (multilo == nullptr) {
+      allocate_multi(maxswap);
+      memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
+    }
   }
-  if (mode == Comm::SINGLE && multilo) {
+  if ((mode == Comm::SINGLE || mode == Comm::MULTIOLD) && multilo) {
     free_multi();
     memory->destroy(cutghostmulti);
+  }
+
+  // memory for multi/old-style communication
+
+  if (mode == Comm::MULTIOLD && multioldlo == nullptr) {
+    allocate_multiold(maxswap);
+    memory->create(cutghostmultiold,atom->ntypes+1,3,"comm:cutghostmultiold");
+  }
+  if ((mode == Comm::SINGLE || mode == Comm::MULTI) && multioldlo) {
+    free_multiold();
+    memory->destroy(cutghostmultiold);
   }
 }
 
@@ -157,7 +184,8 @@ void CommBrick::init()
    setup spatial-decomposition communication patterns
    function of neighbor cutoff(s) & cutghostuser & current box size
    single mode sets slab boundaries (slablo,slabhi) based on max cutoff
-   multi mode sets type-dependent slab boundaries (multilo,multihi)
+   multi mode sets collection-dependent slab boundaries (multilo,multihi)
+   multi/old mode sets type-dependent slab boundaries (multioldlo,multioldhi)
 ------------------------------------------------------------------------- */
 
 void CommBrick::setup()
@@ -169,31 +197,64 @@ void CommBrick::setup()
   //   neigh->cutghost = distance between tilted planes in box coords
   //   cutghost is in lamda coords = distance between those planes
   // for multi:
-  //   cutghostmulti = same as cutghost, only for each atom type
+  //   cutghostmulti = same as cutghost, only for each atom collection
+  // for multi/old:
+  //   cutghostmultiold = same as cutghost, only for each atom type
 
-  int i;
+  int i,j;
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
 
-  double cut = MAX(neighbor->cutneighmax,cutghostuser);
+  double cut = get_comm_cutoff();
+  if ((cut == 0.0) && (me == 0))
+    error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
+                   "will be generated. Atoms may get lost.");
+
+  if (mode == Comm::MULTI) {
+    double **cutcollectionsq = neighbor->cutcollectionsq;
+
+    // build collection array for atom exchange
+    neighbor->build_collection(0);
+
+    // If using multi/reduce, communicate particles a distance equal
+    // to the max cutoff with equally sized or smaller collections
+    // If not, communicate the maximum cutoff of the entire collection
+    for (i = 0; i < ncollections; i++) {
+      if (cutusermulti) {
+        cutghostmulti[i][0] = cutusermulti[i];
+        cutghostmulti[i][1] = cutusermulti[i];
+        cutghostmulti[i][2] = cutusermulti[i];
+      } else {
+        cutghostmulti[i][0] = 0.0;
+        cutghostmulti[i][1] = 0.0;
+        cutghostmulti[i][2] = 0.0;
+      }
+
+      for (j = 0; j < ncollections; j++){
+        if (multi_reduce && (cutcollectionsq[j][j] > cutcollectionsq[i][i])) continue;
+        cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutcollectionsq[i][j]));
+        cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutcollectionsq[i][j]));
+        cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutcollectionsq[i][j]));
+      }
+    }
+  }
+
+  if (mode == Comm::MULTIOLD) {
+    double *cuttype = neighbor->cuttype;
+    for (i = 1; i <= ntypes; i++) {
+      double tmp = 0.0;
+      if (cutusermultiold) tmp = cutusermultiold[i];
+      cutghostmultiold[i][0] = MAX(tmp,cuttype[i]);
+      cutghostmultiold[i][1] = MAX(tmp,cuttype[i]);
+      cutghostmultiold[i][2] = MAX(tmp,cuttype[i]);
+    }
+  }
 
   if (triclinic == 0) {
     prd = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
     cutghost[0] = cutghost[1] = cutghost[2] = cut;
-
-    if (mode == Comm::MULTI) {
-      double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
-      }
-    }
-
   } else {
     prd = domain->prd_lamda;
     sublo = domain->sublo_lamda;
@@ -206,15 +267,19 @@ void CommBrick::setup()
     cutghost[1] = cut * length1;
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
-
     if (mode == Comm::MULTI) {
-      double *cuttype = neighbor->cuttype;
+      for (i = 0; i < ncollections; i++) {
+        cutghostmulti[i][0] *= length0;
+        cutghostmulti[i][1] *= length1;
+        cutghostmulti[i][2] *= length2;
+      }
+    }
+
+    if (mode == Comm::MULTIOLD) {
       for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
+        cutghostmultiold[i][0] *= length0;
+        cutghostmultiold[i][1] *= length1;
+        cutghostmultiold[i][2] *= length2;
       }
     }
   }
@@ -360,11 +425,17 @@ void CommBrick::setup()
           if (ineed < 2) slablo[iswap] = -BIG;
           else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
           slabhi[iswap] = sublo[dim] + cutghost[dim];
-        } else {
-          for (i = 1; i <= ntypes; i++) {
+        } else if (mode == Comm::MULTI) {
+          for (i = 0; i < ncollections; i++) {
             if (ineed < 2) multilo[iswap][i] = -BIG;
             else multilo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
             multihi[iswap][i] = sublo[dim] + cutghostmulti[i][dim];
+          }
+        } else {
+          for (i = 1; i <= ntypes; i++) {
+            if (ineed < 2) multioldlo[iswap][i] = -BIG;
+            else multioldlo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+            multioldhi[iswap][i] = sublo[dim] + cutghostmultiold[i][dim];
           }
         }
         if (myloc[dim] == 0) {
@@ -383,11 +454,17 @@ void CommBrick::setup()
           slablo[iswap] = subhi[dim] - cutghost[dim];
           if (ineed < 2) slabhi[iswap] = BIG;
           else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-        } else {
-          for (i = 1; i <= ntypes; i++) {
+        } else if (mode == Comm::MULTI) {
+          for (i = 0; i < ncollections; i++) {
             multilo[iswap][i] = subhi[dim] - cutghostmulti[i][dim];
             if (ineed < 2) multihi[iswap][i] = BIG;
             else multihi[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+          }
+        } else {
+          for (i = 1; i <= ntypes; i++) {
+            multioldlo[iswap][i] = subhi[dim] - cutghostmultiold[i][dim];
+            if (ineed < 2) multioldhi[iswap][i] = BIG;
+            else multioldhi[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
           }
         }
         if (myloc[dim] == procgrid[dim]-1) {
@@ -414,8 +491,7 @@ void CommBrick::setup()
    return how many procs away are needed to encompass cutghost away from loc
 ------------------------------------------------------------------------- */
 
-int CommBrick::updown(int dim, int dir, int loc,
-                 double prd, int periodicity, double *split)
+int CommBrick::updown(int dim, int dir, int loc, double prd, int periodicity, double *split)
 {
   int index,count;
   double frac,delta;
@@ -476,19 +552,15 @@ void CommBrick::forward_comm(int /*dummy*/)
       if (comm_x_only) {
         if (size_forward_recv[iswap]) {
           buf = x[firstrecv[iswap]];
-          MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
-                    recvproc[iswap],0,world,&request);
+          MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
         }
-        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
         if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       } else if (ghost_velocity) {
         if (size_forward_recv[iswap])
-          MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
-                    recvproc[iswap],0,world,&request);
-        n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-                                buf_send,pbc_flag[iswap],pbc[iswap]);
+          MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
+        n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
         if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
         avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
@@ -496,8 +568,7 @@ void CommBrick::forward_comm(int /*dummy*/)
         if (size_forward_recv[iswap])
           MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
                     recvproc[iswap],0,world,&request);
-        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
         if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
         avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
@@ -509,12 +580,10 @@ void CommBrick::forward_comm(int /*dummy*/)
           avec->pack_comm(sendnum[iswap],sendlist[iswap],
                           x[firstrecv[iswap]],pbc_flag[iswap],pbc[iswap]);
       } else if (ghost_velocity) {
-        avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
         avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
       } else {
-        avec->pack_comm(sendnum[iswap],sendlist[iswap],
-                        buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->pack_comm(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
         avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
@@ -542,18 +611,15 @@ void CommBrick::reverse_comm()
     if (sendproc[iswap] != me) {
       if (comm_f_only) {
         if (size_reverse_recv[iswap])
-          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
-                    sendproc[iswap],0,world,&request);
+          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
         if (size_reverse_send[iswap]) {
           buf = f[firstrecv[iswap]];
-          MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
-                   recvproc[iswap],0,world);
+          MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
         }
         if (size_reverse_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       } else {
         if (size_reverse_recv[iswap])
-          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
-                    sendproc[iswap],0,world,&request);
+          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
         n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
         if (size_reverse_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -563,8 +629,7 @@ void CommBrick::reverse_comm()
     } else {
       if (comm_f_only) {
         if (sendnum[iswap])
-          avec->unpack_reverse(sendnum[iswap],sendlist[iswap],
-                               f[firstrecv[iswap]]);
+          avec->unpack_reverse(sendnum[iswap],sendlist[iswap],f[firstrecv[iswap]]);
       } else {
         avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
         avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
@@ -578,7 +643,7 @@ void CommBrick::reverse_comm()
    atoms exchanged with all 6 stencil neighbors
    send out atoms that have left my box, receive ones entering my box
    atoms will be lost if not inside a stencil proc's box
-     can happen if atom moves outside of non-periodic bounary
+     can happen if atom moves outside of non-periodic boundary
      or if atom moves more than one proc away
    this routine called before every reneighboring
    for triclinic, atoms must be in lamda coords (0-1) before exchange is called
@@ -599,19 +664,18 @@ void CommBrick::exchange()
   // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  // insure send buf is large enough for single atom
-  // bufextra = max size of one atom = allowed overflow of sendbuf
-  // fixes can change per-atom size requirement on-the-fly
+  // insure send buf has extra space for a single atom
+  // only need to reset if a fix can dynamically add to size of single atom
 
-  int bufextra_old = bufextra;
-  maxexchange = maxexchange_atom + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
-  if (bufextra > bufextra_old)
-    grow_send(maxsend+bufextra,1);
+  if (maxexchange_fix_dynamic) {
+    int bufextra_old = bufextra;
+    init_exchange();
+    if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
+  }
 
   // subbox bounds for orthogonal or triclinic
 
@@ -658,25 +722,21 @@ void CommBrick::exchange()
     if (procgrid[dim] == 1) nrecv = 0;
     else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,
-                   MPI_STATUS_IGNORE);
+                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
       nrecv = nrecv1;
       if (procgrid[dim] > 2) {
         MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,
-                     MPI_STATUS_IGNORE);
+                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
         nrecv += nrecv2;
       }
       if (nrecv > maxrecv) grow_recv(nrecv);
 
-      MPI_Irecv(buf_recv,nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
-                world,&request);
+      MPI_Irecv(buf_recv,nrecv1,MPI_DOUBLE,procneigh[dim][1],0,world,&request);
       MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (procgrid[dim] > 2) {
-        MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
-                  world,&request);
+        MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,world,&request);
         MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
         MPI_Wait(&request,MPI_STATUS_IGNORE);
       }
@@ -710,14 +770,18 @@ void CommBrick::exchange()
 
 void CommBrick::borders()
 {
-  int i,n,itype,iswap,dim,ineed,twoneed;
-  int nsend,nrecv,sendflag,nfirst,nlast,ngroup;
+  int i,n,itype,icollection,iswap,dim,ineed,twoneed;
+  int nsend,nrecv,sendflag,nfirst,nlast,ngroup,nprior;
   double lo,hi;
   int *type;
+  int *collection;
   double **x;
   double *buf,*mlo,*mhi;
   MPI_Request request;
   AtomVec *avec = atom->avec;
+
+  // After exchanging/sorting, need to reconstruct collection array for border communication
+  if (mode == Comm::MULTI) neighbor->build_collection(0);
 
   // do swaps over all 3 dimensions
 
@@ -739,10 +803,14 @@ void CommBrick::borders()
       if (mode == Comm::SINGLE) {
         lo = slablo[iswap];
         hi = slabhi[iswap];
-      } else {
-        type = atom->type;
+      } else if (mode == Comm::MULTI) {
+        collection = neighbor->collection;
         mlo = multilo[iswap];
         mhi = multihi[iswap];
+      } else {
+        type = atom->type;
+        mlo = multioldlo[iswap];
+        mhi = multioldhi[iswap];
       }
       if (ineed % 2 == 0) {
         nfirst = nlast;
@@ -771,6 +839,14 @@ void CommBrick::borders()
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
+          } else if (mode == Comm::MULTI) {
+            for (i = nfirst; i < nlast; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
           } else {
             for (i = nfirst; i < nlast; i++) {
               itype = type[i];
@@ -794,6 +870,22 @@ void CommBrick::borders()
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
+          } else if (mode == Comm::MULTI) {
+            ngroup = atom->nfirst;
+            for (i = 0; i < ngroup; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
+            for (i = atom->nlocal; i < nlast; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
           } else {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++) {
@@ -818,11 +910,9 @@ void CommBrick::borders()
 
       if (nsend*size_border > maxsend) grow_send(nsend*size_border,0);
       if (ghost_velocity)
-        n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
-                                  pbc_flag[iswap],pbc[iswap]);
+        n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
       else
-        n = avec->pack_border(nsend,sendlist[iswap],buf_send,
-                              pbc_flag[iswap],pbc[iswap]);
+        n = avec->pack_border(nsend,sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
 
       // swap atoms with other proc
       // no MPI calls except SendRecv if nsend/nrecv = 0
@@ -831,8 +921,7 @@ void CommBrick::borders()
 
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,
-                     MPI_STATUS_IGNORE);
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,MPI_STATUS_IGNORE);
         if (nrecv*size_border > maxrecv) grow_recv(nrecv*size_border);
         if (nrecv) MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
                              recvproc[iswap],0,world,&request);
@@ -861,10 +950,21 @@ void CommBrick::borders()
       size_reverse_send[iswap] = nrecv*size_reverse;
       size_reverse_recv[iswap] = nsend*size_reverse;
       firstrecv[iswap] = atom->nlocal + atom->nghost;
+      nprior = atom->nlocal + atom->nghost;
       atom->nghost += nrecv;
+      if (neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
+
       iswap++;
     }
   }
+
+  // For molecular systems we lose some bits for local atom indices due
+  // to encoding of special pairs in neighbor lists. Check for overflows.
+
+  if ((atom->molecular != Atom::ATOMIC)
+      && ((atom->nlocal + atom->nghost) > NEIGHMASK))
+    error->one(FLERR,"Per-processor number of atoms is too large for "
+               "molecular neighbor lists");
 
   // insure send/recv buffers are long enough for all forward & reverse comm
 
@@ -875,7 +975,7 @@ void CommBrick::borders()
 
   // reset global->local map
 
-  if (map_style) atom->map_set();
+  if (map_style != Atom::MAP_NONE) atom->map_set();
 }
 
 /* ----------------------------------------------------------------------
@@ -883,7 +983,7 @@ void CommBrick::borders()
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_pair(Pair *pair)
+void CommBrick::forward_comm(Pair *pair)
 {
   int iswap,n;
   double *buf;
@@ -895,16 +995,14 @@ void CommBrick::forward_comm_pair(Pair *pair)
 
     // pack buffer
 
-    n = pair->pack_forward_comm(sendnum[iswap],sendlist[iswap],
-                                buf_send,pbc_flag[iswap],pbc[iswap]);
+    n = pair->pack_forward_comm(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,
-                  recvproc[iswap],0,world,&request);
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -922,7 +1020,7 @@ void CommBrick::forward_comm_pair(Pair *pair)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::reverse_comm_pair(Pair *pair)
+void CommBrick::reverse_comm(Pair *pair)
 {
   int iswap,n;
   double *buf;
@@ -941,8 +1039,7 @@ void CommBrick::reverse_comm_pair(Pair *pair)
 
     if (sendproc[iswap] != me) {
       if (sendnum[iswap])
-        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -956,6 +1053,80 @@ void CommBrick::reverse_comm_pair(Pair *pair)
 }
 
 /* ----------------------------------------------------------------------
+   forward communication invoked by a Bond
+   nsize used only to set recv buffer limit
+------------------------------------------------------------------------- */
+
+void CommBrick::forward_comm(Bond *bond)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+
+  int nsize = bond->comm_forward;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    n = bond->pack_forward_comm(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      if (recvnum[iswap])
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
+      if (sendnum[iswap])
+        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    bond->unpack_forward_comm(recvnum[iswap],firstrecv[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Bond
+   nsize used only to set recv buffer limit
+------------------------------------------------------------------------- */
+
+void CommBrick::reverse_comm(Bond *bond)
+{
+  int iswap,n;
+  double *buf;
+  MPI_Request request;
+
+  int nsize = MAX(bond->comm_reverse,bond->comm_reverse_off);
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    n = bond->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      if (sendnum[iswap])
+        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
+      if (recvnum[iswap])
+        MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    bond->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
    forward communication invoked by a Fix
    size/nsize used only to set recv buffer limit
    size = 0 (default) -> use comm_forward from Fix
@@ -964,7 +1135,7 @@ void CommBrick::reverse_comm_pair(Pair *pair)
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_fix(Fix *fix, int size)
+void CommBrick::forward_comm(Fix *fix, int size)
 {
   int iswap,n,nsize;
   double *buf;
@@ -977,16 +1148,14 @@ void CommBrick::forward_comm_fix(Fix *fix, int size)
 
     // pack buffer
 
-    n = fix->pack_forward_comm(sendnum[iswap],sendlist[iswap],
-                               buf_send,pbc_flag[iswap],pbc[iswap]);
+    n = fix->pack_forward_comm(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -1008,7 +1177,7 @@ void CommBrick::forward_comm_fix(Fix *fix, int size)
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommBrick::reverse_comm_fix(Fix *fix, int size)
+void CommBrick::reverse_comm(Fix *fix, int size)
 {
   int iswap,n,nsize;
   double *buf;
@@ -1028,8 +1197,7 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
 
     if (sendproc[iswap] != me) {
       if (sendnum[iswap])
-        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -1048,7 +1216,7 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
    handshake sizes before each Irecv/Send to insure buf_recv is big enough
 ------------------------------------------------------------------------- */
 
-void CommBrick::reverse_comm_fix_variable(Fix *fix)
+void CommBrick::reverse_comm_variable(Fix *fix)
 {
   int iswap,nsend,nrecv;
   double *buf;
@@ -1067,13 +1235,11 @@ void CommBrick::reverse_comm_fix_variable(Fix *fix)
 
     if (sendproc[iswap] != me) {
       MPI_Sendrecv(&nsend,1,MPI_INT,recvproc[iswap],0,
-                   &nrecv,1,MPI_INT,sendproc[iswap],0,world,
-                   MPI_STATUS_IGNORE);
+                   &nrecv,1,MPI_INT,sendproc[iswap],0,world,MPI_STATUS_IGNORE);
 
       if (sendnum[iswap]) {
         if (nrecv > maxrecv) grow_recv(nrecv);
-        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,world,&request);
       }
       if (recvnum[iswap])
         MPI_Send(buf_send,nsend,MPI_DOUBLE,recvproc[iswap],0,world);
@@ -1092,7 +1258,7 @@ void CommBrick::reverse_comm_fix_variable(Fix *fix)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_compute(Compute *compute)
+void CommBrick::forward_comm(Compute *compute)
 {
   int iswap,n;
   double *buf;
@@ -1112,8 +1278,7 @@ void CommBrick::forward_comm_compute(Compute *compute)
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -1131,7 +1296,7 @@ void CommBrick::forward_comm_compute(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::reverse_comm_compute(Compute *compute)
+void CommBrick::reverse_comm(Compute *compute)
 {
   int iswap,n;
   double *buf;
@@ -1150,8 +1315,7 @@ void CommBrick::reverse_comm_compute(Compute *compute)
 
     if (sendproc[iswap] != me) {
       if (sendnum[iswap])
-        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -1169,7 +1333,7 @@ void CommBrick::reverse_comm_compute(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_dump(Dump *dump)
+void CommBrick::forward_comm(Dump *dump)
 {
   int iswap,n;
   double *buf;
@@ -1189,8 +1353,7 @@ void CommBrick::forward_comm_dump(Dump *dump)
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -1208,7 +1371,7 @@ void CommBrick::forward_comm_dump(Dump *dump)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::reverse_comm_dump(Dump *dump)
+void CommBrick::reverse_comm(Dump *dump)
 {
   int iswap,n;
   double *buf;
@@ -1227,8 +1390,7 @@ void CommBrick::reverse_comm_dump(Dump *dump)
 
     if (sendproc[iswap] != me) {
       if (sendnum[iswap])
-        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
@@ -1276,11 +1438,9 @@ void CommBrick::forward_comm_array(int nsize, double **array)
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
-                  world,&request);
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world,&request);
       if (sendnum[iswap])
-        MPI_Send(buf_send,nsize*sendnum[iswap],MPI_DOUBLE,
-                 sendproc[iswap],0,world);
+        MPI_Send(buf_send,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1326,21 +1486,18 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
     nrecv += nrecv1;
     if (procgrid[dim] > 2) {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,
-                   MPI_STATUS_IGNORE);
+                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
       nrecv += nrecv2;
     } else nrecv2 = 0;
 
     if (nrecv > maxrecv) grow_recv(nrecv);
 
-    MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
-              world,&request);
+    MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,world,&request);
     MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
     MPI_Wait(&request,MPI_STATUS_IGNORE);
 
     if (procgrid[dim] > 2) {
-      MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
-                world,&request);
+      MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,world,&request);
       MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
       MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
@@ -1352,18 +1509,23 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
 
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
-   if flag = 1, realloc
-   if flag = 0, don't need to realloc with copy, just free/malloc
+   flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
+   flag = 1, realloc with BUFFACTOR
+   flag = 2, free/malloc w/out BUFFACTOR
 ------------------------------------------------------------------------- */
 
 void CommBrick::grow_send(int n, int flag)
 {
-  maxsend = static_cast<int> (BUFFACTOR * n);
-  if (flag)
-    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
-  else {
+  if (flag == 0) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
     memory->destroy(buf_send);
     memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else if (flag == 1) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else {
+    memory->destroy(buf_send);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
   }
 }
 
@@ -1401,6 +1563,12 @@ void CommBrick::grow_swap(int n)
     allocate_multi(n);
   }
 
+  if (mode == Comm::MULTIOLD) {
+    free_multiold();
+    allocate_multiold(n);
+  }
+
+
   sendlist = (int **)
     memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
   memory->grow(maxsendlist,n,"comm:maxsendlist");
@@ -1432,14 +1600,25 @@ void CommBrick::allocate_swap(int n)
 }
 
 /* ----------------------------------------------------------------------
-   allocation of multi-type swap info
+   allocation of multi-collection swap info
 ------------------------------------------------------------------------- */
 
 void CommBrick::allocate_multi(int n)
 {
-  multilo = memory->create(multilo,n,atom->ntypes+1,"comm:multilo");
-  multihi = memory->create(multihi,n,atom->ntypes+1,"comm:multihi");
+  multilo = memory->create(multilo,n,ncollections,"comm:multilo");
+  multihi = memory->create(multihi,n,ncollections,"comm:multihi");
 }
+
+/* ----------------------------------------------------------------------
+   allocation of multi/old-type swap info
+------------------------------------------------------------------------- */
+
+void CommBrick::allocate_multiold(int n)
+{
+  multioldlo = memory->create(multioldlo,n,atom->ntypes+1,"comm:multioldlo");
+  multioldhi = memory->create(multioldhi,n,atom->ntypes+1,"comm:multioldhi");
+}
+
 
 /* ----------------------------------------------------------------------
    free memory for swaps
@@ -1462,14 +1641,25 @@ void CommBrick::free_swap()
 }
 
 /* ----------------------------------------------------------------------
-   free memory for multi-type swaps
+   free memory for multi-collection swaps
 ------------------------------------------------------------------------- */
 
 void CommBrick::free_multi()
 {
   memory->destroy(multilo);
   memory->destroy(multihi);
-  multilo = multihi = NULL;
+  multilo = multihi = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   free memory for multi/old-type swaps
+------------------------------------------------------------------------- */
+
+void CommBrick::free_multiold()
+{
+  memory->destroy(multioldlo);
+  memory->destroy(multioldhi);
+  multioldlo = multioldhi = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1498,17 +1688,17 @@ void *CommBrick::extract(const char *str, int &dim)
     return (void *) localsendlist;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint CommBrick::memory_usage()
+double CommBrick::memory_usage()
 {
-  bigint bytes = 0;
-  bytes += nprocs * sizeof(int);    // grid2proc
+  double bytes = 0;
+  bytes += (double)nprocs * sizeof(int);    // grid2proc
   for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);
   bytes += memory->usage(buf_send,maxsend+bufextra);

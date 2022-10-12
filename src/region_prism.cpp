@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,14 +16,13 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "region_prism.h"
+
 #include "domain.h"
-#include "force.h"
-#include "math_extra.h"
 #include "error.h"
+#include "math_extra.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -39,68 +39,69 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[2],"INF") == 0) xlo = -BIG;
     else xlo = domain->boxlo[0];
-  } else xlo = xscale*force->numeric(FLERR,arg[2]);
+  } else xlo = xscale*utils::numeric(FLERR,arg[2],false,lmp);
 
   if (strcmp(arg[3],"INF") == 0 || strcmp(arg[3],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[3],"INF") == 0) xhi = BIG;
     else xhi = domain->boxhi[0];
-  } else xhi = xscale*force->numeric(FLERR,arg[3]);
+  } else xhi = xscale*utils::numeric(FLERR,arg[3],false,lmp);
 
   if (strcmp(arg[4],"INF") == 0 || strcmp(arg[4],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[4],"INF") == 0) ylo = -BIG;
     else ylo = domain->boxlo[1];
-  } else ylo = yscale*force->numeric(FLERR,arg[4]);
+  } else ylo = yscale*utils::numeric(FLERR,arg[4],false,lmp);
 
   if (strcmp(arg[5],"INF") == 0 || strcmp(arg[5],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[5],"INF") == 0) yhi = BIG;
     else yhi = domain->boxhi[1];
-  } else yhi = yscale*force->numeric(FLERR,arg[5]);
+  } else yhi = yscale*utils::numeric(FLERR,arg[5],false,lmp);
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[6],"INF") == 0) zlo = -BIG;
     else zlo = domain->boxlo[2];
-  } else zlo = zscale*force->numeric(FLERR,arg[6]);
+  } else zlo = zscale*utils::numeric(FLERR,arg[6],false,lmp);
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[7],"INF") == 0) zhi = BIG;
     else zhi = domain->boxhi[2];
-  } else zhi = zscale*force->numeric(FLERR,arg[7]);
+  } else zhi = zscale*utils::numeric(FLERR,arg[7],false,lmp);
 
-  xy = xscale*force->numeric(FLERR,arg[8]);
-  xz = xscale*force->numeric(FLERR,arg[9]);
-  yz = yscale*force->numeric(FLERR,arg[10]);
+  xy = xscale*utils::numeric(FLERR,arg[8],false,lmp);
+  xz = xscale*utils::numeric(FLERR,arg[9],false,lmp);
+  yz = yscale*utils::numeric(FLERR,arg[10],false,lmp);
 
   // error check
   // prism cannot be 0 thickness in any dim, else inverse blows up
   // non-zero tilt values cannot be used if either dim is INF on both ends
 
-  if (xlo >= xhi || ylo >= yhi || zlo >= zhi)
-    error->all(FLERR,"Illegal region prism command");
+  if (xlo >= xhi) error->all(FLERR,"Illegal region prism xlo: {} >= xhi: {}", xlo, xhi);
+  if (ylo >= yhi) error->all(FLERR,"Illegal region prism ylo: {} >= yhi: {}", ylo, yhi);
+  if (zlo >= zhi) error->all(FLERR,"Illegal region prism zlo: {} >= zhi: {}", zlo ,zhi);
 
   if (xy != 0.0 && xlo == -BIG && xhi == BIG)
-    error->all(FLERR,"Illegal region prism command");
+    error->all(FLERR,"Illegal region prism non-zero xy tilt with infinite x size");
   if (xy != 0.0 && ylo == -BIG && yhi == BIG)
-    error->all(FLERR,"Illegal region prism command");
+    error->all(FLERR,"Illegal region prism non-zero xy tilt with infinite y size");
 
   if (xz != 0.0 && xlo == -BIG && xhi == BIG)
-    error->all(FLERR,"Illegal region prism command");
+    error->all(FLERR,"Illegal region prism non-zero xz tilt with infinite x size");
   if (xz != 0.0 && zlo == -BIG && zhi == BIG)
-    error->all(FLERR,"Illegal region prism command");
+    error->all(FLERR,"Illegal region prism non-zero xz tilt with infinite z size");
 
   if (yz != 0.0 && ylo == -BIG && yhi == BIG)
-    error->all(FLERR,"Illegal region prism command");
+    error->all(FLERR,"Illegal region prism non-zero yz tilt with infinite y size");
   if (yz != 0.0 && zlo == -BIG && zhi == BIG)
-    error->all(FLERR,"Illegal region prism command");
+    error->all(FLERR,"Illegal region prism non-zero yz tilt with infinite z size");
 
   // extent of prism
 
@@ -394,7 +395,7 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
     xproj[0] = x[0] - dot*face[iface][0];
     xproj[1] = x[1] - dot*face[iface][1];
     xproj[2] = x[2] - dot*face[iface][2];
-    if (inside_tri(xproj,corners[i],corners[j],corners[k],face[iface])){
+    if (inside_tri(xproj,corners[i],corners[j],corners[k],face[iface])) {
       distsq = closest(x,xproj,nearest,distsq);
     }
     else {

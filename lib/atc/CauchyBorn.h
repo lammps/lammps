@@ -13,9 +13,9 @@ namespace ATC {
   class AtomCluster;
 
   /**
-   *  @class  StressAtIP 
-   *  @brief  Class for passing the vector of stresses at quadrature points 
-   *          Done by storing the quadrature point and providing indexing 
+   *  @class  StressAtIP
+   *  @brief  Class for passing the vector of stresses at quadrature points
+   *          Done by storing the quadrature point and providing indexing
    */
 
   class StressAtIP {
@@ -30,7 +30,7 @@ namespace ATC {
     void set_quadrature_point(INDEX qp) { q = qp; }
     //* Operator that outputs the stress
     friend std::ostream& operator<<(std::ostream& o, const StressAtIP& s)
-    { o << "stress\n"; 
+    { o << "stress\n";
       o << s(0,0) << " " << s(0,1) << " " << s(0,2) << "\n";
       o << s(1,0) << " " << s(1,1) << " " << s(1,2) << "\n";
       o << s(2,0) << " " << s(2,1) << " " << s(2,2) << "\n";
@@ -56,7 +56,7 @@ namespace ATC {
   };
 
   /**
-   *  @class  PairParam 
+   *  @class  PairParam
    *  @brief  Class for storing parameters used in pairwise stress computations
    */
   struct PairParam {
@@ -82,7 +82,7 @@ namespace ATC {
   void cb_stress(const StressArgs &args, StressAtIP &s, double *F=0);
   //* Computes the elastic energy (free or potential if T=0).
   double cb_energy(const StressArgs &args);
-  //* Computes the entropic energy 
+  //* Computes the entropic energy
   double cb_entropic_energy(const StressArgs &args);
   //* Auxiliary functions for cb_stress
   //@{
@@ -96,8 +96,8 @@ namespace ATC {
   void embedding_thermal(const PairParam &p, DENS_MAT &D, DENS_MAT &L0, DENS_MAT_VEC *dDdF=0);
   //* Last stage of the pairwise finite-T Cauchy-Born stress computation.
   void thermal_end(const DENS_MAT_VEC &DF, const DENS_MAT &D, const DENS_MAT &F,
-                   const double &T, const double &kb, StressAtIP &s, double *F_w=0); 
-  //* Returns the stretch tensor and its derivative with respect to C (R C-G). 
+                   const double &T, const double &kb, StressAtIP &s, double *F_w=0);
+  //* Returns the stretch tensor and its derivative with respect to C (R C-G).
   void stretch_tensor_derivative(const DENS_VEC &C, DENS_VEC &U, DENS_MAT &dU);
   //@}
 

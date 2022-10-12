@@ -32,7 +32,7 @@ nprocs = comm.Get_size()
 
 if me < nprocs // 2:  color = 0
 else: color = 1
-  
+
 split = comm.Split(color,key=0)
 
 if color == 0:
@@ -57,7 +57,7 @@ if color == 0:
   lmp.scatter_atoms("x",1,3,x)
   lmp.command("run 1");
 
-  f = lmp.extract_atom("f",3)
+  f = lmp.extract_atom("f")
   print("Force on 1 atom via extract_atom: ",f[0][0])
 
   fx = lmp.extract_variable("fx","all",1)
@@ -69,12 +69,12 @@ else:
   # could run a 2nd calculation on second partition
   #   with different LAMMPS instance or another code
   # in this case, just sleep on second partition
-  
+
   import time
   time.sleep(2)
   print("Calculation on partition 1 complete")
 
 # shutdown mpi4py
-  
+
 comm.Barrier()
 MPI.Finalize()

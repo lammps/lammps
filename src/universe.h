@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,73 +14,35 @@
 #ifndef LMP_UNIVERSE_H
 #define LMP_UNIVERSE_H
 
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
 class Universe : protected Pointers {
  public:
-  const char *version;    // LAMMPS version string = date
-  const char *num_ver;    // numeric version id derived from version that
-                          // can be used for string or numeric comparisons
+  MPI_Comm uworld;    // communicator for entire universe
+  int me, nprocs;     // my place in universe
 
-  MPI_Comm uworld;        // communicator for entire universe
-  int me,nprocs;          // my place in universe
+  FILE *uscreen;     // universe screen output
+  FILE *ulogfile;    // universe logfile
 
-  FILE *uscreen;          // universe screen output
-  FILE *ulogfile;         // universe logfile
+  int existflag;           // 1 if universe exists due to -partition flag
+  int nworlds;             // # of worlds in universe
+  int iworld;              // which world I am in
+  int *procs_per_world;    // # of procs in each world
+  int *root_proc;          // root proc in each world
 
-  int existflag;          // 1 if universe exists due to -partition flag
-  int nworlds;            // # of worlds in universe
-  int iworld;             // which world I am in
-  int *procs_per_world;   // # of procs in each world
-  int *root_proc;         // root proc in each world
-
-  MPI_Comm uorig;         // original communicator passed to LAMMPS instance
-  int *uni2orig;          // proc I in universe uworld is
-                          // proc uni2orig[I] in original communicator
+  MPI_Comm uorig;    // original communicator passed to LAMMPS instance
+  int *uni2orig;     // proc I in universe uworld is
+                     // proc uni2orig[I] in original communicator
 
   Universe(class LAMMPS *, MPI_Comm);
-  ~Universe();
+  ~Universe() override;
   void reorder(char *, char *);
   void add_world(char *);
   int consistent();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid -reorder N value
-
-Self-explanatory.
-
-E: Nprocs not a multiple of N for -reorder
-
-Self-explanatory.
-
-E: Cannot open -reorder file
-
-Self-explanatory.
-
-E: Unexpected end of -reorder file
-
-Self-explanatory.
-
-E: Invalid entry in -reorder file
-
-Self-explanatory.
-
-E: Invalid command-line argument
-
-One or more command-line arguments is invalid.  Check the syntax of
-the command you are using to launch LAMMPS.
-
-E: Invalid partition string '%s'
-
-UNDOCUMENTED
-
-*/

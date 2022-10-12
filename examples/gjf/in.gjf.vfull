@@ -1,0 +1,23 @@
+# GJF-2GJ thermostat
+
+units   	metal
+atom_style      full
+
+boundary 	p p p
+read_data argon.lmp
+
+include ff-argon.lmp
+
+velocity all create 10 2357 mom yes dist gaussian
+
+neighbor 1 bin
+
+timestep 0.1
+
+fix lang all langevin 10 10 1 26488 gjf vfull
+fix nve all nve
+
+thermo 200
+run 5000
+
+

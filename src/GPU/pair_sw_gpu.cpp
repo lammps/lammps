@@ -219,10 +219,10 @@ void PairSWGPU::init_style()
 
   if (gpu_mode == GPU_FORCE)
     neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
-  if (comm->cutghostuser < (2.0 * cutmax + neighbor->skin)) {
+  if (comm->get_comm_cutoff() < (2.0 * cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0 * cutmax + neighbor->skin;
     if (comm->me == 0)
-      error->warning(FLERR, "Increasing communication cutoff to {:.3} for GPU pair style",
+      error->warning(FLERR, "Increasing communication cutoff to {:.8} for GPU pair style",
                      comm->cutghostuser);
   }
 }

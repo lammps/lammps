@@ -22,6 +22,14 @@ au-aq/
   in.ffield  -- finite field method with fully periodic cell
   in.tf      -- Thomas-Fermi metallicity model with more delocalized charges
 
+madelung/
+  data.au-elyt -- tiny electrodes with two electrolyte atoms in between
+  settings.mod -- common settings
+  in.*         -- setup KSpace and fix electrode/conp
+  plate_cap.py -- compute reference energy and charges from Madelung style sum
+  eval.py      -- compare output of reference and Lammps job (used by test.sh)
+  test.sh      -- run all in.* files and check charge at 1 V and %difference from theoretical (last column)
+
 # future work:
   # in.cylinder -- comparison of carbon nanotube to theoretical induced charge for charge near circular conductor
 

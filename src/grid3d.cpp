@@ -1331,6 +1331,8 @@ void Grid3d::remap_setup(Grid3d *old, int &ngrid1_buf, int &ngrid2_buf)
 
 void Grid3d::remap_setup_regular(Grid3d *old, int &ngrid1_buf, int &ngrid2_buf)
 {
+  // NOTE: when to clean up data structs when multiple remaps occur
+  
   ngrid1_buf = 0;
   ngrid2_buf = 0;
 }

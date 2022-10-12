@@ -5,7 +5,7 @@ boundary p p f # slab calculation
 include settings.mod # styles, groups, computes and fixes
 kspace_modify slab 3.0
 
-fix conp bot electrode/conp v_vbot 1.979 couple top v_vtop etypes
+fix conp bot electrode/conp v_vbot 1.979 couple top v_vtop etypes on
 
 variable qex_bot equal -1.0-f_conp[1][1] # difference between desired and 0V charge
 variable qex_top equal  1.0-f_conp[2][1] # difference between desired and 0V charge

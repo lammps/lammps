@@ -136,16 +136,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         group_psi_var_styles.push_back(VarStyle::CONST);
         group_psi.push_back(utils::numeric(FLERR, arg[iarg], false, lmp));
       }
-    } else if ((strncmp(arg[iarg], "symm", 4) == 0)) {
-      if (iarg + 2 > narg) error->all(FLERR, "Need yes/no command after symm keyword");
-      char *symm_arg = arg[++iarg];
-      if ((strcmp(symm_arg, "yes") == 0) || (strcmp(symm_arg, "on") == 0)) {
-        symm = true;
-      } else if ((strcmp(symm_arg, "no") == 0) || (strcmp(symm_arg, "off") == 0)) {
-        symm = false;
-      } else {
-        error->all(FLERR, "Invalid argument after symm keyword");
-      }
     } else if ((strcmp(arg[iarg], "algo") == 0)) {
       if (!default_algo) error->one(FLERR, fmt::format("Algorithm can be set once, only"));
       default_algo = false;
@@ -195,8 +185,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       } else {
         error->all(FLERR, "Illegal fix electrode/conp command with read");
       }
-    } else if ((strcmp(arg[iarg], "etypes") == 0)) {
-      etypes_neighlists = true;
     } else if ((strcmp(arg[iarg], "temp") == 0)) {
       if (iarg + 4 > narg) error->all(FLERR, "Need three arguments after temp command");
       if (strcmp(this->style, "electrode/thermo") != 0)
@@ -204,16 +192,13 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       thermo_temp = force->boltz / force->qe2f * utils::numeric(FLERR, arg[++iarg], false, lmp);
       thermo_time = utils::numeric(FLERR, arg[++iarg], false, lmp);
       thermo_init = utils::inumeric(FLERR, arg[++iarg], false, lmp);
+      // toggle parameters
+    } else if ((strcmp(arg[iarg], "etypes") == 0)) {
+      etypes_neighlists = utils::logical(FLERR, arg[++iarg], false, lmp);
+    } else if ((strncmp(arg[iarg], "symm", 4) == 0)) {
+      symm = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if ((strcmp(arg[iarg], "ffield") == 0)) {
-      if (iarg + 2 > narg) error->all(FLERR, "Need yes/no command after ffield keyword");
-      char *ffield_arg = arg[++iarg];
-      if ((strcmp(ffield_arg, "yes") == 0) || (strcmp(ffield_arg, "on") == 0)) {
-        ffield = true;
-      } else if ((strcmp(ffield_arg, "no") == 0) || (strcmp(ffield_arg, "off") == 0)) {
-        ffield = false;
-      } else {
-        error->all(FLERR, "Invalid argument after ffield keyword");
-      }
+      ffield = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else {
       error->all(FLERR, "Illegal fix electrode/conp command");
     }

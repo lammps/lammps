@@ -1172,6 +1172,80 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
+   setup remap from old grid decomposition to this grid decomposition
+   pack/unpack operations are performed by caller via callbacks
+------------------------------------------------------------------------- */
+
+void Grid2d::remap_setup(Grid2d *old, int &ngrid1_buf, int &ngrid2_buf)
+{
+  if (layout == REGULAR) remap_setup_regular(old,ngrid1_buf,ngrid2_buf);
+  else remap_setup_tiled(old,ngrid1_buf,ngrid2_buf);
+}
+
+void Grid2d::remap_setup_regular(Grid2d *old, int &ngrid1_buf, int &ngrid2_buf)
+{
+  ngrid1_buf = 0;
+  ngrid2_buf = 0;
+}
+
+void Grid2d::remap_setup_tiled(Grid2d *old, int &ngrid1_buf, int &ngrid2_buf)
+{
+  ngrid1_buf = 0;
+  ngrid2_buf = 0;
+}
+
+/* ----------------------------------------------------------------------
+   perform remap from old grid decomposition to this grid decomposition
+   pack/unpack operations are performed by caller via callbacks
+------------------------------------------------------------------------- */
+
+void Grid2d::remap(int caller, void *ptr, int nper, int nbyte,
+		   void *buf1, void *buf2, MPI_Datatype datatype)
+{
+  if (caller == FIX) remap_style<Fix>((Fix *) ptr,nper,nbyte,buf1,buf2,datatype);
+}
+
+template < class T >
+void Grid2d::remap_style(T *ptr, int nper, int nbyte,
+			 void *buf1, void *vbuf2, MPI_Datatype datatype)
+{
+  int i,m,offset;
+
+  auto buf2 = (char *) vbuf2;
+
+  // post all receives
+
+  for (m = 0; m < nrecv_remap; m++) {
+    offset = nper * recv_remap[m].offset * nbyte;
+    MPI_Irecv((void *) &buf2[offset],nper*recv_remap[m].nunpack,datatype,
+              recv_remap[m].proc,0,gridcomm,&requests_remap[m]);
+  }
+
+  // perform all sends to other procs
+
+  for (m = 0; m < nsend_remap; m++) {
+    ptr->pack_remap_grid(buf1,send_remap[m].npack,send_remap[m].packlist);
+    MPI_Send(buf1,nper*send_remap[m].npack,datatype,send_remap[m].proc,0,gridcomm);
+  }
+
+  // perform remap to self if defined
+
+  if (self_remap) {
+    ptr->pack_remap_grid(buf1,copy_remap.npack,copy_remap.packlist);
+    ptr->unpack_remap_grid(buf1,copy_remap.nunpack,copy_remap.unpacklist);
+  }
+
+  // unpack all received data
+
+  for (i = 0; i < nrecv_remap; i++) {
+    MPI_Waitany(nrecv_remap,requests_remap,&m,MPI_STATUS_IGNORE);
+    offset = nper * recv_remap[m].offset * nbyte;
+    ptr->unpack_remap_grid((void *) &buf2[offset],
+			   recv_remap[m].nunpack,recv_remap[m].unpacklist);
+  }
+}
+
+/* ----------------------------------------------------------------------
    gather global grid values to proc 0, one grid chunk at a time
    proc 0 pings each proc for its grid chunk
    pack/unpack operations are performed by caller via callbacks

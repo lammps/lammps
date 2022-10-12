@@ -405,7 +405,7 @@ void FixTTMGrid::reset_grid()
   // NOTE: need to set offsets
 
   int nxlo_out_prev,nylo_out_prev,nzlo_out_prev;
-  memory->destroy3d_offset(T_electron_previous, 
+  memory->destroy3d_offset(T_electron_previous,
                            nzlo_out_prev, nylo_out_prev, nxlo_out_prev);
   delete grid_previous;
 }

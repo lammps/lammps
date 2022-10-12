@@ -1319,54 +1319,77 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
-   remap from old grid decomposition to this grid decomposition
+   setup remap from old grid decomposition to this grid decomposition
    pack/unpack operations are performed by caller via callbacks
 ------------------------------------------------------------------------- */
 
-void Grid3d::remap_init(Grid3d *old, int &ngrid1_buf, int &ngrid_buf2)
+void Grid3d::remap_setup(Grid3d *old, int &ngrid1_buf, int &ngrid2_buf)
 {
+  if (layout == REGULAR) remap_setup_regular(old,ngrid1_buf,ngrid2_buf);
+  else remap_setup_tiled(old,ngrid1_buf,ngrid2_buf);
+}
 
-  // perform remap
+void Grid3d::remap_setup_regular(Grid3d *old, int &ngrid1_buf, int &ngrid2_buf)
+{
+  ngrid1_buf = 0;
+  ngrid2_buf = 0;
+}
 
+void Grid3d::remap_setup_tiled(Grid3d *old, int &ngrid1_buf, int &ngrid2_buf)
+{
+  ngrid1_buf = 0;
+  ngrid2_buf = 0;
+}
 
-  /*
-  // post all recvs into scratch space
+/* ----------------------------------------------------------------------
+   perform remap from old grid decomposition to this grid decomposition
+   pack/unpack operations are performed by caller via callbacks
+------------------------------------------------------------------------- */
 
-    for (irecv = 0; irecv < plan->nrecv; irecv++)
-      MPI_Irecv(&scratch[plan->recv_bufloc[irecv]],plan->recv_size[irecv],
-                MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
-                plan->comm,&plan->request[irecv]);
+void Grid3d::remap(int caller, void *ptr, int nper, int nbyte,
+		   void *buf1, void *buf2, MPI_Datatype datatype)
+{
+  if (caller == FIX) remap_style<Fix>((Fix *) ptr,nper,nbyte,buf1,buf2,datatype);
+}
 
-    // send all messages to other procs
+template < class T >
+void Grid3d::remap_style(T *ptr, int nper, int nbyte,
+			 void *buf1, void *vbuf2, MPI_Datatype datatype)
+{
+  int i,m,offset;
 
-    for (isend = 0; isend < plan->nsend; isend++) {
-      plan->pack(&in[plan->send_offset[isend]],
-                 plan->sendbuf,&plan->packplan[isend]);
-      MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
-               plan->send_proc[isend],0,plan->comm);
-    }
+  auto buf2 = (char *) vbuf2;
 
-    // copy in -> scratch -> out for self data
+  // post all receives
 
-    if (plan->self) {
-      isend = plan->nsend;
-      irecv = plan->nrecv;
-      plan->pack(&in[plan->send_offset[isend]],
-                 &scratch[plan->recv_bufloc[irecv]],
-                 &plan->packplan[isend]);
-      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
-                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
-    }
+  for (m = 0; m < nrecv_remap; m++) {
+    offset = nper * recv_remap[m].offset * nbyte;
+    MPI_Irecv((void *) &buf2[offset],nper*recv_remap[m].nunpack,datatype,
+              recv_remap[m].proc,0,gridcomm,&requests_remap[m]);
+  }
 
-    // unpack all messages from scratch -> out
+  // perform all sends to other procs
 
-    for (i = 0; i < plan->nrecv; i++) {
-      MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
-      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
-                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
-    }
+  for (m = 0; m < nsend_remap; m++) {
+    ptr->pack_remap_grid(buf1,send_remap[m].npack,send_remap[m].packlist);
+    MPI_Send(buf1,nper*send_remap[m].npack,datatype,send_remap[m].proc,0,gridcomm);
+  }
 
-  */
+  // perform remap to self if defined
+
+  if (self_remap) {
+    ptr->pack_remap_grid(buf1,copy_remap.npack,copy_remap.packlist);
+    ptr->unpack_remap_grid(buf1,copy_remap.nunpack,copy_remap.unpacklist);
+  }
+
+  // unpack all received data
+
+  for (i = 0; i < nrecv_remap; i++) {
+    MPI_Waitany(nrecv_remap,requests_remap,&m,MPI_STATUS_IGNORE);
+    offset = nper * recv_remap[m].offset * nbyte;
+    ptr->unpack_remap_grid((void *) &buf2[offset],
+			   recv_remap[m].nunpack,recv_remap[m].unpacklist);
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -364,13 +364,10 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 /* ----------------------------------------------------------------------
    subset of grid assigned to each proc may have changed
    called by load balancer when proc subdomains are adjusted
-   not supported for now, b/c requires T_electron to persist, i.e. a remap()
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::reset_grid()
 {
-  error->all(FLERR,"Fix ttm/grid does not support load balancing (yet)");
-
   // delete grid data which doesn't need to persist from previous to new decomp
 
   memory->destroy(grid_buf1);
@@ -390,13 +387,13 @@ void FixTTMGrid::reset_grid()
   // perform remap from previous decomp to new decomp
 
   int nremap_buf1,nremap_buf2;
-  grid->remap_init(grid_previous,nremap_buf1,nremap_buf2);
+  grid->remap_setup(grid_previous,nremap_buf1,nremap_buf2);
 
   double *remap_buf1,*remap_buf2;
   memory->create(remap_buf1, nremap_buf1, "ttm/grid:remap_buf1");
   memory->create(remap_buf2, nremap_buf2, "ttm/grid:remap_buf2");
 
-  grid->remap_perform(Grid3d::FIX,this,grid_previous);
+  grid->remap(Grid3d::FIX,this,1,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
 
   memory->destroy(remap_buf1);
   memory->destroy(remap_buf2);
@@ -462,7 +459,7 @@ void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
    pack old grid  values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::pack_remap_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixTTMGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *src = &T_electron_previous[nzlo_out][nylo_out][nxlo_out];
@@ -474,7 +471,7 @@ void FixTTMGrid::pack_remap_grid(int /*flag*/, void *vbuf, int nlist, int *list)
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::unpack_remap_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixTTMGrid::unpack_remap_grid(void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];

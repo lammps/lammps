@@ -37,8 +37,8 @@ class Grid3d : protected Pointers {
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
-  void remap_init(Grid3d *, int &, int &);
-  void remap_perform(int, void *, Grid3d *) {}
+  void remap_setup(Grid3d *, int &, int &);
+  void remap(int, void *, int, int, void *, void *, MPI_Datatype);
   void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
  protected:
@@ -181,6 +181,17 @@ class Grid3d : protected Pointers {
   Copy *copy;
 
   // -------------------------------------------
+  // internal variables for REMAP operation
+  // -------------------------------------------
+
+  MPI_Request *requests_remap;    // length of max messages this proc receives
+
+  int nsend_remap, nrecv_remap, self_remap;
+  Send *send_remap;
+  Recv *recv_remap;
+  Copy copy_remap;
+  
+  // -------------------------------------------
   // internal methods
   // -------------------------------------------
 
@@ -198,6 +209,10 @@ class Grid3d : protected Pointers {
   template <class T> void forward_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void reverse_comm_regular(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void reverse_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
+
+  void remap_setup_regular(Grid3d *, int &, int &);
+  void remap_setup_tiled(Grid3d *, int &, int &);
+  template <class T> void remap_style(T *, int, int, void *, void *, MPI_Datatype);
 
   virtual void grow_swap();
   void grow_overlap();

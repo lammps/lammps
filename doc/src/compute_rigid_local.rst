@@ -109,8 +109,7 @@ The *mass* attribute is the total mass of the rigid body.
 There are two options for outputting the coordinates of the center of
 mass (COM) of the body.  The *x*, *y*, *z* attributes write the COM
 "unscaled", in the appropriate distance :doc:`units <units>`
-(:math:`\mathrm{\mathring A}`,
-sigma, etc).  Use *xu*, *yu*, *zu* if you want the COM "unwrapped" by
+(:math:`\AA`, :math:`\sigma`, etc).  Use *xu*, *yu*, *zu* if you want the COM "unwrapped" by
 the image flags for each body.  Unwrapped means that if the body
 COM has passed through a periodic boundary one or more times, the value
 is generated what the COM coordinate would be if it had not been

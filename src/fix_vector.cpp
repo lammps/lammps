@@ -25,9 +25,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { ONE, RUNNING, WINDOW };
-enum { SCALAR, VECTOR };
-
 /* ---------------------------------------------------------------------- */
 
 FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
@@ -37,6 +34,8 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   if (nevery <= 0) error->all(FLERR, "Invalid fix vector every argument: {}", nevery);
+
+  // parse values
 
   values.clear();
   for (int iarg = 4; iarg < narg; iarg++) {
@@ -48,7 +47,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
     val.id = argi.get_name();
     val.val.c = nullptr;
 
-    if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_type() == ArgInfo::NONE) ||
+    if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) ||
         (argi.get_dim() > 1))
       error->all(FLERR, "Invalid fix vector argument: {}", arg[iarg]);
 

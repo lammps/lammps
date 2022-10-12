@@ -115,8 +115,7 @@ struct has_condition<DefaultType, Condition, S, Pack...> {
  public:
   enum : bool { value = self_value || next::value };
 
-  using type =
-      typename std::conditional<self_value, S, typename next::type>::type;
+  using type = std::conditional_t<self_value, S, typename next::type>;
 };
 
 template <class... Args>
@@ -156,10 +155,9 @@ struct if_c {
 
   using type = FalseType;
 
-  using value_type = typename std::remove_const<
-      typename std::remove_reference<type>::type>::type;
+  using value_type = std::remove_const_t<std::remove_reference_t<type>>;
 
-  using const_value_type = typename std::add_const<value_type>::type;
+  using const_value_type = std::add_const_t<value_type>;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;
@@ -191,10 +189,9 @@ struct if_c<true, TrueType, FalseType> {
 
   using type = TrueType;
 
-  using value_type = typename std::remove_const<
-      typename std::remove_reference<type>::type>::type;
+  using value_type = std::remove_const_t<std::remove_reference_t<type>>;
 
-  using const_value_type = typename std::add_const<value_type>::type;
+  using const_value_type = std::add_const_t<value_type>;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;

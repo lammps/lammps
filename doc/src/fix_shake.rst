@@ -58,10 +58,13 @@ Description
 
 Apply bond and angle constraints to specified bonds and angles in the
 simulation by either the SHAKE or RATTLE algorithms.  This typically
-enables a longer timestep.  The SHAKE or RATTLE algorithms, however, can
-*only* be applied during molecular dynamics runs.  When this fix is used
-during a minimization, the constraints are *approximated* by strong
-harmonic restraints.
+enables a longer timestep.  The SHAKE or RATTLE constraint algorithms,
+however, can *only* be applied during molecular dynamics runs.
+
+.. versionchanged:: 15Sep2022
+
+These fixes may still be used during minimization.  In that case the
+constraints are *approximated* by strong harmonic restraints.
 
 **SHAKE vs RATTLE:**
 

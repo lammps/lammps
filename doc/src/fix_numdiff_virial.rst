@@ -25,6 +25,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 17Feb2022
+
 Calculate the virial stress tensor through a finite difference calculation of
 energy versus strain.  These values can be compared to the analytic virial
 tensor computed by pair styles, bond styles, etc.  This can be useful for

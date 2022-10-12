@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Macros.hpp>
 
 #include <Kokkos_HostSpace.hpp>
@@ -63,10 +67,13 @@ void DeepCopySYCL(void* dst, const void* src, size_t n) {
 
 void DeepCopyAsyncSYCL(const Kokkos::Experimental::SYCL& instance, void* dst,
                        const void* src, size_t n) {
-  auto event =
-      instance.impl_internal_space_instance()->m_queue->memcpy(dst, src, n);
-  instance.impl_internal_space_instance()->m_queue->ext_oneapi_submit_barrier(
-      std::vector<sycl::event>{event});
+  // FIXME_SYCL memcpy doesn't respect submit_barrier which means that we need
+  // to actually fence the execution space to make sure the memcpy is properly
+  // enqueued when using out-of-order queues.
+  sycl::queue& q = *instance.impl_internal_space_instance()->m_queue;
+  q.wait_and_throw();
+  auto event = q.memcpy(dst, src, n);
+  q.ext_oneapi_submit_barrier(std::vector<sycl::event>{event});
 }
 
 void DeepCopyAsyncSYCL(void* dst, const void* src, size_t n) {
@@ -121,6 +128,23 @@ void* allocate_sycl(
   return hostPtr;
 }
 
+void* SYCLDeviceUSMSpace::allocate(const Kokkos::Experimental::SYCL& exec_space,
+                                   const size_t arg_alloc_size) const {
+  return allocate(exec_space, "[unlabeled]", arg_alloc_size);
+}
+
+void* SYCLDeviceUSMSpace::allocate(const Kokkos::Experimental::SYCL& exec_space,
+                                   const char* arg_label,
+                                   const size_t arg_alloc_size,
+                                   const size_t arg_logical_size) const {
+  return allocate_sycl(
+      arg_label, arg_alloc_size, arg_logical_size,
+      Kokkos::Tools::make_space_handle(name()),
+      RawMemoryAllocationFailure::AllocationMechanism::SYCLMallocDevice,
+      sycl::usm::alloc::device,
+      *exec_space.impl_internal_space_instance()->m_queue);
+}
+
 void* SYCLDeviceUSMSpace::allocate(const size_t arg_alloc_size) const {
   return allocate("[unlabeled]", arg_alloc_size);
 }
@@ -135,6 +159,22 @@ void* SYCLDeviceUSMSpace::allocate(const char* arg_label,
       sycl::usm::alloc::device, m_queue);
 }
 
+void* SYCLSharedUSMSpace::allocate(const SYCL& exec_space,
+                                   const size_t arg_alloc_size) const {
+  return allocate(exec_space, "[unlabeled]", arg_alloc_size);
+}
+void* SYCLSharedUSMSpace::allocate(const SYCL& exec_space,
+                                   const char* arg_label,
+                                   const size_t arg_alloc_size,
+                                   const size_t arg_logical_size) const {
+  return allocate_sycl(
+      arg_label, arg_alloc_size, arg_logical_size,
+      Kokkos::Tools::make_space_handle(name()),
+      RawMemoryAllocationFailure::AllocationMechanism::SYCLMallocShared,
+      sycl::usm::alloc::shared,
+      *exec_space.impl_internal_space_instance()->m_queue);
+}
+
 void* SYCLSharedUSMSpace::allocate(const size_t arg_alloc_size) const {
   return allocate("[unlabeled]", arg_alloc_size);
 }
@@ -146,6 +186,21 @@ void* SYCLSharedUSMSpace::allocate(const char* arg_label,
       Kokkos::Tools::make_space_handle(name()),
       RawMemoryAllocationFailure::AllocationMechanism::SYCLMallocShared,
       sycl::usm::alloc::shared, m_queue);
+}
+
+void* SYCLHostUSMSpace::allocate(const SYCL& exec_space,
+                                 const size_t arg_alloc_size) const {
+  return allocate(exec_space, "[unlabeled]", arg_alloc_size);
+}
+void* SYCLHostUSMSpace::allocate(const SYCL& exec_space, const char* arg_label,
+                                 const size_t arg_alloc_size,
+                                 const size_t arg_logical_size) const {
+  return allocate_sycl(
+      arg_label, arg_alloc_size, arg_logical_size,
+      Kokkos::Tools::make_space_handle(name()),
+      RawMemoryAllocationFailure::AllocationMechanism::SYCLMallocHost,
+      sycl::usm::alloc::host,
+      *exec_space.impl_internal_space_instance()->m_queue);
 }
 
 void* SYCLHostUSMSpace::allocate(const size_t arg_alloc_size) const {
@@ -261,6 +316,56 @@ SharedAllocationRecord<Kokkos::Experimental::SYCLDeviceUSMSpace, void>::
       "HostSpace");
 }
 
+SharedAllocationRecord<Kokkos::Experimental::SYCLDeviceUSMSpace, void>::
+    SharedAllocationRecord(
+        const Kokkos::Experimental::SYCL& arg_exec_space,
+        const Kokkos::Experimental::SYCLDeviceUSMSpace& space,
+        const std::string& label, const size_t size,
+        const SharedAllocationRecord<void, void>::function_type dealloc)
+    // Pass through allocated [ SharedAllocationHeader , user_memory ]
+    // Pass through deallocation function
+    : base_t(
+#ifdef KOKKOS_ENABLE_DEBUG
+          &SharedAllocationRecord<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                                  void>::s_root_record,
+#endif
+          Kokkos::Impl::checked_allocation_with_header(arg_exec_space, space,
+                                                       label, size),
+          sizeof(SharedAllocationHeader) + size, dealloc, label),
+      m_space(space) {
+  SharedAllocationHeader header;
+
+  this->base_t::_fill_host_accessible_header_info(header, label);
+
+  // Copy to device memory
+  Kokkos::Impl::DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace, HostSpace>(
+      arg_exec_space, RecordBase::m_alloc_ptr, &header,
+      sizeof(SharedAllocationHeader));
+}
+
+SharedAllocationRecord<Kokkos::Experimental::SYCLSharedUSMSpace, void>::
+    SharedAllocationRecord(
+        const Kokkos::Experimental::SYCL& exec_space,
+        const Kokkos::Experimental::SYCLSharedUSMSpace& arg_space,
+        const std::string& arg_label, const size_t arg_alloc_size,
+        const SharedAllocationRecord<void, void>::function_type arg_dealloc)
+    // Pass through allocated [ SharedAllocationHeader , user_memory ]
+    // Pass through deallocation function
+    : base_t(
+#ifdef KOKKOS_ENABLE_DEBUG
+          &SharedAllocationRecord<Kokkos::Experimental::SYCLSharedUSMSpace,
+                                  void>::s_root_record,
+#endif
+          Impl::checked_allocation_with_header(exec_space, arg_space, arg_label,
+                                               arg_alloc_size),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
+      m_space(arg_space) {
+
+  this->base_t::_fill_host_accessible_header_info(*base_t::m_alloc_ptr,
+                                                  arg_label);
+}
+
 SharedAllocationRecord<Kokkos::Experimental::SYCLSharedUSMSpace, void>::
     SharedAllocationRecord(
         const Kokkos::Experimental::SYCLSharedUSMSpace& arg_space,
@@ -274,6 +379,29 @@ SharedAllocationRecord<Kokkos::Experimental::SYCLSharedUSMSpace, void>::
                                   void>::s_root_record,
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
+                                               arg_alloc_size),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
+      m_space(arg_space) {
+
+  this->base_t::_fill_host_accessible_header_info(*base_t::m_alloc_ptr,
+                                                  arg_label);
+}
+
+SharedAllocationRecord<Kokkos::Experimental::SYCLHostUSMSpace, void>::
+    SharedAllocationRecord(
+        const Kokkos::Experimental::SYCL& exec_space,
+        const Kokkos::Experimental::SYCLHostUSMSpace& arg_space,
+        const std::string& arg_label, const size_t arg_alloc_size,
+        const SharedAllocationRecord<void, void>::function_type arg_dealloc)
+    // Pass through allocated [ SharedAllocationHeader , user_memory ]
+    // Pass through deallocation function
+    : base_t(
+#ifdef KOKKOS_ENABLE_DEBUG
+          &SharedAllocationRecord<Kokkos::Experimental::SYCLHostUSMSpace,
+                                  void>::s_root_record,
+#endif
+          Impl::checked_allocation_with_header(exec_space, arg_space, arg_label,
                                                arg_alloc_size),
           sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
           arg_label),

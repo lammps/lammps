@@ -140,9 +140,7 @@ struct find_test {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, volatile value_type const& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, value_type const& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(size_type i, value_type& num_errors) const {

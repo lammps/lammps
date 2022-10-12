@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_CORE_FWD_HPP
 #define KOKKOS_CORE_FWD_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE_FWD
+#endif
 
 //----------------------------------------------------------------------------
 // Kokkos_Macros.hpp does introspection on configuration options
@@ -94,7 +98,10 @@ template <class ExecutionSpace, class MemorySpace>
 struct Device;
 
 // forward declare here so that backend initializer calls can use it.
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 struct InitArguments;
+#endif
+class InitializationSettings;
 
 }  // namespace Kokkos
 
@@ -132,6 +139,9 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
     Experimental::SYCL;
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENACC)
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
+    Experimental::OpenACC;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = OpenMP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
@@ -143,7 +153,7 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Serial;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::HIP, Kokkos::Experimental::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::HIP, Kokkos::Experimental::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::Experimental::OpenACC, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
@@ -199,7 +209,7 @@ struct RuntimeCheckMemoryAccessViolation {
 // explicit specialization: memory access violation will occur, call abort with
 // the specified error message.
 template <class MemorySpace, class AccessSpace>
-struct RuntimeCheckMemoryAccessViolation<AccessSpace, MemorySpace, false> {
+struct RuntimeCheckMemoryAccessViolation<MemorySpace, AccessSpace, false> {
   KOKKOS_FUNCTION RuntimeCheckMemoryAccessViolation(char const *const msg) {
     Kokkos::abort(msg);
   }
@@ -267,9 +277,6 @@ struct verify_space<DstMemorySpace, SrcMemorySpace, false> {
 };
 #endif
 
-// Base class for exec space initializer factories
-class ExecSpaceInitializerBase;
-
 }  // namespace Impl
 
 namespace Experimental {
@@ -292,8 +299,15 @@ class LogicalMemorySpace;
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+// Getting ICE in Trilinos in Sacado and Intrepid in deep_copy
+// See issue https://github.com/kokkos/kokkos/issues/5290
+// Simply taking string by value did not resolve the issue
+#ifdef KOKKOS_COMPILER_INTEL
 void fence();
-void fence(const std::string &);
+void fence(const std::string &name);
+#else
+void fence(const std::string &name = "Kokkos::fence: Unnamed Global Fence");
+#endif
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -354,12 +368,12 @@ class ParallelReduce;
 /// skip this and go directly to the documentation of the nonmember
 /// template function Kokkos::parallel_scan.
 template <class FunctorType, class ExecPolicy,
-          class ExecutionSapce = typename Impl::FunctorPolicyExecutionSpace<
+          class ExecutionSpace = typename Impl::FunctorPolicyExecutionSpace<
               FunctorType, ExecPolicy>::execution_space>
 class ParallelScan;
 
 template <class FunctorType, class ExecPolicy, class ReturnType = InvalidType,
-          class ExecutionSapce = typename Impl::FunctorPolicyExecutionSpace<
+          class ExecutionSpace = typename Impl::FunctorPolicyExecutionSpace<
               FunctorType, ExecPolicy>::execution_space>
 class ParallelScanWithTotal;
 
@@ -418,4 +432,8 @@ template <class Index, class Space = HostSpace>
 struct StdPartitionPoint;
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE_FWD
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE_FWD
+#endif
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */

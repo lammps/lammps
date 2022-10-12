@@ -12,7 +12,7 @@ Syntax
    restart N root keyword value ...
    restart N file1 file2 keyword value ...
 
-* N = write a restart file on timesteps which are multipls of N
+* N = write a restart file on timesteps which are multiples of N
 * N can be a variable (see below)
 * root = filename to which timestep # is appended
 * file1,file2 = two full filenames, toggle between them when writing file

@@ -67,7 +67,7 @@ accessed by indices 1--3 by any command that uses global vector values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
 
-The vector values are "intensive."  The first vector value will be in
+The vector values are "intensive".  The first vector value will be in
 distance\ :math:`^2` :doc:`units <units>`, the second is in
 distance\ :math:`^4` units, and the third is dimensionless.
 

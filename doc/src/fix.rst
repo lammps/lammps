@@ -318,6 +318,7 @@ accelerated styles exist.
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
+* :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane

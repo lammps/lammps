@@ -2121,6 +2121,28 @@ void *PairAmoeba::extract(const char *str, int &dim)
 }
 
 /* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+
+void *PairAmoeba::extract_peratom(const char *str, int &ncol)
+{
+  if (strcmp(str,"uind") == 0) {
+    ncol = 3;
+    return (void *) uind;
+  } else if (strcmp(str,"uinp") == 0) {
+    ncol = 3;
+    return (void *) uinp;
+  }
+
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
   grow local vectors and arrays if necessary
   keep them all atom->nmax in length even if ghost storage not needed
 ------------------------------------------------------------------------- */

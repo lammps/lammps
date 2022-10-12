@@ -29,7 +29,7 @@ Description
 Define a computation that calculates the temperature of a system based
 on the center-of-mass velocity of atom pairs that are bonded to each
 other.  This compute is designed to be used with the adiabatic
-core/shell model of :ref:`(Mitchell and Finchham) <MitchellFinchham1>`.
+core/shell model of :ref:`(Mitchell and Fincham) <MitchellFincham1>`.
 See the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of
 the model as implemented in LAMMPS.  Specifically, this compute
 enables correct temperature calculation and thermostatting of
@@ -101,8 +101,8 @@ vector of length 6 (KE tensor), which can be accessed by indices 1--6.
 These values can be used by any command that uses global scalar or
 vector values from a compute as input.
 
-The scalar value calculated by this compute is "intensive."  The
-vector values are "extensive."
+The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".
 
 The scalar value will be in temperature :doc:`units <units>`.  The
 vector values will be in energy :doc:`units <units>`.
@@ -127,7 +127,7 @@ none
 
 ----------
 
-.. _MitchellFinchham1:
+.. _MitchellFincham1:
 
-**(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
+**(Mitchell and Fincham)** Mitchell, Fincham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

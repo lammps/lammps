@@ -86,6 +86,7 @@ Packages howto
    Howto_coreshell
    Howto_drude
    Howto_drude2
+   Howto_peri
    Howto_manifold
    Howto_spins
 

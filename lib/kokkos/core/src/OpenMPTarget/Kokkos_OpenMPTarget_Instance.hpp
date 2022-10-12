@@ -68,7 +68,7 @@ class OpenMPTargetInternal {
   int concurrency();
 
   //! Print configuration information to the given output stream.
-  void print_configuration(std::ostream&, const bool detail = false);
+  void print_configuration(std::ostream& os, bool verbose) const;
 
   static const char* name();
 

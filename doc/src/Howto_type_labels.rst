@@ -1,7 +1,7 @@
 Type labels
 ===========
 
-.. versionadded:: TBD
+.. versionadded:: 15Sep2022
 
 Each atom in LAMMPS has an associated numeric atom type. Similarly,
 each bond, angle, dihedral, and improper is assigned a bond type,

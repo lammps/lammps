@@ -44,7 +44,7 @@
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_Numeric.hpp>
+#include <std_algorithms/Kokkos_AdjacentDifference.hpp>
 #include <utility>
 #include <numeric>
 
@@ -185,7 +185,7 @@ void verify_data(TestViewType test_view, GoldViewType gold) {
   const auto gold_h = create_mirror_view_and_copy(Kokkos::HostSpace(), gold);
 
   for (std::size_t i = 0; i < test_view.extent(0); ++i) {
-    EXPECT_TRUE(gold_h(i) == test_view_dc_h(i));
+    EXPECT_EQ(gold_h(i), test_view_dc_h(i));
   }
 }
 
@@ -225,7 +225,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto res1 = KE::adjacent_difference(exespace(), KE::cbegin(view_from),
                                         KE::cend(view_from),
                                         KE::begin(view_dest), args...);
-    EXPECT_TRUE(res1 == KE::end(view_dest));
+    EXPECT_EQ(res1, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 
@@ -235,7 +235,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto res2 = KE::adjacent_difference(
         "label", exespace(), KE::cbegin(view_from), KE::cend(view_from),
         KE::begin(view_dest), args...);
-    EXPECT_TRUE(res2 == KE::end(view_dest));
+    EXPECT_EQ(res2, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 
@@ -244,7 +244,7 @@ void run_single_scenario(const InfoType& scenario_info,
         create_view<ValueType>(Tag{}, view_ext, "adj_diff_dest_view");
     auto res3 =
         KE::adjacent_difference(exespace(), view_from, view_dest, args...);
-    EXPECT_TRUE(res3 == KE::end(view_dest));
+    EXPECT_EQ(res3, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 
@@ -253,7 +253,7 @@ void run_single_scenario(const InfoType& scenario_info,
         create_view<ValueType>(Tag{}, view_ext, "adj_diff_dest_view");
     auto res4 = KE::adjacent_difference("label", exespace(), view_from,
                                         view_dest, args...);
-    EXPECT_TRUE(res4 == KE::end(view_dest));
+    EXPECT_EQ(res4, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 

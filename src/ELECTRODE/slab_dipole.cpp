@@ -37,13 +37,13 @@ using namespace MathConst;
 */
 SlabDipole::SlabDipole(LAMMPS *lmp) : BoundaryCorrection(lmp){};
 
-void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, double &energy,
-                              double *eatom)
+void SlabDipole::compute_corr(double qsum, double slab_volfactor, int eflag_atom,
+                              int eflag_global, double &energy, double *eatom)
 {
   // compute local contribution to global dipole moment
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) dipole += q[i] * x[i][2];
@@ -65,7 +65,7 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
 
   // compute corrections
   double const e_slabcorr = MY_2PI *
-      (dipole_all * dipole_all - qsum * dipole_r2 - qsum * qsum * zprd * zprd / 12.0) / volume;
+      (dipole_all * dipole_all - qsum * dipole_r2 - qsum * qsum * zprd_slab * zprd_slab / 12.0) / volume;
   double const qscale = qqrd2e * scale;
   if (eflag_global) energy += qscale * e_slabcorr;
 
@@ -75,7 +75,7 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
     for (int i = 0; i < nlocal; i++)
       eatom[i] += efact * q[i] *
           (x[i][2] * dipole_all - 0.5 * (dipole_r2 + qsum * x[i][2] * x[i][2]) -
-           qsum * zprd * zprd / 12.0);
+           qsum * zprd_slab * zprd_slab / 12.0);
   }
 
   // add on force corrections

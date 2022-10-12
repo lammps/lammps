@@ -153,8 +153,7 @@ class SimpleTaskScheduler
   }
 
   template <int TaskEnum, class DepTaskType, class FunctorType>
-  KOKKOS_FUNCTION future_type_for_functor<
-      typename std::decay<FunctorType>::type>
+  KOKKOS_FUNCTION future_type_for_functor<std::decay_t<FunctorType>>
   _spawn_impl(
       DepTaskType arg_predecessor_task, TaskPriority arg_priority,
       typename runnable_task_base_type::function_type apply_function_ptr,
@@ -163,7 +162,7 @@ class SimpleTaskScheduler
     KOKKOS_EXPECTS(m_queue != nullptr);
 
     using functor_future_type =
-        future_type_for_functor<typename std::decay<FunctorType>::type>;
+        future_type_for_functor<std::decay_t<FunctorType>>;
     using task_type =
         typename task_queue_type::template runnable_task_type<FunctorType,
                                                               scheduler_type>;
@@ -221,7 +220,7 @@ class SimpleTaskScheduler
     // SharedAllocationRecord pattern
     using record_type =
         Impl::SharedAllocationRecord<memory_space,
-                                     Impl::DefaultDestroy<task_queue_type> >;
+                                     Impl::DefaultDestroy<task_queue_type>>;
 
     // Allocate space for the task queue
     auto* record = record_type::allocate(memory_space(), "Kokkos::TaskQueue",

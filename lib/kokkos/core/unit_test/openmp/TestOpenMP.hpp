@@ -74,7 +74,6 @@
 #include <TestCXX11.hpp>
 #include <TestCXX11Deduction.hpp>
 #include <TestTeamVector.hpp>
-#include <TestTemplateMetaFunctions.hpp>
 #include <TestPolicyConstruction.hpp>
 #include <TestMDRange.hpp>
 #include <TestConcurrentBitset.hpp>

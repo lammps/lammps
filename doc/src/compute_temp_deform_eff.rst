@@ -53,8 +53,8 @@ vector values from a compute as input.  See the
 :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
-The scalar value calculated by this compute is "intensive."  The
-vector values are "extensive."
+The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".
 
 The scalar value will be in temperature :doc:`units <units>`.  The
 vector values will be in energy :doc:`units <units>`.

@@ -43,6 +43,10 @@
 */
 #ifndef KOKKOS_DETECTION_IDIOM_HPP
 #define KOKKOS_DETECTION_IDIOM_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DETECTIONIDIOM
+#endif
 
 #include <impl/Kokkos_Utilities.hpp>  // void_t
 #include <type_traits>
@@ -113,4 +117,8 @@ inline constexpr bool is_detected_convertible_v =
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DETECTIONIDIOM
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DETECTIONIDIOM
+#endif
 #endif

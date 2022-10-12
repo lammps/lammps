@@ -91,7 +91,7 @@ reciprocal lattice axis. Note that manual mapping of the reciprocal
 space mesh is good for comparing diffraction results from multiple
 simulations; however, it can reduce the likelihood that Bragg
 reflections will be satisfied unless small spacing parameters
-(:math:`< 0.05~\mathrm{\mathring{A}}^{-1}`) are implemented.
+(:math:`< 0.05~\AA^{-1}`) are implemented.
 Meshes with manual spacing do not require a periodic boundary.
 
 The limits of the reciprocal lattice mesh are determined by range of
@@ -219,7 +219,7 @@ The array can be accessed by any command that uses global values from
 a compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
-All array values calculated by this compute are "intensive."
+All array values calculated by this compute are "intensive".
 
 Restrictions
 """"""""""""

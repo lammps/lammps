@@ -552,7 +552,7 @@ void PPPMElectrode::compute(int eflag, int vflag)
     }
   }
 
-  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, slab_volfactor, eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 

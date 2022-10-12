@@ -272,7 +272,7 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
   slabflag = 0;    // bypass compute_second's slabcorr()
   PPPMIntel::compute_second(eflag, vflag);
   slabflag = tempslabflag;
-  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, slab_volfactor, eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 

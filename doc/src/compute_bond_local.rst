@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * bond/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *dx* or *dy* or *dz* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name*
+* value = *dist* or *dx* or *dy* or *dz* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name* or *bN*
 
 .. parsed-literal::
 
@@ -29,6 +29,7 @@ Syntax
      *omega* = magnitude of bond angular velocity
      *velvib* = vibrational velocity along the bond length
      *v_name* = equal-style variable with name (see below)
+     *bN* = bond style specific quantities for allowed N values
 
 * zero or more keyword/args pairs may be appended
 * keyword = *set*
@@ -47,7 +48,7 @@ Examples
    compute 1 all bond/local engpot
    compute 1 all bond/local dist engpot force
 
-   compute 1 all bond/local dist fx fy fz
+   compute 1 all bond/local dist fx fy fz b1 b2
 
    compute 1 all bond/local dist v_distsq set dist d
 
@@ -146,6 +147,19 @@ and length\ :math:`^2` for every bond in the system.  The
 those quantities via the :doc:`compute reduce <compute_reduce>` command
 with thermo output, and the :doc:`fix ave/histo <fix_ave_histo>`
 command will histogram the length\ :math:`^2` values and write them to a file.
+
+A bond style may define additional bond quantities which can be
+accessed as *b1* to *bN*, where N is defined by the bond style.  Most
+bond styles do not define any additional quantities, so N = 0.  An
+example of ones that do are the :doc:`BPM bond styles <Howto_bpm>`
+which store the reference state between two particles. See
+individual bond styles for details.
+
+When using *bN* with bond style *hybrid*, the output will be the Nth
+quantity from the sub-style that computes the bonded interaction
+(based on bond type).  If that sub-style does not define a *bN*,
+the output will be 0.0.  The maximum allowed N is the maximum number
+of quantities provided by any sub-style.
 
 ----------
 

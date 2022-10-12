@@ -48,7 +48,6 @@
 #include <type_traits>
 #include <limits>
 #include "Kokkos_NumericTraits.hpp"
-#include "Kokkos_ExecPolicy.hpp"
 
 struct extrema {
 #define DEFINE_EXTREMA(T, m, M)                 \
@@ -213,8 +212,8 @@ struct TestNumericTraits {
   }
 };
 
-#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_ENABLE_SYCL) || \
-    defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if (defined(KOKKOS_COMPILER_NVCC) && defined(KOKKOS_ENABLE_CUDA)) || \
+    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 template <class Tag>
 struct TestNumericTraits<
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -237,15 +236,12 @@ struct TestNumericTraits<
 };
 #endif
 
-#ifdef KOKKOS_COMPILER_NVHPC
-// warning: 'long double' is treated as 'double' in device code
-#pragma diag_suppress 20208
-#endif
-
 TEST(TEST_CATEGORY, numeric_traits_infinity) {
   TestNumericTraits<TEST_EXECSPACE, float, Infinity>();
   TestNumericTraits<TEST_EXECSPACE, double, Infinity>();
-#ifndef KOKKOS_COMPILER_IBM  // fails with XL 16.1.1 see issue #4100
+  // fails with XL 16.1.1 see issue #4100
+  // FIXME_NVHPC long double not supported
+#if !defined(KOKKOS_COMPILER_IBM) && !defined(KOKKOS_COMPILER_NVHPC)
   TestNumericTraits<TEST_EXECSPACE, long double, Infinity>();
 #endif
 }
@@ -253,7 +249,9 @@ TEST(TEST_CATEGORY, numeric_traits_infinity) {
 TEST(TEST_CATEGORY, numeric_traits_epsilon) {
   TestNumericTraits<TEST_EXECSPACE, float, Epsilon>();
   TestNumericTraits<TEST_EXECSPACE, double, Epsilon>();
-#ifndef KOKKOS_COMPILER_IBM  // fails with XL 16.1.1
+  // fails with XL 16.1.1 see issue #4100
+  // FIXME_NVHPC long double not supported
+#if !defined(KOKKOS_COMPILER_IBM) && !defined(KOKKOS_COMPILER_NVHPC)
   TestNumericTraits<TEST_EXECSPACE, long double, Epsilon>();
 #endif
 }
@@ -261,25 +259,41 @@ TEST(TEST_CATEGORY, numeric_traits_epsilon) {
 TEST(TEST_CATEGORY, numeric_traits_round_error) {
   TestNumericTraits<TEST_EXECSPACE, float, RoundError>();
   TestNumericTraits<TEST_EXECSPACE, double, RoundError>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, RoundError>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_norm_min) {
   TestNumericTraits<TEST_EXECSPACE, float, NormMin>();
   TestNumericTraits<TEST_EXECSPACE, double, NormMin>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, NormMin>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_denorm_min) {
   TestNumericTraits<TEST_EXECSPACE, float, DenormMin>();
   TestNumericTraits<TEST_EXECSPACE, double, DenormMin>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, DenormMin>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_reciprocal_overflow_threshold) {
   TestNumericTraits<TEST_EXECSPACE, float, ReciprocalOverflowThreshold>();
   TestNumericTraits<TEST_EXECSPACE, double, ReciprocalOverflowThreshold>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, ReciprocalOverflowThreshold>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_finite_min_max) {
@@ -314,8 +328,12 @@ TEST(TEST_CATEGORY, numeric_traits_finite_min_max) {
   TestNumericTraits<TEST_EXECSPACE, float, FiniteMax>();
   TestNumericTraits<TEST_EXECSPACE, double, FiniteMin>();
   TestNumericTraits<TEST_EXECSPACE, double, FiniteMax>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, FiniteMin>();
   TestNumericTraits<TEST_EXECSPACE, long double, FiniteMax>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_digits) {
@@ -333,7 +351,11 @@ TEST(TEST_CATEGORY, numeric_traits_digits) {
   TestNumericTraits<TEST_EXECSPACE, unsigned long long int, Digits>();
   TestNumericTraits<TEST_EXECSPACE, float, Digits>();
   TestNumericTraits<TEST_EXECSPACE, double, Digits>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, Digits>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_digits10) {
@@ -351,15 +373,22 @@ TEST(TEST_CATEGORY, numeric_traits_digits10) {
   TestNumericTraits<TEST_EXECSPACE, unsigned long long int, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, float, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, double, Digits10>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, Digits10>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_max_digits10) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxDigits10>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxDigits10>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, MaxDigits10>();
+#endif
 }
-
 TEST(TEST_CATEGORY, numeric_traits_radix) {
   TestNumericTraits<TEST_EXECSPACE, bool, Radix>();
   TestNumericTraits<TEST_EXECSPACE, char, Radix>();
@@ -375,7 +404,11 @@ TEST(TEST_CATEGORY, numeric_traits_radix) {
   TestNumericTraits<TEST_EXECSPACE, unsigned long long int, Radix>();
   TestNumericTraits<TEST_EXECSPACE, float, Radix>();
   TestNumericTraits<TEST_EXECSPACE, double, Radix>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, Radix>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_min_max_exponent) {
@@ -383,8 +416,12 @@ TEST(TEST_CATEGORY, numeric_traits_min_max_exponent) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxExponent>();
   TestNumericTraits<TEST_EXECSPACE, double, MinExponent>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxExponent>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, MinExponent>();
   TestNumericTraits<TEST_EXECSPACE, long double, MaxExponent>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_min_max_exponent10) {
@@ -392,17 +429,27 @@ TEST(TEST_CATEGORY, numeric_traits_min_max_exponent10) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxExponent10>();
   TestNumericTraits<TEST_EXECSPACE, double, MinExponent10>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxExponent10>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, MinExponent10>();
   TestNumericTraits<TEST_EXECSPACE, long double, MaxExponent10>();
+#endif
 }
-
 TEST(TEST_CATEGORY, numeric_traits_quiet_and_signaling_nan) {
   TestNumericTraits<TEST_EXECSPACE, float, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, float, SignalingNaN>();
   TestNumericTraits<TEST_EXECSPACE, double, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, double, SignalingNaN>();
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
+  // Unsupported unknown data type 38.
+  // Unsupported unknown data type 38.
+  // Unsupported unknown data type 38.
+  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
+  // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, long double, SignalingNaN>();
+#endif
 }
 
 namespace NumericTraitsSFINAE {
@@ -604,7 +651,10 @@ CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_CONSTANT(long double, max_exponent10);
 
 // Workaround compiler issue error: expression must have a constant value
 // See kokkos/kokkos#4574
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
+// There is the same bug with CUDA 11.6
+// FIXME_NVHPC FIXME_CUDA FIXME_NVCC
+#if !defined(KOKKOS_COMPILER_NVHPC) && (CUDA_VERSION < 11060) && \
+    !(defined(KOKKOS_COMPILER_NVCC) && !defined(KOKKOS_ENABLE_CUDA))
 CHECK_NAN_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, quiet_NaN);
 CHECK_NAN_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, quiet_NaN);
 CHECK_NAN_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, quiet_NaN);

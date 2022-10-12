@@ -113,7 +113,7 @@ accessed by any command that uses global values from a compute as
 input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
-The vector or array values are "intensive."  The values will be
+The vector or array values are "intensive".  The values will be
 unitless or in the units discussed above.
 
 Restrictions

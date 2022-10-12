@@ -196,8 +196,8 @@ Only atoms in the specified group are rendered in the image.  The
 alter what atoms are included in the image.
 The filename suffix determines whether a JPEG, PNG, or PPM file is
 created with the *image* dump style.  If the suffix is ".jpg" or
-".jpeg," then a `JPEG format <jpeg_format_>`_ file is created, if the
-suffix is ".png," then a `PNG format <png_format_>`_ is created, else
+".jpeg", then a `JPEG format <jpeg_format_>`_ file is created, if the
+suffix is ".png", then a `PNG format <png_format_>`_ is created, else
 a `PPM (aka NETPBM) format <ppm_format_>`_ file is created.
 The JPEG and PNG files are binary; PPM has a text mode header followed
 by binary data. JPEG images have lossy compression, PNG has lossless
@@ -212,7 +212,7 @@ is used.
 Similarly, the format of the resulting movie is chosen with the
 *movie* dump style. This is handled by the underlying FFmpeg converter
 and thus details have to be looked up in the `FFmpeg documentation
-<http://ffmpeg.org/ffmpeg.html>`_.  Typical examples are: .avi, .mpg,
+<https://ffmpeg.org/ffmpeg.html>`_.  Typical examples are: .avi, .mpg,
 .m4v, .mp4, .mkv, .flv, .mov, .gif Additional settings of the movie
 compression like bitrate and framerate can be set using the
 dump_modify command as described below.
@@ -261,7 +261,7 @@ atoms rendered in the image.  They can be any atom attribute defined
 for the :doc:`dump custom <dump>` command, including *type* and
 *element*\ .  This includes per-atom quantities calculated by a
 :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`variable <variable>`,
-which are prefixed by "c\_," "f\_," or "v\_," respectively.  Note that the
+which are prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to
 all atoms by the optional *adiam* keyword.
 
@@ -297,18 +297,18 @@ and sizes used by the `AtomEye <atomeye_>`_ visualization package.
 If other atom attributes are used for the *color* or *diameter*
 settings, they are interpreted in the following way.
 
-If "vx," for example, is used as the *color* setting, then the color
+If "vx", for example, is used as the *color* setting, then the color
 of the atom will depend on the x-component of its velocity.  The
 association of a per-atom value with a specific color is determined by
-a "color map," which can be specified via the dump_modify command, as
+a "color map", which can be specified via the dump_modify command, as
 described below.  The basic idea is that the atom-attribute will be
 within a range of values, and every value within the range is mapped
 to a specific color.  Depending on how the color map is defined, that
 mapping can take place via interpolation so that a value of -3.2 is
-halfway between "red" and "blue," or discretely so that the value of
+halfway between "red" and "blue", or discretely so that the value of
 -3.2 is "orange".
 
-If "vx," for example, is used as the *diameter* setting, then the atom
+If "vx", for example, is used as the *diameter* setting, then the atom
 will be rendered using the x-component of its velocity as the
 diameter.  If the per-atom value <= 0.0, them the atom will not be
 drawn.  Note that finite-size spherical particles, as defined by
@@ -642,7 +642,7 @@ MPEG or other movie file you can use:
      cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
   Front ends for FFmpeg exist for multiple platforms. For more
-  information see the `FFmpeg homepage <http://www.ffmpeg.org/>`_
+  information see the `FFmpeg homepage <https://www.ffmpeg.org/>`_
 
 ----------
 
@@ -792,14 +792,14 @@ increasing values.  Note that numeric values can be specified either
 as absolute numbers or as fractions (0.0 to 1.0) of the range,
 depending on the "a" or "f" in the style setting for the color map.
 
-Here is how the entries are used to determine the color of an
-individual atom, given the value :math:`X` of its atom attribute.
-:math:`X` will fall between 2 of the entry values.  The color of the atom is
-linearly interpolated (in each of the RGB values) between the 2 colors
-associated with those entries.  For example, if :math:`X = -5.0` and the two
-surrounding entries are "red" at :math:`-10.0` and "blue" at :math:`0.0`,
-then the atom's color will be halfway between "red" and "blue," which happens
-to be "purple."
+Here is how the entries are used to determine the color of an individual
+atom, given the value :math:`X` of its atom attribute.  :math:`X` will
+fall between 2 of the entry values.  The color of the atom is linearly
+interpolated (in each of the RGB values) between the 2 colors associated
+with those entries.  For example, if :math:`X = -5.0` and the two
+surrounding entries are "red" at :math:`-10.0` and "blue" at
+:math:`0.0`, then the atom's color will be halfway between "red" and
+"blue", which happens to be "purple".
 
 For discrete color maps, each entry has a *lo* and *hi* value and a
 *color*\ .  The *lo* and *hi* settings are either numbers within the
@@ -807,19 +807,18 @@ range of values or *lo* can be *min* or *hi* can be *max*\ .  The *lo*
 and *hi* settings of the last entry must be *min* and *max*\ .  Other
 entries can have any *lo* and *hi* values and the sub-ranges of
 different values can overlap.  Note that numeric *lo* and *hi* values
-can be specified either as absolute numbers or as fractions (0.0 to
-1.0) of the range, depending on the "a" or "f" in the style setting
-for the color map.
+can be specified either as absolute numbers or as fractions (0.0 to 1.0)
+of the range, depending on the "a" or "f" in the style setting for the
+color map.
 
-Here is how the entries are used to determine the color of an
-individual atom, given the value X of its atom attribute.  The entries
-are scanned from first to last.  The first time that *lo* <= X <=
-*hi*, X is assigned the color associated with that entry.  You can
-think of the last entry as assigning a default color (since it will
-always be matched by X), and the earlier entries as colors that
-override the default.  Also note that no interpolation of a color RGB
-is done.  All atoms will be drawn with one of the colors in the list
-of entries.
+Here is how the entries are used to determine the color of an individual
+atom, given the value X of its atom attribute.  The entries are scanned
+from first to last.  The first time that *lo* <= X <= *hi*, X is
+assigned the color associated with that entry.  You can think of the
+last entry as assigning a default color (since it will always be matched
+by X), and the earlier entries as colors that override the default.
+Also note that no interpolation of a color RGB is done.  All atoms will
+be drawn with one of the colors in the list of entries.
 
 For sequential color maps, each entry has only a *color*\ .  Here is how
 the entries are used to determine the color of an individual atom,
@@ -867,7 +866,7 @@ that bonds of each type will be drawn in the image.
 The specified *type* should be an integer from 1 to :math:`N`, where :math:`N`
 is the number of bond types.  A wildcard asterisk can be used in place of or
 in conjunction with the *type* argument to specify a range of bond
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n."  If :math:`N`
+types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N`
 is the number of bond types, then an asterisk with no numerical values
 means all types from 1 to :math:`N`.  A leading asterisk means all types from
 1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`

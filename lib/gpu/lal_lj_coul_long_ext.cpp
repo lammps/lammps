@@ -81,7 +81,7 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                           cell_size, gpu_split, screen, host_cut_ljsq,
                           host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
-    LJCLMF.device->gpu_barrier();
+    LJCLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -112,7 +112,7 @@ void ljcl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       LJCLMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                     offset, host_cut_ljsq);
-    LJCLMF.device->gpu_barrier();
+    LJCLMF.device->serialize_init();
   }
 }
 

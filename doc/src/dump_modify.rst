@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -65,6 +65,8 @@ Syntax
        *refresh* arg = c_ID = compute ID that supports a refresh operation
        *scale* arg = *yes* or *no*
        *sfactor* arg = coordinate scaling factor (> 0.0)
+       *skip* arg = v_name
+         v_name = variable with name which evaluates to non-zero (skip) or 0
        *sort* arg = *off* or *id* or N or -N
           off = no sorting of per-atom lines within a snapshot
           id = sort per-atom lines by atom ID
@@ -179,8 +181,8 @@ extra buffering.
 .. versionadded:: 4May2022
 
 The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
+for dump styles: *atom*, *custom*, *cfg*, and *local* and their compressed,
+ADIOS, and MPIIO variants.  The setting for *ID string* replaces the default
 text with the provided string.  *ID* can be a positive integer when it
 represents the column number counting from the left, a negative integer
 when it represents the column number from the right (i.e. -1 is the last
@@ -630,7 +632,7 @@ calculates the displacement of each atom from its reference position.
 The "4" index is the scalar displacement; 1, 2, and 3 are the :math:`xyz`
 components of the displacement.  The :doc:`dump_modify thresh <dump_modify>`
 command will cause only atoms that have displaced more than
-:math:`0.6~\mathrm{\mathring A}` to be output on a given snapshot (assuming
+:math:`0.6~\AA` to be output on a given snapshot (assuming
 metal units).  However, note that when an atom is output, we also need to
 update the reference position for that atom to its new coordinates.  So that it
 will not be output in every snapshot thereafter.  That reference position is
@@ -673,7 +675,7 @@ value of *yes* means atom coords are written in normalized units from
 0.0 to 1.0 in each box dimension.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.  A
 value of *no* means they are written in absolute distance units
-(e.g., :math:`\mathrm{\mathring A}` or :math:`\sigma`).
+(e.g., :math:`\AA` or :math:`\sigma`).
 Using this keyword will reset all custom header names set with
 *dump_modify colname* to their respective default values.
 
@@ -685,7 +687,7 @@ when writing to XTC files.  By default, they are initialized for
 whatever :doc:`units <units>` style is being used, to write out
 coordinates in nanometers and time in picoseconds.  For example, for *real*
 units, LAMMPS defines *sfactor* = 0.1 and *tfactor* = 0.001, since the
-:math:`\mathrm{\mathring A}` and fs used by *real* units are 0.1 nm and
+:math:`\AA` and fs used by *real* units are 0.1 nm and
 0.001 ps, respectively.  If you are using a units system with distance and time
 units far from nm and ps, you may wish to write XTC files with
 different units, since the compression algorithm used in XTC files is
@@ -694,14 +696,33 @@ most effective when the typical magnitude of position data is between
 
 ----------
 
+.. versionadded:: 15Sep2022
+
+The *skip* keyword can be used with all dump styles.  It allows a dump
+snapshot to be skipped (not written to the dump file), if a condition
+is met.  The condition is computed by an :doc:`equal-style variable
+<variable>`, which should be specified as v_name, where name is the
+variable name.  If the variable evaluation returns a non-zero value,
+then the dump snapshot is skipped.  If it returns zero, the dump
+proceeds as usual.  Note that :doc:`equal-style variable <variable>`
+can contain Boolean operators which effectively evaluate as a true
+(non-zero) or false (zero) result.
+
+The *skip* keyword can be useful for debugging purposes, e.g. to dump
+only on a particular timestep.  Or to limit output to conditions of
+interest, e.g. only when the force on some atom exceeds a threshold
+value.
+
+----------
+
 The *sort* keyword determines whether lines of per-atom output in a
 snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
-parallel.  This is the case even in serial if the
-:doc:`atom_modify sort <atom_modify>` option is turned on, which it is by
-default, to improve performance.  A sort value of *id* means sort the output by
-atom ID.  A sort value of :math:`N` or :math:`-N` means sort the output by the
-value in the :math:`N`\ th column of per-atom info in either ascending or
+parallel.  This is the case even in serial if the :doc:`atom_modify sort
+<atom_modify>` option is turned on, which it is by default, to improve
+performance.  A sort value of *id* means sort the output by atom ID.  A
+sort value of :math:`N` or :math:`-N` means sort the output by the value
+in the :math:`N`\ th column of per-atom info in either ascending or
 descending order.
 
 The dump *local* style cannot be sorted by atom ID, since there are
@@ -745,8 +766,8 @@ attributes that can be tested for are the same as those that can be
 specified in the :doc:`dump custom <dump>` command, with the exception
 of the *element* attribute, since it is not a numeric value.  Note
 that a different attributes can be used than those output by the
-:doc:`dump custom <dump>` command.  For example, you can output the coordinates
-and stress of atoms whose energy is above some threshold.
+:doc:`dump custom <dump>` command.  For example, you can output the
+coordinates and stress of atoms whose energy is above some threshold.
 
 If an atom-style variable is used as the attribute, then it can
 produce continuous numeric values or effective Boolean 0/1 values,
@@ -860,7 +881,7 @@ levels that sacrifice compression for performance. 0 is the default,
 positive levels are 1 to 22, with 22 being the most expensive
 compression. Zstd promises higher compression/decompression speeds for
 similar compression ratios. For more details see
-`http://facebook.github.io/zstd/`.
+`https://facebook.github.io/zstd/`.
 
 In addition, Zstd compressed files can include a checksum of the
 entire contents. The Zstd enabled dump styles enable this feature by

@@ -48,7 +48,7 @@ global scalar value from a compute as input.  See the
 :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
-The scalar value calculated by this compute is "extensive."  The
+The scalar value calculated by this compute is "extensive".  The
 scalar value will be in energy :doc:`units <units>`.
 
 Restrictions

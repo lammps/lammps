@@ -56,11 +56,10 @@ template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
           typename SizeType>
 inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                                SizeType>::HostMirror
-create_mirror_view(
-    const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>&
-        view,
-    typename std::enable_if<ViewTraits<DataType, Arg1Type, Arg2Type,
-                                       Arg3Type>::is_hostspace>::type* = 0) {
+create_mirror_view(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
+                                        SizeType>& view,
+                   std::enable_if_t<ViewTraits<DataType, Arg1Type, Arg2Type,
+                                               Arg3Type>::is_hostspace>* = 0) {
   return view;
 }
 
@@ -99,11 +98,10 @@ template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
           typename SizeType>
 inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                                SizeType>::HostMirror
-create_mirror_view(
-    const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>&
-        view,
-    typename std::enable_if<!ViewTraits<DataType, Arg1Type, Arg2Type,
-                                        Arg3Type>::is_hostspace>::type* = 0) {
+create_mirror_view(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
+                                        SizeType>& view,
+                   std::enable_if_t<!ViewTraits<DataType, Arg1Type, Arg2Type,
+                                                Arg3Type>::is_hostspace>* = 0) {
   return create_mirror(view);
 }
 }  // namespace Kokkos

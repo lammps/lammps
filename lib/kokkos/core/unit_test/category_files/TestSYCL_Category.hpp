@@ -49,6 +49,7 @@
 
 #define TEST_CATEGORY sycl
 #define TEST_CATEGORY_NUMBER 7
+#define TEST_CATEGORY_DEATH sycl_DeathTest
 #define TEST_EXECSPACE Kokkos::Experimental::SYCL
 
 #endif

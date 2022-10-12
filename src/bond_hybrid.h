@@ -52,6 +52,10 @@ class BondHybrid : public Bond {
   int ***bondlist;    // bondlist for each sub-style
 
   void allocate();
+  void flags();
+
+  virtual void init_svector();
+  virtual void copy_svector(int);
 };
 
 }    // namespace LAMMPS_NS

@@ -92,18 +92,15 @@ struct TestTeamScan {
     N   = _N;
     a_d = view_type("a_d", M, N);
     a_r = view_type("a_r", M, N);
-    // Set team size explicitly to
-    // a) check whether this works in CPU backends with team_size > 1 and
-    // b) make sure we have a power of 2 and for GPU backends due to limitation
-    // of the scan algorithm implemented in CUDA etc.
-    int team_size = 1;
-    if (ExecutionSpace().concurrency() > 2) {
-      if (ExecutionSpace().concurrency() > 10000)
-        team_size = 128;
-      else
-        team_size = 3;
-    }
-    Kokkos::parallel_for(policy_type(M, team_size), *this);
+
+    // Set team size explicitly to check whether non-power-of-two team sizes can
+    // be used.
+    if (ExecutionSpace().concurrency() > 10000)
+      Kokkos::parallel_for(policy_type(M, 127), *this);
+    else if (ExecutionSpace().concurrency() > 2)
+      Kokkos::parallel_for(policy_type(M, 3), *this);
+    else
+      Kokkos::parallel_for(policy_type(M, 1), *this);
 
     auto a_i = Kokkos::create_mirror_view(a_d);
     auto a_o = Kokkos::create_mirror_view(a_r);

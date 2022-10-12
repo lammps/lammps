@@ -228,8 +228,8 @@
 #define KOKKOS_ENABLE_PRAGMA_SIMD 1
 #endif
 
-// FIXME Workaround for ICE with intel 17,18,19 in Trilinos
-#if (KOKKOS_COMPILER_INTEL <= 1900)
+// FIXME Workaround for ICE with intel 17,18,19,20,21 in Trilinos
+#if (KOKKOS_COMPILER_INTEL <= 2100)
 #define KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
 #endif
 
@@ -264,12 +264,13 @@
 #define KOKKOS_ENABLE_ASM 1
 #endif
 
-#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
 #if !defined(_WIN32)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
-#define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
+  inline __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE __attribute__((always_inline))
 #else
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION inline
 #endif
 #endif
 
@@ -320,9 +321,10 @@
 //#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
 //#define KOKKOS_ENABLE_PRAGMA_SIMD 1
 
-#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
-#define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
+  inline __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE __attribute__((always_inline))
 #endif
 
 #if !defined(KOKKOS_IMPL_ALIGN_PTR)
@@ -345,9 +347,10 @@
 #define KOKKOS_ENABLE_RFO_PREFETCH 1
 #endif
 
-#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
-#define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
+  inline __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE __attribute__((always_inline))
 #endif
 
 #define KOKKOS_RESTRICT __restrict__
@@ -380,12 +383,20 @@
 //----------------------------------------------------------------------------
 // Define function marking macros if compiler specific macros are undefined:
 
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION inline
+#endif
+
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE)
+#define KOKKOS_IMPL_HOST_FORCEINLINE inline
+#endif
+
 #if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline
+#define KOKKOS_IMPL_FORCEINLINE_FUNCTION KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
 #endif
 
 #if !defined(KOKKOS_IMPL_FORCEINLINE)
-#define KOKKOS_IMPL_FORCEINLINE inline
+#define KOKKOS_IMPL_FORCEINLINE KOKKOS_IMPL_HOST_FORCEINLINE
 #endif
 
 #if !defined(KOKKOS_IMPL_INLINE_FUNCTION)
@@ -564,8 +575,9 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #endif
 
 #if !defined(KOKKOS_IF_ON_HOST) && !defined(KOKKOS_IF_ON_DEVICE)
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) || \
-    defined(__SYCL_DEVICE_ONLY__)
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)) ||         \
+    (defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)) || \
+    (defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__))
 #define KOKKOS_IF_ON_DEVICE(CODE) \
   { KOKKOS_IMPL_STRIP_PARENS(CODE) }
 #define KOKKOS_IF_ON_HOST(CODE) \
@@ -575,15 +587,6 @@ static constexpr bool kokkos_omp_on_host() { return false; }
   {}
 #define KOKKOS_IF_ON_HOST(CODE) \
   { KOKKOS_IMPL_STRIP_PARENS(CODE) }
-#endif
-#endif
-
-//----------------------------------------------------------------------------
-
-#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || \
-    (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
-#if defined(KOKKOS_ENABLE_PERFORMANCE_POSIX_MEMALIGN)
-#define KOKKOS_ENABLE_POSIX_MEMALIGN 1
 #endif
 #endif
 
@@ -609,11 +612,11 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE
 #endif
 
-// Guard intel compiler version <= 1900
+// Guard intel compiler version 19 and older
 // intel error #2651: attribute does not apply to any entity
 // using <deprecated_type> KOKKOS_DEPRECATED = ...
 #if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS) && !defined(__NVCC__) && \
-    (!defined(KOKKOS_COMPILER_INTEL) || KOKKOS_COMPILER_INTEL > 1900)
+    (!defined(KOKKOS_COMPILER_INTEL) || KOKKOS_COMPILER_INTEL >= 2021)
 #define KOKKOS_DEPRECATED [[deprecated]]
 #define KOKKOS_DEPRECATED_WITH_COMMENT(comment) [[deprecated(comment)]]
 #else
@@ -661,11 +664,9 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #undef __CUDA_ARCH__
 #endif
 
-#if (defined(KOKKOS_COMPILER_MSVC) && !defined(KOKKOS_COMPILER_CLANG)) || \
-    (defined(KOKKOS_COMPILER_INTEL) && defined(_WIN32))
-#define KOKKOS_THREAD_LOCAL __declspec(thread)
-#else
-#define KOKKOS_THREAD_LOCAL __thread
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+#define KOKKOS_THREAD_LOCAL \
+  KOKKOS_DEPRECATED_WITH_COMMENT("Use thread_local instead!") thread_local
 #endif
 
 #if (defined(KOKKOS_IMPL_WINDOWS_CUDA) || defined(KOKKOS_COMPILER_MSVC)) && \

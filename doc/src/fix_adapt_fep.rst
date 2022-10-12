@@ -115,7 +115,7 @@ overrides the parameters.
 
 The *pstyle* argument is the name of the pair style.  If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used, *pstyle* should be
 a sub-style name.  For example, *pstyle* could be specified as "soft"
-or "lubricate."  The *pparam* argument is the name of the parameter to
+or "lubricate".  The *pparam* argument is the name of the parameter to
 change.  This is the current list of pair styles and parameters that
 can be varied by this fix.  See the doc pages for individual pair
 styles and their energy formulas for the meaning of these parameters:
@@ -209,7 +209,7 @@ the coefficients for the symmetric J,I interaction to the same values.
 
 A wild-card asterisk can be used in place of or in conjunction with
 the :math:`I,J` arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n."  If :math:`N` is
+types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is
 the number of atom types, then an asterisk with no numeric values means
 all types from 1 to :math:`N`.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from m to :math:`N`

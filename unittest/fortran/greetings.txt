@@ -1,0 +1,9 @@
+hello
+god_dag
+hola
+bonjour
+guten_Tag
+konnichiwa
+shalom
+salve
+goedendag

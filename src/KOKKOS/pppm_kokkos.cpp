@@ -24,7 +24,7 @@
 #include "error.h"
 #include "fft3d_kokkos.h"
 #include "force.h"
-#include "gridcomm_kokkos.h"
+#include "grid3d_kokkos.h"
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
@@ -249,7 +249,7 @@ void PPPMKokkos<DeviceType>::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridCommKokkos<DeviceType> *gctmp = nullptr;
+  Grid3dKokkos<DeviceType> *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -261,7 +261,7 @@ void PPPMKokkos<DeviceType>::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new GridCommKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+    gctmp = new Grid3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                          nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
     int tmp1,tmp2;
@@ -845,9 +845,9 @@ void PPPMKokkos<DeviceType>::allocate()
                           1,0,0,FFT_PRECISION,collective_flag,gpu_aware_flag);
 
   // create ghost grid object for rho and electric field communication
-  // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
+  // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
 
-  gc = new GridCommKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+  gc = new Grid3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -2760,7 +2760,7 @@ void PPPMKokkos<DeviceType>::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  zprd = domain->zprd;
+  zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atomKK->nlocal;
 
   double dipole = 0.0;
@@ -2791,7 +2791,7 @@ void PPPMKokkos<DeviceType>::slabcorr()
   // compute corrections
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
-    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
+    qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -2833,7 +2833,7 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_slabcorr3, const int &i) const
 {
   d_eatom[i] += efact * q[i]*(x(i,2)*dipole_all - 0.5*(dipole_r2 +
-    qsum*x(i,2)*x(i,2)) - qsum*zprd*zprd/12.0);
+    qsum*x(i,2)*x(i,2)) - qsum*zprd_slab*zprd_slab/12.0);
 }
 
 template<class DeviceType>
@@ -2929,7 +2929,7 @@ double PPPMKokkos<DeviceType>::memory_usage()
   if (peratom_allocate_flag)
     bytes += (double)6 * nbrick * sizeof(FFT_SCALAR);
 
-  // two GridComm bufs
+  // two Grid3d bufs
 
   bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 

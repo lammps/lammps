@@ -2573,3 +2573,17 @@ void FixGCMC::grow_molecule_arrays(int nmolatoms) {
     molq = memory->grow(molq,nmaxmolatoms,"gcmc:molq");
     molimage = memory->grow(molimage,nmaxmolatoms,"gcmc:molimage");
 }
+
+
+/* ----------------------------------------------------------------------
+   extract variable which stores index of exclusion group
+------------------------------------------------------------------------- */
+
+void *FixGCMC::extract(const char *name, int &dim)
+{
+  if (strcmp(name,"exclusion_group") == 0) {
+    dim = 0;
+    return (void *) &exclusion_group;
+  }
+  return nullptr;
+}

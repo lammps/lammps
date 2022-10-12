@@ -50,6 +50,10 @@
 
 #ifndef KOKKOS_DUALVIEW_HPP
 #define KOKKOS_DUALVIEW_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DUALVIEW
+#endif
 
 #include <Kokkos_Core.hpp>
 #include <impl/Kokkos_Error.hpp>
@@ -144,7 +148,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   using t_dev_const_randomread =
       View<typename traits::const_data_type, typename traits::array_layout,
            typename traits::device_type,
-           Kokkos::MemoryTraits<Kokkos::RandomAccess> >;
+           Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
 
   /// \typedef t_host_const_randomread
   /// \brief The type of a const, random-access View host mirror of
@@ -175,7 +179,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   using t_dev_const_randomread_um =
       View<typename t_host::const_data_type, typename t_host::array_layout,
            typename t_host::device_type,
-           Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess> >;
+           Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess>>;
 
   /// \typedef t_host_const_randomread
   /// \brief The type of a const, random-access View host mirror of
@@ -232,7 +236,9 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
            const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
            const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
            const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : modified_flags(t_modified_flags("DualView::modified_flags")),
+      : modified_flags(
+            Kokkos::view_alloc(typename t_modified_flags::execution_space{},
+                               "DualView::modified_flags")),
         d_view(label, n0, n1, n2, n3, n4, n5, n6, n7),
         h_view(create_mirror_view(d_view))  // without UVM, host View mirrors
   {}
@@ -249,16 +255,15 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   /// omit the integer arguments that follow.
   template <class... P>
   DualView(const Impl::ViewCtorProp<P...>& arg_prop,
-           typename std::enable_if<!Impl::ViewCtorProp<P...>::has_pointer,
-                                   size_t>::type const n0 =
-               KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-           const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-           const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-           const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-           const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-           const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-           const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-           const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
+           std::enable_if_t<!Impl::ViewCtorProp<P...>::has_pointer,
+                            size_t> const n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+           const size_t n1                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+           const size_t n2                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+           const size_t n3                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+           const size_t n4                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+           const size_t n5                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+           const size_t n6                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+           const size_t n7                   = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
       : modified_flags(t_modified_flags("DualView::modified_flags")),
         d_view(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7) {
     // without UVM, host View mirrors
@@ -403,7 +408,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
                   impl_device_matches_tdev_exec<Device>::value, t_dev,
                   typename std::conditional_t<
                       impl_device_matches_tdev_memory_space<Device>::value,
-                      t_dev, t_host> > > > >
+                      t_dev, t_host>>>>>
   view() const {
     constexpr bool device_is_memspace =
         std::is_same<Device, typename Device::memory_space>::value;
@@ -609,21 +614,21 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   }
 
   template <class Device>
-  void sync(const typename std::enable_if<
+  void sync(const std::enable_if_t<
                 (std::is_same<typename traits::data_type,
                               typename traits::non_const_data_type>::value) ||
                     (std::is_same<Device, int>::value),
-                int>::type& = 0) {
+                int>& = 0) {
     sync_impl<Device>(std::true_type{});
   }
 
   template <class Device, class ExecutionSpace>
   void sync(const ExecutionSpace& exec,
-            const typename std::enable_if<
+            const std::enable_if_t<
                 (std::is_same<typename traits::data_type,
                               typename traits::non_const_data_type>::value) ||
                     (std::is_same<Device, int>::value),
-                int>::type& = 0) {
+                int>& = 0) {
     sync_impl<Device>(std::true_type{}, exec);
   }
 
@@ -651,20 +656,20 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   }
 
   template <class Device>
-  void sync(const typename std::enable_if<
+  void sync(const std::enable_if_t<
                 (!std::is_same<typename traits::data_type,
                                typename traits::non_const_data_type>::value) ||
                     (std::is_same<Device, int>::value),
-                int>::type& = 0) {
+                int>& = 0) {
     sync_impl<Device>(std::false_type{});
   }
   template <class Device, class ExecutionSpace>
   void sync(const ExecutionSpace& exec,
-            const typename std::enable_if<
+            const std::enable_if_t<
                 (!std::is_same<typename traits::data_type,
                                typename traits::non_const_data_type>::value) ||
                     (std::is_same<Device, int>::value),
-                int>::type& = 0) {
+                int>& = 0) {
     sync_impl<Device>(std::false_type{}, exec);
   }
 
@@ -786,7 +791,10 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
             std::enable_if_t<!Dummy::impl_dualview_is_single_device::value>* =
                 nullptr>
   void modify() {
-    if (modified_flags.data() == nullptr) return;
+    if (modified_flags.data() == nullptr) {
+      modified_flags = t_modified_flags("DualView::modified_flags");
+    }
+
     int dev = get_device_side<Device>();
 
     if (dev == 1) {  // if Device is the same as DualView's device type
@@ -899,21 +907,55 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   /// This discards any existing contents of the objects, and resets
   /// their modified flags.  It does <i>not</i> copy the old contents
   /// of either View into the new View objects.
-  template <class... I>
+  template <class... ViewCtorArgs>
   void impl_realloc(const size_t n0, const size_t n1, const size_t n2,
                     const size_t n3, const size_t n4, const size_t n5,
-                    const size_t n6, const size_t n7, const I&... arg_prop) {
+                    const size_t n6, const size_t n7,
+                    const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+    using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+    static_assert(!alloc_prop_input::has_label,
+                  "The view constructor arguments passed to Kokkos::realloc "
+                  "must not include a label!");
+    static_assert(
+        !alloc_prop_input::has_pointer,
+        "The view constructor arguments passed to Kokkos::realloc must "
+        "not include a pointer!");
+    static_assert(
+        !alloc_prop_input::has_memory_space,
+        "The view constructor arguments passed to Kokkos::realloc must "
+        "not include a memory space instance!");
+
     const size_t new_extents[8] = {n0, n1, n2, n3, n4, n5, n6, n7};
     const bool sizeMismatch =
         Impl::size_mismatch(h_view, h_view.rank_dynamic, new_extents);
 
     if (sizeMismatch) {
-      ::Kokkos::realloc(arg_prop..., d_view, n0, n1, n2, n3, n4, n5, n6, n7);
-      h_view = create_mirror_view(arg_prop..., typename t_host::memory_space(),
-                                  d_view);
-    } else if (!Kokkos::Impl::has_type<Kokkos::Impl::WithoutInitializing_t,
-                                       I...>::value) {
-      ::Kokkos::deep_copy(d_view, typename t_dev::value_type{});
+      ::Kokkos::realloc(arg_prop, d_view, n0, n1, n2, n3, n4, n5, n6, n7);
+      if (alloc_prop_input::initialize) {
+        h_view = create_mirror_view(typename t_host::memory_space(), d_view);
+      } else {
+        h_view = create_mirror_view(Kokkos::WithoutInitializing,
+                                    typename t_host::memory_space(), d_view);
+      }
+    } else if (alloc_prop_input::initialize) {
+      if (alloc_prop_input::has_execution_space) {
+        // Add execution_space if not provided to avoid need for if constexpr
+        using alloc_prop = Impl::ViewCtorProp<
+            ViewCtorArgs...,
+            std::conditional_t<alloc_prop_input::has_execution_space,
+                               std::integral_constant<unsigned int, 2>,
+                               typename t_dev::execution_space>>;
+        alloc_prop arg_prop_copy(arg_prop);
+        using execution_space_type = typename alloc_prop::execution_space;
+        const execution_space_type& exec_space =
+            static_cast<
+                Kokkos::Impl::ViewCtorProp<void, execution_space_type> const&>(
+                arg_prop_copy)
+                .value;
+        ::Kokkos::deep_copy(exec_space, d_view, typename t_dev::value_type{});
+      } else
+        ::Kokkos::deep_copy(d_view, typename t_dev::value_type{});
     }
 
     /* Reset dirty flags */
@@ -921,6 +963,19 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
       modified_flags = t_modified_flags("DualView::modified_flags");
     } else
       modified_flags(1) = modified_flags(0) = 0;
+  }
+
+  template <class... ViewCtorArgs>
+  void realloc(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+               const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    impl_realloc(n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
   }
 
   void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -931,7 +986,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
                const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-    impl_realloc(n0, n1, n2, n3, n4, n5, n6, n7);
+    impl_realloc(n0, n1, n2, n3, n4, n5, n6, n7, Impl::ViewCtorProp<>{});
   }
 
   template <typename I>
@@ -944,17 +999,32 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
       const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-    impl_realloc(n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
+    impl_realloc(n0, n1, n2, n3, n4, n5, n6, n7, Kokkos::view_alloc(arg_prop));
   }
 
   /// \brief Resize both views, copying old contents into new if necessary.
   ///
   /// This method only copies the old contents into the new View
   /// objects for the device which was last marked as modified.
-  template <class... I>
-  void impl_resize(const size_t n0, const size_t n1, const size_t n2,
+  template <class... ViewCtorArgs>
+  void impl_resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+                   const size_t n0, const size_t n1, const size_t n2,
                    const size_t n3, const size_t n4, const size_t n5,
-                   const size_t n6, const size_t n7, const I&... arg_prop) {
+                   const size_t n6, const size_t n7) {
+    using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+    static_assert(!alloc_prop_input::has_label,
+                  "The view constructor arguments passed to Kokkos::resize "
+                  "must not include a label!");
+    static_assert(
+        !alloc_prop_input::has_pointer,
+        "The view constructor arguments passed to Kokkos::resize must "
+        "not include a pointer!");
+    static_assert(
+        !alloc_prop_input::has_memory_space,
+        "The view constructor arguments passed to Kokkos::resize must "
+        "not include a memory space instance!");
+
     const size_t new_extents[8] = {n0, n1, n2, n3, n4, n5, n6, n7};
     const bool sizeMismatch =
         Impl::size_mismatch(h_view, h_view.rank_dynamic, new_extents);
@@ -965,22 +1035,31 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     if (modified_flags(1) >= modified_flags(0)) {
       /* Resize on Device */
       if (sizeMismatch) {
-        ::Kokkos::resize(arg_prop..., d_view, n0, n1, n2, n3, n4, n5, n6, n7);
-        h_view = create_mirror_view(arg_prop...,
-                                    typename t_host::memory_space(), d_view);
+        ::Kokkos::resize(arg_prop, d_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        if (alloc_prop_input::initialize) {
+          h_view = create_mirror_view(typename t_host::memory_space(), d_view);
+        } else {
+          h_view = create_mirror_view(Kokkos::WithoutInitializing,
+                                      typename t_host::memory_space(), d_view);
+        }
 
         /* Mark Device copy as modified */
-        modified_flags(1) = modified_flags(1) + 1;
+        ++modified_flags(1);
       }
     } else {
-      /* Realloc on Device */
+      /* Resize on Host */
       if (sizeMismatch) {
-        ::Kokkos::resize(arg_prop..., h_view, n0, n1, n2, n3, n4, n5, n6, n7);
-        d_view = create_mirror_view(arg_prop..., typename t_dev::memory_space(),
-                                    h_view);
+        ::Kokkos::resize(arg_prop, h_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        if (alloc_prop_input::initialize) {
+          d_view = create_mirror_view(typename t_dev::memory_space(), h_view);
+
+        } else {
+          d_view = create_mirror_view(Kokkos::WithoutInitializing,
+                                      typename t_dev::memory_space(), h_view);
+        }
 
         /* Mark Host copy as modified */
-        modified_flags(0) = modified_flags(0) + 1;
+        ++modified_flags(0);
       }
     }
   }
@@ -993,7 +1072,20 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-    impl_resize(n0, n1, n2, n3, n4, n5, n6, n7);
+    impl_resize(Impl::ViewCtorProp<>{}, n0, n1, n2, n3, n4, n5, n6, n7);
+  }
+
+  template <class... ViewCtorArgs>
+  void resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+              const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    impl_resize(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7);
   }
 
   template <class I>
@@ -1006,7 +1098,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
       const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-    impl_resize(n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
+    impl_resize(Kokkos::view_alloc(arg_prop), n0, n1, n2, n3, n4, n5, n6, n7);
   }
 
   //@}
@@ -1027,16 +1119,16 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   }
 
   template <typename iType>
-  KOKKOS_INLINE_FUNCTION constexpr
-      typename std::enable_if<std::is_integral<iType>::value, size_t>::type
-      extent(const iType& r) const {
+  KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<
+      std::is_integral<iType>::value, size_t>
+  extent(const iType& r) const {
     return d_view.extent(r);
   }
 
   template <typename iType>
-  KOKKOS_INLINE_FUNCTION constexpr
-      typename std::enable_if<std::is_integral<iType>::value, int>::type
-      extent_int(const iType& r) const {
+  KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<
+      std::is_integral<iType>::value, int>
+  extent_int(const iType& r) const {
     return static_cast<int>(d_view.extent(r));
   }
 
@@ -1130,12 +1222,30 @@ void resize(DualView<Properties...>& dv, Args&&... args) noexcept(
   dv.resize(std::forward<Args>(args)...);
 }
 
+template <class... ViewCtorArgs, class... Properties, class... Args>
+void resize(
+    const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+    DualView<Properties...>& dv,
+    Args&&... args) noexcept(noexcept(dv.resize(arg_prop,
+                                                std::forward<Args>(args)...))) {
+  dv.resize(arg_prop, std::forward<Args>(args)...);
+}
+
 template <class I, class... Properties, class... Args>
 std::enable_if_t<Impl::is_view_ctor_property<I>::value> resize(
     const I& arg_prop, DualView<Properties...>& dv,
     Args&&... args) noexcept(noexcept(dv.resize(arg_prop,
                                                 std::forward<Args>(args)...))) {
   dv.resize(arg_prop, std::forward<Args>(args)...);
+}
+
+template <class... ViewCtorArgs, class... Properties, class... Args>
+void realloc(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+             DualView<Properties...>& dv,
+             Args&&... args) noexcept(noexcept(dv
+                                                   .realloc(std::forward<Args>(
+                                                       args)...))) {
+  dv.realloc(arg_prop, std::forward<Args>(args)...);
 }
 
 template <class... Properties, class... Args>
@@ -1155,4 +1265,8 @@ std::enable_if_t<Impl::is_view_ctor_property<I>::value> realloc(
 
 }  // end namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DUALVIEW
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DUALVIEW
+#endif
 #endif

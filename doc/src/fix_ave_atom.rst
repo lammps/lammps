@@ -70,7 +70,7 @@ per-atom vectors.
 Note that for values from a compute or fix, the bracketed index I can
 be specified using a wildcard asterisk with the index to effectively
 specify multiple values.  This takes the form "\*" or "\*n" or "m\*" or
-"m\*n."  If :math:`N` is the size of the vector (for *mode* = scalar) or the
+"m\*n".  If :math:`N` is the size of the vector (for *mode* = scalar) or the
 number of columns in the array (for *mode* = vector), then an asterisk
 with no numeric values means all indices from 1 to :math:`N`.  A leading
 asterisk means all indices from 1 to n (inclusive).  A trailing
@@ -127,7 +127,7 @@ specifying an input value from that compute.
    :doc:`compute property/atom <compute_property_atom>`
    command via its *xu*, *yu*, and *zu* attributes.
 
-If a value begins with "c\_," a compute ID must follow which has been
+If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed term containing an index :math:`I` is appended, the
@@ -137,7 +137,7 @@ used.  Users can also write code for their own compute styles and
 :math:`I` can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-If a value begins with "f\_," a fix ID must follow which has been previously
+If a value begins with "f\_", a fix ID must follow which has been previously
 defined in the input script.  If no bracketed term is appended, the per-atom
 vector calculated by the fix is used.  If a bracketed term containing an index
 :math:`I` is appended, the :math:`I^\text{th}` column of the per-atom array
@@ -148,7 +148,7 @@ and :doc:`add them to LAMMPS <Modify>`.  See the discussion above for how
 :math:`I` can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-If a value begins with "v\_," a variable name must follow which has
+If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script as an
 :doc:`atom-style variable <variable>`. Variables of style *atom* can reference
 thermodynamic keywords or invoke other computes, fixes, or variables

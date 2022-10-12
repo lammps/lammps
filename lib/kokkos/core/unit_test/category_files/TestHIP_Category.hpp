@@ -49,6 +49,7 @@
 
 #define TEST_CATEGORY hip
 #define TEST_CATEGORY_NUMBER 6
+#define TEST_CATEGORY_DEATH hip_DeathTest
 #define TEST_EXECSPACE Kokkos::Experimental::HIP
 
 #endif

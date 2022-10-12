@@ -93,13 +93,13 @@ switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
 the GPU or OPENMP packages, for testing or benchmarking purposes.
 
-Additional optional keyword/value pairs can be specified which
-determine how Kokkos will use the underlying hardware on your
-platform.  These settings apply to each MPI task you launch via the
-"mpirun" or "mpiexec" command.  You may choose to run one or more MPI
-tasks per physical node.  Note that if you are running on a desktop
-machine, you typically have one physical node.  On a cluster or
-supercomputer there may be dozens or 1000s of physical nodes.
+Additional optional keyword/value pairs can be specified which determine
+how Kokkos will use the underlying hardware on your platform.  These
+settings apply to each MPI task you launch via the ``mpirun`` or
+``mpiexec`` command.  You may choose to run one or more MPI tasks per
+physical node.  Note that if you are running on a desktop machine, you
+typically have one physical node.  On a cluster or supercomputer there
+may be dozens or 1000s of physical nodes.
 
 Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
@@ -148,9 +148,9 @@ one of these 4 environment variables
    MV2_COMM_WORLD_LOCAL_RANK (Mvapich)
    OMPI_COMM_WORLD_LOCAL_RANK (OpenMPI)
 
-which are initialized by the "srun", "mpirun" or "mpiexec" commands.
-The environment variable setting for each MPI rank is used to assign a
-unique GPU ID to the MPI task.
+which are initialized by the ``srun``, ``mpirun``, or ``mpiexec``
+commands.  The environment variable setting for each MPI rank is used to
+assign a unique GPU ID to the MPI task.
 
 .. parsed-literal::
 
@@ -495,7 +495,7 @@ run:
    write_dump group-ID dumpstyle dumpfile arg1 arg2 ...
 
 Note that the specified restartfile and dumpfile names may contain
-wild-card characters ("\*","%") as explained on the
+wild-card characters ("\*" or "%") as explained on the
 :doc:`read_restart <read_restart>` and :doc:`write_dump <write_dump>` doc
 pages.  The use of "%" means that a parallel restart file and/or
 parallel dump file can be read and/or written.  Note that a filename

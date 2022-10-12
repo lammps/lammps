@@ -32,8 +32,8 @@ using namespace MathConst;
 ------------------------------------------------------------------------- */
 Slab2d::Slab2d(LAMMPS *lmp) : BoundaryCorrection(lmp){};
 
-void Slab2d::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, double &energy,
-                          double *eatom)
+void Slab2d::compute_corr(double /*qsum*/, double /*slab_volfactor*/, int eflag_atom,
+                          int eflag_global, double &energy, double *eatom)
 {
   double *q = atom->q;
   double **x = atom->x;

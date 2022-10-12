@@ -656,7 +656,7 @@ void CommKokkos::exchange()
         break;
       }
     }
-      
+
     if (!avec->unpack_exchange_indices_flag || !fix_flag) {
       static int print = 1;
       if (print && comm->me == 0) {

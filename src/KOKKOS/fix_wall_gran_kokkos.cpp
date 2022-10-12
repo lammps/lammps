@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -61,7 +61,7 @@ void FixWallGranKokkos<DeviceType>::init()
   FixWallGran::init();
 
   if (fix_rigid)
-    error->all(FLERR, "wall/gran/kk not yet compatible with rigid.");  
+    error->all(FLERR, "wall/gran/kk not yet compatible with rigid.");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,14 +134,14 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
   vwall_[0] = vwall[0];
   vwall_[1] = vwall[1];
   vwall_[2] = vwall[2];
-  
+
   if (mask[i] & groupbit) {
     X_FLOAT radius = radius_(i);
 
     double dx = 0.0;
     double dy = 0.0;
     double dz = 0.0;
-    
+
     if (WallStyle == XPLANE) {
       X_FLOAT del1 = x(i,0) - wlo;
       double del2 = whi - x(i,0);
@@ -161,15 +161,15 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
       double delxy = sqrt(x(i,0)*x(i,0) + x(i,1)*x(i,1));
       double delr = cylradius - delxy;
       if (delr > radius) {
-    	dz = cylradius;
+        dz = cylradius;
       } else {
-    	dx = -delr/delxy * x(i,0);
-    	dy = -delr/delxy * x(i,1);
-     	if (wshear && axis != 2) {
-    	  vwall_[0] += vshear * x(i,1)/delxy;
-    	  vwall_[1] += -vshear * x(i,0)/delxy;
-    	  vwall_[2] = 0.0;
-    	}
+        dx = -delr/delxy * x(i,0);
+        dy = -delr/delxy * x(i,1);
+       if (wshear && axis != 2) {
+          vwall_[0] += vshear * x(i,1)/delxy;
+          vwall_[1] += -vshear * x(i,0)/delxy;
+          vwall_[2] = 0.0;
+        }
       }
     }
 
@@ -177,8 +177,8 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
 
     if (rsq > radius*radius) {
       if (history)
-    	for (int j = 0; j < 3; j++)
-    	  d_shearone(i,j) = 0.0;
+        for (int j = 0; j < 3; j++)
+          d_shearone(i,j) = 0.0;
     } else {
       // meff = effective mass of sphere
       double meff = rmass(i);
@@ -227,9 +227,9 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
       // shear history effects
 
       if (shearupdate) {
-    	d_shearone(i,0) += vtr1*dt;
-    	d_shearone(i,1) += vtr2*dt;
-    	d_shearone(i,2) += vtr3*dt;
+        d_shearone(i,0) += vtr1*dt;
+        d_shearone(i,1) += vtr2*dt;
+        d_shearone(i,2) += vtr3*dt;
       }
       double shrmag = sqrt(d_shearone(i,0)*d_shearone(i,0) + d_shearone(i,1)*d_shearone(i,1) + d_shearone(i,2)*d_shearone(i,2));
 
@@ -238,9 +238,9 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
       double rsht = d_shearone(i,0)*dx + d_shearone(i,1)*dy + d_shearone(i,2)*dz;
       rsht = rsht*rsqinv;
       if (shearupdate) {
-    	d_shearone(i,0) -= rsht*dx;
-    	d_shearone(i,1) -= rsht*dy;
-    	d_shearone(i,2) -= rsht*dz;
+        d_shearone(i,0) -= rsht*dx;
+        d_shearone(i,1) -= rsht*dy;
+        d_shearone(i,2) -= rsht*dz;
       }
 
       // tangential forces = shear + tangential velocity damping
@@ -255,17 +255,17 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
       double fn = xmu * fabs(ccel*r);
 
       if (fs > fn) {
-    	if (shrmag != 0.0) {
-    	  d_shearone(i,0) = (fn/fs) * (d_shearone(i,0) + meff*gammat*vtr1/kt) -
-    	    meff*gammat*vtr1/kt;
-    	  d_shearone(i,1) = (fn/fs) * (d_shearone(i,1) + meff*gammat*vtr2/kt) -
-    	    meff*gammat*vtr2/kt;
-    	  d_shearone(i,2) = (fn/fs) * (d_shearone(i,2) + meff*gammat*vtr3/kt) -
-    	    meff*gammat*vtr3/kt;
-    	  fs1 *= fn/fs ;
-    	  fs2 *= fn/fs;
-    	  fs3 *= fn/fs;
-    	} else fs1 = fs2 = fs3 = 0.0;
+        if (shrmag != 0.0) {
+          d_shearone(i,0) = (fn/fs) * (d_shearone(i,0) + meff*gammat*vtr1/kt) -
+            meff*gammat*vtr1/kt;
+          d_shearone(i,1) = (fn/fs) * (d_shearone(i,1) + meff*gammat*vtr2/kt) -
+            meff*gammat*vtr2/kt;
+          d_shearone(i,2) = (fn/fs) * (d_shearone(i,2) + meff*gammat*vtr3/kt) -
+            meff*gammat*vtr3/kt;
+          fs1 *= fn/fs ;
+          fs2 *= fn/fs;
+          fs3 *= fn/fs;
+        } else fs1 = fs2 = fs3 = 0.0;
       }
 
       // forces & torques
@@ -293,7 +293,7 @@ template <class DeviceType>
 void FixWallGranKokkos<DeviceType>::grow_arrays(int nmax)
 {
   if (history) {
-    k_shearone.template sync<LMPHostType>(); // force reallocation on host 
+    k_shearone.template sync<LMPHostType>(); // force reallocation on host
     memoryKK->grow_kokkos(k_shearone,shearone,nmax,sheardim,"wall/gran/kk:shearone");
     d_shearone = k_shearone.template view<DeviceType>();
     k_shearone.template modify<LMPHostType>();
@@ -377,7 +377,7 @@ struct FixWallGranKokkos_PackExchangeFunctor
     const int j = _copylist(mysend);
     if (j > -1) {
       for (int v = 0; v < _dnum; v++) {
-	_shearone(i,v) = _shearone(j,v);
+        _shearone(i,v) = _shearone(j,v);
       }
     }
   }
@@ -432,7 +432,7 @@ struct FixWallGranKokkos_UnpackExchangeFunctor
     if (index > 0) {
       int m = i*_dnum;
       for (int v = 0; v < _dnum; v++) {
-	_shearone(i,v) = _buf(m++);
+        _shearone(i,v) = _buf(m++);
       }
     }
   }

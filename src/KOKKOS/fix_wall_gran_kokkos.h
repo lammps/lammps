@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,10 +40,10 @@ class FixWallGranKokkos : public FixWallGran, public KokkosBase {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
-			   DAT::tdual_int_1d k_sendlist,
-			   DAT::tdual_int_1d k_copylist,
-			   ExecutionSpace space, int dim,
-			   X_FLOAT lo, X_FLOAT hi);
+                           DAT::tdual_int_1d k_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space, int dim,
+                           X_FLOAT lo, X_FLOAT hi);
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
                               int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,

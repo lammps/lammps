@@ -58,7 +58,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
 			   DAT::tdual_int_1d k_sendlist,
 			   DAT::tdual_int_1d k_copylist,
 			   ExecutionSpace space, int dim,
-			   X_FLOAT lo, X_FLOAT hi);
+                           X_FLOAT lo, X_FLOAT hi);
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
                               int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,

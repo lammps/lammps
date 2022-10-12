@@ -173,7 +173,7 @@ action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
 action fix_wall_gran_kokkos.h fix_wall_gran.h
 action gridcomm_kokkos.cpp fft3d.h
 action gridcomm_kokkos.h fft3d.h
-action improper_class2_kokkos.cpp improper_class2.cpp 
+action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h

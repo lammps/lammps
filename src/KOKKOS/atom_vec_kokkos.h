@@ -134,7 +134,7 @@ class AtomVecKokkos : public AtomVec {
 
   int no_comm_vel_flag,no_border_vel_flag;
   int unpack_exchange_indices_flag;
-  
+
  protected:
 
   HAT::t_x_array h_x;

@@ -381,6 +381,31 @@ void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
 
 /* ---------------------------------------------------------------------- */
 
+int Grid3d::identical(Grid3d *grid2)
+{
+  int inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2;
+  int outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2;
+
+  grid2->get_bounds(inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2);
+  grid2->get_bounds_ghost(outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2);
+
+  int flag = 0;
+  if (inxlo != inxlo2 || inxhi != inxhi2 ||
+      inylo != inylo2 || inyhi != inyhi2 ||
+      inzlo != inzlo2 || inzhi != inzhi2) flag = 1;
+  if (outxlo != outxlo2 || outxhi != outxhi2 ||
+      outylo != outylo2 || outyhi != outyhi2 ||
+      outzlo != outzlo2 || outzhi != outzhi2) flag = 1;
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,gridcomm);
+
+  if (flagall) return 0;
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Grid3d::get_size(int &nxgrid, int &nygrid, int &nzgrid)
 {
   nxgrid = nx;
@@ -399,6 +424,19 @@ void Grid3d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi,
   yhi = inyhi;
   zlo = inzlo;
   zhi = inzhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Grid3d::get_bounds_ghost(int &xlo, int &xhi, int &ylo, int &yhi,
+			      int &zlo, int &zhi)
+{
+  xlo = outxlo;
+  xhi = outxhi;
+  ylo = outylo;
+  yhi = outyhi;
+  zlo = outzlo;
+  zhi = outzhi;
 }
 
 /* ----------------------------------------------------------------------
@@ -1332,6 +1370,7 @@ void Grid3d::remap_setup(Grid3d *old, int &ngrid1_buf, int &ngrid2_buf)
 void Grid3d::remap_setup_regular(Grid3d *old, int &ngrid1_buf, int &ngrid2_buf)
 {
   // NOTE: when to clean up data structs when multiple remaps occur
+  // NOTE: does a remap also require ghost comm in fix ttm/grid ?
   
   ngrid1_buf = 0;
   ngrid2_buf = 0;

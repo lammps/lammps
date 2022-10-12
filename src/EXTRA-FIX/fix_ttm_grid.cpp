@@ -368,6 +368,20 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 
 void FixTTMGrid::reset_grid()
 {
+  // check if new grid partitioning is different on any proc
+  // if not, just return
+
+  int tmp[12];
+  double maxdist = 0.5 * neighbor->skin;
+  Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 1, SHIFT,
+			       tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],
+			       tmp[6],tmp[7],tmp[8],tmp[9],tmp[10],tmp[11]);
+  
+  if (grid->identical(gridnew)) {
+    delete gridnew;
+    return;
+  } else delete gridnew;
+  
   // delete grid data which doesn't need to persist from previous to new decomp
 
   memory->destroy(grid_buf1);

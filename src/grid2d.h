@@ -29,8 +29,10 @@ class Grid2d : protected Pointers {
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int,
          int, int, int, int, int);
   ~Grid2d() override;
+  int identical(Grid2d *);
   void get_size(int &, int &);
   void get_bounds(int &, int &, int &, int &);
+  void get_bounds_ghost(int &, int &, int &, int &);
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);

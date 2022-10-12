@@ -352,6 +352,29 @@ void Grid2d::store(int ixlo, int ixhi, int iylo, int iyhi,
 
 /* ---------------------------------------------------------------------- */
 
+int Grid2d::identical(Grid2d *grid2)
+{
+  int inxlo2,inxhi2,inylo2,inyhi2;
+  int outxlo2,outxhi2,outylo2,outyhi2;
+
+  grid2->get_bounds(inxlo2,inxhi2,inylo2,inyhi2);
+  grid2->get_bounds_ghost(outxlo2,outxhi2,outylo2,outyhi2);
+
+  int flag = 0;
+  if (inxlo != inxlo2 || inxhi != inxhi2 ||
+      inylo != inylo2 || inyhi != inyhi2) flag = 1;
+  if (outxlo != outxlo2 || outxhi != outxhi2 ||
+      outylo != outylo2 || outyhi != outyhi2) flag = 1;
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,gridcomm);
+
+  if (flagall) return 0;
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Grid2d::get_size(int &nxgrid, int &nygrid)
 {
   nxgrid = nx;
@@ -366,6 +389,16 @@ void Grid2d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi)
   xhi = inxhi;
   ylo = inylo;
   yhi = inyhi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Grid2d::get_bounds_ghost(int &xlo, int &xhi, int &ylo, int &yhi)
+{
+  xlo = outxlo;
+  xhi = outxhi;
+  ylo = outylo;
+  yhi = outyhi;
 }
 
 /* ----------------------------------------------------------------------

@@ -24,7 +24,7 @@
 #include "error.h"
 #include "fft3d_kokkos.h"
 #include "force.h"
-#include "gridcomm_kokkos.h"
+#include "grid3d_kokkos.h"
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
@@ -249,7 +249,7 @@ void PPPMKokkos<DeviceType>::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridCommKokkos<DeviceType> *gctmp = nullptr;
+  Grid3dKokkos<DeviceType> *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -261,7 +261,7 @@ void PPPMKokkos<DeviceType>::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new GridCommKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+    gctmp = new Grid3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                          nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
     int tmp1,tmp2;
@@ -845,9 +845,9 @@ void PPPMKokkos<DeviceType>::allocate()
                           1,0,0,FFT_PRECISION,collective_flag,gpu_aware_flag);
 
   // create ghost grid object for rho and electric field communication
-  // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
+  // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
 
-  gc = new GridCommKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
+  gc = new Grid3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -2929,7 +2929,7 @@ double PPPMKokkos<DeviceType>::memory_usage()
   if (peratom_allocate_flag)
     bytes += (double)6 * nbrick * sizeof(FFT_SCALAR);
 
-  // two GridComm bufs
+  // two Grid3d bufs
 
   bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 

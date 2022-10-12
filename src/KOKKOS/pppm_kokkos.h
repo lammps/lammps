@@ -23,7 +23,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 #ifndef LMP_PPPM_KOKKOS_H
 #define LMP_PPPM_KOKKOS_H
 
-#include "gridcomm_kokkos.h"
+#include "grid3d_kokkos.h"
 #include "remap_kokkos.h"
 #include "fft3d_kokkos.h"
 #include "kokkos_base_fft.h"
@@ -387,7 +387,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   FFT3dKokkos<DeviceType> *fft1,*fft2;
   RemapKokkos<DeviceType> *remap;
-  GridCommKokkos<DeviceType> *gc;
+  Grid3dKokkos<DeviceType> *gc;
 
   FFT_DAT::tdual_FFT_SCALAR_1d k_gc_buf1,k_gc_buf2;
   int ngc_buf1,ngc_buf2,npergrid;

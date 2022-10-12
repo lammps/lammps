@@ -16,6 +16,16 @@
    Contributing author: Pavel Elkind (Gothenburg University)
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Bug fix: Xiaohui Duan (Shandong University)
+
+   The hydrogen atom connected to ghost oxygen atom may be missing
+   because of insufficient ghost atom radius. This is observed by Yuyu
+   Chen and Lyuwen Zhang from Shanghai Jiaotong University.
+
+   Fixed by modifying comm->cutghostuser.
+------------------------------------------------------------------------- */
+
 #include "pair_lj_cut_tip4p_cut.h"
 
 #include <cmath>
@@ -505,6 +515,8 @@ void PairLJCutTIP4PCut::init_style()
   double theta = force->angle->equilibrium_angle(typeA);
   double blen = force->bond->equilibrium_distance(typeB);
   alpha = qdist / (cos(0.5*theta) * blen);
+
+  comm->cutghostuser = MAX(comm->cutghostuser, cut_coul + blen*2.0);
 }
 
 /* ----------------------------------------------------------------------

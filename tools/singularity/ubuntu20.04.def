@@ -13,6 +13,7 @@ From: ubuntu:20.04
         build-essential \
         ccache \
         clang \
+        clang-format \
         cmake \
         cmake-curses-gui \
         curl \

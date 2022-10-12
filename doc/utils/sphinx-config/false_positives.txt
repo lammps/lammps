@@ -2738,6 +2738,7 @@ Polym
 polymorph
 polymorphism
 Ponder
+Ponte
 popen
 Popoola
 Popov
@@ -3692,6 +3693,7 @@ vdw
 vdW
 vdwl
 vec
+Vecchio
 vectorial
 vectorization
 Vectorization

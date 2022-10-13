@@ -43,7 +43,6 @@
 */
 
 #include <cstdio>
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -62,14 +61,6 @@ class MyArray {
   }
   KOKKOS_INLINE_FUNCTION
   void operator=(const MyArray& src) {
-    for (int i = 0; i < N; i++) values[i] = src.values[i];
-  }
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile MyArray& src) volatile {
-    for (int i = 0; i < N; i++) values[i] += src.values[i];
-  }
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile MyArray& src) volatile {
     for (int i = 0; i < N; i++) values[i] = src.values[i];
   }
 };

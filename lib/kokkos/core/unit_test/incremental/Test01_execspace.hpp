@@ -61,10 +61,10 @@ template <class ExecSpace>
 struct TestIncrExecSpaceTypedef {
   void testit() {
     const bool passed =
-        (!std::is_same<void, typename ExecSpace::memory_space>::value) &&
+        (!std::is_void<typename ExecSpace::memory_space>::value) &&
         std::is_same<ExecSpace, typename ExecSpace::execution_space>::value &&
-        !std::is_same<void, typename ExecSpace::scratch_memory_space>::value &&
-        !std::is_same<void, typename ExecSpace::array_layout>::value;
+        !std::is_void<typename ExecSpace::scratch_memory_space>::value &&
+        !std::is_void<typename ExecSpace::array_layout>::value;
     static_assert(passed == true,
                   "The memory and execution spaces are defined");
   }

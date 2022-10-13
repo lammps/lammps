@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_SortingOperations.hpp>
 #include <utility>
 
 namespace Test {
@@ -178,7 +176,7 @@ void run_single_scenario(const InfoType& scenario_info) {
                                 [=](bool v) { return v == gold; });
   EXPECT_TRUE(allA);
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
   CustomLessThanComparator<ValueType, ValueType> comp;
   std::vector<bool> resultsB(4);
   resultsB[0] =

@@ -44,13 +44,15 @@
 
 #ifndef KOKKOS_BITSET_HPP
 #define KOKKOS_BITSET_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_BITSET
+#endif
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Functional.hpp>
 
 #include <impl/Kokkos_Bitset_impl.hpp>
-
-#include <stdexcept>
 
 namespace Kokkos {
 
@@ -403,7 +405,7 @@ class ConstBitset {
 template <typename DstDevice, typename SrcDevice>
 void deep_copy(Bitset<DstDevice>& dst, Bitset<SrcDevice> const& src) {
   if (dst.size() != src.size()) {
-    throw std::runtime_error(
+    Kokkos::Impl::throw_runtime_exception(
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
@@ -418,7 +420,7 @@ void deep_copy(Bitset<DstDevice>& dst, Bitset<SrcDevice> const& src) {
 template <typename DstDevice, typename SrcDevice>
 void deep_copy(Bitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
   if (dst.size() != src.size()) {
-    throw std::runtime_error(
+    Kokkos::Impl::throw_runtime_exception(
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
@@ -433,7 +435,7 @@ void deep_copy(Bitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
 template <typename DstDevice, typename SrcDevice>
 void deep_copy(ConstBitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
   if (dst.size() != src.size()) {
-    throw std::runtime_error(
+    Kokkos::Impl::throw_runtime_exception(
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
@@ -447,4 +449,8 @@ void deep_copy(ConstBitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_BITSET
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_BITSET
+#endif
 #endif  // KOKKOS_BITSET_HPP

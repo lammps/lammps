@@ -44,7 +44,7 @@ class FixReaxFFSpecies : public Fix {
   double compute_vector(int) override;
 
  protected:
-  int me, nprocs, nmax, nlocal, ntypes, ntotal;
+  int nmax, nlocal, ntypes, ntotal;
   int nrepeat, nfreq, posfreq, compressed, ndelspec;
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap, *mark;

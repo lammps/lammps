@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <utility>
 
 namespace Test {
@@ -134,30 +132,30 @@ void verify_data(const std::string& name, ViewType1 test_view,
   }
 
   else if (name == "one-element-a") {
-    EXPECT_TRUE(view_h(0) == ValueType{1});
+    EXPECT_EQ(view_h(0), ValueType{1});
   }
 
   else if (name == "one-element-b") {
-    EXPECT_TRUE(view_h(0) == new_value);
+    EXPECT_EQ(view_h(0), new_value);
   }
 
   else if (name == "two-elements-a") {
-    EXPECT_TRUE(view_h(0) == ValueType{1});
-    EXPECT_TRUE(view_h(1) == new_value);
+    EXPECT_EQ(view_h(0), ValueType{1});
+    EXPECT_EQ(view_h(1), new_value);
   }
 
   else if (name == "two-elements-b") {
-    EXPECT_TRUE(view_h(0) == new_value);
-    EXPECT_TRUE(view_h(1) == ValueType{-1});
+    EXPECT_EQ(view_h(0), new_value);
+    EXPECT_EQ(view_h(1), ValueType{-1});
   }
 
   else if (name == "small-a") {
     for (std::size_t i = 0; i < view_h.extent(0); ++i) {
       if (i == 0 || i == 3 || i == 5 || i == 6) {
-        EXPECT_TRUE(view_h(i) == new_value);
+        EXPECT_EQ(view_h(i), new_value);
       } else {
         const auto gold = ValueType{-5} + static_cast<ValueType>(i + 1);
-        EXPECT_TRUE(view_h(i) == gold);
+        EXPECT_EQ(view_h(i), gold);
       }
     }
   }
@@ -165,9 +163,9 @@ void verify_data(const std::string& name, ViewType1 test_view,
   else if (name == "small-b") {
     for (std::size_t i = 0; i < view_h.extent(0); ++i) {
       if (i < 4) {
-        EXPECT_TRUE(view_h(i) == ValueType{-1});
+        EXPECT_EQ(view_h(i), ValueType{-1});
       } else {
-        EXPECT_TRUE(view_h(i) == new_value);
+        EXPECT_EQ(view_h(i), new_value);
       }
     }
   }
@@ -175,9 +173,9 @@ void verify_data(const std::string& name, ViewType1 test_view,
   else if (name == "medium" || name == "large") {
     for (std::size_t i = 0; i < view_h.extent(0); ++i) {
       if (i % 2 == 0) {
-        EXPECT_TRUE(view_h(i) == ValueType{-1});
+        EXPECT_EQ(view_h(i), ValueType{-1});
       } else {
-        EXPECT_TRUE(view_h(i) == new_value);
+        EXPECT_EQ(view_h(i), new_value);
       }
     }
   }

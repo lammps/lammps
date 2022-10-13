@@ -90,7 +90,7 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
       nthreads = omp_get_max_threads();
     }
 #elif defined(KOKKOS_ENABLE_HPX)
-    const auto concurrency = std::thread::hardware_concurrency();
+    const int concurrency = std::thread::hardware_concurrency();
     if (concurrency < nthreads) {
       nthreads = concurrency;
     }
@@ -165,7 +165,7 @@ Kokkos::InitArguments init_initstruct(bool do_threads, bool do_numa,
       nthreads = omp_get_max_threads();
     }
 #elif defined(KOKKOS_ENABLE_HPX)
-    const auto concurrency = std::thread::hardware_concurrency();
+    const int concurrency = std::thread::hardware_concurrency();
     if (concurrency < nthreads) {
       nthreads = concurrency;
     }

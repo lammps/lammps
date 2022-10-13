@@ -40,7 +40,7 @@ The *quartic* bond style uses the potential
 .. math::
 
    E      & = E_q + E_{LJ} \\
-   E_q    & = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 & r < R_c \\
+   E_q    & = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 , r < R_c \\
    E_{LJ} & = \left\{ \begin{array} {l@{\quad:\quad}l}
    4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon & r < 2^{\frac{1}{6}}, \epsilon = 1, \sigma = 1 \\
                                                   0 & r >= 2^{\frac{1}{6}}

@@ -239,6 +239,16 @@ void BondQuartic::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
 
+  // special bonds must be 1 1 1 if some bonds are breakable
+  for (int i = ilo; i <= ihi; i++) {
+    if (isBreakable[i]) {
+      if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+        error->all(FLERR, "Bond style quartic breakable yes requires special_bonds = 1,1,1");
+      if (force->angle || force->dihedral || force->improper)
+        error->all(FLERR, "Bond style quartic breakable yes cannot be used with 3,4-body interactions");
+    };
+  };
+
 }
 
 /* ----------------------------------------------------------------------
@@ -252,16 +262,6 @@ void BondQuartic::init_style()
     error->all(FLERR, "Pair style does not support bond_style quartic");
   if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR, "Bond style quartic cannot be used with atom style template");
-
-  // special bonds must be 1 1 1 if some bonds are breakable
-  for (int i = 1; i <= atom->nbondtypes + 1; i++) {
-    if (isBreakable[i]) {
-      if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
-        error->all(FLERR, "Bond style quartic breakable yes requires special_bonds = 1,1,1");
-      if (force->angle || force->dihedral || force->improper)
-        error->all(FLERR, "Bond style quartic breakable yes cannot be used with 3,4-body interactions");
-    };
-  };
 
 }
 

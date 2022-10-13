@@ -329,7 +329,7 @@ void BondQuartic::read_restart(FILE *fp)
   MPI_Bcast(&b2[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&rc[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&u0[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&isBreakable[1], atom->nbondtypes, MPI_INTEGER, 0, world);
+  MPI_Bcast(&isBreakable[1], atom->nbondtypes, MPI_INT, 0, world);
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }

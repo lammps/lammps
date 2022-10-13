@@ -86,7 +86,7 @@ void CPairPOD::compute(int eflag, int vflag)
 
     // get neighbor pairs for atom i
     
-    this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
+    this->lammpsNeighPairs(x, firstneigh, type, map, numneigh, i);
 
     // compute global POD descriptors for atom i
     
@@ -122,7 +122,7 @@ void CPairPOD::compute(int eflag, int vflag)
 
     // get neighbor pairs for atom i
     
-    this->lammpsNeighPairs(x, firstneigh, type, numneigh, i);
+    this->lammpsNeighPairs(x, firstneigh, type, map, numneigh, i);
 
     // compute atomic force for atom i
     
@@ -182,12 +182,17 @@ void CPairPOD::coeff(int narg, char **arg)
       scale[ii][jj] = 1.0;
   allocated = 1;
 
-  if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
+  //if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 //  if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  map_element2type(narg-4,&arg[4]);
-//   cout<<map[0]<<endl;
-//   cout<<map[1]<<endl;
+  //map_element2type(narg-4,&arg[4]);
+  map_element2type(narg-4,arg+4);
+
+  //cout<<map[0]<<endl;
+  //cout<<map[1]<<endl;
+  //cout<<map[2]<<endl;
+  //cout<<map[3]<<endl;
 
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file
@@ -1129,12 +1134,12 @@ double CPairPOD::podenergyforce(double *f, double *x, double *a1, double *a2, do
   return energy;
 }
 
-void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *numneigh, int gi)
+void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
 {
   double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
 
   nij = 0;
-  int itype = atomtypes[gi];
+  int itype = map[atomtypes[gi]]+1;
   int m = numneigh[gi];
   typeai[0] = itype;
   for (int l=0; l<m ; l++) {   // loop over each atom around atom i
@@ -1151,7 +1156,7 @@ void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, in
       ai[nij]    = gi;
       aj[nij]    = gj;
       ti[nij]    = itype;
-      tj[nij]    = atomtypes[gj];
+      tj[nij]    = map[atomtypes[gj]]+1;
       nij++;
     }
   }

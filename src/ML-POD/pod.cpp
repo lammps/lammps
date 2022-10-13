@@ -623,6 +623,7 @@ void CPOD::read_pod(std::string pod_file)
       k += 1;
     }      
   
+  if (comm->me == 0) {  
   std::cout<<"**************** Begin of POD Potentials ****************"<<std::endl;
   std::cout<<"species: ";
   for (int i=0; i<pod.nelements; i++)
@@ -671,12 +672,11 @@ void CPOD::read_pod(std::string pod_file)
 //   std::cout<<"number of descriptors for ten-body cubic444 potential: "<<pod.nd444<<std::endl;
   std::cout<<"total number of descriptors for all potentials: "<<pod.nd<<std::endl;  
   std::cout<<"**************** End of POD Potentials ****************"<<std::endl<<std::endl;
+  }
 }
 
 void CPOD::read_coeff_file(std::string coeff_file)
 {
-
-  std::cout << coeff_file << std::endl;
   std::ifstream file_in(coeff_file);
   if (!file_in) {error->all(FLERR,"Error: Coefficient input file is not found");}
   

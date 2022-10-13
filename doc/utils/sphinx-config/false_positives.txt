@@ -2540,7 +2540,6 @@ oneAPI
 onelevel
 oneway
 onlysalt
-onn
 ons
 OO
 Oord

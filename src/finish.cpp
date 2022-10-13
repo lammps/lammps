@@ -144,7 +144,10 @@ void Finish::end(int flag)
         double step_t = 1.0 / t_step;
         double atomstep_s = (double)atom->natoms * step_t;
         std::string atomstep_u = "atom-step/s";
-        if (atomstep_s > 1000000.0) {
+        if (atomstep_s > 1000000000.0) {
+          atomstep_u = "Gatom-step/s";
+          atomstep_s /= 1000000000.0;
+        } else if (atomstep_s > 1000000.0) {
           atomstep_u = "Matom-step/s";
           atomstep_s /= 1000000.0;
         } else if (atomstep_s > 1000.0) {

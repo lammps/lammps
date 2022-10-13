@@ -34,7 +34,7 @@ using MathConst::MY_CUBEROOT2;
 /* ---------------------------------------------------------------------- */
 
 BondQuartic::BondQuartic(LAMMPS *_lmp) :
-    Bond(_lmp), k(nullptr), b1(nullptr), b2(nullptr), rc(nullptr), u0(nullptr), isBreakable(nullptr)
+    Bond(_lmp), k(nullptr), b1(nullptr), b2(nullptr), rc(nullptr), u0(nullptr), isBreakable(nullptr), isBreakable_glob(1)
 {
   partial_flag = 1;
 }
@@ -196,7 +196,7 @@ void BondQuartic::allocate()
 
   memory->create(setflag, np1, "bond:setflag");
   for (int i = 1; i < np1; i++) setflag[i] = 0;
-  // set default to globle option
+  // set default to global option
   for (int i = 1; i < np1; i++) isBreakable[i] = isBreakable_glob;
 }
 
@@ -206,7 +206,7 @@ void BondQuartic::allocate()
 
 void BondQuartic::coeff(int narg, char **arg)
 {
-  if (!(narg == 6 || narg == 8))
+  if (narg != 6 && narg != 8)
     error->all(FLERR, "Incorrect number of args for bond coefficients");
   if (narg == 8 && strcmp(arg[6], "breakable") != 0)
     error->all(FLERR, "Incorrect args for bond coefficients");
@@ -239,16 +239,6 @@ void BondQuartic::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
 
-  // special bonds must be 1 1 1 if some bonds are breakable
-  for (int i = ilo; i <= ihi; i++) {
-    if (isBreakable[i]) {
-      if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
-        error->all(FLERR, "Bond style quartic breakable yes requires special_bonds = 1,1,1");
-      if (force->angle || force->dihedral || force->improper)
-        error->all(FLERR, "Bond style quartic breakable yes cannot be used with 3,4-body interactions");
-    };
-  };
-
 }
 
 /* ----------------------------------------------------------------------
@@ -262,6 +252,16 @@ void BondQuartic::init_style()
     error->all(FLERR, "Pair style does not support bond_style quartic");
   if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR, "Bond style quartic cannot be used with atom style template");
+
+  // special bonds must be 1 1 1 if some bonds are breakable
+  for (int i = 1; i <= atom->nbondtypes + 1; i++) {
+    if (isBreakable[i]) {
+      if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+        error->all(FLERR, "Bond style quartic breakable yes requires special_bonds = 1,1,1");
+      if (force->angle || force->dihedral || force->improper)
+        error->all(FLERR, "Bond style quartic breakable yes cannot be used with 3,4-body interactions");
+    };
+  };
 
 }
 
@@ -341,7 +341,7 @@ void BondQuartic::read_restart(FILE *fp)
 void BondQuartic::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp, "%d %g %g %g %g %g %g\n", i, k[i], b1[i], b2[i], rc[i], u0[i], isBreakable[i]);
+    fprintf(fp, "%d %g %g %g %g %g %s %d\n", i, k[i], b1[i], b2[i], rc[i], u0[i], "breakable",isBreakable[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -361,9 +361,12 @@ double BondQuartic::single(int type, double rsq, int i, int j, double &fforce)
     int jtype = atom->type[j];
 
     if (rsq < force->pair->cutsq[itype][jtype]) {
-      double tmp;
-      eng = -force->pair->single(i, j, itype, jtype, rsq, 1.0, 1.0, tmp);
+  //    double tmp;
+  //    eng = -force->pair->single(i, j, itype, jtype, rsq, 1.0, 1.0, tmp);
+      eng = -force->pair->single(i, j, itype, jtype, rsq, 1.0, 1.0, fforce);
     }
+  } else {
+    fforce = 0.0;
   }
 
   // quartic bond
@@ -378,10 +381,9 @@ double BondQuartic::single(int type, double rsq, int i, int j, double &fforce)
     rb = dr - b2[type];
 
     eng += k[type] * r2 * ra * rb + u0[type];
-    fforce = -k[type] / r * (r2 * (ra + rb) + 2.0 * dr * ra * rb);
+    fforce += -k[type] / r * (r2 * (ra + rb) + 2.0 * dr * ra * rb);
   } else {
-    eng += u0[type];
-    fforce = 0.0;
+    isBreakable[type] ? eng += 0.0 : eng += u0[type];
   }
 
   if (rsq < MY_CUBEROOT2) {

@@ -38,8 +38,8 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
   datamask_read = X_MASK | V_MASK | F_MASK | OMEGA_MASK | TORQUE_MASK | RADIUS_MASK | RMASS_MASK | MASK_MASK;
   datamask_modify = F_MASK | TORQUE_MASK;
 
-  memory->destroy(shearone);
-  shearone = NULL;
+  memory->destroy(history_one);
+  history_one = NULL;
   grow_arrays(atom->nmax);
 }
 
@@ -50,7 +50,7 @@ FixWallGranKokkos<DeviceType>::~FixWallGranKokkos()
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_shearone, shearone);
+  memoryKK->destroy_kokkos(k_history_one, history_one);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,8 +71,8 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   // do not update shear history during setup
 
-  shearupdate = 1;
-  if (update->setupflag) shearupdate = 0;
+  history_update = 1;
+  if (update->setupflag) history_update = 0;
 
   // set position of wall to initial settings and velocity to 0.0
   // if wiggle or shear, set wall position and velocity accordingly
@@ -176,9 +176,9 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
     double rsq = dx*dx + dy*dy + dz*dz;
 
     if (rsq > radius*radius) {
-      if (history)
+      if (use_history)
         for (int j = 0; j < 3; j++)
-          d_shearone(i,j) = 0.0;
+          d_history_one(i,j) = 0.0;
     } else {
       // meff = effective mass of sphere
       double meff = rmass(i);
@@ -226,28 +226,28 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
 
       // shear history effects
 
-      if (shearupdate) {
-        d_shearone(i,0) += vtr1*dt;
-        d_shearone(i,1) += vtr2*dt;
-        d_shearone(i,2) += vtr3*dt;
+      if (history_update) {
+        d_history_one(i,0) += vtr1*dt;
+        d_history_one(i,1) += vtr2*dt;
+        d_history_one(i,2) += vtr3*dt;
       }
-      double shrmag = sqrt(d_shearone(i,0)*d_shearone(i,0) + d_shearone(i,1)*d_shearone(i,1) + d_shearone(i,2)*d_shearone(i,2));
+      double shrmag = sqrt(d_history_one(i,0)*d_history_one(i,0) + d_history_one(i,1)*d_history_one(i,1) + d_history_one(i,2)*d_history_one(i,2));
 
       // rotate shear displacements
 
-      double rsht = d_shearone(i,0)*dx + d_shearone(i,1)*dy + d_shearone(i,2)*dz;
+      double rsht = d_history_one(i,0)*dx + d_history_one(i,1)*dy + d_history_one(i,2)*dz;
       rsht = rsht*rsqinv;
-      if (shearupdate) {
-        d_shearone(i,0) -= rsht*dx;
-        d_shearone(i,1) -= rsht*dy;
-        d_shearone(i,2) -= rsht*dz;
+      if (history_update) {
+        d_history_one(i,0) -= rsht*dx;
+        d_history_one(i,1) -= rsht*dy;
+        d_history_one(i,2) -= rsht*dz;
       }
 
       // tangential forces = shear + tangential velocity damping
 
-      double fs1 = - (kt*d_shearone(i,0) + meff*gammat*vtr1);
-      double fs2 = - (kt*d_shearone(i,1) + meff*gammat*vtr2);
-      double fs3 = - (kt*d_shearone(i,2) + meff*gammat*vtr3);
+      double fs1 = - (kt*d_history_one(i,0) + meff*gammat*vtr1);
+      double fs2 = - (kt*d_history_one(i,1) + meff*gammat*vtr2);
+      double fs3 = - (kt*d_history_one(i,2) + meff*gammat*vtr3);
 
       // rescale frictional displacements and forces if needed
 
@@ -256,11 +256,11 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
 
       if (fs > fn) {
         if (shrmag != 0.0) {
-          d_shearone(i,0) = (fn/fs) * (d_shearone(i,0) + meff*gammat*vtr1/kt) -
+          d_history_one(i,0) = (fn/fs) * (d_history_one(i,0) + meff*gammat*vtr1/kt) -
             meff*gammat*vtr1/kt;
-          d_shearone(i,1) = (fn/fs) * (d_shearone(i,1) + meff*gammat*vtr2/kt) -
+          d_history_one(i,1) = (fn/fs) * (d_history_one(i,1) + meff*gammat*vtr2/kt) -
             meff*gammat*vtr2/kt;
-          d_shearone(i,2) = (fn/fs) * (d_shearone(i,2) + meff*gammat*vtr3/kt) -
+          d_history_one(i,2) = (fn/fs) * (d_history_one(i,2) + meff*gammat*vtr3/kt) -
             meff*gammat*vtr3/kt;
           fs1 *= fn/fs ;
           fs2 *= fn/fs;
@@ -292,11 +292,11 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
 template <class DeviceType>
 void FixWallGranKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  if (history) {
-    k_shearone.template sync<LMPHostType>(); // force reallocation on host
-    memoryKK->grow_kokkos(k_shearone,shearone,nmax,sheardim,"wall/gran/kk:shearone");
-    d_shearone = k_shearone.template view<DeviceType>();
-    k_shearone.template modify<LMPHostType>();
+  if (use_history) {
+    k_history_one.template sync<LMPHostType>(); // force reallocation on host
+    memoryKK->grow_kokkos(k_history_one,history_one,nmax,size_history,"wall/gran/kk:history_one");
+    d_history_one = k_history_one.template view<DeviceType>();
+    k_history_one.template modify<LMPHostType>();
   }
 }
 
@@ -305,11 +305,11 @@ void FixWallGranKokkos<DeviceType>::grow_arrays(int nmax)
 template <class DeviceType>
 void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
-  if (history) {
-    k_shearone.template sync<LMPHostType>();
-    for (int m = 0; m < sheardim; m++)
-      shearone[j][m] = shearone[i][m];
-    k_shearone.template modify<LMPHostType>();
+  if (use_history) {
+    k_history_one.template sync<LMPHostType>();
+    for (int m = 0; m < size_history; m++)
+      history_one[j][m] = history_one[i][m];
+    k_history_one.template modify<LMPHostType>();
   }
 }
 
@@ -318,11 +318,11 @@ void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 template <class DeviceType>
 int FixWallGranKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
-  k_shearone.template sync<LMPHostType>();
+  k_history_one.template sync<LMPHostType>();
 
   int n = 0;
-  for (int j = 0; j < sheardim; j++)
-    buf[n++] = shearone[i][j];
+  for (int j = 0; j < size_history; j++)
+    buf[n++] = history_one[i][j];
   return n;
 }
 
@@ -332,10 +332,10 @@ template <class DeviceType>
 int FixWallGranKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
   int n = 0;
-  for (int j = 0; j < sheardim; j++)
-    shearone[nlocal][j] = buf[n++];
+  for (int j = 0; j < size_history; j++)
+    history_one[nlocal][j] = buf[n++];
 
-  k_shearone.template modify<LMPHostType>();
+  k_history_one.template modify<LMPHostType>();
 
   return n;
 }
@@ -349,7 +349,7 @@ struct FixWallGranKokkos_PackExchangeFunctor
   typedef ArrayTypes<DeviceType> AT;
   typename AT::t_int_1d_const _sendlist;
   typename AT::t_int_1d_const _copylist;
-  typename AT::t_float_2d _shearone;
+  typename AT::t_float_2d _history_one;
   typename AT::t_xfloat_1d_um _buf;
   const int _dnum;
 
@@ -357,11 +357,11 @@ struct FixWallGranKokkos_PackExchangeFunctor
     const typename AT::tdual_xfloat_2d &buf,
     const typename AT::tdual_int_1d &sendlist,
     const typename AT::tdual_int_1d &copylist,
-    const typename AT::tdual_float_2d &shearone,
+    const typename AT::tdual_float_2d &history_one,
     const int &dnum):
     _sendlist(sendlist.template view<DeviceType>()),
     _copylist(copylist.template view<DeviceType>()),
-    _shearone(shearone.template view<DeviceType>()),
+    _history_one(history_one.template view<DeviceType>()),
     _dnum(dnum)
   {
     _buf = typename AT::t_xfloat_1d_um(buf.template view<DeviceType>().data(),buf.extent(0)*buf.extent(1));
@@ -372,12 +372,12 @@ struct FixWallGranKokkos_PackExchangeFunctor
     const int i = _sendlist(mysend);
     int m = i*_dnum;
     for (int v = 0; v < _dnum; v++) {
-      _buf(m++) = _shearone(i,v);
+      _buf(m++) = _history_one(i,v);
     }
     const int j = _copylist(mysend);
     if (j > -1) {
       for (int v = 0; v < _dnum; v++) {
-        _shearone(i,v) = _shearone(j,v);
+        _history_one(i,v) = _history_one(j,v);
       }
     }
   }
@@ -394,12 +394,12 @@ int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
   ExecutionSpace space, int dim,
   X_FLOAT lo, X_FLOAT hi)
 {
-  k_shearone.template sync<DeviceType>();
+  k_history_one.template sync<DeviceType>();
   Kokkos::parallel_for(
     nsend,
     FixWallGranKokkos_PackExchangeFunctor<DeviceType>(
-      buf,k_sendlist,k_copylist,k_shearone,sheardim));
-  return nsend*sheardim;
+      buf,k_sendlist,k_copylist,k_history_one,size_history));
+  return nsend*size_history;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -410,16 +410,16 @@ struct FixWallGranKokkos_UnpackExchangeFunctor
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typename AT::t_xfloat_1d_um _buf;
-  typename AT::t_float_2d _shearone;
+  typename AT::t_float_2d _history_one;
   typename AT::t_int_1d _indices;
   const int _dnum;
 
   FixWallGranKokkos_UnpackExchangeFunctor(
     const typename AT::tdual_xfloat_2d buf,
-    const typename AT::tdual_float_2d &shearone,
+    const typename AT::tdual_float_2d &history_one,
     const typename AT::tdual_int_1d &indices,
     const int &dnum):
-    _shearone(shearone.template view<DeviceType>()),
+    _history_one(history_one.template view<DeviceType>()),
     _indices(indices.template view<DeviceType>()),
     _dnum(dnum)
   {
@@ -432,7 +432,7 @@ struct FixWallGranKokkos_UnpackExchangeFunctor
     if (index > 0) {
       int m = i*_dnum;
       for (int v = 0; v < _dnum; v++) {
-        _shearone(i,v) = _buf(m++);
+        _history_one(i,v) = _buf(m++);
       }
     }
   }
@@ -450,9 +450,9 @@ void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
   Kokkos::parallel_for(
     nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2),
     FixWallGranKokkos_UnpackExchangeFunctor<DeviceType>(
-      k_buf,k_shearone,indices,sheardim));
+      k_buf,k_history_one,indices,size_history));
 
-  k_shearone.template modify<DeviceType>();
+  k_history_one.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

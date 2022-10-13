@@ -67,8 +67,8 @@ class FixWallGranKokkos : public FixWallGran, public KokkosBase {
   typename AT::t_int_1d mask;
   typename AT::t_float_1d rmass;
   typename AT::t_float_1d radius_;
-  typename AT::tdual_float_2d k_shearone;
-  typename AT::t_float_2d d_shearone;
+  typename AT::tdual_float_2d k_history_one;
+  typename AT::t_float_2d d_history_one;
 };
 
 template <class DeviceType, int WallStyle>

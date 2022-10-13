@@ -35,8 +35,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-using std::cout;
-using std::endl;
 using std::string;
 using std::ios;
 using std::ofstream;
@@ -278,23 +276,23 @@ void CPODFIT::read_data_file(double *fitting_weights, std::string &file_format, 
   }    
   file_in.close();
   
-  std::cout<<"**************** Begin of Data File ****************"<<std::endl;
-  std::cout<<"file format: "<<file_format<<std::endl;
-  std::cout<<"file extension: "<<file_extension<<std::endl;
-  std::cout<<"path to training data set: "<<training_path<<std::endl;
-  std::cout<<"path to test data set: "<<test_path<<std::endl;  
-  std::cout<<"training percentage: "<<fitting_weights[7]<<std::endl;
-  std::cout<<"test percentage: "<<fitting_weights[8]<<std::endl;
-  std::cout<<"randomize training data set: "<<fitting_weights[9]<<std::endl;
-  std::cout<<"randomize test data set: "<<fitting_weights[10]<<std::endl;
-  std::cout<<"error analysis for training data set: "<<fitting_weights[3]<<std::endl;
-  std::cout<<"error analysis for test data set: "<<fitting_weights[4]<<std::endl;
-  std::cout<<"energy/force calculation for training data set: "<<fitting_weights[5]<<std::endl;
-  std::cout<<"energy/force calculation for test data set: "<<fitting_weights[6]<<std::endl;
-  std::cout<<"fitting weight for energy: "<<fitting_weights[0]<<std::endl;
-  std::cout<<"fitting weight for force: "<<fitting_weights[1]<<std::endl;
-  std::cout<<"fitting weight for stress: "<<fitting_weights[2]<<std::endl;  
-  std::cout<<"**************** End of Data File ****************"<<std::endl<<std::endl;
+  utils::logmesg(lmp, "**************** Begin of Data File ****************\n");
+  utils::logmesg(lmp, "file format: {}\n", file_format);
+  utils::logmesg(lmp, "file extension: {}\n", file_extension);
+  utils::logmesg(lmp, "path to training data set: {}\n", training_path);
+  utils::logmesg(lmp, "path to test data set: {}\n", test_path);
+  utils::logmesg(lmp, "training percentage: {}\n", fitting_weights[7]);
+  utils::logmesg(lmp, "test percentage: {}\n", fitting_weights[8]);
+  utils::logmesg(lmp, "randomize training data set: {}\n", fitting_weights[9]);
+  utils::logmesg(lmp, "randomize test data set: {}\n", fitting_weights[10]);
+  utils::logmesg(lmp, "error analysis for training data set: {}\n", fitting_weights[3]);
+  utils::logmesg(lmp, "error analysis for test data set: {}\n", fitting_weights[4]);
+  utils::logmesg(lmp, "energy/force calculation for training data set: {}\n", fitting_weights[5]);
+  utils::logmesg(lmp, "energy/force calculation for test data set: {}\n", fitting_weights[6]);
+  utils::logmesg(lmp, "fitting weight for energy: {}\n", fitting_weights[0]);
+  utils::logmesg(lmp, "fitting weight for force: {}\n", fitting_weights[1]);
+  utils::logmesg(lmp, "fitting weight for stress: {}\n", fitting_weights[2]);
+  utils::logmesg(lmp, "**************** End of Data File ****************\n");
 }
 
 std::vector<std::string> CPODFIT::globVector(const std::string& pattern, std::vector<std::string> & files)
@@ -437,16 +435,15 @@ void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
   data.num_atom_sum = this->get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);      
   data.num_config_sum = data.num_atom.size();
   
-  std::cout<<"data file   |  number of configurations   |   number of atoms "<<std::endl;
+  utils::logmesg(lmp, "data file   |  number of configurations   |   number of atoms\n");
   for (int i=0; i< (int) data.data_files.size(); i++) {
     string filename = data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size());
-    data.filenames.push_back(filename.c_str());                    
-    std::cout<<data.filenames[i]<<"   |   "<<data.num_config[i]<<"   |   "<<data.num_atom_each_file[i]<< std::endl;  
-    //std::cout<<data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size())<<std::endl;
+    data.filenames.push_back(filename.c_str());
+    utils::logmesg(lmp, "{}   |   {}   |   {}\n", data.filenames[i], data.num_config[i], data.num_atom_each_file[i]);
   }  
-  std::cout << "number of files: " <<data.data_files.size() << std::endl;   
-  std::cout << "number of configurations in all files: " <<data.num_config_sum << std::endl;   
-  std::cout << "number of atoms in all files: " <<data.num_atom_sum << std::endl;     
+  utils::logmesg(lmp, "number of files: {}\n", data.data_files.size());
+  utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
+  utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);    
   
   int n = data.num_config_sum;
   data.lattice = (double *) malloc(9*n*sizeof(double));
@@ -497,8 +494,8 @@ void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
     podptr->matrix33_multiplication(f, Qmat, f, natom);   
   }
     
-  std::cout << "minimum number of atoms: " <<data.num_atom_min << std::endl;   
-  std::cout << "maximum number of atoms: " <<data.num_atom_max << std::endl;   
+  utils::logmesg(lmp, "minimum number of atoms: {}\n", data.num_atom_min);
+  utils::logmesg(lmp, "maximum number of atoms: {}\n", data.num_atom_max); 
 }
 
 std::vector<int> CPODFIT::linspace(int start_in, int end_in, int num_in)
@@ -571,10 +568,10 @@ void CPODFIT::select_data(datastruct &newdata, datastruct data)
   double percentage = data.percentage;
   int randomize = data.randomize;    
     
-  if (randomize==1) 
-    std::cout << "Select " <<data.percentage*100 <<" percent of the data set at random using shuffle"<< std::endl;   
+  if (randomize==1)
+    utils::logmesg(lmp, "Select {} percent of the data set at random using shuffle\n", data.percentage*100); 
   else 
-    std::cout << "Select " <<data.percentage*100 <<" percent of the data set deterministically using linspace"<< std::endl;   
+    utils::logmesg(lmp, "Select {} percent of the data set deterministically using linspace\n", data.percentage*100); 
 
   int nfiles = data.data_files.size();  // number of files  
   std::vector<std::vector<int>> selected(nfiles);
@@ -658,15 +655,15 @@ void CPODFIT::select_data(datastruct &newdata, datastruct data)
   
   data.copydatainfo(newdata);  
 
-  std::cout<<"data file  | # configurations (selected) | # atoms (selected) | # configurations (original) | # atoms (original) "<<std::endl;
+  utils::logmesg(lmp, "data file  | # configs (selected) | # atoms (selected) | # configs (original) | # atoms (original)\n");
   for (int i=0; i< (int) newdata.data_files.size(); i++) {
     string filename = newdata.data_files[i].substr(newdata.data_path.size()+1,newdata.data_files[i].size());
-    newdata.filenames.push_back(filename.c_str());                    
-    std::cout<<newdata.filenames[i]<<"   |   "<<newdata.num_config[i]<<"   |   "<<newdata.num_atom_each_file[i]<<"   |   "<<data.num_config[i]<<"   |   "<<data.num_atom_each_file[i]<< std::endl;  
-  }  
-  std::cout << "number of files: " <<newdata.data_files.size() << std::endl;   
-  std::cout << "number of configurations in all files (selected and original): " <<newdata.num_config_sum<<" and "<<data.num_config_sum << std::endl;   
-  std::cout << "number of atoms in all files (selected and original): "<<newdata.num_atom_sum <<" and "<< data.num_atom_sum << std::endl;      
+    newdata.filenames.push_back(filename.c_str());
+    utils::logmesg(lmp, "{}   |   {}   |   {}   |   {}   |   {}\n", newdata.filenames[i], newdata.num_config[i], newdata.num_atom_each_file[i], data.num_config[i], data.num_atom_each_file[i]);              
+  }
+  utils::logmesg(lmp, "number of files: {}\n", newdata.data_files.size());
+  utils::logmesg(lmp, "number of configurations in all files (selected and original): {} and {}\n", newdata.num_config_sum, data.num_config_sum);
+  utils::logmesg(lmp, "number of atoms in all files (selected and original: {} and {}\n", newdata.num_atom_sum, data.num_atom_sum);    
 }
 
 void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> species)
@@ -686,25 +683,25 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
   
   data.copydatainfo(traindata); 
   
-  if (data.percentage >= 1.0) {         
-    std::cout<<"**************** Begin of Training Data Set ****************"<<std::endl;    
+  if (data.percentage >= 1.0) {        
+    utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");  
     if ((int) traindata.data_path.size() > 1) 
       this->get_data(traindata, species);
     else 
-      error->all(FLERR,"data set is not found");          
-    std::cout<<"**************** End of Training Data Set ****************"<<std::endl<<std::endl;          
+      error->all(FLERR,"data set is not found");     
+    utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");               
   }
   else {
-    std::cout<<"**************** Begin of Training Data Set ****************"<<std::endl;    
+    utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");    
     if ((int) data.data_path.size() > 1) 
       this->get_data(data, species);
     else 
       error->all(FLERR,"data set is not found");            
-    std::cout<<"**************** End of Training Data Set ****************"<<std::endl<<std::endl;          
+    utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");          
     
-    std::cout<<"**************** Begin of Select Training Data Set ****************"<<std::endl;
-    select_data(traindata, data);    
-    std::cout<<"**************** End of Select Training Data Set ****************"<<std::endl<<std::endl;
+    utils::logmesg(lmp, "**************** Begin of Select Training Data Set ****************\n");
+    select_data(traindata, data);
+    utils::logmesg(lmp, "**************** End of Select Training Data Set ****************\n");
     
     data.freememory(1);
   }
@@ -718,10 +715,10 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
     testdata.training_calculation = traindata.training_calculation;
     testdata.test_calculation = traindata.test_calculation;
     testdata.percentage = traindata.fitting_weights[8];
-    testdata.randomize = (int) traindata.fitting_weights[10];    
-    std::cout<<"**************** Begin of Test Data Set ****************"<<std::endl;
+    testdata.randomize = (int) traindata.fitting_weights[10];   
+    utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
     this->get_data(testdata, species);
-    std::cout<<"**************** End of Test Data Set ****************"<<std::endl<<std::endl;  
+    utils::logmesg(lmp, "**************** End of Test Data Set ****************\n"); 
   }
   else {
     testdata.data_path = traindata.data_path;
@@ -878,7 +875,7 @@ void CPODFIT::allocate_memory(datastruct data)
   nb.szy = ny;  
   nb.szp = np;  
   
-  std::cout<<"**************** Begin of Memory Allocation ****************"<<std::endl;
+  utils::logmesg(lmp,"**************** Begin of Memory Allocation ****************\n");
   
   int szd = 0, szi=0, szsnap=0;
   for (int ci=0; ci<(int) data.num_atom.size(); ci++)
@@ -931,13 +928,13 @@ void CPODFIT::allocate_memory(datastruct data)
   desc.szd = szd;
   desc.szi = szi;    
 
-  std::cout<<"maximum number of atoms in periodic domain: "<<natom_max<<std::endl;
-  std::cout<<"maximum number of atoms in extended domain: "<<nb.sza<<std::endl;
-  std::cout<<"maximum number of neighbors in extended domain: "<<nb.szp<<std::endl;
-  std::cout<<"size of double memory: "<<szd<<std::endl;
-  std::cout<<"size of int memory: "<<szi<<std::endl;
-  std::cout<<"size of descriptor matrix: "<<nd<<" x "<<nd<<std::endl;
-  std::cout<<"**************** End of Memory Allocation ****************"<<std::endl<<std::endl;
+  utils::logmesg(lmp, "maximum number of atoms in periodic domain: {}\n", natom_max);
+  utils::logmesg(lmp, "maximum number of atoms in extended domain: {}\n", nb.sza);
+  utils::logmesg(lmp, "maximum number of neighbors in extended domain: {}\n", nb.szp);
+  utils::logmesg(lmp, "size of double memory: {}\n", szd);
+  utils::logmesg(lmp, "size of int memory: {}\n", szi);
+  utils::logmesg(lmp, "size of descriptor matrix: {} x {}\n", nd, nd);
+  utils::logmesg(lmp, "**************** End of Memory Allocation ****************\n");
 }
 
 void CPODFIT::linear_descriptors(datastruct data, int ci)
@@ -1167,12 +1164,12 @@ void CPODFIT::least_squares_matrix(datastruct data, int ci)
 
 void CPODFIT::least_squares_fit(datastruct data)
 {    
-  std::cout<<"**************** Begin of Least-Squares Fitting ****************"<<std::endl;
+  utils::logmesg(lmp, "**************** Begin of Least-Squares Fitting ****************\n");
   
   // loop over each configuration in the training data set
 
   for (int ci=0; ci < (int) data.num_atom.size(); ci++) {
-    if ((ci % 100)==0) std::cout<<"Configuration: # "<<ci+1<<std::endl;
+    if ((ci % 100)==0) utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
     
     // compute linear POD descriptors
 
@@ -1216,9 +1213,9 @@ void CPODFIT::least_squares_fit(datastruct data)
       myfile << std::setprecision(20)<< desc.c[count] << std::endl;    
     myfile.close();
   }
-  else std::cout << "Unable to open file";
+  else utils::logmesg(lmp, "Unable to open file\n");
   
-  std::cout<<"**************** End of Least-Squares Fitting ****************"<<std::endl<<std::endl;
+  utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
 }
 
 double CPODFIT::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
@@ -1272,23 +1269,26 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
   
   std::string filename = data.training ? "training_errors.txt" : "test_errors.txt";   
   std::ofstream myfile (filename);
-  if (!myfile.is_open()) std::cout << "Unable to open file";
+  if (!myfile.is_open()) utils::logmesg(lmp, "Unable to open file");
   
   filename = data.training ? "training_analysis.txt" : "test_analysis.txt";
   std::ofstream mfile (filename);
-  if (!mfile.is_open()) std::cout << "Unable to open file";
+  if (!mfile.is_open()) utils::logmesg(lmp, "Unable to open file");
     
   std::string sa = "**************** Begin of Error Analysis for the Training Data Set ****************";
   std::string sb = "**************** Begin of Error Analysis for the Test Data Set ****************";      
-  std::string mystr = (data.training) ? sa : sb;  
-  std::cout<<mystr<<std::endl;      
+  std::string mystr = (data.training) ? sa : sb;   
+  utils::logmesg(lmp, "{}\n", mystr);    
   myfile <<mystr+"\n";
   
   sa = "----------------------------------------------------------------------------------------\n";
   sb = "  File    | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
-  std::cout<<sa; myfile <<sa;
-  std::cout<<sb; myfile <<sb;
-  std::cout<<sa; myfile <<sa;   
+  utils::logmesg(lmp, "{}", sa); 
+  utils::logmesg(lmp, "{}", sb);
+  utils::logmesg(lmp, "{}", sa);
+  myfile << sa;
+  myfile << sb;
+  myfile << sa;   
   
   int ci=0, m=8, nc=0, nf=0;  
   for (int file = 0; file < nfiles; file++) {    
@@ -1332,10 +1332,11 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
     s1 = std::to_string(errors[3 + 4*q]);
     s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');  
     s = s + "   " + s1 + "\n";    
-    std::cout<<s; 
+    utils::logmesg(lmp, "{}", s);
     myfile <<s;    
   }
-  std::cout<<sa; myfile <<sa;
+  utils::logmesg(lmp, "{}", sa);
+  myfile << sa;
     
   s = s + std::string(PODMAX(lm - (int) s.size(),1), ' ');     
   string s1 = std::to_string(nc);
@@ -1355,14 +1356,16 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
   s = s + "   " + s1;
   s1 = std::to_string(errors[3]);
   s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');  
-  s = s + "   " + s1 + "\n";    
-  std::cout<<s; myfile <<s;
-  std::cout<<sa; myfile <<sa;
+  s = s + "   " + s1 + "\n";  
+  utils::logmesg(lmp, "{}", s);
+  utils::logmesg(lmp, "{}", sa);
+  myfile << s;
+  myfile << sa;
   
   sa = "**************** End of Error Analysis for the Training Data Set ****************";    
   sb = "**************** End of Error Analysis for the Test Data Set ****************";   
-  mystr = (data.training) ? sa : sb;  
-  std::cout<<mystr<<std::endl;      
+  mystr = (data.training) ? sa : sb;       
+  utils::logmesg(lmp, "{}\n", mystr); 
   myfile <<mystr+"\n";  
   myfile.close();
   mfile.close();  
@@ -1404,7 +1407,7 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
   for (int j=0; j<nd; j++)
     newcoeff[j] = coeff[j];
   
-  std::cout<<"**************** Begin of Error Calculation ****************"<<std::endl;
+  utils::logmesg(lmp, "**************** Begin of Error Calculation ****************\n");
   
   int ci = 0; // configuration counter  
   int nc = 0, nf = 0;  
@@ -1415,7 +1418,7 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
     int nconfigs = data.num_config[file];
     nc += nconfigs;
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      if ((ci % 100)==0) std::cout<<"Configuration: # "<<ci+1<<std::endl;
+      if ((ci % 100)==0) utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
       
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
@@ -1473,7 +1476,7 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
   errors[2] = errors[2]/nf;
   errors[3] = sqrt(errors[3]/nf);
   
-  std::cout<<"**************** End of Error Calculation ****************"<<std::endl<<std::endl;
+  utils::logmesg(lmp, "**************** End of Error Calculation ****************\n");
   
   print_analysis(data, outarray, errors);  
 }
@@ -1487,14 +1490,14 @@ void CPODFIT::energyforce_calculation(datastruct data, double *coeff)
   int nfiles = data.data_files.size();  // number of files  
 
                 
-  std::cout<<"**************** Begin of Energy/Force Calculation ****************"<<std::endl;
+  utils::logmesg(lmp, "**************** Begin of Energy/Force Calculation ****************\n");
   
   int ci = 0; // configuration counter  
   for (int file = 0; file < nfiles; file++) { // loop over each file in the data set
     
     int nconfigs = data.num_config[file];
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      if ((ci % 100)==0) std::cout<<"Configuration: # "<<ci+1<<std::endl;
+      if ((ci % 100)==0) utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
       
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
@@ -1510,7 +1513,7 @@ void CPODFIT::energyforce_calculation(datastruct data, double *coeff)
       writearray2file(filename.c_str(), force, 1 + nforce, 1);
     }
   }     
-  std::cout<<"**************** End of Energy/Force Calculation ****************"<<std::endl<<std::endl;  
+  utils::logmesg(lmp, "**************** End of Energy/Force Calculation ****************\n");
 }
 
 #endif    

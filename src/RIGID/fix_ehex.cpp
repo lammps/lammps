@@ -574,7 +574,7 @@ void FixEHEX::com_properties(double *vr, double *sfr, double *sfvr, double *K, d
     mi = (rmass) ? rmass[0] : mass[type[0]];
   else
     mi = 1.0;
-  if ((*mr / mi) < 1.e-14)  error->all(FLERR, "Fix ehex error mass of region is close to zero");
+  if ((*mr / mi) < 1.e-14) error->all(FLERR, "Fix ehex error mass of region is close to zero");
 
   // total kinetic energy of region
 

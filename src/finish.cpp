@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"           // IWYU pragma: keep
 #include "output.h"
+#include "pair.h"
 #include "thermo.h"
 #include "timer.h"              // IWYU pragma: keep
 #include "universe.h"
@@ -214,6 +215,10 @@ void Finish::end(int flag)
     }
   }
 
+  // pair_style timing stats if provided
+
+  if (force->pair) force->pair->finish();
+
   // PRD stats
 
   if (prdflag) {
@@ -341,7 +346,7 @@ void Finish::end(int flag)
   }
 
 #ifdef LMP_OPENMP
-  FixOMP *fixomp = dynamic_cast<FixOMP *>( modify->get_fix_by_id("package_omp"));
+  FixOMP *fixomp = dynamic_cast<FixOMP *>(modify->get_fix_by_id("package_omp"));
 
   // print thread breakdown only with full timer detail
 

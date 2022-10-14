@@ -27,13 +27,15 @@ Examples
 
 Used in example input scripts:
 
-  .. parsed-literal::
+.. parsed-literal::
 
-     examples/PACKAGES/manybody_table/in.spce
-     examples/PACKAGES/manybody_table/in.spce2
+   examples/PACKAGES/manybody_table/in.spce
+   examples/PACKAGES/manybody_table/in.spce2
 
 Description
 """""""""""
+
+.. versionadded:: 2Jun2022
 
 The *threebody/table* style is a pair style for generic tabulated
 three-body interactions.  It has been developed for (coarse-grained)

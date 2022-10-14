@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "irregular.h"
+#include "pair.h"
 #include "kspace.h"
 #include "fix.h"
 #include "memory.h"
@@ -935,12 +936,18 @@ void GridComm::forward_comm(int caller, void *ptr, int nper, int nbyte, int whic
     if (caller == KSPACE)
       forward_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
                                    buf1,buf2,datatype);
+    else if (caller == PAIR)
+      forward_comm_regular<Pair>((Pair *) ptr,nper,nbyte,which,
+                                   buf1,buf2,datatype);
     else if (caller == FIX)
       forward_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
                                 buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       forward_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                 buf1,buf2,datatype);
+    else if (caller == PAIR)
+      forward_comm_tiled<Pair>((Pair *) ptr,nper,nbyte,which,
                                  buf1,buf2,datatype);
     else if (caller == FIX)
       forward_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,
@@ -1034,12 +1041,18 @@ void GridComm::reverse_comm(int caller, void *ptr, int nper, int nbyte, int whic
     if (caller == KSPACE)
       reverse_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
                                    buf1,buf2,datatype);
+    else if (caller == PAIR)
+      reverse_comm_regular<Pair>((Pair *) ptr,nper,nbyte,which,
+                                   buf1,buf2,datatype);
     else if (caller == FIX)
       reverse_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
                                 buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       reverse_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+                                 buf1,buf2,datatype);
+    else if (caller == PAIR)
+      reverse_comm_tiled<Pair>((Pair *) ptr,nper,nbyte,which,
                                  buf1,buf2,datatype);
     else if (caller == FIX)
       reverse_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,which,

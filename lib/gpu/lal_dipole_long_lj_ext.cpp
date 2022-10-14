@@ -81,7 +81,7 @@ int dplj_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                          cell_size, gpu_split, screen, host_cut_ljsq,
                          host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
-    DPLJMF.device->gpu_barrier();
+    DPLJMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 # Disable in-source builds to prevent source tree corruption.
 if( "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" )
@@ -27,11 +28,6 @@ SET(KOKKOS_SOURCE_DIR    ${CMAKE_CURRENT_SOURCE_DIR})
 SET(KOKKOS_SRC_PATH      ${Kokkos_SOURCE_DIR})
 SET(KOKKOS_PATH          ${Kokkos_SOURCE_DIR})
 SET(KOKKOS_TOP_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
-
-# Needed to simplify syntax of if statements
-CMAKE_POLICY(SET CMP0054 NEW)
-# Needed to make IN_LIST a valid operator
-CMAKE_POLICY(SET CMP0057 NEW)
 
 # Is this a build as part of Trilinos?
 IF(COMMAND TRIBITS_PACKAGE_DECL)
@@ -72,7 +68,6 @@ ENDFUNCTION()
 LIST(APPEND CMAKE_MODULE_PATH cmake/Modules)
 
 IF(NOT KOKKOS_HAS_TRILINOS)
-  cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
   set(CMAKE_DISABLE_SOURCE_CHANGES ON)
   set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
@@ -80,7 +75,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
   # downstream dependencies need to match this!
   SET(KOKKOS_COMPILE_LANGUAGE CXX)
   # use lower case here since we didn't parse options yet
-  IF (Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+  IF (Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_CUDA)
 
     # Without this as a language for the package we would get a C++ compiler enabled.
     # but we still need a C++ compiler even if we build all our cpp files as CUDA only
@@ -90,9 +85,7 @@ IF(NOT KOKKOS_HAS_TRILINOS)
     # days.
     SET(KOKKOS_INTERNAL_EXTRA_COMPILE_LANGUAGE CXX)
 
-    IF (Kokkos_ENABLE_CUDA)
-      SET(KOKKOS_COMPILE_LANGUAGE CUDA)
-    ENDIF()
+    SET(KOKKOS_COMPILE_LANGUAGE CUDA)
   ENDIF()
 
   IF (Spack_WORKAROUND)
@@ -135,13 +128,10 @@ ENDIF()
 
 
 set(Kokkos_VERSION_MAJOR 3)
-set(Kokkos_VERSION_MINOR 6)
+set(Kokkos_VERSION_MINOR 7)
 set(Kokkos_VERSION_PATCH 00)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
-
-MESSAGE(STATUS "Setting policy CMP0074 to use <Package>_ROOT variables")
-CMAKE_POLICY(SET CMP0074 NEW)
 
 # Load either the real TriBITS or a TriBITS wrapper
 # for certain utility functions that are universal (like GLOBAL_SET)
@@ -204,11 +194,16 @@ KOKKOS_SETUP_BUILD_ENVIRONMENT()
 OPTION(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 SET(KOKKOS_EXT_LIBRARIES Kokkos::kokkos Kokkos::kokkoscore Kokkos::kokkoscontainers Kokkos::kokkosalgorithms)
-SET(KOKKOS_INT_LIBRARIES kokkos kokkoscore kokkoscontainers kokkosalgorithms)
+SET(KOKKOS_SUB_LIBRARIES kokkoscore kokkoscontainers kokkosalgorithms)
+IF (KOKKOS_CXX_STANDARD GREATER_EQUAL 17)
+  LIST(APPEND KOKKOS_EXT_LIBRARIES Kokkos::kokkossimd)
+  LIST(APPEND KOKKOS_SUB_LIBRARIES kokkossimd)
+ENDIF()
+SET(KOKKOS_INT_LIBRARIES kokkos ${KOKKOS_SUB_LIBRARIES})
 SET_PROPERTY(GLOBAL PROPERTY KOKKOS_INT_LIBRARIES ${KOKKOS_INT_LIBRARIES})
 
 IF (KOKKOS_HAS_TRILINOS)
-  SET(TRILINOS_INCDIR ${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_INSTALL_INCLUDE_DIR})
+  SET(TRILINOS_INCDIR ${${PROJECT_NAME}_INSTALL_INCLUDE_DIR})
   SET(KOKKOS_HEADER_DIR ${TRILINOS_INCDIR})
   SET(KOKKOS_IS_SUBDIRECTORY TRUE)
 ELSEIF(HAS_PARENT)
@@ -296,7 +291,7 @@ IF (NOT KOKKOS_HAS_TRILINOS AND NOT Kokkos_INSTALL_TESTING)
   #Make sure in-tree projects can reference this as Kokkos::
   #to match the installed target names
   ADD_LIBRARY(Kokkos::kokkos ALIAS kokkos)
-  TARGET_LINK_LIBRARIES(kokkos INTERFACE kokkoscore kokkoscontainers kokkosalgorithms)
+  TARGET_LINK_LIBRARIES(kokkos INTERFACE ${KOKKOS_SUB_LIBRARIES})
   KOKKOS_INTERNAL_ADD_LIBRARY_INSTALL(kokkos)
 ENDIF()
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_install.cmake)

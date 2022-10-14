@@ -10,7 +10,7 @@ Syntax
 
    pair_coeff I J args
 
-* I,J = atom types (see asterisk form below)
+* I,J = numeric atom types (see asterisk form below), or type labels
 * args = coefficients for one or more pairs of atom types
 
 Examples
@@ -24,7 +24,11 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff * * nialhjea 1 1 2
    pair_coeff * 3 morse.table ENTRY1
-   pair_coeff 1 2 lj/cut 1.0 1.0 2.5 (for pair_style hybrid)
+   pair_coeff 1 2 lj/cut 1.0 1.0 2.5 # (for pair_style hybrid)
+
+   labelmap atom 1 C
+   labelmap atom 2 H
+   pair_coeff C H 1.0 1.0 2.5
 
 Description
 """""""""""
@@ -34,20 +38,27 @@ atom types.  The number and meaning of the coefficients depends on the
 pair style.  Pair coefficients can also be set in the data file read
 by the :doc:`read_data <read_data>` command or in a restart file.
 
-I and J can be specified in one of two ways.  Explicit numeric values
-can be used for each, as in the first example above.  I <= J is
-required.  LAMMPS sets the coefficients for the symmetric J,I
-interaction to the same values.
+I and J can be specified in one of several ways.  Explicit numeric
+values can be used for each, as in the first example above.  Or, one
+or both of the types in the I,J pair can be a type label, which is an
+alphanumeric string defined by the :doc:`labelmap <labelmap>` command
+or in a section of a data file read by the :doc:`read_data
+<read_data>` command, and which converts internally to a numeric type.
+Internally, LAMMPS will set coefficients for the symmetric J,I
+interaction to the same values as the I,J interaction.
 
-A wildcard asterisk can be used in place of or in conjunction with the
-I,J arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
-number of atom types, then an asterisk with no numeric values means all
-types from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).  Note that only type pairs with I <= J are considered; if
-asterisks imply type pairs where J < I, they are ignored.
+For numeric values only, a wildcard asterisk can be used in place of or
+in conjunction with the I,J arguments to set the coefficients for
+multiple pairs of atom types.  This takes the form "\*" or "\*n" or
+"n\*" or "m\*n".  If :math:`N` is the number of atom types, then an
+asterisk with no numeric values means all types from 1 to :math:`N`.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to :math:`N` (inclusive).  A middle
+asterisk means all types from m to n (inclusive).  For the asterisk
+syntax, only type pairs with I <= J are considered; if asterisks imply
+type pairs where J < I, they are ignored. Again internally, LAMMPS will
+set the coefficients for the symmetric J,I interactions to the same
+values as the I <= J interactions.
 
 Note that a pair_coeff command can override a previous setting for the
 same I,J pair.  For example, these commands set the coeffs for all I,J
@@ -63,11 +74,11 @@ same format as the arguments of the pair_coeff command in an input
 script, with the exception of the I,J type arguments.  In each line of
 the "Pair Coeffs" section of a data file, only a single type I is
 specified, which sets the coefficients for type I interacting with
-type I.  This is because the section has exactly N lines, where N =
-the number of atom types.  For this reason, the wild-card asterisk
-should also not be used as part of the I argument.  Thus in a data
-file, the line corresponding to the first example above would be listed
-as
+type I.  This is because the section has exactly :math:`N` lines, where
+:math:`N` is the number of atom types.  For this reason, the wild-card
+asterisk should also not be used as part of the I argument.  Thus in a
+data file, the line corresponding to the first example above would be
+listed as
 
 .. parsed-literal::
 

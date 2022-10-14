@@ -13,8 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Zhen Li (Brown University)
-   Email: zhen_li@brown.edu
+   Contributing author: Zhen Li (Clemson University)
+   Email: zli7@clemson.edu
 ------------------------------------------------------------------------- */
 
 #include "pair_edpd.h"
@@ -41,18 +41,18 @@ using namespace LAMMPS_NS;
 #define EPSILON 1.0e-10
 
 static const char cite_pair_edpd[] =
-  "pair edpd command:\n\n"
+  "pair edpd command: doi:10.1016/j.jcp.2014.02.003\n\n"
   "@Article{ZLi2014_JCP,\n"
-  " author = {Li, Z. and Tang, Y.-H. and Lei, H. and Caswell, B. and Karniadakis, G.E.},\n"
-  " title = {Energy-conserving dissipative particle dynamics with temperature-dependent properties},\n"
+  " author = {Li, Z. and Tang, Y.-H. and Lei, H. and Caswell, B. and Karniadakis, G. E.},\n"
+  " title = {Energy-Conserving Dissipative Particle Dynamics with Temperature-Dependent Properties},\n"
   " journal = {Journal of Computational Physics},\n"
   " year =    {2014},\n"
   " volume =  {265},\n"
   " pages =   {113--127}\n"
   "}\n\n"
   "@Article{ZLi2015_CC,\n"
-  " author = {Li, Z. and Tang, Y.-H. and Li, X. and Karniadakis, G.E.},\n"
-  " title = {Mesoscale modeling of phase transition dynamics of thermoresponsive polymers},\n"
+  " author = {Li, Z. and Tang, Y.-H. and Li, X. and Karniadakis, G. E.},\n"
+  " title = {Mesoscale Modeling of Phase Transition Dynamics of Thermoresponsive Polymers},\n"
   " journal = {Chemical Communications},\n"
   " year =    {2015},\n"
   " volume =  {51},\n"

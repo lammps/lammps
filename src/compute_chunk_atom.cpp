@@ -21,7 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "input.h"
 #include "lattice.h"
@@ -571,8 +571,8 @@ void ComputeChunkAtom::init()
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
     id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-    fixstore = dynamic_cast<FixStore *>(
-        modify->add_fix(fmt::format("{} {} STORE peratom 1 1", id_fix, group->names[igroup])));
+    fixstore = dynamic_cast<FixStorePeratom *>(
+        modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1", id_fix, group->names[igroup])));
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {
@@ -906,7 +906,11 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   // update region if necessary
 
-  if (regionflag) region->prematch();
+  if (regionflag) {
+    region = domain->get_region_by_id(idregion);
+    if (!region) error->all(FLERR, "Region {} for compute chunk/atom does not exist", idregion);
+    region->prematch();
+  }
 
   // exclude = 1 if atom is not assigned to a chunk
   // exclude atoms not in group or not in optional region

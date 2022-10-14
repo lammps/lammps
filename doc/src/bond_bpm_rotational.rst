@@ -38,8 +38,7 @@ Examples
    bond_style bpm/rotational
    bond_coeff 1 1.0 0.2 0.02 0.02 0.20 0.04 0.04 0.04 0.1 0.02 0.002 0.002
 
-   bond_style bpm/rotational myfix 1000 time id1 id2
-   fix myfix all store/local 1000 3
+   bond_style bpm/rotational store/local myfix 1000 time id1 id2
    dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
 
@@ -139,15 +138,14 @@ the *overlay/pair* keyword. These settings require specific
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
 
-If the *store/local* keyword is used, this fix will track bonds that
+If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
 and transferred to an internal fix labeled *fix_ID*. This allows the
-local data to be accessed by other LAMMPS commands.
-Following any optional keyword/value arguments, a list of one or more
-attributes is specified.  These include the IDs of the two atoms in
-the bond. The other attributes for the two atoms include the timestep
-during which the bond broke and the current/initial center of mass
-position of the two atoms.
+local data to be accessed by other LAMMPS commands. Following this optional
+keyword, a list of one or more attributes is specified.  These include the
+IDs of the two atoms in the bond. The other attributes for the two atoms
+include the timestep during which the bond broke and the current/initial
+center of mass position of the two atoms.
 
 Data is continuously accumulated over intervals of *N*
 timesteps. At the end of each interval, all of the saved accumulated
@@ -178,28 +176,37 @@ Restart and other info
 
 This bond style writes the reference state of each bond to
 :doc:`binary restart files <restart>`. Loading a restart file will
-properly resume bonds.
+properly resume bonds. However, the reference state is NOT
+written to data files. Therefore reading a data file will not
+restore bonds and will cause their reference states to be redefined.
 
-The single() function of these pair styles returns 0.0 for the energy
-of a pairwise interaction, since energy is not conserved in these
-dissipative potentials.  It also returns only the normal component of
-the pairwise interaction force.
-
-The accumulated data is not written to restart files and should be
-output before a restart file is written to avoid missing data.
-
-The internal fix calculates a local vector or local array depending on the
-number of input values.  The length of the vector or number of rows in
-the array is the number of recorded, lost interactions.  If a single
-input is specified, a local vector is produced.  If two or more inputs
-are specified, a local array is produced where the number of columns =
-the number of inputs.  The vector or array can be accessed by any
-command that uses local values from a compute as input.  See the
-:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
-output options.
+If the *store/local* option is used, an internal fix will calculate
+a local vector or local array depending on the number of input values.
+The length of the vector or number of rows in the array is the number
+of recorded, broken bonds.  If a single input is specified, a local
+vector is produced. If two or more inputs are specified, a local array
+is produced where the number of columns = the number of inputs.  The
+vector or array can be accessed by any command that uses local values
+from a compute as input. See the :doc:`Howto output <Howto_output>` page
+for an overview of LAMMPS output options.
 
 The vector or array will be floating point values that correspond to
 the specified attribute.
+
+The single() function of this bond style returns 0.0 for the energy
+of a bonded interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the bonded interaction force.  However, the single() function also
+calculates 7 extra bond quantities.  The first 4 are data from the
+reference state of the bond including the initial distance between particles
+:math:`r_0` followed by the :math:`x`, :math:`y`, and :math:`z` components
+of the initial unit vector pointing to particle I from particle J. The next 3
+quantities (5-7) are the  :math:`x`, :math:`y`, and :math:`z` components
+of the total force, including normal and tangential contributions, acting
+on particle I.
+
+These extra quantities can be accessed by the :doc:`compute bond/local <compute_bond_local>`
+command, as *b1*, *b2*, ..., *b7*\ .
 
 Restrictions
 """"""""""""

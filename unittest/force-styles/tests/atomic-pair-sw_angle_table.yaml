@@ -1,6 +1,5 @@
 ---
 lammps_version: 4 May 2022
-tags: generated
 date_generated: Wed Jun  1 15:17:22 2022
 epsilon: 1e-12
 skip_tests: single
@@ -11,7 +10,7 @@ pre_commands: ! |
   variable units index real
   variable newton_pair delete
   variable newton_pair index on
-  shell cp ${input_dir}/table_CG_CG_CG.txt .
+  if $(is_os(^Windows)) then "shell copy ${input_dir}\table_CG_CG_CG.txt ." else "shell cp ${input_dir}/table_CG_CG_CG.txt ."
 post_commands: ! ""
 input_file: in.metal
 pair_style: hybrid/overlay table linear 1200 sw/angle/table

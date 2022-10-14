@@ -159,7 +159,6 @@ pygments_style = 'default'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -264,8 +263,18 @@ else:
   html_math_renderer = 'mathjax'
 
 # use relative path for mathjax, so it is looked for in the
-# html tree and the manual becomes readable when offline 
+# html tree and the manual becomes readable when offline
 mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
+
+# hack to enable use of \AA in :math:
+rst_prolog = r"""
+
+.. only:: html
+
+   :math:`\renewcommand{\AA}{\text{Å}}`
+
+"""
+
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
@@ -278,6 +287,7 @@ latex_elements = {
 # Additional stuff for the LaTeX preamble.
 'preamble': r'''
 \setcounter{tocdepth}{2}
+\renewcommand{\AA}{\mbox{\textrm{\r{A}}}}
 '''
 }
 
@@ -385,7 +395,7 @@ from sphinx.highlighting import lexers
 
 lexers['LAMMPS'] = LAMMPSLexer.LAMMPSLexer(startinline=True)
 
-sys.path.append(LAMMPS_PYTHON_DIR)
+sys.path.insert(1,LAMMPS_PYTHON_DIR)
 
 # avoid syntax highlighting in blocks that don't specify language
 highlight_language = 'none'

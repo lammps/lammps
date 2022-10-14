@@ -46,17 +46,14 @@
 #define KOKKOS_THREADSEXEC_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined(KOKKOS_ENABLE_THREADS)
 
 #include <cstdio>
 
 #include <utility>
 #include <impl/Kokkos_Spinwait.hpp>
-#include <impl/Kokkos_FunctorAdapter.hpp>
 
 #include <Kokkos_Atomic.hpp>
 
-#include <Kokkos_UniqueToken.hpp>
 #include <impl/Kokkos_ConcurrentBitset.hpp>
 
 //----------------------------------------------------------------------------
@@ -99,7 +96,7 @@ class ThreadsExec {
 
   void *m_scratch;
   int m_scratch_reduce_end;
-  int m_scratch_thread_end;
+  size_t m_scratch_thread_end;
   int m_numa_rank;
   int m_numa_core_rank;
   int m_pool_rank;
@@ -123,11 +120,14 @@ class ThreadsExec {
   static void global_unlock();
   static void spawn();
 
-  static void execute_resize_scratch(ThreadsExec &, const void *);
+  static void first_touch_allocate_thread_private_scratch(ThreadsExec &,
+                                                          const void *);
   static void execute_sleep(ThreadsExec &, const void *);
 
   ThreadsExec(const ThreadsExec &);
   ThreadsExec &operator=(const ThreadsExec &);
+
+  static void execute_resize_scratch_in_serial();
 
  public:
   KOKKOS_INLINE_FUNCTION int pool_size() const { return m_pool_size; }
@@ -164,9 +164,7 @@ class ThreadsExec {
 
   static int is_initialized();
 
-  static void initialize(unsigned thread_count, unsigned use_numa_count,
-                         unsigned use_cores_per_numa,
-                         bool allow_asynchronous_threadpool);
+  static void initialize(int thread_count);
 
   static void finalize();
 
@@ -186,7 +184,7 @@ class ThreadsExec {
     // Make sure there is enough scratch space:
     const int rev_rank = m_pool_size - (m_pool_rank + 1);
 
-    *((volatile int *)reduce_memory()) = value;
+    *static_cast<volatile int *>(reduce_memory()) = value;
 
     memory_fence();
 
@@ -207,11 +205,12 @@ class ThreadsExec {
       int accum = 0;
 
       for (int rank = 0; rank < m_pool_size; ++rank) {
-        accum += *((volatile int *)get_thread(rank)->reduce_memory());
+        accum +=
+            *static_cast<volatile int *>(get_thread(rank)->reduce_memory());
       }
 
       for (int rank = 0; rank < m_pool_size; ++rank) {
-        *((volatile int *)get_thread(rank)->reduce_memory()) = accum;
+        *static_cast<volatile int *>(get_thread(rank)->reduce_memory()) = accum;
       }
 
       memory_fence();
@@ -221,7 +220,7 @@ class ThreadsExec {
       }
     }
 
-    return *((volatile int *)reduce_memory());
+    return *static_cast<volatile int *>(reduce_memory());
   }
 
   inline void barrier() {
@@ -255,11 +254,8 @@ class ThreadsExec {
   //------------------------------------
   // All-thread functions:
 
-  template <class FunctorType, class ArgTag>
+  template <class FunctorType>
   inline void fan_in_reduce(const FunctorType &f) const {
-    using Join  = Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag>;
-    using Final = Kokkos::Impl::FunctorFinal<FunctorType, ArgTag>;
-
     const int rev_rank = m_pool_size - (m_pool_rank + 1);
 
     for (int i = 0; i < m_pool_fan_size; ++i) {
@@ -267,11 +263,15 @@ class ThreadsExec {
 
       Impl::spinwait_while_equal<int>(fan.m_pool_state, ThreadsExec::Active);
 
-      Join::join(f, reduce_memory(), fan.reduce_memory());
+      f.join(
+          reinterpret_cast<typename FunctorType::value_type *>(reduce_memory()),
+          reinterpret_cast<const typename FunctorType::value_type *>(
+              fan.reduce_memory()));
     }
 
     if (!rev_rank) {
-      Final::final(f, reduce_memory());
+      f.final(reinterpret_cast<typename FunctorType::value_type *>(
+          reduce_memory()));
     }
 
     //  This thread has updated 'reduce_memory()' and upon returning
@@ -295,7 +295,7 @@ class ThreadsExec {
     }
   }
 
-  template <class FunctorType, class ArgTag>
+  template <class FunctorType>
   inline void scan_large(const FunctorType &f) {
     // Sequence of states:
     //  0) Active             : entry and exit state
@@ -304,14 +304,10 @@ class ThreadsExec {
     //  3) Rendezvous         : All threads inclusive scan value are available
     //  4) ScanCompleted      : exclusive scan value copied
 
-    using Traits = Kokkos::Impl::FunctorValueTraits<FunctorType, ArgTag>;
-    using Join   = Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag>;
-    using Init   = Kokkos::Impl::FunctorValueInit<FunctorType, ArgTag>;
-
-    using scalar_type = typename Traits::value_type;
+    using scalar_type = typename FunctorType::value_type;
 
     const int rev_rank   = m_pool_size - (m_pool_rank + 1);
-    const unsigned count = Traits::value_count(f);
+    const unsigned count = FunctorType::value_count(f);
 
     scalar_type *const work_value = (scalar_type *)reduce_memory();
 
@@ -322,7 +318,7 @@ class ThreadsExec {
 
       // Wait: Active -> ReductionAvailable (or ScanAvailable)
       Impl::spinwait_while_equal<int>(fan.m_pool_state, ThreadsExec::Active);
-      Join::join(f, work_value, fan.reduce_memory());
+      f.join(work_value, fan.reduce_memory());
     }
 
     // Copy reduction value to scan value before releasing from this phase.
@@ -344,8 +340,7 @@ class ThreadsExec {
         Impl::spinwait_while_equal<int>(th.m_pool_state,
                                         ThreadsExec::ReductionAvailable);
 
-        Join::join(f, work_value + count,
-                   ((scalar_type *)th.reduce_memory()) + count);
+        f.join(work_value + count, ((scalar_type *)th.reduce_memory()) + count);
       }
 
       // This thread has completed inclusive scan
@@ -385,7 +380,7 @@ class ThreadsExec {
         work_value[j] = src_value[j];
       }
     } else {
-      (void)Init::init(f, work_value);
+      f.init(work_value);
     }
 
     //--------------------------------
@@ -408,16 +403,12 @@ class ThreadsExec {
     }
   }
 
-  template <class FunctorType, class ArgTag>
+  template <class FunctorType>
   inline void scan_small(const FunctorType &f) {
-    using Traits = Kokkos::Impl::FunctorValueTraits<FunctorType, ArgTag>;
-    using Join   = Kokkos::Impl::FunctorValueJoin<FunctorType, ArgTag>;
-    using Init   = Kokkos::Impl::FunctorValueInit<FunctorType, ArgTag>;
-
-    using scalar_type = typename Traits::value_type;
+    using scalar_type = typename FunctorType::value_type;
 
     const int rev_rank   = m_pool_size - (m_pool_rank + 1);
-    const unsigned count = Traits::value_count(f);
+    const unsigned count = f.length();
 
     scalar_type *const work_value = (scalar_type *)reduce_memory();
 
@@ -449,9 +440,9 @@ class ThreadsExec {
           for (unsigned i = 0; i < count; ++i) {
             ptr[i] = ptr_prev[i + count];
           }
-          Join::join(f, ptr + count, ptr);
+          f.join(ptr + count, ptr);
         } else {
-          (void)Init::init(f, ptr);
+          f.init(ptr);
         }
         ptr_prev = ptr;
       }
@@ -623,139 +614,24 @@ inline int Threads::impl_is_initialized() {
   return Impl::ThreadsExec::is_initialized();
 }
 
-inline void Threads::impl_initialize(unsigned threads_count,
-                                     unsigned use_numa_count,
-                                     unsigned use_cores_per_numa,
-                                     bool allow_asynchronous_threadpool) {
-  Impl::ThreadsExec::initialize(threads_count, use_numa_count,
-                                use_cores_per_numa,
-                                allow_asynchronous_threadpool);
+inline void Threads::impl_initialize(InitializationSettings const &settings) {
+  Impl::ThreadsExec::initialize(
+      settings.has_num_threads() ? settings.get_num_threads() : -1);
 }
 
 inline void Threads::impl_finalize() { Impl::ThreadsExec::finalize(); }
 
-inline void Threads::print_configuration(std::ostream &s, const bool detail) {
-  Impl::ThreadsExec::print_configuration(s, detail);
+inline void Threads::print_configuration(std::ostream &os, bool verbose) const {
+  os << "Host Parallel Execution Space:\n";
+  os << "  KOKKOS_ENABLE_THREADS: yes\n";
+
+  os << "\nThreads Runtime Configuration:\n";
+  Impl::ThreadsExec::print_configuration(os, verbose);
 }
 
-inline void Threads::impl_static_fence() {
-  Impl::ThreadsExec::internal_fence(Impl::fence_is_static::yes);
-}
 inline void Threads::impl_static_fence(const std::string &name) {
   Impl::ThreadsExec::internal_fence(name, Impl::fence_is_static::yes);
 }
 } /* namespace Kokkos */
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Experimental {
-
-template <>
-class UniqueToken<Threads, UniqueTokenScope::Instance> {
- private:
-  using buffer_type = Kokkos::View<uint32_t *, Kokkos::HostSpace>;
-  int m_count;
-  buffer_type m_buffer_view;
-  uint32_t volatile *m_buffer;
-
- public:
-  using execution_space = Threads;
-  using size_type       = int;
-
-  /// \brief create object size for concurrency on the given instance
-  ///
-  /// This object should not be shared between instances
-  UniqueToken(execution_space const & = execution_space()) noexcept
-      : m_count(::Kokkos::Threads::impl_thread_pool_size()),
-        m_buffer_view(buffer_type()),
-        m_buffer(nullptr) {}
-
-  UniqueToken(size_type max_size, execution_space const & = execution_space())
-      : m_count(max_size > ::Kokkos::Threads::impl_thread_pool_size()
-                    ? ::Kokkos::Threads::impl_thread_pool_size()
-                    : max_size),
-        m_buffer_view(
-            max_size > ::Kokkos::Threads::impl_thread_pool_size()
-                ? buffer_type()
-                : buffer_type("UniqueToken::m_buffer_view",
-                              ::Kokkos::Impl::concurrent_bitset::buffer_bound(
-                                  m_count))),
-        m_buffer(m_buffer_view.data()) {}
-
-  /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
-  int size() const noexcept { return m_count; }
-
-  /// \brief acquire value such that 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
-  int acquire() const noexcept {
-    KOKKOS_IF_ON_HOST((
-        if (m_buffer == nullptr) {
-          return Threads::impl_thread_pool_rank();
-        } else {
-          const ::Kokkos::pair<int, int> result =
-              ::Kokkos::Impl::concurrent_bitset::acquire_bounded(
-                  m_buffer, m_count, ::Kokkos::Impl::clock_tic() % m_count);
-
-          if (result.first < 0) {
-            ::Kokkos::abort(
-                "UniqueToken<Threads> failure to acquire tokens, no tokens "
-                "available");
-          }
-          return result.first;
-        }))
-
-    KOKKOS_IF_ON_DEVICE((return 0;))
-  }
-
-  /// \brief release a value acquired by generate
-  KOKKOS_INLINE_FUNCTION
-  void release(int i) const noexcept {
-    KOKKOS_IF_ON_HOST((if (m_buffer != nullptr) {
-      ::Kokkos::Impl::concurrent_bitset::release(m_buffer, i);
-    }))
-
-    KOKKOS_IF_ON_DEVICE(((void)i;))
-  }
-};
-
-template <>
-class UniqueToken<Threads, UniqueTokenScope::Global> {
- public:
-  using execution_space = Threads;
-  using size_type       = int;
-
-  /// \brief create object size for concurrency on the given instance
-  ///
-  /// This object should not be shared between instances
-  UniqueToken(execution_space const & = execution_space()) noexcept {}
-
-  /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
-  int size() const noexcept {
-    KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_size();))
-
-    KOKKOS_IF_ON_DEVICE((return 0;))
-  }
-
-  /// \brief acquire value such that 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
-  int acquire() const noexcept {
-    KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_rank();))
-
-    KOKKOS_IF_ON_DEVICE((return 0;))
-  }
-
-  /// \brief release a value acquired by generate
-  KOKKOS_INLINE_FUNCTION
-  void release(int) const noexcept {}
-};
-
-}  // namespace Experimental
-}  // namespace Kokkos
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-#endif
 #endif /* #define KOKKOS_THREADSEXEC_HPP */

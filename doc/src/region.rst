@@ -162,6 +162,8 @@ Thus the third example above specifies a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
 
+.. versionadded:: 4May2022
+
 For style *ellipsoid*, an axis-aligned ellipsoid is defined. The
 ellipsoid has its center at (x,y,z) and is defined by 3 axis-aligned
 vectors given by A = (a,0,0); B = (0,b,0); C = (0,0,c).  Note that

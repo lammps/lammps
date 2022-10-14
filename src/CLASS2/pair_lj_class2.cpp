@@ -513,6 +513,7 @@ double PairLJClass2::init_one(int i, int j)
         pow(sigma[j][j], 3.0) / (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0));
     sigma[i][j] = pow((0.5 * (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0))), 1.0 / 6.0);
     cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
+    did_mix = true;
   }
 
   lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j], 9.0);

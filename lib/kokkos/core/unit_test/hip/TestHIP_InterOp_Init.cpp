@@ -61,8 +61,7 @@ __global__ void offset(int* p) {
 TEST(hip, raw_hip_interop) {
   int* p;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(&p, sizeof(int) * 100));
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
+  Kokkos::initialize();
 
   Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v(p, 100);
   Kokkos::deep_copy(v, 5);

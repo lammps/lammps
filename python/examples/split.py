@@ -32,7 +32,7 @@ nprocs = comm.Get_size()
 
 if me < nprocs // 2:  color = 0
 else: color = 1
-  
+
 split = comm.Split(color,key=0)
 
 if color == 0:
@@ -69,12 +69,12 @@ else:
   # could run a 2nd calculation on second partition
   #   with different LAMMPS instance or another code
   # in this case, just sleep on second partition
-  
+
   import time
   time.sleep(2)
   print("Calculation on partition 1 complete")
 
 # shutdown mpi4py
-  
+
 comm.Barrier()
 MPI.Finalize()

@@ -31,18 +31,18 @@
 using namespace LAMMPS_NS;
 
 static const char cite_relres[] =
-  "Pair style lj/relres: doi:10.1021/acs.jctc.0c01003\n\n"
+  "Pair style lj/relres: doi:10.1021/acs.jctc.0c01003, doi:10.1021/acs.jctc.0c01003\n\n"
   "@Article{Chaimovich1,\n"
   " author = {A. Chaimovich, C. Peter, K. Kremer},\n"
-  " title = {Relative resolution: A hybrid formalism for fluid mixtures},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " title = {Relative Resolution: {A} Hybrid Formalism for Fluid Mixtures},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2015,\n"
   " volume =  143,\n"
   " pages =   {243107}\n"
   "@Article{Chaimovich2,\n"
-  " author = {M. Chaimovich, A. Chaimovich},\n"
+  " author = {M. Chaimovich and A. Chaimovich},\n"
   " title = {Relative Resolution: A Computationally Efficient Implementation in LAMMPS},\n"
-  " journal = {J.~Chem.~Theory~Comput.},\n"
+  " journal = {J.~Chem.\\ Theory Comput.},\n"
   " year =    2021,\n"
   " volume =  17,\n"
   " pages =   {1045--1059}\n"

@@ -6,10 +6,6 @@ cmake_minimum_required(VERSION 3.16)
 # Kokkos flags will only apply to C++ files
 project(Example CXX Fortran)
 
-# You need this for using Kokkos_ROOT variable
-message(STATUS "Setting policy CMP0074 to use <Package>_ROOT variables")
-cmake_policy(SET CMP0074 NEW)
-
 # Look for an installed Kokkos but force using the compiler launcher
 # to ensure that targets depending on Kokkos use the same compiler
 # as when kokkos was installed, e.g. if kokkos was built with

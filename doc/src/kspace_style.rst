@@ -129,8 +129,8 @@ Examples
 
    kspace_style pppm 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
-   kspace style msm 1.0e-4
-   kspace style scafacos fmm 1.0e-4
+   kspace_style msm 1.0e-4
+   kspace_style scafacos fmm 1.0e-4
    kspace_style none
 
 Used in input scripts:
@@ -301,7 +301,7 @@ and for mixed periodic and non-periodic boundaries.
 MSM is most competitive versus Ewald and PPPM when only relatively
 low accuracy forces, about 1e-4 relative error or less accurate,
 are needed. Note that use of a larger Coulombic cutoff (i.e. 15
-angstroms instead of 10 angstroms) provides better MSM accuracy for
+Angstroms instead of 10 Angstroms) provides better MSM accuracy for
 both the real space and grid computed forces.
 
 Currently calculation of the full pressure tensor in MSM is expensive.
@@ -314,9 +314,10 @@ pressure simulation with MSM will cause the code to run slower.
 
 ----------
 
-The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver library <http://www.scafacos.de>`_ which provides a variety of solver
-methods which can be used with LAMMPS.  The paper by :ref:`(Sutman) <Sutmann2014>`
-gives an overview of ScaFaCoS.
+The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver
+library <http://www.scafacos.de>`_ which provides a variety of solver
+methods which can be used with LAMMPS.  The paper by :ref:`(Sutman)
+<Sutmann2014>` gives an overview of ScaFaCoS.
 
 ScaFaCoS was developed by a consortium of German research facilities
 with a BMBF (German Ministry of Science and Education) funded project

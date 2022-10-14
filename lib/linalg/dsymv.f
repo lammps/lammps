@@ -130,8 +130,6 @@
 *> \author Univ. of Colorado Denver
 *> \author NAG Ltd.
 *
-*> \date December 2016
-*
 *> \ingroup double_blas_level2
 *
 *> \par Further Details:
@@ -152,10 +150,9 @@
 *  =====================================================================
       SUBROUTINE DSYMV(UPLO,N,ALPHA,A,LDA,X,INCX,BETA,Y,INCY)
 *
-*  -- Reference BLAS level2 routine (version 3.7.0) --
+*  -- Reference BLAS level2 routine --
 *  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
 *  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
-*     December 2016
 *
 *     .. Scalar Arguments ..
       DOUBLE PRECISION ALPHA,BETA
@@ -328,6 +325,6 @@
 *
       RETURN
 *
-*     End of DSYMV .
+*     End of DSYMV
 *
       END

@@ -59,6 +59,7 @@ sub-directories:
 
 accelerate: use of all the various accelerator packages
 airebo:   polyethylene with AIREBO potential
+amoeba:   small water and bio models with AMOEBA and HIPPO potentials
 atm:      Axilrod-Teller-Muto potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
@@ -187,6 +188,9 @@ See the README files in those directories (if available) or the
 corresponding doc page in the manual for more info.  See the
 https://docs.lammps.org/Build_package.html page for more info about
 installing and building packages.
+
+The QM directory has examples of how to use LAMMPS in tandem with
+several quantum codes.
 
 The TIP4P directory has an example for testing forces computed on a
 GPU.

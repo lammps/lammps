@@ -186,8 +186,9 @@ void PairLJCutTIP4PLongGPU::init_style()
   alpha = qdist / (cos(0.5 * theta) * blen);
 
   cut_coulsq = cut_coul * cut_coul;
-  double cut_coulsqplus = (cut_coul + qdist + blen) * (cut_coul + qdist + blen);
-  if (maxcut < cut_coulsqplus) { cell_size = (cut_coul + qdist + blen) + neighbor->skin; }
+  double cut_coulplus = cut_coul + qdist + blen;
+  double cut_coulsqplus = cut_coulplus * cut_coulplus;
+  if (maxcut < cut_coulsqplus) { cell_size = cut_coulplus + neighbor->skin; }
   if (comm->cutghostuser < cell_size) {
     if (comm->me == 0)
       error->warning(FLERR,
@@ -205,7 +206,7 @@ void PairLJCutTIP4PLongGPU::init_style()
   GPU_EXTRA::check_flag(success, error, world);
   if (gpu_mode == GPU_FORCE) {
     auto req = neighbor->add_request(this, NeighConst::REQ_FULL);
-    req->set_cutoff(cut_coul + qdist + blen + neighbor->skin);
+    req->set_cutoff(cut_coulplus + neighbor->skin);
   }
 }
 

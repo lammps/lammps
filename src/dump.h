@@ -91,6 +91,10 @@ class Dump : protected Pointers {
   char *refresh;      // compute ID to invoke refresh() on
   int irefresh;       // index of compute
 
+  int skipflag;       // 1 if skip condition defined
+  char *skipvar;      // name of variable to check for skip condition
+  int skipindex;      // index of skip variable
+
   char boundstr[9];    // encoding of boundary flags
 
   char *format;            // format string for the file write
@@ -153,6 +157,8 @@ class Dump : protected Pointers {
   virtual void pack(tagint *) = 0;
   virtual int convert_string(int, double *) { return 0; }
   virtual void write_data(int, double *) = 0;
+  virtual void write_footer() {}
+
   void pbc_allocate();
   double compute_time();
 

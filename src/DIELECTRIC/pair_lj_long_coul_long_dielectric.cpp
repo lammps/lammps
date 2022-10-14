@@ -45,6 +45,7 @@ PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) : PairL
   efield = nullptr;
   epot = nullptr;
   nmax = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -97,21 +98,19 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   double *curvature = avec->curvature;
   double *area = avec->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   int i, j, itype, jtype, itable;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz;
   int order1 = ewald_order & (1 << 1), order6 = ewald_order & (1 << 6);
   int *ineigh, *ineighn, *jneigh, *jneighn, ni;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double fraction, table;
   double *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
-  double r, rsq, r2inv, force_coul, force_lj, factor_coul, factor_lj;
+  double r, rsq, r2inv, force_coul, force_lj, factor_coul;
   double g2 = g_ewald_6 * g_ewald_6, g6 = g2 * g2 * g2, g8 = g6 * g2;
   double xi[3];
 
@@ -150,7 +149,6 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
     for (; jneigh < jneighn; ++jneigh) {    // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -268,23 +266,14 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
 
       epot[i] += epot_i;
 
-      if (newton_pair && j >= nlocal) {
-
-        fpair_j = (force_coul * eps[j] + factor_lj * force_lj) * r2inv;
-        f[j][0] -= delx * fpair_j;
-        f[j][1] -= dely * fpair_j;
-        f[j][2] -= delz * fpair_j;
-      }
-
       if (eflag) {
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq)
-            ecoul = prefactor * (etmp + eps[j]) * erfc;
+            ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
           else {
             table = etable[itable] + fraction * detable[itable];
-            ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
+            ecoul = qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
           }
-          ecoul *= 0.5;
           if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
         } else
           ecoul = 0.0;

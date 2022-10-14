@@ -13,20 +13,21 @@ lib/kim/*             @ellio167
 lib/mesont/*          @iafoss
 
 # whole packages
+src/AMOEBA/*          @sjplimp
 src/COMPRESS/*        @rbberger
 src/GPU/*             @ndtrung81
 src/KOKKOS/*          @stanmoore1
 src/KIM/*             @ellio167
 src/LATTE/*           @cnegre
-src/MESSAGE/*         @sjplimp
 src/MLIAP/*           @athomps
 src/SNAP/*            @athomps
 src/SPIN/*            @julient31
 src/BROWNIAN/*        @samueljmcameron
 src/CG-DNA/*          @ohenrich
-src/CG-SDK/*          @akohlmey
+src/CG-SPICA/*        @yskmiyazaki
 src/COLVARS/*         @giacomofiorin
 src/DIELECTRIC/*      @ndtrung81
+src/ELECTRODE/*       @ludwig-ahrens
 src/FEP/*             @agiliopadua
 src/ML-HDNNP/*        @singraber
 src/INTEL/*           @wmbrownintel
@@ -133,6 +134,7 @@ tools/coding_standard/* @rbberger
 tools/valgrind/*      @akohlmey
 tools/swig/*          @akohlmey
 tools/offline/*       @rbberger
+tools/vim/*           @hammondkd
 
 # tests
 unittest/*            @akohlmey @rbberger

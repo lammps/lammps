@@ -416,8 +416,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      delete [] suffix;
-      delete [] suffix2;
+      delete[] suffix;
+      delete[] suffix2;
       suffix = suffix2 = nullptr;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
@@ -773,9 +773,9 @@ LAMMPS::~LAMMPS()
 
   delete python;
   delete kokkos;
-  delete [] suffix;
-  delete [] suffix2;
-  delete [] suffixp;
+  delete[] suffix;
+  delete[] suffix2;
+  delete[] suffixp;
 
   // free the MPI comm created by -mpicolor cmdline arg processed in constructor
   // it was passed to universe as if original universe world

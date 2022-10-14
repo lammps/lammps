@@ -215,6 +215,7 @@ struct AtomVecDipoleKokkos_PackComm {
     _buf(i,3) = _mu(j,0);
     _buf(i,4) = _mu(j,1);
     _buf(i,5) = _mu(j,2);
+    _buf(i,6) = _mu(j,3);
   }
 };
 
@@ -1101,6 +1102,7 @@ void AtomVecDipoleKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
     if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
     if (mask & Q_MASK) atomKK->k_q.sync<LMPDeviceType>();
+    if (mask & MU_MASK) atomKK->k_mu.sync<LMPDeviceType>();
   } else {
     if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
@@ -1110,6 +1112,7 @@ void AtomVecDipoleKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
     if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
     if (mask & Q_MASK) atomKK->k_q.sync<LMPHostType>();
+    if (mask & MU_MASK) atomKK->k_mu.sync<LMPHostType>();
   }
 }
 
@@ -1126,6 +1129,7 @@ void AtomVecDipoleKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPDeviceType>();
     if (mask & IMAGE_MASK) atomKK->k_image.modify<LMPDeviceType>();
     if (mask & Q_MASK) atomKK->k_q.modify<LMPDeviceType>();
+    if (mask & MU_MASK) atomKK->k_mu.modify<LMPDeviceType>();
   } else {
     if (mask & X_MASK) atomKK->k_x.modify<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.modify<LMPHostType>();
@@ -1135,6 +1139,7 @@ void AtomVecDipoleKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPHostType>();
     if (mask & IMAGE_MASK) atomKK->k_image.modify<LMPHostType>();
     if (mask & Q_MASK) atomKK->k_q.modify<LMPHostType>();
+    if (mask & MU_MASK) atomKK->k_mu.modify<LMPHostType>();
   }
 }
 
@@ -1157,6 +1162,8 @@ void AtomVecDipoleKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
     if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
+    if ((mask & MU_MASK) && atomKK->k_mu.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_float_1d_4>(atomKK->k_mu,space);
   } else {
     if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_x_array>(atomKK->k_x,space);
@@ -1174,6 +1181,8 @@ void AtomVecDipoleKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
     if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
+    if ((mask & MU_MASK) && atomKK->k_mu.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_float_1d_4>(atomKK->k_mu,space);      
   }
 }
 

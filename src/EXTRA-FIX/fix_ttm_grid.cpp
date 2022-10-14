@@ -401,7 +401,7 @@ void FixTTMGrid::reset_grid()
   // perform remap from previous decomp to new decomp
 
   int nremap_buf1,nremap_buf2;
-  grid->remap_setup(grid_previous,nremap_buf1,nremap_buf2);
+  grid->setup_remap(grid_previous,nremap_buf1,nremap_buf2);
 
   double *remap_buf1,*remap_buf2;
   memory->create(remap_buf1, nremap_buf1, "ttm/grid:remap_buf1");

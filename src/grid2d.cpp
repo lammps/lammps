@@ -33,12 +33,12 @@ enum{REGULAR,TILED};
 static constexpr int OFFSET = 16384;
 
 /* ----------------------------------------------------------------------
-   NOTES
-   tiled implementation only currently works for RCB, not general tiled
-   b/c RCB tree is used to find neighboring tiles
+   NOTES:
+   tiled implementations only currently work for RCB, not general tilings
+     b/c RCB tree is used to find neighboring tiles
    if o indices for ghosts are < 0 or hi indices are >= N,
      then grid is treated as periodic in that dimension,
-     communication is done across the periodic boundaries
+     comm is done across the periodic boundaries
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -52,7 +52,7 @@ static constexpr int OFFSET = 16384;
      i xy lohi = portion of global grid this proc owns, 0 <= index < N
      o xy lohi = owned + ghost grid cells needed in all directions
    for non-periodic dims, o indices will not be < 0 or >= N,
-     since no grid communication is done across non-periodic boundaries
+     since no grid comm is done across non-periodic boundaries
 ------------------------------------------------------------------------- */
 
 Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm,
@@ -278,7 +278,7 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
 
 Grid2d::~Grid2d()
 {
-  // regular comm data struct
+  // brick comm data structs
 
   for (int i = 0; i < nswap; i++) {
     memory->destroy(swap[i].packlist);
@@ -402,38 +402,39 @@ void Grid2d::get_bounds_ghost(int &xlo, int &xhi, int &ylo, int &yhi)
 }
 
 /* ----------------------------------------------------------------------
+   setup owned/ghost commmunication
    return sizes of two buffers needed for communication
-   either on regular grid or procs or irregular tiling
+   either for regular brick comm or irregular tiling comm
    nbuf1 = largest pack or unpack in any Send or Recv or Copy
    nbuf2 = larget of sum of all packs or unpacks in Send or Recv
-   for regular comm, nbuf1 = nbuf2
-   for irregular comm, nbuf2 >= nbuf2
-   nbuf1,nbuf2 are just count of grid points
-     caller converts them to message size for grid data it stores
+   for regular brick comm, nbuf1 = nbuf2
+   for irregular tiling comm, nbuf2 >= nbuf2
+   nbuf1,nbuf2 are counts of grid points
+     caller converts them to message sizes for grid data it stores
 ------------------------------------------------------------------------- */
 
 void Grid2d::setup(int &nbuf1, int &nbuf2)
 {
-  if (layout == REGULAR) setup_regular(nbuf1,nbuf2);
+  if (layout == REGULAR) setup_brick(nbuf1,nbuf2);
   else setup_tiled(nbuf1,nbuf2);
 }
 
 /* ----------------------------------------------------------------------
-   setup comm for a regular grid of procs
-   each proc has 6 neighbors
-   comm pattern = series of swaps with one of those 6 procs
+   setup owned/ghost comm for regular brick comm
+   each proc has 4 neighbors
+   comm pattern = series of swaps with one of those 4 procs
    can be multiple swaps with same proc if ghost extent is large
    swap may not be symmetric if both procs do not need same layers of ghosts
    all procs perform same # of swaps in a direction, even if some don't need it
 ------------------------------------------------------------------------- */
 
-void Grid2d::setup_regular(int &nbuf1, int &nbuf2)
+void Grid2d::setup_brick(int &nbuf1, int &nbuf2)
 {
   int nsent,sendfirst,sendlast,recvfirst,recvlast;
   int sendplanes,recvplanes;
   int notdoneme,notdone;
 
-  // notify 6 neighbor procs how many ghost grid planes I need from them
+  // notify 4 neighbor procs how many ghost grid planes I need from them
   // ghost xy lo = # of my lower grid planes that proc xy lo needs as its ghosts
   // ghost xy hi = # of my upper grid planes that proc xy hi needs as its ghosts
   // if this proc is its own neighbor across periodic bounary, value is from self
@@ -632,7 +633,7 @@ void Grid2d::setup_regular(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
-   setup comm for RCB tiled proc domains
+   setup owned/ghost comm for irregular tiled comm
    each proc has arbitrary # of neighbors that overlap its ghost extent
    identify which procs will send me ghost cells, and vice versa
    may not be symmetric if both procs do not need same layers of ghosts
@@ -959,7 +960,7 @@ void Grid2d::box_drop_grid(int *box, int proclower, int procupper,
 
 int Grid2d::ghost_adjacent()
 {
-  if (layout == REGULAR) return ghost_adjacent_regular();
+  if (layout == REGULAR) return ghost_adjacent_brick();
   return ghost_adjacent_tiled();
 }
 
@@ -968,7 +969,7 @@ int Grid2d::ghost_adjacent()
    return 0 if adjacent=0 for any proc, else 1
 ------------------------------------------------------------------------- */
 
-int Grid2d::ghost_adjacent_regular()
+int Grid2d::ghost_adjacent_brick()
 {
   adjacent = 1;
   if (ghostxlo > inxhi-inxlo+1) adjacent = 0;
@@ -1003,14 +1004,14 @@ void Grid2d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
 {
   if (layout == REGULAR) {
     if (caller == KSPACE)
-      forward_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
-                                   buf1,buf2,datatype);
+      forward_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
+				 buf1,buf2,datatype);
     else if (caller == PAIR)
-      forward_comm_regular<Pair>((Pair *) ptr,nper,nbyte,which,
-                                   buf1,buf2,datatype);
+      forward_comm_brick<Pair>((Pair *) ptr,nper,nbyte,which,
+			       buf1,buf2,datatype);
     else if (caller == FIX)
-      forward_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
-                                buf1,buf2,datatype);
+      forward_comm_brick<Fix>((Fix *) ptr,nper,nbyte,which,
+			      buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       forward_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
@@ -1030,8 +1031,8 @@ void Grid2d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
 
 template < class T >
 void Grid2d::
-forward_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
-                     void *buf1, void *buf2, MPI_Datatype datatype)
+forward_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
+		   void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -1108,14 +1109,14 @@ void Grid2d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
 {
   if (layout == REGULAR) {
     if (caller == KSPACE)
-      reverse_comm_regular<KSpace>((KSpace *) ptr,nper,nbyte,which,
-                                   buf1,buf2,datatype);
+      reverse_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
+				 buf1,buf2,datatype);
     else if (caller == PAIR)
-      reverse_comm_regular<Pair>((Pair *) ptr,nper,nbyte,which,
-                                   buf1,buf2,datatype);
+      reverse_comm_brick<Pair>((Pair *) ptr,nper,nbyte,which,
+			       buf1,buf2,datatype);
     else if (caller == FIX)
-      reverse_comm_regular<Fix>((Fix *) ptr,nper,nbyte,which,
-                                buf1,buf2,datatype);
+      reverse_comm_brick<Fix>((Fix *) ptr,nper,nbyte,which,
+			      buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       reverse_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
@@ -1135,8 +1136,8 @@ void Grid2d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
 
 template < class T >
 void Grid2d::
-reverse_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
-                     void *buf1, void *buf2, MPI_Datatype datatype)
+reverse_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
+		   void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -1209,22 +1210,22 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
    pack/unpack operations are performed by caller via callbacks
 ------------------------------------------------------------------------- */
 
-void Grid2d::remap_setup(Grid2d *old, int &ngrid1_buf, int &ngrid2_buf)
+void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
 {
-  if (layout == REGULAR) remap_setup_regular(old,ngrid1_buf,ngrid2_buf);
-  else remap_setup_tiled(old,ngrid1_buf,ngrid2_buf);
+  if (layout == REGULAR) setup_remap_brick(old,nremap_buf1,nremap_buf2);
+  else setup_remap_tiled(old,nremap_buf1,nremap_buf2);
 }
 
-void Grid2d::remap_setup_regular(Grid2d *old, int &ngrid1_buf, int &ngrid2_buf)
+void Grid2d::setup_remap_brick(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
 {
-  ngrid1_buf = 0;
-  ngrid2_buf = 0;
+  nremap_buf1 = 0;
+  nremap_buf2 = 0;
 }
 
-void Grid2d::remap_setup_tiled(Grid2d *old, int &ngrid1_buf, int &ngrid2_buf)
+void Grid2d::setup_remap_tiled(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
 {
-  ngrid1_buf = 0;
-  ngrid2_buf = 0;
+  nremap_buf1 = 0;
+  nremap_buf2 = 0;
 }
 
 /* ----------------------------------------------------------------------

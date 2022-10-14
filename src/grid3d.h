@@ -39,7 +39,7 @@ class Grid3d : protected Pointers {
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
-  void remap_setup(Grid3d *, int &, int &);
+  void setup_remap(Grid3d *, int &, int &);
   void remap(int, void *, int, int, void *, void *, MPI_Datatype);
   void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
@@ -199,21 +199,21 @@ class Grid3d : protected Pointers {
 
   void store(int, int, int, int, int, int, int, int, int, int, int, int,
              int, int, int, int, int, int, int, int, int, int, int, int);
-  virtual void setup_regular(int &, int &);
+  virtual void setup_brick(int &, int &);
   virtual void setup_tiled(int &, int &);
-  void ghost_box_drop(int *, int *);
+  void box_drop(int *, int *);
   void box_drop_grid(int *, int, int, int &, int *);
 
-  int ghost_adjacent_regular();
+  int ghost_adjacent_brick();
   int ghost_adjacent_tiled();
 
-  template <class T> void forward_comm_regular(T *, int, int, int, void *, void *, MPI_Datatype);
+  template <class T> void forward_comm_brick(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void forward_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
-  template <class T> void reverse_comm_regular(T *, int, int, int, void *, void *, MPI_Datatype);
+  template <class T> void reverse_comm_brick(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void reverse_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
 
-  void remap_setup_regular(Grid3d *, int &, int &);
-  void remap_setup_tiled(Grid3d *, int &, int &);
+  void setup_remap_brick(Grid3d *, int &, int &);
+  void setup_remap_tiled(Grid3d *, int &, int &);
   template <class T> void remap_style(T *, int, int, void *, void *, MPI_Datatype);
 
   virtual void grow_swap();

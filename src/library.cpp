@@ -3020,10 +3020,11 @@ Below is a brief C code demonstrating accessing this collected bond information.
 
 .. code-block:: c
 
+   #include "library.h"
+
+   #include <stdint.h>
    #include <stdio.h>
    #include <stdlib.h>
-   #include <stdint.h>
-   #include "library.h"
 
    int main(int argc, char **argv)
    {

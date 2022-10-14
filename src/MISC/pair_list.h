@@ -53,7 +53,6 @@ class PairList : public Pair {
     double k, b1, b2;
   };
 
-
   union param_u {
     harm_p harm;
     morse_p morse;

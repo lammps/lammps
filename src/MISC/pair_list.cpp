@@ -172,7 +172,8 @@ void PairList::compute(int eflag, int vflag)
         const double dexp = exp(-par.param.morse.alpha * dr);
         fpair = 2.0 * par.param.morse.d0 * par.param.morse.alpha * (dexp * dexp - dexp) / r;
 
-        if (eflag_either) epair = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp + 1.0) - par.offset;
+        if (eflag_either)
+          epair = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp + 1.0) - par.offset;
 
       } else if (par.style == LJ126) {
 

@@ -806,10 +806,12 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   //   since some fixes access domain settings in their constructor
   // nullptr must be last entry in this list
 
+  // clang-format off
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
      "deprecated", "STORE/KIM", "amoeba/pitorsion", "amoeba/bitorsion",
      nullptr};
+  // clang-format on
 
   if (domain->box_exist == 0) {
     int m;

@@ -255,11 +255,10 @@ void Bond::ev_tally(int i, int j, int nlocal, int newton_bond, double ebond, dou
    for virial, have delx,dely,delz and fx,fy,fz
 ------------------------------------------------------------------------- */
 
-void Bond::ev_tally_xyz(int i, int j, int nlocal, int newton_bond,
-                        double ebond, double fx, double fy, double fz,
-                        double delx, double dely, double delz)
+void Bond::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, double ebond, double fx,
+                        double fy, double fz, double delx, double dely, double delz)
 {
-  double ebondhalf,v[6];
+  double ebondhalf, v[6];
 
   if (eflag_either) {
     if (eflag_global) {

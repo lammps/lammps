@@ -154,8 +154,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "writedata") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix property/atom command");
-      wd_section = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
+      wd_section = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal fix property/atom command");

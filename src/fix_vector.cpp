@@ -47,8 +47,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
     val.id = argi.get_name();
     val.val.c = nullptr;
 
-    if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) ||
-        (argi.get_dim() > 1))
+    if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
       error->all(FLERR, "Invalid fix vector argument: {}", arg[iarg]);
 
     values.push_back(val);

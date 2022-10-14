@@ -46,10 +46,10 @@ class FixPair : public Fix {
   double memory_usage() override;
 
  private:
-  int nevery,nfield,ncols;
+  int nevery, nfield, ncols;
   bigint lasttime;
   char *pairname;
-  char **fieldname,**triggername;
+  char **fieldname, **triggername;
   int *trigger;
   int **triggerptr;
 

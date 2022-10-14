@@ -319,8 +319,7 @@ void BondBPM::write_restart(FILE *fp)
 
 void BondBPM::read_restart(FILE *fp)
 {
-  if (comm->me == 0)
-    utils::sfread(FLERR, &overlay_flag, sizeof(int), 1, fp, nullptr, error);
+  if (comm->me == 0) utils::sfread(FLERR, &overlay_flag, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&overlay_flag, 1, MPI_INT, 0, world);
 }
 

@@ -288,6 +288,14 @@ latex_elements = {
 'preamble': r'''
 \setcounter{tocdepth}{2}
 \renewcommand{\AA}{\mbox{\textrm{\r{A}}}}
+% Make ToC number fields wider to accommodate sections with >= 100 subsections
+%   or >= 10 subsections with >= 10 subsubsections
+\makeatletter
+\renewcommand*{\sphinxtableofcontentshook}{%
+  \renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.1em}}
+  \renewcommand*\l@subsection{\@dottedtocline{2}{4.6em}{4.5em}}
+}
+\makeatother
 '''
 }
 

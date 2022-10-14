@@ -43,12 +43,19 @@ class PairTersoffKokkos : public PairTersoff {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
+  // Static blocking size for PairTersoffCompute, EVFLAG == 0
+  static constexpr int block_size_compute_tersoff_force = 128;
+  // EVFLAG == 1, intentionally different due to how Kokkos implements
+  // reductions vs simple parallel for
+  static constexpr int block_size_compute_tersoff_energy = 256;
+
   PairTersoffKokkos(class LAMMPS *);
   ~PairTersoffKokkos() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
 
+  // Range Policy versions
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
@@ -57,8 +64,30 @@ class PairTersoffKokkos : public PairTersoff {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int&) const;
 
+  // MDRangePolicy versions
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int&, const int&, EV_FLOAT&) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int&, const int&) const;
+
+  // TeamPolicy versions
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffCompute<NEIGHFLAG,EVFLAG> >::member_type&, EV_FLOAT&) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffCompute<NEIGHFLAG,EVFLAG> >::member_type&) const;
+
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffComputeShortNeigh, const int&) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void tersoff_compute(const int&, EV_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
   double ters_fc_k(const Param& param, const F_FLOAT &r) const;

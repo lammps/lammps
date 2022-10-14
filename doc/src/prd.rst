@@ -18,7 +18,7 @@ Syntax
 * compute-ID = ID of the compute used for event detection
 * random_seed = random # seed (positive integer)
 * zero or more keyword/value pairs may be appended
-* keyword = *min* or *temp* or *vel*
+* keyword = *min* or *temp* or *vel* or *time*
 
   .. parsed-literal::
 

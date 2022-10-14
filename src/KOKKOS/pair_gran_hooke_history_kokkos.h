@@ -35,8 +35,6 @@ class FixNeighHistoryKokkos;
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
 struct TagPairGranHookeHistoryCompute {};
 
-struct TagPairGranHookeHistoryReduce {};
-
 template <class DeviceType>
 class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
  public:
@@ -48,9 +46,6 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   ~PairGranHookeHistoryKokkos() override;
   void compute(int, int) override;
   void init_style() override;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairGranHookeHistoryReduce, const int ii) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
   KOKKOS_INLINE_FUNCTION

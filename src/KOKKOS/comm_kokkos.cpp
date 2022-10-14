@@ -839,7 +839,7 @@ void CommKokkos::exchange_device()
       // if more than 2 procs in dimension, send/recv to both neighbors
 
       const int data_size = atom->avec->size_border+atom->avec->size_velocity+2;
-      DAT::tdual_int_1d indices = DAT::tdual_int_1d("comm:indices");
+      DAT::tdual_int_1d indices = DAT::tdual_int_1d("comm:indices",1);
 
       if (procgrid[dim] == 1) {
         nrecv = nsend;

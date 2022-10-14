@@ -83,37 +83,6 @@ struct my_complex {
   }
 
   KOKKOS_INLINE_FUNCTION
-  my_complex &operator=(const volatile my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  volatile my_complex &operator=(const my_complex &src) volatile {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  volatile my_complex &operator=(const volatile my_complex &src) volatile {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex(const volatile my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   my_complex(const double &val) {
     re    = val;
     im    = 0.0;
@@ -129,23 +98,7 @@ struct my_complex {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile my_complex &src) volatile {
-    re += src.re;
-    im += src.im;
-    dummy += src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   my_complex operator+(const my_complex &src) {
-    my_complex tmp = *this;
-    tmp.re += src.re;
-    tmp.im += src.im;
-    tmp.dummy += src.dummy;
-    return tmp;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex operator+(const volatile my_complex &src) volatile {
     my_complex tmp = *this;
     tmp.re += src.re;
     tmp.im += src.im;
@@ -161,15 +114,6 @@ struct my_complex {
     im            = im_tmp;
     dummy *= src.dummy;
     return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator*=(const volatile my_complex &src) volatile {
-    double re_tmp = re * src.re - im * src.im;
-    double im_tmp = re * src.im + im * src.re;
-    re            = re_tmp;
-    im            = im_tmp;
-    dummy *= src.dummy;
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -229,12 +173,6 @@ struct array_reduce {
     return *this;
   }
 
-  KOKKOS_INLINE_FUNCTION
-  array_reduce &operator=(const volatile array_reduce &src) {
-    for (int i = 0; i < N; i++) data[i] = src.data[i];
-    return *this;
-  }
-
   KOKKOS_INLINE_FUNCTION  // add operator
       array_reduce &
       operator=(const scalar_t val) {
@@ -253,11 +191,6 @@ struct array_reduce {
       operator+=(const array_reduce &src) {
     for (int i = 0; i < N; i++) data[i] += src.data[i];
     return *this;
-  }
-  KOKKOS_INLINE_FUNCTION  // volatile add operator
-      void
-      operator+=(const volatile array_reduce &src) volatile {
-    for (int i = 0; i < N; i++) data[i] += src.data[i];
   }
   KOKKOS_INLINE_FUNCTION  // add operator
       array_reduce
@@ -278,11 +211,6 @@ struct array_reduce {
       operator*=(const array_reduce &src) {
     for (int i = 0; i < N; i++) data[i] *= src.data[i];
     return *this;
-  }
-  KOKKOS_INLINE_FUNCTION  // volatile add operator
-      void
-      operator*=(const volatile array_reduce &src) volatile {
-    for (int i = 0; i < N; i++) data[i] *= src.data[i];
   }
   KOKKOS_INLINE_FUNCTION  // add operator
       array_reduce
@@ -321,28 +249,25 @@ struct point_t {
   point_t(const point_t &val) : x(val.x), y(val.y), z(val.z){};
 
   KOKKOS_FUNCTION
-  point_t(const volatile point_t &val) : x(val.x), y(val.y), z(val.z){};
-
-  KOKKOS_FUNCTION
   point_t(const int rhs) { x = y = z = static_cast<uint8_t>(rhs); }
 
   KOKKOS_FUNCTION
   explicit operator int() const { return static_cast<int>(x + y + z); }
 
   KOKKOS_FUNCTION
-  bool operator==(const volatile point_t rhs) const volatile {
+  bool operator==(const point_t rhs) const {
     return (x == rhs.x && y == rhs.y && z == rhs.z);
   }
 
   KOKKOS_FUNCTION
-  void operator=(point_t rhs) volatile {
+  void operator=(point_t rhs) {
     x = rhs.x;
     y = rhs.y;
     z = rhs.z;
   }
 
   KOKKOS_FUNCTION
-  volatile point_t operator+=(const volatile point_t rhs) volatile {
+  point_t operator+=(const point_t rhs) {
     x += rhs.x;
     y += rhs.y;
     z += rhs.z;

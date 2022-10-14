@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_HALF_HPP_
 #define KOKKOS_HALF_HPP_
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_HALF
+#endif
 
 #include <type_traits>
 #include <Kokkos_Macros.hpp>
@@ -1029,4 +1033,8 @@ cast_from_bhalf(bhalf_t val) {
 #else
 #define KOKKOS_BHALF_T_IS_FLOAT false
 #endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_HALF
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_HALF
+#endif
 #endif  // KOKKOS_HALF_HPP_

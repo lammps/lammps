@@ -77,7 +77,7 @@ int mor_gpu_init(const int ntypes, double **cutsq,
                          offset, special_lj, inum, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
-    MORMF.device->gpu_barrier();
+    MORMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

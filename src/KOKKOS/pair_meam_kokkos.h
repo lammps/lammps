@@ -114,6 +114,12 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
   int iswap,first;
   int neighflag,nlocal,nall,eflag,vflag;
 
+  typename ArrayTypes<DeviceType>::t_ffloat_1d d_rho, d_rho0, d_rho1, d_rho2, d_rho3, d_frhop;
+  typename ArrayTypes<DeviceType>::t_ffloat_1d d_gamma, d_dgamma1, d_dgamma2, d_dgamma3, d_arho2b;
+  typename ArrayTypes<DeviceType>::t_ffloat_2d d_arho1, d_arho2, d_arho3, d_arho3b, d_t_ave, d_tsq_ave;
+
+  void update_meam_views();
+
   friend void pair_virial_fdotr_compute<PairMEAMKokkos>(PairMEAMKokkos*);
 };
 

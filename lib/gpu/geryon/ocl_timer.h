@@ -27,10 +27,14 @@
 #include "ocl_macros.h"
 #include "ocl_device.h"
 
+#ifndef GERYON_NO_OCL_MARKERS
 #ifdef CL_VERSION_1_2
 #define UCL_OCL_MARKER(cq,event) clEnqueueMarkerWithWaitList(cq,0,nullptr,event)
 #else
 #define UCL_OCL_MARKER clEnqueueMarker
+#endif
+#else
+#define UCL_OCL_MARKER(cq,event)
 #endif
 
 namespace ucl_opencl {
@@ -51,8 +55,10 @@ class UCL_Timer {
   inline void clear() {
     if (_initialized) {
       if (has_measured_time) {
+        #ifndef GERYON_NO_OCL_MARKERS
         clReleaseEvent(start_event);
         clReleaseEvent(stop_event);
+        #endif
         has_measured_time = false;
       }
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
@@ -76,8 +82,10 @@ class UCL_Timer {
   /// Start timing on default command queue
   inline void start() {
     if (has_measured_time) {
+      #ifndef GERYON_NO_OCL_MARKERS
       clReleaseEvent(start_event);
       clReleaseEvent(stop_event);
+      #endif
       has_measured_time = false;
     }
     UCL_OCL_MARKER(_cq,&start_event);
@@ -91,17 +99,26 @@ class UCL_Timer {
 
   /// Block until the start event has been reached on device
   inline void sync_start() {
+    #ifndef GERYON_NO_OCL_MARKERS
+    CL_SAFE_CALL(clWaitForEvents(1,&start_event));
     if (has_measured_time) {
       clReleaseEvent(start_event);
       clReleaseEvent(stop_event);
       has_measured_time = false;
     }
-    CL_SAFE_CALL(clWaitForEvents(1,&start_event));
+    #else
+    CL_SAFE_CALL(clFinish(_cq));
+    has_measured_time = false;
+    #endif
   }
 
   /// Block until the stop event has been reached on device
   inline void sync_stop() {
+    #ifndef GERYON_NO_OCL_MARKERS
     CL_SAFE_CALL(clWaitForEvents(1,&stop_event));
+    #else
+    CL_SAFE_CALL(clFinish(_cq));
+    #endif
     has_measured_time = true;
   }
 
@@ -126,6 +143,7 @@ class UCL_Timer {
   /// Return the time (ms) of last start to stop - Forces synchronization
   inline double time() {
     if(!has_measured_time) return 0.0;
+    #ifndef GERYON_NO_OCL_MARKERS
     cl_ulong tstart,tend;
     CL_SAFE_CALL(clWaitForEvents(1,&stop_event));
     CL_SAFE_CALL(clGetEventProfilingInfo(stop_event,
@@ -138,6 +156,11 @@ class UCL_Timer {
     clReleaseEvent(stop_event);
     has_measured_time = false;
     return (tend-tstart)*1e-6;
+    #else
+    CL_SAFE_CALL(clFinish(_cq));
+    has_measured_time = false;
+    return 0.0;
+    #endif
   }
 
   /// Return the time (s) of last start to stop - Forces synchronization

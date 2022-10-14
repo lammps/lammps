@@ -27,7 +27,7 @@ class BoundaryCorrection : protected Pointers {
   BoundaryCorrection(LAMMPS *);
   virtual void vector_corr(double *, int, int, bool){};
   virtual void matrix_corr(bigint *, double **){};
-  virtual void compute_corr(double, int, int, double &, double *){};
+  virtual void compute_corr(double, double, int, int, double &, double *){};
   void setup(double, double, double);
   void setup(double, double, double, double);
 

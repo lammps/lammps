@@ -163,6 +163,8 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_firsttouch = fix_historyKK->k_firstflag.template view<DeviceType>();
   d_firstshear = fix_historyKK->k_firstvalue.template view<DeviceType>();
 
+  Kokkos::deep_copy(d_firsttouch,0);
+
   EV_FLOAT ev;
 
   if (neighflag == HALF) {
@@ -291,6 +293,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
   const int jnum = d_numneigh[i];
+  const int mask_i = mask[i]; 
 
   const V_FLOAT vx_i = v(i,0);
   const V_FLOAT vy_i = v(i,1);
@@ -309,7 +312,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   F_FLOAT torquez_i = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    const int j = d_neighbors(i, jj) & NEIGHMASK;
+    const int j = d_neighbors(i,jj) & NEIGHMASK;
 
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
@@ -322,7 +325,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     // check for touching neighbors
 
     if (rsq >= radsum * radsum) {
-      d_firsttouch(i,jj) = 0;
       d_firstshear(i,3*jj) = 0;
       d_firstshear(i,3*jj+1) = 0;
       d_firstshear(i,3*jj+2) = 0;
@@ -361,7 +363,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     V_FLOAT wr3 = (irad*omegaz_i + jrad*omega(j,2)) * rinv;
 
     LMP_FLOAT meff = imass*jmass / (imass+jmass);
-    if (mask[i] & freeze_group_bit) meff = jmass;
+    if (mask_i & freeze_group_bit) meff = jmass;
     if (mask[j] & freeze_group_bit) meff = imass;
 
     F_FLOAT damp = meff*gamman*vnnr*rsqinv;

@@ -40,9 +40,9 @@ Syntax
      *gamma_t_eigen* values = *gt1* and *gt2* and *gt3* for *brownian/asphere*
        *gt1*, *gt2*, and *gt3* = diagonal entries of body frame translational friction tensor
      *gamma_t* values = *gt* for *brownian* and *brownian/sphere*
-     *gt* = magnitude of the (isotropic) translational friction tensor
+        *gt* = magnitude of the (isotropic) translational friction tensor
      *rotation_temp* values = *T* for *brownian/sphere* and *brownian/asphere*
-     *T* = rotation temperature, which can be different then *temp* when out of equilibrium
+        *T* = rotation temperature, which can be different then *temp* when out of equilibrium
      *planar_rotation* values = none (constrains rotational diffusion to be in xy plane if in 3D)
 
 Examples

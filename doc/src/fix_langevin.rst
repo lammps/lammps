@@ -20,7 +20,7 @@ Syntax
 * damp = damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 * zero or more keyword/value pairs may be appended
-* keyword = *angmom* or *omega* or *scale* or *tally* or *zero*
+* keyword = *angmom* or *gjf* or *omega* or *scale* or *tally* or *zero*
 
   .. parsed-literal::
 

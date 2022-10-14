@@ -201,6 +201,9 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
   copymode = 1;
 
+  Kokkos::deep_copy(d_firstflag,0);
+  Kokkos::deep_copy(d_firstvalue,0);
+
   FixNeighHistoryKokkosPostNeighborFunctor<DeviceType> f(this);
   Kokkos::parallel_for(inum,f);
 
@@ -235,16 +238,6 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor_item(const int &ii) const
         for (int k = 0; k < dnum; k++) {
           d_firstvalue(i, dnum*jj+k) = d_valuepartner(i, dnum*m+k);
         }
-      } else {
-        d_firstflag(i,jj) = 0;
-        for (int k = 0; k < dnum; k++) {
-          d_firstvalue(i, dnum*jj+k) = 0;
-        }
-      }
-    } else {
-      d_firstflag(i,jj) = 0;
-      for (int k = 0; k < dnum; k++) {
-        d_firstvalue(i, dnum*jj+k) = 0;
       }
     }
   }

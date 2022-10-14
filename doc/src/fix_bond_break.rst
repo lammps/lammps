@@ -66,7 +66,7 @@ Note that these rules mean an atom will only be part of at most one
 broken bond on a given time step.  It also means that if atom :math:`i` chooses
 atom :math:`j` as its sole partner, but atom :math:`j` chooses atom :math:`k`
 as its sole partner (because :math:`R_{jk} > R_{ij}`), then this means atom
-:math:`I` will not be part of a broken bond on this time step, even if it has
+:math:`i` will not be part of a broken bond on this time step, even if it has
 other possible bond partners.
 
 The *prob* keyword can effect whether an eligible bond is actually

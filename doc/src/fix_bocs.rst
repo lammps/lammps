@@ -43,7 +43,7 @@ Description
 
 These commands incorporate a pressure correction as described by
 Dunn and Noid :ref:`(Dunn1) <bocs-Dunn1>` to the standard MTK
-barostat by Martyna et al. :ref:`(Martyna) <bocs-Martyna>` .
+barostat by Martyna et al. :ref:`(Martyna) <bocs-Martyna>`.
 The first half of the command mimics a standard :doc:`fix npt <fix_nh>`
 command:
 

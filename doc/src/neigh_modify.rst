@@ -92,17 +92,21 @@ since the last neighbor list build.
 
    The choice of neighbor list settings can have a significant impact on
    the (parallel) performance of LAMMPS and the correctness of the
-   results.  Since the building of neighbor lists is time consuming,
-   doing it less frequently can speed up a calculation.  However, if the
-   lists are rebuilt too infrequent, interacting pairs are missed and
-   thus the resulting pairwise interactions incorrect.  The optimal
-   settings depend on the properties of the simulated system (like
-   density, geometry, temperature, pressure), the force field settings,
-   the size of the timestep, neighbor list skin distance and so on.  The
-   default settings are chosen to be very conservative to promote
-   correctness of the simulation and they depend on the *check* flag
-   heuristics to reduce the number of neighbor list rebuilds at a minor
-   expense for executing the check.
+   simulation results.  Since building the neighbor lists is time
+   consuming, doing it less frequently can speed up a calculation.  If
+   the lists are rebuilt too infrequent, however, interacting pairs are
+   missed and thus the resulting pairwise interactions incorrect.  The
+   optimal settings depend on many factors like the properties of the
+   simulated system (density, geometry, topology, temperature,
+   pressure), the force field parameters and settings, the size of the
+   timestep, neighbor list skin distance and more.  The default settings
+   are chosen to be very conservative to promote correctness of the
+   simulation.  They depend on the *check* flag heuristics to reduce the
+   number of neighbor list rebuilds at a minor expense for executing the
+   check.  Determining the correctness of a specific coice of neighbor
+   list settings is complicated by the fact that a neighbor list rebuild
+   changes the order in which pairwise interactions are computed and thus
+   - due to the limitations of floating-point math - the trajectory.
 
 If the *once* setting is yes, then the neighbor list is only built once
 at the beginning of each run, and never rebuilt, except on steps when a

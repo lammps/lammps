@@ -1,5 +1,5 @@
 Sphinx==5.2.3
-sphinxcontrib-spelling==7.6.0
+sphinxcontrib-spelling==7.6.1
 git+https://github.com/akohlmey/sphinx-fortran@parallel-read
 sphinx_tabs==3.4.1
 breathe==4.34.0

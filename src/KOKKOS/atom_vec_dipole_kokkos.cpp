@@ -32,13 +32,13 @@ AtomVecDipoleKokkos::AtomVecDipoleKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   molecular = Atom::ATOMIC;
   mass_type = PER_TYPE;
 
-  comm_x_only = 1;
-  comm_f_only = 0;
-  size_forward = 3;
-  size_reverse = 3;
-  size_border = 7;
-  size_velocity = 3;
-  size_data_atom = 6;
+  comm_x_only = 0;    // communicate x and dipole in forward comm
+  comm_f_only = 1;    // only communicate f in reverse comm
+  size_forward = 7;   // xyz and mu4 used for pack/unpack comm
+  size_reverse = 3;   // fx, fy and fz
+  size_border = 11;   // xyz, tag, mask, type, q, mu4 for pack/unpack border
+  size_velocity = 3;  // vx, vy, vz
+  size_data_atom = 9; // tag, type, q, xyz, mux, muy, muz
   size_data_vel = 4;
   xcol_data = 4;
 
@@ -167,7 +167,7 @@ struct AtomVecDipoleKokkos_PackComm {
   typedef DeviceType device_type;
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
-  typename ArrayTypes<DeviceType>::t_x_array_randomread _mu;
+  typename ArrayTypes<DeviceType>::t_mu_array_randomread _mu;
   typename ArrayTypes<DeviceType>::t_xfloat_2d_um _buf;
   typename ArrayTypes<DeviceType>::t_int_2d_const _list;
   const int _iswap;
@@ -176,7 +176,7 @@ struct AtomVecDipoleKokkos_PackComm {
 
   AtomVecDipoleKokkos_PackComm(
       const typename DAT::tdual_x_array &x,
-      const typename DAT::tdual_x_array &mu,
+      const typename DAT::tdual_float_1d_4 &mu,
       const typename DAT::tdual_xfloat_2d &buf,
       const typename DAT::tdual_int_2d &list,
       const int & iswap,
@@ -187,7 +187,7 @@ struct AtomVecDipoleKokkos_PackComm {
       _list(list.view<DeviceType>()),_iswap(iswap),
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
-        const size_t elements = 6;
+        const size_t elements = 7; // size_forward
         const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/elements;
         buffer_view<DeviceType>(_buf,buf,maxsend,elements);
         _pbc[0] = pbc[0]; _pbc[1] = pbc[1]; _pbc[2] = pbc[2];
@@ -201,21 +201,29 @@ struct AtomVecDipoleKokkos_PackComm {
       _buf(i,0) = _x(j,0);
       _buf(i,1) = _x(j,1);
       _buf(i,2) = _x(j,2);
+      _buf(i,3) = _mu(j,0);
+      _buf(i,4) = _mu(j,1);
+      _buf(i,5) = _mu(j,2);
+      _buf(i,6) = _mu(j,3);
     } else {
       if (TRICLINIC == 0) {
         _buf(i,0) = _x(j,0) + _pbc[0]*_xprd;
         _buf(i,1) = _x(j,1) + _pbc[1]*_yprd;
         _buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,3) = _mu(j,0);
+        _buf(i,4) = _mu(j,1);
+        _buf(i,5) = _mu(j,2);
+        _buf(i,6) = _mu(j,3);
       } else {
         _buf(i,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
         _buf(i,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
         _buf(i,2) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,3) = _mu(j,0);
+        _buf(i,4) = _mu(j,1);
+        _buf(i,5) = _mu(j,2);
+        _buf(i,6) = _mu(j,3);
       }
     }
-    _buf(i,3) = _mu(j,0);
-    _buf(i,4) = _mu(j,1);
-    _buf(i,5) = _mu(j,2);
-    _buf(i,6) = _mu(j,3);
   }
 };
 
@@ -233,6 +241,7 @@ struct AtomVecDipoleKokkos_PackBorder {
   const typename ArrayTypes<DeviceType>::t_int_1d _type;
   const typename ArrayTypes<DeviceType>::t_int_1d _mask;
   const typename ArrayTypes<DeviceType>::t_float_1d _q;
+  const typename ArrayTypes<DeviceType>::t_mu_array_randomread _mu;
   X_FLOAT _dx,_dy,_dz;
 
   AtomVecDipoleKokkos_PackBorder(
@@ -244,9 +253,10 @@ struct AtomVecDipoleKokkos_PackBorder {
       const typename ArrayTypes<DeviceType>::t_int_1d &type,
       const typename ArrayTypes<DeviceType>::t_int_1d &mask,
       const typename ArrayTypes<DeviceType>::t_float_1d &q,
+      const typename ArrayTypes<DeviceType>::t_mu_array_randomread &mu,
       const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
   _buf(buf),_list(list),_iswap(iswap),
-    _x(x),_tag(tag),_type(type),_mask(mask),_q(q),
+    _x(x),_tag(tag),_type(type),_mask(mask),_q(q),_mu(mu),
     _dx(dx),_dy(dy),_dz(dz) {}
 
   KOKKOS_INLINE_FUNCTION
@@ -260,6 +270,10 @@ struct AtomVecDipoleKokkos_PackBorder {
           _buf(i,4) = d_ubuf(_type(j)).d;
           _buf(i,5) = d_ubuf(_mask(j)).d;
           _buf(i,6) = _q(j);
+          _buf(i,7) = _mu(j,0);
+          _buf(i,8) = _mu(j,1);
+          _buf(i,9) = _mu(j,2);
+          _buf(i,10) = _mu(j,3);
       } else {
           _buf(i,0) = _x(j,0) + _dx;
           _buf(i,1) = _x(j,1) + _dy;
@@ -268,6 +282,10 @@ struct AtomVecDipoleKokkos_PackBorder {
           _buf(i,4) = d_ubuf(_type(j)).d;
           _buf(i,5) = d_ubuf(_mask(j)).d;
           _buf(i,6) = _q(j);
+          _buf(i,7) = _mu(j,0);
+          _buf(i,8) = _mu(j,1);
+          _buf(i,9) = _mu(j,2);
+          _buf(i,10) = _mu(j,3);
       }
   }
 };
@@ -292,12 +310,12 @@ int AtomVecDipoleKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
     if (space==Host) {
       AtomVecDipoleKokkos_PackBorder<LMPHostType,1> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,h_q,dx,dy,dz);
+        iswap,h_x,h_tag,h_type,h_mask,h_q,h_mu,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecDipoleKokkos_PackBorder<LMPDeviceType,1> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,d_q,dx,dy,dz);
+        iswap,d_x,d_tag,d_type,d_mask,d_q,d_mu,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     }
 
@@ -306,12 +324,12 @@ int AtomVecDipoleKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
     if (space==Host) {
       AtomVecDipoleKokkos_PackBorder<LMPHostType,0> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,h_q,dx,dy,dz);
+        iswap,h_x,h_tag,h_type,h_mask,h_q,h_mu,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecDipoleKokkos_PackBorder<LMPDeviceType,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,d_q,dx,dy,dz);
+        iswap,d_x,d_tag,d_type,d_mask,d_q,d_mu,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     }
   }
@@ -337,6 +355,10 @@ int AtomVecDipoleKokkos::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(h_type(j)).d;
       buf[m++] = ubuf(h_mask(j)).d;
       buf[m++] = h_q(j);
+      buf[m++] = h_mu(j,0);
+      buf[m++] = h_mu(j,1);
+      buf[m++] = h_mu(j,2);
+      buf[m++] = h_mu(j,3);
     }
   } else {
     if (domain->triclinic == 0) {
@@ -357,6 +379,10 @@ int AtomVecDipoleKokkos::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(h_type(j)).d;
       buf[m++] = ubuf(h_mask(j)).d;
       buf[m++] = h_q(j);
+      buf[m++] = h_mu(j,0);
+      buf[m++] = h_mu(j,1);
+      buf[m++] = h_mu(j,2);
+      buf[m++] = h_mu(j,3);
     }
   }
 
@@ -386,6 +412,10 @@ int AtomVecDipoleKokkos::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = ubuf(h_type(j)).d;
       buf[m++] = ubuf(h_mask(j)).d;
       buf[m++] = h_q[j];
+      buf[m++] = h_mu(j,0);
+      buf[m++] = h_mu(j,1);
+      buf[m++] = h_mu(j,2);
+      buf[m++] = h_mu(j,3);
       buf[m++] = h_v(j,0);
       buf[m++] = h_v(j,1);
       buf[m++] = h_v(j,2);
@@ -410,6 +440,10 @@ int AtomVecDipoleKokkos::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(h_type(j)).d;
         buf[m++] = ubuf(h_mask(j)).d;
         buf[m++] = h_q[j];
+        buf[m++] = h_mu(j,0);
+        buf[m++] = h_mu(j,1);
+        buf[m++] = h_mu(j,2);
+        buf[m++] = h_mu(j,3);
         buf[m++] = h_v(j,0);
         buf[m++] = h_v(j,1);
         buf[m++] = h_v(j,2);
@@ -427,6 +461,10 @@ int AtomVecDipoleKokkos::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(h_type(j)).d;
         buf[m++] = ubuf(h_mask(j)).d;
         buf[m++] = h_q[j];
+        buf[m++] = h_mu(j,0);
+        buf[m++] = h_mu(j,1);
+        buf[m++] = h_mu(j,2);
+        buf[m++] = h_mu(j,3);
         if (mask[i] & deform_groupbit) {
           buf[m++] = h_v(j,0) + dvx;
           buf[m++] = h_v(j,1) + dvy;
@@ -457,6 +495,10 @@ int AtomVecDipoleKokkos::pack_border_hybrid(int n, int *list, double *buf)
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = h_q[j];
+    buf[m++] = h_mu(j,0);
+    buf[m++] = h_mu(j,1);
+    buf[m++] = h_mu(j,2);
+    buf[m++] = h_mu(j,3);
   }
   return m;
 }
@@ -474,6 +516,7 @@ struct AtomVecDipoleKokkos_UnpackBorder {
   typename ArrayTypes<DeviceType>::t_int_1d _type;
   typename ArrayTypes<DeviceType>::t_int_1d _mask;
   typename ArrayTypes<DeviceType>::t_float_1d _q;
+  typename ArrayTypes<DeviceType>::t_mu_array _mu;
   int _first;
 
 
@@ -484,8 +527,9 @@ struct AtomVecDipoleKokkos_UnpackBorder {
       typename ArrayTypes<DeviceType>::t_int_1d &type,
       typename ArrayTypes<DeviceType>::t_int_1d &mask,
       typename ArrayTypes<DeviceType>::t_float_1d &q,
+      typename ArrayTypes<DeviceType>::t_mu_array &mu,
       const int& first):
-    _buf(buf),_x(x),_tag(tag),_type(type),_mask(mask),_q(q),_first(first) {
+    _buf(buf),_x(x),_tag(tag),_type(type),_mask(mask),_q(q),_mu(mu),_first(first) {
   };
 
   KOKKOS_INLINE_FUNCTION
@@ -497,6 +541,10 @@ struct AtomVecDipoleKokkos_UnpackBorder {
       _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
       _mask(i+_first) = (int) d_ubuf(_buf(i,5)).i;
       _q(i+_first) = _buf(i,6);
+      _mu(i+_first,0) = _buf(i,7);
+      _mu(i+_first,1) = _buf(i,8);
+      _mu(i+_first,2) = _buf(i,9);
+      _mu(i+_first,3) = _buf(i,10);
   }
 };
 
@@ -509,11 +557,11 @@ void AtomVecDipoleKokkos::unpack_border_kokkos(const int &n, const int &first,
   }
   if (space==Host) {
     struct AtomVecDipoleKokkos_UnpackBorder<LMPHostType>
-      f(buf.view<LMPHostType>(),h_x,h_tag,h_type,h_mask,h_q,first);
+      f(buf.view<LMPHostType>(),h_x,h_tag,h_type,h_mask,h_q,h_mu,first);
     Kokkos::parallel_for(n,f);
   } else {
     struct AtomVecDipoleKokkos_UnpackBorder<LMPDeviceType>
-      f(buf.view<LMPDeviceType>(),d_x,d_tag,d_type,d_mask,d_q,first);
+      f(buf.view<LMPDeviceType>(),d_x,d_tag,d_type,d_mask,d_q,d_mu,first);
     Kokkos::parallel_for(n,f);
   }
   atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
@@ -537,9 +585,13 @@ void AtomVecDipoleKokkos::unpack_border(int n, int first, double *buf)
     h_type(i) = (int) ubuf(buf[m++]).i;
     h_mask(i) = (int) ubuf(buf[m++]).i;
     h_q[i] = buf[m++];
+    h_mu(i,0) = buf[m++];
+    h_mu(i,1) = buf[m++];
+    h_mu(i,2) = buf[m++];
+    h_mu(i,3) = buf[m++];
   }
 
-  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK);
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MU_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -565,6 +617,10 @@ void AtomVecDipoleKokkos::unpack_border_vel(int n, int first, double *buf)
     h_type(i) = (int) ubuf(buf[m++]).i;
     h_mask(i) = (int) ubuf(buf[m++]).i;
     h_q[i] = buf[m++];
+    h_mu(i,0) = buf[m++];
+    h_mu(i,1) = buf[m++];
+    h_mu(i,2) = buf[m++];
+    h_mu(i,3) = buf[m++];
     h_v(i,0) = buf[m++];
     h_v(i,1) = buf[m++];
     h_v(i,2) = buf[m++];
@@ -586,8 +642,14 @@ int AtomVecDipoleKokkos::unpack_border_hybrid(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++)
+  for (i = first; i < last; i++) {
     h_q[i] = buf[m++];
+    h_mu(i,0) = buf[m++];
+    h_mu(i,1) = buf[m++];
+    h_mu(i,2) = buf[m++];
+    h_mu(i,3) = buf[m++];
+  }
+    
   return m;
 }
 
@@ -604,6 +666,7 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
   typename AT::t_int_1d_randomread _mask;
   typename AT::t_imageint_1d_randomread _image;
   typename AT::t_float_1d_randomread _q;
+  typename AT::t_mu_array_randomread _mu;
   typename AT::t_x_array _xw;
   typename AT::t_v_array _vw;
   typename AT::t_tagint_1d _tagw;
@@ -611,6 +674,7 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
   typename AT::t_int_1d _maskw;
   typename AT::t_imageint_1d _imagew;
   typename AT::t_float_1d _qw;
+  typename AT::t_sp_array _muw;
 
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d_const _sendlist;
@@ -631,6 +695,7 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
     _mask(atom->k_mask.view<DeviceType>()),
     _image(atom->k_image.view<DeviceType>()),
     _q(atom->k_q.view<DeviceType>()),
+    _mu(atom->k_mu.view<DeviceType>()),
     _xw(atom->k_x.view<DeviceType>()),
     _vw(atom->k_v.view<DeviceType>()),
     _tagw(atom->k_tag.view<DeviceType>()),
@@ -638,11 +703,12 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
     _maskw(atom->k_mask.view<DeviceType>()),
     _imagew(atom->k_image.view<DeviceType>()),
     _qw(atom->k_q.view<DeviceType>()),
+    _muw(atom->k_mu.view<DeviceType>()),
     _sendlist(sendlist.template view<DeviceType>()),
     _copylist(copylist.template view<DeviceType>()),
     _nlocal(nlocal),_dim(dim),
     _lo(lo),_hi(hi) {
-    const size_t elements = 12;
+    const size_t elements = 16; // 1st = # of values, followed by 15 values (see below)
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
                              buf.template view<DeviceType>().extent(1))/elements;
 
@@ -652,7 +718,7 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &mysend) const {
     const int i = _sendlist(mysend);
-    _buf(mysend,0) = 12;
+    _buf(mysend,0) = 16; // elements
     _buf(mysend,1) = _x(i,0);
     _buf(mysend,2) = _x(i,1);
     _buf(mysend,3) = _x(i,2);
@@ -664,20 +730,28 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
     _buf(mysend,9) = d_ubuf(_mask[i]).d;
     _buf(mysend,10) = d_ubuf(_image[i]).d;
     _buf(mysend,11) = _q[i];
+    _buf(mysend,12) = _mu(i,0);
+    _buf(mysend,13) = _mu(i,1);
+    _buf(mysend,14) = _mu(i,2);
+    _buf(mysend,15) = _mu(i,3);
     const int j = _copylist(mysend);
 
     if (j>-1) {
-    _xw(i,0) = _x(j,0);
-    _xw(i,1) = _x(j,1);
-    _xw(i,2) = _x(j,2);
-    _vw(i,0) = _v(j,0);
-    _vw(i,1) = _v(j,1);
-    _vw(i,2) = _v(j,2);
-    _tagw(i) = _tag(j);
-    _typew(i) = _type(j);
-    _maskw(i) = _mask(j);
-    _imagew(i) = _image(j);
-    _qw(i) = _q(j);
+      _xw(i,0) = _x(j,0);
+      _xw(i,1) = _x(j,1);
+      _xw(i,2) = _x(j,2);
+      _vw(i,0) = _v(j,0);
+      _vw(i,1) = _v(j,1);
+      _vw(i,2) = _v(j,2);
+      _tagw(i) = _tag(j);
+      _typew(i) = _type(j);
+      _maskw(i) = _mask(j);
+      _imagew(i) = _image(j);
+      _qw(i) = _q(j);
+      _muw(i,0) = _mu(j,0);
+      _muw(i,1) = _mu(j,1);
+      _muw(i,2) = _mu(j,2);
+      _muw(i,3) = _mu(j,3);
     }
   }
 };
@@ -690,20 +764,21 @@ int AtomVecDipoleKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat
                                               ExecutionSpace space,int dim,
                                               X_FLOAT lo,X_FLOAT hi )
 {
+  const size_t nelements = 16; // # of elements packed
   if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/12) {
-    int newsize = nsend*12/k_buf.view<LMPHostType>().extent(1)+1;
+    int newsize = nsend*nelements/k_buf.view<LMPHostType>().extent(1)+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
   if (space == Host) {
     AtomVecDipoleKokkos_PackExchangeFunctor<LMPHostType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    return nsend*12;
+    return nsend*nelements;
   } else {
     AtomVecDipoleKokkos_PackExchangeFunctor<LMPDeviceType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
-    return nsend*12;
+    return nsend*nelements;
   }
 }
 
@@ -723,6 +798,10 @@ int AtomVecDipoleKokkos::pack_exchange(int i, double *buf)
   buf[m++] = ubuf(h_mask(i)).d;
   buf[m++] = ubuf(h_image(i)).d;
   buf[m++] = h_q[i];
+  buf[m++] = h_mu(i,0);
+  buf[m++] = h_mu(i,1);
+  buf[m++] = h_mu(i,2);
+  buf[m++] = h_mu(i,3);
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -745,6 +824,7 @@ struct AtomVecDipoleKokkos_UnpackExchangeFunctor {
   typename AT::t_int_1d _mask;
   typename AT::t_imageint_1d _image;
   typename AT::t_float_1d _q;
+  typename AT::t_mu_array _mu;
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d _nlocal;
   int _dim;
@@ -762,9 +842,10 @@ struct AtomVecDipoleKokkos_UnpackExchangeFunctor {
     _mask(atom->k_mask.view<DeviceType>()),
     _image(atom->k_image.view<DeviceType>()),
     _q(atom->k_q.view<DeviceType>()),
+    _mu(atom->k_mu.view<DeviceType>()),
     _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
     _lo(lo),_hi(hi) {
-    const size_t elements = 12;
+    const size_t elements = 16;
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
 
     buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
@@ -786,6 +867,10 @@ struct AtomVecDipoleKokkos_UnpackExchangeFunctor {
       _mask[i] = (int) d_ubuf(_buf(myrecv,9)).i;
       _image[i] = (imageint) d_ubuf(_buf(myrecv,10)).i;
       _q[i] = _buf(myrecv,11);
+      _mu(i,0) = _buf(myrecv,12);
+      _mu(i,1) = _buf(myrecv,13);
+      _mu(i,2) = _buf(myrecv,14);
+      _mu(i,3) = _buf(myrecv,15);
     }
   }
 };
@@ -795,10 +880,11 @@ struct AtomVecDipoleKokkos_UnpackExchangeFunctor {
 int AtomVecDipoleKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
                                                 int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
                                                 ExecutionSpace space) {
+  const size_t nelements = 16; // # of elements packed
   if (space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecDipoleKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/12,f);
+    Kokkos::parallel_for(nrecv/nelements,f);
     return k_count.h_view(0);
   } else {
     k_count.h_view(0) = nlocal;
@@ -806,7 +892,7 @@ int AtomVecDipoleKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int 
     k_count.sync<LMPDeviceType>();
     AtomVecDipoleKokkos_UnpackExchangeFunctor<LMPDeviceType>
       f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/12,f);
+    Kokkos::parallel_for(nrecv/nelements,f);
     k_count.modify<LMPDeviceType>();
     k_count.sync<LMPHostType>();
 
@@ -821,7 +907,7 @@ int AtomVecDipoleKokkos::unpack_exchange(double *buf)
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
   atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-           MASK_MASK | IMAGE_MASK | Q_MASK);
+           MASK_MASK | IMAGE_MASK | Q_MASK | MU_MASK);
 
   int m = 1;
   h_x(nlocal,0) = buf[m++];
@@ -835,6 +921,10 @@ int AtomVecDipoleKokkos::unpack_exchange(double *buf)
   h_mask(nlocal) = (int) ubuf(buf[m++]).i;
   h_image(nlocal) = (imageint) ubuf(buf[m++]).i;
   h_q[nlocal] = buf[m++];
+  h_mu(nlocal,0) = buf[m++];
+  h_mu(nlocal,1) = buf[m++];
+  h_mu(nlocal,2) = buf[m++];
+  h_mu(nlocal,3) = buf[m++];
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -855,7 +945,7 @@ int AtomVecDipoleKokkos::size_restart()
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 12 * nlocal;
+  int n = 16 * nlocal;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -874,7 +964,7 @@ int AtomVecDipoleKokkos::size_restart()
 int AtomVecDipoleKokkos::pack_restart(int i, double *buf)
 {
   atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-            MASK_MASK | IMAGE_MASK | Q_MASK);
+            MASK_MASK | IMAGE_MASK | Q_MASK | MU_MASK);
 
   int m = 1;
   buf[m++] = h_x(i,0);
@@ -889,6 +979,10 @@ int AtomVecDipoleKokkos::pack_restart(int i, double *buf)
   buf[m++] = h_v(i,2);
 
   buf[m++] = h_q[i];
+  buf[m++] = h_mu(i,0);
+  buf[m++] = h_mu(i,1);
+  buf[m++] = h_mu(i,2);
+  buf[m++] = h_mu(i,3);
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -912,7 +1006,7 @@ int AtomVecDipoleKokkos::unpack_restart(double *buf)
   }
 
   atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-           MASK_MASK | IMAGE_MASK | Q_MASK);
+           MASK_MASK | IMAGE_MASK | Q_MASK | MU_MASK);
 
   int m = 1;
   h_x(nlocal,0) = buf[m++];
@@ -927,6 +1021,10 @@ int AtomVecDipoleKokkos::unpack_restart(double *buf)
   h_v(nlocal,2) = buf[m++];
 
   h_q[nlocal] = buf[m++];
+  h_mu(nlocal,0) = buf[m++];
+  h_mu(nlocal,1) = buf[m++];
+  h_mu(nlocal,2) = buf[m++];
+  h_mu(nlocal,3) = buf[m++];
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
@@ -966,6 +1064,10 @@ void AtomVecDipoleKokkos::create_atom(int itype, double *coord)
   h_v(nlocal,2) = 0.0;
 
   h_q[nlocal] = 0.0;
+  h_mu(nlocal,0) = 0.0;
+  h_mu(nlocal,1) = 0.0;
+  h_mu(nlocal,2) = 0.0;
+  h_mu(nlocal,3) = 0.0;
 
   atom->nlocal++;
 }
@@ -988,6 +1090,17 @@ void AtomVecDipoleKokkos::data_atom(double *coord, imageint imagetmp,
     error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   h_q[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
+
+  h_mu(nlocal,0) = utils::numeric(FLERR,values[6],true,lmp);
+  h_mu(nlocal,1) = utils::numeric(FLERR,values[7],true,lmp);
+  h_mu(nlocal,2) = utils::numeric(FLERR,values[8],true,lmp);
+  h_mu(nlocal,3) = sqrt(mu[nlocal][0]*mu[nlocal][0] +
+                        mu[nlocal][1]*mu[nlocal][1] +
+                        mu[nlocal][2]*mu[nlocal][2]);
+  double mnorm = 1.0/h_mu(nlocal,3);
+  h_mu(nlocal,0) *= mnorm;
+  h_mu(nlocal,1) *= mnorm;
+  h_mu(nlocal,2) *= mnorm;
 
   h_x(nlocal,0) = coord[0];
   h_x(nlocal,1) = coord[1];
@@ -1013,8 +1126,18 @@ int AtomVecDipoleKokkos::data_atom_hybrid(int nlocal, const std::vector<std::str
                                           int offset)
 {
   h_q[nlocal] = utils::numeric(FLERR,values[offset],true,lmp);
+  h_mu(nlocal,0) = utils::numeric(FLERR,values[offset+1],true,lmp);
+  h_mu(nlocal,1) = utils::numeric(FLERR,values[offset+2],true,lmp);
+  h_mu(nlocal,2) = utils::numeric(FLERR,values[offset+3],true,lmp);
+  h_mu(nlocal,3) = sqrt(mu[nlocal][0]*mu[nlocal][0] +
+                        mu[nlocal][1]*mu[nlocal][1] +
+                        mu[nlocal][2]*mu[nlocal][2]);
+  double mnorm = 1.0/h_mu(nlocal,3);
+  mu[nlocal][0] *= mnorm;
+  mu[nlocal][1] *= mnorm;
+  mu[nlocal][2] *= mnorm;
 
-  return 1;
+  return 4;
 }
 /* ----------------------------------------------------------------------
    pack atom info for data file including 3 image flags
@@ -1030,6 +1153,9 @@ void AtomVecDipoleKokkos::pack_data(double **buf)
     buf[i][3] = h_x(i,0);
     buf[i][4] = h_x(i,1);
     buf[i][5] = h_x(i,2);
+    buf[i][6] = h_mu(i,1);
+    buf[i][7] = h_mu(i,2);
+    buf[i][8] = h_mu(i,3);
     buf[i][6] = (h_image[i] & IMGMASK) - IMGMAX;
     buf[i][7] = (h_image[i] >> IMGBITS & IMGMASK) - IMGMAX;
     buf[i][8] = (h_image[i] >> IMG2BITS) - IMGMAX;
@@ -1043,7 +1169,10 @@ void AtomVecDipoleKokkos::pack_data(double **buf)
 int AtomVecDipoleKokkos::pack_data_hybrid(int i, double *buf)
 {
   buf[0] = h_q[i];
-  return 1;
+  buf[1] = h_mu(i,0);
+  buf[2] = h_mu(i,1);
+  buf[3] = h_mu(i,2);
+  return 4;
 }
 
 /* ----------------------------------------------------------------------
@@ -1064,8 +1193,8 @@ void AtomVecDipoleKokkos::write_data(FILE *fp, int n, double **buf)
 
 int AtomVecDipoleKokkos::write_data_hybrid(FILE *fp, double *buf)
 {
-  fprintf(fp," %-1.16e",buf[0]);
-  return 1;
+  fprintf(fp," %-1.16e %-1.16e %-1.16e %-1.16e",buf[0],buf[1],buf[2],buf[3]);
+  return 4;
 }
 
 /* ----------------------------------------------------------------------
@@ -1085,6 +1214,7 @@ double AtomVecDipoleKokkos::memory_usage()
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*commKK->nthreads,3);
 
   if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
+  if (atom->memcheck("mu")) bytes += memory->usage(mu,nmax,4);
 
   return bytes;
 }

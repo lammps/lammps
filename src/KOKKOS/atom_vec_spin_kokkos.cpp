@@ -574,12 +574,9 @@ void AtomVecSpinKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
 
   for (i = first; i < last; i++) {
-    if (i == nmax) {
-      grow(0);
-    }
-    atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|SP_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -591,6 +588,8 @@ void AtomVecSpinKokkos::unpack_border(int n, int first, double *buf)
     h_sp(i,2) = buf[m++];
     h_sp(i,3) = buf[m++];
   }
+
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|SP_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -1132,12 +1131,12 @@ void AtomVecSpinKokkos::pack_data(double **buf)
     buf[i][3] = h_x(i,0);
     buf[i][4] = h_x(i,1);
     buf[i][5] = h_x(i,2);
-    buf[i][2] = h_sp(i,1);
-    buf[i][2] = h_sp(i,2);
-    buf[i][2] = h_sp(i,3);
-    buf[i][6] = (h_image[i] & IMGMASK) - IMGMAX;
-    buf[i][7] = (h_image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    buf[i][8] = (h_image[i] >> IMG2BITS) - IMGMAX;
+    buf[i][6] = h_sp(i,1);
+    buf[i][7] = h_sp(i,2);
+    buf[i][8] = h_sp(i,3);
+    buf[i][9] = (h_image[i] & IMGMASK) - IMGMAX;
+    buf[i][10] = (h_image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][11] = (h_image[i] >> IMG2BITS) - IMGMAX;
   }
 }
 

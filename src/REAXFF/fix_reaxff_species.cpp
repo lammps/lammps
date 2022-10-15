@@ -44,9 +44,13 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), Name(nullptr), MolName(nullptr), NMol(nullptr), nd(nullptr),
+    MolType(nullptr), molmap(nullptr), mark(nullptr), Mol2Spec(nullptr), clusterID(nullptr),
+    x0(nullptr), BOCut(nullptr), fp(nullptr), pos(nullptr), fdel(nullptr), ele(nullptr),
+    eletype(nullptr), filepos(nullptr), filedel(nullptr)
 {
-  if (narg < 7) error->all(FLERR, "Illegal fix reaxff/species command");
+  if (narg < 7) utils::missing_cmd_args(FLERR, "fix reaxff/species", error);
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -62,8 +66,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   compressed = 0;
   nvalid = -1;
 
-  MPI_Comm_rank(world, &me);
-  MPI_Comm_size(world, &nprocs);
   ntypes = atom->ntypes;
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -73,10 +75,11 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
 
   comm_forward = 4;
 
-  if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
-    error->all(FLERR, "Illegal fix reaxff/species command");
-  if (nfreq % nevery || nrepeat * nevery > nfreq)
-    error->all(FLERR, "Illegal fix reaxff/species command");
+  if (nevery <= 0) error->all(FLERR, "Invalid fix reaxff/species nevery value {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR, "Invalid fix reaxff/species nrepeat value {}", nrepeat);
+  if (nfreq <= 0) error->all(FLERR, "Invalid fix reaxff/species nfreq value {}", nfreq);
+  if ((nfreq % nevery) || (nrepeat * nevery > nfreq))
+    error->all(FLERR, "Incompatible fix reaxff/species nevery/nrepeat/nfreq settings");
 
   // Neighbor lists must stay unchanged during averaging of bonds,
   // but may be updated when no averaging is performed.
@@ -99,13 +102,13 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
     rene_flag = 1;
   }
 
-  if (me == 0 && rene_flag)
+  if (comm->me == 0 && rene_flag)
     error->warning(FLERR,
                    "Resetting reneighboring criteria to 'delay {} every {} check no' "
-                   "due to fix reaxff/species",
+                   "due to fix reaxff/species averaging of bond data",
                    neighbor->delay, neighbor->every);
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (platform::has_compress_extension(arg[6])) {
       fp = platform::compressed_write(arg[6]);
       compressed = 1;
@@ -124,16 +127,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   memory->create(x0, ntmp, "reaxff/species:x0");
   memory->create(clusterID, ntmp, "reaxff/species:clusterID");
   vector_atom = clusterID;
-
-  BOCut = nullptr;
-  Name = nullptr;
-  MolName = nullptr;
-  MolType = nullptr;
-  NMol = nullptr;
-  Mol2Spec = nullptr;
-  nd = nullptr;
-  molmap = nullptr;
-  mark = nullptr;
 
   nmax = 0;
   setupflag = 0;
@@ -159,16 +152,16 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
 
   int iarg = 7;
   while (iarg < narg) {
-
     // set BO cutoff
     if (strcmp(arg[iarg], "cutoff") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species cutoff", error);
       itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       jtype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       bo_cut = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-      if (itype > ntypes || jtype > ntypes) error->all(FLERR, "Illegal fix reaxff/species command");
-      if (itype <= 0 || jtype <= 0) error->all(FLERR, "Illegal fix reaxff/species command");
-      if (bo_cut > 1.0 || bo_cut < 0.0) error->all(FLERR, "Illegal fix reaxff/species command");
+      if ((itype <= 0) || (jtype <= 0) || (itype > ntypes) || (jtype > ntypes))
+        error->all(FLERR, "Fix reaxff/species cutoff atom type(s) out of range");
+      if ((bo_cut > 1.0) || (bo_cut < 0.0))
+        error->all(FLERR, "Fix reaxff/species invalid cutoff value: {}", bo_cut);
 
       BOCut[itype][jtype] = bo_cut;
       BOCut[jtype][itype] = bo_cut;
@@ -176,7 +169,8 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
 
       // modify element type names
     } else if (strcmp(arg[iarg], "element") == 0) {
-      if (iarg + ntypes + 1 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
+      if (iarg + ntypes + 1 > narg)
+        utils::missing_cmd_args(FLERR, "fix reaxff/species element", error);
 
       eletype = (char **) malloc(ntypes * sizeof(char *));
       int len;
@@ -193,63 +187,66 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       delflag = 1;
       delete[] filedel;
       filedel = utils::strdup(arg[iarg + 1]);
-      if (me == 0) {
+      if (comm->me == 0) {
         fdel = fopen(filedel, "w");
         if (!fdel)
           error->one(FLERR, "Cannot open fix reaxff/species delete file {}: {}", filedel,
                      utils::getsyserror());
       }
-
       del_opened = 1;
 
       if (strcmp(arg[iarg + 2], "masslimit") == 0) {
-        if (iarg + 5 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
+        if (iarg + 5 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species masslimit", error);
         masslimitflag = 1;
-        massmin = atof(arg[iarg + 3]);
-        massmax = atof(arg[iarg + 4]);
+        massmin = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+        massmax = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
         iarg += 5;
+
       } else if (strcmp(arg[iarg + 2], "specieslist") == 0) {
         specieslistflag = 1;
-        ndelspec = atoi(arg[iarg + 3]);
-        if (iarg + ndelspec + 4 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
+        ndelspec = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
+        if (iarg + ndelspec + 4 > narg)
+          utils::missing_cmd_args(FLERR, "fix reaxff/species delete specieslist", error);
 
         del_species.resize(ndelspec);
         for (int i = 0; i < ndelspec; i++) del_species[i] = arg[iarg + 4 + i];
 
-        if (me == 0) {
+        if (comm->me == 0) {
           fprintf(fdel, "Timestep");
           for (i = 0; i < ndelspec; i++) fprintf(fdel, "\t%s", del_species[i].c_str());
           fprintf(fdel, "\n");
           fflush(fdel);
         }
-
         iarg += ndelspec + 4;
+
       } else
-        error->all(FLERR, "Illegal fix reaxff/species command");
+        error->all(FLERR, "Unknown fix reaxff/species delete option: {}", arg[iarg]);
 
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species position", error);
       posflag = 1;
       posfreq = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (posfreq < nfreq || (posfreq % nfreq != 0))
-        error->all(FLERR, "Illegal fix reaxff/species command");
+        error->all(FLERR, "Incompatible fix reaxff/species postion frequency {}", posfreq);
 
       filepos = new char[255];
       strcpy(filepos, arg[iarg + 2]);
       if (strchr(filepos, '*')) {
         multipos = 1;
       } else {
-        if (me == 0) {
+        if (comm->me == 0) {
           pos = fopen(filepos, "w");
-          if (pos == nullptr) error->one(FLERR, "Cannot open fix reaxff/species position file");
+          if (pos == nullptr)
+            error->one(FLERR, "Cannot open fix reaxff/species position file: {}",
+                       utils::getsyserror());
         }
         singlepos_opened = 1;
         multipos = 0;
       }
       iarg += 3;
     } else
-      error->all(FLERR, "Illegal fix reaxff/species command");
+      error->all(FLERR, "Unknown fix reaxff/species keyword: {}", arg[iarg]);
   }
 
   if (!eleflag) {
@@ -261,7 +258,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   }
 
   if (delflag && specieslistflag && masslimitflag)
-    error->all(FLERR, "Illegal fix reaxff/species command");
+    error->all(FLERR, "Incompatible combination fix reaxff/species command options");
 
   vector_nmole = 0;
   vector_nspec = 0;
@@ -286,7 +283,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   delete[] filepos;
   delete[] filedel;
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (compressed)
       platform::pclose(fp);
     else
@@ -365,7 +362,7 @@ void FixReaxFFSpecies::init_list(int /*id*/, NeighList *ptr)
 void FixReaxFFSpecies::post_integrate()
 {
   Output_ReaxFF_Bonds(update->ntimestep, fp);
-  if (me == 0) fflush(fp);
+  if (comm->me == 0) fflush(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -402,11 +399,11 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   vector_nmole = Nmole;
   vector_nspec = Nspec;
 
-  if (me == 0 && ntimestep >= 0) WriteFormulas(Nmole, Nspec);
+  if (comm->me == 0 && ntimestep >= 0) WriteFormulas(Nmole, Nspec);
 
   if (posflag && ((ntimestep) % posfreq == 0)) {
     WritePos(Nmole, Nspec);
-    if (me == 0) fflush(pos);
+    if (comm->me == 0) fflush(pos);
   }
 
   if (delflag) DeleteSpecies(Nmole, Nspec);
@@ -498,7 +495,7 @@ void FixReaxFFSpecies::FindMolecule()
     if (!anychange) break;
 
     MPI_Allreduce(&loop, &looptot, 1, MPI_INT, MPI_SUM, world);
-    if (looptot >= 400 * nprocs) break;
+    if (looptot >= 400 * comm->nprocs) break;
   }
 }
 
@@ -529,12 +526,12 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
     return;
   }
   if (idlo == ntotal)
-    if (me == 0)
+    if (comm->me == 0)
       error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group {}",
                      group->names[igroup]);
 
   MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-  if (flagall && me == 0)
+  if (flagall && comm->me == 0)
     error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group {}",
                    group->names[igroup]);
 
@@ -711,7 +708,7 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
 
 void FixReaxFFSpecies::OpenPos()
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     auto filecurrent = utils::star_subst(filepos, update->ntimestep, padflag);
     pos = fopen(filecurrent.c_str(), "w");
     if (pos == nullptr)
@@ -741,7 +738,7 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
   for (int j = 0; j < 3; j++) halfbox[j] = box[j] / 2;
 
-  if (me == 0) {
+  if (comm->me == 0) {
     fmt::print(pos,
                "Timestep {} NMole {}  NSpec {}  xlo {:f}  "
                "xhi {:f}  ylo {:f}  yhi {:f}  zlo {:f}  zhi {:f}\n",
@@ -795,7 +792,7 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
     MPI_Reduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, 0, world);
     for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
 
-    if (me == 0) {
+    if (comm->me == 0) {
       fprintf(pos, "%d\t%d\t", m, count);
       for (n = 0; n < ntypes; n++) {
         if (Name[n] != 0) {
@@ -821,7 +818,7 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
       fprintf(pos, "\n");
     }
   }
-  if (me == 0 && !multipos) fprintf(pos, "#\n");
+  if (comm->me == 0 && !multipos) fprintf(pos, "#\n");
   memory->destroy(Nameall);
 }
 
@@ -934,12 +931,12 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 
   atom->natoms -= ndel;
 
-  if (me == 0)
+  if (comm->me == 0)
     MPI_Reduce(MPI_IN_PLACE, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
   else
     MPI_Reduce(deletecount, deletecount, ndelcomm, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (masslimitflag) {
       int printflag = 0;
       for (int m = 0; m < Nspec; m++) {

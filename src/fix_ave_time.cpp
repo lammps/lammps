@@ -92,14 +92,12 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
     value_t val;
     val.keyword = arg[i];
+    val.which = argi.get_type();
     key2col[arg[i]] = i;
 
-    if ((argi.get_type() == ArgInfo::NONE)
-        || (argi.get_type() == ArgInfo::UNKNOWN)
-        || (argi.get_dim() > 1))
+    if ((val.which == ArgInfo::NONE) || (val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
       error->all(FLERR,"Invalid fix ave/time argument: {}", arg[i]);
 
-    val.which = argi.get_type();
     val.argindex = argi.get_index1();
     val.varlen = 0;
     val.offcol = 0;
@@ -123,12 +121,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // for fix inputs, check that fix frequency is acceptable
   // set variable_length if any compute is variable length
 
-  if (nevery <= 0)
-    error->all(FLERR,"Illegal fix ave/time nevery value: {}", nevery);
-  if (nrepeat <= 0)
-    error->all(FLERR,"Illegal fix ave/time nrepeat value: {}", nrepeat);
-  if (nfreq <= 0)
-    error->all(FLERR,"Illegal fix ave/time nfreq value: {}", nfreq);
+  if (nevery <= 0) error->all(FLERR,"Illegal fix ave/time nevery value: {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR,"Illegal fix ave/time nrepeat value: {}", nrepeat);
+  if (nfreq <= 0) error->all(FLERR,"Illegal fix ave/time nfreq value: {}", nfreq);
   if (nfreq % nevery || nrepeat*nevery > nfreq)
     error->all(FLERR,"Inconsistent fix ave/time nevery/nrepeat/nfreq values");
   if (ave != RUNNING && overwrite)

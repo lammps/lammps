@@ -64,14 +64,14 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
   FunctorType m_functor;
 
   template <class TagType>
-  typename std::enable_if<std::is_same<TagType, void>::value>::type
-  execute_functor(const std::int32_t w) const noexcept {
+  std::enable_if_t<std::is_void<TagType>::value> execute_functor(
+      const std::int32_t w) const noexcept {
     m_functor(w);
   }
 
   template <class TagType>
-  typename std::enable_if<!std::is_same<TagType, void>::value>::type
-  execute_functor(const std::int32_t w) const noexcept {
+  std::enable_if_t<!std::is_void<TagType>::value> execute_functor(
+      const std::int32_t w) const noexcept {
     const TagType t{};
     m_functor(t, w);
   }

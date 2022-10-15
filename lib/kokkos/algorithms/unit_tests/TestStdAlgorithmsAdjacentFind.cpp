@@ -44,7 +44,7 @@
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_NonModifyingSequenceOperations.hpp>
+#include "std_algorithms/Kokkos_AdjacentFind.hpp"
 #include <utility>
 
 namespace Test {
@@ -257,7 +257,7 @@ void verify(DiffType my_diff, ViewType view, Args... args) {
       my_std_adjacent_find(KE::cbegin(view_h), KE::cend(view_h), args...);
   const auto std_diff = std_r - KE::cbegin(view_h);
 
-  EXPECT_TRUE(my_diff == std_diff);
+  EXPECT_EQ(my_diff, std_diff);
 }
 
 template <class Tag, class ValueType, class InfoType, class... Args>

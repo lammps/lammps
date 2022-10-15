@@ -56,6 +56,7 @@ Commands
    kspace_modify
    kspace_style
    label
+   labelmap
    lattice
    log
    mass

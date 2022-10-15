@@ -268,6 +268,15 @@
 /pair_mesont_tpm.cpp
 /pair_mesont_tpm.h
 
+/bond_mesocnt.cpp
+/bond_mesocnt.h
+/angle_mesocnt.cpp
+/angle_mesocnt.h
+/pair_mesocnt.cpp
+/pair_mesocnt.h
+/pair_mesocnt_viscous.cpp
+/pair_mesocnt_viscous.h
+
 /atom_vec_bpm_sphere.cpp
 /atom_vec_bpm_sphere.h
 /bond_bpm.cpp
@@ -409,8 +418,8 @@
 /angle_mm3.h
 /angle_quartic.cpp
 /angle_quartic.h
-/angle_sdk.cpp
-/angle_sdk.h
+/angle_spica.cpp
+/angle_spica.h
 /angle_table.cpp
 /angle_table.h
 /atom_vec_angle.cpp
@@ -990,7 +999,7 @@
 /improper_umbrella.h
 /interlayer_taper.h
 /kissfft.h
-/lj_sdk_common.h
+/lj_spica_common.h
 /math_complex.h
 /math_vector.h
 /message.cpp
@@ -1218,12 +1227,12 @@
 /pair_lj_long_tip4p_long.h
 /pair_lj_cut_tgpu.cpp
 /pair_lj_cut_tgpu.h
-/pair_lj_sdk.cpp
-/pair_lj_sdk.h
-/pair_lj_sdk_coul_long.cpp
-/pair_lj_sdk_coul_long.h
-/pair_lj_sdk_coul_msm.cpp
-/pair_lj_sdk_coul_msm.h
+/pair_lj_spica.cpp
+/pair_lj_spica.h
+/pair_lj_spica_coul_long.cpp
+/pair_lj_spica_coul_long.h
+/pair_lj_spica_coul_msm.cpp
+/pair_lj_spica_coul_msm.h
 /pair_lj_sf_dipole_sf.cpp
 /pair_lj_sf_dipole_sf.h
 /pair_lj_switch3_coulgauss_long.cpp
@@ -1240,8 +1249,6 @@
 /pair_meam_spline.h
 /pair_meam_sw_spline.cpp
 /pair_meam_sw_spline.h
-/pair_mesocnt.cpp
-/pair_mesocnt.h
 /pair_mm3_switch3_coulgauss_long.cpp
 /pair_mm3_switch3_coulgauss_long.h
 /pair_morse_soft.cpp
@@ -1522,6 +1529,8 @@
 /fix_smd_wall_surface.h
 /fix_srp.cpp
 /fix_srp.h
+/fix_srp_react.cpp
+/fix_srp_react.h
 /fix_tfmc.cpp
 /fix_tfmc.h
 /fix_ttm.cpp
@@ -1562,6 +1571,8 @@
 /pair_smd_ulsph.h
 /pair_srp.cpp
 /pair_srp.h
+/pair_srp_react.cpp
+/pair_srp_react.h
 /pair_thole.cpp
 /pair_thole.h
 /pair_buck_mdf.cpp

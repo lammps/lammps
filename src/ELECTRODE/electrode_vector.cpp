@@ -53,10 +53,13 @@ ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group
 ElectrodeVector::~ElectrodeVector()
 {
   if (timer_flag && (comm->me == 0)) {
-    utils::logmesg(lmp, fmt::format("B time: {:.4g} s\n", b_time_total));
-    utils::logmesg(lmp, fmt::format("B kspace time: {:.4g} s\n", kspace_time_total));
-    utils::logmesg(lmp, fmt::format("B pair time: {:.4g} s\n", pair_time_total));
-    utils::logmesg(lmp, fmt::format("B boundary time: {:.4g} s\n", boundary_time_total));
+    try {
+      utils::logmesg(lmp, fmt::format("B time: {:.4g} s\n", b_time_total));
+      utils::logmesg(lmp, fmt::format("B kspace time: {:.4g} s\n", kspace_time_total));
+      utils::logmesg(lmp, fmt::format("B pair time: {:.4g} s\n", pair_time_total));
+      utils::logmesg(lmp, fmt::format("B boundary time: {:.4g} s\n", boundary_time_total));
+    } catch (std::exception &) {
+    }
   }
 }
 

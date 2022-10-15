@@ -6,7 +6,7 @@ compute pe command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID pe keyword ...
 
@@ -32,14 +32,14 @@ entire system of atoms.  The specified group must be "all".  See the
 energies.  These per-atom values could be summed for a group of atoms
 via the :doc:`compute reduce <compute_reduce>` command.
 
-The energy is calculated by the various pair, bond, etc potentials
+The energy is calculated by the various pair, bond, etc. potentials
 defined for the simulation.  If no extra keywords are listed, then the
 potential energy is the sum of pair, bond, angle, dihedral, improper,
-kspace (long-range), and fix energy.  I.e. it is as if all the
-keywords were listed.  If any extra keywords are listed, then only
+:math:`k`-space (long-range), and fix energy (i.e., it is as though all the
+keywords were listed).  If any extra keywords are listed, then only
 those components are summed to compute the potential energy.
 
-The Kspace contribution requires 1 extra FFT each timestep the energy
+The :math:`k`-space contribution requires 1 extra FFT each timestep the energy
 is calculated, if using the PPPM solver via the :doc:`kspace_style pppm <kspace_style>` command.  Thus it can increase the cost of the
 PPPM calculation if it is needed on a large fraction of the simulation
 timesteps.

@@ -265,16 +265,19 @@ void FixPolarizeBEMGMRES::setup(int /*vflag*/)
   else
     error->all(FLERR, "Pair style not compatible with fix polarize/bem/gmres");
 
-  if (kspaceflag) {
-    if (force->kspace) {
-      if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
-        efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
-      else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
-        efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
-      else
-        error->all(FLERR, "Kspace style not compatible with fix polarize/bem/gmres");
-    } else
-      error->all(FLERR, "No Kspace style available for fix polarize/bem/gmres");
+  if (force->kspace) {
+    kspaceflag = 1;
+    if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
+      efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
+    else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
+      efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
+    else
+      error->all(FLERR, "Kspace style not compatible with fix polarize/bem/gmres");
+  } else {
+    if (kspaceflag == 1) {    // users specified kspace yes but there is no kspace pair style
+      error->warning(FLERR, "No Kspace pair style available for fix polarize/bem/gmres");
+      kspaceflag = 0;
+    }
   }
 
   // NOTE: epsilon0e2q converts (epsilon0 * efield) to the unit of (charge unit / squared distance unit)

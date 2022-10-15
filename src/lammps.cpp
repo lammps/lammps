@@ -46,6 +46,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
+#include "suffix.h"
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
@@ -196,6 +197,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int citelogfile = CiteMe::VERBOSE;
   char *citefile = nullptr;
   int helpflag = 0;
+  int nonbufflag = 0;
 
   suffix = suffix2 = suffixp = nullptr;
   suffix_enable = 0;
@@ -296,6 +298,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     } else if (strcmp(arg[iarg],"-nocite") == 0 ||
                strcmp(arg[iarg],"-nc") == 0) {
       citeflag = 0;
+      iarg++;
+
+    } else if (strcmp(arg[iarg],"-nonbuf") == 0 ||
+               strcmp(arg[iarg],"-nb") == 0) {
+      nonbufflag = 1;
       iarg++;
 
     } else if (strcmp(arg[iarg],"-package") == 0 ||
@@ -442,8 +449,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // sum of procs in all worlds must equal total # of procs
 
   if (!universe->consistent())
-    error->universe_all(FLERR,"Processor partitions do not match "
-                        "number of allocated processors");
+    error->universe_all(FLERR,"Processor partitions do not match number of allocated processors");
 
   // universe cannot use stdin for input file
 
@@ -512,10 +518,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
         error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
+      if (!helpflag)
+        utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
+      // warn against using I/O redirection in parallel runs
+      if ((inflag == 0) && (universe->nprocs > 1))
+        error->warning(FLERR, "Using I/O redirection is unreliable with parallel runs. "
+                       "Better use -in switch to read input file.");
+      utils::flush_buffers(this);
     }
-
-    if ((universe->me == 0) && !helpflag)
-      utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -581,6 +591,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         if (infile == nullptr)
           error->one(FLERR,"Cannot open input script {}: {}",arg[inflag], utils::getsyserror());
       }
+    }
+
+    // make all screen and logfile output unbuffered for debugging crashes
+
+    if (nonbufflag) {
+      if (universe->uscreen) setbuf(universe->uscreen, nullptr);
+      if (universe->ulogfile) setbuf(universe->ulogfile, nullptr);
+      if (screen) setbuf(screen, nullptr);
+      if (logfile) setbuf(logfile, nullptr);
     }
 
     // screen and logfile messages for universe and world
@@ -840,36 +859,12 @@ void LAMMPS::post_create()
 {
   if (skiprunflag) input->one("timer timeout 0 every 1");
 
+  // Don't unnecessarily reissue a package command via suffix
+  int package_issued = Suffix::NONE;
+
   // default package command triggered by "-k on"
 
   if (kokkos && kokkos->kokkos_exists) input->one("package kokkos");
-
-  // suffix will always be set if suffix_enable = 1
-  // check that KOKKOS package classes were instantiated
-  // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
-
-  if (suffix_enable) {
-
-    if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
-      error->all(FLERR,"Using suffix gpu without GPU package installed");
-    if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
-      error->all(FLERR,"Using suffix intel without INTEL package installed");
-    if (strcmp(suffix,"kk") == 0 &&
-        (kokkos == nullptr || kokkos->kokkos_exists == 0))
-      error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
-    if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
-      error->all(FLERR,"Using suffix omp without OPENMP package installed");
-
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
-    if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
-    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
-
-    if (suffix2) {
-      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 0");
-      if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
-      if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
-    }
-  }
 
   // invoke any command-line package commands
 
@@ -877,11 +872,53 @@ void LAMMPS::post_create()
     std::string str;
     for (int i = 0; i < num_package; i++) {
       str = "package";
+      char *pkg_name = *(packargs[i]);
+      if (pkg_name != nullptr) {
+        if (strcmp("gpu", pkg_name) == 0) package_issued |= Suffix::GPU;
+        if (strcmp("omp", pkg_name) == 0) package_issued |= Suffix::OMP;
+        if (strcmp("intel", pkg_name) == 0) package_issued |= Suffix::INTEL;
+      }
       for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
         str += " ";
         str += *ptr;
       }
       input->one(str);
+    }
+  }
+
+  // either suffix or suffixp will be set if suffix_enable = 1
+  // check that KOKKOS package classes were instantiated
+  // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
+  // do not re-issue package command if already issued
+
+  if (suffix_enable) {
+    const char *mysuffix = suffix;
+    if (suffixp) mysuffix = suffixp;
+
+    if (strcmp(mysuffix,"gpu") == 0 && !modify->check_package("GPU"))
+      error->all(FLERR,"Using suffix gpu without GPU package installed");
+    if (strcmp(mysuffix,"intel") == 0 && !modify->check_package("INTEL"))
+      error->all(FLERR,"Using suffix intel without INTEL package installed");
+    if (strcmp(mysuffix,"kk") == 0 &&
+        (kokkos == nullptr || kokkos->kokkos_exists == 0))
+      error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
+    if (strcmp(mysuffix,"omp") == 0 && !modify->check_package("OMP"))
+      error->all(FLERR,"Using suffix omp without OPENMP package installed");
+
+    if (strcmp(mysuffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
+      input->one("package gpu 0");
+    if (strcmp(mysuffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
+      input->one("package intel 1");
+    if (strcmp(mysuffix,"omp") == 0 && !(package_issued & Suffix::OMP))
+      input->one("package omp 0");
+
+    if (suffix2) {
+      if (strcmp(suffix2,"gpu") == 0 && !(package_issued & Suffix::GPU))
+        input->one("package gpu 0");
+      if (strcmp(suffix2,"intel") == 0 && !(package_issued & Suffix::INTEL))
+        input->one("package intel 1");
+      if (strcmp(suffix2,"omp") == 0 && !(package_issued & Suffix::OMP))
+        input->one("package omp 0");
     }
   }
 }
@@ -1182,7 +1219,6 @@ void _noopt LAMMPS::help()
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
-
 
   print_config(fp);
   fprintf(fp,"List of individual style options included in this LAMMPS executable\n\n");

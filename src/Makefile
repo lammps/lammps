@@ -50,6 +50,7 @@ endif
 
 PACKAGE = \
 	adios \
+	amoeba \
 	asphere \
 	awpmd \
 	bocs \
@@ -57,7 +58,7 @@ PACKAGE = \
         bpm \
 	brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	colvars \
@@ -146,13 +147,14 @@ PACKAGE = \
 PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
+	amoeba \
 	asphere \
 	bocs \
 	body \
 	bpm \
         brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	coreshell \
@@ -475,7 +477,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs
+check: check-whitespace check-permissions check-homepage check-errordocs check-version
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -500,6 +502,9 @@ check-errordocs:
 
 fix-errordocs:
 	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
+
+check-version:
+	$(PYTHON) ../tools/coding_standard/versiontags.py ..
 
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h

@@ -66,8 +66,8 @@ double ComputeERotateRigid::compute_scalar()
 
   if (strncmp(modify->fix[irfix]->style,"rigid",5) == 0) {
     if (strstr(modify->fix[irfix]->style,"/small")) {
-      scalar = (dynamic_cast<FixRigidSmall *>( modify->fix[irfix]))->extract_erotational();
-    } else scalar = (dynamic_cast<FixRigid *>( modify->fix[irfix]))->extract_erotational();
+      scalar = (dynamic_cast<FixRigidSmall *>(modify->fix[irfix]))->extract_erotational();
+    } else scalar = (dynamic_cast<FixRigid *>(modify->fix[irfix]))->extract_erotational();
   }
   scalar *= force->mvv2e;
   return scalar;

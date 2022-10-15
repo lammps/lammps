@@ -91,6 +91,10 @@ class Dump : protected Pointers {
   char *refresh;      // compute ID to invoke refresh() on
   int irefresh;       // index of compute
 
+  int skipflag;       // 1 if skip condition defined
+  char *skipvar;      // name of variable to check for skip condition
+  int skipindex;      // index of skip variable
+
   char boundstr[9];    // encoding of boundary flags
 
   char *format;            // format string for the file write

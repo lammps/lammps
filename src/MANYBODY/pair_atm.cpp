@@ -32,13 +32,14 @@
 using namespace LAMMPS_NS;
 
 static const char cite_atm_package[] =
-  "ATM package:\n\n"
+  "ATM package: doi:10.1063/1.4704930\n\n"
   "@Article{Lishchuk:2012:164501,\n"
   " author = {S. V. Lishchuk},\n"
-  " title = {Role of three-body interactions in formation of bulk viscosity in liquid argon},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " title = {Role of Three-Body Interactions in Formation of Bulk Viscosity in Liquid Argon},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2012,\n"
   " volume =  136,\n"
+  " number =  16,\n"
   " pages =   {164501}\n"
   "}\n\n";
 

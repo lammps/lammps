@@ -141,8 +141,6 @@ void PairEAMAlloy::read_file(char *filename)
       for (int i = 0; i < file->nelements; i++)
         file->elements[i] = utils::strdup(values.next_string());
 
-      //
-
       values = reader.next_values(5);
       file->nrho = values.next_int();
       file->drho = values.next_double();

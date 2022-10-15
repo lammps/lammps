@@ -10,8 +10,8 @@ Syntax
 
    pair_style mliap ... keyword values ...
 
-* two keyword/value pairs must be appended
-* keyword = *model* or *descriptor*
+* one or two keyword/value pairs must be appended
+* keyword = *model* or *descriptor* or *unified*
 
   .. parsed-literal::
 
@@ -21,6 +21,9 @@ Syntax
        *descriptor* values = style filename
          style = *sna* or *so3*
          filename = name of file containing descriptor definitions
+       *unified* values = filename ghostneigh_flag
+         filename = name of file containing serialized unified Python object
+         ghostneigh_flag = 0/1 to turn off/on inclusion of ghost neighbors in neighbors list
 
 Examples
 """"""""
@@ -30,20 +33,24 @@ Examples
    pair_style mliap model linear InP.mliap.model descriptor sna InP.mliap.descriptor
    pair_style mliap model quadratic W.mliap.model descriptor sna W.mliap.descriptor
    pair_style mliap model nn Si.nn.mliap.model descriptor so3 Si.nn.mliap.descriptor
+   pair_style mliap unified mliap_unified_lj_Ar.pkl 0
    pair_coeff * * In P
 
 Description
 """""""""""
 
 Pair style *mliap* provides a general interface to families of
-machine-learning interatomic potentials. It allows separate definitions
+machine-learning interatomic potentials.  It allows separate definitions
 of the interatomic potential functional form (*model*) and the geometric
-quantities that characterize the atomic positions (*descriptor*). By
-defining *model* and *descriptor* separately, it is possible to use many
-different models with a given descriptor, or many different descriptors
-with a given model. The pair style currently supports only *sna* and *so3*
-descriptor styles, but it is is straightforward to add new descriptor
-styles.
+quantities that characterize the atomic positions (*descriptor*).
+
+By defining *model* and *descriptor* separately, it is possible to use
+many different models with a given descriptor, or many different
+descriptors with a given model.  The pair style currently supports only
+*sna* and *so3* descriptor styles, but it is straightforward to add new
+descriptor styles.  By using the *unified* keyword, it is possible to
+define a Python model that combines functionalities of both *model* and
+*descriptor*.
 
 The SNAP descriptor style *sna* is the same as that used by
 :doc:`pair_style snap <pair_snap>`, including the linear, quadratic, and
@@ -55,17 +62,19 @@ useful to know the gradient or derivative of energy, force, and stress
 w.r.t. model parameters. This information can be accessed using the
 related :doc:`compute mliap <compute_mliap>` command.
 
+.. versionadded:: 2Jun2022
+
 The descriptor style *so3* is a descriptor that is derived from the
 the smooth SO(3) power spectrum with the explicit inclusion of a radial
 basis :ref:`(Bartok) <Bartok2013>` and :ref:`(Zagaceta) <Zagaceta2020>`.
 The available models are *linear* and *nn*.
 
 The pair_style *mliap* command must be followed by two keywords *model*
-and *descriptor* in either order. A single *pair_coeff* command is also
-required. The first 2 arguments must be \* \* so as to span all LAMMPS
-atom types.  This is followed by a list of N arguments that specify the
-mapping of MLIAP element names to LAMMPS atom types, where N is the
-number of LAMMPS atom types.
+and *descriptor* in either order, or the one keyword *unified*.  A
+single *pair_coeff* command is also required.  The first 2 arguments
+must be \* \* so as to span all LAMMPS atom types.  This is followed by
+a list of N arguments that specify the mapping of MLIAP element names to
+LAMMPS atom types, where N is the number of LAMMPS atom types.
 
 The *model* keyword is followed by the model style. This is followed by
 a single argument specifying the model filename containing the
@@ -113,14 +122,15 @@ The detail of *nn* module implementation can be found at :ref:`(Yanxon) <Yanxon2
 
 .. admonition:: Notes on mliappy models
 
-   When the *model* keyword is *mliappy*, the filename should end in '.pt',
-   '.pth' for pytorch models, or be a pickle file. To load a model from
-   memory (i.e. an existing python object), specify the filename as
-   "LATER", and then call `lammps.mliap.load_model(model)` from python
-   before using the pair style. When using lammps via the library mode, you
-   will need to call `lammps.mliappy.activate_mliappy(lmp)` on the active
-   lammps object before the pair style is defined. This call locates and
-   loads the mliap-specific python module that is built into lammps.
+   When the *model* keyword is *mliappy*, if the filename ends in '.pt',
+   or '.pth', it will be loaded using pytorch; otherwise, it will be
+   loaded as a pickle file.  To load a model from memory (i.e. an
+   existing python object), specify the filename as "LATER", and then
+   call `lammps.mliap.load_model(model)` from python before using the
+   pair style.  When using LAMMPS via the library mode, you will need to
+   call `lammps.mliappy.activate_mliappy(lmp)` on the active LAMMPS
+   object before the pair style is defined.  This call locates and loads
+   the mliap-specific python module that is built into LAMMPS.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently two descriptor styles are available: *sna* and *so3*.
@@ -166,6 +176,36 @@ to specify the path for these *model* and *descriptor* files.
    These can consume a significant amount of RAM for simulations of
    larger systems since their size depends on the total number of
    neighbors per MPI process.
+
+.. versionadded:: TBD
+
+The *unified* keyword is followed by an argument specifying the
+filename containing the serialized unified Python object and the "ghostneigh" toggle
+(0/1) to disable/enable the construction of neighbors lists including
+neighbors of ghost atoms. If the filename ends in '.pt', or '.pth', it will be loaded
+using pytorch; otherwise, it will be loaded as a pickle file.
+If ghostneigh is enabled, it is recommended to set :doc:`comm_modify <comm_modify>`
+cutoff manually, such as in the following example.
+
+
+.. code-block:: LAMMPS
+
+   variable ninteractions equal 2
+   variable cutdist equal 7.5
+   variable skin equal 1.0
+   variable commcut equal (${ninteractions}*${cutdist})+${skin}
+   neighbor ${skin} bin
+   comm_modify cutoff ${commcut}
+
+
+.. note::
+
+  To load a model from memory
+  (i.e. an existing python object), call `lammps.mliap.load_unified(unified)`
+  from python, and then specify the filename as "EXISTS". When using LAMMPS via
+  the library mode, you will need to call `lammps.mliappy.activate_mliappy(lmp)`
+  on the active LAMMPS object before the pair style is defined. This call locates
+  and loads the mliap-specific python module that is built into LAMMPS.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

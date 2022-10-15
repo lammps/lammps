@@ -90,7 +90,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
     scatterSize = n;
     auto policy =
         Kokkos::RangePolicy<typename DeviceType::execution_space, int>(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Sum");
+    Kokkos::parallel_for("scatter_view_test: Sum", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -235,7 +235,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
     scatterSize = n;
     auto policy =
         Kokkos::RangePolicy<typename DeviceType::execution_space, int>(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Prod");
+    Kokkos::parallel_for("scatter_view_test: Prod", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -259,12 +259,10 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val0 = host_view(i, 0);
       auto val1 = host_view(i, 1);
       auto val2 = host_view(i, 2);
-      EXPECT_TRUE(std::fabs((val0 - 65536.0) / 65536.0) < 1e-14)
+      EXPECT_NEAR(val0, 65536.0, 1e-14 * 65536.0)
           << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val1 - 256.0) / 256.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14)
-          << "Data differs at index " << i;
+      EXPECT_NEAR(val1, 256.0, 1e-14 * 256.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0) << "Data differs at index " << i;
     }
   }
 
@@ -282,9 +280,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val2 = host_view(i, 2);
       if (i >= std::get<0>(subRangeDim0) && i < std::get<1>(subRangeDim0)) {
         // is in subview
-        EXPECT_TRUE(std::fabs((val0 - 65536.0) / 65536.0) < 1e-14);
-        EXPECT_TRUE(std::fabs((val1 - 256.0) / 256.0) < 1e-14);
-        EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14);
+        EXPECT_NEAR(val0, 65536.0, 1e-14 * 65536.0);
+        EXPECT_NEAR(val1, 256.0, 1e-14 * 256.0);
+        EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0);
       } else {
         // is outside of subview
         EXPECT_NEAR(val0, NumberType(1), 1e-14)
@@ -338,7 +336,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
     scatterSize = n;
     auto policy =
         Kokkos::RangePolicy<typename DeviceType::execution_space, int>(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Prod");
+    Kokkos::parallel_for("scatter_view_test: Prod", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -362,12 +360,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val0 = host_view(i, 0);
       auto val1 = host_view(i, 1);
       auto val2 = host_view(i, 2);
-      EXPECT_TRUE(std::fabs((val0 - 4.0) / 4.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val1 - 2.0) / 2.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14)
-          << "Data differs at index " << i;
+      EXPECT_NEAR(val0, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val1, 2.0, 1e-14 * 2.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0) << "Data differs at index " << i;
     }
   }
 
@@ -385,12 +380,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val2 = host_view(i, 2);
       if (i >= std::get<0>(subRangeDim0) && i < std::get<1>(subRangeDim0)) {
         // is in subview
-        EXPECT_TRUE(std::fabs((val0 - 4.0) / 4.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val1 - 2.0) / 2.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14)
-            << "Data differs at index " << i;
+        EXPECT_NEAR(val0, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val1, 2.0, 1e-14 * 2.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0) << "Data differs at index " << i;
       } else {
         // is outside of subview
         EXPECT_NEAR(val0, NumberType(999999), 1e-14)
@@ -443,7 +435,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
   void run_parallel(int n) {
     scatterSize = n;
     Kokkos::RangePolicy<typename DeviceType::execution_space, int> policy(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Prod");
+    Kokkos::parallel_for("scatter_view_test: Prod", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -467,12 +459,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val0 = host_view(i, 0);
       auto val1 = host_view(i, 1);
       auto val2 = host_view(i, 2);
-      EXPECT_TRUE(std::fabs((val0 - 16.0) / 16.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val1 - 8.0) / 8.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val2 - 4.0) / 4.0) < 1e-14)
-          << "Data differs at index " << i;
+      EXPECT_NEAR(val0, 16.0, 1e-14 * 16.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val1, 8.0, 1e-14 * 8.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val2, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
     }
   }
 
@@ -490,12 +479,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val2 = host_view(i, 2);
       if (i >= std::get<0>(subRangeDim0) && i < std::get<1>(subRangeDim0)) {
         // is in subview
-        EXPECT_TRUE(std::fabs((val0 - 16.0) / 16.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val1 - 8.0) / 8.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val2 - 4.0) / 4.0) < 1e-14)
-            << "Data differs at index " << i;
+        EXPECT_NEAR(val0, 16.0, 1e-14 * 16.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val1, 8.0, 1e-14 * 8.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val2, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
       } else {
         // is outside of subview
         EXPECT_NEAR(val0, NumberType(0), 1e-14)
@@ -888,7 +874,7 @@ TEST(TEST_CATEGORY, scatterview_devicetype) {
 #else
   using device_execution_space = Kokkos::Experimental::HIP;
   using device_memory_space    = Kokkos::Experimental::HIPSpace;
-  using host_accessible_space  = Kokkos::Experimental::HIPHostPinnedSpace;
+  using host_accessible_space  = Kokkos::Experimental::HIPManagedSpace;
 #endif
   if (std::is_same<TEST_EXECSPACE, device_execution_space>::value) {
     using device_device_type =

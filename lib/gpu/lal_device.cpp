@@ -265,15 +265,13 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   // Time on the device only if 1 proc per gpu
   _time_device=true;
 
-#if 0
-  // XXX: the following setting triggers a memory leak with OpenCL and MPI
-  //      setting _time_device=true for all processes doesn't seem to be a
-  //      problem with either (no segfault, no (large) memory leak.
-  //      thus keeping this disabled for now. may need to review later.
-  //      2018-07-23 <akohlmey@gmail.com>
+  // Previous source of OCL memory leak when time_device=false
+  // - Logic added to release OCL events when timers are not invoked
   if (_procs_per_gpu>1)
     _time_device=false;
-#endif
+
+  if (!_time_device && _particle_split > 0)
+    gpu->configure_profiling(false);
 
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
@@ -330,7 +328,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   for (int i=0; i<_procs_per_gpu; i++) {
     if (_gpu_rank==i)
       flag=compile_kernels();
-    gpu_barrier();
+    serialize_init();
   }
 
   // check if double precision support is available
@@ -611,6 +609,10 @@ void DeviceT::init_message(FILE *screen, const char *name,
     int last=last_gpu+1;
     if (last>gpu->num_devices())
       last=gpu->num_devices();
+    if (gpu->num_platforms()>1) {
+      std::string pname=gpu->platform_name();
+      fprintf(screen,"Platform: %s\n",pname.c_str());
+    }
     for (int i=first_gpu; i<last; i++) {
       std::string sname;
       if (i==first_gpu)
@@ -715,7 +717,9 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
       dev_data_out[0].flush();
     #endif
     driver_time=MPI_Wtime()-driver_time;
-    double time=over_timer.seconds();
+    double time=0.0;
+    if (_time_device)
+      time=over_timer.seconds();
 
     if (time_device()) {
       for (int i=0; i<_data_in_estimate; i++)

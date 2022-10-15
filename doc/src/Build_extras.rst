@@ -123,6 +123,7 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
+   -D HIP_PATH                  # path to HIP installation. Must be set if GPU_API=HIP
    -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
                                 # value = sm_XX, see below
                                 # default is sm_50
@@ -179,10 +180,17 @@ set appropriate environment variables. Some variables such as
 :code:`HCC_AMDGPU_TARGET` (for ROCm <= 4.0) or :code:`CUDA_PATH` are necessary for :code:`hipcc`
 and the linker to work correctly.
 
+Using CHIP-SPV implementation of HIP is now supported. It allows one to run HIP
+code on Intel GPUs via the OpenCL or Level Zero backends. To use CHIP-SPV, you must
+set :code:`-DHIP_USE_DEVICE_SORT=OFF` in your CMake command line as CHIP-SPV does not
+yet support hipCUB. The use of HIP for Intel GPUs is still experimental so you
+should only use this option in preparations to run on Aurora system at ANL.
+
 .. code:: bash
 
    # AMDGPU target (ROCm <= 4.0)
    export HIP_PLATFORM=hcc
+   export HIP_PATH=/path/to/HIP/install
    export HCC_AMDGPU_TARGET=gfx906
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
    make -j 4
@@ -191,6 +199,7 @@ and the linker to work correctly.
 
    # AMDGPU target (ROCm >= 4.1)
    export HIP_PLATFORM=amd
+   export HIP_PATH=/path/to/HIP/install
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
    make -j 4
 
@@ -199,8 +208,18 @@ and the linker to work correctly.
    # CUDA target (not recommended, use GPU_ARCH=cuda)
    # !!! DO NOT set CMAKE_CXX_COMPILER !!!
    export HIP_PLATFORM=nvcc
+   export HIP_PATH=/path/to/HIP/install
    export CUDA_PATH=/usr/local/cuda
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70 ..
+   make -j 4
+
+.. code:: bash
+
+   # SPIR-V target (Intel GPUs)
+   export HIP_PLATFORM=spirv
+   export HIP_PATH=/path/to/HIP/install
+   export CMAKE_CXX_COMPILER=<hipcc/clang++>
+   cmake -D PKG_GPU=on -D GPU_API=HIP ..
    make -j 4
 
 Traditional make
@@ -295,7 +314,7 @@ detailed information is available at:
 
 In addition to installing the KIM API, it is also necessary to install the
 library of KIM models (interatomic potentials).
-See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_ to
+See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_ to
 learn how to install a pre-build binary of the OpenKIM Repository of Models.
 See the list of all KIM models here: https://openkim.org/browse/models
 
@@ -413,7 +432,7 @@ Enabling the extra unit tests have some requirements,
   ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000``,
   ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005``, and
   ``LennardJones612_UniversalShifted__MO_959249795837_003`` KIM models.
-  See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_
+  See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_
   to learn how to install a pre-built binary of the OpenKIM Repository of
   Models or see
   `Installing KIM Models <https://openkim.org/doc/usage/obtaining-models/#installing_models>`_
@@ -464,6 +483,9 @@ They must be specified in uppercase.
    *  - **Arch-ID**
       - **HOST or GPU**
       - **Description**
+   *  - NATIVE
+      - HOST
+      - Local machine
    *  - AMDAVX
       - HOST
       - AMD 64-bit x86 CPU (AVX 1)
@@ -503,9 +525,21 @@ They must be specified in uppercase.
    *  - BDW
       - HOST
       - Intel Broadwell Xeon E-class CPU (AVX 2 + transactional mem)
+   *  - SKL
+      - HOST
+      - Intel Skylake Client CPU
    *  - SKX
       - HOST
-      - Intel Sky Lake Xeon E-class HPC CPU (AVX512 + transactional mem)
+      - Intel Skylake Xeon Server CPU (AVX512)
+   *  - ICL
+      - HOST
+      - Intel Ice Lake Client CPU (AVX512)
+   *  - ICX
+      - HOST
+      - Intel Ice Lake Xeon Server CPU (AVX512)
+   *  - SPR
+      - HOST
+      - Intel Sapphire Rapids Xeon Server CPU (AVX512)
    *  - KNC
       - HOST
       - Intel Knights Corner Xeon Phi
@@ -577,7 +611,10 @@ They must be specified in uppercase.
       - AMD GPU MI100 GFX908
    *  - VEGA90A
       - GPU
-      - AMD GPU
+      - AMD GPU MI200 GFX90A
+   *  - INTEL_GEN
+      - GPU
+      - SPIR64-based devices, e.g. Intel GPUs, using JIT
    *  - INTEL_DG1
       - GPU
       - Intel Iris XeMAX GPU
@@ -592,9 +629,12 @@ They must be specified in uppercase.
       - Intel GPU Gen12LP
    *  - INTEL_XEHP
       - GPU
-      - Intel GPUs Xe-HP
+      - Intel GPU Xe-HP
+   *  - INTEL_PVC
+      - GPU
+      - Intel GPU Ponte Vecchio
 
-This list was last updated for version 3.5.0 of the Kokkos library.
+This list was last updated for version 3.7.0 of the Kokkos library.
 
 .. tabs::
 
@@ -788,14 +828,23 @@ library.
 
       .. code-block:: bash
 
-         -D DOWNLOAD_LATTE=value    # download LATTE for build, value = no (default) or yes
-         -D LATTE_LIBRARY=path      # LATTE library file (only needed if a custom location)
+         -D DOWNLOAD_LATTE=value      # download LATTE for build, value = no (default) or yes
+         -D LATTE_LIBRARY=path        # LATTE library file (only needed if a custom location)
+         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
+                                      #   value = no (default) or yes
 
       If ``DOWNLOAD_LATTE`` is set, the LATTE library will be downloaded
       and built inside the CMake build directory.  If the LATTE library
       is already on your system (in a location CMake cannot find it),
       ``LATTE_LIBRARY`` is the filename (plus path) of the LATTE library
       file, not the directory the library file is in.
+
+      The LATTE library requires LAPACK (and BLAS) and CMake can identify
+      their locations and pass that info to the LATTE build script. But
+      on some systems this triggers a (current) limitation of CMake and
+      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
+      those cases to use the bundled linear algebra library and work around
+      the limitation.
 
    .. tab:: Traditional make
 
@@ -1025,7 +1074,7 @@ VORONOI package
 -----------------------------
 
 To build with this package, you must download and build the
-`Voro++ library <http://math.lbl.gov/voro++>`_ or install a
+`Voro++ library <https://math.lbl.gov/voro++>`_ or install a
 binary package provided by your operating system.
 
 .. tabs::
@@ -1913,14 +1962,25 @@ within CMake will download the non-commercial use version.
 
       .. code-block:: bash
 
-         -D DOWNLOAD_QUIP=value   # download OpenKIM API v2 for build, value = no (default) or yes
-         -D QUIP_LIBRARY=path     # path to libquip.a (only needed if a custom location)
+         -D DOWNLOAD_QUIP=value       # download QUIP library for build, value = no (default) or yes
+         -D QUIP_LIBRARY=path         # path to libquip.a (only needed if a custom location)
+         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
+                                      #   value = no (default) or yes
 
-      CMake will try to download and build the QUIP library from GitHub, if it is not
-      found on the local machine. This requires to have git installed. It will use the same compilers
-      and flags as used for compiling LAMMPS.  Currently this is only supported for the GNU and the
-      Intel compilers. Set the ``QUIP_LIBRARY`` variable if you want to use a previously compiled
-      and installed QUIP library and CMake cannot find it.
+      CMake will try to download and build the QUIP library from GitHub,
+      if it is not found on the local machine. This requires to have git
+      installed. It will use the same compilers and flags as used for
+      compiling LAMMPS.  Currently this is only supported for the GNU
+      and the Intel compilers. Set the ``QUIP_LIBRARY`` variable if you
+      want to use a previously compiled and installed QUIP library and
+      CMake cannot find it.
+
+      The QUIP library requires LAPACK (and BLAS) and CMake can identify
+      their locations and pass that info to the QUIP build script. But
+      on some systems this triggers a (current) limitation of CMake and
+      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
+      those cases to use the bundled linear algebra library and work around
+      the limitation.
 
    .. tab:: Traditional make
 

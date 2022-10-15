@@ -44,7 +44,7 @@ void MDICommand::command(int narg, char **arg)
   } else if (strcmp(arg[0], "connect") == 0) {
 
     if (lmp->mdicomm != nullptr)
-      error->all(FLERR,"MDI cannot connect to already connected engine");
+      error->all(FLERR, "MDI cannot connect to already connected engine");
 
     MDI_Comm mdicomm;
     MDI_Get_communicator(&mdicomm, 0);
@@ -53,23 +53,23 @@ void MDICommand::command(int narg, char **arg)
       MDI_Accept_communicator(&mdicomm);
       if (mdicomm == MDI_COMM_NULL)
         error->all(FLERR, "MDI unable to connect to stand-alone engine");
-    } else error->all(FLERR, "Cannot use mdi connect with plugin engine");
+    } else
+      error->all(FLERR, "Cannot use mdi connect with plugin engine");
 
     int nbytes = sizeof(MDI_Comm);
-    char *ptrcomm = (char *) memory->smalloc(nbytes,"mdi:mdicomm");
-    memcpy(ptrcomm,&mdicomm,nbytes);
+    char *ptrcomm = (char *) memory->smalloc(nbytes, "mdi:mdicomm");
+    memcpy(ptrcomm, &mdicomm, nbytes);
 
     lmp->mdicomm = (void *) ptrcomm;
 
   } else if (strcmp(arg[0], "exit") == 0) {
 
-    if (lmp->mdicomm == nullptr)
-      error->all(FLERR,"MDI cannot send exit to unconnected engine");
+    if (lmp->mdicomm == nullptr) error->all(FLERR, "MDI cannot send exit to unconnected engine");
 
     MDI_Comm mdicomm;
     int nbytes = sizeof(MDI_Comm);
     char *ptrcomm = (char *) lmp->mdicomm;
-    memcpy(&mdicomm,ptrcomm,nbytes);
+    memcpy(&mdicomm, ptrcomm, nbytes);
 
     int ierr = MDI_Send_command("EXIT", mdicomm);
     if (ierr) error->all(FLERR, "MDI: EXIT command");
@@ -77,5 +77,6 @@ void MDICommand::command(int narg, char **arg)
     memory->sfree(ptrcomm);
     lmp->mdicomm = nullptr;
 
-  } else error->all(FLERR, "Illegal mdi command");
+  } else
+    error->all(FLERR, "Illegal mdi command");
 }

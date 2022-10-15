@@ -50,6 +50,8 @@ BondHybrid::~BondHybrid()
     delete[] keywords;
   }
 
+  delete[] svector;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(map);
@@ -238,6 +240,49 @@ void BondHybrid::settings(int narg, char **arg)
     i = jarg;
     nstyles++;
   }
+
+  // set bond flags from sub-style flags
+
+  flags();
+}
+
+/* ----------------------------------------------------------------------
+   set top-level bond flags from sub-style flags
+------------------------------------------------------------------------- */
+
+void BondHybrid::flags()
+{
+  int m;
+
+  // set comm_forward, comm_reverse, comm_reverse_off to max of any sub-style
+
+  for (m = 0; m < nstyles; m++) {
+    if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
+    if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
+    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,
+                                          styles[m]->comm_reverse_off);
+  }
+
+  init_svector();
+}
+
+/* ----------------------------------------------------------------------
+   initialize Bond::svector array
+------------------------------------------------------------------------- */
+
+void BondHybrid::init_svector()
+{
+  // single_extra = list all sub-style single_extra
+  // allocate svector
+
+  single_extra = 0;
+  for (int m = 0; m < nstyles; m++)
+    single_extra = MAX(single_extra,styles[m]->single_extra);
+
+  if (single_extra) {
+    delete[] svector;
+    svector = new double[single_extra];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -359,7 +404,25 @@ double BondHybrid::single(int type, double rsq, int i, int j, double &fforce)
 
 {
   if (map[type] < 0) error->one(FLERR, "Invoked bond single on bond style none");
+
+  if (single_extra) copy_svector(type);
   return styles[map[type]]->single(type, rsq, i, j, fforce);
+}
+
+/* ----------------------------------------------------------------------
+   copy Bond::svector data
+------------------------------------------------------------------------- */
+
+void BondHybrid::copy_svector(int type)
+{
+  memset(svector,0,single_extra*sizeof(double));
+
+  // there is only one style in bond style hybrid for a bond type
+  Bond *this_style = styles[map[type]];
+
+  for (int l = 0; this_style->single_extra; ++l) {
+    svector[l] = this_style->svector[l];
+  }
 }
 
 /* ----------------------------------------------------------------------

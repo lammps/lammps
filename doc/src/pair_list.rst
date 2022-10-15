@@ -30,15 +30,17 @@ Description
 """""""""""
 
 Style *list* computes interactions between explicitly listed pairs of
-atoms with the option to select functional form and parameters for
-each individual pair.  Because the parameters are set in the list
-file, the pair_coeff command has no parameters (but still needs to be
-provided).  The *check* and *nocheck* keywords enable/disable a test
-that checks whether all listed bonds were present and computed.
+atoms with the option to select functional form and parameters for each
+individual pair.  Because the parameters are set in the list file, the
+pair_coeff command has no parameters (but still needs to be provided).
+The *check* and *nocheck* keywords enable/disable tests that checks
+whether all listed pairs of atom IDs were present and the interactions
+computed.  If *nocheck* is set and either atom ID is not present, the
+interaction is skipped.
 
 This pair style can be thought of as a hybrid between bonded,
-non-bonded, and restraint interactions.  It will typically be used as
-an additional interaction within the *hybrid/overlay* pair style.  It
+non-bonded, and restraint interactions.  It will typically be used as an
+additional interaction within the *hybrid/overlay* pair style.  It
 currently supports three interaction styles: a 12-6 Lennard-Jones, a
 Morse and a harmonic potential.
 
@@ -55,10 +57,10 @@ The format of the list file is as follows:
        ID2 = atom ID of second atom
        style = style of interaction
        coeffs = list of coeffs
-       cutoff = cutoff for interaction (optional)
+       cutoff = cutoff for interaction (optional, except for style *quartic*)
 
-The cutoff parameter is optional. If not specified, the global cutoff
-is used.
+The cutoff parameter is optional for all but the *quartic* interactions.
+If it is not specified, the global cutoff is used.
 
 Here is an example file:
 
@@ -69,6 +71,7 @@ Here is an example file:
    15 259 lj126     1.0 1.0      50.0
    15 603 morse    10.0 1.2 2.0  10.0 # and another comment
    18 470 harmonic 50.0 1.2       5.0
+   19 332 quartic   5.0 -1.2 1.2  5.0
 
 The style *lj126* computes pairwise interactions with the formula
 
@@ -85,7 +88,7 @@ The style *morse* computes pairwise interactions with the formula
 
 .. math::
 
-   E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] \qquad r < r_c
+   E = D_0 \left[ 1 - e^{-\alpha (r - r_0)} \right]^2 \qquad r < r_c
 
 and the coefficients:
 
@@ -106,6 +109,21 @@ and the coefficients:
 
 Note that the usual 1/2 factor is included in :math:`K`.
 
+The style *quartic* computes pairwise interactions with the formula
+
+.. math::
+
+   E = K (r - r_c)^2 (r - r_c -b_1) (r - r_c - b_2) \qquad r < r_c
+
+and the coefficients:
+
+* :math:`K` (energy units)
+* :math:`b_1` (distance units)
+* :math:`b_2` (distance units)
+* :math:`r_c` (distance units)
+
+Note that the per list entry cutoff :math:`r_c` is **required** for *quartic* interactions.
+
 ----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
@@ -120,8 +138,9 @@ pair style.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands need
-to be specified in an input script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart
+files <restart>`, so pair_style and pair_coeff commands need to be
+specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
@@ -133,17 +152,18 @@ Restrictions
 """"""""""""
 
 This pair style does not use a neighbor list and instead identifies
-atoms by their IDs. This has two consequences: 1) The cutoff has to be
-chosen sufficiently large, so that the second atom of a pair has to be
-a ghost atom on the same node on which the first atom is local;
-otherwise the interaction will be skipped. You can use the *check*
-option to detect, if interactions are missing. 2) Unlike other pair
-styles in LAMMPS, an atom I will not interact with multiple images of
-atom J (assuming the images are within the cutoff distance), but only
-with the nearest image.
+atoms by their IDs.  This has two consequences: 1) The cutoff has to be
+chosen sufficiently large, so that the second atom of a pair has to be a
+ghost atom on the same node on which the first atom is local; otherwise
+the interaction will be skipped.  You can use the *check* option to
+detect, if interactions are missing.  2) Unlike other pair styles in
+LAMMPS, an atom I will not interact with multiple images of atom J
+(assuming the images are within the cutoff distance), but only with the
+closest image.
 
-This style is part of the MISC package. It is only enabled if
-LAMMPS is build with that package. See the :doc:`Build package <Build_package>` page on for more info.
+This style is part of the MISC package. It is only enabled if LAMMPS is
+build with that package. See the :doc:`Build package <Build_package>`
+page on for more info.
 
 Related commands
 """"""""""""""""
@@ -151,8 +171,9 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style hybrid/overlay <pair_hybrid>`,
 :doc:`pair_style lj/cut <pair_lj>`,
-:doc:`pair_style morse <pair_morse>`,
+:doc:`bond_style morse <bond_morse>`,
 :doc:`bond_style harmonic <bond_harmonic>`
+:doc:`bond_style quartic <bond_quartic>`
 
 Default
 """""""

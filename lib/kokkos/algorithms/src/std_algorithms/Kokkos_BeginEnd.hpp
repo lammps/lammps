@@ -46,8 +46,8 @@
 #define KOKKOS_BEGIN_END_HPP
 
 #include <Kokkos_View.hpp>
-#include "Kokkos_RandomAccessIterator.hpp"
-#include "Kokkos_Constraints.hpp"
+#include "impl/Kokkos_RandomAccessIterator.hpp"
+#include "impl/Kokkos_Constraints.hpp"
 
 /// \file Kokkos_BeginEnd.hpp
 /// \brief Kokkos begin, end, cbegin, cend

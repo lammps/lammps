@@ -6,7 +6,7 @@ fix atom/swap command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID atom/swap N X seed T keyword values ...
 
@@ -45,10 +45,10 @@ Description
 """""""""""
 
 This fix performs Monte Carlo swaps of atoms of one given atom type
-with atoms of the other given atom types. The specified T is used in
+with atoms of the other given atom types. The specified :math:`T` is used in
 the Metropolis criterion dictating swap probabilities.
 
-Perform X swaps of atoms of one type with atoms of another type
+Perform :math:`X` swaps of atoms of one type with atoms of another type
 according to a Monte Carlo probability. Swap candidates must be in the
 fix group, must be in the region (if specified), and must be of one of
 the listed types. Swaps are attempted between candidates that are
@@ -57,7 +57,7 @@ atoms. Swaps are not attempted between atoms of the same type since
 nothing would happen.
 
 All atoms in the simulation domain can be moved using regular time
-integration displacements, e.g. via :doc:`fix nvt <fix_nh>`, resulting
+integration displacements (e.g., via :doc:`fix nvt <fix_nh>`), resulting
 in a hybrid MC+MD simulation. A smaller-than-usual timestep size may
 be needed when running such a hybrid simulation, especially if the
 swapped atoms are not well equilibrated.
@@ -83,9 +83,8 @@ canonical ensemble, the composition of the system can change. Note
 that when using *semi-grand*, atoms in the fix group whose type is not
 listed in the *types* keyword are ineligible for attempted
 conversion. An attempt is made to switch the selected atom (if
-eligible) to one of the other listed types with equal
-probability. Acceptance of each attempt depends upon the Metropolis
-criterion.
+eligible) to one of the other listed types with equal probability.
+Acceptance of each attempt depends upon the Metropolis criterion.
 
 The *mu* keyword allows users to specify chemical potentials. This is
 required and allowed only when using *semi-grand*\ .  All chemical
@@ -97,8 +96,8 @@ amount will have no effect on the simulation.
 
 This command may optionally use the *region* keyword to define swap
 volume.  The specified region must have been previously defined with a
-:doc:`region <region>` command.  It must be defined with side = *in*\
-.  Swap attempts occur only between atoms that are both within the
+:doc:`region <region>` command.  It must be defined with side = *in*\ .
+Swap attempts occur only between atoms that are both within the
 specified region. Swaps are not otherwise attempted.
 
 You should ensure you do not swap atoms belonging to a molecule, or
@@ -123,7 +122,7 @@ Since this fix computes total potential energies before and after
 proposed swaps, so even complicated potential energy calculations are
 OK, including the following:
 
-* long-range electrostatics (kspace)
+* long-range electrostatics (:math:`k`-space)
 * many body pair styles
 * hybrid pair styles
 * eam pair styles
@@ -137,7 +136,7 @@ include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
 <fix_temp_berendsen>`, :doc:`temp/rescale <fix_temp_rescale>`, and
 :doc:`wall fixes <fix_wall>`.  For that energy to be included in the
 total potential energy of the system (the quantity used when
-performing GCMC moves), you MUST enable the :doc:`fix_modify
+performing GCMC moves), you **must** enable the :doc:`fix_modify
 <fix_modify>` *energy* option for that fix.  The doc pages for
 individual :doc:`fix <fix>` commands specify if this should be done.
 
@@ -147,7 +146,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 This fix writes the state of the fix to :doc:`binary restart files
 <restart>`.  This includes information about the random number
 generator seed, the next timestep for MC exchanges, the number of
-exchange attempts and successes etc.  See the :doc:`read_restart
+exchange attempts and successes, etc.  See the :doc:`read_restart
 <read_restart>` command for info on how to re-specify a fix in an
 input script that reads a restart file, so that the operation of the
 fix continues in an uninterrupted fashion.

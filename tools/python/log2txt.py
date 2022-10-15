@@ -14,7 +14,7 @@ from __future__ import print_function
 
 import sys,os,argparse
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
+sys.path.insert(1,path)
 from log import log
 
 # set up arg parser

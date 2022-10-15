@@ -60,17 +60,18 @@ enum { SHIFT_NO, SHIFT_YES, SHIFT_POSSIBLE };
 #define TOLERANCE 0.00001
 #define MAXITER 20
 
-static const char cite_fix_srd[] = "fix srd command:\n\n"
-                                   "@Article{Petersen10,\n"
-                                   " author = {M. K. Petersen, J. B. Lechman, S. J. Plimpton, G. "
-                                   "S. Grest, P. J. in 't Veld, P. R. Schunk},\n"
-                                   " title =   {Mesoscale Hydrodynamics via Stochastic Rotation "
-                                   "Dynamics: Comparison with Lennard-Jones Fluid},"
-                                   " journal = {J.~Chem.~Phys.},\n"
-                                   " year =    2010,\n"
-                                   " volume =  132,\n"
-                                   " pages =   {174106}\n"
-                                   "}\n\n";
+static const char cite_fix_srd[] =
+    "fix srd command: doi:10.1063/1.3419070\n\n"
+    "@Article{Petersen10,\n"
+    " author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and\n"
+    " G. S. Grest and in 't Veld, P. J. and P. R. Schunk},\n"
+    " title =   {Mesoscale Hydrodynamics via Stochastic Rotation\n"
+    "    Dynamics: Comparison with {L}ennard-{J}ones Fluid},\n"
+    " journal = {J.~Chem.\\ Phys.},\n"
+    " year =    2010,\n"
+    " volume =  132,\n"
+    " pages =   174106\n"
+    "}\n\n";
 
 //#define SRD_DEBUG 1
 //#define SRD_DEBUG_ATOMID 58

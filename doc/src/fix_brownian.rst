@@ -93,15 +93,15 @@ updated. This style therefore requires the hybrid atom style
 
 .. math::
 
-   \mathbf{\mu}(t+dt) = \frac{\mathbf{\mu}(t) + \mathbf{\omega} \times \mathbf{\mu}dt
-   }{|\mathbf{\mu}(t) + \mathbf{\omega} \times \mathbf{\mu}|}
+   \boldsymbol{\mu}(t+dt) = \frac{\boldsymbol{\mu}(t) + \boldsymbol{\omega} \times \boldsymbol{\mu}dt
+   }{|\boldsymbol{\mu}(t) + \boldsymbol{\omega} \times \boldsymbol{\mu}|}
 
 which correctly reproduces a Boltzmann distribution of orientations and
 rotational diffusion moments (see :ref:`(Ilie) <Ilie1>`) when
 
 .. math::
 
-   \mathbf{\omega} = \frac{\mathbf{T}}{\gamma_r} + \sqrt{\frac{2 k_B T_{rot}}{\gamma_r}\frac{d\mathbf{W}}{dt}},
+   \boldsymbol{\omega} = \frac{\mathbf{T}}{\gamma_r} + \sqrt{\frac{2 k_B T_{rot}}{\gamma_r}\frac{d\mathbf{W}}{dt}},
 
 with :math:`d\mathbf{W}` being a random number with zero mean and variance :math:`dt`
 and :math:`T_{rot}` is *rotation_temp*.
@@ -118,15 +118,15 @@ the quaternion
    \mathbf{q}(t+dt) = \frac{\mathbf{q}(t) + d\mathbf{q}}{\lVert\mathbf{q}(t) + d\mathbf{q}\rVert}
 
 which correctly reproduces a Boltzmann distribution of orientations and rotational
-diffusion moments [see :ref:`(Ilie) <Ilie1>`] when the quaternion step given by
+diffusion moments [see :ref:`(Ilie) <Ilie1>`] when the quaternion step is given by
 
 .. math::
 
-   d\mathbf{q} = \mathbf{\Psi}\mathbf{\omega}dt
+   d\mathbf{q} = \boldsymbol{\Psi}\boldsymbol{\omega}dt
 
 where :math:`\boldsymbol{\Psi}` has rows :math:`(-q_1,-q_2,-q_3)`,
 :math:`(q_0,-q_3,q_2)`, :math:`(q_3,q_0,-q_1)`, and :math:`(-q_2,q_1,q_0)`.
-:math:`\mathbf{\omega}` is evaluated in the body frame of reference where the
+:math:`\boldsymbol{\omega}` is evaluated in the body frame of reference where the
 friction tensor is diagonal.  See :ref:`(Delong) <Delong1>` for more details of
 a similar algorithm.
 
@@ -186,8 +186,8 @@ The *gamma_r_eigen*, and *gamma_t_eigen* keywords are the eigenvalues of
 the rotational and viscous damping tensors (having the same units as
 their isotropic counterparts). Required for (and only compatible with)
 *brownian/asphere*. For a 2D system, the first two values of
-*gamma_r_eigen* must be inf (only rotation in xy plane), and the third
-value of *gamma_t_eigen* must be inf (only diffusion in xy plane).
+*gamma_r_eigen* must be *inf* (only rotation in *x*\ --\ *y* plane), and the third
+value of *gamma_t_eigen* must be *inf* (only diffusion in the *x*\ --\ *y* plane).
 
 If the *dipole* keyword is used, then the dipole moments of the particles
 are updated as described above. Only compatible with *brownian/asphere*
@@ -198,7 +198,7 @@ will be occur at this prescribed temperature instead of *temp*. Only
 compatible with *brownian/sphere* and *brownian/asphere*.
 
 If the *planar_rotation* keyword is used, then rotation is constrained
-to the xy plane in a 3D simulation. Only compatible with
+to the *x*\ -- *y* plane in a 3D simulation. Only compatible with
 *brownian/sphere* and *brownian/asphere* in 3D.
 
 ----------

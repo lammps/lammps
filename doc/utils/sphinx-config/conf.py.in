@@ -287,6 +287,39 @@ latex_elements = {
 # Additional stuff for the LaTeX preamble.
 'preamble': r'''
 \setcounter{tocdepth}{2}
+\renewcommand{\sfdefault}{ptm}  % Use Times New Roman font for \textrm
+\renewcommand{\sfdefault}{phv}  % Use Helvetica font for \textsf
+% Set up math fonts to match text fonts
+\DeclareSymbolFont{operators}   {OT1}{ptm}{m}{n}
+\DeclareSymbolFont{bold}        {OT1}{ptm}{bx}{n}
+\DeclareSymbolFont{italic}      {OT1}{ptm}{m}{it}
+\DeclareSymbolFont{extraops}    {OT1}{ztmcm}{m}{n}
+\DeclareSymbolFont{letters}     {OML}{ztmcm}{m}{it}
+\DeclareSymbolFont{largesymbols}{OMX}{ztmcm}{m}{n}
+% symbols (and \mathcal) are taken from computer modern.
+% setup mappings
+\DeclareSymbolFontAlphabet{\mathrm}    {operators}
+\DeclareSymbolFontAlphabet{\mathnormal}{letters}
+\DeclareMathAlphabet{\mathnormal}{OT1}{ptm}{m}{n}
+\DeclareMathAlphabet{\mathrm}{OT1}{ptm}{m}{n}
+\DeclareMathAlphabet{\mathbf}{OT1}{ptm}{bx}{n}
+\DeclareMathAlphabet{\mathit}{OT1}{ptm}{m}{it}
+\DeclareMathAlphabet{\mathtt}{OT1}{pcr}{m}{n}
+\SetMathAlphabet\mathit{bold}{OT1}{ptm}{bx}{it}
+% declare missing operators
+\DeclareMathSymbol{\omicron}{0}{operators}{`\o}
+\DeclareMathSymbol{\Gamma}{\mathalpha}{extraops}{"00}
+\DeclareMathSymbol{\Delta}{\mathalpha}{extraops}{"01}
+\DeclareMathSymbol{\Theta}{\mathalpha}{extraops}{"02}
+\DeclareMathSymbol{\Lambda}{\mathalpha}{extraops}{"03}
+\DeclareMathSymbol{\Xi}{\mathalpha}{extraops}{"04}
+\DeclareMathSymbol{\Pi}{\mathalpha}{extraops}{"05}
+\DeclareMathSymbol{\Sigma}{\mathalpha}{extraops}{"06}
+\DeclareMathSymbol{\Upsilon}{\mathalpha}{extraops}{"07}
+\DeclareMathSymbol{\Phi}{\mathalpha}{extraops}{"08}
+\DeclareMathSymbol{\Psi}{\mathalpha}{extraops}{"09}
+\DeclareMathSymbol{\Omega}{\mathalpha}{extraops}{"0A}
+
 \renewcommand{\AA}{\mbox{\textrm{\r{A}}}}
 % Make ToC number fields wider to accommodate sections with >= 100 subsections
 %   or >= 10 subsections with >= 10 subsubsections

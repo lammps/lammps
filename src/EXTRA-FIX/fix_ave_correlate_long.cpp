@@ -374,7 +374,7 @@ void FixAveCorrelateLong::init()
   // set current indices for all computes,fixes,variables
 
   for (auto &val : values) {
-      
+
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
@@ -423,7 +423,7 @@ void FixAveCorrelateLong::end_of_step()
   // compute/fix/variable may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
- 
+
   int i = 0;
   for (auto &val : values) {
     double scalar = 0.0;

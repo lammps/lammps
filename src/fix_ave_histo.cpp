@@ -837,7 +837,7 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
 
   // optional args
   auto mycmd = fmt::format("fix {}", style);
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " file", error);

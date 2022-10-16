@@ -324,7 +324,7 @@ void FixAveCorrelate::init()
   // set current indices for all computes,fixes,variables
 
   for (auto &val : values) {
-      
+
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)

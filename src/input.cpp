@@ -1499,7 +1499,7 @@ void Input::dihedral_style()
 
 void Input::dimension()
 {
-  if (narg != 1) error->all(FLERR,"Illegal dimension command: expected 1 argument but found {}", narg);
+  if (narg != 1) error->all(FLERR, "Dimension command expects exactly 1 argument");
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
   domain->dimension = utils::inumeric(FLERR,arg[0],false,lmp);
@@ -1509,8 +1509,7 @@ void Input::dimension()
   // must reset default extra_dof of all computes
   // since some were created before dimension command is encountered
 
-  for (int i = 0; i < modify->ncompute; i++)
-    modify->compute[i]->reset_extra_dof();
+  for (auto &c : modify->compute_list()) c->reset_extra_dof();
 }
 
 /* ---------------------------------------------------------------------- */

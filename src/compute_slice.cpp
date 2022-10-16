@@ -222,7 +222,7 @@ void ComputeSlice::compute_array()
 {
   invoked_array = update->ntimestep;
 
-  for (int m = 0; m < values.size(); m++) extract_one(0, &array[m][0], values.size());
+  for (std::size_t m = 0; m < values.size(); m++) extract_one(0, &array[m][0], values.size());
 }
 
 /* ----------------------------------------------------------------------

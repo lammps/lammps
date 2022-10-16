@@ -386,7 +386,7 @@ void FixAveAtom::grow_arrays(int nmax)
 
 void FixAveAtom::copy_arrays(int i, int j, int /*delflag*/)
 {
-  for (int m = 0; m < values.size(); m++)
+  for (std::size_t m = 0; m < values.size(); m++)
     array[j][m] = array[i][m];
 }
 
@@ -396,7 +396,7 @@ void FixAveAtom::copy_arrays(int i, int j, int /*delflag*/)
 
 int FixAveAtom::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < values.size(); m++) buf[m] = array[i][m];
+  for (std::size_t m = 0; m < values.size(); m++) buf[m] = array[i][m];
   return values.size();
 }
 
@@ -406,7 +406,7 @@ int FixAveAtom::pack_exchange(int i, double *buf)
 
 int FixAveAtom::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < values.size(); m++) array[nlocal][m] = buf[m];
+  for (std::size_t m = 0; m < values.size(); m++) array[nlocal][m] = buf[m];
   return values.size();
 }
 

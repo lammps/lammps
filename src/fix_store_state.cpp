@@ -338,7 +338,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
-    for (int m = 0; m < values.size(); m++)
+    for (std::size_t m = 0; m < values.size(); m++)
       avalues[i][m] = 0.0;
 
   // store current values for keywords but not for compute, fix, variable
@@ -560,7 +560,7 @@ void FixStoreState::grow_arrays(int nmax)
 
 void FixStoreState::copy_arrays(int i, int j, int /*delflag*/)
 {
-  for (int m = 0; m < values.size(); m++) avalues[j][m] = avalues[i][m];
+  for (std::size_t m = 0; m < values.size(); m++) avalues[j][m] = avalues[i][m];
 }
 
 /* ----------------------------------------------------------------------
@@ -569,7 +569,7 @@ void FixStoreState::copy_arrays(int i, int j, int /*delflag*/)
 
 int FixStoreState::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < values.size(); m++) buf[m] = avalues[i][m];
+  for (std::size_t m = 0; m < values.size(); m++) buf[m] = avalues[i][m];
   return values.size();
 }
 
@@ -579,7 +579,7 @@ int FixStoreState::pack_exchange(int i, double *buf)
 
 int FixStoreState::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < values.size(); m++) avalues[nlocal][m] = buf[m];
+  for (std::size_t m = 0; m < values.size(); m++) avalues[nlocal][m] = buf[m];
   return values.size();
 }
 
@@ -591,7 +591,7 @@ int FixStoreState::pack_restart(int i, double *buf)
 {
   // pack buf[0] this way because other fixes unpack it
   buf[0] = values.size()+1;
-  for (int m = 0; m < values.size(); m++) buf[m+1] = avalues[i][m];
+  for (std::size_t m = 0; m < values.size(); m++) buf[m+1] = avalues[i][m];
   return values.size()+1;
 }
 
@@ -607,10 +607,10 @@ void FixStoreState::unpack_restart(int nlocal, int nth)
   // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
-  for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
+  for (int i = 0; i < nth; i++) m += static_cast<int>(extra[nlocal][m]);
   m++;
 
-  for (int i = 0; i < values.size(); i++) avalues[nlocal][i] = extra[nlocal][m++];
+  for (std::size_t i = 0; i < values.size(); i++) avalues[nlocal][i] = extra[nlocal][m++];
 }
 
 /* ----------------------------------------------------------------------

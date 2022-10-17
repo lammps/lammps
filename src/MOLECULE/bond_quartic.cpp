@@ -127,9 +127,11 @@ void BondQuartic::eval(double **cutsq, double **x, double **f, int **bondlist, i
         if (i2 < atom->nlocal)
           for (m = 0; m < atom->num_bond[i2]; m++)
             if (atom->bond_atom[i2][m] == atom->tag[i1]) atom->bond_type[i2][m] = 0;
-        continue;
+        fbond = 0.0;
+        if (EFLAG) ebond = 0.0;
       } else {
         // unbreakable bond
+        fbond = 0.0;
         if (EFLAG) ebond = u0[type];
       }
     } else {

@@ -46,9 +46,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define KOKKOS_CUDA_MAX_THREADS 256
-#define KOKKOS_CUDA_MIN_BLOCKS 8
-
 // A point of optimization with the pairwise force calculation is to hand-tune
 // the number of atoms per team, which cannot be done (yet?) with the standard
 // 1-d RangePolicy. A more intuitive way to do this is with team parallelism,
@@ -60,7 +57,7 @@ using namespace MathConst;
 // be explicitly set with MDRangePolicies. It has been confirmed that the performance
 // regression from using a TeamPolicy goes away after addressing the cache carveout.
 // This is a convenience flag to make it easy to toggle team parallelism later.
-#define KOKKOS_TERSOFF_MDRANGEPOLICY_WORKAROUND
+#define LMP_KOKKOS_TERSOFF_MDRANGEPOLICY_WORKAROUND
 
 /* ---------------------------------------------------------------------- */
 
@@ -246,15 +243,19 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffCompute<HALFTHREAD,1> >(0,inum),*this,ev);
     else {
-#ifdef KOKKOS_TERSOFF_MDRANGEPOLICY_WORKAROUND
-      Kokkos::parallel_for(Kokkos::MDRangePolicy<DeviceType, Kokkos::Rank<2>, Kokkos::LaunchBounds<block_size_compute_tersoff_force>,
-        TagPairTersoffCompute<HALFTHREAD,0> >({0,0},{inum,1},{block_size_compute_tersoff_force,1}),*this);
+      if (ExecutionSpaceFromDevice<DeviceType>::space == Host) {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffCompute<HALFTHREAD,0> >(0,inum),*this);
+      } else {
+#ifdef LMP_KOKKOS_TERSOFF_MDRANGEPOLICY_WORKAROUND
+        Kokkos::parallel_for(Kokkos::MDRangePolicy<DeviceType, Kokkos::Rank<2>, Kokkos::LaunchBounds<block_size_compute_tersoff_force>,
+          TagPairTersoffCompute<HALFTHREAD,0> >({0,0},{inum,1},{block_size_compute_tersoff_force,1}),*this);
 #else
-      int team_count = (inum + block_size_compute_tersoff_force - 1) / block_size_compute_tersoff_force;
-      Kokkos::TeamPolicy<DeviceType, Kokkos::LaunchBounds<block_size_compute_tersoff_force>,
-        TagPairTersoffCompute<HALFTHREAD,0>> team_policy(team_count, block_size_compute_tersoff_force);
-      Kokkos::parallel_for(team_policy, *this);
+        int team_count = (inum + block_size_compute_tersoff_force - 1) / block_size_compute_tersoff_force;
+        Kokkos::TeamPolicy<DeviceType, Kokkos::LaunchBounds<block_size_compute_tersoff_force>,
+          TagPairTersoffCompute<HALFTHREAD,0>> team_policy(team_count, block_size_compute_tersoff_force);
+        Kokkos::parallel_for(team_policy, *this);
 #endif
+      }
     }
     ev_all += ev;
   }

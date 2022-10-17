@@ -46,7 +46,7 @@ class PairTersoffKokkos : public PairTersoff {
   // Static blocking size for PairTersoffCompute, EVFLAG == 0
   static constexpr int block_size_compute_tersoff_force = 128;
   // EVFLAG == 1, intentionally different due to how Kokkos implements
-  // reductions vs simple parallel for
+  // reductions vs simple parallel_for
   static constexpr int block_size_compute_tersoff_energy = 256;
 
   PairTersoffKokkos(class LAMMPS *);
@@ -55,7 +55,7 @@ class PairTersoffKokkos : public PairTersoff {
   void coeff(int, char **) override;
   void init_style() override;
 
-  // Range Policy versions
+  // RangePolicy versions
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;

@@ -540,7 +540,6 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
 
   if (ii < inum)
     this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
-
 }
 
 template<class DeviceType>
@@ -554,9 +553,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
     EV_FLOAT ev;
     this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
   }
-
 }
-
 
 /* ---------------------------------------------------------------------- */
 

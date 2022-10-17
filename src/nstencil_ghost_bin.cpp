@@ -12,21 +12,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "nstencil_bin.h"
+#include "nstencil_ghost_bin.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 template<int HALF, int DIM_3D, int TRI>
-NStencilBin<HALF, DIM_3D, TRI>::NStencilBin(LAMMPS *lmp) : NStencil(lmp) {}
+NStencilGhostBin<HALF, DIM_3D, TRI>::NStencilGhostBin(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
 ------------------------------------------------------------------------- */
 
 template<int HALF, int DIM_3D, int TRI>
-void NStencilBin<HALF, DIM_3D, TRI>::create()
+void NStencilGhostBin<HALF, DIM_3D, TRI>::create()
 {
   int i, j, k;
 
@@ -54,6 +54,9 @@ void NStencilBin<HALF, DIM_3D, TRI>::create()
           if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
 
         if (bin_distance(i,j,k) < cutneighmaxsq)
+          stencilxyz[nstencil][0] = i;
+          stencilxyz[nstencil][1] = j;
+          stencilxyz[nstencil][2] = k;
           stencil[nstencil++] = k * mbiny * mbinx + j * mbinx + i;
       }
     }
@@ -61,10 +64,10 @@ void NStencilBin<HALF, DIM_3D, TRI>::create()
 }
 
 namespace LAMMPS_NS {
-template class NStencilBin<0,0,0>;
-template class NStencilBin<0,1,0>;
-template class NStencilBin<1,0,0>;
-template class NStencilBin<1,0,1>;
-template class NStencilBin<1,1,0>;
-template class NStencilBin<1,1,1>;
+template class NStencilGhostBin<0,0,0>;
+template class NStencilGhostBin<0,1,0>;
+template class NStencilGhostBin<1,0,0>;
+template class NStencilGhostBin<1,0,1>;
+template class NStencilGhostBin<1,1,0>;
+template class NStencilGhostBin<1,1,1>;
 }

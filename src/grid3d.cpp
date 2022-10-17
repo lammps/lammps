@@ -323,7 +323,6 @@ Grid3d::~Grid3d()
   memory->sfree(rcbinfo);
 }
   
-
 // ----------------------------------------------------------------------
 // store and access Grid parameters
 // ----------------------------------------------------------------------
@@ -1258,6 +1257,7 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
+   setup remap from old grid decomposition to this grid decomposition
    return sizes of two buffers needed for communication
    either for brick decomp or tiling decomp
    nbuf1 = largest pack or unpack in any Send or Recv or Copy
@@ -1268,16 +1268,13 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
      caller converts them to message size for grid data it stores
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   setup remap from old grid decomposition to this grid decomposition
-   pack/unpack operations are performed by caller via callbacks
-------------------------------------------------------------------------- */
-
 void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 {
   if (layout == BRICK) setup_remap_brick(old,nremap_buf1,nremap_buf2);
   else setup_remap_tiled(old,nremap_buf2,nremap_buf2);
 }
+
+/* ------------------------------------------------------------------------- */
 
 void Grid3d::setup_remap_brick(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 {
@@ -1288,6 +1285,8 @@ void Grid3d::setup_remap_brick(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   nremap_buf2 = 0;
 }
 
+/* ------------------------------------------------------------------------- */
+
 void Grid3d::setup_remap_tiled(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 {
   int pbc[3];
@@ -1297,8 +1296,7 @@ void Grid3d::setup_remap_tiled(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   // overlap = vector of overlap info using Overlap data struct
 
   int newbox[6];
-  get_bounds(newbox[0],newbox[1],newbox[2],newbox[3],
-	     newbox[4],newbox[5]);
+  get_bounds(newbox[0],newbox[1],newbox[2],newbox[3],newbox[4],newbox[5]);
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   Overlap *overlap_old;
@@ -1319,8 +1317,7 @@ void Grid3d::setup_remap_tiled(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   // overlap = vector of overlap info using Overlap data struct
 
   int oldbox[6];
-  old->get_bounds(oldbox[0],oldbox[1],oldbox[2],oldbox[3],
-		  oldbox[4],oldbox[5]);
+  old->get_bounds(oldbox[0],oldbox[1],oldbox[2],oldbox[3],oldbox[4],oldbox[5]);
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   Overlap *overlap_new;
@@ -1352,6 +1349,8 @@ void Grid3d::remap(int caller, void *ptr, int nper, int nbyte,
 {
   if (caller == FIX) remap_style<Fix>((Fix *) ptr,nper,nbyte,buf1,buf2,datatype);
 }
+
+/* ------------------------------------------------------------------------- */
 
 template < class T >
 void Grid3d::remap_style(T *ptr, int nper, int nbyte,
@@ -1479,11 +1478,14 @@ void Grid3d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
 
 /* ----------------------------------------------------------------------
    compute list of overlaps between box and the owned grid boxes of all procs
+   done via recursive box drop on RCB tree
    box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
-     box can be only owned cells or owned + ghost cells
+     box can be owned cells or owned + ghost cells
    pbc = flags for grid periodicity in each dim
-     if box includes ghost cells, they can overlap PBCs
-     each lo/hi value may extend beyonw 0 to N-1 into another periodic image
+     if box includes ghost cells, it can overlap PBCs
+     each lo/hi value may extend beyond 0 to N-1 into another periodic image
+   return # of overlaps including with self
+   return list of overlaps
 ------------------------------------------------------------------------- */
 
 int Grid3d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
@@ -1499,13 +1501,7 @@ int Grid3d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
 }
 
 /* ----------------------------------------------------------------------
-   recursively split a box until it doesn't overlap any periodic boundaries
-   box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
-     each lo/hi value may extend beyonw 0 to N-1 into another periodic image
-   pbc = flags in each dim of which periodic image the caller box was in
-   when a box straddles a periodic bounadry, split it in two
-   when a box does not straddle, drop it down RCB tree
-     add all the procs it overlaps with to Overlap list
+   deallocate data created by recursive overlap computation
 ------------------------------------------------------------------------- */
 
 void Grid3d::clean_overlap()
@@ -1640,11 +1636,7 @@ void Grid3d::box_drop_grid(int *box, int proclower, int procupper,
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   create swap stencil for grid own/ghost communication
-   swaps covers all 3 dimensions and both directions
-   swaps cover multiple iterations in a direction if need grid pts
-     from further away than nearest-neighbor proc
-   same swap list used by forward and reverse communication
+   grow list of swaps by DELTA
 ------------------------------------------------------------------------- */
 
 void Grid3d::grow_swap()
@@ -1654,11 +1646,7 @@ void Grid3d::grow_swap()
 }
 
 /* ----------------------------------------------------------------------
-   create swap stencil for grid own/ghost communication
-   swaps covers all 3 dimensions and both directions
-   swaps cover multiple iterations in a direction if need grid pts
-     from further away than nearest-neighbor proc
-   same swap list used by forward and reverse communication
+   grow list of overlaps by DELTA
 ------------------------------------------------------------------------- */
 
 void Grid3d::grow_overlap()

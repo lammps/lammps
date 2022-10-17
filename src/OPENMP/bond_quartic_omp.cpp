@@ -38,6 +38,7 @@ BondQuarticOMP::BondQuarticOMP(class LAMMPS *lmp)
   : BondQuartic(lmp), ThrOMP(lmp,THR_BOND)
 {
   suffix_flag |= Suffix::OMP;
+  breakable_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

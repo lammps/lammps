@@ -5,24 +5,24 @@ epsilon: 2.5e-13
 skip_tests:
 prerequisites: ! |
   atom full
-  bond quartic/breakable
+  bond quartic/unbreakable
 pre_commands: ! |
-  variable bond_factor     index 1.0
-  variable angle_factor    index 1.0
-  variable dihedral_factor index 1.0
+  variable bond_factor     index 0.0
+  variable angle_factor    index 0.0
+  variable dihedral_factor index 0.0
 post_commands: ! |
   angle_style none
   dihedral_style none
   improper_style none
 input_file: in.fourmol
-bond_style: quartic/breakable
+bond_style: quartic/unbreakable
 bond_coeff: ! |
   1 250.0 -1.5 2.5 4.5  200.0
   2 300.0 -1.1 1.5 3.0  150.0
   3 350.0 -1.3 2.0 4.0  180.0
   4 650.0 -1.2 1.8 3.5  150.0
   5 450.0 -1.0 1.5 2.5  100.0
-equilibrium: 5 3.45527 2.2294 3.0925 2.6617 1.8014
+equilibrium: 5 3.45527 2.2294 3.0925 2.66169 1.80141
 extract: ! ""
 natoms: 29
 init_energy: 167209.41028173303

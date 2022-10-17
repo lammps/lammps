@@ -13,41 +13,21 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(quartic,BondQuartic);
-BondStyle(quartic/breakable,BondQuartic);
+BondStyle(quartic/unbreakable,BondQuarticUnbreakable);
 // clang-format on
 #else
 
-#ifndef LMP_BOND_QUARTIC_H
-#define LMP_BOND_QUARTIC_H
-
-#include "bond.h"
+#include "bond_quartic.h"
 
 namespace LAMMPS_NS {
 
-class BondQuartic: public Bond {
+class BondQuarticUnbreakable : public BondQuartic {
  public:
-  BondQuartic(class LAMMPS *);
-  ~BondQuartic() override;
-  void compute(int, int) override;
-  void coeff(int, char **) override;
-  void init_style() override;
-  double equilibrium_distance(int) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  void write_data(FILE *) override;
-  double single(int, double, int, int, double &) override;
+  BondQuarticUnbreakable(class LAMMPS *);
+  ~BondQuarticUnbreakable() override;
 
- protected:
-  double *k, *b1, *b2, *rc, *u0;
-  int breakable_flag;
-
-  void allocate();
-  template <int, int, int>
-  void eval(double **, double **, double **, int **, int, int, int);
 };
 
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

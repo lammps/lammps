@@ -17,7 +17,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(quartic/omp,BondQuarticOMP);
+BondStyle(quartic/breakable/omp,BondQuarticOMP);
 // clang-format on
 #else
 

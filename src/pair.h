@@ -23,6 +23,7 @@ class Pair : protected Pointers {
   friend class AngleSPICAOMP;
   friend class BondQuartic;
   friend class BondQuarticOMP;
+  friend class BondQuarticUnbreakable;
   friend class DihedralCharmm;
   friend class DihedralCharmmOMP;
   friend class FixGPU;

@@ -31,16 +31,20 @@ class Grid3d : protected Pointers {
          int, int, int, int, int, int, int, int, int, int, int, int,
          int, int, int, int, int, int);
   ~Grid3d() override;
+
   int identical(Grid3d *);
   void get_size(int &, int &, int &);
   void get_bounds(int &, int &, int &, int &, int &, int &);
   void get_bounds_ghost(int &, int &, int &, int &, int &, int &);
+
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
+
   void setup_remap(Grid3d *, int &, int &);
   void remap(int, void *, int, int, void *, void *, MPI_Datatype);
+
   void gather(int, void *, int, int, int, void *, MPI_Datatype);
 
  protected:
@@ -65,7 +69,7 @@ class Grid3d : protected Pointers {
   int fullzlo, fullzhi;
 
   // -------------------------------------------
-  // internal variables for REGULAR layout
+  // internal variables for BRICK layout
   // -------------------------------------------
 
   int procxlo, procxhi;    // 6 neighbor procs that adjoin me
@@ -93,33 +97,8 @@ class Grid3d : protected Pointers {
   // -------------------------------------------
   // internal variables for TILED layout
   // -------------------------------------------
-
-  int *overlap_procs;       // length of Nprocs in communicator
+  
   MPI_Request *requests;    // length of max messages this proc receives
-
-  // RCB tree of cut info
-  // each proc contributes one value, except proc 0
-
-  struct RCBinfo {
-    int dim;    // 0,1,2 = which dim the cut is in
-    int cut;    // grid index of lowest cell in upper half of cut
-  };
-
-  RCBinfo *rcbinfo;
-
-  // overlap = a proc whose owned cells overlap with my extended ghost box
-  // includes overlaps across periodic boundaries, can also be self
-
-  struct Overlap {
-    int proc;      // proc whose owned cells overlap my ghost cells
-    int box[6];    // box that overlaps otherproc's owned cells
-                   // this box is wholly contained within global grid
-    int pbc[3];    // PBC offsets to convert box to a portion of my ghost box
-                   // my ghost box may extend beyond global grid
-  };
-
-  int noverlap, maxoverlap;
-  Overlap *overlap;
 
   // request = sent to each proc whose owned cells overlap my ghost cells
 
@@ -192,18 +171,46 @@ class Grid3d : protected Pointers {
   Send *send_remap;
   Recv *recv_remap;
   Copy copy_remap;
+
+  // -------------------------------------------
+  // internal variables for OVERLAP operation
+  // -------------------------------------------
   
+  int *overlap_procs;       // length of Nprocs in communicator
+
+  // RCB tree of cut info
+  // each proc contributes one value, except proc 0
+
+  struct RCBinfo {
+    int dim;    // 0,1,2 = which dim the cut is in
+    int cut;    // grid index of lowest cell in upper half of cut
+  };
+
+  RCBinfo *rcbinfo;
+
+  // overlap = a proc whose owned cells overlap with my owned or ghost box
+  // includes overlaps across periodic boundaries, can also be self
+
+  struct Overlap {
+    int proc;      // proc whose owned cells overlap my ghost cells
+    int box[6];    // box that overlaps otherproc's owned cells
+                   // this box is wholly contained within global grid
+    int pbc[3];    // PBC offsets to convert box to a portion of my ghost box
+                   // my ghost box may extend beyond global grid
+  };
+
+  int noverlap_list, maxoverlap_list;
+  Overlap *overlap_list;
+
   // -------------------------------------------
   // internal methods
   // -------------------------------------------
 
   void store(int, int, int, int, int, int, int, int, int, int, int, int,
              int, int, int, int, int, int, int, int, int, int, int, int);
+  
   virtual void setup_brick(int &, int &);
   virtual void setup_tiled(int &, int &);
-  void box_drop(int *, int *);
-  void box_drop_grid(int *, int, int, int &, int *);
-
   int ghost_adjacent_brick();
   int ghost_adjacent_tiled();
 
@@ -215,6 +222,11 @@ class Grid3d : protected Pointers {
   void setup_remap_brick(Grid3d *, int &, int &);
   void setup_remap_tiled(Grid3d *, int &, int &);
   template <class T> void remap_style(T *, int, int, void *, void *, MPI_Datatype);
+
+  int compute_overlap(int *, int *, Overlap *&);
+  void clean_overlap();
+  void box_drop(int *, int *);
+  void box_drop_grid(int *, int, int, int &, int *);
 
   virtual void grow_swap();
   void grow_overlap();

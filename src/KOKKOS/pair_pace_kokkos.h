@@ -24,7 +24,7 @@ PairStyle(pace/kk/host,PairPACEKokkos<LMPHostType>);
 #define LMP_PAIR_PACE_KOKKOS_H
 
 #include "pair_pace.h"
-#include "ace_radial.h"
+#include "ace-evaluator/ace_radial.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
 

@@ -3,6 +3,11 @@
 .. index:: bond_style quartic/breakable/omp
 .. index:: bond_style quartic/unbreakable
 
+bond_style quartic command
+==========================
+
+Accelerator Variants: *quartic/omp*
+
 bond_style quartic/breakable command
 ==========================
 

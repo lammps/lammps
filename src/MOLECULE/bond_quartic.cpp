@@ -272,6 +272,7 @@ void BondQuartic::init_style()
 
 double BondQuartic::equilibrium_distance(int i)
 {
+  // equilibrium distance of the quartic potential, excluding LJ
   double b2_4ac = 9.0 * (b1[i] * b1[i] + b2[i] *  b2[i]) - 14.0 * b1[i] * b2[i];
 
   if (b2_4ac >= 0.0) {

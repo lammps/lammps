@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(ylz,PairYLZ);
-
+// clang-format on
 
 #else
 
@@ -41,25 +41,16 @@ class PairYLZ : public Pair {
   void write_data(FILE *);
   void write_data_all(FILE *);
 
-
  protected:
-
   double cut_global;
-
-  double **epsilon,**sigma,**cut,**zeta,**mu,**beta;  // model parameter values for atom-type pairs
+  double **epsilon, **sigma, **cut, **zeta, **mu, **beta;
 
   class AtomVecEllipsoid *avec;
 
   void allocate();
-  double ylz_analytic(const int i, const int j, double a1[3][3],
-                           double a2[3][3], double *r12,
-                           const double rsq, double *fforce, double *ttor,
-                           double *rtor);
-
-
+  double ylz_analytic(const int i, const int j, double a1[3][3], double a2[3][3], double *r12,
+                      const double rsq, double *fforce, double *ttor, double *rtor);
 };
-
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif
-

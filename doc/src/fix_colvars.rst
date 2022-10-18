@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * colvars = style name of this fix command
 * configfile = the configuration file for the colvars module
-* keyword = *input* or *output* or *seed* or *tstat*
+* keyword = *input* or *output* or *seed* or *unwrap* or *tstat*
 
   .. parsed-literal::
 

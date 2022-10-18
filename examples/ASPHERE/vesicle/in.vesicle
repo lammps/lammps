@@ -1,9 +1,9 @@
-# Vesicle demo 
+# Vesicle demo
 
 variable     T  equal  0.2
-variable     LD equal  1.0 
+variable     LD equal  1.0
 
-units	     lj
+units        lj
 atom_style   ellipsoid
 
 boundary     p p p
@@ -16,20 +16,18 @@ compute      rott all temp/asphere bias ali
 velocity     all create ${T} 87287 loop geom
 
 pair_style   ylz  2.6
-pair_coeff   *  *   1.0  1.0  4  3  0.0  2.6 
+pair_coeff   *  *   1.0  1.0  4  3  0.0  2.6
 neighbor     1.0 bin
 
 thermo_style custom step temp press pxx pyy
-thermo	     200
+thermo       200
 
 timestep     0.001
 
-dump	     1 all atom 10 onlymembrane2.lammpstrj
+#dump         1 all atom 10 onlymembrane2.lammpstrj
 
-fix          1 all langevin ${T} ${T}  ${LD}  48279 
-
-
-fix	     2 all nve/asphere
+fix          1 all langevin ${T} ${T}  ${LD}  48279
+fix          2 all nve/asphere
 
 run          3000
 

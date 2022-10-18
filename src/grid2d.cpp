@@ -34,11 +34,11 @@ static constexpr int OFFSET = 16384;
 
 /* ----------------------------------------------------------------------
    NOTES:
-   tiled implementations only currently work for RCB, not general tilings
-     b/c RCB tree is used to find neighboring tiles
    if o indices for ghosts are < 0 or hi indices are >= N,
      then grid is treated as periodic in that dimension,
      comm is done across the periodic boundaries
+   tiled implementations only work for RCB, not general tilings
+     b/c RCB tree is used to find neighboring tiles
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -301,8 +301,13 @@ Grid2d::~Grid2d()
     memory->destroy(copy[i].unpacklist);
   }
   memory->sfree(copy);
-
   delete [] requests;
+
+  memory->sfree(rcbinfo);
+
+  // remap data structs
+  
+  deallocate_remap();
 }
 
 // ----------------------------------------------------------------------
@@ -1143,54 +1148,114 @@ void Grid2d::setup_remap_brick(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
 
 void Grid2d::setup_remap_tiled(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
 {
+  int m;
   int pbc[2];
+  int *box;
 
-  // find overlaps of new decomp owned box with all owned boxes in old decomp
-  // noverlap = # of overlaps, including self
-  // overlap = vector of overlap info using Overlap data struct
+  // compute overlaps of old decomp owned box with all owned boxes in new decomp
+  // noverlap_old = # of overlaps, including self
+  // overlap_old = vector of overlap info in Overlap data struct
 
-  int newbox[6];
-  get_bounds(newbox[0],newbox[1],newbox[2],newbox[3]);
-  pbc[0] = pbc[1] = 0;
-
-  Overlap *overlap_old;
-  int noverlap_old = old->compute_overlap(newbox,pbc,overlap_old);
-
-  // use overlap_old to construct send and copy lists
-
-  self_remap = 0;
-  
-  for (int m = 0; m < noverlap_old; m++) {
-    if (overlap_old[m].proc == me) self_remap = 1;
-    else {
-    }
-  }
-
-  // find overlaps of old decomp owned box with all owned boxes in new decomp
-  // noverlap = # of overlaps, including self
-  // overlap = vector of overlap info using Overlap data struct
-
-  int oldbox[6];
+  int oldbox[4];
   old->get_bounds(oldbox[0],oldbox[1],oldbox[2],oldbox[3]);
   pbc[0] = pbc[1] = 0;
 
-  Overlap *overlap_new;
-  int noverlap_new = compute_overlap(oldbox,pbc,overlap_new);
+  Overlap *overlap_old;
+  int noverlap_old = compute_overlap(oldbox,pbc,overlap_old);
 
-  // use overlaps to construct recv and copy lists
-
-
+  // use overlap_old to construct send and copy lists
   
+  self_remap = 0;
+
+  nsend_remap = 0;
+  for (m = 0; m < noverlap_old; m++) {
+    if (overlap_old[m].proc == me) self_remap =1;
+    else nsend_remap++;
+  }
+
+  send_remap = new Send[nsend_remap];
+  
+  nsend_remap = 0;
+  for (m = 0; m < noverlap_old; m++) {
+    box = overlap_old[m].box;
+    if (overlap_old[m].proc == me) {
+      copy_remap.npack =
+	old->indices(copy_remap.packlist,box[0],box[1],box[2],box[3]);
+    } else {
+      send_remap[nsend_remap].proc = overlap_old[m].proc;
+      send_remap[nsend_remap].npack =
+	old->indices(send_remap[nsend_remap].packlist,
+		     box[0],box[1],box[2],box[3]);
+    }
+    nsend_remap++;
+  }
+
+  // compute overlaps of new decomp owned box with all owned boxes in old decomp
+  // noverlap_new = # of overlaps, including self
+  // overlap_new = vector of overlap info in Overlap data struct
+
+  int newbox[4];
+  get_bounds(newbox[0],newbox[1],newbox[2],newbox[3]);
+  pbc[0] = pbc[1] = 0;
+
+  Overlap *overlap_new;
+  int noverlap_new = old->compute_overlap(newbox,pbc,overlap_new);
+
+  // use overlap_new to construct recv and copy lists
+  // set offsets for Recv data
+
+  nrecv_remap = 0;
+  for (m = 0; m < noverlap_new; m++)
+    if (overlap_old[m].proc != me) nrecv_remap++;
+
+  recv_remap = new Recv[nrecv_remap];
+
+  nrecv_remap = 0;
+  for (m = 0; m < noverlap_new; m++) {
+    box = overlap_new[m].box;
+    if (overlap_new[m].proc == me) {
+      copy_remap.nunpack =
+	indices(copy_remap.unpacklist,box[0],box[1],box[2],box[3]);
+    } else {
+      recv_remap[nrecv_remap].proc = overlap_new[m].proc;
+      recv_remap[nrecv_remap].nunpack =
+	indices(recv_remap[nrecv_remap].unpacklist,
+		box[0],box[1],box[2],box[3]);
+    }
+    nrecv_remap++;
+  }
+
+  // set offsets for received data
+
+  int offset = 0;
+  for (m = 0; m < nrecv_remap; m++) {
+    recv[m].offset = offset;
+    offset += recv_remap[m].nunpack;
+  }
   
   // clean-up
 
   clean_overlap();
   old->clean_overlap();
     
+  // nremap_buf1 = largest pack or unpack in any Send or Recv or Copy
+  // nremap_buf2 = sum of all unpacks in Recv
 
-  
   nremap_buf1 = 0;
+
+  if (self_remap) {
+    nremap_buf1 = MAX(nremap_buf1,copy_remap.npack);
+    nremap_buf1 = MAX(nremap_buf1,copy_remap.nunpack);
+  }
+
+  for (m = 0; m < nsend_remap; m++)
+    nremap_buf1 = MAX(nremap_buf1,send_remap[m].npack);
+
   nremap_buf2 = 0;
+  for (m = 0; m < nrecv_remap; m++) {
+    nremap_buf1 = MAX(nremap_buf1,recv_remap[m].nunpack);
+    nremap_buf2 += recv_remap[m].nunpack;
+  }
 }
 
 /* ----------------------------------------------------------------------

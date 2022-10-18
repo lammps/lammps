@@ -34,11 +34,11 @@ static constexpr int OFFSET = 16384;
 
 /* ----------------------------------------------------------------------
    NOTES:
-   tiled implementations only currently work for RCB, not general tilings
-     b/c RCB tree is used to find neighboring tiles
    if o indices for ghosts are < 0 or hi indices are >= N,
      then grid is treated as periodic in that dimension,
      comm is done across the periodic boundaries
+   tiled implementations only work for RCB, not general tilings
+     b/c RCB tree is used to find neighboring tiles
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -321,8 +321,12 @@ Grid3d::~Grid3d()
   delete [] requests;
 
   memory->sfree(rcbinfo);
-}
+
+  // remap data structs
   
+  deallocate_remap();
+}
+
 // ----------------------------------------------------------------------
 // store and access Grid parameters
 // ----------------------------------------------------------------------
@@ -401,6 +405,10 @@ void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
   requests = nullptr;
 
   rcbinfo = nullptr;
+
+  nsend_remap = nrecv_remap = self_remap = 0;
+  send_remap = nullptr;
+  recv_remap = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1270,6 +1278,8 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 
 void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 {
+  deallocate_remap();
+  
   if (layout == BRICK) setup_remap_brick(old,nremap_buf1,nremap_buf2);
   else setup_remap_tiled(old,nremap_buf2,nremap_buf2);
 }
@@ -1278,9 +1288,6 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 
 void Grid3d::setup_remap_brick(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 {
-  // NOTE: when to clean up data structs when multiple remaps occur
-  // NOTE: does a remap also require ghost comm in fix ttm/grid ?
-  
   nremap_buf1 = 0;
   nremap_buf2 = 0;
 }
@@ -1289,54 +1296,116 @@ void Grid3d::setup_remap_brick(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 
 void Grid3d::setup_remap_tiled(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 {
+  int m;
   int pbc[3];
+  int *box;
 
-  // find overlaps of new decomp owned box with all owned boxes in old decomp
-  // noverlap = # of overlaps, including self
-  // overlap = vector of overlap info using Overlap data struct
-
-  int newbox[6];
-  get_bounds(newbox[0],newbox[1],newbox[2],newbox[3],newbox[4],newbox[5]);
-  pbc[0] = pbc[1] = pbc[2] = 0;
-
-  Overlap *overlap_old;
-  int noverlap_old = old->compute_overlap(newbox,pbc,overlap_old);
-
-  // use overlap_old to construct send and copy lists
-
-  self_remap = 0;
-  
-  for (int m = 0; m < noverlap_old; m++) {
-    if (overlap_old[m].proc == me) self_remap = 1;
-    else {
-    }
-  }
-
-  // find overlaps of old decomp owned box with all owned boxes in new decomp
-  // noverlap = # of overlaps, including self
-  // overlap = vector of overlap info using Overlap data struct
+  // compute overlaps of old decomp owned box with all owned boxes in new decomp
+  // noverlap_old = # of overlaps, including self
+  // overlap_old = vector of overlap info in Overlap data struct
 
   int oldbox[6];
   old->get_bounds(oldbox[0],oldbox[1],oldbox[2],oldbox[3],oldbox[4],oldbox[5]);
   pbc[0] = pbc[1] = pbc[2] = 0;
 
-  Overlap *overlap_new;
-  int noverlap_new = compute_overlap(oldbox,pbc,overlap_new);
+  Overlap *overlap_old;
+  int noverlap_old = compute_overlap(oldbox,pbc,overlap_old);
 
-  // use overlaps to construct recv and copy lists
-
-
+  // use overlap_old to construct send and copy lists
   
+  self_remap = 0;
+
+  nsend_remap = 0;
+  for (m = 0; m < noverlap_old; m++) {
+    if (overlap_old[m].proc == me) self_remap =1;
+    else nsend_remap++;
+  }
+
+  send_remap = new Send[nsend_remap];
+  
+  nsend_remap = 0;
+  for (m = 0; m < noverlap_old; m++) {
+    box = overlap_old[m].box;
+    if (overlap_old[m].proc == me) {
+      copy_remap.npack =
+	old->indices(copy_remap.packlist,
+		     box[0],box[1],box[2],box[3],box[4],box[5]);
+    } else {
+      send_remap[nsend_remap].proc = overlap_old[m].proc;
+      send_remap[nsend_remap].npack =
+	old->indices(send_remap[nsend_remap].packlist,
+		     box[0],box[1],box[2],box[3],box[4],box[5]);
+    }
+    nsend_remap++;
+  }
+
+  // compute overlaps of new decomp owned box with all owned boxes in old decomp
+  // noverlap_new = # of overlaps, including self
+  // overlap_new = vector of overlap info in Overlap data struct
+
+  int newbox[6];
+  get_bounds(newbox[0],newbox[1],newbox[2],newbox[3],newbox[4],newbox[5]);
+  pbc[0] = pbc[1] = pbc[2] = 0;
+
+  Overlap *overlap_new;
+  int noverlap_new = old->compute_overlap(newbox,pbc,overlap_new);
+
+  // use overlap_new to construct recv and copy lists
+  // set offsets for Recv data
+
+  nrecv_remap = 0;
+  for (m = 0; m < noverlap_new; m++)
+    if (overlap_old[m].proc != me) nrecv_remap++;
+
+  recv_remap = new Recv[nrecv_remap];
+
+  nrecv_remap = 0;
+  for (m = 0; m < noverlap_new; m++) {
+    box = overlap_new[m].box;
+    if (overlap_new[m].proc == me) {
+      copy_remap.nunpack =
+	indices(copy_remap.unpacklist,
+		box[0],box[1],box[2],box[3],box[4],box[5]);
+    } else {
+      recv_remap[nrecv_remap].proc = overlap_new[m].proc;
+      recv_remap[nrecv_remap].nunpack =
+	indices(recv_remap[nrecv_remap].unpacklist,
+		box[0],box[1],box[2],box[3],box[4],box[5]);
+    }
+    nrecv_remap++;
+  }
+
+  // set offsets for received data
+
+  int offset = 0;
+  for (m = 0; m < nrecv_remap; m++) {
+    recv[m].offset = offset;
+    offset += recv_remap[m].nunpack;
+  }
   
   // clean-up
 
   clean_overlap();
   old->clean_overlap();
     
+  // nremap_buf1 = largest pack or unpack in any Send or Recv or Copy
+  // nremap_buf2 = sum of all unpacks in Recv
 
-  
   nremap_buf1 = 0;
+
+  if (self_remap) {
+    nremap_buf1 = MAX(nremap_buf1,copy_remap.npack);
+    nremap_buf1 = MAX(nremap_buf1,copy_remap.nunpack);
+  }
+
+  for (m = 0; m < nsend_remap; m++)
+    nremap_buf1 = MAX(nremap_buf1,send_remap[m].npack);
+
   nremap_buf2 = 0;
+  for (m = 0; m < nrecv_remap; m++) {
+    nremap_buf1 = MAX(nremap_buf1,recv_remap[m].nunpack);
+    nremap_buf2 += recv_remap[m].nunpack;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1654,6 +1723,26 @@ void Grid3d::grow_overlap()
   maxoverlap_list += DELTA;
   overlap_list = (Overlap *)
     memory->srealloc(overlap_list,maxoverlap_list*sizeof(Overlap),"grid3d:overlap_list");
+}
+
+/* ----------------------------------------------------------------------
+   deallocate remap data structs
+------------------------------------------------------------------------- */
+
+void Grid3d::deallocate_remap()
+{
+  for (int i = 0; i < nsend_remap; i++)
+    memory->destroy(send_remap[i].packlist);
+  memory->sfree(send_remap);
+  
+  for (int i = 0; i < nrecv_remap; i++)
+    memory->destroy(recv_remap[i].unpacklist);
+  memory->sfree(recv_remap);
+
+  if (self_remap) {
+    memory->destroy(copy_remap.packlist);
+    memory->destroy(copy_remap.unpacklist);
+  }
 }
 
 /* ----------------------------------------------------------------------

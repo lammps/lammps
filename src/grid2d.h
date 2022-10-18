@@ -224,6 +224,7 @@ class Grid2d : protected Pointers {
 
   virtual void grow_swap();
   void grow_overlap();
+  void deallocate_remap();
 
   int indices(int *&, int, int, int, int);
 };

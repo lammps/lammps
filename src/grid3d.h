@@ -192,10 +192,10 @@ class Grid3d : protected Pointers {
   // includes overlaps across periodic boundaries, can also be self
 
   struct Overlap {
-    int proc;      // proc whose owned cells overlap my ghost cells
-    int box[6];    // box that overlaps otherproc's owned cells
+    int proc;      // proc whose cells overlap my cells
+    int box[6];    // box of my cells which overlap proc's cells
                    // this box is wholly contained within global grid
-    int pbc[3];    // PBC offsets to convert box to a portion of my ghost box
+    int pbc[3];    // PBC offsets to convert my box to a portion of my ghost box
                    // my ghost box may extend beyond global grid
   };
 
@@ -230,7 +230,8 @@ class Grid3d : protected Pointers {
 
   virtual void grow_swap();
   void grow_overlap();
-
+  void deallocate_remap();
+  
   int indices(int *&, int, int, int, int, int, int);
 };
 

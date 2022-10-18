@@ -2,7 +2,7 @@
 .. index:: pair_style ylz/gpu
 .. index:: pair_style ylz/intel
 .. index:: pair_style ylz/omp
- 
+
 pair_style ylc command
 ===========================
 
@@ -24,18 +24,18 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style   ylz  2.6
-   pair_coeff   *  *  1.0  1.0  4  3  0.0  2.6  
-   
+   pair_coeff   *  *  1.0  1.0  4  3  0.0  2.6
+
 
 Description
 """""""""""
 
-The *ylz* (Yuan-Li-Zhang) 
-:ref:`(Yuan) <Yuan>` style computes anisotropic interactions between pairs of particles considering the relative particle orientations via the formulas 
+The *ylz* (Yuan-Li-Zhang)
+:ref:`(Yuan) <Yuan>` style computes anisotropic interactions between pairs of particles considering the relative particle orientations via the formulas
 
 .. math::
 
-   U ( \mathbf{r}_{ij}, \mathbf{n}_i, \mathbf{n}_j ) =\left\{\begin{matrix} \mathbf{u}_R(r)+\left [ 1-\phi (\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j ) \right ]\epsilon, ~~ r<\mathbf{r}_{min} \\ \mathbf{u}_A(r)\phi (\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j ),~~  \mathbf{r}_{min}<r<\mathbf{r}_{c} \\ \end{matrix}\right.\\\\ \phi (\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )=1+\mu (a(\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )-1) \\\\ a(\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )=(\mathbf{n}_i\times\mathbf{r\hat{}}_{ij} )\cdot (\mathbf{n}_j\times\mathbf{r\hat{}}_{ij} )+sin\mathbf{\theta}_0(\mathbf{n}_i-\mathbf{n}_j)\cdot \mathbf{r\hat{}}_{ij}\\\\ \mathbf{u}_R(r)=\epsilon \left [ \left ( \frac{{r}_{min}}{r} \right )^{4}-2\left ( \frac{{r}_{min}}{r}\right )^{2} \right ] \\\\ \mathbf{u}_A(r)=-\epsilon\;cos^{2\zeta }\left ( \frac{\pi}{2}\frac{\left ( {r}-{r}_{min} \right )}{\left ( {r}_{c}-{r}_{min} \right )} \right ) \\ 
+   U ( \mathbf{r}_{ij}, \mathbf{n}_i, \mathbf{n}_j ) =\left\{\begin{matrix} \mathbf{u}_R(r)+\left [ 1-\phi (\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j ) \right ]\epsilon, ~~ r<\mathbf{r}_{min} \\ \mathbf{u}_A(r)\phi (\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j ),~~  \mathbf{r}_{min}<r<\mathbf{r}_{c} \\ \end{matrix}\right.\\\\ \phi (\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )=1+\mu (a(\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )-1) \\\\ a(\mathbf{r\hat{}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )=(\mathbf{n}_i\times\mathbf{r\hat{}}_{ij} )\cdot (\mathbf{n}_j\times\mathbf{r\hat{}}_{ij} )+sin\mathbf{\theta}_0(\mathbf{n}_i-\mathbf{n}_j)\cdot \mathbf{r\hat{}}_{ij}\\\\ \mathbf{u}_R(r)=\epsilon \left [ \left ( \frac{{r}_{min}}{r} \right )^{4}-2\left ( \frac{{r}_{min}}{r}\right )^{2} \right ] \\\\ \mathbf{u}_A(r)=-\epsilon\;cos^{2\zeta }\left ( \frac{\pi}{2}\frac{\left ( {r}-{r}_{min} \right )}{\left ( {r}_{c}-{r}_{min} \right )} \right ) \\
 
 where :math:`r_{i}` and :math:`r_{j}` are the center position vectors of particles i and j, respectively, :math:`r_{ij}=r_{i}-r_{j}` is the inter-particle distance vector, :math:`r=\left|r_{ij} \right|` and :math:`{r\hat{}}_{ij}=\mathbf{r}_{ij}/r`. The unit vectors :math:`n_{i}` and :math:`n_{j}` represent the axes of symmetry of particles i and j, respectively. :math:`u_R` and :math:`u_A` are the repulsive and attractive potentials. :math:`\phi` is an angular function which depends on the relative orientation between pair particles. :math:`\mu` is the parameter related to bending rigidity, :math:`\theta_{0}` is the parameter related to the spontaneous curvature, and :math:`\epsilon` is the energy unit, respectively. The :math:`\zeta` controls the slope of the attractive branch and :math:`{r}_{c}`is the cutoff radius. :math:`r_{min}` is the distance which minimizes the potential energy :math:`u_{A}(r)`and :math:`r_{min}=2^{1/6}\sigma`, where :math:`\sigma` is the length unit.
 

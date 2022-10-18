@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,12 +40,12 @@ class PairYLZ : public Pair {
   void read_restart_settings(FILE *);
   void write_data(FILE *);
   void write_data_all(FILE *);
-  
-  
+
+
  protected:
 
   double cut_global;
-            
+
   double **epsilon,**sigma,**cut,**zeta,**mu,**beta;  // model parameter values for atom-type pairs
 
   class AtomVecEllipsoid *avec;
@@ -62,22 +62,4 @@ class PairYLZ : public Pair {
 }
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair ylz requires atom style ellipsoid
-
-Self-explanatory.
-
-*/
 

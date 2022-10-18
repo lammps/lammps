@@ -1336,6 +1336,8 @@
 /pair_yukawa_colloid.h
 /pair_wf_cut.cpp
 /pair_wf_cut.h
+/pair_ylz.cpp
+/pair_ylz.h
 /pair_momb.cpp
 /pair_momb.h
 /pppm.cpp

@@ -1,6 +1,6 @@
 .. index:: pair_style ylz
 
-pair_style ylc command
+pair_style ylz command
 ===========================
 
 Syntax

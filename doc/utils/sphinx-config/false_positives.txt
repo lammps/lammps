@@ -1912,6 +1912,7 @@ lwsock
 lx
 ly
 Lybrand
+Lykotrafitis
 lyon
 Lysogorskiy
 Lyulin

@@ -13,8 +13,8 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(quartic,BondQuartic);
-BondStyle(quartic/breakable,BondQuartic);
+BondStyle(quartic,BondQuarticBreakable);
+BondStyle(quartic/breakable,BondQuarticBreakable);
 // clang-format on
 #else
 
@@ -25,10 +25,10 @@ BondStyle(quartic/breakable,BondQuartic);
 
 namespace LAMMPS_NS {
 
-class BondQuartic: public Bond {
+class BondQuarticBreakable: public Bond {
  public:
-  BondQuartic(class LAMMPS *);
-  ~BondQuartic() override;
+  BondQuarticBreakable(class LAMMPS *);
+  ~BondQuarticBreakable() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;

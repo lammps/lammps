@@ -44,13 +44,5 @@ BondQuarticUnbreakable::BondQuarticUnbreakable(LAMMPS *_lmp) :
 
 BondQuarticUnbreakable::~BondQuarticUnbreakable()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(k);
-    memory->destroy(b1);
-    memory->destroy(b2);
-    memory->destroy(rc);
-    memory->destroy(u0);
-  }
 }
 

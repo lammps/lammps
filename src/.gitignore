@@ -484,8 +484,10 @@
 /bond_oxdna2_fene.h
 /bond_oxrna2_fene.cpp
 /bond_oxrna2_fene.h
-/bond_quartic.cpp
-/bond_quartic.h
+/bond_quartic_breakable.cpp
+/bond_quartic_breakable.h
+/bond_quartic_unbreakable.cpp
+/bond_quartic_unbreakable.h
 /bond_special.cpp
 /bond_special.h
 /bond_table.cpp

@@ -51,6 +51,9 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# renamed on 18 October 2022
+bond_quartic.cpp
+bond_quartic.h
 # renamed on 11 July 2022
 lj_sdk_common.h
 angle_sdk.cpp

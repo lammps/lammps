@@ -16,7 +16,7 @@
                          Tiedong Sun (NTU)
 ------------------------------------------------------------------------- */
 
-#include "bond_quartic.h"
+#include "bond_quartic_breakable.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -34,7 +34,7 @@ using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
-BondQuartic::BondQuartic(LAMMPS *_lmp) :
+BondQuarticBreakable::BondQuarticBreakable(LAMMPS *_lmp) :
     Bond(_lmp), k(nullptr), b1(nullptr), b2(nullptr), rc(nullptr), u0(nullptr)
 {
   partial_flag = 1;
@@ -43,7 +43,7 @@ BondQuartic::BondQuartic(LAMMPS *_lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-BondQuartic::~BondQuartic()
+BondQuarticBreakable::~BondQuarticBreakable()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -57,7 +57,7 @@ BondQuartic::~BondQuartic()
 
 /* ---------------------------------------------------------------------- */
 
-void BondQuartic::compute(int eflag, int vflag)
+void BondQuarticBreakable::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -75,20 +75,20 @@ void BondQuartic::compute(int eflag, int vflag)
 
   if (breakable_flag) {
     if (evflag) {
-      if (eflag) eval<1,1,1>(cutsq, x, f, bondlist, nbondlist, nlocal, newton_bond);
-      else eval<1,0,1>(cutsq, x, f, bondlist, nbondlist, nlocal, newton_bond);
-    } else eval<1,0,0>(cutsq, x, f, bondlist, nbondlist, nlocal, newton_bond);
+      if (eflag) eval<1,1,1>();
+      else eval<1,0,1>();
+    } else eval<1,0,0>();
   } else {
     if (evflag) {
-      if (eflag) eval<0,1,1>(cutsq, x, f, bondlist, nbondlist, nlocal, newton_bond);
-      else eval<0,0,1>(cutsq, x, f, bondlist, nbondlist, nlocal, newton_bond);
-    } else eval<0,0,0>(cutsq, x, f, bondlist, nbondlist, nlocal, newton_bond);
+      if (eflag) eval<0,1,1>();
+      else eval<0,0,1>();
+    } else eval<0,0,0>();
   }  
 }
 
 /* ---------------------------------------------------------------------- */
 template <int BREAKABLE, int EFLAG, int EVFLAG>
-void BondQuartic::eval(double **cutsq, double **x, double **f, int **bondlist, int nbondlist, int nlocal, int newton_bond)
+void BondQuarticBreakable::eval()
 {
   int i1, i2, n, m, type, itype, jtype;
   double delx, dely, delz, ebond, fbond, evdwl, fpair;
@@ -200,7 +200,7 @@ void BondQuartic::eval(double **cutsq, double **x, double **f, int **bondlist, i
 
 /* ---------------------------------------------------------------------- */
 
-void BondQuartic::allocate()
+void BondQuarticBreakable::allocate()
 {
   allocated = 1;
   const int np1 = atom->nbondtypes + 1;
@@ -219,7 +219,7 @@ void BondQuartic::allocate()
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
-void BondQuartic::coeff(int narg, char **arg)
+void BondQuarticBreakable::coeff(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR, "Incorrect args for bond coefficients");
   if (!allocated) allocate();
@@ -251,7 +251,7 @@ void BondQuartic::coeff(int narg, char **arg)
    check if pair defined and special_bond settings are valid
 ------------------------------------------------------------------------- */
 
-void BondQuartic::init_style()
+void BondQuarticBreakable::init_style()
 {
   if (breakable_flag) {
     if (force->pair == nullptr || force->pair->single_enable == 0)
@@ -272,21 +272,25 @@ void BondQuartic::init_style()
    return an equilbrium bond length
 ------------------------------------------------------------------------- */
 
-double BondQuartic::equilibrium_distance(int i)
+double BondQuarticBreakable::equilibrium_distance(int i)
 {
   // equilibrium distance of the quartic potential, excluding LJ
   double b2_4ac = 9.0 * (b1[i] * b1[i] + b2[i] *  b2[i]) - 14.0 * b1[i] * b2[i];
 
   if (b2_4ac >= 0.0) {
-    return (8.0 * rc[i] + 3.0 * (b1[i] + b2[i]) - sqrt(b2_4ac) ) / 8.0;
-  } else return rc[i];
+    double quartic_equ = (8.0 * rc[i] + 3.0 * (b1[i] + b2[i]) - sqrt(b2_4ac) ) / 8.0;
+  } else return rc[i] < MY_CUBEROOT2 ? MY_CUBEROOT2 : rc[i];
+
+  // when quartic_equ < MY_CUBEROOT2, the bond length hits the LJ wall, using MY_CUBEROOT2
+  // as aproximate bond equilibrium length
+  return quartic_equ < MY_CUBEROOT2 ? MY_CUBEROOT2 : quartic_equ;
 }
 
 /* ----------------------------------------------------------------------
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
-void BondQuartic::write_restart(FILE *fp)
+void BondQuarticBreakable::write_restart(FILE *fp)
 {
   fwrite(&k[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&b1[1], sizeof(double), atom->nbondtypes, fp);
@@ -299,7 +303,7 @@ void BondQuartic::write_restart(FILE *fp)
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-void BondQuartic::read_restart(FILE *fp)
+void BondQuarticBreakable::read_restart(FILE *fp)
 {
   allocate();
 
@@ -323,7 +327,7 @@ void BondQuartic::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondQuartic::write_data(FILE *fp)
+void BondQuarticBreakable::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
     fprintf(fp, "%d %g %g %g %g %g\n", i, k[i], b1[i], b2[i], rc[i], u0[i]);
@@ -331,7 +335,7 @@ void BondQuartic::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondQuartic::single(int type, double rsq, int i, int j, double &fforce)
+double BondQuarticBreakable::single(int type, double rsq, int i, int j, double &fforce)
 {
   double r, dr, r2, ra, rb, sr2, sr6;
 

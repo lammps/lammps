@@ -686,7 +686,7 @@ void FixElectrodeConp::setup_pre_exchange()    // create_taglist
   if (mem_needed > 0.5)
     error->warning(FLERR,
                    fmt::format("Please ensure there is sufficient memory for fix electrode "
-                               "(anticipated usage is {:.1f} per proc)",
+                               "(anticipated usage is at least {:.1f} GiB per proc)",
                                mem_needed));
 }
 

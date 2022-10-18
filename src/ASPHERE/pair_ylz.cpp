@@ -269,8 +269,7 @@ void PairYLZ::init_style()
   for (int i = 0; i < nlocal; ++i)
     if (ellipsoid[i] < 0) flag = 1;
   MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_MAX, world);
-  if (flag_all)
-    error->all(FLERR, "All atoms must be ellipsoids for pair style ylz");
+  if (flag_all) error->all(FLERR, "All atoms must be ellipsoids for pair style ylz");
 }
 
 /* ----------------------------------------------------------------------

@@ -39,10 +39,10 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include <cstdlib>
 #include <cstring>
 
-#include "ace_b_basis.h"
-#include "ace_b_evaluator.h"
-#include "ace_recursive.h"
-#include "ace_version.h"
+#include "ace/ace_b_basis.h"
+#include "ace/ace_b_evaluator.h"
+#include "ace-evaluator/ace_recursive.h"
+#include "ace-evaluator/ace_version.h"
 
 namespace LAMMPS_NS {
 struct ACEALImpl {

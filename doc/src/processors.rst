@@ -18,18 +18,17 @@ Syntax
 
        *grid* arg = gstyle params ...
          gstyle = *onelevel* or *twolevel* or *numa* or *custom*
-           onelevel params = none
-           twolevel params = Nc Cx Cy Cz
+           *onelevel* params = none
+           *twolevel* params = Nc Cx Cy Cz
              Nc = number of cores per node
              Cx,Cy,Cz = # of cores in each dimension of 3d sub-grid assigned to each node
-           numa params = none
-           custom params = infile
+           *numa* params = none
+           *custom* params = infile
              infile = file containing grid layout
        *map* arg = *cart* or *cart/reorder* or *xyz* or *xzy* or *yxz* or *yzx* or *zxy* or *zyx*
           cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
           cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
           xyz,xzy,yxz,yzx,zxy,zyx = map processors to 3d grid in IJK ordering
-       *numa* arg = none
        *part* args = Psend Precv cstyle
          Psend = partition # (1 to Np) which will send its processor layout
          Precv = partition # (1 to Np) which will recv the processor layout

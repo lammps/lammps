@@ -29,11 +29,11 @@
 #include "neighbor_kokkos.h"
 #include "neigh_request.h"
 
-#include "ace_c_basis.h"
-#include "ace_evaluator.h"
-#include "ace_recursive.h"
-#include "ace_version.h"
-#include "ace_radial.h"
+#include "ace-evaluator/ace_c_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
+#include "ace-evaluator/ace_recursive.h"
+#include "ace-evaluator/ace_version.h"
+#include "ace-evaluator/ace_radial.h"
 #include <cstring>
 
 namespace LAMMPS_NS {

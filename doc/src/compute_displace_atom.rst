@@ -17,7 +17,7 @@ Syntax
 
   .. parsed-literal::
 
-       *replace* arg = name of per-atom variable
+       *refresh* arg = name of per-atom variable
 
 Examples
 """"""""

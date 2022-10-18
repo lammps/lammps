@@ -5,10 +5,10 @@ SHELL = /bin/sh
 YAML_CPP_PATH = src/yaml-cpp
 YAML_CPP_INC = $(YAML_CPP_PATH)/include
 
-WIGNER_CPP_INC = src/wigner-cpp/include/wigner
+WIGNER_CPP_INC = src/wigner-cpp/include
 
 CNPY_CPP_PATH = src/cnpy
-CNPY_CPP_INC = $(CNPY_CPP_PATH)
+CNPY_CPP_INC = src
 CNPY_SRC_FILES =  $(CNPY_CPP_PATH)/cnpy.cpp
 
 SRC_FILES = $(wildcard src/ML-PACE/ace/*.cpp) $(wildcard src/ML-PACE/ace-evaluator/*.cpp)
@@ -21,7 +21,7 @@ OBJ =   $(SRC:.cpp=.o)
 
 
 # ------ SETTINGS ------
-CXXFLAGS = -O3 -fPIC -Isrc/ML-PACE/ace -Isrc/ML-PACE/ace-evaluator -I$(YAML_CPP_INC) -I$(WIGNER_CPP_INC) -I$(CNPY_CPP_INC) -DEXTRA_C_PROJECTIONS
+CXXFLAGS = -O3 -fPIC -Isrc/ML-PACE -I$(YAML_CPP_INC) -I$(WIGNER_CPP_INC) -I$(CNPY_CPP_INC) -DEXTRA_C_PROJECTIONS
 
 ARCHIVE =	ar
 ARCHFLAG =	-rc

@@ -28,7 +28,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *overlap* or *maxtry* or *units*
+* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
 
   .. parsed-literal::
 

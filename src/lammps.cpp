@@ -895,24 +895,23 @@ void LAMMPS::post_create()
   // do not re-issue package command if already issued
 
   if (suffix_enable) {
-    const char *mysuffix = suffix;
-    if (suffixp) mysuffix = suffixp;
+    if (suffixp) suffix = suffixp;
 
-    if (strcmp(mysuffix,"gpu") == 0 && !modify->check_package("GPU"))
+    if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
       error->all(FLERR,"Using suffix gpu without GPU package installed");
-    if (strcmp(mysuffix,"intel") == 0 && !modify->check_package("INTEL"))
+    if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
       error->all(FLERR,"Using suffix intel without INTEL package installed");
-    if (strcmp(mysuffix,"kk") == 0 &&
+    if (strcmp(suffix,"kk") == 0 &&
         (kokkos == nullptr || kokkos->kokkos_exists == 0))
       error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
-    if (strcmp(mysuffix,"omp") == 0 && !modify->check_package("OMP"))
+    if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
-    if (strcmp(mysuffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
+    if (strcmp(suffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
       input->one("package gpu 0");
-    if (strcmp(mysuffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
+    if (strcmp(suffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
       input->one("package intel 1");
-    if (strcmp(mysuffix,"omp") == 0 && !(package_issued & Suffix::OMP))
+    if (strcmp(suffix,"omp") == 0 && !(package_issued & Suffix::OMP))
       input->one("package omp 0");
 
     if (suffix2) {
@@ -923,6 +922,7 @@ void LAMMPS::post_create()
       if (strcmp(suffix2,"omp") == 0 && !(package_issued & Suffix::OMP))
         input->one("package omp 0");
     }
+    if (suffixp) suffix = nullptr;
   }
 }
 

@@ -870,6 +870,7 @@ void LAMMPS::post_create()
   // invoke any command-line package commands
 
   if (num_package) {
+    if (suffixp) suffix=suffixp;
     std::string str;
     for (int i = 0; i < num_package; i++) {
       str = "package";
@@ -885,6 +886,7 @@ void LAMMPS::post_create()
       }
       input->one(str);
     }
+    if (suffixp) suffix=nullptr;
   }
 
   // either suffix or suffixp will be set if suffix_enable = 1

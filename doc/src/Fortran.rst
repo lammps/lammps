@@ -145,10 +145,10 @@ Below is a small demonstration of the uses of the different functions:
 
    PROGRAM testcmd
      USE LIBLAMMPS
-     TYPE(lammps)     :: lmp
-     CHARACTER(len=512) :: cmds
-     CHARACTER(len=40), ALLOCATABLE :: cmdlist(:)
-     CHARACTER(len=10) :: trimmed
+     TYPE(lammps) :: lmp
+     CHARACTER(LEN=512) :: cmds
+     CHARACTER(LEN=40), ALLOCATABLE :: cmdlist(:)
+     CHARACTER(LEN=10) :: trimmed
      INTEGER :: i
 
      lmp = lammps()
@@ -265,6 +265,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f subroutine gather_atoms_subset: :f:func:`gather_atoms_subset`
    :f subroutine scatter_atoms: :f:func:`scatter_atoms`
    :f subroutine scatter_atoms_subset: :f:func:`scatter_atoms_subset`
+   :f subroutine create_atoms: :f:func:`create_atoms`
    :f function version: :f:func:`version`
    :f subroutine flush_buffers: :f:func:`flush_buffers`
    :f function is_running: :f:func:`is_running`
@@ -1267,6 +1268,56 @@ Procedures Bound to the lammps Derived Type
 
 --------
 
+.. f:subroutine:: create_atoms([id,] type, x, [v,] [image,] [bexpand])
+
+   This method calls :c:func:`lammps_create_atoms` to create additional atoms
+   from a given list of coordinates and a list of atom types. Additionally,
+   the atom IDs, velocities, and image flags may be provided.
+
+   .. versionadded:: TBD
+
+   :p integer(c_int) type [dimension(N)]: vector of :math:`N` atom types
+    (required/see note below)
+   :p real(c_double) x [dimension(3N)]: vector of :math:`3N` x/y/z positions
+    of the new atoms, arranged as :math:`[x_1,y_1,z_1,x_2,y_2,\dotsc]`
+    (required/see note below)
+   :o integer(\*) id [dimension(N)]: vector of :math:`N` atom IDs; if
+    absent, LAMMPS will generate them for you. \*The kind parameter should be
+    ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in which
+    case it should be ``c_int64_t``.
+   :o real(c_double) v [dimension(3N)]: vector of :math:`3N` x/y/z velocities
+    of the new atoms, arranged as :math:`[v_{1,x},v_{1,y},v_{1,z},v_{2,x},
+    \dotsc]`; if absent, they will be set to zero
+   :o integer(\*) image [dimension(N)]: vector of :math:`N` image flags; if
+    absent, they are set to zero. \*The kind parameter should be
+    ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in which
+    case it should be ``c_int64_t``. See note below.
+   :o logical bexpand: if ``.TRUE.``, atoms outside of shrink-wrap boundaries
+    will be created, not dropped, and the box dimensions will be extended.
+    Default is ``.FALSE.``
+
+   .. note::
+
+      The *type* and *x* arguments are required, but they are declared
+      ``OPTIONAL`` in the module because making them mandatory would require
+      *id* to be present as well. To have LAMMPS generate the ids for you,
+      use a call something like
+
+      .. code-block:: Fortran
+
+         lmp%create_atoms(type=new_types, x=new_xs)
+
+   .. note::
+
+      When LAMMPS has been compiled with ``-DLAMMPS_BIGBIG``, it is not
+      possible to include the *image* parameter but omit the *id* parameter.
+      Either *id* must be present, or both *id* and *image* must be absent.
+      This is required because having all arguments be optional in both
+      generic functions creates an ambiguous interface. This limitation does
+      not exist if LAMMPS was not compiled with ``-DLAMMPS_BIGBIG``.
+
+--------
+
 .. f:function:: version()
 
    This method returns the numeric LAMMPS version like
@@ -1453,6 +1504,51 @@ Procedures Bound to the lammps Derived Type
     (``DIMENSION(:)``) with allocatable length.
    :o integer length [optional]: length of each string in the list.
     Default: 31.
+
+--------
+
+.. f:function:: encode_image_flags(ix, iy, iz)
+
+   Encodes three integer image flags into a single imageint.
+
+   .. versionadded:: TBD
+
+   This function performs the bit-shift, addition, and bit-wise OR operations
+   necessary to combine the values of three integers representing the image
+   flags in the :math:`x`-, :math:`y`-, and :math:`z`-directions. Unless LAMMPS
+   is compiled with ``-DLAMMPS_BIGBIG``, those integers are limited to 10-bit
+   signed integers :math:`[-512,512]`. If ``-DLAMMPS_BIGBIG`` was used when
+   compiling, then the return value is of kind ``c_int64_t`` instead of
+   kind ``c_int``, and the valid range for the individual image flags becomes
+   :math:`[-1048576,1048575]` (i.e., the range of a 21-bit signed integer).
+   There is no check on whether the arguments conform to these requirements.
+
+   :p integer(c_int) ix: image flag in :math:`x`-direction
+   :p integer(c_int) iy: image flag in :math:`y`-direction
+   :p integer(c_int) iz: image flag in :math:`z`-direction
+   :r integer(\*): encoded image flag. \*Kind parameter is ``c_int`` unless
+    LAMMPS was built with ``-DLAMMPS_BIGBIG``, in which case it is
+    ``c_int64_t``.
+
+   .. note::
+
+     The fact that the programmer does not know the kind parameter of the
+     return value until compile time means that it is impossible to define an
+     interface that works for both sizes of ``imageint``. One side effect of
+     this is that you must assign the return value of this function to a
+     variable; it cannot be used as the argument to another function or as part
+     of an array constructor. For example,
+
+     .. code-block:: Fortran
+
+       my_images = [lmp%encode_image_flags(0,0,0), lmp%encode_image_flags(1,0,0)]
+
+     will *not* work; instead, do something like
+
+     .. code-block:: Fortran
+
+       my_images(1) = lmp%encode_image_flags(0,0,0)
+       my_images(2) = lmp%encode_image_flags(1,0,0)
 
 --------
 

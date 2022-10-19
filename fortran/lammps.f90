@@ -130,18 +130,19 @@ MODULE LIBLAMMPS
                                            lmp_create_atoms_bigbig
 !
     PROCEDURE :: version                => lmp_version
-    PROCEDURE,NOPASS :: get_os_info     => lmp_get_os_info
-    PROCEDURE,NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
-    PROCEDURE,NOPASS :: config_has_gzip_support => lmp_config_has_gzip_support
-    PROCEDURE,NOPASS :: config_has_png_support => lmp_config_has_png_support
-    PROCEDURE,NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
-    PROCEDURE,NOPASS :: config_has_ffmpeg_support &
-      => lmp_config_has_ffmpeg_support
-    PROCEDURE,NOPASS :: config_has_exceptions => lmp_config_has_exceptions
-    PROCEDURE,NOPASS :: config_has_package => lmp_config_has_package
-    PROCEDURE,NOPASS :: config_package_count => lammps_config_package_count
-    PROCEDURE,NOPASS :: config_package_name => lmp_config_package_name
-    PROCEDURE,NOPASS :: installed_packages => lmp_installed_packages
+    PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
+    PROCEDURE, NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
+    PROCEDURE, NOPASS :: config_has_gzip_support => lmp_config_has_gzip_support
+    PROCEDURE, NOPASS :: config_has_png_support => lmp_config_has_png_support
+    PROCEDURE, NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
+    PROCEDURE, NOPASS :: config_has_ffmpeg_support &
+                                        => lmp_config_has_ffmpeg_support
+    PROCEDURE, NOPASS :: config_has_exceptions => lmp_config_has_exceptions
+    PROCEDURE, NOPASS :: config_has_package => lmp_config_has_package
+    PROCEDURE, NOPASS :: config_package_count => lammps_config_package_count
+    PROCEDURE, NOPASS :: config_package_name => lmp_config_package_name
+    PROCEDURE, NOPASS :: installed_packages => lmp_installed_packages
+    PROCEDURE :: encode_image_flags     => lmp_encode_image_flags
 !
     PROCEDURE :: flush_buffers          => lmp_flush_buffers
     PROCEDURE :: is_running             => lmp_is_running
@@ -202,6 +203,11 @@ MODULE LIBLAMMPS
     CHARACTER(LEN=:), ALLOCATABLE :: str
   END TYPE lammps_variable_data
 
+  TYPE, EXTENDS(lammps_data_baseclass) :: lammps_image_data
+    INTEGER(c_int) :: i32
+    INTEGER(c_int64_t) :: i64
+  END TYPE lammps_image_data
+
   ! This overloads the assignment operator (=) so that assignments of the
   ! form
   !    nlocal = extract_global('nlocal')
@@ -222,6 +228,9 @@ MODULE LIBLAMMPS
     MODULE PROCEDURE assign_double_to_lammps_variable_data, &
       assign_doublevec_to_lammps_variable_data, &
       assign_string_to_lammps_variable_data
+    ! Image data, too
+    MODULE PROCEDURE assign_int_to_lammps_image_data, &
+      assign_int64_to_lammps_image_data
   END INTERFACE
 
   ! interface definitions for calling functions in library.cpp
@@ -567,6 +576,10 @@ MODULE LIBLAMMPS
     !INTEGER(c_int) FUNCTION lammps_plugin_count
     !SUBROUTINE lammps_plugin_name
 
+    ! We don't call lammps_encode_image_flags because its interface is
+    ! ambiguous: we don't know sizeof(imageint) prior to compile time
+    ! It is re-written in Fortran below. It was easier to do the same for
+    ! lammps_decode_image_flags's equivalent.
     !Both of these use LAMMPS_BIGBIG
     !INTEGER(LAMMPS_imageint) FUNCTION lammps_encode_image_flags
     !SUBROUTINE lammps_decode_image_flags
@@ -1544,34 +1557,69 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_subset_double
 
-  ! equivalent function to lammps_create_atoms
+  ! equivalent function to lammps_create_atoms (int ids or id absent)
   SUBROUTINE lmp_create_atoms_int(self, id, type, x, v, image, bexpand)
     CLASS(lammps), INTENT(IN) :: self
-    INTEGER(c_int), DIMENSION(:), TARGET :: id, image
-    INTEGER(c_int), DIMENSION(:), TARGET :: type
-    REAL(c_double), DIMENSION(:), TARGET :: x, v
-    LOGICAL :: bexpand
+    INTEGER(c_int), DIMENSION(:), TARGET, OPTIONAL :: id, image
+    INTEGER(c_int), DIMENSION(:), TARGET, OPTIONAL :: type
+    REAL(c_double), DIMENSION(:), TARGET, OPTIONAL :: x, v
+    LOGICAL, OPTIONAL :: bexpand
     INTEGER(c_int) :: n, Cbexpand
     TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
     INTEGER(c_int) :: tagint_size, atoms_created
 
+    ! type is actually NOT optional, but we can't make id optional without it,
+    ! so we check at run-time
+    IF (.NOT. PRESENT(type)) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'the "type" argument to create_atoms is required&
+        & [Fortran/create_atoms]')
+    END IF
+
     tagint_size = lmp_extract_setting(self, 'tagint')
-    IF ( tagint_size /= 4_c_int ) THEN
+    IF (tagint_size /= 4_c_int .AND. (PRESENT(id) .OR. PRESENT(image))) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Unable to create_atoms; your id/image array types are incompatible&
         & with LAMMPS_SMALLBIG and LAMMPS_SMALLSMALL [Fortran/create_atoms]')
+      RETURN ! in case exception is caught
     END IF
-    n = SIZE(id, KIND=c_int)
-    IF ( bexpand) THEN
-      Cbexpand = 1_c_int
+    n = SIZE(type, KIND=c_int)
+    IF (PRESENT(bexpand)) THEN
+      IF (bexpand) THEN
+        Cbexpand = 1_c_int
+      ELSE
+        Cbexpand = 0_c_int
+      END IF
     ELSE
-      Cbexpand = 0
+      Cbexpand = 0_c_int
     END IF
-    Cid = C_LOC(id(1))
-    Ctype = C_LOC(type(1))
-    Cimage = C_LOC(image(1))
-    Cx = C_LOC(x(1))
-    Cv = C_LOC(v(1))
+    IF (PRESENT(id)) THEN
+      Cid = C_LOC(id(1))
+    ELSE
+      Cid = c_null_ptr
+    END IF
+    IF (PRESENT(type)) THEN
+      Ctype = C_LOC(type(1))
+    ELSE
+      RETURN ! We shouldn't get here unless exceptions are being caught
+    END IF
+    IF (PRESENT(image)) THEN
+      Cimage = C_LOC(image(1))
+    ELSE
+      Cimage = c_null_ptr
+    END IF
+    IF (PRESENT(x)) THEN
+      Cx = C_LOC(x(1))
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'the argument "x" to create_atoms is required')
+      RETURN
+    END IF
+    IF (PRESENT(v)) THEN
+      Cv = C_LOC(v(1))
+    ELSE
+      Cv = c_null_ptr
+    END IF
     atoms_created = lammps_create_atoms(self%handle, n, Cid, Ctype, Cx, Cv, &
       Cimage, Cbexpand)
     IF ( atoms_created < 0_c_int ) THEN
@@ -1583,12 +1631,15 @@ CONTAINS
     END IF
   END SUBROUTINE lmp_create_atoms_int
 
+  ! equivalent function to lammps_create_atoms (long int ids and images)
   SUBROUTINE lmp_create_atoms_bigbig(self, id, type, x, v, image, bexpand)
     CLASS(lammps), INTENT(IN) :: self
-    INTEGER(c_int64_t), DIMENSION(:), TARGET :: id, image
+    INTEGER(c_int64_t), DIMENSION(:), TARGET :: id
     INTEGER(c_int), DIMENSION(:), TARGET :: type
-    REAL(c_double), DIMENSION(:), TARGET :: x, v
-    LOGICAL :: bexpand
+    REAL(c_double), DIMENSION(:), TARGET :: x
+    REAL(c_double), DIMENSION(:), OPTIONAL, TARGET :: v
+    INTEGER(c_int64_t), DIMENSION(:), OPTIONAL, TARGET :: image
+    LOGICAL, OPTIONAL :: bexpand
     INTEGER(c_int) :: n, Cbexpand
     TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
     INTEGER(c_int) :: tagint_size, atoms_created
@@ -1599,17 +1650,29 @@ CONTAINS
         'Unable to create_atoms; your id/image array types are incompatible&
         & with LAMMPS_BIGBIG')
     END IF
-    n = SIZE(id, KIND=c_int)
-    IF ( bexpand) THEN
-      Cbexpand = 1_c_int
+    n = SIZE(type, KIND=c_int)
+    IF (PRESENT(bexpand)) THEN
+      IF (bexpand) THEN
+        Cbexpand = 1_c_int
+      ELSE
+        Cbexpand = 0_c_int
+      END IF
     ELSE
-      Cbexpand = 0
+      Cbexpand = 0_c_int
     END IF
     Cid = C_LOC(id(1))
     Ctype = C_LOC(type(1))
-    Cimage = C_LOC(image(1))
+    IF (PRESENT(image)) THEN
+      Cimage = C_LOC(image(1))
+    ELSE
+      Cimage = c_null_ptr
+    END IF
     Cx = C_LOC(x(1))
-    Cv = C_LOC(v(1))
+    IF (PRESENT(v)) THEN
+      Cv = C_LOC(v(1))
+    ELSE
+      Cv = c_null_ptr
+    END IF
     atoms_created = lammps_create_atoms(self%handle, n, Cid, Ctype, Cx, Cv, &
       Cimage, Cbexpand)
     IF ( atoms_created < 0_c_int ) THEN
@@ -1747,6 +1810,43 @@ CONTAINS
       CALL lmp_config_package_name(i, package(i))
     END DO
   END SUBROUTINE lmp_installed_packages
+
+  ! equivalent function to lammps_encode_image_flags
+  FUNCTION lmp_encode_image_flags(self, ix, iy, iz) RESULT (image)
+    CLASS(lammps), INTENT(IN), TARGET :: self
+    INTEGER(c_int), INTENT(IN) :: ix, iy, iz
+    TYPE(lammps_image_data) :: image
+    INTEGER(c_int) :: imageint_size
+    INTEGER(c_int) :: IMGMAX, IMGMASK, IMGBITS, IMG2BITS
+    INTEGER(c_int64_t) :: ibx, iby, ibz, BIMGMAX, BIMGMASK, BIMGBITS, BIMG2BITS
+
+    image%lammps_instance => self
+    IMGMASK = lmp_extract_setting(self, 'IMGMASK')
+    IMGMAX = lmp_extract_setting(self, 'IMGMAX')
+    IMGBITS = lmp_extract_setting(self, 'IMGBITS')
+    IMG2BITS = lmp_extract_setting(self, 'IMG2BITS')
+    imageint_size = lmp_extract_setting(self, 'imageint')
+    IF (imageint_size == 4_c_int) THEN
+      image%datatype = DATA_INT
+      image%i32 = IOR( IOR(IAND(ix + IMGMAX, IMGMASK), &
+                     ISHFT(IAND(iy + IMGMAX, IMGMASK), IMGBITS)), &
+                     ISHFT(IAND(iz + IMGMAX, IMGMASK), IMG2BITS) )
+    ELSE
+      image%datatype = DATA_INT64
+      ibx = ix
+      iby = iy
+      ibz = iz
+      BIMGMAX = IMGMAX
+      BIMGMASK = IMGMASK
+      BIMGBITS = IMGBITS
+      BIMG2BITS = IMG2BITS
+      image%i64 = IOR( IOR(IAND(ibx + BIMGMAX, BIMGMASK), &
+                     ISHFT(IAND(iby + BIMGMAX, BIMGMASK), BIMGBITS)), &
+                     ISHFT(IAND(ibz + BIMGMAX, BIMGMASK), BIMG2BITS) )
+    END IF
+  END FUNCTION lmp_encode_image_flags
+
+  ! equivalent function to lammps_decode_image_flags
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)
@@ -1983,6 +2083,28 @@ CONTAINS
       CALL assignment_error(rhs, 'string')
     END IF
   END SUBROUTINE assign_string_to_lammps_variable_data
+
+  SUBROUTINE assign_int_to_lammps_image_data(lhs, rhs)
+    INTEGER(c_int), INTENT(OUT) :: lhs
+    CLASS(lammps_image_data), INTENT(IN) :: rhs
+
+    IF (rhs%datatype == DATA_INT) THEN
+      lhs = rhs%i32
+    ELSE
+      CALL assignment_error(rhs, 'scalar int')
+    END IF
+  END SUBROUTINE assign_int_to_lammps_image_data
+
+  SUBROUTINE assign_int64_to_lammps_image_data(lhs, rhs)
+    INTEGER(c_int64_t), INTENT(OUT) :: lhs
+    CLASS(lammps_image_data), INTENT(IN) :: rhs
+
+    IF (rhs%datatype == DATA_INT64) THEN
+      lhs = rhs%i64
+    ELSE
+      CALL assignment_error(rhs, 'scalar long int')
+    END IF
+  END SUBROUTINE assign_int64_to_lammps_image_data
 
   ! ----------------------------------------------------------------------
   ! Generic function to catch all errors in assignments of LAMMPS data to

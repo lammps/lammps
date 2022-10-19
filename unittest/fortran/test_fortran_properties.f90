@@ -29,7 +29,7 @@ FUNCTION f_lammps_get_mpi_comm() BIND(C)
 END FUNCTION f_lammps_get_mpi_comm
 
 FUNCTION f_lammps_extract_setting(Cstr) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_char
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_char, c_null_char
    USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
@@ -39,7 +39,7 @@ FUNCTION f_lammps_extract_setting(Cstr) BIND(C)
    CHARACTER(LEN=:), ALLOCATABLE :: Fstr
 
    i = 1
-   DO WHILE (Cstr(i) /= ACHAR(0))
+   DO WHILE (Cstr(i) /= c_null_char)
       i = i + 1
    END DO
    strlen = i
@@ -66,7 +66,8 @@ FUNCTION f_lammps_has_error() BIND(C)
 END FUNCTION f_lammps_has_error
 
 FUNCTION f_lammps_get_last_error_message(errmesg, errlen) BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_char, c_ptr, C_F_POINTER
+   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_char, c_ptr, C_F_POINTER, &
+      c_null_char
    USE keepstuff, ONLY : lmp
    USE LIBLAMMPS
    IMPLICIT NONE
@@ -83,7 +84,29 @@ FUNCTION f_lammps_get_last_error_message(errmesg, errlen) BIND(C)
    ! and copy to C style string
    DO i=1, errlen
       errmesg(i) = buffer(i:i)
-      IF (buffer(i:i) == ACHAR(0)) EXIT
+      IF (buffer(i:i) == c_null_char) EXIT
    END DO
    DEALLOCATE(buffer)
 END FUNCTION f_lammps_get_last_error_message
+
+FUNCTION f_lammps_get_image_flags_int(ix, iy, iz) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+  USE keepstuff, ONLY : lmp
+  USE LIBLAMMPS
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: ix, iy, iz
+  INTEGER(c_int) :: f_lammps_get_image_flags_int
+
+  f_lammps_get_image_flags_int = lmp%encode_image_flags(ix, iy, iz)
+END FUNCTION f_lammps_get_image_flags_int
+
+FUNCTION f_lammps_get_image_flags_bigint(ix, iy, iz) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE keepstuff, ONLY : lmp
+  USE LIBLAMMPS
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: ix, iy, iz
+  INTEGER(c_int64_t) :: f_lammps_get_image_flags_bigint
+
+  f_lammps_get_image_flags_bigint = lmp%encode_image_flags(ix, iy, iz)
+END FUNCTION f_lammps_get_image_flags_bigint

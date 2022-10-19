@@ -741,6 +741,7 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   }
   gpu_overhead/=10.0;
   gpu_driver_overhead/=10.0;
+  gpu->sync();
 
   if (_data_in_estimate>0) {
     delete [] host_data_in;

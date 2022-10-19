@@ -49,6 +49,7 @@
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
+#include "variable.h"
 #include "version.h"
 
 #if defined(LMP_PLUGIN)
@@ -951,6 +952,9 @@ void LAMMPS::destroy()
 
   delete output;
   output = nullptr;
+
+  // undefine atomfile variables because they use a fix for backing storage
+  input->variable->purge_atomfile();
 
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes

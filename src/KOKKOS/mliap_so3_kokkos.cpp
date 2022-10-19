@@ -820,7 +820,7 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
     for (int n = 1; n < t_nmax + 1; n++) {
       int i = 0;
       for (int l = 0; l < t_lmax + 1; l++) {
-        float r_int = m_rip_array[gindex + (bigint) (n - 1) * (m_lmax + 1) + l];
+        double r_int = m_rip_array[gindex + (bigint) (n - 1) * (m_lmax + 1) + l];
 
         for (int m = -l; m < l + 1; m++) {
 

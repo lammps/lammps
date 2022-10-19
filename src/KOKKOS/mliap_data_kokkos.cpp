@@ -149,7 +149,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
       const double rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type(j);
       const int jelem = map(jtype);
-      if (rsq < d_cutsq(ielem,jelem)) {
+      if (rsq < d_cutsq(itype,jtype)) {
         d_jatoms(ij) = j;
         d_jelems(ij) = jelem;
         d_rij(ij, 0) = delx;
@@ -205,7 +205,6 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     const double ytmp = x(i, 1);
     const double ztmp = x(i, 2);
     const int itype = type(i);
-    const int ielem = map(itype);
     const int jnum = d_numneigh(i);
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
@@ -214,8 +213,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
       const double delz = x(j,2) - ztmp;
       const double rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type(j);
-      const int jelem = map(jtype);
-      if (rsq < d_cutsq(ielem,jelem))
+      if (rsq < d_cutsq(itype,jtype))
         count++;
     }
     d_numneighs(ii) = count;

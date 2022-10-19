@@ -34,10 +34,9 @@ public:
   }
 
   void init_data() {
-    double *tmp=nullptr;
     int num_elems = descriptor->nelements;
     memoryKK->destroy_kokkos(k_wjelem);
-    memoryKK->create_kokkos(k_wjelem,tmp,num_elems,"MLIAPDescriptorKokkos::k_wjelem");
+    memoryKK->create_kokkos(k_wjelem,num_elems,"MLIAPDescriptorKokkos::k_wjelem");
     for (int i=0;i<num_elems; ++i)
       k_wjelem.h_view(i) = descriptor->wjelem[i];
     k_wjelem.modify<LMPHostType>();

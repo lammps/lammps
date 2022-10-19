@@ -136,6 +136,7 @@ void PairMLIAPKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_setflag, setflag, n+1, n+1, "pair_mliap:setflag");
 
   auto h_cutsq=k_cutsq.template view<LMPHostType>();
+  n = descriptor->nelements;
   for (int i=0;i<n;++i)
     for (int j=0;j<n;++j) {
       h_cutsq(i,j) = descriptor->cutsq[i][j];

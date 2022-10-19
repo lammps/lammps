@@ -40,9 +40,3 @@ BondQuarticUnbreakable::BondQuarticUnbreakable(LAMMPS *_lmp) :
   breakable_flag = 0;
 }
 
-/* ---------------------------------------------------------------------- */
-
-BondQuarticUnbreakable::~BondQuarticUnbreakable()
-{
-}
-

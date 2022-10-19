@@ -24,7 +24,6 @@ namespace LAMMPS_NS {
 class BondQuarticUnbreakable : public BondQuarticBreakable {
  public:
   BondQuarticUnbreakable(class LAMMPS *);
-  ~BondQuarticUnbreakable() override;
 
 };
 

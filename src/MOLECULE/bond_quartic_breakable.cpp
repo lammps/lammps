@@ -75,7 +75,7 @@ void BondQuarticBreakable::compute(int eflag, int vflag)
       if (eflag) eval<0,1,1>();
       else eval<0,0,1>();
     } else eval<0,0,0>();
-  }  
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -150,7 +150,7 @@ void BondQuarticBreakable::eval()
       sr6 = sr2 * sr2 * sr2;
       fbond += 48.0 * sr6 * (sr6 - 0.5) / rsq;
       if (EFLAG) ebond += 4.0 * sr6 * (sr6 - 1.0) + 1.0;
-    } 
+    }
 
     // apply force to each of 2 atoms
 

@@ -34,9 +34,6 @@
 using namespace LAMMPS_NS;
 using namespace LJSPICAParms;
 
-#define KOKKOS_CUDA_MAX_THREADS 256
-#define KOKKOS_CUDA_MIN_BLOCKS 8
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

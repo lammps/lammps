@@ -47,14 +47,15 @@ void Replicate::command(int narg, char **arg)
   int me = comm->me;
   int nprocs = comm->nprocs;
 
-  if (me == 0) utils::logmesg(lmp,"Replicating atoms ...\n");
-
   // nrep = total # of replications
 
   int nx = utils::inumeric(FLERR,arg[0],false,lmp);
   int ny = utils::inumeric(FLERR,arg[1],false,lmp);
   int nz = utils::inumeric(FLERR,arg[2],false,lmp);
   int nrep = nx*ny*nz;
+
+  if (me == 0) utils::logmesg(lmp,
+      fmt::format("Replicating atoms into {}(x) * {}(y) * {}(z) copies:\n", nx, ny, nz));
 
   int bbox_flag = 0;
   if (narg == 4)

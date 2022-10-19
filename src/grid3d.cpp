@@ -1278,27 +1278,13 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
 
 void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 {
-  deallocate_remap();
-  
-  if (layout == BRICK) setup_remap_brick(old,nremap_buf1,nremap_buf2);
-  else setup_remap_tiled(old,nremap_buf2,nremap_buf2);
-}
-
-/* ------------------------------------------------------------------------- */
-
-void Grid3d::setup_remap_brick(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
-{
-  nremap_buf1 = 0;
-  nremap_buf2 = 0;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void Grid3d::setup_remap_tiled(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
-{
   int m;
   int pbc[3];
   int *box;
+
+  // deallocated existing remap data structs
+  
+  deallocate_remap();
 
   // compute overlaps of old decomp owned box with all owned boxes in new decomp
   // noverlap_old = # of overlaps, including self
@@ -1542,12 +1528,18 @@ void Grid3d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
 }
 
 // ----------------------------------------------------------------------
-// box drop functions for tiled RCB decompositions
+// overlap methods for brick and tiled RCB decompositions
+// overlap = overlap of owned or owned+ghost box with all boxes of a decomposition
+// for owned/ghost grid comm, called only by tiled decomposition
+//   brick decomp uses one or more comm passes with neigh procs
+//   like forward/reverse comm for atoms
+// for remap, called by both brick and tiled decompositions
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
    compute list of overlaps between box and the owned grid boxes of all procs
-   done via recursive box drop on RCB tree
+   for brick decomp, done using Comm::grid2proc data struct
+   for tiled decomp, done via recursive box drop on RCB tree
    box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
      box can be owned cells or owned + ghost cells
    pbc = flags for grid periodicity in each dim
@@ -1563,7 +1555,57 @@ int Grid3d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
   noverlap_list = maxoverlap_list = 0;
   overlap_list = nullptr;
 
-  box_drop(box,pbc);
+  if (layout == BRICK) {
+
+    // find comm->procgrid indices in each dim for box bounds
+    
+    int iproclo = find_proc_index(box[0],ngrid[0],0,comm->xsplit);
+    int iprochi = find_proc_index(box[1],ngrid[0],0,comm->xsplit);
+    int jproclo = find_proc_index(box[2],ngrid[1],1,comm->ysplit);
+    int jprochi = find_proc_index(box[3],ngrid[1],1,comm->ysplit);
+    int kproclo = find_proc_index(box[4],ngrid[2],2,comm->zsplit);
+    int kprochi = find_proc_index(box[5],ngrid[2],2,comm->zsplit);
+
+    // save comm->myloc values so can overwrite them k,j,i triple loop
+    // b/c comm->partition_grid uses comm->myloc
+    
+    int save_myloc[3];
+    save_myloc[0] = comm->myloc[0];
+    save_myloc[1] = comm->myloc[1];
+    save_myloc[2] = comm->myloc[2];
+
+    int obox[6];
+    
+    for (int k = kproclo; k <= kprochi; k++)
+      for (int j = jproclo; j <= jprochi; j++)
+	for (int i = iproclo; i <= iprochi; i++) {
+	  comm->myloc[0] = i;
+	  comm->myloc[1] = j;
+	  comm->myloc[2] = k;
+
+	  comm->partition_grid(ngrid[0],ngrid[1],ngrid[2],0.0,
+			       obox[0],obox[1],obox[2],obox[3],obox[4],obox[5]);
+
+	  if (noverlap_list == maxoverlap_list) grow_overlap();
+	  overlap[noverlap_list].proc = comm->grid2proc[i][j][k];
+	  overlap[noverlap_list].box[0] = MAX(box[0],obox[0]);
+	  overlap[noverlap_list].box[1] = MIN(box[1],obox[1]);
+	  overlap[noverlap_list].box[2] = MAX(box[2],obox[2]);
+	  overlap[noverlap_list].box[3] = MIN(box[3],obox[3]);
+	  overlap[noverlap_list].box[4] = MAX(box[4],obox[4]);
+	  overlap[noverlap_list].box[5] = MIN(box[5],obox[5]);
+	  noverlap_list++;
+	}
+
+    // restore comm->myloc values
+
+    comm->myloc[0] = save_myloc[0];
+    comm->myloc[1] = save_myloc[1];
+    comm->myloc[2] = save_myloc[2];
+
+  } else if (layout == TILED) {
+    box_drop(box,pbc);
+  }
 
   overlap = overlap_list;
   return noverlap_list;
@@ -1769,4 +1811,36 @@ int Grid3d::indices(int *&list,
         list[n++] = (iz-fullzlo)*ny*nx + (iy-fullylo)*nx + (ix-fullxlo);
 
   return nmax;
+}
+
+/* ----------------------------------------------------------------------
+   find the comm->procgrid index for which proc owns the igrid index
+   igrid = grid index (0 to N-1) in dim
+   n = # of grid points in dim
+   dim = which dimension (0,1,2)
+   split = comm->x/y/z split for fractional bounds of each proc domain
+------------------------------------------------------------------------- */
+
+int Grid3d::find_proc_index(int igrid, int n, int dim, double *split)
+{
+  int gridlo,gridhi;
+  double fraclo,frachi;
+
+  // loop over # of procs in this dime
+  // compute the grid bounds for that proc, same as comm->partition_grid()
+  // if igrid falls within those bounds, return m = proc index
+
+  int m;
+  for (m = 0; m < comm->procgrid[dim]; m++) {
+    fraclo = split[m];
+    frachi = split[m+1];
+    gridlo = static_cast<int> (fraclo * n);
+    if (1.0*gridlo != fraclo*n) gridlo++;
+    gridhi = static_cast<int> (frachi * n);
+    if (1.0*gridhi == frachi*n) gridhi--;
+
+    if (igrid >= gridlo && igrid <= gridhi) break;
+  }
+
+  return m;
 }

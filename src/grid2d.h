@@ -227,6 +227,7 @@ class Grid2d : protected Pointers {
   void deallocate_remap();
 
   int indices(int *&, int, int, int, int);
+  int find_proc_index(int, int, int, double *);
 };
 
 }    // namespace LAMMPS_NS

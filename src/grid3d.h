@@ -208,7 +208,7 @@ class Grid3d : protected Pointers {
 
   void store(int, int, int, int, int, int, int, int, int, int, int, int,
              int, int, int, int, int, int, int, int, int, int, int, int);
-  
+
   virtual void setup_brick(int &, int &);
   virtual void setup_tiled(int &, int &);
   int ghost_adjacent_brick();
@@ -219,8 +219,6 @@ class Grid3d : protected Pointers {
   template <class T> void reverse_comm_brick(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void reverse_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
 
-  void setup_remap_brick(Grid3d *, int &, int &);
-  void setup_remap_tiled(Grid3d *, int &, int &);
   template <class T> void remap_style(T *, int, int, void *, void *, MPI_Datatype);
 
   int compute_overlap(int *, int *, Overlap *&);
@@ -233,6 +231,7 @@ class Grid3d : protected Pointers {
   void deallocate_remap();
   
   int indices(int *&, int, int, int, int, int, int);
+  int find_proc_index(int, int, int, double *);
 };
 
 }    // namespace LAMMPS_NS

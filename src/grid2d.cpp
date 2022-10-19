@@ -1386,13 +1386,19 @@ void Grid2d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
 }
 
 // ----------------------------------------------------------------------
-// box drop functions for tiled RCB decompositions
+// overlap methods for brick and tiled RCB decompositions
+// overlap = overlap of owned or owned+ghost box with all boxes of a decomposition
+// for owned/ghost grid comm, called only by tiled decomposition
+//   brick decomp uses one or more comm passes with neigh procs
+//   like forward/reverse comm for atoms
+// for remap, called by both brick and tiled decompositions
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
    compute list of overlaps between box and the owned grid boxes of all procs
-   done via recursive box drop on RCB tree
-   box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
+   for brick decomp, done using Comm::grid2proc data struct
+   for tiled decomp, done via recursive box drop on RCB tree
+   box = 4 integers = (xlo,xhi,ylo,yhi)
      box can be owned cells or owned + ghost cells
    pbc = flags for grid periodicity in each dim
      if box includes ghost cells, it can overlap PBCs
@@ -1403,11 +1409,57 @@ void Grid2d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
 
 int Grid2d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
 {
-  memory->create(overlap_procs,nprocs,"grid3d:overlap_procs");
+  memory->create(overlap_procs,nprocs,"grid2d:overlap_procs");
   noverlap_list = maxoverlap_list = 0;
   overlap_list = nullptr;
 
-  box_drop(box,pbc);
+  if (layout == BRICK) {
+
+    // find comm->procgrid indices in each dim for box bounds
+    
+    int iproclo = find_proc_index(box[0],ngrid[0],0,comm->xsplit);
+    int iprochi = find_proc_index(box[1],ngrid[0],0,comm->xsplit);
+    int jproclo = find_proc_index(box[2],ngrid[1],1,comm->ysplit);
+    int jprochi = find_proc_index(box[3],ngrid[1],1,comm->ysplit);
+
+    // save comm->myloc values so can overwrite them k,j,i triple loop
+    // b/c comm->partition_grid uses comm->myloc
+    
+    int save_myloc[3];
+    save_myloc[0] = comm->myloc[0];
+    save_myloc[1] = comm->myloc[1];
+    save_myloc[2] = comm->myloc[2];
+
+    int obox[6];
+    
+    for (int k = 0; k <= 0; k++)
+      for (int j = jproclo; j <= jprochi; j++)
+	for (int i = iproclo; i <= iprochi; i++) {
+	  comm->myloc[0] = i;
+	  comm->myloc[1] = j;
+	  comm->myloc[2] = k;
+	
+	  comm->partition_grid(ngrid[0],ngrid[1],1,0.0,
+			       obox[0],obox[1],obox[2],obox[3],obox[4],obox[5]);
+	
+	  if (noverlap_list == maxoverlap_list) grow_overlap();
+	  overlap[noverlap_list].proc = comm->grid2proc[i][j][k];
+	  overlap[noverlap_list].box[0] = MAX(box[0],obox[0]);
+	  overlap[noverlap_list].box[1] = MIN(box[1],obox[1]);
+	  overlap[noverlap_list].box[2] = MAX(box[2],obox[2]);
+	  overlap[noverlap_list].box[3] = MIN(box[3],obox[3]);
+	  noverlap_list++;
+	}
+
+    // restore comm->myloc values
+
+    comm->myloc[0] = save_myloc[0];
+    comm->myloc[1] = save_myloc[1];
+    comm->myloc[2] = save_myloc[2];
+
+  } else if (layout == TILED) {
+    box_drop(box,pbc);
+  }
 
   overlap = overlap_list;
   return noverlap_list;

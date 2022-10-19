@@ -44,7 +44,7 @@ class BondQuarticBreakable: public Bond {
 
   void allocate();
   template <int, int, int>
-  void eval(double **, double **, double **, int **, int, int, int);
+  void eval();
 };
 
 }    // namespace LAMMPS_NS

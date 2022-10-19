@@ -34,7 +34,7 @@ using MathConst::MY_CUBEROOT2;
 /* ---------------------------------------------------------------------- */
 
 BondQuarticUnbreakable::BondQuarticUnbreakable(LAMMPS *_lmp) :
-    BondQuartic(_lmp)
+    BondQuarticBreakable(_lmp)
 {
   partial_flag = 1;
   breakable_flag = 0;

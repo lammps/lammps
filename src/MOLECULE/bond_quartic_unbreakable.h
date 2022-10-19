@@ -17,7 +17,7 @@ BondStyle(quartic/unbreakable,BondQuarticUnbreakable);
 // clang-format on
 #else
 
-#include "bond_quartic_unbreakable.h"
+#include "bond_quartic_breakable.h"
 
 namespace LAMMPS_NS {
 

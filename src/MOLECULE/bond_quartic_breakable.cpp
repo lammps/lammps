@@ -65,14 +65,6 @@ void BondQuarticBreakable::compute(int eflag, int vflag)
 
   if (vflag_global == VIRIAL_FDOTR) force->pair->vflag_either = force->pair->vflag_global = 1;
 
-  double **cutsq = force->pair->cutsq;
-  double **x = atom->x;
-  double **f = atom->f;
-  int **bondlist = neighbor->bondlist;
-  int nbondlist = neighbor->nbondlist;
-  int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
-
   if (breakable_flag) {
     if (evflag) {
       if (eflag) eval<1,1,1>();
@@ -95,6 +87,14 @@ void BondQuarticBreakable::eval()
   double r, rsq, dr, r2, ra, rb, sr2, sr6;
 
   ebond = evdwl = sr6 = 0.0;
+
+  double **cutsq = force->pair->cutsq;
+  double **x = atom->x;
+  double **f = atom->f;
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
 
   for (n = 0; n < nbondlist; n++) {
 
@@ -275,10 +275,11 @@ void BondQuarticBreakable::init_style()
 double BondQuarticBreakable::equilibrium_distance(int i)
 {
   // equilibrium distance of the quartic potential, excluding LJ
+  double quartic_equ = MY_CUBEROOT2;
   double b2_4ac = 9.0 * (b1[i] * b1[i] + b2[i] *  b2[i]) - 14.0 * b1[i] * b2[i];
 
   if (b2_4ac >= 0.0) {
-    double quartic_equ = (8.0 * rc[i] + 3.0 * (b1[i] + b2[i]) - sqrt(b2_4ac) ) / 8.0;
+    quartic_equ = (8.0 * rc[i] + 3.0 * (b1[i] + b2[i]) - sqrt(b2_4ac) ) / 8.0;
   } else return rc[i] < MY_CUBEROOT2 ? MY_CUBEROOT2 : rc[i];
 
   // when quartic_equ < MY_CUBEROOT2, the bond length hits the LJ wall, using MY_CUBEROOT2

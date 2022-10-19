@@ -119,11 +119,16 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_scatter_atoms_double
     GENERIC   :: scatter_atoms          => lmp_scatter_atoms_int, &
                                            lmp_scatter_atoms_double
-!
     PROCEDURE, PRIVATE :: lmp_scatter_atoms_subset_int
     PROCEDURE, PRIVATE :: lmp_scatter_atoms_subset_double
     GENERIC   :: scatter_atoms_subset   => lmp_scatter_atoms_subset_int, &
                                            lmp_scatter_atoms_subset_double
+!
+    PROCEDURE, PRIVATE :: lmp_create_atoms_int
+    PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
+    GENERIC :: create_atoms             => lmp_create_atoms_int, &
+                                           lmp_create_atoms_bigbig
+!
     PROCEDURE :: version                => lmp_version
     PROCEDURE,NOPASS :: get_os_info     => lmp_get_os_info
     PROCEDURE,NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
@@ -462,8 +467,13 @@ MODULE LIBLAMMPS
 
     !SUBROUTINE lammps_scatter_subset
 
-    !(generic / id, type, and image are special) / requires LAMMPS_BIGBIG
-    !INTEGER(c_int) FUNCTION lammps_create_atoms
+    INTEGER(c_int) FUNCTION lammps_create_atoms(handle, n, id, type, x, v, &
+        image, bexpand) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id, type, x, v, image
+      INTEGER(c_int), VALUE :: n, bexpand
+    END FUNCTION lammps_create_atoms
 
     !INTEGER(c_int) FUNCTION lammps_find_pair_neighlist
 
@@ -1484,6 +1494,7 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_double
 
+  ! equivalent function to lammps_scatter_atoms_subset (for integers)
   SUBROUTINE lmp_scatter_atoms_subset_int(self, name, ids, data)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1508,6 +1519,7 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_subset_int
 
+  ! equivalent function to lammps_scatter_atoms_subset (for doubles)
   SUBROUTINE lmp_scatter_atoms_subset_double(self, name, ids, data)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1531,6 +1543,83 @@ CONTAINS
       Cndata, Cids, Cdata)
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_subset_double
+
+  ! equivalent function to lammps_create_atoms
+  SUBROUTINE lmp_create_atoms_int(self, id, type, x, v, image, bexpand)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), DIMENSION(:), TARGET :: id, image
+    INTEGER(c_int), DIMENSION(:), TARGET :: type
+    REAL(c_double), DIMENSION(:), TARGET :: x, v
+    LOGICAL :: bexpand
+    INTEGER(c_int) :: n, Cbexpand
+    TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
+    INTEGER(c_int) :: tagint_size, atoms_created
+
+    tagint_size = lmp_extract_setting(self, 'tagint')
+    IF ( tagint_size /= 4_c_int ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Unable to create_atoms; your id/image array types are incompatible&
+        & with LAMMPS_SMALLBIG and LAMMPS_SMALLSMALL [Fortran/create_atoms]')
+    END IF
+    n = SIZE(id, KIND=c_int)
+    IF ( bexpand) THEN
+      Cbexpand = 1_c_int
+    ELSE
+      Cbexpand = 0
+    END IF
+    Cid = C_LOC(id(1))
+    Ctype = C_LOC(type(1))
+    Cimage = C_LOC(image(1))
+    Cx = C_LOC(x(1))
+    Cv = C_LOC(v(1))
+    atoms_created = lammps_create_atoms(self%handle, n, Cid, Ctype, Cx, Cv, &
+      Cimage, Cbexpand)
+    IF ( atoms_created < 0_c_int ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'error when trying to create atoms [Fortran/create_atoms]')
+    ELSE IF ( atoms_created /= n ) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'atoms created /= atoms asked to create [Fortran/create_atoms]')
+    END IF
+  END SUBROUTINE lmp_create_atoms_int
+
+  SUBROUTINE lmp_create_atoms_bigbig(self, id, type, x, v, image, bexpand)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), DIMENSION(:), TARGET :: id, image
+    INTEGER(c_int), DIMENSION(:), TARGET :: type
+    REAL(c_double), DIMENSION(:), TARGET :: x, v
+    LOGICAL :: bexpand
+    INTEGER(c_int) :: n, Cbexpand
+    TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
+    INTEGER(c_int) :: tagint_size, atoms_created
+
+    tagint_size = lmp_extract_setting(self, 'tagint')
+    IF ( tagint_size /= 8_c_int ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Unable to create_atoms; your id/image array types are incompatible&
+        & with LAMMPS_BIGBIG')
+    END IF
+    n = SIZE(id, KIND=c_int)
+    IF ( bexpand) THEN
+      Cbexpand = 1_c_int
+    ELSE
+      Cbexpand = 0
+    END IF
+    Cid = C_LOC(id(1))
+    Ctype = C_LOC(type(1))
+    Cimage = C_LOC(image(1))
+    Cx = C_LOC(x(1))
+    Cv = C_LOC(v(1))
+    atoms_created = lammps_create_atoms(self%handle, n, Cid, Ctype, Cx, Cv, &
+      Cimage, Cbexpand)
+    IF ( atoms_created < 0_c_int ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'error when trying to create atoms [Fortran/create_atoms]')
+    ELSE IF ( atoms_created /= n ) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'atoms created /= atoms asked to create [Fortran/create_atoms]')
+    END IF
+  END SUBROUTINE lmp_create_atoms_bigbig
 
   ! equivalent function to lammps_version
   INTEGER FUNCTION lmp_version(self)

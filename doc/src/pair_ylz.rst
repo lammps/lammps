@@ -25,6 +25,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 The *ylz* (Yuan-Li-Zhang) :ref:`(Yuan) <Yuan>` style computes
 anisotropic interactions between pairs of particles considering the
 relative particle orientations via the formulas

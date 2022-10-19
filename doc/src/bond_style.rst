@@ -10,7 +10,7 @@ Syntax
 
    bond_style style args
 
-* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/shift* or *harmonic/shift/cut* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
+* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/shift* or *harmonic/shift/cut* or *mesocnt* or *mm3* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic/breakable* or *quartic/unbreakable* or *special* or *table*
 
 * args = none for any style except *hybrid*
 
@@ -102,7 +102,8 @@ accelerated styles exist.
 * :doc:`oxdna/fene <bond_oxdna>` - modified FENE bond suitable for DNA modeling
 * :doc:`oxdna2/fene <bond_oxdna>` - same as oxdna but used with different pair styles
 * :doc:`oxrna2/fene <bond_oxdna>` - modified FENE bond suitable for RNA modeling
-* :doc:`quartic <bond_quartic>` - breakable quartic bond
+* :doc:`quartic/breakable <bond_quartic>` - breakable quartic bond
+* :doc:`quartic/unbreakable <bond_quartic>` - unbreakable quartic bond
 * :doc:`special <bond_special>` - enable special bond exclusions for 1-5 pairs and beyond
 * :doc:`table <bond_table>` - tabulated by bond length
 

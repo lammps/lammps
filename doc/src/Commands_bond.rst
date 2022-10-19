@@ -51,7 +51,8 @@ OPT.
    * :doc:`oxdna/fene <bond_oxdna>`
    * :doc:`oxdna2/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
-   * :doc:`quartic (o) <bond_quartic>`
+   * :doc:`quartic/breakable (o) <bond_quartic>`
+   * :doc:`quartic/unbreakable <bond_quartic>`
    * :doc:`special <bond_special>`
    * :doc:`table (o) <bond_table>`
 

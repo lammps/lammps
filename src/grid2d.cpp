@@ -1312,40 +1312,84 @@ void Grid2d::remap_style(T *ptr, int nper, int nbyte,
 }
 
 // ----------------------------------------------------------------------
-// gather/scatter grid data between one and many procs for I/O purposes
+// grid I/O methods
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   gather global grid values to proc 0, one grid chunk at a time
-   proc 0 pings each proc for its grid chunk
-   pack/unpack operations are performed by caller via callbacks
-   caller can decide whether to store chunks, output them, etc
+   read grid values from a file
 ------------------------------------------------------------------------- */
 
-void Grid2d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
-                      int which, void *buf, MPI_Datatype datatype)
+void Grid2d::read_file(int caller, void *ptr, FILE *fp, int nchunk, int maxline)
+{
+  if (caller == FIX)
+    read_file_style<Fix>((Fix *) ptr,fp,nchunk,maxline);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads one chunk of lines at a time from file
+   broadcast chunk buffer to other procs
+   call back to caller so it can process the chunk of lines
+   caller returns count of grid-value lines in chunk
+------------------------------------------------------------------------- */
+
+template < class T >
+void Grid2d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
+{
+  auto buffer = new char[nchunk * maxline];
+  bigint ntotal = (bigint) ngrid[0] * ngrid[1];
+  bigint nread = 0;
+
+  while (nread < ntotal) {
+    int nchunk = MIN(ntotal - nread, nchunk);
+    int eof = utils::read_lines_from_file(fp, nchunk, maxline, buffer, comm->me, world);
+    if (eof) error->all(FLERR, "Unexpected end of grid data file");
+
+    nread += ptr->unpack_read_grid(buffer);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   write grid values to a file
+------------------------------------------------------------------------- */
+
+void Grid2d::write_file(int caller, void *ptr, int which,
+			int nper, int nbyte, MPI_Datatype datatype)
+{
+  if (caller == FIX)
+    write_file_style<Fix>((Fix *) ptr, which, nper, nbyte, datatype);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads one chunk of lines at a time from file
+   broadcast chunk buffer to other procs
+   call back to caller so it can process the chunk of lines
+   caller returns count of grid-value lines in chunk
+------------------------------------------------------------------------- */
+
+template < class T >
+void Grid2d::write_file_style(T *ptr, int which,
+			      int nper, int nbyte, MPI_Datatype datatype)
 {
   int me = comm->me;
-  Fix *fptr = (Fix *) ptr;
 
-  // maxsize = max grid data owned by any proc
+  // maxsize = max size of grid data owned by any proc
 
   int mysize = (inxhi-inxlo+1) * (inyhi-inylo+1);
   mysize *= nper;
   int maxsize;
   MPI_Allreduce(&mysize,&maxsize,1,MPI_INT,MPI_MAX,world);
 
-  // pack my data via callback to caller
+  // pack my grid data via callback to caller
 
-  char *mybuf;
-  if (me == 0) memory->create(mybuf,maxsize*nbyte,"grid2d:mybuf");
-  else memory->create(mybuf,mysize*nbyte,"grid2d:mybuf");
-  fptr->pack_gather_grid(which,mybuf);
+  char *onebuf;
+  if (me == 0) memory->create(onebuf,maxsize*nbyte,"grid3d:onebuf");
+  else memory->create(onebuf,mysize*nbyte,"grid3d:onebuf");
+  ptr->pack_write_grid(which,onebuf);
 
-  // ping each proc for its data
-  // unpack into full buffer via callback to caller
+  // ping each proc for its grid data
+  // call back to caller with each proc's grid data
 
-  int xlo,xhi,ylo,yhi,tmp;
+  int tmp;
   int bounds[4];
 
   if (me == 0) {
@@ -1354,27 +1398,23 @@ void Grid2d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
 
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-        MPI_Irecv(mybuf,maxsize,datatype,iproc,0,world,&request);
+        MPI_Irecv(onebuf,maxsize,datatype,iproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
         MPI_Wait(&request,&status);
         MPI_Recv(bounds,4,MPI_INT,iproc,0,world,&status);
-        xlo = bounds[0];
-        xhi = bounds[1];
-        ylo = bounds[2];
-        yhi = bounds[3];
       } else {
-        xlo = inxlo;
-        xhi = inxhi;
-        ylo = inylo;
-        yhi = inyhi;
+        bounds[0] = inxlo;
+        bounds[1] = inxhi;
+        bounds[2] = inylo;
+        bounds[3] = inyhi;
       }
 
-      fptr->unpack_gather_grid(which,mybuf,buf,xlo,xhi,ylo,yhi,0,0);
+      ptr->unpack_write_grid(which,onebuf,bounds);
     }
 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
-    MPI_Rsend(mybuf,mysize,datatype,0,0,world);
+    MPI_Rsend(onebuf,mysize,datatype,0,0,world);
     bounds[0] = inxlo;
     bounds[1] = inxhi;
     bounds[2] = inylo;
@@ -1382,7 +1422,9 @@ void Grid2d::gather(int /*caller*/, void *ptr, int nper, int nbyte,
     MPI_Send(bounds,4,MPI_INT,0,0,world);
   }
 
-  memory->destroy(mybuf);
+  // clean up
+  
+  memory->destroy(onebuf);
 }
 
 // ----------------------------------------------------------------------

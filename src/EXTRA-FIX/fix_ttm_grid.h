@@ -32,6 +32,9 @@ class FixTTMGrid : public FixTTM {
   void init() override;
   void post_force(int) override;
   void end_of_step() override;
+  void write_restart_file(const char *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
   // grid communication
 
@@ -43,19 +46,14 @@ class FixTTMGrid : public FixTTM {
   void unpack_reverse_grid(int, void *, int, int *) override;
   void pack_remap_grid(void *, int, int *) override;
   void unpack_remap_grid(void *, int, int *) override;
-  void pack_gather_grid(int, void *) override;
-  void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int) override;
-
-  void write_restart(FILE *) override;
-  void restart(char *) override;
+  int unpack_read_grid(char *) override;
+  void pack_write_grid(int, void *) override;
+  void unpack_write_grid(int, void *, int *) override;
 
   int get_grid_by_name(const std::string &, int &) override;
   void *get_grid_by_index(int) override;
   int get_griddata_by_name(int, const std::string &, int &) override;
   void *get_griddata_by_index(int) override;
-
-  double compute_vector(int) override;
-  double memory_usage() override;
 
  private:
   int ngridown, ngridout;
@@ -63,13 +61,15 @@ class FixTTMGrid : public FixTTM {
   int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
   double delxinv, delyinv, delzinv;
   double skin_original;
-  FILE *FPout;
+  FILE *fpout;
 
   class Grid3d *grid;
   class Grid3d *grid_previous;
   double ***T_electron_previous;
   int ngrid_buf1, ngrid_buf2;
   double *grid_buf1, *grid_buf2;
+
+  double ***T_electron_read;
 
   void allocate_grid() override;
   void deallocate_grid() override;

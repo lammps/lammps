@@ -45,7 +45,8 @@ class Grid3d : protected Pointers {
   void setup_remap(Grid3d *, int &, int &);
   void remap(int, void *, int, int, void *, void *, MPI_Datatype);
 
-  void gather(int, void *, int, int, int, void *, MPI_Datatype);
+  void read_file(int, void *, FILE *, int, int);
+  void write_file(int, void *, int, int, int, MPI_Datatype);
 
  protected:
   int me, nprocs;
@@ -220,6 +221,9 @@ class Grid3d : protected Pointers {
   template <class T> void reverse_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
 
   template <class T> void remap_style(T *, int, int, void *, void *, MPI_Datatype);
+
+  template <class T> void read_file_style(T *, FILE *, int, int);
+  template <class T> void write_file_style(T *, int, int, int, MPI_Datatype);
 
   int compute_overlap(int *, int *, Overlap *&);
   void clean_overlap();

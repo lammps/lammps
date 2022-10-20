@@ -43,9 +43,10 @@ class Grid2d : protected Pointers {
   void setup_remap(Grid2d *, int &, int &);
   void remap(int, void *, int, int, void *, void *, MPI_Datatype);
 
-  void gather(int, void *, int, int, int, void *, MPI_Datatype);
+  void read_file(int, void *, FILE *, int, int);
+  void write_file(int, void *, int, int, int, MPI_Datatype);
 
- protected:
+protected:
   int me, nprocs;
   int layout;           // REGULAR or TILED
   MPI_Comm gridcomm;    // communicator for this class
@@ -216,6 +217,9 @@ class Grid2d : protected Pointers {
   void setup_remap_brick(Grid2d *, int &, int &);
   void setup_remap_tiled(Grid2d *, int &, int &);
   template <class T> void remap_style(T *, int, int, void *, void *, MPI_Datatype);
+
+  template <class T> void read_file_style(T *, FILE *, int, int);
+  template <class T> void write_file_style(T *, int, int, int, MPI_Datatype);
 
   int compute_overlap(int *, int *, Overlap *&);
   void clean_overlap();

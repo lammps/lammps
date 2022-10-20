@@ -399,7 +399,7 @@ void WriteRestart::write(const std::string &file)
     }
   }
 
-  // Check for I/O error status
+  // check for I/O error status
 
   int io_all = 0;
   MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);

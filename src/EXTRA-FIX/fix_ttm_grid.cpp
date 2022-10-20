@@ -56,9 +56,10 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
 {
   pergrid_flag = 1;
   pergrid_freq = 1;
+  restart_file = 1;
 
   if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
-                          "use dump grid command instead");
+                          "use dump grid command or restart files instead");
 
   skin_original = neighbor->skin;
 }
@@ -275,16 +276,13 @@ void FixTTMGrid::end_of_step()
 
 /* ----------------------------------------------------------------------
    read electron temperatures on grid from a user-specified file
-   proc 0 reads one chunk at a time, broadcasts to other procs
-   each proc stores values for grid points it owns
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 {
-  int ***T_initial_set;
-  memory->create3d_offset(T_initial_set, nzlo_in, nzhi_in, nylo_in, nyhi_in, nxlo_in, nxhi_in,
-                          "ttm/grid:T_initial_set");
-  memset(&T_initial_set[nzlo_in][nylo_in][nxlo_in], 0, ngridown * sizeof(int));
+  memory->create3d_offset(T_electron_read, nzlo_in, nzhi_in, nylo_in, nyhi_in, nxlo_in, nxhi_in,
+                          "ttm/grid:T_electron_read");
+  memset(&T_electron_read[nzlo_in][nylo_in][nxlo_in], 0, ngridown * sizeof(int));
 
   // proc 0 opens file
 
@@ -294,57 +292,14 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
     if (!fp) error->one(FLERR, "Cannot open grid file: {}: {}", filename, utils::getsyserror());
   }
 
-  // read electron temperature values from file, one chunk at a time
+  // read the file
+  // Grid3d::read_file() calls back to read_grid_lines() with chunks of lines
 
-  auto buffer = new char[CHUNK * MAXLINE];
-  bigint ntotal = (bigint) nxgrid * nygrid * nzgrid;
-  bigint nread = 0;
-
-  while (nread < ntotal) {
-    int nchunk = MIN(ntotal - nread, CHUNK);
-    int eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, comm->me, world);
-    if (eof) error->all(FLERR, "Unexpected end of data file");
-
-    // loop over lines of grid point values
-    // tokenize the line into ix,iy,iz grid index plus temperature value
-    // if I own grid point, store the value
-
-    for (const auto &line : utils::split_lines(buffer)) {
-      try {
-        ValueTokenizer values(utils::trim_comment(line));
-        if (values.count() == 0) {
-          ;    // ignore comment only lines
-        } else if (values.count() == 4) {
-          ++nread;
-
-          int ix = values.next_int();
-          int iy = values.next_int();
-          int iz = values.next_int();
-
-          if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
-            throw TokenizerException("Fix ttm/grid invalid grid index in input", "");
-
-          if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in && iz >= nzlo_in &&
-              iz <= nzhi_in) {
-            T_electron[iz][iy][ix] = values.next_double();
-            T_initial_set[iz][iy][ix] = 1;
-          }
-        } else {
-          throw TokenizerException("Incorrect format in fix ttm electron grid file", "");
-        }
-      } catch (std::exception &e) {
-        error->one(FLERR, e.what());
-      }
-    }
-  }
+  grid->read_file(Grid3d::FIX,this,fp,CHUNK,MAXLINE);
 
   // close file
 
   if (comm->me == 0) fclose(fp);
-
-  // clean up
-
-  delete[] buffer;
 
   // check completeness of input data
 
@@ -352,13 +307,134 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
   for (int iz = nzlo_in; iz <= nzhi_in; iz++)
     for (int iy = nylo_in; iy <= nyhi_in; iy++)
       for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-        if (T_initial_set[iz][iy][ix] == 0) flag = 1;
+        if (T_electron_read[iz][iy][ix] == 0) flag = 1;
 
   int flagall;
   MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
   if (flagall) error->all(FLERR, "Fix ttm/grid infile did not set all temperatures");
 
-  memory->destroy3d_offset(T_initial_set, nzlo_in, nylo_in, nxlo_in);
+  memory->destroy3d_offset(T_electron_read, nzlo_in, nylo_in, nxlo_in);
+}
+
+/* ----------------------------------------------------------------------
+   process a chunk of lines in buffer
+   each proc stores values for grid points it owns
+   called back to from Grid3d::read_file()
+------------------------------------------------------------------------- */
+
+int FixTTMGrid::unpack_read_grid(char *buffer)
+{
+  // loop over chunk of lines of grid point values
+  // skip comment lines
+  // tokenize the line into ix,iy,iz grid index plus temperature value
+  // if I own grid point, store the value
+
+  int nread = 0;
+
+  for (const auto &line : utils::split_lines(buffer)) {
+    try {
+      ValueTokenizer values(utils::trim_comment(line));
+      if (values.count() == 0) {
+	;    // ignore comment only lines
+      } else if (values.count() == 4) {
+	++nread;
+	
+	int ix = values.next_int();
+	int iy = values.next_int();
+	int iz = values.next_int();
+
+	if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
+	  throw TokenizerException("Fix ttm/grid invalid grid index in input", "");
+	
+	if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in && iz >= nzlo_in &&
+	    iz <= nzhi_in) {
+	  T_electron[iz][iy][ix] = values.next_double();
+	  T_electron_read[iz][iy][ix] = 1;
+	}
+      } else {
+	throw TokenizerException("Incorrect format in fix ttm electron grid file", "");
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR, e.what());
+    }
+  }
+
+  return nread;
+}
+
+/* ----------------------------------------------------------------------
+   write electron temperatures on grid to file
+   identical format to infile option, so info can be read in when restarting
+   each proc contributes info for its portion of grid
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::write_restart_file(const char *file)
+{
+  // proc 0 opens file and writes header
+
+  if (comm->me == 0) {
+    auto outfile = std::string(file) + ".ttm";
+    fpout = fopen(outfile.c_str(),"w");
+    if (fpout == nullptr)
+      error->one(FLERR,"Cannot open fix ttm/grid restart file {}: {}",outfile,utils::getsyserror());
+
+    bigint ngrid = (bigint) nxgrid * nygrid * nzgrid;
+    fmt::print(fpout,"# fix ttm electron temperature on grid for "
+               "{} grid points on timestep {}\n\n",ngrid,update->ntimestep);
+  }
+
+  // write file
+  // Grid3d::write_file() calls back to pack_write_file() and unpack_write_file()
+
+  grid->write_file(Grid3d::FIX,this,0,1,sizeof(double), MPI_DOUBLE);
+
+  // close file
+
+  if (comm->me == 0) fclose(fpout);
+}
+
+/* ----------------------------------------------------------------------
+   pack values from local grid into buf
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::pack_write_grid(int /*which*/, void *vbuf)
+{
+  int ix, iy, iz;
+
+  auto buf = (double *) vbuf;
+
+  int m = 0;
+  for (iz = nzlo_in; iz <= nzhi_in; iz++)
+    for (iy = nylo_in; iy <= nyhi_in; iy++)
+      for (ix = nxlo_in; ix <= nxhi_in; ix++)
+	buf[m++] = T_electron[iz][iy][ix];
+}
+
+/* ----------------------------------------------------------------------
+   unpcak values from buf and write them to restart file
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::unpack_write_grid(int /*which*/, void *vbuf, int *bounds)
+{
+  int ix, iy, iz;
+
+  int xlo = bounds[0];
+  int xhi = bounds[1];
+  int ylo = bounds[2];
+  int yhi = bounds[3];
+  int zlo = bounds[4];
+  int zhi = bounds[5];
+  
+  auto buf = (double *) vbuf;
+  double value;
+
+  int m = 0;
+  for (iz = zlo; iz <= zhi; iz++)
+    for (iy = ylo; iy <= yhi; iy++)
+      for (ix = xlo; ix <= xhi; ix++) {
+	value = buf[m++];
+	fprintf(fpout, "%d %d %d %20.16g\n", ix, iy, iz, value);
+      }
 }
 
 /* ----------------------------------------------------------------------
@@ -538,82 +614,6 @@ void FixTTMGrid::deallocate_grid()
   memory->destroy3d_offset(T_electron_old, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(T_electron, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(net_energy_transfer, nzlo_out, nylo_out, nxlo_out);
-}
-
-/* ----------------------------------------------------------------------
-   pack entire state of Fix into one write
-------------------------------------------------------------------------- */
-
-void FixTTMGrid::write_restart(FILE *fp)
-{
-  error->all(FLERR,"Fix ttm/grid command does not yet support "
-             "writing a distributed grid to a restart file");
-}
-
-/* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix
-------------------------------------------------------------------------- */
-
-void FixTTMGrid::restart(char *buf)
-{
-  error->all(FLERR,"Fix ttm/grid command does not yet support "
-             "reading a distributed grid from a restart file");
-}
-
-/* ----------------------------------------------------------------------
-   pack values from local grid into buf
-   used by which = 0 and 1
-   NOTE: remove this function when ready to release
-------------------------------------------------------------------------- */
-
-void FixTTMGrid::pack_gather_grid(int /*which*/, void *vbuf)
-{
-  int ix, iy, iz;
-
-  auto buf = (double *) vbuf;
-
-  int m = 0;
-  for (iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (iy = nylo_in; iy <= nyhi_in; iy++)
-      for (ix = nxlo_in; ix <= nxhi_in; ix++) buf[m++] = T_electron[iz][iy][ix];
-}
-
-/* ----------------------------------------------------------------------
-   which = 0: unpack values from buf into global gbuf based on their indices
-   which = 1: print values from buf to FPout file
-   NOTE: remove this function when ready to release
-------------------------------------------------------------------------- */
-
-void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo, int xhi, int ylo,
-                                    int yhi, int zlo, int zhi)
-{
-  int ix, iy, iz;
-
-  auto buf = (double *) vbuf;
-  auto gbuf = (double *) vgbuf;
-
-  if (which == 0) {
-    int iglobal;
-    int ilocal = 0;
-
-    for (iz = zlo; iz <= zhi; iz++)
-      for (iy = ylo; iy <= yhi; iy++)
-        for (ix = xlo; ix <= xhi; ix++) {
-          iglobal = nygrid * nxgrid * iz + nxgrid * iy + ix;
-          gbuf[iglobal] = buf[ilocal++];
-        }
-
-  } else if (which == 1) {
-    int ilocal = 0;
-    double value;
-
-    for (iz = zlo; iz <= zhi; iz++)
-      for (iy = ylo; iy <= yhi; iy++)
-        for (ix = xlo; ix <= xhi; ix++) {
-          value = buf[ilocal++];
-          fprintf(FPout, "%d %d %d %20.16g\n", ix, iy, iz, value);
-        }
-  }
 }
 
 /* ----------------------------------------------------------------------

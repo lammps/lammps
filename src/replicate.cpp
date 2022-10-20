@@ -55,7 +55,8 @@ void Replicate::command(int narg, char **arg)
   int nrep = nx*ny*nz;
 
   if (me == 0)
-    utils::logmesg(lmp,"Replicating atoms for a {}x{}x{} = {} times size system...\n", nx, ny, nz, nrep);
+    utils::logmesg(lmp, "Replication is creating a {}x{}x{} = {} times larger system...\n",
+                   nx, ny, nz, nrep);
 
   int bbox_flag = 0;
   if (narg == 4)

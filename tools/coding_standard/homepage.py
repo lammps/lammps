@@ -42,7 +42,7 @@ patterns:
 """
 
 def check_homepage(f):
-    pattern = re.compile(r'.*lammps.sandia.gov.*')    # lgtm [py/incomplete-hostname-regexp]
+    pattern = re.compile(r'.*(lammps.sandia.gov|www.cs.sandia.gov).*')    # lgtm [py/incomplete-hostname-regexp]
     lineno = 1
     errors = set()
 
@@ -84,6 +84,7 @@ def fix_file(path, check_result):
                 newline = newline.replace("http://lammps.sandia.gov,","https://www.lammps.org/")
                 newline = newline.replace("lammps.sandia.gov","www.lammps.org")
                 newline = newline.replace("http://www.lammps.org","https://www.lammps.org")
+                newline = newline.replace("www.cs.sandia.gov/~sjplimp/lammps.html","https://www.lammps.org")
                 print(newline, end='', file=out)
     shutil.copymode(path, newfile)
     shutil.move(newfile, path)

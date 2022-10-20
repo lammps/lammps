@@ -21,6 +21,8 @@ int f_lammps_has_error();
 int f_lammps_get_last_error_message(char *, int);
 int f_lammps_get_image_flags_int(int, int, int);
 int64_t f_lammps_get_image_flags_bigint(int, int, int);
+void f_lammps_decode_image_flags(int, int*);
+void f_lammps_decode_image_flags_bigbig(int64_t, int*);
 }
 
 namespace LAMMPS_NS {
@@ -156,20 +158,35 @@ TEST_F(LAMMPS_properties, has_error)
 TEST_F(LAMMPS_properties, get_image_flags)
 {
 #ifdef LAMMPS_BIGBIG
-   int64_t image = f_lammps_get_image_flags_bigint(0,0,0);
-   int64_t Cimage = lammps_encode_image_flags(0,0,0);
-   EXPECT_EQ(image, Cimage);
-   image = f_lammps_get_image_flags_bigint(1,-1,1);
-   Cimage = lammps_encode_image_flags(1,-1,1);
-   EXPECT_EQ(image, Cimage);
+    int64_t image = f_lammps_get_image_flags_bigint(0,0,0);
+    int64_t Cimage = lammps_encode_image_flags(0,0,0);
+    EXPECT_EQ(image, Cimage);
+    image = f_lammps_get_image_flags_bigint(1,-1,1);
+    Cimage = lammps_encode_image_flags(1,-1,1);
+    EXPECT_EQ(image, Cimage);
 #else
-   int image = f_lammps_get_image_flags_int(0,0,0);
-   int Cimage = lammps_encode_image_flags(0,0,0);
-   EXPECT_EQ(image, Cimage);
-   image = f_lammps_get_image_flags_int(1,-1,1);
-   Cimage = lammps_encode_image_flags(1,-1,1);
-   EXPECT_EQ(image, Cimage);
+    int image = f_lammps_get_image_flags_int(0,0,0);
+    int Cimage = lammps_encode_image_flags(0,0,0);
+    EXPECT_EQ(image, Cimage);
+    image = f_lammps_get_image_flags_int(1,-1,1);
+    Cimage = lammps_encode_image_flags(1,-1,1);
+    EXPECT_EQ(image, Cimage);
 #endif
 }
+
+TEST_F(LAMMPS_properties, decode_image_flags)
+{
+    int flag[3];
+#ifdef LAMMPS_BIGBIG
+    int64_t image = f_lammps_get_image_flags_bigint(1,3,-2);
+    f_lammps_decode_image_flags_bigbig(image, flag);
+#else
+    int image = f_lammps_get_image_flags_int(1,3,-2);
+    f_lammps_decode_image_flags(image, flag);
+#endif
+    EXPECT_EQ(flag[0], 1);
+    EXPECT_EQ(flag[1], 3);
+    EXPECT_EQ(flag[2], -2);
+};
 
 } // namespace LAMMPS_NS

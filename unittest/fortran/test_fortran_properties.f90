@@ -110,3 +110,25 @@ FUNCTION f_lammps_get_image_flags_bigint(ix, iy, iz) BIND(C)
 
   f_lammps_get_image_flags_bigint = lmp%encode_image_flags(ix, iy, iz)
 END FUNCTION f_lammps_get_image_flags_bigint
+
+SUBROUTINE f_lammps_decode_image_flags(image, flag) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+  USE keepstuff, ONLY : lmp
+  USE LIBLAMMPS
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: image
+  INTEGER(c_int), INTENT(OUT) :: flag(3)
+
+  CALL lmp%decode_image_flags(image, flag)
+END SUBROUTINE f_lammps_decode_image_flags
+
+SUBROUTINE f_lammps_decode_image_flags_bigbig(image, flag) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE keepstuff, ONLY : lmp
+  USE LIBLAMMPS
+  IMPLICIT NONE
+  INTEGER(c_int64_t), INTENT(IN), VALUE :: image
+  INTEGER(c_int), INTENT(OUT) :: flag(3)
+
+  CALL lmp%decode_image_flags(image, flag)
+END SUBROUTINE f_lammps_decode_image_flags_bigbig

@@ -126,7 +126,7 @@ MODULE LIBLAMMPS
 !
     PROCEDURE, PRIVATE :: lmp_create_atoms_int
     PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
-    GENERIC :: create_atoms             => lmp_create_atoms_int, &
+    GENERIC   :: create_atoms           => lmp_create_atoms_int, &
                                            lmp_create_atoms_bigbig
 !
     PROCEDURE :: version                => lmp_version
@@ -143,6 +143,10 @@ MODULE LIBLAMMPS
     PROCEDURE, NOPASS :: config_package_name => lmp_config_package_name
     PROCEDURE, NOPASS :: installed_packages => lmp_installed_packages
     PROCEDURE :: encode_image_flags     => lmp_encode_image_flags
+    PROCEDURE, PRIVATE :: lmp_decode_image_flags
+    PROCEDURE, PRIVATE :: lmp_decode_image_flags_bigbig
+    GENERIC   :: decode_image_flags     => lmp_decode_image_flags, &
+                                           lmp_decode_image_flags_bigbig
 !
     PROCEDURE :: flush_buffers          => lmp_flush_buffers
     PROCEDURE :: is_running             => lmp_is_running
@@ -577,12 +581,9 @@ MODULE LIBLAMMPS
     !SUBROUTINE lammps_plugin_name
 
     ! We don't call lammps_encode_image_flags because its interface is
-    ! ambiguous: we don't know sizeof(imageint) prior to compile time
+    ! ambiguous: we don't know sizeof(imageint) prior to compile time.
     ! It is re-written in Fortran below. It was easier to do the same for
     ! lammps_decode_image_flags's equivalent.
-    !Both of these use LAMMPS_BIGBIG
-    !INTEGER(LAMMPS_imageint) FUNCTION lammps_encode_image_flags
-    !SUBROUTINE lammps_decode_image_flags
 
     !SUBROUTINE lammps_set_fix_external_callback ! may have trouble....
     !FUNCTION lammps_fix_external_get_force() ! returns real(c_double)(:)
@@ -1847,6 +1848,55 @@ CONTAINS
   END FUNCTION lmp_encode_image_flags
 
   ! equivalent function to lammps_decode_image_flags
+  SUBROUTINE lmp_decode_image_flags(self, image, flags)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: image
+    INTEGER(c_int), DIMENSION(3), TARGET, INTENT(OUT) :: flags
+    INTEGER(c_int) :: size_imageint
+    INTEGER(c_int) :: IMGMASK, IMGMAX, IMGBITS, IMG2BITS
+
+    size_imageint = lmp_extract_setting(self, 'imageint')
+    IF (size_imageint == 4_c_int) THEN
+      IMGMASK = lmp_extract_setting(self, 'IMGMASK')
+      IMGMAX = lmp_extract_setting(self, 'IMGMAX')
+      IMGBITS = lmp_extract_setting(self, 'IMGBITS')
+      IMG2BITS = lmp_extract_setting(self, 'IMG2BITS')
+      flags(1) = IAND(image, IMGMASK) - IMGMAX
+      flags(2) = IAND(ISHFT(image, -IMGBITS), IMGMASK) - IMGMAX
+      flags(3) = ISHFT(image, -IMG2BITS) - IMGMAX
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'Incorrect&
+        & integer kind passed as "image" [Fortran/decode_image_flags]')
+    END IF
+  END SUBROUTINE lmp_decode_image_flags
+
+  ! equivalent function to lammps_decode_image_flags if -DLAMMPS_BIGBIG is used
+  SUBROUTINE lmp_decode_image_flags_bigbig(self, image, flags)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), INTENT(IN) :: image
+    INTEGER(c_int), DIMENSION(3), TARGET, INTENT(OUT) :: flags
+    INTEGER(c_int) :: size_imageint
+    INTEGER(c_int) :: IMGMASK, IMGMAX, IMGBITS, IMG2BITS
+    INTEGER(c_int64_t) :: BIMGMASK, BIMGMAX, BIMGBITS, BIMG2BITS
+
+    size_imageint = lmp_extract_setting(self, 'imageint')
+    IF (size_imageint == 8_c_int) THEN
+      IMGMASK = lmp_extract_setting(self, 'IMGMASK')
+      IMGMAX = lmp_extract_setting(self, 'IMGMAX')
+      IMGBITS = lmp_extract_setting(self, 'IMGBITS')
+      IMG2BITS = lmp_extract_setting(self, 'IMG2BITS')
+      BIMGMASK = IMGMASK
+      BIMGMAX = IMGMAX
+      BIMGBITS = IMGBITS
+      BIMG2BITS = IMG2BITS
+      flags(1) = IAND(image, BIMGMASK) - BIMGMAX
+      flags(2) = IAND(ISHFT(image, -BIMGBITS), BIMGMASK) - BIMGMAX
+      flags(3) = ISHFT(image, -BIMG2BITS) - BIMGMAX
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'Incorrect&
+        & integer kind passed as "image" [Fortran/decode_image_flags]')
+    END IF
+  END SUBROUTINE lmp_decode_image_flags_bigbig
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)

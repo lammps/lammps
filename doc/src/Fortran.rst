@@ -267,8 +267,22 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f subroutine scatter_atoms_subset: :f:func:`scatter_atoms_subset`
    :f subroutine create_atoms: :f:func:`create_atoms`
    :f function version: :f:func:`version`
+   :f subroutine get_os_info: :f:func:`get_os_info`
+   :f function config_has_mpi_support: :f:func:`config_has_mpi_support`
+   :f function config_has_gzip_support: :f:func:`config_has_gzip_support`
+   :f function config_has_png_support: :f:func:`config_has_png_support`
+   :f function config_has_jpeg_support: :f:func:`config_has_jpeg_support`
+   :f function config_has_ffmpeg_support: :f:func:`config_has_ffmpeg_support`
+   :f function config_has_exceptions: :f:func:`config_has_exceptions`
+   :f function config_has_package: :f:func:`config_has_package`
+   :f function config_package_count: :f:func:`config_package_count`
+   :f function config_package_name: :f:func:`config_package_name`
+   :f subroutine installed_packages: :f:func:`installed_packages`
+   :f function encode_image_flags: :f:func:`encode_image_flags`
+   :f subroutine decode_image_flags: :f:func:`decode_image_flags`
    :f subroutine flush_buffers: :f:func:`flush_buffers`
    :f function is_running: :f:func:`is_running`
+   :f function force_timeout: :f:func:`force_timeout`
    :f function has_error: :f:func:`has_error`
    :f subroutine get_last_error_message: :f:func:`get_last_error_message`
 
@@ -1549,6 +1563,21 @@ Procedures Bound to the lammps Derived Type
 
        my_images(1) = lmp%encode_image_flags(0,0,0)
        my_images(2) = lmp%encode_image_flags(1,0,0)
+
+--------
+
+.. f:function:: decode_image_flags(image, flags)
+
+   This function does the reverse operation of :f:func:`encode_image_flags`:
+   it takes the image flag and performs the bit-shift and bit-masking
+   operations to decode it and stores the resulting three integers into the
+   array *flags*.
+
+   :p integer(kind=\*) image: encoded image flag. \*The ``KIND`` paremeter is
+    either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
+    ``c_int64_t``. Kind compatibility is checked at run-time.
+   :p integer(c_int) flags [dimension(3)]: three-element vector where the
+    decoded image flags will be stored.
 
 --------
 

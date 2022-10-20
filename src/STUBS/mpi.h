@@ -1,6 +1,6 @@
 /* -*- c++ -*- -----------------------------------------------------------
-   LAMMPS 2003 (July 31) - Molecular Dynamics Simulator
-   Sandia National Laboratories, www.cs.sandia.gov/~sjplimp/lammps.html
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract

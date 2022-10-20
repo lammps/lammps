@@ -127,8 +127,7 @@ void BondQuarticBreakable::eval()
         if (i2 < atom->nlocal)
           for (m = 0; m < atom->num_bond[i2]; m++)
             if (atom->bond_atom[i2][m] == atom->tag[i1]) atom->bond_type[i2][m] = 0;
-        fbond = 0.0;
-        if (EFLAG) ebond = 0.0;
+        continue;
       } else {
         // unbreakable bond
         fbond = 0.0;

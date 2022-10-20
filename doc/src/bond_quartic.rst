@@ -39,15 +39,27 @@ Examples
 Description
 """""""""""
 
-The *quartic/breakable* and *quartic/unbreakable* bond styles use the potential
+The *quartic/breakable* bond style uses the potential
 
 .. math::
 
    E      & = E_q + E_{LJ} \\
    E_q    & = \left\{ \begin{array} {l@{\quad:\quad}l}
               K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 & r <= R_c \\
-              0 & r > R_c\ \mbox{if\ breakable} \\
-              U_0 & r > R_c\ \mbox{if\ unbreakable} \end{array} \right. \\
+              0 & r > R_c \end{array} \right. \\
+   E_{LJ} & = \left\{ \begin{array} {l@{\quad:\quad}l}
+   4 \left[ \left(\frac{1}{r}\right)^{12} - \left(\frac{1}{r}\right)^6 \right] + 1.0 & r < 2^{\frac{1}{6}} \\
+                                                  0 & r >= 2^{\frac{1}{6}} \mbox{or} r > R_c
+                         \end{array} \right.
+
+and style *quartic/unbreakable* using
+
+.. math::
+
+   E      & = E_q + E_{LJ} \\
+   E_q    & = \left\{ \begin{array} {l@{\quad:\quad}l}
+              K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 & r <= R_c \\
+              U_0 & r > R_c \end{array} \right. \\
    E_{LJ} & = \left\{ \begin{array} {l@{\quad:\quad}l}
    4 \left[ \left(\frac{1}{r}\right)^{12} - \left(\frac{1}{r}\right)^6 \right] + 1.0 & r < 2^{\frac{1}{6}} \\
                                                   0 & r >= 2^{\frac{1}{6}}

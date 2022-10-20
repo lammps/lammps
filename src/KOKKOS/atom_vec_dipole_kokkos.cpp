@@ -33,16 +33,16 @@ AtomVecDipoleKokkos::AtomVecDipoleKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   mass_type = PER_TYPE;
 
   comm_x_only = 0;    // communicate x and dipole in forward comm
-  comm_f_only = 1;    // only communicate f in reverse comm
+  comm_f_only = 0;    // communicate f and torque in reverse comm
   size_forward = 7;   // xyz and mu4 used for pack/unpack comm
-  size_reverse = 3;   // fx, fy and fz
+  size_reverse = 6;   // fxyz torque xyz
   size_border = 11;   // xyz, tag, mask, type, q, mu4 for pack/unpack border
   size_velocity = 3;  // vx, vy, vz
   size_data_atom = 9; // tag, type, q, xyz, mux, muy, muz
   size_data_vel = 4;
   xcol_data = 4;
 
-  atom->q_flag = atom->mu_flag = 1;
+  atom->q_flag = atom->mu_flag = atom->torque_flag = 1;
 
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
@@ -79,6 +79,7 @@ void AtomVecDipoleKokkos::grow(int n)
 
   memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
   memoryKK->grow_kokkos(atomKK->k_mu,atomKK->mu,nmax,"atom:mu");
+  memoryKK->grow_kokkos(atomKK->k_torque,atomKK->torque,nmax,"atom:torque");
 
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);
@@ -123,7 +124,9 @@ void AtomVecDipoleKokkos::grow_pointers()
   mu = atomKK->mu;
   d_mu = atomKK->k_mu.d_view;
   h_mu = atomKK->k_mu.h_view;
-
+  torque = atomKK->torque;
+  d_torque = atomKK->k_torque.d_view;
+  h_torque = atomKK->k_torque.h_view;
 }
 
 /* ----------------------------------------------------------------------
@@ -226,6 +229,81 @@ struct AtomVecDipoleKokkos_PackComm {
     }
   }
 };
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDipoleKokkos::pack_reverse(int n, int first, double *buf)
+{
+  if (n > 0)
+    atomKK->sync(Host,F_MASK|TORQUE_MASK);
+
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; i++) {
+    buf[m++] = h_f(i,0);
+    buf[m++] = h_f(i,1);
+    buf[m++] = h_f(i,2);
+    buf[m++] = h_torque(i,0);
+    buf[m++] = h_torque(i,1);
+    buf[m++] = h_torque(i,2);
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDipoleKokkos::pack_reverse_hybrid(int n, int first, double *buf)
+{
+  if (n > 0)
+    atomKK->sync(Host,TORQUE_MASK);
+
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; i++) {
+    buf[m++] = h_torque(i,0);
+    buf[m++] = h_torque(i,1);
+    buf[m++] = h_torque(i,2);
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecDipoleKokkos::unpack_reverse(int n, int *list, double *buf)
+{
+  if (n > 0) {
+    atomKK->modified(Host,F_MASK|TORQUE_MASK);
+  }
+
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    const int j = list[i];
+    h_f(j,0) += buf[m++];
+    h_f(j,1) += buf[m++];
+    h_f(j,2) += buf[m++];
+    h_torque(j,0) += buf[m++];
+    h_torque(j,1) += buf[m++];
+    h_torque(j,2) += buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecDipoleKokkos::unpack_reverse_hybrid(int n, int *list, double *buf)
+{
+  if (n > 0) {
+    atomKK->modified(Host,TORQUE_MASK);
+  }
+
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    const int j = list[i];
+    h_torque(j,0) += buf[m++];
+    h_torque(j,1) += buf[m++];
+    h_torque(j,2) += buf[m++];
+  }
+  return m;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1212,6 +1290,7 @@ double AtomVecDipoleKokkos::memory_usage()
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*commKK->nthreads,3);
+  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*commKK->nthreads,3);
 
   if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
   if (atom->memcheck("mu")) bytes += memory->usage(mu,nmax,4);
@@ -1227,6 +1306,7 @@ void AtomVecDipoleKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
     if (mask & F_MASK) atomKK->k_f.sync<LMPDeviceType>();
+    if (mask & TORQUE_MASK) atomKK->k_torque.sync<LMPDeviceType>();
     if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
@@ -1237,6 +1317,7 @@ void AtomVecDipoleKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
     if (mask & F_MASK) atomKK->k_f.sync<LMPHostType>();
+    if (mask & TORQUE_MASK) atomKK->k_torque.sync<LMPHostType>();
     if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
@@ -1254,6 +1335,7 @@ void AtomVecDipoleKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.modify<LMPDeviceType>();
     if (mask & V_MASK) atomKK->k_v.modify<LMPDeviceType>();
     if (mask & F_MASK) atomKK->k_f.modify<LMPDeviceType>();
+    if (mask & TORQUE_MASK) atomKK->k_torque.modify<LMPDeviceType>();
     if (mask & TAG_MASK) atomKK->k_tag.modify<LMPDeviceType>();
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPDeviceType>();
@@ -1264,6 +1346,7 @@ void AtomVecDipoleKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.modify<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.modify<LMPHostType>();
     if (mask & F_MASK) atomKK->k_f.modify<LMPHostType>();
+    if (mask & TORQUE_MASK) atomKK->k_torque.modify<LMPHostType>();
     if (mask & TAG_MASK) atomKK->k_tag.modify<LMPHostType>();
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPHostType>();
@@ -1282,6 +1365,8 @@ void AtomVecDipoleKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
     if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
+    if ((mask & TORQUE_MASK) && atomKK->k_torque.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_f_array>(atomKK->k_torque,space);
     if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
     if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPDeviceType>())
@@ -1301,6 +1386,8 @@ void AtomVecDipoleKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
     if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
+    if ((mask & TORQUE_MASK) && atomKK->k_torque.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_f_array>(atomKK->k_torque,space);
     if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
     if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPHostType>())

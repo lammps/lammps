@@ -34,6 +34,10 @@ class AtomVecDipoleKokkos : public AtomVecKokkos {
 
   void grow(int) override;
   void copy(int, int, int) override;
+  int pack_reverse(int, int, double *) override;
+  int pack_reverse_hybrid(int, int, double *) override;
+  void unpack_reverse(int, int *, double *) override;
+  int unpack_reverse_hybrid(int, int *, double *) override;
   int pack_border(int, int *, double *, int, int *) override;
   int pack_border_vel(int, int *, double *, int, int *) override;
   int pack_border_hybrid(int, int *, double *) override;
@@ -79,6 +83,7 @@ class AtomVecDipoleKokkos : public AtomVecKokkos {
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
+  double **torque;
 
   double *q;
   double **mu;
@@ -100,6 +105,8 @@ class AtomVecDipoleKokkos : public AtomVecKokkos {
   HAT::t_float_1d h_q;
   DAT::t_mu_array d_mu;
   HAT::t_mu_array h_mu;
+  DAT::t_f_array d_torque;
+  HAT::t_f_array h_torque;
 
   DAT::tdual_int_1d k_count;
 };

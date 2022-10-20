@@ -214,8 +214,10 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 0;
 }
 
-/* ---------------------------------------------------------------------- */
-
+/* ---------------------------------------------------------------------- 
+  needs torque as with AtomVecSphereKokkos
+  needs energy calculation as well
+  ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
 KOKKOS_INLINE_FUNCTION
@@ -260,16 +262,26 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
       const F_FLOAT r2inv = 1.0/rsq;
       const F_FLOAT r6inv = r2inv*r2inv*r2inv;
       F_FLOAT forcelj = 0;
-      
+      F_FLOAT evdwl = 0;
+      F_FLOAT ecoul = 0;
+
       // lj term
+
       X_FLOAT cut_ljsq_ij = STACKPARAMS?m_cut_ljsq[itype][jtype]:d_cut_ljsq(itype,jtype);
       if (rsq < cut_ljsq_ij) {
-        forcelj = r6inv *
-          ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
-          (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
-      }
-      
-      // dipole-dipole
+        forcelj = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
+                           (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
+        if (eflag) {
+          evdwl = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
+                          (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
+                          (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
+          evdwl *= factor_lj;
+          ev.evdwl += evdwl;
+        }
+      }  // cutsq_ljsq_ij
+
+      // coul term
+
       X_FLOAT cut_coulsq_ij = STACKPARAMS?m_cut_coulsq[itype][jtype]:d_cut_coulsq(itype,jtype);
       X_FLOAT fx_i = 0;
       X_FLOAT fy_i = 0;
@@ -294,6 +306,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         const F_FLOAT qj = q[j];
 
         // charge-charge
+
         X_FLOAT r3inv = r2inv*rinv;
         X_FLOAT pre1 = qtmp*qj*r3inv;
 
@@ -302,6 +315,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         forcecoulz += pre1*delz;
 
         // dipole-dipole
+
         F_FLOAT r5inv = r3inv*r2inv;
         F_FLOAT r7inv = r5inv*r2inv;
 
@@ -328,39 +342,49 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         tjxcoul += -crossx + pre3 * (mu(j,1)*delz - mu(j,2)*dely);
         tjycoul += -crossy + pre3 * (mu(j,2)*delx - mu(j,0)*delz);
         tjzcoul += -crossz + pre3 * (mu(j,0)*dely - mu(j,1)*delx);
-
+/*        
+        if (i == 0)
+          printf("j = %d: f = %f %f %f; tq = %f %f %f\n", j, forcecoulx, forcecouly, forcecoulz,
+             tixcoul, tiycoul, tizcoul);
+*/
         // dipole-charge
-        
-        r5inv = r3inv*r2inv;
-        pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
-        pre1 = 3.0*qj*r5inv * pidotr;
-        pre2 = qj*r3inv;
 
-        forcecoulx += pre2*mu(i,0) - pre1*delx;
-        forcecouly += pre2*mu(i,1) - pre1*dely;
-        forcecoulz += pre2*mu(i,2) - pre1*delz;
-        tixcoul += pre2 * (mu(i,1)*delz - mu(i,2)*dely);
-        tiycoul += pre2 * (mu(i,2)*delx - mu(i,0)*delz);
-        tizcoul += pre2 * (mu(i,0)*dely - mu(i,1)*delx);
-        
+        if (mu(i,3) != 0 && q[j] != 0) {
+          r5inv = r3inv*r2inv;
+          pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
+          pre1 = 3.0*qj*r5inv * pidotr;
+          pre2 = qj*r3inv;
+
+          forcecoulx += pre2*mu(i,0) - pre1*delx;
+          forcecouly += pre2*mu(i,1) - pre1*dely;
+          forcecoulz += pre2*mu(i,2) - pre1*delz;
+          tixcoul += pre2 * (mu(i,1)*delz - mu(i,2)*dely);
+          tiycoul += pre2 * (mu(i,2)*delx - mu(i,0)*delz);
+          tizcoul += pre2 * (mu(i,0)*dely - mu(i,1)*delx);
+        }
+
         // charge-dipole
-        pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
-        pre1 = 3.0*qtmp*r5inv * pjdotr;
-        pre2 = qtmp*r3inv;
 
-        forcecoulx += pre1*delx - pre2*mu(j,0);
-        forcecouly += pre1*dely - pre2*mu(j,1);
-        forcecoulz += pre1*delz - pre2*mu(j,2);
-        tjxcoul += -pre2 * (mu(j,1)*delz - mu(j,2)*dely);
-        tjycoul += -pre2 * (mu(j,2)*delx - mu(j,0)*delz);
-        tjzcoul += -pre2 * (mu(j,0)*dely - mu(j,1)*delx);
+        if (qtmp != 0 && mu(j,3) != 0) {
+          pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
+          pre1 = 3.0*qtmp*r5inv * pjdotr;
+          pre2 = qtmp*r3inv;
 
+          forcecoulx += pre1*delx - pre2*mu(j,0);
+          forcecouly += pre1*dely - pre2*mu(j,1);
+          forcecoulz += pre1*delz - pre2*mu(j,2);
+          tjxcoul += -pre2 * (mu(j,1)*delz - mu(j,2)*dely);
+          tjycoul += -pre2 * (mu(j,2)*delx - mu(j,0)*delz);
+          tjzcoul += -pre2 * (mu(j,0)*dely - mu(j,1)*delx);
+        }
+        
         F_FLOAT fq = factor_coul*qqrd2e;
         F_FLOAT fx = fq*forcecoulx + delx*forcelj;
         F_FLOAT fy = fq*forcecouly + dely*forcelj;
         F_FLOAT fz = fq*forcecoulz + delz*forcelj;
 
         // force & torque accumulation
+
         fx_i += fx;
         fy_i += fy;
         fz_i += fz;
@@ -377,20 +401,37 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           a_torque(j,0) += fq*tjycoul;
           a_torque(j,0) += fq*tjzcoul;
         }
-      }
 
-      if (EVFLAG == 2)
-        ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
-      if (EVFLAG == 1)
-        ev_tally_xyz<NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
-    }
+        if (eflag) {
+          ecoul = qtmp*qj*rinv;
+          if (mu(i,3) > 0.0 && mu(j,3) > 0.0)
+            ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
+          if (mu(i,3) > 0.0 && qj != 0.0)
+            ecoul += -qj*r3inv*pidotr;
+          if (mu(j,3) > 0.0 && qtmp != 0.0)
+            ecoul += qtmp*r3inv*pjdotr;
+          ecoul *= factor_coul*qqrd2e;
+          ev.ecoul += ecoul;
+        }
+      } // cutsq_coulsq_ij
+
+      if (EVFLAG) {
+        if (EVFLAG == 2)
+          ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+        if (EVFLAG == 1)
+          ev_tally_xyz<NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+      }
+    } // cutsq_ij
   }
+
   a_f(i,0) += fx_i;
   a_f(i,1) += fy_i;
   a_f(i,2) += fz_i;
   a_torque(i,0) += torquex_i;
   a_torque(i,1) += torquey_i;
   a_torque(i,2) += torquez_i;
+  if (i == 0)
+     printf("f = %f %f; tq = %f\n", fx_i, fy_i,torquez_i);
 }
 
 /* ---------------------------------------------------------------------- */

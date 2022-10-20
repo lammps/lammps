@@ -41,10 +41,10 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include <cstring>
 #include <exception>
 
-#include "ace_c_basis.h"
-#include "ace_evaluator.h"
-#include "ace_recursive.h"
-#include "ace_version.h"
+#include "ace-evaluator/ace_c_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
+#include "ace-evaluator/ace_recursive.h"
+#include "ace-evaluator/ace_version.h"
 
 namespace LAMMPS_NS {
 struct ACEImpl {

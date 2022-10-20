@@ -104,7 +104,7 @@ requests to compute `gamma`, as shown in example below:
 
 .. code-block:: LAMMPS
 
-    pair_style 	pace/extrapolation
+    pair_style  pace/extrapolation
     pair_coeff  * * Cu.yaml Cu.asi Cu
 
     fix pace_gamma all pair 10 pace/extrapolation gamma 1

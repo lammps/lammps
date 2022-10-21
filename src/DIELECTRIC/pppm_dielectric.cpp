@@ -364,8 +364,8 @@ void PPPMDielectric::fieldforce_ad()
 
     // convert E-field to force and substract self forces
 
-    const double qfactor = qqrd2e * scale;
-    double qtmp = eps[i]*q[i];
+    const double qfactor = qqrd2e * scale * eps[i];
+    double qtmp = q[i];
 
     s1 = x[i][0]*hx_inv;
     s2 = x[i][1]*hy_inv;

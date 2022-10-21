@@ -1,7 +1,7 @@
-The ``LIBLAMMPS`` Fortran Module
-********************************
+The :f:mod:`LIBLAMMPS` Fortran Module
+*************************************
 
-The ``LIBLAMMPS`` module provides an interface to call LAMMPS from Fortran.
+The :f:mod:`LIBLAMMPS` module provides an interface to call LAMMPS from Fortran.
 It is based on the LAMMPS C library interface and
 requires a Fortran 2003-compatible compiler to be compiled.  It is
 designed to be self-contained and not require any support functions
@@ -31,7 +31,7 @@ If the LAMMPS library itself has been compiled with MPI support, the
 resulting executable will still be able to run LAMMPS in parallel with
 ``mpirun``, ``mpiexec`` or equivalent.  Please also note that the order
 of the source files matters: the ``lammps.f90`` file needs to be
-compiled first, since it provides the ``LIBLAMMPS`` module that is
+compiled first, since it provides the :f:mod:`LIBLAMMPS` module that is
 imported by the Fortran code that uses the interface.  A working example
 can be found together with equivalent examples in C and C++ in the
 ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
@@ -227,13 +227,11 @@ Below is an example demonstrating some of the possible uses.
 
 ---------------
 
-The ``LIBLAMMPS`` module API
-****************************
-
-**Module** :f:mod:`LIBLAMMPS`
+The :f:mod:`LIBLAMMPS` module API
+*********************************
 
 Below are the detailed descriptions of definitions and interfaces
-of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
+of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
 
 .. f:type:: lammps
 
@@ -401,8 +399,8 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    ``lmp%type%array``. These values are identical to the values described
    in :cpp:enum:`_LMP_TYPE_CONST` for the C library interface.
 
-Procedures Bound to the lammps Derived Type
-===========================================
+Procedures Bound to the :f:type:`lammps` Derived Type
+=====================================================
 
 .. f:subroutine:: close([finalize])
 
@@ -1338,7 +1336,7 @@ Procedures Bound to the lammps Derived Type
     have either the same length as *ids* (for *mask*, *type*, etc.) or three
     times its length (for *x*, *f*, etc.); the array must be rank 1
     and be of type ``INTEGER(c_int)`` (e.g., for *mask* or *type*) or of type
-    ``REAL(c_double)`` (e.g., *charge*, *x*, or *f*).
+    ``REAL(c_double)`` (e.g., for *charge*, *x*, or *f*).
 
 --------
 
@@ -1576,8 +1574,8 @@ Procedures Bound to the lammps Derived Type
    string in the vector *package* (default: 31).
 
    :p character(len=:) package [dimension(:),allocatable]: list of packages;
-    *must* have the ``ALLOCATABLE`` attribute and be of rank-1
-    (``DIMENSION(:)``) with allocatable length.
+    *must* have the ``ALLOCATABLE`` attribute and be of rank 1
+    (i.e., ``DIMENSION(:)``) with allocatable length.
    :o integer length [optional]: length of each string in the list.
     Default: 31.
 
@@ -1618,7 +1616,7 @@ Procedures Bound to the lammps Derived Type
 
    More detailed information about the available device or devices can
    be obtained by calling the
-   :cpp:func:`lammps_get_gpu_device_info` function.
+   :f:subr:`get_gpu_device_info` subroutine.
 
    :r logical: ``.TRUE.`` if a viable device is available, ``.FALSE.`` if not.
 

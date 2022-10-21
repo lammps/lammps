@@ -2,6 +2,7 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "info.h"
 
 #include <cstdint>
 #include <string>
@@ -13,7 +14,6 @@
 extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
-int f_lammps_version();
 void f_lammps_memory_usage(double *);
 int f_lammps_get_mpi_comm();
 int f_lammps_extract_setting(const char *);
@@ -50,11 +50,6 @@ protected:
         EXPECT_STREQ(output.substr(0, 16).c_str(), "Total wall time:");
         lmp = nullptr;
     }
-};
-
-TEST_F(LAMMPS_properties, version)
-{
-    EXPECT_LT(20200917, f_lammps_version());
 };
 
 TEST_F(LAMMPS_properties, memory_usage)

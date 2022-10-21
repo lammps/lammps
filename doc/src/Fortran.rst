@@ -278,6 +278,9 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f function config_package_count: :f:func:`config_package_count`
    :f function config_package_name: :f:func:`config_package_name`
    :f subroutine installed_packages: :f:func:`installed_packages`
+   :f function config_accelerator: :f:func:`config_accelerator`
+   :f function has_gpu_device: :f:func:`has_gpu_device`
+   :f subroutine get_gpu_device_info: :f:func:`get_gpu_device_info`
    :f function encode_image_flags: :f:func:`encode_image_flags`
    :f subroutine decode_image_flags: :f:func:`decode_image_flags`
    :f subroutine flush_buffers: :f:func:`flush_buffers`
@@ -643,7 +646,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:function:: extract_atom(name)
 
-   This function calls :c:func:`lammps_extract_atom` and returns a pointer to
+   This function calls :cpp:func:`lammps_extract_atom` and returns a pointer to
    LAMMPS data tied to the :cpp:class:`Atom` class, depending on the data
    requested through *name*.
 
@@ -748,7 +751,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:function:: extract_compute(id, style, type)
 
-   This function calls :c:func:`lammps_extract_compute` and returns a pointer
+   This function calls :cpp:func:`lammps_extract_compute` and returns a pointer
    to LAMMPS data tied to the :cpp:class:`Compute` class, specifically data
    provided by the compute identified by *id*. Computes may provide global,
    per-atom, or local data, and those data may be a scalar, a vector, or an
@@ -858,7 +861,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:function:: extract_fix(id, style, type[, nrow][, ncol])
 
-   This function calls :c:func:`lammps_extract_fix` and returns a pointer to
+   This function calls :cpp:func:`lammps_extract_fix` and returns a pointer to
    LAMMPS data tied to the :cpp:class:`Fix` class, specifically data provided
    by the fix identified by *id*. Fixes may provide global, per-atom, or
    local data, and those data may be a scalar, a vector, or an array. Since
@@ -1049,7 +1052,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:function:: extract_variable(name[,group])
 
-   This function calls :c:func:`lammps_extract_variable` and returns a scalar,
+   This function calls :cpp:func:`lammps_extract_variable` and returns a scalar,
    vector, or string containing the value of the variable identified by
    *name*. When the variable is an *equal*-style variable (or one compatible
    with that style such as *internal*), the variable is evaluated and the
@@ -1111,7 +1114,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:subroutine:: gather_atoms(name, count, data)
 
-   This function calls :c:func:`lammps_gather_atoms` to gather the named
+   This function calls :cpp:func:`lammps_gather_atoms` to gather the named
    atom-based entity for all atoms on all processors and return it in the
    vector *data*. The vector *data* will be ordered by atom
    ID, which requires consecutive atom IDs (1 to *natoms*).
@@ -1162,8 +1165,8 @@ Procedures Bound to the lammps Derived Type
 
 .. f:subroutine:: gather_atoms_concat(name, count, data)
 
-   This function calls :c:func:`lammps_gather_atoms_concat` to gather the named
-   atom-based entity for all atoms on all processors and return it in the
+   This function calls :cpp:func:`lammps_gather_atoms_concat` to gather the
+   named atom-based entity for all atoms on all processors and return it in the
    vector *data*.
 
    .. versionadded:: TBD
@@ -1190,9 +1193,9 @@ Procedures Bound to the lammps Derived Type
 
 .. f:subroutine:: gather_atoms_subset(name, count, ids, data)
 
-   This function calls :c:func:`lammps_gather_atoms_subset` to gather the named
-   atom-based entity for the atoms in the array *ids* from all processors and
-   return it in the vector *data*.
+   This function calls :cpp:func:`lammps_gather_atoms_subset` to gather the
+   named atom-based entity for the atoms in the array *ids* from all processors
+   and return it in the vector *data*.
 
    .. versionadded: TBD
 
@@ -1225,7 +1228,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:subroutine:: scatter_atoms(name, data)
 
-   This function calls :c:func:`lammps_scatter_atoms` to scatter the named
+   This function calls :cpp:func:`lammps_scatter_atoms` to scatter the named
    atom-based entities in *data* to all processors.
 
    .. versionadded:: TBD
@@ -1253,7 +1256,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:subroutine:: scatter_atoms_subset(name, ids, data)
 
-   This function calls :c:func:`lammps_scatter_atoms_subset` to scatter the
+   This function calls :cpp:func:`lammps_scatter_atoms_subset` to scatter the
    named atom-based entities in *data* to all processors.
 
    .. versionadded:: TBD
@@ -1284,7 +1287,7 @@ Procedures Bound to the lammps Derived Type
 
 .. f:subroutine:: create_atoms([id,] type, x, [v,] [image,] [bexpand])
 
-   This method calls :c:func:`lammps_create_atoms` to create additional atoms
+   This method calls :cpp:func:`lammps_create_atoms` to create additional atoms
    from a given list of coordinates and a list of atom types. Additionally,
    the atom IDs, velocities, and image flags may be provided.
 
@@ -1509,6 +1512,8 @@ Procedures Bound to the lammps Derived Type
    Obtain a list of the names of enabled packages in the LAMMPS shared library
    and store it in *package*.
 
+   .. versionadded:: TBD
+
    This function is analogous to the :py:func`installed_packages` function in
    the Python API. The optional argument *length* sets the length of each
    string in the vector *package* (default: 31).
@@ -1518,6 +1523,68 @@ Procedures Bound to the lammps Derived Type
     (``DIMENSION(:)``) with allocatable length.
    :o integer length [optional]: length of each string in the list.
     Default: 31.
+
+--------
+
+.. f:function:: config_accelerator(package, category, setting)
+
+   This function calls :cpp:func:`lammps_config_accelerator` to check the
+   availability of compile time settings of included
+   :doc:`accelerator packages <Speed_packages>` in LAMMPS.
+
+   .. versionadded:: TBD
+
+   Supported packages names are "GPU", "KOKKOS", "INTEL", and "OPENMP".
+   Supported categories are "api" with possible settings "cuda", "hip", "phi",
+   "pthreads", "opencl", "openmp", and "serial"; and "precision" with
+   possible settings "double", "mixed", and "single".
+
+   :p character(len=\*) package:   string with the name of the accelerator
+    package
+   :p character(len=\*) category:  string with the name of the setting
+   :p character(len=\*) setting:   string with the name of the specific
+    setting
+   :r logical: ``.TRUE.`` if the combination of package, category, and setting
+    is available, otherwise ``.FALSE.``.
+
+--------
+
+.. f:function:: has_gpu_device()
+
+   Checks for the presence of a viable GPU package device.
+
+   .. versionadded:: TBD
+
+   This function calls :cpp:func:`lammps_has_gpu_device`, which checks at
+   runtime whether an accelerator device is present that can be used with the
+   :doc:`GPU package <Speed_gpu>`.
+
+   More detailed information about the available device or devices can
+   be obtained by calling the
+   :cpp:func:`lammps_get_gpu_device_info` function.
+
+   :r logical: ``.TRUE.`` if a viable device is available, ``.FALSE.`` if not.
+
+--------
+
+.. f:subroutine:: get_gpu_device_info(buffer)
+
+   Get GPU package device information.
+
+   .. versionadded:: TBD
+
+   Calls :cpp:func:`lammps_get_gpu_device_info` to retrieve detailed
+   information about any accelerator devices that are viable for use with the
+   :doc:`GPU package <Speed_gpu>`. It will fill *buffer* with a string that is
+   equivalent to the output of the ``nvc_get_device`` or ``ocl_get_device`` or
+   ``hip_get_device`` tools that are compiled alongside LAMMPS if the GPU
+   package is enabled.
+
+   A suitable-length Fortran string has to be provided. The assembled text will
+   be truncated so as not to overflow this buffer.  This string can be several
+   kilobytes long if multiple devices are present.
+
+   :p character(len=\*) buffer: string into which to copy the information.
 
 --------
 

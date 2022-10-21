@@ -1,13 +1,3 @@
-FUNCTION f_lammps_version() BIND(C)
-   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
-   USE liblammps
-   USE keepstuff, ONLY : lmp
-   IMPLICIT NONE
-   INTEGER(c_int) :: f_lammps_version
-
-   f_lammps_version = lmp%version()
-END FUNCTION f_lammps_version
-
 SUBROUTINE f_lammps_memory_usage(meminfo) BIND(C)
    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
    USE liblammps

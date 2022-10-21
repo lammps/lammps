@@ -142,6 +142,13 @@ MODULE LIBLAMMPS
     PROCEDURE, NOPASS :: config_package_count => lammps_config_package_count
     PROCEDURE, NOPASS :: config_package_name => lmp_config_package_name
     PROCEDURE, NOPASS :: installed_packages => lmp_installed_packages
+    PROCEDURE, NOPASS :: config_accelerator => lmp_config_accelerator
+    PROCEDURE, NOPASS :: has_gpu_device => lmp_has_gpu_device
+    PROCEDURE, NOPASS :: get_gpu_device_info => lmp_get_gpu_device_info
+    PROCEDURE :: has_style              => lmp_has_style
+    PROCEDURE :: style_count            => lmp_style_count
+    PROCEDURE :: style_name             => lmp_style_name
+!
     PROCEDURE :: encode_image_flags     => lmp_encode_image_flags
     PROCEDURE, PRIVATE :: lmp_decode_image_flags
     PROCEDURE, PRIVATE :: lmp_decode_image_flags_bigbig
@@ -367,13 +374,6 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_extract_global_datatype
     END FUNCTION lammps_extract_global_datatype
 
-    FUNCTION c_strlen(str) BIND(C,name='strlen')
-      IMPORT :: c_ptr, c_size_t
-      IMPLICIT NONE
-      TYPE(c_ptr), INTENT(IN), VALUE :: str
-      INTEGER(c_size_t) :: c_strlen
-    END FUNCTION c_strlen
-
     FUNCTION lammps_extract_global(handle, name) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
@@ -569,9 +569,47 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: buffer
     END FUNCTION lammps_config_package_name
 
-    !LOGICAL FUNCTION lammps_config_accelerator
-    !LOGICAL FUNCTION lammps_has_gpu_device
-    !SUBROUTINE lammps_get_gpu_device
+    FUNCTION lammps_config_accelerator(package, category, setting) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: package, category, setting
+      INTEGER(c_int) :: lammps_config_accelerator
+    END FUNCTION lammps_config_accelerator
+
+    FUNCTION lammps_has_gpu_device() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_has_gpu_device
+    END FUNCTION lammps_has_gpu_device
+
+    SUBROUTINE lammps_get_gpu_device_info(buffer, buf_size) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: buffer
+      INTEGER(c_int), VALUE :: buf_size
+    END SUBROUTINE lammps_get_gpu_device_info
+
+    FUNCTION lammps_has_style(handle, category, name) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, name
+      INTEGER(c_int) :: lammps_has_style
+    END FUNCTION lammps_has_style
+
+    FUNCTION lammps_style_count(handle, category) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category
+      INTEGER(c_int) :: lammps_style_count
+    END FUNCTION lammps_style_count
+
+    FUNCTION lammps_style_name(handle, category, idx, buffer, buf_size) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, buffer
+      INTEGER(c_int), VALUE :: idx, buf_size
+      INTEGER(c_int) :: lammps_style_name
+    END FUNCTION lammps_style_name
 
     !LOGICAL FUNCTION lammps_has_id
     !INTEGER(c_int) FUNCTION lammps_id_count
@@ -600,13 +638,6 @@ MODULE LIBLAMMPS
       IMPLICIT NONE
       TYPE(c_ptr), VALUE :: handle
     END SUBROUTINE lammps_flush_buffers
-
-    FUNCTION lammps_malloc(size) BIND(C, name='malloc')
-      IMPORT :: c_ptr, c_size_t
-      IMPLICIT NONE
-      INTEGER(c_size_t), VALUE :: size
-      TYPE(c_ptr) :: lammps_malloc
-    END FUNCTION lammps_malloc
 
     SUBROUTINE lammps_free(ptr) BIND(C)
       IMPORT :: c_ptr
@@ -639,6 +670,23 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, buffer
       INTEGER(c_int), VALUE :: buf_size
     END FUNCTION lammps_get_last_error_message
+
+    !---------------------------------------------------------------------
+    ! Utility functions imported for convenience (not in library.h)
+    !---------------------------------------------------------------------
+    FUNCTION lammps_malloc(size) BIND(C, name='malloc')
+      IMPORT :: c_ptr, c_size_t
+      IMPLICIT NONE
+      INTEGER(c_size_t), VALUE :: size
+      TYPE(c_ptr) :: lammps_malloc
+    END FUNCTION lammps_malloc
+
+    FUNCTION c_strlen(str) BIND(C, name='strlen')
+      IMPORT :: c_ptr, c_size_t
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: str
+      INTEGER(c_size_t) :: c_strlen
+    END FUNCTION c_strlen
 
   END INTERFACE
 
@@ -1812,6 +1860,104 @@ CONTAINS
     END DO
   END SUBROUTINE lmp_installed_packages
 
+  ! equivalent function to lammps_config_accelerator
+  LOGICAL FUNCTION lmp_config_accelerator(package, category, setting)
+    CHARACTER(LEN=*), INTENT(IN) :: package, category, setting
+    TYPE(c_ptr) :: Cpackage, Ccategory, Csetting
+    INTEGER(c_int) :: is_configured
+
+    Cpackage = f2c_string(package)
+    Ccategory = f2c_string(category)
+    Csetting = f2c_string(setting)
+    is_configured = lammps_config_accelerator(Cpackage, Ccategory, Csetting)
+    CALL lammps_free(Cpackage)
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Csetting)
+    lmp_config_accelerator = (is_configured /= 0_c_int)
+  END FUNCTION lmp_config_accelerator
+
+  ! equivalent function to lammps_has_gpu_device
+  LOGICAL FUNCTION lmp_has_gpu_device()
+    lmp_has_gpu_device = (lammps_has_gpu_device() /= 0_c_int)
+  END FUNCTION lmp_has_gpu_device
+
+  ! equivalent subroutine to lammps_get_gpu_device_info
+  SUBROUTINE lmp_get_gpu_device_info(buffer)
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER(c_int) :: buf_size, i
+    INTEGER(c_size_t) :: strlen
+    TYPE(c_ptr) :: Cptr
+    CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Cbuffer => NULL()
+
+    buffer = ''
+    buf_size = LEN(buffer) + 1
+    Cptr = lammps_malloc(INT(buf_size,c_size_t))
+    CALL lammps_get_gpu_device_info(Cptr, buf_size)
+    CALL C_F_POINTER(Cptr, Cbuffer, [buf_size])
+    strlen = c_strlen(Cptr)
+    DO i = 1, strlen
+      buffer(i:i) = Cbuffer(i)
+    END DO
+    CALL lammps_free(Cptr)
+  END SUBROUTINE lmp_get_gpu_device_info
+
+  ! equivalent function to lammps_has_style
+  LOGICAL FUNCTION lmp_has_style(self, category, name)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category, name
+    TYPE(c_ptr) :: Ccategory, Cname
+    INTEGER(c_int) :: has_style
+
+    Ccategory = f2c_string(category)
+    Cname = f2c_string(name)
+    has_style = lammps_has_style(self%handle, Ccategory, Cname)
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Cname)
+    lmp_has_style = (has_style /= 0_c_int)
+  END FUNCTION
+
+  ! equivalent function to lammps_style_count
+  INTEGER(c_int) FUNCTION lmp_style_count(self, category)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    TYPE(c_ptr) :: Ccategory
+
+    Ccategory = f2c_string(category)
+    lmp_style_count = lammps_style_count(self%handle, Ccategory)
+    CALL lammps_free(Ccategory)
+  END FUNCTION lmp_style_count
+
+  ! equivalent function to lammps_style_name
+  SUBROUTINE lmp_style_name(self, category, idx, buffer)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    INTEGER(c_int), INTENT(IN) :: idx
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER(c_int) :: buf_size, success
+    TYPE(c_ptr) :: Ccategory, Cbuffer
+    INTEGER(c_size_t) :: length
+    CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Fbuffer => NULL()
+    INTEGER :: i
+
+    buf_size = LEN(buffer)
+    Ccategory = f2c_string(category)
+    Cbuffer = lammps_malloc(buf_size + 1_c_size_t)
+    success = lammps_style_name(self%handle, Ccategory, idx, Cbuffer, buf_size)
+    IF (success == 1_c_int) THEN
+      length = c_strlen(Cbuffer)
+      CALL C_F_POINTER(Cbuffer, Fbuffer, [length])
+      DO i = 1, length
+        buffer(i:i) = Fbuffer(i)
+      END DO
+    ELSE
+      buffer = ''
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'idx value not in range [Fortran/style_name]')
+    END IF
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Cbuffer)
+  END SUBROUTINE lmp_style_name
+
   ! equivalent function to lammps_encode_image_flags
   FUNCTION lmp_encode_image_flags(self, ix, iy, iz) RESULT (image)
     CLASS(lammps), INTENT(IN), TARGET :: self
@@ -2211,6 +2357,7 @@ CONTAINS
     END DO
     c_string(n+1) = c_null_char
   END FUNCTION f2c_string
+
 END MODULE LIBLAMMPS
 
 ! vim: ts=2 sts=2 sw=2 et

@@ -47,7 +47,7 @@ SPHINXEXTRA = -E -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiproc
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check char_check xmlgen fasthtml
+.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check xmlgen fasthtml
 
 # ------------------------------------------
 

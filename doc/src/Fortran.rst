@@ -230,8 +230,12 @@ Below is an example demonstrating some of the possible uses.
 The :f:mod:`LIBLAMMPS` module API
 *********************************
 
+.. f:module:: LIBLAMMPS
+
 Below are the detailed descriptions of definitions and interfaces
 of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
+
+.. f:currentmodule:: None
 
 .. f:type:: lammps
 

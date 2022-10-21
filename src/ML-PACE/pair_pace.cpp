@@ -41,10 +41,10 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include <cstring>
 #include <exception>
 
-#include "ace_c_basis.h"
-#include "ace_evaluator.h"
-#include "ace_recursive.h"
-#include "ace_version.h"
+#include "ace-evaluator/ace_c_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
+#include "ace-evaluator/ace_recursive.h"
+#include "ace-evaluator/ace_version.h"
 
 namespace LAMMPS_NS {
 struct ACEImpl {
@@ -123,15 +123,12 @@ void PairPACE::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  // downwards modified by YL
-
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
 
   // number of atoms in cell
   int nlocal = atom->nlocal;
-
   int newton_pair = force->newton_pair;
 
   // inum: length of the neighborlists list
@@ -205,13 +202,13 @@ void PairPACE::compute(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      if (vflag)
+      if (vflag_either)
         ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
                      -delz);
     }
 
     // tally energy contribution
-    if (eflag) {
+    if (eflag_either) {
       // evdwl = energy of atom I
       evdwl = scale[itype][itype] * aceimpl->ace->e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -242,7 +239,7 @@ void PairPACE::allocate()
 
 void PairPACE::settings(int narg, char **arg)
 {
-  if (narg > 3) error->all(FLERR, "Illegal pair_style command.");
+  if (narg > 3) utils::missing_cmd_args(FLERR, "pair_style pace", error);
 
   // ACE potentials are parameterized in metal units
   if (strcmp("metal", update->unit_style) != 0)
@@ -262,7 +259,7 @@ void PairPACE::settings(int narg, char **arg)
       chunksize = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal pair_style command");
+      error->all(FLERR, "Unknown pair_style pace keyword: {}", arg[iarg]);
   }
 
   if (comm->me == 0) {
@@ -286,7 +283,6 @@ void PairPACE::coeff(int narg, char **arg)
   map_element2type(narg - 3, arg + 3);
 
   auto potential_file_name = utils::get_potential_file_path(arg[2]);
-  char **elemtypes = &arg[3];
 
   //load potential file
   delete aceimpl->basis_set;
@@ -304,7 +300,7 @@ void PairPACE::coeff(int narg, char **arg)
     }
   }
 
-  // read args that map atom types to pACE elements
+  // read args that map atom types to PACE elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
 
@@ -354,8 +350,8 @@ void PairPACE::coeff(int narg, char **arg)
 
 void PairPACE::init_style()
 {
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pACE requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style pACE requires newton pair on");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pace requires atom IDs");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style pace requires newton pair on");
 
   // request a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL);

@@ -10,7 +10,7 @@ Nguyen TD, Li H, Bagchi D, Solis FJ, Olvera de la Cruz, Incorporating surface po
 
 For "atom_style  dielectric" the Atoms section in the data file contains 15 following columns:
 
-id mol type q x y z normx normy normz area_per_patch ed em epsilon curvature
+id mol type q x y z normx normy normz area/patch ed em epsilon curvature
 
 where 
 
@@ -34,13 +34,13 @@ where
   For interface particles, epsilon is set to be em
     (the mean dielectric value above).
 
-* area_per_patch: the surface area of the patch (element).
+* area/patch: the surface area of the patch (element).
   For real charges, this value is irrelevant, can be 1.0.
 
 * curvature: surface mean curvature at the patch.
   For example, for spherical interfaces, curvature = 1/spherical radius.
   For planar interfaces, curvature = 0.
 
-Note that the properties normx, normy, normz, area_per_patch, ed, em, and curvature are not 
+Note that the properties normx, normy, normz, area/patch, ed, em, and curvature are not 
 used for the non-interface beads. epsilon is used to scale the charge of any non-interface
 ion, see the documentation for pair styles with the dielectric suffix and fix polarize.

@@ -58,8 +58,7 @@ TEST(TEST_CATEGORY, team_reduction_scan) {
 }
 
 TEST(TEST_CATEGORY, team_long_reduce) {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  // WORKAROUND OPENMPTARGET: Not implemented
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET: Not implemented
   if constexpr (!std::is_same<TEST_EXECSPACE,
                               Kokkos::Experimental::OpenMPTarget>::value)
 #endif
@@ -76,8 +75,7 @@ TEST(TEST_CATEGORY, team_long_reduce) {
 }
 
 TEST(TEST_CATEGORY, team_double_reduce) {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  // WORKAROUND OPENMPTARGET: Not implemented
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET: Not implemented
   if constexpr (!std::is_same<TEST_EXECSPACE,
                               Kokkos::Experimental::OpenMPTarget>::value)
 #endif
@@ -94,6 +92,45 @@ TEST(TEST_CATEGORY, team_double_reduce) {
         100000);
     TestReduceTeam<double, TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> >(
         100000);
+  }
+}
+
+template <typename ExecutionSpace>
+struct DummyTeamReductionFunctor {
+  using TeamPolicy     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using TeamHandleType = typename TeamPolicy::member_type;
+
+  KOKKOS_FUNCTION void operator()(const TeamHandleType&, double&) const {}
+};
+
+template <typename ExecutionSpace>
+void test_team_parallel_reduce(const int num_loop_size) {
+  using TeamPolicy = Kokkos::TeamPolicy<ExecutionSpace>;
+
+  using ReducerType = Kokkos::Sum<double>;
+  double result     = 10.;
+  ReducerType reducer(result);
+
+  const int bytes_per_team   = 0;
+  const int bytes_per_thread = 117;
+
+  TeamPolicy team_exec(num_loop_size, Kokkos::AUTO);
+  team_exec.set_scratch_size(1, Kokkos::PerTeam(bytes_per_team),
+                             Kokkos::PerThread(bytes_per_thread));
+
+  Kokkos::parallel_reduce(team_exec,
+                          DummyTeamReductionFunctor<ExecutionSpace>{}, reducer);
+  ASSERT_EQ(result, 0.);
+}
+
+TEST(TEST_CATEGORY, team_parallel_dummy_with_reducer_and_scratch_space) {
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET: Not implemented
+  if constexpr (!std::is_same<TEST_EXECSPACE,
+                              Kokkos::Experimental::OpenMPTarget>::value)
+#endif
+  {
+    test_team_parallel_reduce<TEST_EXECSPACE>(0);
+    test_team_parallel_reduce<TEST_EXECSPACE>(1);
   }
 }
 

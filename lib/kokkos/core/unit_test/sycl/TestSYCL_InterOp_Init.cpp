@@ -52,11 +52,10 @@ namespace Test {
 // Test whether allocations survive Kokkos initialize/finalize if done via Raw
 // SYCL.
 TEST(sycl, raw_sycl_interop) {
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
+  Kokkos::initialize();
 
   Kokkos::Experimental::SYCL default_space;
-  sycl::context default_context = default_space.sycl_context();
+  sycl::context default_context = default_space.sycl_queue().get_context();
 
   sycl::default_selector device_selector;
   sycl::queue queue(default_context, device_selector);

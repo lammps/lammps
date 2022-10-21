@@ -1,13 +1,15 @@
 # From CMake 3.10 documentation
 
 #This can run at any time
-KOKKOS_OPTION(CXX_STANDARD "" STRING "The C++ standard for Kokkos to use: 14, 17, or 20. If empty, this will default to CMAKE_CXX_STANDARD. If both CMAKE_CXX_STANDARD and Kokkos_CXX_STANDARD are empty, this will default to 14")
+KOKKOS_OPTION(CXX_STANDARD "" STRING "[[DEPRECATED - USE CMAKE_CXX_STANDARD INSTEAD]] The C++ standard for Kokkos to use: 14, 17, or 20. If empty, this will default to CMAKE_CXX_STANDARD. If both CMAKE_CXX_STANDARD and Kokkos_CXX_STANDARD are empty, this will default to 14")
 
 # Set CXX standard flags
 SET(KOKKOS_ENABLE_CXX14 OFF)
 SET(KOKKOS_ENABLE_CXX17 OFF)
 SET(KOKKOS_ENABLE_CXX20 OFF)
 IF (KOKKOS_CXX_STANDARD)
+  MESSAGE(DEPRECATION "Setting the variable Kokkos_CXX_STANDARD in configuration is deprecated - set CMAKE_CXX_STANDARD directly instead")
+
   IF (${KOKKOS_CXX_STANDARD} STREQUAL "c++98")
     MESSAGE(FATAL_ERROR "Kokkos no longer supports C++98 - minimum C++14")
   ELSEIF (${KOKKOS_CXX_STANDARD} STREQUAL "c++11")

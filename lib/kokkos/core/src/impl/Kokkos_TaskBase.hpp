@@ -57,7 +57,6 @@
 
 #include <string>
 #include <typeinfo>
-#include <stdexcept>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -199,7 +198,7 @@ class TaskBase {
   void add_dependence(TaskBase* dep) {
     // Precondition: lock == m_next
 
-    TaskBase* const lock = (TaskBase*)LockTag;
+    auto* const lock = reinterpret_cast<TaskBase*>(LockTag);
 
     // Assign dependence to m_next.  It will be processed in the subsequent
     // call to schedule.  Error if the dependence is reset.
@@ -221,7 +220,7 @@ class TaskBase {
 
   KOKKOS_INLINE_FUNCTION
   int32_t reference_count() const {
-    return *((int32_t volatile*)(&m_ref_count));
+    return *const_cast<int32_t volatile*>(&m_ref_count);
   }
 };
 

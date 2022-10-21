@@ -70,7 +70,7 @@ Syntax
          cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 
 * zero or more keyword/value pairs may be appended
-* keyword = *units* or *fld*
+* keyword = *units* or *fld* or *pbc*
 
   .. parsed-literal::
 

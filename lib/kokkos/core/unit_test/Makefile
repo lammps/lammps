@@ -289,6 +289,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
 	OBJ_HIP += TestHIP_Reductions.o
 	OBJ_HIP += TestHIP_MDRange_a.o TestHIP_MDRange_b.o TestHIP_MDRange_c.o TestHIP_MDRange_d.o TestHIP_MDRange_e.o
 	OBJ_HIP += TestHIP_Spaces.o
+	OBJ_HIP += TestHIP_Memory_Requirements.o
 	OBJ_HIP += TestHIPHostPinned_ViewAPI_a.o TestHIPHostPinned_ViewAPI_b.o TestHIPHostPinned_ViewAPI_c.o TestHIPHostPinned_ViewAPI_d.o TestHIPHostPinned_ViewAPI_e.o
 	OBJ_HIP += TestHIPHostPinned_ViewCopy_a.o TestHIPHostPinned_ViewCopy_b.o
 	OBJ_HIP += TestHIPHostPinned_ViewMapping_a.o TestHIPHostPinned_ViewMapping_b.o TestHIPHostPinned_ViewMapping_subview.o
@@ -408,12 +409,14 @@ TEST_TARGETS += test-stack-trace
 TEST_TARGETS += test-stack-trace-terminate
 TEST_TARGETS += test-stack-trace-generic-term
 
+ifneq ($(KOKKOS_INTERNAL_DISABLE_DEPRECATED_CODE), 1)
 NUM_INITTESTS = 16
 INITTESTS_NUMBERS := $(shell seq 1 ${NUM_INITTESTS})
 INITTESTS_TARGETS := $(addprefix KokkosCore_UnitTest_DefaultDeviceTypeInit_,${INITTESTS_NUMBERS})
 TARGETS += ${INITTESTS_TARGETS}
 INITTESTS_TEST_TARGETS := $(addprefix test-default-init-,${INITTESTS_NUMBERS})
 TEST_TARGETS += ${INITTESTS_TEST_TARGETS}
+endif
 
 KokkosCore_UnitTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_Cuda
@@ -508,7 +511,7 @@ test-push-finalize-hook: KokkosCore_UnitTest_PushFinalizeHook
 
 test-push-finalize-hook-terminate: KokkosCore_UnitTest_PushFinalizeHook_terminate
 	./KokkosCore_UnitTest_PushFinalizeHook_terminate
-	
+
 test-stack-trace: KokkosCore_UnitTest_StackTraceTestExec
 	./KokkosCore_UnitTest_StackTraceTestExec --gtest_filter=*normal$(STACK_TRACE_TERMINATE_FILTER)
 

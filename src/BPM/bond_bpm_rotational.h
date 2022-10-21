@@ -43,8 +43,6 @@ class BondBPMRotational : public BondBPM {
   double *Fcr, *Fcs, *Tct, *Tcb;
   int smooth_flag;
 
-  double acos_limit(double);
-
   double elastic_forces(int, int, int, double, double, double, double *, double *,
                         double *, double *, double *, double *);
   void damping_forces(int, int, int, double *, double *, double *, double *, double *);

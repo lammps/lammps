@@ -210,7 +210,8 @@ use :doc:`change_box <change_box>` before invoking the fix.
 
 .. note::
 
-   When resuming from restart files, you may need to use :doc:`box tilt large <box>` since lammps has internal criteria from lattice
+   When resuming from restart files, you may need to use :doc:`box tilt
+   large <box>` since LAMMPS has internal criteria from lattice
    reduction that are not the same as the criteria in the numerical
    lattice reduction algorithm.
 

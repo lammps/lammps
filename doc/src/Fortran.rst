@@ -281,6 +281,9 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
    :f function config_accelerator: :f:func:`config_accelerator`
    :f function has_gpu_device: :f:func:`has_gpu_device`
    :f subroutine get_gpu_device_info: :f:func:`get_gpu_device_info`
+   :f function has_style: :f:func:`has_style`
+   :f function style_count: :f:func:`style_count`
+   :f function style_name: :f:func:`style_name`
    :f function encode_image_flags: :f:func:`encode_image_flags`
    :f subroutine decode_image_flags: :f:func:`decode_image_flags`
    :f subroutine flush_buffers: :f:func:`flush_buffers`
@@ -1585,6 +1588,60 @@ Procedures Bound to the lammps Derived Type
    kilobytes long if multiple devices are present.
 
    :p character(len=\*) buffer: string into which to copy the information.
+
+--------
+
+.. f:function:: has_style(category, name)
+
+   Check whether a specific style has been included in LAMMPS.
+
+   .. versionadded:: TBD
+
+   This function calls :cpp:func:`lammps_has_style` to check whether the
+   LAMMPS library in use includes the specific style *name* associated with a
+   specific *category* provided as arguments.  Please see
+   :cpp:func:`lammps_has_style` for a list of valid categories.
+
+   :p character(len=\*) category: category of the style
+   :p character(len=\*) name:     name of the style
+   :r logical: ``.TRUE.`` if included, ``.FALSE.`` if not.
+
+--------
+
+.. f:function:: style_count(category)
+
+   Count the number of styles of *category* in the LAMMPS library.
+
+   .. versionadded:: TBD
+
+   This function counts how many styles in the provided *category* are
+   included in the LAMMPS library currently in use. Please see
+   :cpp:func:`lammps_has_style` for a list of valid categories.
+
+   :p character(len=\*) category: category of styles to count
+   :r integer(c_int): number of styles in *category*
+
+--------
+
+.. f:subroutine:: style_name(category, idx, buffer)
+
+   Look up the name of a style by index in the list of styles of a given
+   category in the LAMMPS library.
+
+   .. versionadded:: TBD
+
+   This function calls :cpp:func:`lammps_style_name` and copies the name of
+   the *category* style with index *idx* into the provided string *buffer*.
+   The length of *buffer* must be long enough to contain the name of the
+   style; if it is too short, the name will be truncated accordingly.
+   If *idx* is out of range, *buffer* will be the empty string and a warning
+   will be issued.
+
+   :p character(len=\*) category: category of styles
+   :p integer(c_int) idx:         index of the style in the list of *category*
+    styles :math:`(1 \leq idx \leq \text{style count})`
+   :p character(len\*) buffer:    string buffer to copy the name of the style
+    into
 
 --------
 

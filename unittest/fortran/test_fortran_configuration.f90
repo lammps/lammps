@@ -143,10 +143,6 @@ FUNCTION f_lammps_package_name(idx) BIND(C)
   END IF
 END FUNCTION f_lammps_package_name
 
-
-
-
-
 FUNCTION f_lammps_config_accelerator(package, category, setting) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_ptr, c_size_t, c_char, &
       C_F_POINTER
@@ -214,3 +210,33 @@ FUNCTION f_lammps_get_gpu_info(buf_size) RESULT(info) BIND(C)
   CALL lmp%get_gpu_device_info(string)
   info = f2c_string(string)
 END FUNCTION f_lammps_get_gpu_info
+
+FUNCTION f_lammps_has_style(Ccategory, Cname) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_size_t, c_ptr, c_char, c_int, &
+    C_F_POINTER
+  USE keepstuff, ONLY : lmp, c_strlen
+  IMPLICIT NONE
+  TYPE(c_ptr), INTENT(IN), VALUE :: Ccategory, Cname
+  INTEGER(c_int) :: f_lammps_has_style
+  CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Fcategory, Fname
+  INTEGER(c_size_t) :: category_len, name_len, i
+  CHARACTER(LEN=:), ALLOCATABLE :: category, name
+
+  category_len = c_strlen(Ccategory)
+  name_len = c_strlen(Cname)
+  CALL C_F_POINTER(Ccategory, Fcategory, [category_len])
+  CALL C_F_POINTER(Cname, Fname, [name_len])
+  ALLOCATE(CHARACTER(LEN=category_len) :: category)
+  ALLOCATE(CHARACTER(LEN=name_len) :: name)
+  DO i = 1, category_len
+    category(i:i) = Fcategory(i)
+  END DO
+  DO i = 1, name_len
+    name(i:i) = Fname(i)
+  END DO
+  IF (lmp%has_style(category, name)) THEN
+    f_lammps_has_style = 1_c_int
+  ELSE
+    f_lammps_has_style = 0_c_int
+  END IF
+END FUNCTION f_lammps_has_style

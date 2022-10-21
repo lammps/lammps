@@ -25,7 +25,7 @@ char* f_lammps_package_name(int);
 int f_lammps_config_accelerator(const char*, const char*, const char*);
 int f_lammps_has_gpu();
 char* f_lammps_get_gpu_info(size_t);
-int f_lammps_has_style();
+int f_lammps_has_style(const char*, const char*);
 int f_lammps_style_count();
 int f_lammps_style_name();
 }
@@ -58,61 +58,57 @@ protected:
 
 TEST_F(LAMMPS_configuration, version)
 {
-   EXPECT_LT(20200917, f_lammps_version());
-   EXPECT_EQ(lmp->num_ver, f_lammps_version());
+    EXPECT_LT(20200917, f_lammps_version());
+    EXPECT_EQ(lmp->num_ver, f_lammps_version());
 };
 
 TEST_F(LAMMPS_configuration, MPI_support)
 {
 #ifdef MPI_STUBS
-   EXPECT_EQ(f_lammps_mpi_support(), 0);
+    EXPECT_EQ(f_lammps_mpi_support(), 0);
 #else
-   EXPECT_EQ(f_lammps_mpi_support(), 1);
+    EXPECT_EQ(f_lammps_mpi_support(), 1);
 #endif
 };
 
 TEST_F(LAMMPS_configuration, gzip_support)
 {
-   EXPECT_EQ(f_lammps_gzip_support(), Info::has_gzip_support());
+    EXPECT_EQ(f_lammps_gzip_support(), Info::has_gzip_support());
 }
 
 TEST_F(LAMMPS_configuration, png_support)
 {
-   EXPECT_EQ(f_lammps_png_support(), Info::has_png_support());
+    EXPECT_EQ(f_lammps_png_support(), Info::has_png_support());
 }
 
 TEST_F(LAMMPS_configuration, jpeg_support)
 {
-   EXPECT_EQ(f_lammps_jpeg_support(), Info::has_jpeg_support());
+    EXPECT_EQ(f_lammps_jpeg_support(), Info::has_jpeg_support());
 }
 
 TEST_F(LAMMPS_configuration, ffmpeg_support)
 {
-   EXPECT_EQ(f_lammps_ffmpeg_support(), Info::has_ffmpeg_support());
+    EXPECT_EQ(f_lammps_ffmpeg_support(), Info::has_ffmpeg_support());
 }
 
 TEST_F(LAMMPS_configuration, has_exceptions)
 {
-   EXPECT_EQ(f_lammps_has_exceptions(), Info::has_exceptions());
+    EXPECT_EQ(f_lammps_has_exceptions(), Info::has_exceptions());
 }
 
 TEST_F(LAMMPS_configuration, has_package)
 {
-   std::vector<std::string> pkg_name = {"ADIOS","ASPHERE","ATC","AWPMD","BOCS",
-      "BODY", "BPM", "BROWNIAN", "CG-DNA", "CLASS2", "COLLOID", "COLVARS",
-      "COMPRESS", "CORESHELL", "DEPEND", "DIELECTRIC", "DIFFRACTION", "DIPOLE",
-      "DPD-BASIC", "DPD-MESO", "DPD-REACT", "DPD-SMOOTH", "DRUDE", "EFF",
-      "ELECTRODE", "EXTRA-COMPUTE", "EXTRA-DUMP", "EXTRA-FIX",
-      "EXTRA-MOLECULE", "EXTRA-PAIR", "FEP", "GPU", "GRANULAR", "H5MD",
-      "INTEL", "INTEL/TEST", "INTERLAYER", "KIM", "KOKKOS", "KSPACE",
-      "LATBOLTZ", "LATTE", "MACHDYN", "MAKE", "MAKE/MACHINES", "MAKE/MINE",
-      "MAKE/OPTIONS", "MANIFOLD", "MANYBODY", "MC", "MDI", "MEAM", "MESONT",
-      "MGPT", "MISC", "ML-HDNNP", "ML-IAP", "ML-PACE", "ML-QUIP", "ML-RANN",
-      "ML-SNAP", "MOFFF", "MOLECULE", "MOLFILE", "MPIIO", "MSCG", "NETCDF",
-      "OPENMP", "OPT", "ORIENT", "PERI", "PHONON", "PLUGIN", "PLUMED", "POEMS",
-      "PTM", "PYTHON", "QEQ", "QMMM", "QTB", "REACTION", "REAXFF", "REPLICA",
-      "RIGID", "SCAFACOS", "SHOCK", "SMTBQ", "SPH", "SPIN", "SRD", "STUBS",
-      "TALLY", "UEF", "VORONOI", "VTK", "YAFF", "CG-SPICA", "AMOEBA"};
+    std::vector<std::string> pkg_name = {"ADIOS","ASPHERE","ATC","AWPMD","BOCS","BODY","BPM",
+      "BROWNIAN","CG-DNA","CLASS2","COLLOID","COLVARS","COMPRESS","CORESHELL","DEPEND",
+      "DIELECTRIC","DIFFRACTION","DIPOLE","DPD-BASIC","DPD-MESO","DPD-REACT","DPD-SMOOTH","DRUDE",
+      "EFF","ELECTRODE","EXTRA-COMPUTE","EXTRA-DUMP","EXTRA-FIX","EXTRA-MOLECULE","EXTRA-PAIR",
+      "FEP","GPU","GRANULAR","H5MD","INTEL","INTEL/TEST","INTERLAYER","KIM","KOKKOS","KSPACE",
+      "LATBOLTZ","LATTE","MACHDYN","MAKE","MAKE/MACHINES","MAKE/MINE","MAKE/OPTIONS","MANIFOLD",
+      "MANYBODY","MC","MDI","MEAM","MESONT","MGPT","MISC","ML-HDNNP","ML-IAP","ML-PACE","ML-QUIP",
+      "ML-RANN","ML-SNAP","MOFFF","MOLECULE","MOLFILE","MPIIO","MSCG","NETCDF","OPENMP","OPT",
+      "ORIENT","PERI","PHONON","PLUGIN","PLUMED","POEMS","PTM","PYTHON","QEQ","QMMM","QTB",
+      "REACTION","REAXFF","REPLICA","RIGID","SCAFACOS","SHOCK","SMTBQ","SPH","SPIN","SRD","STUBS",
+      "TALLY","UEF","VORONOI","VTK","YAFF","CG-SPICA","AMOEBA"};
 
    for (int i = 0; i < pkg_name.size(); i++)
       EXPECT_EQ(f_lammps_has_package(pkg_name[i].c_str()),
@@ -199,6 +195,24 @@ TEST_F(LAMMPS_configuration, get_gpu_info)
       EXPECT_STREQ(f_string, cpp_info.c_str());
       std::free(f_string);
     }
+};
+
+TEST_F(LAMMPS_configuration, has_style)
+{
+    std::vector<std::string> category = {"atom","integrate","minimize","pair",
+      "bond","angle","dihedral","improper","kspace","fix","compute","region",
+      "dump","command"};
+    Info info(lmp);
+    for (int c = 0; c < category.size(); c++)
+    {
+        std::vector<std::string> name = info.get_available_styles(category[c]);
+        for (int s = 0; s < name.size(); s++)
+        {
+            EXPECT_EQ(f_lammps_has_style(category[c].c_str(),
+              name[s].c_str()), info.has_style(category[c], name[s]));
+        }
+    }
+    EXPECT_EQ(f_lammps_has_style("atom","none"), 0);
 };
 
 } // namespace LAMMPS_NS

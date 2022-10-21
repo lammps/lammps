@@ -365,6 +365,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
 
    :o character(len=\*) args(\*) [optional]: arguments as list of strings
    :o integer comm [optional]: MPI communicator
+   :to: :cpp:func:`lammps_open_fortran`
+   :to: :cpp:func:`lammps_open_no_mpi`
    :r lammps: an instance of the :f:type:`lammps` derived type
 
    .. note::
@@ -415,6 +417,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :o logical finalize [optional]: shut down the MPI environment of the LAMMPS
     library if ``.TRUE.``.
+   :to: :cpp:func:`lammps_close`
 
 --------
 
@@ -427,6 +430,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p integer error_type: constant to select which Error class function to call
    :p character(len=\*) error_text: error message
+   :to: :cpp:func:`lammps_error`
 
 --------
 
@@ -436,6 +440,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    and process commands from a file.
 
    :p character(len=\*) filename: name of file with LAMMPS commands
+   :to: :cpp:func:`lammps_file`
 
 --------
 
@@ -445,6 +450,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    execute a single command.
 
    :p character(len=\*) cmd: single LAMMPS command
+   :to: :cpp:func:`lammps_command`
 
 --------
 
@@ -453,7 +459,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This method will call :cpp:func:`lammps_commands_list` to have LAMMPS
    execute a list of input lines.
 
-   :p character(len=\*) cmd(:): list of LAMMPS input lines
+   :p character(len=\*) cmd [dimension(:)]: list of LAMMPS input lines
+   :to: :cpp:func:`lammps_commands_list`
 
 --------
 
@@ -463,6 +470,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    execute a block of commands from a string.
 
    :p character(len=\*) str: LAMMPS input in string
+   :to: :cpp:func:`lammps_commands_string`
 
 --------
 
@@ -471,7 +479,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function will call :cpp:func:`lammps_get_natoms` and return the number
    of atoms in the system.
 
-   :r real(c_double): number of atoms
+   :to: :cpp:func:`lammps_get_natoms`
+   :r real(c_double) natoms: number of atoms
 
    .. note::
 
@@ -489,7 +498,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: TBD
 
    :p character(len=\*) name: string with the name of the thermo keyword
-   :r real(c_double): value of the requested thermo property or `0.0_c_double`
+   :to: :cpp:func:`lammps_get_thermo`
+   :r value [real(c_double)]: value of the requested thermo property or `0.0_c_double`
 
 --------
 
@@ -515,6 +525,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :o logical boxflag [optional]: variable in which to store boolean denoting
     whether the box will change during a simulation
     (``.TRUE.`` means box will change)
+   :to: :cpp:func:`lammps_extract_box`
 
 .. note::
 
@@ -546,6 +557,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p real(c_double) xy: *x--y* tilt factor
    :p real(c_double) yz: *y--z* tilt factor
    :p real(c_double) xz: *x--z* tilt factor
+   :to: :cpp:func:`lammps_reset_box`
 
 --------
 
@@ -558,6 +570,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p real(c_double) meminfo [dimension(3)]: vector of three doubles in which
     to store memory usage data
+   :to: :cpp:func:`lammps_memory_usage`
 
 --------
 
@@ -568,8 +581,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: TBD
 
-   :r integer: Fortran integer equivalent to the MPI communicator LAMMPS is
+   :to: :cpp:func:`lammps_get_mpi_comm`
+   :r comm: Fortran integer equivalent to the MPI communicator LAMMPS is
     using
+   :rtype comm: integer
 
    .. note::
 
@@ -607,7 +622,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: TBD
 
    :p character(len=\*) keyword: string containing the name of the thermo keyword
-   :r integer(c_int): value of the queried setting or :math:`-1` if unknown
+   :to: :cpp:func:`lammps_extract_setting`
+   :r integer(c_int) setting: value of the queried setting or :math:`-1` if
+    unknown
 
 --------
 
@@ -687,10 +704,12 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       will print the number 5 (the length of the word "metal") twice.
 
    :p character(len=\*) name: string with the name of the property to extract
-   :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
-    should be either a string (if expecting string data) or a C-compatible
-    pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the extracted
-    property. If expecting vector data, the pointer should have dimension ":".
+   :to: :cpp:func:`lammps_extract_global`
+   :r pointer [polymorphic]: pointer to LAMMPS data. The left-hand side of the
+    assignment should be either a string (if expecting string data) or a
+    C-compatible pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the
+    extracted property. If expecting vector data, the pointer should have
+    dimension ":".
 
    .. warning::
 
@@ -721,94 +740,96 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    data is type-, kind-, and rank-checked at run-time.
 
    :p character(len=\*) name: string with the name of the property to extract
-   :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
-    should be a C-interoperable pointer of appropriate kind and rank
+   :to: :cpp:func:`lammps_extract_atom`
+   :r pointer: pointer to LAMMPS data. The left-hand side of the
+    assignment should be a C-interoperable pointer of appropriate kind and rank
     (e.g., ``INTEGER (c_int), POINTER :: mask(:)``) to the extracted
     property. If expecting vector data, the pointer should have dimension ":";
     if expecting matrix data, the pointer should have dimension ":,:".
+   :rtype pointer: polymorphic
 
-    .. warning::
+   .. warning::
 
-       Pointers returned by this function are generally not persistent, as
-       per-atom data may be redistributed, reallocated, and reordered at every
-       re-neighboring operation. It is advisable to re-bind pointers using
-       :f:func:`extract_atom` between runs.
+      Pointers returned by this function are generally not persistent, as
+      per-atom data may be redistributed, reallocated, and reordered at every
+      re-neighboring operation. It is advisable to re-bind pointers using
+      :f:func:`extract_atom` between runs.
 
-    .. admonition:: Array index order
+   .. admonition:: Array index order
 
-       Two-dimensional arrays returned from :f:func:`extract_atom` will be
-       **transposed** from equivalent arrays in C, and they will be indexed
-       from 1 instead of 0. For example, in C,
+      Two-dimensional arrays returned from :f:func:`extract_atom` will be
+      **transposed** from equivalent arrays in C, and they will be indexed
+      from 1 instead of 0. For example, in C,
 
-       .. code-block:: C
+      .. code-block:: C
 
-          void *lmp;
-          double **x;
-          /* more code to setup, etc. */
-          x = lammps_extract_atom(lmp, "x");
-          printf("%f\n", x[5][1]);
+         void *lmp;
+         double **x;
+         /* more code to setup, etc. */
+         x = lammps_extract_atom(lmp, "x");
+         printf("%f\n", x[5][1]);
 
-       will print the *y*-coordinate of the sixth atom on this processor.
-       Conversely,
+      will print the *y*-coordinate of the sixth atom on this processor.
+      Conversely,
 
-       .. code-block:: Fortran
+      .. code-block:: Fortran
 
-          TYPE(lammps) :: lmp
-          REAL(c_double), DIMENSION(:,:), POINTER :: x => NULL()
-          ! more code to setup, etc.
-          x = lmp%extract_atom("x")
-          print '(f0.6)', x(2,6)
+         TYPE(lammps) :: lmp
+         REAL(c_double), DIMENSION(:,:), POINTER :: x => NULL()
+         ! more code to setup, etc.
+         x = lmp%extract_atom("x")
+         print '(f0.6)', x(2,6)
 
-       will print the *y*-coordinate of the sixth atom on this processor
-       (note the transposition of the two indices). This is not a choice, but
-       rather a consequence of the different conventions adopted by the Fortran
-       and C standards decades ago: in C, the block of data
+      will print the *y*-coordinate of the sixth atom on this processor
+      (note the transposition of the two indices). This is not a choice, but
+      rather a consequence of the different conventions adopted by the Fortran
+      and C standards decades ago: in C, the block of data
 
-       .. parsed-literal::
+      .. parsed-literal::
 
-          1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+         1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
-       interpreted as a :math:`4\times4` matrix would be
+      interpreted as a :math:`4\times4` matrix would be
 
-       .. math::
+      .. math::
 
-          \begin{bmatrix}
-            1 & 2 & 3 & 4 \\
-            5 & 6 & 7 & 8 \\
-            9 & 10 & 11 & 12 \\
-            13 & 14 & 15 & 16
-          \end{bmatrix},
+         \begin{bmatrix}
+           1 & 2 & 3 & 4 \\
+           5 & 6 & 7 & 8 \\
+           9 & 10 & 11 & 12 \\
+           13 & 14 & 15 & 16
+         \end{bmatrix},
 
-       that is, in row-major order. In Fortran, the same block of data is
-       interpreted in column-major order, namely,
+      that is, in row-major order. In Fortran, the same block of data is
+      interpreted in column-major order, namely,
 
-       .. math::
+      .. math::
 
-          \begin{bmatrix}
-            1 & 5 & 9  & 13 \\
-            2 & 6 & 10 & 14 \\
-            3 & 7 & 11 & 15 \\
-            4 & 8 & 12 & 16
-          \end{bmatrix}.
+         \begin{bmatrix}
+           1 & 5 & 9  & 13 \\
+           2 & 6 & 10 & 14 \\
+           3 & 7 & 11 & 15 \\
+           4 & 8 & 12 & 16
+         \end{bmatrix}.
 
-       This difference in interpretation of the same block of data by the two
-       languages means, in effect, that matrices from C or C++ will be
-       transposed when interpreted in Fortran.
+      This difference in interpretation of the same block of data by the two
+      languages means, in effect, that matrices from C or C++ will be
+      transposed when interpreted in Fortran.
 
-    .. note::
+   .. note::
 
-       If you would like the indices to start at 0 instead of 1 (which follows
-       typical notation in C and C++, but not Fortran), you can create another
-       pointer and associate it thus:
+      If you would like the indices to start at 0 instead of 1 (which follows
+      typical notation in C and C++, but not Fortran), you can create another
+      pointer and associate it thus:
 
-       .. code-block:: Fortran
+      .. code-block:: Fortran
 
-          REAL(c_double), DIMENSION(:,:), POINTER :: x, x0
-          x = lmp%extract_atom("x")
-          x0(0:,0:) => x
+         REAL(c_double), DIMENSION(:,:), POINTER :: x, x0
+         x = lmp%extract_atom("x")
+         x0(0:,0:) => x
 
-       The above would cause the dimensions of *x* to be (1:3, 1:nmax)
-       and those of *x0* to be (0:2, 0:nmax-1).
+      The above would cause the dimensions of *x* to be (1:3, 1:nmax)
+      and those of *x0* to be (0:2, 0:nmax-1).
 
 --------
 
@@ -898,11 +919,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (global, per-atom, or local)
    :p integer(c_int) type: value indicating the type of data to extract
     (scalar, vector, or array)
-   :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
+   :to: :cpp:func:`lammps_extract_compute`
+   :r pointer: pointer to LAMMPS data. The left-hand side of the assignment
     should be a C-compatible pointer (e.g., ``REAL (c_double), POINTER :: x``)
     to the extracted property. If expecting vector data, the pointer should
     have dimension ":"; if expecting array (matrix) data, the pointer should
     have dimension ":,:".
+   :rtype pointer: polymorphic
 
    .. note::
 
@@ -1091,7 +1114,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (scalar, vector, or array)
    :p integer(c_int) nrow: row index (used only for global vectors and arrays)
    :p integer(c_int) ncol: column index (only used for global arrays)
-   :r polymorphic: LAMMPS data (for global data) or a pointer to LAMMPS data
+   :to: :cpp:func:`lammps_extract_fix`
+   :r data: LAMMPS data (for global data) or a pointer to LAMMPS data
     (for per-atom or local data). The left-hand side of the assignment should
     be of type ``REAL(c_double)`` and have appropriate rank (i.e.,
     ``DIMENSION(:)`` if expecting per-atom or local vector data and
@@ -1099,6 +1123,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     local or per-atom data, it should have the ``POINTER`` attribute, but
     if expecting global data, it should be an ordinary (non-``POINTER``)
     variable.
+   :rtype data: polymorphic
 
    .. admonition:: Array index order
 
@@ -1155,7 +1180,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) name: variable name to evaluate
    :o character(len=\*) group [optional]: group for which to extract per-atom
     data (if absent, use "all")
-   :r polymorphic: scalar of type ``REAL(c_double)`` (for *equal*-style
+   :to: :cpp:func:`lammps_extract_variable`
+   :r data: scalar of type ``REAL(c_double)`` (for *equal*-style
     variables and others that are *equal*-compatible), vector of type
     ``REAL(c_double), DIMENSION(:), ALLOCATABLE`` for *atom*- or *vector*-style
     variables, or ``CHARACTER(LEN=*)`` for *string*-style and compatible
@@ -1164,6 +1190,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     called; see note at :f:func:`extract_global` regarding allocatable strings.
     Allocatable arrays (for *atom*- and *vector*-style data) will be
     reallocated on assignment.
+   :rtype data: polymorphic
 
 .. note::
 
@@ -1204,6 +1231,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data.
+   :to: :cpp:func:`lammps_gather_atoms`
 
    .. note::
 
@@ -1251,6 +1279,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data.
+   :to: :cpp:func:`lammps_gather_atoms_concat`
 
 --------
 
@@ -1286,6 +1315,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data.
+   :to: :cpp:func:`lammps_gather_atoms_subset`
 
 --------
 
@@ -1314,6 +1344,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (e.g., for *x* or *f*). The array *data* must be rank 1 (i.e.,
     ``DIMENSION(:)``) and be of type ``INTEGER(c_int)`` (e.g., for *mask* or
     *type*) or of type ``REAL(c_double)`` (e.g., for *x* or *charge* or *f*).
+   :to: :cpp:func:`lammps_scatter_atoms`
 
 --------
 
@@ -1345,6 +1376,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     times its length (for *x*, *f*, etc.); the array must be rank 1
     and be of type ``INTEGER(c_int)`` (e.g., for *mask* or *type*) or of type
     ``REAL(c_double)`` (e.g., for *charge*, *x*, or *f*).
+   :to: :cpp:func:`lammps_scatter_atoms_subset`
 
 --------
 
@@ -1375,6 +1407,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :o logical bexpand: if ``.TRUE.``, atoms outside of shrink-wrap boundaries
     will be created, not dropped, and the box dimensions will be extended.
     Default is ``.FALSE.``
+   :to: :cpp:func:`lammps_create_atoms`
 
    .. note::
 
@@ -1403,7 +1436,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This method returns the numeric LAMMPS version like
    :cpp:func:`lammps_version` does.
 
-   :r integer: LAMMPS version
+   :to: :cpp:func:`lammps_version`
+   :r version: LAMMPS version
+   :rtype version: integer
 
 --------
 
@@ -1418,6 +1453,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    so as not to overflow this buffer. The string is typically a few hundred
    bytes long.
 
+   :p character(len=\*) buffer: string that will house the information.
+   :to: :cpp:func:`lammps_get_os_info`
+
+
 --------
 
 .. f:function:: config_has_mpi_support()
@@ -1427,8 +1466,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: TBD
 
-   :r logical: ``.FALSE.`` when compiled with STUBS, ``.TRUE.`` if complied
-    with MPI.
+   :to: :cpp:func:`lammps_config_has_mpi_support`
+   :r has_mpi: ``.FALSE.`` when compiled with STUBS, ``.TRUE.`` if
+    complied with MPI.
+   :rtype has_mpi: logical
 
 --------
 
@@ -1446,7 +1487,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    It does **not** check whether ``gzip`` or any other supported compression
    programs themselves are installed and usable.
 
-   :r logical:
+   :to: :cpp:func:`lammps_config_has_gzip_support`
+   :r has_gzip:
+   :rtype has_gzip: logical
 
 --------
 
@@ -1463,7 +1506,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    <https://en.wikipedia.org/wiki/Portable_Network_Graphics>`_ is available
    in the current LAMMPS library.
 
-   :r logical:
+   :to: :cpp:func:`lammps_config_has_png_support`
+   :r has_png:
+   :rtype has_png: logical
 
 --------
 
@@ -1479,7 +1524,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function checks whether support for the `JPEG image file format
    <https://jpeg.org/jpeg/>`_ is available in the current LAMMPS library.
 
-   :r logical:
+   :to: :cpp:func:`lammps_config_has_jpeg_support`
+   :r has_jpeg:
+   :rtype has_jpeg: logical
 
 --------
 
@@ -1497,7 +1544,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :ref:`enabled at compile time <graphics>`.
    It does **not** check whether the ``ffmpeg`` itself is installed and usable.
 
-   :r logical:
+   :to: :cpp:func:`lammps_config_has_ffmpeg_support`
+   :r has_ffmpeg:
+   :rtype has_ffmpeg: logical
 
 --------
 
@@ -1521,7 +1570,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    exceptions are disabled and an error happens during a call to
    LAMMPS or the Fortran API, the application will terminate.
 
-   :r logical:
+   :to: :cpp:func:`lammps_config_has_exceptions`
+   :r has_exceptions:
+   :rtype has_exceptions: logical
 
 --------
 
@@ -1534,7 +1585,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function checks whether the LAMMPS library in use includes the specific
    :doc:`LAMMPS package <Packages>` provided as argument.
 
-   :r logical:
+   :to: :cpp:func:`lammps_config_has_package`
+   :r has_package:
+   :rtype has_package: logical
 
 --------
 
@@ -1548,7 +1601,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    included in the LAMMPS library in use. It directly calls the C library
    function :cpp:func:`lammps_config_package_count`.
 
-   :r integer(c_int): number of packages installed
+   :to: :cpp:func:`lammps_config_package_count`
+   :r integer(c_int) npackages: number of packages installed
 
 --------
 
@@ -1567,6 +1621,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p integer(c_int) idx: index of the package in the list of included packages
     :math:`(0 \le idx < \text{package count})`
    :p character(len=\*) buffer: string to hold the name of the package
+   :to: :cpp:func:`lammps_config_package_name`
 
 --------
 
@@ -1586,6 +1641,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (i.e., ``DIMENSION(:)``) with allocatable length.
    :o integer length [optional]: length of each string in the list.
     Default: 31.
+   :to: :cpp:func:`lammps_config_package_count`
+   :to: :cpp:func:`lammps_config_package_name`
 
 --------
 
@@ -1607,8 +1664,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) category:  string with the name of the setting
    :p character(len=\*) setting:   string with the name of the specific
     setting
-   :r logical: ``.TRUE.`` if the combination of package, category, and setting
-    is available, otherwise ``.FALSE.``.
+   :to: :cpp:func:`lammps_config_accelerator`
+   :r available: ``.TRUE.`` if the combination of package, category,
+    and setting is available, otherwise ``.FALSE.``.
+   :rtype available: logical
 
 --------
 
@@ -1626,7 +1685,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    be obtained by calling the
    :f:subr:`get_gpu_device_info` subroutine.
 
-   :r logical: ``.TRUE.`` if a viable device is available, ``.FALSE.`` if not.
+   :to: :cpp:func:`lammps_has_gpu_device`
+   :r available: ``.TRUE.`` if a viable device is available, ``.FALSE.`` if not.
+   :rtype available: logical
 
 --------
 
@@ -1648,6 +1709,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    kilobytes long if multiple devices are present.
 
    :p character(len=\*) buffer: string into which to copy the information.
+   :to: :cpp:func:`lammps_get_gpu_device_info`
 
 --------
 
@@ -1664,7 +1726,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p character(len=\*) category: category of the style
    :p character(len=\*) name:     name of the style
-   :r logical: ``.TRUE.`` if included, ``.FALSE.`` if not.
+   :to: :cpp:func:`lammps_has_style`
+   :r has_style: ``.TRUE.`` if included, ``.FALSE.`` if not.
+   :rtype has_style: logical
 
 --------
 
@@ -1679,7 +1743,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :cpp:func:`lammps_has_style` for a list of valid categories.
 
    :p character(len=\*) category: category of styles to count
-   :r integer(c_int): number of styles in *category*
+   :to: :cpp:func:`lammps_style_count`
+   :r integer(c_int) count: number of styles in *category*
 
 --------
 
@@ -1702,6 +1767,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     styles :math:`(1 \leq idx \leq \text{style count})`
    :p character(len\*) buffer:    string buffer to copy the name of the style
     into
+   :to: :cpp:func:`lammps_style_name`
 
 --------
 
@@ -1724,9 +1790,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p integer(c_int) ix: image flag in :math:`x`-direction
    :p integer(c_int) iy: image flag in :math:`y`-direction
    :p integer(c_int) iz: image flag in :math:`z`-direction
-   :r integer(kind=\*): encoded image flag. \*The ``KIND`` parameter is
-    ``c_int`` unless LAMMPS was built with ``-DLAMMPS_BIGBIG``, in which case
-    it is ``c_int64_t``.
+   :r integer(kind=\*) imageint: encoded image flag. \*The ``KIND`` parameter
+    is ``c_int`` unless LAMMPS was built with ``-DLAMMPS_BIGBIG``, in which
+    case it is ``c_int64_t``.
 
    .. note::
 
@@ -1750,12 +1816,14 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
-.. f:function:: decode_image_flags(image, flags)
+.. f:subroutine:: decode_image_flags(image, flags)
 
    This function does the reverse operation of :f:func:`encode_image_flags`:
    it takes the image flag and performs the bit-shift and bit-masking
    operations to decode it and stores the resulting three integers into the
    array *flags*.
+
+   .. versionadded:: TBD
 
    :p integer(kind=\*) image: encoded image flag. \*The ``KIND`` paremeter is
     either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
@@ -1773,6 +1841,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: TBD
 
+   :to: :cpp:func:`lammps_flush_buffers`
+
 --------
 
 .. f:function:: is_running()
@@ -1784,6 +1854,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function can be used from signal handlers or multi-threaded
    applications to determine if the LAMMPS instance is currently active.
 
+   :to: :cpp:func:`lammps_is_running`
    :r logical: ``.FALSE.`` if idle or ``.TRUE.`` if active
 
 --------
@@ -1796,6 +1867,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This function can be used from signal handlers or multi-threaded
    applications to cleanly terminate an ongoing run.
+
+   :to: :cpp:func:`lammps_force_timeout`
 
 --------
 
@@ -1816,7 +1889,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       function :cpp:func:`lammps_config_has_exceptions` to check if this is
       the case.
 
-   :r logical: ``.TRUE.`` if there is an error.
+   :to: :cpp:func:`lammps_has_error`
+   :r has_error: ``.TRUE.`` if there is an error.
+   :rtype has_error: logical
 
 --------
 
@@ -1847,3 +1922,4 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) buffer: string buffer to copy the error message into
    :o integer(c_int) status [optional]: 1 when all ranks had the error,
     2 on a single-rank error.
+   :to: :cpp:func:`lammps_get_last_error_message`

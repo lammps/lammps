@@ -28,6 +28,8 @@ include:
     - src/**
     - tools/**
     - lib/**
+    - examples/COUPLE/**
+    - examples/plugins/**
 patterns:
     - "*.c"
     - "*.cmake"

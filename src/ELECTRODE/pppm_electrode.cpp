@@ -20,7 +20,6 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
-#include "boundary_correction.h"
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"
@@ -696,8 +695,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
         greens_real[ny_pppm * nx_pppm * k + nx_pppm * j + i] = work2[n];
         n += 2;
       }
-  MPI_Allreduce(MPI_IN_PLACE, greens_real, nz_pppm * ny_pppm * nx_pppm, MPI_DOUBLE,
-                MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, greens_real, nz_pppm * ny_pppm * nx_pppm, MPI_DOUBLE, MPI_SUM, world);
   int const nlocal = atom->nlocal;
   int nmat = std::count_if(&imat[0], &imat[nlocal], [](int x) {
     return x >= 0;
@@ -726,9 +724,8 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real,
-                                            double **x_ele, double **matrix, int const nmat,
-                                            bool timer_flag)
+void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
+                                            double **matrix, int const nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in one steps. Uses less memory than
@@ -748,11 +745,11 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real,
   }
   int const nj_local = j_list.size();
 
-  FFT_SCALAR *** rho1d_j;
+  FFT_SCALAR ***rho1d_j;
   memory->create(rho1d_j, nj_local, 3, order, "pppm/electrode:rho1d_j");
 
-  int jlist_pos = 0;    // wouldn't it be nice if we could enumerate!
-  for (int j : j_list) {
+  for (int jlist_pos = 0; jlist_pos < nj_local; jlist_pos++) {
+    int j = j_list[jlist_pos];
     int njx = part2grid[j][0];
     int njy = part2grid[j][1];
     int njz = part2grid[j][2];
@@ -763,7 +760,6 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real,
     for (int dim = 0; dim < 3; dim++) {
       for (int oi = 0; oi < order; oi++) { rho1d_j[jlist_pos][dim][oi] = rho1d[dim][oi + nlower]; }
     }
-    jlist_pos++;
   }
 
   // nested loops over weights of electrode atoms i and j
@@ -787,11 +783,12 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real,
     compute_rho1d(dix, diy, diz);
     int njx = -1;
     int njy = -1;
-    int njz = -1;         // force initial build_amesh
-    jlist_pos = 0;    // wouldn't it be nice if we could enumerate!
-    for (auto j : j_list) {
+    int njz = -1;    // force initial build_amesh
+    for (int jlist_pos = 0; jlist_pos < nj_local; jlist_pos++) {
+      int j = j_list[jlist_pos];
       int ind_amesh = 0;
       int jpos = imat[j];
+      if ((ipos < jpos) == !((ipos - jpos) % 2)) continue;
       double aij = 0.;
       if (njx != part2grid[j][0] || njy != part2grid[j][1] || njz != part2grid[j][2]) {
         njx = part2grid[j][0];
@@ -799,14 +796,14 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real,
         njz = part2grid[j][2];
         build_amesh(njx - nix, njy - niy, njz - niz, amesh, greens_real);
       }
-      for (int ni = nlower; ni <= nupper; ni++) {
+      for (int ni = nlower; ni <= nupper; ni++) {    // i's rho1d[dim] indexed from nlower to nupper
         FFT_SCALAR const iz0 = rho1d[2][ni];
-        for (int nj = nlower; nj <= nupper; nj++) {
-          FFT_SCALAR const jz0 = rho1d_j[jlist_pos][2][nj - nlower];
+        for (int nj = 0; nj < order; nj++) {    // j's rho1d_j[][dim] indexed from 0 to order-1
+          FFT_SCALAR const jz0 = rho1d_j[jlist_pos][2][nj];
           for (int mi = nlower; mi <= nupper; mi++) {
             FFT_SCALAR const iy0 = iz0 * rho1d[1][mi];
-            for (int mj = nlower; mj <= nupper; mj++) {
-              FFT_SCALAR const jy0 = jz0 * rho1d_j[jlist_pos][1][mj - nlower];
+            for (int mj = 0; mj < order; mj++) {
+              FFT_SCALAR const jy0 = jz0 * rho1d_j[jlist_pos][1][mj];
               for (int li = nlower; li <= nupper; li++) {
                 FFT_SCALAR const ix0 = iy0 * rho1d[0][li];
                 double aij_xscan = 0.;
@@ -821,7 +818,7 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real,
         }
       }
       matrix[ipos][jpos] += aij / volume;
-      jlist_pos++;
+      if (ipos != jpos) matrix[jpos][ipos] += aij / volume;
     }
   }
   memory->destroy(amesh);
@@ -836,7 +833,7 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real,
 void PPPMElectrode::build_amesh(const int dx,    // = njx - nix
                                 const int dy,    // = njy - niy
                                 const int dz,    // = njz - niz
-                                double *amesh, double *greens_real)
+                                double *amesh, double *const greens_real)
 {
   auto fmod = [](int x, int n) {    // fast unsigned mod
     int r = abs(x);
@@ -863,9 +860,8 @@ void PPPMElectrode::build_amesh(const int dx,    // = njx - nix
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real,
-                                            double **x_ele, double **matrix, int const nmat,
-                                            bool timer_flag)
+void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
+                                            double **matrix, int const nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in two steps. gw is result of
@@ -878,7 +874,7 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real,
   int nz_ele = nzhi_out - nzlo_out + 1;    // nz_pppm + order + 1;
   int nxyz = nx_ele * ny_ele * nz_ele;
 
-  double ** gw;
+  double **gw;
   memory->create(gw, nmat, nxyz, "pppm/electrode:gw");
   memset(&(gw[0][0]), 0, nmat * nxyz * sizeof(double));
 

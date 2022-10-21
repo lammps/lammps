@@ -339,7 +339,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
         // dipole-charge
 
-        if (mu(i,3) != 0 && q[j] != 0) {
+        if (mu(i,3) > 0 && q[j] != 0) {
           r5inv = r3inv*r2inv;
           pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
           pre1 = 3.0*qj*r5inv * pidotr;
@@ -384,10 +384,10 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         torquez_i += fq*tizcoul;
 /*
         if (i == 0)
-          printf("j = %d: f = %f %f %f; tq = %f %f %f\n", j, fx, fy, fz,
+          printf("KOKKOS: j = %d: f = %f %f %f; tq = %f %f %f\n", j, fx, fy, fz,
              tixcoul, tiycoul, tizcoul);
-*/
-        if (NEWTON_PAIR || j < nlocal) {
+*/        
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
           a_f(j,0) -= fx;
           a_f(j,1) -= fy;
           a_f(j,2) -= fz;
@@ -425,7 +425,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   a_torque(i,1) += torquey_i;
   a_torque(i,2) += torquez_i;
   if (i == 0)
-     printf("f = %f %f; tq = %f\n", fx_i, fy_i,torquez_i);
+     printf("f = %f %f; tq = %f\n", a_f(i,0), a_f(i,1), a_torque(i,2));
 }
 
 /* ---------------------------------------------------------------------- */

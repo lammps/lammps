@@ -1023,7 +1023,7 @@ int AtomVecDipoleKokkos::size_restart()
   int i;
 
   int nlocal = atom->nlocal;
-  int n = 16 * nlocal;
+  int n = 16 * nlocal; // 16 = # of elements packed (see above)
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)

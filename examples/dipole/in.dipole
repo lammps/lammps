@@ -32,7 +32,7 @@ compute		erot all erotate/sphere
 thermo_style	custom step temp epair c_erot etotal press
 thermo		500
 
-#dump		1 all custom 500 dump.dipole id type x y z mux muy
+#dump		1 all custom 500 dump.dipole id type x y z mux muy fx fy tqz
 
 #dump		1 all image 250 image.*.jpg mux type &
 #		zoom 1.6 adiam 1.2

@@ -41,6 +41,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
@@ -347,6 +348,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   double *ed = atom->ed;
   double *em = atom->em;
   double *epsilon = atom->epsilon;
+  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int eflag = 0;
   int vflag = 0;
@@ -438,6 +440,26 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   comm->forward_comm(this);
 
   if (first) first = 0;
+
+  // ensure sum of all induced charges being zero
+
+  double tmp = 0;
+  int ncount = group->count(igroup);
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+
+    double q_bound = q[i] - q_real[i];
+    tmp += q_bound;
+  }
+
+  double sum = 0;
+  MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
+  double qboundave = sum/(double)ncount;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    q[i] -=  qboundave;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

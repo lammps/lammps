@@ -351,6 +351,26 @@ void FixPolarizeBEMICC::compute_induced_charges()
   }
 
   iterations = itr;
+
+  // ensure sum of all induced charges being zero
+
+  double tmp = 0;
+  int ncount = group->count(igroup);
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+
+    double q_bound = q[i] - q_real[i];
+    tmp += q_bound;
+  }
+
+  double sum = 0;
+  MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
+  double qboundave = sum/(double)ncount;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    q[i] -=  qboundave;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

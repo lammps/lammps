@@ -187,7 +187,7 @@ void PairList::compute(int eflag, int vflag)
       } else if (par.style == QUARTIC) {
 
         const double r = sqrt(rsq);
-        double dr = r - sqrt(par.cutsq);
+        double dr = r - par.param.quartic.r0;
         double ra = dr - par.param.quartic.b1;
         double rb = dr - par.param.quartic.b2;
         double r2 = dr * dr;
@@ -304,10 +304,9 @@ void PairList::settings(int narg, char **arg)
 
           case QUARTIC:
             oneparam.param.quartic.k = values.next_double();
+            oneparam.param.quartic.r0 = values.next_double();
             oneparam.param.quartic.b1 = values.next_double();
             oneparam.param.quartic.b2 = values.next_double();
-            if (!values.has_next())
-              throw FileReaderException("Must specify individual cutoff for quartic interaction");
             ++nquartic;
             break;
 

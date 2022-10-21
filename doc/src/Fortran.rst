@@ -363,8 +363,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    If *comm* is not provided, ``MPI_COMM_WORLD`` is assumed. For
    more details please see the documentation of :cpp:func:`lammps_open`.
 
-   :o character(len=\*) args(\*) [optional]: arguments as list of strings
-   :o integer comm [optional]: MPI communicator
+   :o args: arguments as list of strings
+   :otype args: character(len=\*),dimension(:),optional
+   :o comm: MPI communicator
+   :otype comm: integer,optional
    :to: :cpp:func:`lammps_open_fortran`
    :to: :cpp:func:`lammps_open_no_mpi`
    :r lammps: an instance of the :f:type:`lammps` derived type
@@ -415,8 +417,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    has a value of ``.TRUE.``, then this subroutine also calls
    :cpp:func:`lammps_mpi_finalize`.
 
-   :o logical finalize [optional]: shut down the MPI environment of the LAMMPS
+   :o finalize: shut down the MPI environment of the LAMMPS
     library if ``.TRUE.``.
+   :otype finalize: logical,optional
    :to: :cpp:func:`lammps_close`
 
 --------
@@ -428,7 +431,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: TBD
 
-   :p integer error_type: constant to select which Error class function to call
+   :p error_type: constant to select which Error class function to call
+   :ptype error_type: integer
    :p character(len=\*) error_text: error message
    :to: :cpp:func:`lammps_error`
 
@@ -520,11 +524,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :o real(c_double) xy [optional]: variable in which to store *xy* tilt factor
    :o real(c_double) yz [optional]: variable in which to store *yz* tilt factor
    :o real(c_double) xz [optional]: variable in which to store *xz* tilt factor
-   :o logical pflags [dimension(3),optional]: vector in which to store
+   :o pflags: vector in which to store
     periodicity flags (``.TRUE.`` means periodic in that dimension)
-   :o logical boxflag [optional]: variable in which to store boolean denoting
+   :otype pflags: logical,dimension(3),optional
+   :o boxflag: variable in which to store boolean denoting
     whether the box will change during a simulation
     (``.TRUE.`` means box will change)
+   :otype boxflag: logical,optional
    :to: :cpp:func:`lammps_extract_box`
 
 .. note::
@@ -829,7 +835,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
          x0(0:,0:) => x
 
       The above would cause the dimensions of *x* to be (1:3, 1:nmax)
-      and those of *x0* to be (0:2, 0:nmax-1).
+      and those of *x0* to be (0:2, 0:nmax\ :math:`-`\ 1).
 
 --------
 
@@ -1338,12 +1344,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    *data* must be of length (*count* :math:`\times` *natoms*).
 
    :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
-   :p polymorphic data [dimension(:)]: per-atom values packed in a one-dimensional array
+   :p data: per-atom values packed in a one-dimensional array
     containing the data to be scattered. This array must have length *natoms*
     (e.g., for *type* or *charge*) or length *natoms*\ :math:`\times 3`
     (e.g., for *x* or *f*). The array *data* must be rank 1 (i.e.,
     ``DIMENSION(:)``) and be of type ``INTEGER(c_int)`` (e.g., for *mask* or
     *type*) or of type ``REAL(c_double)`` (e.g., for *x* or *charge* or *f*).
+   :ptype data: polymorphic,dimension(:)
    :to: :cpp:func:`lammps_scatter_atoms`
 
 --------
@@ -1370,12 +1377,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
    :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
     being scattered
-   :p polymorphic data [dimension(:)]: per-atom values packed into a
+   :p data: per-atom values packed into a
     one-dimensional array containing the data to be scattered. This array must
     have either the same length as *ids* (for *mask*, *type*, etc.) or three
     times its length (for *x*, *f*, etc.); the array must be rank 1
     and be of type ``INTEGER(c_int)`` (e.g., for *mask* or *type*) or of type
     ``REAL(c_double)`` (e.g., for *charge*, *x*, or *f*).
+   :ptype data: polymorphic,dimension(:)
    :to: :cpp:func:`lammps_scatter_atoms_subset`
 
 --------
@@ -1393,20 +1401,21 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p real(c_double) x [dimension(3N)]: vector of :math:`3N` x/y/z positions
     of the new atoms, arranged as :math:`[x_1,y_1,z_1,x_2,y_2,\dotsc]`
     (required/see note below)
-   :o integer(\*) id [dimension(N)]: vector of :math:`N` atom IDs; if
-    absent, LAMMPS will generate them for you. \*The kind parameter should be
-    ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in which
+   :o integer(kind=\*) id [dimension(N)]: vector of :math:`N` atom IDs; if
+    absent, LAMMPS will generate them for you. \*The ``KIND`` parameter should
+    be ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in which
     case it should be ``c_int64_t``.
    :o real(c_double) v [dimension(3N)]: vector of :math:`3N` x/y/z velocities
     of the new atoms, arranged as :math:`[v_{1,x},v_{1,y},v_{1,z},v_{2,x},
     \dotsc]`; if absent, they will be set to zero
-   :o integer(\*) image [dimension(N)]: vector of :math:`N` image flags; if
-    absent, they are set to zero. \*The kind parameter should be
+   :o integer(kind=\*) image [dimension(N)]: vector of :math:`N` image flags;
+    if absent, they are set to zero. \*The ``KIND`` parameter should be
     ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in which
     case it should be ``c_int64_t``. See note below.
-   :o logical bexpand: if ``.TRUE.``, atoms outside of shrink-wrap boundaries
+   :o bexpand: if ``.TRUE.``, atoms outside of shrink-wrap boundaries
     will be created, not dropped, and the box dimensions will be extended.
     Default is ``.FALSE.``
+   :otype bexpand: logical
    :to: :cpp:func:`lammps_create_atoms`
 
    .. note::
@@ -1639,8 +1648,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=:) package [dimension(:),allocatable]: list of packages;
     *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``) with allocatable length.
-   :o integer length [optional]: length of each string in the list.
-    Default: 31.
+   :o length: length of each string in the list. Default: 31.
+   :otype length: integer,optional
    :to: :cpp:func:`lammps_config_package_count`
    :to: :cpp:func:`lammps_config_package_name`
 
@@ -1796,7 +1805,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. note::
 
-     The fact that the programmer does not know the kind parameter of the
+     The fact that the programmer does not know the ``KIND`` parameter of the
      return value until compile time means that it is impossible to define an
      interface that works for both sizes of ``imageint``. One side effect of
      this is that you must assign the return value of this function to a
@@ -1855,7 +1864,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    applications to determine if the LAMMPS instance is currently active.
 
    :to: :cpp:func:`lammps_is_running`
-   :r logical: ``.FALSE.`` if idle or ``.TRUE.`` if active
+   :r is_running: ``.FALSE.`` if idle or ``.TRUE.`` if active
+   :rtype is_running: logical
 
 --------
 

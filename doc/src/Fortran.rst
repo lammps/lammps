@@ -369,10 +369,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
 
    .. note::
 
-      The ``MPI_F08`` module, which defines Fortran 2008 bindings for MPI,
+      The :f:mod:`MPI_F08` module, which defines Fortran 2008 bindings for MPI,
       is not directly supported by this interface due to the complexities of
-      supporting both the ``MPI_F08`` and ``MPI`` modules at the same time.
-      However, you should be able to use the ``MPI_VAL`` member of the
+      supporting both the :f:mod:`MPI_F08` and :f:mod:`MPI` modules at the same
+      time. However, you should be able to use the ``MPI_VAL`` member of the
       ``MPI_comm`` derived type to access the integer value of the
       communicator, such as in
 
@@ -581,7 +581,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. note::
 
-      The ``MPI_F08`` module, which defines Fortran 2008 bindings for MPI,
+      The :f:mod:`MPI_F08` module, which defines Fortran 2008 bindings for MPI,
       is not directly supported by this function.  However, you should be
       able to convert between the two using the `MPI_VAL` member of the
       communicator.  For example,
@@ -595,7 +595,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
          ! ... [commands to set up LAMMPS/etc.]
          comm%MPI_VAL = lmp%get_mpi_comm()
 
-      should assign an ``MPI_F08`` communicator properly.
+      should assign an :f:mod:`MPI_F08` communicator properly.
 
 --------
 
@@ -718,10 +718,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    ``INTEGER(c_int64_t), DIMENSION(:)`` for "tag" if LAMMPS was compiled
    with the ``-DLAMMPS_BIGBIG`` flag; ``REAL(c_double), DIMENSION(:,:)`` for
    "x", "v", or "f"; and so forth). The pointer being associated with LAMMPS
-   data is type-, kind-, and rank-checked at run-time. Pointers returned by
-   this function are generally persistent; therefore, it is not necessary to
-   call the function again unless the underlying LAMMPS data are destroyed,
-   such as through the :doc:`clear` command.
+   data is type-, kind-, and rank-checked at run-time.
 
    :p character(len=\*) name: string with the name of the property to extract
    :r polymorphic: pointer to LAMMPS data. The left-hand side of the assignment
@@ -729,6 +726,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (e.g., ``INTEGER (c_int), POINTER :: mask(:)``) to the extracted
     property. If expecting vector data, the pointer should have dimension ":";
     if expecting matrix data, the pointer should have dimension ":,:".
+
+    .. warning::
+
+       Pointers returned by this function are generally not persistent, as
+       per-atom data may be redistributed, reallocated, and reordered at every
+       re-neighboring operation. It is advisable to re-bind pointers using
+       :f:func:`extract_atom` between runs.
 
     .. admonition:: Array index order
 
@@ -1720,9 +1724,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p integer(c_int) ix: image flag in :math:`x`-direction
    :p integer(c_int) iy: image flag in :math:`y`-direction
    :p integer(c_int) iz: image flag in :math:`z`-direction
-   :r integer(\*): encoded image flag. \*Kind parameter is ``c_int`` unless
-    LAMMPS was built with ``-DLAMMPS_BIGBIG``, in which case it is
-    ``c_int64_t``.
+   :r integer(kind=\*): encoded image flag. \*The ``KIND`` parameter is
+    ``c_int`` unless LAMMPS was built with ``-DLAMMPS_BIGBIG``, in which case
+    it is ``c_int64_t``.
 
    .. note::
 

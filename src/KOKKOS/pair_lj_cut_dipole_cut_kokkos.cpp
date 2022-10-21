@@ -276,19 +276,13 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
                           (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
                           (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
           evdwl *= factor_lj;
-          ev.evdwl += evdwl;
+          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
         }
       }  // cutsq_ljsq_ij
 
       // coul term
 
       X_FLOAT cut_coulsq_ij = STACKPARAMS?m_cut_coulsq[itype][jtype]:d_cut_coulsq(itype,jtype);
-      X_FLOAT fx_i = 0;
-      X_FLOAT fy_i = 0;
-      X_FLOAT fz_i = 0;
-      X_FLOAT torquex_i = 0;
-      X_FLOAT torquey_i = 0;
-      X_FLOAT torquez_i = 0;
 
       if (rsq < cut_coulsq_ij) {
         X_FLOAT forcecoulx = 0;
@@ -342,11 +336,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         tjxcoul += -crossx + pre3 * (mu(j,1)*delz - mu(j,2)*dely);
         tjycoul += -crossy + pre3 * (mu(j,2)*delx - mu(j,0)*delz);
         tjzcoul += -crossz + pre3 * (mu(j,0)*dely - mu(j,1)*delx);
-/*        
-        if (i == 0)
-          printf("j = %d: f = %f %f %f; tq = %f %f %f\n", j, forcecoulx, forcecouly, forcecoulz,
-             tixcoul, tiycoul, tizcoul);
-*/
+
         // dipole-charge
 
         if (mu(i,3) != 0 && q[j] != 0) {
@@ -388,18 +378,22 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         fx_i += fx;
         fy_i += fy;
         fz_i += fz;
-
+        
         torquex_i += fq*tixcoul;
         torquey_i += fq*tiycoul;
         torquez_i += fq*tizcoul;
-
+/*
+        if (i == 0)
+          printf("j = %d: f = %f %f %f; tq = %f %f %f\n", j, fx, fy, fz,
+             tixcoul, tiycoul, tizcoul);
+*/
         if (NEWTON_PAIR || j < nlocal) {
           a_f(j,0) -= fx;
           a_f(j,1) -= fy;
           a_f(j,2) -= fz;
           a_torque(j,0) += fq*tjxcoul;
-          a_torque(j,0) += fq*tjycoul;
-          a_torque(j,0) += fq*tjzcoul;
+          a_torque(j,1) += fq*tjycoul;
+          a_torque(j,2) += fq*tjzcoul;
         }
 
         if (eflag) {
@@ -411,7 +405,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           if (mu(j,3) > 0.0 && qtmp != 0.0)
             ecoul += qtmp*r3inv*pjdotr;
           ecoul *= factor_coul*qqrd2e;
-          ev.ecoul += ecoul;
+          ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*ecoul;
         }
       } // cutsq_coulsq_ij
 

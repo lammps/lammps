@@ -754,7 +754,7 @@ CONTAINS
   ! equivalent function to lammps_error()
   SUBROUTINE lmp_error(self, error_type, error_text)
     CLASS(lammps) :: self
-    INTEGER :: error_type
+    INTEGER(c_int) :: error_type
     CHARACTER(len=*) :: error_text
     TYPE(c_ptr) :: str
 

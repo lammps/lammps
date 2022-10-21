@@ -432,7 +432,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: TBD
 
    :p error_type: constant to select which Error class function to call
-   :ptype error_type: integer
+   :ptype error_type: integer(c_int)
    :p character(len=\*) error_text: error message
    :to: :cpp:func:`lammps_error`
 

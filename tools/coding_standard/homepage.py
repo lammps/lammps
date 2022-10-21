@@ -26,7 +26,8 @@ include:
     - doc/src/**
     - python
     - src/**
-    - tools/coding_standard
+    - tools/**
+    - lib/**
 patterns:
     - "*.c"
     - "*.cmake"
@@ -36,6 +37,7 @@ patterns:
     - "*.py"
     - "*.rst"
     - "*.sh"
+    - "*.f90"
     - ".gitignore"
     - "README"
     - "requirements.txt"
@@ -53,10 +55,23 @@ def check_homepage(f):
 
     return errors
 
+def check_email(f):
+    pattern = re.compile(r'.*sjplimp@sandia.gov.*')    # lgtm [py/incomplete-hostname-regexp]
+    lineno = 1
+    errors = set()
+
+    for line in f:
+        if pattern.match(line):
+            errors.add(lineno)
+        lineno += 1
+
+    return errors
+
 def check_file(path):
-    if path.find('homepage.py') >= 0: return { 'homepage_errors' : '' }
+    if path.find('homepage.py') >= 0: return { 'homepage_errors' : '', 'email_errors' : '' }
     encoding = 'UTF-8'
     homepage_errors = set()
+    email_errors = set()
     try:
         with open(path, 'r') as f:
             homepage_errors = check_homepage(f)
@@ -67,9 +82,20 @@ def check_file(path):
                 homepage_errors = check_homepage(f)
         except Exception:
             encoding = 'unknown'
+    try:
+        with open(path, 'r') as f:
+            email_errors = check_email(f)
+    except UnicodeDecodeError:
+        encoding = 'ISO-8859-1'
+        try:
+            with open(path, 'r', encoding=encoding) as f:
+                email_errors = check_email(f)
+        except Exception:
+            encoding = 'unknown'
 
     return {
         'homepage_errors': homepage_errors,
+        'email_errors': email_errors,
         'encoding': encoding
     }
 
@@ -85,6 +111,8 @@ def fix_file(path, check_result):
                 newline = newline.replace("lammps.sandia.gov","www.lammps.org")
                 newline = newline.replace("http://www.lammps.org","https://www.lammps.org")
                 newline = newline.replace("www.cs.sandia.gov/~sjplimp/lammps.html","https://www.lammps.org")
+                newline = newline.replace("Steve Plimpton, sjplimp@sandia.gov","The LAMMPS Developers, developers@lammps.org")
+                newline = newline.replace("Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories","The LAMMPS Developers, developers@lammps.org")
                 print(newline, end='', file=out)
     shutil.copymode(path, newfile)
     shutil.move(newfile, path)
@@ -105,11 +133,14 @@ def check_folder(directory, config, fix=False, verbose=False):
             print("Checking file:", path)
 
         result = check_file(path)
-
         has_resolvable_errors = False
 
         for lineno in result['homepage_errors']:
             print("[Error] Incorrect LAMMPS homepage @ {}:{}".format(path, lineno))
+            has_resolvable_errors = True
+
+        for lineno in result['email_errors']:
+            print("[Error] Incorrect Developer email @ {}:{}".format(path, lineno))
             has_resolvable_errors = True
 
         if has_resolvable_errors:

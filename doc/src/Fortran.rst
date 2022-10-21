@@ -230,67 +230,121 @@ Below is an example demonstrating some of the possible uses.
 The ``LIBLAMMPS`` module API
 ****************************
 
+**Module** :f:mod:`LIBLAMMPS`
+
 Below are the detailed descriptions of definitions and interfaces
 of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
 
 .. f:type:: lammps
 
-   Derived type that is the general class of the Fortran interface.  It
-   holds a reference to the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`
-   class instance that any of the included calls are forwarded to.
+   Derived type that is the general class of the Fortran interface.
+   It holds a reference to the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>`
+   class instance to which any of the included calls are forwarded.
 
-   :f c_ptr handle: reference to the LAMMPS class
-   :f type(lammps_style) style: derived type to access lammps style constants
-   :f type(lammps_type) type: derived type to access lammps type constants
-   :f subroutine close: :f:func:`close`
-   :f subroutine error: :f:func:`error`
-   :f subroutine file: :f:func:`file`
-   :f subroutine command: :f:func:`command`
-   :f subroutine commands_list: :f:func:`commands_list`
-   :f subroutine commands_string: :f:func:`commands_string`
-   :f function get_natoms: :f:func:`get_natoms`
-   :f function get_thermo: :f:func:`get_thermo`
-   :f subroutine extract_box: :f:func:`extract_box`
-   :f subroutine reset_box: :f:func:`reset_box`
-   :f subroutine memory_usage: :f:func:`memory_usage`
-   :f function get_mpi_comm: :f:func:`get_mpi_comm`
-   :f function extract_setting: :f:func:`extract_setting`
-   :f function extract_global: :f:func:`extract_global`
+   :f handle: reference to the LAMMPS class
+   :ftype handle: c_ptr
+   :f style: derived type to access lammps style constants
+   :ftype style: type(lammps_style)
+   :f type: derived type to access lammps type constants
+   :ftype type: type(lammps_type) 
+   :f close: :f:subr:`close`
+   :ftype close: subroutine
+   :f subroutine error: :f:subr:`error`
+   :ftype error: subroutine
+   :f file: :f:subr:`file`
+   :ftype file: subroutine
+   :f command: :f:subr:`command`
+   :ftype command: subroutine
+   :f commands_list: :f:subr:`commands_list`
+   :ftype commands_list: subroutine
+   :f commands_string: :f:subr:`commands_string`
+   :ftype commands_string: subroutine
+   :f get_natoms: :f:func:`get_natoms`
+   :ftype get_natoms: function
+   :f get_thermo: :f:func:`get_thermo`
+   :ftype get_thermo: function
+   :f extract_box: :f:subr:`extract_box`
+   :ftype extract_box: subroutine
+   :f reset_box: :f:subr:`reset_box`
+   :ftype reset_box: subroutine
+   :f memory_usage: :f:subr:`memory_usage`
+   :ftype memory_usage: subroutine
+   :f get_mpi_comm: :f:func:`get_mpi_comm`
+   :ftype get_mpi_comm: function
+   :f extract_setting: :f:func:`extract_setting`
+   :ftype extract_setting: function
+   :f extract_global: :f:func:`extract_global`
+   :ftype extract_global: function
    :f function extract_atom: :f:func:`extract_atom`
-   :f function extract_compute: :f:func:`extract_compute`
-   :f function extract_fix: :f:func:`extract_fix`
-   :f function extract_variable: :f:func:`extract_variable`
-   :f subroutine gather_atoms: :f:func:`gather_atoms`
-   :f subroutine gather_atoms_concat: :f:func:`gather_atoms_concat`
-   :f subroutine gather_atoms_subset: :f:func:`gather_atoms_subset`
-   :f subroutine scatter_atoms: :f:func:`scatter_atoms`
-   :f subroutine scatter_atoms_subset: :f:func:`scatter_atoms_subset`
-   :f subroutine create_atoms: :f:func:`create_atoms`
-   :f function version: :f:func:`version`
-   :f subroutine get_os_info: :f:func:`get_os_info`
-   :f function config_has_mpi_support: :f:func:`config_has_mpi_support`
-   :f function config_has_gzip_support: :f:func:`config_has_gzip_support`
-   :f function config_has_png_support: :f:func:`config_has_png_support`
-   :f function config_has_jpeg_support: :f:func:`config_has_jpeg_support`
-   :f function config_has_ffmpeg_support: :f:func:`config_has_ffmpeg_support`
-   :f function config_has_exceptions: :f:func:`config_has_exceptions`
-   :f function config_has_package: :f:func:`config_has_package`
-   :f function config_package_count: :f:func:`config_package_count`
-   :f function config_package_name: :f:func:`config_package_name`
-   :f subroutine installed_packages: :f:func:`installed_packages`
-   :f function config_accelerator: :f:func:`config_accelerator`
-   :f function has_gpu_device: :f:func:`has_gpu_device`
-   :f subroutine get_gpu_device_info: :f:func:`get_gpu_device_info`
-   :f function has_style: :f:func:`has_style`
-   :f function style_count: :f:func:`style_count`
-   :f function style_name: :f:func:`style_name`
-   :f function encode_image_flags: :f:func:`encode_image_flags`
-   :f subroutine decode_image_flags: :f:func:`decode_image_flags`
-   :f subroutine flush_buffers: :f:func:`flush_buffers`
-   :f function is_running: :f:func:`is_running`
-   :f function force_timeout: :f:func:`force_timeout`
-   :f function has_error: :f:func:`has_error`
-   :f subroutine get_last_error_message: :f:func:`get_last_error_message`
+   :ftype extract_atom: function
+   :f extract_compute: :f:func:`extract_compute`
+   :ftype extract_compute: function
+   :f extract_fix: :f:func:`extract_fix`
+   :ftype extract_fix: function
+   :f extract_variable: :f:func:`extract_variable`
+   :ftype extract_variable: function
+   :f gather_atoms: :f:subr:`gather_atoms`
+   :ftype gather_atoms: subroutine
+   :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
+   :ftype gather_atoms_concat: subroutine
+   :f gather_atoms_subset: :f:subr:`gather_atoms_subset`
+   :ftype gather_atoms_subset: subroutine
+   :f scatter_atoms: :f:subr:`scatter_atoms`
+   :ftype scatter_atoms: subroutine
+   :f scatter_atoms_subset: :f:subr:`scatter_atoms_subset`
+   :ftype scatter_atoms_subset: subroutine
+   :f create_atoms: :f:subr:`create_atoms`
+   :ftype create_atoms: subroutine
+   :f version: :f:func:`version`
+   :ftype version: function
+   :f get_os_info: :f:subr:`get_os_info`
+   :ftype get_os_info: subroutine
+   :f config_has_mpi_support: :f:func:`config_has_mpi_support`
+   :ftype config_has_mpi_support: function
+   :f config_has_gzip_support: :f:func:`config_has_gzip_support`
+   :ftype config_has_gzip_support: function
+   :f config_has_png_support: :f:func:`config_has_png_support`
+   :ftype config_has_png_support: function
+   :f config_has_jpeg_support: :f:func:`config_has_jpeg_support`
+   :ftype config_has_jpeg_support: function
+   :f config_has_ffmpeg_support: :f:func:`config_has_ffmpeg_support`
+   :ftype config_has_ffmpeg_support: function
+   :f config_has_exceptions: :f:func:`config_has_exceptions`
+   :ftype config_has_exceptions: function
+   :f config_has_package: :f:func:`config_has_package`
+   :ftype config_has_package: function
+   :f config_package_count: :f:func:`config_package_count`
+   :ftype config_package_count: function
+   :f config_package_name: :f:func:`config_package_name`
+   :ftype config_package_name: function
+   :f installed_packages: :f:subr:`installed_packages`
+   :ftype installed_packages: subroutine
+   :f config_accelerator: :f:func:`config_accelerator`
+   :ftype config_accelerator: function
+   :f has_gpu_device: :f:func:`has_gpu_device`
+   :ftype has_gpu_device: function
+   :f get_gpu_device_info: :f:subr:`get_gpu_device_info`
+   :ftype get_gpu_device_info: subroutine
+   :f has_style: :f:func:`has_style`
+   :ftype has_style: function
+   :f style_count: :f:func:`style_count`
+   :ftype style_count: function
+   :f style_name: :f:func:`style_name`
+   :ftype style_name: function
+   :f encode_image_flags: :f:func:`encode_image_flags`
+   :ftype encode_image_flags: function
+   :f decode_image_flags: :f:subr:`decode_image_flags`
+   :ftype decode_image_flags: subroutine
+   :f flush_buffers: :f:subr:`flush_buffers`
+   :ftype flush_buffers: subroutine
+   :f is_running: :f:func:`is_running`
+   :ftype is_running: function
+   :f force_timeout: :f:subr:`force_timeout`
+   :ftype force_timeout: subroutine
+   :f has_error: :f:func:`has_error`
+   :ftype has_error: function
+   :f get_last_error_message: :f:subr:`get_last_error_message`
+   :ftype get_last_error_message: subroutine
 
 --------
 

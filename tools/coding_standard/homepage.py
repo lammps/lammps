@@ -24,6 +24,7 @@ include:
     - cmake/**
     - doc
     - doc/src/**
+    - fortran
     - python
     - src/**
     - tools/**

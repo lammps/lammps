@@ -1734,7 +1734,16 @@ void FixBondReact::inner_crosscheck_loop()
   // ...actually, avail_guesses should never be zero here anyway
   if (guess_branch[avail_guesses-1] == 0) guess_branch[avail_guesses-1] = num_choices;
 
-  std::sort(tag_choices, tag_choices + num_choices);
+  for (int i=1; i < num_choices; ++i) {
+    tagint hold = tag_choices[i];
+    int j = i - 1;
+    while ((j >=0) && (tag_choices[j] > hold)) {
+      tag_choices[j+1] = tag_choices[j];
+      --j;
+    }
+    tag_choices[j+1] = hold;
+  }
+
   for (int i = guess_branch[avail_guesses-1]-1; i >= 0; i--) {
     int already_assigned = 0;
     for (int j = 0; j < onemol->natoms; j++) {

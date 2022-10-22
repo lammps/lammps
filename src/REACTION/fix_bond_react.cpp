@@ -658,27 +658,27 @@ FixBondReact::~FixBondReact()
   memory->destroy(global_mega_glove);
 
   if (stabilization_flag == 1) {
-    // check nfix in case all fixes have already been deleted
-    if (id_fix1 && modify->nfix) modify->delete_fix(id_fix1);
-    delete [] id_fix1;
+    // delete fixes if not already deleted
+    if (id_fix1 && modify->get_fix_by_id(id_fix1)) modify->delete_fix(id_fix1);
+    delete[] id_fix1;
 
-    if (id_fix3 && modify->nfix) modify->delete_fix(id_fix3);
-    delete [] id_fix3;
+    if (id_fix3 && modify->get_fix_by_id(id_fix3)) modify->delete_fix(id_fix3);
+    delete[] id_fix3;
   }
 
-  if (id_fix2 && modify->nfix) modify->delete_fix(id_fix2);
-  delete [] id_fix2;
+  if (id_fix2 && modify->get_fix_by_id(id_fix2)) modify->delete_fix(id_fix2);
+  delete[] id_fix2;
 
-  delete [] statted_id;
-  delete [] guess_branch;
-  delete [] pioneer_count;
-  delete [] set;
+  delete[] statted_id;
+  delete[] guess_branch;
+  delete[] pioneer_count;
+  delete[] set;
 
   if (group) {
     group->assign(std::string(master_group) + " delete");
     if (stabilization_flag == 1) {
       group->assign(std::string(exclude_group) + " delete");
-      delete [] exclude_group;
+      delete[] exclude_group;
     }
   }
 }
@@ -704,8 +704,9 @@ void FixBondReact::post_constructor()
 {
   // let's add the limit_tags per-atom property fix
   id_fix2 = utils::strdup("bond_react_props_internal");
-  if (modify->find_fix(id_fix2) < 0)
-    modify->add_fix(std::string(id_fix2)+" all property/atom i_limit_tags i_react_tags ghost yes");
+  if (!modify->get_fix_by_id(id_fix2))
+    fix2 = modify->add_fix(std::string(id_fix2) +
+                           " all property/atom i_limit_tags i_react_tags ghost yes");
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
@@ -720,8 +721,9 @@ void FixBondReact::post_constructor()
 
       // create stabilization per-atom property
       id_fix3 = utils::strdup("bond_react_stabilization_internal");
-      if (modify->find_fix(id_fix3) < 0)
-        fix3 = modify->add_fix(std::string(id_fix3) + " all property/atom i_statted_tags ghost yes");
+      if (!modify->get_fix_by_id(id_fix3))
+        fix3 = modify->add_fix(std::string(id_fix3) +
+                               " all property/atom i_statted_tags ghost yes");
 
       statted_id = utils::strdup("statted_tags");
 
@@ -729,7 +731,7 @@ void FixBondReact::post_constructor()
       // also, rename dynamic exclude_group by appending '_REACT'
       char *exclude_PARENT_group;
       exclude_PARENT_group = utils::strdup(exclude_group);
-      delete [] exclude_group;
+      delete[] exclude_group;
       exclude_group = utils::strdup(std::string(exclude_PARENT_group)+"_REACT");
 
       group->find_or_create(exclude_group);
@@ -738,7 +740,7 @@ void FixBondReact::post_constructor()
       else
         cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
       group->assign(cmd);
-      delete [] exclude_PARENT_group;
+      delete[] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)
       // initialize per-atom statted_flags to 1
@@ -755,8 +757,7 @@ void FixBondReact::post_constructor()
       // sleeping code, for future capabilities
       custom_exclude_flag = 1;
       // first we have to find correct fix group reference
-      int ifix = modify->find_fix(std::string("GROUP_")+exclude_group);
-      Fix *fix = modify->fix[ifix];
+      Fix *fix = modify->get_fix_by_id(std::string("GROUP_")+exclude_group);
 
       // this returns names of corresponding property
       int unused;
@@ -775,10 +776,9 @@ void FixBondReact::post_constructor()
       //  i_statted_tags[i] = 1;
     }
 
-
     // let's create a new nve/limit fix to limit newly reacted atoms
     id_fix1 = utils::strdup("bond_react_MASTER_nve_limit");
-    if (modify->find_fix(id_fix1) < 0)
+    if (!modify->get_fix_by_id(id_fix1))
       fix1 = modify->add_fix(fmt::format("{} {} nve/limit  {}",
                                          id_fix1,master_group,nve_limit_xmax));
   }

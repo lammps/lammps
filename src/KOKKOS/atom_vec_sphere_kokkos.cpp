@@ -2389,7 +2389,7 @@ int AtomVecSphereKokkos::unpack_exchange_kokkos(
 int AtomVecSphereKokkos::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf,int nrecv,int nlocal,
   int dim,X_FLOAT lo,X_FLOAT hi,ExecutionSpace space) {
-  DAT::tdual_int_1d indices = DAT::tdual_int_1d("atom:indices");
+  DAT::tdual_int_1d indices = DAT::tdual_int_1d("atom:indices",1);
   return unpack_exchange_kokkos(k_buf,indices,nrecv,nlocal,dim,lo,hi,space);
 }
 

@@ -286,14 +286,13 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     groupbits[rxn] = group->bitmask[groupid];
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      char *str = utils::strdup(&arg[iarg][2]);
+      const char *str = &arg[iarg][2];
       var_id[NEVERY][rxn] = input->variable->find(str);
       if (var_id[NEVERY][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name does not exist");
+        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
       if (!input->variable->equalstyle(var_id[NEVERY][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
       var_flag[NEVERY][rxn] = 1;
-      delete [] str;
     } else {
       nevery[rxn] = utils::inumeric(FLERR,arg[iarg],false,lmp);
       if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
@@ -302,16 +301,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      char *str = utils::strdup(&arg[iarg][2]);
+      const char *str = &arg[iarg][2];
       var_id[RMIN][rxn] = input->variable->find(str);
       if (var_id[RMIN][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name does not exist");
+        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
       if (!input->variable->equalstyle(var_id[RMIN][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
       double cutoff = input->variable->compute_equal(var_id[RMIN][rxn]);
       cutsq[rxn][0] = cutoff*cutoff;
       var_flag[RMIN][rxn] = 1;
-      delete [] str;
     } else {
       double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
@@ -321,16 +319,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      char *str = utils::strdup(&arg[iarg][2]);
+      const char *str = &arg[iarg][2];
       var_id[RMAX][rxn] = input->variable->find(str);
       if (var_id[RMAX][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name does not exist");
+        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
       if (!input->variable->equalstyle(var_id[RMAX][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+        error->all(FLERR,"Fix bond/react: Variable is {} not equal-style", str);
       double cutoff = input->variable->compute_equal(var_id[RMAX][rxn]);
       cutsq[rxn][1] = cutoff*cutoff;
       var_flag[RMAX][rxn] = 1;
-      delete [] str;
     } else {
       double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
@@ -346,7 +343,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (reacted_mol[rxn] == -1) error->all(FLERR,"Reacted molecule template ID for "
                                            "fix bond/react does not exist");
 
-    //read superimpose file
+    // read superimpose file
     files[rxn] = utils::strdup(arg[iarg]);
     iarg++;
 
@@ -356,15 +353,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'prob' keyword has too few arguments");
         // check if probability is a variable
         if (strncmp(arg[iarg+1],"v_",2) == 0) {
-          char *str = utils::strdup(&arg[iarg+1][2]);
+          const char *str = &arg[iarg+1][2];
           var_id[PROB][rxn] = input->variable->find(str);
           if (var_id[PROB][rxn] < 0)
-            error->all(FLERR,"Fix bond/react: Variable name does not exist");
+            error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
           if (!input->variable->equalstyle(var_id[PROB][rxn]))
-            error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+            error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
           fraction[rxn] = input->variable->compute_equal(var_id[PROB][rxn]);
           var_flag[PROB][rxn] = 1;
-          delete [] str;
         } else {
           // otherwise probability should be a number
           fraction[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -2215,7 +2211,6 @@ double FixBondReact::custom_constraint(const std::string& varstr)
   std::size_t pos,pos1,pos2,pos3;
   int irxnfunc;
   int prev3 = -1;
-  double val;
   std::string argstr,varid,fragid,evlcat;
   std::vector<std::string> evlstr;
 
@@ -2252,11 +2247,7 @@ double FixBondReact::custom_constraint(const std::string& varstr)
   evlstr.push_back(varstr.substr(prev3+1));
 
   for (auto & evl : evlstr) evlcat += evl;
-
-  char *cstr = utils::strdup(evlcat);
-  val = input->variable->compute_equal(cstr);
-  delete [] cstr;
-  return val;
+  return input->variable->compute_equal(evlcat.c_str());
 }
 
 /* ----------------------------------------------------------------------

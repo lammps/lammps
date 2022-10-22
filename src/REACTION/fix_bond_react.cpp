@@ -3937,6 +3937,8 @@ void FixBondReact::CreateAtoms(char *line, int myrxn)
     sscanf(line,"%d",&tmp);
     create_atoms[tmp-1][myrxn] = 1;
   }
+  if (twomol->xflag == 0)
+    error->one(FLERR,"Fix bond/react: 'Coords' section required in post-reaction template when creating new atoms");
 }
 
 void FixBondReact::CustomCharges(int ifragment, int myrxn)

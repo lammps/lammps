@@ -4302,7 +4302,7 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nreacts = nreacts;
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
-    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE);
+    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
     set[i].rxn_name[MAXLINE-1] = '\0';
   }
 

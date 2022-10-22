@@ -253,7 +253,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
-    const int jtype = type[j];
+    const int jtype = type(j);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     X_FLOAT cutsq_ij = STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype);
@@ -264,13 +264,23 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
       F_FLOAT forcelj = 0;
       F_FLOAT evdwl = 0;
       F_FLOAT ecoul = 0;
+      F_FLOAT forcecoulx = 0;
+      F_FLOAT forcecouly = 0;
+      F_FLOAT forcecoulz = 0;
+      F_FLOAT tixcoul = 0;
+      F_FLOAT tiycoul = 0;
+      F_FLOAT tizcoul = 0;
+      F_FLOAT tjxcoul = 0;
+      F_FLOAT tjycoul = 0;
+      F_FLOAT tjzcoul = 0;
 
       // lj term
-
+      
       X_FLOAT cut_ljsq_ij = STACKPARAMS?m_cut_ljsq[itype][jtype]:d_cut_ljsq(itype,jtype);
       if (rsq < cut_ljsq_ij) {
         forcelj = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
                            (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
+        forcelj *= r2inv; 
         if (eflag) {
           evdwl = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
                           (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
@@ -278,72 +288,68 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           evdwl *= factor_lj;
           ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
         }
-      }  // cutsq_ljsq_ij
+      } // cutsq_ljsq_ij
 
       // coul term
 
       X_FLOAT cut_coulsq_ij = STACKPARAMS?m_cut_coulsq[itype][jtype]:d_cut_coulsq(itype,jtype);
 
       if (rsq < cut_coulsq_ij) {
-        X_FLOAT forcecoulx = 0;
-        X_FLOAT forcecouly = 0;
-        X_FLOAT forcecoulz = 0;
-        X_FLOAT tixcoul = 0;
-        X_FLOAT tiycoul = 0;
-        X_FLOAT tizcoul = 0;
-        X_FLOAT tjxcoul = 0;
-        X_FLOAT tjycoul = 0;
-        X_FLOAT tjzcoul = 0;
-
+        
         const F_FLOAT r2inv = 1.0/rsq;
         const F_FLOAT rinv = sqrt(r2inv);
         const F_FLOAT qj = q[j];
 
-        // charge-charge
-
         X_FLOAT r3inv = r2inv*rinv;
-        X_FLOAT pre1 = qtmp*qj*r3inv;
 
-        forcecoulx += pre1*delx;
-        forcecouly += pre1*dely;
-        forcecoulz += pre1*delz;
+        // charge-charge
+        if (mu(i,3) > 0 && qj != 0) {
+          X_FLOAT pre1 = qtmp*qj*r3inv;
+          forcecoulx += pre1*delx;
+          forcecouly += pre1*dely;
+          forcecoulz += pre1*delz;
+        }
 
         // dipole-dipole
 
+        F_FLOAT pdotp, pidotr, pjdotr;
         F_FLOAT r5inv = r3inv*r2inv;
-        F_FLOAT r7inv = r5inv*r2inv;
 
-        F_FLOAT pdotp = mu(i,0)*mu(j,0) + mu(i,1)*mu(j,1) + mu(i,2)*mu(j,2);
-        F_FLOAT pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
-        F_FLOAT pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
+       if (mu(i,3) > 0.0 && mu(j,3) > 0.0) {
+          
+          F_FLOAT r7inv = r5inv*r2inv;
 
-        pre1 = 3.0*r5inv*pdotp - 15.0*r7inv*pidotr*pjdotr;
-        F_FLOAT pre2 = 3.0*r5inv*pjdotr;
-        F_FLOAT pre3 = 3.0*r5inv*pidotr;
-        F_FLOAT pre4 = -1.0*r3inv;
+          pdotp = mu(i,0)*mu(j,0) + mu(i,1)*mu(j,1) + mu(i,2)*mu(j,2);
+          pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
+          pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
 
-        forcecoulx += pre1*delx + pre2*mu(i,0) + pre3*mu(j,0);
-        forcecouly += pre1*dely + pre2*mu(i,1) + pre3*mu(j,1);
-        forcecoulz += pre1*delz + pre2*mu(i,2) + pre3*mu(j,2);
+          X_FLOAT pre1 = 3.0*r5inv*pdotp - 15.0*r7inv*pidotr*pjdotr;
+          F_FLOAT pre2 = 3.0*r5inv*pjdotr;
+          F_FLOAT pre3 = 3.0*r5inv*pidotr;
+          F_FLOAT pre4 = -1.0*r3inv;
 
-        F_FLOAT crossx = pre4 * (mu(i,1)*mu(j,2) - mu(i,2)*mu(j,1));
-        F_FLOAT crossy = pre4 * (mu(i,2)*mu(j,0) - mu(i,0)*mu(j,2));
-        F_FLOAT crossz = pre4 * (mu(i,0)*mu(j,1) - mu(i,1)*mu(j,0));
+          forcecoulx += pre1*delx + pre2*mu(i,0) + pre3*mu(j,0);
+          forcecouly += pre1*dely + pre2*mu(i,1) + pre3*mu(j,1);
+          forcecoulz += pre1*delz + pre2*mu(i,2) + pre3*mu(j,2);
 
-        tixcoul += crossx + pre2 * (mu(i,1)*delz - mu(i,2)*dely);
-        tiycoul += crossy + pre2 * (mu(i,2)*delx - mu(i,0)*delz);
-        tizcoul += crossz + pre2 * (mu(i,0)*dely - mu(i,1)*delx);
-        tjxcoul += -crossx + pre3 * (mu(j,1)*delz - mu(j,2)*dely);
-        tjycoul += -crossy + pre3 * (mu(j,2)*delx - mu(j,0)*delz);
-        tjzcoul += -crossz + pre3 * (mu(j,0)*dely - mu(j,1)*delx);
+          F_FLOAT crossx = pre4 * (mu(i,1)*mu(j,2) - mu(i,2)*mu(j,1));
+          F_FLOAT crossy = pre4 * (mu(i,2)*mu(j,0) - mu(i,0)*mu(j,2));
+          F_FLOAT crossz = pre4 * (mu(i,0)*mu(j,1) - mu(i,1)*mu(j,0));
 
+          tixcoul += crossx + pre2 * (mu(i,1)*delz - mu(i,2)*dely);
+          tiycoul += crossy + pre2 * (mu(i,2)*delx - mu(i,0)*delz);
+          tizcoul += crossz + pre2 * (mu(i,0)*dely - mu(i,1)*delx);
+          tjxcoul += -crossx + pre3 * (mu(j,1)*delz - mu(j,2)*dely);
+          tjycoul += -crossy + pre3 * (mu(j,2)*delx - mu(j,0)*delz);
+          tjzcoul += -crossz + pre3 * (mu(j,0)*dely - mu(j,1)*delx);
+        }
+        
         // dipole-charge
 
-        if (mu(i,3) > 0 && q[j] != 0) {
-          r5inv = r3inv*r2inv;
+        if (mu(i,3) > 0 && qj != 0) {
           pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
-          pre1 = 3.0*qj*r5inv * pidotr;
-          pre2 = qj*r3inv;
+          F_FLOAT pre1 = 3.0*qj*r5inv * pidotr;
+          F_FLOAT pre2 = qj*r3inv;
 
           forcecoulx += pre2*mu(i,0) - pre1*delx;
           forcecouly += pre2*mu(i,1) - pre1*dely;
@@ -357,8 +363,8 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
         if (qtmp != 0 && mu(j,3) != 0) {
           pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
-          pre1 = 3.0*qtmp*r5inv * pjdotr;
-          pre2 = qtmp*r3inv;
+          X_FLOAT pre1 = 3.0*qtmp*r5inv * pjdotr;
+          X_FLOAT pre2 = qtmp*r3inv;
 
           forcecoulx += pre1*delx - pre2*mu(j,0);
           forcecouly += pre1*dely - pre2*mu(j,1);
@@ -378,15 +384,10 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         fx_i += fx;
         fy_i += fy;
         fz_i += fz;
-        
         torquex_i += fq*tixcoul;
         torquey_i += fq*tiycoul;
         torquez_i += fq*tizcoul;
-/*
-        if (i == 0)
-          printf("KOKKOS: j = %d: f = %f %f %f; tq = %f %f %f\n", j, fx, fy, fz,
-             tixcoul, tiycoul, tizcoul);
-*/        
+
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
           a_f(j,0) -= fx;
           a_f(j,1) -= fy;
@@ -424,8 +425,6 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   a_torque(i,0) += torquex_i;
   a_torque(i,1) += torquey_i;
   a_torque(i,2) += torquez_i;
-  if (i == 0)
-     printf("f = %f %f; tq = %f\n", a_f(i,0), a_f(i,1), a_torque(i,2));
 }
 
 /* ---------------------------------------------------------------------- */

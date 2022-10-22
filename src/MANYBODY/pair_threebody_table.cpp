@@ -708,7 +708,7 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
     if (r13 == (pm->mltable->rmin - 0.5 * dr)) nr13 = 0;
     nr13 -= nr12;
     ntheta = (theta - 0.00000001) / dtheta;
-    if (theta == 180.0) ntheta = (pm->mltable->ninput * 2) - 1;
+    if (theta >= 180.0) ntheta = (pm->mltable->ninput * 2) - 1;
     itable = 0;
     for (i = 0; i < nr12; i++) itable += (pm->mltable->ninput - i);
     itable += nr13;
@@ -721,7 +721,7 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
     nr13 = (r13 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
     if (r13 == (pm->mltable->rmin - 0.5 * dr)) nr13 = 0;
     ntheta = (theta - 0.00000001) / dtheta;
-    if (theta == 180.0) ntheta = (pm->mltable->ninput * 2) - 1;
+    if (theta >= 180.0) ntheta = (pm->mltable->ninput * 2) - 1;
     itable = nr12 * (pm->mltable->ninput);
     itable += nr13;
     itable *= (pm->mltable->ninput * 2);

@@ -1,5 +1,5 @@
-BootStrap: library
-From: centos:7
+BootStrap: docker
+From: library/centos:7
 
 %post
         yum -y install epel-release

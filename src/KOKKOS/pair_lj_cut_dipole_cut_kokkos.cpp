@@ -133,10 +133,10 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
 
-  // compute kernel
+  // compute kernel NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS
 
-  if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
-    if (evflag) {
+  if (atom->ntypes > MAX_TYPES_STACKPARAMS) { // STACKPARAMS==false
+    if (evflag) { // EVFLAG==1
       if (neighflag == HALF) {
         if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALF,1,1,false> >(0,inum),*this,ev);
         else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALF,0,1,false> >(0,inum),*this,ev);
@@ -147,7 +147,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,1,1,false> >(0,inum),*this,ev);
         else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,0,1,false> >(0,inum),*this,ev);
       }
-    } else {
+    } else {  // EVFLAG==0
       if (neighflag == HALF) {
         if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALF,1,0,false> >(0,inum),*this);
         else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALF,0,0,false> >(0,inum),*this);
@@ -159,8 +159,8 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,0,0,false> >(0,inum),*this);
       }
     }
-  } else { // STACKPARAMS
-    if (evflag) {
+  } else { // STACKPARAMS==true
+    if (evflag) { // EVFLAG==1
       if (neighflag == HALF) {
         if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALF,1,1,true> >(0,inum),*this,ev);
         else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALF,0,1,true> >(0,inum),*this,ev);
@@ -414,7 +414,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         if (EVFLAG == 2)
           ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
         if (EVFLAG == 1)
-          ev_tally_xyz<NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+          ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
       }
     } // cutsq_ij
   }
@@ -437,16 +437,15 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(), ii, ev);
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEWTON_PAIR>
+template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j,
                                                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                                                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
-{
+{  
   F_FLOAT v[6];
 
   v[0] = delx*fx;

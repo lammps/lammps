@@ -34,6 +34,12 @@ Syntax
                  effectively an engineering strain rate
            *erate* value = R
              R = engineering strain rate (1/time units)
+           *pressure* values = target gain
+             target = target pressure (pressure units)
+             gain = proportional gain constant (1/(time * pressure) or 1/time units)
+           *pressure/mean* values = target gain
+             target = target pressure (pressure units)
+             gain = proportional gain constant (1/(time * pressure) or 1/time units)
            *trate* value = R
              R = true strain rate (1/time units)
            *volume* value = none = adjust this dim to preserve volume of system
@@ -54,6 +60,9 @@ Syntax
                  effectively an engineering shear strain rate
            *erate* value = R
              R = engineering shear strain rate (1/time units)
+           *pressure* values = target gain
+             target = target pressure (pressure units)
+             gain = proportional gain constant (1/(time * pressure) or 1/time units)
            *trate* value = R
              R = true shear strain rate (1/time units)
            *wiggle* values = A Tp
@@ -64,7 +73,7 @@ Syntax
              v_name2 = variable with name2 for change rate as function of time
 
 * zero or more keyword/value pairs may be appended
-* keyword = *remap* or *flip* or *units*
+* keyword = *remap* or *flip* or *units* or *couple* or *vol/balance/p* or *max/rate* or *normalize/pressure*
 
   .. parsed-literal::
 
@@ -77,6 +86,14 @@ Syntax
        *units* value = *lattice* or *box*
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units
+       *couple* value = *none* or *xyz* or *xy* or *yz* or *xz*
+         couple pressure values of various dimensions
+       *vol/balance/p* = *yes* or *no*
+         Modifies the behavior of the *volume* option to try and balance pressures
+       *max/rate* value = *rate*
+         rate = maximum strain rate for pressure control
+       *normalize/pressure* value = *yes* or *no*
+         determine whether pressure deviation is normalized by target pressure
 
 Examples
 """"""""
@@ -87,6 +104,9 @@ Examples
    fix 1 all deform 1 x trate 0.1 y volume z volume
    fix 1 all deform 1 xy erate 0.001 remap v
    fix 1 all deform 10 y delta -0.5 0.5 xz vel 1.0
+   fix 1 all deform 1 x pressure 2.0 0.1 normalize/pressure yes max/rate 0.001
+   fix 1 all deform 1 x trate 0.1 y volume z volume vol/balance/p yes
+   fix 1 all deform 1 x trate 0.1 y pressure/mean 0.0 1.0 z pressure/mean 0.0 1.0
 
 Description
 """""""""""
@@ -230,7 +250,11 @@ the product of x,z lengths constant.  If "x scale 1.1 y volume z
 volume" is specified, then both the y,z box lengths will shrink as x
 increases to keep the volume constant (product of x,y,z lengths).  In
 this case, the y,z box lengths shrink so as to keep their relative
-aspect ratio constant.
+aspect ratio constant. When maintaining a constant volume using two
+separate dimensions, one can alternatively allow the two dimensions
+to adjust their aspect ratio to attempt to maintain equivalent
+pressures along the two dimensions. See the
+:ref:`vol/balance/p <deform_balance>` option for more details.
 
 For solids or liquids, note that when one dimension of the box is
 expanded via fix deform (i.e. tensile strain), it may be physically
@@ -291,6 +315,38 @@ assume that the current timestep = 0.
 For the *scale*, *vel*, *erate*, *trate*, *volume*, *wiggle*, and
 *variable* styles, the box length is expanded or compressed around its
 mid point.
+
+The *pressure* style adjusts a dimensions's box length to control that
+component of the pressure tensor. This option attempts to maintain a
+specified target value using a linear controller where the box length L
+evolves according to the equation
+
+.. parsed-literal::
+
+   \frac{d L(t)}{dt} = L(t) k (P_t - P)
+
+where :math:`k` is a proportional gain constant, :math:`P_t` is the target
+pressure, and :math:`P` is the current pressure along that dimension. This
+approach is similar to the method used to control the pressure by
+:doc:`fix press/berendsen <fix_press_berendsen>`. The target pressure
+accepts either a constant numeric value or a LAMMPS :ref:`variable <variable>`.
+Notably, this variable can be a function of time or other components of
+the pressure tensor. By default, :math:`k` has units of 1/(time * pressure)
+although this will change if the *normalize/pessure* option is set as
+:ref:`discussed below <deform_normalize>`. There is no proven method
+to choosing an appropriate value of :math:`k` as it will depend on the
+specific details of a simulation and testing different values is
+recommended. One can also apply a maximum limit to the magnitude of the
+applied strain using the :ref:`max/rate <deform_max_rate>` option and couple
+pressures in different dimensions using the :ref:`couple <deform_couple>`
+option.
+
+The *pressure/mean* style is changes a dimension in order to maintain
+a constant mean pressure defined as the trace of the pressure tensor.
+This option is therefore very similar to the *presssure* style with
+identical arguments except the current and target pressures refer to the
+mean trace of the pressure tensor. The same options also apply except
+for the :ref:`couple <deform_couple>` option.
 
 ----------
 
@@ -433,6 +489,27 @@ assume that the current timestep = 0.
    variable rate equal "2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)"
    fix 2 all deform 1 xy variable v_displace v_rate remap v
 
+The *pressure* style adjusts a tilt factor to control the corresponding
+off-diagonal component of the pressure tensor. This option attempts to
+maintain a specified target value using a linear controller where the
+tilt factor T evolves according to the equation
+
+.. parsed-literal::
+
+   \frac{d T(t)}{dt} = L(t) k (P - P_t)
+
+where :math:`k` is a proportional gain constant, :math:`P_t` is the target
+pressure, :math:`P` is the current pressure, and :math:`L` is the perpendicular
+box length. The target pressure accepts either a constant numeric value or a
+LAMMPS :ref:`variable <variable>`. Notably, this variable can be a function
+of time or other components of the pressure tensor. By default, :math:`k`
+has units of 1/(time * pressure) although this will change if the
+*normalize/pessure* option is set as :ref:`discussed below <deform_normalize>`.
+There is no proven method to choosing an appropriate value of :math:`k` as it
+will depend on thespecific details of a simulation and testing different
+values isrecommended. One can also apply a maximum limit to the magnitude
+of the applied strain using the :ref:`max/rate <deform_max_rate>` option.
+
 ----------
 
 All of the tilt styles change the xy, xz, yz tilt factors during a
@@ -561,6 +638,73 @@ does not affect the *variable* style.  You should use the *xlat*,
 *ylat*, *zlat* keywords of the :doc:`thermo_style <thermo_style>`
 command if you want to include lattice spacings in a variable formula.
 
+.. _deform_normalize:
+
+The *normalize/pressure* keyword changes how box dimensions evolve when
+using the *pressure* or *pressure/mean* deformation options. If the
+*deform/normalize* value is set to *yes*, then the deviation from the
+target pressure is normalized by the absolute value of the target
+pressure such that the proportional gain constant scales a percentage
+error and has units of 1/time. If the target pressure is ever zero, this
+will produce an error unless the *max/rate* keyword is defined,
+described below, which will cap the divergence.
+
+.. _deform_max_rate:
+
+The *max/rate* keyword sets an upper threshold, *rate*, that limits the
+maximum magnitude of the strain rate applied in any dimension. This keyword
+only applies to the *pressure* and *pressure/mean* options.
+
+.. _deform_couple:
+
+The *couple* keyword allows two or three of the diagonal components of
+the pressure tensor to be "coupled" together for the *pressure* option.
+The value specified with the keyword determines which are coupled. For
+example, *xz* means the *Pxx* and *Pzz* components of the stress tensor
+are coupled. *Xyz* means all 3 diagonal components are coupled. Coupling
+means two things: the instantaneous stress will be computed as an average
+of the corresponding diagonal components, and the coupled box dimensions
+will be changed together in lockstep, meaning coupled dimensions will be
+dilated or contracted by the same percentage every timestep.  The target
+pressures and gain constants for any coupled dimensions must be identical.
+*Couple xyz* can be used for a 2d simulation; the *z* dimension is simply
+ignored.
+
+.. _deform_balance:
+
+The *vol/balance/p* keyword modifies the behavior of *volume* when two
+dimensions are used to maintain a fixed volume. Instead of straining
+the two dimensions in lockstep, the two dimensions are allowed to
+separately dilate or contract in a manner to maintain a constant
+volume while simultaneously trying to keep the pressure along each
+dimension equal using a method described in :ref:`(Huang2014) <Huang2014>`.
+
+----------
+
+If any pressure controls are used, this fix computes a temperature and
+pressure each timestep. To do this, the fix creates its own computes of
+style "temp" and "pressure", as if these commands had been issued:
+
+.. code-block:: LAMMPS
+
+   compute fix-ID_temp group-ID temp
+   compute fix-ID_press group-ID pressure fix-ID_temp
+
+See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>` commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
++ underscore + "press", and the group for the new computes is the same
+as the fix group.
+
+Note that these are NOT the computes used by thermodynamic output (see
+the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
+and *thermo_press*.  This means you can change the attributes of this
+fix's temperature or pressure via the
+:doc:`compute_modify <compute_modify>` command or print this temperature
+or pressure during thermodynamic output via the
+:doc:`thermo_style custom <thermo_style>` command using the appropriate
+compute-ID. It also means that changing attributes of *thermo_temp* or
+*thermo_press* will have no effect on this fix.
+
 ----------
 
 .. include:: accel_styles.rst
@@ -573,6 +717,15 @@ deformation, when using the start/stop options of the :doc:`run <run>`
 command.  None of the :doc:`fix_modify <fix_modify>` options are
 relevant to this fix.  No global or per-atom quantities are stored by
 this fix for access by various :doc:`output commands <Howto_output>`.
+
+If any pressure controls are used, the :doc:`fix_modify <fix_modify>` *temp*
+and *press* options are supported by this fix.  You can use them to assign a
+:doc:`compute <compute>` you have defined to this fix which will be used
+in its temperature and pressure calculations.  If you do this, note
+that the kinetic energy derived from the compute temperature should be
+consistent with the virial term computed using all atoms for the
+pressure.  LAMMPS will warn you if you choose to compute temperature
+on a subset of atoms.
 
 This fix can perform deformation over multiple runs, using the *start*
 and *stop* keywords of the :doc:`run <run>` command.  See the
@@ -597,4 +750,14 @@ Related commands
 Default
 """""""
 
-The option defaults are remap = x, flip = yes, and units = lattice.
+The option defaults are remap = x, flip = yes, units = lattice, and
+normalize/pressure = no.
+
+----------
+
+.. _Li2014b:
+
+**(Huang2014)** X. Huang,
+"Exploring critical-state behavior using DEM",
+Doctoral dissertation, Imperial College.
+(2014). https://doi.org/10.25560/25316

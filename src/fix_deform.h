@@ -44,16 +44,16 @@ class FixDeform : public Fix {
  protected:
   int dimension, triclinic, scaleflag, flipflag, pcouple;
   int flip, flipxy, flipxz, flipyz;
-  double *h_rate, *h_ratelo;
+  double *h_rate, *h_ratelo, max_h_rate;
   int varflag;                   // 1 if VARIABLE option is used, 0 if not
   int strain_flag;               // 1 if strain-based option is used, 0 if not
   int volume_flag;               // 1 if VOLUME option is used, 0 if not
   int pressure_flag;             // 1 if pressure tensor used, 0 if not
   int kspace_flag;               // 1 if KSpace invoked, 0 if not
+  int normalize_pressure_flag;   // 1 if normalize pressure deviation by target
+  int vol_balance_flag;          // 1 if pressures balanced when maintaining const vol
   std::vector<Fix *> rfix;       // pointers to rigid fixes
   class Irregular *irregular;    // for migrating atoms after box flips
-
-  double TWOPI;
 
   char *id_temp, *id_press;
   class Compute *temperature, *pressure;
@@ -72,7 +72,6 @@ class FixDeform : public Fix {
     double vol_initial, vol_start;
     double ptarget, pgain;
     double prior_pressure, prior_rate;
-    double box_length;
     int saved;
     int fixed, dynamic1, dynamic2;
     char *hstr, *hratestr, *pstr;

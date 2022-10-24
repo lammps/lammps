@@ -175,7 +175,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++) {
-    if (n2==0)
+    if (n2 == 0)
       array[i] = nullptr;
     else
       array[i] = &data.h_view(i,0);
@@ -194,7 +194,7 @@ template <typename TYPE, typename HTYPE>
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++) {
-    if (n2==0)
+    if (n2 == 0)
       array[i] = nullptr;
     else
       array[i] = &h_data(i,0);
@@ -220,13 +220,13 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type ***&array,
   array = (typename TYPE::value_type ***) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++) {
-    if (n2==0) {
+    if (n2 == 0) {
       array[i] = nullptr;
     } else {
       nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n2;
       array[i] = (typename TYPE::value_type **) smalloc(nbytes,name);
       for (int j = 0; j < n2; j++) {
-        if (n3==0)
+        if (n3 == 0)
            array[i][j] = nullptr;
          else
            array[i][j] = &data.h_view(i,j,0);
@@ -247,13 +247,13 @@ template <typename TYPE, typename HTYPE>
   array = (typename TYPE::value_type ***) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++) {
-    if (n2==0) {
+    if (n2 == 0) {
       array[i] = nullptr;
     } else {
       nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n2;
       array[i] = (typename TYPE::value_type **) smalloc(nbytes,name);
       for (int j = 0; j < n2; j++) {
-        if (n3==0)
+        if (n3 == 0)
            array[i][j] = nullptr;
          else
            array[i][j] = &data.h_view(i,j,0);
@@ -278,7 +278,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type**) srealloc(array,nbytes,name);
 
   for (int i = 0; i < n1; i++)
-    if (n2==0)
+    if (n2 == 0)
       array[i] = nullptr;
     else
       array[i] = &data.h_view(i,0);
@@ -295,7 +295,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++)
-    if (data.h_view.extent(1)==0)
+    if (data.h_view.extent(1) == 0)
       array[i] = nullptr;
     else
       array[i] = &data.h_view(i,0);
@@ -315,7 +315,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type **) srealloc(array,nbytes,name);
 
   for (int i = 0; i < n1; i++)
-    if (data.h_view.extent(1)==0)
+    if (data.h_view.extent(1) == 0)
       array[i] = nullptr;
     else
       array[i] = &data.h_view(i,0);
@@ -344,8 +344,8 @@ template <typename TYPE>
 void destroy_kokkos(TYPE data, typename TYPE::value_type*** &array)
 {
   if (array == nullptr) return;
-  int n1=data.extent(0);
-  for (int i=0;i<n1;++i)
+  int n1 = data.extent(0);
+  for (int i = 0; i < n1; ++i)
     sfree(array[i]);
   data = TYPE();
   sfree(array);

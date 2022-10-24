@@ -10,14 +10,13 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
 ------------------------------------------------------------------------- */
 
-#ifndef SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H_
-#define SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H_
-
-
+#ifndef SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H
+#define SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H
 
 #include "pointers.h"
 #include "kokkos_type.h"
@@ -48,15 +47,10 @@ public:
     memoryKK->destroy_kokkos(k_wjelem);
   }
 
-
   MLIAPDescriptor *descriptor;
   DAT::tdual_float_1d k_wjelem;
-
 };
 
 }// namespace
-
-
-
 
 #endif /* SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H_ */

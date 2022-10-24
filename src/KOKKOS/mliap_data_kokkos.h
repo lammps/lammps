@@ -10,12 +10,13 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
 ------------------------------------------------------------------------- */
 
-#ifndef SRC_KOKKOS_MLIAP_DATA_KOKKOS_H_
-#define SRC_KOKKOS_MLIAP_DATA_KOKKOS_H_
+#ifndef SRC_KOKKOS_MLIAP_DATA_KOKKOS_H
+#define SRC_KOKKOS_MLIAP_DATA_KOKKOS_H
 
 #include "kokkos_type.h"
 #include "mliap_data.h"

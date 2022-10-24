@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
 ------------------------------------------------------------------------- */
@@ -29,12 +30,16 @@
 
 using namespace LAMMPS_NS;
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 PairMLIAPKokkos<DeviceType>::PairMLIAPKokkos(class LAMMPS* l) : PairMLIAP(l)
 {
   kokkosable = 1;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 PairMLIAPKokkos<DeviceType>::~PairMLIAPKokkos()
@@ -45,9 +50,9 @@ PairMLIAPKokkos<DeviceType>::~PairMLIAPKokkos()
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
   allocated=0;
-
 }
 
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
@@ -70,11 +75,11 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   if (eflag_atom && k_eatom.h_view.extent(0) < maxeatom) {
      memoryKK->destroy_kokkos(k_eatom,eatom);
      memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-   }
+  }
+
   if (vflag_atom && k_vatom.h_view.extent(0) < maxeatom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxeatom,6,"pair:eatom");
-
   }
 
   data->generate_neighdata(list, eflag, vflag);
@@ -122,7 +127,7 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   }
 }
 
-
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::allocate()
@@ -149,6 +154,7 @@ void PairMLIAPKokkos<DeviceType>::allocate()
 
 }
 
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
@@ -176,6 +182,8 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
       iarg++;
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
@@ -241,12 +249,12 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   delete data;
   data = new MLIAPDataKokkos<DeviceType>(lmp, gradgradflag, map, model, descriptor, this);
   data->init();
-
 }
 
 /* ----------------------------------------------------------------------
    add energies to eng_vdwl and per-atom energy
 ------------------------------------------------------------------------- */
+
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::e_tally(MLIAPData* data)
 {
@@ -261,12 +269,12 @@ void PairMLIAPKokkos<DeviceType>::e_tally(MLIAPData* data)
       d_eatom(d_iatoms(ii)) = d_eatoms(ii);
     });
     k_eatom.modify<DeviceType>();
-    // This sync has to be here for the hybrid pair type,
+    // This sync has to be here for the hybrid pair type
     k_eatom.sync<LMPHostType>();
   }
 }
 
-
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::init_style()
@@ -279,10 +287,11 @@ void PairMLIAPKokkos<DeviceType>::init_style()
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
 }
 
+/* ---------------------------------------------------------------------- */
+
 namespace LAMMPS_NS {
 template class PairMLIAPKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
 template class PairMLIAPKokkos<LMPHostType>;
 #endif
-
 }

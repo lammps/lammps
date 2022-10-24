@@ -10,8 +10,8 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
- Contributing authors: Byungkyun Kang (University of Nevada, Las Vegas)
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
 
@@ -69,8 +69,6 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptors(class MLIAPData *
 template <class DeviceType>
 void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_)
 {
-
-
   auto data = static_cast<MLIAPDataKokkos<DeviceType>*>(data_);
   int npairs = data->nij_total;
   auto d_numneighs = data->k_numneighs.template view<DeviceType>();
@@ -278,5 +276,4 @@ template class MLIAPDescriptorSO3Kokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
 template class MLIAPDescriptorSO3Kokkos<LMPHostType>;
 #endif
-
 }

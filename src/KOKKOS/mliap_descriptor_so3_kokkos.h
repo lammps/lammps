@@ -10,12 +10,13 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
+
 #ifndef LMP_MLIAP_DESCRIPTOR_SO3_KOKKOS_H
 #define LMP_MLIAP_DESCRIPTOR_SO3_KOKKOS_H
-
 
 #include "mliap_descriptor_so3.h"
 #include "mliap_descriptor_kokkos.h"
@@ -40,7 +41,7 @@ class MLIAPDescriptorSO3Kokkos : public MLIAPDescriptorSO3, virtual public MLIAP
   template <typename ViewType>
   KOKKOS_FUNCTION
   static void v_tally(int vflag_either, int vflag_global, int vflag_atom, int i, int j, int ij,
-      double *fij, ViewType rij, Kokkos::View<double[6],DeviceType> virial, ViewType vatom);
+      double *fij, ViewType rij, Kokkos::View<double[6], DeviceType> virial, ViewType vatom);
   class MLIAP_SO3Kokkos<DeviceType> *so3ptr_kokkos;
 
 // inherited from non-Kokkos class

@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
 ------------------------------------------------------------------------- */
@@ -23,6 +24,8 @@
 #include "lammps.h"
 #include "kokkos.h"
 
+/* ---------------------------------------------------------------------- */
+
 namespace LAMMPS_NS {
 template<class DeviceType>
 MLIAPDataKokkos<DeviceType>::MLIAPDataKokkos(LAMMPS *lmp_in, int gradgradflag_in, int *map_in,
@@ -35,6 +38,9 @@ MLIAPDataKokkos<DeviceType>::MLIAPDataKokkos(LAMMPS *lmp_in, int gradgradflag_in
 {
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 }
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 MLIAPDataKokkos<DeviceType>::~MLIAPDataKokkos() {
   memoryKK->destroy_kokkos(k_gradforce,gradforce);
@@ -54,9 +60,10 @@ MLIAPDataKokkos<DeviceType>::~MLIAPDataKokkos() {
   memoryKK->destroy_kokkos(k_graddesc,graddesc);
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, int eflag_in, int vflag_in) {
-
 
   list = list_in;
 
@@ -170,6 +177,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   vflag = vflag_in;
 }
 
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
@@ -236,9 +244,9 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     }
     nneigh_max = nij_total;
    }
-
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync) {
@@ -281,6 +289,8 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync) {
 
@@ -320,6 +330,8 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, 
     if (mask & GAMMA_COL_MASK   ) k_gamma_col_index.sync<LMPHostType>();
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 template class MLIAPDataKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

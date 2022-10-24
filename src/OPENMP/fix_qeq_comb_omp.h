@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   The LAMMPS Developers, developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */

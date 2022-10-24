@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   The LAMMPS Developers, developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 

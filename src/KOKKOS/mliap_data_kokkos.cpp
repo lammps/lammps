@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,6 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_data_kokkos.h"
+
 #include "atom_kokkos.h"
 #include "kokkos_type.h"
 #include "pair_mliap_kokkos.h"

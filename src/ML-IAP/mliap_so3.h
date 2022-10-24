@@ -14,7 +14,6 @@ class MLIAP_SO3 : protected Pointers {
   ~MLIAP_SO3() override;
 
   void init();
-
   double memory_usage();
 
   int ncoeff;

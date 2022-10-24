@@ -15,32 +15,29 @@
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
 
-#ifndef LMP_MLIAP_SO3KOKKOS_H
-#define LMP_MLIAP_SO3KOKKOS_H
+#ifndef LMP_MLIAP_SO3_KOKKOS_H
+#define LMP_MLIAP_SO3_KOKKOS_H
 
-#include "pointers.h"
 #include "kokkos_type.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
-class MLIAP_SO3Kokkos : protected Pointers {
-
+template <class DeviceType> class MLIAP_SO3Kokkos : protected Pointers {
  public:
   MLIAP_SO3Kokkos(LAMMPS *, double vrcut, int vlmax, int vnmax, double valpha);
-  MLIAP_SO3Kokkos(LAMMPS *lmp) : Pointers(lmp){};
-
+  MLIAP_SO3Kokkos(LAMMPS *_lmp) : Pointers(_lmp){};
   ~MLIAP_SO3Kokkos() override;
 
   void init();
-
   double memory_usage();
-  using MemoryDeviceType=typename KKDevice<DeviceType>::value;
-  using float_1d = Kokkos::View<double*,   Kokkos::LayoutRight, MemoryDeviceType>;
-  using float_2d = Kokkos::View<double**,  Kokkos::LayoutRight, MemoryDeviceType>;
-  using float_3d = Kokkos::View<double*** ,Kokkos::LayoutRight, MemoryDeviceType>;
-  using float_4d = Kokkos::View<double****,Kokkos::LayoutRight, MemoryDeviceType>;
-  using int_1d   = Kokkos::View<int*,                           MemoryDeviceType>;
+
+  using MemoryDeviceType = typename KKDevice<DeviceType>::value;
+  using float_1d = Kokkos::View<double *, Kokkos::LayoutRight, MemoryDeviceType>;
+  using float_2d = Kokkos::View<double **, Kokkos::LayoutRight, MemoryDeviceType>;
+  using float_3d = Kokkos::View<double ***, Kokkos::LayoutRight, MemoryDeviceType>;
+  using float_4d = Kokkos::View<double ****, Kokkos::LayoutRight, MemoryDeviceType>;
+  using int_1d = Kokkos::View<int *, MemoryDeviceType>;
 
   int ncoeff;
   float_2d m_plist_r;
@@ -61,8 +58,7 @@ class MLIAP_SO3Kokkos : protected Pointers {
   int m_idxu_count, m_idxy_count;
   int m_numYlms;
 
-
-  float_3d  m_clisttot_r, m_clisttot_i;
+  float_3d m_clisttot_r, m_clisttot_i;
   float_1d m_rip_array, m_rip_darray;
   float_1d m_sbes_array, m_sbes_darray;
   int m_init_arrays;
@@ -83,51 +79,49 @@ class MLIAP_SO3Kokkos : protected Pointers {
   double t_alpha;
   int_1d t_ij;
 
-  static constexpr bigint m_temp_memory_size=512*1024*1024;
+  static constexpr bigint m_temp_memory_size = 512 * 1024 * 1024;
   int m_chunk_size;
 
  public:
-  void spectrum(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems, DAT::tdual_float_1d wjelem,
-                DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
+  void spectrum(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems,
+                DAT::tdual_float_1d wjelem, DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
                 int nmax, int lmax, double rcut, double alpha, int totaln, int ncoefs);
-  struct MLIAPSO3SpectrumTag{};
+  struct MLIAPSO3SpectrumTag {};
   KOKKOS_FUNCTION
-  void operator() (const MLIAPSO3SpectrumTag&, int ii) const;
+  void operator()(const MLIAPSO3SpectrumTag &, int ii) const;
 
-
-  void spectrum_dxdr(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems, DAT::tdual_float_1d wjelem,
-                     DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
+  void spectrum_dxdr(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems,
+                     DAT::tdual_float_1d wjelem, DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
                      int nmax, int lmax, double rcut, double alpha, bigint npairs, int ncoefs);
-  struct MLIAPSO3SpectrumDXDRTag{};
+  struct MLIAPSO3SpectrumDXDRTag {};
   KOKKOS_FUNCTION
-  void operator() (const MLIAPSO3SpectrumDXDRTag&, int ii) const;
+  void operator()(const MLIAPSO3SpectrumDXDRTag &, int ii) const;
 
   KOKKOS_FUNCTION
-  double Cosine(double Rij, double Rc)const;
+  double Cosine(double Rij, double Rc) const;
   KOKKOS_FUNCTION
-  double CosinePrime(double Rij, double Rc)const;
+  double CosinePrime(double Rij, double Rc) const;
   KOKKOS_FUNCTION
-  double compute_sfac(double r, double rcut)const;
+  double compute_sfac(double r, double rcut) const;
   KOKKOS_FUNCTION
-  double compute_dsfac(double r, double rcut)const;
+  double compute_dsfac(double r, double rcut) const;
 
-  struct MLIAPSO3GetSBESArrayTag{};
+  struct MLIAPSO3GetSBESArrayTag {};
   KOKKOS_FUNCTION
-  void operator() (const MLIAPSO3GetSBESArrayTag&, int ii) const;
+  void operator()(const MLIAPSO3GetSBESArrayTag &, int ii) const;
 
-  struct MLIAPSO3GetRipArrayTag{};
+  struct MLIAPSO3GetRipArrayTag {};
   KOKKOS_FUNCTION
-  void operator() (const MLIAPSO3GetRipArrayTag&, int ii) const;
-
+  void operator()(const MLIAPSO3GetRipArrayTag &, int ii) const;
 
   void init_arrays(int nlocal, int ncoefs);
   void init_garray(int nmax, int lmax, double rcut, double alpha, double *w, int lw1,
                    double *g_array, int lg2);
 
   template <typename UlistView>
-  KOKKOS_FUNCTION
-  void compute_uarray_recursive(double x, double y, double z, double r, int twol, UlistView ulist_r,
-                                UlistView ulist_i, int_1d idxu_block, float_1d rootpqarray) const;
+  KOKKOS_FUNCTION void compute_uarray_recursive(double x, double y, double z, double r, int twol,
+                                                UlistView ulist_r, UlistView ulist_i,
+                                                int_1d idxu_block, float_1d rootpqarray) const;
   void compute_ncoeff();
 
   KOKKOS_FUNCTION
@@ -137,9 +131,8 @@ class MLIAP_SO3Kokkos : protected Pointers {
   double phi(double r, int alpha, double rcut);
 
   template <typename ViewType>
-  KOKKOS_FUNCTION
-  void compute_pi(int nmax, int lmax, ViewType clisttot_r, ViewType clisttot_i, int lcl2,
-                  float_2d plist_r, int indpl) const;
+  KOKKOS_FUNCTION void compute_pi(int nmax, int lmax, ViewType clisttot_r, ViewType clisttot_i,
+                                  int lcl2, float_2d plist_r, int indpl) const;
 
   void compute_W(int nmax, double *arr);
 };

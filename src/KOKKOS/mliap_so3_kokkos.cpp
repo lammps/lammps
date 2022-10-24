@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,10 +24,9 @@
 #include "math_special_kokkos.h"
 #include "memory.h"
 #include "memory_kokkos.h"
+#include "mliap_so3_math.h"
 
 #include <cmath>
-
-#include "mliap_so3_math.h"
 
 using namespace SO3Math;
 using namespace LAMMPS_NS;

@@ -19,21 +19,19 @@
 #define LMP_MLIAP_MODEL_LINEAR_KOKKOS_H
 
 #include "mliap_model_linear.h"
+
 #include "mliap_model_kokkos.h"
-#include "mliap_data.h"
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
-class MLIAPModelLinearKokkos : public MLIAPModelLinear , public MLIAPModelKokkos<DeviceType> {
-public:
+template <class DeviceType>
+class MLIAPModelLinearKokkos : public MLIAPModelLinear, public MLIAPModelKokkos<DeviceType> {
+ public:
   MLIAPModelLinearKokkos(LAMMPS *, char * = nullptr);
 
   void compute_gradients(class MLIAPData *) override;
   void compute_gradgrads(class MLIAPData *) override;
   void compute_force_gradients(class MLIAPData *) override;
 };
-
-}
-
+}    // namespace LAMMPS_NS
 #endif

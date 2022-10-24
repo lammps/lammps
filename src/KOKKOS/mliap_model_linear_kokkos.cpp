@@ -1,3 +1,4 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,6 +17,7 @@
  ------------------------------------------------------------------------- */
 
 #include "mliap_model_linear_kokkos.h"
+
 #include "mliap_data_kokkos.h"
 
 using namespace LAMMPS_NS;
@@ -25,8 +27,7 @@ MLIAPModelLinearKokkos<DeviceType>::MLIAPModelLinearKokkos(LAMMPS *lmp, char *ar
   MLIAPModelLinear(lmp,args),
   MLIAPModelKokkos<DeviceType>(lmp, this)
 {
-  if (args)
-    MLIAPModelKokkos<DeviceType>::set_k_coeffelem();
+  if (args) MLIAPModelKokkos<DeviceType>::set_k_coeffelem();
 }
 
 /* ---------------------------------------------------------------------- */

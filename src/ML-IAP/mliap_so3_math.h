@@ -9,6 +9,7 @@
 #define LMP_MLIAP_SO3_MATH_H
 
 #include "math_eigen_impl.h"
+#include <cmath>
 
 namespace SO3Math {
 

@@ -15,31 +15,32 @@
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
 
-#ifndef SRC_KOKKOS_MLIAP_MODEL_KOKKOS_H_
-#define SRC_KOKKOS_MLIAP_MODEL_KOKKOS_H_
+#ifndef LMP_MLIAP_MODEL_KOKKOS_H
+#define LMP_MLIAP_MODEL_KOKKOS_H
 
-#include "pointers.h"
 #include "kokkos_type.h"
 #include "memory_kokkos.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
-class MLIAPModelKokkos : protected Pointers {
-public:
+template <class DeviceType> class MLIAPModelKokkos : protected Pointers {
+ public:
   MLIAPModelKokkos(LAMMPS *lmp, MLIAPModel *model_in) : Pointers(lmp), model(model_in) {}
-  virtual ~MLIAPModelKokkos() {
+  virtual ~MLIAPModelKokkos()
+  {
     memoryKK->destroy_kokkos(k_coeffelem);
     model->coeffelem = nullptr;
   }
 
-  void set_k_coeffelem() {
-    double **tmp =  nullptr;
+  void set_k_coeffelem()
+  {
+    double **tmp = nullptr;
     memoryKK->destroy_kokkos(k_coeffelem);
-    memoryKK->create_kokkos(k_coeffelem,tmp,model->nelements, model->nparams,"MLIAPModelKokkos::coeffelem");
-    for (int i=0; i < model->nelements; ++i)
-      for (int j = 0; j< model->nparams; ++j)
-        tmp[i][j] = model->coeffelem[i][j];
+    memoryKK->create_kokkos(k_coeffelem, tmp, model->nelements, model->nparams,
+                            "MLIAPModelKokkos::coeffelem");
+    for (int i = 0; i < model->nelements; ++i)
+      for (int j = 0; j < model->nparams; ++j) tmp[i][j] = model->coeffelem[i][j];
     delete model->coeffelem;
     model->coeffelem = tmp;
     k_coeffelem.modify<LMPHostType>();
@@ -49,7 +50,5 @@ public:
   MLIAPModel *model;
   DAT::tdual_float_2d k_coeffelem;
 };
-
-}// namespace
-
-#endif /* SRC_KOKKOS_MLIAP_MODEL_KOKKOS_H */
+}    // namespace LAMMPS_NS
+#endif

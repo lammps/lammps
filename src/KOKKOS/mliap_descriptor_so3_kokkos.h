@@ -18,15 +18,15 @@
 #ifndef LMP_MLIAP_DESCRIPTOR_SO3_KOKKOS_H
 #define LMP_MLIAP_DESCRIPTOR_SO3_KOKKOS_H
 
-#include "mliap_descriptor_so3.h"
 #include "mliap_descriptor_kokkos.h"
+#include "mliap_descriptor_so3.h"
 #include "mliap_so3_kokkos.h"
 
 namespace LAMMPS_NS {
-
-template<class DeviceType>
-class MLIAPDescriptorSO3Kokkos : public MLIAPDescriptorSO3, public MLIAPDescriptorKokkos<DeviceType> {
-
+template <class DeviceType>
+class MLIAPDescriptorSO3Kokkos :
+    public MLIAPDescriptorSO3,
+    public MLIAPDescriptorKokkos<DeviceType> {
  public:
   MLIAPDescriptorSO3Kokkos(LAMMPS *, char *);
   ~MLIAPDescriptorSO3Kokkos() override;
@@ -40,13 +40,12 @@ class MLIAPDescriptorSO3Kokkos : public MLIAPDescriptorSO3, public MLIAPDescript
 
  protected:
   template <typename ViewType>
-  KOKKOS_FUNCTION
-  static void v_tally(int vflag_either, int vflag_global, int vflag_atom, int i, int j, int ij,
-      double *fij, ViewType rij, Kokkos::View<double[6], DeviceType> virial, ViewType vatom);
+  KOKKOS_FUNCTION static void v_tally(int vflag_either, int vflag_global, int vflag_atom, int i,
+                                      int j, int ij, double *fij, ViewType rij,
+                                      Kokkos::View<double[6], DeviceType> virial, ViewType vatom);
   class MLIAP_SO3Kokkos<DeviceType> *so3ptr_kokkos;
 
-// inherited from non-Kokkos class
+  // inherited from non-Kokkos class
 };
 }    // namespace LAMMPS_NS
-
 #endif

@@ -15,34 +15,35 @@
    Contributing author: Matt Bettencourt (NVIDIA)
 ------------------------------------------------------------------------- */
 
-#ifndef SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H
-#define SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H
+#ifndef LMP_MLIAP_DESCRIPTOR_KOKKOS_H
+#define LMP_MLIAP_DESCRIPTOR_KOKKOS_H
 
-#include "pointers.h"
 #include "kokkos_type.h"
 #include "memory_kokkos.h"
 #include "mliap_descriptor.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
-
-template<class DeviceType>
-class MLIAPDescriptorKokkos : virtual protected Pointers {
-public:
-  MLIAPDescriptorKokkos(LAMMPS *lmp, MLIAPDescriptor *descriptor_in) : Pointers(lmp), descriptor(descriptor_in) {
+template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Pointers {
+ public:
+  MLIAPDescriptorKokkos(LAMMPS *lmp, MLIAPDescriptor *descriptor_in) :
+      Pointers(lmp), descriptor(descriptor_in)
+  {
     memoryKK->destroy_kokkos(k_wjelem);
   }
 
-  void init_data() {
+  void init_data()
+  {
     int num_elems = descriptor->nelements;
     memoryKK->destroy_kokkos(k_wjelem);
-    memoryKK->create_kokkos(k_wjelem,num_elems,"MLIAPDescriptorKokkos::k_wjelem");
-    for (int i = 0; i < num_elems; ++i)
-      k_wjelem.h_view(i) = descriptor->wjelem[i];
+    memoryKK->create_kokkos(k_wjelem, num_elems, "MLIAPDescriptorKokkos::k_wjelem");
+    for (int i = 0; i < num_elems; ++i) k_wjelem.h_view(i) = descriptor->wjelem[i];
     k_wjelem.modify<LMPHostType>();
     k_wjelem.sync<LMPDeviceType>();
   }
 
-  virtual ~MLIAPDescriptorKokkos() {
+  virtual ~MLIAPDescriptorKokkos()
+  {
     //memoryKK->destroy_kokkos(k_coeffelem);
     //model->coeffelem = nullptr;
     memoryKK->destroy_kokkos(k_wjelem);
@@ -51,7 +52,5 @@ public:
   MLIAPDescriptor *descriptor;
   DAT::tdual_float_1d k_wjelem;
 };
-
-}// namespace
-
-#endif /* SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H */
+}    // namespace LAMMPS_NS
+#endif

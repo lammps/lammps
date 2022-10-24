@@ -851,6 +851,7 @@ void FixDeform::end_of_step()
   if (pressure_flag) {
     temperature->compute_vector();
     pressure->compute_vector();
+    pressure->compute_scalar();
     for (int i = 0; i < 3; i++) {
       if (!set[i].saved) {
         set[i].saved = 1;
@@ -1157,6 +1158,7 @@ void FixDeform::set_pressure()
     if (set[i].style != PRESSURE && set[i].style != PMEAN) continue;
 
     h_rate[i] = set[i].pgain * (p_current[i] - set[i].ptarget);
+
     if (normalize_pressure_flag) {
       if (set[i].ptarget == 0) {
         if (max_h_rate == 0) {

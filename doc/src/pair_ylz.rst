@@ -35,18 +35,18 @@ relative particle orientations via the formulas
 
    U ( \mathbf{r}_{ij}, \mathbf{n}_i, \mathbf{n}_j ) =\left\{\begin{matrix} {u}_R(r)+\left [ 1-\phi (\mathbf{\hat{r}}_{ij}, \mathbf{n}_i, \mathbf{n}_j ) \right ]\epsilon, ~~ r<{r}_{min} \\ {u}_A(r)\phi (\mathbf{\hat{r}}_{ij}, \mathbf{n}_i, \mathbf{n}_j ),~~  {r}_{min}<r<{r}_{c} \\ \end{matrix}\right.\\\\ \phi (\mathbf{\hat{r}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )=1+\left [  \mu (a(\mathbf{\hat{r}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )-1) \right ] \\\\a(\mathbf{\hat{r}}_{ij}, \mathbf{n}_i, \mathbf{n}_j )=(\mathbf{n}_i\times\mathbf{\hat{r}}_{ij} )\cdot (\mathbf{n}_j\times\mathbf{\hat{r}}_{ij} )+{\beta}(\mathbf{n}_i-\mathbf{n}_j)\cdot \mathbf{\hat{r}}_{ij}-\beta^{2}\\\\  {u}_R(r)=\epsilon \left [ \left ( \frac{{r}_{min}}{r} \right )^{4}-2\left ( \frac{{r}_{min}}{r}\right )^{2} \right ] \\\\ {u}_A(r)=-\epsilon\;cos^{2\zeta }\left [ \frac{\pi}{2}\frac{\left ( {r}-{r}_{min} \right )}{\left ( {r}_{c}-{r}_{min} \right )} \right ]\\
 
-where :math:`\mathbf{r}_{i}` and :math:`\mathbf{r}_{j}` are the center position 
-vectors of particles i and j, respectively, :math:`\mathbf{r}_{ij}=\mathbf{r}_{i}-\mathbf{r}_{j}` 
-is the inter-particle distance vector, :math:`r=\left|\mathbf{r}_{ij} \right|` and 
+where :math:`\mathbf{r}_{i}` and :math:`\mathbf{r}_{j}` are the center position
+vectors of particles i and j, respectively, :math:`\mathbf{r}_{ij}=\mathbf{r}_{i}-\mathbf{r}_{j}`
+is the inter-particle distance vector, :math:`r=\left|\mathbf{r}_{ij} \right|` and
 :math:`{\hat{\mathbf{r}}}_{ij}=\mathbf{r}_{ij}/r`. The unit vectors
 :math:`\mathbf{n}_{i}` and :math:`\mathbf{n}_{j}` represent the axes of symmetry of
-particles i and j, respectively, :math:`u_R` and :math:`u_A` are the 
+particles i and j, respectively, :math:`u_R` and :math:`u_A` are the
 repulsive and attractive potentials, :math:`\phi` is an angular function which depends on
-the relative orientation between pair particles, :math:`\mu` is the parameter 
-related to bending rigidity, :math:`\beta` is the parameter related to the spontaneous 
+the relative orientation between pair particles, :math:`\mu` is the parameter
+related to bending rigidity, :math:`\beta` is the parameter related to the spontaneous
 curvature, and :math:`\epsilon` is the energy unit, respectively. The :math:`\zeta` controls
-the slope of the attractive branch and :math:`{r}_{c}`is the cutoff radius. :math:`r_{min}` 
-is the distance which minimizes the potential energy :math:`u_{A}(r)`and 
+the slope of the attractive branch and :math:`{r}_{c}`is the cutoff radius. :math:`r_{min}`
+is the distance which minimizes the potential energy :math:`u_{A}(r)`and
 :math:`r_{min}=2^{1/6}\sigma`, where :math:`\sigma` is the length unit.
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the *asphere* extension (e.g. :doc:`fix nve/asphere <fix_nve_asphere>`) in order to integrate particle rotation.  Additionally, :doc:`atom_style ellipsoid <atom_style>` should be used since it defines the rotational state of each particle.

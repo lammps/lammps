@@ -1,5 +1,5 @@
 # Pizza.py toolkit, https://lammps.github.io/pizza
-# The LAMMPS Developers, developers@lammps.org, Sandia National Laboratories
+# LAMMPS development team: developers@lammps.org
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains

@@ -25,12 +25,14 @@ include:
     - doc
     - doc/src/**
     - fortran
-    - python
+    - lib/**
+    - python/**
     - src/**
     - tools/**
-    - lib/**
+    - unittest/**
     - examples/COUPLE/**
     - examples/plugins/**
+    - examples/PACKAGES/**
 patterns:
     - "*.c"
     - "*.cmake"
@@ -114,8 +116,8 @@ def fix_file(path, check_result):
                 newline = newline.replace("lammps.sandia.gov","www.lammps.org")
                 newline = newline.replace("http://www.lammps.org","https://www.lammps.org")
                 newline = newline.replace("www.cs.sandia.gov/~sjplimp/lammps.html","https://www.lammps.org")
-                newline = newline.replace("Steve Plimpton, sjplimp@sandia.gov","The LAMMPS Developers, developers@lammps.org")
-                newline = newline.replace("Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories","The LAMMPS Developers, developers@lammps.org")
+                newline = newline.replace("Steve Plimpton, sjplimp@sandia.gov","LAMMPS Development team: developers@lammps.org")
+                newline = newline.replace("Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories","LAMMPS Development team: developers@lammps.org")
                 print(newline, end='', file=out)
     shutil.copymode(path, newfile)
     shutil.move(newfile, path)

@@ -18,7 +18,7 @@
 
 namespace LAMMPS_NS {
 
-  class MLIAPDescriptorSO3 : public MLIAPDescriptor, virtual protected Pointers {
+class MLIAPDescriptorSO3 : public MLIAPDescriptor, virtual protected Pointers {
 
  public:
   MLIAPDescriptorSO3(LAMMPS *, char *);

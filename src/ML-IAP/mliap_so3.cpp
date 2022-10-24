@@ -562,6 +562,7 @@ void MLIAP_SO3::compute_dpidrj(int nmax, int lmax, double *clisttot_r, double *c
 }
 
 /* ---------------------------------------------------------------------- */
+
 int MLIAP_SO3::get_sum(int istart, int iend, int id, int imult)
 {
   int ires = 0;

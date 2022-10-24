@@ -190,15 +190,16 @@ action meam_funcs_kokkos.h meam_funcs.cpp
 action meam_impl_kokkos.h meam_impl.cpp
 action meam_setup_done_kokkos.h meam_setup_done.cpp
 action memory_kokkos.h
-action mliap_so3_kokkos.cpp mliap_so3.cpp
-action mliap_so3_kokkos.h mliap_so3.h
-action mliap_descriptor_kokkos.cpp mliap_descriptor.cpp
+action mliap_data_kokkos.cpp mliap_data.cpp
+action mliap_data_kokkos.h mliap_data.h
 action mliap_descriptor_kokkos.h mliap_descriptor.h
 action mliap_descriptor_so3_kokkos.cpp mliap_descriptor_so3.cpp
 action mliap_descriptor_so3_kokkos.h mliap_descriptor_so3.h
 action mliap_model_linear_kokkos.cpp mliap_model_linear.cpp
 action mliap_model_linear_kokkos.h mliap_model_linear.h
 action mliap_model_kokkos.h mliap_model.h
+action mliap_so3_kokkos.cpp mliap_so3.cpp
+action mliap_so3_kokkos.h mliap_so3.h
 action modify_kokkos.cpp
 action modify_kokkos.h
 action neigh_bond_kokkos.cpp

@@ -356,8 +356,7 @@ void BondBPMSpring::write_restart_settings(FILE *fp)
 
 void BondBPMSpring::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0)
-    utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
+  if (comm->me == 0) utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
 }
 

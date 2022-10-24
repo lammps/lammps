@@ -265,6 +265,7 @@ class lammps(object):
 
     self.lib.lammps_encode_image_flags.restype = self.c_imageint
 
+    self.lib.lammps_config_has_package.argtypes = [c_char_p]
     self.lib.lammps_config_package_name.argtypes = [c_int, c_char_p, c_int]
     self.lib.lammps_config_accelerator.argtypes = [c_char_p, c_char_p, c_char_p]
 
@@ -1625,6 +1626,23 @@ class lammps(object):
     """
     return self.lib.lammps_config_has_ffmpeg_support() != 0
 
+  # -------------------------------------------------------------------------
+
+  def has_package(self, name):
+    """ Report if the named package has been enabled in the LAMMPS shared library.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_package`
+    function of the library interface.
+
+    .. versionadded:: TBD
+
+    :param name: name of the package
+    :type  name: string
+
+    :return: state of package availability
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_package(name.encode()) != 0
   # -------------------------------------------------------------------------
 
   @property

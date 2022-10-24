@@ -1736,8 +1736,6 @@ must be installed.
 
 .. versionadded:: 30Jun2020
 
-   .. versionadded:: 30Jun2020
-
 **Supporting info:**
 
 * src/ML-IAP: filenames -> commands

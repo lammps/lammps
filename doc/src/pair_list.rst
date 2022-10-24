@@ -57,7 +57,7 @@ The format of the list file is as follows:
        ID2 = atom ID of second atom
        style = style of interaction
        coeffs = list of coeffs
-       cutoff = cutoff for interaction (optional, except for style *quartic*)
+       cutoff = cutoff for interaction (optional)
 
 The cutoff parameter is optional for all but the *quartic* interactions.
 If it is not specified, the global cutoff is used.
@@ -71,7 +71,7 @@ Here is an example file:
    15 259 lj126     1.0 1.0      50.0
    15 603 morse    10.0 1.2 2.0  10.0 # and another comment
    18 470 harmonic 50.0 1.2       5.0
-   19 332 quartic   5.0 -1.2 1.2  5.0
+   19 332 quartic  10.0 5.0 -1.2 1.2
 
 The style *lj126* computes pairwise interactions with the formula
 
@@ -100,7 +100,7 @@ The style *harmonic* computes pairwise interactions with the formula
 
 .. math::
 
-   E = K (r - r_0)^2
+   E = K (r - r_0)^2 \qquad r < r_c
 
 and the coefficients:
 
@@ -113,16 +113,14 @@ The style *quartic* computes pairwise interactions with the formula
 
 .. math::
 
-   E = K (r - r_c)^2 (r - r_c -b_1) (r - r_c - b_2) \qquad r < r_c
+   E = K (r - r_0)^2 (r - r_0 -b_1) (r - r_0 - b_2) \qquad r < r_c
 
 and the coefficients:
 
 * :math:`K` (energy units)
+* :math:`r_0` (distance units)
 * :math:`b_1` (distance units)
 * :math:`b_2` (distance units)
-* :math:`r_c` (distance units)
-
-Note that the per list entry cutoff :math:`r_c` is **required** for *quartic* interactions.
 
 ----------
 

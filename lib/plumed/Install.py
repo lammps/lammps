@@ -17,7 +17,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.7.4"
+version = "2.8.1"
 mode = "static"
 
 # help message
@@ -58,7 +58,9 @@ checksums = { \
         '2.7.2' : 'cfa0b4dd90a81c25d3302e8d97bfeaea', \
         '2.7.3' : 'f00cc82edfefe6bb3df934911dbe32fb', \
         '2.7.4' : 'f858e0b6aed173748fc85b6bc8a9dcb3', \
+        '2.7.5' : '2aca1986d6c1ca3ba7e9eb51b1102792', \
         '2.8.0' : '489b23daba70da78cf0506cbc31689c6', \
+        '2.8.1' : '6bfe72ebdae63dc38a9ca27d9b0e08f8', \
         }
 
 # parse and process arguments

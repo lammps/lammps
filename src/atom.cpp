@@ -2470,7 +2470,7 @@ void Atom::setup_sort_bins()
 /* ----------------------------------------------------------------------
    register a callback to a fix so it can manage atom-based arrays
    happens when fix is created
-   flag = 0 for grow, 1 for restart, 2 for border comm
+   flag = Atom::GROW for grow, Atom::RESTART for restart, Atom::BORDER for border comm
 ------------------------------------------------------------------------- */
 
 void Atom::add_callback(int flag)

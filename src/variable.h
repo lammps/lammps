@@ -34,6 +34,7 @@ class Variable : protected Pointers {
   int find(const char *);
   void set_arrays(int);
   void python_command(int, char **);
+  void purge_atomfile();
 
   int equalstyle(int);
   int atomstyle(int);

@@ -40,7 +40,7 @@ MODULE LIBLAMMPS
   ! Data type constants for extracting data from global, atom, compute, and fix
   !
   ! Must be kept in sync with the equivalent declarations in
-  ! src/library.h and python/lammps/constants.py
+  ! src/library.h, python/lammps/constants.py, and tools/swig/lammps.i
   !
   ! These are NOT part of the API (the part the user sees)
   INTEGER(c_int), PARAMETER :: &

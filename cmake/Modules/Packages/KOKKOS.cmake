@@ -111,10 +111,6 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_linesearch_kokkos.cpp
-		       ${KOKKOS_PKG_SOURCES_DIR}/mliap_data_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/mliap_descriptor_so3_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp
-		       ${KOKKOS_PKG_SOURCES_DIR}/mliap_so3_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neighbor_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
@@ -142,6 +138,12 @@ if(PKG_KSPACE)
   endif()
 endif()
 
+if(PKG_ML-IAP)
+  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/mliap_data_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_descriptor_so3_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_so3_kokkos.cpp)
+endif()
 
 if(PKG_PHONON)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/dynamical_matrix_kokkos.cpp)

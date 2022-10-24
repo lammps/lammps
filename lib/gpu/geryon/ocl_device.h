@@ -184,7 +184,7 @@ class UCL_Device {
       _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
                                                     &errorv);
     } else {
-      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, 0};
+      cl_queue_properties props[] = {0};
       _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
                                                     &errorv);
     }

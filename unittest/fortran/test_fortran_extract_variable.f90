@@ -60,7 +60,7 @@ CONTAINS
 
     INTERFACE
       FUNCTION lammps_malloc(size) BIND(C, name='malloc')
-        IMPORT :: c_ptr, c_size_t
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_size_t
         IMPLICIT NONE
         INTEGER(c_size_t), VALUE :: size
         TYPE(c_ptr) :: lammps_malloc
@@ -94,7 +94,7 @@ FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
 
   INTERFACE
     FUNCTION c_strlen(str) BIND(C,name='strlen')
-      IMPORT :: c_ptr, c_size_t
+      USE ISO_C_BINDING, ONLY: c_ptr, c_size_t
       IMPLICIT NONE
       TYPE(c_ptr), INTENT(IN), VALUE :: str
       INTEGER(c_size_t) :: c_strlen

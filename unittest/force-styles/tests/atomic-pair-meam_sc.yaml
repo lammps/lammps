@@ -2,7 +2,7 @@
 lammps_version: 3 Aug 2022
 tags: slow
 date_generated: Thu Aug 18 22:46:30 2022
-epsilon: 7.5e-12
+epsilon: 1.0e-11
 skip_tests:
 prerequisites: ! |
   pair meam

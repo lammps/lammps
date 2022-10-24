@@ -1,7 +1,7 @@
 ! -------------------------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 !   https://www.lammps.org/ Sandia National Laboratories
-!   Steve Plimpton, sjplimp@sandia.gov
+!   LAMMPS Development team: developers@lammps.org
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 !   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,8 +19,12 @@
 !   Karl D. Hammond <hammondkd@missouri.edu>
 !   University of Missouri, 2012-2020
 !
+! Contributing authors:
+!  - Axel Kohlmeyer <akohlmey@gmail.com>, Temple University, 2020-2022
+!  - Karl D. Hammond <hammondkd@missouri.edu> University of Missouri, 2022
+!
 ! The Fortran module tries to follow the API of the C library interface
-! closely, but like the Python wrapper it employs an object-oriented
+! closely, but like the Python wrapper, it employs an object-oriented
 ! approach.  To accommodate the object-oriented approach, all exported
 ! subroutines and functions have to be implemented in Fortran and
 ! call the interfaced C-style functions with adapted calling conventions

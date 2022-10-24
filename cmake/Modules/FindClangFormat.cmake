@@ -1,5 +1,10 @@
 # Find clang-format
 find_program(ClangFormat_EXECUTABLE NAMES clang-format
+                                          clang-format-15.0
+                                          clang-format-14.0
+                                          clang-format-13.0
+                                          clang-format-12.0
+                                          clang-format-11.0
                                           clang-format-10.0
                                           clang-format-9.0
                                           clang-format-8.0
@@ -14,19 +19,27 @@ if(ClangFormat_EXECUTABLE)
                   OUTPUT_VARIABLE clang_format_version
                   ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-
-  if(clang_format_version MATCHES "^clang-format version .*")
-    # Arch Linux
+  if(clang_format_version MATCHES "^(Ubuntu |)clang-format version .*")
+    # Arch Linux output:
     # clang-format version 10.0.0
-
-    # Ubuntu 18.04 LTS Output
+    #
+    # Ubuntu 18.04 LTS output:
     # clang-format version 6.0.0-1ubuntu2 (tags/RELEASE_600/final)
-    string(REGEX REPLACE "clang-format version ([0-9.]+).*"
-                         "\\1"
+    #
+    # Ubuntu 20.04 LTS output:
+    # clang-format version 10.0.0-4ubuntu1
+    #
+    # Ubuntu 22.04 LTS output:
+    # Ubuntu clang-format version 14.0.0-1ubuntu1
+    #
+    # Fedora 36 output:
+    # clang-format version 14.0.5 (Fedora 14.0.5-1.fc36)
+    string(REGEX REPLACE "^(Ubuntu |)clang-format version ([0-9.]+).*"
+                         "\\2"
                          ClangFormat_VERSION
                          "${clang_format_version}")
   elseif(clang_format_version MATCHES ".*LLVM version .*")
-    # CentOS 7 Output
+    # CentOS 7 output:
     # LLVM (http://llvm.org/):
     #   LLVM version 3.4.2
     #   Optimized build.

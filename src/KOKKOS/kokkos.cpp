@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -121,11 +121,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
-#ifndef LMP_KOKKOS_GPU
-      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled using a GPU-enabled backend");
-#endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       ngpus = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+#ifndef LMP_KOKKOS_GPU
+      if (ngpus > 0)
+        error->all(FLERR,"GPUs are requested but Kokkos has not been compiled using a GPU-enabled backend");
+#endif
 
       int skip_gpu = 9999;
       if (iarg+2 < narg && isdigit(arg[iarg+2][0])) {
@@ -207,7 +208,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     init_ngpus = ngpus;
   }
 
-  if (me == 0) utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n", ngpus);
+  if ((me == 0) && (ngpus > 0))
+    utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n", ngpus);
 
 #ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)

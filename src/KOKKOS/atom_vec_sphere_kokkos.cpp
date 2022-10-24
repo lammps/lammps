@@ -1351,6 +1351,167 @@ int AtomVecSphereKokkos::unpack_comm_hybrid(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
+template<class DeviceType>
+struct AtomVecSphereKokkos_PackReverse {
+  typedef DeviceType device_type;
+
+  typename ArrayTypes<DeviceType>::t_f_array_randomread _f;
+  typename ArrayTypes<DeviceType>::t_f_array_randomread _torque;
+  typename ArrayTypes<DeviceType>::t_ffloat_2d _buf;
+  int _first;
+
+  AtomVecSphereKokkos_PackReverse(
+      const typename DAT::tdual_f_array &f,
+      const typename DAT::tdual_f_array &torque,
+      const typename DAT::tdual_ffloat_2d &buf,
+      const int& first):_f(f.view<DeviceType>()),
+                        _torque(torque.view<DeviceType>()),
+                        _buf(buf.view<DeviceType>()),
+                        _first(first) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int& i) const {
+    _buf(i,0) = _f(i+_first,0);
+    _buf(i,1) = _f(i+_first,1);
+    _buf(i,2) = _f(i+_first,2);
+    _buf(i,3) = _torque(i+_first,0);
+    _buf(i,4) = _torque(i+_first,1);
+    _buf(i,5) = _torque(i+_first,2);
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecSphereKokkos::pack_reverse_kokkos(const int &n, const int &first,
+    const DAT::tdual_ffloat_2d &buf) {
+  if (commKK->reverse_comm_on_host) {
+    atomKK->sync(Host,F_MASK | TORQUE_MASK);
+    struct AtomVecSphereKokkos_PackReverse<LMPHostType> f(atomKK->k_f,atomKK->k_torque,buf,first);
+    Kokkos::parallel_for(n,f);
+  } else {
+    atomKK->sync(Device,F_MASK | TORQUE_MASK);
+    struct AtomVecSphereKokkos_PackReverse<LMPDeviceType> f(atomKK->k_f,atomKK->k_torque,buf,first);
+    Kokkos::parallel_for(n,f);
+  }
+
+  return n*size_reverse;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+struct AtomVecSphereKokkos_UnPackReverseSelf {
+  typedef DeviceType device_type;
+
+  typename ArrayTypes<DeviceType>::t_f_array_randomread _f;
+  typename ArrayTypes<DeviceType>::t_f_array _fw;
+  typename ArrayTypes<DeviceType>::t_f_array_randomread _torque;
+  typename ArrayTypes<DeviceType>::t_f_array _torquew;
+  int _nfirst;
+  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
+  const int _iswap;
+
+  AtomVecSphereKokkos_UnPackReverseSelf(
+      const typename DAT::tdual_f_array &f,
+      const typename DAT::tdual_f_array &torque,
+      const int &nfirst,
+      const typename DAT::tdual_int_2d &list,
+      const int & iswap):
+      _f(f.view<DeviceType>()),_fw(f.view<DeviceType>()),
+      _torque(torque.view<DeviceType>()),_torquew(torque.view<DeviceType>()),
+      _nfirst(nfirst),_list(list.view<DeviceType>()),_iswap(iswap) {
+  };
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int& i) const {
+    const int j = _list(_iswap,i);
+    _fw(j,0) += _f(i+_nfirst,0);
+    _fw(j,1) += _f(i+_nfirst,1);
+    _fw(j,2) += _f(i+_nfirst,2);
+    _torquew(j,0) += _torque(i+_nfirst,0);
+    _torquew(j,1) += _torque(i+_nfirst,1);
+    _torquew(j,2) += _torque(i+_nfirst,2);
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecSphereKokkos::unpack_reverse_self(const int &n, const DAT::tdual_int_2d &list, const int & iswap,
+                                        const int nfirst) {
+  if (commKK->reverse_comm_on_host) {
+    atomKK->sync(Host,F_MASK | TORQUE_MASK);
+    struct AtomVecSphereKokkos_UnPackReverseSelf<LMPHostType> f(atomKK->k_f,atomKK->k_torque,nfirst,list,iswap);
+    Kokkos::parallel_for(n,f);
+    atomKK->modified(Host,F_MASK | TORQUE_MASK);
+  } else {
+    atomKK->sync(Device,F_MASK | TORQUE_MASK);
+    struct AtomVecSphereKokkos_UnPackReverseSelf<LMPDeviceType> f(atomKK->k_f,atomKK->k_torque,nfirst,list,iswap);
+    Kokkos::parallel_for(n,f);
+    atomKK->modified(Device,F_MASK | TORQUE_MASK);
+  }
+  return n*3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+struct AtomVecSphereKokkos_UnPackReverse {
+  typedef DeviceType device_type;
+
+  typename ArrayTypes<DeviceType>::t_f_array _f;
+  typename ArrayTypes<DeviceType>::t_f_array _torque;
+  typename ArrayTypes<DeviceType>::t_ffloat_2d_const _buf;
+  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
+  const int _iswap;
+
+  AtomVecSphereKokkos_UnPackReverse(
+      const typename DAT::tdual_f_array &f,
+      const typename DAT::tdual_f_array &torque,
+      const typename DAT::tdual_ffloat_2d &buf,
+      const typename DAT::tdual_int_2d &list,
+      const int & iswap):
+      _f(f.view<DeviceType>()),_torque(torque.view<DeviceType>()),
+      _list(list.view<DeviceType>()),_iswap(iswap) {
+        const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/3;
+        const size_t elements = 6;
+        buffer_view<DeviceType>(_buf,buf,maxsend,elements);
+  };
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int& i) const {
+    const int j = _list(_iswap,i);
+    _f(j,0) += _buf(i,0);
+    _f(j,1) += _buf(i,1);
+    _f(j,2) += _buf(i,2);
+    _torque(j,0) += _buf(i,3);
+    _torque(j,1) += _buf(i,4);
+    _torque(j,2) += _buf(i,5);
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecSphereKokkos::unpack_reverse_kokkos(const int &n,
+                                          const DAT::tdual_int_2d &list,
+                                          const int & iswap,
+                                          const DAT::tdual_ffloat_2d &buf)
+{
+  // Check whether to always run reverse communication on the host
+  // Choose correct reverse UnPackReverse kernel
+
+  if (commKK->reverse_comm_on_host) {
+    struct AtomVecSphereKokkos_UnPackReverse<LMPHostType> f(atomKK->k_f,atomKK->k_torque,buf,list,iswap);
+    Kokkos::parallel_for(n,f);
+    atomKK->modified(Host,F_MASK | TORQUE_MASK);
+  } else {
+    struct AtomVecSphereKokkos_UnPackReverse<LMPDeviceType> f(atomKK->k_f,atomKK->k_torque,buf,list,iswap);
+    Kokkos::parallel_for(n,f);
+    atomKK->modified(Device,F_MASK | TORQUE_MASK);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 int AtomVecSphereKokkos::pack_reverse(int n, int first, double *buf)
 {
   if (n > 0)

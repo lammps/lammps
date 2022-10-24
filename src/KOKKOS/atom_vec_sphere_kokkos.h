@@ -87,6 +87,13 @@ class AtomVecSphereKokkos : public AtomVecKokkos {
   int pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
                      const int & iswap, const int nfirst,
                      const int &pbc_flag, const int pbc[]) override;
+  int unpack_reverse_self(const int &n, const DAT::tdual_int_2d &list,
+                          const int & iswap, const int nfirst);
+  int pack_reverse_kokkos(const int &n, const int &nfirst,
+                          const DAT::tdual_ffloat_2d &buf);
+  void unpack_reverse_kokkos(const int &n, const DAT::tdual_int_2d &list,
+                             const int & iswap, const DAT::tdual_ffloat_2d &buf);
+
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
                          int pbc_flag, int *pbc, ExecutionSpace space) override;

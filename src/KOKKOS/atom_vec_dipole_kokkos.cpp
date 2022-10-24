@@ -33,16 +33,16 @@ AtomVecDipoleKokkos::AtomVecDipoleKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   mass_type = PER_TYPE;
 
   comm_x_only = 0;    // communicate x and dipole in forward comm
-  comm_f_only = 0;    // communicate f and torque in reverse comm
+  comm_f_only = 1;    // communicate f only reverse comm
   size_forward = 7;   // xyz and mu4 used for pack/unpack comm
-  size_reverse = 6;   // fxyz torque xyz
+  size_reverse = 3;   // fxyz (like AtomVecDipole, excluding torque here)
   size_border = 11;   // xyz, tag, mask, type, q, mu4 for pack/unpack border
   size_velocity = 3;  // vx, vy, vz
   size_data_atom = 9; // tag, type, q, xyz, mux, muy, muz
   size_data_vel = 4;
   xcol_data = 4;
 
-  atom->q_flag = atom->mu_flag = atom->torque_flag = 1;
+  atom->q_flag = atom->mu_flag = 1;
 
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
@@ -79,7 +79,6 @@ void AtomVecDipoleKokkos::grow(int n)
 
   memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
   memoryKK->grow_kokkos(atomKK->k_mu,atomKK->mu,nmax,"atom:mu");
-  memoryKK->grow_kokkos(atomKK->k_torque,atomKK->torque,nmax,"atom:torque");
 
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);
@@ -124,9 +123,6 @@ void AtomVecDipoleKokkos::grow_pointers()
   mu = atomKK->mu;
   d_mu = atomKK->k_mu.d_view;
   h_mu = atomKK->k_mu.h_view;
-  torque = atomKK->torque;
-  d_torque = atomKK->k_torque.d_view;
-  h_torque = atomKK->k_torque.h_view;
 }
 
 /* ----------------------------------------------------------------------
@@ -229,242 +225,6 @@ struct AtomVecDipoleKokkos_PackComm {
     }
   }
 };
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-struct AtomVecDipoleKokkos_PackReverse {
-  typedef DeviceType device_type;
-
-  typename ArrayTypes<DeviceType>::t_f_array_randomread _f;
-  typename ArrayTypes<DeviceType>::t_f_array_randomread _torque;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d _buf;
-  int _first;
-
-  AtomVecDipoleKokkos_PackReverse(
-      const typename DAT::tdual_f_array &f,
-      const typename DAT::tdual_f_array &torque,
-      const typename DAT::tdual_ffloat_2d &buf,
-      const int& first):_f(f.view<DeviceType>()),
-                        _torque(torque.view<DeviceType>()),
-                        _buf(buf.view<DeviceType>()),
-                        _first(first) {};
-
-  KOKKOS_INLINE_FUNCTION
-  void operator() (const int& i) const {
-    _buf(i,0) = _f(i+_first,0);
-    _buf(i,1) = _f(i+_first,1);
-    _buf(i,2) = _f(i+_first,2);
-    _buf(i,3) = _torque(i+_first,0);
-    _buf(i,4) = _torque(i+_first,1);
-    _buf(i,5) = _torque(i+_first,2);
-  }
-};
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDipoleKokkos::pack_reverse_kokkos(const int &n, const int &first,
-    const DAT::tdual_ffloat_2d &buf) {
-  if (commKK->reverse_comm_on_host) {
-    atomKK->sync(Host,F_MASK | TORQUE_MASK);
-    struct AtomVecDipoleKokkos_PackReverse<LMPHostType> f(atomKK->k_f,atomKK->k_torque,buf,first);
-    Kokkos::parallel_for(n,f);
-  } else {
-    atomKK->sync(Device,F_MASK | TORQUE_MASK);
-    struct AtomVecDipoleKokkos_PackReverse<LMPDeviceType> f(atomKK->k_f,atomKK->k_torque,buf,first);
-    Kokkos::parallel_for(n,f);
-  }
-
-  return n*size_reverse;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-struct AtomVecDipoleKokkos_UnPackReverseSelf {
-  typedef DeviceType device_type;
-
-  typename ArrayTypes<DeviceType>::t_f_array_randomread _f;
-  typename ArrayTypes<DeviceType>::t_f_array _fw;
-  typename ArrayTypes<DeviceType>::t_f_array_randomread _torque;
-  typename ArrayTypes<DeviceType>::t_f_array _torquew;
-  int _nfirst;
-  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
-
-  AtomVecDipoleKokkos_UnPackReverseSelf(
-      const typename DAT::tdual_f_array &f,
-      const typename DAT::tdual_f_array &torque,
-      const int &nfirst,
-      const typename DAT::tdual_int_2d &list,
-      const int & iswap):
-      _f(f.view<DeviceType>()),_fw(f.view<DeviceType>()),
-      _torque(torque.view<DeviceType>()),_torquew(torque.view<DeviceType>()),
-      _nfirst(nfirst),_list(list.view<DeviceType>()),_iswap(iswap) {
-  };
-
-  KOKKOS_INLINE_FUNCTION
-  void operator() (const int& i) const {
-    const int j = _list(_iswap,i);
-    _fw(j,0) += _f(i+_nfirst,0);
-    _fw(j,1) += _f(i+_nfirst,1);
-    _fw(j,2) += _f(i+_nfirst,2);
-    _torquew(j,0) += _torque(i+_nfirst,0);
-    _torquew(j,1) += _torque(i+_nfirst,1);
-    _torquew(j,2) += _torque(i+_nfirst,2);
-  }
-};
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDipoleKokkos::unpack_reverse_self(const int &n, const DAT::tdual_int_2d &list, const int & iswap,
-                                        const int nfirst) {
-  if (commKK->reverse_comm_on_host) {
-    atomKK->sync(Host,F_MASK | TORQUE_MASK);
-    struct AtomVecDipoleKokkos_UnPackReverseSelf<LMPHostType> f(atomKK->k_f,atomKK->k_torque,nfirst,list,iswap);
-    Kokkos::parallel_for(n,f);
-    atomKK->modified(Host,F_MASK | TORQUE_MASK);
-  } else {
-    atomKK->sync(Device,F_MASK | TORQUE_MASK);
-    struct AtomVecDipoleKokkos_UnPackReverseSelf<LMPDeviceType> f(atomKK->k_f,atomKK->k_torque,nfirst,list,iswap);
-    Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,F_MASK | TORQUE_MASK);
-  }
-  return n*3;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-struct AtomVecDipoleKokkos_UnPackReverse {
-  typedef DeviceType device_type;
-
-  typename ArrayTypes<DeviceType>::t_f_array _f;
-  typename ArrayTypes<DeviceType>::t_f_array _torque;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d_const _buf;
-  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
-
-  AtomVecDipoleKokkos_UnPackReverse(
-      const typename DAT::tdual_f_array &f,
-      const typename DAT::tdual_f_array &torque,
-      const typename DAT::tdual_ffloat_2d &buf,
-      const typename DAT::tdual_int_2d &list,
-      const int & iswap):
-      _f(f.view<DeviceType>()),_torque(torque.view<DeviceType>()),
-      _list(list.view<DeviceType>()),_iswap(iswap) {
-        const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/3;
-        const size_t elements = 6;
-        buffer_view<DeviceType>(_buf,buf,maxsend,elements);
-  };
-
-  KOKKOS_INLINE_FUNCTION
-  void operator() (const int& i) const {
-    const int j = _list(_iswap,i);
-    _f(j,0) += _buf(i,0);
-    _f(j,1) += _buf(i,1);
-    _f(j,2) += _buf(i,2);
-    _torque(j,0) += _buf(i,3);
-    _torque(j,1) += _buf(i,4);
-    _torque(j,2) += _buf(i,5);
-  }
-};
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecDipoleKokkos::unpack_reverse_kokkos(const int &n,
-                                          const DAT::tdual_int_2d &list,
-                                          const int & iswap,
-                                          const DAT::tdual_ffloat_2d &buf)
-{
-  // Check whether to always run reverse communication on the host
-  // Choose correct reverse UnPackReverse kernel
-
-  if (commKK->reverse_comm_on_host) {
-    struct AtomVecDipoleKokkos_UnPackReverse<LMPHostType> f(atomKK->k_f,atomKK->k_torque,buf,list,iswap);
-    Kokkos::parallel_for(n,f);
-    atomKK->modified(Host,F_MASK | TORQUE_MASK);
-  } else {
-    struct AtomVecDipoleKokkos_UnPackReverse<LMPDeviceType> f(atomKK->k_f,atomKK->k_torque,buf,list,iswap);
-    Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,F_MASK | TORQUE_MASK);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDipoleKokkos::pack_reverse(int n, int first, double *buf)
-{
-  if (n > 0)
-    atomKK->sync(Host,F_MASK|TORQUE_MASK);
-
-  int m = 0;
-  const int last = first + n;
-  for (int i = first; i < last; i++) {
-    buf[m++] = h_f(i,0);
-    buf[m++] = h_f(i,1);
-    buf[m++] = h_f(i,2);
-    buf[m++] = h_torque(i,0);
-    buf[m++] = h_torque(i,1);
-    buf[m++] = h_torque(i,2);
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDipoleKokkos::pack_reverse_hybrid(int n, int first, double *buf)
-{
-  if (n > 0)
-    atomKK->sync(Host,TORQUE_MASK);
-
-  int m = 0;
-  const int last = first + n;
-  for (int i = first; i < last; i++) {
-    buf[m++] = h_torque(i,0);
-    buf[m++] = h_torque(i,1);
-    buf[m++] = h_torque(i,2);
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecDipoleKokkos::unpack_reverse(int n, int *list, double *buf)
-{
-  if (n > 0) {
-    atomKK->modified(Host,F_MASK|TORQUE_MASK);
-  }
-
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    const int j = list[i];
-    h_f(j,0) += buf[m++];
-    h_f(j,1) += buf[m++];
-    h_f(j,2) += buf[m++];
-    h_torque(j,0) += buf[m++];
-    h_torque(j,1) += buf[m++];
-    h_torque(j,2) += buf[m++];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDipoleKokkos::unpack_reverse_hybrid(int n, int *list, double *buf)
-{
-  if (n > 0) {
-    atomKK->modified(Host,TORQUE_MASK);
-  }
-
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    const int j = list[i];
-    h_torque(j,0) += buf[m++];
-    h_torque(j,1) += buf[m++];
-    h_torque(j,2) += buf[m++];
-  }
-  return m;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1451,7 +1211,6 @@ double AtomVecDipoleKokkos::memory_usage()
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*commKK->nthreads,3);
-  if (atom->memcheck("torque")) bytes += memory->usage(torque,nmax*commKK->nthreads,3);
 
   if (atom->memcheck("q")) bytes += memory->usage(q,nmax);
   if (atom->memcheck("mu")) bytes += memory->usage(mu,nmax,4);
@@ -1467,7 +1226,6 @@ void AtomVecDipoleKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.sync<LMPDeviceType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPDeviceType>();
     if (mask & F_MASK) atomKK->k_f.sync<LMPDeviceType>();
-    if (mask & TORQUE_MASK) atomKK->k_torque.sync<LMPDeviceType>();
     if (mask & TAG_MASK) atomKK->k_tag.sync<LMPDeviceType>();
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
@@ -1478,7 +1236,6 @@ void AtomVecDipoleKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
     if (mask & F_MASK) atomKK->k_f.sync<LMPHostType>();
-    if (mask & TORQUE_MASK) atomKK->k_torque.sync<LMPHostType>();
     if (mask & TAG_MASK) atomKK->k_tag.sync<LMPHostType>();
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
@@ -1496,7 +1253,6 @@ void AtomVecDipoleKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.modify<LMPDeviceType>();
     if (mask & V_MASK) atomKK->k_v.modify<LMPDeviceType>();
     if (mask & F_MASK) atomKK->k_f.modify<LMPDeviceType>();
-    if (mask & TORQUE_MASK) atomKK->k_torque.modify<LMPDeviceType>();
     if (mask & TAG_MASK) atomKK->k_tag.modify<LMPDeviceType>();
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPDeviceType>();
@@ -1507,7 +1263,6 @@ void AtomVecDipoleKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & X_MASK) atomKK->k_x.modify<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.modify<LMPHostType>();
     if (mask & F_MASK) atomKK->k_f.modify<LMPHostType>();
-    if (mask & TORQUE_MASK) atomKK->k_torque.modify<LMPHostType>();
     if (mask & TAG_MASK) atomKK->k_tag.modify<LMPHostType>();
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPHostType>();
@@ -1526,8 +1281,6 @@ void AtomVecDipoleKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
     if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
-    if ((mask & TORQUE_MASK) && atomKK->k_torque.need_sync<LMPDeviceType>())
-      perform_async_copy<DAT::tdual_f_array>(atomKK->k_torque,space);
     if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
     if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPDeviceType>())
@@ -1547,8 +1300,6 @@ void AtomVecDipoleKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
       perform_async_copy<DAT::tdual_v_array>(atomKK->k_v,space);
     if ((mask & F_MASK) && atomKK->k_f.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_f,space);
-    if ((mask & TORQUE_MASK) && atomKK->k_torque.need_sync<LMPHostType>())
-      perform_async_copy<DAT::tdual_f_array>(atomKK->k_torque,space);
     if ((mask & TAG_MASK) && atomKK->k_tag.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_tagint_1d>(atomKK->k_tag,space);
     if ((mask & TYPE_MASK) && atomKK->k_type.need_sync<LMPHostType>())

@@ -61,8 +61,8 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   atomKK->sync(execution_space,X_MASK | TYPE_MASK );
   MLIAPDataKokkos<DeviceType> *k_data = (MLIAPDataKokkos<DeviceType>*)(data);
 
-  bool is_kokkos_model = (dynamic_cast<MLIAPModelKokkos<DeviceType>*>(model))!=nullptr;
-  bool is_kokkos_descriptor = (dynamic_cast<MLIAPDescriptorKokkos<DeviceType>*>(descriptor))!=nullptr;
+  int is_kokkos_model = (dynamic_cast<MLIAPModelKokkos<DeviceType>*>(model)) != nullptr;
+  int is_kokkos_descriptor = (dynamic_cast<MLIAPDescriptorKokkos<DeviceType>*>(descriptor)) != nullptr;
 
   // consistency checks
   if (data->ndescriptors != model->ndescriptors)

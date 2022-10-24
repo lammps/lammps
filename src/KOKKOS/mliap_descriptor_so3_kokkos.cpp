@@ -82,7 +82,6 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
   auto d_ij = data->k_ij.template view<DeviceType>();
   auto ndescriptors = data->ndescriptors;
   auto d_dplist_r = so3ptr_kokkos->k_dplist_r;
-  int nlistatoms=data->nlistatoms;
   auto vflag=data->vflag;
   int vflag_either=data->k_pairmliap->vflag_either, vflag_global=data->pairmliap->vflag_global, vflag_atom=data->pairmliap->vflag_atom;
   auto d_vatom = data->k_pairmliap->k_vatom.template view<DeviceType>();

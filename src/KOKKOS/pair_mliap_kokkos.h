@@ -60,7 +60,6 @@ public:
 
 
   friend void pair_virial_fdotr_compute<PairMLIAPKokkos>(PairMLIAPKokkos*);
-
 };
 
 }

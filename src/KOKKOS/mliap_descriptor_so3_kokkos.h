@@ -25,7 +25,7 @@
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class MLIAPDescriptorSO3Kokkos : public MLIAPDescriptorSO3, virtual public MLIAPDescriptorKokkos<DeviceType> {
+class MLIAPDescriptorSO3Kokkos : public MLIAPDescriptorSO3, public MLIAPDescriptorKokkos<DeviceType> {
 
  public:
   MLIAPDescriptorSO3Kokkos(LAMMPS *, char *);

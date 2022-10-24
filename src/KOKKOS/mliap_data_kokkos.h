@@ -57,7 +57,6 @@ public:
 
   void sync(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync=false);
 
-
   PairMLIAPKokkos<DeviceType> *k_pairmliap;
 
   DAT::tdual_int_1d k_iatoms;// index of each atom
@@ -79,8 +78,8 @@ public:
   int nij_total;
 protected:
   class LAMMPS *lmp;
-
 };
+
 }
 
 #endif /* SRC_KOKKOS_MLIAP_DATA_KOKKOS_H_ */

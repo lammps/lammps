@@ -10,9 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
+
 #include "mliap_model_linear_kokkos.h"
 #include "mliap_data_kokkos.h"
 
@@ -25,8 +27,9 @@ MLIAPModelLinearKokkos<DeviceType>::MLIAPModelLinearKokkos(LAMMPS *lmp, char *ar
 {
   if (args)
     MLIAPModelKokkos<DeviceType>::set_k_coeffelem();
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data)
@@ -69,14 +72,19 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data
   }, data->energy);
 
   k_data->modified(execution_space, BETAS_MASK | EATOMS_MASK);
-
 }
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void MLIAPModelLinearKokkos<DeviceType>::compute_gradgrads(class MLIAPData *data)
 {
   abort();
   MLIAPModelLinear::compute_gradgrads(data);
 }
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void MLIAPModelLinearKokkos<DeviceType>::compute_force_gradients(class MLIAPData *data)
 {
@@ -84,6 +92,7 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_force_gradients(class MLIAPData
   MLIAPModelLinear::compute_force_gradients(data);
 }
 
+/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class MLIAPModelLinearKokkos<LMPDeviceType>;

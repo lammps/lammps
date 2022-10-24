@@ -61,7 +61,6 @@ MLIAP_SO3Kokkos<DeviceType>::MLIAP_SO3Kokkos(LAMMPS *lmp, double vrcut, int vlma
 template <class DeviceType>
 MLIAP_SO3Kokkos<DeviceType>::~MLIAP_SO3Kokkos()
 {
-
   memoryKK->destroy_kokkos(m_ellpl1);
   memoryKK->destroy_kokkos(m_ellm1);
   memoryKK->destroy_kokkos(m_pfac);
@@ -112,7 +111,6 @@ MLIAP_SO3Kokkos<DeviceType>::~MLIAP_SO3Kokkos()
 template <class DeviceType>
 void MLIAP_SO3Kokkos<DeviceType>::compute_ncoeff()
 {
-
   ncoeff = m_nmax * (m_nmax + 1) * (m_lmax + 1) / 2;
 }
 
@@ -502,8 +500,8 @@ double MLIAP_SO3Kokkos<DeviceType>::compute_dsfac(double r, double rcut) const
     return CosinePrime(r, rcut);
 }
 
-
 /* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 int MLIAP_SO3Kokkos<DeviceType>::get_sum(int istart, int iend, int id, int imult)
@@ -517,6 +515,7 @@ int MLIAP_SO3Kokkos<DeviceType>::get_sum(int istart, int iend, int id, int imult
 }
 
 /* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 template <typename UlistView>
 KOKKOS_INLINE_FUNCTION
@@ -629,6 +628,7 @@ void MLIAP_SO3Kokkos<DeviceType>::init_garray(int nmax, int lmax, double rcut, d
 }
 
 /* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAPSO3GetSBESArrayTag&, int ii) const{
@@ -688,6 +688,7 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAPSO3GetSBESArrayTag&, in
 }
 
 /* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAPSO3GetRipArrayTag&, int ii) const{
@@ -783,6 +784,8 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>::MLIAPSO3SpectrumTag&, int ii) const {
@@ -836,6 +839,7 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
   compute_pi(t_nmax, t_lmax, clisttot_r, clisttot_i, m_numYlms, m_plist_r, ii);
 
 }
+
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
@@ -915,6 +919,7 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1189,4 +1194,3 @@ template class MLIAP_SO3Kokkos<LMPDeviceType>;
 template class MLIAP_SO3Kokkos<LMPHostType>;
 #endif
 }
-

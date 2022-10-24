@@ -72,13 +72,11 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     nmax = atom->nmax;
     memoryKK->destroy_kokkos(k_gradforce,gradforce);
     memoryKK->create_kokkos(k_gradforce, gradforce, nmax, size_gradforce, "mliap_data:gradforce");
-
   }
 
   // clear gradforce array
   auto d_gradforce = k_gradforce.template view<DeviceType>();
   Kokkos::deep_copy(d_gradforce, 0.);
-  // grow arrays if necessary
 
   // grow arrays if necessary
   nlistatoms = list->inum;
@@ -138,7 +136,6 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     update += d_numneighs(ii);
   });
 
-  Kokkos::fence();
   Kokkos::parallel_for(nlistatoms, KOKKOS_LAMBDA (int ii)  {
     int ij = d_ij(ii);
     const int i = d_ilist[ii];
@@ -169,7 +166,6 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     d_ielems[ii] = ielem;
   });
 
-  Kokkos::fence();
   modified(execution_space, IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
   sync(Host, IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
 

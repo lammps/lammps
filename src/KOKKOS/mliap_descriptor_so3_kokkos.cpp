@@ -61,7 +61,6 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptors(class MLIAPData *
 
   Kokkos::deep_copy(data->k_descriptors.template view<DeviceType>(), so3ptr_kokkos->m_plist_r);
   Kokkos::deep_copy(data->k_descriptors.h_view, so3ptr_kokkos->m_plist_r);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,7 +92,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
     double fij[3];
     const int i = d_iatoms(ii);
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     const int jnum = d_numneighs(ii);
     int ij = d_ij(ii); // use precomputed ij to break loop dependency
@@ -124,6 +123,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
       ij++;
     }
   });
+
   if (vflag) {
     if (vflag_global) {
       Kokkos::View<double[6], LMPHostType> h_virial("h_virial");

@@ -150,8 +150,7 @@ void PairMLIAPKokkos<DeviceType>::allocate()
   k_cutsq.sync<LMPDeviceType>();
 
   // this is for the base class so it doesn't double delete
-  allocated=1;
-
+  allocated = 1;
 }
 
 /* ---------------------------------------------------------------------- */

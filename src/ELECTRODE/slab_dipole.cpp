@@ -137,5 +137,4 @@ void SlabDipole::matrix_corr(bigint *imat, double **matrix)
       if (imat[i] != jmat[j]) matrix[jmat[j]][imat[i]] += aij;
     }
   }
-  // TODO add ELC corrections, needs sum over all kpoints but not (0,0)
 }

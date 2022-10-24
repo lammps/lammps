@@ -337,7 +337,7 @@ void PPPMElectrode::setup()
   // fkx,fky,fkz for my FFT grid pts
 
   for (i = nxlo_fft; i <= nxhi_fft; i++) {
-    int per = i - nx_pppm * (2 * i / nx_pppm);    // TODO int division intentional?
+    int per = i - nx_pppm * (2 * i / nx_pppm);
     fkx[i] = unitkx * per;
   }
 
@@ -449,7 +449,6 @@ void PPPMElectrode::compute(int eflag, int vflag)
 
   // return if there are no charges
 
-  // if (qsqsum == 0.0) return; TODO move back in
 
   start_compute();
 
@@ -677,8 +676,7 @@ void PPPMElectrode::project_psi(double *vec, int sensor_grpbit)
 
 void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_flag)
 {
-  // TODO replace compute with required setup
-  compute(1, 0);
+  compute(1, 0); // make sure density bricks etc. are set up
 
   // fft green's function k -> r (double)
   double *greens_real;

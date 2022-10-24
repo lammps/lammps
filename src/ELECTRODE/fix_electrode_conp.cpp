@@ -47,6 +47,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+#define SMALL 1e-16
+
 extern "C" {
 void dgetrf_(const int *M, const int *N, double *A, const int *lda, int *ipiv, int *info);
 void dgetri_(const int *N, double *A, const int *lda, const int *ipiv, double *work,
@@ -519,7 +521,8 @@ void FixElectrodeConp::setup_post_neighbor()
         read_from_file(input_file_inv, capacitance, "capacitance");
       else
         invert();
-      if (symm) symmetrize();    // TODO: is this safe with read_inv?
+      if (symm) symmetrize();
+
       // build sd vectors and macro matrices
       MPI_Barrier(world);
       double start = MPI_Wtime();
@@ -608,6 +611,10 @@ void FixElectrodeConp::invert()
 void FixElectrodeConp::symmetrize()
 {
   // S matrix to enforce charge neutrality constraint
+  if (read_inv)
+    error->warning(FLERR,
+                   "Symmetrizing matrix from file. Make sure the provided matrix has not been "
+                   "symmetrized yet.");
   assert(algo == Algo::MATRIX_INV);
   std::vector<double> AinvE(ngroup, 0.);
   double EAinvE = 0.0;
@@ -836,7 +843,8 @@ void FixElectrodeConp::update_charges()
       q_local = add_nlocalele(q_local, scale_vector(alpha, d));
       // prepare next step
       if ((k + 1) % 20 == 0) {
-        // avoid shifting residual. TODO: apply constraint_correction?
+        // avoid shifting residual. This rarely happens.
+        q_local = constraint_correction(q_local);
         a = ele_ele_interaction(q_local);
         r = add_nlocalele(b, a);
       } else {
@@ -1003,13 +1011,13 @@ void FixElectrodeConp::compute_macro_matrices()
   macro_elastance =
       std::vector<std::vector<double>>(num_of_groups, std::vector<double>(num_of_groups));
 
-  // TODO: does determinant ever = 0 if !symm? what to do then?
   if (num_of_groups == 1) {
     macro_elastance[0][0] = 1 / macro_capacitance[0][0];
   } else if (num_of_groups == 2) {
-    double detinv = 1 /
-        (macro_capacitance[0][0] * macro_capacitance[1][1] -
-         macro_capacitance[0][1] * macro_capacitance[1][0]);
+    double const det = macro_capacitance[0][0] * macro_capacitance[1][1] -
+        macro_capacitance[0][1] * macro_capacitance[1][0];
+    if (fabs(det) < SMALL) error->all(FLERR, "ELECTRODE macro matrix inversion failed!");
+    double const detinv = 1 / det;
     macro_elastance[0][0] = macro_capacitance[1][1] * detinv;
     macro_elastance[1][1] = macro_capacitance[0][0] * detinv;
     macro_elastance[0][1] = -macro_capacitance[0][1] * detinv;
@@ -1032,7 +1040,7 @@ void FixElectrodeConp::compute_macro_matrices()
     int info_rf, info_ri;
     dgetrf_(&m, &n, &tmp.front(), &lda, &ipiv.front(), &info_rf);
     dgetri_(&n, &tmp.front(), &lda, &ipiv.front(), &work.front(), &lwork, &info_ri);
-    if (info_rf != 0 || info_ri != 0) error->all(FLERR, "CONP macro matrix inversion failed!");
+    if (info_rf != 0 || info_ri != 0) error->all(FLERR, "ELECTRODE macro matrix inversion failed!");
     for (int i = 0; i < num_of_groups; i++) {
       for (int j = 0; j < num_of_groups; j++) {
         int idx = i * num_of_groups + j;
@@ -1262,7 +1270,8 @@ void FixElectrodeConp::read_from_file(const std::string &input_file, double **ar
     std::vector<tagint> tags;
     try {
       TextFileReader reader(input_file, filetype);
-      reader.set_bufsize(ngroup * 20 + 4);
+      int bufsize = ngroup * 20 + 4;
+      reader.set_bufsize(bufsize > 100 ? bufsize : 100);
 
       // get line with tags
       auto values = reader.next_values(ngroup);

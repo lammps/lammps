@@ -70,7 +70,7 @@ void Slab2d::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, dou
     }
 
     // per-atom energy; see eq. (20) in metalwalls ewald doc
-    if (eflag_atom) eatom[i] -= efact * q[i] * pot_ij;    // TODO check if 0.5 factor
+    if (eflag_atom) eatom[i] -= efact * q[i] * pot_ij;
     if (eflag_global) e_keq0 -= q[i] * pot_ij;
   }
   if (eflag_global) {

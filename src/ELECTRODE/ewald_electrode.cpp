@@ -32,6 +32,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1007,7 +1008,8 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
     n++;
   }
 
-  // TODO check if ((bigint) kxmax+1)*ngroup overflows ...
+  if (((bigint) kxmax + 1) * ngroup > INT_MAX)
+    error->all(FLERR, "kmax is too large, integer overflows might occur.");
 
   memory->create(csx_all, ((bigint) kxmax + 1) * ngroup, "ewald/electrode:csx_all");
   memory->create(snx_all, ((bigint) kxmax + 1) * ngroup, "ewald/electrode:snx_all");
@@ -1018,15 +1020,12 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
 
   memory->create(jmat, ngroup, "ewald/electrode:jmat");
 
-  int *recvcounts, *displs;    // TODO allgather requires int for displs but
-                               // displs might overflow!
+  int *recvcounts, *displs;
   memory->create(recvcounts, nprocs, "ewald/electrode:recvcounts");
   memory->create(displs, nprocs, "ewald/electrode:displs");
 
   // gather subsets global cs and sn
   int n = (kxmax + 1) * ngrouplocal;
-  // TODO check if (kxmax+1)*ngrouplocal, etc.
-  // overflows int n! typically kxmax small
 
   MPI_Allgather(&n, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
   displs[0] = 0;

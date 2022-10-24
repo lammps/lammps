@@ -301,7 +301,7 @@ void FixMDIQM::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIQM::post_force(int vflag)
+void FixMDIQM::post_force(int /*vflag*/)
 {
   int index, ierr;
 

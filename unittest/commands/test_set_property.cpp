@@ -107,6 +107,7 @@ TEST_F(SetTest, NoBoxNoAtoms)
 
 TEST_F(SetTest, StylesTypes)
 {
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     atomic_system("molecular");
     ASSERT_EQ(atom->natoms, 8);
 

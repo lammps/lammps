@@ -257,10 +257,9 @@ void BondHybrid::flags()
   // set comm_forward, comm_reverse, comm_reverse_off to max of any sub-style
 
   for (m = 0; m < nstyles; m++) {
-    if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
-    if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
-    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,
-                                          styles[m]->comm_reverse_off);
+    if (styles[m]) comm_forward = MAX(comm_forward, styles[m]->comm_forward);
+    if (styles[m]) comm_reverse = MAX(comm_reverse, styles[m]->comm_reverse);
+    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off, styles[m]->comm_reverse_off);
   }
 
   init_svector();
@@ -276,8 +275,7 @@ void BondHybrid::init_svector()
   // allocate svector
 
   single_extra = 0;
-  for (int m = 0; m < nstyles; m++)
-    single_extra = MAX(single_extra,styles[m]->single_extra);
+  for (int m = 0; m < nstyles; m++) single_extra = MAX(single_extra, styles[m]->single_extra);
 
   if (single_extra) {
     delete[] svector;
@@ -415,14 +413,12 @@ double BondHybrid::single(int type, double rsq, int i, int j, double &fforce)
 
 void BondHybrid::copy_svector(int type)
 {
-  memset(svector,0,single_extra*sizeof(double));
+  memset(svector, 0, single_extra * sizeof(double));
 
   // there is only one style in bond style hybrid for a bond type
   Bond *this_style = styles[map[type]];
 
-  for (int l = 0; this_style->single_extra; ++l) {
-    svector[l] = this_style->svector[l];
-  }
+  for (int l = 0; this_style->single_extra; ++l) { svector[l] = this_style->svector[l]; }
 }
 
 /* ----------------------------------------------------------------------

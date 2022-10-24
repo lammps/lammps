@@ -1,11 +1,11 @@
 The ``LIBLAMMPS`` Fortran Module
 ********************************
 
-The ``LIBLAMMPS`` module provides an interface to call LAMMPS from Fortran.
-It is based on the LAMMPS C library interface and
-requires a Fortran 2003-compatible compiler to be compiled.  It is
-designed to be self-contained and not require any support functions
-written in C, C++, or Fortran other than those in the C library interface.
+The ``LIBLAMMPS`` module provides an interface to call LAMMPS from
+Fortran.  It is based on the LAMMPS C library interface and requires a
+fully Fortran 2003-compatible compiler to be compiled.  It is designed
+to be self-contained and not require any support functions written in C,
+C++, or Fortran other than those in the C library interface.
 
 While C libraries have a defined binary interface (ABI) and can thus be
 used from multiple compiler versions from different vendors as long
@@ -21,11 +21,11 @@ for a simple program using the Fortran interface would be:
    mpifort -o testlib.x lammps.f90 testlib.f90 -L. -llammps
 
 Please note that the MPI compiler wrapper is only required when the
-calling the library from an MPI-parallelized program.  Otherwise, using the
-fortran compiler (gfortran, ifort, flang, etc.) will suffice.  It may be
-necessary to link to additional libraries, depending on how LAMMPS was
-configured and whether the LAMMPS library :doc:`was compiled as a static
-or dynamic library <Build_link>`.
+calling the library from an MPI-parallelized program.  Otherwise, using
+the plain Fortran compiler (gfortran, ifort, flang, etc.) will suffice.
+It may be necessary to link to additional libraries, depending on how
+LAMMPS was configured and whether the LAMMPS library :doc:`was compiled
+as a static or dynamic library <Build_link>`.
 
 If the LAMMPS library itself has been compiled with MPI support, the
 resulting executable will still be able to run LAMMPS in parallel with
@@ -299,7 +299,7 @@ of the contents of the ``LIBLAMMPS`` Fortran interface to LAMMPS.
       ``MPI_comm`` derived type to access the integer value of the
       communicator, such as in
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          PROGRAM testmpi
            USE LIBLAMMPS
@@ -446,7 +446,7 @@ Procedures Bound to the lammps Derived Type
    represents a properly-initialized LAMMPS instance, the following code will
    extract the periodic box settings into the variable "periodic":
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       ! code to start up
       logical :: periodic(3)
@@ -593,7 +593,7 @@ Procedures Bound to the lammps Derived Type
       but you can automatically reallocate it to the correct length after the
       function returns, viz.,
 
-      .. code-block :: Fortran
+      .. code-block :: fortran
 
          PROGRAM test
            USE LIBLAMMPS
@@ -670,7 +670,7 @@ Procedures Bound to the lammps Derived Type
        will print the *y*-coordinate of the sixth atom on this processor.
        Conversely,
 
-       .. code-block:: Fortran
+       .. code-block:: fortran
 
           TYPE(lammps) :: lmp
           REAL(c_double), DIMENSION(:,:), POINTER :: x => NULL()
@@ -720,7 +720,7 @@ Procedures Bound to the lammps Derived Type
        typical notation in C and C++, but not Fortran), you can create another
        pointer and associate it thus:
 
-       .. code-block:: Fortran
+       .. code-block:: fortran
 
           REAL(c_double), DIMENSION(:,:), POINTER :: x, x0
           x = lmp%extract_atom("x")
@@ -752,7 +752,7 @@ Procedures Bound to the lammps Derived Type
 
    For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double), DIMENSION(:), POINTER :: COM
@@ -938,7 +938,7 @@ Procedures Bound to the lammps Derived Type
 
    For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double) :: dr, dx, dy, dz
@@ -960,7 +960,7 @@ Procedures Bound to the lammps Derived Type
    appropriate size to match the internal data, and will be
    type/kind/rank-checked at the time of the assignment. For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double), DIMENSION(:), POINTER :: r
@@ -973,7 +973,7 @@ Procedures Bound to the lammps Derived Type
    array computed by :doc:`fix store/state <fix_store_state>` when three
    inputs are specified. Similarly,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double), DIMENSION(:), POINTER :: x
@@ -1059,7 +1059,7 @@ Procedures Bound to the lammps Derived Type
 
    For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double) :: area
@@ -1129,7 +1129,7 @@ Procedures Bound to the lammps Derived Type
       If you want data from this function to be accessible as a two-dimensional
       array, you can declare a rank-2 pointer and reassign it, like so:
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          USE, INTRINSIC :: ISO_C_BINDING
          USE LIBLAMMPS

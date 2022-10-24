@@ -33,8 +33,7 @@ class PairLJCutCoulLongDielectricOMP : public PairLJCutCoulLongDielectric, publi
   void compute(int, int) override;
 
  protected:
-  template <int EVFLAG, int EFLAG>
-  void eval(int ifrom, int ito, ThrData *const thr);
+  template <int EVFLAG, int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);
 };
 
 }    // namespace LAMMPS_NS

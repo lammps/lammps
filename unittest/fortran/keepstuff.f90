@@ -1,8 +1,8 @@
 MODULE keepstuff
   USE liblammps
   IMPLICIT NONE
-  TYPE(LAMMPS) :: lmp
-  INTEGER :: mycomm
+  TYPE(LAMMPS), SAVE :: lmp
+  INTEGER, SAVE :: mycomm
   CHARACTER(LEN=40), DIMENSION(3), PARAMETER :: demo_input = &
       [ CHARACTER(LEN=40) ::                                &
       'region       box block 0 $x 0 2 0 2',                &

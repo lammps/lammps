@@ -101,7 +101,7 @@ Py2 by Pz2, then Px1 must be an integer multiple of Px2, and similarly
 for Py1 a multiple of Py2, and Pz1 a multiple of Pz2.
 
 Typically the best way to do this is to let the first partition choose
-its onn optimal layout, then require the second partition's layout to
+its own optimal layout, then require the second partition's layout to
 match the integer multiple constraint.  See the
 :doc:`processors <processors>` command with its *part* keyword for a way
 to control this, e.g.

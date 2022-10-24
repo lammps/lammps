@@ -10,9 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
+
 #ifndef LMP_MLIAP_SO3KOKKOS_H
 #define LMP_MLIAP_SO3KOKKOS_H
 
@@ -43,6 +45,7 @@ class MLIAP_SO3Kokkos : protected Pointers {
   int ncoeff;
   float_2d m_plist_r;
   float_3d k_dplist_r;
+
  private:
   double alloc_init, alloc_arrays;
   int_1d m_ellpl1, m_ellm1;
@@ -82,6 +85,7 @@ class MLIAP_SO3Kokkos : protected Pointers {
 
   static constexpr bigint m_temp_memory_size=512*1024*1024;
   int m_chunk_size;
+
  public:
   void spectrum(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems, DAT::tdual_float_1d wjelem,
                 DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
@@ -138,8 +142,6 @@ class MLIAP_SO3Kokkos : protected Pointers {
                   float_2d plist_r, int indpl) const;
 
   void compute_W(int nmax, double *arr);
-
-
 };
 
 }    // namespace LAMMPS_NS

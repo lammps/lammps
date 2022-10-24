@@ -21,6 +21,7 @@
 #include "mliap_descriptor_so3.h"
 #include "mliap_descriptor_kokkos.h"
 #include "mliap_so3_kokkos.h"
+
 namespace LAMMPS_NS {
 
 template<class DeviceType>

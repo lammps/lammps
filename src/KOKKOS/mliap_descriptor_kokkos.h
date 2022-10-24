@@ -36,14 +36,15 @@ public:
     int num_elems = descriptor->nelements;
     memoryKK->destroy_kokkos(k_wjelem);
     memoryKK->create_kokkos(k_wjelem,num_elems,"MLIAPDescriptorKokkos::k_wjelem");
-    for (int i=0;i<num_elems; ++i)
+    for (int i = 0; i < num_elems; ++i)
       k_wjelem.h_view(i) = descriptor->wjelem[i];
     k_wjelem.modify<LMPHostType>();
     k_wjelem.sync<LMPDeviceType>();
   }
+
   virtual ~MLIAPDescriptorKokkos() {
-//    memoryKK->destroy_kokkos(k_coeffelem);
-//    model->coeffelem=nullptr;
+    //memoryKK->destroy_kokkos(k_coeffelem);
+    //model->coeffelem = nullptr;
     memoryKK->destroy_kokkos(k_wjelem);
   }
 
@@ -53,4 +54,4 @@ public:
 
 }// namespace
 
-#endif /* SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H_ */
+#endif /* SRC_KOKKOS_MLIAP_DESCRIPTOR_KOKKOS_H */

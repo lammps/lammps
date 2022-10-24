@@ -49,7 +49,7 @@ PairMLIAPKokkos<DeviceType>::~PairMLIAPKokkos()
   memoryKK->destroy_kokkos(k_setflag, setflag);
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  allocated=0;
+  allocated = 0;
 }
 
 /* ---------------------------------------------------------------------- */

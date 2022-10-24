@@ -10,9 +10,11 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
+
 #ifndef LMP_MLIAP_MODEL_LINEAR_KOKKOS_H
 #define LMP_MLIAP_MODEL_LINEAR_KOKKOS_H
 
@@ -22,8 +24,6 @@
 
 namespace LAMMPS_NS {
 
-
-
 template<class DeviceType>
 class MLIAPModelLinearKokkos : public MLIAPModelLinear , public MLIAPModelKokkos<DeviceType> {
 public:
@@ -32,7 +32,6 @@ public:
   void compute_gradients(class MLIAPData *) override;
   void compute_gradgrads(class MLIAPData *) override;
   void compute_force_gradients(class MLIAPData *) override;
-
 };
 
 }

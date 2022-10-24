@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
 LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 https://www.lammps.org/, Sandia National Laboratories
-Steve Plimpton, sjplimp@sandia.gov
+LAMMPS development team: developers@lammps.org
 
 Copyright (2003) Sandia Corporation.  Under the terms of Contract
 DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -287,14 +287,13 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     groupbits[rxn] = group->bitmask[groupid];
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      char *str = utils::strdup(&arg[iarg][2]);
+      const char *str = &arg[iarg][2];
       var_id[NEVERY][rxn] = input->variable->find(str);
       if (var_id[NEVERY][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name does not exist");
+        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
       if (!input->variable->equalstyle(var_id[NEVERY][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
       var_flag[NEVERY][rxn] = 1;
-      delete [] str;
     } else {
       nevery[rxn] = utils::inumeric(FLERR,arg[iarg],false,lmp);
       if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
@@ -303,16 +302,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      char *str = utils::strdup(&arg[iarg][2]);
+      const char *str = &arg[iarg][2];
       var_id[RMIN][rxn] = input->variable->find(str);
       if (var_id[RMIN][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name does not exist");
+        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
       if (!input->variable->equalstyle(var_id[RMIN][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
       double cutoff = input->variable->compute_equal(var_id[RMIN][rxn]);
       cutsq[rxn][0] = cutoff*cutoff;
       var_flag[RMIN][rxn] = 1;
-      delete [] str;
     } else {
       double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
@@ -322,16 +320,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      char *str = utils::strdup(&arg[iarg][2]);
+      const char *str = &arg[iarg][2];
       var_id[RMAX][rxn] = input->variable->find(str);
       if (var_id[RMAX][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name does not exist");
+        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
       if (!input->variable->equalstyle(var_id[RMAX][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+        error->all(FLERR,"Fix bond/react: Variable is {} not equal-style", str);
       double cutoff = input->variable->compute_equal(var_id[RMAX][rxn]);
       cutsq[rxn][1] = cutoff*cutoff;
       var_flag[RMAX][rxn] = 1;
-      delete [] str;
     } else {
       double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
@@ -347,7 +344,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (reacted_mol[rxn] == -1) error->all(FLERR,"Reacted molecule template ID for "
                                            "fix bond/react does not exist");
 
-    //read superimpose file
+    // read superimpose file
     files[rxn] = utils::strdup(arg[iarg]);
     iarg++;
 
@@ -357,15 +354,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'prob' keyword has too few arguments");
         // check if probability is a variable
         if (strncmp(arg[iarg+1],"v_",2) == 0) {
-          char *str = utils::strdup(&arg[iarg+1][2]);
+          const char *str = &arg[iarg+1][2];
           var_id[PROB][rxn] = input->variable->find(str);
           if (var_id[PROB][rxn] < 0)
-            error->all(FLERR,"Fix bond/react: Variable name does not exist");
+            error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
           if (!input->variable->equalstyle(var_id[PROB][rxn]))
-            error->all(FLERR,"Fix bond/react: Variable is not equal-style");
+            error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
           fraction[rxn] = input->variable->compute_equal(var_id[PROB][rxn]);
           var_flag[PROB][rxn] = 1;
-          delete [] str;
         } else {
           // otherwise probability should be a number
           fraction[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -662,27 +658,27 @@ FixBondReact::~FixBondReact()
   memory->destroy(global_mega_glove);
 
   if (stabilization_flag == 1) {
-    // check nfix in case all fixes have already been deleted
-    if (id_fix1 && modify->nfix) modify->delete_fix(id_fix1);
-    delete [] id_fix1;
+    // delete fixes if not already deleted
+    if (id_fix1 && modify->get_fix_by_id(id_fix1)) modify->delete_fix(id_fix1);
+    delete[] id_fix1;
 
-    if (id_fix3 && modify->nfix) modify->delete_fix(id_fix3);
-    delete [] id_fix3;
+    if (id_fix3 && modify->get_fix_by_id(id_fix3)) modify->delete_fix(id_fix3);
+    delete[] id_fix3;
   }
 
-  if (id_fix2 && modify->nfix) modify->delete_fix(id_fix2);
-  delete [] id_fix2;
+  if (id_fix2 && modify->get_fix_by_id(id_fix2)) modify->delete_fix(id_fix2);
+  delete[] id_fix2;
 
-  delete [] statted_id;
-  delete [] guess_branch;
-  delete [] pioneer_count;
-  delete [] set;
+  delete[] statted_id;
+  delete[] guess_branch;
+  delete[] pioneer_count;
+  delete[] set;
 
   if (group) {
     group->assign(std::string(master_group) + " delete");
     if (stabilization_flag == 1) {
       group->assign(std::string(exclude_group) + " delete");
-      delete [] exclude_group;
+      delete[] exclude_group;
     }
   }
 }
@@ -708,8 +704,9 @@ void FixBondReact::post_constructor()
 {
   // let's add the limit_tags per-atom property fix
   id_fix2 = utils::strdup("bond_react_props_internal");
-  if (modify->find_fix(id_fix2) < 0)
-    modify->add_fix(std::string(id_fix2)+" all property/atom i_limit_tags i_react_tags ghost yes");
+  if (!modify->get_fix_by_id(id_fix2))
+    fix2 = modify->add_fix(std::string(id_fix2) +
+                           " all property/atom i_limit_tags i_react_tags ghost yes");
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
@@ -724,8 +721,9 @@ void FixBondReact::post_constructor()
 
       // create stabilization per-atom property
       id_fix3 = utils::strdup("bond_react_stabilization_internal");
-      if (modify->find_fix(id_fix3) < 0)
-        fix3 = modify->add_fix(std::string(id_fix3) + " all property/atom i_statted_tags ghost yes");
+      if (!modify->get_fix_by_id(id_fix3))
+        fix3 = modify->add_fix(std::string(id_fix3) +
+                               " all property/atom i_statted_tags ghost yes");
 
       statted_id = utils::strdup("statted_tags");
 
@@ -733,7 +731,7 @@ void FixBondReact::post_constructor()
       // also, rename dynamic exclude_group by appending '_REACT'
       char *exclude_PARENT_group;
       exclude_PARENT_group = utils::strdup(exclude_group);
-      delete [] exclude_group;
+      delete[] exclude_group;
       exclude_group = utils::strdup(std::string(exclude_PARENT_group)+"_REACT");
 
       group->find_or_create(exclude_group);
@@ -742,7 +740,7 @@ void FixBondReact::post_constructor()
       else
         cmd = fmt::format("{} dynamic {} property statted_tags",exclude_group,exclude_PARENT_group);
       group->assign(cmd);
-      delete [] exclude_PARENT_group;
+      delete[] exclude_PARENT_group;
 
       // on to statted_tags (system-wide thermostat)
       // initialize per-atom statted_flags to 1
@@ -759,8 +757,7 @@ void FixBondReact::post_constructor()
       // sleeping code, for future capabilities
       custom_exclude_flag = 1;
       // first we have to find correct fix group reference
-      int ifix = modify->find_fix(std::string("GROUP_")+exclude_group);
-      Fix *fix = modify->fix[ifix];
+      Fix *fix = modify->get_fix_by_id(std::string("GROUP_")+exclude_group);
 
       // this returns names of corresponding property
       int unused;
@@ -779,10 +776,9 @@ void FixBondReact::post_constructor()
       //  i_statted_tags[i] = 1;
     }
 
-
     // let's create a new nve/limit fix to limit newly reacted atoms
     id_fix1 = utils::strdup("bond_react_MASTER_nve_limit");
-    if (modify->find_fix(id_fix1) < 0)
+    if (!modify->get_fix_by_id(id_fix1))
       fix1 = modify->add_fix(fmt::format("{} {} nve/limit  {}",
                                          id_fix1,master_group,nve_limit_xmax));
   }
@@ -1739,7 +1735,16 @@ void FixBondReact::inner_crosscheck_loop()
   // ...actually, avail_guesses should never be zero here anyway
   if (guess_branch[avail_guesses-1] == 0) guess_branch[avail_guesses-1] = num_choices;
 
-  std::sort(tag_choices, tag_choices + num_choices);
+  for (int i=1; i < num_choices; ++i) {
+    tagint hold = tag_choices[i];
+    int j = i - 1;
+    while ((j >=0) && (tag_choices[j] > hold)) {
+      tag_choices[j+1] = tag_choices[j];
+      --j;
+    }
+    tag_choices[j+1] = hold;
+  }
+
   for (int i = guess_branch[avail_guesses-1]-1; i >= 0; i--) {
     int already_assigned = 0;
     for (int j = 0; j < onemol->natoms; j++) {
@@ -2216,7 +2221,6 @@ double FixBondReact::custom_constraint(const std::string& varstr)
   std::size_t pos,pos1,pos2,pos3;
   int irxnfunc;
   int prev3 = -1;
-  double val;
   std::string argstr,varid,fragid,evlcat;
   std::vector<std::string> evlstr;
 
@@ -2253,11 +2257,7 @@ double FixBondReact::custom_constraint(const std::string& varstr)
   evlstr.push_back(varstr.substr(prev3+1));
 
   for (auto & evl : evlstr) evlcat += evl;
-
-  char *cstr = utils::strdup(evlcat);
-  val = input->variable->compute_equal(cstr);
-  delete [] cstr;
-  return val;
+  return input->variable->compute_equal(evlcat.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -3937,6 +3937,8 @@ void FixBondReact::CreateAtoms(char *line, int myrxn)
     sscanf(line,"%d",&tmp);
     create_atoms[tmp-1][myrxn] = 1;
   }
+  if (twomol->xflag == 0)
+    error->one(FLERR,"Fix bond/react: 'Coords' section required in post-reaction template when creating new atoms");
 }
 
 void FixBondReact::CustomCharges(int ifragment, int myrxn)
@@ -4300,7 +4302,7 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nreacts = nreacts;
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
-    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE);
+    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
     set[i].rxn_name[MAXLINE-1] = '\0';
   }
 

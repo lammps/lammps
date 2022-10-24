@@ -1,5 +1,5 @@
 FUNCTION f_lammps_with_args() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_ptr
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr
   USE LIBLAMMPS
   USE keepstuff, ONLY: lmp
   IMPLICIT NONE
@@ -13,7 +13,7 @@ FUNCTION f_lammps_with_args() BIND(C)
 END FUNCTION f_lammps_with_args
 
 SUBROUTINE f_lammps_close() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_null_ptr
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
   USE keepstuff, ONLY: lmp
   IMPLICIT NONE
@@ -34,7 +34,7 @@ SUBROUTINE f_lammps_setup_create_atoms() BIND(C)
 END SUBROUTINE f_lammps_setup_create_atoms
 
 SUBROUTINE f_lammps_create_three_atoms() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_double, c_int, c_int64_t
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double, c_int, c_int64_t
   USE keepstuff, ONLY : lmp
   USE LIBLAMMPS
   IMPLICIT NONE
@@ -73,7 +73,7 @@ SUBROUTINE f_lammps_create_three_atoms() BIND(C)
 END SUBROUTINE f_lammps_create_three_atoms
 
 SUBROUTINE f_lammps_create_two_more() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_double, c_int
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double, c_int
   USE keepstuff, ONLY : lmp
   USE LIBLAMMPS
   IMPLICIT NONE
@@ -87,7 +87,7 @@ SUBROUTINE f_lammps_create_two_more() BIND(C)
 END SUBROUTINE f_lammps_create_two_more
 
 SUBROUTINE f_lammps_create_two_more_small() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_double, c_int
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double, c_int
   USE keepstuff, ONLY : lmp
   USE LIBLAMMPS
   IMPLICIT NONE
@@ -105,7 +105,7 @@ SUBROUTINE f_lammps_create_two_more_small() BIND(C)
 END SUBROUTINE f_lammps_create_two_more_small
 
 SUBROUTINE f_lammps_create_two_more_big() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_double, c_int, c_int64_t
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double, c_int, c_int64_t
   USE keepstuff, ONLY : lmp
   USE LIBLAMMPS
   IMPLICIT NONE
@@ -123,7 +123,7 @@ SUBROUTINE f_lammps_create_two_more_big() BIND(C)
 END SUBROUTINE f_lammps_create_two_more_big
 
 SUBROUTINE f_lammps_create_two_more_small2() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_double, c_int
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double, c_int
   USE keepstuff, ONLY : lmp
   USE LIBLAMMPS
   IMPLICIT NONE
@@ -139,7 +139,7 @@ SUBROUTINE f_lammps_create_two_more_small2() BIND(C)
 END SUBROUTINE f_lammps_create_two_more_small2
 
 SUBROUTINE f_lammps_create_two_more_big2() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_double, c_int, c_int64_t
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_double, c_int, c_int64_t
   USE keepstuff, ONLY : lmp
   USE LIBLAMMPS
   IMPLICIT NONE

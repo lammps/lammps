@@ -1,7 +1,7 @@
 ! -------------------------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 !   https://www.lammps.org/ Sandia National Laboratories
-!   Steve Plimpton, sjplimp@sandia.gov
+!   The LAMMPS Developers, developers@lammps.org
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 !   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,11 +44,11 @@ MODULE LIBLAMMPS
   !
   ! These are NOT part of the API (the part the user sees)
   INTEGER(c_int), PARAMETER :: &
-    LAMMPS_INT = 0, &         ! 32-bit integer (array)
+    LAMMPS_INT = 0, &         ! 32-bit integer (or array)
     LAMMPS_INT_2D = 1, &      ! two-dimensional 32-bit integer array
-    LAMMPS_DOUBLE = 2, &      ! 64-bit double (array)
+    LAMMPS_DOUBLE = 2, &      ! 64-bit double (or array)
     LAMMPS_DOUBLE_2D = 3, &   ! two-dimensional 64-bit double array
-    LAMMPS_INT64 = 4, &       ! 64-bit integer (array)
+    LAMMPS_INT64 = 4, &       ! 64-bit integer (or array)
     LAMMPS_INT64_2D = 5, &    ! two-dimensional 64-bit integer array
     LAMMPS_STRING = 6, &      ! C-String
     LMP_STYLE_GLOBAL = 0, &   ! request global compute/fix/etc. data
@@ -123,12 +123,20 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_scatter_atoms_subset_double
     GENERIC   :: scatter_atoms_subset   => lmp_scatter_atoms_subset_int, &
                                            lmp_scatter_atoms_subset_double
+    PROCEDURE, PRIVATE :: lmp_gather_bonds_small
+    PROCEDURE, PRIVATE :: lmp_gather_bonds_big
+    GENERIC   :: gather_bonds           => lmp_gather_bonds_small, &
+                                           lmp_gather_bonds_big
 !
     PROCEDURE, PRIVATE :: lmp_create_atoms_int
     PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
     GENERIC   :: create_atoms           => lmp_create_atoms_int, &
                                            lmp_create_atoms_bigbig
-!
+    PROCEDURE :: find_pair_neighlist    => lmp_find_pair_neighlist
+    PROCEDURE :: find_fix_neighlist     => lmp_find_fix_neighlist
+    PROCEDURE :: find_compute_neighlist => lmp_find_compute_neighlist
+    PROCEDURE :: neighlist_num_elements => lmp_neighlist_num_elements
+    PROCEDURE :: neighlist_element_neighbors => lmp_neighlist_num_elements
     PROCEDURE :: version                => lmp_version
     PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
     PROCEDURE, NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
@@ -470,7 +478,11 @@ MODULE LIBLAMMPS
       INTEGER(c_int), VALUE :: count, ndata, type
     END SUBROUTINE lammps_scatter_atoms_subset
 
-    !SUBROUTINE lammps_gather_bonds
+    SUBROUTINE lammps_gather_bonds(handle, data) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, data
+    END SUBROUTINE lammps_gather_bonds
 
     !SUBROUTINE lammps_gather
 
@@ -480,23 +492,55 @@ MODULE LIBLAMMPS
 
     !SUBROUTINE lammps_scatter_subset
 
-    INTEGER(c_int) FUNCTION lammps_create_atoms(handle, n, id, type, x, v, &
-        image, bexpand) BIND(C)
+    FUNCTION lammps_create_atoms(handle, n, id, type, x, v, image, bexpand) &
+    BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
       TYPE(c_ptr), VALUE :: handle, id, type, x, v, image
       INTEGER(c_int), VALUE :: n, bexpand
+      INTEGER(c_int) :: lammps_create_atoms
     END FUNCTION lammps_create_atoms
 
-    !INTEGER(c_int) FUNCTION lammps_find_pair_neighlist
+    FUNCTION lammps_find_pair_neighlist(handle, style, exact, nsub, reqid) &
+    BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, style
+      INTEGER(c_int), VALUE :: exact, nsub, reqid
+      INTEGER(c_int) :: lammps_find_pair_neighlist
+    END FUNCTION lammps_find_pair_neighlist
 
-    !INTEGER(c_int) FUNCTION lammps_find_fix_neighlist
+    FUNCTION lammps_find_fix_neighlist(handle, id, reqid) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: reqid
+      INTEGER(c_int) :: lammps_find_fix_neighlist
+    END FUNCTION lammps_find_fix_neighlist
 
-    !INTEGER(c_int) FUNCTION lammps_find_compute_neighlist
+    FUNCTION lammps_find_compute_neighlist(handle, id, reqid) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: reqid
+      INTEGER(c_int) :: lammps_find_compute_neighlist
+    END FUNCTION lammps_find_compute_neighlist
 
-    !INTEGER(c_int) FUNCTION lammps_neighlist_num_elements
+    FUNCTION lammps_neighlist_num_elements(handle, idx) BIND(C)
+      IMPORT :: c_ptr, c_int
+      TYPE(c_ptr), VALUE :: handle
+      INTEGER(c_int), VALUE :: idx
+      INTEGER(c_int) :: lammps_neighlist_num_elements
+    END FUNCTION lammps_neighlist_num_elements
 
-    !SUBROUTINE lammps_neighlist_element_neighbors
+    SUBROUTINE lammps_neighlist_element_neighbors(handle, idx, element, &
+        iatom, numneigh, neighbors) BIND(C)
+      IMPORT :: c_ptr, c_int
+      TYPE(c_ptr), VALUE :: handle
+      INTEGER(c_int), VALUE :: idx, element
+      INTEGER(c_int) :: iatom, numneigh
+      TYPE(c_ptr) :: neighbors
+    END SUBROUTINE lammps_neighlist_element_neighbors
 
     FUNCTION lammps_version(handle) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -1606,6 +1650,48 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_subset_double
 
+  ! equivalent function to lammps_gather_bonds (LAMMPS_SMALLSMALL or SMALLBIG)
+  SUBROUTINE lmp_gather_bonds_small(self, data)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: size_tagint
+    INTEGER(c_int), POINTER :: nbonds
+    TYPE(c_ptr) :: Cdata
+
+    size_tagint = lmp_extract_setting(self, 'tagint')
+    IF (size_tagint /= 4_c_int) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Incompatible integer kind in gather_bonds [Fortran API]')
+      RETURN
+    END IF
+    nbonds = lmp_extract_global(self, 'nbonds')
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(3*nbonds))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_bonds(self%handle, Cdata)
+  END SUBROUTINE lmp_gather_bonds_small
+
+  ! equivalent function to lammps_gather_bonds (LAMMPS_BIGBIG)
+  SUBROUTINE lmp_gather_bonds_big(self, data)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: size_tagint
+    INTEGER(c_int64_t), POINTER :: nbonds
+    TYPE(c_ptr) :: Cdata
+
+    size_tagint = lmp_extract_setting(self, 'tagint')
+    IF (size_tagint /= 8_c_int) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Incompatible integer kind in gather_bonds [Fortran API]')
+      RETURN
+    END IF
+    nbonds = lmp_extract_global(self, 'nbonds')
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(3*nbonds))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_bonds(self%handle, Cdata)
+  END SUBROUTINE lmp_gather_bonds_big
+
   ! equivalent function to lammps_create_atoms (int ids or id absent)
   SUBROUTINE lmp_create_atoms_int(self, id, type, x, v, image, bexpand)
     CLASS(lammps), INTENT(IN) :: self
@@ -1732,6 +1818,89 @@ CONTAINS
         'atoms created /= atoms asked to create [Fortran/create_atoms]')
     END IF
   END SUBROUTINE lmp_create_atoms_bigbig
+
+  ! equivalent function to lammps_find_pair_neighlist
+  INTEGER(c_int) FUNCTION lmp_find_pair_neighlist(self, style, exact, nsub, &
+      reqid)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: style
+    LOGICAL, INTENT(IN) :: exact
+    INTEGER(c_int), INTENT(IN) :: nsub, reqid
+    TYPE(c_ptr) :: Cstyle
+    INTEGER(c_int) :: Cexact
+
+    IF (exact) THEN
+      Cexact = 1_c_int
+    ELSE
+      Cexact = 0_c_int
+    END IF
+    Cstyle = f2c_string(style)
+    lmp_find_pair_neighlist = lammps_find_pair_neighlist(self%handle, Cstyle, &
+      Cexact, nsub, reqid)
+    IF (lmp_find_pair_neighlist < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'unable to find pair neighbor list [Fortran/find_pair_neighlist]')
+    END IF
+    CALL lammps_free(Cstyle)
+  END FUNCTION lmp_find_pair_neighlist
+
+  ! equivalent function to lammps_find_fix_neighlist
+  INTEGER(c_int) FUNCTION lmp_find_fix_neighlist(self, id, reqid) RESULT(idx)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: reqid
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    idx = lammps_find_fix_neighlist(self%handle, Cid, reqid)
+    IF (idx < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list not found [Fortran/find_fix_neighlist]')
+    END IF
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_find_fix_neighlist
+
+  ! equivalent function to lammps_find_compute_neighlist
+  INTEGER(c_int) FUNCTION lmp_find_compute_neighlist(self, id, reqid) &
+  RESULT(idx)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: reqid
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    idx = lammps_find_compute_neighlist(self%handle, Cid, reqid)
+    IF (idx < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list not found [Fortran/find_compute_neighlist]')
+    END IF
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_find_compute_neighlist
+
+  INTEGER(c_int) FUNCTION lmp_neighlist_num_elements(self, idx) RESULT(inum)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: idx
+
+    inum = lammps_neighlist_num_elements(self%handle, idx)
+    IF (inum < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list not found [Fortran/neighlist_num_elements]')
+    END IF
+  END FUNCTION lmp_neighlist_num_elements
+
+  SUBROUTINE lmp_neighlist_element_neighbors(self, idx, element, iatom, &
+      neighbors)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: idx, element
+    INTEGER(c_int), INTENT(OUT) :: iatom
+    INTEGER(c_int), DIMENSION(:), POINTER, INTENT(OUT) :: neighbors
+    INTEGER(c_int) :: numneigh
+    TYPE(c_ptr) :: Cneighbors
+
+    CALL lammps_neighlist_element_neighbors(self%handle, idx, element, iatom, &
+      numneigh, Cneighbors)
+    CALL C_F_POINTER(Cneighbors, neighbors, [numneigh])
+  END SUBROUTINE lmp_neighlist_element_neighbors
 
   ! equivalent function to lammps_version
   INTEGER FUNCTION lmp_version(self)

@@ -295,8 +295,18 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype scatter_atoms: subroutine
    :f scatter_atoms_subset: :f:subr:`scatter_atoms_subset`
    :ftype scatter_atoms_subset: subroutine
+   :f gather_bonds: :f:subr:`gather_bonds`
+   :ftype gather_bonds: subroutine
    :f create_atoms: :f:subr:`create_atoms`
    :ftype create_atoms: subroutine
+   :f find_pair_neighlist: :f:func:`find_pair_neighlist`
+   :ftype find_pair_neighlist: function
+   :f find_fix_neighlist: :f:func:`find_fix_neighlist`
+   :ftype find_fix_neighlist: function
+   :f find_compute_neighlist: :f:func:`find_compute_neighlist`
+   :ftype find_compute_neighlist: function
+   :f neighlist_num_elements: :f:func:`neighlist_num_elements`
+   :ftype neighlist_num_elements: function
    :f version: :f:func:`version`
    :ftype version: function
    :f get_os_info: :f:subr:`get_os_info`
@@ -398,6 +408,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    and ``lmp%style%local``. These values are identical to the values described
    in :cpp:enum:`_LMP_STYLE_CONST` for the C library interface.
 
+   :f integer(c_int) global: used to request global data
+   :f integer(c_int) atom:   used to request per-atom data
+   :f integer(c_int) local:  used to request local data
+
 .. f:type:: lammps_type
 
    This derived type is there to provide a convenient interface for the type
@@ -407,6 +421,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    ``lmp%type%array``. These values are identical to the values described
    in :cpp:enum:`_LMP_TYPE_CONST` for the C library interface.
 
+   :f integer(c_int) scalar: used to request scalars
+   :f integer(c_int) vector: used to request vectors
+   :f integer(c_int) array:  used to request arrays (matrices)
+
 Procedures Bound to the :f:type:`lammps` Derived Type
 =====================================================
 
@@ -415,12 +433,15 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This method will close down the LAMMPS instance through calling
    :cpp:func:`lammps_close`.  If the *finalize* argument is present and
    has a value of ``.TRUE.``, then this subroutine also calls
+   :cpp:func:`lammps_kokkos_finalize` and
    :cpp:func:`lammps_mpi_finalize`.
 
    :o finalize: shut down the MPI environment of the LAMMPS
     library if ``.TRUE.``.
    :otype finalize: logical,optional
    :to: :cpp:func:`lammps_close`
+   :to: :cpp:func:`lammps_mpi_finalize`
+   :to: :cpp:func:`lammps_kokkos_finalize`
 
 --------
 
@@ -784,7 +805,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
          REAL(c_double), DIMENSION(:,:), POINTER :: x => NULL()
          ! more code to setup, etc.
          x = lmp%extract_atom("x")
-         print '(f0.6)', x(2,6)
+         PRINT '(f0.6)', x(2,6)
 
       will print the *y*-coordinate of the sixth atom on this processor
       (note the transposition of the two indices). This is not a choice, but
@@ -1388,6 +1409,51 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
+.. f:subroutine:: gather_bonds(data)
+
+   Gather type and constituent atom information for all bonds.
+
+   .. versionadded:: TBD
+
+   This function copies the list of all bonds into an allocated array.
+   The array will be filled with (bond type, bond atom 1, bond atom 2) for each
+   bond. The array is allocated to the right length (i.e., three times the
+   number of bonds). The array *data* must be of the same type as the LAMMPS
+   ``tagint`` type, which is equivalent to either ``INTEGER(c_int)`` or
+   ``INTEGER(c_int64_t)``, depending on whether ``-DLAMMPS_BIGBIG`` was used
+   when LAMMPS was built. If the supplied array does not match, an error will
+   result at run-time.
+
+   An example of how to use this routine is below:
+
+   .. code-block:: Fortran
+
+      PROGRAM bonds
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+        USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
+        USE LIBLAMMPS
+        IMPLICIT NONE
+        INTEGER(c_int), DIMENSION(:), ALLOCATABLE :: bonds_array
+        INTEGER(c_int), DIMENSION(:,:), POINTER :: bonds
+        TYPE(lammps) :: lmp
+        INTEGER :: i
+        ! other commands to initialize LAMMPS, create bonds, etc.
+        CALL lmp%gather_bonds(bonds)
+        bonds(1:3,1:size(bonds)/3) => bonds_array
+        DO i = 1, size(bonds)/3
+          WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4)') 'bond', bonds(1,i), &
+            '; type = ', bonds(2,i), bonds(3,i)
+        END DO
+      END PROGRAM bonds
+
+   :p data: array into which to copy the result. \*The ``KIND`` parameter is
+    either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
+    kind ``c_int64_t``.
+   :ptype data: integer(kind=\*),allocatable
+   :to: :cpp:func:`lammps_gather_bonds`
+
+--------
+
 .. f:subroutine:: create_atoms([id,] type, x, [v,] [image,] [bexpand])
 
    This method calls :cpp:func:`lammps_create_atoms` to create additional atoms
@@ -1437,6 +1503,93 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       This is required because having all arguments be optional in both
       generic functions creates an ambiguous interface. This limitation does
       not exist if LAMMPS was not compiled with ``-DLAMMPS_BIGBIG``.
+
+--------
+
+.. f:function:: find_pair_neighlist(style, exact, nsub, reqid)
+
+   Find index of a neighbor list requested by a pair style.
+
+   .. versionadded:: TBD
+
+   This function determines which of the available neighbor lists for pair
+   styles matches the given conditions.  It first matches the style name.
+   If *exact* is ``.TRUE.``, the name must match exactly; if ``.FALSE.``, a
+   regular expression or sub-string match is done.  If the pair style is
+   *hybrid* or *hybrid/overlay*, the style is matched against the sub-styles
+   instead. If the same pair style is used multiple times as a sub-style, the
+   *nsub* argument must be :math:`> 0`; this argument represents the *n*\ th
+   instance of the sub-style (same as for the :doc:`pair_coeff <pair_coeff>`
+   command, for example). In that case, *nsub*\ :math:`{} = 0` will not
+   produce a match, and the function will return :math:`-1`.
+
+   The final condition to be checked is the request ID (\ *reqid*\ ). This
+   will usually be zero, but some pair styles request multiple neighbor
+   lists and set the request ID to a value greater than zero.
+
+   :p character(len=\*) style: String used to search for pair style instance.
+   :p exact: Flag to control whther style should match exactly or only a
+    regular expression/sub-string match is applied.
+   :ptype exact: logical
+   :p integer(c_int) nsub:     Match *nsub*\ th hybrid sub-style instance of
+    the same style
+   :p integer(c_int) reqid:    Request ID to identify the neighbor list in
+    case there are multiple requests from the same pair style instance.
+   :to: :cpp:func:`lammps_find_pair_neighlist`
+   :r integer(c_int) index:    Neighbor list index if found, otherwise
+    :math:`-1`.
+
+--------
+
+.. f:function:: find_fix_neighlist()
+
+   Find index of a neighbor list requested by a fix.
+
+   .. versionadded:: TBD
+
+   The neighbor list request from a fix is identified by the fix ID and the
+   request ID. The request ID is typically zero, but will be :math:`>0` for
+   fixes with multiple neighbor list requests.
+
+   :p character(len=\*) id: Identifier of fix instance
+   :p integer(c_int) reqid: request ID to identify the neighbor list in cases
+    in which there are multiple requests from the same fix.
+   :to: :cpp:func:`lammps_find_fix_neighlist`
+   :r index: neighbor list index if found, otherwise :math:`-1`
+   :rtype index: integer(c_int)
+
+--------
+
+.. f:function:: find_compute_neighlist()
+
+   Find index of a neighbor list requested by a compute.
+
+   .. versionadded:: TBD
+
+   The neighbor list request from a compute is identified by the compute ID and
+   the request ID.  The request ID is typically zero, but will be :math:`> 0`
+   in case a compute has multiple neighbor list requests.
+
+   :p character(len=\*) id: Identifier of compute instance
+   :p integer(c_int) reqid: request ID to identify the neighbor list in cases
+    in which there are multiple requests from the same compute
+   :to: :cpp:func:`lammps_find_compute_neighlist`
+   :r index: neighbor list index if found, otherwise :math:`-1`
+   :rtype index: integer(c_int)
+
+--------
+
+.. f:function:: neighlist_num_elements(idx)
+
+   Return the number of entries in the neighbor list with the given index.
+
+   .. versionadded:: TBD
+
+   :p integer(c_int) idx: neighbor list index
+   :to: :cpp:func:`lammps_neighlist_num_elements`
+   :r inum: number of entries in neighbor list, or :math:`-1` if *idx* is not
+    a valid index.
+   :rtype inum: integer(c_int)
 
 --------
 

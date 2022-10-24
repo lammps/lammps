@@ -20,7 +20,7 @@
 
 #include "error.h"
 #include "math_const.h"
-#include "math_special.h"
+#include "math_special_kokkos.h"
 #include "memory.h"
 #include "memory_kokkos.h"
 
@@ -31,7 +31,7 @@
 using namespace SO3Math;
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
+using namespace MathSpecialKokkos;
 
 #define SMALL 1.0e-8
 

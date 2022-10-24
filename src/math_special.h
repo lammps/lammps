@@ -15,7 +15,7 @@
 #define LMP_MATH_SPECIAL_H
 
 #include <cmath>
-#include "accelerator_kokkos.h"
+
 namespace LAMMPS_NS {
 
 namespace MathSpecial {
@@ -130,7 +130,7 @@ namespace MathSpecial {
    *  \param   n argument (integer)
    *  \return  -1 if n is odd, 1.0 if n is even */
 
-  static LAMMPS_INLINE double powsign(const int n)
+  static inline double powsign(const int n)
   {
     return (n & 1) ? -1.0 : 1.0;
   }

@@ -32,7 +32,7 @@ public:
   void compute_gradients(class MLIAPData *) override;
   void compute_gradgrads(class MLIAPData *) override;
   void compute_force_gradients(class MLIAPData *) override;
-  
+
 };
 
 }

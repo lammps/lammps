@@ -176,7 +176,7 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
       iarg++;
   }
 }
-  
+
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -284,5 +284,5 @@ template class PairMLIAPKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
 template class PairMLIAPKokkos<LMPHostType>;
 #endif
-  
+
 }

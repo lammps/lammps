@@ -26,7 +26,7 @@ group        membrane  region membrane
 
 set type 1 mass  1.0
 
-set type 1 shape  1 1 1
+set type 1 shape  1 0.99 0.99
 
 set          group all quat 0 -1 0  90
 

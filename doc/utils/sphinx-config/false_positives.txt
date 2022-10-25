@@ -123,6 +123,7 @@ Antonelli
 api
 Apoorva
 Appl
+Appshaw
 apptainer
 Apu
 arallel
@@ -237,6 +238,7 @@ bcolor
 bdiam
 bdw
 Beckman
+Becton
 Belak
 Bellott
 bem

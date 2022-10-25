@@ -23,15 +23,16 @@ Description
 """""""""""
 
 This command deletes all atoms, restores all settings to their default
-values, and frees all memory allocated by LAMMPS.  Once a clear
-command has been executed, it is almost as if LAMMPS were starting
-over, with only the exceptions noted below.  This command enables
-multiple jobs to be run sequentially from one input script.
+values, and frees all memory allocated by LAMMPS.  Once a clear command
+has been executed, it is almost as if LAMMPS were starting over, with
+only the exceptions noted below.  This command enables multiple jobs to
+be run sequentially from one input script.
 
 These settings are not affected by a clear command: the working
-directory (:doc:`shell <shell>` command), log file status
-(:doc:`log <log>` command), echo status (:doc:`echo <echo>` command), and
-input script variables (:doc:`variable <variable>` command).
+directory (:doc:`shell <shell>` command), log file status (:doc:`log
+<log>` command), echo status (:doc:`echo <echo>` command), and input
+script variables except for *atomfile* style variables (:doc:`variable
+<variable>` command).
 
 Restrictions
 """"""""""""

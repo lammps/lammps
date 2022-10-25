@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -806,10 +806,12 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   //   since some fixes access domain settings in their constructor
   // nullptr must be last entry in this list
 
+  // clang-format off
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
      "deprecated", "STORE/KIM", "amoeba/pitorsion", "amoeba/bitorsion",
      nullptr};
+  // clang-format on
 
   if (domain->box_exist == 0) {
     int m;

@@ -1,11 +1,12 @@
 The :f:mod:`LIBLAMMPS` Fortran Module
 *************************************
 
-The :f:mod:`LIBLAMMPS` module provides an interface to call LAMMPS from Fortran.
-It is based on the LAMMPS C library interface and
-requires a Fortran 2003-compatible compiler to be compiled.  It is
-designed to be self-contained and not require any support functions
-written in C, C++, or Fortran other than those in the C library interface.
+The :f:mod:`LIBLAMMPS` module provides an interface to call LAMMPS from
+Fortran.  It is based on the LAMMPS C library interface and requires a
+fully Fortran 2003-compatible compiler to be compiled.  It is designed
+to be self-contained and not require any support functions written in C,
+C++, or Fortran other than those in the C library interface and the module
+itself.
 
 While C libraries have a defined binary interface (ABI) and can thus be
 used from multiple compiler versions from different vendors as long
@@ -21,11 +22,11 @@ for a simple program using the Fortran interface would be:
    mpifort -o testlib.x lammps.f90 testlib.f90 -L. -llammps
 
 Please note that the MPI compiler wrapper is only required when the
-calling the library from an MPI-parallelized program.  Otherwise, using the
-fortran compiler (gfortran, ifort, flang, etc.) will suffice.  It may be
-necessary to link to additional libraries, depending on how LAMMPS was
-configured and whether the LAMMPS library :doc:`was compiled as a static
-or dynamic library <Build_link>`.
+calling the library from an MPI-parallelized program.  Otherwise, using
+the plain Fortran compiler (gfortran, ifort, flang, etc.) will suffice.
+It may be necessary to link to additional libraries, depending on how
+LAMMPS was configured and whether the LAMMPS library :doc:`was compiled
+as a static or dynamic library <Build_link>`.
 
 If the LAMMPS library itself has been compiled with MPI support, the
 resulting executable will still be able to run LAMMPS in parallel with

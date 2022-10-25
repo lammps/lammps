@@ -58,22 +58,26 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style lj/cut/dipole/cut 10.0
+   pair_style lj/cut/dipole/cut 2.5 5.0
    pair_coeff * * 1.0 1.0
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0 2.5 4.0
 
    pair_style lj/sf/dipole/sf 9.0
    pair_coeff * * 1.0 1.0
    pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0 2.5 4.0
 
-   pair_style lj/cut/dipole/long 10.0
+   pair_style lj/cut/dipole/long 2.5 3.5
    pair_coeff * * 1.0 1.0
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0 3.0
 
-   pair_style lj/long/dipole/long long long 3.5 10.0
+   pair_style lj/long/dipole/long long long 3.5
    pair_coeff * * 1.0 1.0
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0
+
+   pair_style lj/long/dipole/long cut long 2.5 3.5
+   pair_coeff * * 1.0 1.0
+   pair_coeff 2 3 0.8 1.0 3.0
 
 Description
 """""""""""
@@ -254,23 +258,28 @@ long-range LJ interactions, the :doc:`kspace_style ewald/disp
 
 ----------
 
-The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
-above, or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands, or by mixing as described below:
+The following coefficients must be defined for each pair of atoms types
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
+or in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands, or by
+mixing as described below:
 
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)
 * cutoff1 (distance units)
 * cutoff2 (distance units)
 
-The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair_style command are used.
-If only one cutoff is specified, it is used as the cutoff for both LJ
-and Coulombic interactions for this type pair.  If both coefficients
-are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair.
+The latter 2 coefficients are optional.  If not specified, the global LJ
+and Coulombic cutoffs specified in the pair_style command are used.  If
+only one cutoff is specified, it is used as the cutoff for both LJ and
+Coulombic interactions for this type pair.  If both coefficients are
+specified, they are used as the LJ and Coulombic cutoffs for this type
+pair.  When using a long-rang Coulomb solver, only a global Coulomb
+cutoff may be used and only the LJ cutoff may be changed with the
+:doc:`pair_coeff <pair_coeff>` command.  When using the
+*lj/long/dipole/long* pair style with *long* *long* setting, only a
+single global cutoff may be provided and no cutoff for the
+:doc:`pair_coeff <pair_coeff>` command.
 
 ----------
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,6 +50,7 @@
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
+#include "variable.h"
 #include "version.h"
 
 #if defined(LMP_PLUGIN)
@@ -416,8 +417,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      delete [] suffix;
-      delete [] suffix2;
+      delete[] suffix;
+      delete[] suffix2;
       suffix = suffix2 = nullptr;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
@@ -520,7 +521,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
       if (!helpflag)
         utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
-      // warn against using I/O redirection in parallel runs
+
+     // warn against using I/O redirection in parallel runs
       if ((inflag == 0) && (universe->nprocs > 1))
         error->warning(FLERR, "Using I/O redirection is unreliable with parallel runs. "
                        "Better use -in switch to read input file.");
@@ -773,9 +775,9 @@ LAMMPS::~LAMMPS()
 
   delete python;
   delete kokkos;
-  delete [] suffix;
-  delete [] suffix2;
-  delete [] suffixp;
+  delete[] suffix;
+  delete[] suffix2;
+  delete[] suffixp;
 
   // free the MPI comm created by -mpicolor cmdline arg processed in constructor
   // it was passed to universe as if original universe world
@@ -869,6 +871,7 @@ void LAMMPS::post_create()
   // invoke any command-line package commands
 
   if (num_package) {
+    if (suffixp) suffix=suffixp;
     std::string str;
     for (int i = 0; i < num_package; i++) {
       str = "package";
@@ -884,6 +887,7 @@ void LAMMPS::post_create()
       }
       input->one(str);
     }
+    if (suffixp) suffix=nullptr;
   }
 
   // either suffix or suffixp will be set if suffix_enable = 1
@@ -892,24 +896,23 @@ void LAMMPS::post_create()
   // do not re-issue package command if already issued
 
   if (suffix_enable) {
-    const char *mysuffix = suffix;
-    if (suffixp) mysuffix = suffixp;
+    if (suffixp) suffix = suffixp;
 
-    if (strcmp(mysuffix,"gpu") == 0 && !modify->check_package("GPU"))
+    if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
       error->all(FLERR,"Using suffix gpu without GPU package installed");
-    if (strcmp(mysuffix,"intel") == 0 && !modify->check_package("INTEL"))
+    if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
       error->all(FLERR,"Using suffix intel without INTEL package installed");
-    if (strcmp(mysuffix,"kk") == 0 &&
+    if (strcmp(suffix,"kk") == 0 &&
         (kokkos == nullptr || kokkos->kokkos_exists == 0))
       error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
-    if (strcmp(mysuffix,"omp") == 0 && !modify->check_package("OMP"))
+    if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
-    if (strcmp(mysuffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
+    if (strcmp(suffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
       input->one("package gpu 0");
-    if (strcmp(mysuffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
+    if (strcmp(suffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
       input->one("package intel 1");
-    if (strcmp(mysuffix,"omp") == 0 && !(package_issued & Suffix::OMP))
+    if (strcmp(suffix,"omp") == 0 && !(package_issued & Suffix::OMP))
       input->one("package omp 0");
 
     if (suffix2) {
@@ -920,6 +923,7 @@ void LAMMPS::post_create()
       if (strcmp(suffix2,"omp") == 0 && !(package_issued & Suffix::OMP))
         input->one("package omp 0");
     }
+    if (suffixp) suffix = nullptr;
   }
 }
 
@@ -969,6 +973,9 @@ void LAMMPS::destroy()
 
   delete output;
   output = nullptr;
+
+  // undefine atomfile variables because they use a fix for backing storage
+  input->variable->purge_atomfile();
 
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
@@ -1206,6 +1213,7 @@ void _noopt LAMMPS::help()
           "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"
           "-cite                       : select citation reminder style (-c)\n"
           "-nocite                     : disable citation reminder (-nc)\n"
+          "-nonbuf                     : disable screen/logfile buffering (-nb)\n"
           "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"

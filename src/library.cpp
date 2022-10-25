@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -3048,10 +3048,11 @@ Below is a brief C code demonstrating accessing this collected bond information.
 
 .. code-block:: c
 
+   #include "library.h"
+
+   #include <stdint.h>
    #include <stdio.h>
    #include <stdlib.h>
-   #include <stdint.h>
-   #include "library.h"
 
    int main(int argc, char **argv)
    {

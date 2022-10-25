@@ -530,8 +530,8 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
   FILE *fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file {}: {}",
                       filename,utils::getsyserror());
-  fmt::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
-             "{}x{}x{} grid at step {}. Created by fix {}\n", utils::current_date(),
+  fmt::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature on "
+             "{}x{}x{} grid at step {} - created by fix {}\n", utils::current_date(),
              update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
 
   int ix,iy,iz;

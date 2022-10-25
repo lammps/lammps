@@ -390,7 +390,7 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
       ``MPI_comm`` derived type to access the integer value of the
       communicator, such as in
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          PROGRAM testmpi
            USE LIBLAMMPS
@@ -561,7 +561,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    represents a properly-initialized LAMMPS instance, the following code will
    extract the periodic box settings into the variable "periodic":
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       ! code to start up
       logical :: periodic(3)
@@ -714,7 +714,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       but you can automatically reallocate it to the correct length after the
       function returns, viz.,
 
-      .. code-block :: Fortran
+      .. code-block :: fortran
 
          PROGRAM test
            USE LIBLAMMPS
@@ -788,7 +788,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       **transposed** from equivalent arrays in C, and they will be indexed
       from 1 instead of 0. For example, in C,
 
-      .. code-block:: C
+      .. code-block:: c
 
          void *lmp;
          double **x;
@@ -799,7 +799,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       will print the *y*-coordinate of the sixth atom on this processor.
       Conversely,
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          TYPE(lammps) :: lmp
          REAL(c_double), DIMENSION(:,:), POINTER :: x => NULL()
@@ -849,7 +849,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       typical notation in C and C++, but not Fortran), you can create another
       pointer and associate it thus:
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          REAL(c_double), DIMENSION(:,:), POINTER :: x, x0
          x = lmp%extract_atom("x")
@@ -881,7 +881,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double), DIMENSION(:), POINTER :: COM
@@ -1069,7 +1069,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double) :: dr, dx, dy, dz
@@ -1091,7 +1091,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    appropriate size to match the internal data, and will be
    type/kind/rank-checked at the time of the assignment. For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double), DIMENSION(:), POINTER :: r
@@ -1104,7 +1104,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    array computed by :doc:`fix store/state <fix_store_state>` when three
    inputs are specified. Similarly,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double), DIMENSION(:), POINTER :: x
@@ -1192,7 +1192,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    For example,
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       TYPE(lammps) :: lmp
       REAL(c_double) :: area
@@ -1265,7 +1265,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       If you want data from this function to be accessible as a two-dimensional
       array, you can declare a rank-2 pointer and reassign it, like so:
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          USE, INTRINSIC :: ISO_C_BINDING
          USE LIBLAMMPS
@@ -1426,7 +1426,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    An example of how to use this routine is below:
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       PROGRAM bonds
         USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
@@ -1491,7 +1491,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       *id* to be present as well. To have LAMMPS generate the ids for you,
       use a call something like
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          lmp%create_atoms(type=new_types, x=new_xs)
 
@@ -1965,13 +1965,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
      variable; it cannot be used as the argument to another function or as part
      of an array constructor. For example,
 
-     .. code-block:: Fortran
+     .. code-block:: fortran
 
        my_images = [lmp%encode_image_flags(0,0,0), lmp%encode_image_flags(1,0,0)]
 
      will *not* work; instead, do something like
 
-     .. code-block:: Fortran
+     .. code-block:: fortran
 
        my_images(1) = lmp%encode_image_flags(0,0,0)
        my_images(2) = lmp%encode_image_flags(1,0,0)

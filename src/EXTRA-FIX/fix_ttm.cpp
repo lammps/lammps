@@ -484,9 +484,9 @@ void FixTTM::read_electron_temperatures(const std::string &filename)
         auto values = reader.next_values(4);
         ++nread;
 
-        int ix = values.next_int();
-        int iy = values.next_int();
-        int iz = values.next_int();
+        int ix = values.next_int() - 1;
+        int iy = values.next_int() - 1;
+        int iz = values.next_int() - 1;
         double T_tmp  = values.next_double();
 
         // check correctness of input data
@@ -539,7 +539,7 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
   for (iz = 0; iz < nzgrid; iz++)
     for (iy = 0; iy < nygrid; iy++)
       for (ix = 0; ix < nxgrid; ix++)
-        fprintf(fp,"%d %d %d %20.16g\n",ix,iy,iz,T_electron[iz][iy][ix]);
+        fprintf(fp,"%d %d %d %20.16g\n",ix+1,iy+1,iz+1,T_electron[iz][iy][ix]);
 
   fclose(fp);
 }

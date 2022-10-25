@@ -1482,6 +1482,8 @@ void Grid3d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
 
     nread += ptr->unpack_read_grid(buffer);
   }
+
+  delete [] buffer;
 }
 
 /* ----------------------------------------------------------------------

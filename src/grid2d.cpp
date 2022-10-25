@@ -1654,6 +1654,26 @@ void Grid2d::grow_overlap()
 }
 
 /* ----------------------------------------------------------------------
+   deallocate remap data structs
+------------------------------------------------------------------------- */
+
+void Grid2d::deallocate_remap()
+{
+  for (int i = 0; i < nsend_remap; i++)
+    memory->destroy(send_remap[i].packlist);
+  memory->sfree(send_remap);
+  
+  for (int i = 0; i < nrecv_remap; i++)
+    memory->destroy(recv_remap[i].unpacklist);
+  memory->sfree(recv_remap);
+
+  if (self_remap) {
+    memory->destroy(copy_remap.packlist);
+    memory->destroy(copy_remap.unpacklist);
+  }
+}
+
+/* ----------------------------------------------------------------------
    create 1d list of offsets into 2d array section (xlo:xhi,ylo:yhi)
    assume 2d array is allocated as
      (fullxlo:fullxhi,fullylo:fullyhi)
@@ -1674,4 +1694,36 @@ int Grid2d::indices(int *&list, int xlo, int xhi, int ylo, int yhi)
       list[n++] = (iy-fullylo)*nx + (ix-fullxlo);
 
   return nmax;
+}
+
+/* ----------------------------------------------------------------------
+   find the comm->procgrid index for which proc owns the igrid index
+   igrid = grid index (0 to N-1) in dim
+   n = # of grid points in dim
+   dim = which dimension (0,1)
+   split = comm->x/y/z split for fractional bounds of each proc domain
+------------------------------------------------------------------------- */
+
+int Grid2d::find_proc_index(int igrid, int n, int dim, double *split)
+{
+  int gridlo,gridhi;
+  double fraclo,frachi;
+
+  // loop over # of procs in this dime
+  // compute the grid bounds for that proc, same as comm->partition_grid()
+  // if igrid falls within those bounds, return m = proc index
+
+  int m;
+  for (m = 0; m < comm->procgrid[dim]; m++) {
+    fraclo = split[m];
+    frachi = split[m+1];
+    gridlo = static_cast<int> (fraclo * n);
+    if (1.0*gridlo != fraclo*n) gridlo++;
+    gridhi = static_cast<int> (frachi * n);
+    if (1.0*gridhi == frachi*n) gridhi--;
+
+    if (igrid >= gridlo && igrid <= gridhi) break;
+  }
+
+  return m;
 }

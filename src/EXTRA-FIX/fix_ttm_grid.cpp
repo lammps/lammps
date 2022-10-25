@@ -265,13 +265,6 @@ void FixTTMGrid::end_of_step()
     grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
                        grid_buf1,grid_buf2,MPI_DOUBLE);
   }
-
-  // clang-format on
-
-  // output of grid temperatures to file
-
-  if (outfile && (update->ntimestep % outevery == 0))
-    write_electron_temperatures(fmt::format("{}.{}", outfile, update->ntimestep));
 }
 
 /* ----------------------------------------------------------------------
@@ -335,13 +328,13 @@ int FixTTMGrid::unpack_read_grid(char *buffer)
     try {
       ValueTokenizer values(utils::trim_comment(line));
       if (values.count() == 0) {
-	;    // ignore comment only lines
+	;    // ignore comment only or blank lines
       } else if (values.count() == 4) {
 	++nread;
 	
-	int ix = values.next_int();
-	int iy = values.next_int();
-	int iz = values.next_int();
+	int ix = values.next_int() - 1;
+	int iy = values.next_int() - 1;
+	int iz = values.next_int() - 1;
 
 	if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
 	  throw TokenizerException("Fix ttm/grid invalid grid index in input", "");
@@ -363,6 +356,51 @@ int FixTTMGrid::unpack_read_grid(char *buffer)
 }
 
 /* ----------------------------------------------------------------------
+   pack state of Fix into one write, but not per-grid values
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::write_restart(FILE *fp)
+{
+  double rlist[4];
+
+  rlist[0] = nxgrid;
+  rlist[1] = nygrid;
+  rlist[2] = nzgrid;
+  rlist[3] = seed;
+
+  if (comm->me == 0) {
+    int size = 4 * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(rlist,sizeof(double),4,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTTMGrid::restart(char *buf)
+{
+  auto rlist = (double *) buf;
+
+  // check that restart grid size is same as current grid size
+
+  int nxgrid_old = static_cast<int> (rlist[0]);
+  int nygrid_old = static_cast<int> (rlist[1]);
+  int nzgrid_old = static_cast<int> (rlist[2]);
+
+  if (nxgrid_old != nxgrid || nygrid_old != nygrid || nzgrid_old != nzgrid)
+    error->all(FLERR,"Must restart fix ttm with same grid size");
+
+  // change RN seed from initial seed, to avoid same Langevin factors
+  // just increment by 1, since for RanMars that is a new RN stream
+
+  seed = static_cast<int> (rlist[3]) + 1;
+  delete random;
+  random = new RanMars(lmp,seed+comm->me);
+}
+
+/* ----------------------------------------------------------------------
    write electron temperatures on grid to file
    identical format to infile option, so info can be read in when restarting
    each proc contributes info for its portion of grid
@@ -379,8 +417,11 @@ void FixTTMGrid::write_restart_file(const char *file)
       error->one(FLERR,"Cannot open fix ttm/grid restart file {}: {}",outfile,utils::getsyserror());
 
     bigint ngrid = (bigint) nxgrid * nygrid * nzgrid;
-    fmt::print(fpout,"# fix ttm electron temperature on grid for "
-               "{} grid points on timestep {}\n\n",ngrid,update->ntimestep);
+    fmt::print(fpout,"# DATE: {} UNITS: {} COMMENT: "
+               "Electron temperature on {}x{}x{} grid at step {} - "
+               "created by fix {}\n",
+               utils::current_date(),update->unit_style,
+               nxgrid,nygrid,nzgrid,update->ntimestep,style);
   }
 
   // write file
@@ -411,7 +452,7 @@ void FixTTMGrid::pack_write_grid(int /*which*/, void *vbuf)
 }
 
 /* ----------------------------------------------------------------------
-   unpcak values from buf and write them to restart file
+   unpack values from buf and write them to restart file
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::unpack_write_grid(int /*which*/, void *vbuf, int *bounds)
@@ -433,7 +474,7 @@ void FixTTMGrid::unpack_write_grid(int /*which*/, void *vbuf, int *bounds)
     for (iy = ylo; iy <= yhi; iy++)
       for (ix = xlo; ix <= xhi; ix++) {
 	value = buf[m++];
-	fprintf(fpout, "%d %d %d %20.16g\n", ix, iy, iz, value);
+	fprintf(fpout, "%d %d %d %20.16g\n", ix+1, iy+1, iz+1, value);
       }
 }
 

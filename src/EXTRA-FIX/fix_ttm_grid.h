@@ -32,6 +32,8 @@ class FixTTMGrid : public FixTTM {
   void init() override;
   void post_force(int) override;
   void end_of_step() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
   void write_restart_file(const char *) override;
   double compute_vector(int) override;
   double memory_usage() override;

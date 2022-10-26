@@ -247,7 +247,8 @@ void FixPair::post_force(int /*vflag*/)
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
-    if (pvoid == nullptr)
+    //pvoid could return nullptr if no atoms in current spatial domain
+    if (pvoid == nullptr && nlocal>0)
       error->all(FLERR,"Fix pair pair style cannot extract {}",fieldname[ifield]);
 
     if (columns == 0) {

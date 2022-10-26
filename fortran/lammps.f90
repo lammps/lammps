@@ -163,7 +163,8 @@ MODULE LIBLAMMPS
     PROCEDURE :: has_id                 => lmp_has_id
     PROCEDURE :: id_count               => lmp_id_count
     PROCEDURE :: id_name                => lmp_id_name
-!
+    PROCEDURE, NOPASS :: plugin_count   => lammps_plugin_count
+    PROCEDURE :: plugin_name            => lmp_plugin_name
     PROCEDURE :: encode_image_flags     => lmp_encode_image_flags
     PROCEDURE, PRIVATE :: lmp_decode_image_flags
     PROCEDURE, PRIVATE :: lmp_decode_image_flags_bigbig
@@ -684,8 +685,19 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_id_name
     END FUNCTION lammps_id_name
 
-    !INTEGER(c_int) FUNCTION lammps_plugin_count
-    !SUBROUTINE lammps_plugin_name
+    FUNCTION lammps_plugin_count() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_plugin_count
+    END FUNCTION lammps_plugin_count
+
+    FUNCTION lammps_plugin_name(idx, stylebuf, namebuf, buf_size) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      INTEGER(c_int), VALUE :: idx, buf_size
+      TYPE(c_ptr), VALUE :: stylebuf, namebuf
+      INTEGER(c_int) :: lammps_plugin_name
+    END FUNCTION lammps_plugin_name
 
     ! We don't call lammps_encode_image_flags because its interface is
     ! ambiguous: we don't know sizeof(imageint) prior to compile time.
@@ -2176,6 +2188,31 @@ CONTAINS
     CALL lammps_free(Ccategory)
     CALL lammps_free(Cbuffer)
   END SUBROUTINE lmp_id_name
+
+  ! equivalent function to lammps_plugin_name
+  SUBROUTINE lmp_plugin_name(self, idx, stylebuf, namebuf)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: idx
+    CHARACTER(LEN=*), INTENT(OUT) :: stylebuf, namebuf
+    INTEGER(c_int) :: buf_size, success
+    TYPE(c_ptr) :: Cstylebuf, Cnamebuf
+
+    buf_size = MIN(LEN(stylebuf, KIND=c_int), LEN(namebuf, KIND=c_int))
+    Cstylebuf = lammps_malloc(INT(buf_size, KIND=c_size_t))
+    Cnamebuf = lammps_malloc(INT(buf_size, KIND=c_size_t))
+    success = lammps_plugin_name(idx, Cstylebuf, Cnamebuf, buf_size)
+    IF (success /= 0_c_int) THEN
+      stylebuf = c2f_string(Cstylebuf)
+      namebuf = c2f_string(Cnamebuf)
+    ELSE
+      stylebuf = ''
+      namebuf = ''
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'call to lammps_plugin_name failed [Fortran/plugin_name]')
+    END IF
+    CALL lammps_free(Cstylebuf)
+    CALL lammps_free(Cnamebuf)
+  END SUBROUTINE lmp_plugin_name
 
   ! equivalent function to lammps_encode_image_flags
   FUNCTION lmp_encode_image_flags(self, ix, iy, iz) RESULT (image)

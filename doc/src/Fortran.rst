@@ -350,6 +350,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype id_count: function
    :f id_name: :f:subr:`id_name`
    :ftype id_name: subroutine
+   :f plugin_count: :f:func:`plugin_count`
+   :ftype plugin_count: function
+   :f plugin_name: :f:subr:`plugin_name`
+   :ftype plugin_count: subroutine
    :f encode_image_flags: :f:func:`encode_image_flags`
    :ftype encode_image_flags: function
    :f decode_image_flags: :f:subr:`decode_image_flags`
@@ -741,7 +745,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :to: :cpp:func:`lammps_extract_global`
    :r pointer [polymorphic]: pointer to LAMMPS data. The left-hand side of the
     assignment should be either a string (if expecting string data) or a
-    C-compatible pointer (e.g., ``INTEGER (c_int), POINTER :: nlocal``) to the
+    C-compatible pointer (e.g., ``INTEGER(c_int), POINTER :: nlocal``) to the
     extracted property. If expecting vector data, the pointer should have
     dimension ":".
 
@@ -777,7 +781,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :to: :cpp:func:`lammps_extract_atom`
    :r pointer: pointer to LAMMPS data. The left-hand side of the
     assignment should be a C-interoperable pointer of appropriate kind and rank
-    (e.g., ``INTEGER (c_int), POINTER :: mask(:)``) to the extracted
+    (e.g., ``INTEGER(c_int), POINTER :: mask(:)``) to the extracted
     property. If expecting vector data, the pointer should have dimension ":";
     if expecting matrix data, the pointer should have dimension ":,:".
    :rtype pointer: polymorphic
@@ -955,7 +959,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (scalar, vector, or array)
    :to: :cpp:func:`lammps_extract_compute`
    :r pointer: pointer to LAMMPS data. The left-hand side of the assignment
-    should be a C-compatible pointer (e.g., ``REAL (c_double), POINTER :: x``)
+    should be a C-compatible pointer (e.g., ``REAL(c_double), POINTER :: x``)
     to the extracted property. If expecting vector data, the pointer should
     have dimension ":"; if expecting array (matrix) data, the pointer should
     have dimension ":,:".
@@ -1984,6 +1988,48 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    ``ALLOCATABLE``, it must be allocated *before* the function is called.
    If *idx* is out of range, *buffer* is set to an empty string and a warning
    is issued.
+
+   :p character(len=\*) category: category of IDs
+   :p integer(c_int) idx:         index of the ID in the list of *category*
+    styles (:math:`0 \leq idx < count`)
+   :p character(len=\*) buffer:   string into which to copy the name of the
+    style
+   :to: :cpp:func:`lammps_id_name`
+
+--------
+
+.. f:function:: plugin_count()
+
+   This function counts the number of loaded plugins.
+
+   .. versionadded:: TBD
+
+   :to: :cpp:func:`lammps_plugin_count`
+   :r n: number of loaded plugins
+   :rtype n: integer(c_int)
+
+--------
+
+.. f:subroutine:: plugin_name(idx, stylebuf, namebuf)
+
+   Look up the style and name of a plugin by its index in the list of plugins.
+
+   .. versionadded:: TBD
+
+   This function copies the name of the *style* plugin with the index *idx*
+   into the provided C-style string buffer.  The length of the buffer must be
+   provided as *buf_size* argument.  If the name of the style exceeds the
+   length of the buffer, it will be truncated accordingly.  If the index is out
+   of range, both strings are set to the empty string and a warning is
+   printed.
+
+   :p integer(c_int) idx:         index of the plugin in the list all or
+    *style* plugins
+   :p character(len=\*) stylebuf: string into which to copy the style of the
+    plugin
+   :p character(len=\*) namebuf:  string into which to copy the style of the
+    plugin
+   :to: :cpp:func:`lammps_plugin_name`
 
 --------
 

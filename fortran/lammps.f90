@@ -21,7 +21,7 @@
 !
 ! Contributing authors:
 !  - Axel Kohlmeyer <akohlmey@gmail.com>, Temple University, 2020-2022
-!  - Karl D. Hammond <hammondkd@missouri.edu> University of Missouri, 2022
+!  - Karl D. Hammond <hammondkd@missouri.edu>, University of Missouri, 2022
 !
 ! The Fortran module tries to follow the API of the C library interface
 ! closely, but like the Python wrapper, it employs an object-oriented
@@ -152,14 +152,17 @@ MODULE LIBLAMMPS
     PROCEDURE, NOPASS :: config_has_exceptions => lmp_config_has_exceptions
     PROCEDURE, NOPASS :: config_has_package => lmp_config_has_package
     PROCEDURE, NOPASS :: config_package_count => lammps_config_package_count
-    PROCEDURE, NOPASS :: config_package_name => lmp_config_package_name
-    PROCEDURE, NOPASS :: installed_packages => lmp_installed_packages
+    PROCEDURE :: config_package_name    => lmp_config_package_name
+    PROCEDURE :: installed_packages     => lmp_installed_packages
     PROCEDURE, NOPASS :: config_accelerator => lmp_config_accelerator
     PROCEDURE, NOPASS :: has_gpu_device => lmp_has_gpu_device
     PROCEDURE, NOPASS :: get_gpu_device_info => lmp_get_gpu_device_info
     PROCEDURE :: has_style              => lmp_has_style
     PROCEDURE :: style_count            => lmp_style_count
     PROCEDURE :: style_name             => lmp_style_name
+    PROCEDURE :: has_id                 => lmp_has_id
+    PROCEDURE :: id_count               => lmp_id_count
+    PROCEDURE :: id_name                => lmp_id_name
 !
     PROCEDURE :: encode_image_flags     => lmp_encode_image_flags
     PROCEDURE, PRIVATE :: lmp_decode_image_flags
@@ -659,9 +662,27 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_style_name
     END FUNCTION lammps_style_name
 
-    !LOGICAL FUNCTION lammps_has_id
-    !INTEGER(c_int) FUNCTION lammps_id_count
-    !SUBROUTINE lammps_id_name
+    FUNCTION lammps_has_id(handle, category, name) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, name
+      INTEGER(c_int) :: lammps_has_id
+    END FUNCTION lammps_has_id
+
+    FUNCTION lammps_id_count(handle, category) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category
+      INTEGER(c_int) :: lammps_id_count
+    END FUNCTION lammps_id_count
+
+    FUNCTION lammps_id_name(handle, category, idx, buffer, buf_size) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, buffer
+      INTEGER(c_int), VALUE :: idx, buf_size
+      INTEGER(c_int) :: lammps_id_name
+    END FUNCTION lammps_id_name
 
     !INTEGER(c_int) FUNCTION lammps_plugin_count
     !SUBROUTINE lammps_plugin_name
@@ -950,11 +971,9 @@ CONTAINS
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(lammps_data) :: global_data
-
     INTEGER(c_int) :: datatype
     TYPE(c_ptr) :: Cname, Cptr
     INTEGER(c_size_t) :: length, i
-    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Fptr
 
     ! Determine vector length
     ! FIXME Is there a way to get the length of the vector from C rather
@@ -965,7 +984,7 @@ CONTAINS
         length = 3
       CASE DEFAULT
         length = 1
-      ! string cases are overridden later
+      ! string cases doesn't use "length"
     END SELECT
 
     Cname = f2c_string(name)
@@ -1002,12 +1021,7 @@ CONTAINS
         END IF
       CASE (LAMMPS_STRING)
         global_data%datatype = DATA_STRING
-        length = c_strlen(Cptr)
-        CALL C_F_POINTER(Cptr, Fptr, [length])
-        ALLOCATE(CHARACTER(LEN=length) :: global_data%str)
-        DO i = 1, length
-          global_data%str(i:i) = Fptr(i)
-        END DO
+        global_data%str = c2f_string(Cptr)
       CASE DEFAULT
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'Unknown pointer type in extract_global')
@@ -1255,7 +1269,6 @@ CONTAINS
 
     TYPE(c_ptr) :: Cptr, Cname, Cgroup, Cveclength
     INTEGER(c_size_t) :: length, i
-    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cstring
     INTEGER(c_int) :: datatype
     REAL(c_double), POINTER :: double => NULL()
     REAL(c_double), DIMENSION(:), POINTER :: double_vec => NULL()
@@ -1306,11 +1319,8 @@ CONTAINS
       CASE (LMP_VAR_STRING)
         variable_data%datatype = DATA_STRING
         length = c_strlen(Cptr)
-        CALL C_F_POINTER(Cptr, Cstring, [length])
         ALLOCATE(CHARACTER(LEN=length) :: variable_data%str)
-        DO i = 1, length
-          variable_data%str(i:i) = Cstring(i)
-        END DO
+        variable_data%str = c2f_string(Cptr)
         ! DO NOT deallocate the C pointer
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
@@ -1916,19 +1926,15 @@ CONTAINS
   ! equivalent function to lammps_get_os_info
   SUBROUTINE lmp_get_os_info(buffer)
     CHARACTER(LEN=*) :: buffer
-    INTEGER(c_int) :: buf_size
-    CHARACTER(LEN=1,KIND=c_char), DIMENSION(LEN(buffer)), TARGET :: Cbuffer
+    INTEGER(c_size_t) :: buf_size
     TYPE(c_ptr) :: ptr
-    INTEGER :: i
 
-    buffer = ' '
-    ptr = C_LOC(Cbuffer(1))
-    buf_size = LEN(buffer)
-    CALL lammps_get_os_info(ptr, buf_size)
-    DO i=1,buf_size
-      IF (Cbuffer(i) == c_null_char) EXIT
-      buffer(i:i) = Cbuffer(i)
-    END DO
+    buffer = ''
+    buf_size = LEN(buffer, KIND=c_size_t)
+    ptr = lammps_malloc(buf_size)
+    CALL lammps_get_os_info(ptr, INT(buf_size, KIND=c_int))
+    buffer = c2f_string(ptr)
+    CALL lammps_free(ptr)
   END SUBROUTINE lmp_get_os_info
 
   ! equivalent function to lammps_config_has_mpi_support
@@ -1992,28 +1998,29 @@ CONTAINS
   END FUNCTION lmp_config_has_package
 
   ! equivalent subroutine to lammps_config_package_name
-  SUBROUTINE lmp_config_package_name(idx, buffer)
+  SUBROUTINE lmp_config_package_name(self, idx, buffer)
+    CLASS(lammps), INTENT(IN) :: self
     INTEGER, INTENT(IN) :: idx
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER(c_int) :: Cidx, Csuccess
     TYPE(c_ptr) :: Cptr
-    CHARACTER(LEN=1,KIND=c_char), TARGET :: Cbuffer(LEN(buffer)+1)
-    INTEGER(c_size_t) :: i, strlen
 
     Cidx = idx - 1
-    Cptr = C_LOC(Cbuffer(1))
+    Cptr = lammps_malloc(LEN(buffer, KIND=c_size_t) + 1_c_size_t)
     Csuccess = lammps_config_package_name(Cidx, Cptr, LEN(buffer)+1)
-    buffer = ' '
+    buffer = ''
     IF (Csuccess /= 0_c_int) THEN
-      strlen = c_strlen(Cptr)
-      DO i = 1, strlen
-        buffer(i:i) = Cbuffer(i)
-      END DO
+      buffer = c2f_string(Cptr)
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'failure of lammps_config_package_name [Fortran/config_package_name]')
     END IF
+    CALL lammps_free(Cptr)
   END SUBROUTINE lmp_config_package_name
 
   ! equivalent function to Python routine .installed_packages()
-  SUBROUTINE lmp_installed_packages(package, length)
+  SUBROUTINE lmp_installed_packages(self, package, length)
+    CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: package
     INTEGER, INTENT(IN), OPTIONAL :: length
     INTEGER, PARAMETER :: MAX_BUFFER_LENGTH = 31
@@ -2029,7 +2036,7 @@ CONTAINS
     npackage = lammps_config_package_count()
     ALLOCATE(CHARACTER(LEN=MAX_BUFFER_LENGTH) :: package(npackage))
     DO i=1, npackage
-      CALL lmp_config_package_name(i, package(i))
+      CALL lmp_config_package_name(self, i, package(i))
     END DO
   END SUBROUTINE lmp_installed_packages
 
@@ -2058,19 +2065,13 @@ CONTAINS
   SUBROUTINE lmp_get_gpu_device_info(buffer)
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER(c_int) :: buf_size, i
-    INTEGER(c_size_t) :: strlen
     TYPE(c_ptr) :: Cptr
-    CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Cbuffer => NULL()
 
     buffer = ''
     buf_size = LEN(buffer) + 1
     Cptr = lammps_malloc(INT(buf_size,c_size_t))
     CALL lammps_get_gpu_device_info(Cptr, buf_size)
-    CALL C_F_POINTER(Cptr, Cbuffer, [buf_size])
-    strlen = c_strlen(Cptr)
-    DO i = 1, strlen
-      buffer(i:i) = Cbuffer(i)
-    END DO
+    buffer = c2f_string(Cptr)
     CALL lammps_free(Cptr)
   END SUBROUTINE lmp_get_gpu_device_info
 
@@ -2109,27 +2110,72 @@ CONTAINS
     INTEGER(c_int) :: buf_size, success
     TYPE(c_ptr) :: Ccategory, Cbuffer
     INTEGER(c_size_t) :: length
-    CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Fbuffer => NULL()
-    INTEGER :: i
 
+    buffer = ''
     buf_size = LEN(buffer)
     Ccategory = f2c_string(category)
     Cbuffer = lammps_malloc(buf_size + 1_c_size_t)
     success = lammps_style_name(self%handle, Ccategory, idx, Cbuffer, buf_size)
     IF (success == 1_c_int) THEN
-      length = c_strlen(Cbuffer)
-      CALL C_F_POINTER(Cbuffer, Fbuffer, [length])
-      DO i = 1, length
-        buffer(i:i) = Fbuffer(i)
-      END DO
+      buffer = c2f_string(Cbuffer)
     ELSE
-      buffer = ''
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'idx value not in range [Fortran/style_name]')
     END IF
     CALL lammps_free(Ccategory)
     CALL lammps_free(Cbuffer)
   END SUBROUTINE lmp_style_name
+
+  ! equivalent function to lammps_has_id
+  LOGICAL FUNCTION lmp_has_id(self, category, name)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category, name
+    TYPE(c_ptr) :: Ccategory, Cname
+    INTEGER(c_int) :: has_id
+
+    Ccategory = f2c_string(category)
+    Cname = f2c_string(name)
+    has_id = lammps_has_id(self%handle, Ccategory, Cname)
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Cname)
+    lmp_has_id = (has_id /= 0_c_int)
+  END FUNCTION lmp_has_id
+
+  ! equivalent function to lammps_id_count
+  INTEGER(c_int) FUNCTION lmp_id_count(self, category)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    TYPE(c_ptr) :: Ccategory
+
+    Ccategory = f2c_string(category)
+    lmp_id_count = lammps_id_count(self%handle, Ccategory)
+    CALL lammps_free(Ccategory)
+  END FUNCTION lmp_id_count
+
+  ! equivalent function to lammps_id_name
+  SUBROUTINE lmp_id_name(self, category, idx, buffer)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    INTEGER(c_int), INTENT(IN) :: idx
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER(c_int) :: success
+    INTEGER(c_int) :: buf_size
+    TYPE(c_ptr) :: Ccategory, Cbuffer
+
+    buffer = ''
+    Ccategory = f2c_string(category)
+    buf_size = LEN(buffer, KIND=c_int)
+    Cbuffer = lammps_malloc(INT(buf_size, KIND=c_size_t))
+    success = lammps_id_name(self%handle, Ccategory, idx, Cbuffer, buf_size)
+    IF (success /= 0) THEN
+      buffer = c2f_string(Cbuffer)
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'lammps_id_name failed [Fortran/id_name]')
+    END IF
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Cbuffer)
+  END SUBROUTINE lmp_id_name
 
   ! equivalent function to lammps_encode_image_flags
   FUNCTION lmp_encode_image_flags(self, ix, iy, iz) RESULT (image)
@@ -2253,9 +2299,8 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER, INTENT(OUT), OPTIONAL :: status
     INTEGER(c_int) :: buflen, Cstatus
-    INTEGER(c_size_t) :: i, length
+    INTEGER(c_size_t) :: length
     TYPE(c_ptr) :: Cptr
-    CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
 
     buffer = ' '
     IF (lmp_has_error(self)) THEN
@@ -2263,11 +2308,7 @@ CONTAINS
       length = buflen
       Cptr = lammps_malloc(length)
       Cstatus = lammps_get_last_error_message(self%handle, Cptr, buflen)
-      CALL C_F_POINTER(Cptr, c_string, [1])
-      DO i=1, length
-        buffer(i:i) = c_string(i)
-        IF (c_string(i) == c_null_char) EXIT
-      END DO
+      buffer = c2f_string(Cptr)
       IF (PRESENT(status)) THEN
         status = Cstatus
       END IF
@@ -2530,6 +2571,24 @@ CONTAINS
     END DO
     c_string(n+1) = c_null_char
   END FUNCTION f2c_string
+
+  ! copy null-terminated C string to fortran string
+  FUNCTION c2f_string(ptr) RESULT(f_string)
+    TYPE(c_ptr), INTENT(IN) :: ptr
+    CHARACTER(LEN=:), ALLOCATABLE :: f_string
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: c_string
+    INTEGER(c_size_t) :: i, n
+    IF (.NOT. C_ASSOCIATED(ptr)) THEN
+      f_string = ''
+      RETURN
+    END IF
+    n = c_strlen(ptr)
+    CALL C_F_POINTER(ptr, c_string, [n])
+    ALLOCATE(CHARACTER(LEN=n) :: f_string)
+    DO i = 1, n
+      f_string(i:i) = c_string(i)
+    END DO
+  END FUNCTION c2f_string
 
 END MODULE LIBLAMMPS
 

@@ -344,6 +344,12 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype style_count: function
    :f style_name: :f:func:`style_name`
    :ftype style_name: function
+   :f has_id: :f:func:`has_id`
+   :ftype has_id: function
+   :f id_count: :f:func:`id_count`
+   :ftype id_count: function
+   :f id_name: :f:subr:`id_name`
+   :ftype id_name: subroutine
    :f encode_image_flags: :f:func:`encode_image_flags`
    :ftype encode_image_flags: function
    :f decode_image_flags: :f:subr:`decode_image_flags`
@@ -1934,6 +1940,53 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
+.. f:function:: has_id(category, name)
+
+   This function checks if the current LAMMPS instance a *category* ID of
+   the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
+   *fix*\ , *group*\ , *molecule*\ , *region*\ , and *variable*\ .
+
+   .. versionadded:: TBD
+
+   :p character(len=\*) category: category of the ID
+   :p character(len=\*) name:     name of the ID
+   :to: :cpp:func:`lammps_has_id`
+   :r has_id: ``.TRUE.`` if *category* style *name* exists, ``.FALSE.`` if not.
+   :rtype has_id: logical
+
+--------
+
+.. f:function:: id_count(category)
+
+   This function counts how many IDs in the provided *category* are defined in
+   the current LAMMPS instance. Please see :f:func:`has_id` for a list of
+   valid categories.
+
+   .. versionadded:: TBD
+
+   :p character(len=\*) category: category of the ID
+   :to: :cpp:func:`lammps_id_count`
+   :r count: number of IDs in *category*
+   :rtype count: integer(c_int)
+
+--------
+
+.. f:subroutine:: id_name(category, idx, buffer)
+
+   Look up the name of an ID by index in the list of IDs of a given category.
+
+   .. versionadded:: TBD
+
+   This function copies the name of the *category* ID with the index *idx* into
+   the provided string *buffer*\ .  The length of the buffer must be long
+   enough to hold the string; if the name of the style exceeds the length of
+   the buffer, it will be truncated accordingly. If *buffer* is
+   ``ALLOCATABLE``, it must be allocated *before* the function is called.
+   If *idx* is out of range, *buffer* is set to an empty string and a warning
+   is issued.
+
+--------
+
 .. f:function:: encode_image_flags(ix, iy, iz)
 
    Encodes three integer image flags into a single imageint.
@@ -1968,14 +2021,14 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
      .. code-block:: fortran
 
-       my_images = [lmp%encode_image_flags(0,0,0), lmp%encode_image_flags(1,0,0)]
+        my_images = [lmp%encode_image_flags(0,0,0), lmp%encode_image_flags(1,0,0)]
 
      will *not* work; instead, do something like
 
      .. code-block:: fortran
 
-       my_images(1) = lmp%encode_image_flags(0,0,0)
-       my_images(2) = lmp%encode_image_flags(1,0,0)
+        my_images(1) = lmp%encode_image_flags(0,0,0)
+        my_images(2) = lmp%encode_image_flags(1,0,0)
 
 --------
 

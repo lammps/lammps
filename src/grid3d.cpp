@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{BRICK,TILED};
+enum{UNIFORM,TILED};
 
 #define DELTA 16
 
@@ -74,9 +74,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   nz = gnz;
 
   ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz;
-
-  if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
-  else layout = BRICK;
+  layout = comm->layout;
 
   // partition global grid across procs
   // i xyz lo/hi = lower/upper bounds of global grid this proc owns
@@ -158,7 +156,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
 
   // store grid bounds and proc neighs
 
-  if (layout == BRICK) {
+  if (layout != Comm::LAYOUT_TILED) {
     int (*procneigh)[2] = comm->procneigh;
     store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
           oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
@@ -203,13 +201,11 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   nz = gnz;
 
   ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz;
-
-  if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
-  else layout = BRICK;
+  layout = comm->layout;
 
   // store grid bounds and proc neighs
 
-  if (layout == BRICK) {
+  if (layout != Comm::LAYOUT_TILED) {
     int (*procneigh)[2] = comm->procneigh;
     store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
           oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
@@ -256,14 +252,12 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
   nz = gnz;
 
   ngrid[0] = nx; ngrid[1] = ny; ngrid[2] = nz;
-
-  if (comm->layout == Comm::LAYOUT_TILED) layout = TILED;
-  else layout = BRICK;
+  layout = comm->layout;
 
   // store grid bounds and proc neighs
 
   if (flag == 1) {
-    if (layout == BRICK) {
+    if (layout != Comm::LAYOUT_TILED) {
       // this assumes gcomm = world
       int (*procneigh)[2] = comm->procneigh;
       store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
@@ -280,7 +274,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
     }
 
   } else if (flag == 2) {
-    if (layout == BRICK) {
+    if (layout != Comm::LAYOUT_TILED) {
       store(ixlo,ixhi,iylo,iyhi,izlo,izhi,
             oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
             oxlo,oxhi,oylo,oyhi,ozlo,ozhi,
@@ -303,6 +297,11 @@ Grid3d::~Grid3d()
   }
   memory->sfree(swap);
 
+  delete [] xsplit;
+  delete [] ysplit;
+  delete [] zsplit;
+  memory->destroy(grid2proc);
+  
   // tiled comm data structs
 
   for (int i = 0; i < nsend; i++)
@@ -365,34 +364,6 @@ void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
   fullzlo = fzlo;
   fullzhi = fzhi;
 
-  // for BRICK layout, proc xyz lohi = my 6 neighbor procs in this MPI_Comm
-
-  if (layout == BRICK) {
-    procxlo = pxlo;
-    procxhi = pxhi;
-    procylo = pylo;
-    procyhi = pyhi;
-    proczlo = pzlo;
-    proczhi = pzhi;
-  }
-
-  // for TILED layout, create RCB tree of cut info for grid decomp
-  // access CommTiled to get cut dimension
-  // cut = this proc's inlo in that dim
-  // dim is -1 for proc 0, but never accessed
-
-  if (layout == TILED) {
-    rcbinfo = (RCBinfo *)
-      memory->smalloc(nprocs*sizeof(RCBinfo),"grid3d:rcbinfo");
-    RCBinfo rcbone;
-    rcbone.dim = comm->rcbcutdim;
-    if (rcbone.dim <= 0) rcbone.cut = inxlo;
-    else if (rcbone.dim == 1) rcbone.cut = inylo;
-    else if (rcbone.dim == 2) rcbone.cut = inzlo;
-    MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
-		  rcbinfo,sizeof(RCBinfo),MPI_CHAR,gridcomm);
-  }
-
   // internal data initializations
 
   nswap = maxswap = 0;
@@ -404,11 +375,57 @@ void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
   copy = nullptr;
   requests = nullptr;
 
+  xsplit = ysplit = zsplit = nullptr;
+  grid2proc = nullptr;
   rcbinfo = nullptr;
 
   nsend_remap = nrecv_remap = self_remap = 0;
   send_remap = nullptr;
   recv_remap = nullptr;
+  
+  // for non TILED layout:
+  // proc xyz lohi = my 6 neighbor procs in this MPI_Comm
+  // xyz split = copy of 1d vectors in Comm
+  // grid2proc = copy of 3d array in Comm
+
+  if (layout != Comm::LAYOUT_TILED) {
+    procxlo = pxlo;
+    procxhi = pxhi;
+    procylo = pylo;
+    procyhi = pyhi;
+    proczlo = pzlo;
+    proczhi = pzhi;
+
+    xsplit = new double[comm->procgrid[0]+1];
+    ysplit = new double[comm->procgrid[1]+1];
+    zsplit = new double[comm->procgrid[2]+1];
+    memcpy(xsplit,comm->xsplit,(comm->procgrid[0]+1)*sizeof(double));
+    memcpy(ysplit,comm->ysplit,(comm->procgrid[1]+1)*sizeof(double));
+    memcpy(zsplit,comm->zsplit,(comm->procgrid[2]+1)*sizeof(double));
+    
+    memory->create(grid2proc,comm->procgrid[0],comm->procgrid[1],comm->procgrid[2],
+                   "grid3d:grid2proc");
+    memcpy(&grid2proc[0][0][0],&comm->grid2proc[0][0][0],
+           comm->procgrid[0]*comm->procgrid[1]*comm->procgrid[2]*sizeof(int));
+  }
+
+  // for TILED layout:
+  // create RCB tree of cut info for grid decomp
+  // access CommTiled to get cut dimension
+  // cut = this proc's inlo in that dim
+  // dim is -1 for proc 0, but never accessed
+
+  if (layout == Comm::LAYOUT_TILED) {
+    rcbinfo = (RCBinfo *)
+      memory->smalloc(nprocs*sizeof(RCBinfo),"grid3d:rcbinfo");
+    RCBinfo rcbone;
+    rcbone.dim = comm->rcbcutdim;
+    if (rcbone.dim <= 0) rcbone.cut = inxlo;
+    else if (rcbone.dim == 1) rcbone.cut = inylo;
+    else if (rcbone.dim == 2) rcbone.cut = inzlo;
+    MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
+		  rcbinfo,sizeof(RCBinfo),MPI_CHAR,gridcomm);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -489,7 +506,7 @@ void Grid3d::get_bounds_ghost(int &xlo, int &xhi, int &ylo, int &yhi,
 
 void Grid3d::setup(int &nbuf1, int &nbuf2)
 {
-  if (layout == BRICK) setup_brick(nbuf1,nbuf2);
+  if (layout != Comm::LAYOUT_TILED) setup_brick(nbuf1,nbuf2);
   else setup_tiled(nbuf1,nbuf2);
 }
 
@@ -1009,7 +1026,7 @@ void Grid3d::setup_tiled(int &nbuf1, int &nbuf2)
 
 int Grid3d::ghost_adjacent()
 {
-  if (layout == BRICK) return ghost_adjacent_brick();
+  if (layout != Comm::LAYOUT_TILED) return ghost_adjacent_brick();
   return ghost_adjacent_tiled();
 }
 
@@ -1057,7 +1074,7 @@ int Grid3d::ghost_adjacent_tiled()
 void Grid3d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
                             void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (layout == BRICK) {
+  if (layout != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       forward_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
 				 buf1,buf2,datatype);
@@ -1162,7 +1179,7 @@ forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
 void Grid3d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
                             void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (layout == BRICK) {
+  if (layout != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       reverse_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
 				buf1,buf2,datatype);
@@ -1341,7 +1358,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 
   nrecv_remap = 0;
   for (m = 0; m < noverlap_new; m++)
-    if (overlap_old[m].proc != me) nrecv_remap++;
+    if (overlap_new[m].proc != me) nrecv_remap++;
 
   recv_remap = new Recv[nrecv_remap];
 
@@ -1580,12 +1597,12 @@ void Grid3d::write_file_style(T *ptr, int which,
 
 /* ----------------------------------------------------------------------
    compute list of overlaps between box and the owned grid boxes of all procs
-   for brick decomp, done using Comm::grid2proc data struct
-   for tiled decomp, done via recursive box drop on RCB tree
+   for brick decomp of Grid, done using xyz split + grid2proc copied from Comm
+   for tiled decomp of Grid, done via recursive box drop on RCB tree
    box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
      box can be owned cells or owned + ghost cells
    pbc = flags for grid periodicity in each dim
-     if box includes ghost cells, it can overlap PBCs
+     if box includes ghost cells, it can overlap PBCs (only for setup_tiled)
      each lo/hi value may extend beyond 0 to N-1 into another periodic image
    return # of overlaps including with self
    return list of overlaps
@@ -1597,53 +1614,34 @@ int Grid3d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
   noverlap_list = maxoverlap_list = 0;
   overlap_list = nullptr;
 
-  if (layout == BRICK) {
+  if (layout != Comm::LAYOUT_TILED) {
 
     // find comm->procgrid indices in each dim for box bounds
     
-    int iproclo = find_proc_index(box[0],ngrid[0],0,comm->xsplit);
-    int iprochi = find_proc_index(box[1],ngrid[0],0,comm->xsplit);
-    int jproclo = find_proc_index(box[2],ngrid[1],1,comm->ysplit);
-    int jprochi = find_proc_index(box[3],ngrid[1],1,comm->ysplit);
-    int kproclo = find_proc_index(box[4],ngrid[2],2,comm->zsplit);
-    int kprochi = find_proc_index(box[5],ngrid[2],2,comm->zsplit);
-
-    // save comm->myloc values so can overwrite them k,j,i triple loop
-    // b/c comm->partition_grid uses comm->myloc
-    
-    int save_myloc[3];
-    save_myloc[0] = comm->myloc[0];
-    save_myloc[1] = comm->myloc[1];
-    save_myloc[2] = comm->myloc[2];
+    int iproclo = find_proc_index(box[0],ngrid[0],0,xsplit);
+    int iprochi = find_proc_index(box[1],ngrid[0],0,xsplit);
+    int jproclo = find_proc_index(box[2],ngrid[1],1,ysplit);
+    int jprochi = find_proc_index(box[3],ngrid[1],1,ysplit);
+    int kproclo = find_proc_index(box[4],ngrid[2],2,zsplit);
+    int kprochi = find_proc_index(box[5],ngrid[2],2,zsplit);
 
     int obox[6];
     
     for (int k = kproclo; k <= kprochi; k++)
       for (int j = jproclo; j <= jprochi; j++)
 	for (int i = iproclo; i <= iprochi; i++) {
-	  comm->myloc[0] = i;
-	  comm->myloc[1] = j;
-	  comm->myloc[2] = k;
-
-	  comm->partition_grid(ngrid[0],ngrid[1],ngrid[2],0.0,
-			       obox[0],obox[1],obox[2],obox[3],obox[4],obox[5]);
+	  find_proc_box(i,j,k,obox);
 
 	  if (noverlap_list == maxoverlap_list) grow_overlap();
-	  overlap[noverlap_list].proc = comm->grid2proc[i][j][k];
-	  overlap[noverlap_list].box[0] = MAX(box[0],obox[0]);
-	  overlap[noverlap_list].box[1] = MIN(box[1],obox[1]);
-	  overlap[noverlap_list].box[2] = MAX(box[2],obox[2]);
-	  overlap[noverlap_list].box[3] = MIN(box[3],obox[3]);
-	  overlap[noverlap_list].box[4] = MAX(box[4],obox[4]);
-	  overlap[noverlap_list].box[5] = MIN(box[5],obox[5]);
+	  overlap_list[noverlap_list].proc = grid2proc[i][j][k];
+	  overlap_list[noverlap_list].box[0] = MAX(box[0],obox[0]);
+	  overlap_list[noverlap_list].box[1] = MIN(box[1],obox[1]);
+	  overlap_list[noverlap_list].box[2] = MAX(box[2],obox[2]);
+	  overlap_list[noverlap_list].box[3] = MIN(box[3],obox[3]);
+	  overlap_list[noverlap_list].box[4] = MAX(box[4],obox[4]);
+	  overlap_list[noverlap_list].box[5] = MIN(box[5],obox[5]);
 	  noverlap_list++;
 	}
-
-    // restore comm->myloc values
-
-    comm->myloc[0] = save_myloc[0];
-    comm->myloc[1] = save_myloc[1];
-    comm->myloc[2] = save_myloc[2];
 
   } else if (layout == TILED) {
     box_drop(box,pbc);
@@ -1759,7 +1757,7 @@ void Grid3d::box_drop(int *box, int *pbc)
 ------------------------------------------------------------------------- */
 
 void Grid3d::box_drop_grid(int *box, int proclower, int procupper,
-                             int &np, int *plist)
+                           int &np, int *plist)
 {
   // end recursion when partition is a single proc
   // add proclower to plist
@@ -1885,4 +1883,44 @@ int Grid3d::find_proc_index(int igrid, int n, int dim, double *split)
   }
 
   return m;
+}
+
+/* ----------------------------------------------------------------------
+   find the grid box for proc with grid indices i,j,k
+   i,j,k = grid index (0 to N-1) in each dim
+   return lo/hi bounds of box in 3 dims
+   computation is same as Comm::partition_grid()
+------------------------------------------------------------------------- */
+
+void Grid3d::find_proc_box(int i, int j, int k, int *box)
+{
+  int lo,hi;
+  double fraclo,frachi;
+  
+  fraclo = xsplit[i];
+  frachi = xsplit[i+1];
+  lo = static_cast<int> (fraclo * ngrid[0]);
+  if (1.0*lo != fraclo*ngrid[0]) lo++;
+  hi = static_cast<int> (frachi * ngrid[0]);
+  if (1.0*hi == frachi*ngrid[0]) hi--;
+  box[0] = lo;
+  box[1] = hi;
+  
+  fraclo = ysplit[j];
+  frachi = ysplit[j+1];
+  lo = static_cast<int> (fraclo * ngrid[1]);
+  if (1.0*lo != fraclo*ngrid[1]) lo++;
+  hi = static_cast<int> (frachi * ngrid[1]);
+  if (1.0*hi == frachi*ngrid[1]) hi--;
+  box[2] = lo;
+  box[3] = hi;
+
+  fraclo = zsplit[k];
+  frachi = zsplit[k+1];
+  lo = static_cast<int> (fraclo * ngrid[2]);
+  if (1.0*lo != fraclo*ngrid[2]) lo++;
+  hi = static_cast<int> (frachi * ngrid[2]);
+  if (1.0*hi == frachi*ngrid[2]) hi--;
+  box[4] = lo;
+  box[5] = hi;
 }

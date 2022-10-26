@@ -173,7 +173,7 @@ void FixTTMGrid::post_force(int /*vflag*/)
       f[i][2] += flangevin[i][2];
     }
   }
-
+  
   if (flag) error->one(FLERR,"Out of range fix ttm/grid atoms");
 }
 
@@ -498,7 +498,7 @@ void FixTTMGrid::reset_grid()
     delete gridnew;
     return;
   } else delete gridnew;
-  
+
   // delete grid data which doesn't need to persist from previous to new decomp
 
   memory->destroy(grid_buf1);

@@ -179,6 +179,12 @@ class Grid3d : protected Pointers {
   
   int *overlap_procs;       // length of Nprocs in communicator
 
+  // BRICK decomposition
+
+  double *xsplit,*ysplit,*zsplit;
+  int ***grid2proc;
+
+  // TILED decomposition
   // RCB tree of cut info
   // each proc contributes one value, except proc 0
 
@@ -236,6 +242,7 @@ class Grid3d : protected Pointers {
   
   int indices(int *&, int, int, int, int, int, int);
   int find_proc_index(int, int, int, double *);
+  void find_proc_box(int, int, int, int *);
 };
 
 }    // namespace LAMMPS_NS

@@ -226,13 +226,6 @@ void FixTTM::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm with triclinic box");
 
-  // to allow this, would have to reset grid bounds dynamically
-  // for RCB balancing would have to reassign grid pts to procs
-  //   and create a new Grid3d, and pass old GC data to new GC
-
-  if (domain->box_change)
-    error->all(FLERR,"Cannot use fix ttm with changing box shape, size, or sub-domains");
-
   // set force prefactors
 
   for (int i = 1; i <= atom->ntypes; i++) {
@@ -323,7 +316,7 @@ void FixTTM::post_force(int /*vflag*/)
       flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
       flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
       flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-
+      
       f[i][0] += flangevin[i][0];
       f[i][1] += flangevin[i][1];
       f[i][2] += flangevin[i][2];

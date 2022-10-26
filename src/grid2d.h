@@ -173,6 +173,13 @@ protected:
   
   int *overlap_procs;       // length of Nprocs in communicator
 
+  // BRICK decomposition
+
+  double *xsplit,*ysplit,*zsplit;
+  int ***grid2proc;
+
+  // TILED decomposition
+
   // RCB tree of cut info
   // each proc contributes one value, except proc 0
 
@@ -187,10 +194,10 @@ protected:
   // includes overlaps across periodic boundaries, can also be self
 
   struct Overlap {
-    int proc;      // proc whose owned cells overlap my ghost cells
-    int box[4];    // box that overlaps otherproc's owned cells
+    int proc;      // proc whose cells overlap my cells
+    int box[4];    // box of my cells which overlap proc's cells
                    // this box is wholly contained within global grid
-    int pbc[2];    // PBC offsets to convert box to a portion of my ghost box
+    int pbc[2];    // PBC offsets to convert my box to a portion of my ghost box
                    // my ghost box may extend beyond global grid
   };
 
@@ -214,8 +221,6 @@ protected:
   template <class T> void reverse_comm_brick(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void reverse_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
 
-  void setup_remap_brick(Grid2d *, int &, int &);
-  void setup_remap_tiled(Grid2d *, int &, int &);
   template <class T> void remap_style(T *, int, int, void *, void *, MPI_Datatype);
 
   template <class T> void read_file_style(T *, FILE *, int, int);
@@ -232,6 +237,7 @@ protected:
 
   int indices(int *&, int, int, int, int);
   int find_proc_index(int, int, int, double *);
+  void find_proc_box(int, int, int *);
 };
 
 }    // namespace LAMMPS_NS

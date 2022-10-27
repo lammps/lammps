@@ -37,6 +37,7 @@ PairMLIAPKokkos<DeviceType>::PairMLIAPKokkos(class LAMMPS* l) : PairMLIAP(l)
 {
   kokkosable = 1;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  datamask_modify = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,6 +64,8 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
 
   int is_kokkos_model = (dynamic_cast<MLIAPModelKokkos<DeviceType>*>(model)) != nullptr;
   int is_kokkos_descriptor = (dynamic_cast<MLIAPDescriptorKokkos<DeviceType>*>(descriptor)) != nullptr;
+  auto model_space = is_kokkos_model ? execution_space : Host;
+  auto descriptor_space = is_kokkos_descriptor? execution_space : Host;
 
   // consistency checks
   if (data->ndescriptors != model->ndescriptors)
@@ -85,42 +88,33 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   data->generate_neighdata(list, eflag, vflag);
 
   // compute descriptors, if needed
-  if (!is_kokkos_descriptor) {
-    // put sync stuff here
+  if (model->nonlinearflag || eflag)  {
+      k_data->sync(descriptor_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK );
+    descriptor->compute_descriptors(data);
+    if (!is_kokkos_descriptor)
+      k_data->modified(descriptor_space, DESCRIPTORS_MASK);
   }
-  if (model->nonlinearflag || eflag) descriptor->compute_descriptors(data);
-  if (!is_kokkos_descriptor)
-    k_data->modified(Host, DESCRIPTORS_MASK);
-  if (is_kokkos_model)
-    k_data->sync(execution_space, DESCRIPTORS_MASK);
 
   // compute E_i and beta_i = dE_i/dB_i for all i in list
+  k_data->sync(model_space, IELEMS_MASK | DESCRIPTORS_MASK);
   model->compute_gradients(data);
-
-  // This is kokkos
-  if (!is_kokkos_model)
-    k_data->sync(execution_space, IATOMS_MASK | EATOMS_MASK);
+  k_data->modified(model_space, BETAS_MASK);
+  if (eflag_atom)
+    k_data->modified(model_space, EATOMS_MASK);
   e_tally(data);
 
   // calculate force contributions beta_i*dB_i/dR_j
-  if (is_kokkos_model)
-    k_data->modified(execution_space, BETAS_MASK | EATOMS_MASK);
-  if (!is_kokkos_descriptor)
-    k_data->sync(Host, BETAS_MASK | EATOMS_MASK);
+  k_data->sync(descriptor_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | BETAS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK );
   descriptor->compute_forces(data);
 
-  if (!is_kokkos_descriptor) {
-    if (evflag) {
-      atomKK->modified(Host,F_MASK | ENERGY_MASK | VIRIAL_MASK);
-    } else {
-      atomKK->modified(Host,F_MASK);
-    }
+  if (evflag) {
+    atomKK->modified(descriptor_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
+    atomKK->sync(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
   } else {
-    if (evflag)
-      atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
-    else
-      atomKK->modified(execution_space,F_MASK);
+    atomKK->modified(descriptor_space,F_MASK);
+    atomKK->sync(execution_space,F_MASK);
   }
+
   // calculate stress
   if (vflag_fdotr) {
     pair_virial_fdotr_compute(this);
@@ -139,15 +133,6 @@ void PairMLIAPKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_map, map, n+1, "pair_mliap:map");
   memoryKK->create_kokkos(k_cutsq, cutsq, n+1, n+1, "pair_mliap:cutsq");
   memoryKK->create_kokkos(k_setflag, setflag, n+1, n+1, "pair_mliap:setflag");
-
-  auto h_cutsq=k_cutsq.template view<LMPHostType>();
-  n = descriptor->nelements;
-  for (int i=0;i<n;++i)
-    for (int j=0;j<n;++j) {
-      h_cutsq(i,j) = descriptor->cutsq[i][j];
-    }
-  k_cutsq.modify<LMPHostType>();
-  k_cutsq.sync<LMPDeviceType>();
 
   // this is for the base class so it doesn't double delete
   allocated = 1;
@@ -220,6 +205,14 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   k_map.modify<LMPHostType>();
   k_map.sync<LMPDeviceType>();
 
+  auto h_cutsq=k_cutsq.template view<LMPHostType>();
+  for (int itype=1; itype <= atom->ntypes; ++itype)
+    for (int jtype=1; jtype <= atom->ntypes; ++jtype)
+      h_cutsq(itype,jtype) = descriptor->cutsq[map[itype]][map[jtype]];
+  k_cutsq.modify<LMPHostType>();
+  k_cutsq.sync<DeviceType>();
+
+
   // clear setflag since coeff() called once with I,J = * *
 
   int n = atom->ntypes;
@@ -260,7 +253,7 @@ void PairMLIAPKokkos<DeviceType>::e_tally(MLIAPData* data)
   if (eflag_global) eng_vdwl += data->energy;
   if (eflag_atom) {
     MLIAPDataKokkos<DeviceType> *k_data = static_cast<MLIAPDataKokkos<DeviceType>*>(data);
-    k_data->sync(execution_space, IATOMS_MASK);
+    k_data->sync(execution_space, IATOMS_MASK | EATOMS_MASK);
     auto d_iatoms = k_data->k_iatoms.template view<DeviceType>();
     auto d_eatoms = k_data->k_eatoms.template view<DeviceType>();
     auto d_eatom = k_eatom.template view<DeviceType>();

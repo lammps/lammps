@@ -105,7 +105,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
       natomgamma_max = nlistatoms;
     }
   }
-  atomKK->sync(execution_space,X_MASK | V_MASK | F_MASK);
+  atomKK->sync(execution_space,X_MASK | V_MASK | F_MASK | TYPE_MASK);
   k_pairmliap->x = atomKK->k_x.view<DeviceType>();
   k_pairmliap->v = atomKK->k_v.view<DeviceType>();
   k_pairmliap->f = atomKK->k_f.view<DeviceType>();
@@ -149,6 +149,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     const int jnum = d_numneigh(i);
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
       const double delx = x(j,0) - xtmp;
       const double dely = x(j,1) - ytmp;
       const double delz = x(j,2) - ztmp;
@@ -168,9 +169,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     d_ielems[ii] = ielem;
   });
 
-  modified(execution_space, IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
-  sync(Host, IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
-
+  modified(execution_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
   eflag = eflag_in;
   vflag = vflag_in;
 }
@@ -201,7 +200,6 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
 
   auto x = atomKK->k_x.view<DeviceType>();
   auto type = atomKK->k_type.view<DeviceType>();
-  auto map=k_pairmliap->k_map.template view<DeviceType>();
   auto d_cutsq=k_pairmliap->k_cutsq.template view<DeviceType>();
   auto d_numneighs = k_numneighs.template view<DeviceType>();
   Kokkos::parallel_reduce(nlistatoms, KOKKOS_LAMBDA (int ii, int &contrib) {
@@ -214,6 +212,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     const int jnum = d_numneigh(i);
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
       const double delx = x(j,0) - xtmp;
       const double dely = x(j,1) - ytmp;
       const double delz = x(j,2) - ztmp;
@@ -226,7 +225,6 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     contrib += count;
   }, nij_total);
   modified(execution_space, NUMNEIGHS_MASK);
-  sync(Host, NUMNEIGHS_MASK);
 
   if (nneigh_max < nij_total) {
     memoryKK->destroy_kokkos(k_jatoms,jatoms);
@@ -270,7 +268,6 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
     if (mask & IATOMS_MASK      ) k_iatoms         .modify<LMPHostType>();
     if (mask & IELEMS_MASK      ) k_ielems         .modify<LMPHostType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .modify<LMPHostType>();
-    if (mask & JELEMS_MASK      ) k_jelems         .modify<LMPHostType>();
     if (mask & JELEMS_MASK      ) k_jelems         .modify<LMPHostType>();
     if (mask & IJ_MASK          ) k_ij             .modify<LMPHostType>();
     if (mask & BETAS_MASK       ) k_betas          .modify<LMPHostType>();

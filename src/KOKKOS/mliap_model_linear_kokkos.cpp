@@ -42,7 +42,6 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data
   auto d_coeffelem = this->k_coeffelem.template view<DeviceType>();
 
   //read
-  k_data->sync(execution_space, IELEMS_MASK | DESCRIPTORS_MASK);
   auto d_ielems = k_data->k_ielems.template view<DeviceType>();
   auto d_descriptors = k_data->k_descriptors.template view<DeviceType>();
 
@@ -72,7 +71,6 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data
     }
   }, data->energy);
 
-  k_data->modified(execution_space, BETAS_MASK | EATOMS_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

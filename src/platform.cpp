@@ -229,6 +229,8 @@ std::string platform::os_info()
     buf = "Windows 10 21H1";
   } else if (build == "19044") {
     buf = "Windows 10 21H2";
+  } else if (build == "19045") {
+    buf = "Windows 10 22H2";
   } else if (build == "20348") {
     buf = "Windows Server 2022";
   } else if (build == "22000") {

@@ -11,7 +11,7 @@ OBJ =   $(SRC:.cpp=.o)
 
 # ------ SETTINGS ------
 
-# include any MPI settings needed for the ATC library to build with
+# include any MPI settings needed for the electrode library to build with
 # the same MPI library that LAMMPS is built with
 
 CC =	    g++

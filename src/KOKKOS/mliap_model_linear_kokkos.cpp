@@ -19,6 +19,7 @@
 #include "mliap_model_linear_kokkos.h"
 
 #include "mliap_data_kokkos.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -78,7 +79,6 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data
 template<class DeviceType>
 void MLIAPModelLinearKokkos<DeviceType>::compute_gradgrads(class MLIAPData *data)
 {
-  abort();
   MLIAPModelLinear::compute_gradgrads(data);
 }
 
@@ -87,7 +87,6 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradgrads(class MLIAPData *data
 template<class DeviceType>
 void MLIAPModelLinearKokkos<DeviceType>::compute_force_gradients(class MLIAPData *data)
 {
-  abort();
   MLIAPModelLinear::compute_force_gradients(data);
 }
 

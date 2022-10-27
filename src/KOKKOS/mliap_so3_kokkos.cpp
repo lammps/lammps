@@ -734,23 +734,24 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
   bigint totali;
 
   totali = totaln * m_Nmax * (m_lmax + 1);
-  memoryKK->destroy_kokkos(m_sbes_array);
-  memoryKK->create_kokkos(m_sbes_array, totali, "MLIAP_SO3Kokkos:m_sbes_array");
-  memoryKK->destroy_kokkos(m_sbes_darray);
-  memoryKK->create_kokkos(m_sbes_darray, totali, "MLIAP_SO3Kokkos:m_sbes_darray");
-  alloc_arrays += 2.0 * totali * sizeof(double);
+  if ( totali > m_sbes_array.extent(0)) {
+    memoryKK->realloc_kokkos(m_sbes_array, "MLIAP_SO3Kokkos:m_sbes_array", totali);
+    memoryKK->realloc_kokkos(m_sbes_darray, "MLIAP_SO3Kokkos:m_sbes_darray", totali);
+    alloc_arrays += 2.0 * totali * sizeof(double);
+  }
 
   totali = totaln * m_nmax * (m_lmax + 1);
-  memoryKK->destroy_kokkos(m_rip_array);
-  memoryKK->create_kokkos(m_rip_array, totali, "MLIAP_SO3Kokkos:m_rip_array");
-  memoryKK->destroy_kokkos(m_rip_darray);
-  memoryKK->create_kokkos(m_rip_darray, totali, "MLIAP_SO3Kokkos:m_rip_darray");
-  alloc_arrays += 2.0 * totali * sizeof(double);
+  if ( totali > m_rip_array.extent(0)) {
+    memoryKK->realloc_kokkos(m_rip_array, "MLIAP_SO3Kokkos:m_rip_array", totali);
+    memoryKK->realloc_kokkos(m_rip_darray, "MLIAP_SO3Kokkos:m_rip_darray", totali);
+    alloc_arrays += 2.0 * totali * sizeof(double);
+  }
 
   totali = totaln * ncoefs * 3;
-  memoryKK->destroy_kokkos(k_dplist_r);
-  memoryKK->create_kokkos(k_dplist_r, (int)totaln, ncoefs, 3, "MLIAP_SO3Kokkos:m_dplist_r");
-  alloc_arrays += 2.0 * totali * sizeof(double);
+  if ( totali > k_dplist_r.extent(0)) {
+    memoryKK->realloc_kokkos(k_dplist_r, "MLIAP_SO3Kokkos:m_dplist_r", (int)totaln, ncoefs, 3);
+    alloc_arrays += 2.0 * totali * sizeof(double);
+  }
 
 
   t_numneighs=numneighs.template view<DeviceType>();
@@ -924,7 +925,7 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>::MLIAPSO3SpectrumDXDRTag&, int ii) const {
-  //FIXME Need to move m_ulist_r, m_ulist_i into local shared memory
+  //TO-DO Need to move m_ulist_r, m_ulist_i into local shared memory
   int ii_chunk = ii%m_chunk_size;
   auto ulist_r = Kokkos::subview(m_ulist_r,ii_chunk,Kokkos::ALL);
   auto ulist_i = Kokkos::subview(m_ulist_i,ii_chunk,Kokkos::ALL);

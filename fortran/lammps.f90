@@ -1926,15 +1926,15 @@ CONTAINS
   ! equivalent function to lammps_get_os_info
   SUBROUTINE lmp_get_os_info(buffer)
     CHARACTER(LEN=*) :: buffer
-    INTEGER(c_size_t) :: buf_size
+    INTEGER(c_int) :: buf_size
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: ptr
 
     buffer = ''
-    buf_size = LEN(buffer, KIND=c_size_t)
-    ptr = lammps_malloc(buf_size)
+    buf_size = LEN(buffer, KIND=c_int) + 1_c_int
+    ptr = C_LOC(Cbuffer(1))
     CALL lammps_get_os_info(ptr, INT(buf_size, KIND=c_int))
-    buffer = c2f_string(ptr)
-    CALL lammps_free(ptr)
+    buffer = array2string(Cbuffer, buf_size - 1)
   END SUBROUTINE lmp_get_os_info
 
   ! equivalent function to lammps_config_has_mpi_support
@@ -2002,20 +2002,20 @@ CONTAINS
     CLASS(lammps), INTENT(IN) :: self
     INTEGER, INTENT(IN) :: idx
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     INTEGER(c_int) :: Cidx, Csuccess
     TYPE(c_ptr) :: Cptr
 
     Cidx = idx - 1
-    Cptr = lammps_malloc(LEN(buffer, KIND=c_size_t) + 1_c_size_t)
+    Cptr = C_LOC(Cbuffer(1))
     Csuccess = lammps_config_package_name(Cidx, Cptr, LEN(buffer)+1)
     buffer = ''
     IF (Csuccess /= 0_c_int) THEN
-      buffer = c2f_string(Cptr)
+      buffer = array2string(Cbuffer)
     ELSE
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'failure of lammps_config_package_name [Fortran/config_package_name]')
     END IF
-    CALL lammps_free(Cptr)
   END SUBROUTINE lmp_config_package_name
 
   ! equivalent function to Python routine .installed_packages()
@@ -2065,14 +2065,14 @@ CONTAINS
   SUBROUTINE lmp_get_gpu_device_info(buffer)
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER(c_int) :: buf_size, i
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: Cptr
 
     buffer = ''
     buf_size = LEN(buffer) + 1
-    Cptr = lammps_malloc(INT(buf_size,c_size_t))
+    Cptr = C_LOC(Cbuffer)
     CALL lammps_get_gpu_device_info(Cptr, buf_size)
-    buffer = c2f_string(Cptr)
-    CALL lammps_free(Cptr)
+    buffer = array2string(Cbuffer)
   END SUBROUTINE lmp_get_gpu_device_info
 
   ! equivalent function to lammps_has_style
@@ -2108,22 +2108,21 @@ CONTAINS
     INTEGER(c_int), INTENT(IN) :: idx
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER(c_int) :: buf_size, success
-    TYPE(c_ptr) :: Ccategory, Cbuffer
-    INTEGER(c_size_t) :: length
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
+    TYPE(c_ptr) :: Ccategory, Cptr
 
     buffer = ''
-    buf_size = LEN(buffer)
+    buf_size = LEN(buffer, KIND=c_int) + 1_c_int
     Ccategory = f2c_string(category)
-    Cbuffer = lammps_malloc(buf_size + 1_c_size_t)
-    success = lammps_style_name(self%handle, Ccategory, idx, Cbuffer, buf_size)
+    Cptr = C_LOC(Cbuffer)
+    success = lammps_style_name(self%handle, Ccategory, idx, Cptr, buf_size)
     IF (success == 1_c_int) THEN
-      buffer = c2f_string(Cbuffer)
+      buffer = array2string(Cbuffer)
     ELSE
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'idx value not in range [Fortran/style_name]')
     END IF
     CALL lammps_free(Ccategory)
-    CALL lammps_free(Cbuffer)
   END SUBROUTINE lmp_style_name
 
   ! equivalent function to lammps_has_id
@@ -2160,21 +2159,21 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER(c_int) :: success
     INTEGER(c_int) :: buf_size
-    TYPE(c_ptr) :: Ccategory, Cbuffer
+    TYPE(c_ptr) :: Ccategory, Cptr
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
 
     buffer = ''
     Ccategory = f2c_string(category)
     buf_size = LEN(buffer, KIND=c_int)
-    Cbuffer = lammps_malloc(INT(buf_size, KIND=c_size_t))
-    success = lammps_id_name(self%handle, Ccategory, idx, Cbuffer, buf_size)
+    Cptr = C_LOC(Cbuffer(1))
+    success = lammps_id_name(self%handle, Ccategory, idx, Cptr, buf_size)
     IF (success /= 0) THEN
-      buffer = c2f_string(Cbuffer)
+      buffer = array2string(Cbuffer)
     ELSE
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'lammps_id_name failed [Fortran/id_name]')
     END IF
     CALL lammps_free(Ccategory)
-    CALL lammps_free(Cbuffer)
   END SUBROUTINE lmp_id_name
 
   ! equivalent function to lammps_encode_image_flags
@@ -2299,22 +2298,20 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER, INTENT(OUT), OPTIONAL :: status
     INTEGER(c_int) :: buflen, Cstatus
-    INTEGER(c_size_t) :: length
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: Cptr
 
-    buffer = ' '
+    buffer = ''
     IF (lmp_has_error(self)) THEN
-      buflen = LEN(buffer)
-      length = buflen
-      Cptr = lammps_malloc(length)
+      buflen = LEN(buffer, KIND=c_int) + 1_c_int
+      Cptr = C_LOC(Cbuffer(1))
       Cstatus = lammps_get_last_error_message(self%handle, Cptr, buflen)
-      buffer = c2f_string(Cptr)
+      buffer = array2string(Cbuffer)
       IF (PRESENT(status)) THEN
         status = Cstatus
       END IF
-      CALL lammps_free(Cptr)
     ELSE
-      buffer = ' '
+      buffer = ''
       IF (PRESENT(status)) THEN
         status = 0
       END IF
@@ -2577,18 +2574,39 @@ CONTAINS
     TYPE(c_ptr), INTENT(IN) :: ptr
     CHARACTER(LEN=:), ALLOCATABLE :: f_string
     CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: c_string
-    INTEGER(c_size_t) :: i, n
+    INTEGER :: n
+
     IF (.NOT. C_ASSOCIATED(ptr)) THEN
       f_string = ''
       RETURN
     END IF
-    n = c_strlen(ptr)
-    CALL C_F_POINTER(ptr, c_string, [n])
-    ALLOCATE(CHARACTER(LEN=n) :: f_string)
-    DO i = 1, n
-      f_string(i:i) = c_string(i)
-    END DO
+    n = c_strlen(ptr) ! implicit conversion: c_size_t -> (default kind)
+    CALL C_F_POINTER(ptr, c_string, [n+1])
+    f_string = array2string(c_string, n)
   END FUNCTION c2f_string
+
+  ! Copy a known-length or null-terminated array of C characters into a string
+  FUNCTION array2string(array, length) RESULT(string)
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(:) :: array
+! NOTE: giving "length" the VALUE attribute reveals a bug in gfortran 12.2.1
+! https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107441
+    INTEGER, INTENT(IN), OPTIONAL :: length
+    CHARACTER(LEN=:), ALLOCATABLE :: string
+    INTEGER :: n, i
+
+    IF (PRESENT(length)) THEN
+      n = length
+    ELSE
+      n = 1
+      DO WHILE (n < SIZE(array) .AND. array(n+1) /= c_null_char)
+        n = n + 1
+      END DO
+    END IF
+    ALLOCATE(CHARACTER(LEN=n) :: string)
+    DO i = 1, n
+      string(i:i) = array(i)
+    END DO
+  END FUNCTION array2string
 
 END MODULE LIBLAMMPS
 

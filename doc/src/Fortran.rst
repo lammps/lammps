@@ -1444,13 +1444,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
         USE LIBLAMMPS
         IMPLICIT NONE
-        INTEGER(c_int), DIMENSION(:), ALLOCATABLE :: bonds_array
-        INTEGER(c_int), DIMENSION(:,:), POINTER :: bonds
+        INTEGER(c_int), DIMENSION(:), ALLOCATABLE :: bonds
+        INTEGER(c_int), DIMENSION(:,:), POINTER :: bonds_array
         TYPE(lammps) :: lmp
         INTEGER :: i
         ! other commands to initialize LAMMPS, create bonds, etc.
         CALL lmp%gather_bonds(bonds)
-        bonds(1:3,1:size(bonds)/3) => bonds_array
+        bonds_array(1:3,1:size(bonds)/3) => bonds
         DO i = 1, size(bonds)/3
           WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4)') 'bond', bonds(1,i), &
             '; type = ', bonds(2,i), bonds(3,i)

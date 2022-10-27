@@ -52,7 +52,7 @@ static const char cite_pair_ylz[] =
 
 PairYLZ::PairYLZ(LAMMPS *lmp) :
     Pair(lmp), epsilon(nullptr), sigma(nullptr), cut(nullptr), zeta(nullptr), mu(nullptr),
-    beta(nullptr)
+    beta(nullptr), avec(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_ylz);
 

@@ -1450,8 +1450,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         INTEGER :: i
         ! other commands to initialize LAMMPS, create bonds, etc.
         CALL lmp%gather_bonds(bonds)
-        bonds_array(1:3,1:size(bonds)/3) => bonds
-        DO i = 1, size(bonds)/3
+        bonds_array(1:3,1:SIZE(bonds)/3) => bonds
+        DO i = 1, SIZE(bonds)/3
           WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4)') 'bond', bonds(1,i), &
             '; type = ', bonds(2,i), bonds(3,i)
         END DO

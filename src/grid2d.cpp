@@ -298,7 +298,9 @@ Grid2d::~Grid2d()
     memory->destroy(copy[i].unpacklist);
   }
   memory->sfree(copy);
+  
   delete [] requests;
+  delete [] requests_remap;
 
   memory->sfree(rcbinfo);
 
@@ -345,6 +347,7 @@ void Grid2d::store(int ixlo, int ixhi, int iylo, int iyhi,
   recv = nullptr;
   copy = nullptr;
   requests = nullptr;
+  requests_remap = nullptr;
   
   xsplit = ysplit = zsplit = nullptr;
   grid2proc = nullptr;
@@ -695,8 +698,8 @@ void Grid2d::setup_tiled(int &nbuf1, int &nbuf2)
   double xlo,xhi,ylo,yhi;
   int ghostbox[4],pbc[2];
 
-  // find overlaps of my extended ghost box with all other procs
-  // accounts for crossings of periodic boundaries
+  // find overlaps of my extended ghost box with all owned boxes
+  // accounts for ghost box overlapping periodic boundaries
   // noverlap = # of overlaps, including self
   // overlap = vector of overlap info using Overlap data struct
 
@@ -708,12 +711,13 @@ void Grid2d::setup_tiled(int &nbuf1, int &nbuf2)
   pbc[0] = pbc[1] = 0;
 
   Overlap *overlap;
-  int noverlap = compute_overlap(ghostbox,pbc,overlap);
+  int noverlap = compute_overlap(1,ghostbox,pbc,overlap);
 
   // send each proc an overlap message
   // content: me, index of my overlap, box that overlaps with its owned cells
   // ncopy = # of overlaps with myself, across a periodic boundary
-
+  //         skip copy to self when non-PBC
+  
   int *proclist;
   memory->create(proclist,noverlap,"grid2d:proclist");
   srequest = (Request *)
@@ -723,8 +727,10 @@ void Grid2d::setup_tiled(int &nbuf1, int &nbuf2)
   ncopy = 0;
 
   for (m = 0; m < noverlap; m++) {
-    if (overlap[m].proc == me) ncopy++;
-    else {
+    if (overlap[m].proc == me) {
+      if (overlap[m].pbc[0] == 0 && overlap[m].pbc[1] == 0) continue;
+      ncopy++;
+    } else {
       proclist[nsend_request] = overlap[m].proc;
       srequest[nsend_request].sender = me;
       srequest[nsend_request].index = m;
@@ -799,12 +805,14 @@ void Grid2d::setup_tiled(int &nbuf1, int &nbuf2)
   nrecv = nrecv_response;
 
   // create Copy data struct from overlaps with self
-
+  // skip copy to self when non-PBC
+  
   copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"grid2d:copy");
 
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
     if (overlap[m].proc != me) continue;
+    if (overlap[m].pbc[0] == 0 && overlap[m].pbc[1] == 0) continue;
     xlo = overlap[m].box[0];
     xhi = overlap[m].box[1];
     ylo = overlap[m].box[2];
@@ -952,7 +960,7 @@ void Grid2d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
-   forward comm on regular grid of procs via list of swaps with 6 neighbor procs
+   forward comm for brick decomp via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
 template < class T >
@@ -982,7 +990,7 @@ forward_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
 }
 
 /* ----------------------------------------------------------------------
-   forward comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+   forward comm for tiled decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
 template < class T >
@@ -1057,7 +1065,7 @@ void Grid2d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
 }
 
 /* ----------------------------------------------------------------------
-   reverse comm on regular grid of procs via list of swaps with 6 neighbor procs
+   reverse comm for brick decomp via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
 template < class T >
@@ -1087,7 +1095,7 @@ reverse_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
 }
 
 /* ----------------------------------------------------------------------
-   reverse comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+   reverse comm for tiled decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
 template < class T >
@@ -1147,8 +1155,6 @@ reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
      caller converts them to message size for grid data it stores
 ------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------------------------- */
-
 void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
 {
   int m;
@@ -1159,7 +1165,11 @@ void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
   
   deallocate_remap();
 
-  // compute overlaps of old decomp owned box with all owned boxes in new decomp
+  // set layout to current Comm layout
+
+  layout = comm->layout;
+
+  // overlaps of my old decomp owned box with all owned boxes in new decomp
   // noverlap_old = # of overlaps, including self
   // overlap_old = vector of overlap info in Overlap data struct
 
@@ -1168,7 +1178,7 @@ void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
   pbc[0] = pbc[1] = 0;
 
   Overlap *overlap_old;
-  int noverlap_old = compute_overlap(oldbox,pbc,overlap_old);
+  int noverlap_old = compute_overlap(0,oldbox,pbc,overlap_old);
 
   // use overlap_old to construct send and copy lists
   
@@ -1193,11 +1203,11 @@ void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
       send_remap[nsend_remap].npack =
 	old->indices(send_remap[nsend_remap].packlist,
 		     box[0],box[1],box[2],box[3]);
+      nsend_remap++;
     }
-    nsend_remap++;
   }
 
-  // compute overlaps of new decomp owned box with all owned boxes in old decomp
+  // overlaps of my new decomp owned box with all owned boxes in old decomp
   // noverlap_new = # of overlaps, including self
   // overlap_new = vector of overlap info in Overlap data struct
 
@@ -1206,7 +1216,7 @@ void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
   pbc[0] = pbc[1] = 0;
 
   Overlap *overlap_new;
-  int noverlap_new = old->compute_overlap(newbox,pbc,overlap_new);
+  int noverlap_new = old->compute_overlap(0,newbox,pbc,overlap_new);
 
   // use overlap_new to construct recv and copy lists
   // set offsets for Recv data
@@ -1228,8 +1238,8 @@ void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
       recv_remap[nrecv_remap].nunpack =
 	indices(recv_remap[nrecv_remap].unpacklist,
 		box[0],box[1],box[2],box[3]);
+      nrecv_remap++;
     }
-    nrecv_remap++;
   }
 
   // set offsets for received data
@@ -1239,7 +1249,12 @@ void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
     recv[m].offset = offset;
     offset += recv_remap[m].nunpack;
   }
-  
+
+  // length of MPI requests vector = nrecv_remap
+
+  delete [] requests_remap;
+  requests_remap = new MPI_Request[nrecv_remap];
+
   // clean-up
 
   clean_overlap();
@@ -1348,11 +1363,13 @@ void Grid2d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
 
   while (nread < ntotal) {
     int nchunk = MIN(ntotal - nread, nchunk);
-    int eof = utils::read_lines_from_file(fp, nchunk, maxline, buffer, comm->me, world);
+    int eof = utils::read_lines_from_file(fp, nchunk, maxline, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of grid data file");
 
     nread += ptr->unpack_read_grid(buffer);
   }
+
+  delete [] buffer;
 }
 
 /* ----------------------------------------------------------------------
@@ -1377,8 +1394,6 @@ template < class T >
 void Grid2d::write_file_style(T *ptr, int which,
 			      int nper, int nbyte, MPI_Datatype datatype)
 {
-  int me = comm->me;
-
   // maxsize = max size of grid data owned by any proc
 
   int mysize = (inxhi-inxlo+1) * (inyhi-inylo+1);
@@ -1445,6 +1460,9 @@ void Grid2d::write_file_style(T *ptr, int which,
 
 /* ----------------------------------------------------------------------
    compute list of overlaps between box and the owned grid boxes of all procs
+   ghostflag = 1 if box includes ghost grid pts, called by setup_tiled()
+   ghostflag = 0 if box has no ghost grid pts, called by setup_remap()
+   layout != LAYOUT_TILED is only invoked by setup_remap()
    for brick decomp of Grid, done using xyz split + grid2proc copied from Comm
    for tiled decomp of Grid, done via recursive box drop on RCB tree
    box = 4 integers = (xlo,xhi,ylo,yhi)
@@ -1452,12 +1470,19 @@ void Grid2d::write_file_style(T *ptr, int which,
    pbc = flags for grid periodicity in each dim
      if box includes ghost cells, it can overlap PBCs (only for setup_tiled)
      each lo/hi value may extend beyond 0 to N-1 into another periodic image
-   return # of overlaps including with self
+   return # of overlaps including with self, caller handles self overlaps as needed
    return list of overlaps
+     for setup_tiled() this is what box_drop() computes
+       entire box for each overlap
+       caller will determine extent of overlap using PBC info
+     for setup_remap(), return extent of overlap (no PBC info involved)
+       use proc_box_uniform() or tiled() and MAX/MIN to determine this
 ------------------------------------------------------------------------- */
 
-int Grid2d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
+int Grid2d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap)
 {
+  int obox[4];
+    
   memory->create(overlap_procs,nprocs,"grid2d:overlap_procs");
   noverlap_list = maxoverlap_list = 0;
   overlap_list = nullptr;
@@ -1466,16 +1491,16 @@ int Grid2d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
 
     // find comm->procgrid indices in each dim for box bounds
     
-    int iproclo = find_proc_index(box[0],ngrid[0],0,comm->xsplit);
-    int iprochi = find_proc_index(box[1],ngrid[0],0,comm->xsplit);
-    int jproclo = find_proc_index(box[2],ngrid[1],1,comm->ysplit);
-    int jprochi = find_proc_index(box[3],ngrid[1],1,comm->ysplit);
+    int iproclo = proc_index_uniform(box[0],ngrid[0],0,comm->xsplit);
+    int iprochi = proc_index_uniform(box[1],ngrid[0],0,comm->xsplit);
+    int jproclo = proc_index_uniform(box[2],ngrid[1],1,comm->ysplit);
+    int jprochi = proc_index_uniform(box[3],ngrid[1],1,comm->ysplit);
 
-    int obox[4];
-    
+    // compute extent of overlap of box with with each proc's obox
+
     for (int j = jproclo; j <= jprochi; j++)
       for (int i = iproclo; i <= iprochi; i++) {
-        find_proc_box(i,j,obox);
+        proc_box_uniform(i,j,obox);
 
         if (noverlap_list == maxoverlap_list) grow_overlap();
         overlap_list[noverlap_list].proc = grid2proc[i][j][0];
@@ -1486,8 +1511,26 @@ int Grid2d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
         noverlap_list++;
       }
 
-  } else if (layout == Comm::LAYOUT_TILED) {
+  } else {
     box_drop(box,pbc);
+
+    // compute extent of overlap of box with with each proc's obox
+
+    if (ghostflag == 0) {
+      for (int m = 0; m < noverlap_list; m++) {
+        obox[0] = 0;
+        obox[1] = ngrid[0]-1;
+        obox[2] = 0;
+        obox[3] = ngrid[1]-1;
+        
+        proc_box_tiled(overlap_list[m].proc,0,nprocs-1,obox);
+        
+        overlap_list[m].box[0] = MAX(box[0],obox[0]);
+        overlap_list[m].box[1] = MIN(box[1],obox[1]);
+        overlap_list[m].box[2] = MAX(box[2],obox[2]);
+        overlap_list[m].box[3] = MIN(box[3],obox[3]);
+      }
+    }
   }
 
   overlap = overlap_list;
@@ -1553,10 +1596,9 @@ void Grid2d::box_drop(int *box, int *pbc)
     newpbc[1]++;
 
   // box is not split, drop on RCB tree
-  // returns nprocs = # of procs it overlaps, including self
+  // returns np = # of procs it overlaps, including self
   // returns proc_overlap = list of proc IDs it overlaps
-  // skip self overlap if no crossing of periodic boundaries
-  // do not skip self if overlap is in another periodic image
+  // add each overlap to overlap list
 
   } else {
     splitflag = 0;
@@ -1564,8 +1606,6 @@ void Grid2d::box_drop(int *box, int *pbc)
     box_drop_grid(box,0,nprocs-1,np,overlap_procs);
     for (m = 0; m < np; m++) {
       if (noverlap_list == maxoverlap_list) grow_overlap();
-      if (overlap_procs[m] == me &&
-          pbc[0] == 0 && pbc[1] == 0 && pbc[2] == 0) continue;
       overlap_list[noverlap_list].proc = overlap_procs[m];
       for (i = 0; i < 4; i++) overlap_list[noverlap_list].box[i] = box[i];
       for (i = 0; i < 2; i++) overlap_list[noverlap_list].pbc[i] = pbc[i];
@@ -1648,11 +1688,11 @@ void Grid2d::deallocate_remap()
 {
   for (int i = 0; i < nsend_remap; i++)
     memory->destroy(send_remap[i].packlist);
-  memory->sfree(send_remap);
+  delete [] send_remap;
   
   for (int i = 0; i < nrecv_remap; i++)
     memory->destroy(recv_remap[i].unpacklist);
-  memory->sfree(recv_remap);
+  delete [] recv_remap;
 
   if (self_remap) {
     memory->destroy(copy_remap.packlist);
@@ -1684,14 +1724,14 @@ int Grid2d::indices(int *&list, int xlo, int xhi, int ylo, int yhi)
 }
 
 /* ----------------------------------------------------------------------
-   find the comm->procgrid index for which proc owns the igrid index
+   find the comm->procgrid index = which proc owns the igrid index
    igrid = grid index (0 to N-1) in dim
    n = # of grid points in dim
    dim = which dimension (0,1)
    split = comm->x/y/z split for fractional bounds of each proc domain
 ------------------------------------------------------------------------- */
 
-int Grid2d::find_proc_index(int igrid, int n, int dim, double *split)
+int Grid2d::proc_index_uniform(int igrid, int n, int dim, double *split)
 {
   int gridlo,gridhi;
   double fraclo,frachi;
@@ -1716,13 +1756,13 @@ int Grid2d::find_proc_index(int igrid, int n, int dim, double *split)
 }
 
 /* ----------------------------------------------------------------------
-   find the grid box for proc with grid indices i,j
+   compute the grid box for proc with grid indices i,j
    i,j,k = grid index (0 to N-1) in each dim
    return lo/hi bounds of box in 2 dims
    computation is same as Comm::partition_grid()
 ------------------------------------------------------------------------- */
 
-void Grid2d::find_proc_box(int i, int j, int *box)
+void Grid2d::proc_box_uniform(int i, int j, int *box)
 {
   int lo,hi;
   double fraclo,frachi;
@@ -1744,4 +1784,37 @@ void Grid2d::find_proc_box(int i, int j, int *box)
   if (1.0*hi == frachi*ngrid[1]) hi--;
   box[2] = lo;
   box[3] = hi;
+}
+
+/* ----------------------------------------------------------------------
+   compute the grid box for proc within tiled decomposition
+   performed recursively until proclower = procupper = proc
+   return box = lo/hi bounds of proc's box in 2 dims
+------------------------------------------------------------------------- */
+
+void Grid2d::proc_box_tiled(int proc, int proclower, int procupper, int *box)
+{
+  // end recursion when partition is a single proc
+
+  if (proclower == procupper) return;
+
+  // split processor partition
+  // procmid = 1st processor in upper half of partition
+  //         = location in tree that stores this cut
+  // cut = index of first grid cell in upper partition
+  // dim = 0,1 dimension of cut
+
+  int procmid = proclower + (procupper - proclower) / 2 + 1;
+  int dim = rcbinfo[procmid].dim;
+  int cut = rcbinfo[procmid].cut;
+
+  // adjust box to reflect which half of partition the proc is in
+  
+  if (proc < procmid) {
+    box[2*dim+1] = cut-1;
+    proc_box_tiled(proc,proclower,procmid-1,box);
+  } else {
+    box[2*dim] = cut;
+    proc_box_tiled(proc,procmid,procupper,box);
+  }
 }

@@ -26,8 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{UNIFORM,TILED};
-
 #define DELTA 16
 
 static constexpr int OFFSET = 16384;
@@ -317,7 +315,9 @@ Grid3d::~Grid3d()
     memory->destroy(copy[i].unpacklist);
   }
   memory->sfree(copy);
+  
   delete [] requests;
+  delete [] requests_remap;
 
   memory->sfree(rcbinfo);
 
@@ -374,6 +374,7 @@ void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
   recv = nullptr;
   copy = nullptr;
   requests = nullptr;
+  requests_remap = nullptr;
 
   xsplit = ysplit = zsplit = nullptr;
   grid2proc = nullptr;
@@ -434,7 +435,7 @@ int Grid3d::identical(Grid3d *grid2)
 {
   int inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2;
   int outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2;
-
+  
   grid2->get_bounds(inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2);
   grid2->get_bounds_ghost(outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2);
 
@@ -841,11 +842,12 @@ void Grid3d::setup_tiled(int &nbuf1, int &nbuf2)
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   Overlap *overlap;
-  int noverlap = compute_overlap(ghostbox,pbc,overlap);
+  int noverlap = compute_overlap(1,ghostbox,pbc,overlap);
 
   // send each proc an overlap message
   // content: me, index of my overlap, box that overlaps with its owned cells
-  // ncopy = # of overlaps with myself, across a periodic boundary
+  // ncopy = # of overlaps with myself across a periodic boundary
+  //         skip copy to self when non-PBC
 
   int *proclist;
   memory->create(proclist,noverlap,"grid3d:proclist");
@@ -856,8 +858,11 @@ void Grid3d::setup_tiled(int &nbuf1, int &nbuf2)
   ncopy = 0;
 
   for (m = 0; m < noverlap; m++) {
-    if (overlap[m].proc == me) ncopy++;
-    else {
+    if (overlap[m].proc == me) {
+      if (overlap[m].pbc[0] == 0 && overlap[m].pbc[1] == 0 &&
+          overlap[m].pbc[2] == 0) continue;
+      ncopy++;
+    } else {
       proclist[nsend_request] = overlap[m].proc;
       srequest[nsend_request].sender = me;
       srequest[nsend_request].index = m;
@@ -939,12 +944,15 @@ void Grid3d::setup_tiled(int &nbuf1, int &nbuf2)
   nrecv = nrecv_response;
 
   // create Copy data struct from overlaps with self
-
+  // skip copy to self when non-PBC
+  
   copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"grid3d:copy");
 
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
     if (overlap[m].proc != me) continue;
+    if (overlap[m].pbc[0] == 0 && overlap[m].pbc[1] == 0 &&
+        overlap[m].pbc[2] == 0) continue;
     xlo = overlap[m].box[0];
     xhi = overlap[m].box[1];
     ylo = overlap[m].box[2];
@@ -1303,7 +1311,11 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   
   deallocate_remap();
 
-  // compute overlaps of old decomp owned box with all owned boxes in new decomp
+  // set layout to current Comm layout
+
+  layout = comm->layout;
+  
+  // overlaps of my old decomp owned box with all owned boxes in new decomp
   // noverlap_old = # of overlaps, including self
   // overlap_old = vector of overlap info in Overlap data struct
 
@@ -1312,7 +1324,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   Overlap *overlap_old;
-  int noverlap_old = compute_overlap(oldbox,pbc,overlap_old);
+  int noverlap_old = compute_overlap(0,oldbox,pbc,overlap_old);
 
   // use overlap_old to construct send and copy lists
   
@@ -1320,7 +1332,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 
   nsend_remap = 0;
   for (m = 0; m < noverlap_old; m++) {
-    if (overlap_old[m].proc == me) self_remap =1;
+    if (overlap_old[m].proc == me) self_remap = 1;
     else nsend_remap++;
   }
 
@@ -1338,11 +1350,11 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
       send_remap[nsend_remap].npack =
 	old->indices(send_remap[nsend_remap].packlist,
 		     box[0],box[1],box[2],box[3],box[4],box[5]);
+      nsend_remap++;
     }
-    nsend_remap++;
   }
 
-  // compute overlaps of new decomp owned box with all owned boxes in old decomp
+  // overlaps of my new decomp owned box with all owned boxes in old decomp
   // noverlap_new = # of overlaps, including self
   // overlap_new = vector of overlap info in Overlap data struct
 
@@ -1351,7 +1363,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   Overlap *overlap_new;
-  int noverlap_new = old->compute_overlap(newbox,pbc,overlap_new);
+  int noverlap_new = old->compute_overlap(0,newbox,pbc,overlap_new);
 
   // use overlap_new to construct recv and copy lists
   // set offsets for Recv data
@@ -1374,18 +1386,23 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
       recv_remap[nrecv_remap].nunpack =
 	indices(recv_remap[nrecv_remap].unpacklist,
 		box[0],box[1],box[2],box[3],box[4],box[5]);
+      nrecv_remap++;
     }
-    nrecv_remap++;
   }
 
   // set offsets for received data
 
   int offset = 0;
   for (m = 0; m < nrecv_remap; m++) {
-    recv[m].offset = offset;
+    recv_remap[m].offset = offset;
     offset += recv_remap[m].nunpack;
   }
-  
+
+  // length of MPI requests vector = nrecv_remap
+
+  delete [] requests_remap;
+  requests_remap = new MPI_Request[nrecv_remap];
+
   // clean-up
 
   clean_overlap();
@@ -1494,7 +1511,7 @@ void Grid3d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
 
   while (nread < ntotal) {
     int nchunk = MIN(ntotal - nread, nchunk);
-    int eof = utils::read_lines_from_file(fp, nchunk, maxline, buffer, comm->me, world);
+    int eof = utils::read_lines_from_file(fp, nchunk, maxline, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of grid data file");
 
     nread += ptr->unpack_read_grid(buffer);
@@ -1525,8 +1542,6 @@ template < class T >
 void Grid3d::write_file_style(T *ptr, int which,
 			      int nper, int nbyte, MPI_Datatype datatype)
 {
-  int me = comm->me;
-
   // maxsize = max size of grid data owned by any proc
 
   int mysize = (inxhi-inxlo+1) * (inyhi-inylo+1) * (inzhi-inzlo+1);
@@ -1597,6 +1612,9 @@ void Grid3d::write_file_style(T *ptr, int which,
 
 /* ----------------------------------------------------------------------
    compute list of overlaps between box and the owned grid boxes of all procs
+   ghostflag = 1 if box includes ghost grid pts, called by setup_tiled()
+   ghostflag = 0 if box has no ghost grid pts, called by setup_remap()
+   layout != LAYOUT_TILED is only invoked by setup_remap()
    for brick decomp of Grid, done using xyz split + grid2proc copied from Comm
    for tiled decomp of Grid, done via recursive box drop on RCB tree
    box = 6 integers = (xlo,xhi,ylo,yhi,zlo,zhi)
@@ -1604,12 +1622,19 @@ void Grid3d::write_file_style(T *ptr, int which,
    pbc = flags for grid periodicity in each dim
      if box includes ghost cells, it can overlap PBCs (only for setup_tiled)
      each lo/hi value may extend beyond 0 to N-1 into another periodic image
-   return # of overlaps including with self
+   return # of overlaps including with self, caller handles self overlaps as needed
    return list of overlaps
+     for setup_tiled() this is what box_drop() computes
+       entire box for each overlap
+       caller will determine extent of overlap using PBC info
+     for setup_remap(), return extent of overlap (no PBC info involved)
+       use proc_box_uniform() or tiled() and MAX/MIN to determine this
 ------------------------------------------------------------------------- */
 
-int Grid3d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
+int Grid3d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap)
 {
+  int obox[6];
+
   memory->create(overlap_procs,nprocs,"grid3d:overlap_procs");
   noverlap_list = maxoverlap_list = 0;
   overlap_list = nullptr;
@@ -1618,19 +1643,19 @@ int Grid3d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
 
     // find comm->procgrid indices in each dim for box bounds
     
-    int iproclo = find_proc_index(box[0],ngrid[0],0,xsplit);
-    int iprochi = find_proc_index(box[1],ngrid[0],0,xsplit);
-    int jproclo = find_proc_index(box[2],ngrid[1],1,ysplit);
-    int jprochi = find_proc_index(box[3],ngrid[1],1,ysplit);
-    int kproclo = find_proc_index(box[4],ngrid[2],2,zsplit);
-    int kprochi = find_proc_index(box[5],ngrid[2],2,zsplit);
+    int iproclo = proc_index_uniform(box[0],ngrid[0],0,xsplit);
+    int iprochi = proc_index_uniform(box[1],ngrid[0],0,xsplit);
+    int jproclo = proc_index_uniform(box[2],ngrid[1],1,ysplit);
+    int jprochi = proc_index_uniform(box[3],ngrid[1],1,ysplit);
+    int kproclo = proc_index_uniform(box[4],ngrid[2],2,zsplit);
+    int kprochi = proc_index_uniform(box[5],ngrid[2],2,zsplit);
 
-    int obox[6];
+    // compute extent of overlap of box with with each proc's obox
     
     for (int k = kproclo; k <= kprochi; k++)
       for (int j = jproclo; j <= jprochi; j++)
 	for (int i = iproclo; i <= iprochi; i++) {
-	  find_proc_box(i,j,k,obox);
+	  proc_box_uniform(i,j,k,obox);
 
 	  if (noverlap_list == maxoverlap_list) grow_overlap();
 	  overlap_list[noverlap_list].proc = grid2proc[i][j][k];
@@ -1643,8 +1668,30 @@ int Grid3d::compute_overlap(int *box, int *pbc, Overlap *&overlap)
 	  noverlap_list++;
 	}
 
-  } else if (layout == TILED) {
+  } else {
     box_drop(box,pbc);
+
+    // compute extent of overlap of box with with each proc's obox
+
+    if (ghostflag == 0) {
+      for (int m = 0; m < noverlap_list; m++) {
+        obox[0] = 0;
+        obox[1] = ngrid[0]-1;
+        obox[2] = 0;
+        obox[3] = ngrid[1]-1;
+        obox[4] = 0;
+        obox[5] = ngrid[2]-1;
+        
+        proc_box_tiled(overlap_list[m].proc,0,nprocs-1,obox);
+        
+        overlap_list[m].box[0] = MAX(box[0],obox[0]);
+        overlap_list[m].box[1] = MIN(box[1],obox[1]);
+        overlap_list[m].box[2] = MAX(box[2],obox[2]);
+        overlap_list[m].box[3] = MIN(box[3],obox[3]);
+        overlap_list[m].box[4] = MAX(box[4],obox[4]);
+        overlap_list[m].box[5] = MIN(box[5],obox[5]);
+      }
+    }
   }
 
   overlap = overlap_list;
@@ -1720,10 +1767,9 @@ void Grid3d::box_drop(int *box, int *pbc)
     newpbc[2]++;
 
   // box is not split, drop on RCB tree
-  // returns nprocs = # of procs it overlaps, including self
+  // returns np = # of procs it overlaps, including self
   // returns proc_overlap = list of proc IDs it overlaps
-  // skip self overlap if no crossing of periodic boundaries
-  // do not skip self if overlap is in another periodic image
+  // add each overlap to overlap list
 
   } else {
     splitflag = 0;
@@ -1731,8 +1777,6 @@ void Grid3d::box_drop(int *box, int *pbc)
     box_drop_grid(box,0,nprocs-1,np,overlap_procs);
     for (m = 0; m < np; m++) {
       if (noverlap_list == maxoverlap_list) grow_overlap();
-      if (overlap_procs[m] == me &&
-          pbc[0] == 0 && pbc[1] == 0 && pbc[2] == 0) continue;
       overlap_list[noverlap_list].proc = overlap_procs[m];
       for (i = 0; i < 6; i++) overlap_list[noverlap_list].box[i] = box[i];
       for (i = 0; i < 3; i++) overlap_list[noverlap_list].pbc[i] = pbc[i];
@@ -1815,11 +1859,11 @@ void Grid3d::deallocate_remap()
 {
   for (int i = 0; i < nsend_remap; i++)
     memory->destroy(send_remap[i].packlist);
-  memory->sfree(send_remap);
+  delete [] send_remap;
   
   for (int i = 0; i < nrecv_remap; i++)
     memory->destroy(recv_remap[i].unpacklist);
-  memory->sfree(recv_remap);
+  delete [] recv_remap;
 
   if (self_remap) {
     memory->destroy(copy_remap.packlist);
@@ -1854,14 +1898,14 @@ int Grid3d::indices(int *&list,
 }
 
 /* ----------------------------------------------------------------------
-   find the comm->procgrid index for which proc owns the igrid index
+   find the comm->procgrid index = which proc owns the igrid index
    igrid = grid index (0 to N-1) in dim
    n = # of grid points in dim
    dim = which dimension (0,1,2)
    split = comm->x/y/z split for fractional bounds of each proc domain
 ------------------------------------------------------------------------- */
 
-int Grid3d::find_proc_index(int igrid, int n, int dim, double *split)
+int Grid3d::proc_index_uniform(int igrid, int n, int dim, double *split)
 {
   int gridlo,gridhi;
   double fraclo,frachi;
@@ -1886,13 +1930,13 @@ int Grid3d::find_proc_index(int igrid, int n, int dim, double *split)
 }
 
 /* ----------------------------------------------------------------------
-   find the grid box for proc with grid indices i,j,k
+   compute the grid box for proc with grid indices i,j,k
    i,j,k = grid index (0 to N-1) in each dim
    return lo/hi bounds of box in 3 dims
    computation is same as Comm::partition_grid()
 ------------------------------------------------------------------------- */
 
-void Grid3d::find_proc_box(int i, int j, int k, int *box)
+void Grid3d::proc_box_uniform(int i, int j, int k, int *box)
 {
   int lo,hi;
   double fraclo,frachi;
@@ -1923,4 +1967,37 @@ void Grid3d::find_proc_box(int i, int j, int k, int *box)
   if (1.0*hi == frachi*ngrid[2]) hi--;
   box[4] = lo;
   box[5] = hi;
+}
+
+/* ----------------------------------------------------------------------
+   compute the grid box for proc within tiled decomposition
+   performed recursively until proclower = procupper = proc
+   return box = lo/hi bounds of proc's box in 3 dims
+------------------------------------------------------------------------- */
+
+void Grid3d::proc_box_tiled(int proc, int proclower, int procupper, int *box)
+{
+  // end recursion when partition is a single proc
+
+  if (proclower == procupper) return;
+
+  // split processor partition
+  // procmid = 1st processor in upper half of partition
+  //         = location in tree that stores this cut
+  // cut = index of first grid cell in upper partition
+  // dim = 0,1,2 dimension of cut
+
+  int procmid = proclower + (procupper - proclower) / 2 + 1;
+  int dim = rcbinfo[procmid].dim;
+  int cut = rcbinfo[procmid].cut;
+
+  // adjust box to reflect which half of partition the proc is in
+  
+  if (proc < procmid) {
+    box[2*dim+1] = cut-1;
+    proc_box_tiled(proc,proclower,procmid-1,box);
+  } else {
+    box[2*dim] = cut;
+    proc_box_tiled(proc,procmid,procupper,box);
+  }
 }

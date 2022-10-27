@@ -43,8 +43,8 @@ static constexpr int CHUNK = 1024;
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
 // SHIFT = 0.5 assigns atoms to nearest grid pt
-// use SHIFT = 0.0 for now since it allows fix ave/chunk
-//   to spatially average consistent with the TTM grid
+// use SHIFT = 0.0 to match fix ttm
+//   also it allows fix ave/chunk to spatially average consistently
 
 static constexpr int OFFSET = 16384;
 static constexpr double SHIFT = 0.5;
@@ -61,6 +61,7 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
                           "use dump grid command or restart files instead");
 
+  shift = OFFSET + SHIFT;
   skin_original = neighbor->skin;
 }
 
@@ -113,7 +114,7 @@ void FixTTMGrid::init()
   FixTTM::init();
 
   if (neighbor->skin > skin_original)
-    error->all(FLERR,"Cannot extend neighbor skin after fix ttm/griddefined");
+    error->all(FLERR,"Cannot extend neighbor skin after fix ttm/grid defined");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -499,6 +500,9 @@ void FixTTMGrid::reset_grid()
     return;
   } else delete gridnew;
 
+  // DEBUG
+  if (comm->me == 0) printf("Remapping grid on step %ld\n",update->ntimestep);
+  
   // delete grid data which doesn't need to persist from previous to new decomp
 
   memory->destroy(grid_buf1);
@@ -510,6 +514,9 @@ void FixTTMGrid::reset_grid()
 
   grid_previous = grid;
   T_electron_previous = T_electron;
+  nxlo_out_previous = nxlo_out;
+  nylo_out_previous = nylo_out;
+  nzlo_out_previous = nzlo_out;
 
   // allocate new per-grid data for new decomposition
 
@@ -530,12 +537,23 @@ void FixTTMGrid::reset_grid()
   memory->destroy(remap_buf2);
 
   // delete grid data and grid for previous decomposition
-  // NOTE: need to set offsets
 
-  int nxlo_out_prev,nylo_out_prev,nzlo_out_prev;
   memory->destroy3d_offset(T_electron_previous,
-                           nzlo_out_prev, nylo_out_prev, nxlo_out_prev);
+                           nzlo_out_previous, nylo_out_previous,
+                           nxlo_out_previous);
   delete grid_previous;
+
+  // communicate temperatures to ghost cells on new grid
+
+  grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
+                     grid_buf1,grid_buf2,MPI_DOUBLE);
+
+  // zero new net_energy_transfer
+  // in case compute_vector accesses it on timestep 0
+
+  outflag = 0;
+  memset(&net_energy_transfer[nzlo_out][nylo_out][nxlo_out],0,
+         ngridout*sizeof(double));
 }
 
 /* ----------------------------------------------------------------------
@@ -593,7 +611,8 @@ void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
 void FixTTMGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
-  double *src = &T_electron_previous[nzlo_out][nylo_out][nxlo_out];
+  double *src =
+    &T_electron_previous[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
 
   for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
 }
@@ -745,7 +764,7 @@ double FixTTMGrid::compute_vector(int n)
               T_electron[iz][iy][ix] * electronic_specific_heat * electronic_density * volgrid;
           transfer_energy_me += net_energy_transfer[iz][iy][ix] * update->dt;
         }
-
+    
     MPI_Allreduce(&e_energy_me, &e_energy, 1, MPI_DOUBLE, MPI_SUM, world);
     MPI_Allreduce(&transfer_energy_me, &transfer_energy, 1, MPI_DOUBLE, MPI_SUM, world);
     outflag = 1;

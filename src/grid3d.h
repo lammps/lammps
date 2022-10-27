@@ -231,7 +231,7 @@ class Grid3d : protected Pointers {
   template <class T> void read_file_style(T *, FILE *, int, int);
   template <class T> void write_file_style(T *, int, int, int, MPI_Datatype);
 
-  int compute_overlap(int *, int *, Overlap *&);
+  int compute_overlap(int, int *, int *, Overlap *&);
   void clean_overlap();
   void box_drop(int *, int *);
   void box_drop_grid(int *, int, int, int &, int *);
@@ -241,8 +241,9 @@ class Grid3d : protected Pointers {
   void deallocate_remap();
   
   int indices(int *&, int, int, int, int, int, int);
-  int find_proc_index(int, int, int, double *);
-  void find_proc_box(int, int, int, int *);
+  int proc_index_uniform(int, int, int, double *);
+  void proc_box_uniform(int, int, int, int *);
+  void proc_box_tiled(int, int, int, int *);
 };
 
 }    // namespace LAMMPS_NS

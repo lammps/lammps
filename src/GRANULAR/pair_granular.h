@@ -20,7 +20,7 @@ PairStyle(granular,PairGranular);
 #ifndef LMP_PAIR_GRANULAR_H
 #define LMP_PAIR_GRANULAR_H
 
-#include "contact.h"
+#include "granular_model.h"
 #include "pair.h"
 #include <vector>
 
@@ -71,9 +71,9 @@ class PairGranular : public Pair {
   int size_history;
   int heat_flag;
 
-  // contact models
-  std::vector <Contact::ContactModel> vec_models;
-  std::vector <std::vector<Contact::ContactModel*>> models;
+  // granular models
+  std::vector <Granular_NS::GranularModel> vec_models;
+  std::vector <std::vector<Granular_NS::GranularModel*>> models;
 
   // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;

@@ -20,7 +20,7 @@ FixStyle(wall/gran,FixWallGran);
 #ifndef LMP_FIX_WALL_GRAN_H
 #define LMP_FIX_WALL_GRAN_H
 
-#include "contact.h"
+#include "granular_model.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -53,7 +53,7 @@ class FixWallGran : public Fix {
   bigint time_origin;
 
   // for granular model choices
-  Contact::ContactModel *model;
+  Granular_NS::GranularModel *model;
 
   double lo, hi, cylradius;
   double amplitude, period, omega, vshear;

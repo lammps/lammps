@@ -18,7 +18,7 @@
 #include "fix_wall_gran_region.h"
 
 #include "atom.h"
-#include "contact.h"
+#include "granular_model.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -33,7 +33,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace Contact;
+using namespace Granular_NS;
 using namespace FixConst;
 using namespace MathExtra;
 
@@ -267,7 +267,6 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
       if (use_history) model->history = history_many[i][c2r[ic]];
       if (heat_flag) model->Ti = temperature[i];
-      model->prep_contact();
 
       model->calculate_forces();
 

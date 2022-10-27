@@ -22,14 +22,8 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "contact.h"
-#include "contact_sub_models.h"
-#include "contact_normal_models.h"
-#include "contact_tangential_models.h"
-#include "contact_damping_models.h"
-#include "contact_rolling_models.h"
-#include "contact_twisting_models.h"
-#include "contact_heat_models.h"
+#include "granular_model.h"
+#include "gsm.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
@@ -47,7 +41,7 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
-using namespace Contact;
+using namespace Granular_NS;
 using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
@@ -250,7 +244,6 @@ void PairGranular::compute(int eflag, int vflag)
         models[itype][jtype]->Ti = temperature[i];
         models[itype][jtype]->Tj = temperature[j];
       }
-      models[itype][jtype]->prep_contact();
 
       models[itype][jtype]->calculate_forces();
 
@@ -304,7 +297,7 @@ void PairGranular::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
-  models.resize(n+1, std::vector<Contact::ContactModel*> (n+1, nullptr));
+  models.resize(n+1, std::vector<GranularModel*> (n+1, nullptr));
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -347,74 +340,37 @@ void PairGranular::coeff(int narg, char **arg)
 
   //Parse mandatory specification
   int iarg = 2;
-  vec_models.back().init_model(std::string(arg[iarg++]), NORMAL);
-  iarg = vec_models.back().normal_model->parse_coeffs(arg, iarg, narg);
+  iarg = vec_models.back().init_submodel(arg, iarg, narg, NORMAL);
 
   //Parse optional arguments
 
   while (iarg < narg) {
 
     if (strcmp(arg[iarg], "tangential") == 0) {
-      iarg++;
-      if (iarg >= narg)
-        error->all(FLERR,"Illegal pair_coeff command, must specify "
-            "tangential model after tangential keyword");
-      vec_models.back().init_model(std::string(arg[iarg++]), TANGENTIAL);
-      iarg = vec_models.back().tangential_model->parse_coeffs(arg, iarg, narg);
-
+      iarg = vec_models.back().init_submodel(arg, iarg + 1, narg, TANGENTIAL);
     } else if (strcmp(arg[iarg], "damping") == 0) {
-      iarg++;
-      if (iarg >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, must specify "
-          "damping model after damping keyword");
-      vec_models.back().init_model(std::string(arg[iarg++]), DAMPING);
-      iarg = vec_models.back().damping_model->parse_coeffs(arg, iarg, narg);
-
+      iarg = vec_models.back().init_submodel(arg, iarg + 1, narg, DAMPING);
     } else if (strcmp(arg[iarg], "rolling") == 0) {
-      iarg++;
-      if (iarg >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, must specify "
-          "rolling model after rolling keyword");
-      vec_models.back().init_model(std::string(arg[iarg++]), ROLLING);
-      iarg = vec_models.back().rolling_model->parse_coeffs(arg, iarg, narg);
-
+      iarg = vec_models.back().init_submodel(arg, iarg + 1, narg, ROLLING);
     } else if (strcmp(arg[iarg], "twisting") == 0) {
-      iarg++;
-      if (iarg >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, must specify "
-          "twisting model after twisting keyword");
-      vec_models.back().init_model(std::string(arg[iarg++]), TWISTING);
-      iarg = vec_models.back().twisting_model->parse_coeffs(arg, iarg, narg);
-
+      iarg = vec_models.back().init_submodel(arg, iarg + 1, narg, TWISTING);
     } else if (strcmp(arg[iarg], "heat") == 0) {
-      iarg++;
-      if (iarg >= narg)
-        error->all(FLERR, "Illegal pair_coeff command, must specify "
-          "heat model after heat keyword");
-      vec_models.back().init_model(std::string(arg[iarg++]), HEAT);
-      iarg = vec_models.back().heat_model->parse_coeffs(arg, iarg, narg);
+      iarg = vec_models.back().init_submodel(arg, iarg + 1, narg, HEAT);
       heat_flag = 1;
-
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters for cutoff keyword");
-      cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      cutoff_one = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
       iarg += 2;
-
     } else if (strcmp(arg[iarg], "limit_damping") == 0) {
       vec_models.back().limit_damping = 1;
       iarg += 1;
-
     } else error->all(FLERR, "Illegal pair_coeff command {}", arg[iarg]);
   }
 
   // Define default damping model if unspecified, has no coeffs
   if (!vec_models.back().damping_model)
-    vec_models.back().init_model("viscoelastic", DAMPING);
-
-  if (vec_models.back().limit_damping && !vec_models.back().normal_model->allow_limit_damping)
-    error->all(FLERR,"Illegal pair_coeff command, "
-        "Cannot limit damping with specified normal contact model");
+    vec_models.back().construct_submodel("viscoelastic", DAMPING);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -568,7 +524,7 @@ double PairGranular::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
 
-    vec_models.push_back(ContactModel(lmp));
+    vec_models.push_back(GranularModel(lmp));
     models[i][j] = models[j][i] = & vec_models.back();
 
     int error_code = vec_models.back().mix_coeffs(models[i][i], models[j][j]);
@@ -680,7 +636,7 @@ void PairGranular::read_restart(FILE *fp)
   MPI_Bcast(&nmodels,1,MPI_INT,0,world);
 
   for (i = 0; i < nmodels; i++) {
-    vec_models.push_back(ContactModel(lmp));
+    vec_models.push_back(GranularModel(lmp));
     vec_models.back().read_restart(fp);
     vec_models.back().init();
   }
@@ -737,7 +693,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   if ((i >= nall) || (j >= nall))
     error->all(FLERR,"Not enough atoms for pair granular single function");
 
-
   int touchflag;
   double **x = atom->x;
   double *radius = atom->radius;
@@ -776,20 +731,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   if (mask[i] & freeze_group_bit) meff = mj;
   if (mask[j] & freeze_group_bit) meff = mi;
 
-  // Copy additional information and prepare force calculations
-  double **v = atom->v;
-  double **omega = atom->omega;
-
-  models[itype][jtype]->meff = meff;
-  models[itype][jtype]->vi = v[i];
-  models[itype][jtype]->vj = v[j];
-  models[itype][jtype]->omegai = omega[i];
-  models[itype][jtype]->omegaj = omega[j];
-  models[itype][jtype]->history = history;
-  models[itype][jtype]->prep_contact();
-
   // if any history is needed
-
   jnum = list->numneigh[i];
   jlist = list->firstneigh[i];
 
@@ -804,6 +746,17 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     }
     history = &allhistory[size_history*neighprev];
   }
+
+  // Copy additional information and calculate forces
+  double **v = atom->v;
+  double **omega = atom->omega;
+
+  models[itype][jtype]->meff = meff;
+  models[itype][jtype]->vi = v[i];
+  models[itype][jtype]->vj = v[j];
+  models[itype][jtype]->omegai = omega[i];
+  models[itype][jtype]->omegaj = omega[j];
+  models[itype][jtype]->history = history;
 
   double *forces, *torquesi, *torquesj;
   models[itype][jtype]->calculate_forces();

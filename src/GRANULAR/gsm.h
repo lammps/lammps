@@ -1,0 +1,61 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifndef LMP_GSM_H_
+#define LMP_GSM_H_
+
+#include "granular_model.h"
+#include "pointers.h"    // IWYU pragma: export
+
+namespace LAMMPS_NS {
+namespace Granular_NS {
+
+class GSM : protected Pointers {
+ public:
+  GSM(class GranularModel *, class LAMMPS *);
+  virtual ~GSM();
+
+  int num_coeffs;
+  double *coeffs;
+  void read_restart();
+  virtual void mix_coeffs(double*, double*);
+  virtual void coeffs_to_local() = 0;
+  virtual void init() = 0;   // called after all submodel coeffs defined
+
+  void allocate_coeffs();
+  std::string name;
+
+  int size_history;
+  int nondefault_history_transfer;
+  double *transfer_history_factor;
+
+  int history_index;
+  int beyond_contact;
+  int allow_limit_damping;
+
+  GranularModel *gm;
+
+ protected:
+  int allocated;
+
+  double mix_stiffnessE(double, double, double, double);
+  double mix_stiffnessG(double, double, double, double);
+  double mix_stiffnessE_wall(double, double);
+  double mix_stiffnessG_wall(double, double);
+  double mix_geom(double, double);
+};
+
+}    // namespace GranularModel
+}    // namespace LAMMPS_NS
+
+#endif /* GSM_H_ */

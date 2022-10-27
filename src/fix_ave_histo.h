@@ -36,11 +36,21 @@ class FixAveHisto : public Fix {
   double compute_array(int, int) override;
 
  protected:
-  int me, nvalues;
-  int nrepeat, nfreq, irepeat;
+  struct value_t {
+    int which;       // type of data: COMPUTE, FIX, VARIABLE
+    int argindex;    // 1-based index if data is vector, else 0
+    std::string id;         // compute/fix/variable ID
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+
+  int nvalues, nrepeat, nfreq, irepeat;
   bigint nvalid, nvalid_last;
-  int *which, *argindex, *value2index;
-  char **ids;
+
   FILE *fp;
   double lo, hi, binsize, bininv;
   int kind, beyond, overwrite;

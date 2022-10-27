@@ -115,9 +115,6 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
       Kokkos::atomic_add(&d_f(j, 1),-fij[1]);
       Kokkos::atomic_add(&d_f(j, 2),-fij[2]);
 
-      // add in global and per-atom virial contributions
-      // this is optional and has no effect on force calculation
-      // FIXME: v_tally not implemented on pair mliap kokkos
       if (vflag) {
         v_tally(vflag_either, vflag_global, vflag_atom, i, j, ij, fij, d_rij, virial, d_vatom);
       }

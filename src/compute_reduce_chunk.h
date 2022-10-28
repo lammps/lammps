@@ -41,12 +41,21 @@ class ComputeReduceChunk : public Compute {
   double memory_usage() override;
 
  private:
-  int mode, nvalues;
-  int *which, *argindex, *value2index;
-  char *idchunk;
-  char **ids;
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
 
-  int nchunk;
+  char *idchunk;
+
+  int mode, nchunk;
   int maxchunk, maxatom;
   double initvalue;
   double *vlocal, *vglobal;
@@ -60,8 +69,6 @@ class ComputeReduceChunk : public Compute {
   void compute_one(int, double *, int);
   void combine(double &, double);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

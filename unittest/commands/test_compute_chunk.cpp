@@ -246,8 +246,8 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     command("compute trq all torque/chunk mols");
     command("compute vcm all vcm/chunk mols");
     command("fix hist1 all ave/time 1 1 1 c_ang[*] c_com[*] c_dip[*] c_gyr c_mom[*] c_omg[*] "
-            "c_trq[*] c_vcm[*] mode vector file all_chunk.dat format %15.8f");
-    command("fix hist2 all ave/time 1 1 1 c_tmp mode vector file vec_chunk.dat format %15.8f");
+            "c_trq[*] c_vcm[*] mode vector");
+    command("fix hist2 all ave/time 1 1 1 c_tmp mode vector");
     command("run 0 post no");
     END_HIDE_OUTPUT();
     auto cang = get_array("ang");
@@ -313,6 +313,64 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     EXPECT_NEAR(ctmp[3], 0.55484671, EPSILON);
     EXPECT_NEAR(ctmp[4], -0.06062938, EPSILON);
     EXPECT_NEAR(ctmp[5], -0.09219489, EPSILON);
+}
+
+TEST_F(ComputeChunkTest, ChunkSpreadGlobal)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style lj/cut/coul/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    command("compute gyr all gyration/chunk mols");
+    command("compute spr all chunk/spread/atom mols c_gyr");
+    command("compute glb all global/atom c_mols c_gyr");
+    command("variable odd atom ((id+1)%2)+1");
+    command("compute odd all global/atom v_odd c_gyr");
+    command("fix ave all ave/atom 1 1 1 c_spr c_glb c_odd");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int natoms = lammps_get_natoms(lmp);
+
+    auto cgyr = get_vector("gyr");
+    auto cspr = get_peratom("spr");
+    auto cglb = get_peratom("glb");
+    auto codd = get_peratom("odd");
+    auto ctag = get_peratom("tags");
+
+    for (int i = 0; i < natoms; ++i) {
+        EXPECT_EQ(cspr[i], cgyr[chunkmol[(int)ctag[i]] - 1]);
+        EXPECT_EQ(cglb[i], cgyr[chunkmol[(int)ctag[i]] - 1]);
+        EXPECT_EQ(codd[i], cgyr[(((int)ctag[i] + 1) % 2)]);
+    }
+}
+
+TEST_F(ComputeChunkTest, ChunkReduce)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style lj/cut/coul/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    command("compute prp all property/chunk mols count");
+    command("variable one atom 1");
+    command("compute red all reduce/chunk mols sum v_one");
+    command("fix ave all ave/time 1 1 1 c_prp c_red mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int nchunks = get_scalar("mols");
+
+    auto cprp = get_vector("prp");
+    auto cred = get_vector("red");
+
+    for (int i = 0; i < nchunks; ++i)
+        EXPECT_EQ(cprp[i], cred[i]);
 }
 } // namespace LAMMPS_NS
 

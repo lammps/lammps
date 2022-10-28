@@ -8,6 +8,36 @@ FUNCTION f_lammps_version() BIND(C)
   f_lammps_version = lmp%version()
 END FUNCTION f_lammps_version
 
+FUNCTION f_lammps_os_info(ptr) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_char, c_int, c_size_t, &
+    C_F_POINTER
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp, c_strlen
+  IMPLICIT NONE
+  TYPE(c_ptr), INTENT(IN), VALUE :: ptr
+  INTEGER(c_int) :: f_lammps_os_info
+  CHARACTER(LEN=:), ALLOCATABLE :: string, os_info
+  CHARACTER(LEN=1, KIND=c_char), POINTER :: C_string(:)
+  INTEGER(c_size_t) :: length, i
+
+  length = c_strlen(ptr)
+  CALL C_F_POINTER(ptr, C_string, [length])
+  ALLOCATE(CHARACTER(LEN=length) :: string)
+  DO i = 1, length
+    string(i:i) = C_string(i)
+  END DO
+
+  ALLOCATE(CHARACTER(LEN=1000) :: os_info)
+  CALL lmp%get_os_info(os_info)
+  os_info = TRIM(os_info)
+
+  IF (os_info(1:length) == string) THEN
+    f_lammps_os_info = 1_c_int
+  ELSE
+    f_lammps_os_info = 0_c_int
+  END IF
+END FUNCTION f_lammps_os_info
+
 FUNCTION f_lammps_mpi_support() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
   USE LIBLAMMPS
@@ -143,6 +173,23 @@ FUNCTION f_lammps_package_name(idx) BIND(C)
   END IF
 END FUNCTION f_lammps_package_name
 
+FUNCTION f_lammps_installed_packages(idx) BIND(C) RESULT(package)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_ptr, c_null_ptr
+  USE keepstuff, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: idx
+  TYPE(c_ptr) :: package
+  CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE :: all_packages
+
+  CALL lmp%installed_packages(all_packages)
+
+  IF (idx > SIZE(all_packages) .OR. idx <= 0) THEN
+    package = c_null_ptr
+  ELSE
+    package = f2c_string(all_packages(idx))
+  END IF
+END FUNCTION f_lammps_installed_packages
+
 FUNCTION f_lammps_config_accelerator(package, category, setting) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_ptr, c_size_t, c_char, &
       C_F_POINTER
@@ -240,3 +287,24 @@ FUNCTION f_lammps_has_style(Ccategory, Cname) BIND(C)
     f_lammps_has_style = 0_c_int
   END IF
 END FUNCTION f_lammps_has_style
+
+FUNCTION f_lammps_style_count(ptr) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_int, c_char, c_size_t, &
+    C_F_POINTER
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp, c_strlen
+  IMPLICIT NONE
+  TYPE(c_ptr), VALUE :: ptr
+  INTEGER(c_int) :: f_lammps_style_count
+  CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: C_category
+  INTEGER(c_size_t) :: length, i
+  CHARACTER(LEN=:), ALLOCATABLE :: category
+
+  length = c_strlen(ptr)
+  CALL C_F_POINTER(ptr, C_category, [length])
+  ALLOCATE(CHARACTER(LEN=length) :: category)
+  DO i = 1, length
+    category(i:i) = C_category(i)
+  END DO
+  f_lammps_style_count = lmp%style_count(category)
+END FUNCTION f_lammps_style_count

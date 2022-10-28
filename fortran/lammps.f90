@@ -1680,8 +1680,9 @@ CONTAINS
   SUBROUTINE lmp_gather_bonds_small(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
-    INTEGER(c_int) :: size_tagint
-    INTEGER(c_int), POINTER :: nbonds
+    INTEGER(c_int) :: size_tagint, size_bigint
+    INTEGER(c_int), POINTER :: nbonds_small
+    INTEGER(c_int64_t), POINTER :: nbonds_big
     TYPE(c_ptr) :: Cdata
 
     size_tagint = lmp_extract_setting(self, 'tagint')
@@ -1690,9 +1691,15 @@ CONTAINS
         'Incompatible integer kind in gather_bonds [Fortran API]')
       RETURN
     END IF
-    nbonds = lmp_extract_global(self, 'nbonds')
     IF (ALLOCATED(data)) DEALLOCATE(data)
-    ALLOCATE(data(3*nbonds))
+    size_bigint = lmp_extract_setting(self, 'bigint')
+    IF (size_bigint == 4_c_int) THEN
+      nbonds_small = lmp_extract_global(self, 'nbonds')
+      ALLOCATE(data(3*nbonds_small))
+    ELSE
+      nbonds_big = lmp_extract_global(self, 'nbonds')
+      ALLOCATE(data(3*nbonds_big))
+    END IF
     Cdata = C_LOC(data(1))
     CALL lammps_gather_bonds(self%handle, Cdata)
   END SUBROUTINE lmp_gather_bonds_small
@@ -1946,7 +1953,7 @@ CONTAINS
     buf_size = LEN(buffer, KIND=c_int) + 1_c_int
     ptr = C_LOC(Cbuffer(1))
     CALL lammps_get_os_info(ptr, INT(buf_size, KIND=c_int))
-    buffer = array2string(Cbuffer, buf_size - 1)
+    buffer = array2string(Cbuffer)
   END SUBROUTINE lmp_get_os_info
 
   ! equivalent function to lammps_config_has_mpi_support
@@ -2030,7 +2037,7 @@ CONTAINS
     END IF
   END SUBROUTINE lmp_config_package_name
 
-  ! equivalent function to Python routine .installed_packages()
+  ! equivalent function to Python routine lammps.installed_packages()
   SUBROUTINE lmp_installed_packages(self, package, length)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: package

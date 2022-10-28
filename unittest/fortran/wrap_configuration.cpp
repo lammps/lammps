@@ -13,6 +13,7 @@ extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
 int f_lammps_version();
+int f_lammps_os_info(const char*);
 int f_lammps_mpi_support();
 int f_lammps_gzip_support();
 int f_lammps_png_support();
@@ -22,11 +23,12 @@ int f_lammps_has_exceptions();
 int f_lammps_has_package(const char*);
 int f_lammps_package_count();
 char* f_lammps_package_name(int);
+char* f_lammps_installed_packages(int);
 int f_lammps_config_accelerator(const char*, const char*, const char*);
 int f_lammps_has_gpu();
 char* f_lammps_get_gpu_info(size_t);
 int f_lammps_has_style(const char*, const char*);
-int f_lammps_style_count();
+int f_lammps_style_count(const char*);
 int f_lammps_style_name();
 }
 namespace LAMMPS_NS {
@@ -60,6 +62,12 @@ TEST_F(LAMMPS_configuration, version)
 {
     EXPECT_LT(20200917, f_lammps_version());
     EXPECT_EQ(lmp->num_ver, f_lammps_version());
+};
+
+TEST_F(LAMMPS_configuration, os_info)
+{
+    std::string str = platform::os_info();
+    EXPECT_EQ(f_lammps_os_info(str.c_str()), 1);
 };
 
 TEST_F(LAMMPS_configuration, MPI_support)
@@ -138,6 +146,19 @@ TEST_F(LAMMPS_configuration, package_name)
    }
 };
 
+TEST_F(LAMMPS_configuration, installed_packages)
+{
+    const char *package_name;
+    int npackages = lammps_config_package_count();
+    char *pkg;
+    for (int i=0; i < npackages; i++) {
+      package_name = LAMMPS::installed_packages[i];
+      pkg = f_lammps_installed_packages(i+1);
+      EXPECT_STREQ(package_name, pkg);
+      if (pkg) std::free(pkg);
+    }
+};
+
 TEST_F(LAMMPS_configuration, config_accelerator)
 {
     const int npackage = 4;
@@ -213,6 +234,19 @@ TEST_F(LAMMPS_configuration, has_style)
         }
     }
     EXPECT_EQ(f_lammps_has_style("atom","none"), 0);
+};
+
+TEST_F(LAMMPS_configuration, style_count)
+{
+    Info info(lmp);
+    std::vector<std::string> category = {"atom","integrate","minimize","pair",
+      "bond","angle","dihedral","improper","kspace","fix","compute","region",
+      "dump","command"};
+    for (int i = 0; i < category.size(); i++)
+{
+        EXPECT_EQ(f_lammps_style_count(category[i].c_str()),
+          info.get_available_styles(category[i].c_str()).size());
+}
 };
 
 } // namespace LAMMPS_NS

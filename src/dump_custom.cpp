@@ -41,7 +41,7 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,heatflow,TEMPERATURE,
+     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,HEATFLOW,TEMPERATURE,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE,IVEC,DVEC,IARRAY,DARRAY};
@@ -930,7 +930,7 @@ int DumpCustom::count()
         for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
         ptr = dchoose;
         nstride = 1;
-      } else if (thresh_array[ithresh] == heatflow) {
+      } else if (thresh_array[ithresh] == HEATFLOW) {
         if (!atom->heatflow_flag)
           error->all(FLERR,
                      "Threshold for an atom property that isn't allocated");
@@ -1867,7 +1867,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
     else if (strcmp(arg[1],"diameter") == 0) thresh_array[nthresh] = DIAMETER;
-    else if (strcmp(arg[1],"heatflow") == 0) thresh_array[nthresh] = heatflow;
+    else if (strcmp(arg[1],"heatflow") == 0) thresh_array[nthresh] = HEATFLOW;
     else if (strcmp(arg[1],"temperature") == 0) thresh_array[nthresh] = TEMPERATURE;
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
     else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;

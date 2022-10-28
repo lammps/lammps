@@ -58,9 +58,10 @@ class LAMMPS {
   double initclock;       // wall clock at instantiation
   int skiprunflag;        // 1 inserts timer command to skip run and minimize loops
 
-  char *suffix, *suffix2, *suffixp;    // suffixes to add to input script style names
-  int suffix_enable;                   // 1 if suffixes are enabled, 0 if disabled
-  char *exename;                       // pointer to argv[0]
+  char *suffix, *suffix2;    // suffixes to add to input script style names
+  int suffix_enable;         // 1 if suffixes are enabled, 0 if disabled
+  int pair_only_flag;        // 1 if only force field pair styles are accelerated, 0 if all
+  char *exename;             // pointer to argv[0]
 
   char ***packargs;    // arguments for cmdline package commands
   int num_package;     // number of cmdline package commands

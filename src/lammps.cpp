@@ -200,8 +200,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int helpflag = 0;
   int nonbufflag = 0;
 
-  suffix = suffix2 = suffixp = nullptr;
+  suffix = suffix2 = nullptr;
   suffix_enable = 0;
+  pair_only_flag = 0;
   if (arg) exename = arg[0];
   else exename = nullptr;
   packargs = nullptr;
@@ -777,7 +778,6 @@ LAMMPS::~LAMMPS()
   delete kokkos;
   delete[] suffix;
   delete[] suffix2;
-  delete[] suffixp;
 
   // free the MPI comm created by -mpicolor cmdline arg processed in constructor
   // it was passed to universe as if original universe world
@@ -871,7 +871,6 @@ void LAMMPS::post_create()
   // invoke any command-line package commands
 
   if (num_package) {
-    if (suffixp) suffix=suffixp;
     std::string str;
     for (int i = 0; i < num_package; i++) {
       str = "package";
@@ -887,16 +886,13 @@ void LAMMPS::post_create()
       }
       input->one(str);
     }
-    if (suffixp) suffix=nullptr;
   }
 
-  // either suffix or suffixp will be set if suffix_enable = 1
   // check that KOKKOS package classes were instantiated
   // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
   // do not re-issue package command if already issued
 
   if (suffix_enable) {
-    if (suffixp) suffix = suffixp;
 
     if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
       error->all(FLERR,"Using suffix gpu without GPU package installed");
@@ -923,7 +919,6 @@ void LAMMPS::post_create()
       if (strcmp(suffix2,"omp") == 0 && !(package_issued & Suffix::OMP))
         input->one("package omp 0");
     }
-    if (suffixp) suffix = nullptr;
   }
 }
 

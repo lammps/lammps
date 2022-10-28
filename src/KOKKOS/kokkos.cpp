@@ -374,7 +374,6 @@ void KokkosLMP::finalize()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
-  int pair_only_flag = 0;
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
@@ -493,7 +492,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      lmp->pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -509,24 +508,12 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
 #ifdef LMP_KOKKOS_GPU
 
-  if (pair_only_flag) {
-    lmp->suffixp = lmp->suffix;
-    lmp->suffix = utils::strdup("kk/host");
-  } else {
-    // restore settings to regular suffix use, if previously, pair/only was used
-    if (lmp->suffixp) {
-      delete[] lmp->suffix;
-      lmp->suffix = lmp->suffixp;
-      lmp->suffixp = nullptr;
-    }
-  }
-
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
 
   // if "gpu/aware off" or "pair/only on", and "comm device", change to "comm no"
 
-  if ((!gpu_aware_flag && nmpi > 1) || pair_only_flag) {
+  if ((!gpu_aware_flag && nmpi > 1) || lmp->pair_only_flag) {
     if (exchange_comm_classic == 0 && exchange_comm_on_host == 0) {
       exchange_comm_classic = 1;
       exchange_comm_changed = 1;
@@ -555,7 +542,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   // if "gpu/aware on" and "pair/only off", and comm flags were changed previously, change them back
 
-  if (gpu_aware_flag && !pair_only_flag) {
+  if (gpu_aware_flag && !lmp->pair_only_flag) {
     if (exchange_comm_changed) {
       exchange_comm_classic = 0;
       exchange_comm_changed = 0;

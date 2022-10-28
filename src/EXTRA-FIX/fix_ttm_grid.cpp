@@ -210,8 +210,14 @@ void FixTTMGrid::end_of_step()
          flangevin[i][2]*v[i][2]);
     }
 
+  printf("AAA Telec000 %g Net000 %g\n",
+         T_electron[0][0][0],net_energy_transfer[0][0][0]);
+  
   grid->reverse_comm(Grid3d::FIX,this,1,sizeof(double),0,
                      grid_buf1,grid_buf2,MPI_DOUBLE);
+
+  printf("BBB Telec000 %g Net000 %g\n",
+         T_electron[0][0][0],net_energy_transfer[0][0][0]);
 
   // clang-format off
 
@@ -266,6 +272,9 @@ void FixTTMGrid::end_of_step()
     grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
                        grid_buf1,grid_buf2,MPI_DOUBLE);
   }
+
+  printf("CCC Telec000 %g Net000 %g\n",
+         T_electron[0][0][0],net_energy_transfer[0][0][0]);
 }
 
 /* ----------------------------------------------------------------------

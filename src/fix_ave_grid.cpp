@@ -43,7 +43,7 @@ enum{DISCARD,KEEP};
 // SHIFT = 0.5 assigns atoms to nearest grid pt
 
 static constexpr int OFFSET = 16384;
-static constexpr double SHIFT = 0.5;
+static constexpr double SHIFT = 0.0;
 
 /* ---------------------------------------------------------------------- */
 

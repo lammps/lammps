@@ -1327,7 +1327,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    named atom-based entity for the atoms in the array *ids* from all processors
    and return it in the vector *data*.
 
-   .. versionadded: TBD
+   .. versionadded:: TBD
 
    This subroutine gathers data for the requested atom IDs and stores them in a
    one-dimensional array allocated by the user. The data will be ordered by

@@ -44,7 +44,7 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-#include <std_algorithms/Kokkos_Constraints.hpp>
+#include <Kokkos_StdAlgorithms.hpp>
 
 namespace Test {
 namespace stdalgos {

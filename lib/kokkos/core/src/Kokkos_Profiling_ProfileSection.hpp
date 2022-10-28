@@ -44,6 +44,10 @@
 
 #ifndef KOKKOSP_PROFILE_SECTION_HPP
 #define KOKKOSP_PROFILE_SECTION_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_PROFILING_PROFILESECTION
+#endif
 
 #include <Kokkos_Macros.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
@@ -103,4 +107,8 @@ class ProfilingSection {
 }  // namespace Profiling
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING_PROFILESECTION
+#endif
 #endif

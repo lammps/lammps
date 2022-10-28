@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -175,10 +175,9 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
       efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
     else
       error->all(FLERR, "Kspace style not compatible with fix polarize/bem/icc");
-
   } else {
-    if (kspaceflag == 1) {    // users specified kspace yes
-      error->warning(FLERR, "No Kspace style available for fix polarize/bem/icc");
+    if (kspaceflag == 1) {    // users specified kspace yes but there is no kspace pair style
+      error->warning(FLERR, "No Kspace pair style available for fix polarize/bem/icc");
       kspaceflag = 0;
     }
   }

@@ -81,7 +81,7 @@ int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                            gpu_split, screen, host_ljsw1, host_ljsw2, host_ljsw3,
                            host_ljsw4, host_ljsw5, cut_inner, cut_inner_sq);
 
-    LJGRMMF.device->gpu_barrier();
+    LJGRMMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

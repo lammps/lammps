@@ -63,14 +63,37 @@ void cuda_device_synchronize(const std::string& name);
 void cuda_stream_synchronize(const cudaStream_t stream,
                              const std::string& name);
 
-void cuda_internal_error_throw(cudaError e, const char* name,
-                               const char* file = nullptr, const int line = 0);
+[[noreturn]] void cuda_internal_error_throw(cudaError e, const char* name,
+                                            const char* file = nullptr,
+                                            const int line   = 0);
+
+#ifndef KOKKOS_COMPILER_NVHPC
+[[noreturn]]
+#endif
+             void cuda_internal_error_abort(cudaError e, const char* name,
+                                            const char* file = nullptr,
+                                            const int line   = 0);
 
 inline void cuda_internal_safe_call(cudaError e, const char* name,
                                     const char* file = nullptr,
                                     const int line   = 0) {
-  if (cudaSuccess != e) {
-    cuda_internal_error_throw(e, name, file, line);
+  // 1. Success -> normal continuation.
+  // 2. Error codes for which, to continue using CUDA, the process must be
+  //    terminated and relaunched -> call abort on the host-side.
+  // 3. Any other error code -> throw a runtime error.
+  switch (e) {
+    case cudaSuccess: break;
+    case cudaErrorIllegalAddress:
+    case cudaErrorAssert:
+    case cudaErrorHardwareStackError:
+    case cudaErrorIllegalInstruction:
+    case cudaErrorMisalignedAddress:
+    case cudaErrorInvalidAddressSpace:
+    case cudaErrorInvalidPc:
+    case cudaErrorLaunchFailure:
+      cuda_internal_error_abort(e, name, file, line);
+      break;
+    default: cuda_internal_error_throw(e, name, file, line); break;
   }
 }
 

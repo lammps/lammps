@@ -104,7 +104,7 @@ atom's rotation.
 Distance units for displacements and the origin point of the *rotate*
 style are determined by the setting of *box* or *lattice* for the
 *units* keyword.  *Box* means distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring A}` for
+:doc:`units <units>` command (e.g., :math:`\AA` for
 *real* or *metal* units). *Lattice* means distance units are in lattice
 spacings.  The :doc:`lattice <lattice>` command must have been previously used
 to define the lattice spacing.

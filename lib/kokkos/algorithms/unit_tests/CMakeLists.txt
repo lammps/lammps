@@ -80,6 +80,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsSearch
 	StdAlgorithmsSearch_n
 	StdAlgorithmsMismatch
+	StdAlgorithmsMoveBackward
 	)
       list(APPEND STDALGO_SOURCES_C Test${Name}.cpp)
     endforeach()

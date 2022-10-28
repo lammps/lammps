@@ -202,7 +202,7 @@ or multiple smaller files).
    to a dump file may be slightly outside the simulation box.
    Re-neighbor timesteps will not typically coincide with the
    timesteps dump snapshots are written.  See the :doc:`dump_modify
-   pbc <dump_modify>` command if you with to force coordinates to be
+   pbc <dump_modify>` command if you wish to force coordinates to be
    strictly inside the simulation box.
 
 .. note::
@@ -480,7 +480,7 @@ style.
 ----------
 
 Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
-can be read directly by `VMD <http://www.ks.uiuc.edu/Research/vmd>`_, a
+can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_, a
 popular molecular viewing program.
 
 ----------
@@ -693,7 +693,7 @@ charge.
 
 There are several options for outputting atom coordinates.  The *x*,
 *y*, and *z* attributes write atom coordinates "unscaled", in the
-appropriate distance :doc:`units <units>` (:math:`\mathrm{\mathring A}`,
+appropriate distance :doc:`units <units>` (:math:`\AA`,
 :math:`\sigma`, etc.).  Use *xs*, *ys*, and *zs* if you want the
 coordinates "scaled" to the box size so that each value is 0.0 to 1.0.
 If the simulation box is triclinic (tilted), then all atom coords will

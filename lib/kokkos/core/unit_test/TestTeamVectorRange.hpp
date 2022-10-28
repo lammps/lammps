@@ -79,37 +79,6 @@ struct my_complex {
   }
 
   KOKKOS_INLINE_FUNCTION
-  my_complex& operator=(const volatile my_complex& src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  volatile my_complex& operator=(const my_complex& src) volatile {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  volatile my_complex& operator=(const volatile my_complex& src) volatile {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex(const volatile my_complex& src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   my_complex(const double& val) {
     re    = val;
     im    = 0.0;
@@ -125,23 +94,7 @@ struct my_complex {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile my_complex& src) volatile {
-    re += src.re;
-    im += src.im;
-    dummy += src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   my_complex operator+(const my_complex& src) {
-    my_complex tmp = *this;
-    tmp.re += src.re;
-    tmp.im += src.im;
-    tmp.dummy += src.dummy;
-    return tmp;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex operator+(const volatile my_complex& src) volatile {
     my_complex tmp = *this;
     tmp.re += src.re;
     tmp.im += src.im;
@@ -157,15 +110,6 @@ struct my_complex {
     im            = im_tmp;
     dummy *= src.dummy;
     return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator*=(const volatile my_complex& src) volatile {
-    double re_tmp = re * src.re - im * src.im;
-    double im_tmp = re * src.im + im * src.re;
-    re            = re_tmp;
-    im            = im_tmp;
-    dummy *= src.dummy;
   }
 
   KOKKOS_INLINE_FUNCTION

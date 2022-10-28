@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -906,7 +906,11 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   // update region if necessary
 
-  if (regionflag) region->prematch();
+  if (regionflag) {
+    region = domain->get_region_by_id(idregion);
+    if (!region) error->all(FLERR, "Region {} for compute chunk/atom does not exist", idregion);
+    region->prematch();
+  }
 
   // exclude = 1 if atom is not assigned to a chunk
   // exclude atoms not in group or not in optional region

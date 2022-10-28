@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Macros.hpp>
 
 #include <Kokkos_Core.hpp>
@@ -50,16 +54,30 @@
 
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_MemorySpace.hpp>
+#include <impl/Kokkos_DeviceManagement.hpp>
+#include <impl/Kokkos_ExecSpaceManager.hpp>
 
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 #include <algorithm>
 #include <atomic>
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
+namespace {
+
+static std::atomic<bool> is_first_hip_managed_allocation(true);
+
+bool hip_driver_check_page_migration(int deviceId) {
+  // check with driver if page migrating memory is available
+  // this driver query is copied from the hip documentation
+  int hasManagedMemory = 0;  // false by default
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceGetAttribute(
+      &hasManagedMemory, hipDeviceAttributeManagedMemory, deviceId));
+  return static_cast<bool>(hasManagedMemory);
+}
+}  // namespace
 namespace Kokkos {
 namespace Impl {
 
@@ -131,6 +149,8 @@ HIPSpace::HIPSpace() : m_device(HIP().hip_device()) {}
 
 HIPHostPinnedSpace::HIPHostPinnedSpace() {}
 
+HIPManagedSpace::HIPManagedSpace() : m_device(HIP().hip_device()) {}
+
 void* HIPSpace::allocate(const size_t arg_alloc_size) const {
   return allocate("[unlabeled]", arg_alloc_size);
 }
@@ -179,7 +199,8 @@ void* HIPHostPinnedSpace::impl_allocate(
     const Kokkos::Tools::SpaceHandle arg_handle) const {
   void* ptr = nullptr;
 
-  auto const error_code = hipHostMalloc(&ptr, arg_alloc_size);
+  auto const error_code =
+      hipHostMalloc(&ptr, arg_alloc_size, hipHostMallocNonCoherent);
   if (error_code != hipSuccess) {
     // This is the only way to clear the last error, which we should do here
     // since we're turning it into an exception here
@@ -196,6 +217,73 @@ void* HIPHostPinnedSpace::impl_allocate(
 
   return ptr;
 }
+
+void* HIPManagedSpace::allocate(const size_t arg_alloc_size) const {
+  return allocate("[unlabeled]", arg_alloc_size);
+}
+void* HIPManagedSpace::allocate(const char* arg_label,
+                                const size_t arg_alloc_size,
+                                const size_t arg_logical_size) const {
+  return impl_allocate(arg_label, arg_alloc_size, arg_logical_size);
+}
+void* HIPManagedSpace::impl_allocate(
+    const char* arg_label, const size_t arg_alloc_size,
+    const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
+  void* ptr = nullptr;
+
+  if (arg_alloc_size > 0) {
+    if (is_first_hip_managed_allocation.exchange(false) &&
+        Kokkos::show_warnings()) {
+      if (!hip_driver_check_page_migration(m_device)) {
+        std::cerr << R"warning(
+Kokkos::HIP::allocation WARNING: The combination of device and system configuration
+                                 does not support page migration between device and host.
+                                 HIPManagedSpace might not work as expected.
+                                 Please refer to the ROCm documentation on unified/managed memory.)warning"
+                  << std::endl;
+      }
+
+      // check for correct runtime environment
+      const char* hsa_xnack = std::getenv("HSA_XNACK");
+      if (!hsa_xnack)
+        std::cerr << R"warning(
+Kokkos::HIP::runtime WARNING: Kokkos did not find an environment variable 'HSA_XNACK'
+                              for the current process.
+                              Nevertheless, xnack is enabled for all processes if
+                              amdgpu.noretry=0 was set in the Linux kernel boot line.
+                              Without xnack enabled, Kokkos::HIPManaged might not behave
+                              as expected.)warning"
+                  << std::endl;
+      else if (Kokkos::Impl::strcmp(hsa_xnack, "1") != 0)
+        std::cerr << "Kokkos::HIP::runtime WARNING: Kokkos detected the "
+                     "environement variable "
+                  << "'HSA_XNACK=" << hsa_xnack << "\n"
+                  << "Kokkos advises to set it to '1' to enable it per process."
+                  << std::endl;
+    }
+    auto const error_code = hipMallocManaged(&ptr, arg_alloc_size);
+    if (error_code != hipSuccess) {
+      // This is the only way to clear the last error, which we should do here
+      // since we're turning it into an exception here
+      (void)hipGetLastError();
+      throw HIPRawMemoryAllocationFailure(
+          arg_alloc_size, error_code,
+          RawMemoryAllocationFailure::AllocationMechanism::HIPMallocManaged);
+    }
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipMemAdvise(
+        ptr, arg_alloc_size, hipMemAdviseSetCoarseGrain, m_device));
+  }
+
+  if (Kokkos::Profiling::profileLibraryLoaded()) {
+    const size_t reported_size =
+        (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
+    Kokkos::Profiling::allocateData(arg_handle, arg_label, ptr, reported_size);
+  }
+
+  return ptr;
+}
+
 void HIPSpace::deallocate(void* const arg_alloc_ptr,
                           const size_t arg_alloc_size) const {
   deallocate("[unlabeled]", arg_alloc_ptr, arg_alloc_size);
@@ -242,6 +330,35 @@ void HIPHostPinnedSpace::impl_deallocate(
   KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(arg_alloc_ptr));
 }
 
+void HIPManagedSpace::deallocate(void* const arg_alloc_ptr,
+                                 const size_t arg_alloc_size) const {
+  deallocate("[unlabeled]", arg_alloc_ptr, arg_alloc_size);
+}
+
+void HIPManagedSpace::deallocate(const char* arg_label,
+                                 void* const arg_alloc_ptr,
+                                 const size_t arg_alloc_size,
+                                 const size_t arg_logical_size) const {
+  impl_deallocate(arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size);
+}
+void HIPManagedSpace::impl_deallocate(
+    const char* arg_label, void* const arg_alloc_ptr,
+    const size_t arg_alloc_size, const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
+  if (Kokkos::Profiling::profileLibraryLoaded()) {
+    const size_t reported_size =
+        (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
+    Kokkos::Profiling::deallocateData(arg_handle, arg_label, arg_alloc_ptr,
+                                      reported_size);
+  }
+  // We have to unset the CoarseGrain property manually as hipFree does not take
+  // care of it. Otherwise, the allocation would continue to linger in the
+  // kernel mem page table.
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipMemAdvise(
+      arg_alloc_ptr, arg_alloc_size, hipMemAdviseUnsetCoarseGrain, m_device));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(arg_alloc_ptr));
+}
+
 }  // namespace Experimental
 }  // namespace Kokkos
 
@@ -257,6 +374,9 @@ SharedAllocationRecord<void, void>
 
 SharedAllocationRecord<void, void> SharedAllocationRecord<
     Kokkos::Experimental::HIPHostPinnedSpace, void>::s_root_record;
+
+SharedAllocationRecord<void, void> SharedAllocationRecord<
+    Kokkos::Experimental::HIPManagedSpace, void>::s_root_record;
 #endif
 
 SharedAllocationRecord<Kokkos::Experimental::HIPSpace,
@@ -268,6 +388,13 @@ SharedAllocationRecord<Kokkos::Experimental::HIPSpace,
 }
 
 SharedAllocationRecord<Kokkos::Experimental::HIPHostPinnedSpace,
+                       void>::~SharedAllocationRecord() {
+  m_space.deallocate(m_label.c_str(),
+                     SharedAllocationRecord<void, void>::m_alloc_ptr,
+                     SharedAllocationRecord<void, void>::m_alloc_size);
+}
+
+SharedAllocationRecord<Kokkos::Experimental::HIPManagedSpace,
                        void>::~SharedAllocationRecord() {
   m_space.deallocate(m_label.c_str(),
                      SharedAllocationRecord<void, void>::m_alloc_ptr,
@@ -306,6 +433,35 @@ SharedAllocationRecord<Kokkos::Experimental::HIPSpace, void>::
       "HostSpace");
 }
 
+SharedAllocationRecord<Kokkos::Experimental::HIPSpace, void>::
+    SharedAllocationRecord(
+        const Kokkos::Experimental::HIP& arg_exec_space,
+        const Kokkos::Experimental::HIPSpace& arg_space,
+        const std::string& arg_label, const size_t arg_alloc_size,
+        const SharedAllocationRecord<void, void>::function_type arg_dealloc)
+    // Pass through allocated [ SharedAllocationHeader , user_memory ]
+    // Pass through deallocation function
+    : base_t(
+#ifdef KOKKOS_ENABLE_DEBUG
+          &SharedAllocationRecord<Kokkos::Experimental::HIPSpace,
+                                  void>::s_root_record,
+#endif
+          Kokkos::Impl::checked_allocation_with_header(arg_space, arg_label,
+                                                       arg_alloc_size),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
+      m_space(arg_space) {
+
+  SharedAllocationHeader header;
+
+  this->base_t::_fill_host_accessible_header_info(header, arg_label);
+
+  // Copy to device memory
+  Kokkos::Impl::DeepCopy<Kokkos::Experimental::HIPSpace, HostSpace>(
+      arg_exec_space, RecordBase::m_alloc_ptr, &header,
+      sizeof(SharedAllocationHeader));
+}
+
 SharedAllocationRecord<Kokkos::Experimental::HIPHostPinnedSpace, void>::
     SharedAllocationRecord(
         const Kokkos::Experimental::HIPHostPinnedSpace& arg_space,
@@ -328,15 +484,34 @@ SharedAllocationRecord<Kokkos::Experimental::HIPHostPinnedSpace, void>::
                                                   arg_label);
 }
 
+SharedAllocationRecord<Kokkos::Experimental::HIPManagedSpace, void>::
+    SharedAllocationRecord(
+        const Kokkos::Experimental::HIPManagedSpace& arg_space,
+        const std::string& arg_label, const size_t arg_alloc_size,
+        const SharedAllocationRecord<void, void>::function_type arg_dealloc)
+    // Pass through allocated [ SharedAllocationHeader , user_memory ]
+    // Pass through deallocation function
+    : base_t(
+#ifdef KOKKOS_ENABLE_DEBUG
+          &SharedAllocationRecord<Kokkos::Experimental::HIPManagedSpace,
+                                  void>::s_root_record,
+#endif
+          Kokkos::Impl::checked_allocation_with_header(arg_space, arg_label,
+                                                       arg_alloc_size),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
+      m_space(arg_space) {
+  // Fill in the Header information, directly accessible via managed memory
+  this->base_t::_fill_host_accessible_header_info(*RecordBase::m_alloc_ptr,
+                                                  arg_label);
+}
+
 }  // namespace Impl
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 namespace Kokkos {
-namespace Impl {
-int get_gpu(const InitArguments& args);
-}
 namespace Experimental {
 
 int HIP::concurrency() {
@@ -347,8 +522,8 @@ int HIP::impl_is_initialized() {
   return Impl::HIPInternal::singleton().is_initialized();
 }
 
-void HIP::impl_initialize(const HIP::SelectDevice config) {
-  Impl::HIPInternal::singleton().initialize(config.hip_device_id);
+void HIP::impl_initialize(InitializationSettings const& settings) {
+  Impl::HIPInternal::singleton().initialize(::Kokkos::Impl::get_gpu(settings));
 }
 
 void HIP::impl_finalize() { Impl::HIPInternal::singleton().finalize(); }
@@ -371,8 +546,21 @@ HIP::HIP(hipStream_t const stream, bool manage_stream)
                                manage_stream);
 }
 
-void HIP::print_configuration(std::ostream& s, const bool) {
-  Impl::HIPInternal::singleton().print_configuration(s);
+void HIP::print_configuration(std::ostream& os, bool /*verbose*/) const {
+  os << "Device Execution Space:\n";
+  os << "  KOKKOS_ENABLE_HIP: yes\n";
+
+  os << "HIP Options:\n";
+  os << "  KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE: ";
+#ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+  os << "yes\n";
+#else
+  os << "no\n";
+#endif
+
+  os << "\nRuntime Configuration:\n";
+
+  m_space_instance->print_configuration(os);
 }
 
 uint32_t HIP::impl_instance_id() const noexcept {
@@ -386,15 +574,9 @@ void HIP::impl_static_fence(const std::string& name) {
           GlobalDeviceSynchronization,
       [&]() { KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceSynchronize()); });
 }
-void HIP::impl_static_fence() {
-  impl_static_fence("Kokkos::HIP::impl_static_fence: Unnamed Static Fence");
-}
 
 void HIP::fence(const std::string& name) const {
   m_space_instance->fence(name);
-}
-void HIP::fence() const {
-  fence("Kokkos::HIP::fence(): Unnamed Instance Fence");
 }
 
 hipStream_t HIP::hip_stream() const { return m_space_instance->m_stream; }
@@ -412,56 +594,7 @@ const char* HIP::name() { return "HIP"; }
 namespace Impl {
 
 int g_hip_space_factory_initialized =
-    initialize_space_factory<HIPSpaceInitializer>("150_HIP");
-
-void HIPSpaceInitializer::initialize(const InitArguments& args) {
-  int use_gpu = Impl::get_gpu(args);
-
-  if (std::is_same<Kokkos::Experimental::HIP,
-                   Kokkos::DefaultExecutionSpace>::value ||
-      0 < use_gpu) {
-    if (use_gpu > -1) {
-      Kokkos::Experimental::HIP::impl_initialize(
-          Kokkos::Experimental::HIP::SelectDevice(use_gpu));
-    } else {
-      Kokkos::Experimental::HIP::impl_initialize();
-    }
-  }
-}
-
-void HIPSpaceInitializer::finalize(const bool all_spaces) {
-  if (std::is_same<Kokkos::Experimental::HIP,
-                   Kokkos::DefaultExecutionSpace>::value ||
-      all_spaces) {
-    if (Kokkos::Experimental::HIP::impl_is_initialized())
-      Kokkos::Experimental::HIP::impl_finalize();
-  }
-}
-
-void HIPSpaceInitializer::fence() {
-  Kokkos::Experimental::HIP::impl_static_fence();
-}
-void HIPSpaceInitializer::fence(const std::string& name) {
-  Kokkos::Experimental::HIP::impl_static_fence(name);
-}
-
-void HIPSpaceInitializer::print_configuration(std::ostream& msg,
-                                              const bool detail) {
-  msg << "Devices:" << std::endl;
-  msg << "  KOKKOS_ENABLE_HIP: ";
-  msg << "yes" << std::endl;
-
-  msg << "HIP Options:" << std::endl;
-  msg << "  KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE: ";
-#ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-
-  msg << "\nRuntime Configuration:" << std::endl;
-  Experimental::HIP::print_configuration(msg, detail);
-}
+    initialize_space_factory<::Kokkos::Experimental::HIP>("150_HIP");
 
 }  // namespace Impl
 
@@ -491,6 +624,8 @@ template class HostInaccessibleSharedAllocationRecordCommon<
 template class SharedAllocationRecordCommon<Kokkos::Experimental::HIPSpace>;
 template class SharedAllocationRecordCommon<
     Kokkos::Experimental::HIPHostPinnedSpace>;
+template class SharedAllocationRecordCommon<
+    Kokkos::Experimental::HIPManagedSpace>;
 
 }  // end namespace Impl
 }  // end namespace Kokkos

@@ -142,7 +142,7 @@ TEST(TEST_CATEGORY, host_shared_ptr_get) {
     HostSharedPtr<T> p2;
     p2 = p1;  // copy assignment
     EXPECT_EQ(p1.get(), &i);
-    EXPECT_EQ(p1.get(), &i);
+    EXPECT_EQ(p2.get(), &i);
   }
   {
     T i;

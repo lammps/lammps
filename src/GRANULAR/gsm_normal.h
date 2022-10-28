@@ -11,6 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef GSM_CLASS
+// clang-format off
+GSMStyle(none,
+         GSMNormalNone,
+         NORMAL);
+
+GSMStyle(hooke,
+         GSMNormalHooke,
+         NORMAL);
+
+GSMStyle(hertz,
+         GSMNormalHertz,
+         NORMAL);
+
+GSMStyle(hertz/material,
+         GSMNormalHertzMaterial,
+         NORMAL);
+
+GSMStyle(dmt,
+         GSMNormalDMT,
+         NORMAL);
+
+GSMStyle(jkr,
+         GSMNormalJKR,
+         NORMAL);
+// clang-format on
+#else
+
 #ifndef GSM_NORMAL_H_
 #define GSM_NORMAL_H_
 
@@ -116,3 +144,4 @@ class GSMNormalJKR : public GSMNormal {
 }    // namespace LAMMPS_NS
 
 #endif /*GSM_NORMAL_H_ */
+#endif /*GSM_CLASS_H_ */

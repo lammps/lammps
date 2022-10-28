@@ -11,6 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef GSM_CLASS
+// clang-format off
+GSMStyle(none,
+         GSMDampingNone,
+         DAMPING);
+
+GSMStyle(velocity,
+         GSMDampingVelocity,
+         DAMPING);
+
+GSMStyle(mass_velocity,
+         GSMDampingMassVelocity,
+         DAMPING);
+
+GSMStyle(viscoelastic,
+         GSMDampingViscoelastic,
+         DAMPING);
+
+GSMStyle(tsuji,
+         GSMDampingTsuji,
+         DAMPING);
+// clang-format on
+#else
+
 #ifndef GSM_DAMPING_H_
 #define GSM_DAMPING_H_
 
@@ -77,3 +101,4 @@ class GSMDampingTsuji : public GSMDamping {
 }    // namespace LAMMPS_NS
 
 #endif /*GSM_DAMPING_H_ */
+#endif /*GSM_CLASS_H_ */

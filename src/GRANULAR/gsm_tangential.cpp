@@ -172,12 +172,9 @@ GSMTangentialLinearHistoryClassic::GSMTangentialLinearHistoryClassic(GranularMod
 
 void GSMTangentialLinearHistoryClassic::calculate_forces()
 {
-  double k_scaled, magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
+  double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
   double temp_array[3];
   int frame_update = 0;
-
-  k_scaled = k;
-  if (scale_area) k_scaled *= gm->area;
 
   damp = xt * gm->damping_model->damp_prefactor;
 
@@ -200,7 +197,8 @@ void GSMTangentialLinearHistoryClassic::calculate_forces()
   }
 
   // tangential forces = history + tangential velocity damping
-  scale3(-k_scaled, history, gm->fs);
+  if (scale_area) scale3(-k * gm->area, history, gm->fs);
+  else scale3(-k, history, gm->fs);
   scale3(damp, gm->vtr, temp_array);
   sub3(gm->fs, temp_array, gm->fs);
 
@@ -212,9 +210,7 @@ void GSMTangentialLinearHistoryClassic::calculate_forces()
       scale3(Fscrit * magfs_inv, gm->fs, history);
       scale3(damp, gm->vtr, temp_array);
       add3(history, temp_array, history);
-      temp_dbl = -1.0 / k_scaled;
-      if (scale_area) temp_dbl /= gm->area;
-      scale3(temp_dbl, history);
+      scale3(-1.0 / k, history);
       scale3(Fscrit * magfs_inv, gm->fs);
     } else {
       zero3(gm->fs);

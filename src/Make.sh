@@ -104,6 +104,7 @@ if (test $cmd = "style") || (test $cmd = "packages") then
   $cmd DIHEDRAL_CLASS  dihedral_   dihedral   force
   $cmd DUMP_CLASS      dump_       dump       output    write_dump
   $cmd FIX_CLASS       fix_        fix        modify
+  $cmd GSM_CLASS       gsm_        gsm        granular_model
   $cmd IMPROPER_CLASS  improper_   improper   force
   $cmd INTEGRATE_CLASS ""          integrate  update
   $cmd KSPACE_CLASS    ""          kspace     force

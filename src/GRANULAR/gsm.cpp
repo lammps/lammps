@@ -45,7 +45,6 @@ GSM::GSM(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
 
   nondefault_history_transfer = 0;
   transfer_history_factor = nullptr;
-  allocate_coeffs();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -11,6 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef GSM_CLASS
+// clang-format off
+GSMStyle(none,
+         GSMTwistingNone,
+         TWISTING);
+
+GSMStyle(marshall,
+         GSMTwistingMarshall,
+         TWISTING);
+
+GSMStyle(sds,
+         GSMTwistingSDS,
+         TWISTING);
+// clang-format on
+#else
+
 #ifndef GSM_TWISTING_H_
 #define GSM_TWISTING_H_
 
@@ -62,3 +78,4 @@ class GSMTwistingSDS : public GSMTwisting {
 }    // namespace LAMMPS_NS
 
 #endif /*GSM_TWISTING_H_ */
+#endif /*GSM_CLASS_H_ */

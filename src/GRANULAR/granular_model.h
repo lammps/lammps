@@ -55,8 +55,8 @@ class GranularModel : protected Pointers {
   void calculate_forces();
   double pulloff_distance(double, double);
 
-  int init_submodel(char **, int, int, SubmodelType);
-  int init_classic_model(char **, int, int);
+  int add_submodel(char **, int, int, SubmodelType);
+  int define_classic_model(char **, int, int);
   void construct_submodel(std::string, SubmodelType);
   int mix_coeffs(GranularModel*, GranularModel*);
 
@@ -99,6 +99,13 @@ class GranularModel : protected Pointers {
  protected:
   int rolling_defined, twisting_defined, heat_defined; // Used to quickly skip undefined submodels
   int classic_model;
+
+  int nclass;
+
+  typedef class GSM *(*GSMCreator)(class GranularModel *, class LAMMPS *);
+  GSMCreator *gsmclass;
+  char **gsmnames;
+  int *gsmtypes;
 };
 
 }    // namespace Granular_NS

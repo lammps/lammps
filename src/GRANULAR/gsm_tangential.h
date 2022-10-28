@@ -11,6 +11,46 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef GSM_CLASS
+// clang-format off
+GSMStyle(none,
+         GSMTangentialNone,
+         TANGENTIAL);
+
+GSMStyle(linear_nohistory,
+         GSMTangentialLinearNoHistory,
+         TANGENTIAL);
+
+GSMStyle(linear_history,
+         GSMTangentialLinearHistory,
+         TANGENTIAL);
+
+GSMStyle(linear_history_classic,
+         GSMTangentialLinearHistoryClassic,
+         TANGENTIAL);
+
+GSMStyle(mindlin_classic,
+         GSMTangentialMindlinClassic,
+         TANGENTIAL);
+
+GSMStyle(mindlin,
+         GSMTangentialMindlin,
+         TANGENTIAL);
+
+GSMStyle(mindlin/force,
+         GSMTangentialMindlinForce,
+         TANGENTIAL);
+
+GSMStyle(mindlin_rescale,
+         GSMTangentialMindlinRescale,
+         TANGENTIAL);
+
+GSMStyle(mindlin_rescale/force,
+         GSMTangentialMindlinRescaleForce,
+         TANGENTIAL);
+// clang-format on
+#else
+
 #ifndef GSM_TANGENTIAL_H_
 #define GSM_TANGENTIAL_H_
 
@@ -111,3 +151,4 @@ class GSMTangentialMindlinRescaleForce : public GSMTangentialMindlin {
 }    // namespace LAMMPS_NS
 
 #endif /*GSM_TANGENTIAL_H_ */
+#endif /*GSM_CLASS_H_ */

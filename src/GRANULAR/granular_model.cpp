@@ -40,6 +40,17 @@ using namespace LAMMPS_NS;
 using namespace Granular_NS;
 using namespace MathExtra;
 
+/* ----------------------------------------------------------------------
+   one instance per GSM style in style_gsm.h
+------------------------------------------------------------------------- */
+
+template <typename T> static GSM *gsm_creator(GranularModel *gm, LAMMPS *lmp)
+{
+  return new T(gm, lmp);
+}
+
+/* ---------------------------------------------------------------------- */
+
 GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 {
   limit_damping = 0;
@@ -57,6 +68,31 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 
   for (int i = 0; i < NSUBMODELS; i++) sub_models[i] = nullptr;
   transfer_history_factor = nullptr;
+
+  // extract info from GSM classes listed in style_gsm.h
+
+  nclass = 0;
+
+#define GSM_CLASS
+#define GSMStyle(key,Class,type) nclass++;
+#include "style_gsm.h"  // IWYU pragma: keep
+#undef GSMStyle
+#undef GSM_CLASS
+
+  gsmclass = new GSMCreator[nclass];
+  gsmnames = new char*[nclass];
+  gsmtypes = new int[nclass];
+  nclass = 0;
+
+#define GSM_CLASS
+#define GSMStyle(key,Class,type) \
+  gsmclass[nclass] = &gsm_creator<Class>;   \
+  gsmnames[nclass] = (char *) #key; \
+  gsmtypes[nclass++] = type;
+#include "style_gsm.h"  // IWYU pragma: keep
+#undef GSMStyle
+#undef GSM_CLASS
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,7 +111,7 @@ GranularModel::~GranularModel()
 
 /* ---------------------------------------------------------------------- */
 
-int GranularModel::init_submodel(char **arg, int iarg, int narg, SubmodelType model_type)
+int GranularModel::add_submodel(char **arg, int iarg, int narg, SubmodelType model_type)
 {
   if (iarg >= narg)
     error->all(FLERR, "Must specify granular submodel name");
@@ -92,6 +128,7 @@ int GranularModel::init_submodel(char **arg, int iarg, int narg, SubmodelType mo
     if (strcmp(arg[iarg + i], "NULL") == 0) sub_models[model_type]->coeffs[i] = -1;
     else sub_models[model_type]->coeffs[i] = utils::numeric(FLERR,arg[iarg + i],false,lmp);
   }
+
   sub_models[model_type]->coeffs_to_local();
 
   return iarg + num_coeffs;
@@ -101,80 +138,34 @@ int GranularModel::init_submodel(char **arg, int iarg, int narg, SubmodelType mo
 
 void GranularModel::construct_submodel(std::string model_name, SubmodelType model_type)
 {
-if (model_type == NORMAL) {
-    delete normal_model;
-    if (model_name == "none") normal_model = new GSMNormalNone(this, lmp);
-    else if (model_name == "hooke") normal_model = new GSMNormalHooke(this, lmp);
-    else if (model_name == "hertz") normal_model = new GSMNormalHertz(this, lmp);
-    else if (model_name == "hertz/material") normal_model = new GSMNormalHertzMaterial(this, lmp);
-    else if (model_name == "dmt") normal_model = new GSMNormalDMT(this, lmp);
-    else if (model_name == "jkr") normal_model = new GSMNormalJKR(this, lmp);
-    else error->all(FLERR, "Normal model name {} not recognized", model_name);
-    sub_models[model_type] = normal_model;
-
-  } else if (model_type == TANGENTIAL) {
-    delete tangential_model;
-    if (model_name == "none") tangential_model = new GSMTangentialNone(this, lmp);
-    else if (model_name == "linear_nohistory") tangential_model = new GSMTangentialLinearNoHistory(this, lmp);
-    else if (model_name == "linear_history") tangential_model = new GSMTangentialLinearHistory(this, lmp);
-    else if (model_name == "linear_history_classic") tangential_model = new GSMTangentialLinearHistoryClassic(this, lmp);
-    else if (model_name == "mindlin") tangential_model = new GSMTangentialMindlin(this, lmp);
-    else if (model_name == "mindlin/force") tangential_model = new GSMTangentialMindlinForce(this, lmp);
-    else if (model_name == "mindlin_rescale") tangential_model = new GSMTangentialMindlinRescale(this, lmp);
-    else if (model_name == "mindlin_rescale/force") tangential_model = new GSMTangentialMindlinRescaleForce(this, lmp);
-    else error->all(FLERR, "Tangential model name {} not recognized", model_name);
-    sub_models[model_type] = tangential_model;
-
-  } else if (model_type == DAMPING) {
-    delete damping_model;
-    if (model_name == "none") damping_model = new GSMDampingNone(this, lmp);
-    else if (model_name == "velocity") damping_model = new GSMDampingVelocity(this, lmp);
-    else if (model_name == "mass_velocity") damping_model = new GSMDampingMassVelocity(this, lmp);
-    else if (model_name == "viscoelastic") damping_model = new GSMDampingViscoelastic(this, lmp);
-    else if (model_name == "tsuji") damping_model = new GSMDampingTsuji(this, lmp);
-    else error->all(FLERR, "Damping model name {} not recognized", model_name);
-    sub_models[model_type] = damping_model;
-
-  } else if (model_type == ROLLING) {
-    delete rolling_model;
-    rolling_defined = 1;
-    if (model_name == "none") {
-      rolling_model = new GSMRollingNone(this, lmp);
-      rolling_defined = 0;
-    } else if (model_name == "sds") rolling_model = new GSMRollingSDS(this, lmp);
-    else error->all(FLERR, "Rolling model name {} not recognized", model_name);
-    sub_models[model_type] = rolling_model;
-
-  } else if (model_type == TWISTING) {
-    delete twisting_model;
-    twisting_defined = 1;
-    if (model_name == "none") {
-      twisting_model = new GSMTwistingNone(this, lmp);
-      twisting_defined = 0;
-    } else if (model_name == "sds") twisting_model = new GSMTwistingSDS(this, lmp);
-    else if (model_name == "marshall") twisting_model = new GSMTwistingMarshall(this, lmp);
-    else error->all(FLERR, "Twisting model name {} not recognized", model_name);
-    sub_models[model_type] = twisting_model;
-
-  } else if (model_type == HEAT) {
-    delete heat_model;
-    heat_defined = 1;
-    if (model_name == "none") {
-      heat_model = new GSMHeatNone(this, lmp);
-      heat_defined = 0;
-    } else if (model_name == "area") heat_model = new GSMHeatArea(this, lmp);
-    else error->all(FLERR, "Heat model name not {} recognized", model_name);
-    sub_models[model_type] = heat_model;
-  } else {
-    error->all(FLERR, "Illegal model type {}", model_type);
+  int i;
+  for (i = 0; i < nclass; i++) {
+    if (gsmtypes[i] == model_type) {
+      if (strcmp(gsmnames[i], model_name.c_str()) == 0) {
+        GSMCreator &gsm_creator = gsmclass[i];
+        sub_models[model_type] = gsm_creator(this, lmp);
+        break;
+      }
+    }
   }
 
+  if (i == nclass)
+    error->all(FLERR, "Illegal model type {}", model_type);
+
   sub_models[model_type]->name.assign(model_name);
+  sub_models[model_type]->allocate_coeffs();
+
+  if (model_type == NORMAL) normal_model = dynamic_cast<GSMNormal *> (sub_models[NORMAL]);
+  if (model_type == DAMPING) damping_model = dynamic_cast<GSMDamping *> (sub_models[DAMPING]);
+  if (model_type == TANGENTIAL) tangential_model = dynamic_cast<GSMTangential *> (sub_models[TANGENTIAL]);
+  if (model_type == ROLLING) rolling_model = dynamic_cast<GSMRolling *> (sub_models[ROLLING]);
+  if (model_type == TWISTING) twisting_model = dynamic_cast<GSMTwisting *> (sub_models[TWISTING]);
+  if (model_type == HEAT) heat_model = dynamic_cast<GSMHeat *> (sub_models[HEAT]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int GranularModel::init_classic_model(char **arg, int iarg, int narg)
+int GranularModel::define_classic_model(char **arg, int iarg, int narg)
 {
   double kn, kt, gamman, gammat, xmu;
 
@@ -212,7 +203,7 @@ int GranularModel::init_classic_model(char **arg, int iarg, int narg)
     kn /= force->nktv2p;
     kt /= force->nktv2p;
     construct_submodel("hertz", NORMAL);
-    construct_submodel("mindlin", TANGENTIAL);
+    construct_submodel("mindlin_classic", TANGENTIAL);
     construct_submodel("viscoelastic", DAMPING);
   } else error->all(FLERR,"Invalid classic gran model");
 
@@ -240,8 +231,7 @@ int GranularModel::init_classic_model(char **arg, int iarg, int narg)
 
 void GranularModel::init()
 {
-  int i, j;
-  for (i = 0; i < NSUBMODELS; i++)
+  for (int i = 0; i < NSUBMODELS; i++)
     if (!sub_models[i]) construct_submodel("none", (SubmodelType) i);
 
   // Must have valid normal, damping, and tangential models
@@ -249,9 +239,15 @@ void GranularModel::init()
   if (damping_model->name == "none") error->all(FLERR, "Must specify damping granular model");
   if (tangential_model->name == "none") error->all(FLERR, "Must specify tangential granular model");
 
+  // Twisting, rolling, and heat are optional
+  twisting_defined = rolling_defined = heat_defined = 1;
+  if (twisting_model->name == "none") twisting_defined = 0;
+  if (rolling_model->name == "none") rolling_defined = 0;
+  if (heat_model->name == "none") heat_defined = 0;
+
   int size_cumulative;
   size_history = 0;
-  for (i = 0; i < NSUBMODELS; i++) {
+  for (int i = 0; i < NSUBMODELS; i++) {
     if (sub_models[i]->nondefault_history_transfer)
       nondefault_history_transfer = 1;
     if (sub_models[i]->beyond_contact)
@@ -264,7 +260,8 @@ void GranularModel::init()
   if (nondefault_history_transfer) {
     transfer_history_factor = new double[size_history];
 
-    for (i = 0; i < size_history; i++) {
+    int j;
+    for (int i = 0; i < size_history; i++) {
       // Find which model owns this history value
       size_cumulative = 0;
       for (j = 0; j < NSUBMODELS; j++) {
@@ -282,7 +279,7 @@ void GranularModel::init()
     }
   }
 
-  for (i = 0; i < NSUBMODELS; i++) sub_models[i]->init();
+  for (int i = 0; i < NSUBMODELS; i++) sub_models[i]->init();
 }
 
 /* ---------------------------------------------------------------------- */

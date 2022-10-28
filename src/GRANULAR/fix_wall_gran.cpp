@@ -77,7 +77,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg;
   if (classic_flag) {
-    iarg = model->init_classic_model(arg, 3, narg);
+    iarg = model->define_classic_model(arg, 3, narg);
 
     if (iarg < narg) {
       if (strcmp(arg[iarg],"limit_damping") == 0) {
@@ -88,19 +88,19 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   } else {
     iarg = 4;
-    iarg = model->init_submodel(arg, iarg, narg, NORMAL);
+    iarg = model->add_submodel(arg, iarg, narg, NORMAL);
 
     while (iarg < narg) {
       if (strcmp(arg[iarg], "damping") == 0) {
-        iarg = model->init_submodel(arg, iarg + 1, narg, DAMPING);
+        iarg = model->add_submodel(arg, iarg + 1, narg, DAMPING);
       } else if (strcmp(arg[iarg], "tangential") == 0) {
-        iarg = model->init_submodel(arg, iarg + 1, narg, TANGENTIAL);
+        iarg = model->add_submodel(arg, iarg + 1, narg, TANGENTIAL);
       } else if (strcmp(arg[iarg], "rolling") == 0) {
-        iarg = model->init_submodel(arg, iarg + 1, narg, ROLLING);
+        iarg = model->add_submodel(arg, iarg + 1, narg, ROLLING);
       } else if (strcmp(arg[iarg], "twisting") == 0) {
-        iarg = model->init_submodel(arg, iarg + 1, narg, TWISTING);
+        iarg = model->add_submodel(arg, iarg + 1, narg, TWISTING);
       } else if (strcmp(arg[iarg], "heat") == 0) {
-        iarg = model->init_submodel(arg, iarg + 1, narg, HEAT);
+        iarg = model->add_submodel(arg, iarg + 1, narg, HEAT);
         heat_flag = 1;
       } else if (strcmp(arg[iarg], "xplane") == 0 ||
           strcmp(arg[iarg], "yplane") == 0 ||
@@ -120,7 +120,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // Define default damping model if unspecified, takes no args
   if (!model->damping_model)
     model->construct_submodel("viscoelastic", DAMPING);
-  if (!model->tangential_model) error->all(FLERR, "No tangential model specified");
 
   model->init();
 

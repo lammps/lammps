@@ -11,6 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef GSM_CLASS
+// clang-format off
+GSMStyle(none,
+         GSMHeatNone,
+         HEAT);
+
+GSMStyle(area,
+         GSMHeatArea,
+         HEAT);
+// clang-format on
+#else
+
 #ifndef GSM_HEAT_H_
 #define GSM_HEAT_H_
 
@@ -51,3 +63,4 @@ class GSMHeatArea : public GSMHeat {
 }    // namespace LAMMPS_NS
 
 #endif /*GSM_HEAT_H_ */
+#endif /*GSM_CLASS_H_ */

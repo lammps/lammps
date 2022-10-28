@@ -1444,7 +1444,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
         USE LIBLAMMPS
         IMPLICIT NONE
-        INTEGER(c_int), DIMENSION(:), ALLOCATABLE :: bonds
+        INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: bonds
         INTEGER(c_int), DIMENSION(:,:), POINTER :: bonds_array
         TYPE(lammps) :: lmp
         INTEGER :: i

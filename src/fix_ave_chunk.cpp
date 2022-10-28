@@ -83,38 +83,38 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[iarg],"vx") == 0) {
       val.which = ArgInfo::V;
-      val.which = 0;
+      val.argindex = 0;
     } else if (strcmp(arg[iarg],"vy") == 0) {
       val.which = ArgInfo::V;
-      val.which = 1;
+      val.argindex = 1;
     } else if (strcmp(arg[iarg],"vz") == 0) {
       val.which = ArgInfo::V;
-      val.which = 2;
+      val.argindex = 2;
 
     } else if (strcmp(arg[iarg],"fx") == 0) {
       val.which = ArgInfo::F;
-      val.which = 0;
+      val.argindex = 0;
     } else if (strcmp(arg[iarg],"fy") == 0) {
       val.which = ArgInfo::F;
-      val.which = 1;
+      val.argindex = 1;
     } else if (strcmp(arg[iarg],"fz") == 0) {
       val.which = ArgInfo::F;
-      val.which = 2;
+      val.argindex = 2;
 
     } else if (strcmp(arg[iarg],"mass") == 0) {
       val.which = ArgInfo::MASS;
-      val.which = 0;
+      val.argindex = 0;
     } else if (strcmp(arg[iarg],"density/number") == 0) {
       densityflag = 1;
       val.which = ArgInfo::DENSITY_NUMBER;
-      val.which = 0;
+      val.argindex = 0;
     } else if (strcmp(arg[iarg],"density/mass") == 0) {
       densityflag = 1;
       val.which = ArgInfo::DENSITY_MASS;
-      val.which = 0;
+      val.argindex = 0;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       val.which = ArgInfo::TEMPERATURE;
-      val.which = 0;
+      val.argindex = 0;
 
     } else {
       ArgInfo argi(arg[iarg]);

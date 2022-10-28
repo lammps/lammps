@@ -116,14 +116,13 @@ void PPPMDipole::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDipole with 2d simulation");
 
-  if (comm->style != 0)
-    error->universe_all(FLERR,"PPPMDipole can only currently be used with "
-                        "comm_style brick");
+  if (comm->style != Comm::BRICK)
+    error->universe_all(FLERR,"PPPMDipole can only currently be used with comm_style brick");
 
   if (!atom->mu) error->all(FLERR,"Kspace style requires atom attribute mu");
 
-  if (atom->mu && differentiation_flag == 1) error->all(FLERR,"Cannot (yet) use kspace_modify diff"
-       " ad with dipoles");
+  if (atom->mu && differentiation_flag == 1)
+    error->all(FLERR,"Cannot (yet) use kspace_modify diff ad with dipoles");
 
   if (dipoleflag && strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
@@ -137,8 +136,7 @@ void PPPMDipole::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR,"PPPMDipole order cannot be < 2 or > {}",
-                                 MAXORDER);
+    error->all(FLERR,"PPPMDipole order cannot be < 2 or > {}", MAXORDER);
 
   // compute two charge force
 

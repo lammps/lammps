@@ -355,7 +355,7 @@ void FixSRD::init()
     error->all(FLERR, "Fix srd no-slip requires atom attribute torque");
   if (initflag && update->dt != dt_big)
     error->all(FLERR, "Cannot change timestep once fix srd is setup");
-  if (comm->style != 0)
+  if (comm->style != Comm::BRICK)
     error->universe_all(FLERR, "Fix srd can only currently be used with comm_style brick");
 
   // orthogonal vs triclinic simulation box

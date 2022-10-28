@@ -181,9 +181,9 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   // we require continuous time stepping
   time_depend = 1;
 
-  if (narg < 6) error->all(FLERR, "Illegal fix lb/fluid command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix lb/fluid",error);
 
-  if (comm->style != 0)
+  if (comm->style != Comm::BRICK)
     error->universe_all(FLERR, "Fix lb/fluid can only currently be used with comm_style brick");
 
   MPI_Comm_rank(world, &me);

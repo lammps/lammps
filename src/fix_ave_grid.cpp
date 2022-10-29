@@ -39,11 +39,8 @@ enum{ONE,RUNNING,WINDOW};
 enum{DISCARD,KEEP};
 
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
-// SHIFT = 0.0 assigns atoms to lower-left grid pt
-// SHIFT = 0.5 assigns atoms to nearest grid pt
 
 static constexpr int OFFSET = 16384;
-static constexpr double SHIFT = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -398,7 +395,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   else if (modegrid) maxdist = 0.0;
 
   if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, maxdist, 0, SHIFT,
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, maxdist, 0, 0.5,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out);
 
@@ -414,7 +411,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
 
   } else {
-    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 0, SHIFT,
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 0, 0.5,
                         nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
                         nxlo_out, nxhi_out, nylo_out, nyhi_out,
                         nzlo_out, nzhi_out);
@@ -846,7 +843,6 @@ void FixAveGrid::atom2grid()
   if (triclinic) domain->x2lamda(nlocal);
 
   int flag = 0;
-  double shift = OFFSET + SHIFT;
 
   if (dimension == 2) {
     for (i = 0; i < nlocal; i++) {
@@ -855,8 +851,8 @@ void FixAveGrid::atom2grid()
         continue;
       }
 
-      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
-      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + OFFSET) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + OFFSET) - OFFSET;
 
       if (ix < nxlo_out || ix > nxhi_out) {
         if (periodicity[0]) flag = 1;
@@ -890,9 +886,9 @@ void FixAveGrid::atom2grid()
         continue;
       }
 
-      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
-      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
-      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + OFFSET) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + OFFSET) - OFFSET;
+      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + OFFSET) - OFFSET;
 
       if (ix < nxlo_out || ix > nxhi_out) {
         if (periodicity[0]) flag = 1;

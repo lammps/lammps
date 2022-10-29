@@ -41,13 +41,8 @@ static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
 
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
-// SHIFT = 0.0 assigns atoms to lower-left grid pt
-// SHIFT = 0.5 assigns atoms to nearest grid pt
-// use SHIFT = 0.0 to match fix ttm
-//   also it allows fix ave/chunk to spatially average consistently
 
 static constexpr int OFFSET = 16384;
-static constexpr double SHIFT = 0.5;
 
 /* ---------------------------------------------------------------------- */
 
@@ -61,7 +56,6 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
                           "use dump grid command or restart files instead");
 
-  shift = OFFSET + SHIFT;
   skin_original = neighbor->skin;
 }
 
@@ -142,9 +136,9 @@ void FixTTMGrid::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
-      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
-      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + OFFSET) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + OFFSET) - OFFSET;
+      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + OFFSET) - OFFSET;
 
       // flag if ix,iy,iz is not within my ghost cell range
 
@@ -201,23 +195,17 @@ void FixTTMGrid::end_of_step()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + shift) - OFFSET;
-      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + shift) - OFFSET;
-      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + shift) - OFFSET;
+      ix = static_cast<int> ((x[i][0]-boxlo[0])*dxinv + OFFSET) - OFFSET;
+      iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + OFFSET) - OFFSET;
+      iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + OFFSET) - OFFSET;
 
       net_energy_transfer[iz][iy][ix] +=
         (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
          flangevin[i][2]*v[i][2]);
     }
 
-  printf("AAA Telec000 %g Net000 %g\n",
-         T_electron[0][0][0],net_energy_transfer[0][0][0]);
-  
   grid->reverse_comm(Grid3d::FIX,this,1,sizeof(double),0,
                      grid_buf1,grid_buf2,MPI_DOUBLE);
-
-  printf("BBB Telec000 %g Net000 %g\n",
-         T_electron[0][0][0],net_energy_transfer[0][0][0]);
 
   // clang-format off
 
@@ -272,9 +260,6 @@ void FixTTMGrid::end_of_step()
     grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
                        grid_buf1,grid_buf2,MPI_DOUBLE);
   }
-
-  printf("CCC Telec000 %g Net000 %g\n",
-         T_electron[0][0][0],net_energy_transfer[0][0][0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -500,7 +485,8 @@ void FixTTMGrid::reset_grid()
 
   int tmp[12];
   double maxdist = 0.5 * neighbor->skin;
-  Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 1, SHIFT,
+  Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid,
+                               maxdist, 1, 0.5,
 			       tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],
 			       tmp[6],tmp[7],tmp[8],tmp[9],tmp[10],tmp[11]);
   
@@ -646,7 +632,7 @@ void FixTTMGrid::allocate_grid()
 {
   double maxdist = 0.5 * neighbor->skin;
 
-  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 1, SHIFT,
+  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 1, 0.5,
                     nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
                     nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 

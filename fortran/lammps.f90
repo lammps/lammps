@@ -1857,19 +1857,30 @@ CONTAINS
       reqid)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: style
-    LOGICAL, INTENT(IN) :: exact
-    INTEGER(c_int), INTENT(IN) :: nsub, reqid
+    LOGICAL, INTENT(IN), OPTIONAL :: exact
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: nsub, reqid
     TYPE(c_ptr) :: Cstyle
-    INTEGER(c_int) :: Cexact
+    INTEGER(c_int) :: Cexact, Cnsub, Creqid
 
-    IF (exact) THEN
-      Cexact = 1_c_int
+    Cexact = 0_c_int
+    IF (PRESENT(exact)) THEN
+      IF (exact) THEN
+        Cexact = 1_c_int
+      END IF
+    END IF
+    IF (PRESENT(nsub)) THEN
+      Cnsub = nsub
     ELSE
-      Cexact = 0_c_int
+      Cnsub = 0_c_int
+    END IF
+    IF (PRESENT(reqid)) THEN
+      Creqid = reqid
+    ELSE
+      Creqid = 0_c_int
     END IF
     Cstyle = f2c_string(style)
     lmp_find_pair_neighlist = lammps_find_pair_neighlist(self%handle, Cstyle, &
-      Cexact, nsub, reqid)
+      Cexact, Cnsub, Creqid)
     IF (lmp_find_pair_neighlist < 0) THEN
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'unable to find pair neighbor list [Fortran/find_pair_neighlist]')

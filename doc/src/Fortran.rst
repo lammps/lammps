@@ -1517,7 +1517,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
-.. f:function:: find_pair_neighlist(style, exact, nsub, reqid)
+.. f:function:: find_pair_neighlist(style[, exact][, nsub][, reqid])
 
    Find index of a neighbor list requested by a pair style.
 
@@ -1539,13 +1539,14 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    lists and set the request ID to a value greater than zero.
 
    :p character(len=\*) style: String used to search for pair style instance.
-   :p exact: Flag to control whther style should match exactly or only a
-    regular expression/sub-string match is applied.
-   :ptype exact: logical
-   :p integer(c_int) nsub:     Match *nsub*\ th hybrid sub-style instance of
-    the same style
-   :p integer(c_int) reqid:    Request ID to identify the neighbor list in
+   :o exact: Flag to control whther style should match exactly or only a
+    regular expression/sub-string match is applied. Default: ``.TRUE.``.
+   :otype exact: logical
+   :o integer(c_int) nsub:     Match *nsub*\ th hybrid sub-style instance of
+    the same style. Default: 0.
+   :o integer(c_int) reqid:    Request ID to identify the neighbor list in
     case there are multiple requests from the same pair style instance.
+    Default: 0.
    :to: :cpp:func:`lammps_find_pair_neighlist`
    :r integer(c_int) index:    Neighbor list index if found, otherwise
     :math:`-1`.

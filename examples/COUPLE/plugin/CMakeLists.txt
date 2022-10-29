@@ -37,11 +37,11 @@ set(MPI_CXX_SKIP_MPICXX TRUE)
 
 ##########################
 
-add_executable(simple simple.c liblammpsplugin.c)
-target_link_libraries(simple PRIVATE MPI::MPI_C)
-target_compile_definitions(simple PRIVATE LAMMPS_LIB_MPI)
+add_executable(simple-plugin simple.c liblammpsplugin.c)
+target_link_libraries(simple-plugin PRIVATE MPI::MPI_C)
+target_compile_definitions(simple-plugin PRIVATE LAMMPS_LIB_MPI)
 
 # link with -ldl or equivalent for plugin loading; except on Windows
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-   target_link_libraries(simple PRIVATE ${CMAKE_DL_LIBS})
+   target_link_libraries(simple-plugin PRIVATE ${CMAKE_DL_LIBS})
 endif()

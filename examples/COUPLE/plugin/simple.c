@@ -19,10 +19,16 @@
            in.lammps = LAMMPS input script
    See README for compilation instructions */
 
+#include <mpi.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mpi.h>
+
+/* define so interface to lammps_open() is available,
+   since we will run on split communicator */
+#define LAMMPS_LIB_MPI 1
+
 #include "liblammpsplugin.h"  /* this is the include for the plugin loader */
 
 int main(int narg, char **arg)

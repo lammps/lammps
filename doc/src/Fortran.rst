@@ -1553,7 +1553,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
-.. f:function:: find_fix_neighlist()
+.. f:function:: find_fix_neighlist(id[, reqid])
 
    Find index of a neighbor list requested by a fix.
 
@@ -1564,15 +1564,15 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    fixes with multiple neighbor list requests.
 
    :p character(len=\*) id: Identifier of fix instance
-   :p integer(c_int) reqid: request ID to identify the neighbor list in cases
-    in which there are multiple requests from the same fix.
+   :o integer(c_int) reqid: request ID to identify the neighbor list in cases
+    in which there are multiple requests from the same fix. Default: 0.
    :to: :cpp:func:`lammps_find_fix_neighlist`
    :r index: neighbor list index if found, otherwise :math:`-1`
    :rtype index: integer(c_int)
 
 --------
 
-.. f:function:: find_compute_neighlist()
+.. f:function:: find_compute_neighlist(id[, reqid])
 
    Find index of a neighbor list requested by a compute.
 
@@ -1582,11 +1582,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    the request ID.  The request ID is typically zero, but will be :math:`> 0`
    in case a compute has multiple neighbor list requests.
 
-   :p character(len=\*) id: Identifier of compute instance
-   :p integer(c_int) reqid: request ID to identify the neighbor list in cases
-    in which there are multiple requests from the same compute
+   :p character(len=\*) id: Identifier of compute instance.
+   :o integer(c_int) reqid: request ID to identify the neighbor list in cases
+    in which there are multiple requests from the same compute. Default: 0.
    :to: :cpp:func:`lammps_find_compute_neighlist`
-   :r index: neighbor list index if found, otherwise :math:`-1`
+   :r index: neighbor list index if found, otherwise :math:`-1`.
    :rtype index: integer(c_int)
 
 --------

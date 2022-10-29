@@ -1892,11 +1892,17 @@ CONTAINS
   INTEGER(c_int) FUNCTION lmp_find_fix_neighlist(self, id, reqid) RESULT(idx)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: id
-    INTEGER(c_int), INTENT(IN) :: reqid
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: reqid
     TYPE(c_ptr) :: Cid
+    INTEGER(c_int) :: Creqid
 
+    IF (PRESENT(reqid)) THEN
+      Creqid = reqid
+    ELSE
+      Creqid = 0_c_int
+    END IF
     Cid = f2c_string(id)
-    idx = lammps_find_fix_neighlist(self%handle, Cid, reqid)
+    idx = lammps_find_fix_neighlist(self%handle, Cid, Creqid)
     IF (idx < 0) THEN
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'neighbor list not found [Fortran/find_fix_neighlist]')
@@ -1909,11 +1915,17 @@ CONTAINS
   RESULT(idx)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: id
-    INTEGER(c_int), INTENT(IN) :: reqid
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: reqid
     TYPE(c_ptr) :: Cid
+    INTEGER(c_int) :: Creqid
 
+    IF (PRESENT(reqid)) THEN
+      Creqid = reqid
+    ELSE
+      Creqid = 0_c_int
+    END IF
     Cid = f2c_string(id)
-    idx = lammps_find_compute_neighlist(self%handle, Cid, reqid)
+    idx = lammps_find_compute_neighlist(self%handle, Cid, Creqid)
     IF (idx < 0) THEN
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'neighbor list not found [Fortran/find_compute_neighlist]')

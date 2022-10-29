@@ -308,3 +308,166 @@ FUNCTION f_lammps_style_count(ptr) BIND(C)
   END DO
   f_lammps_style_count = lmp%style_count(category)
 END FUNCTION f_lammps_style_count
+
+FUNCTION f_lammps_style_name(category_ptr, idx) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_int, c_char, c_size_t, &
+    C_F_POINTER
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp, c_strlen, f2c_string
+  IMPLICIT NONE
+  TYPE(c_ptr), INTENT(IN), VALUE :: category_ptr
+  INTEGER(c_int), INTENT(IN), VALUE :: idx
+  TYPE(c_ptr) :: f_lammps_style_name
+  CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: C_category
+  INTEGER(c_size_t) :: length, i
+  CHARACTER(LEN=:), ALLOCATABLE :: category
+  CHARACTER(LEN=100) :: buffer
+
+  length = c_strlen(category_ptr)
+  CALL C_F_POINTER(category_ptr, C_category, [length])
+  ALLOCATE(CHARACTER(LEN=length) :: category)
+  DO i = 1, length
+    category(i:i) = C_category(i)
+  END DO
+  CALL lmp%style_name(category, idx, buffer)
+  f_lammps_style_name = f2c_string(buffer)
+END FUNCTION f_lammps_style_name
+
+SUBROUTINE f_setup_has_id() BIND(C)
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  CHARACTER(LEN=100), DIMENSION(*), PARAMETER :: setup_commands = &
+  [CHARACTER(LEN=100) :: 'units lj', &
+    'region simbox block 0 2 0 3 0 4 units box', &
+    'create_box 1 simbox', &
+    'create_atoms 1 single 0.01 0.01 0.01 units box', &
+    'create_atoms 1 single 1.0 1.0 1.0 units box', &
+    'pair_style lj/cut 2.5', &
+    'pair_coeff * * 1.0 1.0', &
+    'mass * 1.0', &
+    'compute COM all com', &
+    'dump 1 all atom 1000 dump.tmp', &
+    'fix 1 all nve', &
+    'group one id 1', &
+    'variable pi equal acos(-1)', &
+    !'molecule A file1 file2', &
+    'run 0' &
+  ]
+
+  CALL lmp%commands_list(setup_commands)
+END SUBROUTINE
+
+FUNCTION f_lammps_has_id(Ccategory, Cname) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_int, c_size_t, c_char, &
+    C_F_POINTER
+  USE keepstuff, ONLY : lmp, c_strlen
+  IMPLICIT NONE
+  TYPE(c_ptr), VALUE :: Ccategory, Cname
+  INTEGER(c_int) :: f_lammps_has_id
+  INTEGER(c_size_t) :: len_cat, len_name, i
+  CHARACTER(LEN=:), ALLOCATABLE :: category, name
+  CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: Fcategory, Fname
+  LOGICAL :: has_id
+
+  len_cat = c_strlen(Ccategory)
+  len_name = c_strlen(Cname)
+  CALL C_F_POINTER(Ccategory, Fcategory, [len_cat])
+  CALL C_F_POINTER(Cname, Fname, [len_name])
+  ALLOCATE(CHARACTER(LEN=len_cat) :: category)
+  ALLOCATE(CHARACTER(LEN=len_name) :: name)
+  DO i = 1, len_cat
+    category(i:i) = Fcategory(i)
+  END DO
+  DO i = 1, len_name
+    name(i:i) = Fname(i)
+  END DO
+  has_id = lmp%has_id(category, name)
+  IF (has_id) THEN
+    f_lammps_has_id = 1_c_int
+  ELSE
+    f_lammps_has_id = 0_c_int
+  END IF
+END FUNCTION f_lammps_has_id
+
+FUNCTION f_lammps_id_count(Ccategory) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_int, c_size_t, c_char, &
+    C_F_POINTER
+  USE keepstuff, ONLY : lmp, c_strlen
+  IMPLICIT NONE
+  TYPE(c_ptr), VALUE :: Ccategory
+  INTEGER(c_int) :: f_lammps_id_count
+  INTEGER(c_size_t) :: len_cat, i
+  CHARACTER(LEN=:), ALLOCATABLE :: category
+  CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: Fcategory
+
+  len_cat = c_strlen(Ccategory)
+  CALL C_F_POINTER(Ccategory, Fcategory, [len_cat])
+  ALLOCATE(CHARACTER(LEN=len_cat) :: category)
+  DO i = 1, len_cat
+    category(i:i) = Fcategory(i)
+  END DO
+  f_lammps_id_count = lmp%id_count(category)
+END FUNCTION f_lammps_id_count
+
+FUNCTION f_lammps_id_name(Ccategory, idx) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_int, c_size_t, c_char, &
+    C_F_POINTER
+  USE keepstuff, ONLY : lmp, c_strlen, f2c_string
+  IMPLICIT NONE
+  TYPE(c_ptr), VALUE :: Ccategory
+  INTEGER(c_int), VALUE :: idx
+  TYPE(c_ptr) :: f_lammps_id_name
+  INTEGER(c_size_t) :: len_cat, i
+  CHARACTER(LEN=:), ALLOCATABLE :: category
+  CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: Fcategory
+  CHARACTER(LEN=100) :: buffer
+
+  len_cat = c_strlen(Ccategory)
+  CALL C_F_POINTER(Ccategory, Fcategory, [len_cat])
+  ALLOCATE(CHARACTER(LEN=len_cat) :: category)
+  DO i = 1, len_cat
+    category(i:i) = Fcategory(i)
+  END DO
+  CALL lmp%id_name(category, idx, buffer)
+  f_lammps_id_name = f2c_string(buffer)
+END FUNCTION f_lammps_id_name
+
+FUNCTION f_lammps_plugin_count() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+  USE keepstuff, ONLY : lmp
+  INTEGER(c_int) :: f_lammps_plugin_count
+
+  f_lammps_plugin_count = lmp%plugin_count();
+END FUNCTION f_lammps_plugin_count
+
+FUNCTION f_lammps_plugin_name(idx, Cstyle, Cname) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_int, c_size_t, c_char, &
+    C_F_POINTER
+  USE keepstuff, ONLY : lmp, c_strlen, f2c_string
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: idx
+  TYPE(c_ptr), INTENT(IN), VALUE :: Cstyle, Cname
+  CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: Fstyle, Fname
+  INTEGER(c_int) :: f_lammps_plugin_name
+  CHARACTER(LEN=100) :: style, name
+  INTEGER(c_size_t) :: len_style, len_name, i
+  LOGICAL :: all_are_identical
+
+  CALL lmp%plugin_name(idx, style, name)
+  len_style = c_strlen(Cstyle)
+  len_name = c_strlen(Cname)
+  CALL C_F_POINTER(Cstyle, Fstyle, [len_style])
+  CALL C_F_POINTER(Cname, Fname, [len_name])
+  all_are_identical = .TRUE.
+  DO i = 1, len_style
+    all_are_identical = all_are_identical .AND. (style(i:i) == Fstyle(i))
+  END DO
+  DO i = 1, len_name
+    all_are_identical = all_are_identical .AND. (name(i:i) == Fname(i))
+  END DO
+  IF (all_are_identical) THEN
+    f_lammps_plugin_name = 1_c_int
+  ELSE
+    f_lammps_plugin_name = 0_c_int
+  END IF
+END FUNCTION f_lammps_plugin_name

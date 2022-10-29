@@ -2134,7 +2134,7 @@ CONTAINS
     buf_size = LEN(buffer, KIND=c_int) + 1_c_int
     Ccategory = f2c_string(category)
     Cptr = C_LOC(Cbuffer)
-    success = lammps_style_name(self%handle, Ccategory, idx, Cptr, buf_size)
+    success = lammps_style_name(self%handle, Ccategory, idx - 1, Cptr, buf_size)
     IF (success == 1_c_int) THEN
       buffer = array2string(Cbuffer)
     ELSE
@@ -2185,7 +2185,7 @@ CONTAINS
     Ccategory = f2c_string(category)
     buf_size = LEN(buffer, KIND=c_int)
     Cptr = C_LOC(Cbuffer(1))
-    success = lammps_id_name(self%handle, Ccategory, idx, Cptr, buf_size)
+    success = lammps_id_name(self%handle, Ccategory, idx - 1, Cptr, buf_size)
     IF (success /= 0) THEN
       buffer = array2string(Cbuffer)
     ELSE
@@ -2206,7 +2206,7 @@ CONTAINS
     buf_size = MIN(LEN(stylebuf, KIND=c_int), LEN(namebuf, KIND=c_int))
     Cstylebuf = lammps_malloc(INT(buf_size, KIND=c_size_t))
     Cnamebuf = lammps_malloc(INT(buf_size, KIND=c_size_t))
-    success = lammps_plugin_name(idx, Cstylebuf, Cnamebuf, buf_size)
+    success = lammps_plugin_name(idx - 1, Cstylebuf, Cnamebuf, buf_size)
     IF (success /= 0_c_int) THEN
       stylebuf = c2f_string(Cstylebuf)
       namebuf = c2f_string(Cnamebuf)

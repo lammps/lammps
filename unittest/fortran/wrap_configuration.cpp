@@ -4,6 +4,10 @@
 #include "library.h"
 #include "info.h"
 
+#ifdef LMP_PLUGIN
+#include "plugin.h"
+#endif
+
 #include <string>
 
 #include "gmock/gmock.h"
@@ -29,7 +33,13 @@ int f_lammps_has_gpu();
 char* f_lammps_get_gpu_info(size_t);
 int f_lammps_has_style(const char*, const char*);
 int f_lammps_style_count(const char*);
-int f_lammps_style_name();
+char* f_lammps_style_name(const char*, int);
+void f_setup_has_id();
+int f_lammps_has_id(const char*, const char*);
+int f_lammps_id_count(const char*);
+char* f_lammps_id_name(const char*, int);
+int f_lammps_plugin_count();
+int f_lammps_plugin_name();
 }
 namespace LAMMPS_NS {
 
@@ -38,6 +48,9 @@ using ::testing::ContainsRegex;
 class LAMMPS_configuration : public ::testing::Test {
 protected:
     LAMMPS *lmp;
+    std::vector <std::string> style_category = {"atom","integrate","minimize",
+      "pair","bond","angle","dihedral","improper","kspace","fix","compute",
+      "region","dump","command"};
 
     void SetUp() override
     {
@@ -145,7 +158,6 @@ TEST_F(LAMMPS_configuration, package_name)
       i++;
    }
 };
-
 TEST_F(LAMMPS_configuration, installed_packages)
 {
     const char *package_name;
@@ -220,17 +232,15 @@ TEST_F(LAMMPS_configuration, get_gpu_info)
 
 TEST_F(LAMMPS_configuration, has_style)
 {
-    std::vector<std::string> category = {"atom","integrate","minimize","pair",
-      "bond","angle","dihedral","improper","kspace","fix","compute","region",
-      "dump","command"};
     Info info(lmp);
-    for (int c = 0; c < category.size(); c++)
+    for (int c = 0; c < style_category.size(); c++)
     {
-        std::vector<std::string> name = info.get_available_styles(category[c]);
+        std::vector<std::string> name =
+            info.get_available_styles(style_category[c]);
         for (int s = 0; s < name.size(); s++)
         {
-            EXPECT_EQ(f_lammps_has_style(category[c].c_str(),
-              name[s].c_str()), info.has_style(category[c], name[s]));
+            EXPECT_EQ(f_lammps_has_style(style_category[c].c_str(),
+              name[s].c_str()), info.has_style(style_category[c], name[s]));
         }
     }
     EXPECT_EQ(f_lammps_has_style("atom","none"), 0);
@@ -239,14 +249,127 @@ TEST_F(LAMMPS_configuration, has_style)
 TEST_F(LAMMPS_configuration, style_count)
 {
     Info info(lmp);
-    std::vector<std::string> category = {"atom","integrate","minimize","pair",
-      "bond","angle","dihedral","improper","kspace","fix","compute","region",
-      "dump","command"};
-    for (int i = 0; i < category.size(); i++)
+    for (int i = 0; i < style_category.size(); i++)
+        EXPECT_EQ(f_lammps_style_count(style_category[i].c_str()),
+          info.get_available_styles(style_category[i].c_str()).size());
+};
+
+TEST_F(LAMMPS_configuration, style_name)
 {
-        EXPECT_EQ(f_lammps_style_count(category[i].c_str()),
-          info.get_available_styles(category[i].c_str()).size());
-}
+    char *buffer;
+    Info info(lmp);
+    for (int c = 0; c < style_category.size(); c++) {
+        int nnames = f_lammps_style_count(style_category[c].c_str());
+        auto styles = info.get_available_styles(style_category[c]);
+        for (int i = 0; i < nnames; i++) {
+            buffer = f_lammps_style_name(style_category[c].c_str(), i + 1);
+            EXPECT_STREQ(buffer, styles[i].c_str());
+            std::free(buffer);
+        }
+    }
+
+};
+
+TEST_F(LAMMPS_configuration, has_id)
+{
+    f_setup_has_id();
+    EXPECT_EQ(f_lammps_has_id("compute","com"), 0);
+    EXPECT_EQ(f_lammps_has_id("compute","COM"), 1);
+    EXPECT_EQ(f_lammps_has_id("dump","atom"), 0);
+    EXPECT_EQ(f_lammps_has_id("dump","1"), 1);
+    EXPECT_EQ(f_lammps_has_id("fix","nve"), 0);
+    EXPECT_EQ(f_lammps_has_id("fix","1"), 1);
+    EXPECT_EQ(f_lammps_has_id("group","one"), 1);
+    EXPECT_EQ(f_lammps_has_id("group","all"), 1);
+    // Skip this one (we're testing thoroughly enough; molecules require files)
+    //EXPECT_EQ(f_lammps_has_id("molecule")
+    EXPECT_EQ(f_lammps_has_id("region","simbox"), 1);
+    EXPECT_EQ(f_lammps_has_id("region","box"), 0);
+    EXPECT_EQ(f_lammps_has_id("variable","pi"), 1);
+    EXPECT_EQ(f_lammps_has_id("variable","PI"), 0);
+};
+
+TEST_F(LAMMPS_configuration, id_count)
+{
+    f_setup_has_id();
+    // computes: thermo_temp, thermo_press, thermo_pe, COM
+    EXPECT_EQ(f_lammps_id_count("compute"), 4);
+    EXPECT_EQ(f_lammps_id_count("dump"), 1);     // only the one we defined
+    EXPECT_EQ(f_lammps_id_count("fix"), 1);      // only the one we defined
+    EXPECT_EQ(f_lammps_id_count("group"), 2);    // "one" and "all"
+    EXPECT_EQ(f_lammps_id_count("molecule"), 0);
+    EXPECT_EQ(f_lammps_id_count("region"), 1);   // onle the one we created
+    EXPECT_EQ(f_lammps_id_count("variable"), 3); // "zpos", "x", and "pi"
+};
+
+TEST_F(LAMMPS_configuration, id_name)
+{
+    f_setup_has_id();
+    char *name;
+    int nnames = f_lammps_id_count("compute");
+    EXPECT_EQ(nnames, 4);
+
+    name = f_lammps_id_name("compute",1);
+    EXPECT_STREQ(name, "thermo_temp");
+    std::free(name);
+
+    name = f_lammps_id_name("compute",2);
+    EXPECT_STREQ(name, "thermo_press");
+    std::free(name);
+
+    name = f_lammps_id_name("compute",3);
+    EXPECT_STREQ(name, "thermo_pe");
+    std::free(name);
+
+    name = f_lammps_id_name("compute",4);
+    EXPECT_STREQ(name, "COM");
+    std::free(name);
+
+    name = f_lammps_id_name("dump",1);
+    EXPECT_STREQ(name, "1");
+    std::free(name);
+
+    name = f_lammps_id_name("fix",1);
+    EXPECT_STREQ(name, "1");
+    std::free(name);
+
+    name = f_lammps_id_name("group",1);
+    EXPECT_STREQ(name, "all");
+    std::free(name);
+
+    name = f_lammps_id_name("group",2);
+    EXPECT_STREQ(name, "one");
+    std::free(name);
+
+    name = f_lammps_id_name("region",1);
+    EXPECT_STREQ(name, "simbox");
+    std::free(name);
+
+    name = f_lammps_id_name("variable",1);
+    EXPECT_STREQ(name, "zpos");
+    std::free(name);
+
+    name = f_lammps_id_name("variable",2);
+    EXPECT_STREQ(name, "x");
+    std::free(name);
+
+    name = f_lammps_id_name("variable",3);
+    EXPECT_STREQ(name, "pi");
+    std::free(name);
+
+};
+
+TEST_F(LAMMPS_configuration, plugins)
+{
+#ifndef LMP_PLUGIN
+    GTEST_SKIP();
+#else
+    int nplugins = f_lammps_plugin_count();
+    for (int n = 0; n < nplugins; n++) {
+        lammpsplugin_t *plugin = plugin_get_info(n);
+        EXPECT_EQ(f_lammps_plugin_name(n+1, plugin->style, plugin->name), 1);
+    }
+#endif
 };
 
 } // namespace LAMMPS_NS

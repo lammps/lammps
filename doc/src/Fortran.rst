@@ -249,7 +249,7 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :f style: derived type to access lammps style constants
    :ftype style: type(lammps_style)
    :f type: derived type to access lammps type constants
-   :ftype type: type(lammps_type) 
+   :ftype type: type(lammps_type)
    :f close: :f:subr:`close`
    :ftype close: subroutine
    :f subroutine error: :f:subr:`error`

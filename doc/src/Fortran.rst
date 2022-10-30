@@ -1539,7 +1539,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    lists and set the request ID to a value greater than zero.
 
    :p character(len=\*) style: String used to search for pair style instance.
-   :o exact: Flag to control whther style should match exactly or only a
+   :o exact: Flag to control whether style should match exactly or only a
     regular expression/sub-string match is applied. Default: ``.TRUE.``.
    :otype exact: logical
    :o integer(c_int) nsub:     Match *nsub*\ th hybrid sub-style instance of
@@ -2088,7 +2088,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: TBD
 
-   :p integer(kind=\*) image: encoded image flag. \*The ``KIND`` paremeter is
+   :p integer(kind=\*) image: encoded image flag. \*The ``KIND`` parameter is
     either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
     ``c_int64_t``. Kind compatibility is checked at run-time.
    :p integer(c_int) flags [dimension(3)]: three-element vector where the

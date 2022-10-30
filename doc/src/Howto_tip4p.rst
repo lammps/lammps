@@ -8,18 +8,28 @@ This site M is located at a fixed distance away from the oxygen along
 the bisector of the HOH bond angle.  A bond style of *harmonic* and an
 angle style of *harmonic* or *charmm* should also be used.
 
-A TIP4P model is run with LAMMPS using either this command
+A TIP4P model is run with LAMMPS using either these commands
 for a cutoff model:
 
+* :doc:`pair_style tip4p/cut <pair_lj_cut_tip4p>`
 * :doc:`pair_style lj/cut/tip4p/cut <pair_lj_cut_tip4p>`
 
-or these two commands for a long-range model:
+or these commands for a long-range model:
 
+* :doc:`pair_style tip4p/long <pair_coul>`
 * :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>`
+* :doc:`pair_style lj/long/tip4p/long <pair_lj_long>`
+* :doc:`pair_style tip4p/long/soft <pair_fep_soft>`
+* :doc:`pair_style lj/cut/tip4p/long/soft <pair_fep_soft>`
 * :doc:`kspace_style pppm/tip4p <kspace_style>`
+* :doc:`kspace_style pppm/disp/tip4p <kspace_style>`
 
-For both models, the bond lengths and bond angles should be held fixed
-using the :doc:`fix shake <fix_shake>` command.
+The bond lengths and bond angles should be held fixed using the
+:doc:`fix shake <fix_shake>` or :doc:`fix rattle <fix_shake>` command,
+unless a parameterization for a flexible TIP4P model is used.  The
+parameter sets listed below are all for rigid TIP4P model variants and
+thus the bond and angle force constants are not used and can be set to
+any legal value; only equilibrium length and angle are used.
 
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid TIP4P model with a cutoff
@@ -87,15 +97,16 @@ solver (e.g. Ewald or PPPM in LAMMPS):
 | LJ :math:`\epsilon`, :math:`\sigma` of OH, HH = 0.0
 |
 
-Note that the when using the TIP4P pair style, the neighbor list
-cutoff for Coulomb interactions is effectively extended by a distance
-2 \* (OM distance), to account for the offset distance of the
-fictitious charges on O atoms in water molecules.  Thus it is
-typically best in an efficiency sense to use a LJ cutoff >= Coulomb
-cutoff + 2\*(OM distance), to shrink the size of the neighbor list.
-This leads to slightly larger cost for the long-range calculation, so
-you can test the trade-off for your model.  The OM distance and the LJ
-and Coulombic cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>` command.
+Note that the when using the TIP4P pair style, the neighbor list cutoff
+for Coulomb interactions is effectively extended by a distance 2 \* (OM
+distance), to account for the offset distance of the fictitious charges
+on O atoms in water molecules.  Thus it is typically best in an
+efficiency sense to use a LJ cutoff >= Coulomb cutoff + 2\*(OM
+distance), to shrink the size of the neighbor list.  This leads to
+slightly larger cost for the long-range calculation, so you can test the
+trade-off for your model.  The OM distance and the LJ and Coulombic
+cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long
+<pair_lj_cut_tip4p>` command.
 
 Wikipedia also has a nice article on `water models <https://en.wikipedia.org/wiki/Water_model>`_.
 

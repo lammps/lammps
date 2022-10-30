@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -688,7 +688,7 @@ void Thermo::modify_params(int narg, char **arg)
         for (int i = nlo - 1; i < nhi; i++) {
           if (i < 0) icol = nfield_initial + i + 1; // doesn't happen currently
           else icol = i;
-          if (icol < 0 || icol >= nfield_initial)
+          if (icol < 0 || (icol >= nfield_initial))
             error->all(FLERR, "Invalid thermo_modify format argument: {}",
               arg[iarg + 1]);
           format_column_user[icol] = arg[iarg + 2];
@@ -706,7 +706,7 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if (icol < 0 || icol >= nfield_initial)
+        if ((icol < 0) || (icol >= nfield_initial))
           error->all(FLERR, "Invalid thermo_modify format argument: {}", arg[iarg + 1]);
         format_column_user[icol] = arg[iarg + 2];
       }

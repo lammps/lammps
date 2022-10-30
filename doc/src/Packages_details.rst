@@ -200,6 +200,7 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`Howto spherical <Howto_spherical>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
+* :doc:`pair_style ylz <pair_ylz>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
@@ -1735,8 +1736,6 @@ must be installed.
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
 .. versionadded:: 30Jun2020
-
-   .. versionadded:: 30Jun2020
 
 **Supporting info:**
 

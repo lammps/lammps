@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1429,21 +1429,21 @@ void Input::comm_modify()
 
 void Input::comm_style()
 {
-  if (narg < 1) error->all(FLERR,"Illegal comm_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "comm_style", error);
   if (strcmp(arg[0],"brick") == 0) {
-    if (comm->style == 0) return;
+    if (comm->style == Comm::BRICK) return;
     Comm *oldcomm = comm;
     comm = new CommBrick(lmp,oldcomm);
     delete oldcomm;
   } else if (strcmp(arg[0],"tiled") == 0) {
-    if (comm->style == 1) return;
+    if (comm->style == Comm::TILED) return;
     Comm *oldcomm = comm;
 
     if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
     else comm = new CommTiled(lmp,oldcomm);
 
     delete oldcomm;
-  } else error->all(FLERR,"Illegal comm_style command");
+  } else error->all(FLERR,"Unknown comm_style argument: {}", arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1499,7 +1499,7 @@ void Input::dihedral_style()
 
 void Input::dimension()
 {
-  if (narg != 1) error->all(FLERR,"Illegal dimension command: expected 1 argument but found {}", narg);
+  if (narg != 1) error->all(FLERR, "Dimension command expects exactly 1 argument");
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
   domain->dimension = utils::inumeric(FLERR,arg[0],false,lmp);
@@ -1509,8 +1509,7 @@ void Input::dimension()
   // must reset default extra_dof of all computes
   // since some were created before dimension command is encountered
 
-  for (int i = 0; i < modify->ncompute; i++)
-    modify->compute[i]->reset_extra_dof();
+  for (auto &c : modify->get_compute_list()) c->reset_extra_dof();
 }
 
 /* ---------------------------------------------------------------------- */

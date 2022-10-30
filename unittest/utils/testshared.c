@@ -15,6 +15,3 @@ double some_double_function(double arg1, int arg2)
         sum += arg1;
     return sum;
 }
-
-
-

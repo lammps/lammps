@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -56,6 +56,8 @@ class PairPACE : public Pair {
 
   double **scale;
   bool recursive;    // "recursive" option for ACERecursiveEvaluator
+
+  int chunksize;
 };
 }    // namespace LAMMPS_NS
 

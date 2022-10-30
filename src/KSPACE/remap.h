@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,13 +13,7 @@
 
 #include <mpi.h>
 
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-typedef double FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
+#include "lmpfftsettings.h"
 
 // details of how to do a 3d remap
 

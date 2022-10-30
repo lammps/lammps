@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -59,23 +59,3 @@ class ResetIDs : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Reset_ids command before simulation box is defined
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Cannot use reset_atom_ids unless atoms have IDs
-
-UNDOCUMENTED
-
-E: Reset_ids missing %d bond topology atom IDs - use comm_modify cutoff
-
-UNDOCUMENTED
-
-*/

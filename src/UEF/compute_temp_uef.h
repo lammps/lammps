@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -45,14 +45,3 @@ class ComputeTempUef : public ComputeTemp {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-This class inherits most of the warnings from ComputePressure. The
-only addition is:
-
-E: Can't use compute temp/uef without defining a fix nvt/npt/uef
-
-Self-explanatory.
-
-*/

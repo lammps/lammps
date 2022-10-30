@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,7 +58,7 @@ class AtomVecSphereKokkos : public AtomVecKokkos {
   int pack_restart(int, double *) override;
   int unpack_restart(double *) override;
   void create_atom(int, double *) override;
-  void data_atom(double *, imageint, const std::vector<std::string> &) override;
+  void data_atom(double *, imageint, const std::vector<std::string> &, std::string &) override;
   int data_atom_hybrid(int, const std::vector<std::string> &, int) override;
   void data_vel(int, const std::vector<std::string> &) override;
   int data_vel_hybrid(int, const std::vector<std::string> &, int) override;
@@ -148,23 +148,3 @@ class AtomVecSphereKokkos : public AtomVecKokkos {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-E: Invalid radius in Atoms section of data file
-
-Radius must be >= 0.0.
-
-E: Invalid density in Atoms section of data file
-
-Density value cannot be <= 0.0.
-
-*/

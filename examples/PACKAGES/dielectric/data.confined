@@ -1,4 +1,4 @@
-LAMMPS data file: two oppositely charged ions confined between two walls
+LAMMPS data file: two oppositely charged ions confined between two walls epsilon1=2 | epsilon2=10 | epsilon1=2
 
 4002 atoms
 3 atom types
@@ -13,7 +13,7 @@ Masses
 2 1
 3 1
 
-Atoms # dielectric: id mol type q x y z normx normy normz area_per_patch ed em epsilon curvature
+Atoms # dielectric : id mol type q x y z normx normy normz area_per_patch ed em epsilon curvature
 
 1 0 1 0 0 0 9.99798  0 0 1 0.866 8 6 6 0
 2 0 1 0 0.500101 0.866201 9.99798  0 0 1 0.866 8 6 6 0
@@ -4015,5 +4015,5 @@ Atoms # dielectric: id mol type q x y z normx normy normz area_per_patch ed em e
 3998 0 1 0 38.5078 42.4438 30.002  0 0 -1 0.866 8 6 6 0
 3999 0 1 0 39.0079 41.5776 30.002  0 0 -1 0.866 8 6 6 0
 4000 0 1 0 39.508 42.4438 30.002  0 0 -1 0.866 8 6 6 0
-4001 0 2 1 15 20 15 0 0 1 0.866 8 6 10 0
-4002 0 3 -1 25 20 25 0 0 1 0.866 8 6 10 0
+4001 0 2 1  15 20 15 0 0 1 1.0 8 6 10 0
+4002 0 3 -1 25 20 25 0 0 1 1.0 8 6 10 0

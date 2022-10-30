@@ -1,0 +1,35 @@
+# electrodes with constrained total charges imposed from dynamically computed potentials
+# for graphene-ionic liquid supercapacitor
+
+boundary p p f # slab calculation
+include settings.mod # styles, groups, computes and fixes
+kspace_modify slab 3.0
+
+fix conp bot electrode/conp v_vbot 1.979 couple top v_vtop etypes 5
+
+# get the four entries of electrode elastance matrix
+variable me00 internal 0.0
+variable me01 internal 0.0
+variable me10 internal 0.0
+variable me11 internal 0.0
+fix_modify conp set me bot bot me00
+fix_modify conp set me bot top me01
+fix_modify conp set me top bot me10
+fix_modify conp set me top top me11
+
+# get the 0V charges (qsb), and excess charge required to reach preset total charges
+variable qsb_bot internal 0.0
+variable qsb_top internal 0.0
+fix_modify conp set qsb bot qsb_bot
+fix_modify conp set qsb top qsb_top
+variable qex_bot equal -1.0-v_qsb_bot # difference between desired and 0V charge
+variable qex_top equal 1.0-v_qsb_top # difference between desired and 0V charge
+
+# calculate imposed potential as elastance * excess charge
+# note: fix will wait until the run setup to look for its potential variables
+variable vbot equal v_me00*v_qex_bot+v_me01*v_qex_top
+variable vtop equal v_me10*v_qex_bot+v_me11*v_qex_top
+
+thermo 50
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop v_vbot v_vtop
+run 500

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -159,33 +159,3 @@ class CommTiled : public Comm {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot yet use comm_style tiled with triclinic box
-
-Self-explanatory.
-
-E: Communication cutoff for comm_style tiled cannot exceed periodic box length
-
-Self-explanatory.
-
-E: Reverse comm fix variable not yet supported by CommTiled
-
-UNDOCUMENTED
-
-E: Comm tiled mis-match in box drop brick
-
-Internal error check in comm_style tiled which should not occur.
-Contact the developers.
-
-E: Comm tiled invalid index in box drop brick
-
-Internal error check in comm_style tiled which should not occur.
-Contact the developers.
-
-U: KOKKOS package does not yet support comm_style tiled
-
-Self-explanatory.
-
-*/

@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,7 +36,7 @@ class FixNHKokkos : public FixNH {
   typedef DeviceType device_type;
 
   FixNHKokkos(class LAMMPS *, int, char **);
-  ~FixNHKokkos() override;
+
   void init() override;
   void setup(int) override;
   void initial_integrate(int) override;
@@ -82,15 +82,3 @@ class FixNHKokkos : public FixNH {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot (yet) use rigid bodies with fix nh and Kokkos
-
-Self-explanatory.
-
-E: Fix npt/nph has tilted box too far in one step - periodic cell is too far from equilibrium state
-
-Self-explanatory.  The change in the box tilt is too extreme
-on a short timescale.
-
-*/

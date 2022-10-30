@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
 #define KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#endif
 
 #include <vector>
 #include <Kokkos_Core.hpp>
@@ -103,13 +107,13 @@ class ErrorReporter {
   }
 
  private:
-  using reports_view_t     = Kokkos::View<report_type *, execution_space>;
-  using reports_dualview_t = Kokkos::DualView<report_type *, execution_space>;
+  using reports_view_t     = Kokkos::View<report_type *, device_type>;
+  using reports_dualview_t = Kokkos::DualView<report_type *, device_type>;
 
   using host_mirror_space = typename reports_dualview_t::host_mirror_space;
-  Kokkos::View<int, execution_space> m_numReportsAttempted;
+  Kokkos::View<int, device_type> m_numReportsAttempted;
   reports_dualview_t m_reports;
-  Kokkos::DualView<int *, execution_space> m_reporters;
+  Kokkos::DualView<int *, device_type> m_reporters;
 };
 
 template <typename ReportType, typename DeviceType>
@@ -157,12 +161,10 @@ void ErrorReporter<ReportType, DeviceType>::getReports(
                           typename DeviceType::execution_space>::HostMirror
         &reports_out) {
   int num_reports = getNumReports();
-  reporters_out =
-      typename Kokkos::View<int *, typename DeviceType::execution_space>::
-          HostMirror("ErrorReport::reporters_out", num_reports);
-  reports_out = typename Kokkos::
-      View<report_type *, typename DeviceType::execution_space>::HostMirror(
-          "ErrorReport::reports_out", num_reports);
+  reporters_out   = typename Kokkos::View<int *, DeviceType>::HostMirror(
+      "ErrorReport::reporters_out", num_reports);
+  reports_out = typename Kokkos::View<report_type *, DeviceType>::HostMirror(
+      "ErrorReport::reports_out", num_reports);
 
   if (num_reports > 0) {
     m_reports.template sync<host_mirror_space>();
@@ -194,4 +196,8 @@ void ErrorReporter<ReportType, DeviceType>::resize(const size_t new_size) {
 }  // namespace Experimental
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#endif
 #endif

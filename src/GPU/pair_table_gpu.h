@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,24 +43,3 @@ class PairTableGPU : public PairTable {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with table/gpu pair style
-
-Self-explanatory.
-
-E: Pair distance < table inner cutoff
-
-Two atoms are closer together than the pairwise table allows.
-
-E: Pair distance > table outer cutoff
-
-Two atoms are further apart than the pairwise table allows.
-
-*/

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -119,46 +119,3 @@ class FixWallGran : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix wall/gran requires atom style sphere
-
-Self-explanatory.
-
-E: Invalid fix wall/gran interaction style
-
-UNDOCUMENTED
-
-E: Cannot use wall in periodic dimension
-
-Self-explanatory.
-
-E: Cannot wiggle and shear fix wall/gran
-
-Cannot specify both options at the same time.
-
-E: Invalid wiggle direction for fix wall/gran
-
-Self-explanatory.
-
-E: Invalid shear direction for fix wall/gran
-
-Self-explanatory.
-
-E: Cannot wiggle or shear with fix wall/gran/region
-
-UNDOCUMENTED
-
-U: Fix wall/gran is incompatible with Pair style
-
-Must use a granular pair style to define the parameters needed for
-this fix.
-
-*/

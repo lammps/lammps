@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -49,13 +49,13 @@ void FixQEQCombOMP::init()
   if (nullptr != force->pair_match("comb3", 0))
     error->all(FLERR, "No support for comb3 currently available in OPENMP");
 
-  comb = dynamic_cast<PairComb *>( force->pair_match("comb/omp", 1));
-  if (comb == nullptr) comb = dynamic_cast<PairComb *>( force->pair_match("comb", 1));
+  comb = dynamic_cast<PairComb *>(force->pair_match("comb/omp", 1));
+  if (comb == nullptr) comb = dynamic_cast<PairComb *>(force->pair_match("comb", 1));
   if (comb == nullptr)
     error->all(FLERR, "Must use pair_style comb or comb/omp with fix qeq/comb/omp");
 
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels - 1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
 

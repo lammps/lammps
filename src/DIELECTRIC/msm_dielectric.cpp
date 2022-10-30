@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -34,7 +34,7 @@ enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
 enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
-MSMDielectric::MSMDielectric(LAMMPS *lmp) : MSM(lmp)
+MSMDielectric::MSMDielectric(LAMMPS *_lmp) : MSM(_lmp)
 {
   efield = nullptr;
   phi = nullptr;
@@ -58,7 +58,7 @@ void MSMDielectric::init()
 {
   MSM::init();
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"msm/dielectric requires atom style dielectric");
 }
 

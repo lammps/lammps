@@ -34,6 +34,7 @@ Settings howto
    :maxdepth: 1
 
    Howto_2d
+   Howto_type_labels
    Howto_triclinic
    Howto_thermostat
    Howto_barostat
@@ -65,6 +66,7 @@ Force fields howto
    :maxdepth: 1
 
    Howto_bioFF
+   Howto_amoeba
    Howto_tip3p
    Howto_tip4p
    Howto_spc
@@ -83,6 +85,7 @@ Packages howto
    Howto_coreshell
    Howto_drude
    Howto_drude2
+   Howto_peri
    Howto_manifold
    Howto_spins
 

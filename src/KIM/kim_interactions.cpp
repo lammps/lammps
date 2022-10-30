@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -121,7 +121,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
-    auto fix_store = dynamic_cast<FixStoreKIM *>( modify->fix[ifix]);
+    auto fix_store = dynamic_cast<FixStoreKIM *>(modify->fix[ifix]);
     model_name = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM_SimulatorModel *)fix_store->getptr("simulator_model");
   } else error->all(FLERR, "Must use 'kim init' before 'kim interactions'");

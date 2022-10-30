@@ -33,12 +33,14 @@ namespace {
 
 
 colvarparse::colvarparse()
+  : keyword_delimiters_left("\n"+std::string(white_space)+"}"),
+    keyword_delimiters_right("\n"+std::string(white_space)+"{")
 {
-  init();
+  colvarparse::clear();
 }
 
 
-void colvarparse::init()
+void colvarparse::clear()
 {
   config_string.clear();
   clear_keyword_registry();
@@ -46,15 +48,17 @@ void colvarparse::init()
 
 
 colvarparse::colvarparse(const std::string& conf)
+  : keyword_delimiters_left("\n"+std::string(white_space)+"}"),
+    keyword_delimiters_right("\n"+std::string(white_space)+"{")
 {
-  init(conf);
+  colvarparse::set_string(conf);
 }
 
 
-void colvarparse::init(std::string const &conf)
+void colvarparse::set_string(std::string const &conf)
 {
   if (! config_string.size()) {
-    init();
+    colvarparse::clear();
     config_string = conf;
   }
 }
@@ -62,7 +66,7 @@ void colvarparse::init(std::string const &conf)
 
 colvarparse::~colvarparse()
 {
-  init();
+  colvarparse::clear();
 }
 
 
@@ -86,7 +90,7 @@ bool colvarparse::get_key_string_value(std::string const &conf,
 
   if (found_count > 1) {
     cvm::error("Error: found more than one instance of \""+
-               std::string(key)+"\".\n", INPUT_ERROR);
+               std::string(key)+"\".\n", COLVARS_INPUT_ERROR);
   }
 
   return b_found_any;
@@ -153,10 +157,10 @@ void colvarparse::error_key_required(std::string const &key_str,
   }
   if (parse_mode & parse_restart) {
     cvm::error("Error: keyword \""+key_str+
-               "\" is missing from the restart.\n", INPUT_ERROR);
+               "\" is missing from the restart.\n", COLVARS_INPUT_ERROR);
   } else {
     cvm::error("Error: keyword \""+key_str+
-               "\" is required.\n", INPUT_ERROR);
+               "\" is required.\n", COLVARS_INPUT_ERROR);
   }
 }
 
@@ -178,13 +182,13 @@ int colvarparse::_get_keyval_scalar_value_(std::string const &key_str,
 
   if (value_count == 0) {
     return cvm::error("Error: in parsing \""+
-                      key_str+"\".\n", INPUT_ERROR);
+                      key_str+"\".\n", COLVARS_INPUT_ERROR);
   }
 
   if (value_count > 1) {
     return cvm::error("Error: multiple values "
                       "are not allowed for keyword \""+
-                      key_str+"\".\n", INPUT_ERROR);
+                      key_str+"\".\n", COLVARS_INPUT_ERROR);
   }
 
   return COLVARS_OK;
@@ -207,7 +211,7 @@ int colvarparse::_get_keyval_scalar_value_(std::string const &key_str,
     set_bool(reinterpret_cast<void *>(&value), false);
   } else {
     return cvm::error("Error: boolean values only are allowed "
-                      "for \""+key_str+"\".\n", INPUT_ERROR);
+                      "for \""+key_str+"\".\n", COLVARS_INPUT_ERROR);
   }
   return COLVARS_OK;
 }
@@ -219,7 +223,7 @@ int colvarparse::_get_keyval_scalar_novalue_(std::string const &key_str,
                                              Parse_Mode const & /* parse_mode */)
 {
   return cvm::error("Error: improper or missing value "
-                    "for \""+key_str+"\".\n", INPUT_ERROR);
+                    "for \""+key_str+"\".\n", COLVARS_INPUT_ERROR);
 }
 
 template<>
@@ -318,7 +322,7 @@ bool colvarparse::_get_keyval_vector_(std::string const &conf,
           values[i] = x;
         } else {
           cvm::error("Error: in parsing \""+
-                     key_str+"\".\n", INPUT_ERROR);
+                     key_str+"\".\n", COLVARS_INPUT_ERROR);
         }
       }
     }
@@ -329,13 +333,13 @@ bool colvarparse::_get_keyval_vector_(std::string const &conf,
 
     if (b_found_any) {
       cvm::error("Error: improper or missing values for \""+
-                 key_str+"\".\n", INPUT_ERROR);
+                 key_str+"\".\n", COLVARS_INPUT_ERROR);
     } else {
 
       if ((values.size() > 0) && (values.size() != def_values.size())) {
         cvm::error("Error: the number of default values for \""+
                    key_str+"\" is different from the number of "
-                   "current values.\n", BUG_ERROR);
+                   "current values.\n", COLVARS_BUG_ERROR);
       }
 
       if (parse_mode & parse_required) {
@@ -621,8 +625,8 @@ int colvarparse::check_keywords(std::string &conf, char const *key)
     }
     if (!found_keyword) {
       cvm::error("Error: keyword \""+uk+"\" is not supported, "
-                 "or not recognized in this context.\n", INPUT_ERROR);
-      return INPUT_ERROR;
+                 "or not recognized in this context.\n", COLVARS_INPUT_ERROR);
+      return COLVARS_INPUT_ERROR;
     }
   }
 
@@ -699,18 +703,26 @@ bool colvarparse::key_lookup(std::string const &conf,
     bool b_isolated_left = true, b_isolated_right = true;
 
     if (pos > 0) {
-      if ( std::string("\n"+std::string(white_space)+
-                       "}").find(conf[pos-1]) ==
-           std::string::npos ) {
+      if (keyword_delimiters_left.find(conf[pos-1]) == std::string::npos) {
         // none of the valid delimiting characters is on the left of key
         b_isolated_left = false;
+      } else {
+        size_t const pl = conf_lower.rfind("\n", pos);
+        size_t const line_begin = (pl == std::string::npos) ? 0 : pl+1;
+        size_t const pchar =
+          conf_lower.find_first_not_of(keyword_delimiters_left, line_begin);
+        size_t const first_text = (pchar == std::string::npos) ? pos : pchar;
+        if (first_text < pos) {
+          // There are some non-delimiting characters to the left of the
+          // keyword on the same line
+          b_isolated_left = false;
+        }
       }
     }
 
     if (pos < conf.size()-key.size()-1) {
-      if ( std::string("\n"+std::string(white_space)+
-                       "{").find(conf[pos+key.size()]) ==
-           std::string::npos ) {
+      if (keyword_delimiters_right.find(conf[pos+key.size()]) ==
+          std::string::npos) {
         // none of the valid delimiting characters is on the right of key
         b_isolated_right = false;
       }
@@ -739,7 +751,7 @@ bool colvarparse::key_lookup(std::string const &conf,
 
   // get the remainder of the line
   size_t pl = conf.rfind("\n", pos);
-  size_t line_begin = (pl == std::string::npos) ? 0 : pos;
+  size_t line_begin = (pl == std::string::npos) ? 0 : pl+1;
   size_t nl = conf.find("\n", pos);
   size_t line_end = (nl == std::string::npos) ? conf.size() : nl;
   std::string line(conf, line_begin, (line_end-line_begin));
@@ -792,7 +804,7 @@ bool colvarparse::key_lookup(std::string const &conf,
             cvm::error("Parse error: reached the end while "
                        "looking for closing brace; until now "
                        "the following was parsed: \"\n"+
-                       line+"\".\n", INPUT_ERROR);
+                       line+"\".\n", COLVARS_INPUT_ERROR);
             return false;
           }
 
@@ -810,7 +822,7 @@ bool colvarparse::key_lookup(std::string const &conf,
         }
 
         if (brace_count < 0) {
-          cvm::error("Error: found closing brace without opening brace.\n", INPUT_ERROR);
+          cvm::error("Error: found closing brace without opening brace.\n", COLVARS_INPUT_ERROR);
         }
       }
 
@@ -920,7 +932,7 @@ int colvarparse::check_braces(std::string const &conf,
     if (conf[brace] == '}') brace_count--;
     brace++;
   }
-  return (brace_count != 0) ? INPUT_ERROR : COLVARS_OK;
+  return (brace_count != 0) ? COLVARS_INPUT_ERROR : COLVARS_OK;
 }
 
 

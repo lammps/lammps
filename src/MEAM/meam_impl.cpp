@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,6 +36,7 @@ MEAM::MEAM(Memory* mem)
 
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = nullptr;
+  copymode = 0;
 
   neltypes = 0;
   for (int i = 0; i < maxelt; i++) {
@@ -53,6 +54,8 @@ MEAM::MEAM(Memory* mem)
 
 MEAM::~MEAM()
 {
+  if (copymode) return;
+
   memory->destroy(this->phirar6);
   memory->destroy(this->phirar5);
   memory->destroy(this->phirar4);

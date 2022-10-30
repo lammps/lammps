@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,6 +29,10 @@ class KokkosBase {
                                        int, int *) {return 0;};
   virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {}
 
+  virtual int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {return 0;};
+  virtual void unpack_reverse_comm_kokkos(int, DAT::tdual_int_2d,
+                                          int, DAT::tdual_xfloat_1d &) {}
+
   // Fix
   virtual int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d,
                                            int, DAT::tdual_xfloat_1d &,
@@ -44,6 +48,3 @@ class KokkosBase {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

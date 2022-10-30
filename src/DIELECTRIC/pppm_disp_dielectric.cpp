@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,18 +58,21 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDispDielectric::PPPMDispDielectric(LAMMPS *lmp) : PPPMDisp(lmp)
+PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
 {
   dipoleflag = 0; // turned off for now, until dipole works
   group_group_enable = 0;
 
   mu_flag = 0;
 
+  // no warnings about non-neutral systems from qsum_qsq()
+  warn_nonneutral = 2;
+
   efield = nullptr;
   phi = nullptr;
   potflag = 0;
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 
@@ -751,7 +754,7 @@ void PPPMDispDielectric::slabcorr(int /*eflag*/)
   double *q = atom->q;
   double **x = atom->x;
   double *eps = atom->epsilon;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
@@ -790,7 +793,7 @@ void PPPMDispDielectric::slabcorr(int /*eflag*/)
   // compute corrections
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
-    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
+    qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -801,7 +804,7 @@ void PPPMDispDielectric::slabcorr(int /*eflag*/)
     double efact = qscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++)
       eatom[i] += efact * eps[i]*q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
+        qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
   }
 
   // add on force corrections
@@ -836,26 +839,4 @@ double PPPMDispDielectric::memory_usage()
   bytes += nmax*3 * sizeof(double);
   bytes += nmax * sizeof(double);
   return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
-   called initially, when particle count changes, when charges are changed
-------------------------------------------------------------------------- */
-
-void PPPMDispDielectric::qsum_qsq()
-{
-  const double * const q = atom->q;
-  const int nlocal = atom->nlocal;
-  double qsum_local(0.0), qsqsum_local(0.0);
-
-  for (int i = 0; i < nlocal; i++) {
-    qsum_local += q[i];
-    qsqsum_local += q[i]*q[i];
-  }
-
-  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
-
-  q2 = qsqsum * force->qqrd2e;
 }

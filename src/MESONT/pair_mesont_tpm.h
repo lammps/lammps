@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -64,36 +64,3 @@ class PairMESONTTPM : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair style mesont/tpm requires newton pair on
-
-newton_pair must be set to on
-
-E: The selected cutoff is too small for the current system
-
-cutoff must be increased.
-
-E: Illegal pair_style command
-
-Incorrect argument list in the style init.
-
-E: Incorrect table path
-
-Incorrect path to the table files.
-
-E: Incorrect BendingMode
-
-Self-explanatory.
-
-E: Incorrect TPMType
-
-Self-explanatory.
-
-E: Inconsistent input and potential table
-
-The tube diameter is inconsistent with the chirality specified
-during generation of the potential table.
-
-*/

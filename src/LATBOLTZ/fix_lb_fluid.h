@@ -1,7 +1,7 @@
 /* -*- c++ -*- -----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -111,7 +111,7 @@ class FixLbFluid : public Fix {
 
   int step;
 
-  int n_stencil;                // Number of points for spread/interpolate stencil
+  int n_stencil;    // Number of points for spread/interpolate stencil
 
   double bodyforcex, bodyforcey, bodyforcez;    // Body Forces acting on the fluid (default=0)
   double vwtp, vwbt;                            // Velocities of the z walls in the y

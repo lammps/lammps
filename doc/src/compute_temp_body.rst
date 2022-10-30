@@ -6,7 +6,7 @@ compute temp/body command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID temp/body keyword value ...
 
@@ -48,32 +48,36 @@ rotational).
 
 .. note::
 
-   This choice for degrees of freedom (dof) assumes that all body
+   This choice for degrees of freedom (DOF) assumes that all body
    particles in your model will freely rotate, sampling all their
-   rotational dof.  It is possible to use a combination of interaction
+   rotational DOF.  It is possible to use a combination of interaction
    potentials and fixes that induce no torque or otherwise constrain some
    of all of your particles so that this is not the case.  Then there are
-   less dof and you should use the :doc:`compute_modify extra <compute_modify>` command to adjust the dof accordingly.
+   less DOF and you should use the
+   :doc:`compute_modify extra <compute_modify>` command to adjust the DOF
+   accordingly.
 
 The translational kinetic energy is computed the same as is described
 by the :doc:`compute temp <compute_temp>` command.  The rotational
-kinetic energy is computed as 1/2 I w\^2, where I is the inertia tensor
-for the aspherical particle and w is its angular velocity, which is
-computed from its angular momentum.
+kinetic energy is computed as :math:`\frac12 I \omega^2`, where :math:`I`
+is the moment of inertia tensor for the aspherical particle and :math:`\omega`
+is its angular velocity, which is computed from its angular momentum.
 
-A kinetic energy tensor, stored as a 6-element vector, is also
-calculated by this compute.  The formula for the components of the
-tensor is the same as the above formula, except that v\^2 and w\^2 are
-replaced by vx\*vy and wx\*wy for the xy component, and the appropriate
-elements of the inertia tensor are used.  The 6 components of the
-vector are ordered xx, yy, zz, xy, xz, yz.
+A kinetic energy tensor, stored as a 6-element vector, is also calculated by
+this compute.  The formula for the components of the tensor is the same as the
+above formula, except that :math:`v^2` and :math:`\omega^2` are
+replaced by :math:`v_x v_y` and :math:`\omega_x \omega_y` for the
+math:`xy` component, and the appropriate elements of the inertia tensor are
+used.  The six components of the vector are ordered :math:`xx`, :math:`yy`,
+:math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
 :doc:`compute_modify <compute_modify>` command if this is not the case.
 
 This compute subtracts out translational degrees-of-freedom due to
-fixes that constrain molecular motion, such as :doc:`fix shake <fix_shake>` and :doc:`fix rigid <fix_rigid>`.  This means the
+fixes that constrain molecular motion, such as :doc:`fix shake <fix_shake>`
+and :doc:`fix rigid <fix_rigid>`.  This means the
 temperature of groups of atoms that include these constraints will be
 computed correctly.  If needed, the subtracted degrees-of-freedom can
 be altered using the *extra* option of the
@@ -91,7 +95,7 @@ For the *bias* keyword, *bias-ID* refers to the ID of a temperature
 compute that removes a "bias" velocity from each atom.  This allows
 compute temp/sphere to compute its thermal temperature after the
 translational kinetic energy components have been altered in a
-prescribed way, e.g. to remove a flow velocity profile.  Thermostats
+prescribed way (e.g., to remove a flow velocity profile).  Thermostats
 that use this compute will work with this bias term.  See the doc
 pages for individual computes that calculate a temperature and the doc
 pages for fixes that perform thermostatting for more details.
@@ -107,22 +111,24 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+vector of length 6 (KE tensor), which can be accessed by indices 1--6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector values from a compute as input.
+See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".
 
-The scalar value will be in temperature :doc:`units <units>`.  The
-vector values will be in energy :doc:`units <units>`.
+The scalar value will be in temperature :doc:`units <units>`.
+The vector values will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
 
 This compute is part of the BODY package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 This compute requires that atoms store angular momentum and a
 quaternion as defined by the :doc:`atom_style body <atom_style>`

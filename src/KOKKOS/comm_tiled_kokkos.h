@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,8 +24,9 @@ class CommTiledKokkos : public CommTiled {
  public:
   CommTiledKokkos(class LAMMPS *);
   CommTiledKokkos(class LAMMPS *, class Comm *);
-  ~CommTiledKokkos() override;
 
+  using CommTiled::forward_comm;
+  using CommTiled::reverse_comm;
   void forward_comm(int dummy = 0) override;    // forward comm of atom coords
   void reverse_comm() override;                 // reverse comm of forces
   void exchange() override;                     // move atoms to new procs
@@ -55,6 +56,3 @@ class CommTiledKokkos : public CommTiled {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

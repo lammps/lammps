@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -59,7 +59,7 @@ enum { SPHERE_SPHERE, SPHERE_ELLIPSE, ELLIPSE_SPHERE, ELLIPSE_ELLIPSE };
 PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp), gpu_mode(GPU_FORCE)
 {
   reinitflag = 0;
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR, "Pair resquared/gpu requires atom style ellipsoid");
   quat_nmax = 0;
   quat = nullptr;

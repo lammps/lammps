@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -45,12 +45,6 @@ typedef struct { int a,b,t;  } int3_t;
 BondFENEIntel::BondFENEIntel(LAMMPS *lmp) : BondFENE(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-BondFENEIntel::~BondFENEIntel()
-{
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,9 +163,9 @@ void BondFENEIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = bondlist[n].a;
-      const int i2 = bondlist[n].b;
-      const int type = bondlist[n].t;
+      const int i1 = IP_PRE_dword_index(bondlist[n].a);
+      const int i2 = IP_PRE_dword_index(bondlist[n].b);
+      const int type = IP_PRE_dword_index(bondlist[n].t);
 
       const flt_t ir0sq = fc.fc[type].ir0sq;
       const flt_t k = fc.fc[type].k;

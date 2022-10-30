@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -71,44 +71,3 @@ class WriteRestart : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Write_restart command before simulation box is defined
-
-The write_restart command cannot be used before a read_data,
-read_restart, or create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Restart file MPI-IO output not allowed with % in filename
-
-This is because a % signifies one file per processor and MPI-IO
-creates one large file for all processors.
-
-E: Writing to MPI-IO filename when MPIIO package is not installed
-
-Self-explanatory.
-
-E: Cannot use write_restart fileper without % in restart file name
-
-Self-explanatory.
-
-E: Cannot use write_restart nfile without % in restart file name
-
-Self-explanatory.
-
-E: Atom count is inconsistent, cannot write restart file
-
-Sum of atoms across processors does not equal initial total count.
-This is probably because you have lost some atoms.
-
-E: Cannot open restart file %s
-
-Self-explanatory.
-
-*/

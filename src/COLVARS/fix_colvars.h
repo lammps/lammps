@@ -10,7 +10,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -97,55 +97,3 @@ class FixColvars : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use fix colvars for atoms with rmass attribute
-
-The colvars library assigns atom masses per atom type, thus atom styles
-which allow setting individual per atom masses are not supported.
-
-E: Missing argument to keyword
-
-Self-explanatory. A keyword was recognized, but no corresponding value
-found. Check the input script syntax and compare to the documentation
-for the command.
-
-E: Incorrect fix colvars unwrap flag
-
-Self-explanatory. Check the input script syntax.
-
-E: Unknown fix colvars parameter
-
-Self-explanatory. Check your input script syntax.
-
-E: Cannot use fix colvars without atom IDs
-
-Atom IDs are not defined, but fix colvars needs them to identify an atom.
-
-E: Fix colvars requires an atom map, see atom_modify
-
-Use the atom_modify command to create an atom map.
-
-W: Using fix colvars with minimization
-
-Some of the functionality supported with the colvars library is not
-meaningful with minimization calculations.
-
-E: Could not find tstat fix ID
-
-Self-explanatory. The thermostat fix ID provided with the tstat keyword
-is not defined (yet or anymore). Check your input file.
-
-E: Run aborted on request from colvars module
-
-Some error condition happened inside the colvars library that prohibits
-it from continuing. Please examine the output for additional information.
-
-*/

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -48,15 +48,3 @@ class AtomVecSphere : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid radius in Atoms section of data file
-
-Radius must be >= 0.0.
-
-E: Invalid density in Atoms section of data file
-
-Density value cannot be <= 0.0.
-
-*/

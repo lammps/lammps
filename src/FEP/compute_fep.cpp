@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -213,7 +213,7 @@ void ComputeFEP::init()
 
       if ((strcmp(force->pair_style, "hybrid") == 0 ||
            strcmp(force->pair_style, "hybrid/overlay") == 0)) {
-        auto pair = dynamic_cast<PairHybrid *>( force->pair);
+        auto pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
             if (!pair->check_ijtype(i, j, pert->pstyle))

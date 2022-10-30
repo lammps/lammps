@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,16 +44,3 @@ class DihedralMultiHarmonic : public Dihedral {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Dihedral problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for dihedral coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

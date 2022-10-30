@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -317,10 +317,10 @@ void PairRESquared::coeff(int narg, char **arg)
 
 void PairRESquared::init_style()
 {
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR, "Pair resquared requires atom style ellipsoid");
 
-  neighbor->add_request(this,NeighConst::REQ_DEFAULT);
+  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type

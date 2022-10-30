@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -265,7 +265,7 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/, double &ffor
 void *BondFENE::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

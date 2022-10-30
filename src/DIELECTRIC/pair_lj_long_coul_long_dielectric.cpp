@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "atom_vec_dielectric.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -31,26 +32,20 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using namespace EwaldConst;
+using MathConst::MY_PIS;
 using namespace MathExtra;
-
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *lmp) : PairLJLongCoulLong(lmp)
+PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) : PairLJLongCoulLong(_lmp)
 {
   respa_enable = 0;
   cut_respa = nullptr;
   efield = nullptr;
   epot = nullptr;
   nmax = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -71,7 +66,7 @@ void PairLJLongCoulLongDielectric::init_style()
 {
   PairLJLongCoulLong::init_style();
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/long/coul/long/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);
@@ -103,21 +98,19 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   double *curvature = avec->curvature;
   double *area = avec->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   int i, j, itype, jtype, itable;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz;
   int order1 = ewald_order & (1 << 1), order6 = ewald_order & (1 << 6);
   int *ineigh, *ineighn, *jneigh, *jneighn, ni;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double fraction, table;
   double *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
-  double r, rsq, r2inv, force_coul, force_lj, factor_coul, factor_lj;
+  double r, rsq, r2inv, force_coul, force_lj, factor_coul;
   double g2 = g_ewald_6 * g_ewald_6, g6 = g2 * g2 * g2, g8 = g6 * g2;
   double xi[3];
 
@@ -156,7 +149,6 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
     for (; jneigh < jneighn; ++jneigh) {    // loop over neighbors
       j = *jneigh;
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -274,23 +266,14 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
 
       epot[i] += epot_i;
 
-      if (newton_pair && j >= nlocal) {
-
-        fpair_j = (force_coul * eps[j] + factor_lj * force_lj) * r2inv;
-        f[j][0] -= delx * fpair_j;
-        f[j][1] -= dely * fpair_j;
-        f[j][2] -= delz * fpair_j;
-      }
-
       if (eflag) {
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq)
-            ecoul = prefactor * (etmp + eps[j]) * erfc;
+            ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
           else {
             table = etable[itable] + fraction * detable[itable];
-            ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
+            ecoul = qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
           }
-          ecoul *= 0.5;
           if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
         } else
           ecoul = 0.0;

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -100,7 +100,7 @@ void FixPropelSelf::init()
     error->all(FLERR, "Fix propel/self requires atom attribute mu with option dipole");
 
   if (mode == QUAT) {
-    avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+    avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
     if (!avec) error->all(FLERR, "Fix propel/self requires atom style ellipsoid with option quat");
 
     // check that all particles are finite-size ellipsoids

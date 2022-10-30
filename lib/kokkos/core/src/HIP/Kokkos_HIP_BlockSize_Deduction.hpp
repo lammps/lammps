@@ -101,6 +101,10 @@ template <typename DriverType, typename LaunchBounds = Kokkos::LaunchBounds<>,
           HIPLaunchMechanism LaunchMechanism =
               DeduceHIPLaunchMechanism<DriverType>::launch_mechanism>
 hipFuncAttributes get_hip_func_attributes_impl() {
+#ifndef KOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
+  return HIPParallelLaunch<DriverType, LaunchBounds,
+                           LaunchMechanism>::get_hip_func_attributes();
+#else
   // FIXME_HIP - could be if constexpr for c++17
   if (!HIPParallelLaunch<DriverType, LaunchBounds,
                          LaunchMechanism>::default_launchbounds()) {
@@ -129,6 +133,7 @@ hipFuncAttributes get_hip_func_attributes_impl() {
       }
     }
   }
+#endif
 }
 
 // Given an initial block-size limitation based on register usage
@@ -244,12 +249,11 @@ unsigned hip_get_preferred_team_blocksize(HIPInternal const *hip_instance,
       get_hip_func_attributes_impl<DriverType, LaunchBounds,
                                    BlockType::Preferred>();
   // get preferred blocksize limited by register usage
-  using namespace std::placeholders;
   const unsigned tperb_reg =
       hip_get_preferred_blocksize<DriverType, LaunchBounds>();
   return hip_internal_get_block_size<BlockType::Preferred, DriverType,
                                      LaunchBounds>(
-      hip_instance, std::bind(f, attr, _1), tperb_reg);
+      hip_instance, std::bind(f, attr, std::placeholders::_1), tperb_reg);
 }
 
 // Standardized blocksize deduction for non-teams parallel constructs with LDS
@@ -286,10 +290,9 @@ unsigned hip_get_max_team_blocksize(HIPInternal const *hip_instance,
   hipFuncAttributes attr =
       get_hip_func_attributes_impl<DriverType, LaunchBounds, BlockType::Max>();
   // get max blocksize
-  using namespace std::placeholders;
   const unsigned tperb_reg = hip_get_max_blocksize<DriverType, LaunchBounds>();
   return hip_internal_get_block_size<BlockType::Max, DriverType, LaunchBounds>(
-      hip_instance, std::bind(f, attr, _1), tperb_reg);
+      hip_instance, std::bind(f, attr, std::placeholders::_1), tperb_reg);
 }
 
 }  // namespace Impl

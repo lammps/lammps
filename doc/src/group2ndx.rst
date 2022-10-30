@@ -1,4 +1,5 @@
 .. index:: group2ndx
+.. index:: ndx2group
 
 group2ndx command
 =================

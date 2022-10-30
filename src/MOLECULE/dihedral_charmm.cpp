@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -350,7 +350,7 @@ void DihedralCharmm::coeff(int narg, char **arg)
 void DihedralCharmm::init_style()
 {
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    auto r = dynamic_cast<Respa *>( update->integrate);
+    auto r = dynamic_cast<Respa *>(update->integrate);
     if (r->level_pair >= 0 && (r->level_pair != r->level_dihedral))
       error->all(FLERR, "Dihedral style charmm must be set to same r-RESPA level as 'pair'");
     if (r->level_outer >= 0 && (r->level_outer != r->level_dihedral))

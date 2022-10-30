@@ -205,13 +205,28 @@ struct ExecPolicyTraitsWithDefaults : AnalysisResults {
 };
 
 //------------------------------------------------------------------------------
+
+constexpr bool warn_if_deprecated(std::false_type) { return true; }
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Invalid WorkTag template argument in execution policy!!")
+constexpr bool warn_if_deprecated(std::true_type) { return true; }
+#define KOKKOS_IMPL_STATIC_WARNING(...) \
+  static_assert(                        \
+      warn_if_deprecated(std::integral_constant<bool, __VA_ARGS__>()), "")
+
 template <typename... Traits>
 struct PolicyTraits
     : ExecPolicyTraitsWithDefaults<AnalyzeExecPolicy<void, Traits...>> {
   using base_t =
       ExecPolicyTraitsWithDefaults<AnalyzeExecPolicy<void, Traits...>>;
   using base_t::base_t;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  KOKKOS_IMPL_STATIC_WARNING(!std::is_empty<typename base_t::work_tag>::value &&
+                             !std::is_void<typename base_t::work_tag>::value);
+#endif
 };
+
+#undef KOKKOS_IMPL_STATIC_WARNING
 
 }  // namespace Impl
 }  // namespace Kokkos

@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -92,10 +92,3 @@ Few<double,3> DomainKokkos::unmap(Few<double,3> prd, Few<double,6> h,
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal simulation box
-
-The lower bound of the simulation box is greater than the upper bound.
-
-*/

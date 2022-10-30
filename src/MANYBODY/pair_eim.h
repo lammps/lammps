@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -149,34 +149,3 @@ class EIMPotentialFileReader : protected Pointers {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Cannot open EIM potential file %s
-
-The specified EIM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Could not grab global entry from EIM potential file
-
-Self-explanatory.
-
-E: Could not grab element entry from EIM potential file
-
-Self-explanatory
-
-E: Could not grab pair entry from EIM potential file
-
-Self-explanatory.
-
-*/

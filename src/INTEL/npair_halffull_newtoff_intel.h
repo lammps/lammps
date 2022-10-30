@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,7 +42,3 @@ NPairStyle(halffull/newtoff/skip/ghost/intel,
            NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_INTEL);
 // clang-format on
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

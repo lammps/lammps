@@ -1,0 +1,189 @@
+LAMMPS (3 Aug 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units           metal
+atom_style      full
+atom_modify     sort 0 0.0    # turn off sorting of the coordinates
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0 0 0) to (6.267 6.267 6.267)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  24 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.001 seconds
+
+# initialize system
+
+velocity        all create 0.0 87287 loop geom
+
+pair_style      zero 1.0
+pair_coeff      * *
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix             1 all nve
+fix             2 all latte
+fix_modify      2 energy yes
+
+thermo_style    custom step temp pe etotal press
+
+# dynamics
+
+thermo          10
+run             10
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.88 | 5.88 | 5.88 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   0             -104.95596     -104.95596      48235.442    
+        10   336.53107     -105.96027     -104.95977      97996.851    
+Loop time of 0.334108 on 1 procs for 10 steps with 24 atoms
+
+Performance: 0.646 ns/day, 37.123 hours/ns, 29.930 timesteps/s
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.714e-06  | 3.714e-06  | 3.714e-06  |   0.0 |  0.00
+Bond    | 5.02e-07   | 5.02e-07   | 5.02e-07   |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 1.1209e-05 | 1.1209e-05 | 1.1209e-05 |   0.0 |  0.00
+Output  | 2.3638e-05 | 2.3638e-05 | 2.3638e-05 |   0.0 |  0.01
+Modify  | 0.33404    | 0.33404    | 0.33404    |   0.0 | 99.98
+Other   |            | 2.795e-05  |            |       |  0.01
+
+Nlocal:             24 ave          24 max          24 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             71 ave          71 max          71 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             37 ave          37 max          37 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 37
+Ave neighs/atom = 1.5416667
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# Clear up previus calculation
+
+clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+
+# simple CH4 molecule with LATTE
+
+units           metal
+atom_style      full
+atom_modify     sort 0 0.0    # turn off sorting of the coordinates
+
+read_data       data.ch4
+Reading data file ...
+  triclinic box = (0 0 0) to (19.523 12.758 11.692) with tilt (0 0 0)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  5 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.007 seconds
+
+# initialize system
+
+velocity        all create 0.0 87287 loop geom
+
+pair_style      zero 1.0
+pair_coeff      * *
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix             1 all nve
+
+fix             2 all latte
+fix_modify      2 energy yes
+
+thermo_style    custom step temp pe etotal press
+
+# dynamics
+
+thermo          10
+run             10
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 20 13 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton/tri
+      stencil: half/bin/3d/tri
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.902 | 5.902 | 5.902 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   0             -23.980353     -23.980353      348.02716    
+        10   19.123149     -23.990297     -23.98041       18.774332    
+Loop time of 0.0121573 on 1 procs for 10 steps with 5 atoms
+
+Performance: 17.767 ns/day, 1.351 hours/ns, 822.549 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.224e-06  | 1.224e-06  | 1.224e-06  |   0.0 |  0.01
+Bond    | 2.93e-07   | 2.93e-07   | 2.93e-07   |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 3.845e-06  | 3.845e-06  | 3.845e-06  |   0.0 |  0.03
+Output  | 8.633e-06  | 8.633e-06  | 8.633e-06  |   0.0 |  0.07
+Modify  | 0.012132   | 0.012132   | 0.012132   |   0.0 | 99.80
+Other   |            | 1.089e-05  |            |       |  0.09
+
+Nlocal:              5 ave           5 max           5 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              7 ave           7 max           7 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             10 ave          10 max          10 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 10
+Ave neighs/atom = 2
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:00

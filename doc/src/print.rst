@@ -46,6 +46,20 @@ lines of output, the string can be enclosed in triple quotes, as in
 the last example above.  If the text string contains variables, they
 will be evaluated and their current values printed.
 
+.. note::
+
+   As discussed on the :doc:`Commands parse <Commands_parse>` doc
+   page, the text string can use "immediate" variables, specified as
+   $(formula) with parenthesis, where the numeric formula has the same
+   syntax as equal-style variables described on the :doc:`variable
+   <variable>` doc page.  This is a convenient way to evaluate a
+   formula immediately without using the variable command to define a
+   named variable and then use that variable in the text string.  The
+   formula can include a trailing colon and format string which
+   determines the precision with which the numeric value is output.
+   This is also explained on the :doc:`Commands parse
+   <Commands_parse>` doc page.
+
 If the *file* or *append* keyword is used, a filename is specified to
 which the output will be written.  If *file* is used, then the
 filename is overwritten if it already exists.  If *append* is used,

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -494,7 +494,7 @@ void PairBrownian::init_style()
     else if (strstr(modify->fix[i]->style, "wall") != nullptr) {
       if (flagwall) error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");
       flagwall = 1;    // Walls exist
-      wallfix = dynamic_cast<FixWall *>( modify->fix[i]);
+      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
       if (wallfix->xflag) flagwall = 2;    // Moving walls exist
     }
   }

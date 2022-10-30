@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,11 +46,3 @@ class PairLJCharmmCoulMSMOMP : public PairLJCharmmCoulMSM, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' with OMP MSM Pair styles
-
-The kspace scalar pressure option is not (yet) compatible with OMP MSM Pair styles.
-
-*/

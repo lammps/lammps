@@ -16,7 +16,7 @@ Syntax
 * viscosity = the fluid viscosity (units of mass/(time\*length)).
 * density = the fluid density.
 * zero or more keyword/value pairs may be appended
-* keyword = *dx* or *dm* or *noise* or *stencil* or *read_restart* or *write_restart* or *zwall_velocity* or *pressurebcx* or *bodyforce* or *D3Q19*  or *dumpxdmf* or *dof* or *scaleGamma* or *a0* or *npits* or *wp* or *sw*
+* keyword = *dx* or *dm* or *noise* or *stencil* or *read_restart* or *write_restart* or *zwall_velocity* or *pressurebcx* or *bodyforce* or *D3Q19* or *dumpxdmf* or *linearInit* or *dof* or *scaleGamma* or *a0* or *npits* or *wp* or *sw*
 
   .. parsed-literal::
 
@@ -36,6 +36,7 @@ Syntax
            N = output the force and torque every N timesteps
            file = output file name
            timeI = 1 (use simulation time to index xdmf file), 0 (use output frame number to index xdmf file)
+       *linearInit* values = none = initialize density and velocity using linear interpolation (default is uniform density, no velocities)
        *dof* values = dof = specify the number of degrees of freedom for temperature calculation
        *scaleGamma* values = type gammaFactor
            type = atom type (1-N)

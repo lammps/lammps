@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -52,47 +52,3 @@ class FixController : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Compute ID for fix controller does not exist
-
-UNDOCUMENTED
-
-E: Fix controller compute does not calculate a global scalar or vector
-
-UNDOCUMENTED
-
-E: Fix controller compute vector is accessed out-of-range
-
-UNDOCUMENTED
-
-E: Fix ID for fix controller does not exist
-
-UNDOCUMENTED
-
-E: Fix controller fix does not calculate a global scalar or vector
-
-UNDOCUMENTED
-
-E: Fix controller fix vector is accessed out-of-range
-
-UNDOCUMENTED
-
-E: Variable name for fix controller does not exist
-
-UNDOCUMENTED
-
-E: Fix controller variable is not equal-style variable
-
-UNDOCUMENTED
-
-E: Fix controller variable is not internal-style variable
-
-UNDOCUMENTED
-
-*/

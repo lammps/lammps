@@ -44,7 +44,6 @@
 
 #include <gtest/gtest.h>
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -84,8 +83,8 @@ std::size_t do_comma_emulation_test(std::integer_sequence<std::size_t, Idxs...>,
 }
 
 TEST(utilities, comma_operator_emulation) {
-  ASSERT_EQ(
-      0, do_comma_emulation_test(std::make_index_sequence<5>{}, 0, 1, 2, 3, 4));
+  ASSERT_EQ(0u, do_comma_emulation_test(std::make_index_sequence<5>{}, 0, 1, 2,
+                                        3, 4));
 }
 
 }  // namespace Test

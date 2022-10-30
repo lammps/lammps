@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -86,6 +86,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
   skiplist = -1;
   off2on = 0;
   copy = 0;
+  trim = 0;
   copylist = -1;
   halffull = 0;
   halffulllist = -1;
@@ -98,9 +99,8 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
 
 /* ---------------------------------------------------------------------- */
 
-NeighRequest::NeighRequest(LAMMPS *_lmp, int idx, void *ptr, int num) : NeighRequest(_lmp)
+NeighRequest::NeighRequest(LAMMPS *_lmp, void *ptr, int num) : NeighRequest(_lmp)
 {
-  index = idx;
   requestor = ptr;
   requestor_instance = num;
 }
@@ -316,4 +316,10 @@ void NeighRequest::enable_full()
 void NeighRequest::enable_ghost()
 {
   ghost = 1;
+}
+
+void NeighRequest::enable_intel()
+{
+  intel = 1;
+  omp = 0;
 }

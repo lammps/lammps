@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -56,7 +56,7 @@ class PairOxrna2Xstk : public Pair {
   double **b_xst7, **dtheta_xst7_c;
   double **a_xst8, **theta_xst8_0, **dtheta_xst8_ast;
   double **b_xst8, **dtheta_xst8_c;
-  double **nx_xtrct, **nz_xtrct; // per-atom arrays for local unit vectors
+  double **nx_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
 
   virtual void allocate();
 };
@@ -65,17 +65,3 @@ class PairOxrna2Xstk : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -48,11 +48,11 @@ using namespace MathConst;
 //   to spatially average consistent with the TTM grid
 
 static const char cite_fix_ttm_mod[] =
-  "fix ttm/mod command:\n\n"
+  "fix ttm/mod command: doi:10.1088/0953-8984/26/47/475401, doi:10.1002/ctpp.201310025\n\n"
   "@article{Pisarev2014,\n"
   "author = {Pisarev, V. V. and Starikov, S. V.},\n"
-  "title = {{Atomistic simulation of ion track formation in UO2.}},\n"
-  "journal = {J.~Phys.:~Condens.~Matter},\n"
+  "title = {Atomistic Simulation of Ion Track Formation in {UO$_2$}.},\n"
+  "journal = {J.~Phys.\\ Condens.\\ Matter},\n"
   "volume = {26},\n"
   "number = {47},\n"
   "pages = {475401},\n"
@@ -60,8 +60,8 @@ static const char cite_fix_ttm_mod[] =
   "}\n\n"
   "@article{Norman2013,\n"
   "author = {Norman, G. E. and Starikov, S. V. and Stegailov, V. V. and Saitov, I. M. and Zhilyaev, P. A.},\n"
-  "title = {{Atomistic Modeling of Warm Dense Matter in the Two-Temperature State}},\n"
-  "journal = {Contrib.~Plasm.~Phys.},\n"
+  "title = {Atomistic Modeling of Warm Dense Matter in the Two-Temperature State},\n"
+  "journal = {Contrib.\\ Plasma Phys.},\n"
   "number = {2},\n"
   "volume = {53},\n"
   "pages = {129--139},\n"
@@ -271,7 +271,7 @@ void FixTTMMod::init()
         net_energy_transfer_all[ix][iy][iz] = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,9 +281,9 @@ void FixTTMMod::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet")) {
     post_force_setup(vflag);
   } else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 
@@ -435,121 +435,146 @@ void FixTTMMod::reset_dt()
 
 void FixTTMMod::read_parameters(const std::string &filename)
 {
-  try {
-    PotentialFileReader reader(lmp, filename, "ttm/mod parameter");
+  if (comm->me == 0) {
 
-    // C0 (metal)
+    try {
+      PotentialFileReader reader(lmp, filename, "ttm/mod parameter");
 
-    reader.next_line();
-    esheat_0 = reader.next_values(1).next_double();
+      // C0 (metal)
 
-    // C1 (metal*10^3)
+      reader.next_line();
+      esheat_0 = reader.next_values(1).next_double();
 
-    reader.next_line();
-    esheat_1 = reader.next_values(1).next_double();
+      // C1 (metal*10^3)
 
-    // C2 (metal*10^6)
+      reader.next_line();
+      esheat_1 = reader.next_values(1).next_double();
 
-    reader.next_line();
-    esheat_2 = reader.next_values(1).next_double();
+      // C2 (metal*10^6)
 
-    // C3 (metal*10^9)
+      reader.next_line();
+      esheat_2 = reader.next_values(1).next_double();
 
-    reader.next_line();
-    esheat_3 = reader.next_values(1).next_double();
+      // C3 (metal*10^9)
 
-    // C4 (metal*10^12)
+      reader.next_line();
+      esheat_3 = reader.next_values(1).next_double();
 
-    reader.next_line();
-    esheat_4 = reader.next_values(1).next_double();
+      // C4 (metal*10^12)
 
-    // C_limit
+      reader.next_line();
+      esheat_4 = reader.next_values(1).next_double();
 
-    reader.next_line();
-    C_limit = reader.next_values(1).next_double();
+      // C_limit
 
-    // Temperature damping factor
+      reader.next_line();
+      C_limit = reader.next_values(1).next_double();
 
-    reader.next_line();
-    T_damp = reader.next_values(1).next_double();
+      // Temperature damping factor
 
-    // rho_e
+      reader.next_line();
+      T_damp = reader.next_values(1).next_double();
 
-    reader.next_line();
-    electronic_density = reader.next_values(1).next_double();
+      // rho_e
 
-    // thermal_diffusion
+      reader.next_line();
+      electronic_density = reader.next_values(1).next_double();
 
-    reader.next_line();
-    el_th_diff = reader.next_values(1).next_double();
+      // thermal_diffusion
 
-    // gamma_p
+      reader.next_line();
+      el_th_diff = reader.next_values(1).next_double();
 
-    reader.next_line();
-    gamma_p = reader.next_values(1).next_double();
+      // gamma_p
 
-    // gamma_s
+      reader.next_line();
+      gamma_p = reader.next_values(1).next_double();
 
-    reader.next_line();
-    gamma_s = reader.next_values(1).next_double();
+      // gamma_s
 
-    // v0
+      reader.next_line();
+      gamma_s = reader.next_values(1).next_double();
 
-    reader.next_line();
-    v_0 = reader.next_values(1).next_double();
+      // v0
 
-    // average intensity of pulse (source of energy) (metal units)
+      reader.next_line();
+      v_0 = reader.next_values(1).next_double();
 
-    reader.next_line();
-    intensity = reader.next_values(1).next_double();
+      // average intensity of pulse (source of energy) (metal units)
 
-    // coordinate of 1st surface in x-direction (in box units) - constant
+      reader.next_line();
+      intensity = reader.next_values(1).next_double();
 
-    reader.next_line();
-    surface_l = reader.next_values(1).next_int();
+      // coordinate of 1st surface in x-direction (in box units) - constant
 
-    // coordinate of 2nd surface in x-direction (in box units) - constant
+      reader.next_line();
+      surface_l = reader.next_values(1).next_int();
 
-    reader.next_line();
-    surface_r = reader.next_values(1).next_int();
+      // coordinate of 2nd surface in x-direction (in box units) - constant
 
-    // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
+      reader.next_line();
+      surface_r = reader.next_values(1).next_int();
 
-    reader.next_line();
-    skin_layer =  reader.next_values(1).next_int();
+      // skin_layer = intensity is reduced (I=I0*exp[-x/skin_layer])
 
-    // width of pulse (picoseconds)
+      reader.next_line();
+      skin_layer =  reader.next_values(1).next_int();
 
-    reader.next_line();
-    width = reader.next_values(1).next_double();
+      // width of pulse (picoseconds)
 
-    // factor of electronic pressure (PF) Pe = PF*Ce*Te
+      reader.next_line();
+      width = reader.next_values(1).next_double();
 
-    reader.next_line();
-    pres_factor = reader.next_values(1).next_double();
+      // factor of electronic pressure (PF) Pe = PF*Ce*Te
 
-    // effective free path of electrons (angstrom)
+      reader.next_line();
+      pres_factor = reader.next_values(1).next_double();
 
-    reader.next_line();
-    free_path = reader.next_values(1).next_double();
+      // effective free path of electrons (angstrom)
 
-    // ionic density (ions*angstrom^{-3})
+      reader.next_line();
+      free_path = reader.next_values(1).next_double();
 
-    reader.next_line();
-    ionic_density = reader.next_values(1).next_double();
+      // ionic density (ions*angstrom^{-3})
 
-    // if movsur = 0: surface is frozen
+      reader.next_line();
+      ionic_density = reader.next_values(1).next_double();
 
-    reader.next_line();
-    movsur = reader.next_values(1).next_int();
+      // if movsur = 0: surface is frozen
 
-    // electron_temperature_min
+      reader.next_line();
+      movsur = reader.next_values(1).next_int();
 
-    reader.next_line();
-    electron_temperature_min = reader.next_values(1).next_double();
-  } catch (std::exception &e) {
-    error->one(FLERR,e.what());
+      // electron_temperature_min
+
+      reader.next_line();
+      electron_temperature_min = reader.next_values(1).next_double();
+    } catch (std::exception &e) {
+      error->one(FLERR,e.what());
+    }
   }
+  MPI_Bcast(&esheat_0, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&esheat_1, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&esheat_2, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&esheat_3, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&esheat_4, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&C_limit, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&T_damp, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&electronic_density, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&el_th_diff, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&gamma_p, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&gamma_s, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&v_0, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&intensity, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&surface_l, 1, MPI_INT, 0, world);
+  MPI_Bcast(&surface_r, 1, MPI_INT, 0, world);
+  MPI_Bcast(&skin_layer, 1, MPI_INT, 0, world);
+  MPI_Bcast(&width, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&pres_factor, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&free_path, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&ionic_density, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&movsur, 1, MPI_INT, 0, world);
+  MPI_Bcast(&electron_temperature_min, 1, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------

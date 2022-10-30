@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,23 +41,3 @@ class ImbalanceVar : public Imbalance {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Variable name for balance weight does not exist
-
-UNDOCUMENTED
-
-E: Variable for balance weight has invalid style
-
-UNDOCUMENTED
-
-E: Balance weight <= 0.0
-
-UNDOCUMENTED
-
-*/

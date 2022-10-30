@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,11 +35,11 @@ class FixHeat : public Fix {
   double memory_usage() override;
 
  private:
-  int iregion;
   double heat_input;
   double masstotal;
   double scale;
   char *idregion;
+  class Region *region;
   char *hstr;
   int hstyle, hvar;
 
@@ -52,47 +52,3 @@ class FixHeat : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix heat does not exist
-
-Self-explanatory.
-
-E: Variable name for fix heat does not exist
-
-Self-explanatory.
-
-E: Variable for fix heat is invalid style
-
-Only equal-style or atom-style variables can be used.
-
-W: Cannot apply fix heat to atoms in rigid bodies
-
-UNDOCUMENTED
-
-E: Fix heat group has no atoms
-
-Self-explanatory.
-
-E: Fix heat group has invalid mass
-
-UNDOCUMENTED
-
-E: Fix heat kinetic energy went negative
-
-This will cause the velocity rescaling about to be performed by fix
-heat to be invalid.
-
-E: Fix heat kinetic energy of an atom went negative
-
-This will cause the velocity rescaling about to be performed by fix
-heat to be invalid.
-
-*/

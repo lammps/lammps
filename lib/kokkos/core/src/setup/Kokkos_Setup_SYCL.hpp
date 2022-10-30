@@ -45,29 +45,23 @@
 #ifndef KOKKOS_SETUP_SYCL_HPP_
 #define KOKKOS_SETUP_SYCL_HPP_
 
+// FIXME_SYCL the fallback assert is temporarily disabled by default in the
+// compiler so we need to force it
+#ifndef SYCL_ENABLE_FALLBACK_ASSERT
+#define SYCL_ENABLE_FALLBACK_ASSERT
+#endif
+#ifndef SYCL_FALLBACK_ASSERT
+#define SYCL_FALLBACK_ASSERT 1
+#endif
+
 #include <CL/sycl.hpp>
 
 #ifdef __SYCL_DEVICE_ONLY__
-#ifdef KOKKOS_IMPL_DISABLE_SYCL_DEVICE_PRINTF
-namespace Kokkos {
-namespace ImplSYCL {
-template <typename... Args>
-void sink(Args&&... args) {
-  (void)(sizeof...(args));
-}
-}  // namespace ImplSYCL
-}  // namespace Kokkos
-#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) \
-  do {                                     \
-    Kokkos::ImplSYCL::sink(__VA_ARGS__);   \
-  } while (0)
-#else
 #define KOKKOS_IMPL_DO_NOT_USE_PRINTF(format, ...)                \
   do {                                                            \
     const __attribute__((opencl_constant)) char fmt[] = (format); \
-    sycl::ONEAPI::experimental::printf(fmt, ##__VA_ARGS__);       \
+    sycl::ext::oneapi::experimental::printf(fmt, ##__VA_ARGS__);  \
   } while (0)
-#endif
 #endif
 
 #endif

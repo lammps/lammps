@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -68,17 +68,3 @@ class VerletLRTIntel : public Verlet {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: LRT otion for Intel package disabled at compile time
-
-This option cannot be used with the Intel package because LAMMPS was not built
-with support for it.
-
-W: No fixes defined, atoms won't move
-
-If you are not using a fix like nve, nvt, npt then atom velocities and
-coordinates will not be updated during timestepping.
-
-*/

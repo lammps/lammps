@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,29 +46,3 @@ class PairTersoffMODGPU : public PairTersoffMOD {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style tersoff/mod/gpu requires atom IDs
-
-UNDOCUMENTED
-
-E: Pair style tersoff/mod/gpu requires newton pair off
-
-UNDOCUMENTED
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-U: Pair style tersoff/gpu requires newton pair off
-
-See the newton command.  This is a restriction to use this pair style.
-
-*/

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,7 +21,8 @@
 namespace LAMMPS_NS {
 
 class Dump : protected Pointers {
- friend class Output;
+  friend class Output;
+
  public:
   char *id;                // user-defined name of Dump
   char *style;             // style of Dump
@@ -44,9 +45,15 @@ class Dump : protected Pointers {
   void init();
   virtual void write();
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
+  virtual int pack_forward_comm(int, int *, double *, int, int *)
+  {
+    return 0;
+  }
   virtual void unpack_forward_comm(int, int, double *) {}
-  virtual int pack_reverse_comm(int, int, double *) { return 0; }
+  virtual int pack_reverse_comm(int, int, double *)
+  {
+    return 0;
+  }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
   void modify_params(int, char **);
@@ -90,6 +97,10 @@ class Dump : protected Pointers {
   char *refresh;      // compute ID to invoke refresh() on
   int irefresh;       // index of compute
 
+  int skipflag;     // 1 if skip condition defined
+  char *skipvar;    // name of variable to check for skip condition
+  int skipindex;    // index of skip variable
+
   char boundstr[9];    // encoding of boundary flags
 
   char *format;            // format string for the file write
@@ -119,11 +130,11 @@ class Dump : protected Pointers {
   int fileidx;         // index of file in names list
   char **nameslist;    // list of history file names
 
-  bigint ntotal;         // total # of per-atom lines in snapshot
-  int reorderflag;       // 1 if OK to reorder instead of sort
+  bigint ntotal;            // total # of per-atom lines in snapshot
+  int reorderflag;          // 1 if OK to reorder instead of sort
   bigint ntotal_reorder;    // # of atoms that must be in snapshot
-  int nme_reorder;       // # of atoms I must own in snapshot
-  tagint idlo;           // lowest ID I own when reordering
+  int nme_reorder;          // # of atoms I must own in snapshot
+  tagint idlo;              // lowest ID I own when reordering
 
   int maxbuf;     // size of buf
   double *buf;    // memory for atom quantities
@@ -146,12 +157,20 @@ class Dump : protected Pointers {
 
   virtual void init_style() = 0;
   virtual void openfile();
-  virtual int modify_param(int, char **) { return 0; }
+  virtual int modify_param(int, char **)
+  {
+    return 0;
+  }
   virtual void write_header(bigint) = 0;
   virtual int count();
   virtual void pack(tagint *) = 0;
-  virtual int convert_string(int, double *) { return 0; }
+  virtual int convert_string(int, double *)
+  {
+    return 0;
+  }
   virtual void write_data(int, double *) = 0;
+  virtual void write_footer() {}
+
   void pbc_allocate();
   double compute_time();
 
@@ -171,65 +190,3 @@ class Dump : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump file MPI-IO output not allowed with % in filename
-
-This is because a % signifies one file per processor and MPI-IO
-creates one large file for all processors.
-
-E: Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values
-
-Can only dump sort when the number of dump file pieces using % in filename equals the number of processors
-
-E: Cannot dump sort on atom IDs with no atom IDs defined
-
-Self-explanatory.
-
-E: Dump sort column is invalid
-
-Self-explanatory.
-
-E: Dump could not find refresh compute ID
-
-UNDOCUMENTED
-
-E: Too much per-proc info for dump
-
-Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
-
-E: Too much buffered per-proc info for dump
-
-The size of the buffered string must fit in a 32-bit integer for a
-dump.
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Dump_modify buffer yes not allowed for this style
-
-Self-explanatory.
-
-E: Cannot use dump_modify fileper without % in dump file name
-
-Self-explanatory.
-
-E: Cannot use dump_modify nfile without % in dump file name
-
-Self-explanatory.
-
-*/

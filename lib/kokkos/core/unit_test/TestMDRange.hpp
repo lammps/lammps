@@ -71,21 +71,6 @@ struct TestMDRange_ReduceArray_2D {
       : input_view("input_view", N0, N1), value_count(array_size) {}
 
   KOKKOS_INLINE_FUNCTION
-  void init(scalar_type dst[]) const {
-    for (unsigned i = 0; i < value_count; ++i) {
-      dst[i] = 0.0;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile scalar_type dst[],
-            const volatile scalar_type src[]) const {
-    for (unsigned i = 0; i < value_count; ++i) {
-      dst[i] += src[i];
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void operator()(const int i, const int j) const { input_view(i, j) = 1; }
 
   KOKKOS_INLINE_FUNCTION
@@ -124,6 +109,13 @@ struct TestMDRange_ReduceArray_2D {
       parallel_for(range_init, functor);  // Init the view to 3's
 
       double sums[array_size];
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+      double *sums_ptr = sums;
+      parallel_reduce(range, functor, sums_ptr);
+      ASSERT_EQ(sums[0], 6 * N0 * N1);
+      ASSERT_EQ(sums[1], 3 * N0 * N1);
+#endif
+      Kokkos::fence("Fence before accessing result on the host");
       parallel_reduce(range, functor, sums);
 
       // Check output
@@ -160,8 +152,7 @@ struct TestMDRange_ReduceArray_3D {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile scalar_type dst[],
-            const volatile scalar_type src[]) const {
+  void join(scalar_type dst[], const scalar_type src[]) const {
     for (unsigned i = 0; i < value_count; ++i) {
       dst[i] += src[i];
     }
@@ -378,7 +369,7 @@ struct TestMDRange_2D {
       parallel_reduce(
           "rank2-min-reducer", range,
           KOKKOS_LAMBDA(const int i, const int j, double &min_val) {
-            min_val = Kokkos::Experimental::fmin(v_in(i, j), min_val);
+            min_val = Kokkos::fmin(v_in(i, j), min_val);
           },
           reducer_scalar);
 
@@ -3893,14 +3884,6 @@ struct TestMDRange_ReduceScalar {
     }
     KOKKOS_INLINE_FUNCTION
     void operator+=(const Scalar &src) {
-      for (int i = 0; i < 4; i++) v[i] += src.v[i];
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator=(const volatile Scalar &src) volatile {
-      for (int i = 0; i < 4; i++) v[i] = src.v[i];
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile Scalar &src) volatile {
       for (int i = 0; i < 4; i++) v[i] += src.v[i];
     }
   };

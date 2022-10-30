@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -91,6 +91,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   exchange_comm_changed = 0;
   forward_comm_changed = 0;
   forward_pair_comm_changed = 0;
+  reverse_pair_comm_changed = 0;
   forward_fix_comm_changed = 0;
   reverse_comm_changed = 0;
 
@@ -115,20 +116,21 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"d") == 0 || strcmp(arg[iarg],"device") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
-      device = atoi(arg[iarg+1]);
+      device = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
-#ifndef LMP_KOKKOS_GPU
-      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled using a GPU-enabled backend");
-#endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
-      ngpus = atoi(arg[iarg+1]);
+      ngpus = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+#ifndef LMP_KOKKOS_GPU
+      if (ngpus > 0)
+        error->all(FLERR,"GPUs are requested but Kokkos has not been compiled using a GPU-enabled backend");
+#endif
 
       int skip_gpu = 9999;
       if (iarg+2 < narg && isdigit(arg[iarg+2][0])) {
-        skip_gpu = atoi(arg[iarg+2]);
+        skip_gpu = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
         iarg++;
       }
       iarg += 2;
@@ -142,22 +144,36 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         set_flag = 1;
       }
       if ((str = getenv("MPT_LRANK"))) {
-        int local_rank = atoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
-        int local_rank = atoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
-        int local_rank = atoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
+      }
+      if ((str = getenv("PMI_LOCAL_RANK"))) {
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
 
       if (ngpus > 1 && !set_flag)
@@ -166,7 +182,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
-      nthreads = atoi(arg[iarg+1]);
+      nthreads = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
 
       if (nthreads <= 0)
         error->all(FLERR,"Invalid number of threads requested for Kokkos: must be 1 or greater");
@@ -175,19 +191,20 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"n") == 0 ||
                strcmp(arg[iarg],"numa") == 0) {
-      numa = atoi(arg[iarg+1]);
+      numa = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
 
-    } else error->all(FLERR,"Invalid Kokkos command-line args");
+    } else error->all(FLERR,"Invalid Kokkos command-line arg: {}", arg[iarg]);
   }
 
   // Initialize Kokkos. However, we cannot change any
   // Kokkos library parameters after the first initalization
 
   if (args.num_threads != -1) {
-    if (args.num_threads != nthreads || args.num_numa != numa || args.device_id != device)
+    if ((args.num_threads != nthreads) || (args.num_numa != numa) || (args.device_id != device))
       if (me == 0)
-        error->warning(FLERR,"Kokkos package already initalized, cannot reinitialize with different parameters");
+        error->warning(FLERR,"Kokkos package already initalized, "
+                       "cannot reinitialize with different parameters");
     nthreads = args.num_threads;
     numa = args.num_numa;
     device = args.device_id;
@@ -199,8 +216,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     init_ngpus = ngpus;
   }
 
-  if (me == 0)
-    utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n",ngpus);
+  if ((me == 0) && (ngpus > 0))
+    utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n", ngpus);
 
 #ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)
@@ -239,7 +256,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     newtonflag = 0;
 
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-    forward_pair_comm_classic = forward_fix_comm_classic = 0;
+    forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 0;
 
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   } else {
@@ -253,7 +270,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     newtonflag = 1;
 
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
-    forward_pair_comm_classic = forward_fix_comm_classic = 1;
+    forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 1;
 
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   }
@@ -333,13 +350,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-KokkosLMP::~KokkosLMP()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void KokkosLMP::initialize(Kokkos::InitArguments args, Error *error)
 {
   if (!Kokkos::is_initialized()) {
@@ -401,17 +411,17 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
-        forward_pair_comm_classic = forward_fix_comm_classic = 1;
+        forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 1;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else if (strcmp(arg[iarg+1],"host") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-        forward_pair_comm_classic = forward_fix_comm_classic = 1;
+        forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 1;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 1;
       } else if (strcmp(arg[iarg+1],"device") == 0) {
         exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
-        forward_pair_comm_classic = forward_fix_comm_classic = 0;
+        forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 0;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
@@ -447,6 +457,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"device") == 0) forward_pair_comm_classic = 0;
       else error->all(FLERR,"Illegal package kokkos command");
       forward_pair_comm_changed = 0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"comm/pair/reverse") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) reverse_pair_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) reverse_pair_comm_classic = 1;
+      else if (strcmp(arg[iarg+1],"device") == 0) reverse_pair_comm_classic = 0;
+      else error->all(FLERR,"Illegal package kokkos command");
+      reverse_pair_comm_changed = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/fix/forward") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -493,8 +511,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;
-    lmp->suffix = new char[7];
-    strcpy(lmp->suffix,"kk/host");
+    lmp->suffix = utils::strdup("kk/host");
   } else {
     // restore settings to regular suffix use, if previously, pair/only was used
     if (lmp->suffixp) {
@@ -522,6 +539,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       forward_pair_comm_classic = 1;
       forward_pair_comm_changed = 1;
     }
+    if (reverse_pair_comm_classic == 0) {
+      reverse_pair_comm_classic = 1;
+      reverse_pair_comm_changed = 1;
+    }
     if (forward_fix_comm_classic == 0) {
       forward_fix_comm_classic = 1;
       forward_fix_comm_changed = 1;
@@ -546,6 +567,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
     if (forward_pair_comm_changed) {
       forward_pair_comm_classic = 0;
       forward_pair_comm_changed = 0;
+    }
+    if (reverse_pair_comm_changed) {
+      reverse_pair_comm_classic = 0;
+      reverse_pair_comm_changed = 0;
     }
     if (forward_fix_comm_changed) {
       forward_fix_comm_classic = 0;

@@ -11,7 +11,7 @@ Syntax
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *format* or *temp* or *press*
+* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *colname* or *format* or *temp* or *press*
 
   .. parsed-literal::
 
@@ -153,6 +153,8 @@ containing the timestep and CPU time ("multi"), or in a YAML format
 block ("yaml").  This modify option overrides the *one*, *multi*, or
 *yaml* thermo_style settings.
 
+.. versionadded:: 4May2022
+
 The *colname* keyword can be used to change the default header keyword
 for a column or field of thermodynamic output.  The setting for *ID
 string* replaces the default text with the provided string.  *ID* can be
@@ -252,6 +254,6 @@ flush = no, and temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo style.
 For styles "one" and "custom", the line and format defaults are "one",
-"%10d", and "%12.8g".  For style "multi", the line and format defaults
+"%10d", and "%14.8g".  For style "multi", the line and format defaults
 are "multi", "%14d", and "%14.4f". For style "yaml", the line and format
 defaults are "%d" and "%.15g".

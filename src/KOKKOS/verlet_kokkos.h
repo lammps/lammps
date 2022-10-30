@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,6 +35,7 @@ class VerletKokkos : public Verlet {
   void setup(int) override;
   void setup_minimal(int) override;
   void run(int) override;
+  void force_clear() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
@@ -43,18 +44,11 @@ class VerletKokkos : public Verlet {
     f(i,2) += f_merge_copy(i,2);
   }
 
-
  protected:
   DAT::t_f_array f_merge_copy,f;
-
-  void force_clear() override;
 };
-
 }
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

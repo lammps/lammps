@@ -14,8 +14,14 @@ Syntax
 * ipi = style name of this fix command
 * address = internet address (FQDN or IP), or UNIX socket name
 * port = port number (ignored for UNIX sockets)
-* optional keyword = *unix*, if present uses a unix socket
-* optional keyword = *reset*, if present reset electrostatics at each call
+
+* zero or more keywords may be appended
+* keyword = *unix* or *reset*
+
+  .. parsed-literal::
+
+       *unix* args = none = use a unix socket
+       *reset* args = none = reset electrostatics at each call
 
 Examples
 """"""""
@@ -105,4 +111,4 @@ Related commands
 .. _ipihome:
 
 **(IPI)**
-`http://epfl-cosmo.github.io/gle4md/index.html?page=ipi <http://epfl-cosmo.github.io/gle4md/index.html?page=ipi>`_
+`https://ipi-code.org <https://ipi-code.org>`_

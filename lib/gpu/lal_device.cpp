@@ -81,7 +81,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   gpu=new UCL_Device();
 
   // ---------------------- OpenCL Compiler Args -------------------------
-  std::string extra_args="";
+  std::string extra_args;
   if (ocl_args) extra_args+=":"+std::string(ocl_args);
   #ifdef LAL_OCL_EXTRA_ARGS
   extra_args+=":" LAL_PRE_STRINGIFY(LAL_OCL_EXTRA_ARGS);
@@ -144,7 +144,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
 
   // Setup OpenCL platform and parameters based on platform
   // and device type specifications
-  std::string ocl_vstring="";
+  std::string ocl_vstring;
   if (device_type_flags != nullptr) ocl_vstring=device_type_flags;
 
   // Setup the OpenCL platform
@@ -161,7 +161,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   if (_platform_id>=0)
     pres=gpu->set_platform(_platform_id);
   else {
-    std::string vendor="";
+    std::string vendor;
     if (device_type_flags!=nullptr) {
       if (ocl_vstring=="intelgpu")
         vendor="intel";
@@ -201,9 +201,9 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
     unsigned best_cus = gpu->cus(0);
     bool type_match = (gpu->device_type(0) == type);
     for (int i = 1; i < gpu->num_devices(); i++) {
-      if (type_match && gpu->device_type(i)!=type)
+      if (type_match && (gpu->device_type(i) != type))
         continue;
-      if (type_match && gpu->device_type(i) == type) {
+      if (!type_match && (gpu->device_type(i) == type)) {
         type_match = true;
         best_cus = gpu->cus(i);
         best_device = i;
@@ -265,15 +265,13 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   // Time on the device only if 1 proc per gpu
   _time_device=true;
 
-#if 0
-  // XXX: the following setting triggers a memory leak with OpenCL and MPI
-  //      setting _time_device=true for all processes doesn't seem to be a
-  //      problem with either (no segfault, no (large) memory leak.
-  //      thus keeping this disabled for now. may need to review later.
-  //      2018-07-23 <akohlmey@gmail.com>
+  // Previous source of OCL memory leak when time_device=false
+  // - Logic added to release OCL events when timers are not invoked
   if (_procs_per_gpu>1)
     _time_device=false;
-#endif
+
+  if (!_time_device && _particle_split > 0)
+    gpu->configure_profiling(false);
 
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
@@ -330,7 +328,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   for (int i=0; i<_procs_per_gpu; i++) {
     if (_gpu_rank==i)
       flag=compile_kernels();
-    gpu_barrier();
+    serialize_init();
   }
 
   // check if double precision support is available
@@ -578,7 +576,7 @@ template <class numtyp, class acctyp>
 void DeviceT::init_message(FILE *screen, const char *name,
                            const int first_gpu, const int last_gpu) {
   #if defined(USE_OPENCL)
-  std::string fs="";
+  std::string fs;
   #elif defined(USE_CUDART)
   std::string fs="";
   #else
@@ -611,6 +609,10 @@ void DeviceT::init_message(FILE *screen, const char *name,
     int last=last_gpu+1;
     if (last>gpu->num_devices())
       last=gpu->num_devices();
+    if (gpu->num_platforms()>1) {
+      std::string pname=gpu->platform_name();
+      fprintf(screen,"Platform: %s\n",pname.c_str());
+    }
     for (int i=first_gpu; i<last; i++) {
       std::string sname;
       if (i==first_gpu)
@@ -715,7 +717,9 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
       dev_data_out[0].flush();
     #endif
     driver_time=MPI_Wtime()-driver_time;
-    double time=over_timer.seconds();
+    double time=0.0;
+    if (_time_device)
+      time=over_timer.seconds();
 
     if (time_device()) {
       for (int i=0; i<_data_in_estimate; i++)
@@ -737,6 +741,7 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   }
   gpu_overhead/=10.0;
   gpu_driver_overhead/=10.0;
+  gpu->sync();
 
   if (_data_in_estimate>0) {
     delete [] host_data_in;
@@ -789,6 +794,7 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
   if (times[0] > 80e6) times[0]=0.0;
+  if (times[1] > 80e6) times[1]=0.0;
   if (times[3] > 80e6) times[3]=0.0;
   if (times[5] > 80e6) times[5]=0.0;
   #endif
@@ -802,9 +808,8 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       fprintf(screen,"--------------------------------\n");
 
       if (time_device() && (times[3] > 0.0)) {
-        if (times[0] > 0.0)
-          fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
-        fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
+        if (times[0] > 0.0) fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
+        if (times[1] > 0.0) fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
         if (nbor.gpu_nbor() > 0.0)
           fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/_replica_size);
         else
@@ -858,32 +863,34 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
+  if (times[0] > 80e6) times[0]=0.0;
+  if (times[1] > 80e6) times[1]=0.0;
   if (times[3] > 80e6) times[3]=0.0;
+  if (times[5] > 80e6) times[5]=0.0;
   #endif
 
 
   if (replica_me()==0)
-    if (screen && times[6]>0.0) {
+    if (screen && (times[6] > 0.0)) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
       fprintf(screen,"    Device Time Info (average) for kspace: ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (time_device() && times[3]>0) {
-        fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
-        fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
+      if (time_device() && (times[3] > 0.0)) {
+        if (times[0] > 0.0) fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
+        if (times[1] > 0.0) fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
         fprintf(screen,"Force interp:    %.4f s.\n",times[4]/_replica_size);
-        fprintf(screen,"Total rho:       %.4f s.\n",
-                (times[0]+times[2]+times[3])/_replica_size);
-        fprintf(screen,"Total interp:    %.4f s.\n",
-                (times[1]+times[4])/_replica_size);
-        fprintf(screen,"Force copy:      %.4f s.\n",times[5]/_replica_size);
+        if (times[0] > 0.0)
+          fprintf(screen,"Total rho:       %.4f s.\n", (times[0]+times[2]+times[3])/_replica_size);
+        if (times[1] > 0.0)
+          fprintf(screen,"Total interp:    %.4f s.\n", (times[1]+times[4])/_replica_size);
+        if (times[5] > 0.0) fprintf(screen,"Force copy:      %.4f s.\n",times[5]/_replica_size);
         fprintf(screen,"Total:           %.4f s.\n",
-                (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/
-                _replica_size);
+                (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/_replica_size);
       }
       fprintf(screen,"CPU Poisson:     %.4f s.\n",times[6]/_replica_size);
       fprintf(screen,"CPU Data Cast:   %.4f s.\n",times[8]/_replica_size);

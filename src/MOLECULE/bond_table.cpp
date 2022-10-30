@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -325,20 +325,20 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   // read r,e,f table values from file
 
-  int cerror = 0;
   int r0idx = -1;
 
   reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    line = reader.next_line(4);
+    line = reader.next_line();
     try {
       ValueTokenizer values(line);
       values.next_int();
       tb->rfile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException &) {
-      ++cerror;
+    } catch (TokenizerException &e) {
+      error->one(FLERR, "Error parsing bond table '{}' line {} of {}. {}\nLine was: {}", keyword,
+                 i + 1, tb->ninput, e.what(), line);
     }
 
     if (tb->efile[i] < emin) {
@@ -373,21 +373,11 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
     if (f > fleft && f > fright) ferror++;
   }
 
-  if (ferror) {
+  if (ferror)
     error->warning(FLERR,
                    "{} of {} force values in table are inconsistent with -dE/dr.\n"
                    "WARNING:  Should only be flagged at inflection points",
                    ferror, tb->ninput);
-  }
-
-  // warn if data was read incompletely, e.g. columns were missing
-
-  if (cerror) {
-    error->warning(FLERR,
-                   "{} of {} lines in table were incomplete or could not be"
-                   " parsed completely",
-                   cerror, tb->ninput);
-  }
 }
 
 /* ----------------------------------------------------------------------

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -402,26 +402,20 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
 
   // read a,e,f table values from file
 
-  int cerror = 0;
   reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    line = reader.next_line(4);
+    line = reader.next_line();
     try {
       ValueTokenizer values(line);
       values.next_int();
       tb->afile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException &) {
-      ++cerror;
+    } catch (TokenizerException &e) {
+      error->one(FLERR, "Error parsing angle table '{}' line {} of {}. {}\nLine was: {}", keyword,
+                 i + 1, tb->ninput, e.what(), line);
     }
   }
-
-  // warn if data was read incompletely, e.g. columns were missing
-
-  if (cerror)
-    error->warning(FLERR, "{} of {} lines in table incomplete or could not be parsed", cerror,
-                   tb->ninput);
 }
 
 /* ----------------------------------------------------------------------

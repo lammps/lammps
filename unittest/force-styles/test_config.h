@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,8 +15,8 @@
 #define TEST_CONFIG_H
 
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -96,23 +96,21 @@ public:
         restart_vel.clear();
         global_vector.clear();
     }
-    virtual ~TestConfig(){};
+    TestConfig(const TestConfig &) = delete;
+    TestConfig &operator=(const TestConfig &) = delete;
 
     std::string tags_line() const
     {
-      if(tags.size() > 0) {
-          std::stringstream line;
-          line << tags[0];
-          for(size_t i = 1; i < tags.size(); i++) {
-            line << ", " << tags[i];
-          }
-          return line.str();
-      }
-      return "generated";
+        if (tags.size() > 0) {
+            std::stringstream line;
+            line << tags[0];
+            for (size_t i = 1; i < tags.size(); i++) {
+                line << ", " << tags[i];
+            }
+            return line.str();
+        }
+        return "generated";
     }
-
-private:
-    TestConfig(const TestConfig &){};
 };
 
 #endif

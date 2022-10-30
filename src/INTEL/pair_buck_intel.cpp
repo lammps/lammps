@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,10 +42,6 @@ using namespace MathConst;
 PairBuckIntel::PairBuckIntel(LAMMPS *lmp) : PairBuck(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-}
-
-PairBuckIntel::~PairBuckIntel()
-{
 }
 
 void PairBuckIntel::compute(int eflag, int vflag)
@@ -257,7 +253,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
           const flt_t delx = xtmp - x[j].x;
           const flt_t dely = ytmp - x[j].y;
           const flt_t delz = ztmp - x[j].z;
-          const int jtype = x[j].w;
+          const int jtype = IP_PRE_dword_index(x[j].w);
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
           const flt_t r = sqrt(rsq);
           const flt_t r2inv = (flt_t)1.0 / rsq;

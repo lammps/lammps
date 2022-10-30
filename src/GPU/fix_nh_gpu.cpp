@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -54,12 +54,6 @@ FixNHGPU::FixNHGPU(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixNHGPU::~FixNHGPU()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNHGPU::setup(int vflag)
 {
   FixNH::setup(vflag);
@@ -83,7 +77,7 @@ void FixNHGPU::remap()
   double oldlo,oldhi;
   double expfac;
 
-  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
@@ -420,7 +414,7 @@ void FixNHGPU::nh_v_press()
     return;
   }
 
-  auto * _noalias const v = (dbl3_t *)atom->v[0];
+  dbl3_t * _noalias const v = (dbl3_t *)atom->v[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

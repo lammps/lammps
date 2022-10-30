@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -614,8 +614,7 @@ void FixPIMD::comm_init()
   }
 
   if (buf_beads) {
-    for (int i = 0; i < np; i++)
-      delete[] buf_beads[i];
+    for (int i = 0; i < np; i++) delete[] buf_beads[i];
     delete[] buf_beads;
   }
 
@@ -678,8 +677,8 @@ void FixPIMD::comm_exec(double **ptr)
       if (index < 0) {
         auto mesg = fmt::format("Atom {} is missing at world [{}] rank [{}] "
                                 "required by rank [{}] ({}, {}, {}).\n",
-                                tag_send[i], universe->iworld, comm->me,
-                                plan_recv[iplan], atom->tag[0], atom->tag[1], atom->tag[2]);
+                                tag_send[i], universe->iworld, comm->me, plan_recv[iplan],
+                                atom->tag[0], atom->tag[1], atom->tag[2]);
         error->universe_one(FLERR, mesg);
       }
 

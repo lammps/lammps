@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -323,12 +323,12 @@ void ComputeCentroAtom::compute_peratom()
 
 #define SWAP(a, b) \
   tmp = a;         \
-  a = b;           \
-  b = tmp;
+  (a) = b;         \
+  (b) = tmp;
 #define ISWAP(a, b) \
   itmp = a;         \
-  a = b;            \
-  b = itmp;
+  (a) = b;          \
+  (b) = itmp;
 
 void ComputeCentroAtom::select(int k, int n, double *arr)
 {

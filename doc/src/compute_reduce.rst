@@ -10,7 +10,7 @@ compute reduce/region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style arg mode input1 input2 ... keyword args ...
 
@@ -23,13 +23,13 @@ Syntax
        *reduce/region* arg = region-ID
          region-ID = ID of region to use for choosing atoms
 
-* mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq*
+* mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq* or *sumabs* or *aveabs*
 * one or more inputs can be listed
-* input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name
+* input = *x* or *y* or *z* or *vx* or *vy* or *vz* or *fx* or *fy* or *fz* or c_ID or c_ID[N] or f_ID or f_ID[N] or v_name
 
   .. parsed-literal::
 
-       x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+       *x*,\ *y*,\ *z*,\ *vx*,\ *vy*,\ *vz*,\ *fx*,\ *fy*,\ *fz* = atom attribute (position, velocity, force component)
        c_ID = per-atom or local vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom or local array calculated by a compute with ID, I can include wildcard (see below)
        f_ID = per-atom or local vector calculated by a fix with ID
@@ -76,8 +76,11 @@ then divides by the number of values in the vector.  The *sumsq*
 option sums the square of the values in the vector into a global
 total.  The *avesq* setting does the same as *sumsq*, then divides the
 sum of squares by the number of values.  The last two options can be
-useful for calculating the variance of some quantity, e.g. variance =
-sumsq - ave\^2.
+useful for calculating the variance of some quantity (e.g., variance =
+sumsq :math:`-` ave\ :math:`^2`).  The *sumabs* option sums the absolute
+values in the vector into a global total.  The *aveabs* setting does the same
+as *sumabs*, then divides the sum of absolute values by the number of
+values.
 
 Each listed input is operated on independently.  For per-atom inputs,
 the group specified with this command means only atoms within the
@@ -94,20 +97,21 @@ component) or can be the result of a :doc:`compute <compute>` or
 :doc:`fix <fix>` or the evaluation of an atom-style
 :doc:`variable <variable>`.
 
-Note that for values from a compute or fix, the bracketed index I can
+Note that for values from a compute or fix, the bracketed index :math:`I` can
 be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*" or
-"m\*n".  If N = the size of the vector (for *mode* = scalar) or the
+specify multiple values.  This takes the form "\*" or "\*n" or "m\*" or
+"m\*n".  If :math:`N` is the size of the vector (for *mode* = scalar) or the
 number of columns in the array (for *mode* = vector), then an asterisk
-with no numeric values means all indices from 1 to N.  A leading
+with no numeric values means all indices from 1 to :math:`N`.  A leading
 asterisk means all indices from 1 to n (inclusive).  A trailing
-asterisk means all indices from n to N (inclusive).  A middle asterisk
+asterisk means all indices from m to :math:`N` (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
-had been listed one by one.  E.g. these 2 compute reduce commands are
-equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
-command creates a per-atom array with 6 columns:
+had been listed one by one. For example, the following two compute reduce
+commands are equivalent, since the
+:doc:`compute stress/atom <compute_stress_atom>` command creates a per-atom
+array with six columns:
 
 .. code-block:: LAMMPS
 
@@ -118,9 +122,10 @@ command creates a per-atom array with 6 columns:
 
 ----------
 
-The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
-self-explanatory.  Note that other atom attributes can be used as
-inputs to this fix by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
+The atom attribute values (*x*, *y*, *z*, *vx*, *vy*, *vz*, *fx*, *fy*, and
+*fz*) are self-explanatory.  Note that other atom attributes can be used as
+inputs to this fix by using the
+:doc:`compute property/atom <compute_property_atom>` command and then specifying
 an input value from that compute.
 
 If a value begins with "c\_", a compute ID must follow which has been
@@ -131,7 +136,7 @@ is appended, the vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the array calculated
 by the compute is used.  Users can also write code for their own
 compute styles and :doc:`add them to LAMMPS <Modify>`.  See the
-discussion above for how I can be specified with a wildcard asterisk
+discussion above for how :math:`I` can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
 If a value begins with "f\_", a fix ID must follow which has been
@@ -142,27 +147,27 @@ timesteps, which must be compatible with when compute reduce
 references the values, else an error results.  If no bracketed integer
 is appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
-is used.  Users can also write code for their own fix style and :doc:`add them to LAMMPS <Modify>`.  See the discussion above for how I can
-be specified with a wildcard asterisk to effectively specify multiple
-values.
+is used.  Users can also write code for their own fix style and
+:doc:`add them to LAMMPS <Modify>`.  See the discussion above for how
+:math:`I` can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
 If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  It must be an
 :doc:`atom-style variable <variable>`.  Atom-style variables can
 reference thermodynamic keywords and various per-atom attributes, or
 invoke other computes, fixes, or variables when they are evaluated, so
-this is a very general means of generating per-atom quantities to
-reduce.
+this is a very general means of generating per-atom quantities to reduce.
 
 ----------
 
 If the *replace* keyword is used, two indices *vec1* and *vec2* are
-specified, where each index ranges from 1 to the # of input values.
+specified, where each index ranges from 1 to the number of input values.
 The replace keyword can only be used if the *mode* is *min* or *max*\ .
 It works as follows.  A min/max is computed as usual on the *vec2*
-input vector.  The index N of that value within *vec2* is also stored.
+input vector.  The index :math:`N` of that value within *vec2* is also stored.
 Then, instead of performing a min/max on the *vec1* input vector, the
-stored index is used to select the Nth element of the *vec1* vector.
+stored index is used to select the :math:`N`\ th element of the *vec1* vector.
 
 Thus, for example, if you wish to use this compute to find the bond
 with maximum stretch, you can do it as follows:
@@ -175,8 +180,10 @@ with maximum stretch, you can do it as follows:
    thermo_style custom step temp c_3[1] c_3[2] c_3[3]
 
 The first two input values in the compute reduce command are vectors
-with the IDs of the 2 atoms in each bond, using the :doc:`compute property/local <compute_property_local>` command.  The last input
-value is bond distance, using the :doc:`compute bond/local <compute_bond_local>` command.  Instead of taking the
+with the IDs of the 2 atoms in each bond, using the
+:doc:`compute property/local <compute_property_local>` command.  The last input
+value is bond distance, using the
+:doc:`compute bond/local <compute_bond_local>` command.  Instead of taking the
 max of the two atom ID vectors, which does not yield useful
 information in this context, the *replace* keywords will extract the
 atom IDs for the two atoms in the bond of maximum stretch.  These atom
@@ -189,10 +196,13 @@ value.  If multiple inputs are specified, this compute produces a
 global vector of values, the length of which is equal to the number of
 inputs specified.
 
-As discussed below, for the *sum* and *sumsq* modes, the value(s)
+As discussed below, for the *sum*, *sumabs*, and *sumsq* modes, the value(s)
 produced by this compute are all "extensive", meaning their value
 scales linearly with the number of atoms involved.  If normalized
-values are desired, this compute can be accessed by the :doc:`thermo_style custom <thermo_style>` command with :doc:`thermo_modify norm yes <thermo_modify>` set as an option.  Or it can be accessed by a
+values are desired, this compute can be accessed by the
+:doc:`thermo_style custom <thermo_style>` command with
+:doc:`thermo_modify norm yes <thermo_modify>` set as an option.
+Or it can be accessed by a
 :doc:`variable <variable>` that divides by the appropriate atom count.
 
 ----------
@@ -200,15 +210,15 @@ values are desired, this compute can be accessed by the :doc:`thermo_style custo
 Output info
 """""""""""
 
-This compute calculates a global scalar if a single input value is
-specified or a global vector of length N where N is the number of
-inputs, and which can be accessed by indices 1 to N.  These values can
+This compute calculates a global scalar if a single input value is specified
+or a global vector of length :math:`N`, where :math:`N` is the number of
+inputs, and which can be accessed by indices 1 to :math:`N`.  These values can
 be used by any command that uses global scalar or vector values from a
 compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
 All the scalar or vector values calculated by this compute are
-"intensive", except when the *sum* or *sumsq* modes are used on
+"intensive", except when the *sum*, *sumabs*, or *sumsq* modes are used on
 per-atom or local vectors, in which case the calculated values are
 "extensive".
 

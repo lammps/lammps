@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -292,7 +292,7 @@ class NPairSSAKokkosExecute
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
   KOKKOS_FUNCTION
-  void build_locals_onePhase(const bool firstTry, int me, int workPhase) const;
+  void build_locals_onePhase(const bool firstTry, int workPhase) const;
 
   KOKKOS_FUNCTION
   void build_ghosts_onePhase(int workPhase) const;
@@ -354,6 +354,3 @@ class NPairSSAKokkosExecute
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

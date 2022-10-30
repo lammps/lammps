@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Macros.hpp>
 
 #include <algorithm>
@@ -61,6 +65,7 @@
 #include <Kokkos_OpenMPTargetSpace.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Kokkos_Atomic.hpp>
+#include <impl/Kokkos_MemorySpace.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -70,23 +75,66 @@ namespace Experimental {
 /* Default allocation mechanism */
 OpenMPTargetSpace::OpenMPTargetSpace() {}
 
-void *OpenMPTargetSpace::allocate(const size_t arg_alloc_size) const {
-  static_assert(sizeof(void *) == sizeof(uintptr_t),
+void* OpenMPTargetSpace::impl_allocate(
+
+    const char* arg_label, const size_t arg_alloc_size,
+    const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
+  static_assert(sizeof(void*) == sizeof(uintptr_t),
                 "Error sizeof(void*) != sizeof(uintptr_t)");
 
-  void *ptr;
+  void* ptr;
 
   ptr = omp_target_alloc(arg_alloc_size, omp_get_default_device());
+
+  if (Kokkos::Profiling::profileLibraryLoaded()) {
+    const size_t reported_size =
+        (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
+    Kokkos::Profiling::allocateData(arg_handle, arg_label, ptr, reported_size);
+  }
 
   return ptr;
 }
 
-void OpenMPTargetSpace::deallocate(void *const arg_alloc_ptr,
-                                   const size_t /*arg_alloc_size*/) const {
+void* OpenMPTargetSpace::allocate(const size_t arg_alloc_size) const {
+  return allocate("[unlabeled]", arg_alloc_size);
+}
+
+void* OpenMPTargetSpace::allocate(const char* arg_label,
+                                  const size_t arg_alloc_size,
+                                  const size_t arg_logical_size) const {
+  return impl_allocate(arg_label, arg_alloc_size, arg_logical_size);
+}
+
+void OpenMPTargetSpace::impl_deallocate(
+    const char* arg_label, void* const arg_alloc_ptr,
+    const size_t arg_alloc_size, const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
+  if (Kokkos::Profiling::profileLibraryLoaded()) {
+    const size_t reported_size =
+        (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
+    Kokkos::Profiling::deallocateData(arg_handle, arg_label, arg_alloc_ptr,
+                                      reported_size);
+  }
   if (arg_alloc_ptr) {
     omp_target_free(arg_alloc_ptr, omp_get_default_device());
   }
 }
+
+void OpenMPTargetSpace::deallocate(void* const arg_alloc_ptr,
+                                   const size_t arg_alloc_size) const {
+  deallocate("[unlabeled]", arg_alloc_ptr, arg_alloc_size);
+}
+
+void OpenMPTargetSpace::deallocate(const char* arg_label,
+                                   void* const arg_alloc_ptr,
+                                   const size_t arg_alloc_size,
+                                   const size_t arg_logical_size) const
+
+{
+  impl_deallocate(arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size);
+}
+
 }  // namespace Experimental
 }  // namespace Kokkos
 
@@ -103,14 +151,16 @@ SharedAllocationRecord<void, void> SharedAllocationRecord<
 
 SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
                        void>::~SharedAllocationRecord() {
-  m_space.deallocate(SharedAllocationRecord<void, void>::m_alloc_ptr,
-                     SharedAllocationRecord<void, void>::m_alloc_size);
+  auto alloc_size = SharedAllocationRecord<void, void>::m_alloc_size;
+  m_space.deallocate(m_label.c_str(),
+                     SharedAllocationRecord<void, void>::m_alloc_ptr,
+                     alloc_size, (alloc_size - sizeof(SharedAllocationHeader)));
 }
 
 SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
     SharedAllocationRecord(
-        const Kokkos::Experimental::OpenMPTargetSpace &arg_space,
-        const std::string &arg_label, const size_t arg_alloc_size,
+        const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
+        const std::string& arg_label, const size_t arg_alloc_size,
         const SharedAllocationRecord<void, void>::function_type arg_dealloc)
     // Pass through allocated [ SharedAllocationHeader , user_memory ]
     // Pass through deallocation function
@@ -119,9 +169,10 @@ SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
           &SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace,
                                   void>::s_root_record,
 #endif
-          reinterpret_cast<SharedAllocationHeader *>(arg_space.allocate(
-              sizeof(SharedAllocationHeader) + arg_alloc_size)),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+          Kokkos::Impl::checked_allocation_with_header(arg_space, arg_label,
+                                                       arg_alloc_size),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
       m_space(arg_space) {
   SharedAllocationHeader header;
 
@@ -131,45 +182,13 @@ SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>::
   // DeepCopy
   Kokkos::Impl::DeepCopy<Experimental::OpenMPTargetSpace, HostSpace>(
       RecordBase::m_alloc_ptr, &header, sizeof(SharedAllocationHeader));
+  Kokkos::fence(
+      "SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, "
+      "void>::SharedAllocationRecord(): fence after copying header from "
+      "HostSpace");
 }
 
 //----------------------------------------------------------------------------
-
-}  // namespace Impl
-}  // namespace Kokkos
-
-/*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-namespace Impl {
-
-template <class>
-struct ViewOperatorBoundsErrorAbort;
-
-template <>
-struct ViewOperatorBoundsErrorAbort<Kokkos::Experimental::OpenMPTargetSpace> {
-  static void apply(const size_t rank, const size_t n0, const size_t n1,
-                    const size_t n2, const size_t n3, const size_t n4,
-                    const size_t n5, const size_t n6, const size_t n7,
-                    const size_t i0, const size_t i1, const size_t i2,
-                    const size_t i3, const size_t i4, const size_t i5,
-                    const size_t i6, const size_t i7);
-};
-
-void ViewOperatorBoundsErrorAbort<Kokkos::Experimental::OpenMPTargetSpace>::
-    apply(const size_t rank, const size_t n0, const size_t n1, const size_t n2,
-          const size_t n3, const size_t n4, const size_t n5, const size_t n6,
-          const size_t n7, const size_t i0, const size_t i1, const size_t i2,
-          const size_t i3, const size_t i4, const size_t i5, const size_t i6,
-          const size_t i7) {
-  printf(
-      "View operator bounds error : rank(%lu) "
-      "dim(%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu) "
-      "index(%lu,%lu,%lu,%lu,%lu,%lu,%lu,%lu)",
-      rank, n0, n1, n2, n3, n4, n5, n6, n7, i0, i1, i2, i3, i4, i5, i6, i7);
-  // Kokkos::Impl::throw_runtime_exception( buffer );
-}
 
 }  // namespace Impl
 }  // namespace Kokkos

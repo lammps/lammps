@@ -11,7 +11,7 @@ Syntax
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol*
+* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol* or *wire*
 
   .. parsed-literal::
 
@@ -51,9 +51,13 @@ Syntax
        *slab* value = volfactor or *nozforce*
          volfactor = ratio of the total extended volume used in the
            2d approximation compared with the volume of the simulation domain
+         *ew2d* EW2D correction (available with ELECTRODE package)
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
+       *wire* value = volfactor (available with ELECTRODE package)
+         volfactor = ratio of the total extended dimension used in the 1d
+           approximation compared with the dimension of the simulation domain
 
 Examples
 """"""""

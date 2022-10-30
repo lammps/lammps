@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,7 +29,10 @@ using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosine::AngleCosine(LAMMPS *_lmp) : Angle(_lmp) {}
+AngleCosine::AngleCosine(LAMMPS *_lmp) : Angle(_lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -233,4 +236,23 @@ double AngleCosine::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   return k[type] * (1.0 + c);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleCosine::born_matrix(int type, int /*i1*/, int /*i2*/, int /*i3*/, double &du, double &du2)
+{
+  du2 = 0;
+  du = k[type];
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCosine::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  return nullptr;
 }

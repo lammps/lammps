@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(STORE_LOCAL,FixStoreLocal);
+FixStyle(STORE/LOCAL,FixStoreLocal);
 // clang-format on
 #else
 
@@ -50,22 +50,3 @@ class FixStoreLocal : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid keyword in fix store/local command
-
-Self-explanatory.
-
-E: Unused instance of fix store/local
-
-Instance of fix store/local is not associated with any other LAMMPS
-class such as a bond style, pair style, etc.
-
-*/

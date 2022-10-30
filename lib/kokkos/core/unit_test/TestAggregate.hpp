@@ -45,13 +45,7 @@
 #ifndef TEST_AGGREGATE_HPP
 #define TEST_AGGREGATE_HPP
 
-#include <gtest/gtest.h>
-
-#include <stdexcept>
-#include <sstream>
-#include <iostream>
-
-#include <impl/Kokkos_ViewArray.hpp>
+#include <Kokkos_Core.hpp>
 
 namespace Test {
 
@@ -78,8 +72,7 @@ void TestViewAggregate() {
   static_assert(a32_traits::rank == 2, "");
   static_assert(a32_traits::rank_dynamic == 2, "");
 
-  static_assert(std::is_same<typename flat_traits::specialize, void>::value,
-                "");
+  static_assert(std::is_void<typename flat_traits::specialize>::value, "");
   static_assert(flat_traits::rank == 3, "");
   static_assert(flat_traits::rank_dynamic == 2, "");
   static_assert(flat_traits::dimension::N2 == 32, "");
@@ -97,11 +90,11 @@ void TestViewAggregate() {
   a32_type x("test", 4, 5);
   a32_flat_type y(x);
 
-  ASSERT_EQ(x.extent(0), 4);
-  ASSERT_EQ(x.extent(1), 5);
-  ASSERT_EQ(y.extent(0), 4);
-  ASSERT_EQ(y.extent(1), 5);
-  ASSERT_EQ(y.extent(2), 32);
+  ASSERT_EQ(x.extent(0), 4u);
+  ASSERT_EQ(x.extent(1), 5u);
+  ASSERT_EQ(y.extent(0), 4u);
+  ASSERT_EQ(y.extent(1), 5u);
+  ASSERT_EQ(y.extent(2), 32u);
 
   // Initialize arrays from brace-init-list as for std::array.
   //

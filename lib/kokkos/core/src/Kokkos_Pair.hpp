@@ -48,6 +48,10 @@
 
 #ifndef KOKKOS_PAIR_HPP
 #define KOKKOS_PAIR_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PAIR
+#endif
 
 #include <Kokkos_Macros.hpp>
 #include <utility>
@@ -84,17 +88,28 @@ struct pair {
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
-  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(first_type const& f,
-                                             second_type const& s)
-      : first(f), second(s) {}
+#ifdef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC bug in NVHPC regarding constexpr
+                              // constructors used in device code
+  KOKKOS_FORCEINLINE_FUNCTION
+#else
+  KOKKOS_FORCEINLINE_FUNCTION constexpr
+#endif
+  pair(first_type const& f, second_type const& s) : first(f), second(s) {}
 
   /// \brief Copy constructor.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const pair<U, V>& p)
-      : first(p.first), second(p.second) {}
+#ifdef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC bug in NVHPC regarding constexpr
+                              // constructors used in device code
+  KOKKOS_FORCEINLINE_FUNCTION
+#else
+  KOKKOS_FORCEINLINE_FUNCTION constexpr
+#endif
+  pair(const pair<U, V>& p)
+      : first(p.first), second(p.second) {
+  }
 
   /// \brief Copy constructor.
   ///
@@ -326,8 +341,8 @@ struct pair<T1&, T2> {
 
 //! Equality operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION bool operator==(const pair<T1, T2>& lhs,
-                                            const pair<T1, T2>& rhs) {
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator==(const pair<T1, T2>& lhs,
+                                                      const pair<T1, T2>& rhs) {
   return lhs.first == rhs.first && lhs.second == rhs.second;
 }
 
@@ -504,4 +519,8 @@ struct is_pair_like<std::pair<T, U>> : std::true_type {};
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PAIR
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PAIR
+#endif
 #endif  // KOKKOS_PAIR_HPP

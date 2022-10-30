@@ -42,7 +42,6 @@
 //@HEADER
 */
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 #include <limits>
@@ -82,7 +81,7 @@ class ReduceFunctor {
   */
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, const volatile value_type& src) const {
+  void join(value_type& dst, const value_type& src) const {
     dst.value[0] += src.value[0];
     dst.value[1] += src.value[1];
     dst.value[2] += src.value[2];
@@ -129,8 +128,7 @@ class ReduceFunctorFinalTag {
   ReduceFunctorFinalTag(const size_type arg_nwork) : nwork(arg_nwork) {}
 
   KOKKOS_INLINE_FUNCTION
-  void join(const ReducerTag, volatile value_type& dst,
-            const volatile value_type& src) const {
+  void join(const ReducerTag, value_type& dst, const value_type& src) const {
     dst.value[0] += src.value[0];
     dst.value[1] += src.value[1];
     dst.value[2] += src.value[2];
@@ -174,7 +172,7 @@ class RuntimeReduceFunctor {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile ScalarType dst[], const volatile ScalarType src[]) const {
+  void join(ScalarType dst[], const ScalarType src[]) const {
     for (unsigned i = 0; i < value_count; ++i) dst[i] += src[i];
   }
 
@@ -218,7 +216,7 @@ class RuntimeReduceMinMax {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile ScalarType dst[], const volatile ScalarType src[]) const {
+  void join(ScalarType dst[], const ScalarType src[]) const {
     for (unsigned i = 0; i < value_count; ++i) {
       dst[i] = i % 2 ? (dst[i] < src[i] ? dst[i] : src[i])   // min
                      : (dst[i] > src[i] ? dst[i] : src[i]);  // max
@@ -520,6 +518,7 @@ class TestReduceDynamicView {
       // Test result to host pointer:
 
       std::string str("TestKernelReduce");
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
       if (count % 2 == 0) {
         Kokkos::parallel_reduce(nw, functor_type(nw, count),
                                 host_result.data());
@@ -533,16 +532,32 @@ class TestReduceDynamicView {
         ASSERT_EQ(host_result(j), (ScalarType)correct);
         host_result(j) = 0;
       }
+#endif
+
+      if (count % 2 == 0) {
+        Kokkos::parallel_reduce(nw, functor_type(nw, count), host_result);
+      } else {
+        Kokkos::parallel_reduce(str, nw, functor_type(nw, count), host_result);
+      }
+      Kokkos::fence("Fence before accessing result on the host");
+
+      for (unsigned j = 0; j < count; ++j) {
+        const uint64_t correct = 0 == j % 3 ? nw : nsum;
+        ASSERT_EQ(host_result(j), (ScalarType)correct);
+        host_result(j) = 0;
+      }
     }
   }
 };
 
 }  // namespace
 
+// FIXME_SYCL
 // FIXME_OPENMPTARGET : The feature works with LLVM/13 on NVIDIA
 // architectures. The jenkins currently tests with LLVM/12.
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
-    (KOKKOS_COMPILER_CLANG >= 1300)
+#if !defined(KOKKOS_ENABLE_SYCL) &&          \
+    (!defined(KOKKOS_ENABLE_OPENMPTARGET) || \
+     defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300))
 TEST(TEST_CATEGORY, int64_t_reduce) {
   TestReduce<int64_t, TEST_EXECSPACE>(0);
   TestReduce<int64_t, TEST_EXECSPACE>(1000000);
@@ -585,9 +600,9 @@ TEST(TEST_CATEGORY, int_combined_reduce) {
                           Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
                           functor_type(nw), result1, result2, result3);
 
-  ASSERT_EQ(nw, result1);
-  ASSERT_EQ(nsum, result2);
-  ASSERT_EQ(nsum, result3);
+  ASSERT_EQ(nw, uint64_t(result1));
+  ASSERT_EQ(nsum, uint64_t(result2));
+  ASSERT_EQ(nsum, uint64_t(result3));
 }
 
 TEST(TEST_CATEGORY, mdrange_combined_reduce) {
@@ -606,9 +621,9 @@ TEST(TEST_CATEGORY, mdrange_combined_reduce) {
                                                              {{nw, 1, 1}}),
       functor_type(nw), result1, result2, result3);
 
-  ASSERT_EQ(nw, result1);
-  ASSERT_EQ(nsum, result2);
-  ASSERT_EQ(nsum, result3);
+  ASSERT_EQ(nw, uint64_t(result1));
+  ASSERT_EQ(nsum, uint64_t(result2));
+  ASSERT_EQ(nsum, uint64_t(result3));
 }
 
 TEST(TEST_CATEGORY, int_combined_reduce_mixed) {
@@ -617,21 +632,35 @@ TEST(TEST_CATEGORY, int_combined_reduce_mixed) {
   constexpr uint64_t nw = 1000;
 
   uint64_t nsum = (nw / 2) * (nw + 1);
-
-  auto result1_v = Kokkos::View<int64_t, Kokkos::HostSpace>{"result1_v"};
-
-  int64_t result2 = 0;
-
-  auto result3_v = Kokkos::View<int64_t, Kokkos::HostSpace>{"result3_v"};
-
-  Kokkos::parallel_reduce("int_combined-reduce_mixed",
-                          Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
-                          functor_type(nw), result1_v, result2,
-                          Kokkos::Sum<int64_t, Kokkos::HostSpace>{result3_v});
-
-  ASSERT_EQ(nw, result1_v());
-  ASSERT_EQ(nsum, result2);
-  ASSERT_EQ(nsum, result3_v());
+  {
+    auto result1_v  = Kokkos::View<int64_t, Kokkos::HostSpace>{"result1_v"};
+    int64_t result2 = 0;
+    auto result3_v  = Kokkos::View<int64_t, Kokkos::HostSpace>{"result3_v"};
+    Kokkos::parallel_reduce("int_combined-reduce_mixed",
+                            Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
+                            functor_type(nw), result1_v, result2,
+                            Kokkos::Sum<int64_t, Kokkos::HostSpace>{result3_v});
+    ASSERT_EQ(int64_t(nw), result1_v());
+    ASSERT_EQ(int64_t(nsum), result2);
+    ASSERT_EQ(int64_t(nsum), result3_v());
+  }
+  {
+    using MemorySpace = typename TEST_EXECSPACE::memory_space;
+    auto result1_v    = Kokkos::View<int64_t, MemorySpace>{"result1_v"};
+    int64_t result2   = 0;
+    auto result3_v    = Kokkos::View<int64_t, MemorySpace>{"result3_v"};
+    Kokkos::parallel_reduce("int_combined-reduce_mixed",
+                            Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
+                            functor_type(nw), result1_v, result2,
+                            Kokkos::Sum<int64_t, MemorySpace>{result3_v});
+    int64_t result1;
+    Kokkos::deep_copy(result1, result1_v);
+    ASSERT_EQ(int64_t(nw), result1);
+    ASSERT_EQ(int64_t(nsum), result2);
+    int64_t result3;
+    Kokkos::deep_copy(result3, result3_v);
+    ASSERT_EQ(int64_t(nsum), result3);
+  }
 }
 #endif
 }  // namespace Test

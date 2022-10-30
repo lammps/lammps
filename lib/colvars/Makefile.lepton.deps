@@ -1,36 +1,46 @@
-lepton/src/CompiledExpression.o: lepton/src/CompiledExpression.cpp \
+
+$(COLVARS_OBJ_DIR)CompiledExpression.o: lepton/src/CompiledExpression.cpp \
  lepton/include/lepton/CompiledExpression.h \
  lepton/include/lepton/ExpressionTreeNode.h \
  lepton/include/lepton/windowsIncludes.h \
  lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
  lepton/include/lepton/Exception.h \
  lepton/include/lepton/ParsedExpression.h
-lepton/src/ExpressionProgram.o: lepton/src/ExpressionProgram.cpp \
+$(COLVARS_OBJ_DIR)CompiledVectorExpression.o: \
+ lepton/src/CompiledVectorExpression.cpp \
+ lepton/include/lepton/CompiledVectorExpression.h \
+ lepton/include/lepton/ExpressionTreeNode.h \
+ lepton/include/lepton/windowsIncludes.h \
+ lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
+ lepton/include/lepton/Exception.h \
+ lepton/include/lepton/ParsedExpression.h
+$(COLVARS_OBJ_DIR)ExpressionProgram.o: lepton/src/ExpressionProgram.cpp \
  lepton/include/lepton/ExpressionProgram.h \
  lepton/include/lepton/ExpressionTreeNode.h \
  lepton/include/lepton/windowsIncludes.h \
  lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
  lepton/include/lepton/Exception.h \
  lepton/include/lepton/ParsedExpression.h
-lepton/src/ExpressionTreeNode.o: lepton/src/ExpressionTreeNode.cpp \
+$(COLVARS_OBJ_DIR)ExpressionTreeNode.o: lepton/src/ExpressionTreeNode.cpp \
  lepton/include/lepton/ExpressionTreeNode.h \
  lepton/include/lepton/windowsIncludes.h \
  lepton/include/lepton/Exception.h lepton/include/lepton/Operation.h \
  lepton/include/lepton/CustomFunction.h lepton/include/lepton/Exception.h
-lepton/src/Operation.o: lepton/src/Operation.cpp \
+$(COLVARS_OBJ_DIR)Operation.o: lepton/src/Operation.cpp \
  lepton/include/lepton/Operation.h \
  lepton/include/lepton/windowsIncludes.h \
  lepton/include/lepton/CustomFunction.h lepton/include/lepton/Exception.h \
  lepton/include/lepton/ExpressionTreeNode.h lepton/src/MSVC_erfc.h
-lepton/src/ParsedExpression.o: lepton/src/ParsedExpression.cpp \
+$(COLVARS_OBJ_DIR)ParsedExpression.o: lepton/src/ParsedExpression.cpp \
  lepton/include/lepton/ParsedExpression.h \
  lepton/include/lepton/ExpressionTreeNode.h \
  lepton/include/lepton/windowsIncludes.h \
  lepton/include/lepton/CompiledExpression.h \
+ lepton/include/lepton/CompiledVectorExpression.h \
  lepton/include/lepton/ExpressionProgram.h \
  lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
  lepton/include/lepton/Exception.h
-lepton/src/Parser.o: lepton/src/Parser.cpp \
+$(COLVARS_OBJ_DIR)Parser.o: lepton/src/Parser.cpp \
  lepton/include/lepton/Parser.h lepton/include/lepton/windowsIncludes.h \
  lepton/include/lepton/CustomFunction.h lepton/include/lepton/Exception.h \
  lepton/include/lepton/ExpressionTreeNode.h \

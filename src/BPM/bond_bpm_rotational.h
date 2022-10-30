@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -34,7 +34,8 @@ class BondBPMRotational : public BondBPM {
   void settings(int, char **) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
-  void write_data(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
   double single(int, double, int, int, double &) override;
 
  protected:
@@ -42,11 +43,9 @@ class BondBPMRotational : public BondBPM {
   double *Fcr, *Fcs, *Tct, *Tcb;
   int smooth_flag;
 
-  double acos_limit(double);
-
-  double elastic_forces(int, int, int, double &, double, double, double, double *, double *,
-                        double *, double *, double *, double *);
-  void damping_forces(int, int, int, double &, double *, double *, double *, double *, double *);
+  double elastic_forces(int, int, int, double, double, double, double *, double *, double *,
+                        double *, double *, double *);
+  void damping_forces(int, int, int, double *, double *, double *, double *, double *);
 
   void allocate();
   void store_data();
@@ -57,27 +56,3 @@ class BondBPMRotational : public BondBPM {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Atom missing in BPM bond
-
-Bonded atom cannot be found
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Bond bpm/rotational requires atom style bpm/sphere
-
-Self-explanatory.
-
-E: Bond style bpm requires 1-3 and 1-4 special weights of 1.0
-
-Self-explanatory.
-
-W: Bond style bpm/rotational not intended for 2d use, may be inefficient
-
-This bond style will perform a lot of unnecessary calculations in 2d
-
-*/

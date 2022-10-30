@@ -80,7 +80,7 @@
  *  KOKKOS_COMPILER_PGI
  *  KOKKOS_COMPILER_MSVC
  *
- *  Macros for which compiler extension to use for atomics on intrinsice types
+ *  Macros for which compiler extension to use for atomics on intrinsic types
  *
  *  KOKKOS_ENABLE_CUDA_ATOMICS
  *  KOKKOS_ENABLE_GNU_ATOMICS
@@ -187,6 +187,12 @@
 #endif
 #endif
 
+#if defined(__NVCOMPILER)
+#define KOKKOS_COMPILER_NVHPC                              \
+  __NVCOMPILER_MAJOR__ * 100 + __NVCOMPILER_MINOR__ * 10 + \
+      __NVCOMPILER_PATCHLEVEL__
+#endif
+
 #if defined(_MSC_VER) && !defined(KOKKOS_COMPILER_INTEL)
 #define KOKKOS_COMPILER_MSVC _MSC_VER
 #endif
@@ -197,6 +203,16 @@
 //  where YYYY and MM are the year and month designation
 //  of the supported OpenMP API version.
 #endif  // #if defined( _OPENMP )
+
+#if defined(KOKKOS_ENABLE_CXX17)
+#define KOKKOS_IMPL_FALLTHROUGH [[fallthrough]];
+#elif defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU >= 710)
+#define KOKKOS_IMPL_FALLTHROUGH [[gnu::fallthrough]];
+#elif defined(KOKKOS_COMPILER_CLANG)
+#define KOKKOS_IMPL_FALLTHROUGH [[clang::fallthrough]];
+#else
+#define KOKKOS_IMPL_FALLTHROUGH
+#endif
 
 //----------------------------------------------------------------------------
 // Intel compiler macros
@@ -212,8 +228,8 @@
 #define KOKKOS_ENABLE_PRAGMA_SIMD 1
 #endif
 
-// FIXME Workaround for ICE with intel 17,18,19 in Trilinos
-#if (KOKKOS_COMPILER_INTEL <= 1900)
+// FIXME Workaround for ICE with intel 17,18,19,20,21 in Trilinos
+#if (KOKKOS_COMPILER_INTEL <= 2100)
 #define KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
 #endif
 
@@ -248,12 +264,13 @@
 #define KOKKOS_ENABLE_ASM 1
 #endif
 
-#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
 #if !defined(_WIN32)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
-#define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
+  inline __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE __attribute__((always_inline))
 #else
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION inline
 #endif
 #endif
 
@@ -304,9 +321,10 @@
 //#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
 //#define KOKKOS_ENABLE_PRAGMA_SIMD 1
 
-#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
-#define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
+  inline __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE __attribute__((always_inline))
 #endif
 
 #if !defined(KOKKOS_IMPL_ALIGN_PTR)
@@ -329,9 +347,10 @@
 #define KOKKOS_ENABLE_RFO_PREFETCH 1
 #endif
 
-#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
-#define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
+  inline __attribute__((always_inline))
+#define KOKKOS_IMPL_HOST_FORCEINLINE __attribute__((always_inline))
 #endif
 
 #define KOKKOS_RESTRICT __restrict__
@@ -364,12 +383,20 @@
 //----------------------------------------------------------------------------
 // Define function marking macros if compiler specific macros are undefined:
 
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION inline
+#endif
+
+#if !defined(KOKKOS_IMPL_HOST_FORCEINLINE)
+#define KOKKOS_IMPL_HOST_FORCEINLINE inline
+#endif
+
 #if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
-#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline
+#define KOKKOS_IMPL_FORCEINLINE_FUNCTION KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
 #endif
 
 #if !defined(KOKKOS_IMPL_FORCEINLINE)
-#define KOKKOS_IMPL_FORCEINLINE inline
+#define KOKKOS_IMPL_FORCEINLINE KOKKOS_IMPL_HOST_FORCEINLINE
 #endif
 
 #if !defined(KOKKOS_IMPL_INLINE_FUNCTION)
@@ -471,11 +498,6 @@
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA
 #elif defined(KOKKOS_ENABLE_HIP)
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP
-#if defined(__HIP__)
-// mark that HIP-clang can use __host__ and __device__
-// as valid overload criteria
-#define KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE
-#endif
 #elif defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -506,16 +528,71 @@
 
 //----------------------------------------------------------------------------
 
-#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || \
-    (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
-#if defined(KOKKOS_ENABLE_PERFORMANCE_POSIX_MEMALIGN)
-#define KOKKOS_ENABLE_POSIX_MEMALIGN 1
+// Remove surrounding parentheses if present
+#define KOKKOS_IMPL_STRIP_PARENS(X) KOKKOS_IMPL_ESC(KOKKOS_IMPL_ISH X)
+#define KOKKOS_IMPL_ISH(...) KOKKOS_IMPL_ISH __VA_ARGS__
+#define KOKKOS_IMPL_ESC(...) KOKKOS_IMPL_ESC_(__VA_ARGS__)
+#define KOKKOS_IMPL_ESC_(...) KOKKOS_IMPL_VAN_##__VA_ARGS__
+#define KOKKOS_IMPL_VAN_KOKKOS_IMPL_ISH
+
+#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_NVHPC)
+#include <nv/target>
+#define KOKKOS_IF_ON_DEVICE(CODE) NV_IF_TARGET(NV_IS_DEVICE, CODE)
+#define KOKKOS_IF_ON_HOST(CODE) NV_IF_TARGET(NV_IS_HOST, CODE)
+#endif
+
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#ifdef KOKKOS_COMPILER_NVHPC
+#define KOKKOS_IF_ON_DEVICE(CODE)   \
+  if (__builtin_is_device_code()) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)  \
+  }
+#define KOKKOS_IF_ON_HOST(CODE)      \
+  if (!__builtin_is_device_code()) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)   \
+  }
+#else
+// Base function.
+static constexpr bool kokkos_omp_on_host() { return true; }
+
+#pragma omp begin declare variant match(device = {kind(host)})
+static constexpr bool kokkos_omp_on_host() { return true; }
+#pragma omp end declare variant
+
+#pragma omp begin declare variant match(device = {kind(nohost)})
+static constexpr bool kokkos_omp_on_host() { return false; }
+#pragma omp end declare variant
+
+#define KOKKOS_IF_ON_DEVICE(CODE)        \
+  if constexpr (!kokkos_omp_on_host()) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)       \
+  }
+#define KOKKOS_IF_ON_HOST(CODE)         \
+  if constexpr (kokkos_omp_on_host()) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)      \
+  }
+#endif
+#endif
+
+#if !defined(KOKKOS_IF_ON_HOST) && !defined(KOKKOS_IF_ON_DEVICE)
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)) ||         \
+    (defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)) || \
+    (defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__))
+#define KOKKOS_IF_ON_DEVICE(CODE) \
+  { KOKKOS_IMPL_STRIP_PARENS(CODE) }
+#define KOKKOS_IF_ON_HOST(CODE) \
+  {}
+#else
+#define KOKKOS_IF_ON_DEVICE(CODE) \
+  {}
+#define KOKKOS_IF_ON_HOST(CODE) \
+  { KOKKOS_IMPL_STRIP_PARENS(CODE) }
 #endif
 #endif
 
 //----------------------------------------------------------------------------
-// If compiling with CUDA, we must use relocateable device code
-// to enable the task policy.
+// If compiling with CUDA, we must use relocatable device code to enable the
+// task policy.
 
 #if defined(KOKKOS_ENABLE_CUDA)
 #if defined(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
@@ -535,11 +612,11 @@
 #define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE
 #endif
 
-// Guard intel compiler version <= 1900
+// Guard intel compiler version 19 and older
 // intel error #2651: attribute does not apply to any entity
 // using <deprecated_type> KOKKOS_DEPRECATED = ...
 #if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS) && !defined(__NVCC__) && \
-    (KOKKOS_COMPILER_INTEL > 1900)
+    (!defined(KOKKOS_COMPILER_INTEL) || KOKKOS_COMPILER_INTEL >= 2021)
 #define KOKKOS_DEPRECATED [[deprecated]]
 #define KOKKOS_DEPRECATED_WITH_COMMENT(comment) [[deprecated(comment)]]
 #else
@@ -587,11 +664,9 @@
 #undef __CUDA_ARCH__
 #endif
 
-#if (defined(KOKKOS_COMPILER_MSVC) && !defined(KOKKOS_COMPILER_CLANG)) || \
-    (defined(KOKKOS_COMPILER_INTEL) && defined(_WIN32))
-#define KOKKOS_THREAD_LOCAL __declspec(thread)
-#else
-#define KOKKOS_THREAD_LOCAL __thread
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+#define KOKKOS_THREAD_LOCAL \
+  KOKKOS_DEPRECATED_WITH_COMMENT("Use thread_local instead!") thread_local
 #endif
 
 #if (defined(KOKKOS_IMPL_WINDOWS_CUDA) || defined(KOKKOS_COMPILER_MSVC)) && \

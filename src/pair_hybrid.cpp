@@ -3,7 +3,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,9 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
-  styles(nullptr), keywords(nullptr), multiple(nullptr), nmap(nullptr),
-  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
+PairHybrid::PairHybrid(LAMMPS *lmp) :
+    Pair(lmp), styles(nullptr), cutmax_style(nullptr), keywords(nullptr), multiple(nullptr),
+    nmap(nullptr), map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
 {
   nstyles = 0;
 
@@ -56,6 +56,7 @@ PairHybrid::~PairHybrid()
     }
   }
   delete[] styles;
+  delete[] cutmax_style;
   delete[] keywords;
   delete[] multiple;
 
@@ -115,7 +116,7 @@ void PairHybrid::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    respa = dynamic_cast<Respa *>( update->integrate);
+    respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -192,6 +193,12 @@ void PairHybrid::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::finish()
+{
+  for (int m = 0; m < nstyles; m++) styles[m]->finish();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -298,6 +305,8 @@ void PairHybrid::settings(int narg, char **arg)
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair *[narg];
+  cutmax_style = new double[narg];
+  memset(cutmax_style, 0.0, narg*sizeof(double));
   keywords = new char *[narg];
   multiple = new int[narg];
 
@@ -332,7 +341,7 @@ void PairHybrid::settings(int narg, char **arg)
     jarg = iarg + 1;
     while ((jarg < narg)
            && !force->pair_map->count(arg[jarg])
-           && !lmp->match_style("pair",arg[jarg])) jarg++;
+           && !lmp->match_style("pair", arg[jarg])) jarg++;
 
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
@@ -391,6 +400,7 @@ void PairHybrid::flags()
   // single_enable = 1 if all sub-styles are set
   // respa_enable = 1 if all sub-styles are set
   // manybody_flag = 1 if any sub-style is set
+  // born_matrix_enable = 1 if all sub-styles are set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
   // ewaldflag, pppmflag, msmflag, dipoleflag, dispersionflag, tip4pflag = 1
@@ -401,11 +411,13 @@ void PairHybrid::flags()
   compute_flag = 0;
   respa_enable = 0;
   restartinfo = 0;
+  born_matrix_enable = 0;
 
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->single_enable) ++single_enable;
     if (styles[m]->respa_enable) ++respa_enable;
     if (styles[m]->restartinfo) ++restartinfo;
+    if (styles[m]->born_matrix_enable) ++born_matrix_enable;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -422,6 +434,7 @@ void PairHybrid::flags()
   single_enable = (single_enable == nstyles) ? 1 : 0;
   respa_enable = (respa_enable == nstyles) ? 1 : 0;
   restartinfo = (restartinfo == nstyles) ? 1 : 0;
+  born_matrix_enable = (born_matrix_enable == nstyles) ? 1 : 0;
   init_svector();
 
   // set centroidstressflag for pair hybrid
@@ -712,6 +725,24 @@ double PairHybrid::init_one(int i, int j)
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
     }
     cutmax = MAX(cutmax,cut);
+
+    int istyle;
+    for (istyle = 0; istyle < nstyles; istyle++)
+      if (styles[istyle] == styles[map[i][j][k]]) break;
+
+    if (styles[istyle]->trim_flag) {
+
+      if (cut > cutmax_style[istyle]) {
+        cutmax_style[istyle] = cut;
+
+        for (auto &request : neighbor->get_pair_requests()) {
+          if (styles[istyle] == request->get_requestor() && styles[istyle]->trim_flag) {
+            request->set_cutoff(cutmax_style[istyle]);
+            break;
+          }
+        }
+      }
+    }
   }
 
   return cutmax;
@@ -774,6 +805,8 @@ void PairHybrid::read_restart(FILE *fp)
   delete[] compute_tally;
 
   styles = new Pair*[nstyles];
+  cutmax_style = new double[nstyles];
+  memset(cutmax_style, 0.0, nstyles*sizeof(double));
   keywords = new char*[nstyles];
   multiple = new int[nstyles];
 
@@ -865,6 +898,40 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
 
   if (single_extra) copy_svector(itype,jtype);
   return esum;
+}
+
+/* ----------------------------------------------------------------------
+   call sub-style to compute born matrix interaction
+   error if sub-style does not support born_matrix call
+   since overlay could have multiple sub-styles, sum results explicitly
+------------------------------------------------------------------------- */
+
+void PairHybrid::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                             double factor_coul, double factor_lj,
+                             double &dupair, double &du2pair)
+{
+  if (nmap[itype][jtype] == 0)
+    error->one(FLERR,"Invoked pair born_matrix on pair style none");
+
+  double du, du2;
+  dupair = du2pair = 0.0;
+
+  for (int m = 0; m < nmap[itype][jtype]; m++) {
+    if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
+      if (styles[map[itype][jtype][m]]->born_matrix_enable == 0)
+        error->one(FLERR,"Pair hybrid sub-style does not support born_matrix call");
+
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
+        error->one(FLERR,"Pair hybrid born_matrix calls do not support"
+                   " per sub-style special bond values");
+
+      du = du2 = 0.0;
+      styles[map[itype][jtype][m]]->born_matrix(i,j,itype,jtype,rsq,factor_coul,factor_lj,du,du2);
+      dupair += du;
+      du2pair += du2;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -972,8 +1039,7 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
   if (styles[m]->suffix_flag & (Suffix::INTEL|Suffix::GPU))
-    error->all(FLERR,"Pair_modify special is not compatible with "
-                     "suffix version of hybrid substyle");
+    error->all(FLERR,"Pair_modify special not compatible with suffix version of hybrid substyle");
 
   if (strcmp(arg[0],"lj/coul") == 0) {
     if (!special_lj[m]) special_lj[m] = new double[4];
@@ -1052,13 +1118,11 @@ void *PairHybrid::extract(const char *str, int &dim)
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
       if (couldim != -1 && dim != couldim)
-        error->all(FLERR,
-                   "Coulomb styles of pair hybrid sub-styles do not match");
+        error->all(FLERR, "Coulomb styles of pair hybrid sub-styles do not match");
       auto p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
-        error->all(FLERR,
-                   "Coulomb cutoffs of pair hybrid sub-styles do not match");
+        error->all(FLERR, "Coulomb cutoffs of pair hybrid sub-styles do not match");
       if (dim == 0) {
         cutptr = ptr;
         cutvalue = newvalue;

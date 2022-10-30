@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -38,8 +38,8 @@ enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *lmp) :
-  PairLubricatePoly(lmp), ThrOMP(lmp, THR_PAIR)
+PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *_lmp) :
+  PairLubricatePoly(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;

@@ -49,28 +49,6 @@
 #include <sstream>
 #include <type_traits>
 
-#if defined(__clang__)
-#define is_clang true
-#else
-#define is_clang false
-#endif
-
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
-// for avoid pre-processor block
-namespace Kokkos {
-namespace Experimental {
-class OpenMPTarget;
-}
-}  // namespace Kokkos
-#endif
-
-#if !defined(KOKKOS_ENABLE_CUDA)
-// for avoid pre-processor block
-namespace Kokkos {
-class Cuda;
-}  // namespace Kokkos
-#endif
-
 namespace Test {
 
 template <class ExecutionSpace, class DataType>
@@ -105,25 +83,24 @@ struct TestTeamScan {
   }
 
   auto operator()(int32_t _M, int32_t _N) {
-    std::cout << "Launching " << Kokkos::Impl::demangle(typeid(*this).name())
-              << " with "
-              << "M=" << _M << " and N=" << _N << "..." << std::endl;
+    std::stringstream ss;
+    ss << Kokkos::Impl::demangle(typeid(*this).name());
+    ss << "(/*M=*/" << _M << ", /*N=*/" << _N << ")";
+    std::string const test_id = ss.str();
+
     M   = _M;
     N   = _N;
     a_d = view_type("a_d", M, N);
     a_r = view_type("a_r", M, N);
-    // Set team size explicitly to
-    // a) check whether this works in CPU backends with team_size > 1 and
-    // b) make sure we have a power of 2 and for GPU backends due to limitation
-    // of the scan algorithm implemented in CUDA etc.
-    int team_size = 1;
-    if (ExecutionSpace().concurrency() > 2) {
-      if (ExecutionSpace().concurrency() > 10000)
-        team_size = 128;
-      else
-        team_size = 3;
-    }
-    Kokkos::parallel_for(policy_type(M, team_size), *this);
+
+    // Set team size explicitly to check whether non-power-of-two team sizes can
+    // be used.
+    if (ExecutionSpace().concurrency() > 10000)
+      Kokkos::parallel_for(policy_type(M, 127), *this);
+    else if (ExecutionSpace().concurrency() > 2)
+      Kokkos::parallel_for(policy_type(M, 3), *this);
+    else
+      Kokkos::parallel_for(policy_type(M, 1), *this);
 
     auto a_i = Kokkos::create_mirror_view(a_d);
     auto a_o = Kokkos::create_mirror_view(a_r);
@@ -131,30 +108,32 @@ struct TestTeamScan {
     Kokkos::deep_copy(a_o, a_r);
 
     for (int32_t i = 0; i < M; ++i) {
-      value_type _scan_real = 0;
-      value_type _scan_calc = 0;
-      value_type _epsilon   = std::numeric_limits<value_type>::epsilon();
+      value_type scan_ref = 0;
+      value_type scan_calc;
+      value_type abs_err = 0;
       // each fp addition is subject to small loses in precision and these
       // compound as loop so we set the base error to be the machine epsilon and
       // then add in another epsilon each iteration. For example, with CUDA
       // backend + 32-bit float + large N values (e.g. 1,000) + high
       // thread-counts (e.g. 1024), this test will fail w/o epsilon
       // accommodation
+      constexpr value_type epsilon = std::numeric_limits<value_type>::epsilon();
       for (int32_t j = 0; j < N; ++j) {
-        _scan_real += a_i(i, j);
-        _scan_calc     = a_o(i, j);
-        auto _get_mesg = [=]() {
-          std::stringstream ss, idx;
-          idx << "(" << i << ", " << j << ") = ";
-          ss << "a_d" << idx.str() << a_i(i, j);
-          ss << ", a_r" << idx.str() << a_o(i, j);
-          return ss.str();
-        };
+        scan_ref += a_i(i, j);
+        scan_calc = a_o(i, j);
         if (std::is_integral<value_type>::value) {
-          ASSERT_EQ(_scan_real, _scan_calc) << _get_mesg();
+          ASSERT_EQ(scan_ref, scan_calc)
+              << test_id
+              << " calculated scan output value differs from reference at "
+                 "indices i="
+              << i << " and j=" << j;
         } else {
-          _epsilon += std::numeric_limits<value_type>::epsilon();
-          ASSERT_NEAR(_scan_real, _scan_calc, _epsilon) << _get_mesg();
+          abs_err += epsilon;
+          ASSERT_NEAR(scan_ref, scan_calc, abs_err)
+              << test_id
+              << " calculated scan output value differs from reference at "
+                 "indices i="
+              << i << " and j=" << j;
         }
       }
     }

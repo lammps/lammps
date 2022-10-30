@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -39,7 +39,6 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) : Comput
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
-  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 3;
   extscalar = 1;

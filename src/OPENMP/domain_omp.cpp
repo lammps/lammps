@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,7 +47,7 @@ void DomainOMP::pbc()
   // verify owned atoms have valid numerical coords
   // may not if computed pairwise force between 2 atoms at same location
 
-  const double *_noalias const coord = atom->x[0];  // NOLINT
+  const double *_noalias const coord = atom->x[0];    // NOLINT
   const int n3 = 3 * nlocal;
   int flag = 0;
 #if defined(_OPENMP)    // clang-format off

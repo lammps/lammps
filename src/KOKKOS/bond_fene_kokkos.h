@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -100,16 +100,3 @@ class BondFENEKokkos : public BondFENE {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-W: FENE bond too long
-
-A FENE bond has stretched dangerously far.  It's interaction strength
-will be truncated to attempt to prevent the bond from blowing up.
-
-E: Bad FENE bond
-
-Two atoms in a FENE bond have become so far apart that the bond cannot
-be computed.
-
-*/

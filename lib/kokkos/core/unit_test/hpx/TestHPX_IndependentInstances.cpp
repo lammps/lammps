@@ -46,14 +46,13 @@
 #include <TestHPX_Category.hpp>
 
 #include <hpx/config.hpp>
-#include <hpx/include/lcos.hpp>
+#include <hpx/local/future.hpp>
 
 #ifdef KOKKOS_ENABLE_HPX_ASYNC_DISPATCH
 #ifndef HPX_COMPUTE_DEVICE_CODE
 
-namespace Test {
-
 namespace {
+
 struct FunctorInitConstant {
   Kokkos::View<int *, Kokkos::Experimental::HPX> a;
   int c;
@@ -107,82 +106,75 @@ struct FunctorReduce {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, int &lsum) const { lsum += a(i); }
 };
-}  // namespace
 
 TEST(hpx, independent_instances) {
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
-
   const int n = 100;
   const int c = 1;
   const int d = 3;
 
-  {
-    Kokkos::View<int *, Kokkos::Experimental::HPX> v1("v1", n);
-    Kokkos::View<int *, Kokkos::Experimental::HPX> v2("v2", n);
-    Kokkos::View<int *, Kokkos::Experimental::HPX> v3("v3", n);
-    Kokkos::View<int *, Kokkos::Experimental::HPX> v4("v4", n);
-    Kokkos::View<int, Kokkos::Experimental::HPX> sum_v("sum_v");
+  Kokkos::View<int *, Kokkos::Experimental::HPX> v1("v1", n);
+  Kokkos::View<int *, Kokkos::Experimental::HPX> v2("v2", n);
+  Kokkos::View<int *, Kokkos::Experimental::HPX> v3("v3", n);
+  Kokkos::View<int *, Kokkos::Experimental::HPX> v4("v4", n);
+  Kokkos::View<int, Kokkos::Experimental::HPX> sum_v("sum_v");
 
-    Kokkos::Experimental::HPX hpx1(
-        Kokkos::Experimental::HPX::instance_mode::independent);
-    Kokkos::parallel_for(
-        "Test::hpx::independent_instances::init",
-        Kokkos::Experimental::require(
-            Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx1, 0, n),
-            Kokkos::Experimental::WorkItemProperty::HintLightWeight),
-        FunctorInitConstant(v1, c));
+  Kokkos::Experimental::HPX hpx1(
+      Kokkos::Experimental::HPX::instance_mode::independent);
+  Kokkos::parallel_for(
+      "Test::hpx::independent_instances::init",
+      Kokkos::Experimental::require(
+          Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx1, 0, n),
+          Kokkos::Experimental::WorkItemProperty::HintLightWeight),
+      FunctorInitConstant(v1, c));
 
-    Kokkos::Experimental::HPX hpx2(hpx1.impl_get_future());
-    Kokkos::parallel_for(
-        "Test::hpx::independent_instances::add",
-        Kokkos::Experimental::require(
-            Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx2, 0, n),
-            Kokkos::Experimental::WorkItemProperty::HintLightWeight),
-        FunctorAdd(v1, v2, d));
+  Kokkos::Experimental::HPX hpx2(hpx1.impl_get_future());
+  Kokkos::parallel_for(
+      "Test::hpx::independent_instances::add",
+      Kokkos::Experimental::require(
+          Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx2, 0, n),
+          Kokkos::Experimental::WorkItemProperty::HintLightWeight),
+      FunctorAdd(v1, v2, d));
 
-    Kokkos::Experimental::HPX hpx3(hpx1.impl_get_future());
-    Kokkos::parallel_for(
-        "Test::hpx::independent_instances::add_index",
-        Kokkos::Experimental::require(
-            Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx3, 0, n),
-            Kokkos::Experimental::WorkItemProperty::HintLightWeight),
-        FunctorAddIndex(v1, v3));
+  Kokkos::Experimental::HPX hpx3(hpx1.impl_get_future());
+  Kokkos::parallel_for(
+      "Test::hpx::independent_instances::add_index",
+      Kokkos::Experimental::require(
+          Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx3, 0, n),
+          Kokkos::Experimental::WorkItemProperty::HintLightWeight),
+      FunctorAddIndex(v1, v3));
 
-    // NOTE: This monstrosity is used to collapse a future<tuple<future<void>,
-    // future<void>>> (return type of when_all) into a future<void> which is
-    // ready whenever the un-collapsed future would've been ready. HPX does not
-    // currently have the functionality to collapse this automatically.
-    Kokkos::Experimental::HPX hpx4(hpx::util::get<0>(hpx::split_future(
-        hpx::when_all(hpx2.impl_get_future(), hpx3.impl_get_future()))));
-    Kokkos::parallel_for(
-        "Test::hpx::independent_instances::pointwise_sum",
-        Kokkos::Experimental::require(
-            Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx4, 0, n),
-            Kokkos::Experimental::WorkItemProperty::HintLightWeight),
-        FunctorPointwiseSum(v2, v3, v4));
+  // NOTE: This monstrosity is used to collapse a future<tuple<future<void>,
+  // future<void>>> (return type of when_all) into a future<void> which is
+  // ready whenever the un-collapsed future would've been ready. HPX does not
+  // currently have the functionality to collapse this automatically.
+  Kokkos::Experimental::HPX hpx4(hpx::get<0>(hpx::split_future(
+      hpx::when_all(hpx2.impl_get_future(), hpx3.impl_get_future()))));
+  Kokkos::parallel_for(
+      "Test::hpx::independent_instances::pointwise_sum",
+      Kokkos::Experimental::require(
+          Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx4, 0, n),
+          Kokkos::Experimental::WorkItemProperty::HintLightWeight),
+      FunctorPointwiseSum(v2, v3, v4));
 
-    Kokkos::parallel_reduce(
-        "Test::hpx::independent_instances::reduce",
-        Kokkos::Experimental::require(
-            Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx4, 0, n),
-            Kokkos::Experimental::WorkItemProperty::HintLightWeight),
-        FunctorReduce(v4), Kokkos::Sum<int>(sum_v));
+  Kokkos::parallel_reduce(
+      "Test::hpx::independent_instances::reduce",
+      Kokkos::Experimental::require(
+          Kokkos::RangePolicy<Kokkos::Experimental::HPX>(hpx4, 0, n),
+          Kokkos::Experimental::WorkItemProperty::HintLightWeight),
+      FunctorReduce(v4), Kokkos::Sum<int>(sum_v));
 
-    hpx4.fence();
+  hpx4.fence();
 
-    ASSERT_EQ(true, hpx1.impl_get_future().is_ready());
-    ASSERT_EQ(true, hpx2.impl_get_future().is_ready());
-    ASSERT_EQ(true, hpx3.impl_get_future().is_ready());
-    ASSERT_EQ(true, hpx4.impl_get_future().is_ready());
+  ASSERT_EQ(true, hpx1.impl_get_future().is_ready());
+  ASSERT_EQ(true, hpx2.impl_get_future().is_ready());
+  ASSERT_EQ(true, hpx3.impl_get_future().is_ready());
+  ASSERT_EQ(true, hpx4.impl_get_future().is_ready());
 
-    const int expected_sum = n * (2 * c + d) + (n * (n - 1) / 2);
-    ASSERT_EQ(expected_sum, sum_v());
-  }
-
-  Kokkos::finalize();
+  const int expected_sum = n * (2 * c + d) + (n * (n - 1) / 2);
+  ASSERT_EQ(expected_sum, sum_v());
 }
-}  // namespace Test
+
+}  // namespace
 
 #endif
 #endif

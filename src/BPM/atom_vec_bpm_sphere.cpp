@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,6 +14,7 @@
 #include "atom_vec_bpm_sphere.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_adapt.h"
@@ -43,26 +44,24 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  // clang-format off
-  fields_grow       = (char *) "molecule num_bond bond_type bond_atom nspecial special radius rmass "
-                               "omega torque quat";
-  fields_copy       = (char *) "molecule num_bond bond_type bond_atom nspecial special radius rmass "
-                               "omega quat";
-  fields_comm       = (char *) "";
-  fields_comm_vel   = (char *) "omega quat";
-  fields_reverse    = (char *) "torque";
-  fields_border     = (char *) "molecule radius rmass";
-  fields_border_vel = (char *) "molecule radius rmass omega quat";
-  fields_exchange   = (char *) "molecule num_bond bond_type bond_atom nspecial special radius rmass "
-                               "omega quat";
-  fields_restart    = (char *) "molecule num_bond bond_type bond_atom radius rmass omega quat";
-  fields_create     = (char *) "molecule num_bond nspecial radius rmass omega quat";
-  fields_data_atom  = (char *) "id molecule type radius rmass x";
-  fields_data_vel   = (char *) "id v omega";
-  // clang-format on
+  fields_grow = {"molecule", "num_bond", "bond_type", "bond_atom", "nspecial", "special",
+                 "radius",   "rmass",    "omega",     "torque",    "quat"};
+  fields_copy = {"molecule", "num_bond", "bond_type", "bond_atom", "nspecial",
+                 "special",  "radius",   "rmass",     "omega",     "quat"};
+  fields_comm_vel = {"omega", "quat"};
+  fields_reverse = {"torque"};
+  fields_border = {"molecule", "radius", "rmass"};
+  fields_border_vel = {"molecule", "radius", "rmass", "omega", "quat"};
+  fields_exchange = {"molecule", "num_bond", "bond_type", "bond_atom", "nspecial",
+                     "special",  "radius",   "rmass",     "omega",     "quat"};
+  fields_restart = {"molecule", "num_bond", "bond_type", "bond_atom",
+                    "radius",   "rmass",    "omega",     "quat"};
+  fields_create = {"molecule", "num_bond", "nspecial", "radius", "rmass", "omega", "quat"};
+  fields_data_atom = {"id", "molecule", "type", "radius", "rmass", "x"};
+  fields_data_vel = {"id", "v", "omega"};
 
   bond_per_atom = 0;
-  bond_negative = NULL;
+  bond_negative = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -83,8 +82,8 @@ void AtomVecBPMSphere::process_args(int narg, char **arg)
   // dynamic particle radius and mass must be communicated every step
 
   if (radvary) {
-    fields_comm = (char *) "radius rmass";
-    fields_comm_vel = (char *) "radius rmass omega";
+    fields_comm = {"radius", "rmass"};
+    fields_comm_vel = {"radius", "rmass", "omega"};
   }
 
   // delay setting up of fields until now
@@ -100,12 +99,16 @@ void AtomVecBPMSphere::init()
 
   // check if optional radvary setting should have been set to 1
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style, "adapt") == 0) {
-      FixAdapt *fix = (FixAdapt *) modify->fix[i];
-      if (fix->diamflag && radvary == 0)
+  for (auto ifix : modify->get_fix_by_style("^adapt")) {
+    if (radvary == 0) {
+      if ((strcmp(ifix->style, "adapt") == 0) && (dynamic_cast<FixAdapt *>(ifix)->diamflag))
         error->all(FLERR, "Fix adapt changes atom radii but atom_style bpm/sphere is not dynamic");
+      // cannot properly check for fix adapt/fep since its header is optional
+      if ((strcmp(ifix->style, "adapt/fep") == 0) && (comm->me == 0))
+        error->warning(
+            FLERR, "Fix adapt/fep may change atom radii but atom_style bpm/sphere is not dynamic");
     }
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -83,13 +83,6 @@ ThirdOrderKokkos::ThirdOrderKokkos(LAMMPS *lmp) : ThirdOrder(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-ThirdOrderKokkos::~ThirdOrderKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ThirdOrderKokkos::command(int narg, char **arg)
 {
   atomKK->sync(Host, X_MASK|RMASS_MASK|TYPE_MASK);
@@ -160,7 +153,7 @@ void ThirdOrderKokkos::update_force()
 {
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
+  int n_post_force = modify->n_post_force_any;
 
   lmp->kokkos->auto_sync = 0;
 
@@ -172,7 +165,7 @@ void ThirdOrderKokkos::update_force()
   force_clear();
 
   neighbor->ago = 0;
-  if ((modify->get_fix_by_id("package_intel")) ? true : false)
+  if ((modify->get_fix_by_id("package_intel")) != nullptr)
     neighbor->decide();
 
   if (n_pre_force) {

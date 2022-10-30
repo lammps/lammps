@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,6 +42,7 @@ class PairZero : public Pair {
   void compute_outer(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
+  void init_style() override;
   double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
@@ -55,30 +56,10 @@ class PairZero : public Pair {
   double cut_global;
   double **cut;
   int coeffflag;
+  int fullneighflag;    // 0 for half list, 1 for full list
 
   virtual void allocate();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-U: Pair cutoff < Respa interior cutoff
-
-One or more pairwise cutoffs are too short to use with the specified
-rRESPA cutoffs.
-
-*/

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -186,7 +186,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   if (atom->tag_consecutive() == 0)
     error->all(FLERR,"Fix ipi requires consecutive atom IDs");
 
-  if (strcmp(arg[1],"all"))
+  if (strcmp(arg[1],"all") != 0)
     error->warning(FLERR,"Fix ipi always uses group all");
 
   host = strdup(arg[3]);

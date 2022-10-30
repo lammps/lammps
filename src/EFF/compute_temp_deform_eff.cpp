@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -74,7 +74,7 @@ void ComputeTempDeformEff::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag == Domain::X_REMAP &&
+      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag == Domain::X_REMAP &&
           comm->me == 0)
         error->warning(FLERR,"Using compute temp/deform/eff with inconsistent "
                        "fix deform remap option");

@@ -16,7 +16,7 @@ Syntax
 * type = atom type to assign to inserted particles (offset for molecule insertion)
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
-* keyword = *region* or *diam* or *vol* or *rate* or *dens* or *vel* or *mol* or *rigid* or *shake* or *ignore*
+* keyword = *region* or *diam* or *id* or *vol* or *rate* or *dens* or *vel* or *mol* or *molfrac* or *rigid* or *shake* or *ignore*
 
   .. parsed-literal::
 

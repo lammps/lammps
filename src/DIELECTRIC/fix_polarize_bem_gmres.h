@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -81,6 +81,7 @@ class FixPolarizeBEMGMRES : public Fix {
   int randomized;       // 1 if generating random induced charges, 0 otherwise
   double ave_charge;    // average random charge
   int seed_charge;
+  double epsilon0e2q;    // convert epsilon0 times efield to unit of charge per area
 
   double *c, *g, *h, *r, *s, *v, *y;    // vectors used by the solver
   double *rhs;                          // right-hand side vector of the equation Ax = b
@@ -108,13 +109,3 @@ class FixPolarizeBEMGMRES : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

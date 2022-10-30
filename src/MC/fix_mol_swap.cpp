@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -390,7 +390,7 @@ double FixMolSwap::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
-  if (modify->n_post_force) modify->post_force(vflag);
+  if (modify->n_post_force_any) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();

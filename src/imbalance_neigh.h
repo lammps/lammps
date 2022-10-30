@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,19 +38,3 @@ class ImbalanceNeigh : public Imbalance {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-W: Balance weight neigh skipped b/c no list found
-
-UNDOCUMENTED
-
-E: Balance weight <= 0.0
-
-UNDOCUMENTED
-
-*/

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,13 +27,7 @@ PairStyle(sw/kk/host,PairSWKokkos<LMPHostType>);
 #include "pair_kokkos.h"
 
 template<int NEIGHFLAG, int EVFLAG>
-struct TagPairSWComputeHalf{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairSWComputeFullA{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairSWComputeFullB{};
+struct TagPairSWCompute{};
 
 struct TagPairSWComputeShortNeigh{};
 
@@ -42,7 +36,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairSWKokkos : public PairSW {
  public:
-  enum {EnabledNeighFlags=FULL};
+  enum {EnabledNeighFlags=HALF|HALFTHREAD};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -56,27 +50,11 @@ class PairSWKokkos : public PairSW {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
+  void operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairSWComputeShortNeigh, const int&) const;
@@ -120,10 +98,6 @@ class PairSWKokkos : public PairSW {
   KOKKOS_INLINE_FUNCTION
   void threebody_kk(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                     F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
-                 F_FLOAT *) const;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
@@ -178,10 +152,3 @@ class PairSWKokkos : public PairSW {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with pair sw/kk
-
-Self-explanatory.
-
-*/

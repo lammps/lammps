@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,16 +29,22 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) : BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr)
+BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
+    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr)
 {
   partial_flag = 1;
   smooth_flag = 1;
+
+  single_extra = 1;
+  svector = new double[1];
 }
 
 /* ---------------------------------------------------------------------- */
 
 BondBPMSpring::~BondBPMSpring()
 {
+  delete[] svector;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);
@@ -290,11 +296,11 @@ void BondBPMSpring::settings(int narg, char **arg)
   for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "smooth") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command");
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for smooth");
       smooth_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else {
-      error->all(FLERR, "Illegal bond_style command");
+      error->all(FLERR, "Illegal bond bpm command, invalid argument {}", arg[iarg]);
     }
   }
 }
@@ -305,6 +311,9 @@ void BondBPMSpring::settings(int narg, char **arg)
 
 void BondBPMSpring::write_restart(FILE *fp)
 {
+  BondBPM::write_restart(fp);
+  write_restart_settings(fp);
+
   fwrite(&k[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&ecrit[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&gamma[1], sizeof(double), atom->nbondtypes, fp);
@@ -316,6 +325,8 @@ void BondBPMSpring::write_restart(FILE *fp)
 
 void BondBPMSpring::read_restart(FILE *fp)
 {
+  BondBPM::read_restart(fp);
+  read_restart_settings(fp);
   allocate();
 
   if (comm->me == 0) {
@@ -331,13 +342,22 @@ void BondBPMSpring::read_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to data file
-------------------------------------------------------------------------- */
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
 
-void BondBPMSpring::write_data(FILE *fp)
+void BondBPMSpring::write_restart_settings(FILE *fp)
 {
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp, "%d %g %g %g\n", i, k[i], ecrit[i], gamma[i]);
+  fwrite(&smooth_flag, sizeof(int), 1, fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void BondBPMSpring::read_restart_settings(FILE *fp)
+{
+  if (comm->me == 0) utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -375,6 +395,10 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
     smooth = 1 - smooth;
     fforce *= smooth;
   }
+
+  // set single_extra quantities
+
+  svector[0] = r0;
 
   return 0.0;
 }

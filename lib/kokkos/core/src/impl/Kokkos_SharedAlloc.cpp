@@ -42,13 +42,16 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Core.hpp>
 
 namespace Kokkos {
 namespace Impl {
 
-KOKKOS_THREAD_LOCAL int SharedAllocationRecord<void, void>::t_tracking_enabled =
-    1;
+thread_local int SharedAllocationRecord<void, void>::t_tracking_enabled = 1;
 
 #ifdef KOKKOS_ENABLE_DEBUG
 bool SharedAllocationRecord<void, void>::is_sane(
@@ -177,7 +180,8 @@ SharedAllocationRecord<void, void>::SharedAllocationRecord(
     SharedAllocationRecord<void, void>* arg_root,
 #endif
     SharedAllocationHeader* arg_alloc_ptr, size_t arg_alloc_size,
-    SharedAllocationRecord<void, void>::function_type arg_dealloc)
+    SharedAllocationRecord<void, void>::function_type arg_dealloc,
+    const std::string& label)
     : m_alloc_ptr(arg_alloc_ptr),
       m_alloc_size(arg_alloc_size),
       m_dealloc(arg_dealloc)
@@ -188,7 +192,8 @@ SharedAllocationRecord<void, void>::SharedAllocationRecord(
       m_next(nullptr)
 #endif
       ,
-      m_count(0) {
+      m_count(0),
+      m_label(label) {
   if (nullptr != arg_alloc_ptr) {
 #ifdef KOKKOS_ENABLE_DEBUG
     // Insert into the root double-linked list for tracking
@@ -236,7 +241,7 @@ SharedAllocationRecord<void, void>* SharedAllocationRecord<
   const int old_count = Kokkos::atomic_fetch_sub(&arg_record->m_count, 1);
 
   if (old_count == 1) {
-    if (!Kokkos::is_initialized()) {
+    if (is_finalized()) {
       std::stringstream ss;
       ss << "Kokkos allocation \"";
       ss << arg_record->get_label();

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,27 +58,3 @@ class PairLJCutDipoleLong : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_style command
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dipole/long requires atom attributes q, mu, torque
-
-The atom style defined does not have these attributes.
-
-E: Cannot (yet) use 'electron' units with dipoles
-
-This feature is not yet supported.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

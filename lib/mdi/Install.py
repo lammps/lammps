@@ -27,19 +27,18 @@ specify -m and optionally -e, order does not matter
 
 Examples:
 
-make lib-poems args="-m serial" # build POEMS lib with same settings as in the serial Makefile in src
-make lib-colvars args="-m mpi"  # build COLVARS lib with same settings as in the mpi Makefile in src
-make lib-meam args="-m ifort"   # build MEAM lib with custom Makefile.ifort (using Intel Fortran)
+make lib-mdi args="-m mpi" # build MDI lib with same settings as in the mpi Makefile in src
 """
 
 # settings
 
-version = "1.3.0"
+version = "1.4.12"
 url = "https://github.com/MolSSI-MDI/MDI_Library/archive/v%s.tar.gz" % version
 
 # known checksums for different MDI versions. used to validate the download.
 checksums = { \
-              '1.3.0' : '8a8da217148bd9b700083b67d795af5e', \
+              '1.4.11' : '3791fe5081405c14aac07d4687f1cc58', \
+              '1.4.12' : '7a222353ae8e03961d5365e6cd48baee', \
               }
 
 # print error message or help
@@ -177,7 +176,7 @@ try:
 except:
   n_cpus = 1
 
-print("Building lib%s.so ..." % lib)
+print("Building lib%s.a ..." % lib)
 cmd = "make -f Makefile.auto clean; make -f Makefile.auto -j%d" % n_cpus
 txt = subprocess.check_output(cmd,shell=True,stderr=subprocess.STDOUT)
 print(txt.decode('UTF-8'))
@@ -201,10 +200,10 @@ makefile_lammps.write(str(rpath_option) + "\n")
 makefile_lammps.close()
 
 
-shared_files = glob.glob( os.path.join( homepath, "liblink", "lib%s.so*" % lib) )
+shared_files = glob.glob( os.path.join( homepath, "liblink", "lib%s.a" % lib) )
 if len(shared_files) > 0:
   print("Build was successful")
 else:
-  error("Build of lib/%s/lib%s.so was NOT successful" % (lib,lib))
+  error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))
 if has_extramake and not os.path.exists("Makefile.lammps"):
   print("lib/%s/Makefile.lammps was NOT created" % lib)

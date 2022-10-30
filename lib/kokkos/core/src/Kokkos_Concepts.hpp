@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_CORE_CONCEPTS_HPP
 #define KOKKOS_CORE_CONCEPTS_HPP
 
@@ -49,6 +58,8 @@
 
 // Needed for 'is_space<S>::host_mirror_space
 #include <Kokkos_Core_fwd.hpp>
+
+#include <Kokkos_DetectionIdiom.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -146,24 +157,20 @@ struct LaunchBounds {
 
 namespace Kokkos {
 
-#define KOKKOS_IMPL_IS_CONCEPT(CONCEPT)                                        \
-  template <typename T>                                                        \
-  struct is_##CONCEPT {                                                        \
-   private:                                                                    \
-    template <typename, typename = std::true_type>                             \
-    struct have : std::false_type {};                                          \
-    template <typename U>                                                      \
-    struct have<U, typename std::is_base_of<typename U::CONCEPT, U>::type>     \
-        : std::true_type {};                                                   \
-    template <typename U>                                                      \
-    struct have<U,                                                             \
-                typename std::is_base_of<typename U::CONCEPT##_type, U>::type> \
-        : std::true_type {};                                                   \
-                                                                               \
-   public:                                                                     \
-    static constexpr bool value =                                              \
-        is_##CONCEPT::template have<typename std::remove_cv<T>::type>::value;  \
-    constexpr operator bool() const noexcept { return value; }                 \
+#define KOKKOS_IMPL_IS_CONCEPT(CONCEPT)                        \
+  template <typename T>                                        \
+  struct is_##CONCEPT {                                        \
+   private:                                                    \
+    template <typename U>                                      \
+    using have_t = typename U::CONCEPT;                        \
+    template <typename U>                                      \
+    using have_type_t = typename U::CONCEPT##_type;            \
+                                                               \
+   public:                                                     \
+    static constexpr bool value =                              \
+        std::is_base_of<detected_t<have_t, T>, T>::value ||    \
+        std::is_base_of<detected_t<have_type_t, T>, T>::value; \
+    constexpr operator bool() const noexcept { return value; } \
   };
 
 // Public concept:
@@ -176,7 +183,8 @@ KOKKOS_IMPL_IS_CONCEPT(array_layout)
 KOKKOS_IMPL_IS_CONCEPT(reducer)
 namespace Experimental {
 KOKKOS_IMPL_IS_CONCEPT(work_item_property)
-}
+KOKKOS_IMPL_IS_CONCEPT(hooks_policy)
+}  // namespace Experimental
 
 namespace Impl {
 
@@ -271,8 +279,7 @@ struct is_device_helper<Device<ExecutionSpace, MemorySpace>> : std::true_type {
 }  // namespace Impl
 
 template <typename T>
-using is_device =
-    typename Impl::is_device_helper<typename std::remove_cv<T>::type>::type;
+using is_device = typename Impl::is_device_helper<std::remove_cv_t<T>>::type;
 
 //----------------------------------------------------------------------------
 
@@ -295,32 +302,26 @@ struct is_space {
   };
 
   template <typename U>
-  struct exe<U, typename std::conditional<true, void,
-                                          typename U::execution_space>::type>
+  struct exe<U, std::conditional_t<true, void, typename U::execution_space>>
       : std::is_same<U, typename U::execution_space>::type {
     using space = typename U::execution_space;
   };
 
   template <typename U>
-  struct mem<
-      U, typename std::conditional<true, void, typename U::memory_space>::type>
+  struct mem<U, std::conditional_t<true, void, typename U::memory_space>>
       : std::is_same<U, typename U::memory_space>::type {
     using space = typename U::memory_space;
   };
 
   template <typename U>
-  struct dev<
-      U, typename std::conditional<true, void, typename U::device_type>::type>
+  struct dev<U, std::conditional_t<true, void, typename U::device_type>>
       : std::is_same<U, typename U::device_type>::type {
     using space = typename U::device_type;
   };
 
-  using is_exe =
-      typename is_space<T>::template exe<typename std::remove_cv<T>::type>;
-  using is_mem =
-      typename is_space<T>::template mem<typename std::remove_cv<T>::type>;
-  using is_dev =
-      typename is_space<T>::template dev<typename std::remove_cv<T>::type>;
+  using is_exe = typename is_space<T>::template exe<std::remove_cv_t<T>>;
+  using is_mem = typename is_space<T>::template mem<std::remove_cv_t<T>>;
+  using is_dev = typename is_space<T>::template dev<std::remove_cv_t<T>>;
 
  public:
   static constexpr bool value = is_exe::value || is_mem::value || is_dev::value;
@@ -344,7 +345,9 @@ struct is_space {
           std::is_same<memory_space, Kokkos::CudaHostPinnedSpace>::value
 #elif defined(KOKKOS_ENABLE_HIP)
           || std::is_same<memory_space,
-                          Kokkos::Experimental::HIPHostPinnedSpace>::value
+                          Kokkos::Experimental::HIPHostPinnedSpace>::value ||
+          std::is_same<memory_space,
+                       Kokkos::Experimental::HIPManagedSpace>::value
 #elif defined(KOKKOS_ENABLE_SYCL)
           || std::is_same<memory_space,
                           Kokkos::Experimental::SYCLSharedUSMSpace>::value ||
@@ -502,11 +505,11 @@ struct SpaceAccessibility {
   // to be able to access MemorySpace?
   // If same memory space or not accessible use the AccessSpace
   // else construct a device with execution space and memory space.
-  using space = typename std::conditional<
+  using space = std::conditional_t<
       std::is_same<typename AccessSpace::memory_space, MemorySpace>::value ||
           !exe_access::accessible,
       AccessSpace,
-      Kokkos::Device<typename AccessSpace::execution_space, MemorySpace>>::type;
+      Kokkos::Device<typename AccessSpace::execution_space, MemorySpace>>;
 };
 
 }  // namespace Kokkos

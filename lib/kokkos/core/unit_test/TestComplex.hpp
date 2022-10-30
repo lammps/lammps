@@ -348,7 +348,9 @@ struct TestComplexSpecialFunctions {
     r = std::acosh(a);
     ASSERT_FLOAT_EQ(h_results(13).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(13).imag(), r.imag());
-    r = std::atanh(a);
+    // atanh
+    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atanh
+    r = {0.163481616851666003, 1.27679502502111284};
     ASSERT_FLOAT_EQ(h_results(14).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(14).imag(), r.imag());
     r = std::asin(a);
@@ -357,9 +359,15 @@ struct TestComplexSpecialFunctions {
     r = std::acos(a);
     ASSERT_FLOAT_EQ(h_results(16).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(16).imag(), r.imag());
-    r = std::atan(a);
+    // atan
+    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atan
+    r = {1.380543138238714, 0.2925178131625636};
     ASSERT_FLOAT_EQ(h_results(17).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(17).imag(), r.imag());
+    // log10
+    r = std::log10(a);
+    ASSERT_FLOAT_EQ(h_results(18).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(18).imag(), r.imag());
 #endif
   }
 
@@ -387,6 +395,7 @@ struct TestComplexSpecialFunctions {
     d_results(15) = Kokkos::asin(a);
     d_results(16) = Kokkos::acos(a);
     d_results(17) = Kokkos::atan(a);
+    d_results(18) = Kokkos::log10(a);
   }
 };
 
@@ -459,6 +468,7 @@ TEST(TEST_CATEGORY, complex_issue_3865) {
   TestBugPowAndLogComplex<TEST_EXECSPACE>();
 }
 
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
 TEST(TEST_CATEGORY, complex_issue_3867) {
   ASSERT_EQ(Kokkos::pow(Kokkos::complex<double>(2., 1.), 3.),
             Kokkos::pow(Kokkos::complex<double>(2., 1.), 3));
@@ -514,6 +524,7 @@ TEST(TEST_CATEGORY, complex_issue_3867) {
 
 #undef CHECK_POW_COMPLEX_PROMOTION
 }
+#endif
 
 TEST(TEST_CATEGORY, complex_operations_arithmetic_types_overloads) {
 #define STATIC_ASSERT(cond) static_assert(cond, "")

@@ -135,7 +135,7 @@ function show_help {
   echo "                        P.hpcbind.N, P.stdout.N and P.stderr.N where P is "
   echo "                        the prefix and N is the rank (no spaces)"
   echo "  --output-mode=<Op>    How console output should be handled."
-  echo "                        Options are all, rank0, and none.  Default: rank0" 
+  echo "                        Options are all, rank0, and none.  Default: rank0"
   echo "  --lstopo              Show bindings in lstopo"
   echo "  --save-topology=<Xml>  Save the topology to the given xml file"
   echo "  --load-topology=<Xml>  Load a previously saved topology from an xml file"
@@ -636,13 +636,13 @@ elif [[ ${HPCBIND_HAS_COMMAND} -eq 1 ]]; then
     if [[ ${HPCBIND_ENABLE_HWLOC_BIND} -eq 1 ]]; then
       hwloc-bind "${HPCBIND_HWLOC_CPUSET}" -- "$@" > ${HPCBIND_OUT} 2> ${HPCBIND_ERR}
     else
-      eval "$@" > ${HPCBIND_OUT} 2> ${HPCBIND_ERR}
+      "$@" > ${HPCBIND_OUT} 2> ${HPCBIND_ERR}
     fi
   else
     if [[ ${HPCBIND_ENABLE_HWLOC_BIND} -eq 1 ]]; then
       hwloc-bind "${HPCBIND_HWLOC_CPUSET}" -- "$@" > >(tee ${HPCBIND_OUT}) 2> >(tee ${HPCBIND_ERR} >&2)
     else
-      eval "$@" > >(tee ${HPCBIND_OUT}) 2> >(tee ${HPCBIND_ERR} >&2)
+      "$@" > >(tee ${HPCBIND_OUT}) 2> >(tee ${HPCBIND_ERR} >&2)
     fi
   fi
 fi

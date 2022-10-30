@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_COPYVIEWS_HPP_
 #define KOKKOS_COPYVIEWS_HPP_
 #include <string>
@@ -862,14 +871,20 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 1> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
-      view_copy(dst, src);
+      view_copy(exec_space..., dst, src);
     } else {
       p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
       using sv_adapter_type = CommonSubview<DstType, SrcType, 1, p_type>;
       sv_adapter_type common_subview(dst, src, ext0);
-      view_copy(common_subview.dst_sub, common_subview.src_sub);
+      view_copy(exec_space..., common_subview.dst_sub, common_subview.src_sub);
     }
   }
 };
@@ -878,16 +893,23 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 2> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
       if (dst.extent(1) == src.extent(1)) {
-        view_copy(dst, src);
+        view_copy(exec_space..., dst, src);
       } else {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         using sv_adapter_type =
             CommonSubview<DstType, SrcType, 2, Kokkos::Impl::ALL_t, p_type>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     } else {
       if (dst.extent(1) == src.extent(1)) {
@@ -895,14 +917,16 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 2> {
         using sv_adapter_type =
             CommonSubview<DstType, SrcType, 2, p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, ext0, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         using sv_adapter_type =
             CommonSubview<DstType, SrcType, 2, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, ext0, ext1);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     }
   }
@@ -912,7 +936,13 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 3> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
       if (dst.extent(2) == src.extent(2)) {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -921,7 +951,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 3> {
                           Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1,
                                        Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         p_type ext2(0, std::min(dst.extent(2), src.extent(2)));
@@ -929,7 +960,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 3> {
             CommonSubview<DstType, SrcType, 3, Kokkos::Impl::ALL_t, p_type,
                           p_type>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     } else {
       if (dst.extent(2) == src.extent(2)) {
@@ -938,7 +970,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 3> {
         using sv_adapter_type = CommonSubview<DstType, SrcType, 3, p_type,
                                               p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -946,7 +979,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 3> {
         using sv_adapter_type =
             CommonSubview<DstType, SrcType, 3, p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     }
   }
@@ -956,7 +990,13 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 4> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
       if (dst.extent(3) == src.extent(3)) {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -966,7 +1006,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 4> {
                           p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2,
                                        Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         p_type ext2(0, std::min(dst.extent(2), src.extent(2)));
@@ -975,7 +1016,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 4> {
             CommonSubview<DstType, SrcType, 4, Kokkos::Impl::ALL_t, p_type,
                           p_type, p_type>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     } else {
       if (dst.extent(7) == src.extent(7)) {
@@ -986,7 +1028,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 4> {
             CommonSubview<DstType, SrcType, 4, p_type, p_type, p_type,
                           Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -995,7 +1038,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 4> {
         using sv_adapter_type =
             CommonSubview<DstType, SrcType, 4, p_type, p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     }
   }
@@ -1005,7 +1049,13 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 5> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
       if (dst.extent(4) == src.extent(4)) {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1016,7 +1066,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 5> {
                           p_type, p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         p_type ext2(0, std::min(dst.extent(2), src.extent(2)));
@@ -1027,7 +1078,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 5> {
                           p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        ext4);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     } else {
       if (dst.extent(4) == src.extent(4)) {
@@ -1040,7 +1092,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 5> {
                           Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3,
                                        Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1050,7 +1103,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 5> {
         using sv_adapter_type = CommonSubview<DstType, SrcType, 5, p_type,
                                               p_type, p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3, ext4);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     }
   }
@@ -1059,7 +1113,13 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 6> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
       if (dst.extent(5) == src.extent(5)) {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1071,7 +1131,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 6> {
                           p_type, p_type, p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        ext4, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         p_type ext2(0, std::min(dst.extent(2), src.extent(2)));
@@ -1083,7 +1144,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 6> {
                           p_type, p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        ext4, ext5);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     } else {
       if (dst.extent(5) == src.extent(5)) {
@@ -1098,7 +1160,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 6> {
                           p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3, ext4,
                                        Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1112,7 +1175,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 6> {
                           p_type, p_type>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3, ext4,
                                        ext5);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     }
   }
@@ -1122,7 +1186,13 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 7> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
       if (dst.extent(6) == src.extent(6)) {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1135,7 +1205,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 7> {
                           p_type, p_type, p_type, p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        ext4, ext5, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         p_type ext2(0, std::min(dst.extent(2), src.extent(2)));
@@ -1148,7 +1219,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 7> {
                           p_type, p_type, p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        ext4, ext5, ext6);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     } else {
       if (dst.extent(6) == src.extent(6)) {
@@ -1163,7 +1235,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 7> {
                           p_type, p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3, ext4,
                                        ext5, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1177,7 +1250,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 7> {
                           p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3, ext4,
                                        ext5, ext6);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     }
   }
@@ -1187,7 +1261,13 @@ template <class DstType, class SrcType, class ExecSpace>
 struct ViewRemap<DstType, SrcType, ExecSpace, 8> {
   using p_type = Kokkos::pair<int64_t, int64_t>;
 
-  ViewRemap(const DstType& dst, const SrcType& src) {
+  template <typename... OptExecSpace>
+  ViewRemap(const DstType& dst, const SrcType& src,
+            const OptExecSpace&... exec_space) {
+    static_assert(
+        sizeof...(OptExecSpace) <= 1,
+        "OptExecSpace must be either empty or be an execution space!");
+
     if (dst.extent(0) == src.extent(0)) {
       if (dst.extent(7) == src.extent(7)) {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1202,7 +1282,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 8> {
                           Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        ext4, ext5, ext6, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
         p_type ext2(0, std::min(dst.extent(2), src.extent(2)));
@@ -1216,7 +1297,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 8> {
                           p_type, p_type, p_type, p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, Kokkos::ALL, ext1, ext2, ext3,
                                        ext4, ext5, ext6, ext7);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     } else {
       if (dst.extent(7) == src.extent(7)) {
@@ -1232,7 +1314,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 8> {
                           p_type, p_type, p_type, Kokkos::Impl::ALL_t>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3, ext4,
                                        ext5, ext6, Kokkos::ALL);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       } else {
         p_type ext0(0, std::min(dst.extent(0), src.extent(0)));
         p_type ext1(0, std::min(dst.extent(1), src.extent(1)));
@@ -1247,7 +1330,8 @@ struct ViewRemap<DstType, SrcType, ExecSpace, 8> {
                           p_type, p_type, p_type, p_type>;
         sv_adapter_type common_subview(dst, src, ext0, ext1, ext2, ext3, ext4,
                                        ext5, ext6, ext7);
-        view_copy(common_subview.dst_sub, common_subview.src_sub);
+        view_copy(exec_space..., common_subview.dst_sub,
+                  common_subview.src_sub);
       }
     }
   }
@@ -1261,9 +1345,9 @@ inline void contiguous_fill(
   using ViewTypeFlat = Kokkos::View<
       typename ViewType::value_type*, Kokkos::LayoutRight,
       Kokkos::Device<typename ViewType::execution_space,
-                     typename std::conditional<ViewType::Rank == 0,
-                                               typename ViewType::memory_space,
-                                               Kokkos::AnonymousSpace>::type>,
+                     std::conditional_t<ViewType::Rank == 0,
+                                        typename ViewType::memory_space,
+                                        Kokkos::AnonymousSpace>>,
       Kokkos::MemoryTraits<0>>;
 
   ViewTypeFlat dst_flat(dst.data(), dst.size());
@@ -1292,23 +1376,27 @@ struct ZeroMemset {
 
 template <typename ExecutionSpace, class DT, class... DP>
 inline std::enable_if_t<
-    std::is_trivial<typename ViewTraits<DT, DP...>::const_value_type>::value &&
+    std::is_trivial<typename ViewTraits<DT, DP...>::value_type>::value &&
     std::is_trivially_copy_assignable<
-        typename ViewTraits<DT, DP...>::const_value_type>::value>
+        typename ViewTraits<DT, DP...>::value_type>::value>
 contiguous_fill_or_memset(
     const ExecutionSpace& exec_space, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value) {
+// On A64FX memset seems to do the wrong thing with regards to first touch
+// leading to the significant performance issues
+#ifndef KOKKOS_ARCH_A64FX
   if (Impl::is_zero_byte(value))
     ZeroMemset<ExecutionSpace, DT, DP...>(exec_space, dst, value);
   else
+#endif
     contiguous_fill(exec_space, dst, value);
 }
 
 template <typename ExecutionSpace, class DT, class... DP>
-inline std::enable_if_t<!(
-    std::is_trivial<typename ViewTraits<DT, DP...>::const_value_type>::value &&
-    std::is_trivially_copy_assignable<
-        typename ViewTraits<DT, DP...>::const_value_type>::value)>
+inline std::enable_if_t<
+    !(std::is_trivial<typename ViewTraits<DT, DP...>::value_type>::value &&
+      std::is_trivially_copy_assignable<
+          typename ViewTraits<DT, DP...>::value_type>::value)>
 contiguous_fill_or_memset(
     const ExecutionSpace& exec_space, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value) {
@@ -1317,26 +1405,30 @@ contiguous_fill_or_memset(
 
 template <class DT, class... DP>
 inline std::enable_if_t<
-    std::is_trivial<typename ViewTraits<DT, DP...>::const_value_type>::value &&
+    std::is_trivial<typename ViewTraits<DT, DP...>::value_type>::value &&
     std::is_trivially_copy_assignable<
-        typename ViewTraits<DT, DP...>::const_value_type>::value>
+        typename ViewTraits<DT, DP...>::value_type>::value>
 contiguous_fill_or_memset(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value) {
   using ViewType        = View<DT, DP...>;
   using exec_space_type = typename ViewType::execution_space;
 
+// On A64FX memset seems to do the wrong thing with regards to first touch
+// leading to the significant performance issues
+#ifndef KOKKOS_ARCH_A64FX
   if (Impl::is_zero_byte(value))
     ZeroMemset<exec_space_type, DT, DP...>(dst, value);
   else
+#endif
     contiguous_fill(exec_space_type(), dst, value);
 }
 
 template <class DT, class... DP>
-inline std::enable_if_t<!(
-    std::is_trivial<typename ViewTraits<DT, DP...>::const_value_type>::value &&
-    std::is_trivially_copy_assignable<
-        typename ViewTraits<DT, DP...>::const_value_type>::value)>
+inline std::enable_if_t<
+    !(std::is_trivial<typename ViewTraits<DT, DP...>::value_type>::value &&
+      std::is_trivially_copy_assignable<
+          typename ViewTraits<DT, DP...>::value_type>::value)>
 contiguous_fill_or_memset(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value) {
@@ -1352,9 +1444,8 @@ template <class DT, class... DP>
 inline void deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<std::is_same<
-        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
-        nullptr) {
+    std::enable_if_t<std::is_same<typename ViewTraits<DT, DP...>::specialize,
+                                  void>::value>* = nullptr) {
   using ViewType        = View<DT, DP...>;
   using exec_space_type = typename ViewType::execution_space;
 
@@ -1416,9 +1507,10 @@ inline void deep_copy(
 
   // Lets call the right ViewFill functor based on integer space needed and
   // iteration type
-  using ViewTypeUniform = typename std::conditional<
-      ViewType::Rank == 0, typename ViewType::uniform_runtime_type,
-      typename ViewType::uniform_runtime_nomemspace_type>::type;
+  using ViewTypeUniform =
+      std::conditional_t<ViewType::Rank == 0,
+                         typename ViewType::uniform_runtime_type,
+                         typename ViewType::uniform_runtime_nomemspace_type>;
   if (dst.span() > static_cast<size_t>(std::numeric_limits<int>::max())) {
     if (iterate == Kokkos::Iterate::Right)
       Kokkos::Impl::ViewFill<ViewTypeUniform, Kokkos::LayoutRight,
@@ -1450,9 +1542,8 @@ template <class ST, class... SP>
 inline void deep_copy(
     typename ViewTraits<ST, SP...>::non_const_value_type& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<std::is_same<
-        typename ViewTraits<ST, SP...>::specialize, void>::value>::type* =
-        nullptr) {
+    std::enable_if_t<std::is_same<typename ViewTraits<ST, SP...>::specialize,
+                                  void>::value>* = nullptr) {
   using src_traits       = ViewTraits<ST, SP...>;
   using src_memory_space = typename src_traits::memory_space;
 
@@ -1470,14 +1561,13 @@ inline void deep_copy(
 
   if (src.data() == nullptr) {
     Kokkos::fence("Kokkos::deep_copy: copy into scalar, src is null");
-    if (Kokkos::Tools::Experimental::get_callbacks().end_deep_copy != nullptr) {
-      Kokkos::Profiling::endDeepCopy();
-    }
-    return;
+  } else {
+    Kokkos::fence("Kokkos::deep_copy: copy into scalar, pre copy fence");
+    Kokkos::Impl::DeepCopy<HostSpace, src_memory_space>(&dst, src.data(),
+                                                        sizeof(ST));
+    Kokkos::fence("Kokkos::deep_copy: copy into scalar, post copy fence");
   }
 
-  Kokkos::Impl::DeepCopy<HostSpace, src_memory_space>(&dst, src.data(),
-                                                      sizeof(ST));
   if (Kokkos::Tools::Experimental::get_callbacks().end_deep_copy != nullptr) {
     Kokkos::Profiling::endDeepCopy();
   }
@@ -1488,12 +1578,11 @@ inline void deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 inline void deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(
-        std::is_same<typename ViewTraits<DT, DP...>::specialize, void>::value &&
-        std::is_same<typename ViewTraits<ST, SP...>::specialize, void>::value &&
-        (unsigned(ViewTraits<DT, DP...>::rank) == unsigned(0) &&
-         unsigned(ViewTraits<ST, SP...>::rank) == unsigned(0)))>::type* =
-        nullptr) {
+    std::enable_if_t<
+        (std::is_void<typename ViewTraits<DT, DP...>::specialize>::value &&
+         std::is_void<typename ViewTraits<ST, SP...>::specialize>::value &&
+         (unsigned(ViewTraits<DT, DP...>::rank) == unsigned(0) &&
+          unsigned(ViewTraits<ST, SP...>::rank) == unsigned(0)))>* = nullptr) {
   using dst_type = View<DT, DP...>;
   using src_type = View<ST, SP...>;
 
@@ -1541,11 +1630,11 @@ inline void deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 inline void deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(
-        std::is_same<typename ViewTraits<DT, DP...>::specialize, void>::value &&
-        std::is_same<typename ViewTraits<ST, SP...>::specialize, void>::value &&
-        (unsigned(ViewTraits<DT, DP...>::rank) != 0 ||
-         unsigned(ViewTraits<ST, SP...>::rank) != 0))>::type* = nullptr) {
+    std::enable_if_t<
+        (std::is_void<typename ViewTraits<DT, DP...>::specialize>::value &&
+         std::is_void<typename ViewTraits<ST, SP...>::specialize>::value &&
+         (unsigned(ViewTraits<DT, DP...>::rank) != 0 ||
+          unsigned(ViewTraits<ST, SP...>::rank) != 0))>* = nullptr) {
   using dst_type            = View<DT, DP...>;
   using src_type            = View<ST, SP...>;
   using dst_execution_space = typename dst_type::execution_space;
@@ -1733,7 +1822,7 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION
 local_deep_copy_contiguous(const TeamType& team, const View<DT, DP...>& dst,
                            const View<ST, SP...>& src) {
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, src.span()),
+  Kokkos::parallel_for(Kokkos::TeamVectorRange(team, src.span()),
                        [&](const int& i) { dst.data()[i] = src.data()[i]; });
 }
 //----------------------------------------------------------------------------
@@ -1749,9 +1838,8 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 1 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 1)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 1 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 1)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1759,7 +1847,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
   const size_t N = dst.extent(0);
 
   team.team_barrier();
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N),
+  Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N),
                        [&](const int& i) { dst(i) = src(i); });
   team.team_barrier();
 }
@@ -1768,9 +1856,8 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 2 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 2)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 2 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 2)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1783,7 +1870,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0      = i % dst.extent(0);
       int i1      = i / dst.extent(0);
       dst(i0, i1) = src(i0, i1);
@@ -1796,9 +1883,8 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 3 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 3)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 3 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 3)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1811,7 +1897,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0          = i % dst.extent(0);
       int itmp        = i / dst.extent(0);
       int i1          = itmp % dst.extent(1);
@@ -1826,9 +1912,8 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 4 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 4)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 4 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 4)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1842,7 +1927,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0              = i % dst.extent(0);
       int itmp            = i / dst.extent(0);
       int i1              = itmp % dst.extent(1);
@@ -1859,9 +1944,8 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 5 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 5)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 5 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 5)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1875,7 +1959,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0                  = i % dst.extent(0);
       int itmp                = i / dst.extent(0);
       int i1                  = itmp % dst.extent(1);
@@ -1894,9 +1978,8 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 6 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 6)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 6 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 6)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1910,7 +1993,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0                      = i % dst.extent(0);
       int itmp                    = i / dst.extent(0);
       int i1                      = itmp % dst.extent(1);
@@ -1931,9 +2014,8 @@ template <class TeamType, class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 7 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 7)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 7 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 7)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1948,7 +2030,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0                          = i % dst.extent(0);
       int itmp                        = i / dst.extent(0);
       int i1                          = itmp % dst.extent(1);
@@ -1970,9 +2052,8 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 1 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 1)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 1 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 1)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -1987,9 +2068,8 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 2 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 2)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 2 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 2)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2005,9 +2085,8 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 3 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 3)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 3 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 3)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2025,9 +2104,8 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 4 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 4)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 4 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 4)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2046,9 +2124,8 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 5 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 5)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 5 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 5)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2068,9 +2145,8 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 6 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 6)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 6 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 6)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2091,9 +2167,8 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
 template <class DT, class... DP, class ST, class... SP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst, const View<ST, SP...>& src,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) == 7 &&
-                             unsigned(ViewTraits<ST, SP...>::rank) ==
-                                 7)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 7 &&
+                      unsigned(ViewTraits<ST, SP...>::rank) == 7)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2119,10 +2194,9 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy_contiguous(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<std::is_same<
-        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
-        nullptr) {
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, dst.span()),
+    std::enable_if_t<std::is_same<typename ViewTraits<DT, DP...>::specialize,
+                                  void>::value>* = nullptr) {
+  Kokkos::parallel_for(Kokkos::TeamVectorRange(team, dst.span()),
                        [&](const int& i) { dst.data()[i] = value; });
 }
 //----------------------------------------------------------------------------
@@ -2130,9 +2204,8 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy_contiguous(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<std::is_same<
-        typename ViewTraits<DT, DP...>::specialize, void>::value>::type* =
-        nullptr) {
+    std::enable_if_t<std::is_same<typename ViewTraits<DT, DP...>::specialize,
+                                  void>::value>* = nullptr) {
   for (size_t i = 0; i < dst.span(); ++i) {
     dst.data()[i] = value;
   }
@@ -2142,8 +2215,7 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             1)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 1)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2151,7 +2223,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
   const size_t N = dst.extent(0);
 
   team.team_barrier();
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N),
+  Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N),
                        [&](const int& i) { dst(i) = value; });
   team.team_barrier();
 }
@@ -2160,8 +2232,7 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             2)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 2)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2174,7 +2245,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0      = i % dst.extent(0);
       int i1      = i / dst.extent(0);
       dst(i0, i1) = value;
@@ -2187,8 +2258,7 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             3)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 3)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2201,7 +2271,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0          = i % dst.extent(0);
       int itmp        = i / dst.extent(0);
       int i1          = itmp % dst.extent(1);
@@ -2216,8 +2286,7 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             4)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 4)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2231,7 +2300,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0              = i % dst.extent(0);
       int itmp            = i / dst.extent(0);
       int i1              = itmp % dst.extent(1);
@@ -2248,8 +2317,7 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             5)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 5)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2263,7 +2331,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0                  = i % dst.extent(0);
       int itmp                = i / dst.extent(0);
       int i1                  = itmp % dst.extent(1);
@@ -2282,8 +2350,7 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             6)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 6)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2297,7 +2364,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0                      = i % dst.extent(0);
       int itmp                    = i / dst.extent(0);
       int i1                      = itmp % dst.extent(1);
@@ -2318,8 +2385,7 @@ template <class TeamType, class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const TeamType& team, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             7)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 7)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2334,7 +2400,7 @@ void KOKKOS_INLINE_FUNCTION local_deep_copy(
     team.team_barrier();
   } else {
     team.team_barrier();
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, N), [&](const int& i) {
+    Kokkos::parallel_for(Kokkos::TeamVectorRange(team, N), [&](const int& i) {
       int i0                          = i % dst.extent(0);
       int itmp                        = i / dst.extent(0);
       int i1                          = itmp % dst.extent(1);
@@ -2357,8 +2423,7 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             1)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 1)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2374,8 +2439,7 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             2)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 2)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2392,8 +2456,7 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             3)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 3)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2411,8 +2474,7 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             4)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 4)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2432,8 +2494,7 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             5)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 5)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2454,8 +2515,7 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             6)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 6)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2477,8 +2537,7 @@ template <class DT, class... DP>
 void KOKKOS_INLINE_FUNCTION local_deep_copy(
     const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<(unsigned(ViewTraits<DT, DP...>::rank) ==
-                             7)>::type* = nullptr) {
+    std::enable_if_t<(unsigned(ViewTraits<DT, DP...>::rank) == 7)>* = nullptr) {
   if (dst.data() == nullptr) {
     return;
   }
@@ -2510,12 +2569,11 @@ template <class ExecSpace, class DT, class... DP>
 inline void deep_copy(
     const ExecSpace& space, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<
+    std::enable_if_t<
         Kokkos::is_execution_space<ExecSpace>::value &&
-        std::is_same<typename ViewTraits<DT, DP...>::specialize, void>::value &&
-        Kokkos::SpaceAccessibility<
-            ExecSpace,
-            typename ViewTraits<DT, DP...>::memory_space>::accessible>::type* =
+        std::is_void<typename ViewTraits<DT, DP...>::specialize>::value &&
+        Kokkos::SpaceAccessibility<ExecSpace, typename ViewTraits<DT, DP...>::
+                                                  memory_space>::accessible>* =
         nullptr) {
   using dst_traits = ViewTraits<DT, DP...>;
   static_assert(std::is_same<typename dst_traits::non_const_value_type,
@@ -2534,12 +2592,52 @@ inline void deep_copy(
   } else if (dst.span_is_contiguous()) {
     Impl::contiguous_fill_or_memset(space, dst, value);
   } else {
-    using ViewTypeUniform = typename std::conditional<
-        View<DT, DP...>::Rank == 0,
-        typename View<DT, DP...>::uniform_runtime_type,
-        typename View<DT, DP...>::uniform_runtime_nomemspace_type>::type;
-    Kokkos::Impl::ViewFill<ViewTypeUniform, typename dst_traits::array_layout,
-                           ExecSpace>(dst, value, space);
+    using ViewType = View<DT, DP...>;
+    // Figure out iteration order to do the ViewFill
+    int64_t strides[ViewType::Rank + 1];
+    dst.stride(strides);
+    Kokkos::Iterate iterate;
+    if (std::is_same<typename ViewType::array_layout,
+                     Kokkos::LayoutRight>::value) {
+      iterate = Kokkos::Iterate::Right;
+    } else if (std::is_same<typename ViewType::array_layout,
+                            Kokkos::LayoutLeft>::value) {
+      iterate = Kokkos::Iterate::Left;
+    } else if (std::is_same<typename ViewType::array_layout,
+                            Kokkos::LayoutStride>::value) {
+      if (strides[0] > strides[ViewType::Rank > 0 ? ViewType::Rank - 1 : 0])
+        iterate = Kokkos::Iterate::Right;
+      else
+        iterate = Kokkos::Iterate::Left;
+    } else {
+      if (std::is_same<typename ViewType::execution_space::array_layout,
+                       Kokkos::LayoutRight>::value)
+        iterate = Kokkos::Iterate::Right;
+      else
+        iterate = Kokkos::Iterate::Left;
+    }
+
+    // Lets call the right ViewFill functor based on integer space needed and
+    // iteration type
+    using ViewTypeUniform =
+        std::conditional_t<ViewType::Rank == 0,
+                           typename ViewType::uniform_runtime_type,
+                           typename ViewType::uniform_runtime_nomemspace_type>;
+    if (dst.span() > static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
+      if (iterate == Kokkos::Iterate::Right)
+        Kokkos::Impl::ViewFill<ViewTypeUniform, Kokkos::LayoutRight, ExecSpace,
+                               ViewType::Rank, int64_t>(dst, value, space);
+      else
+        Kokkos::Impl::ViewFill<ViewTypeUniform, Kokkos::LayoutLeft, ExecSpace,
+                               ViewType::Rank, int64_t>(dst, value, space);
+    } else {
+      if (iterate == Kokkos::Iterate::Right)
+        Kokkos::Impl::ViewFill<ViewTypeUniform, Kokkos::LayoutRight, ExecSpace,
+                               ViewType::Rank, int32_t>(dst, value, space);
+      else
+        Kokkos::Impl::ViewFill<ViewTypeUniform, Kokkos::LayoutLeft, ExecSpace,
+                               ViewType::Rank, int32_t>(dst, value, space);
+    }
   }
   if (Kokkos::Tools::Experimental::get_callbacks().end_deep_copy != nullptr) {
     Kokkos::Profiling::endDeepCopy();
@@ -2552,12 +2650,11 @@ template <class ExecSpace, class DT, class... DP>
 inline void deep_copy(
     const ExecSpace& space, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value,
-    typename std::enable_if<
+    std::enable_if_t<
         Kokkos::is_execution_space<ExecSpace>::value &&
-        std::is_same<typename ViewTraits<DT, DP...>::specialize, void>::value &&
-        !Kokkos::SpaceAccessibility<
-            ExecSpace,
-            typename ViewTraits<DT, DP...>::memory_space>::accessible>::type* =
+        std::is_void<typename ViewTraits<DT, DP...>::specialize>::value &&
+        !Kokkos::SpaceAccessibility<ExecSpace, typename ViewTraits<DT, DP...>::
+                                                   memory_space>::accessible>* =
         nullptr) {
   using dst_traits = ViewTraits<DT, DP...>;
   static_assert(std::is_same<typename dst_traits::non_const_value_type,
@@ -2580,10 +2677,10 @@ inline void deep_copy(
     if (dst.span_is_contiguous()) {
       Impl::contiguous_fill_or_memset(fill_exec_space(), dst, value);
     } else {
-      using ViewTypeUniform = typename std::conditional<
+      using ViewTypeUniform = std::conditional_t<
           View<DT, DP...>::Rank == 0,
           typename View<DT, DP...>::uniform_runtime_type,
-          typename View<DT, DP...>::uniform_runtime_nomemspace_type>::type;
+          typename View<DT, DP...>::uniform_runtime_nomemspace_type>;
       Kokkos::Impl::ViewFill<ViewTypeUniform, typename dst_traits::array_layout,
                              fill_exec_space>(dst, value, fill_exec_space());
     }
@@ -2601,10 +2698,9 @@ inline void deep_copy(
     const ExecSpace& exec_space,
     typename ViewTraits<ST, SP...>::non_const_value_type& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<
-        Kokkos::is_execution_space<ExecSpace>::value &&
-        std::is_same<typename ViewTraits<ST, SP...>::specialize,
-                     void>::value>::type* = nullptr) {
+    std::enable_if_t<Kokkos::is_execution_space<ExecSpace>::value &&
+                     std::is_same<typename ViewTraits<ST, SP...>::specialize,
+                                  void>::value>* = nullptr) {
   using src_traits       = ViewTraits<ST, SP...>;
   using src_memory_space = typename src_traits::memory_space;
   static_assert(src_traits::rank == 0,
@@ -2639,13 +2735,12 @@ template <class ExecSpace, class DT, class... DP, class ST, class... SP>
 inline void deep_copy(
     const ExecSpace& exec_space, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(
-        Kokkos::is_execution_space<ExecSpace>::value &&
-        std::is_same<typename ViewTraits<DT, DP...>::specialize, void>::value &&
-        std::is_same<typename ViewTraits<ST, SP...>::specialize, void>::value &&
-        (unsigned(ViewTraits<DT, DP...>::rank) == unsigned(0) &&
-         unsigned(ViewTraits<ST, SP...>::rank) == unsigned(0)))>::type* =
-        nullptr) {
+    std::enable_if_t<
+        (Kokkos::is_execution_space<ExecSpace>::value &&
+         std::is_void<typename ViewTraits<DT, DP...>::specialize>::value &&
+         std::is_void<typename ViewTraits<ST, SP...>::specialize>::value &&
+         (unsigned(ViewTraits<DT, DP...>::rank) == unsigned(0) &&
+          unsigned(ViewTraits<ST, SP...>::rank) == unsigned(0)))>* = nullptr) {
   using src_traits = ViewTraits<ST, SP...>;
   using dst_traits = ViewTraits<DT, DP...>;
 
@@ -2690,12 +2785,12 @@ template <class ExecSpace, class DT, class... DP, class ST, class... SP>
 inline void deep_copy(
     const ExecSpace& exec_space, const View<DT, DP...>& dst,
     const View<ST, SP...>& src,
-    typename std::enable_if<(
-        Kokkos::is_execution_space<ExecSpace>::value &&
-        std::is_same<typename ViewTraits<DT, DP...>::specialize, void>::value &&
-        std::is_same<typename ViewTraits<ST, SP...>::specialize, void>::value &&
-        (unsigned(ViewTraits<DT, DP...>::rank) != 0 ||
-         unsigned(ViewTraits<ST, SP...>::rank) != 0))>::type* = nullptr) {
+    std::enable_if_t<
+        (Kokkos::is_execution_space<ExecSpace>::value &&
+         std::is_void<typename ViewTraits<DT, DP...>::specialize>::value &&
+         std::is_void<typename ViewTraits<ST, SP...>::specialize>::value &&
+         (unsigned(ViewTraits<DT, DP...>::rank) != 0 ||
+          unsigned(ViewTraits<ST, SP...>::rank) != 0))>* = nullptr) {
   using dst_type = View<DT, DP...>;
   using src_type = View<ST, SP...>;
 
@@ -2856,8 +2951,8 @@ inline void deep_copy(
       Impl::view_copy(exec_space, dst, src);
     } else if (DstExecCanAccessSrc || SrcExecCanAccessDst) {
       using cpy_exec_space =
-          typename std::conditional<DstExecCanAccessSrc, dst_execution_space,
-                                    src_execution_space>::type;
+          std::conditional_t<DstExecCanAccessSrc, dst_execution_space,
+                             src_execution_space>;
       exec_space.fence(
           "Kokkos::deep_copy: view-to-view noncontiguous copy on space, pre "
           "copy");
@@ -2890,6 +2985,10 @@ bool size_mismatch(const ViewType& view, unsigned int max_extent,
     if (new_extents[dim] != view.extent(dim)) {
       return true;
     }
+  for (unsigned int dim = max_extent; dim < 8; ++dim)
+    if (new_extents[dim] != KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+      return true;
+    }
   return false;
 }
 
@@ -2897,24 +2996,30 @@ bool size_mismatch(const ViewType& view, unsigned int max_extent,
 
 /** \brief  Resize a view with copying old data to new data at the corresponding
  * indices. */
-template <class T, class... P>
+template <class T, class... P, class... ViewCtorArgs>
 inline typename std::enable_if<
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
                  Kokkos::LayoutLeft>::value ||
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
                  Kokkos::LayoutRight>::value>::type
-resize(Kokkos::View<T, P...>& v, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-       const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-       const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-       const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-       const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-       const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-       const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-       const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-  using view_type = Kokkos::View<T, P...>;
+impl_resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+            Kokkos::View<T, P...>& v, const size_t n0, const size_t n1,
+            const size_t n2, const size_t n3, const size_t n4, const size_t n5,
+            const size_t n6, const size_t n7) {
+  using view_type        = Kokkos::View<T, P...>;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
 
   static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
                 "Can only resize managed views");
+  static_assert(!alloc_prop_input::has_label,
+                "The view constructor arguments passed to Kokkos::resize "
+                "must not include a label!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to Kokkos::resize must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::has_memory_space,
+                "The view constructor arguments passed to Kokkos::resize must "
+                "not include a memory space instance!");
 
   // TODO (mfh 27 Jun 2017) If the old View has enough space but just
   // different dimensions (e.g., if the product of the dimensions,
@@ -2927,23 +3032,76 @@ resize(Kokkos::View<T, P...>& v, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
   const bool sizeMismatch = Impl::size_mismatch(v, v.rank_dynamic, new_extents);
 
   if (sizeMismatch) {
-    view_type v_resized(v.label(), n0, n1, n2, n3, n4, n5, n6, n7);
+    // Add execution space here to avoid the need for if constexpr below
+    using alloc_prop = Impl::ViewCtorProp<
+        ViewCtorArgs..., std::string,
+        std::conditional_t<alloc_prop_input::has_execution_space,
+                           std::integral_constant<unsigned int, 10>,
+                           typename view_type::execution_space>>;
+    alloc_prop prop_copy(arg_prop);
+    static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
+        v.label();
 
-    Kokkos::Impl::ViewRemap<view_type, view_type>(v_resized, v);
-    Kokkos::fence("Kokkos::resize(View)");
+    view_type v_resized(prop_copy, n0, n1, n2, n3, n4, n5, n6, n7);
+
+    if (alloc_prop_input::has_execution_space)
+      Kokkos::Impl::ViewRemap<view_type, view_type>(
+          v_resized, v,
+          static_cast<const Impl::ViewCtorProp<
+              void, typename alloc_prop::execution_space>&>(prop_copy)
+              .value);
+    else {
+      Kokkos::Impl::ViewRemap<view_type, view_type>(v_resized, v);
+      Kokkos::fence("Kokkos::resize(View)");
+    }
 
     v = v_resized;
   }
 }
 
-/** \brief  Resize a view with copying old data to new data at the corresponding
- * indices. */
-template <class I, class T, class... P>
-inline typename std::enable_if<
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
                  Kokkos::LayoutLeft>::value ||
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
-                 Kokkos::LayoutRight>::value>::type
+                 Kokkos::LayoutRight>::value>
+resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+       Kokkos::View<T, P...>& v, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+  impl_resize(arg_prop, v, n0, n1, n2, n3, n4, n5, n6, n7);
+}
+
+template <class T, class... P>
+inline std::enable_if_t<
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutLeft>::value ||
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutRight>::value>
+resize(Kokkos::View<T, P...>& v, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+       const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+  impl_resize(Impl::ViewCtorProp<>{}, v, n0, n1, n2, n3, n4, n5, n6, n7);
+}
+
+template <class I, class T, class... P>
+inline std::enable_if_t<
+    (Impl::is_view_ctor_property<I>::value ||
+     Kokkos::is_execution_space<I>::value) &&
+    (std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                  Kokkos::LayoutLeft>::value ||
+     std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                  Kokkos::LayoutRight>::value)>
 resize(const I& arg_prop, Kokkos::View<T, P...>& v,
        const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
        const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -2953,37 +3111,10 @@ resize(const I& arg_prop, Kokkos::View<T, P...>& v,
        const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
        const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
        const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-  using view_type = Kokkos::View<T, P...>;
-
-  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
-                "Can only resize managed views");
-
-  // TODO (mfh 27 Jun 2017) If the old View has enough space but just
-  // different dimensions (e.g., if the product of the dimensions,
-  // including extra space for alignment, will not change), then
-  // consider just reusing storage.  For now, Kokkos always
-  // reallocates if any of the dimensions change, even if the old View
-  // has enough space.
-
-  const size_t new_extents[8] = {n0, n1, n2, n3, n4, n5, n6, n7};
-  const bool sizeMismatch = Impl::size_mismatch(v, v.rank_dynamic, new_extents);
-
-  if (sizeMismatch) {
-    view_type v_resized(view_alloc(v.label(), std::forward<const I>(arg_prop)),
-                        n0, n1, n2, n3, n4, n5, n6, n7);
-
-    Kokkos::Impl::ViewRemap<view_type, view_type>(v_resized, v);
-    // This fence really ought to look for an execution space in
-    // arg_prop, and just fence that if there is one
-    Kokkos::fence("Kokkos::resize(View)");
-
-    v = v_resized;
-  }
+  impl_resize(Kokkos::view_alloc(arg_prop), v, n0, n1, n2, n3, n4, n5, n6, n7);
 }
 
-/** \brief  Resize a view with copying old data to new data at the corresponding
- * indices. */
-template <class T, class... P>
+template <class T, class... P, class... ViewCtorArgs>
 inline std::enable_if_t<
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
                  Kokkos::LayoutLeft>::value ||
@@ -2992,18 +3123,47 @@ inline std::enable_if_t<
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
                  Kokkos::LayoutStride>::value ||
     is_layouttiled<typename Kokkos::View<T, P...>::array_layout>::value>
-resize(Kokkos::View<T, P...>& v,
-       const typename Kokkos::View<T, P...>::array_layout& layout) {
-  using view_type = Kokkos::View<T, P...>;
+impl_resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+            Kokkos::View<T, P...>& v,
+            const typename Kokkos::View<T, P...>::array_layout& layout) {
+  using view_type        = Kokkos::View<T, P...>;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
 
   static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
                 "Can only resize managed views");
+  static_assert(!alloc_prop_input::has_label,
+                "The view constructor arguments passed to Kokkos::resize "
+                "must not include a label!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to Kokkos::resize must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::has_memory_space,
+                "The view constructor arguments passed to Kokkos::resize must "
+                "not include a memory space instance!");
 
   if (v.layout() != layout) {
-    view_type v_resized(v.label(), layout);
+    // Add execution space here to avoid the need for if constexpr below
+    using alloc_prop = Impl::ViewCtorProp<
+        ViewCtorArgs..., std::string,
+        std::conditional_t<alloc_prop_input::has_execution_space,
+                           std::integral_constant<unsigned int, 10>,
+                           typename view_type::execution_space>>;
+    alloc_prop prop_copy(arg_prop);
+    static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
+        v.label();
 
-    Kokkos::Impl::ViewRemap<view_type, view_type>(v_resized, v);
-    Kokkos::fence("Kokkos::resize(View)");
+    view_type v_resized(prop_copy, layout);
+
+    if (alloc_prop::has_execution_space)
+      Kokkos::Impl::ViewRemap<view_type, view_type>(
+          v_resized, v,
+          static_cast<const Impl::ViewCtorProp<
+              void, typename alloc_prop::execution_space>&>(prop_copy)
+              .value);
+    else {
+      Kokkos::Impl::ViewRemap<view_type, view_type>(v_resized, v);
+      Kokkos::fence("Kokkos::resize(View)");
+    }
 
     v = v_resized;
   }
@@ -3012,7 +3172,7 @@ resize(Kokkos::View<T, P...>& v,
 // FIXME User-provided (custom) layouts are not required to have a comparison
 // operator. Hence, there is no way to check if the requested layout is actually
 // the same as the existing one.
-template <class T, class... P>
+template <class T, class... P, class... ViewCtorArgs>
 inline std::enable_if_t<
     !(std::is_same<typename Kokkos::View<T, P...>::array_layout,
                    Kokkos::LayoutLeft>::value ||
@@ -3021,27 +3181,156 @@ inline std::enable_if_t<
       std::is_same<typename Kokkos::View<T, P...>::array_layout,
                    Kokkos::LayoutStride>::value ||
       is_layouttiled<typename Kokkos::View<T, P...>::array_layout>::value)>
-resize(Kokkos::View<T, P...>& v,
-       const typename Kokkos::View<T, P...>::array_layout& layout) {
-  using view_type = Kokkos::View<T, P...>;
+impl_resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+            Kokkos::View<T, P...>& v,
+            const typename Kokkos::View<T, P...>::array_layout& layout) {
+  using view_type        = Kokkos::View<T, P...>;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
 
   static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
                 "Can only resize managed views");
+  static_assert(!alloc_prop_input::has_label,
+                "The view constructor arguments passed to Kokkos::resize "
+                "must not include a label!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to Kokkos::resize must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::has_memory_space,
+                "The view constructor arguments passed to Kokkos::resize must "
+                "not include a memory space instance!");
 
-  view_type v_resized(v.label(), layout);
+  // Add execution space here to avoid the need for if constexpr below
+  using alloc_prop = Impl::ViewCtorProp<
+      ViewCtorArgs..., std::string,
+      std::conditional_t<alloc_prop_input::has_execution_space,
+                         std::integral_constant<unsigned int, 10>,
+                         typename view_type::execution_space>>;
+  alloc_prop prop_copy(arg_prop);
+  static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
+      v.label();
 
-  Kokkos::Impl::ViewRemap<view_type, view_type>(v_resized, v);
+  view_type v_resized(prop_copy, layout);
+
+  if (alloc_prop::has_execution_space)
+    Kokkos::Impl::ViewRemap<view_type, view_type>(
+        v_resized, v,
+        static_cast<const Impl::ViewCtorProp<
+            void, typename alloc_prop::execution_space>&>(prop_copy)
+            .value);
+  else {
+    Kokkos::Impl::ViewRemap<view_type, view_type>(v_resized, v);
+    Kokkos::fence("Kokkos::resize(View)");
+  }
 
   v = v_resized;
 }
 
-/** \brief  Resize a view with discarding old data. */
+template <class T, class... P, class... ViewCtorArgs>
+inline void resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+                   Kokkos::View<T, P...>& v,
+                   const typename Kokkos::View<T, P...>::array_layout& layout) {
+  impl_resize(arg_prop, v, layout);
+}
+
+template <class I, class T, class... P>
+inline std::enable_if_t<Impl::is_view_ctor_property<I>::value ||
+                        Kokkos::is_execution_space<I>::value>
+resize(const I& arg_prop, Kokkos::View<T, P...>& v,
+       const typename Kokkos::View<T, P...>::array_layout& layout) {
+  impl_resize(arg_prop, v, layout);
+}
+
+template <class ExecutionSpace, class T, class... P>
+inline void resize(const ExecutionSpace& exec_space, Kokkos::View<T, P...>& v,
+                   const typename Kokkos::View<T, P...>::array_layout& layout) {
+  impl_resize(Impl::ViewCtorProp<>(), exec_space, v, layout);
+}
+
 template <class T, class... P>
-inline typename std::enable_if<
+inline void resize(Kokkos::View<T, P...>& v,
+                   const typename Kokkos::View<T, P...>::array_layout& layout) {
+  impl_resize(Impl::ViewCtorProp<>{}, v, layout);
+}
+
+/** \brief  Resize a view with discarding old data. */
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
                  Kokkos::LayoutLeft>::value ||
     std::is_same<typename Kokkos::View<T, P...>::array_layout,
-                 Kokkos::LayoutRight>::value>::type
+                 Kokkos::LayoutRight>::value>
+impl_realloc(Kokkos::View<T, P...>& v, const size_t n0, const size_t n1,
+             const size_t n2, const size_t n3, const size_t n4, const size_t n5,
+             const size_t n6, const size_t n7,
+             const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  using view_type        = Kokkos::View<T, P...>;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
+                "Can only realloc managed views");
+  static_assert(!alloc_prop_input::has_label,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a label!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::has_memory_space,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a memory space instance!");
+
+  const size_t new_extents[8] = {n0, n1, n2, n3, n4, n5, n6, n7};
+  const bool sizeMismatch = Impl::size_mismatch(v, v.rank_dynamic, new_extents);
+
+  if (sizeMismatch) {
+    using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
+    alloc_prop arg_prop_copy(arg_prop);
+    static_cast<Kokkos::Impl::ViewCtorProp<void, std::string>&>(arg_prop_copy)
+        .value = v.label();
+    v = view_type();  // Best effort to deallocate in case no other view refers
+                      // to the shared allocation
+    v = view_type(arg_prop_copy, n0, n1, n2, n3, n4, n5, n6, n7);
+  } else if (alloc_prop_input::initialize) {
+    if (alloc_prop_input::has_execution_space) {
+      using alloc_prop = Impl::ViewCtorProp<
+          ViewCtorArgs...,
+          std::conditional_t<alloc_prop_input::has_execution_space,
+                             std::integral_constant<unsigned int, 2>,
+                             typename view_type::execution_space>>;
+      alloc_prop arg_prop_copy(arg_prop);
+      auto const& exec_space = static_cast<Kokkos::Impl::ViewCtorProp<
+          void, typename alloc_prop::execution_space> const&>(arg_prop_copy)
+                                   .value;
+      Kokkos::deep_copy(exec_space, v, typename view_type::value_type{});
+    } else
+      Kokkos::deep_copy(v, typename view_type::value_type{});
+  }
+}
+
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutLeft>::value ||
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutRight>::value>
+realloc(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+        Kokkos::View<T, P...>& v,
+        const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+  impl_realloc(v, n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
+}
+
+template <class T, class... P>
+inline std::enable_if_t<
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutLeft>::value ||
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutRight>::value>
 realloc(Kokkos::View<T, P...>& v,
         const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
         const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -3051,38 +3340,143 @@ realloc(Kokkos::View<T, P...>& v,
         const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
         const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
         const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-  using view_type = Kokkos::View<T, P...>;
+  impl_realloc(v, n0, n1, n2, n3, n4, n5, n6, n7, Impl::ViewCtorProp<>{});
+}
+
+template <class I, class T, class... P>
+inline std::enable_if_t<
+    Impl::is_view_ctor_property<I>::value &&
+    (std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                  Kokkos::LayoutLeft>::value ||
+     std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                  Kokkos::LayoutRight>::value)>
+realloc(const I& arg_prop, Kokkos::View<T, P...>& v,
+        const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+        const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+  impl_realloc(v, n0, n1, n2, n3, n4, n5, n6, n7, Kokkos::view_alloc(arg_prop));
+}
+
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutLeft>::value ||
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutRight>::value ||
+    std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                 Kokkos::LayoutStride>::value ||
+    is_layouttiled<typename Kokkos::View<T, P...>::array_layout>::value>
+impl_realloc(Kokkos::View<T, P...>& v,
+             const typename Kokkos::View<T, P...>::array_layout& layout,
+             const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  using view_type        = Kokkos::View<T, P...>;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
 
   static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
                 "Can only realloc managed views");
+  static_assert(!alloc_prop_input::has_label,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a label!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::has_memory_space,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a memory space instance!");
 
-  const size_t new_extents[8] = {n0, n1, n2, n3, n4, n5, n6, n7};
-  const bool sizeMismatch = Impl::size_mismatch(v, v.rank_dynamic, new_extents);
-
-  if (sizeMismatch) {
-    const std::string label = v.label();
-
+  if (v.layout() != layout) {
     v = view_type();  // Deallocate first, if the only view to allocation
-    v = view_type(label, n0, n1, n2, n3, n4, n5, n6, n7);
-  } else
-    Kokkos::deep_copy(v, typename view_type::value_type{});
+    v = view_type(arg_prop, layout);
+  } else if (alloc_prop_input::initialize) {
+    if (alloc_prop_input::has_execution_space) {
+      // Add execution_space if not provided to avoid need for if constexpr
+      using alloc_prop = Impl::ViewCtorProp<
+          ViewCtorArgs...,
+          std::conditional_t<alloc_prop_input::has_execution_space,
+                             std::integral_constant<unsigned int, 2>,
+                             typename view_type::execution_space>,
+          std::string>;
+      alloc_prop arg_prop_copy(arg_prop);
+      static_cast<Kokkos::Impl::ViewCtorProp<void, std::string>&>(arg_prop_copy)
+          .value                 = v.label();
+      using execution_space_type = typename alloc_prop::execution_space;
+      const execution_space_type& exec_space =
+          static_cast<
+              Kokkos::Impl::ViewCtorProp<void, execution_space_type> const&>(
+              arg_prop_copy)
+              .value;
+      Kokkos::deep_copy(exec_space, v, typename view_type::value_type{});
+    } else
+      Kokkos::deep_copy(v, typename view_type::value_type{});
+  }
 }
 
-/** \brief  Resize a view with discarding old data. */
+// FIXME User-provided (custom) layouts are not required to have a comparison
+// operator. Hence, there is no way to check if the requested layout is actually
+// the same as the existing one.
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
+    !(std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                   Kokkos::LayoutLeft>::value ||
+      std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                   Kokkos::LayoutRight>::value ||
+      std::is_same<typename Kokkos::View<T, P...>::array_layout,
+                   Kokkos::LayoutStride>::value ||
+      is_layouttiled<typename Kokkos::View<T, P...>::array_layout>::value)>
+impl_realloc(Kokkos::View<T, P...>& v,
+             const typename Kokkos::View<T, P...>::array_layout& layout,
+             const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  using view_type        = Kokkos::View<T, P...>;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
+                "Can only realloc managed views");
+  static_assert(!alloc_prop_input::has_label,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a label!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::has_memory_space,
+                "The view constructor arguments passed to Kokkos::realloc must "
+                "not include a memory space instance!");
+
+  v = view_type();  // Deallocate first, if the only view to allocation
+
+  using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
+  alloc_prop arg_prop_copy(arg_prop);
+  static_cast<Kokkos::Impl::ViewCtorProp<void, std::string>&>(arg_prop_copy)
+      .value = v.label();
+  v          = view_type(arg_prop_copy, layout);
+}
+
+template <class T, class... P, class... ViewCtorArgs>
+inline void realloc(
+    const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+    Kokkos::View<T, P...>& v,
+    const typename Kokkos::View<T, P...>::array_layout& layout) {
+  impl_realloc(v, layout, arg_prop);
+}
+
+template <class I, class T, class... P>
+inline std::enable_if_t<Impl::is_view_ctor_property<I>::value> realloc(
+    const I& arg_prop, Kokkos::View<T, P...>& v,
+    const typename Kokkos::View<T, P...>::array_layout& layout) {
+  impl_realloc(v, layout, Kokkos::view_alloc(arg_prop));
+}
+
 template <class T, class... P>
 inline void realloc(
     Kokkos::View<T, P...>& v,
     const typename Kokkos::View<T, P...>::array_layout& layout) {
-  using view_type = Kokkos::View<T, P...>;
-
-  static_assert(Kokkos::ViewTraits<T, P...>::is_managed,
-                "Can only realloc managed views");
-
-  const std::string label = v.label();
-
-  v = view_type();  // Deallocate first, if the only view to allocation
-  v = view_type(label, layout);
+  impl_realloc(v, layout, Impl::ViewCtorProp<>{});
 }
+
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------
@@ -3112,8 +3506,8 @@ struct MirrorViewType {
   using dest_view_type = Kokkos::View<data_type, array_layout, Space>;
   // If it is the same memory_space return the existsing view_type
   // This will also keep the unmanaged trait if necessary
-  using view_type = typename std::conditional<is_same_memspace, src_view_type,
-                                              dest_view_type>::type;
+  using view_type =
+      std::conditional_t<is_same_memspace, src_view_type, dest_view_type>;
 };
 
 template <class Space, class T, class... P>
@@ -3136,20 +3530,38 @@ struct MirrorType {
   using view_type = Kokkos::View<data_type, array_layout, Space>;
 };
 
-}  // namespace Impl
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
+    !std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
+                  Kokkos::LayoutStride>::value &&
+        !Impl::ViewCtorProp<ViewCtorArgs...>::has_memory_space,
+    typename Kokkos::View<T, P...>::HostMirror>
+create_mirror(const Kokkos::View<T, P...>& src,
+              const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  using src_type         = View<T, P...>;
+  using dst_type         = typename src_type::HostMirror;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
 
-template <class T, class... P>
-inline typename Kokkos::View<T, P...>::HostMirror create_mirror(
-    const Kokkos::View<T, P...>& src,
-    typename std::enable_if<
-        std::is_same<typename ViewTraits<T, P...>::specialize, void>::value &&
-        !std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
-                      Kokkos::LayoutStride>::value>::type* = nullptr) {
-  using src_type = View<T, P...>;
-  using dst_type = typename src_type::HostMirror;
+  static_assert(
+      !alloc_prop_input::has_label,
+      "The view constructor arguments passed to Kokkos::create_mirror "
+      "must not include a label!");
+  static_assert(
+      !alloc_prop_input::has_pointer,
+      "The view constructor arguments passed to Kokkos::create_mirror must "
+      "not include a pointer!");
+  static_assert(
+      !alloc_prop_input::allow_padding,
+      "The view constructor arguments passed to Kokkos::create_mirror must "
+      "not explicitly allow padding!");
+
+  using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
+  alloc_prop prop_copy(arg_prop);
+  static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
+      std::string(src.label()).append("_mirror");
 
   return dst_type(
-      std::string(src.label()).append("_mirror"),
+      prop_copy,
       src.rank_dynamic > 0 ? src.extent(0) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       src.rank_dynamic > 1 ? src.extent(1) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       src.rank_dynamic > 2 ? src.extent(2) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -3160,15 +3572,30 @@ inline typename Kokkos::View<T, P...>::HostMirror create_mirror(
       src.rank_dynamic > 7 ? src.extent(7) : KOKKOS_IMPL_CTOR_DEFAULT_ARG);
 }
 
-template <class T, class... P>
-inline typename Kokkos::View<T, P...>::HostMirror create_mirror(
-    const Kokkos::View<T, P...>& src,
-    typename std::enable_if<
-        std::is_same<typename ViewTraits<T, P...>::specialize, void>::value &&
-        std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
-                     Kokkos::LayoutStride>::value>::type* = nullptr) {
-  using src_type = View<T, P...>;
-  using dst_type = typename src_type::HostMirror;
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
+    std::is_same<typename Kokkos::ViewTraits<T, P...>::array_layout,
+                 Kokkos::LayoutStride>::value &&
+        !Impl::ViewCtorProp<ViewCtorArgs...>::has_memory_space,
+    typename Kokkos::View<T, P...>::HostMirror>
+create_mirror(const Kokkos::View<T, P...>& src,
+              const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  using src_type         = View<T, P...>;
+  using dst_type         = typename src_type::HostMirror;
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+  static_assert(
+      !alloc_prop_input::has_label,
+      "The view constructor arguments passed to Kokkos::create_mirror "
+      "must not include a label!");
+  static_assert(
+      !alloc_prop_input::has_pointer,
+      "The view constructor arguments passed to Kokkos::create_mirror must "
+      "not include a pointer!");
+  static_assert(
+      !alloc_prop_input::allow_padding,
+      "The view constructor arguments passed to Kokkos::create_mirror must "
+      "not explicitly allow padding!");
 
   Kokkos::LayoutStride layout;
 
@@ -3190,109 +3617,324 @@ inline typename Kokkos::View<T, P...>::HostMirror create_mirror(
   layout.stride[6] = src.stride_6();
   layout.stride[7] = src.stride_7();
 
-  return dst_type(std::string(src.label()).append("_mirror"), layout);
+  using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
+  alloc_prop prop_copy(arg_prop);
+  static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
+      std::string(src.label()).append("_mirror");
+
+  return dst_type(prop_copy, layout);
 }
 
 // Create a mirror in a new space (specialization for different space)
-template <class Space, class T, class... P>
-typename Impl::MirrorType<Space, T, P...>::view_type create_mirror(
-    const Space&, const Kokkos::View<T, P...>& src,
-    typename std::enable_if<std::is_same<
-        typename ViewTraits<T, P...>::specialize, void>::value>::type* =
-        nullptr) {
-  return typename Impl::MirrorType<Space, T, P...>::view_type(src.label(),
-                                                              src.layout());
+template <class T, class... P, class... ViewCtorArgs,
+          class Enable = std::enable_if_t<
+              Impl::ViewCtorProp<ViewCtorArgs...>::has_memory_space>>
+auto create_mirror(const Kokkos::View<T, P...>& src,
+                   const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+
+  static_assert(
+      !alloc_prop_input::has_label,
+      "The view constructor arguments passed to Kokkos::create_mirror "
+      "must not include a label!");
+  static_assert(
+      !alloc_prop_input::has_pointer,
+      "The view constructor arguments passed to Kokkos::create_mirror must "
+      "not include a pointer!");
+  static_assert(
+      !alloc_prop_input::allow_padding,
+      "The view constructor arguments passed to Kokkos::create_mirror must "
+      "not explicitly allow padding!");
+
+  using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
+  alloc_prop prop_copy(arg_prop);
+  static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
+      std::string(src.label()).append("_mirror");
+
+  return typename Impl::MirrorType<typename alloc_prop::memory_space, T,
+                                   P...>::view_type(prop_copy, src.layout());
+}
+}  // namespace Impl
+
+template <class T, class... P>
+std::enable_if_t<std::is_void<typename ViewTraits<T, P...>::specialize>::value,
+                 typename Kokkos::View<T, P...>::HostMirror>
+create_mirror(Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror(v, Impl::ViewCtorProp<>{});
 }
 
 template <class T, class... P>
-inline typename Kokkos::View<T, P...>::HostMirror create_mirror_view(
-    const Kokkos::View<T, P...>& src,
-    typename std::enable_if<
-        (std::is_same<
-             typename Kokkos::View<T, P...>::memory_space,
-             typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
-         std::is_same<typename Kokkos::View<T, P...>::data_type,
-                      typename Kokkos::View<T, P...>::HostMirror::data_type>::
-             value)>::type* = nullptr) {
+std::enable_if_t<std::is_void<typename ViewTraits<T, P...>::specialize>::value,
+                 typename Kokkos::View<T, P...>::HostMirror>
+create_mirror(Kokkos::Impl::WithoutInitializing_t wi,
+              Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror(v, view_alloc(wi));
+}
+
+template <class Space, class T, class... P,
+          typename Enable = std::enable_if_t<Kokkos::is_space<Space>::value>>
+std::enable_if_t<std::is_void<typename ViewTraits<T, P...>::specialize>::value,
+                 typename Impl::MirrorType<Space, T, P...>::view_type>
+create_mirror(Space const&, Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror(v, view_alloc(typename Space::memory_space{}));
+}
+
+template <class T, class... P, class... ViewCtorArgs,
+          typename Enable = std::enable_if_t<
+              std::is_void<typename ViewTraits<T, P...>::specialize>::value &&
+              Impl::ViewCtorProp<ViewCtorArgs...>::has_memory_space>>
+auto create_mirror(Impl::ViewCtorProp<ViewCtorArgs...> const& arg_prop,
+                   Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror(v, arg_prop);
+}
+
+template <class T, class... P, class... ViewCtorArgs>
+std::enable_if_t<
+    std::is_void<typename ViewTraits<T, P...>::specialize>::value &&
+        !Impl::ViewCtorProp<ViewCtorArgs...>::has_memory_space,
+    typename Kokkos::View<T, P...>::HostMirror>
+create_mirror(Impl::ViewCtorProp<ViewCtorArgs...> const& arg_prop,
+              Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror(v, arg_prop);
+}
+
+template <class Space, class T, class... P,
+          typename Enable = std::enable_if_t<Kokkos::is_space<Space>::value>>
+std::enable_if_t<std::is_void<typename ViewTraits<T, P...>::specialize>::value,
+                 typename Impl::MirrorType<Space, T, P...>::view_type>
+create_mirror(Kokkos::Impl::WithoutInitializing_t wi, Space const&,
+              Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror(v, view_alloc(typename Space::memory_space{}, wi));
+}
+
+namespace Impl {
+
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
+    (std::is_same<
+         typename Kokkos::View<T, P...>::memory_space,
+         typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
+     std::is_same<
+         typename Kokkos::View<T, P...>::data_type,
+         typename Kokkos::View<T, P...>::HostMirror::data_type>::value),
+    typename Kokkos::View<T, P...>::HostMirror>
+create_mirror_view(const Kokkos::View<T, P...>& src,
+                   const Impl::ViewCtorProp<ViewCtorArgs...>&) {
   return src;
 }
 
-template <class T, class... P>
-inline typename Kokkos::View<T, P...>::HostMirror create_mirror_view(
-    const Kokkos::View<T, P...>& src,
-    typename std::enable_if<!(
-        std::is_same<
-            typename Kokkos::View<T, P...>::memory_space,
-            typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
-        std::is_same<typename Kokkos::View<T, P...>::data_type,
-                     typename Kokkos::View<T, P...>::HostMirror::data_type>::
-            value)>::type* = nullptr) {
-  return Kokkos::create_mirror(src);
+template <class T, class... P, class... ViewCtorArgs>
+inline std::enable_if_t<
+    !(std::is_same<
+          typename Kokkos::View<T, P...>::memory_space,
+          typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
+      std::is_same<
+          typename Kokkos::View<T, P...>::data_type,
+          typename Kokkos::View<T, P...>::HostMirror::data_type>::value),
+    typename Kokkos::View<T, P...>::HostMirror>
+create_mirror_view(const Kokkos::View<T, P...>& src,
+                   const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  return Kokkos::Impl::create_mirror(src, arg_prop);
 }
 
 // Create a mirror view in a new space (specialization for same space)
-template <class Space, class T, class... P>
-typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
-    const Space&, const Kokkos::View<T, P...>& src,
-    typename std::enable_if<
-        Impl::MirrorViewType<Space, T, P...>::is_same_memspace>::type* =
-        nullptr) {
+template <class Space, class T, class... P, class... ViewCtorArgs>
+std::enable_if_t<Impl::MirrorViewType<Space, T, P...>::is_same_memspace,
+                 typename Impl::MirrorViewType<Space, T, P...>::view_type>
+create_mirror_view(const Space&, const Kokkos::View<T, P...>& src,
+                   const Impl::ViewCtorProp<ViewCtorArgs...>&) {
   return src;
 }
 
 // Create a mirror view in a new space (specialization for different space)
-template <class Space, class T, class... P>
-typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
-    const Space&, const Kokkos::View<T, P...>& src,
-    typename std::enable_if<
-        !Impl::MirrorViewType<Space, T, P...>::is_same_memspace>::type* =
-        nullptr) {
-  return typename Impl::MirrorViewType<Space, T, P...>::view_type(src.label(),
-                                                                  src.layout());
-}
+template <class Space, class T, class... P, class... ViewCtorArgs>
+std::enable_if_t<!Impl::MirrorViewType<Space, T, P...>::is_same_memspace,
+                 typename Impl::MirrorViewType<Space, T, P...>::view_type>
+create_mirror_view(const Space&, const Kokkos::View<T, P...>& src,
+                   const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop) {
+  using MemorySpace = typename Space::memory_space;
+  using alloc_prop  = Impl::ViewCtorProp<ViewCtorArgs..., MemorySpace>;
+  alloc_prop prop_copy(arg_prop);
 
-// Create a mirror view and deep_copy in a new space (specialization for same
-// space)
-template <class Space, class T, class... P>
-typename Impl::MirrorViewType<Space, T, P...>::view_type
-create_mirror_view_and_copy(
-    const Space&, const Kokkos::View<T, P...>& src,
-    std::string const& name = "",
-    typename std::enable_if<
-        Impl::MirrorViewType<Space, T, P...>::is_same_memspace>::type* =
-        nullptr) {
-  (void)name;
-  fence(
-      "Kokkos::create_mirror_view_and_copy: fence before returning src view");  // same behavior as deep_copy(src, src)
+  return Kokkos::Impl::create_mirror(src, prop_copy);
+}
+}  // namespace Impl
+
+template <class T, class... P>
+std::enable_if_t<
+    std::is_same<
+        typename Kokkos::View<T, P...>::memory_space,
+        typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
+        std::is_same<
+            typename Kokkos::View<T, P...>::data_type,
+            typename Kokkos::View<T, P...>::HostMirror::data_type>::value,
+    typename Kokkos::View<T, P...>::HostMirror>
+create_mirror_view(const Kokkos::View<T, P...>& src) {
   return src;
 }
 
-// Create a mirror view and deep_copy in a new space (specialization for
-// different space)
-template <class Space, class T, class... P>
-typename Impl::MirrorViewType<Space, T, P...>::view_type
-create_mirror_view_and_copy(
+template <class T, class... P>
+std::enable_if_t<
+    !(std::is_same<
+          typename Kokkos::View<T, P...>::memory_space,
+          typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
+      std::is_same<
+          typename Kokkos::View<T, P...>::data_type,
+          typename Kokkos::View<T, P...>::HostMirror::data_type>::value),
+    typename Kokkos::View<T, P...>::HostMirror>
+create_mirror_view(const Kokkos::View<T, P...>& src) {
+  return Kokkos::create_mirror(src);
+}
+
+template <class T, class... P>
+typename Kokkos::View<T, P...>::HostMirror create_mirror_view(
+    Kokkos::Impl::WithoutInitializing_t wi, Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror_view(v, view_alloc(wi));
+}
+
+// FIXME_C++17 Improve SFINAE here.
+template <class Space, class T, class... P,
+          class Enable = std::enable_if_t<Kokkos::is_space<Space>::value>>
+typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
     const Space&, const Kokkos::View<T, P...>& src,
-    std::string const& name = "",
-    typename std::enable_if<
-        !Impl::MirrorViewType<Space, T, P...>::is_same_memspace>::type* =
+    std::enable_if_t<Impl::MirrorViewType<Space, T, P...>::is_same_memspace>* =
         nullptr) {
-  using Mirror      = typename Impl::MirrorViewType<Space, T, P...>::view_type;
-  std::string label = name.empty() ? src.label() : name;
-  auto mirror       = typename Mirror::non_const_type{
-      view_alloc(WithoutInitializing, label), src.layout()};
-  deep_copy(mirror, src);
+  return src;
+}
+
+// FIXME_C++17 Improve SFINAE here.
+template <class Space, class T, class... P,
+          class Enable = std::enable_if_t<Kokkos::is_space<Space>::value>>
+typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
+    const Space& space, const Kokkos::View<T, P...>& src,
+    std::enable_if_t<!Impl::MirrorViewType<Space, T, P...>::is_same_memspace>* =
+        nullptr) {
+  return Kokkos::create_mirror(space, src);
+}
+
+template <class Space, class T, class... P,
+          typename Enable = std::enable_if_t<Kokkos::is_space<Space>::value>>
+typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
+    Kokkos::Impl::WithoutInitializing_t wi, Space const& space,
+    Kokkos::View<T, P...> const& v) {
+  return Impl::create_mirror_view(space, v, view_alloc(wi));
+}
+
+template <class T, class... P, class... ViewCtorArgs>
+auto create_mirror_view(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+                        const Kokkos::View<T, P...>& v) {
+  return Impl::create_mirror_view(v, arg_prop);
+}
+
+template <class... ViewCtorArgs, class T, class... P>
+auto create_mirror_view_and_copy(
+    const Impl::ViewCtorProp<ViewCtorArgs...>&,
+    const Kokkos::View<T, P...>& src,
+    std::enable_if_t<
+        std::is_void<typename ViewTraits<T, P...>::specialize>::value &&
+        Impl::MirrorViewType<
+            typename Impl::ViewCtorProp<ViewCtorArgs...>::memory_space, T,
+            P...>::is_same_memspace>* = nullptr) {
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+  static_assert(
+      alloc_prop_input::has_memory_space,
+      "The view constructor arguments passed to "
+      "Kokkos::create_mirror_view_and_copy must include a memory space!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to "
+                "Kokkos::create_mirror_view_and_copy must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::allow_padding,
+                "The view constructor arguments passed to "
+                "Kokkos::create_mirror_view_and_copy must "
+                "not explicitly allow padding!");
+
+  // same behavior as deep_copy(src, src)
+  if (!alloc_prop_input::has_execution_space)
+    fence(
+        "Kokkos::create_mirror_view_and_copy: fence before returning src view");
+  return src;
+}
+
+template <class... ViewCtorArgs, class T, class... P>
+auto create_mirror_view_and_copy(
+    const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+    const Kokkos::View<T, P...>& src,
+    std::enable_if_t<
+        std::is_void<typename ViewTraits<T, P...>::specialize>::value &&
+        !Impl::MirrorViewType<
+            typename Impl::ViewCtorProp<ViewCtorArgs...>::memory_space, T,
+            P...>::is_same_memspace>* = nullptr) {
+  using alloc_prop_input = Impl::ViewCtorProp<ViewCtorArgs...>;
+  static_assert(
+      alloc_prop_input::has_memory_space,
+      "The view constructor arguments passed to "
+      "Kokkos::create_mirror_view_and_copy must include a memory space!");
+  static_assert(!alloc_prop_input::has_pointer,
+                "The view constructor arguments passed to "
+                "Kokkos::create_mirror_view_and_copy must "
+                "not include a pointer!");
+  static_assert(!alloc_prop_input::allow_padding,
+                "The view constructor arguments passed to "
+                "Kokkos::create_mirror_view_and_copy must "
+                "not explicitly allow padding!");
+  using Space  = typename alloc_prop_input::memory_space;
+  using Mirror = typename Impl::MirrorViewType<Space, T, P...>::view_type;
+
+  // Add some properties if not provided to avoid need for if constexpr
+  using alloc_prop = Impl::ViewCtorProp<
+      ViewCtorArgs...,
+      std::conditional_t<alloc_prop_input::has_label,
+                         std::integral_constant<unsigned int, 12>, std::string>,
+      std::conditional_t<!alloc_prop_input::initialize,
+                         std::integral_constant<unsigned int, 13>,
+                         Impl::WithoutInitializing_t>,
+      std::conditional_t<alloc_prop_input::has_execution_space,
+                         std::integral_constant<unsigned int, 14>,
+                         typename Space::execution_space>>;
+  alloc_prop arg_prop_copy(arg_prop);
+
+  std::string& label =
+      static_cast<Impl::ViewCtorProp<void, std::string>&>(arg_prop_copy).value;
+  if (label.empty()) label = src.label();
+  auto mirror = typename Mirror::non_const_type{arg_prop_copy, src.layout()};
+  if (alloc_prop_input::has_execution_space) {
+    using ExecutionSpace = typename alloc_prop::execution_space;
+    deep_copy(
+        static_cast<Impl::ViewCtorProp<void, ExecutionSpace>&>(arg_prop_copy)
+            .value,
+        mirror, src);
+  } else
+    deep_copy(mirror, src);
   return mirror;
 }
 
+// Previously when using auto here, the intel compiler 19.3 would
+// sometimes not create a symbol, guessing that it somehow is a combination
+// of auto and just forwarding arguments (see issue #5196)
+template <class Space, class T, class... P,
+          typename Enable = std::enable_if_t<Kokkos::is_space<Space>::value>>
+typename Impl::MirrorViewType<Space, T, P...>::view_type
+create_mirror_view_and_copy(
+    const Space&, const Kokkos::View<T, P...>& src,
+    std::string const& name = "",
+    std::enable_if_t<
+        std::is_void<typename ViewTraits<T, P...>::specialize>::value>* =
+        nullptr) {
+  return create_mirror_view_and_copy(
+      Kokkos::view_alloc(typename Space::memory_space{}, name), src);
+}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 // Create a mirror view in a new space without initializing (specialization for
 // same space)
 template <class Space, class T, class... P>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the version taking WithoutInitializing as first argument")
 typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
     const Space&, const Kokkos::View<T, P...>& src,
     Kokkos::Impl::WithoutInitializing_t,
-    typename std::enable_if<
-        Impl::MirrorViewType<Space, T, P...>::is_same_memspace>::type* =
+    std::enable_if_t<Impl::MirrorViewType<Space, T, P...>::is_same_memspace>* =
         nullptr) {
   return src;
 }
@@ -3300,15 +3942,17 @@ typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
 // Create a mirror view in a new space without initializing (specialization for
 // different space)
 template <class Space, class T, class... P>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the version taking WithoutInitializing as first argument")
 typename Impl::MirrorViewType<Space, T, P...>::view_type create_mirror_view(
     const Space&, const Kokkos::View<T, P...>& src,
     Kokkos::Impl::WithoutInitializing_t,
-    typename std::enable_if<
-        !Impl::MirrorViewType<Space, T, P...>::is_same_memspace>::type* =
+    std::enable_if_t<!Impl::MirrorViewType<Space, T, P...>::is_same_memspace>* =
         nullptr) {
   using Mirror = typename Impl::MirrorViewType<Space, T, P...>::view_type;
   return Mirror(view_alloc(WithoutInitializing, src.label()), src.layout());
 }
+#endif
 
 } /* namespace Kokkos */
 

@@ -36,3 +36,5 @@ endif()
 if((CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC"))
   target_compile_definitions(lammps PRIVATE -DEIGEN_DONT_VECTORIZE)
 endif()
+
+target_compile_definitions(lammps PRIVATE -DEIGEN_NO_CUDA)

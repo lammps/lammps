@@ -56,6 +56,7 @@ Pre-processing tools
    * :ref:`moltemplate <moltemplate>`
    * :ref:`msi2lmp <msi>`
    * :ref:`polybond <polybond>`
+   * :ref:`stl_bin2txt <stlconvert>`
 
 
 Post-processing tools
@@ -87,14 +88,14 @@ Miscellaneous tools
 .. table_from_list::
    :columns: 6
 
-   * :ref:`CMake <cmake>`
+   * :ref:`LAMMPS coding standards <coding_standard>`
    * :ref:`emacs <emacs>`
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
-   * :ref:`singularity <singularity_tool>`
+   * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
 
@@ -189,27 +190,33 @@ for the :doc:`chain benchmark <Speed_bench>`.
 
 ----------
 
-.. _cmake:
+.. _coding_standard:
 
-CMake tools
------------
+LAMMPS coding standard
+----------------------
 
-The ``cmbuild`` script is a wrapper around using ``cmake --build <dir>
---target`` and allows compiling LAMMPS in a :ref:`CMake build folder
-<cmake_build>` with a make-like syntax regardless of the actual build
-tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
-``gmake``) when using ``-D CMAKE_MAKE_PROGRAM=<name>``.
+The ``coding_standard`` folder contains multiple python scripts to
+check for and apply some LAMMPS coding conventions.  The following
+scripts are available:
 
 .. parsed-literal::
 
-  Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]
+   permissions.py   # detects if sources have executable permissions and scripts have not
+   whitespace.py    # detects TAB characters and trailing whitespace
+   homepage.py      # detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
+   errordocs.py     # detects deprecated error docs in header files
+   versiontags.py   # detects .. versionadded:: or .. versionchanged:: with pending version date
 
-  Options:
-    -h                print this message
-    -j <NUM>          allow processing of NUM concurrent tasks
-    -C DIRECTORY      execute build in folder DIRECTORY
-    -v                produce verbose output
+The tools need to be given the main folder of the LAMMPS distribution
+or individual file names as argument and will by default check them
+and report any non-compliance.  With the optional ``-f`` argument the
+corresponding script will try to change the non-compliant file(s) to
+match the conventions.
 
+For convenience this scripts can also be invoked by the make file in
+the ``src`` folder with, `make check-whitespace` or `make fix-whitespace`
+to either detect or edit the files.  Correspondingly for the other python
+scripts. `make check` will run all checks.
 
 ----------
 
@@ -391,7 +398,7 @@ ipp tool
 ------------------
 
 The tools/ipp directory contains a Perl script ipp which can be used
-to facilitate the creation of a complicated file (say, a lammps input
+to facilitate the creation of a complicated file (say, a LAMMPS input
 script or tools/createatoms input file) using a template file.
 
 ipp was created and is maintained by Reese Jones (Sandia), rjones at
@@ -506,8 +513,8 @@ with an ``.inputrc`` file in the home directory.  For application
 specific customization, the LAMMPS shell uses the name "lammps-shell".
 For more information about using and customizing an application using
 readline, please see the available documentation at:
-`http://www.gnu.org/s/readline/#Documentation
-<http://www.gnu.org/s/readline/#Documentation>`_
+https://www.gnu.org/software/readline/
+
 
 Additional commands
 ^^^^^^^^^^^^^^^^^^^
@@ -709,7 +716,7 @@ See the README.pdf file for more information.
 These scripts were written by Arun Subramaniyan at Purdue Univ
 (asubrama at purdue.edu).
 
-.. _matlabhome: http://www.mathworks.com
+.. _matlabhome: https://www.mathworks.com
 
 ----------
 
@@ -1001,14 +1008,37 @@ Ivanov, at University of Iceland (ali5 at hi.is).
 
 .. _singularity_tool:
 
-singularity tool
-----------------------------------------
+singularity/apptainer tool
+--------------------------
 
-The singularity sub-directory contains container definitions files
-that can be used to build container images for building and testing
-LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
-container software. Contributions for additional variants are welcome.
-For more details please see the README.md file in that folder.
+The singularity sub-directory contains container definitions files that
+can be used to build container images for building and testing LAMMPS on
+specific OS variants using the `Apptainer <https://apptainer.org>`_ or
+`Singularity <https://sylabs.io>`_ container software. Contributions for
+additional variants are welcome.  For more details please see the
+README.md file in that folder.
+
+----------
+
+.. _stlconvert:
+
+stl_bin2txt tool
+----------------
+
+The file stl_bin2txt.cpp converts binary STL files - like they are
+frequently offered for download on the web - into ASCII format STL files
+that LAMMPS can read with the :doc:`create_atoms mesh <create_atoms>` or
+the :doc:`fix smd/wall_surface <fix_smd_wall_surface>` commands.  The syntax
+for running the tool is
+
+.. code-block:: bash
+
+   stl_bin2txt infile.stl outfile.stl
+
+which creates outfile.stl from infile.stl.  This tool must be compiled
+on a platform compatible with the byte-ordering that was used to create
+the binary file.  This usually is a so-called little endian hardware
+(like x86).
 
 ----------
 
@@ -1017,7 +1047,7 @@ For more details please see the README.md file in that folder.
 SWIG interface
 --------------
 
-The `SWIG tool <http://swig.org>`_ offers a mostly automated way to
+The `SWIG tool <https://swig.org>`_ offers a mostly automated way to
 incorporate compiled code modules into scripting languages.  It
 processes the function prototypes in C and generates wrappers for a wide
 variety of scripting languages from it.  Thus it can also be applied to
@@ -1097,7 +1127,7 @@ data passed or returned as pointers are included in the ``lammps.i``
 file.  So most of the functionality of the library interface should be
 accessible.  What works and what does not depends a bit on the
 individual language for which the wrappers are built and how well SWIG
-supports those.  The `SWIG documentation <http://swig.org/doc.html>`_
+supports those.  The `SWIG documentation <https://swig.org/doc.html>`_
 has very detailed instructions and recommendations.
 
 Usage examples

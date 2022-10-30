@@ -41,14 +41,26 @@
 // ************************************************************************
 //@HEADER
 */
+
+#ifndef KOKKOS_IMPL_HOSTSPACE_DEEPCOPY_HPP
+#define KOKKOS_IMPL_HOSTSPACE_DEEPCOPY_HPP
+
 #include <cstdint>
 
 namespace Kokkos {
 
 namespace Impl {
 
+void hostspace_fence(const DefaultHostExecutionSpace& exec);
+
 void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n);
+// DeepCopy called with an execution space that can't access HostSpace
+void hostspace_parallel_deepcopy_async(void* dst, const void* src, ptrdiff_t n);
+void hostspace_parallel_deepcopy_async(const DefaultHostExecutionSpace& exec,
+                                       void* dst, const void* src, ptrdiff_t n);
 
 }  // namespace Impl
 
 }  // namespace Kokkos
+
+#endif  // KOKKOS_IMPL_HOSTSPACE_DEEPCOPY_HPP

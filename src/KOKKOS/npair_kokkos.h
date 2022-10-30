@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -137,7 +137,7 @@ class NPairKokkos : public NPair {
 
   // data from NStencil class
 
-  int nstencil;
+  int nstencil,last_stencil_old;
   DAT::tdual_int_1d k_stencil;  // # of J neighs for each I
   DAT::tdual_int_1d_3 k_stencilxyz;
 };
@@ -513,6 +513,3 @@ struct NPairKokkosBuildFunctorSize<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

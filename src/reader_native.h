@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,8 +24,8 @@ ReaderStyle(native,ReaderNative);
 
 #include "reader.h"
 
-#include <string>
 #include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -73,15 +73,3 @@ class ReaderNative : public Reader {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump file is incorrectly formatted
-
-Self-explanatory.
-
-E: Unexpected end of dump file
-
-A read operation from the file failed.
-
-*/

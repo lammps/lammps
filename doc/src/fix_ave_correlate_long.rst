@@ -6,14 +6,14 @@ fix ave/correlate/long command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ave/correlate/long Nevery Nfreq value1 value2 ... keyword args ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * ave/correlate/long = style name of this fix command
-* Nevery = use input values every this many timesteps
-* Nfreq = save state of the time correlation functions every this many timesteps
+* Nevery = use input values every this many time steps
+* Nfreq = save state of the time correlation functions every this many time steps
 * one or more input values can be listed
 * value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
@@ -38,7 +38,7 @@ Syntax
          auto/lower = auto + lower
          full = correlate each value with every other value, including itself = auto + upper + lower
        *start* args = Nstart
-         Nstart = start accumulating correlations on this timestep
+         Nstart = start accumulating correlations on this time step
        *file* arg = filename
          filename = name of file to output correlation data to
        *overwrite* arg = none = overwrite output file with only latest output
@@ -66,10 +66,11 @@ Examples
 Description
 """""""""""
 
-This fix is similar in spirit and syntax to the :doc:`fix ave/correlate <fix_ave_correlate>`.
+This fix is similar in spirit and syntax to the
+:doc:`fix ave/correlate <fix_ave_correlate>`.
 However, this fix allows the efficient calculation of time correlation
 functions on-the-fly over extremely long time windows with little
-additional CPU overhead, using a multiple-tau method
+additional CPU overhead, using a multiple-:math:`\tau` method
 :ref:`(Ramirez) <Ramirez>` that decreases the resolution of the stored
 correlation function with time.  It is not a full drop-in replacement.
 
@@ -78,37 +79,41 @@ specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 
 Each listed value can be the result of a compute or fix or the
-evaluation of an equal-style variable. See the :doc:`fix ave/correlate <fix_ave_correlate>` page for details.
+evaluation of an equal-style variable. See the
+:doc:`fix ave/correlate <fix_ave_correlate>` page for details.
 
-The *Nevery* and *Nfreq* arguments specify on what timesteps the input
-values will be used to calculate correlation data, and the frequency
-with which the time correlation functions will be output to a file.
-Note that there is no *Nrepeat* argument, unlike the :doc:`fix ave/correlate <fix_ave_correlate>` command.
+The *Nevery* and *Nfreq* arguments specify on what time steps the input
+values will be used to calculate correlation data and the frequency
+with which the time correlation functions will be output to a file,
+respectively.
+Note that there is no *Nrepeat* argument, unlike the
+:doc:`fix ave/correlate <fix_ave_correlate>` command.
 
 The optional keywords *ncorr*, *nlen*, and *ncount* are unique to this
 command and determine the number of correlation points calculated and
 the memory and CPU overhead used by this calculation. *Nlen* and
 *ncount* determine the amount of averaging done at longer correlation
-times.  The default values *nlen=16*, *ncount=2* ensure that the
-systematic error of the multiple-tau correlator is always below the
+times.  The default values *nlen* = 16 and *ncount* = 2 ensure that the
+systematic error of the multiple-:math:`\tau` correlator is always below the
 level of the statistical error of a typical simulation (which depends
 on the ensemble size and the simulation length).
 
 The maximum correlation time (in time steps) that can be reached is
-given by the formula (nlen-1) \* ncount\^(ncorr-1).  Longer correlation
+given by the formula :math:`(nlen-1) ncount^{(ncorr-1)}`.  Longer correlation
 times are discarded and not calculated.  With the default values of
-the parameters (ncorr=20, nlen=16 and ncount=2), this corresponds to
-7864320 time steps.  If longer correlation times are needed, the value
-of ncorr should be increased. Using nlen=16 and ncount=2, with
-ncorr=30, the maximum number of steps that can be correlated is
-80530636808.  If ncorr=40, correlation times in excess of 8e12 time
-steps can be calculated.
+the parameters (:math:`ncorr=20`, :math:`nlen=16` and :math:`ncount=2`),
+this corresponds to 7864320 time steps.  If longer correlation times are
+needed, the value of ncorr should be increased. Using :math:`nlen=16` and
+:math:`ncount=2`, with :math:`ncorr=30`, the maximum number of steps that can
+be correlated is 80530636808.  If :math:`ncorr=40`, correlation times in excess
+of :math:`8\times 10^{12}` time steps can be calculated.
 
 The total memory needed for each correlation pair is roughly
-4\*ncorr\*nlen\*8 bytes. With the default values of the parameters, this
-corresponds to about 10 KB.
+:math:`4 \times ncorr\times nlen \times 8` bytes.
+With the default values of the parameters, this corresponds to about 10 KB.
 
-For the meaning of the additional optional keywords, see the :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
+For the meaning of the additional optional keywords, see the
+:doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -128,7 +133,8 @@ Restrictions
 """"""""""""
 
 This compute is part of the EXTRA-FIX package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -140,8 +146,9 @@ Default
 
 none
 
-The option defaults for keywords that are also keywords for the :doc:`fix ave/correlate <fix_ave_correlate>` command are as follows: type =
-auto, start = 0, no file output, title 1,2 = strings as described on
+The option defaults for keywords that are also keywords for the
+:doc:`fix ave/correlate <fix_ave_correlate>` command are as follows:
+type = auto, start = 0, no file output, title 1,2 = strings as described on
 the :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 
 The option defaults for keywords unique to this command are as

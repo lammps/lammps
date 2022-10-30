@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS development team: developers@lammps.org
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -756,8 +756,6 @@ void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lma
       }
     }
   }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -806,8 +804,6 @@ void MLIAP_SO3::get_rip_array(int nlocal, int *numneighs, double **rij, int nmax
               integrald * expfac;
         }
     }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -928,8 +924,6 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
     }
     compute_pi(nmax, lmax, m_clisttot_r, m_clisttot_i, m_numYlms, m_plist_r, m_plist_i, ncoefs, ii);
   }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

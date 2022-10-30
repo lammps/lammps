@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,10 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
-{
-
-}
+CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp) : CommTiled(_lmp) {}
 
 /* ---------------------------------------------------------------------- */
 //IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
@@ -42,20 +39,9 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
 //           The call to Comm::copy_arrays() then converts the shallow copy
 //           into a deep copy of the class with the new layout.
 
-CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm)
-{
-
-}
+CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp, Comm *oldcomm) : CommTiled(_lmp,oldcomm) {}
 
 /* ---------------------------------------------------------------------- */
-
-CommTiledKokkos::~CommTiledKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep

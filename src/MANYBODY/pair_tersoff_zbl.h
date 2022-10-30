@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -49,25 +49,3 @@ class PairTersoffZBL : public PairTersoff {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair tersoff/zbl requires metal or real units
-
-This is a current restriction of this pair potential.
-
-E: Cannot open Tersoff potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in Tersoff potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal Tersoff parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-*/

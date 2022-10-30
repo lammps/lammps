@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,6 +35,7 @@ class BondHarmonic : public Bond {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, double, int, int, double &) override;
+  void born_matrix(int, double, int, int, double &, double &) override;
   void *extract(const char *, int &) override;
 
  protected:
@@ -47,11 +48,3 @@ class BondHarmonic : public Bond {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

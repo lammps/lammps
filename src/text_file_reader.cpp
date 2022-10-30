@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -215,5 +215,5 @@ ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separ
 {
   char *ptr = next_line(nparams);
   if (ptr == nullptr) throw EOFException(fmt::format("Missing line in {} file!", filetype));
-  return ValueTokenizer(line, separators);
+  return {line, separators};
 }

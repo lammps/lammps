@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,6 +19,8 @@
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
+
+typedef MemoryKokkos MemKK;
 
 class MemoryKokkos : public Memory {
  public:
@@ -271,6 +273,28 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type** &array)
   data = TYPE();
   sfree(array);
   array = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   reallocate Kokkos views without initialization
+   deallocate first to reduce memory use
+------------------------------------------------------------------------- */
+
+template <typename TYPE, typename... Indices>
+static void realloc_kokkos(TYPE &data, const char *name, Indices... ns)
+{
+  data = TYPE();
+  data = TYPE(Kokkos::NoInit(std::string(name)), ns...);
+}
+
+/* ----------------------------------------------------------------------
+   get memory usage of Kokkos view in bytes
+------------------------------------------------------------------------- */
+
+template <typename TYPE>
+static double memory_usage(TYPE &data)
+{
+  return data.span() * sizeof(typename TYPE::value_type);
 }
 
 };

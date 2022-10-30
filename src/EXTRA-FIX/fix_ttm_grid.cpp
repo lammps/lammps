@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -297,7 +297,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
       try {
         ValueTokenizer values(utils::trim_comment(line));
         if (values.count() == 0) {
-          ; // ignore comment only lines
+          ;    // ignore comment only lines
         } else if (values.count() == 4) {
           ++nread;
 
@@ -306,18 +306,18 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
           int iz = values.next_int();
 
           if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
-            throw TokenizerException("Fix ttm/grid invalid grid index in input","");
+            throw TokenizerException("Fix ttm/grid invalid grid index in input", "");
 
-          if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in
-              && iz >= nzlo_in && iz <= nzhi_in) {
+          if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in && iz >= nzlo_in &&
+              iz <= nzhi_in) {
             T_electron[iz][iy][ix] = values.next_double();
             T_initial_set[iz][iy][ix] = 1;
           }
         } else {
-          throw TokenizerException("Incorrect format in fix ttm electron grid file","");
+          throw TokenizerException("Incorrect format in fix ttm electron grid file", "");
         }
       } catch (std::exception &e) {
-        error->one(FLERR,e.what());
+        error->one(FLERR, e.what());
       }
     }
   }
@@ -356,9 +356,11 @@ void FixTTMGrid::write_electron_temperatures(const std::string &filename)
     FPout = fopen(filename.c_str(), "w");
     if (!FPout) error->one(FLERR, "Fix ttm/grid could not open output file");
 
-    fmt::print(FPout,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
-               "{}x{}x{} grid at step {}. Created by fix {}\n", utils::current_date(),
-               update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
+    fmt::print(FPout,
+               "# DATE: {} UNITS: {} COMMENT: Electron temperature "
+               "{}x{}x{} grid at step {}. Created by fix {}\n",
+               utils::current_date(), update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep,
+               style);
   }
 
   gc->gather(GridComm::FIX, this, 1, sizeof(double), 1, nullptr, MPI_DOUBLE);

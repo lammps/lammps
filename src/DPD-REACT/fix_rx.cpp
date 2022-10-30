@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -319,9 +319,9 @@ void FixRX::post_constructor()
   newcmd1 += " ghost yes";
   newcmd2 += " ghost yes";
 
-  fix_species = dynamic_cast<FixPropertyAtom *>( modify->add_fix(newcmd1));
+  fix_species = dynamic_cast<FixPropertyAtom *>(modify->add_fix(newcmd1));
   restartFlag = fix_species->restart_reset;
-  fix_species_old = dynamic_cast<FixPropertyAtom *>( modify->add_fix(newcmd2));
+  fix_species_old = dynamic_cast<FixPropertyAtom *>(modify->add_fix(newcmd2));
 
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
@@ -579,9 +579,9 @@ int FixRX::setmask()
 
 void FixRX::init()
 {
-  pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy",1));
+  pairDPDE = dynamic_cast<PairDPDfdtEnergy *>(force->pair_match("dpd/fdt/energy",1));
   if (pairDPDE == nullptr)
-    pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy/kk",1));
+    pairDPDE = dynamic_cast<PairDPDfdtEnergy *>(force->pair_match("dpd/fdt/energy/kk",1));
 
   if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix rx");
@@ -1109,8 +1109,7 @@ void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[
       y_out[k] = y[k] + r4;
    }
 
-   return;
-}
+   }
 
 int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
                      const double hmin, const double hmax,
@@ -1422,8 +1421,6 @@ void FixRX::odeDiagnostics()
   // Reset the counters.
   for (int i = 0; i < numDiagnosticCounters; ++i)
     diagnosticCounter[i] = 0;
-
-  return;
 }
 
 void FixRX::rkf45(int id, double *rwork, void *v_param, int ode_counter[])

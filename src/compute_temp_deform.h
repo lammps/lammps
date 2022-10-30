@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -51,28 +51,3 @@ class ComputeTempDeform : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: Using compute temp/deform with inconsistent fix deform remap option
-
-Fix nvt/sllod assumes deforming atoms have a velocity profile provided
-by "remap v" or "remap none" as a fix deform option.
-
-W: Using compute temp/deform with no fix deform defined
-
-This is probably an error, since it makes little sense to use
-compute temp/deform in this case.
-
-E: Temperature compute degrees of freedom < 0
-
-This should not happen if you are calculating the temperature
-on a valid set of atoms.
-
-*/

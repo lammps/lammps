@@ -149,11 +149,16 @@ do
   *.cpp|*.cxx|*.cc|*.C|*.c++|*.cu)
     cpp_files="$cpp_files $1"
     ;;
-   # Ensure we only have one optimization flag because NVCC doesn't allow muliple
+   # Ensure we only have one optimization flag because NVCC doesn't allow multiple
   -O*)
     if [ -n "$optimization_flag" ]; then
-       echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-O*), only the last is used because nvcc can only accept a single optimization setting."
-       shared_args=${shared_args/ $optimization_flag/}
+        if [ "$1" = "$optimization_flag" ]; then
+            # Silently consume duplicates of the same argument
+            shift
+            continue
+        fi
+        echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-O*), only the last is used because nvcc can only accept a single optimization setting."
+        shared_args=${shared_args/ $optimization_flag/}
     fi
     if [ "$1" = "-O" ]; then
       optimization_flag="-O2"
@@ -222,7 +227,7 @@ do
     fi
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|--verbose|--keep|--source-in-ptx|-src-in-ptx|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
@@ -230,13 +235,84 @@ do
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
-  -maxrregcount=*|--maxrregcount=*|-time=*)
+  -maxrregcount=*|--maxrregcount=*|-time=*|-Xptxas=*)
     cuda_args="$cuda_args $1"
     ;;
-  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include|-time)
+  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include|-time|-Xptxas)
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
+  # Handle Werror. Note, we must differentiate between the ones going to nvcc and the host compiler
+  # --Werror kind,... OR --Werror=kind,... <- always to nvcc
+  --Werror)
+    cuda_args="$cuda_args $1 $2"
+    shift
+    ;;
+  --Werror=*)
+    cuda_args="$cuda_args $1"
+    ;;
+  # -Werror kind,... where kind is one of {all-warnings, cross-execution-space-call, reorder, default-stream-launch, missing-launch-bounds, ext-lambda-captures-this, deprecated-declarations} <- goes to nvcc
+  # -Werror not followed by any kind as mentioned above goes to host compiler without any arguments
+  -Werror)
+    if [ $# -gt 1 ]; then
+      IFS="," read -r -a kinds <<< "$2"
+      first_kind=${kinds[0]}
+      # check if the first kind is one of the allowed ones, then this must be an nvcc list so put all of them to the cuda compiler
+      case $first_kind in
+      all-warnings|cross-execution-space-call|reorder|default-stream-launch|missing-launch-bounds|ext-lambda-captures-this|deprecated-declarations)
+        cuda_args="$cuda_args $1 $2"
+        shift
+        ;;
+      *)
+        if [ $first_xcompiler_arg -eq 1 ]; then
+          xcompiler_args="$1"
+          first_xcompiler_arg=0
+        else
+          xcompiler_args="$xcompiler_args,$1"
+        fi
+        ;;
+      esac
+    fi
+    ;;
+  # -Werror=kind,... will be split into two parts, those kinds that belong to nvcc (see above) go there, while all others go towards the host compiler
+  -Werror=*)
+    kinds_str="${1:8}" # strip -Werror=
+    IFS="," read -r -a kinds <<< ${kinds_str}
+    first_werror_cuda=1
+    first_werror_host=1
+    xcompiler_args_werror=
+    # loop over all kinds that are sparated via ','
+    for kind in "${kinds[@]}"
+    do
+      case ${kind} in
+      all-warnings|cross-execution-space-call|reorder|default-stream-launch|missing-launch-bounds|ext-lambda-captures-this|deprecated-declarations)
+        if [ $first_werror_cuda -ne 0 ]; then
+          cuda_args="$cuda_args -Werror="
+          first_werror_cuda=0
+        else
+          cuda_args="$cuda_args,"
+        fi
+        cuda_args="$cuda_args$kind"
+        ;;
+      *)
+        if [ $first_werror_host -eq 0 ]; then
+            xcompiler_args_werror="${xcompiler_args_werror},"
+        fi
+        first_werror_host=0
+        xcompiler_args_werror="$xcompiler_args_werror-Werror=$kind"
+        ;;
+      esac
+    done
+    if [ $first_werror_host -eq 0 ]; then
+      if [ $first_xcompiler_arg -eq 1 ]; then
+        xcompiler_args="$xcompiler_args_werror"
+        first_xcompiler_arg=0
+      else
+        xcompiler_args="$xcompiler_args,$xcompiler_args_werror"
+      fi
+    fi
+    ;;
+  # End of Werror handling
   #Handle unsupported standard flags
   --std=c++1y|-std=c++1y|--std=gnu++1y|-std=gnu++1y|--std=c++1z|-std=c++1z|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a)
     fallback_std_flag="-std=c++14"
@@ -305,7 +381,7 @@ do
   -std=c++98|--std=c++98)
     ;;
   #strip of pedantic because it produces endless warnings about #LINE added by the preprocessor
-  -pedantic|-Wpedantic|-ansi)
+  -pedantic|-pedantic-errors|-Wpedantic|-ansi)
     ;;
   #strip of -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
   -Woverloaded-virtual)

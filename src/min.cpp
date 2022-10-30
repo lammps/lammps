@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -94,13 +94,13 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
 
 Min::~Min()
 {
-  delete [] elist_global;
-  delete [] elist_atom;
-  delete [] vlist_global;
-  delete [] vlist_atom;
-  delete [] cvlist_atom;
+  delete[] elist_global;
+  delete[] elist_atom;
+  delete[] vlist_global;
+  delete[] vlist_atom;
+  delete[] cvlist_atom;
 
-  delete [] fextra;
+  delete[] fextra;
 
   memory->sfree(xextra_atom);
   memory->sfree(fextra_atom);
@@ -121,14 +121,14 @@ void Min::init()
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  fix_minimize = dynamic_cast<FixMinimize *>( modify->add_fix("MINIMIZE all MINIMIZE"));
+  fix_minimize = dynamic_cast<FixMinimize *>(modify->add_fix("MINIMIZE all MINIMIZE"));
 
   // clear out extra global and per-atom dof
   // will receive requests for new per-atom dof during pair init()
   // can then add vectors to fix_minimize in setup()
 
   nextra_global = 0;
-  delete [] fextra;
+  delete[] fextra;
   fextra = nullptr;
 
   nextra_atom = 0;
@@ -182,15 +182,14 @@ void Min::init()
   neigh_delay = neighbor->delay;
   neigh_dist_check = neighbor->dist_check;
 
-  if (neigh_every != 1 || neigh_delay != 0 || neigh_dist_check != 1) {
+  if ((neigh_every != 1) || (neigh_delay != 0)) {
     if (comm->me == 0)
-      error->warning(FLERR, "Using 'neigh_modify every 1 delay 0 check"
-                     " yes' setting during minimization");
+      utils::logmesg(lmp, "Switching to 'neigh_modify every 1 delay 0 check yes' "
+                     "setting during minimization\n");
+    neighbor->every = 1;
+    neighbor->delay = 0;
+    neighbor->dist_check = 1;
   }
-
-  neighbor->every = 1;
-  neighbor->delay = 0;
-  neighbor->dist_check = 1;
 
   niter = neval = 0;
 
@@ -751,11 +750,11 @@ void Min::modify_params(int narg, char **arg)
 
 void Min::ev_setup()
 {
-  delete [] elist_global;
-  delete [] elist_atom;
-  delete [] vlist_global;
-  delete [] vlist_atom;
-  delete [] cvlist_atom;
+  delete[] elist_global;
+  delete[] elist_atom;
+  delete[] vlist_global;
+  delete[] vlist_atom;
+  delete[] cvlist_atom;
   elist_global = elist_atom = nullptr;
   vlist_global = vlist_atom = cvlist_atom = nullptr;
 

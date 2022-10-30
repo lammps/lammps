@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -483,6 +483,85 @@ void PPPMDispTIP4P::fieldforce_c_peratom()
         vatom[iH2][5] += v5*alpha*0.5*qfactor;
       }
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+  Fix handling of TIP4P dipole compared to PPPMDisp::slabcorr
+------------------------------------------------------------------------- */
+
+#define SMALL 0.00001
+
+void PPPMDispTIP4P::slabcorr(int /*eflag*/)
+{
+  // compute local contribution to global dipole moment
+
+  double *q = atom->q;
+  double **x = atom->x;
+  double zprd_slab = domain->zprd*slab_volfactor;
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+  double *xi, xM[3]; int iH1, iH2;  //for TIP4P virtual site
+
+  // sum local contributions to get global dipole moment
+  double dipole = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] == typeO) {
+      find_M(i,iH1,iH2,xM);
+      xi = xM;
+    } else xi = x[i];
+    dipole += q[i]*xi[2];
+  }
+
+  double dipole_all;
+  MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
+
+  // need to make non-neutral systems and/or
+  //  per-atom energy translationally invariant
+
+  double dipole_r2 = 0.0;
+  if (eflag_atom || fabs(qsum) > SMALL) {
+    for (int i = 0; i < nlocal; i++)
+      dipole_r2 += q[i]*x[i][2]*x[i][2];
+
+    // sum local contributions
+
+    double tmp;
+    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    dipole_r2 = tmp;
+  }
+
+  // compute corrections
+
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
+    qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
+  const double qscale = force->qqrd2e * scale;
+
+  if (eflag_global) energy_1 += qscale * e_slabcorr;
+
+  // per-atom energy
+
+  if (eflag_atom) {
+    double efact = qscale * MY_2PI/volume;
+    for (int i = 0; i < nlocal; i++)
+      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
+        qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
+  }
+
+  // add on force corrections
+
+  double ffact = qscale * (-4.0*MY_PI/volume);
+  double **f = atom->f;
+
+  for (int i = 0; i < nlocal; i++) {
+    double fzi_corr = ffact * q[i]*(dipole_all - qsum*x[i][2]);
+    if (type[i] == typeO) {
+      find_M(i,iH1,iH2,xM);
+      f[i][2] += fzi_corr*(1 - alpha);
+      f[iH1][2] += 0.5*alpha*fzi_corr;
+      f[iH2][2] += 0.5*alpha*fzi_corr;
+    }
+    else f[i][2] += fzi_corr;
   }
 }
 

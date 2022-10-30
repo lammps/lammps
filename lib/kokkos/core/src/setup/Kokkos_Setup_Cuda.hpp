@@ -88,9 +88,6 @@
 #define KOKKOS_CLASS_LAMBDA [ =, *this ] __host__ __device__
 #endif
 
-#if defined(__NVCC__)
-#define KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
-#endif
 #else  // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
 #undef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 #endif  // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
@@ -128,8 +125,6 @@
 #else
 #define KOKKOS_DEFAULTED_FUNCTION inline
 #endif
-#define KOKKOS_IMPL_HOST_FUNCTION __host__
-#define KOKKOS_IMPL_DEVICE_FUNCTION __device__
 
 #if (CUDA_VERSION >= 10000)
 #define KOKKOS_CUDA_ENABLE_GRAPHS

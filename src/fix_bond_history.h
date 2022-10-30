@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,7 +41,7 @@ class FixBondHistory : public Fix {
   double memory_usage() override;
   void write_restart(FILE *fp) override;
   void restart(char *buf) override;
-  void set_arrays(int);
+  void set_arrays(int) override;
 
   void update_atom_value(int, int, int, double);
   double get_atom_value(int, int, int);
@@ -76,19 +76,3 @@ class FixBondHistory : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Index exceeded in fix bond history
-
-Bond requested non-existant data
-
-E: Cannot store bond variables without any bonds
-
-Atoms must have a nonzero number of bonds to store data
-
-*/

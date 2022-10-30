@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,12 +50,6 @@ ImproperHarmonicIntel::ImproperHarmonicIntel(LAMMPS *lmp) :
   ImproperHarmonic(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-ImproperHarmonicIntel::~ImproperHarmonicIntel()
-{
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,11 +170,11 @@ void ImproperHarmonicIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = improperlist[n].a;
-      const int i2 = improperlist[n].b;
-      const int i3 = improperlist[n].c;
-      const int i4 = improperlist[n].d;
-      const int type = improperlist[n].t;
+      const int i1 = IP_PRE_dword_index(improperlist[n].a);
+      const int i2 = IP_PRE_dword_index(improperlist[n].b);
+      const int i3 = IP_PRE_dword_index(improperlist[n].c);
+      const int i4 = IP_PRE_dword_index(improperlist[n].d);
+      const int type = IP_PRE_dword_index(improperlist[n].t);
 
       // geometry of 4-body
 

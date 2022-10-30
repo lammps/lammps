@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -69,7 +69,6 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
   int i = 0;
   key2col.clear();
-  keyword_user.resize(nfield-5);
   for (int iarg = 5; iarg < nfield; iarg++, i++) {
     ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE|
                  ArgInfo::DNAME|ArgInfo::INAME);
@@ -80,8 +79,8 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
     } else {
       auxname[i] = utils::strdup(earg[iarg]);
     }
-    key2col[earg[iarg]] = i;
-    keyword_user[i].clear();
+    key2col[earg[iarg]] = iarg;
+    keyword_user[iarg].clear();
   }
 }
 
@@ -138,11 +137,11 @@ void DumpCFG::write_header(bigint n)
   header += fmt::format("H0(3,3) = {:g} A\n",domain->zprd);
   header += fmt::format(".NO_VELOCITY.\n");
   header += fmt::format("entry_count = {}\n",nfield-2);
-  for (int i = 0; i < nfield-5; i++)
+  for (int i = 5; i < nfield; i++)
     if (keyword_user[i].size())
-      header += fmt::format("auxiliary[{}] = {}\n",i,keyword_user[i]);
+      header += fmt::format("auxiliary[{}] = {}\n",i-5,keyword_user[i]);
     else
-      header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
+      header += fmt::format("auxiliary[{}] = {}\n",i-5,auxname[i-5]);
   fmt::print(fp, header);
 }
 

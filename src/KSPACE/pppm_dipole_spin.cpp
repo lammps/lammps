@@ -101,14 +101,13 @@ void PPPMDipoleSpin::init()
 
   if (domain->dimension == 2) error->all(FLERR,
                                          "Cannot use PPPMDipoleSpin with 2d simulation");
-  if (comm->style != 0)
-    error->universe_all(FLERR,"PPPMDipoleSpin can only currently be used with "
-                        "comm_style brick");
+  if (comm->style != Comm::BRICK)
+    error->universe_all(FLERR,"PPPMDipoleSpin can only currently be used with comm_style brick");
 
   if (!atom->sp) error->all(FLERR,"Kspace style requires atom attribute sp");
 
-  if (atom->sp && differentiation_flag == 1) error->all(FLERR,"Cannot (yet) use"
-     " kspace_modify diff ad with spins");
+  if (atom->sp && differentiation_flag == 1)
+    error->all(FLERR,"Cannot (yet) use kspace_modify diff ad with spins");
 
   if (spinflag && strcmp(update->unit_style,"metal") != 0)
     error->all(FLERR,"'metal' units have to be used with spins");
@@ -122,8 +121,7 @@ void PPPMDipoleSpin::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR,"PPPMDipoleSpin order cannot be < 2 or > {}",
-                                 MAXORDER);
+    error->all(FLERR,"PPPMDipoleSpin order cannot be < 2 or > {}",MAXORDER);
 
   // compute two charge force
 

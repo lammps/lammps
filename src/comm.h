@@ -20,13 +20,18 @@ namespace LAMMPS_NS {
 
 class Comm : protected Pointers {
  public:
-  int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
+  enum { BRICK, TILED };
+  int style;    // BRICK = 6-way stencil communication
+                // TILED = irregular tiling communication
+
+  enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
-  enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
-  int mode;    // 0 = single cutoff, 1 = multi-collection cutoff, 2 = multiold-type cutoff
   enum { SINGLE, MULTI, MULTIOLD };
+  int mode;    // SINGLE = single cutoff
+               // MULTI = multi-collection cutoff
+               // MULTIOLD = multiold-type cutoff
 
   int me, nprocs;               // proc info
   int ghost_velocity;           // 1 if ghost atoms have velocity, 0 if not

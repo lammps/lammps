@@ -94,7 +94,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (lbstyle == BISECTION && comm->style == 0)
+  if (lbstyle == BISECTION && comm->style == Comm::BRICK)
     error->all(FLERR,"Fix balance rcb cannot be used with comm_style brick");
 
   // create instance of Balance class

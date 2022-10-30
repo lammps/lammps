@@ -144,28 +144,36 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         set_flag = 1;
       }
       if ((str = getenv("MPT_LRANK"))) {
-        int local_rank = atoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
-        int local_rank = atoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
-        int local_rank = atoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("PMI_LOCAL_RANK"))) {
-        int local_rank = atoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
 
       if (ngpus > 1 && !set_flag)

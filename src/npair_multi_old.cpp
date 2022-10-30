@@ -12,52 +12,68 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_bin_atomonly.h"
+#include "npair_multi_old.h"
 
 #include "atom.h"
+#include "atom_vec.h"
+#include "domain.h"
 #include "error.h"
-#include "neighbor.h"
+#include "molecule.h"
 #include "my_page.h"
 #include "neigh_list.h"
 
 using namespace LAMMPS_NS;
-using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
 template<int HALF, int NEWTON, int TRI, int SIZE>
-NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::NPairBinAtomonly(LAMMPS *lmp) : NPair(lmp) {}
+NPairMultiOld<HALF, NEWTON, TRI, SIZE>::NPairMultiOld(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   Full:
-     binned neighbor list construction for all neighbors
-     every neighbor pair appears in list of both atoms i and j
-   Half + Newtoff:
-     binned neighbor list construction with partial Newton's 3rd law
-     each owned atom i checks own bin and other bins in stencil
-     pair stored once if i,j are both owned and i < j
-     pair stored by me if j is ghost (also stored by proc owning j)
-   Half + Newton:
-     binned neighbor list construction with full Newton's 3rd law
-     each owned atom i checks its own bin and other bins in Newton stencil
-     every pair stored exactly once by some processor
+  multi/old-type stencil is itype dependent and is distance checked
+  Full:
+    binned neighbor list construction for all neighbors
+    multi-type stencil is itype dependent and is distance checked
+    every neighbor pair appears in list of both atoms i and j
+  Half + newtoff:
+    binned neighbor list construction with partial Newton's 3rd law
+    each owned atom i checks own bin and other bins in stencil
+    multi-type stencil is itype dependent and is distance checked
+    pair stored once if i,j are both owned and i < j
+    pair stored by me if j is ghost (also stored by proc owning j)
+  Half + newton:
+    binned neighbor list construction with full Newton's 3rd law
+    each owned atom i checks its own bin and other bins in Newton stencil
+    multi-type stencil is itype dependent and is distance checked
+    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
 template<int HALF, int NEWTON, int TRI, int SIZE>
-void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
+void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
-  int i,j,jh,k,n,itype,jtype,ibin,bin_start;
+  int i,j,jh,k,n,itype,jtype,ibin,bin_start,which,ns,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radsum,cut,cutsq;
-  int *neighptr;
+  int *neighptr,*s;
+  double *cutsq,*distsq;
 
   double **x = atom->x;
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
+  else moltemplate = 0;
 
   int history = list->history;
   int mask_history = 1 << HISTBITS;
@@ -78,10 +94,18 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     ibin = atom2bin[i];
-
-    for (k = 0; k < nstencil; k++) {
+    s = stencil_multi_old[itype];
+    distsq = distsq_multi_old[itype];
+    cutsq = cutneighsq[itype];
+    ns = nstencil_multi_old[itype];
+    for (k = 0; k < ns; k++) {
       bin_start = binhead[ibin+stencil[k]];
       if (stencil[k] == 0) {
         if (HALF && NEWTON && (!TRI)) {
@@ -134,6 +158,9 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         }
 
         jtype = type[j];
+        if (cutsq[jtype] < distsq[k]) continue;
+        if (i == j) continue;
+
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
         delx = xtmp - x[j][0];
@@ -150,10 +177,37 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
             jh = j;
             if (history && rsq < radsum * radsum)
               jh = jh ^ mask_history;
-            neighptr[n++] = jh;
+
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = jh;
+              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+            } else neighptr[n++] = jh;
           }
         } else {
-          if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+          if (rsq <= cutneighsq[itype][jtype]) {
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            } else neighptr[n++] = j;
+          }
         }
       }
     }
@@ -167,16 +221,16 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
   }
 
   list->inum = inum;
-  if (!HALF) list->gnum = 0;
+  list->gnum = 0;
 }
 
 namespace LAMMPS_NS {
-template class NPairBinAtomonly<0,1,0,0>;
-template class NPairBinAtomonly<1,0,0,0>;
-template class NPairBinAtomonly<1,1,0,0>;
-template class NPairBinAtomonly<1,1,1,0>;
-template class NPairBinAtomonly<0,1,0,1>;
-template class NPairBinAtomonly<1,0,0,1>;
-template class NPairBinAtomonly<1,1,0,1>;
-template class NPairBinAtomonly<1,1,1,1>;
+template class NPairMultiOld<0,1,0,0>;
+template class NPairMultiOld<1,0,0,0>;
+template class NPairMultiOld<1,1,0,0>;
+template class NPairMultiOld<1,1,1,0>;
+template class NPairMultiOld<0,1,0,1>;
+template class NPairMultiOld<1,0,0,1>;
+template class NPairMultiOld<1,1,0,1>;
+template class NPairMultiOld<1,1,1,1>;
 }

@@ -13,26 +13,47 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairBin<0, 1, 0> NPairFullBin;
+typedef NPairBin<0, 1, 0, 0> NPairFullBin;
 NPairStyle(full/bin,
            NPairFullBin,
            NP_FULL | NP_BIN | NP_MOLONLY |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairBin<1, 0, 0> NPairHalfBinNewtoff;
+typedef NPairBin<1, 0, 0, 0> NPairHalfBinNewtoff;
 NPairStyle(half/bin/newtoff,
            NPairHalfBinNewtoff,
-           NP_HALF | NP_BIN | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+           NP_HALF | NP_BIN | NP_MOLONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairBin<1, 1, 0> NPairHalfBinNewton;
+typedef NPairBin<1, 1, 0, 0> NPairHalfBinNewton;
 NPairStyle(half/bin/newton,
            NPairHalfBinNewton,
            NP_HALF | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
 
-typedef NPairBin<1, 1, 1> NPairHalfBinNewtonTri;
+typedef NPairBin<1, 1, 1, 0> NPairHalfBinNewtonTri;
 NPairStyle(half/bin/newton/tri,
            NPairHalfBinNewtonTri,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_TRI);
+           NP_HALF | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_TRI);
+
+typedef NPairBin<0, 1, 0, 1> NPairFullSizeBin;
+NPairStyle(full/size/bin,
+           NPairFullSizeBin,
+           NP_FULL | NP_SIZE | NP_BIN | NP_MOLONLY |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairBin<1, 0, 0, 1> NPairHalfSizeBinNewtoff;
+NPairStyle(half/size/bin/newtoff,
+           NPairHalfSizeBinNewtoff,
+           NP_HALF | NP_SIZE | NP_BIN | NP_MOLONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairBin<1, 1, 0, 1> NPairHalfSizeBinNewton;
+NPairStyle(half/size/bin/newton,
+           NPairHalfSizeBinNewton,
+           NP_HALF | NP_SIZE | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
+
+typedef NPairBin<1, 1, 1, 1> NPairHalfSizeBinNewtonTri;
+NPairStyle(half/size/bin/newton/tri,
+           NPairHalfSizeBinNewtonTri,
+           NP_HALF | NP_SIZE | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_TRI);
 // clang-format on
 #else
 
@@ -43,7 +64,7 @@ NPairStyle(half/bin/newton/tri,
 
 namespace LAMMPS_NS {
 
-template<int HALF, int NEWTON, int TRI>
+template<int HALF, int NEWTON, int TRI, int SIZE>
 class NPairBin : public NPair {
  public:
   NPairBin(class LAMMPS *);

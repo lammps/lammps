@@ -27,23 +27,35 @@ using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI>
-NPairBin<HALF, NEWTON, TRI>::NPairBin(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI, int SIZE>
+NPairBin<HALF, NEWTON, TRI, SIZE>::NPairBin(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   binned neighbor list construction for all neighbors
-   every neighbor pair appears in list of both atoms i and j
+   Full:
+     binned neighbor list construction for all neighbors
+     every neighbor pair appears in list of both atoms i and j
+   Half + Newtoff:
+     binned neighbor list construction with partial Newton's 3rd law
+     each owned atom i checks own bin and other bins in stencil
+     pair stored once if i,j are both owned and i < j
+     pair stored by me if j is ghost (also stored by proc owning j)
+   Half + Newton:
+     binned neighbor list construction with full Newton's 3rd law
+     each owned atom i checks its own bin and other bins in Newton stencil
+     every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI>
-void NPairBin<HALF, NEWTON, TRI>::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI, int SIZE>
+void NPairBin<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,bin_start,which,imol,iatom,moltemplate;
+  int i,j,jh,k,n,itype,jtype,ibin,bin_start,which,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  double radsum,cut,cutsq;
   int *neighptr;
 
   double **x = atom->x;
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
@@ -58,6 +70,9 @@ void NPairBin<HALF, NEWTON, TRI>::build(NeighList *list)
   Molecule **onemols = atom->avec->onemols;
   if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
+
+  int history = list->history;
+  int mask_history = 1 << HISTBITS;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -141,22 +156,48 @@ void NPairBin<HALF, NEWTON, TRI>::build(NeighList *list)
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
 
-        if (rsq <= cutneighsq[itype][jtype]) {
-          if (molecular != Atom::ATOMIC) {
-            if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >= 0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) neighptr[n++] = j;
-            else if (domain->minimum_image_check(delx,dely,delz))
-              neighptr[n++] = j;
-            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-          } else neighptr[n++] = j;
+        if (SIZE) {
+          radsum = radius[i] + radius[j];
+          cut = radsum + skin;
+          cutsq = cut * cut;
+
+          if (rsq <= cutsq) {
+            jh = j;
+            if (history && rsq < radsum * radsum)
+              jh = jh ^ mask_history;
+
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = jh;
+              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+            } else neighptr[n++] = jh;
+          }
+        } else {
+          if (rsq <= cutneighsq[itype][jtype]) {
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            } else neighptr[n++] = j;
+          }
         }
       }
     }
@@ -174,8 +215,12 @@ void NPairBin<HALF, NEWTON, TRI>::build(NeighList *list)
 }
 
 namespace LAMMPS_NS {
-template class NPairBin<0,1,0>;
-template class NPairBin<1,0,0>;
-template class NPairBin<1,1,0>;
-template class NPairBin<1,1,1>;
+template class NPairBin<0,1,0,0>;
+template class NPairBin<1,0,0,0>;
+template class NPairBin<1,1,0,0>;
+template class NPairBin<1,1,1,0>;
+template class NPairBin<0,1,0,1>;
+template class NPairBin<1,0,0,1>;
+template class NPairBin<1,1,0,1>;
+template class NPairBin<1,1,1,1>;
 }

@@ -140,7 +140,7 @@ MODULE LIBLAMMPS
     PROCEDURE :: find_fix_neighlist     => lmp_find_fix_neighlist
     PROCEDURE :: find_compute_neighlist => lmp_find_compute_neighlist
     PROCEDURE :: neighlist_num_elements => lmp_neighlist_num_elements
-    PROCEDURE :: neighlist_element_neighbors => lmp_neighlist_num_elements
+    PROCEDURE :: neighlist_element_neighbors => lmp_neighlist_element_neighbors
     PROCEDURE :: version                => lmp_version
     PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
     PROCEDURE, NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
@@ -985,7 +985,7 @@ CONTAINS
     TYPE(lammps_data) :: global_data
     INTEGER(c_int) :: datatype
     TYPE(c_ptr) :: Cname, Cptr
-    INTEGER(c_size_t) :: length, i
+    INTEGER(c_size_t) :: length
 
     ! Determine vector length
     ! FIXME Is there a way to get the length of the vector from C rather
@@ -1101,6 +1101,7 @@ CONTAINS
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'per-atom property ' // name // 'not found in extract_setting')
       CASE DEFAULT
+        error_msg = ''
         WRITE(error_msg,'(A,I0,A)') 'return value ', datatype, &
           ' from lammps_extract_atom_datatype not known [Fortran/extract_atom]'
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
@@ -1280,7 +1281,7 @@ CONTAINS
     TYPE(lammps_variable_data) :: variable_data
 
     TYPE(c_ptr) :: Cptr, Cname, Cgroup, Cveclength
-    INTEGER(c_size_t) :: length, i
+    INTEGER(c_size_t) :: length
     INTEGER(c_int) :: datatype
     REAL(c_double), POINTER :: double => NULL()
     REAL(c_double), DIMENSION(:), POINTER :: double_vec => NULL()
@@ -2106,7 +2107,7 @@ CONTAINS
   ! equivalent subroutine to lammps_get_gpu_device_info
   SUBROUTINE lmp_get_gpu_device_info(buffer)
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
-    INTEGER(c_int) :: buf_size, i
+    INTEGER(c_int) :: buf_size
     CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: Cptr
 
@@ -2320,9 +2321,10 @@ CONTAINS
       BIMGMAX = IMGMAX
       BIMGBITS = IMGBITS
       BIMG2BITS = IMG2BITS
-      flags(1) = IAND(image, BIMGMASK) - BIMGMAX
-      flags(2) = IAND(ISHFT(image, -BIMGBITS), BIMGMASK) - BIMGMAX
-      flags(3) = ISHFT(image, -BIMG2BITS) - BIMGMAX
+      flags(1) = INT(IAND(image, BIMGMASK) - BIMGMAX, KIND=c_int)
+      flags(2) = INT(IAND(ISHFT(image, -BIMGBITS), BIMGMASK) - BIMGMAX, &
+        KIND=c_int)
+      flags(3) = INT(ISHFT(image, -BIMG2BITS) - BIMGMAX, KIND=c_int)
     ELSE
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'Incorrect&
         & integer kind passed as "image" [Fortran/decode_image_flags]')
@@ -2647,7 +2649,7 @@ CONTAINS
       f_string = ''
       RETURN
     END IF
-    n = c_strlen(ptr) ! implicit conversion: c_size_t -> (default kind)
+    n = INT(c_strlen(ptr), KIND=KIND(n))
     CALL C_F_POINTER(ptr, c_string, [n+1])
     f_string = array2string(c_string, n)
   END FUNCTION c2f_string

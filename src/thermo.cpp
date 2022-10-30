@@ -678,8 +678,8 @@ void Thermo::modify_params(int narg, char **arg)
             format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
-      } else if (not utils::is_integer(arg[iarg + 1])
-                 and utils::is_type(arg[iarg + 1]) == 0) {
+      } else if (! utils::is_integer(arg[iarg + 1])
+                 && utils::is_type(arg[iarg + 1]) == 0) {
         // handles cases such as 2*6; currently doesn't allow negatives
         int nlo, nhi;
         utils::bounds(FLERR, arg[iarg + 1], 1, nfield_initial, nlo, nhi,

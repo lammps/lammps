@@ -111,6 +111,8 @@ struct _liblammpsplugin {
   void *handle;
 #if defined(LAMMPS_LIB_MPI)
   void *(*open)(int, char **, MPI_Comm, void **);
+#else
+  void *open;
 #endif
   void *(*open_no_mpi)(int, char **, void **);
   void *(*open_fortran)(int, char **, void **, int);

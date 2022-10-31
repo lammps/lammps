@@ -67,7 +67,10 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 
 #if defined(LAMMPS_LIB_MPI)
   ADDSYM(open);
+#else
+  lmp->open = NULL;
 #endif
+
   ADDSYM(open_no_mpi);
   ADDSYM(open_fortran);
   ADDSYM(close);

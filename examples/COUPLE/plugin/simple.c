@@ -93,7 +93,13 @@ int main(int narg, char **arg)
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   }
-  if (lammps == 1) lmp = plugin->open(0,NULL,comm_lammps,NULL);
+  if (lammps == 1) {
+    if (plugin->open == NULL) {
+      printf("ERROR: liblammpsmpi.c must be compiled with -DLAMMPS_LIB_MPI=1 for this program\n");
+      MPI_Abort(MPI_COMM_WORLD,2);
+    }
+    lmp = plugin->open(0,NULL,comm_lammps,NULL);
+  }
 
   while (1) {
     if (me == 0) {

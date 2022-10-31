@@ -36,7 +36,6 @@ MLIAPModelLinearKokkos<DeviceType>::MLIAPModelLinearKokkos(LAMMPS *lmp, char *ar
 template<class DeviceType>
 void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data)
 {
-  auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   MLIAPDataKokkos<DeviceType> *k_data = (MLIAPDataKokkos<DeviceType>*)(data);
 
   // read but never changes

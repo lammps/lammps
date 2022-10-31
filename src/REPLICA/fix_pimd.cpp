@@ -374,8 +374,9 @@ void FixPIMD::init()
   const double Boltzmann = force->boltz;
   const double Planck = force->hplanck;
 
-  // hbar = Planck / (2.0 * MY_PI);
-  hbar = Planck;
+  if(force->boltz == 1.0) { hbar = Planck; }
+  else { hbar = Planck / (2.0 * MY_PI); }
+  // hbar = Planck;
   kBT = force->boltz * temp;
   double beta = 1.0 / (Boltzmann * temp);
   double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
@@ -498,6 +499,7 @@ void FixPIMD::setup(int vflag)
   end_of_step();
   c_pe->addstep(update->ntimestep+1); 
   c_press->addstep(update->ntimestep+1);
+  // printf("setup ending: \ncell = %.16e %.16e %.16e\nvol = %.16e\n", domain->xprd, domain->yprd, domain->zprd, domain->xprd * domain->yprd * domain->zprd);
   // printf("me = %d, setup finished\n", universe->me);   
 }
 
@@ -505,6 +507,7 @@ void FixPIMD::setup(int vflag)
 
 void FixPIMD::initial_integrate(int /*vflag*/)
 {
+  // printf("step = %d start initial_integrate\ncell = %.16e %.16e %.16e\nvol = %.16e\n", update->ntimestep, domain->xprd, domain->yprd, domain->zprd, domain->xprd * domain->yprd * domain->zprd);
   // printf("me = %d, step %d initial_integrate starts!\n", universe->me, update->ntimestep);
   // printf("me = %d, step %d if starts!\n", universe->me, update->ntimestep);
   int nlocal = atom->nlocal;
@@ -605,6 +608,7 @@ void FixPIMD::initial_integrate(int /*vflag*/)
         domain->unmap_inv(x[i], image[i]);
       }
     }
+  // printf("step = %d\ncell = %.16e %.16e %.16e\nvol = %.16e\n", update->ntimestep, domain->xprd, domain->yprd, domain->zprd, domain->xprd * domain->yprd * domain->zprd);
   // printf("me = %d, step %d initial_integrate ends!\n", universe->me, update->ntimestep);
 }
 
@@ -643,6 +647,7 @@ void FixPIMD::final_integrate()
 
 void FixPIMD::post_force(int /*flag*/)
 {
+  // printf("step = %d\ncell = %.16e %.16e %.16e\nvol = %.16e\n", update->ntimestep, domain->xprd, domain->yprd, domain->zprd, domain->xprd * domain->yprd * domain->zprd);
   if(atom->nmax > maxunwrap) reallocate_x_unwrap();
   if(atom->nmax > maxxc) reallocate_xc();
   // printf("me = %d, step %d post_force starts!\n", universe->me, update->ntimestep);
@@ -683,8 +688,8 @@ void FixPIMD::post_force(int /*flag*/)
       // domain->unmap_inv(x[i], image[i]);
     // }
   // }
-  // compute_vir();
-  // compute_vir_();
+  compute_vir();
+  compute_vir_();
   //  compute_t_prim();
   //  compute_t_vir();
   compute_pote();
@@ -707,7 +712,7 @@ void FixPIMD::end_of_step()
   compute_totke();
   // inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
   // compute_p_prim();
-  // compute_p_cv();
+  compute_p_cv();
   compute_tote();
   if(pstat_flag) compute_totenthalpy();
 
@@ -856,9 +861,11 @@ void FixPIMD::qc_step(){
     }
   }
   else{
+  // printf("step = %d start qc_step\ncell = %.16e %.16e %.16e\nvol = %.16e\n", update->ntimestep, domain->xprd, domain->yprd, domain->zprd, domain->xprd * domain->yprd * domain->zprd);
     if(universe->iworld == 0)
     {
       double expp[3], expq[3];
+      // printf("pstyle = %d vw[0] = %.8e\n", pstyle, vw[0]);
       if(pstyle == ISO) {vw[1] = vw[0]; vw[2] = vw[0];}
       for(int j=0; j<3; j++)
       {
@@ -899,6 +906,7 @@ void FixPIMD::qc_step(){
     domain->set_local_box();
   }
   volume = domain->xprd * domain->yprd * domain->zprd;
+  // printf("step = %d end qc_step\ncell = %.16e %.16e %.16e\nvol = %.16e\n", update->ntimestep, domain->xprd, domain->yprd, domain->zprd, domain->xprd * domain->yprd * domain->zprd);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -954,6 +962,7 @@ void FixPIMD::remove_com_motion(){
 
 void FixPIMD::baro_init()
 {
+  vw[0] = vw[1] = vw[2] = vw[3] = vw[4] = vw[5] = 0.0;
   if(pstyle == ISO) {W = 3 * (atom->natoms) * tau_p * tau_p * np * kBT;} // consistent with the definition in i-Pi
   // printf("tau_p = %.6e np = %.6e kBT = %.6e W = %.6e\n", tau_p, np, kBT, W);}
   else if(pstyle == ANISO) {W = atom->natoms * tau_p * tau_p * np * kBT;}

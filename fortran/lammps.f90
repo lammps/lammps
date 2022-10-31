@@ -1690,7 +1690,6 @@ CONTAINS
     IF (size_tagint /= 4_c_int) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Incompatible integer kind in gather_bonds [Fortran API]')
-      RETURN
     END IF
     IF (ALLOCATED(data)) DEALLOCATE(data)
     size_bigint = lmp_extract_setting(self, 'bigint')
@@ -1717,7 +1716,6 @@ CONTAINS
     IF (size_tagint /= 8_c_int) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Incompatible integer kind in gather_bonds [Fortran API]')
-      RETURN
     END IF
     nbonds = lmp_extract_global(self, 'nbonds')
     IF (ALLOCATED(data)) DEALLOCATE(data)
@@ -1750,7 +1748,6 @@ CONTAINS
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Unable to create_atoms; your id/image array types are incompatible&
         & with LAMMPS_SMALLBIG and LAMMPS_SMALLSMALL [Fortran/create_atoms]')
-      RETURN ! in case exception is caught
     END IF
     n = SIZE(type, KIND=c_int)
     IF (PRESENT(bexpand)) THEN
@@ -1769,8 +1766,6 @@ CONTAINS
     END IF
     IF (PRESENT(type)) THEN
       Ctype = C_LOC(type(1))
-    ELSE
-      RETURN ! We shouldn't get here unless exceptions are being caught
     END IF
     IF (PRESENT(image)) THEN
       Cimage = C_LOC(image(1))
@@ -1782,7 +1777,6 @@ CONTAINS
     ELSE
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'the argument "x" to create_atoms is required')
-      RETURN
     END IF
     IF (PRESENT(v)) THEN
       Cv = C_LOC(v(1))
@@ -2647,11 +2641,11 @@ CONTAINS
 
     IF (.NOT. C_ASSOCIATED(ptr)) THEN
       f_string = ''
-      RETURN
+    ELSE
+      n = INT(c_strlen(ptr), KIND=KIND(n))
+      CALL C_F_POINTER(ptr, c_string, [n+1])
+      f_string = array2string(c_string, n)
     END IF
-    n = INT(c_strlen(ptr), KIND=KIND(n))
-    CALL C_F_POINTER(ptr, c_string, [n+1])
-    f_string = array2string(c_string, n)
   END FUNCTION c2f_string
 
   ! Copy a known-length or null-terminated array of C characters into a string

@@ -124,12 +124,12 @@ int main(int narg, char **arg)
 
     int natoms = plugin->get_natoms(lmp);
     x = (double *) malloc(3*natoms*sizeof(double));
-    plugin->gather_atoms(lmp,"x",1,3,x);
+    plugin->gather_atoms(lmp,(char *)"x",1,3,x);
     v = (double *) malloc(3*natoms*sizeof(double));
-    plugin->gather_atoms(lmp,"v",1,3,v);
+    plugin->gather_atoms(lmp,(char *)"v",1,3,v);
     double epsilon = 0.1;
     x[0] += epsilon;
-    plugin->scatter_atoms(lmp,"x",1,3,x);
+    plugin->scatter_atoms(lmp,(char *)"x",1,3,x);
 
     plugin->command(lmp,"run 1");
   }
@@ -140,7 +140,7 @@ int main(int narg, char **arg)
     double **f = (double **) plugin->extract_atom(lmp,"f");
     printf("Force on 1 atom via extract_atom: %g\n",f[0][0]);
 
-    double *fx = (double *) plugin->extract_variable(lmp,"fx","all");
+    double *fx = (double *) plugin->extract_variable(lmp,"fx",(char *)"all");
     printf("Force on 1 atom via extract_variable: %g\n",fx[0]);
   }
 

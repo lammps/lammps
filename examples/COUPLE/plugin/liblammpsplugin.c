@@ -60,9 +60,9 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   lmp->handle = handle;
 
 #ifdef _WIN32
-#define ADDSYM(symbol) lmp->symbol = (void *) GetProcAddress((HINSTANCE) handle, "lammps_" #symbol)
+#define ADDSYM(symbol) *(void **) (&lmp->symbol) = (void *) GetProcAddress((HINSTANCE) handle, "lammps_" #symbol)
 #else
-#define ADDSYM(symbol) lmp->symbol = dlsym(handle,"lammps_" #symbol)
+#define ADDSYM(symbol) *(void **) (&lmp->symbol) = dlsym(handle,"lammps_" #symbol)
 #endif
 
 #if defined(LAMMPS_LIB_MPI)

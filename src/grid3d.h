@@ -50,7 +50,7 @@ class Grid3d : protected Pointers {
 
  protected:
   int me, nprocs;
-  int layout;           // not TILED, same as Comm class
+  int layout;           // not TILED or TILED, same as Comm class
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
 
@@ -67,7 +67,8 @@ class Grid3d : protected Pointers {
   int fullylo, fullyhi;    //   can be same as out indices or larger
   int fullzlo, fullzhi;
 
-  double shift;
+  double shift;            // location of grid point within grid cell
+                           // only affects which proc owns grid cell
 
   // -------------------------------------------
   // internal variables for BRICK layout

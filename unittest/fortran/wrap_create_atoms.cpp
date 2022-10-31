@@ -54,14 +54,12 @@ TEST_F(LAMMPS_create_atoms, create_three)
 #else
     int *tag, *image;
 #endif
-    int *type;
     double **x, **v;
     EXPECT_EQ(lmp->atom->nlocal, 3);
     tag = lmp->atom->tag;
     image = lmp->atom->image;
     x = lmp->atom->x;
     v = lmp->atom->v;
-    type = lmp->atom->type;
     f_lammps_create_three_atoms();
     EXPECT_EQ(lmp->atom->nlocal, 6);
     for (int i = 0; i < lmp->atom->nlocal; i++) {
@@ -103,7 +101,6 @@ TEST_F(LAMMPS_create_atoms, create_two_more)
 #else
     int *tag, *image;
 #endif
-    int *type;
     double **x, **v;
     f_lammps_create_three_atoms();
     EXPECT_EQ(lmp->atom->nlocal, 6);
@@ -113,7 +110,6 @@ TEST_F(LAMMPS_create_atoms, create_two_more)
     image = lmp->atom->image;
     x = lmp->atom->x;
     v = lmp->atom->v;
-    type = lmp->atom->type;
     for (int i = 0; i < lmp->atom->nlocal; i++) {
         if (tag[i] == 7) {
             EXPECT_EQ(image[i],lammps_encode_image_flags(0,0,0));
@@ -144,7 +140,6 @@ TEST_F(LAMMPS_create_atoms, create_two_more_bigsmall)
 #else
     int *tag, *image;
 #endif
-    int *type;
     double **x, **v;
     f_lammps_create_three_atoms();
     EXPECT_EQ(lmp->atom->nlocal, 6);
@@ -158,7 +153,6 @@ TEST_F(LAMMPS_create_atoms, create_two_more_bigsmall)
     image = lmp->atom->image;
     x = lmp->atom->x;
     v = lmp->atom->v;
-    type = lmp->atom->type;
     for (int i = 0; i < lmp->atom->nlocal; i++) {
         if (tag[i] == 7) {
             EXPECT_EQ(image[i],lammps_encode_image_flags(-1,0,0));
@@ -189,7 +183,6 @@ TEST_F(LAMMPS_create_atoms, create_two_more_bigsmall2)
 #else
     int *tag, *image;
 #endif
-    int *type;
     double **x, **v;
     f_lammps_create_three_atoms();
     EXPECT_EQ(lmp->atom->nlocal, 6);
@@ -203,7 +196,6 @@ TEST_F(LAMMPS_create_atoms, create_two_more_bigsmall2)
     image = lmp->atom->image;
     x = lmp->atom->x;
     v = lmp->atom->v;
-    type = lmp->atom->type;
     for (int i = 0; i < lmp->atom->nlocal; i++) {
         if (tag[i] == 7) {
             EXPECT_EQ(image[i],lammps_encode_image_flags(0,0,0));

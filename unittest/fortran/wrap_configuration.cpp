@@ -131,7 +131,7 @@ TEST_F(LAMMPS_configuration, has_package)
       "REACTION","REAXFF","REPLICA","RIGID","SCAFACOS","SHOCK","SMTBQ","SPH","SPIN","SRD","STUBS",
       "TALLY","UEF","VORONOI","VTK","YAFF","CG-SPICA","AMOEBA"};
 
-   for (int i = 0; i < pkg_name.size(); i++)
+   for (std::size_t i = 0; i < pkg_name.size(); i++)
       EXPECT_EQ(f_lammps_has_package(pkg_name[i].c_str()),
          Info::has_package(pkg_name[i]));
 }
@@ -233,11 +233,11 @@ TEST_F(LAMMPS_configuration, get_gpu_info)
 TEST_F(LAMMPS_configuration, has_style)
 {
     Info info(lmp);
-    for (int c = 0; c < style_category.size(); c++)
+    for (std::size_t c = 0; c < style_category.size(); c++)
     {
         std::vector<std::string> name =
             info.get_available_styles(style_category[c]);
-        for (int s = 0; s < name.size(); s++)
+        for (std::size_t s = 0; s < name.size(); s++)
         {
             EXPECT_EQ(f_lammps_has_style(style_category[c].c_str(),
               name[s].c_str()), info.has_style(style_category[c], name[s]));
@@ -249,7 +249,7 @@ TEST_F(LAMMPS_configuration, has_style)
 TEST_F(LAMMPS_configuration, style_count)
 {
     Info info(lmp);
-    for (int i = 0; i < style_category.size(); i++)
+    for (std::size_t i = 0; i < style_category.size(); i++)
         EXPECT_EQ(f_lammps_style_count(style_category[i].c_str()),
           info.get_available_styles(style_category[i].c_str()).size());
 };
@@ -258,7 +258,7 @@ TEST_F(LAMMPS_configuration, style_name)
 {
     char *buffer;
     Info info(lmp);
-    for (int c = 0; c < style_category.size(); c++) {
+    for (std::size_t c = 0; c < style_category.size(); c++) {
         int nnames = f_lammps_style_count(style_category[c].c_str());
         auto styles = info.get_available_styles(style_category[c]);
         for (int i = 0; i < nnames; i++) {

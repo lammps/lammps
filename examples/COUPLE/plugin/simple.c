@@ -134,7 +134,7 @@ int main(int narg, char **arg)
     plugin->command(lmp,"run 1");
   }
 
-  // extract force on single atom two different ways
+  /* extract force on single atom two different ways */
 
   if (lammps == 1) {
     double **f = (double **) plugin->extract_atom(lmp,"f");
@@ -172,7 +172,7 @@ int main(int narg, char **arg)
   if (v) free(v);
   if (type) free(type);
 
-  // close down LAMMPS
+  /* close down LAMMPS */
 
   if (lammps == 1) {
     plugin->close(lmp);

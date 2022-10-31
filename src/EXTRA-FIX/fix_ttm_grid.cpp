@@ -643,7 +643,7 @@ void FixTTMGrid::allocate_grid()
 
   // setup grid communication and allocate grid data structs
 
-  grid->setup(ngrid_buf1, ngrid_buf2);
+  grid->setup_comm(ngrid_buf1, ngrid_buf2);
 
   memory->create(grid_buf1, ngrid_buf1, "ttm/grid:grid_buf1");
   memory->create(grid_buf2, ngrid_buf2, "ttm/grid:grid_buf2");

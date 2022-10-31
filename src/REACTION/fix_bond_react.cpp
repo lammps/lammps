@@ -2774,7 +2774,7 @@ void FixBondReact::glove_ghostcheck()
 
   int ghostly = 0;
 #if !defined(MPI_STUBS)
-  if (comm->style == 0) {
+  if (comm->style == Comm::BRICK) {
     if (create_atoms_flag[rxnID] == 1) {
       ghostly = 1;
     } else {

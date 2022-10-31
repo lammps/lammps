@@ -47,7 +47,7 @@ using namespace LAMMPS_NS;
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  style = 1;
+  style = Comm::TILED;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = nullptr;
   buf_send = nullptr;
@@ -68,7 +68,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
-  style = 1;
+  style = Comm::TILED;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
   init_buffers();

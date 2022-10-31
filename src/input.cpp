@@ -1429,21 +1429,21 @@ void Input::comm_modify()
 
 void Input::comm_style()
 {
-  if (narg < 1) error->all(FLERR,"Illegal comm_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "comm_style", error);
   if (strcmp(arg[0],"brick") == 0) {
-    if (comm->style == 0) return;
+    if (comm->style == Comm::BRICK) return;
     Comm *oldcomm = comm;
     comm = new CommBrick(lmp,oldcomm);
     delete oldcomm;
   } else if (strcmp(arg[0],"tiled") == 0) {
-    if (comm->style == 1) return;
+    if (comm->style == Comm::TILED) return;
     Comm *oldcomm = comm;
 
     if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
     else comm = new CommTiled(lmp,oldcomm);
 
     delete oldcomm;
-  } else error->all(FLERR,"Illegal comm_style command");
+  } else error->all(FLERR,"Unknown comm_style argument: {}", arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -266,9 +266,8 @@ void PPPMDisp::init()
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
-  if (comm->style != 0)
-    error->universe_all(FLERR,"PPPMDisp can only currently be used with "
-                        "comm_style brick");
+  if (comm->style != Comm::BRICK)
+    error->universe_all(FLERR,"PPPMDisp can only currently be used with comm_style brick");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
@@ -279,8 +278,7 @@ void PPPMDisp::init()
   }
 
   if (order > MAXORDER || order_6 > MAXORDER)
-    error->all(FLERR,"PPPMDisp coulomb or dispersion order cannot"
-                                 " be greater than {}",MAXORDER);
+    error->all(FLERR,"PPPMDisp coulomb or dispersion order cannot be greater than {}",MAXORDER);
 
   // compute two charge force
 
@@ -328,8 +326,7 @@ void PPPMDisp::init()
           else error->all(FLERR,"Unsupported mixing rule in kspace_style pppm/disp");
           break;
         default:
-          error->all(FLERR,std::string("Unsupported order in kspace_style "
-                                       "pppm/disp, pair_style ")
+          error->all(FLERR,std::string("Unsupported order in kspace_style pppm/disp, pair_style ")
                      + force->pair_style);
       }
       function[k] = 1;

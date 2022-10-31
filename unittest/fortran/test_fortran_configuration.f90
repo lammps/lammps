@@ -336,7 +336,7 @@ END FUNCTION f_lammps_style_name
 SUBROUTINE f_setup_has_id() BIND(C)
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
-  CHARACTER(LEN=100), DIMENSION(*), PARAMETER :: setup_commands = &
+  CHARACTER(LEN=100), DIMENSION(14), PARAMETER :: setup_commands = &
   [CHARACTER(LEN=100) :: 'units lj', &
     'region simbox block 0 2 0 3 0 4 units box', &
     'create_box 1 simbox', &
@@ -350,7 +350,6 @@ SUBROUTINE f_setup_has_id() BIND(C)
     'fix 1 all nve', &
     'group one id 1', &
     'variable pi equal acos(-1)', &
-    !'molecule A file1 file2', &
     'run 0' &
   ]
 

@@ -345,7 +345,7 @@ static const char *pair_only_suffix(const char *suffix, int flag)
   const char *mysuffix;
   if (flag) {
 #ifdef LMP_KOKKOS_GPU
-    if strmatch(suffix,"^kk") mysuffix = "kk/host";
+    if (utils::strmatch(suffix,"^kk")) mysuffix = "kk/host";
     else mysuffix = nullptr;
 #else
     mysuffix = nullptr;

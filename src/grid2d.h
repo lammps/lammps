@@ -35,7 +35,7 @@ class Grid2d : protected Pointers {
   void get_bounds(int &, int &, int &, int &);
   void get_bounds_ghost(int &, int &, int &, int &);
   
-  void setup(int &, int &);
+  void setup_comm(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
@@ -48,23 +48,24 @@ class Grid2d : protected Pointers {
 
 protected:
   int me, nprocs;
-  int layout;           // REGULAR or TILED
+  int layout;           // not TILED or TILED, same as Comm class
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
-
-  int ngrid[2];         // global grid size
 
   // inputs from caller via constructor
 
   int nx, ny;          // size of global grid in both dims
-  int inxlo, inxhi;    // inclusive extent of my grid chunk
-  int inylo, inyhi;    //   0 <= in <= N-1
+  int inxlo, inxhi;    // inclusive extent of my grid chunk, 0 <= in <= N-1
+  int inylo, inyhi; 
   int outxlo, outxhi;      // inclusive extent of my grid chunk plus
   int outylo, outyhi;      //   ghost cells in all 4 directions
                            //   lo indices can be < 0, hi indices can be >= N
   int fullxlo, fullxhi;    // extent of grid chunk that caller stores
   int fullylo, fullyhi;    //   can be same as out indices or larger
 
+  double shift;            // location of grid point within grid cell
+                           // only affects which proc owns grid cell
+  
   // -------------------------------------------
   // internal variables for BRICK layout
   // -------------------------------------------
@@ -208,11 +209,15 @@ protected:
   // internal methods
   // -------------------------------------------
 
+  void partition_grid(int, double, double, double, int &, int &);
+  void ghost_grid(double, int);
+  void extract_comm_info();
+
   void store(int, int, int, int, int, int, int, int,
              int, int, int, int, int, int, int, int);
   
-  virtual void setup_brick(int &, int &);
-  virtual void setup_tiled(int &, int &);
+  virtual void setup_comm_brick(int &, int &);
+  virtual void setup_comm_tiled(int &, int &);
   int ghost_adjacent_brick();
   int ghost_adjacent_tiled();
   
@@ -237,8 +242,7 @@ protected:
 
   int indices(int *&, int, int, int, int);
   int proc_index_uniform(int, int, int, double *);
-  void proc_box_uniform(int, int, int *);
-  void proc_box_tiled(int, int, int, int *);
+  void partition_tiled(int, int, int, int *);
 };
 
 }    // namespace LAMMPS_NS

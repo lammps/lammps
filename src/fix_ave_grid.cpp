@@ -401,7 +401,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
     // ngrid_buf12 converted to nvalues + count
 
-    grid2d->setup(ngrid_buf1, ngrid_buf2);
+    grid2d->setup_comm(ngrid_buf1, ngrid_buf2);
     ngrid_buf1 *= nvalues + 1;
     ngrid_buf2 *= nvalues + 1;
 
@@ -418,7 +418,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
     // ngrid_buf12 converted to nvalues + count
 
-    grid3d->setup(ngrid_buf1, ngrid_buf2);
+    grid3d->setup_comm(ngrid_buf1, ngrid_buf2);
     ngrid_buf1 *= nvalues + 1;
     ngrid_buf2 *= nvalues + 1;
 

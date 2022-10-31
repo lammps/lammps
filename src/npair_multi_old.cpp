@@ -1,8 +1,8 @@
 // clang-format off
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -56,7 +56,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radsum,cut,cutsq;
   int *neighptr,*s;
-  double *cutsq,*distsq;
+  double *cutnsq,*distsq;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -103,7 +103,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     ibin = atom2bin[i];
     s = stencil_multi_old[itype];
     distsq = distsq_multi_old[itype];
-    cutsq = cutneighsq[itype];
+    cutnsq = cutneighsq[itype];
     ns = nstencil_multi_old[itype];
     for (k = 0; k < ns; k++) {
       bin_start = binhead[ibin+stencil[k]];
@@ -158,7 +158,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         }
 
         jtype = type[j];
-        if (cutsq[jtype] < distsq[k]) continue;
+        if (cutnsq[jtype] < distsq[k]) continue;
         if (i == j) continue;
 
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

@@ -16,6 +16,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "group.h"
 #include "molecule.h"
 #include "neighbor.h"
 #include "domain.h"

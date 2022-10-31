@@ -228,7 +228,7 @@ END SUBROUTINE f_lammps_setup_gather_bonds
 FUNCTION f_lammps_test_gather_bonds_small() BIND(C) RESULT(success)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp, pair_input
+  USE keepstuff, ONLY : lmp
   IMPLICIT NONE
   INTEGER(c_int) :: success
   INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: bonds
@@ -247,7 +247,7 @@ END FUNCTION f_lammps_test_gather_bonds_small
 FUNCTION f_lammps_test_gather_bonds_big() BIND(C) RESULT(success)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp, pair_input
+  USE keepstuff, ONLY : lmp
   IMPLICIT NONE
   INTEGER(c_int) :: success
   INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET :: bonds

@@ -24,7 +24,7 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_setup_create_atoms() BIND(C)
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp, big_input, cont_input, more_input, pair_input
+  USE keepstuff, ONLY : lmp, big_input, cont_input, more_input
   IMPLICIT NONE
 
   !CALL lmp%command('atom_modify map array')

@@ -132,8 +132,7 @@ FUNCTION f_lammps_has_package(Cname) BIND(C)
   INTEGER(c_int) :: f_lammps_has_package
   CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Fname
   CHARACTER(LEN=:), ALLOCATABLE :: name
-  INTEGER(c_size_t) :: length
-  INTEGER :: i
+  INTEGER(c_size_t) :: length, i
 
   length = c_strlen(Cname)
   CALL C_F_POINTER(Cname, Fname, [length])
@@ -198,10 +197,9 @@ FUNCTION f_lammps_config_accelerator(package, category, setting) BIND(C)
   IMPLICIT NONE
   TYPE(c_ptr), VALUE :: package, category, setting
   INTEGER(c_int) :: f_lammps_config_accelerator
-  INTEGER(c_size_t) :: len_package, len_category, len_setting
+  INTEGER(c_size_t) :: len_package, len_category, len_setting, i
   CHARACTER(LEN=1,KIND=c_char), POINTER :: Cpackage(:),Ccategory(:),Csetting(:)
   CHARACTER(LEN=:), ALLOCATABLE :: Fpackage, Fcategory, Fsetting
-  INTEGER :: i
   LOGICAL :: configured
 
   len_package = c_strlen(package)

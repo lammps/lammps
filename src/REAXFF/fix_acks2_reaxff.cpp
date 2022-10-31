@@ -33,6 +33,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <limits>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

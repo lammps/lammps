@@ -65,6 +65,8 @@ class FixBondReact : public Fix {
   int stabilization_flag;
   int reset_mol_ids_flag;
   int custom_exclude_flag;
+  int **rate_limit;
+  int **store_rxn_count;
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
   int *create_atoms_flag;
@@ -162,7 +164,8 @@ class FixBondReact : public Fix {
                            // but whose first neighbors haven't
   int glove_counter;       // used to determine when to terminate Superimpose Algorithm
 
-  void read(int);
+  void read_variable_keyword(const char *, int, int);
+  void read_map_file(int);
   void EdgeIDs(char *, int);
   void Equivalences(char *, int);
   void DeleteAtoms(char *, int);
@@ -200,7 +203,7 @@ class FixBondReact : public Fix {
   void ghost_glovecast();
   void update_everything();
   int insert_atoms(tagint **, int);
-  void unlimit_bond();
+  void unlimit_bond(); // removes atoms from stabilization, and other post-reaction every-step operations
   void limit_bond(int);
   void dedup_mega_gloves(int);    //dedup global mega_glove
   void write_restart(FILE *) override;
@@ -223,7 +226,7 @@ class FixBondReact : public Fix {
   int ncustomvars;
   std::vector<std::string> customvarstrs;
   int nvvec;
-  double **vvec;    // per-atom vector to store variable constraint atom-style variable values
+  double **vvec;    // per-atom vector to store custom constraint atom-style variable values
   Compute *cperbond;    // pointer to 'compute bond/local' used by custom constraint ('rxnbond' function)
   std::vector<std::vector<Constraint>> constraints;
 

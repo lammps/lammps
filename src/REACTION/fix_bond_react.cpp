@@ -80,7 +80,7 @@ static const char cite_fix_bond_react[] =
 #define DELTA 16
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
 #define MAXCONARGS 14 // max # of arguments for any type of constraint + rxnID
-#define NUMVARVALS 4 // max # of keyword values that have variables as input
+#define NUMVARVALS 5 // max # of keyword values that have variables as input
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template
@@ -98,7 +98,7 @@ enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD,CUSTOM};
 enum{ATOM,FRAG};
 
 // keyword values that accept variables as input
-enum{NEVERY,RMIN,RMAX,PROB};
+enum{NEVERY,RMIN,RMAX,PROB,NRATE};
 
 // flag for one-proc vs shared reaction sites
 enum{LOCAL,GLOBAL};
@@ -229,6 +229,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(nghostlyskips,nreacts,"bond/react:nghostlyskips");
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
+  memory->create(rate_limit,3,nreacts,"bond/react:rate_limit");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
   memory->create(create_atoms_flag,nreacts,"bond/react:create_atoms_flag");
@@ -254,6 +255,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     fraction[i] = 1;
     seed[i] = 12345;
     max_rxn[i] = INT_MAX;
+    for (int j = 0; j < 3; j++)
+      rate_limit[j][i] = 0;
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
     create_atoms_flag[i] = 0;
@@ -291,55 +294,31 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (groupid == -1) error->all(FLERR,"Could not find fix group ID");
     groupbits[rxn] = group->bitmask[groupid];
 
-    if (strncmp(arg[iarg],"v_",2) == 0) {
-      const char *str = &arg[iarg][2];
-      var_id[NEVERY][rxn] = input->variable->find(str);
-      if (var_id[NEVERY][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-      if (!input->variable->equalstyle(var_id[NEVERY][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
-      var_flag[NEVERY][rxn] = 1;
-    } else {
+    if (strncmp(arg[iarg],"v_",2) == 0) read_variable_keyword(&arg[iarg][2],NEVERY,rxn);
+    else {
       nevery[rxn] = utils::inumeric(FLERR,arg[iarg],false,lmp);
       if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
                                        "'Nevery' must be a positive integer");
     }
     iarg++;
 
+    double cutoff;
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      const char *str = &arg[iarg][2];
-      var_id[RMIN][rxn] = input->variable->find(str);
-      if (var_id[RMIN][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-      if (!input->variable->equalstyle(var_id[RMIN][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
-      double cutoff = input->variable->compute_equal(var_id[RMIN][rxn]);
-      cutsq[rxn][0] = cutoff*cutoff;
-      var_flag[RMIN][rxn] = 1;
-    } else {
-      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
+      read_variable_keyword(&arg[iarg][2],RMIN,rxn);
+      cutoff = input->variable->compute_equal(var_id[RMIN][rxn]);
+    } else cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
                                    "'Rmin' cannot be negative");
       cutsq[rxn][0] = cutoff*cutoff;
-    }
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      const char *str = &arg[iarg][2];
-      var_id[RMAX][rxn] = input->variable->find(str);
-      if (var_id[RMAX][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-      if (!input->variable->equalstyle(var_id[RMAX][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is {} not equal-style", str);
-      double cutoff = input->variable->compute_equal(var_id[RMAX][rxn]);
-      cutsq[rxn][1] = cutoff*cutoff;
-      var_flag[RMAX][rxn] = 1;
-    } else {
-      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
+      read_variable_keyword(&arg[iarg][2],RMAX,rxn);
+      cutoff = input->variable->compute_equal(var_id[RMAX][rxn]);
+    } else cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
                                    "'Rmax' cannot be negative");
       cutsq[rxn][1] = cutoff*cutoff;
-    }
     iarg++;
 
     unreacted_mol[rxn] = atom->find_molecule(arg[iarg++]);
@@ -349,7 +328,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (reacted_mol[rxn] == -1) error->all(FLERR,"Reacted molecule template ID for "
                                            "fix bond/react does not exist");
 
-    // read superimpose file
+    //read map file
     files[rxn] = utils::strdup(arg[iarg]);
     iarg++;
 
@@ -359,14 +338,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'prob' keyword has too few arguments");
         // check if probability is a variable
         if (strncmp(arg[iarg+1],"v_",2) == 0) {
-          const char *str = &arg[iarg+1][2];
-          var_id[PROB][rxn] = input->variable->find(str);
-          if (var_id[PROB][rxn] < 0)
-            error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-          if (!input->variable->equalstyle(var_id[PROB][rxn]))
-            error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
+          read_variable_keyword(&arg[iarg+1][2],PROB,rxn);
           fraction[rxn] = input->variable->compute_equal(var_id[PROB][rxn]);
-          var_flag[PROB][rxn] = 1;
         } else {
           // otherwise probability should be a number
           fraction[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -385,6 +358,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
                                          "'max_rxn' cannot be negative");
         iarg += 2;
+      } else if (strcmp(arg[iarg],"rate_limit") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'rate_limit' has too few arguments");
+        rate_limit[0][rxn] = 1; // serves as flag for rate_limit keyword
+        if (strncmp(arg[iarg+1],"v_",2) == 0) read_variable_keyword(&arg[iarg+1][2],NRATE,rxn);
+        else rate_limit[1][rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        rate_limit[2][rxn] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        iarg += 3;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
         if (stabilization_flag == 0) error->all(FLERR,"Stabilize_steps keyword "
                                                 "used without stabilization keyword");
@@ -438,21 +419,24 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   }
 
   max_natoms = 0; // the number of atoms in largest molecule template
+  int max_rate_limit_steps = 0;
   for (int myrxn = 0; myrxn < nreacts; myrxn++) {
     twomol = atom->molecules[reacted_mol[myrxn]];
     max_natoms = MAX(max_natoms,twomol->natoms);
+    max_rate_limit_steps = MAX(max_rate_limit_steps,rate_limit[2][myrxn]);
   }
 
   memory->create(equivalences,max_natoms,2,nreacts,"bond/react:equivalences");
   memory->create(reverse_equiv,max_natoms,2,nreacts,"bond/react:reverse_equiv");
   memory->create(edge,max_natoms,nreacts,"bond/react:edge");
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
+  memory->create(store_rxn_count,max_rate_limit_steps,nreacts,"bond/react:store_rxn_count");
   memory->create(custom_charges,max_natoms,nreacts,"bond/react:custom_charges");
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
   memory->create(create_atoms,max_natoms,nreacts,"bond/react:create_atoms");
   memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
 
-  for (int j = 0; j < nreacts; j++)
+  for (int j = 0; j < nreacts; j++) {
     for (int i = 0; i < max_natoms; i++) {
       edge[i][j] = 0;
       custom_charges[i][j] = 1; // update all partial charges by default
@@ -467,6 +451,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         equivalences[i][m][j] = i+1;
       }
     }
+    for (int i = 0; i < max_rate_limit_steps; i++) {
+      store_rxn_count[i][j] = -1;
+    }
+  }
 
   // read all map files afterward
   for (int i = 0; i < nreacts; i++) {
@@ -476,7 +464,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     onemol->check_attributes();
     twomol->check_attributes();
     get_molxspecials();
-    read(i);
+    read_map_file(i);
     fclose(fp);
     if (ncreate == 0 && onemol->natoms != twomol->natoms)
       error->all(FLERR,"Fix bond/react: Reaction templates must contain the same number of atoms");
@@ -603,6 +591,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
   memory->destroy(landlocked_atoms);
+  memory->destroy(store_rxn_count);
   memory->destroy(custom_charges);
   memory->destroy(delete_atoms);
   memory->destroy(create_atoms);
@@ -622,6 +611,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(limit_duration);
   memory->destroy(var_flag);
   memory->destroy(var_id);
+  memory->destroy(rate_limit);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
   memory->destroy(molecule_keyword);
@@ -824,6 +814,15 @@ void FixBondReact::init_list(int /*id*/, NeighList *ptr)
 
 void FixBondReact::post_integrate()
 {
+  // update store_rxn_count on every step
+  for (int myrxn = 0; myrxn < nreacts; myrxn++) {
+    if (rate_limit[0][myrxn] == 1) {
+      for (int i = rate_limit[2][myrxn]-1; i > 0; i--)
+        store_rxn_count[i][myrxn] = store_rxn_count[i-1][myrxn];
+      store_rxn_count[0][myrxn] = reaction_count_total[myrxn];
+    }
+  }
+
   // check if any reactions could occur on this timestep
   int nevery_check = 1;
   for (int i = 0; i < nreacts; i++) {
@@ -916,8 +915,22 @@ void FixBondReact::post_integrate()
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
+    int rate_limit_flag = 1;
+    if (rate_limit[0][rxnID] == 1) {
+      int myrxn_count = store_rxn_count[rate_limit[2][rxnID]-1][rxnID];
+      if (myrxn_count == -1) rate_limit_flag = 0;
+      else {
+        int nrxns_delta = reaction_count_total[rxnID] - myrxn_count;
+        int my_nrate;
+        if (var_flag[NRATE][rxnID] == 1) {
+          my_nrate = input->variable->compute_equal(var_id[NRATE][rxnID]);
+        } else my_nrate = rate_limit[1][rxnID];
+        if (nrxns_delta > my_nrate) rate_limit_flag = 0;
+      }
+    }
     if ((update->ntimestep % nevery[rxnID]) ||
-        (max_rxn[rxnID] <= reaction_count_total[rxnID])) continue;
+        (max_rxn[rxnID] <= reaction_count_total[rxnID]) ||
+        (rate_limit_flag == 0)) continue;
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;
@@ -1390,9 +1403,25 @@ void FixBondReact::superimpose_algorithm()
   std::random_device rnd;
   std::minstd_rand park_rng(rnd());
 
-  // check if we overstepped our reaction limit
+  // check if we overstepped our reaction limit, via either max_rxn or rate_limit
   for (int i = 0; i < nreacts; i++) {
-    if (reaction_count_total[i] > max_rxn[i]) {
+    int overstep = 0;
+    int max_rxn_overstep = reaction_count_total[i] - max_rxn[i];
+    overstep = MAX(overstep,max_rxn_overstep);
+    if (rate_limit[0][i] == 1) {
+      int myrxn_count = store_rxn_count[rate_limit[2][i]-1][i];
+      if (myrxn_count != -1) {
+        int nrxn_delta = reaction_count_total[i] - myrxn_count;
+        int my_nrate;
+        if (var_flag[NRATE][i] == 1) {
+          my_nrate = input->variable->compute_equal(var_id[NRATE][i]);
+        } else my_nrate = rate_limit[1][i];
+        int rate_limit_overstep = nrxn_delta - my_nrate;
+        overstep = MAX(overstep,rate_limit_overstep);
+      }
+    }
+
+    if (overstep > 0) {
       // let's randomly choose rxns to skip, unbiasedly from local and ghostly
       int *local_rxncounts;
       int *all_localskips;
@@ -1400,8 +1429,11 @@ void FixBondReact::superimpose_algorithm()
       memory->create(all_localskips,nprocs,"bond/react:all_localskips");
       MPI_Gather(&local_rxn_count[i],1,MPI_INT,local_rxncounts,1,MPI_INT,0,world);
       if (me == 0) {
-        int overstep = reaction_count_total[i] - max_rxn[i];
         int delta_rxn = reaction_count[i] + ghostly_rxn_count[i];
+        // when using variable input for rate_limit, rate_limit_overstep could be > delta_rxn (below)
+        // we need to limit overstep to the number of reactions on this timestep
+        // essentially skipping all reactions, would be more efficient to use a skip_all flag
+        if (overstep > delta_rxn) overstep = delta_rxn;
         int *rxn_by_proc;
         memory->create(rxn_by_proc,delta_rxn,"bond/react:rxn_by_proc");
         for (int j = 0; j < delta_rxn; j++)
@@ -1419,14 +1451,15 @@ void FixBondReact::superimpose_algorithm()
           else all_localskips[rxn_by_proc[j]]++;
         }
         memory->destroy(rxn_by_proc);
+        reaction_count_total[i] -= overstep;
       }
-      reaction_count_total[i] = max_rxn[i];
       MPI_Scatter(&all_localskips[0],1,MPI_INT,&nlocalskips[i],1,MPI_INT,0,world);
       MPI_Bcast(&nghostlyskips[i],1,MPI_INT,0,world);
       memory->destroy(local_rxncounts);
       memory->destroy(all_localskips);
     }
   }
+  MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
 
   // this updates topology next step
   next_reneighbor = update->ntimestep;
@@ -3034,6 +3067,8 @@ void FixBondReact::update_everything()
     }
     delete [] iskip;
 
+    if (update_num_mega == 0) continue; // can i do this?
+
     // if inserted atoms and global map exists, reset map now instead
     //   of waiting for comm since other pre-exchange fixes may use it
     // invoke map_init() b/c atom count has grown
@@ -3844,10 +3879,24 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 }
 
 /* ----------------------------------------------------------------------
-read superimpose file
+add equal-style variable to keyword argument list
 ------------------------------------------------------------------------- */
 
-void FixBondReact::read(int myrxn)
+void FixBondReact::read_variable_keyword(const char *myarg, int keyword, int myrxn)
+{
+  var_id[keyword][myrxn] = input->variable->find(myarg);
+  if (var_id[keyword][myrxn] < 0)
+    error->all(FLERR,"Fix bond/react: Variable name {} does not exist",myarg);
+  if (!input->variable->equalstyle(var_id[keyword][myrxn]))
+    error->all(FLERR,"Fix bond/react: Variable {} is not equal-style",myarg);
+  var_flag[keyword][myrxn] = 1;
+}
+
+/* ----------------------------------------------------------------------
+read map file
+------------------------------------------------------------------------- */
+
+void FixBondReact::read_map_file(int myrxn)
 {
   char line[MAXLINE],keyword[MAXLINE];
   char *eof,*ptr;

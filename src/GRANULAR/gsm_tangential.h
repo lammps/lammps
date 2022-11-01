@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -66,10 +66,7 @@ class GSMTangential : public GSM {
   virtual void coeffs_to_local() {};
   virtual void init() {};
   virtual void calculate_forces() = 0;
-  int rescale_flag;
   double k, damp, mu; // Used by Marshall twisting model
- protected:
-  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -87,6 +84,8 @@ class GSMTangentialLinearNoHistory : public GSMTangential {
   GSMTangentialLinearNoHistory(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void calculate_forces();
+ protected:
+  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -96,6 +95,8 @@ class GSMTangentialLinearHistory : public GSMTangential {
   GSMTangentialLinearHistory(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void calculate_forces();
+ protected:
+  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -104,7 +105,9 @@ class GSMTangentialLinearHistoryClassic : public GSMTangentialLinearHistory {
  public:
   GSMTangentialLinearHistoryClassic(class GranularModel *, class LAMMPS *);
   void calculate_forces();
+ protected:
   int scale_area;
+  double xt;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -124,6 +127,7 @@ class GSMTangentialMindlin : public GSMTangential {
   void calculate_forces();
  protected:
   int mindlin_rescale, mindlin_force;
+  double xt;
 };
 
 /* ---------------------------------------------------------------------- */

@@ -1,7 +1,8 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,6 +36,7 @@ using namespace MathConst;
 GSMNormal::GSMNormal(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp)
 {
   material_properties = 0;
+  cohesive_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,15 +105,7 @@ void GSMNormalHooke::coeffs_to_local()
 
 double GSMNormalHooke::calculate_forces()
 {
-  Fne = knfac * gm->delta;
-  return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void GSMNormalHooke::set_knfac()
-{
-  knfac = k;
+  return k * gm->delta;
 }
 
 /* ----------------------------------------------------------------------
@@ -137,15 +131,7 @@ void GSMNormalHertz::coeffs_to_local()
 
 double GSMNormalHertz::calculate_forces()
 {
-  Fne = knfac * gm->delta;
-  return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void GSMNormalHertz::set_knfac()
-{
-  knfac = k * gm->area;
+  return k * gm->area * gm->delta;
 }
 
 /* ----------------------------------------------------------------------
@@ -190,8 +176,8 @@ void GSMNormalHertzMaterial::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 GSMNormalDMT::GSMNormalDMT(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
 {
-  allow_limit_damping = 0;
   material_properties = 1;
+  cohesive_flag = 1;
   num_coeffs = 4;
 }
 
@@ -227,17 +213,10 @@ void GSMNormalDMT::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 double GSMNormalDMT::calculate_forces()
 {
-  Fne = knfac * gm->delta;
+  Fne = k * gm->area * gm->delta;
   F_pulloff = 4.0 * MathConst::MY_PI * cohesion * gm->Reff;
   Fne -= F_pulloff;
   return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void GSMNormalDMT::set_knfac()
-{
-  knfac = k * gm->area;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -253,8 +232,8 @@ void GSMNormalDMT::set_fncrit()
 
 GSMNormalJKR::GSMNormalJKR(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
 {
-  allow_limit_damping = 0;
   material_properties = 1;
+  cohesive_flag = 1;
   beyond_contact = 1;
   num_coeffs = 4;
 }
@@ -356,17 +335,10 @@ double GSMNormalJKR::calculate_forces()
 {
   double a2;
   a2 = gm->area * gm->area;
-  Fne = knfac * a2 / gm->Reff - MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * gm->area));
+  Fne = k * gm->area * a2 / gm->Reff - MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * gm->area));
   F_pulloff = 3.0 * MY_PI * cohesion * gm->Reff;
 
   return Fne;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void GSMNormalJKR::set_knfac()
-{
-  knfac = k * gm->area;
 }
 
 /* ---------------------------------------------------------------------- */

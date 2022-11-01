@@ -1,7 +1,8 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -108,6 +109,6 @@ void GSMDampingTsuji::init()
 
 double GSMDampingTsuji::calculate_forces()
 {
-  damp_prefactor = damp * sqrt(gm->meff * gm->normal_model->knfac);
+  damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
   return -damp_prefactor * gm->vnnr;
 }

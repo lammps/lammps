@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -52,7 +52,9 @@ class GSMDamping : public GSM {
   virtual void mix_coeffs(double*, double*) {};
   virtual void init();
   virtual double calculate_forces() = 0;
-  double damp, damp_prefactor;
+  double damp_prefactor; // Used by tangential models
+ protected:
+  double damp;
 };
 
 /* ---------------------------------------------------------------------- */

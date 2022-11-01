@@ -1,7 +1,8 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -135,7 +136,6 @@ void GSMTangentialLinearHistory::calculate_forces()
     scale3(gm->dt, gm->vtr, temp_array);
     add3(history, temp_array, history);
   }
-
 
   // tangential forces = history + tangential velocity damping
   scale3(-k, history, gm->fs);

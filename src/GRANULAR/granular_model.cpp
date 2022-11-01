@@ -1,8 +1,8 @@
 // clang-format off
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,16 +23,11 @@
 
 #include "granular_model.h"
 #include "gsm.h"
-#include "gsm_normal.h"
-#include "gsm_tangential.h"
-#include "gsm_damping.h"
-#include "gsm_rolling.h"
-#include "gsm_twisting.h"
-#include "gsm_heat.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
+#include "style_gsm.h"  // IWYU pragma: keep
 
 #include <cmath>
 
@@ -253,9 +248,12 @@ void GranularModel::init()
     if (sub_models[i]->beyond_contact)
       beyond_contact = 1;
     size_history += sub_models[i]->size_history;
-    if (limit_damping && (!sub_models[i]->allow_limit_damping))
-        error->all(FLERR,"Cannot limit damping with {} model", sub_models[i]->name);
+    if (!sub_models[i]->allow_cohesion && normal_model->cohesive_flag)
+      error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}", sub_models[i]->name, normal_model->name);
   }
+
+  if (limit_damping && (normal_model->cohesive_flag))
+    error->all(FLERR,"Cannot limit damping with a cohesive normal model, {}", normal_model->name);
 
   if (nondefault_history_transfer) {
     transfer_history_factor = new double[size_history];
@@ -430,13 +428,12 @@ void GranularModel::calculate_forces()
   // calculate forces/torques
 
   forces[0] = 0.0;
-  double Fne, Fdamp, dist_to_contact;
+  double Fdamp, dist_to_contact;
   area = normal_model->calculate_area();
-  normal_model->set_knfac();
-  Fne = normal_model->calculate_forces();
+  Fnormal = normal_model->calculate_forces();
 
   Fdamp = damping_model->calculate_forces();
-  Fntot = Fne + Fdamp;
+  Fntot = Fnormal + Fdamp;
   if (limit_damping && Fntot < 0.0) Fntot = 0.0;
 
   normal_model->set_fncrit(); // Needed for tangential, rolling, twisting

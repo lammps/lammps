@@ -22,20 +22,30 @@ class Grid3d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, double, int, double,
-         int &, int &, int &, int &, int &, int &,
-         int &, int &, int &, int &, int &, int &);
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int);
+
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int,
          int, int, int, int, int, int);
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int,
          int, int, int, int, int, int, int, int, int, int, int, int,
          int, int, int, int, int, int);
+
   ~Grid3d() override;
 
+  void set_distance(double);
+  void set_stencil_grid(int, int);
+  void set_stencil_atom(int, int);
+  void set_shift_grid(double);
+  void set_shift_atom(double);
+  void set_zfactor(double);
+  
   int identical(Grid3d *);
   void get_size(int &, int &, int &);
-  void get_bounds(int &, int &, int &, int &, int &, int &);
+  void get_bounds_owned(int &, int &, int &, int &, int &, int &);
   void get_bounds_ghost(int &, int &, int &, int &, int &, int &);
+
+  void setup_grid(int &, int &, int &, int &, int &, int &,
+                  int &, int &, int &, int &, int &, int &);
 
   void setup_comm(int &, int &);
   int ghost_adjacent();
@@ -54,9 +64,21 @@ class Grid3d : protected Pointers {
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
 
-  // inputs from caller via constructor
+  // inputs from caller
 
   int nx, ny, nz;      // size of global grid in all 3 dims
+  double maxdist;      // distance owned atoms can move outside subdomain
+  int stencil_atom_lo,stencil_atom_hi;    // grid cells accessed beyond atom's cell
+  int stencil_grid_lo,stencil_grid_hi;    // grid cells accessed beyond owned cell
+  double shift_grid;   // location of grid point within grid cell
+                       // only affects which proc owns grid cell
+  double shift_atom;   // shift applied to atomd when mapped to grid cell by caller
+                       // only affects extent of ghost cells
+  double zfactor;      // multiplier on extend of grid in Z direction
+                       // 1.0 = no extra grid cells in Z
+
+  // extent of my owned and ghost cells
+  
   int inxlo, inxhi;    // inclusive extent of my grid chunk, 0 <= in <= N-1
   int inylo, inyhi;
   int inzlo, inzhi;
@@ -66,9 +88,6 @@ class Grid3d : protected Pointers {
   int fullxlo, fullxhi;    // extent of grid chunk that caller stores
   int fullylo, fullyhi;    //   can be same as out indices or larger
   int fullzlo, fullzhi;
-
-  double shift;            // location of grid point within grid cell
-                           // only affects which proc owns grid cell
 
   // -------------------------------------------
   // internal variables for BRICK layout
@@ -215,7 +234,7 @@ class Grid3d : protected Pointers {
   // -------------------------------------------
 
   void partition_grid(int, double, double, double, int &, int &);
-  void ghost_grid(double, int);
+  void ghost_grid();
   void extract_comm_info();
   
   void store(int, int, int, int, int, int, int, int, int, int, int, int,

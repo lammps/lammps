@@ -26,6 +26,7 @@
 #include "grid3d.h"
 #include "math_const.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "update.h"
 
@@ -173,7 +174,7 @@ void PPPMDipoleSpin::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  Grid3d *gctmp = nullptr;
+  gc_dipole = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -186,23 +187,28 @@ void PPPMDipoleSpin::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+    gc_dipole = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+    gc_dipole->set_distance(0.5*neighbor->skin + qdist);
+    gc_dipole->set_stencil_atom(-nlower,nupper);
+    gc_dipole->set_shift_atom(shiftatom);
+    gc_dipole->set_zfactor(slab_volfactor);
+  
+    gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                          nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
     int tmp1,tmp2;
-    gctmp->setup(tmp1,tmp2);
-    if (gctmp->ghost_adjacent()) break;
-    delete gctmp;
+    gc_dipole->setup_comm(tmp1,tmp2);
+    if (gc_dipole->ghost_adjacent()) break;
+    delete gc_dipole;
 
     order--;
     iteration++;
   }
 
   if (order < minorder) error->all(FLERR,"PPPMDipoleSpin order < minimum allowed order");
-  if (!overlap_allowed && !gctmp->ghost_adjacent())
+  if (!overlap_allowed && !gc_dipole->ghost_adjacent())
     error->all(FLERR,"PPPMDipoleSpin grid stencil extends beyond nearest neighbor processor");
-  if (gctmp) delete gctmp;
+  if (gc_dipole) delete gc_dipole;
 
   // adjust g_ewald
 

@@ -40,132 +40,29 @@ static constexpr int OFFSET = 16384;
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   constructor called by all classes except PPPM and MSM
-   comm_caller = caller's communicator
-   nx,ny,nz caller = size of global grid
-   maxdist = max distance outside of proc domain a particle will be
-   extra = additional ghost grid pts needed in each dim, e.g. for stencil
-   shift_caller = 0.0 for grid pt in lower-left corner of grid cell, 
-                  0.5 for center
-   return:
-     i xyz lohi = portion of global grid this proc owns, 0 <= index < N
-     o xyz lohi = owned + ghost grid cells needed in all directions
-   for periodic dims, o indices can be < 0 or >= N
-   for non-periodic dims, o indices will be >= 0 and < N
-     since no grid comm is done across non-periodic boundaries
-   NOTE: allow zfactor to be a calling arg for PPPM ?
+   constructor to create a 3d distributed grid
+   gcomm = caller's communicator
+   gnx,gny,gnz = global grid size
 ------------------------------------------------------------------------- */
 
-Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm comm_caller,
-               int nx_caller, int ny_caller, int nz_caller,
-               double maxdist, int extra, double shift_caller,
-               int &ixlo, int &ixhi, int &iylo, int &iyhi, int &izlo, int &izhi,
-               int &oxlo, int &oxhi, int &oylo, int &oyhi, int &ozlo, int &ozhi)
-  : Pointers(lmp)
+Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
+  Pointers(lmp)
 {
-  // store commnicator and global grid size
-  // set layout mode
-
-  gridcomm = comm_caller;
+  gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
   MPI_Comm_size(gridcomm,&nprocs);
 
-  nx = nx_caller;
-  ny = ny_caller;
-  nz = nz_caller;
+  nx = gnx;
+  ny = gny;
+  nz = gnz;
+
+  // default settings, can be overridden by set() methods
   
-  // NOTE: hardwire shift = 0.5 ?
-
-  shift = shift_caller;
-  
-  // define owned grid cells for each proc
-  // extend bounds with ghost grid cells in each direction
-
-  double fraclo,frachi;
-  
-  if (comm->layout != Comm::LAYOUT_TILED) {
-    fraclo = comm->xsplit[comm->myloc[0]];
-    frachi = comm->xsplit[comm->myloc[0]+1];
-    partition_grid(nx,fraclo,frachi,shift,inxlo,inxhi);
-    fraclo = comm->ysplit[comm->myloc[1]];
-    frachi = comm->ysplit[comm->myloc[1]+1];
-    partition_grid(ny,fraclo,frachi,shift,inylo,inyhi);
-    fraclo = comm->zsplit[comm->myloc[2]];
-    frachi = comm->zsplit[comm->myloc[2]+1];
-    partition_grid(nz,fraclo,frachi,shift,inzlo,inzhi);
-  } else {
-    fraclo = comm->mysplit[0][0];
-    frachi = comm->mysplit[0][1];
-    partition_grid(nx,fraclo,frachi,shift,inxlo,inxhi);
-    fraclo = comm->mysplit[1][0];
-    frachi = comm->mysplit[1][1];
-    partition_grid(ny,fraclo,frachi,shift,inylo,inyhi);
-    fraclo = comm->mysplit[2][0];
-    frachi = comm->mysplit[2][1];
-    partition_grid(nz,fraclo,frachi,shift,inzlo,inzhi);
-  }
-
-  ghost_grid(maxdist,extra);
-
-  // error check on size of grid stored by this proc
-
-  bigint total = (bigint)
-    (outxhi - outxlo + 1) * (outyhi - outylo + 1) * (outzhi - outzlo + 1);
-  if (total > MAXSMALLINT)
-    error->one(FLERR, "Too many owned+ghost grid3d points");
-
-  // default = caller grid is allocated to ghost grid
-  // used when computing pack/unpack lists in indices()
-  // NOTE: allow caller to override this
-  
-  fullxlo = outxlo;
-  fullxhi = outxhi;
-  fullylo = outylo;
-  fullyhi = outyhi;
-  fullzlo = outzlo;
-  fullzhi = outzhi;
-
-  // initialize data structs
-
-  nswap = maxswap = 0;
-  swap = nullptr;
-
-  nsend = nrecv = ncopy = 0;
-  send = nullptr;
-  recv = nullptr;
-  copy = nullptr;
-  requests = nullptr;
-  requests_remap = nullptr;
-
-  xsplit = ysplit = zsplit = nullptr;
-  grid2proc = nullptr;
-  rcbinfo = nullptr;
-
-  nsend_remap = nrecv_remap = self_remap = 0;
-  send_remap = nullptr;
-  recv_remap = nullptr;
-
-  // store info about Comm decomposition needed for remap operation
-  // two Grid instances will exist for duration of remap
-  // each must know Comm decomp at time Grid instance was created
-
-  extract_comm_info();
-
-  // return values
-  
-  ixlo = inxlo;
-  ixhi = inxhi;
-  iylo = inylo;
-  iyhi = inyhi;
-  izlo = inzlo;
-  izhi = inzhi;
-
-  oxlo = outxlo;
-  oxhi = outxhi;
-  oylo = outylo;
-  oyhi = outyhi;
-  ozlo = outzlo;
-  ozhi = outzhi;
+  maxdist = 0.0;
+  stencil_grid_lo = stencil_grid_hi = 0;
+  stencil_atom_lo = stencil_atom_hi = 0;
+  shift_grid = shift_atom = 0.0;
+  zfactor = 1.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -367,7 +264,78 @@ void Grid3d::store(int ixlo, int ixhi, int iylo, int iyhi,
 }
 
 // ----------------------------------------------------------------------
-// access Grid parameters
+// set Grid parameters
+// ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   maxdist = max distance outside proc subdomain a particle can be
+------------------------------------------------------------------------- */
+
+void Grid3d::set_distance(double distance)
+{
+  maxdist = distance;
+}
+
+/* ----------------------------------------------------------------------
+   # of grid cells beyond an owned grid cell that caller accesses
+   e.g. for a finite different stencial
+   can be different in lo vs hi direction
+------------------------------------------------------------------------- */
+
+void Grid3d::set_stencil_grid(int lo, int hi)
+{
+  stencil_grid_lo = lo;
+  stencil_grid_hi = hi;
+}
+
+/* ----------------------------------------------------------------------
+   # of grid cells beyond a particle's grid cell that caller updates
+   e.g. for smearing a point charge to the grid
+   can be different in lo vs hi direction
+------------------------------------------------------------------------- */
+
+void Grid3d::set_stencil_atom(int lo, int hi)
+{
+  stencil_atom_lo = lo;
+  stencil_atom_hi = hi;
+}
+
+/* ----------------------------------------------------------------------
+   shift_grid = offset of position of grid point within grid cell
+   0.5 = cell center, 0.0 = lower-left corner of cell
+   used to determine which proc owns the grid cell within its subdomain
+------------------------------------------------------------------------- */
+
+void Grid3d::set_shift_grid(double shift)
+{
+  shift_grid = shift;
+}
+
+/* ----------------------------------------------------------------------
+   shift_atom = offset of atoms when caller maps them to grid cells
+   0.5 = half a grid cell, 0.0 = no offset
+   used when computing possible ghost extent
+   PPPM uses 0.5 when order is odd, 0.0 when order is even
+------------------------------------------------------------------------- */
+
+void Grid3d::set_shift_atom(double shift)
+{
+  shift_atom = shift;
+}
+
+/* ----------------------------------------------------------------------
+   zfactor > 1.0 when grid extends beyond simulation box bounds in Z
+   used by KSpace PPPM for 2d periodic slab geometries
+   default = 1.0 (no extension in Z)
+------------------------------------------------------------------------- */
+
+void Grid3d::set_zfactor(double factor)
+{
+  zfactor = factor;
+}
+
+// ----------------------------------------------------------------------
+// retrieve Grid parameters
 // ----------------------------------------------------------------------
 
 int Grid3d::identical(Grid3d *grid2)
@@ -375,7 +343,7 @@ int Grid3d::identical(Grid3d *grid2)
   int inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2;
   int outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2;
   
-  grid2->get_bounds(inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2);
+  grid2->get_bounds_owned(inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2);
   grid2->get_bounds_ghost(outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2);
 
   int flag = 0;
@@ -404,8 +372,8 @@ void Grid3d::get_size(int &nxgrid, int &nygrid, int &nzgrid)
 
 /* ---------------------------------------------------------------------- */
 
-void Grid3d::get_bounds(int &xlo, int &xhi, int &ylo, int &yhi,
-                        int &zlo, int &zhi)
+void Grid3d::get_bounds_owned(int &xlo, int &xhi, int &ylo, int &yhi,
+                              int &zlo, int &zhi)
 {
   xlo = inxlo;
   xhi = inxhi;
@@ -432,6 +400,113 @@ void Grid3d::get_bounds_ghost(int &xlo, int &xhi, int &ylo, int &yhi,
 // define owned and ghost grid cells
 // also store comm and grid partitioning info
 // ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   setup grid partition for each proc = owned + ghost cells
+   return:
+     i xyz lohi = portion of global grid this proc owns, 0 <= index < N
+     o xyz lohi = owned + ghost grid cells in all directions
+   for periodic dims, o indices can be < 0 or >= N
+   for non-periodic dims, o indices will be >= 0 and < N
+     since no grid comm is done across non-periodic boundaries
+------------------------------------------------------------------------- */
+
+void Grid3d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi,
+                        int &izlo, int &izhi,
+                        int &oxlo, int &oxhi, int &oylo, int &oyhi,
+                        int &ozlo, int &ozhi)
+{
+  // owned grid cells = those whose grid point is within proc subdomain
+  // shift_grid = 0.5 for grid point at cell center, 0.0 for lower-left corner
+  
+  double fraclo,frachi;
+  
+  if (comm->layout != Comm::LAYOUT_TILED) {
+    fraclo = comm->xsplit[comm->myloc[0]];
+    frachi = comm->xsplit[comm->myloc[0]+1];
+    partition_grid(nx,fraclo,frachi,shift_grid,inxlo,inxhi);
+    fraclo = comm->ysplit[comm->myloc[1]];
+    frachi = comm->ysplit[comm->myloc[1]+1];
+    partition_grid(ny,fraclo,frachi,shift_grid,inylo,inyhi);
+    fraclo = comm->zsplit[comm->myloc[2]];
+    frachi = comm->zsplit[comm->myloc[2]+1];
+    partition_grid(nz,fraclo,frachi,shift_grid,inzlo,inzhi);
+  } else {
+    fraclo = comm->mysplit[0][0];
+    frachi = comm->mysplit[0][1];
+    partition_grid(nx,fraclo,frachi,shift_grid,inxlo,inxhi);
+    fraclo = comm->mysplit[1][0];
+    frachi = comm->mysplit[1][1];
+    partition_grid(ny,fraclo,frachi,shift_grid,inylo,inyhi);
+    fraclo = comm->mysplit[2][0];
+    frachi = comm->mysplit[2][1];
+    partition_grid(nz,fraclo,frachi,shift_grid,inzlo,inzhi);
+  }
+
+  // extend owned grid bounds with ghost grid cells in each direction
+
+  ghost_grid();
+
+  // error check on size of grid stored by this proc
+
+  bigint total = (bigint)
+    (outxhi - outxlo + 1) * (outyhi - outylo + 1) * (outzhi - outzlo + 1);
+  if (total > MAXSMALLINT)
+    error->one(FLERR, "Too many owned+ghost grid3d points");
+
+  // default = caller grid is allocated to ghost grid
+  // used when computing pack/unpack lists in indices()
+  // NOTE: allow caller to override this
+  
+  fullxlo = outxlo;
+  fullxhi = outxhi;
+  fullylo = outylo;
+  fullyhi = outyhi;
+  fullzlo = outzlo;
+  fullzhi = outzhi;
+
+  // initialize data structs
+
+  nswap = maxswap = 0;
+  swap = nullptr;
+
+  nsend = nrecv = ncopy = 0;
+  send = nullptr;
+  recv = nullptr;
+  copy = nullptr;
+  requests = nullptr;
+  requests_remap = nullptr;
+
+  xsplit = ysplit = zsplit = nullptr;
+  grid2proc = nullptr;
+  rcbinfo = nullptr;
+
+  nsend_remap = nrecv_remap = self_remap = 0;
+  send_remap = nullptr;
+  recv_remap = nullptr;
+
+  // store info about Comm decomposition needed for remap operation
+  // two Grid instances will exist for duration of remap
+  // each must know Comm decomp at time Grid instance was created
+
+  extract_comm_info();
+
+  // return values
+  
+  ixlo = inxlo;
+  ixhi = inxhi;
+  iylo = inylo;
+  iyhi = inyhi;
+  izlo = inzlo;
+  izhi = inzhi;
+
+  oxlo = outxlo;
+  oxhi = outxhi;
+  oylo = outylo;
+  oyhi = outyhi;
+  ozlo = outzlo;
+  ozhi = outzhi;
+}
 
 /* ----------------------------------------------------------------------
    partition a global regular grid into one brick-shaped sub-grid per proc
@@ -468,7 +543,7 @@ void Grid3d::partition_grid(int ngrid, double fraclo, double frachi,
    ghost cell indices for periodic systems can be < 0 or >= N
 ------------------------------------------------------------------------- */
 
-void Grid3d::ghost_grid(double maxdist, int extra)
+void Grid3d::ghost_grid()
 {
   double *prd,*boxlo,*sublo,*subhi;
   int triclinic = domain->triclinic;
@@ -491,10 +566,11 @@ void Grid3d::ghost_grid(double maxdist, int extra)
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = maxdist;
   else MathExtra::tribbox(domain->h,maxdist,&dist[0]);
 
-  // nlo,nhi = min/max index of global grid cell my owned atoms can be mapped to
-  //           including up to maxdist displacement outside my subdomain
-  // extra = additional ghost layers required by called (e.g. finite diff stencil)
-  // max of the two quantities = ghost cell layers needed in each dim/dir
+  // lo/hi = min/max index of global grid cells my owned atoms can be mapped to
+  //   includes effects of maxdist and shift_atom settings
+  // lo/hi can be further extended by stencil_atom and stencil_grid settings
+  // all those settings are set by caller
+  // ghost cell layers needed in each dim/dir = max of two extension effects
   // OFFSET allows generation of negative indices with static_cast
   // out xyz lo/hi = index range of owned + ghost cells
   
@@ -503,22 +579,22 @@ void Grid3d::ghost_grid(double maxdist, int extra)
   double dzinv = nz / prd[2];
   int lo, hi;
 
-  lo = static_cast<int>((sublo[0]-dist[0]-boxlo[0]) * dxinv + OFFSET) - OFFSET;
-  hi = static_cast<int>((subhi[0]+dist[0]-boxlo[0]) * dxinv + OFFSET) - OFFSET;
-  outxlo = MIN(lo, inxlo - extra);
-  outxhi = MAX(hi, inxhi + extra);
+  lo = static_cast<int>((sublo[0]-dist[0]-boxlo[0]) * dxinv + shift_atom + OFFSET) - OFFSET;
+  hi = static_cast<int>((subhi[0]+dist[0]-boxlo[0]) * dxinv + shift_atom + OFFSET) - OFFSET;
+  outxlo = MIN(lo - stencil_atom_lo, inxlo - stencil_grid_lo);
+  outxhi = MAX(hi + stencil_atom_hi, inxhi + stencil_grid_hi);
 
-  lo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv + OFFSET) - OFFSET;
-  hi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv + OFFSET) - OFFSET;
-  outylo = MIN(lo, inylo - extra);
-  outyhi = MAX(hi, inyhi + extra);
+  lo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv + shift_atom + OFFSET) - OFFSET;
+  hi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv + shift_atom + OFFSET) - OFFSET;
+  outxlo = MIN(lo - stencil_atom_lo, inylo - stencil_grid_lo);
+  outxhi = MAX(hi + stencil_atom_hi, inyhi + stencil_grid_hi);
 
   // NOTE: need to account for zfactor here
   
-  lo = static_cast<int>((sublo[2]-dist[2]-boxlo[2]) * dzinv + OFFSET) - OFFSET;
-  hi = static_cast<int>((subhi[2]+dist[2]-boxlo[2]) * dzinv + OFFSET) - OFFSET;
-  outzlo = MIN(lo, inzlo - extra);
-  outzhi = MAX(hi, inzhi + extra);
+  lo = static_cast<int>((sublo[2]-dist[2]-boxlo[2]) * dzinv + shift_atom + OFFSET) - OFFSET;
+  hi = static_cast<int>((subhi[2]+dist[2]-boxlo[2]) * dzinv + shift_atom + OFFSET) - OFFSET;
+  outxlo = MIN(lo - stencil_atom_lo, inzlo - stencil_grid_lo);
+  outxhi = MAX(hi + stencil_atom_hi, inzhi + stencil_grid_hi);
 
   // limit out xyz lo/hi indices to global grid for non-periodic dims
 
@@ -1427,7 +1503,8 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   // overlap_old = vector of overlap info in Overlap data struct
 
   int oldbox[6];
-  old->get_bounds(oldbox[0],oldbox[1],oldbox[2],oldbox[3],oldbox[4],oldbox[5]);
+  old->get_bounds_owned(oldbox[0],oldbox[1],oldbox[2],oldbox[3],
+                        oldbox[4],oldbox[5]);
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   Overlap *overlap_old;
@@ -1466,7 +1543,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   // overlap_new = vector of overlap info in Overlap data struct
 
   int newbox[6];
-  get_bounds(newbox[0],newbox[1],newbox[2],newbox[3],newbox[4],newbox[5]);
+  get_bounds_owned(newbox[0],newbox[1],newbox[2],newbox[3],newbox[4],newbox[5]);
   pbc[0] = pbc[1] = pbc[2] = 0;
 
   Overlap *overlap_new;
@@ -1762,9 +1839,9 @@ int Grid3d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
     for (int k = kproclo; k <= kprochi; k++)
       for (int j = jproclo; j <= jprochi; j++)
 	for (int i = iproclo; i <= iprochi; i++) {
-          partition_grid(nx,xsplit[i],xsplit[i+1],shift,obox[0],obox[1]);
-          partition_grid(ny,ysplit[j],ysplit[j+1],shift,obox[2],obox[3]);
-          partition_grid(nz,zsplit[k],zsplit[k+1],shift,obox[4],obox[5]);
+          partition_grid(nx,xsplit[i],xsplit[i+1],shift_grid,obox[0],obox[1]);
+          partition_grid(ny,ysplit[j],ysplit[j+1],shift_grid,obox[2],obox[3]);
+          partition_grid(nz,zsplit[k],zsplit[k+1],shift_grid,obox[4],obox[5]);
 
 	  if (noverlap_list == maxoverlap_list) grow_overlap();
 	  overlap_list[noverlap_list].proc = grid2proc[i][j][k];

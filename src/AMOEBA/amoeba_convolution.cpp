@@ -104,82 +104,29 @@ void AmoebaConvolution::reset_grid()
 
 void AmoebaConvolution::allocate_grid()
 {
-  // global indices of grid range from 0 to N-1
-  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-  //   global grid that I own without ghost cells
-  // both non-tiled and tiled proc layouts use 0-1 fractional subdomain info
-
-  if (comm->layout != Comm::LAYOUT_TILED) {
-    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
-    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
-    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
-    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
-    nzlo_in = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
-    nzhi_in = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
-
-  } else {
-    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nx);
-    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nx) - 1;
-    nylo_in = static_cast<int> (comm->mysplit[1][0] * ny);
-    nyhi_in = static_cast<int> (comm->mysplit[1][1] * ny) - 1;
-    nzlo_in = static_cast<int> (comm->mysplit[2][0] * nz);
-    nzhi_in = static_cast<int> (comm->mysplit[2][1] * nz) - 1;
-  }
-
+  // maxdist = max distance outside of subbox my owned atom may be
   // nlower,nupper = stencil size for mapping particles to FFT grid
 
+  double maxdist = 0.5*neighbor->skin;
   int nlower = -(order-1)/2;
   int nupper = order/2;
 
-  // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
-  //   global grid that my particles can contribute charge to
-  // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
-  //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0
-  //   convert to triclinic if necessary
-  // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
+  // Grid3d determines my owned + ghost grid cells
+  // ghost cell extent depends on maxdist, nlower, nupper
+  
+  gc = new Grid3d(lmp,world,nx,ny,nz);
+  gc->set_distance(maxdist);
+  gc->set_stencil_atom(-nlower,nupper);
 
-  double *prd,*boxlo,*sublo,*subhi;
-  int triclinic = domain->triclinic;
+  gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                 nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
-  if (triclinic == 0) {
-    prd = domain->prd;
-    boxlo = domain->boxlo;
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    prd = domain->prd_lamda;
-    boxlo = domain->boxlo_lamda;
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
-  }
+  int nqty = flag3d ? 1 : 2;
+  int ngc_buf1,ngc_buf2;
 
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-
-  double dist[3] = {0.0,0.0,0.0};
-  double cuthalf = 0.5*neighbor->skin;
-  if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else MathExtra::tribbox(domain->h,cuthalf,&dist[0]);
-
-  int nlo,nhi;
-
-  nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) * nx/xprd);
-  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) * nx/xprd);
-  nxlo_out = nlo + nlower;
-  nxhi_out = nhi + nupper;
-
-  nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) * ny/yprd);
-  nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) * ny/yprd);
-  nylo_out = nlo + nlower;
-  nyhi_out = nhi + nupper;
-
-  nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) * nz/zprd);
-  nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) * nz/zprd);
-  nzlo_out = nlo + nlower;
-  nzhi_out = nhi + nupper;
+  gc->setup_comm(ngc_buf1,ngc_buf2);
+  memory->create(gc_buf1,nqty*ngc_buf1,"amoeba:gc_buf1");
+  memory->create(gc_buf2,nqty*ngc_buf2,"amoeba:gc_buf2");
 
   // x-pencil decomposition of FFT mesh
   // global indices range from 0 to N-1
@@ -210,7 +157,7 @@ void AmoebaConvolution::allocate_grid()
   nzlo_fft = me_z*nz/npez_fft;
   nzhi_fft = (me_z+1)*nz/npez_fft - 1;
 
-  // grid sizes
+  // FFT grid sizes
   // nbrick_owned = owned grid points in brick decomp
   // nbrick_ghosts = owned + ghost grid points in grid decomp
   // nfft_owned = owned grid points in FFT decomp
@@ -226,7 +173,7 @@ void AmoebaConvolution::allocate_grid()
 
   ngrid_either = MAX(nbrick_owned,nfft_owned);
 
-  // instantiate FFT, Grid3d, and Remap
+  // instantiate FFT and Remap
 
   int tmp;
 
@@ -240,11 +187,6 @@ void AmoebaConvolution::allocate_grid()
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                    0,0,&tmp,0);
 
-  gc = new Grid3d(lmp,world,nx,ny,nz,
-                  nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                  nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-
-  int nqty = flag3d ? 1 : 2;
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
@@ -266,12 +208,6 @@ void AmoebaConvolution::allocate_grid()
 
   memory->create(grid_fft,ngrid_either,"amoeba:grid_fft");
   memory->create(cfft,2*ngrid_either,"amoeba:cfft");
-
-  int ngc_buf1,ngc_buf2;
-  gc->setup(ngc_buf1,ngc_buf2);
-  memory->create(gc_buf1,nqty*ngc_buf1,"amoeba:gc_buf1");
-  memory->create(gc_buf2,nqty*ngc_buf2,"amoeba:gc_buf2");
-
   memory->create(remap_buf,nqty*nfft_owned,"amoeba:remap_buf");
 }
 
@@ -279,18 +215,20 @@ void AmoebaConvolution::allocate_grid()
 
 void AmoebaConvolution::deallocate_grid()
 {
+  delete gc;
+
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+
+  delete fft1;
+  delete fft2;
+  delete remap;
+
   memory->destroy3d_offset(grid_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset_last(cgrid_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(grid_fft);
   memory->destroy(cfft);
-  memory->destroy(gc_buf1);
-  memory->destroy(gc_buf2);
   memory->destroy(remap_buf);
-
-  delete fft1;
-  delete fft2;
-  delete gc;
-  delete remap;
 }
 
 /* ----------------------------------------------------------------------

@@ -604,7 +604,7 @@ void MSM::allocate()
                        nxlo_out[0],nxhi_out[0],nylo_out[0],
                        nyhi_out[0],nzlo_out[0],nzhi_out[0]);
 
-  gcall->setup(ngcall_buf1,ngcall_buf2);
+  gcall->setup_comm(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
   memory->destroy(gcall_buf1);
   memory->destroy(gcall_buf2);
@@ -636,7 +636,7 @@ void MSM::allocate()
                            procneigh[0][0],procneigh[0][1],procneigh[1][0],
                            procneigh[1][1],procneigh[2][0],procneigh[2][1]);
 
-      gc[n]->setup(ngc_buf1[n],ngc_buf2[n]);
+      gc[n]->setup_comm(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
       memory->destroy(gc_buf1[n]);
       memory->destroy(gc_buf2[n]);

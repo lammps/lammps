@@ -28,6 +28,7 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "remap_wrap.h"
 #include "update.h"
@@ -188,7 +189,7 @@ void PPPMDipole::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  Grid3d *gctmp = nullptr;
+  gc_dipole = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -201,23 +202,28 @@ void PPPMDipole::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+    gc_dipole = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+    gc_dipole->set_distance(0.5*neighbor->skin + qdist);
+    gc_dipole->set_stencil_atom(-nlower,nupper);
+    gc_dipole->set_shift_atom(shiftatom);
+    gc_dipole->set_zfactor(slab_volfactor);
+  
+    gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                          nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
     int tmp1,tmp2;
-    gctmp->setup(tmp1,tmp2);
-    if (gctmp->ghost_adjacent()) break;
-    delete gctmp;
+    gc_dipole->setup_comm(tmp1,tmp2);
+    if (gc_dipole->ghost_adjacent()) break;
+    delete gc_dipole;
 
     order--;
     iteration++;
   }
 
   if (order < minorder) error->all(FLERR,"PPPMDipole order < minimum allowed order");
-  if (!overlap_allowed && !gctmp->ghost_adjacent())
+  if (!overlap_allowed && !gc_dipole->ghost_adjacent())
     error->all(FLERR,"PPPMDipole grid stencil extends beyond nearest neighbor processor");
-  if (gctmp) delete gctmp;
+  if (gc_dipole) delete gc_dipole;
 
   // adjust g_ewald
 
@@ -436,7 +442,7 @@ void PPPMDipole::compute(int eflag, int vflag)
 
   particle_map();
   make_rho_dipole();
-
+ 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
@@ -528,6 +534,28 @@ void PPPMDipole::compute(int eflag, int vflag)
 
 void PPPMDipole::allocate()
 {
+  // create ghost grid object for rho and electric field communication
+  // returns local owned and ghost grid bounds
+  // setup communication patterns and buffers
+
+  gc_dipole = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+  gc_dipole->set_distance(0.5*neighbor->skin + qdist);
+  gc_dipole->set_stencil_atom(-nlower,nupper);
+  gc_dipole->set_shift_atom(shiftatom);
+  gc_dipole->set_zfactor(slab_volfactor);
+
+  gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                        nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
+  gc_dipole->setup_comm(ngc_buf1,ngc_buf2);
+
+  npergrid = 9;
+
+  memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
+  memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
+
+  // allocate distributed grid data
+  
   memory->create3d_offset(densityx_brick_dipole,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm_dipole:densityx_brick_dipole");
   memory->create3d_offset(densityy_brick_dipole,nzlo_out,nzhi_out,nylo_out,nyhi_out,
@@ -601,20 +629,6 @@ void PPPMDipole::allocate()
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                     1,0,0,FFT_PRECISION,collective_flag);
-
-  // create ghost grid object for rho and electric field communication
-  // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
-
-  gc_dipole = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-
-  gc_dipole->setup(ngc_buf1,ngc_buf2);
-
-  npergrid = 9;
-
-  memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
-  memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
 }
 
 /* ----------------------------------------------------------------------
@@ -623,6 +637,10 @@ void PPPMDipole::allocate()
 
 void PPPMDipole::deallocate()
 {
+  delete gc_dipole;
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+
   memory->destroy3d_offset(densityx_brick_dipole,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(densityy_brick_dipole,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(densityz_brick_dipole,nzlo_out,nylo_out,nxlo_out);
@@ -645,7 +663,9 @@ void PPPMDipole::deallocate()
   memory->destroy(work3);
   memory->destroy(work4);
 
-  delete gc_dipole;
+  delete fft1;
+  delete fft2;
+  delete remap;
 }
 
 /* ----------------------------------------------------------------------

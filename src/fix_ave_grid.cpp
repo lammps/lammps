@@ -411,10 +411,10 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
 
   } else {
-    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 0, 0.5,
-                        nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
-                        nxlo_out, nxhi_out, nylo_out, nyhi_out,
-                        nzlo_out, nzhi_out);
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+    grid3d->set_distance(maxdist);
+    grid3d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
+                       nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
     // ngrid_buf12 converted to nvalues + count
 

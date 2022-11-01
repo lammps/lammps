@@ -292,7 +292,7 @@ void PPPM::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  Grid3d *gctmp = nullptr;
+  gc = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -305,23 +305,28 @@ void PPPM::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+    gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+    gc->set_distance(0.5*neighbor->skin + qdist);
+    gc->set_stencil_atom(-nlower,nupper);
+    gc->set_shift_atom(shiftatom);
+    gc->set_zfactor(slab_volfactor);
+  
+    gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
     int tmp1,tmp2;
-    gctmp->setup(tmp1,tmp2);
-    if (gctmp->ghost_adjacent()) break;
-    delete gctmp;
+    gc->setup_comm(tmp1,tmp2);
+    if (gc->ghost_adjacent()) break;
+    delete gc;
 
     order--;
     iteration++;
   }
 
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
-  if (!overlap_allowed && !gctmp->ghost_adjacent())
+  if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
-  if (gctmp) delete gctmp;
+  if (gc) delete gc;
 
   // adjust g_ewald
 
@@ -739,6 +744,29 @@ void PPPM::compute(int eflag, int vflag)
 
 void PPPM::allocate()
 {
+  // create ghost grid object for rho and electric field communication
+  // returns local owned and ghost grid bounds
+  // setup communication patterns and buffers
+
+  gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+  gc->set_distance(0.5*neighbor->skin + qdist);
+  gc->set_stencil_atom(-nlower,nupper);
+  gc->set_shift_atom(shiftatom);
+  gc->set_zfactor(slab_volfactor);
+
+  gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                 nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
+  gc->setup_comm(ngc_buf1,ngc_buf2);
+
+  if (differentiation_flag) npergrid = 1;
+  else npergrid = 3;
+
+  memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
+  memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
+
+  // allocate distributed grid data
+  
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick");
 
@@ -809,21 +837,6 @@ void PPPM::allocate()
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                     1,0,0,FFT_PRECISION,collective_flag);
-
-  // create ghost grid object for rho and electric field communication
-  // also create 2 bufs for ghost grid cell comm, passed to Grid3d methods
-
-  gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-
-  gc->setup(ngc_buf1,ngc_buf2);
-
-  if (differentiation_flag) npergrid = 1;
-  else npergrid = 3;
-
-  memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
-  memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
 }
 
 /* ----------------------------------------------------------------------
@@ -832,6 +845,10 @@ void PPPM::allocate()
 
 void PPPM::deallocate()
 {
+  delete gc;
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
 
   if (differentiation_flag == 1) {
@@ -874,9 +891,6 @@ void PPPM::deallocate()
   delete fft1;
   delete fft2;
   delete remap;
-  delete gc;
-  memory->destroy(gc_buf1);
-  memory->destroy(gc_buf2);
 }
 
 /* ----------------------------------------------------------------------
@@ -1309,85 +1323,41 @@ double PPPM::final_accuracy()
 }
 
 /* ----------------------------------------------------------------------
-   set local subset of PPPM/FFT grid that I own
-   n xyz lo/hi in = 3d brick that I own (inclusive)
-   n xyz lo/hi out = 3d brick + ghost cells in 6 directions (inclusive)
-   n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
+   set params which determine which owned and ghost cells this proc owns
+   Grid3d will use these params to partition grid
+   also partition FFT grid
+     n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
 ------------------------------------------------------------------------- */
 
 void PPPM::set_grid_local()
 {
-  // partition global grid across procs
-  // n xyz lo/hi in = lower/upper bounds of global grid this proc owns
-  // indices range from 0 to N-1 inclusive in each dim
+  // shift values for particle <-> grid mapping
+  // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
-  comm->partition_grid(nx_pppm,ny_pppm,nz_pppm,slab_volfactor,
-                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+  if (order % 2) shiftatom = 0.5;
+  else shiftatom = 0.0;
+  shift = OFFSET + shiftatom;
+  
+  if (order % 2) shiftone = 0.0;
+  else shiftone = 0.5;
 
   // nlower,nupper = stencil size for mapping particles to PPPM grid
 
   nlower = -(order-1)/2;
   nupper = order/2;
 
-  // shift values for particle <-> grid mapping
-  // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
-  if (order % 2) shift = OFFSET + 0.5;
-  else shift = OFFSET;
-  if (order % 2) shiftone = 0.0;
-  else shiftone = 0.5;
 
-  // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
-  //   global PPPM grid that my particles can contribute charge to
-  // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = index of global grid pt to "lower left" of smallest/largest
-  //           position a particle in my box can be at
-  // dist[3] = max particle position outside subbox = skin/2.0 + qdist
-  //   qdist = offset due to TIP4P fictitious charge
-  //   convert to triclinic if necessary
-  // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
-  // for slab PPPM, assign z grid as if it were not extended
+  
+  // NOTE: still to do: stagger and zperiod effects
 
-  double *prd,*sublo,*subhi;
+  /*
 
-  if (triclinic == 0) {
-    prd = domain->prd;
-    boxlo = domain->boxlo;
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    prd = domain->prd_lamda;
-    boxlo = domain->boxlo_lamda;
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
-  }
-
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
+  // extent of zprd when 2d slab mode is selected
+  
   double zprd_slab = zprd*slab_volfactor;
 
-  double dist[3] = {0.0,0.0,0.0};
-  double cuthalf = 0.5*neighbor->skin + qdist;
-  if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else MathExtra::tribbox(domain->h,cuthalf,&dist[0]);
-
-  int nlo,nhi;
-  nlo = nhi = 0;
-
-  nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
-                            nx_pppm/xprd + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
-                            nx_pppm/xprd + shift) - OFFSET;
-  nxlo_out = nlo + nlower;
-  nxhi_out = nhi + nupper;
-
-  nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) *
-                            ny_pppm/yprd + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) *
-                            ny_pppm/yprd + shift) - OFFSET;
-  nylo_out = nlo + nlower;
-  nyhi_out = nhi + nupper;
+  // for slab PPPM, assign z grid as if it were not extended
 
   nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
                             nz_pppm/zprd_slab + shift) - OFFSET;
@@ -1395,6 +1365,7 @@ void PPPM::set_grid_local()
                             nz_pppm/zprd_slab + shift) - OFFSET;
   nzlo_out = nlo + nlower;
   nzhi_out = nhi + nupper;
+
 
   if (stagger_flag) {
     nxhi_out++;
@@ -1420,6 +1391,11 @@ void PPPM::set_grid_local()
     nzhi_out = MIN(nzhi_out,nz_pppm-1);
   }
 
+  */
+
+
+
+  
   // x-pencil decomposition of FFT mesh
   // global indices range from 0 to N-1
   // each proc owns entire x-dimension, clumps of columns in y,z dimensions
@@ -1446,18 +1422,22 @@ void PPPM::set_grid_local()
   nzlo_fft = me_z*nz_pppm/npez_fft;
   nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
+  // nfft = FFT points in x-pencil FFT decomposition on this proc
+
+  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
+    (nzhi_fft-nzlo_fft+1);
+
+
+  
   // ngrid = count of PPPM grid pts owned by this proc, including ghosts
 
   ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
 
   // count of FFT grids pts owned by this proc, without ghosts
-  // nfft = FFT points in x-pencil FFT decomposition on this proc
   // nfft_brick = FFT points in 3d brick-decomposition on this proc
   // nfft_both = greater of 2 values
 
-  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
-    (nzhi_fft-nzlo_fft+1);
   int nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
     (nzhi_in-nzlo_in+1);
   nfft_both = MAX(nfft,nfft_brick);
@@ -1908,7 +1888,7 @@ void PPPM::make_rho()
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
+  // (mx,my,mz) = global indices of moving stencil pt
 
   double *q = atom->q;
   double **x = atom->x;

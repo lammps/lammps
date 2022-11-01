@@ -446,7 +446,7 @@ void PPPMDisp::init()
                            nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
       int tmp1,tmp2;
-      gctmp->setup(tmp1,tmp2);
+      gctmp->setup_comm(tmp1,tmp2);
       if (gctmp->ghost_adjacent()) break;
       delete gctmp;
 
@@ -526,7 +526,7 @@ void PPPMDisp::init()
                            nzlo_out_6,nzhi_out_6);
 
       int tmp1,tmp2;
-      gctmp->setup(tmp1,tmp2);
+      gctmp->setup_comm(tmp1,tmp2);
       if (gctmp->ghost_adjacent()) break;
       delete gctmp;
 
@@ -1754,7 +1754,7 @@ void _noopt PPPMDisp::allocate()
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
-    gc->setup(ngc_buf1,ngc_buf2);
+    gc->setup_comm(ngc_buf1,ngc_buf2);
 
     if (differentiation_flag) npergrid = 1;
     else npergrid = 3;
@@ -1838,7 +1838,7 @@ void _noopt PPPMDisp::allocate()
                    nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                    nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
-    gc6->setup(ngc6_buf1,ngc6_buf2);
+    gc6->setup_comm(ngc6_buf1,ngc6_buf2);
 
     if (differentiation_flag) npergrid6 = 1;
     else npergrid6 = 3;
@@ -2001,7 +2001,7 @@ void _noopt PPPMDisp::allocate()
                    nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                    nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
-    gc6->setup(ngc6_buf1,ngc6_buf2);
+    gc6->setup_comm(ngc6_buf1,ngc6_buf2);
 
     if (differentiation_flag) npergrid6 = 7;
     else npergrid6 = 21;
@@ -2088,7 +2088,7 @@ void _noopt PPPMDisp::allocate()
                    nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                    nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
-    gc6->setup(ngc6_buf1,ngc6_buf2);
+    gc6->setup_comm(ngc6_buf1,ngc6_buf2);
 
     if (differentiation_flag) npergrid6 = 1*nsplit_alloc;
     else npergrid6 = 3*nsplit_alloc;

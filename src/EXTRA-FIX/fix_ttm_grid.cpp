@@ -485,10 +485,11 @@ void FixTTMGrid::reset_grid()
 
   int tmp[12];
   double maxdist = 0.5 * neighbor->skin;
-  Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid,
-                               maxdist, 1, 0.5,
-			       tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],
-			       tmp[6],tmp[7],tmp[8],tmp[9],tmp[10],tmp[11]);
+  Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+  gridnew->set_distance(maxdist);
+  gridnew->set_stencil_grid(1,1);
+  gridnew->setup_grid(tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],
+                      tmp[6],tmp[7],tmp[8],tmp[9],tmp[10],tmp[11]);
   
   if (grid->identical(gridnew)) {
     delete gridnew;
@@ -632,9 +633,11 @@ void FixTTMGrid::allocate_grid()
 {
   double maxdist = 0.5 * neighbor->skin;
 
-  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, maxdist, 1, 0.5,
-                    nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
-                    nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
+  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+  grid->set_distance(maxdist);
+  grid->set_stencil_grid(1,1);
+  grid->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
+                   nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
 
   ngridown = (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) *
     (nzhi_in - nzlo_in + 1);

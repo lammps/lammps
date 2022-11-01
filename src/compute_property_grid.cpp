@@ -252,9 +252,9 @@ void ComputePropertyGrid::allocate_grid()
     ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
 
   } else {
-    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid, 0.0, 0, 0.0, nxlo_in, nxhi_in, nylo_in,
-                        nyhi_in, nzlo_in, nzhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out,
-                        nzhi_out);
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+    grid3d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
+                       nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
     if (nvalues == 1)
       memory->create3d_offset(vec3d, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
                               "property/grid:vec3d");

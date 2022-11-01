@@ -217,6 +217,10 @@ void PairAmoeba::bspline_fill()
     // NOTE: could subtract off nlpts to start with
     // NOTE: this is place to check that stencil size does not
     //       go out of bounds relative to igrid for a proc's sub-domain
+    //       similar to PPPM::particle_map()
+    //       subtracting eps is strange, and could mess up the check
+    //       better to check here than in methods like grid_mpole()
+    //       but check needs to be valid for all KSpace terms
     // NOTE: could convert x -> lamda for entire set of Nlocal atoms
 
     domain->x2lamda(x[i],lamda);

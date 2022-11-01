@@ -183,24 +183,23 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::v_tally(int vflag_either, int vflag_g
 template <class DeviceType>
 void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_force_gradients(class MLIAPData *data_)
 {
-
   error->all(FLERR,"This has not been tested in cuda/kokkos");
 
   auto data = static_cast<MLIAPDataKokkos<DeviceType>*>(data_);
   int npairs = data->nij_total;
   so3ptr_kokkos->spectrum_dxdr(data->nlistatoms, data->k_numneighs, data->k_jelems, this->k_wjelem, data->k_rij, data->k_ij,
                                nmax, lmax, rcutfac, alpha, npairs, data->ndescriptors);
-  auto d_dplist_r=so3ptr_kokkos->k_dplist_r;
+  auto d_dplist_r = so3ptr_kokkos->k_dplist_r;
   auto d_gradforce = data->k_gradforce.template view<DeviceType>();
-  auto d_gamma= data->k_gamma.template view<DeviceType>();
+  auto d_gamma = data->k_gamma.template view<DeviceType>();
   auto d_gamma_row_index = data->k_gamma_row_index.template view<DeviceType>();
   auto d_gamma_col_index = data->k_gamma_col_index.template view<DeviceType>();
-  auto d_jatoms= data->k_jatoms.template view<DeviceType>();
-  auto d_ij= data->k_ij.template view<DeviceType>();
+  auto d_jatoms = data->k_jatoms.template view<DeviceType>();
+  auto d_ij = data->k_ij.template view<DeviceType>();
   auto d_numneighs = data->k_numneighs.template view<DeviceType>();
   auto d_iatoms = data->k_iatoms.template view<DeviceType>();
 
-  auto yoffset=data->yoffset, zoffset=data->zoffset, gamma_nnz=data->gamma_nnz;
+  auto yoffset = data->yoffset, zoffset = data->zoffset, gamma_nnz = data->gamma_nnz;
 
   Kokkos::parallel_for (data->nlistatoms, KOKKOS_LAMBDA (int ii) {
     const int i = d_iatoms(ii);
@@ -253,7 +252,6 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptor_gradients(class ML
 template <class DeviceType>
 void MLIAPDescriptorSO3Kokkos<DeviceType>::init()
 {
-  //MLIAPDescriptorSO3::init();
   so3ptr_kokkos->init();
   MLIAPDescriptorKokkos<DeviceType>::init_data();
 }

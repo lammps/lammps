@@ -212,7 +212,6 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   k_cutsq.modify<LMPHostType>();
   k_cutsq.sync<DeviceType>();
 
-
   // clear setflag since coeff() called once with I,J = * *
 
   int n = atom->ntypes;

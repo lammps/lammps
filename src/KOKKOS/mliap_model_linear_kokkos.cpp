@@ -41,7 +41,7 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data
   // read but never changes
   auto d_coeffelem = this->k_coeffelem.template view<DeviceType>();
 
-  //read
+  // read
   auto d_ielems = k_data->k_ielems.template view<DeviceType>();
   auto d_descriptors = k_data->k_descriptors.template view<DeviceType>();
 
@@ -51,6 +51,7 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data
 
   const auto eflag = data->eflag;
   const int ndescriptors=data->ndescriptors;
+
   Kokkos::parallel_reduce(data->nlistatoms, KOKKOS_LAMBDA (int ii, double &update) {
     const int ielem = d_ielems(ii);
 
@@ -70,7 +71,6 @@ void MLIAPModelLinearKokkos<DeviceType>::compute_gradients(class MLIAPData *data
       d_eatoms(ii) = etmp;
     }
   }, data->energy);
-
 }
 
 /* ---------------------------------------------------------------------- */

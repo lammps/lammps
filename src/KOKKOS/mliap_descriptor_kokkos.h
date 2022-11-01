@@ -44,8 +44,6 @@ template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Poin
 
   virtual ~MLIAPDescriptorKokkos()
   {
-    //memoryKK->destroy_kokkos(k_coeffelem);
-    //model->coeffelem = nullptr;
     memoryKK->destroy_kokkos(k_wjelem);
   }
 

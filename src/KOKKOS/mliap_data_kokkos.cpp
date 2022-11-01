@@ -70,6 +70,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   list = list_in;
 
   // grow nmax gradforce array if necessary
+
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memoryKK->destroy_kokkos(k_gradforce,gradforce);
@@ -77,10 +78,12 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   }
 
   // clear gradforce array
+
   auto d_gradforce = k_gradforce.template view<DeviceType>();
   Kokkos::deep_copy(d_gradforce, 0.);
 
   // grow arrays if necessary
+
   nlistatoms = list->inum;
   if (nlistatoms_max < nlistatoms) {
     memoryKK->destroy_kokkos(k_betas,betas);
@@ -113,6 +116,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   grow_neigharrays();
 
   // Use the ielems memory for prefix scan and set it at the end to the i type
+
   auto d_iatoms = k_iatoms.template view<DeviceType>();
   auto d_ielems = k_ielems.template view<DeviceType>();
   auto d_ij = k_ij.template view<DeviceType>();
@@ -179,7 +183,9 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
 template<class DeviceType>
 void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
   AtomKokkos *atomKK = (AtomKokkos *) atom;
+
   // grow neighbor arrays if necessary
+
   if (natomneigh_max < nlistatoms) {
     natomneigh_max = nlistatoms;
 

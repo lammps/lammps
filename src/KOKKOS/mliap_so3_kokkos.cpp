@@ -13,7 +13,6 @@
  ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Byungkyun Kang (University of Nevada, Las Vegas)
    Contributing author: Matt Bettencourt (NVIDIA)
  ------------------------------------------------------------------------- */
 
@@ -99,11 +98,11 @@ MLIAP_SO3Kokkos<DeviceType>::~MLIAP_SO3Kokkos()
   memoryKK->destroy_kokkos(m_clisttot_r);
   memoryKK->destroy_kokkos(m_clisttot_i);
 
-  t_numneighs=int_1d();
-  t_jelems=int_1d();
-  t_wjelem=float_1d();
-  t_rij=float_2d();
-  t_ij=int_1d();
+  t_numneighs = int_1d();
+  t_jelems = int_1d();
+  t_wjelem = float_1d();
+  t_rij = float_2d();
+  t_ij = int_1d();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,7 +127,8 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   memoryKK->create_kokkos(m_ellm1, totali, "MLIAP_SO3Kokkos:m_ellm1");
   alloc_init = 2.0 * totali * sizeof(double);
   using range=Kokkos::RangePolicy<DeviceType>;
-  auto ellpl1=m_ellpl1, ellm1=m_ellm1;
+  auto ellpl1 = m_ellpl1, ellm1 = m_ellm1;
+
   Kokkos::parallel_for(range(0,m_lmax), KOKKOS_LAMBDA (int ll) {
     int l=ll+1;
     ellpl1[l] = get_sum(0, l + 2, 1, 2);
@@ -145,10 +145,10 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   memoryKK->create_kokkos(m_Ylms, totali, "MLIAP_SO3Kokkos:m_Ylms");
   alloc_init += 2 * totali * sizeof(double);
 
-  auto pfac=m_pfac, Ylms=m_Ylms;
-  auto pfac_l2=m_pfac_l2, lmax=m_lmax;
+  auto pfac = m_pfac, Ylms = m_Ylms;
+  auto pfac_l2 = m_pfac_l2, lmax = m_lmax;
   // Serial but just to make sure run with device memory
-  Kokkos::parallel_for(range(0,1), KOKKOS_LAMBDA (int ){
+  Kokkos::parallel_for(range(0,1), KOKKOS_LAMBDA (int ) {
     int i=0;
     for (int l = 0; l < lmax + 2; l++)
       for (int m = -l; m < l + 1; m++) {
@@ -156,7 +156,7 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
         Ylms[i] = pfac[l * pfac_l2 + m];
         i += 1;
       }
-    });
+  });
 
   m_dfac_l1 = m_lmax + 1;
   m_dfac_l2 = m_numYlms + 1;
@@ -175,10 +175,11 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   memoryKK->create_kokkos(m_dfac5, totali, "MLIAP_SO3Kokkos:m_dfac5");
   alloc_init += 6.0 * totali * sizeof(double);
 
-  auto dfac0=m_dfac0,dfac1=m_dfac1,dfac2=m_dfac2,dfac3=m_dfac3,dfac4=m_dfac4,dfac5=m_dfac5;
-  auto dfac_l2=m_dfac_l2;
+  auto dfac0 = m_dfac0,dfac1 = m_dfac1,dfac2 = m_dfac2,dfac3 = m_dfac3,dfac4 = m_dfac4,dfac5 = m_dfac5;
+  auto dfac_l2 = m_dfac_l2;
+
   Kokkos::parallel_for(range(0,m_lmax), KOKKOS_LAMBDA (int ll) {
-    int l=ll+1;
+    int l = ll+1;
     for (int m = -l; m < l + 1; m++) {
       dfac0[l * dfac_l2 + m] =
           -sqrt(((l + 1.0) * (l + 1.0) - m * m) / (2.0 * l + 1.0) / (2.0 * l + 3.0)) * l;
@@ -424,8 +425,8 @@ void MLIAP_SO3Kokkos<DeviceType>::compute_pi(int nmax, int lmax, ViewType clistt
 
         for (m = -l; m < l + 1; m++) {
 
-          plist_r(indpl, i) += ( clisttot_r(n1, j) * clisttot_r(n2, j) +
-                                 clisttot_i(n1, j) * clisttot_i(n2, j)) *
+          plist_r(indpl, i) += (clisttot_r(n1, j) * clisttot_r(n2, j) +
+                                clisttot_i(n1, j) * clisttot_i(n2, j)) *
               norm;
           j += 1;
         }
@@ -481,7 +482,6 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double MLIAP_SO3Kokkos<DeviceType>::compute_sfac(double r, double rcut) const
 {
-
   if (r > rcut)
     return 0.0;
   else
@@ -493,7 +493,6 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double MLIAP_SO3Kokkos<DeviceType>::compute_dsfac(double r, double rcut) const
 {
-
   if (r > rcut)
     return 0.0;
   else
@@ -753,21 +752,21 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
     alloc_arrays += 2.0 * totali * sizeof(double);
   }
 
-
-  t_numneighs=numneighs.template view<DeviceType>();
-  t_jelems=jelems.template view<DeviceType>();
-  t_wjelem=wjelem.template view<DeviceType>();
-  t_rij=rij.template view<DeviceType>();
+  t_numneighs = numneighs.template view<DeviceType>();
+  t_jelems = jelems.template view<DeviceType>();
+  t_wjelem = wjelem.template view<DeviceType>();
+  t_rij = rij.template view<DeviceType>();
   t_ij = k_ij.template view<DeviceType>();
-  t_nmax=nmax;
-  t_lmax=lmax;
-  t_rcut=rcut;
-  t_alpha=alpha;
+  t_nmax = nmax;
+  t_lmax = lmax;
+  t_rcut = rcut;
+  t_alpha = alpha;
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetSBESArrayTag> range(0,nlocal);
     Kokkos::parallel_for(range, *this);
   }
+
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetRipArrayTag> range(0,nlocal);
     Kokkos::parallel_for(range, *this);
@@ -838,7 +837,6 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
     }
   }
   compute_pi(t_nmax, t_lmax, clisttot_r, clisttot_i, m_numYlms, m_plist_r, ii);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -903,6 +901,7 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetSBESArrayTag> range(0,nlocal);
     Kokkos::parallel_for(range, *this);
   }
+
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetRipArrayTag> range(0,nlocal);
     Kokkos::parallel_for(range, *this);

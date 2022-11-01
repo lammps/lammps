@@ -536,9 +536,9 @@ int UCL_Device::create_context() {
   cl_int errorv;
   cl_context_properties props[3];
   props[0]=CL_CONTEXT_PLATFORM;
-  props[1]=_platform;
+  props[1]=(cl_context_properties)_cl_platform;
   props[2]=0;
-  _context=clCreateContext(0,1,&_cl_device,nullptr,nullptr,&errorv);
+  _context=clCreateContext(props,1,&_cl_device,nullptr,nullptr,&errorv);
   if (errorv!=CL_SUCCESS) {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << _device
